@@ -42,18 +42,23 @@ services:
     ports:
       - "127.0.0.1:38080:8080"
 
-  brouter:
-    build: ../services/brouter
-    container_name: pedalons-dev-brouter
+  valhalla:
+    image: ghcr.io/valhalla/valhalla-scripted:latest
+    container_name: pedalons-dev-valhalla
     restart: unless-stopped
     networks:
       - pedalons-dev
     ports:
-      - "127.0.0.1:17777:17777"
+      - "127.0.0.1:8002:8002"
     volumes:
-      - ../data/segments4:/opt/brouter/segments4:ro
+      - ../data/valhalla:/custom_files
     environment:
-      BROUTER_THREADS: "8"
+      tile_urls: ${VALHALLA_TILE_URLS:-http://download.geofabrik.de/europe/france-latest.osm.pbf}
+      build_elevation: "True"
+      build_admins: "True"
+      build_time_zones: "True"
+      server_threads: "4"
+      serve_tiles: "True"
 
   mailhog:
     image: mailhog/mailhog:latest

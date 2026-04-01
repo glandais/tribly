@@ -28,8 +28,6 @@
 - [ ] Allow the user to select a unit system (metric or imperial)
     - Backend is not modified for computations, everything stays in metric
 - [ ] Allow user to select router profile
-    - Find Brouter used by gpx.studio, declared in RouterProfile Java enum
-    - Configure brouter in docker compose to use profiles
 - [ ] A team can have its own domain name
     - Filters are applied at SQL level (team.domainName = HTTP domain name or team.domainName is null)
 - [ ] Garmin upload

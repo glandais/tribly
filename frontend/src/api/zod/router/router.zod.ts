@@ -1,7 +1,7 @@
 import * as zod from 'zod'
 
 /**
- * Calculate a cycling route between two points using BRouter
+ * Calculate a route between two points using Valhalla
  * @summary Calculate route
  */
 export const RouteBody = zod.object({

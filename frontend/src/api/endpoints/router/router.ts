@@ -14,7 +14,7 @@ import type { ErrorType, BodyType } from '../../../lib/axiosInstance'
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
- * Calculate a cycling route between two points using BRouter
+ * Calculate a route between two points using Valhalla
  * @summary Calculate route
  */
 export const route = (

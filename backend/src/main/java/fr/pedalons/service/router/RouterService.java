@@ -1,4 +1,4 @@
-package fr.pedalons.service.brouter;
+package fr.pedalons.service.router;
 
 import static org.geolatte.geom.builder.DSL.*;
 import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
@@ -6,11 +6,14 @@ import static org.geolatte.geom.crs.CoordinateReferenceSystems.addVerticalSystem
 
 import fr.pedalons.common.exception.BusinessException;
 import fr.pedalons.dto.error.ErrorCode;
+import fr.pedalons.dto.router.request.RouterProfile;
 import fr.pedalons.dto.router.request.RouterRequest;
 import fr.pedalons.dto.router.response.RouterResponse;
-import fr.pedalons.infrastructure.brouter.BRouterClient;
-import fr.pedalons.infrastructure.brouter.ResultFeature;
-import fr.pedalons.infrastructure.brouter.RouterResult;
+import fr.pedalons.infrastructure.valhalla.Polyline6Decoder;
+import fr.pedalons.infrastructure.valhalla.ValhallaClient;
+import fr.pedalons.infrastructure.valhalla.ValhallaLocation;
+import fr.pedalons.infrastructure.valhalla.ValhallaRequest;
+import fr.pedalons.infrastructure.valhalla.ValhallaResponse;
 import fr.pedalons.service.security.annotation.Logged;
 import io.github.glandais.gpx.data.GPXPath;
 import io.github.glandais.gpx.data.GPXPathType;
@@ -20,24 +23,25 @@ import io.github.glandais.gpx.filter.GPXPerDistance;
 import io.github.glandais.gpx.srtm.GPXElevationFixer;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.WebApplicationException;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.geolatte.geom.G3D;
 import org.geolatte.geom.LineString;
-import org.geolatte.geom.PositionSequence;
 import org.geolatte.geom.crs.CoordinateReferenceSystem;
 import org.geolatte.geom.crs.LinearUnit;
 import org.jboss.logging.Logger;
 
 @ApplicationScoped
-public class BRouterService {
+public class RouterService {
 
-  private static final Logger LOG = Logger.getLogger(BRouterService.class);
+  private static final Logger LOG = Logger.getLogger(RouterService.class);
   private static final CoordinateReferenceSystem<G3D> WGS84_3D =
       addVerticalSystem(WGS84, G3D.class, LinearUnit.METER);
 
-  @Inject @RestClient BRouterClient bRouterClient;
+  @Inject @RestClient ValhallaClient valhallaClient;
 
   @Inject GPXPerDistance gpxPerDistance;
 
@@ -45,24 +49,36 @@ public class BRouterService {
 
   @Logged
   public RouterResponse getRoute(RouterRequest routerRequest) {
-    String lonlats =
-        routerRequest.from().lng()
-            + ","
-            + routerRequest.from().lat()
-            + "|"
-            + routerRequest.to().lng()
-            + ","
-            + routerRequest.to().lat();
-    RouterResult geojson =
-        bRouterClient.route(lonlats, routerRequest.profile().getProfileName(), 0, "geojson");
-    List<ResultFeature> features = geojson.features();
-    if (features.isEmpty()) {
+    ValhallaRequest valhallaRequest = getValhallaRequest(routerRequest);
+
+    ValhallaResponse response;
+    try {
+      response = valhallaClient.route(valhallaRequest);
+    } catch (WebApplicationException e) {
+      LOG.warnv("Valhalla routing failed with status {0}", e.getResponse().getStatus());
       throw new BusinessException(ErrorCode.UNKNOWN);
     }
-    ResultFeature feature = features.getFirst();
+
+    if (response.trip() == null || response.trip().legs().isEmpty()) {
+      return new RouterResponse(linestring(WGS84_3D), 0, 0);
+    }
+
+    // Decode all leg shapes and concatenate coordinates
+    List<double[]> allCoords =
+        response.trip().legs().stream()
+            .flatMap(leg -> Polyline6Decoder.decode(leg.shape()).stream())
+            .toList();
+
+    if (allCoords.isEmpty()) {
+      throw new BusinessException(ErrorCode.UNKNOWN);
+    }
+
+    // Convert to LineString<G3D> (elevation = 0, will be fixed by SRTM)
+    G3D[] geomPoints = allCoords.stream().map(c -> g(c[0], c[1], 0.0)).toArray(G3D[]::new);
+    LineString<G3D> rawRoute = linestring(WGS84_3D, geomPoints);
 
     // Convert to GPXPath for processing
-    GPXPath path = toGpxPath(feature.geometry());
+    GPXPath path = toGpxPath(rawRoute);
 
     // Step 1: Resample to 10m intervals
     gpxPerDistance.computeOnePointPerDistance(path, 10.0);
@@ -88,15 +104,31 @@ public class BRouterService {
     return new RouterResponse(filteredRoute, dist, ascend);
   }
 
+  private static ValhallaRequest getValhallaRequest(RouterRequest routerRequest) {
+    RouterProfile profile = routerRequest.profile();
+
+    Map<String, Map<String, Object>> costingOptions =
+        profile.getCostingOptions().isEmpty()
+            ? Map.of()
+            : Map.of(profile.getCosting(), profile.getCostingOptions());
+
+    return new ValhallaRequest(
+        List.of(
+            new ValhallaLocation(routerRequest.from().lat(), routerRequest.from().lng()),
+            new ValhallaLocation(routerRequest.to().lat(), routerRequest.to().lng())),
+        profile.getCosting(),
+        costingOptions);
+  }
+
   private GPXPath toGpxPath(LineString<G3D> geometry) {
     GPXPath path = new GPXPath("route", GPXPathType.TRACK);
-    PositionSequence<G3D> positions = geometry.getPositions();
+    var positions = geometry.getPositions();
     for (int i = 0; i < positions.size(); i++) {
       G3D pos = positions.getPositionN(i);
       Point p = new Point();
       p.setLon(Math.toRadians(pos.getLon()));
       p.setLat(Math.toRadians(pos.getLat()));
-      p.setEle(pos.getCoordinate(2)); // Z coordinate is elevation
+      p.setEle(pos.getCoordinate(2));
       p.setInstant(null, Instant.EPOCH);
       path.addPoint(p);
     }

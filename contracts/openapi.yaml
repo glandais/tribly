@@ -3362,7 +3362,7 @@ tags:
 - name: Route Comments
   description: Comment operations for routes
 - name: Router
-  description: Route calculation using BRouter
+  description: Route calculation using Valhalla
 - name: Routes
   description: GPX route management operations
 - name: Team Members
@@ -5101,7 +5101,7 @@ paths:
   /api/router:
     post:
       summary: Calculate route
-      description: Calculate a cycling route between two points using BRouter
+      description: Calculate a route between two points using Valhalla
       operationId: route
       tags:
       - Router
@@ -5125,7 +5125,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "503":
-          description: BRouter service unavailable
+          description: Valhalla service unavailable
           content:
             application/json:
               schema:

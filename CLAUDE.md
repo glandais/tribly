@@ -59,7 +59,7 @@ make build-all                     # Build for all devices
 make simulator-docker && make run-docker DEVICE=edge1040  # Run in simulator
 
 # Infrastructure
-docker compose up -d               # PostgreSQL + imgproxy + brouter
+docker compose up -d               # PostgreSQL + imgproxy + valhalla
 docker compose --profile tools up  # + pgAdmin + Mailhog
 ```
 
@@ -81,7 +81,7 @@ mvn test
 | Service | Port | Purpose |
 |---------|------|---------|
 | imgproxy | 38080 | Image optimization/transformation (WebP, AVIF, JXL) |
-| brouter | 17777 | Routing engine and elevation profiles |
+| valhalla | 8002 | Routing engine (Valhalla turn-by-turn) |
 
 ## Architecture
 
@@ -93,7 +93,7 @@ backend/src/main/java/fr/pedalons/
 ├── domain/           # JPA entities organized by subdomain
 │   └── common/       # BaseEntity, TeamEntity, Publication
 ├── enums/            # Shared enums (Status, TeamRole, Visibility, AssetType)
-├── infrastructure/   # Cross-cutting (security, cache, brouter, imgproxy)
+├── infrastructure/   # Cross-cutting (security, cache, valhalla, imgproxy)
 ├── repository/       # Panache repositories
 └── service/          # Business logic
 

@@ -213,10 +213,9 @@ App Connect IQ Monkey C pour GPS Edge Garmin. 15 fichiers source, 1838 lignes. 1
 Docker Compose avec 9 services (prod) / 6 services (dev). GitHub Actions CI sur branche `tmp` uniquement. Dependabot 9 ecosystemes. Aucun pipeline CD. Aucun monitoring. Aucun backup.
 
 ### Points forts
-- Infrastructure Docker complete (Traefik, PostGIS, imgproxy, BRouter, MinIO, Varnish, TileServer)
+- Infrastructure Docker complete (Traefik, PostGIS, imgproxy, valhalla, MinIO, Varnish, TileServer)
 - Dependabot bien configure (9 ecosystemes)
 - `.env.example` bien documente avec placeholders
-- Scripts de sync BRouter segments fonctionnels
 
 ### Problemes
 

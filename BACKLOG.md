@@ -56,7 +56,7 @@ Features that differentiate and deepen engagement.
 ### Route Features
 - [ ] Route basket (collect routes, display on single map)
 - [ ] Team/global route heatmap
-- [ ] Router profile selection (Brouter profiles from gpx.studio)
+- [ ] Router profile selection
 - [ ] Custom cycling map style (Maplibre)
 
 ### Visibility Controls

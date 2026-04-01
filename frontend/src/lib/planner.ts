@@ -85,6 +85,9 @@ export async function add(
 
   const segment = await router(last, p, profile, direct)
   if (segment.length > 0) {
+    // Snap the previous control point to the route start (nearest road)
+    last.lng = segment[0].lng
+    last.lat = segment[0].lat
     route.points.push(...segment)
   }
   route.points[route.points.length - 1].manual = true
@@ -115,11 +118,30 @@ export async function insert(
     endPoint ? router(p, endPoint, profile, direct) : Promise.resolve([]),
   ])
 
-  const manualPoint = createPoint(p.lng, p.lat)
+  // Snap the manual point to the nearest road using segment endpoints
+  const snappedP = segmentToP.length > 0
+    ? segmentToP[segmentToP.length - 1]
+    : segmentToEnd.length > 0
+      ? segmentToEnd[0]
+      : null
+  const manualPoint = createPoint(snappedP?.lng ?? p.lng, snappedP?.lat ?? p.lat)
   manualPoint.manual = true
+
+  // Snap boundary points to route endpoints
+  if (before.length > 0 && segmentToP.length > 0) {
+    const lastBefore = before[before.length - 1]
+    lastBefore.lng = segmentToP[0].lng
+    lastBefore.lat = segmentToP[0].lat
+  }
 
   // Keep points after and including end
   const after = route.points.slice(endIdx)
+
+  if (after.length > 0 && segmentToEnd.length > 0) {
+    const firstAfter = after[0]
+    firstAfter.lng = segmentToEnd[segmentToEnd.length - 1].lng
+    firstAfter.lat = segmentToEnd[segmentToEnd.length - 1].lat
+  }
 
   // Build new points array
   route.points = [...before, ...segmentToP, ...[manualPoint], ...segmentToEnd, ...after]

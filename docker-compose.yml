@@ -109,16 +109,21 @@ services:
       - VARNISH_SIZE=20G
     command: "-p default_ttl=86400"
 
-  brouter:
-    build: ./services/brouter
-    container_name: tribly-brouter
+  valhalla:
+    image: ghcr.io/valhalla/valhalla-scripted:latest
+    container_name: tribly-valhalla
     restart: unless-stopped
     networks:
       - tribly
     volumes:
-      - ./data/segments4:/opt/brouter/segments4:ro
+      - ./data/valhalla:/custom_files
     environment:
-      BROUTER_THREADS: "8"
+      tile_urls: ${VALHALLA_TILE_URLS:-http://download.geofabrik.de/europe/france-latest.osm.pbf}
+      build_elevation: "True"
+      build_admins: "True"
+      build_time_zones: "True"
+      server_threads: "4"
+      serve_tiles: "True"
 
   minio:
     image: minio/minio:RELEASE.2025-01-20T14-49-07Z

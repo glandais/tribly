@@ -11,7 +11,7 @@ Quarkus REST API backend for the Pedalons cycling team management platform.
 - **API**: OpenAPI 3.1 contract-first (SmallRye OpenAPI)
 - **GPX**: gpx2web library for track processing, timeshape for timezone lookup
 - **Images**: imgproxy for on-the-fly optimization (WebP, AVIF, JXL)
-- **Routing**: BRouter for cycling route computation and elevation profiles
+- **Routing**: valhalla for cycling route computation and elevation profiles
 
 ## Prerequisites
 
@@ -34,7 +34,7 @@ This starts:
 | PostgreSQL + PostGIS | 5432 | Database |
 | MinIO | 9000 (API), 9001 (console) | S3-compatible object storage |
 | imgproxy | 38080 | Image transformation |
-| BRouter | 17777 | Cycling route engine |
+| valhalla | 17777 | Cycling route engine |
 | Mailhog | 1025 (SMTP), 8025 (web) | Email testing |
 
 ### 2. Start the backend
@@ -103,7 +103,7 @@ src/main/java/com/pedalons/
 │   └── ...            #   post, comment, team, user, auth, gps, etc.
 ├── dto/               # Request/response DTOs by domain
 ├── enums/             # Status, TeamRole, Visibility, AssetType
-├── infrastructure/    # Security, caching, brouter client, imgproxy
+├── infrastructure/    # Security, caching, valhalla client, imgproxy
 ├── repository/        # Panache repositories with query builder
 └── service/           # Business logic
 
@@ -133,7 +133,7 @@ The API covers these functional areas:
 | Device | Device*Resource | Device code flow + routes for Karoo/Garmin apps |
 | Admin | Admin*Resource | Platform admin (domains, teams, users) |
 | Config | ConfigResource | Frontend app configuration |
-| Router | RouterResource | BRouter proxy for route computation |
+| Router | RouterResource | valhalla proxy for route computation |
 
 ## Configuration
 
@@ -148,7 +148,7 @@ Configuration uses Quarkus profiles (`%dev`, `%test`, `%prod`) in `application.p
 | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_DB` | Database |
 | `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY` | S3 storage |
 | `IMGPROXY_URL` | Image proxy |
-| `BROUTER_URL` | Route engine |
+| `VALHALLA_URL` | Route engine |
 | `ENCRYPTION_KEY` | Token encryption (base64-encoded 32-byte key) |
 | `TILESERVER_URL` | Tile server for map thumbnails |
 

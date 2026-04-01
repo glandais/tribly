@@ -73,7 +73,7 @@ mkcert localhost 127.0.0.1 192.168.50.20
 ### 2. Start Infrastructure
 
 ```bash
-# Start dev services (PostgreSQL, MinIO, imgproxy, brouter, tileserver, mailhog)
+# Start dev services (PostgreSQL, MinIO, imgproxy, valhalla, tileserver, mailhog)
 cd backend
 docker compose up -d
 
@@ -131,7 +131,7 @@ tribly/
 ├── karoo/            # Hammerhead Karoo extension (Kotlin/Compose)
 ├── garmin-app/       # Garmin Connect IQ app (Monkey C)
 ├── contracts/        # OpenAPI specifications
-├── services/         # Docker service configs (BRouter, Varnish)
+├── services/         # Docker service configs (valhalla, Varnish)
 ├── scripts/          # Utility scripts
 ├── data/             # Runtime data (segments, tileserver, keys)
 └── docker-compose.yml  # Production deployment

@@ -1,4 +1,4 @@
 @NullMarked
-package fr.pedalons.service.brouter;
+package fr.pedalons.infrastructure.valhalla;
 
 import org.jspecify.annotations.NullMarked;

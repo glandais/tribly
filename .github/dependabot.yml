@@ -95,21 +95,6 @@ updates:
       prefix: "deps(docker)"
       include: "scope"
 
-  # Docker dependencies (BRouter service)
-  - package-ecosystem: "docker"
-    directory: "/services/brouter"
-    schedule:
-      interval: "weekly"
-      day: "tuesday"
-      time: "10:00"
-      timezone: "Europe/Paris"
-    open-pull-requests-limit: 3
-    assignees:
-      - "glandais"
-    commit-message:
-      prefix: "deps(docker)"
-      include: "scope"
-
   # Docker Compose dependencies (root)
   - package-ecosystem: "docker-compose"
     directory: "/"

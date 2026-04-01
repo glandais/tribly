@@ -3,7 +3,7 @@ package fr.pedalons.api.router;
 import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.dto.router.request.RouterRequest;
 import fr.pedalons.dto.router.response.RouterResponse;
-import fr.pedalons.service.brouter.BRouterService;
+import fr.pedalons.service.router.RouterService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -20,15 +20,15 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Path("/api/router")
 @Produces(MediaType.APPLICATION_JSON)
 @RolesAllowed("user")
-@Tag(name = "Router", description = "Route calculation using BRouter")
+@Tag(name = "Router", description = "Route calculation using Valhalla")
 public class RouterResource {
 
-  @Inject BRouterService bRouterService;
+  @Inject RouterService routerService;
 
   @POST
   @Operation(
       summary = "Calculate route",
-      description = "Calculate a cycling route between two points using BRouter")
+      description = "Calculate a route between two points using Valhalla")
   @APIResponses({
     @APIResponse(
         responseCode = "200",
@@ -40,11 +40,11 @@ public class RouterResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     @APIResponse(
         responseCode = "503",
-        description = "BRouter service unavailable",
+        description = "Valhalla service unavailable",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response route(@Valid RouterRequest request) {
-    RouterResponse resp = bRouterService.getRoute(request);
+    RouterResponse resp = routerService.getRoute(request);
     return Response.ok(resp).build();
   }
 }

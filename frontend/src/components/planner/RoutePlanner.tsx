@@ -12,6 +12,7 @@ import { IconTrash } from '@tabler/icons-react'
 import { ActionIcon, Box, Group, Loader, Stack, Text, useComputedColorScheme } from '@mantine/core'
 import { TriblyMap } from '../map/TriblyMap'
 import { UndoRedoControl } from './UndoRedoControl'
+import { RouterProfileSelector } from './RouterProfileSelector'
 import { useUnits } from '../../hooks/useUnits'
 import { useRoutePlanner, findBboxStartPoint, findBboxEndPoint } from '../../hooks/useRoutePlanner'
 import type { GeoPoint } from '@/api/dto'
@@ -43,6 +44,8 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
     routeGeoJson,
     isLoading,
     error,
+    routerProfile,
+    setRouterProfile,
     addControlPoint,
     insertControlPoint,
     updateControlPoint,
@@ -523,6 +526,12 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
             canRedo={canRedo}
             onUndo={undo}
             onRedo={redo}
+          />
+
+          <RouterProfileSelector
+            position="bottom-left"
+            currentProfile={routerProfile}
+            onProfileChange={setRouterProfile}
           />
 
           {/* Route line */}

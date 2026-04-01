@@ -25,6 +25,8 @@ interface UseRoutePlannerReturn {
   error: string | null
   canUndo: boolean
   canRedo: boolean
+  routerProfile: RouterProfile
+  setRouterProfile: (profile: RouterProfile) => void
   addControlPoint: (p: Point, direct?: boolean) => void
   insertControlPoint: (
     start: RoutePoint | undefined,
@@ -98,7 +100,7 @@ export function findBboxEndPoint(
 
 export function useRoutePlanner(options?: UseRoutePlannerOptions): UseRoutePlannerReturn {
   const { initialTrack } = options || {}
-  const routerProfile = RouterProfile.FASTBIKE
+  const [routerProfile, setRouterProfile] = useState<RouterProfile>(RouterProfile.FASTBIKE)
 
   const [route, setRoute] = useState<Route>(
     initialTrack ? createRoute(initialTrack) : computeRoute([])
@@ -218,6 +220,8 @@ export function useRoutePlanner(options?: UseRoutePlannerOptions): UseRoutePlann
     routeGeoJson,
     isLoading,
     error,
+    routerProfile,
+    setRouterProfile,
     addControlPoint,
     insertControlPoint,
     updateControlPoint,

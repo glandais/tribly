@@ -17,7 +17,7 @@ abstract class RouterClient {
 
   /// Calculate route.
   ///
-  /// Calculate a cycling route between two points using BRouter.
+  /// Calculate a route between two points using Valhalla.
   ///
   /// [body] - Name not received - field will be skipped.
   @POST('/api/router')
