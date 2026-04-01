@@ -96,7 +96,7 @@ services:
       AWS_REGION: us-east-1
 
   varnish:
-    image: varnish:6.0.14
+    image: varnish:9.0.0
     container_name: pedalons-varnish
     restart: unless-stopped
     networks:
