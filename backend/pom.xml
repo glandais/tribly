@@ -24,7 +24,7 @@
         <dependencyversion-maven-plugin.version>1.0.0</dependencyversion-maven-plugin.version>
         <geolatte-geojson.version>1.11</geolatte-geojson.version>
         <archunit-junit5.version>1.4.1</archunit-junit5.version>
-        <webauthn4j-core.version>0.31.1.RELEASE</webauthn4j-core.version>
+        <webauthn4j-core.version>0.31.2.RELEASE</webauthn4j-core.version>
         <hibernate-spatial.version>7.3.0.Final</hibernate-spatial.version>
         <timeshape.version>2025b.28</timeshape.version>
     </properties>
