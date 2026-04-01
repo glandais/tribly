@@ -28,7 +28,7 @@
     "@mantine/schedule": "^9.0.0-alpha.7",
     "@mantine/core": "^9.0.0-alpha.7",
     "@mantine/dates": "^9.0.0-alpha.7",
-    "@mantine/form": "^9.0.0-alpha.7",
+    "@mantine/form": "^9.0.0",
     "@mantine/hooks": "^9.0.0-alpha.7",
     "@mantine/notifications": "^9.0.0-alpha.7",
     "@mantine/tiptap": "^9.0.0-alpha.7",
