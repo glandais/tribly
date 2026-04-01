@@ -16,6 +16,7 @@ import {
   Anchor,
   Center,
   Loader,
+  Pagination,
 } from '@mantine/core'
 import { IconPencil, IconTrash, IconPlus, IconMapPin } from '@tabler/icons-react'
 import {
@@ -32,10 +33,16 @@ interface PlaceListProps {
   canManage: boolean
 }
 
+const PAGE_SIZE = 20
+
 export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const { data: placesData, isLoading } = useListPlaces(teamSlug)
+  const [page, setPage] = useState(1)
+  const { data: placesData, isLoading } = useListPlaces(teamSlug, {
+    page: page - 1,
+    size: PAGE_SIZE,
+  })
   const deleteMutation = useDeletePlace()
 
   const [editingPlace, setEditingPlace] = useState<PlaceDetailDto | null>(null)
@@ -51,6 +58,8 @@ export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
   }
 
   const places = placesData?.places ?? []
+
+  const totalPages = placesData ? Math.ceil(placesData.total / PAGE_SIZE) : 0
 
   const handleDelete = (placeId: string) => {
     deleteMutation.mutate(
@@ -72,6 +81,8 @@ export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
     return {
       id: '',
       name: '',
+      address: '',
+      link: '',
       startPlace: true,
       endPlace: true,
     }
@@ -173,6 +184,8 @@ export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
           </Stack>
         </Paper>
       )}
+
+      {totalPages > 1 && <Pagination value={page} onChange={setPage} total={totalPages} />}
 
       {/* Create Form Modal */}
       {showCreateForm && (

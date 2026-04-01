@@ -6593,6 +6593,18 @@ paths:
         required: true
         schema:
           type: string
+      - description: Filter to end places only
+        name: filterEnd
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - description: Filter to start places only
+        name: filterStart
+        in: query
+        schema:
+          type: boolean
+          default: false
       - description: Page number
         name: page
         in: query
@@ -6600,6 +6612,11 @@ paths:
           type: integer
           format: int32
           default: 0
+      - description: Search by name or address
+        name: search
+        in: query
+        schema:
+          type: string
       - description: Page size
         name: size
         in: query

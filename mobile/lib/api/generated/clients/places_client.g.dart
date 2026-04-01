@@ -22,11 +22,20 @@ class _PlacesClient implements PlacesClient {
   @override
   Future<PlaceListResponse> listPlaces({
     required String teamSlug,
+    String? search,
+    bool? filterEnd = false,
+    bool? filterStart = false,
     int? page = 0,
     int? size = 50,
   }) async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{r'page': page, r'size': size};
+    final queryParameters = <String, dynamic>{
+      r'search': search,
+      r'filterEnd': filterEnd,
+      r'filterStart': filterStart,
+      r'page': page,
+      r'size': size,
+    };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;

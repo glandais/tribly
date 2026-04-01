@@ -106,11 +106,12 @@ export function GeocoderAutocomplete({
     []
   )
 
-  // If we have a value but no selectedName (e.g., on initial load), don't show address
   const hasValue = value && value.coordinates && value.coordinates.length === 2
+  const displayName =
+    selectedName ??
+    (hasValue ? `${value!.coordinates[1].toFixed(6)}, ${value!.coordinates[0].toFixed(6)}` : null)
 
-  // Show selected location with clear button if we have coordinates
-  if (hasValue && selectedName) {
+  if (hasValue && displayName) {
     return (
       <Box>
         {label && (
@@ -134,7 +135,7 @@ export function GeocoderAutocomplete({
             <Group gap="xs" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
               <IconMapPin size={16} style={{ flexShrink: 0 }} />
               <Text size="sm" truncate style={{ flex: 1 }}>
-                {selectedName}
+                {displayName}
               </Text>
             </Group>
             <ActionIcon

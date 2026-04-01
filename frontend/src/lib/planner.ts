@@ -13,12 +13,14 @@ export interface RoutePoint {
   idx: number
   lng: number
   lat: number
+  ele?: number
   manual: boolean
 }
 
 export interface Route {
   points: RoutePoint[]
   dist: number
+  ascend: number
   index: KDBush
 }
 
@@ -39,18 +41,28 @@ function getDist(points: RoutePoint[]): number {
   return dist
 }
 
-function createPoint(lng: number, lat: number): RoutePoint {
+function getAscend(points: RoutePoint[]): number {
+  let ascend = 0
+  for (let i = 1; i < points.length; i++) {
+    const diff = (points[i].ele ?? 0) - (points[i - 1].ele ?? 0)
+    if (diff > 0) ascend += diff
+  }
+  return ascend
+}
+
+function createPoint(lng: number, lat: number, ele?: number): RoutePoint {
   return {
     id: `p-${++pointIdCounter}`,
     idx: 0,
     lng,
     lat,
+    ele,
     manual: false,
   }
 }
 
 function createPoints(coords: number[][]): RoutePoint[] {
-  return coords.map((coord) => createPoint(coord[0], coord[1]))
+  return coords.map((coord) => createPoint(coord[0], coord[1], coord[2]))
 }
 
 export function computeRoute(input: RoutePoint[]): Route {
@@ -63,6 +75,7 @@ export function computeRoute(input: RoutePoint[]): Route {
   return {
     points,
     dist: getDist(points),
+    ascend: getAscend(points),
     index: index.finish(),
   }
 }
@@ -200,7 +213,7 @@ async function router(
   profile: RouterProfile,
   direct: boolean
 ): Promise<RoutePoint[]> {
-  if (direct || distance(from.lng, from.lat, to.lng, to.lat) < 0.005) {
+  if (direct || distance(from.lng, from.lat, to.lng, to.lat) < 5) {
     return [createPoint(to.lng, to.lat)]
   }
   const response = await routerRoute({

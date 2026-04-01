@@ -28,9 +28,11 @@ public class PlaceService {
   @Inject TeamService teamService;
 
   @CheckAccess(entityType = EntityType.PLACE, action = ActionType.LIST)
-  public PlaceListResponse listPlaces(String teamSlug, int page, int size) {
+  public PlaceListResponse listPlaces(
+      String teamSlug, int page, int size, String search, boolean filterStart, boolean filterEnd) {
     Long teamId = teamService.getTeam(teamSlug).getId();
-    PedalonsPage<Place> places = placeRepository.findByTeam(teamId, page, size);
+    PedalonsPage<Place> places =
+        placeRepository.findByTeam(teamId, page, size, search, filterStart, filterEnd);
     List<PlaceDetailDto> dtos = places.items().stream().map(PlaceDetailDto::from).toList();
 
     return new PlaceListResponse(dtos, places.total(), page, size);

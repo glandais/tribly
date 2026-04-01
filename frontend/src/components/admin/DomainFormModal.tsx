@@ -92,7 +92,8 @@ export function DomainFormModal({ isOpen, onClose, domain }: DomainFormModalProp
         singleTeam: domain?.singleTeam ?? false,
       })
     }
-  }, [domain, isOpen, domainForm])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [domain, isOpen])
 
   const handleDomainSubmit = async (values: DomainFormValues) => {
     if (isEditMode && domain) {

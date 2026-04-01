@@ -5,6 +5,7 @@ import { Paper, Group, Text, UnstyledButton, Badge, Box } from '@mantine/core'
 import type { TripStageDto } from '@/api/dto'
 import { useFormattedDate } from '../../utils/dateFormat'
 import { MediaDisplay } from '../common/MediaDisplay'
+import { EntityLogo } from '../common/EntityLogo'
 import { paths } from '@/config/paths'
 
 interface TripStageCardProps {
@@ -49,9 +50,13 @@ export function TripStageCard({
     >
       <Group justify="space-between" mb="sm" wrap="nowrap">
         <Group gap="sm" wrap="nowrap" style={{ minWidth: 0 }}>
-          <Badge size="lg" variant="light" color="primary" circle style={{ flexShrink: 0 }}>
-            {index + 1}
-          </Badge>
+          {stage.media.assets.logo ? (
+            <EntityLogo logo={stage.media.assets.logo} alt={stage.name} size="md" />
+          ) : (
+            <Badge size="lg" variant="light" color="primary" circle style={{ flexShrink: 0 }}>
+              {index + 1}
+            </Badge>
+          )}
           <Text fw={600} truncate>
             {stage.name}
           </Text>

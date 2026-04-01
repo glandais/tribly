@@ -22,12 +22,21 @@ abstract class PlacesClient {
   ///
   /// [teamSlug] - Team URL slug.
   ///
+  /// [filterEnd] - Filter to end places only.
+  ///
+  /// [filterStart] - Filter to start places only.
+  ///
   /// [page] - Page number.
+  ///
+  /// [search] - Search by name or address.
   ///
   /// [size] - Page size.
   @GET('/api/teams/{teamSlug}/places')
   Future<PlaceListResponse> listPlaces({
     @Path('teamSlug') required String teamSlug,
+    @Query('search') String? search,
+    @Query('filterEnd') bool? filterEnd = false,
+    @Query('filterStart') bool? filterStart = false,
     @Query('page') int? page = 0,
     @Query('size') int? size = 50,
   });

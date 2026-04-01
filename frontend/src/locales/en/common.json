@@ -869,6 +869,7 @@
   "admin.domains.singleTeam": "Single Team",
   "admin.domains.activate": "Activate domain",
   "admin.domains.deactivate": "Deactivate domain",
+  "admin.domains.cannotDeactivateCurrent": "Cannot deactivate the current domain",
   "admin.domains.empty.title": "No domains",
   "admin.domains.empty.description": "No domains have been created yet.",
   "admin.domains.create.title": "New Domain",
@@ -919,6 +920,7 @@
   "admin.users.platformAdmin": "Platform Admin",
   "admin.users.makeAdmin": "Grant platform admin",
   "admin.users.removeAdmin": "Remove platform admin",
+  "admin.users.cannotRemoveOwnAdmin": "Cannot remove your own platform admin role",
   "admin.users.empty.title": "No users",
   "admin.users.empty.description": "No users have registered yet."
 }

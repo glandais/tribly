@@ -1,9 +1,10 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useDebouncedValue } from '@mantine/hooks'
 import { Group, Text, ActionIcon, Paper, Box } from '@mantine/core'
 import { IconMapPin, IconX } from '@tabler/icons-react'
 import { Autocomplete } from './Autocomplete'
-import { useListPlaces } from '../../api/endpoints/places/places'
+import { useListPlaces, useGetPlace } from '../../api/endpoints/places/places'
 import type { PlaceDetailDto } from '@/api/dto'
 
 interface PlaceAutocompleteProps {
@@ -25,31 +26,20 @@ export function PlaceAutocomplete({
 }: PlaceAutocompleteProps) {
   const { t } = useTranslation()
   const [query, setQuery] = useState('')
+  const [debouncedQuery] = useDebouncedValue(query, 300)
 
-  const { data: placesData } = useListPlaces(teamSlug)
+  const { data: selectedPlaceData } = useGetPlace(teamSlug, value ?? '', {
+    query: { enabled: !!value },
+  })
+  const selectedPlace = value ? selectedPlaceData : undefined
 
-  const places = placesData?.places
-
-  const selectedPlace = useMemo(() => {
-    if (!value || !places) return undefined
-    return places.find((place) => place.id === value)
-  }, [value, places])
-
-  const filteredPlaces = useMemo(() => {
-    if (!places) return []
-
-    return places.filter((place) => {
-      if (filterStart && !place.startPlace) return false
-      if (filterEnd && !place.endPlace) return false
-
-      if (query.trim().length < 1) return true
-      const searchLower = query.toLowerCase()
-      return (
-        place.name.toLowerCase().includes(searchLower) ||
-        place.address?.toLowerCase().includes(searchLower)
-      )
-    })
-  }, [places, query, filterStart, filterEnd])
+  const { data: placesData } = useListPlaces(teamSlug, {
+    search: debouncedQuery || undefined,
+    filterStart: filterStart || undefined,
+    filterEnd: filterEnd || undefined,
+    size: 20,
+  })
+  const filteredPlaces = placesData?.places ?? []
 
   const handleQueryChange = useCallback((newQuery: string) => {
     setQuery(newQuery)

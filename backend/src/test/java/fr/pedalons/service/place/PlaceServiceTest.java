@@ -66,7 +66,7 @@ class PlaceServiceTest extends AbstractBaseTest {
       dataService.createPlace(team, admin, "Place 2");
 
       queryContext.setUserForTest(organizer);
-      PlaceListResponse result = placeService.listPlaces(team.getSlug(), 0, 10);
+      PlaceListResponse result = placeService.listPlaces(team.getSlug(), 0, 10, null, false, false);
 
       assertEquals(2, result.places().size());
       assertEquals(2, result.total());
@@ -79,7 +79,7 @@ class PlaceServiceTest extends AbstractBaseTest {
       }
 
       queryContext.setUserForTest(organizer);
-      PlaceListResponse result = placeService.listPlaces(team.getSlug(), 0, 3);
+      PlaceListResponse result = placeService.listPlaces(team.getSlug(), 0, 3, null, false, false);
 
       assertEquals(3, result.places().size());
       assertEquals(5, result.total());
@@ -88,7 +88,9 @@ class PlaceServiceTest extends AbstractBaseTest {
     @Test
     void shouldThrowForMember() {
       queryContext.setUserForTest(member);
-      assertThrows(PedalonsException.class, () -> placeService.listPlaces(team.getSlug(), 0, 10));
+      assertThrows(
+          PedalonsException.class,
+          () -> placeService.listPlaces(team.getSlug(), 0, 10, null, false, false));
     }
 
     @Test
@@ -98,10 +100,36 @@ class PlaceServiceTest extends AbstractBaseTest {
       dataService.deletePlace(deletedPlace);
 
       queryContext.setUserForTest(organizer);
-      PlaceListResponse result = placeService.listPlaces(team.getSlug(), 0, 10);
+      PlaceListResponse result = placeService.listPlaces(team.getSlug(), 0, 10, null, false, false);
 
       assertEquals(1, result.places().size());
       assertEquals("Active Place", result.places().getFirst().name());
+    }
+
+    @Test
+    void shouldFilterBySearch() {
+      dataService.createPlace(team, admin, "Gare de Lyon");
+      dataService.createPlace(team, admin, "Place de la République");
+
+      queryContext.setUserForTest(organizer);
+      PlaceListResponse result =
+          placeService.listPlaces(team.getSlug(), 0, 10, "gare", false, false);
+
+      assertEquals(1, result.places().size());
+      assertEquals("Gare de Lyon", result.places().getFirst().name());
+    }
+
+    @Test
+    void shouldFilterByStartPlace() {
+      dataService.createPlace(team, admin, "Start Only", true, false);
+      dataService.createPlace(team, admin, "End Only", false, true);
+      dataService.createPlace(team, admin, "Both", true, true);
+
+      queryContext.setUserForTest(organizer);
+      PlaceListResponse result = placeService.listPlaces(team.getSlug(), 0, 10, null, true, false);
+
+      assertEquals(2, result.places().size());
+      assertTrue(result.places().stream().allMatch(PlaceDetailDto::startPlace));
     }
   }
 

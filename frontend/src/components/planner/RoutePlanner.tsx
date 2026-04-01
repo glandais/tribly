@@ -409,8 +409,8 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
   }, [insertControlPoint, draggingGhost, startDragPoint, endDragPoint])
 
   const routeStats = {
-    distance: 0,
-    ascend: 0,
+    distance: route.dist,
+    ascend: route.ascend,
   }
 
   // Compute connection lines and boundary points when dragging
@@ -483,7 +483,7 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
               {error}
             </Text>
           )}
-          {routeStats && (
+          {route.points.length >= 2 && (
             <Group gap="xs">
               <Text size="sm" fw={500}>
                 {distance(routeStats.distance)}

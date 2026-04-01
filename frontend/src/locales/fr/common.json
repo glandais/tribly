@@ -877,6 +877,7 @@
   "admin.domains.singleTeam": "Équipe unique",
   "admin.domains.activate": "Activer le domaine",
   "admin.domains.deactivate": "Désactiver le domaine",
+  "admin.domains.cannotDeactivateCurrent": "Impossible de désactiver le domaine courant",
   "admin.domains.empty.title": "Aucun domaine",
   "admin.domains.empty.description": "Aucun domaine n'a encore été créé.",
   "admin.domains.create.title": "Nouveau domaine",
@@ -927,6 +928,7 @@
   "admin.users.platformAdmin": "Admin plateforme",
   "admin.users.makeAdmin": "Accorder admin plateforme",
   "admin.users.removeAdmin": "Retirer admin plateforme",
+  "admin.users.cannotRemoveOwnAdmin": "Impossible de retirer votre propre rôle admin plateforme",
   "admin.users.empty.title": "Aucun utilisateur",
   "admin.users.empty.description": "Aucun utilisateur n'est encore inscrit."
 }

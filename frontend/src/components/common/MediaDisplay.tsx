@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Stack, Paper, Group, Text, Anchor, Image } from '@mantine/core'
 import { IconPaperclip, IconDownload } from '@tabler/icons-react'
@@ -9,7 +10,7 @@ export interface MediaDisplayProps {
   media: MediaDto
 }
 
-export function MediaDisplay({ media }: MediaDisplayProps) {
+export const MediaDisplay = memo(function MediaDisplay({ media }: MediaDisplayProps) {
   const { t } = useTranslation()
   const attachments = media.assets.attachments
   const images = media.assets.images
@@ -66,4 +67,4 @@ export function MediaDisplay({ media }: MediaDisplayProps) {
       )}
     </Stack>
   )
-}
+})

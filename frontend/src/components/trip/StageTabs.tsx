@@ -5,6 +5,7 @@ import { IconHome } from '@tabler/icons-react'
 import type { TripDto } from '@/api/dto'
 import { useFormattedDate } from '../../utils/dateFormat'
 import { paths } from '@/config/paths'
+import { EntityLogo } from '../common/EntityLogo'
 
 interface StageTabsProps {
   trip: TripDto
@@ -39,9 +40,13 @@ export function StageTabs({ trip, teamSlug, currentTab }: StageTabsProps) {
             key={stage.id}
             value={stage.slug}
             leftSection={
-              <Text size="sm" fw={700} w={20} ta="center">
-                {index + 1}
-              </Text>
+              stage.media.assets.logo ? (
+                <EntityLogo logo={stage.media.assets.logo} alt={stage.name} size="sm" />
+              ) : (
+                <Text size="sm" fw={700} w={20} ta="center">
+                  {index + 1}
+                </Text>
+              )
             }
           >
             <Stack gap={0}>

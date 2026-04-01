@@ -43,9 +43,19 @@ public class PlaceResource {
   public Response listPlaces(
       @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
-      @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("50") int size) {
+      @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("50") int size,
+      @Parameter(description = "Search by name or address") @QueryParam("search") String search,
+      @Parameter(description = "Filter to start places only")
+          @QueryParam("filterStart")
+          @DefaultValue("false")
+          boolean filterStart,
+      @Parameter(description = "Filter to end places only")
+          @QueryParam("filterEnd")
+          @DefaultValue("false")
+          boolean filterEnd) {
 
-    PlaceListResponse places = placeService.listPlaces(teamSlug, page, size);
+    PlaceListResponse places =
+        placeService.listPlaces(teamSlug, page, size, search, filterStart, filterEnd);
     return Response.ok(places).build();
   }
 

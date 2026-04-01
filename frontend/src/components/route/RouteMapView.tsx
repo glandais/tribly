@@ -100,17 +100,26 @@ export function RouteMapView({ route }: RouteMapViewProps) {
   // Create gradient line GeoJSON
   const lineFeatures = useMemo(() => createGradientLineFeatures(route.tracks), [route.tracks])
 
-  // Fit bounds when map is loaded (with extra bottom padding for chart overlay)
-  const handleMapLoad = useCallback(() => {
+  const fitToBounds = useCallback(() => {
     if (mapRef.current && trackPoints.length > 0) {
       const bounds = calculateBounds(trackPoints)
       // Chart overlay is 200px at bottom, add padding to keep route visible
       mapRef.current.fitBounds(bounds, {
         padding: { top: 50, bottom: 220, left: 50, right: 50 },
-        duration: 0,
+        duration: 300,
       })
     }
   }, [trackPoints])
+
+  // Fit bounds when map is first loaded
+  const handleMapLoad = useCallback(() => {
+    fitToBounds()
+  }, [fitToBounds])
+
+  // Re-center when route changes (e.g. switching trip stages)
+  useEffect(() => {
+    fitToBounds()
+  }, [fitToBounds])
 
   // Handle mouse move for nearest point detection
   const handleMouseMove = useCallback(

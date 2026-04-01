@@ -98,7 +98,7 @@ export function TripEditor({
     newStageDate.setDate(newStageDate.getDate() + stages.length)
 
     form.insertListItem('stages', {
-      name: `Jour ${stages.length + 1}`,
+      name: t('trips.create.form.stages.defaultName', { number: stages.length + 1 }),
       dateTime: newStageDate.toISOString(),
       media: defaultMedia(),
     })

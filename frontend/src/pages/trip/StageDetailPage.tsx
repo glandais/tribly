@@ -126,7 +126,11 @@ export function StageDetailPage() {
       <Paper withBorder p="lg" mb="lg">
         <Group justify="space-between" align="flex-start" wrap="wrap">
           <Group style={{ minWidth: 0 }}>
-            <EntityLogo logo={trip.media.assets.logo} alt={trip.name} size="lg" />
+            <EntityLogo
+              logo={stage.media.assets.logo ?? trip.media.assets.logo}
+              alt={stage.name || trip.name}
+              size="lg"
+            />
             <Box>
               <Anchor
                 component={Link}

@@ -24,7 +24,12 @@ import {
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { DomainFormModal } from '@/components/admin/DomainFormModal'
 import { Pagination } from '@/components/common/Pagination'
-import { useListDomains, useToggleDomainActive } from '@/api/endpoints/admin-domains/admin-domains'
+import {
+  useListDomains,
+  useToggleDomainActive,
+  getListDomainsQueryKey,
+} from '@/api/endpoints/admin-domains/admin-domains'
+import { useQueryClient } from '@tanstack/react-query'
 import type { AdminDomainDto } from '@/api/dto'
 
 export function AdminDomainsPage() {
@@ -34,11 +39,17 @@ export function AdminDomainsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingDomain, setEditingDomain] = useState<AdminDomainDto | undefined>(undefined)
 
+  const queryClient = useQueryClient()
   const { data, isLoading, error } = useListDomains({ page, size: pageSize })
   const toggleMutation = useToggleDomainActive()
 
+  const currentHostname = window.location.hostname
+
   const handleToggleActive = (domainId: string) => {
-    toggleMutation.mutate({ domainId })
+    toggleMutation.mutate(
+      { domainId },
+      { onSuccess: () => queryClient.invalidateQueries({ queryKey: getListDomainsQueryKey() }) }
+    )
   }
 
   const handleCreateDomain = () => {
@@ -133,15 +144,18 @@ export function AdminDomainsPage() {
                           </Tooltip>
                           <Tooltip
                             label={
-                              domain.active
-                                ? t('admin.domains.deactivate')
-                                : t('admin.domains.activate')
+                              domain.domain === currentHostname && domain.active
+                                ? t('admin.domains.cannotDeactivateCurrent')
+                                : domain.active
+                                  ? t('admin.domains.deactivate')
+                                  : t('admin.domains.activate')
                             }
                           >
                             <ActionIcon
                               variant="subtle"
                               onClick={() => handleToggleActive(domain.id)}
                               loading={toggleMutation.isPending}
+                              disabled={domain.domain === currentHostname && domain.active}
                             >
                               {domain.active ? (
                                 <IconToggleRight size={20} />

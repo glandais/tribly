@@ -8,11 +8,22 @@ export const ListPlacesParams = zod.object({
   teamSlug: zod.string().describe('Team URL slug'),
 })
 
+export const listPlacesQueryFilterEndDefault = false
+export const listPlacesQueryFilterStartDefault = false
 export const listPlacesQueryPageDefault = 0
 export const listPlacesQuerySizeDefault = 50
 
 export const ListPlacesQueryParams = zod.object({
+  filterEnd: zod
+    .boolean()
+    .default(listPlacesQueryFilterEndDefault)
+    .describe('Filter to end places only'),
+  filterStart: zod
+    .boolean()
+    .default(listPlacesQueryFilterStartDefault)
+    .describe('Filter to start places only'),
   page: zod.number().default(listPlacesQueryPageDefault).describe('Page number'),
+  search: zod.string().optional().describe('Search by name or address'),
   size: zod.number().default(listPlacesQuerySizeDefault).describe('Page size'),
 })
 

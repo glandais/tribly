@@ -96,6 +96,59 @@ class PlaceResourceTest extends AbstractResourceTest {
         .statusCode(404);
   }
 
+  @Test
+  void listPlaces_withSearch_shouldReturnFilteredResults() {
+    dataService.createPlace(team1, user1, "Gare de Lyon");
+    dataService.createPlace(team1, user1, "Place de la République");
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .queryParam("search", "gare")
+        .when()
+        .get("/api/teams/" + team1Slug + "/places")
+        .then()
+        .statusCode(200)
+        .body("places.size()", equalTo(1))
+        .body("places[0].name", equalTo("Gare de Lyon"));
+  }
+
+  @Test
+  void listPlaces_withFilterStart_shouldReturnOnlyStartPlaces() {
+    dataService.createPlace(team1, user1, "Start Only", true, false);
+    dataService.createPlace(team1, user1, "End Only", false, true);
+    dataService.createPlace(team1, user1, "Both", true, true);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .queryParam("filterStart", "true")
+        .when()
+        .get("/api/teams/" + team1Slug + "/places")
+        .then()
+        .statusCode(200)
+        .body("places.size()", equalTo(2))
+        .body("places.startPlace", everyItem(equalTo(true)));
+  }
+
+  @Test
+  void listPlaces_withFilterEnd_shouldReturnOnlyEndPlaces() {
+    dataService.createPlace(team1, user1, "Start Only", true, false);
+    dataService.createPlace(team1, user1, "End Only", false, true);
+    dataService.createPlace(team1, user1, "Both", true, true);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .queryParam("filterEnd", "true")
+        .when()
+        .get("/api/teams/" + team1Slug + "/places")
+        .then()
+        .statusCode(200)
+        .body("places.size()", equalTo(2))
+        .body("places.endPlace", everyItem(equalTo(true)));
+  }
+
   // ==================== Create Place Tests ====================
 
   @Test

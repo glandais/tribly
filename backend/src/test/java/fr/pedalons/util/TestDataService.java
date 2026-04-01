@@ -444,6 +444,14 @@ public class TestDataService {
   }
 
   @Transactional
+  public Place createPlaceWithAddress(Team team, User createdBy, String name, String address) {
+    Place place = new Place(createdBy, team, name, true, true);
+    place.setAddress(address);
+    placeRepository.persistAndFlush(place);
+    return place;
+  }
+
+  @Transactional
   public void deletePlace(Place place) {
     placeRepository.delete(place);
   }

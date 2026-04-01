@@ -28,6 +28,15 @@ function getVisibleRange(date: string, view: ScheduleViewLevel): { start: Date; 
   if (view === 'year') {
     return { start: d.startOf('year').toDate(), end: d.endOf('year').toDate() }
   }
+  if (view === 'month') {
+    const firstOfMonth = d.startOf('month')
+    // firstDayOfWeek=1 (Monday): (day()+6)%7 gives Mon=0..Sun=6
+    const daysFromMonday = (firstOfMonth.day() + 6) % 7
+    const startOfGrid = firstOfMonth.subtract(daysFromMonday, 'day')
+    // Schedule always renders 6 weeks (42 days)
+    const endOfGrid = startOfGrid.add(42, 'day').subtract(1, 'millisecond')
+    return { start: startOfGrid.toDate(), end: endOfGrid.toDate() }
+  }
   return { start: d.startOf('month').toDate(), end: d.endOf('month').toDate() }
 }
 

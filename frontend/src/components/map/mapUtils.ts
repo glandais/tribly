@@ -87,7 +87,7 @@ export function calculateBounds(trackPoints: number[][]): LngLatBoundsLike {
 
 // Simple distance calculation (Haversine formula)
 export function distance(lng1: number, lat1: number, lng2: number, lat2: number): number {
-  const R = 6371 // Earth radius in km
+  const R = 6371000 // Earth radius in meters
   const dLat = ((lat2 - lat1) * Math.PI) / 180
   const dLon = ((lng2 - lng1) * Math.PI) / 180
   const a =

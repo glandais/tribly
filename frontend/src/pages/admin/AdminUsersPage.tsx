@@ -22,10 +22,12 @@ import { Pagination } from '@/components/common/Pagination'
 import { useListUsers, useAssignPlatformRole } from '@/api/endpoints/admin-users/admin-users'
 import { useListDomains } from '@/api/endpoints/admin-domains/admin-domains'
 import type { AdminUserDto } from '@/api/dto'
+import { useAuth } from '@/hooks/useAuth'
 import { formatDate } from '@/utils/dateFormat'
 
 export function AdminUsersPage() {
   const { t, i18n } = useTranslation()
+  const { user: currentUser } = useAuth()
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState('')
   const [domainFilter, setDomainFilter] = useState<string | null>(null)
@@ -157,9 +159,11 @@ export function AdminUsersPage() {
                       <Table.Td ta="center">
                         <Tooltip
                           label={
-                            user.platformRole === 'PLATFORM_ADMIN'
-                              ? t('admin.users.removeAdmin')
-                              : t('admin.users.makeAdmin')
+                            user.id === currentUser?.id && user.platformRole === 'PLATFORM_ADMIN'
+                              ? t('admin.users.cannotRemoveOwnAdmin')
+                              : user.platformRole === 'PLATFORM_ADMIN'
+                                ? t('admin.users.removeAdmin')
+                                : t('admin.users.makeAdmin')
                           }
                         >
                           <ActionIcon
@@ -167,6 +171,9 @@ export function AdminUsersPage() {
                             color={user.platformRole === 'PLATFORM_ADMIN' ? 'red' : 'blue'}
                             onClick={() => handleTogglePlatformAdmin(user.id, user.platformRole)}
                             loading={assignRoleMutation.isPending}
+                            disabled={
+                              user.id === currentUser?.id && user.platformRole === 'PLATFORM_ADMIN'
+                            }
                           >
                             {user.platformRole === 'PLATFORM_ADMIN' ? (
                               <IconShieldOff size={20} />

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Box } from '@mantine/core'
-import { RichTextEditor, Link } from '@mantine/tiptap'
+import { RichTextEditor } from '@mantine/tiptap'
 import { useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { Table } from '@tiptap/extension-table'
@@ -80,10 +80,6 @@ export function MarkdownEditor({
         // Disable code block (not in original editor)
         codeBlock: false,
       }),
-      // Link must be before Markdown to avoid duplicate extension registration.
-      // Note: tiptap-markdown includes its own link handling, causing a harmless
-      // "Duplicate extension names found: ['link']" console warning.
-      Link,
       Table.configure({ resizable: true }),
       TableRow,
       TableHeader,

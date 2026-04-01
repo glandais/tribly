@@ -117,7 +117,8 @@ class PlaceRepositoryTest extends AbstractBaseTest {
       dataService.createPlace(team, user, "Place 2");
       dataService.createPlace(team, user, "Place 3");
 
-      PedalonsPage<Place> result = placeRepository.findByTeam(team.getId(), 0, 10);
+      PedalonsPage<Place> result =
+          placeRepository.findByTeam(team.getId(), 0, 10, null, false, false);
 
       assertEquals(3, result.items().size());
       assertEquals(3, result.total());
@@ -128,7 +129,8 @@ class PlaceRepositoryTest extends AbstractBaseTest {
     void findByTeam_shouldReturnEmptyForTeamWithNoPlaces() {
       Team emptyTeam = dataService.createTeam(user, "Empty Team", "empty-team", Visibility.PUBLIC);
 
-      PedalonsPage<Place> result = placeRepository.findByTeam(emptyTeam.getId(), 0, 10);
+      PedalonsPage<Place> result =
+          placeRepository.findByTeam(emptyTeam.getId(), 0, 10, null, false, false);
 
       assertEquals(0, result.items().size());
       assertEquals(0, result.total());
@@ -141,7 +143,8 @@ class PlaceRepositoryTest extends AbstractBaseTest {
       Team otherTeam = dataService.createTeam(user, "Other Team", "other-team", Visibility.PUBLIC);
       dataService.createPlace(otherTeam, user, "Other Team Place");
 
-      PedalonsPage<Place> result = placeRepository.findByTeam(team.getId(), 0, 10);
+      PedalonsPage<Place> result =
+          placeRepository.findByTeam(team.getId(), 0, 10, null, false, false);
 
       assertEquals(1, result.items().size());
       assertEquals("Team Place", result.items().getFirst().getName());
@@ -154,7 +157,8 @@ class PlaceRepositoryTest extends AbstractBaseTest {
       Place deletedPlace = dataService.createPlace(team, user, "Deleted Place");
       dataService.deletePlace(deletedPlace);
 
-      PedalonsPage<Place> result = placeRepository.findByTeam(team.getId(), 0, 10);
+      PedalonsPage<Place> result =
+          placeRepository.findByTeam(team.getId(), 0, 10, null, false, false);
 
       assertEquals(1, result.items().size());
       assertEquals("Active Place", result.items().getFirst().getName());
@@ -167,7 +171,8 @@ class PlaceRepositoryTest extends AbstractBaseTest {
         dataService.createPlace(team, user, "Place " + i);
       }
 
-      PedalonsPage<Place> result = placeRepository.findByTeam(team.getId(), 0, 3);
+      PedalonsPage<Place> result =
+          placeRepository.findByTeam(team.getId(), 0, 3, null, false, false);
 
       assertEquals(3, result.items().size());
       assertEquals(10, result.total());
@@ -180,9 +185,12 @@ class PlaceRepositoryTest extends AbstractBaseTest {
         dataService.createPlace(team, user, "Place " + i);
       }
 
-      PedalonsPage<Place> page0 = placeRepository.findByTeam(team.getId(), 0, 3);
-      PedalonsPage<Place> page1 = placeRepository.findByTeam(team.getId(), 1, 3);
-      PedalonsPage<Place> page2 = placeRepository.findByTeam(team.getId(), 2, 3);
+      PedalonsPage<Place> page0 =
+          placeRepository.findByTeam(team.getId(), 0, 3, null, false, false);
+      PedalonsPage<Place> page1 =
+          placeRepository.findByTeam(team.getId(), 1, 3, null, false, false);
+      PedalonsPage<Place> page2 =
+          placeRepository.findByTeam(team.getId(), 2, 3, null, false, false);
 
       assertEquals(3, page0.items().size());
       assertEquals(3, page1.items().size());
@@ -198,7 +206,8 @@ class PlaceRepositoryTest extends AbstractBaseTest {
       dataService.createPlace(team, user, "Place 1");
       dataService.createPlace(team, user, "Place 2");
 
-      PedalonsPage<Place> result = placeRepository.findByTeam(team.getId(), 10, 5);
+      PedalonsPage<Place> result =
+          placeRepository.findByTeam(team.getId(), 10, 5, null, false, false);
 
       assertEquals(0, result.items().size());
       assertEquals(2, result.total());
@@ -212,9 +221,104 @@ class PlaceRepositoryTest extends AbstractBaseTest {
       dataService.createPlace(team, user, "Both", true, true);
       dataService.createPlace(team, user, "Neither", false, false);
 
-      PedalonsPage<Place> result = placeRepository.findByTeam(team.getId(), 0, 10);
+      PedalonsPage<Place> result =
+          placeRepository.findByTeam(team.getId(), 0, 10, null, false, false);
 
       assertEquals(4, result.items().size());
+    }
+
+    @Test
+    @DisplayName("Should filter places by name search")
+    void findByTeam_shouldFilterByNameSearch() {
+      dataService.createPlace(team, user, "Gare de Lyon");
+      dataService.createPlace(team, user, "Place de la République");
+      dataService.createPlace(team, user, "Parc des Buttes-Chaumont");
+
+      PedalonsPage<Place> result =
+          placeRepository.findByTeam(team.getId(), 0, 10, "gare", false, false);
+
+      assertEquals(1, result.items().size());
+      assertEquals("Gare de Lyon", result.items().getFirst().getName());
+    }
+
+    @Test
+    @DisplayName("Should filter places by name search case-insensitively")
+    void findByTeam_shouldFilterByNameSearchCaseInsensitive() {
+      dataService.createPlace(team, user, "Gare de Lyon");
+      dataService.createPlace(team, user, "Place de la République");
+
+      PedalonsPage<Place> result =
+          placeRepository.findByTeam(team.getId(), 0, 10, "GARE", false, false);
+
+      assertEquals(1, result.items().size());
+    }
+
+    @Test
+    @DisplayName("Should filter places by address search")
+    void findByTeam_shouldFilterByAddressSearch() {
+      dataService.createPlaceWithAddress(team, user, "Départ", "12 rue de la Paix, Paris");
+      dataService.createPlaceWithAddress(team, user, "Arrivée", "5 avenue Montaigne, Paris");
+
+      PedalonsPage<Place> result =
+          placeRepository.findByTeam(team.getId(), 0, 10, "montaigne", false, false);
+
+      assertEquals(1, result.items().size());
+      assertEquals("Arrivée", result.items().getFirst().getName());
+    }
+
+    @Test
+    @DisplayName("Should return empty list when search matches nothing")
+    void findByTeam_shouldReturnEmptyWhenSearchMatchesNothing() {
+      dataService.createPlace(team, user, "Gare de Lyon");
+      dataService.createPlace(team, user, "Place de la République");
+
+      PedalonsPage<Place> result =
+          placeRepository.findByTeam(team.getId(), 0, 10, "zzznomatch", false, false);
+
+      assertEquals(0, result.items().size());
+      assertEquals(0, result.total());
+    }
+
+    @Test
+    @DisplayName("Should filter to start places only")
+    void findByTeam_shouldFilterStartPlaces() {
+      dataService.createPlace(team, user, "Start Only", true, false);
+      dataService.createPlace(team, user, "End Only", false, true);
+      dataService.createPlace(team, user, "Both", true, true);
+
+      PedalonsPage<Place> result =
+          placeRepository.findByTeam(team.getId(), 0, 10, null, true, false);
+
+      assertEquals(2, result.items().size());
+      assertTrue(result.items().stream().allMatch(Place::isStartPlace));
+    }
+
+    @Test
+    @DisplayName("Should filter to end places only")
+    void findByTeam_shouldFilterEndPlaces() {
+      dataService.createPlace(team, user, "Start Only", true, false);
+      dataService.createPlace(team, user, "End Only", false, true);
+      dataService.createPlace(team, user, "Both", true, true);
+
+      PedalonsPage<Place> result =
+          placeRepository.findByTeam(team.getId(), 0, 10, null, false, true);
+
+      assertEquals(2, result.items().size());
+      assertTrue(result.items().stream().allMatch(Place::isEndPlace));
+    }
+
+    @Test
+    @DisplayName("Should filter to places that are both start and end")
+    void findByTeam_shouldFilterStartAndEndPlaces() {
+      dataService.createPlace(team, user, "Start Only", true, false);
+      dataService.createPlace(team, user, "End Only", false, true);
+      dataService.createPlace(team, user, "Both", true, true);
+
+      PedalonsPage<Place> result =
+          placeRepository.findByTeam(team.getId(), 0, 10, null, true, true);
+
+      assertEquals(1, result.items().size());
+      assertEquals("Both", result.items().getFirst().getName());
     }
   }
 

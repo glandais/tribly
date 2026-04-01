@@ -343,15 +343,22 @@ export function TripDetailPage() {
       {/* Stage tabs + Overview content */}
       <TripLayout trip={trip} teamSlug={teamSlug!} currentTab="overview">
         <Stack>
-          {/* Map */}
-          {trip.stages && trip.stages.length > 0 && (
+          {/* Map: global route if defined, otherwise all stage routes */}
+          {(trip.routeSlug || (trip.stages && trip.stages.length > 0)) && (
             <Suspense fallback={<Skeleton height={500} radius="md" />}>
-              <RoutesMapView
-                items={trip.stages}
-                teamSlug={teamSlug!}
-                highlightedItemId={highlightedStageId}
-                onItemHover={setHighlightedStageId}
-              />
+              {trip.routeSlug ? (
+                <RoutesMapView
+                  items={[{ id: trip.id, name: trip.name, routeSlug: trip.routeSlug }]}
+                  teamSlug={teamSlug!}
+                />
+              ) : (
+                <RoutesMapView
+                  items={trip.stages}
+                  teamSlug={teamSlug!}
+                  highlightedItemId={highlightedStageId}
+                  onItemHover={setHighlightedStageId}
+                />
+              )}
             </Suspense>
           )}
 
