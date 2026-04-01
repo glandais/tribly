@@ -21,8 +21,8 @@ importers:
         specifier: ^9.0.0-alpha.7
         version: 9.0.0-alpha.7(react@19.2.4)
       '@mantine/notifications':
-        specifier: ^9.0.0-alpha.7
-        version: 9.0.0-alpha.7(@mantine/core@9.0.0-alpha.7(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: ^9.0.0
+        version: 9.0.0(@mantine/core@9.0.0-alpha.7(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@mantine/schedule':
         specifier: ^9.0.0-alpha.7
         version: 9.0.0-alpha.7(@mantine/core@9.0.0-alpha.7(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/dates@9.0.0-alpha.7(@mantine/core@9.0.0-alpha.7(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(dayjs@1.11.20)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -992,11 +992,11 @@ packages:
     peerDependencies:
       react: ^19.2.0
 
-  '@mantine/notifications@9.0.0-alpha.7':
-    resolution: {integrity: sha512-78wPBc10oIcQJmv2Jr+/bXr0QPXstWDbs1dvDF77I9BhR2iP44OF6c33uLWq1s3WXsyrySBPGqud5wpH5npP4g==}
+  '@mantine/notifications@9.0.0':
+    resolution: {integrity: sha512-BHln+CvmiQx59dMIzwxjLnXN3ongqRFHyox8DogSkMFwVfH76CTahTMz+1AA2fvkZOI0svsqR0zBZ/J7o3uUqw==}
     peerDependencies:
-      '@mantine/core': 9.0.0-alpha.7
-      '@mantine/hooks': 9.0.0-alpha.7
+      '@mantine/core': 9.0.0
+      '@mantine/hooks': 9.0.0
       react: ^19.2.0
       react-dom: ^19.2.0
 
@@ -1009,8 +1009,8 @@ packages:
       react: ^19.2.0
       react-dom: ^19.2.0
 
-  '@mantine/store@9.0.0-alpha.7':
-    resolution: {integrity: sha512-49UtXy4jiXpgP1w9a4fm3LN/v74pA9nOcrQx1riUihuUh0WmWienaVnDYWE3kgwqMtOn93AIQkc7qtd7EAIzIg==}
+  '@mantine/store@9.0.0':
+    resolution: {integrity: sha512-ts1cfBqJEASBNuZ3vzOGDLkfQjF9EDFqUUSOOqZRiwtwt3OyZojIxfWMBcATorH8UODM7dsUhfI82VbGUjZiJA==}
     peerDependencies:
       react: ^19.2.0
 
@@ -5117,11 +5117,11 @@ snapshots:
     dependencies:
       react: 19.2.4
 
-  '@mantine/notifications@9.0.0-alpha.7(@mantine/core@9.0.0-alpha.7(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+  '@mantine/notifications@9.0.0(@mantine/core@9.0.0-alpha.7(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@mantine/core': 9.0.0-alpha.7(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@mantine/hooks': 9.0.0-alpha.7(react@19.2.4)
-      '@mantine/store': 9.0.0-alpha.7(react@19.2.4)
+      '@mantine/store': 9.0.0(react@19.2.4)
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
       react-transition-group: 4.4.5(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -5135,7 +5135,7 @@ snapshots:
       react-dom: 19.2.4(react@19.2.4)
       rrule: 2.8.1
 
-  '@mantine/store@9.0.0-alpha.7(react@19.2.4)':
+  '@mantine/store@9.0.0(react@19.2.4)':
     dependencies:
       react: 19.2.4
 
