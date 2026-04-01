@@ -1,7 +1,7 @@
 import { defineConfig } from 'orval';
 
 export default defineConfig({
-  tribly: {
+  pedalons: {
     input: {
       target: '../contracts/openapi.json',
     },
@@ -20,7 +20,7 @@ export default defineConfig({
       },
     },
   },
-  triblyZod: {
+  pedalonsZod: {
     input: {
       target: '../contracts/openapi.json',
     },

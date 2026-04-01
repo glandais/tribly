@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Tribly: multi-tenant cycling team platform (rides, routes with GPX/maps, posts). Contract-first API development.
+Pedalons: multi-tenant cycling team platform (rides, routes with GPX/maps, posts). Contract-first API development.
 
 ## Tech Stack
 
@@ -72,8 +72,8 @@ mvn test
 
 # Readable coverage report
 ./scripts/coverage-report.sh                              # All classes, sorted by coverage
-./scripts/coverage-report.sh 'com.tribly.service'         # Filter by package
-./scripts/coverage-report.sh 'com.tribly.repository' missed  # Sort by missed lines
+./scripts/coverage-report.sh 'fr.pedalons.service'         # Filter by package
+./scripts/coverage-report.sh 'fr.pedalons.repository' missed  # Sort by missed lines
 ```
 
 ## Backend Services
@@ -120,23 +120,23 @@ mobile/lib/
 └── core/             # Shared utilities and extensions
 
 karoo/app/src/main/kotlin/fr/pedalons/karoo/
-├── TriblyExtension.kt    # KarooExtension service (entry point)
+├── PedalonsExtension.kt    # KarooExtension service (entry point)
 ├── MainActivity.kt       # Route browser (Compose UI)
 ├── auth/
 │   ├── AuthActivity.kt   # Device code flow (QR + polling)
 │   └── AuthManager.kt    # Token storage (DataStore)
 ├── api/
-│   ├── TriblyApiClient.kt  # Ktor HTTP client
+│   ├── PedalonsApiClient.kt  # Ktor HTTP client
 │   └── Models.kt           # API data classes
 └── ui/theme/
     └── Theme.kt          # Dark theme for outdoor visibility
 
 garmin-app/source/
-├── TriblyApp.mc          # Main app entry, Device Code Flow
+├── PedalonsApp.mc          # Main app entry, Device Code Flow
 ├── AuthManager.mc        # Token storage (Toybox.Storage)
 ├── ApiClient.mc          # HTTP client, token refresh
 ├── LoginView.mc          # Device code display
-├── TriblyView.mc         # Route list (scrollable)
+├── PedalonsView.mc         # Route list (scrollable)
 └── RouteDetailView.mc    # Route details + FIT download
 ```
 
@@ -163,7 +163,7 @@ Backend database migrations live in `backend/src/main/resources/db/migration/`. 
 - **Domain-based isolation**: Each HTTP domain has its own teams/users. Same email can exist on different domains.
 - **Domain resolution**: `DomainResolver` extracts domain from `X-Forwarded-Host` → `Host` header → finds `Domain` entity
 - **Domain entity**: Stores `domain` (hostname), `name`, `baseUrl`. WebAuthn/email settings derived from Domain.
-- **All queries must filter by domainId**: Use `triblyQueryContext.getDomainId()` in query builders
+- **All queries must filter by domainId**: Use `pedalonsQueryContext.getDomainId()` in query builders
 - **Tests**: Call `dataService.getOrCreateDefaultDomain()` + `domainResolver.setDomainForTest(domain)` in setUp()
 
 ## Critical Gotchas

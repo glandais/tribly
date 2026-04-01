@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
-import '../../../../api/tribly_api_client.dart';
+import '../../../../api/pedalons_api_client.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/adaptive/adaptive.dart';
 import '../../../../core/utils/api_error_handler.dart';

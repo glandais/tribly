@@ -1,8 +1,8 @@
-# Tribly - Product Sheet
+# Pedalons - Product Sheet
 
 ## Overview
 
-**Tribly** is a multi-tenant cycling team platform for clubs and groups to organize rides, share routes, coordinate events, and build community.
+**Pedalons** is a multi-tenant cycling team platform for clubs and groups to organize rides, share routes, coordinate events, and build community.
 
 **Target audience:** Cycling clubs, informal riding groups, tour organizers, bike shops, corporate teams.
 
@@ -138,7 +138,7 @@
 
 ## Summary
 
-Tribly is a production-ready platform for cycling communities combining team management, event coordination, route sharing, and social features.
+Pedalons is a production-ready platform for cycling communities combining team management, event coordination, route sharing, and social features.
 
 **Key differentiators:**
 - True multi-tenancy with complete team isolation

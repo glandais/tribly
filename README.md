@@ -1,4 +1,4 @@
-# Tribly - Cycling Team Management Platform
+# Pedalons - Cycling Team Management Platform
 
 Multi-tenant web platform for cycling teams to organize rides, trips, manage GPX routes with interactive maps, and communicate.
 
@@ -26,8 +26,8 @@ Multi-tenant web platform for cycling teams to organize rides, trips, manage GPX
 ### Clone and Setup
 
 ```bash
-git clone https://github.com/your-org/tribly.git
-cd tribly
+git clone https://github.com/glandais/pedalons.git
+cd pedalons
 
 # Copy environment template
 cp .env.example .env
@@ -78,7 +78,7 @@ cd backend
 docker compose up -d
 
 # Wait for PostgreSQL to be ready
-docker compose exec postgres pg_isready -U tribly
+docker compose exec postgres pg_isready -U pedalons
 ```
 
 ### 3. Start Backend
@@ -100,7 +100,7 @@ INSERT INTO domains (id, domain, name, base_url, single_team, active, deleted, c
 VALUES (
     (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT * 1000000 + (RANDOM() * 999999)::INT,
     '192.168.50.20',
-    'Tribly',
+    'Pedalons',
     'https://192.168.50.20:5173',
     false,
     true,
@@ -124,7 +124,7 @@ Frontend available at https://localhost:5173
 ## Project Structure
 
 ```
-tribly/
+pedalons/
 ├── backend/          # Quarkus backend (Java 21)
 ├── frontend/         # React 19 SPA (Mantine UI)
 ├── mobile/           # Flutter mobile app (iOS/Android)
@@ -188,7 +188,7 @@ cd frontend && pnpm lint
 
 ## Multi-Tenancy
 
-Tribly is multi-tenant: each domain (hostname) has isolated teams and users. The domain is resolved from the `Host` or `X-Forwarded-Host` HTTP header.
+Pedalons is multi-tenant: each domain (hostname) has isolated teams and users. The domain is resolved from the `Host` or `X-Forwarded-Host` HTTP header.
 
 ### Creating a Domain
 

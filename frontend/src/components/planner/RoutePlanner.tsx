@@ -10,7 +10,7 @@ import {
 } from 'react-map-gl/maplibre'
 import { IconTrash } from '@tabler/icons-react'
 import { ActionIcon, Box, Group, Loader, Stack, Text, useComputedColorScheme } from '@mantine/core'
-import { TriblyMap } from '../map/TriblyMap'
+import { PedalonsMap } from '../map/PedalonsMap'
 import { UndoRedoControl } from './UndoRedoControl'
 import { RouterProfileSelector } from './RouterProfileSelector'
 import { useUnits } from '../../hooks/useUnits'
@@ -508,7 +508,7 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
         className={colorScheme === 'dark' ? 'dark' : undefined}
         style={{ flex: 1 }}
       >
-        <TriblyMap
+        <PedalonsMap
           ref={mapRef}
           mapStyleSwitcherPosition="top-right"
           initialViewState={initialViewState}
@@ -686,7 +686,7 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
               />
             </Marker>
           )}
-        </TriblyMap>
+        </PedalonsMap>
 
         {/* Long-press context menu for touch devices */}
         {contextMenu && (

@@ -2,7 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../api/tribly_api_client.dart';
+import '../../api/pedalons_api_client.dart';
 import '../../config/app_config.dart';
 
 /// Resolves a URL to an absolute URL if it's relative.

@@ -3,7 +3,7 @@ openapi_generator:
   output_directory: lib/api/generated
   json_serializer: freezed
   root_client: true
-  root_client_name: TriblyApiClient
+  root_client_name: PedalonsApiClient
   client_postfix: Client
   unknown_enum_value: true
   put_clients_in_folder: true

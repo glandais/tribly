@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Tribly mobile app: Flutter client for the cycling team platform. See parent `../CLAUDE.md` for full project context.
+Pedalons mobile app: Flutter client for the cycling team platform. See parent `../CLAUDE.md` for full project context.
 
 ## Commands
 
@@ -24,13 +24,13 @@ dart run openapi_retrofit_generator
 ```
 lib/
 ├── main.dart              # Entry point, deep link handling, ProviderScope
-├── app.dart               # TriblyApp widget, theme configuration
+├── app.dart               # PedalonsApp widget, theme configuration
 ├── config/
 │   ├── router.dart        # GoRouter configuration with auth redirects
 │   ├── paths.dart         # Type-safe path builders (mirrors frontend)
 │   └── app_config.dart    # API URLs, WebAuthn config (compile-time env)
 ├── api/
-│   ├── tribly_api_client.dart  # Dio providers, client providers
+│   ├── pedalons_api_client.dart  # Dio providers, client providers
 │   ├── interceptors/           # Auth interceptor with token refresh
 │   └── generated/              # Auto-generated from OpenAPI (DO NOT EDIT)
 │       ├── clients/            # Retrofit API clients
@@ -91,10 +91,10 @@ context.go(Paths.ride(teamSlug, rideSlug));
 
 ```dart
 // Unauthenticated (for login/register)
-final baseApiClientProvider = Provider<TriblyApiClient>((ref) => ...);
+final baseApiClientProvider = Provider<PedalonsApiClient>((ref) => ...);
 
 // Authenticated (has auth interceptor)
-final apiClientProvider = Provider<TriblyApiClient>((ref) => ...);
+final apiClientProvider = Provider<PedalonsApiClient>((ref) => ...);
 
 // Individual clients
 final teamsClientProvider = Provider<TeamsClient>((ref) => ref.watch(apiClientProvider).teams);

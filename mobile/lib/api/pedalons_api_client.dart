@@ -50,16 +50,16 @@ final dioProvider = Provider<Dio>((ref) {
 // Generated API Client Providers
 // ============================================================================
 
-/// Provider for the generated TriblyApiClient (unauthenticated, for login/register)
-final baseApiClientProvider = Provider<TriblyApiClient>((ref) {
+/// Provider for the generated PedalonsApiClient (unauthenticated, for login/register)
+final baseApiClientProvider = Provider<PedalonsApiClient>((ref) {
   final dio = ref.watch(baseDioProvider);
-  return TriblyApiClient(dio, baseUrl: AppConfig.apiBaseUrl);
+  return PedalonsApiClient(dio, baseUrl: AppConfig.apiBaseUrl);
 });
 
-/// Provider for the generated TriblyApiClient (authenticated, for protected endpoints)
-final apiClientProvider = Provider<TriblyApiClient>((ref) {
+/// Provider for the generated PedalonsApiClient (authenticated, for protected endpoints)
+final apiClientProvider = Provider<PedalonsApiClient>((ref) {
   final dio = ref.watch(dioProvider);
-  return TriblyApiClient(dio, baseUrl: AppConfig.apiBaseUrl);
+  return PedalonsApiClient(dio, baseUrl: AppConfig.apiBaseUrl);
 });
 
 // ============================================================================

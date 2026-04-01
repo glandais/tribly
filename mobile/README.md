@@ -1,6 +1,6 @@
-# Tribly Mobile
+# Pedalons Mobile
 
-Flutter mobile app for the Tribly cycling team platform.
+Flutter mobile app for the Pedalons cycling team platform.
 
 ## Prerequisites
 

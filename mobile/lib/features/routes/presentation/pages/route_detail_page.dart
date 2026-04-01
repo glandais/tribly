@@ -6,7 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../api/generated/export.dart';
-import '../../../../api/tribly_api_client.dart';
+import '../../../../api/pedalons_api_client.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../auth/providers/auth_provider.dart';

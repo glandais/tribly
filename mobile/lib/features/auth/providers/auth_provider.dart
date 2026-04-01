@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../api/generated/export.dart';
-import '../../../api/tribly_api_client.dart';
+import '../../../api/pedalons_api_client.dart';
 import '../../../core/utils/api_error_handler.dart';
 import '../data/auth_repository.dart';
 import '../data/secure_storage.dart';

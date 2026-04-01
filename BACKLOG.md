@@ -1,4 +1,4 @@
-# Tribly Roadmap
+# Pédalons Roadmap
 
 ## P0 — Launch Blockers
 Must-have for public launch. Focus on first impressions and core UX.

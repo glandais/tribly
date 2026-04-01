@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../api/generated/export.dart';
-import '../../../api/tribly_api_client.dart';
+import '../../../api/pedalons_api_client.dart';
 
 final rideRepositoryProvider = Provider<RideRepository>((ref) {
   return RideRepository(

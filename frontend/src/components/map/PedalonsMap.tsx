@@ -6,12 +6,12 @@ import { Terrain3D } from './Terrain3D'
 import { MapStyleSwitcher } from './MapStyleSwitcher'
 import { useMapStyle } from '@/hooks/useMapStyle'
 
-type TriblyMapProps = Omit<MapProps, 'mapLib' | 'mapStyle' | 'style'> & {
+type PedalonsMapProps = Omit<MapProps, 'mapLib' | 'mapStyle' | 'style'> & {
   mapStyleSwitcherPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
   navigationControlPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
 }
 
-export const TriblyMap = forwardRef<MapRef, TriblyMapProps>(
+export const PedalonsMap = forwardRef<MapRef, PedalonsMapProps>(
   (
     {
       mapStyleSwitcherPosition = 'bottom-left',
@@ -48,4 +48,4 @@ export const TriblyMap = forwardRef<MapRef, TriblyMapProps>(
     )
   }
 )
-TriblyMap.displayName = 'TriblyMap'
+PedalonsMap.displayName = 'PedalonsMap'

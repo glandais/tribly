@@ -1,6 +1,6 @@
-# Tribly Frontend
+# Pédalons Frontend
 
-React SPA for the Tribly cycling team management platform. Built with TypeScript, React 19, Vite, and Mantine UI.
+React SPA for the Pédalons cycling team management platform. Built with TypeScript, React 19, Vite, and Mantine UI.
 
 ## Prerequisites
 

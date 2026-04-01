@@ -4,7 +4,7 @@
 
 ## Product Overview
 **One-liner:** Multi-tenant platform for cycling teams to organize rides, manage routes, and communicate
-**What it does:** Tribly lets cycling clubs create teams, organize group rides with different skill levels, manage GPX routes with interactive maps, plan multi-day trips, and sync routes to GPS devices (Garmin, Hammerhead Karoo)
+**What it does:** Pedalons lets cycling clubs create teams, organize group rides with different skill levels, manage GPX routes with interactive maps, plan multi-day trips, and sync routes to GPS devices (Garmin, Hammerhead Karoo)
 **Product category:** Cycling club management / Team organization software
 **Product type:** SaaS (multi-tenant, white-label capable)
 **Business model:** TBD

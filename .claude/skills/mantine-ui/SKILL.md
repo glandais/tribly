@@ -3,7 +3,7 @@ name: mantine-ui
 description: Use when modifying files in frontend/src/components/ or frontend/src/pages/, creating React components, building forms, modals, or UI features. This project uses Mantine exclusively for all UI components.
 ---
 
-# Mantine UI Reference (Tribly Patterns)
+# Mantine UI Reference (Pedalons Patterns)
 
 ## Overview
 

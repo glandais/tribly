@@ -2,10 +2,10 @@ services:
   # Reverse proxy
   traefik:
     image: traefik:3.6
-    container_name: tribly-traefik
+    container_name: pedalons-traefik
     restart: unless-stopped
     networks:
-      - tribly
+      - pedalons
     ports:
       - "${HTTP_PORT:-8090}:80"
     command:
@@ -24,12 +24,12 @@ services:
       - "traefik.enable=false"
 
   backend:
-    image: ghcr.io/glandais/tribly-backend:latest
-    container_name: tribly-backend
+    image: ghcr.io/glandais/pedalons-backend:latest
+    container_name: pedalons-backend
     restart: unless-stopped
     user: "${PUID:-1000}:${PGID:-1000}"
     networks:
-      - tribly
+      - pedalons
     env_file:
       - .env
     volumes:
@@ -43,11 +43,11 @@ services:
       - "traefik.http.services.quarkus.loadbalancer.server.port=8080"
 
   frontend:
-    image: ghcr.io/glandais/tribly-frontend:latest
-    container_name: tribly-frontend
+    image: ghcr.io/glandais/pedalons-frontend:latest
+    container_name: pedalons-frontend
     restart: unless-stopped
     networks:
-      - tribly
+      - pedalons
     labels:
       - "traefik.enable=true"
       - "traefik.stack=${TRAEFIK_STACK}"
@@ -57,10 +57,10 @@ services:
 
   postgres:
     image: postgis/postgis:17-3.5-alpine
-    container_name: tribly-postgres
+    container_name: pedalons-postgres
     restart: unless-stopped
     networks:
-      - tribly
+      - pedalons
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
@@ -75,10 +75,10 @@ services:
 
   imgproxy:
     image: ghcr.io/imgproxy/imgproxy:v3.31.1
-    container_name: tribly-imgproxy
+    container_name: pedalons-imgproxy
     restart: unless-stopped
     networks:
-      - tribly
+      - pedalons
     depends_on:
       - minio
     environment:
@@ -97,10 +97,10 @@ services:
 
   varnish:
     image: varnish:6.0.14
-    container_name: tribly-varnish
+    container_name: pedalons-varnish
     restart: unless-stopped
     networks:
-      - tribly
+      - pedalons
     volumes:
       - "./services/varnish/varnish.vcl:/etc/varnish/default.vcl"
     tmpfs:
@@ -111,10 +111,10 @@ services:
 
   valhalla:
     image: ghcr.io/valhalla/valhalla-scripted:latest
-    container_name: tribly-valhalla
+    container_name: pedalons-valhalla
     restart: unless-stopped
     networks:
-      - tribly
+      - pedalons
     volumes:
       - ./data/valhalla:/custom_files
     environment:
@@ -127,11 +127,11 @@ services:
 
   minio:
     image: minio/minio:RELEASE.2025-01-20T14-49-07Z
-    container_name: tribly-minio
+    container_name: pedalons-minio
     command: server /data --console-address ":9001"
     restart: unless-stopped
     networks:
-      - tribly
+      - pedalons
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
@@ -140,10 +140,10 @@ services:
 
   tileserver:
     image: maptiler/tileserver-gl:v5.5.0
-    container_name: tribly-tileserver
+    container_name: pedalons-tileserver
     restart: unless-stopped
     networks:
-      - tribly
+      - pedalons
     volumes:
       - ./data/tileserver:/data
 
@@ -152,4 +152,4 @@ volumes:
   minio_data:
 
 networks:
-  tribly:
+  pedalons:

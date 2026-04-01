@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/auth/data/secure_storage.dart';
 import '../generated/export.dart';
-import '../tribly_api_client.dart';
+import '../pedalons_api_client.dart';
 
 /// Interceptor that handles authentication tokens and refresh
 /// Mirrors frontend/src/lib/axiosInstance.ts

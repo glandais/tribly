@@ -21,7 +21,7 @@ import { getRoute } from '@/api/endpoints/routes/routes'
 import type { RouteDetailDto } from '@/api/dto'
 import { StartMarker, EndMarker } from '../map/MapMarkers'
 import { calculateBounds, routeToGeoJSON } from '../map/mapUtils'
-import { TriblyMap } from '../map/TriblyMap'
+import { PedalonsMap } from '../map/PedalonsMap'
 import { useUnits } from '../../hooks/useUnits'
 import { getOverlayBg } from '@/lib/colors'
 // maplibre-gl CSS is provided by maplibre-theme in index.css
@@ -361,7 +361,7 @@ export function RoutesMapView({
         className={colorScheme === 'dark' ? 'dark' : undefined}
         style={{ zIndex: 0 }}
       >
-        <TriblyMap
+        <PedalonsMap
           ref={mapRef}
           initialViewState={{
             longitude: routesData[0].trackPoints[0][0],
@@ -407,7 +407,7 @@ export function RoutesMapView({
 
           {/* End marker (last route's last point) */}
           <EndMarker longitude={endPoint[0]} latitude={endPoint[1]} />
-        </TriblyMap>
+        </PedalonsMap>
 
         {/* Elevation chart overlay */}
         <Paper

@@ -119,11 +119,12 @@ export async function insert(
   ])
 
   // Snap the manual point to the nearest road using segment endpoints
-  const snappedP = segmentToP.length > 0
-    ? segmentToP[segmentToP.length - 1]
-    : segmentToEnd.length > 0
-      ? segmentToEnd[0]
-      : null
+  const snappedP =
+    segmentToP.length > 0
+      ? segmentToP[segmentToP.length - 1]
+      : segmentToEnd.length > 0
+        ? segmentToEnd[0]
+        : null
   const manualPoint = createPoint(snappedP?.lng ?? p.lng, snappedP?.lat ?? p.lat)
   manualPoint.manual = true
 

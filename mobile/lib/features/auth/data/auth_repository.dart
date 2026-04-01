@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../api/generated/export.dart';
-import '../../../api/tribly_api_client.dart';
+import '../../../api/pedalons_api_client.dart';
 
 /// Provider for auth repository - uses baseDioProvider to avoid circular dependency
 final authRepositoryProvider = Provider<AuthRepository>((ref) {

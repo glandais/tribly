@@ -179,4 +179,4 @@ export 'models/place_request_geometry_type_type.dart';
 export 'models/team_detail_dto_geometry_type_type.dart';
 export 'models/team_request_geometry_type_type.dart';
 // Root client
-export 'tribly_api_client.dart';
+export 'pedalons_api_client.dart';

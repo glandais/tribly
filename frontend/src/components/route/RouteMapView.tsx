@@ -32,7 +32,7 @@ import {
   findNearestPoint,
   createGradientLineFeatures,
 } from '../map/mapUtils'
-import { TriblyMap } from '../map/TriblyMap'
+import { PedalonsMap } from '../map/PedalonsMap'
 import { useUnits } from '../../hooks/useUnits'
 import { getOverlayBg } from '@/lib/colors'
 // maplibre-gl CSS is provided by maplibre-theme in index.css
@@ -339,7 +339,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
         className={colorScheme === 'dark' ? 'dark' : undefined}
         style={{ zIndex: 0 }}
       >
-        <TriblyMap
+        <PedalonsMap
           ref={mapRef}
           mapStyleSwitcherPosition="top-right"
           initialViewState={{
@@ -389,7 +389,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
 
           {/* Hover marker */}
           {hoveredPoint && <HoverMarker longitude={hoveredPoint[0]} latitude={hoveredPoint[1]} />}
-        </TriblyMap>
+        </PedalonsMap>
 
         {/* Elevation chart overlay */}
         <Box

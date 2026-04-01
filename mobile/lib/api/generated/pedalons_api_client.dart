@@ -37,8 +37,8 @@ import 'clients/users_client.dart';
 /// Pedalons API `v1.0.0`.
 ///
 /// API for Pedalons Cycling Team Management Platform.
-class TriblyApiClient {
-  TriblyApiClient(
+class PedalonsApiClient {
+  PedalonsApiClient(
     Dio dio, {
     String? baseUrl,
   }) : _dio = dio,

@@ -3,7 +3,7 @@ import 'package:passkeys/authenticator.dart';
 import 'package:passkeys/types.dart';
 
 import '../../../api/generated/export.dart';
-import '../../../api/tribly_api_client.dart';
+import '../../../api/pedalons_api_client.dart';
 import '../../../config/app_config.dart';
 import '../data/auth_repository.dart';
 import '../providers/auth_provider.dart';

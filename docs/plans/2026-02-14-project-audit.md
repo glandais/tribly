@@ -1,8 +1,8 @@
-# Audit Tribly — Fevrier 2026
+# Audit Pedalons — Fevrier 2026
 
 ## Resume executif
 
-Tribly est une plateforme multi-tenant mature pour equipes cyclistes, comprenant 5 composants (backend Java/Quarkus, frontend React/Mantine, mobile Flutter, extension Karoo Kotlin/Compose, app Garmin Monkey C). L'audit 360 degres revele un projet bien architecture avec des fondations solides, mais des lacunes critiques en securite, CI/CD, tests et documentation.
+Pedalons est une plateforme multi-tenant mature pour equipes cyclistes, comprenant 5 composants (backend Java/Quarkus, frontend React/Mantine, mobile Flutter, extension Karoo Kotlin/Compose, app Garmin Monkey C). L'audit 360 degres revele un projet bien architecture avec des fondations solides, mais des lacunes critiques en securite, CI/CD, tests et documentation.
 
 ### Top 10 des actions prioritaires
 
@@ -45,7 +45,7 @@ Backend Quarkus 3.31.2, Java 21 (compile en Java 25), ~90 fichiers de test. Arch
 
 ### Points forts
 - ArchUnit avec 7 regles d'architecture (CheckAccess obligatoire, @Valid, layering)
-- Multi-tenancy bien implemente via `TriblyQuery` + `DomainResolver`
+- Multi-tenancy bien implemente via `PedalonsQuery` + `DomainResolver`
 - Systeme de slugs avec redirections automatiques
 - OTP avec rate limiting, hashage SHA-256, validation par domaine
 - DTOs en records Java, formatage Spotless automatique
@@ -63,10 +63,10 @@ Backend Quarkus 3.31.2, Java 21 (compile en Java 25), ~90 fichiers de test. Arch
 | B7 | Traitement GPX complet dans une seule transaction (connexion DB longue) | Important | L | `GpxProcessingService.java` |
 | B8 | Etat OAuth stocke en `ConcurrentHashMap` (pas multi-instance, fuite memoire) | Important | M | `GpsService.java:52` |
 | B9 | Requetes N+1 sur les listings (pas de JOIN FETCH) | Important | L | `TeamEntityRepository.java` |
-| B10 | `TriblyQueryContext.getUserNullable()` re-requete la DB a chaque appel | Important | S | `TriblyQueryContext.java:92-95` |
+| B10 | `PedalonsQueryContext.getUserNullable()` re-requete la DB a chaque appel | Important | S | `PedalonsQueryContext.java:92-95` |
 | B11 | `FetchType.EAGER` sur plusieurs `@ManyToOne` (Ride.route, Ride.start, etc.) | Important | M | `Ride.java`, `RideGroup.java`, `Team.java` |
 | B12 | Pas de test pour `DeviceAuthService` (device code flow) | Important | M | Nouveau fichier test |
-| B13 | Code commente dans `TriblyException` (~40 lignes) | Mineur | S | `TriblyException.java:23-65` |
+| B13 | Code commente dans `PedalonsException` (~40 lignes) | Mineur | S | `PedalonsException.java:23-65` |
 | B14 | Logique cle S3 dupliquee (`AssetService` vs `AssetRemoveListener`) | Mineur | S | `AssetService.java`, `AssetRemoveListener.java` |
 | B15 | Indexes redondants avec contraintes UNIQUE sur `device_codes` | Mineur | S | `V5__device_codes.sql` |
 
@@ -167,7 +167,7 @@ Extension Kotlin/Compose pour Hammerhead Karoo. Package `fr.pedalons.karoo`. 7 f
 | K8 | `generateQrCode` dupliquee entre 2 fichiers | Important | S | `AuthActivity.kt`, `GpsConnectActivity.kt` |
 | K9 | Pas de gestion `slow_down` RFC 8628 | Important | S | `AuthActivity.kt` |
 | K10 | Pas de pagination des routes — risque depassement 100KB | Important | M | `PedalonsApiClient.kt` |
-| K11 | Package `fr.pedalons.karoo` vs `com.tribly.karoo` dans CLAUDE.md | Mineur | S | Documentation |
+| K11 | Package `fr.pedalons.karoo` vs `fr.pedalons.karoo` dans CLAUDE.md | Mineur | S | Documentation |
 | K12 | DataStore non chiffre (tokens en clair) | Mineur | M | `AuthManager.kt` |
 | K13 | Navigation Compose non utilisee malgre la dependance | Mineur | S | `build.gradle.kts` |
 
@@ -255,7 +255,7 @@ Multi-tenancy par domaine HTTP avec filtrage SQL. Auth JWT 15min (web) / 60min (
 - AES-256-GCM avec IV aleatoire pour le chiffrement
 - OTP rate limiting (max 3/5min) et invalidation apres usage
 - WebAuthn challenges single-use, 5min expiry
-- Isolation multi-tenant via `TriblyQuery` + `DomainResolver`
+- Isolation multi-tenant via `PedalonsQuery` + `DomainResolver`
 - SecureRandom pour toute generation de tokens
 
 ### Problemes
@@ -302,7 +302,7 @@ Documentation dispersee entre CLAUDE.md (racine + 4 sous-projets), README.md, PR
 | D6 | PRODUCT_SHEET.md : Roadmap liste mobile/Garmin/calendar comme "potentiel" — ils existent | Important | M | `PRODUCT_SHEET.md` |
 | D7 | garmin-app/BUILD.md : API 3.2.0 vs manifest 3.3.0, 7 devices vs 13 | Important | S | `BUILD.md` |
 | D8 | garmin-app/CLAUDE.md : endpoints `/api/garmin/routes` vs `/api/device/routes` | Important | S | `garmin-app/CLAUDE.md` |
-| D9 | CLAUDE.md racine : arborescence Karoo dit `com.tribly.karoo` et `TriblyExtension.kt` — c'est `fr.pedalons` et `PedalonsExtension.kt` | Important | S | `CLAUDE.md` |
+| D9 | CLAUDE.md racine : arborescence Karoo dit `fr.pedalons.karoo` et `PedalonsExtension.kt` — c'est `fr.pedalons` et `PedalonsExtension.kt` | Important | S | `CLAUDE.md` |
 | D10 | BACKLOG_old.md redondant avec BACKLOG.md — peut etre supprime | Mineur | S | `BACKLOG_old.md` |
 | D11 | Guide de deploiement manquant | Mineur | M | Documentation |
 
@@ -327,12 +327,6 @@ Les deux clients partagent des problemes communs :
 - Reprise de flow interrompu non implementee
 - Resilience reseau insuffisante pendant le polling
 - URL hardcodee dans Garmin (`pedalons.fr`)
-
-### 9.3 Branding `pedalons` vs `tribly`
-
-Le package Karoo est `fr.pedalons.karoo`, l'app Garmin s'appelle "Pedalons", les URLs pointent vers `pedalons.fr`. C'est un artifact historique. Le renommage du package Karoo forcerait une reinstallation pour les utilisateurs existants.
-
-**Recommandation** : Documenter cette decision dans CLAUDE.md. Ne pas renommer le package Karoo pour eviter la rupture utilisateurs.
 
 ### 9.4 Logging et monitoring
 
@@ -370,7 +364,7 @@ Le package Karoo est `fr.pedalons.karoo`, l'app Garmin s'appelle "Pedalons", les
 | 15 | Aligner `<release>` Java (21 ou 25) dans le POM | Backend |
 | 16 | Retirer `@Transactional` des Resources | Backend |
 | 17 | Passer les logs 4xx en WARN dans GlobalExceptionMapper | Backend |
-| 18 | Cacher le User dans `TriblyQueryContext` | Backend |
+| 18 | Cacher le User dans `PedalonsQueryContext` | Backend |
 | 19 | Ajouter des tests frontend Phase 1 (utils, hooks, stores) | Frontend |
 | 20 | Ajouter des tests mobile Phase 1 (AuthNotifier, interceptor, repos) | Mobile |
 | 21 | Supprimer les dependances inutilisees (mobile : hooks, riverpod_generator) | Mobile |
