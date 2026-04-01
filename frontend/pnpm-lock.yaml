@@ -27,8 +27,8 @@ importers:
         specifier: ^9.0.0-alpha.7
         version: 9.0.0-alpha.7(@mantine/core@9.0.0-alpha.7(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/dates@9.0.0-alpha.7(@mantine/core@9.0.0-alpha.7(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(dayjs@1.11.20)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@mantine/tiptap':
-        specifier: ^9.0.0-alpha.7
-        version: 9.0.0-alpha.7(@mantine/core@9.0.0-alpha.7(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(@tiptap/extension-link@3.21.0(@tiptap/core@3.21.0(@tiptap/pm@3.21.0))(@tiptap/pm@3.21.0))(@tiptap/react@3.21.0(@floating-ui/dom@1.7.6)(@tiptap/core@3.21.0(@tiptap/pm@3.21.0))(@tiptap/pm@3.21.0)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: ^9.0.0
+        version: 9.0.0(@mantine/core@9.0.0-alpha.7(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(@tiptap/extension-link@3.21.0(@tiptap/core@3.21.0(@tiptap/pm@3.21.0))(@tiptap/pm@3.21.0))(@tiptap/react@3.21.0(@floating-ui/dom@1.7.6)(@tiptap/core@3.21.0(@tiptap/pm@3.21.0))(@tiptap/pm@3.21.0)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@simplewebauthn/browser':
         specifier: ^13.3.0
         version: 13.3.0
@@ -1014,11 +1014,11 @@ packages:
     peerDependencies:
       react: ^19.2.0
 
-  '@mantine/tiptap@9.0.0-alpha.7':
-    resolution: {integrity: sha512-I130/oU58744NHjnW61qat02cAmZ2y3FQ98EWtNQTMw2lwKnjN9AxkBARzwdppG7bC6ZDWX09ZdjDJaBprwvFw==}
+  '@mantine/tiptap@9.0.0':
+    resolution: {integrity: sha512-dL2CNHqDItMXOxUc9cf0+5f8R77Z1vP13PZx5YaCX5cS/cFy0A9JP2VHGqXQmuDhxX+OV/Hhf94jeOF5Yly+vg==}
     peerDependencies:
-      '@mantine/core': 9.0.0-alpha.7
-      '@mantine/hooks': 9.0.0-alpha.7
+      '@mantine/core': 9.0.0
+      '@mantine/hooks': 9.0.0
       '@tiptap/extension-link': '>=3.3.0'
       '@tiptap/react': '>=3.3.0'
       react: ^19.2.0
@@ -5139,7 +5139,7 @@ snapshots:
     dependencies:
       react: 19.2.4
 
-  '@mantine/tiptap@9.0.0-alpha.7(@mantine/core@9.0.0-alpha.7(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(@tiptap/extension-link@3.21.0(@tiptap/core@3.21.0(@tiptap/pm@3.21.0))(@tiptap/pm@3.21.0))(@tiptap/react@3.21.0(@floating-ui/dom@1.7.6)(@tiptap/core@3.21.0(@tiptap/pm@3.21.0))(@tiptap/pm@3.21.0)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+  '@mantine/tiptap@9.0.0(@mantine/core@9.0.0-alpha.7(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(@tiptap/extension-link@3.21.0(@tiptap/core@3.21.0(@tiptap/pm@3.21.0))(@tiptap/pm@3.21.0))(@tiptap/react@3.21.0(@floating-ui/dom@1.7.6)(@tiptap/core@3.21.0(@tiptap/pm@3.21.0))(@tiptap/pm@3.21.0)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@mantine/core': 9.0.0-alpha.7(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@mantine/hooks': 9.0.0-alpha.7(react@19.2.4)
