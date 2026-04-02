@@ -7,6 +7,7 @@ import '../features/auth/presentation/pages/verify_email_page.dart';
 import '../features/auth/providers/auth_provider.dart';
 import '../features/calendar/presentation/pages/calendar_page.dart';
 import '../features/home/presentation/pages/home_page.dart';
+import '../features/legal/presentation/pages/legal_page.dart';
 import '../features/navigation/presentation/shell/main_shell.dart';
 import '../features/profile/presentation/pages/profile_page.dart';
 import '../features/rides/presentation/pages/ride_detail_page.dart';
@@ -40,7 +41,9 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Auth-related routes that don't require login
       final isAuthRoute = location.startsWith('/login') ||
-          location.startsWith('/verify-email');
+          location.startsWith('/verify-email') ||
+          location.startsWith('/privacy') ||
+          location.startsWith('/terms');
 
       // If not authenticated and not on an auth route, redirect to login
       if (!isAuthenticated && !isAuthRoute) {
@@ -149,6 +152,18 @@ final routerProvider = Provider<GoRouter>((ref) {
             ),
           ),
         ],
+      ),
+
+      // Legal pages (outside shell, accessible without auth)
+      GoRoute(
+        path: '/privacy',
+        builder: (context, state) =>
+            const LegalPage(type: LegalPageType.privacy),
+      ),
+      GoRoute(
+        path: '/terms',
+        builder: (context, state) =>
+            const LegalPage(type: LegalPageType.terms),
       ),
 
       // Legacy root path redirect

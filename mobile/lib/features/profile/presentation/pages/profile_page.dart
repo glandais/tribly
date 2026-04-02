@@ -210,9 +210,7 @@ class ProfilePage extends ConsumerWidget {
                   ),
                   title: Text('profile.privacy'.tr()),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    // TODO: Open privacy policy
-                  },
+                  onTap: () => context.push(Paths.privacy()),
                 ),
                 const Divider(height: 1),
                 ListTile(
@@ -222,9 +220,7 @@ class ProfilePage extends ConsumerWidget {
                   ),
                   title: Text('profile.terms'.tr()),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    // TODO: Open terms
-                  },
+                  onTap: () => context.push(Paths.terms()),
                 ),
               ],
             ),

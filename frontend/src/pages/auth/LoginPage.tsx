@@ -277,8 +277,8 @@ export function LoginPage() {
         <Trans
           i18nKey="auth.login.termsText"
           components={{
-            termsLink: <Anchor href="/terms" />,
-            privacyLink: <Anchor href="/privacy" />,
+            termsLink: <Anchor href={paths.terms()} />,
+            privacyLink: <Anchor href={paths.privacy()} />,
           }}
         />
       </Text>

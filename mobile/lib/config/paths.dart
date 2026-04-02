@@ -10,6 +10,10 @@ class Paths {
   static String calendar() => '/calendar';
   static String profile() => '/profile';
 
+  // Legal
+  static String privacy() => '/privacy';
+  static String terms() => '/terms';
+
   // Auth
   static String login() => '/login';
   static String register() => '/register';

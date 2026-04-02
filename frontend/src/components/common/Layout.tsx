@@ -199,9 +199,23 @@ export function Layout() {
         style={{ borderTop: '1px solid var(--mantine-color-default-border)' }}
       >
         <Container size="lg">
-          <Text ta="center" c="dimmed" size="sm">
-            {t('footer.copyright', { year: new Date().getFullYear(), appName })}
-          </Text>
+          <Group justify="center" gap="xs" wrap="wrap">
+            <Text c="dimmed" size="sm">
+              {t('footer.copyright', { year: new Date().getFullYear(), appName })}
+            </Text>
+            <Text c="dimmed" size="sm">
+              ·
+            </Text>
+            <Anchor component={Link} to={paths.privacy()} c="dimmed" size="sm">
+              {t('footer.privacy')}
+            </Anchor>
+            <Text c="dimmed" size="sm">
+              ·
+            </Text>
+            <Anchor component={Link} to={paths.terms()} c="dimmed" size="sm">
+              {t('footer.terms')}
+            </Anchor>
+          </Group>
         </Container>
       </Box>
     </AppShell>

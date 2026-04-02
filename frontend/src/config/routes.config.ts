@@ -148,6 +148,12 @@ const AdminTeamsPage = lazy(() =>
 const AdminUsersPage = lazy(() =>
   import('../pages/admin/AdminUsersPage').then((m) => ({ default: m.AdminUsersPage }))
 )
+const PrivacyPolicyPage = lazy(() =>
+  import('../pages/legal/PrivacyPolicyPage').then((m) => ({ default: m.PrivacyPolicyPage }))
+)
+const TermsOfServicePage = lazy(() =>
+  import('../pages/legal/TermsOfServicePage').then((m) => ({ default: m.TermsOfServicePage }))
+)
 
 export const routesConfig: RoutesConfig = [
   // === Home ===
@@ -169,6 +175,24 @@ export const routesConfig: RoutesConfig = [
     parentId: null,
     subRouteIds: ['home', 'calendar', 'all-routes', 'teams'],
     breadcrumb: { type: 'static', i18nKey: tRegister('nav.routes') },
+  },
+
+  // === Legal Routes ===
+  {
+    id: 'privacy',
+    path: paths.privacy(),
+    component: PrivacyPolicyPage,
+    auth: 'public',
+    parentId: null,
+    breadcrumb: { type: 'static', i18nKey: tRegister('legal.privacy.title') },
+  },
+  {
+    id: 'terms',
+    path: paths.terms(),
+    component: TermsOfServicePage,
+    auth: 'public',
+    parentId: null,
+    breadcrumb: { type: 'static', i18nKey: tRegister('legal.terms.title') },
   },
 
   // === Auth Routes ===
