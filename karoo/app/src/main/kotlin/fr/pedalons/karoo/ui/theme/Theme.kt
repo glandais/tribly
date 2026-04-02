@@ -11,17 +11,17 @@ import androidx.compose.ui.unit.sp
 
 // Dark theme optimized for outdoor visibility on Karoo display
 private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFF4FC3F7),        // Light blue - good contrast
+    primary = Color(0xFF748FFC),        // Indigo-4 - brand primary, high contrast on black
     onPrimary = Color.Black,
-    secondary = Color(0xFF81C784),      // Light green
+    secondary = Color(0xFFFFA94D),      // Orange-4 - brand accent
     onSecondary = Color.Black,
     background = Color.Black,
     onBackground = Color.White,
-    surface = Color(0xFF1A1A1A),
+    surface = Color(0xFF1F1F1F),        // Dark-8
     onSurface = Color.White,
-    surfaceVariant = Color(0xFF2D2D2D),
-    onSurfaceVariant = Color(0xFFB0B0B0),
-    error = Color(0xFFEF5350),
+    surfaceVariant = Color(0xFF2E2E2E), // Dark-6
+    onSurfaceVariant = Color(0xFFB8B8B8), // Dark-1
+    error = Color(0xFFFF6B6B),          // Red-5
     onError = Color.White
 )
 

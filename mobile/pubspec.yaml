@@ -56,6 +56,9 @@ dependencies:
   # Markdown rendering
   markdown_widget: ^2.3.2+6
 
+  # Fonts
+  google_fonts: ^8.0.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

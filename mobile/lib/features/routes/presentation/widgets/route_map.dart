@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:maplibre/maplibre.dart';
 
 import '../../../../api/generated/export.dart';
+import '../../../../core/theme/pedalons_colors.dart';
 
 class RouteMap extends StatefulWidget {
   final RouteDetailDto route;
@@ -34,7 +35,8 @@ class _RouteMapState extends State<RouteMap> {
       ),
       onMapCreated: (controller) => _controller = controller,
       onStyleLoaded: (style) async {
-        await _addRouteLayers(style);
+        final brightness = MediaQuery.platformBrightnessOf(context);
+        await _addRouteLayers(style, brightness);
         // Delay fitBounds to let the map complete its layout
         await Future<void>.delayed(const Duration(milliseconds: 100));
         _fitRouteBounds();
@@ -42,7 +44,7 @@ class _RouteMapState extends State<RouteMap> {
     );
   }
 
-  Future<void> _addRouteLayers(StyleController style) async {
+  Future<void> _addRouteLayers(StyleController style, Brightness brightness) async {
     final coordinates = widget.route.tracks
         .expand((track) => track.line.coordinates)
         .toList();
@@ -60,11 +62,13 @@ class _RouteMapState extends State<RouteMap> {
 
     await style.addSource(GeoJsonSource(id: 'route-line', data: lineGeoJson));
     await style.addLayer(
-      const LineStyleLayer(
+      LineStyleLayer(
         id: 'route-line-layer',
         sourceId: 'route-line',
         paint: {
-          'line-color': '#1976D2',
+          'line-color': brightness == Brightness.dark
+              ? BrandColors.mapRouteLineHexDark
+              : BrandColors.mapRouteLineHexLight,
           'line-width': 4,
           'line-opacity': 0.8,
         },
@@ -89,7 +93,7 @@ class _RouteMapState extends State<RouteMap> {
         sourceId: 'route-start',
         paint: {
           'circle-radius': 8,
-          'circle-color': '#4CAF50',
+          'circle-color': BrandColors.mapStartMarkerHex,
           'circle-stroke-width': 2,
           'circle-stroke-color': '#FFFFFF',
         },
@@ -113,7 +117,7 @@ class _RouteMapState extends State<RouteMap> {
         sourceId: 'route-end',
         paint: {
           'circle-radius': 8,
-          'circle-color': '#F44336',
+          'circle-color': BrandColors.mapEndMarkerHex,
           'circle-stroke-width': 2,
           'circle-stroke-color': '#FFFFFF',
         },

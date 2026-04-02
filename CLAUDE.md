@@ -4,6 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Pedalons: multi-tenant cycling team platform (rides, routes with GPX/maps, posts). Contract-first API development.
 
+See [BRANDING.md](BRANDING.md) for logo, icon assets, brand colors, and full theme reference.
+
 ## Tech Stack
 
 | Layer | Technologies |
