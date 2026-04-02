@@ -16,7 +16,7 @@ COPY package.json pnpm-lock.yaml ./
 # Install dependencies
 RUN pnpm install
 
-# Copy source code
+# Copy source code (legal markdown files pre-copied by build.sh)
 COPY . .
 
 # Build the application

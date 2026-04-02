@@ -2,10 +2,10 @@ import { Container, Title, Stack } from '@mantine/core'
 import { useTranslation } from 'react-i18next'
 import { MarkdownDisplay } from '@/components/common/MarkdownDisplay'
 
-import privacyFr from '../../../privacy/privacy-policy.fr.md?raw'
-import privacyEn from '../../../privacy/privacy-policy.en.md?raw'
-import termsFr from '../../../privacy/terms-of-service.fr.md?raw'
-import termsEn from '../../../privacy/terms-of-service.en.md?raw'
+import privacyFr from '@/assets/legal/privacy-policy.fr.md?raw'
+import privacyEn from '@/assets/legal/privacy-policy.en.md?raw'
+import termsFr from '@/assets/legal/terms-of-service.fr.md?raw'
+import termsEn from '@/assets/legal/terms-of-service.en.md?raw'
 
 const content = {
   privacy: { fr: privacyFr, en: privacyEn },

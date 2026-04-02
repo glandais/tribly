@@ -29,5 +29,4 @@ lerna-debug.log*
 coverage/
 
 # Documentation
-*.md
 docs/
