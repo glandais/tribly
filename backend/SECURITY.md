@@ -53,8 +53,7 @@ Pedalons implements a **defense-in-depth** security model with three layers:
 ### Database Authentication with JWT
 
 Authentication is handled directly by the backend using database-stored credentials. Supported authentication methods:
-- **Password** - Traditional email/password authentication
-- **Magic Link** - Passwordless email-based login
+- **OTP** - Passwordless email-based one-time password login
 - **Passkeys/WebAuthn** - Biometric and hardware key authentication
 
 The backend issues and validates JWT tokens on every request.
@@ -261,6 +260,7 @@ AccessCheckers resolve their own security context by injecting `PedalonsQueryCon
 | RIDE | RideAccessChecker | `service/ride/` |
 | POST | PostAccessChecker | `service/post/` |
 | TRIP | TripAccessChecker | `service/trip/` |
+| TRIP_STAGE | TripStageAccessChecker | `service/trip/` |
 | ROUTE | RouteAccessChecker | `service/route/` |
 | AD | AdAccessChecker | `service/ad/` |
 | TEAM_PAGE | TeamPageAccessChecker | `service/page/` |
@@ -313,7 +313,7 @@ teamRole.isAdmin()     // true for ADMIN only
 
 The `TeamEntityRepository` interface implements SQL-level security filtering for all team entities (Rides, Posts, Trips, Routes, Ads, TeamPages).
 
-**Location:** `fr.pedalons.repositories.common.TeamEntityRepository`
+**Location:** `fr.pedalons.repository.common.TeamEntityRepository`
 
 ### Visibility Model
 
