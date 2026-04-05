@@ -39,6 +39,9 @@ public class GpsOAuthState {
   @Column(name = "redirect_uri", nullable = false, length = 500)
   private String redirectUri;
 
+  @Column(name = "domain_id", nullable = false)
+  private Long domainId;
+
   @Column(name = "created_at", nullable = false)
   private Instant createdAt = Instant.now();
 
@@ -48,13 +51,15 @@ public class GpsOAuthState {
       GpsServiceType serviceType,
       Instant expiresAt,
       @Nullable String codeVerifier,
-      String redirectUri) {
+      String redirectUri,
+      Long domainId) {
     this.user = user;
     this.state = state;
     this.serviceType = serviceType;
     this.expiresAt = expiresAt;
     this.codeVerifier = codeVerifier;
     this.redirectUri = redirectUri;
+    this.domainId = domainId;
   }
 
   public boolean isValid() {

@@ -48,20 +48,31 @@ public class AuthToken {
   @Column(name = "pending_domain_id")
   private @Nullable Long pendingDomainId;
 
-  public AuthToken(String email, String tokenHash, AuthTokenType tokenType, Instant expiresAt) {
+  @Column(name = "domain_id", nullable = false)
+  private Long domainId;
+
+  public AuthToken(
+      String email, String tokenHash, AuthTokenType tokenType, Instant expiresAt, Long domainId) {
     this.email = email;
     this.tokenHash = tokenHash;
     this.tokenType = tokenType;
     this.expiresAt = expiresAt;
+    this.domainId = domainId;
   }
 
   public AuthToken(
-      User user, String email, String tokenHash, AuthTokenType tokenType, Instant expiresAt) {
+      User user,
+      String email,
+      String tokenHash,
+      AuthTokenType tokenType,
+      Instant expiresAt,
+      Long domainId) {
     this.user = user;
     this.email = email;
     this.tokenHash = tokenHash;
     this.tokenType = tokenType;
     this.expiresAt = expiresAt;
+    this.domainId = domainId;
   }
 
   public void markUsed() {

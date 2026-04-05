@@ -16,19 +16,24 @@ public class AuthTokenRepository implements PanacheRepository<AuthToken> {
         .firstResultOptional();
   }
 
-  public Optional<AuthToken> findValidByEmailAndType(String email, AuthTokenType tokenType) {
+  public Optional<AuthToken> findValidByEmailAndType(
+      String email, AuthTokenType tokenType, Long domainId) {
     return find(
-            "email = ?1 and tokenType = ?2 and usedAt is null and expiresAt > CURRENT_TIMESTAMP",
+            "email = ?1 and tokenType = ?2 and domainId = ?3 and usedAt is null and expiresAt >"
+                + " CURRENT_TIMESTAMP",
             email,
-            tokenType)
+            tokenType,
+            domainId)
         .firstResultOptional();
   }
 
-  public int invalidateByEmailAndType(String email, AuthTokenType tokenType) {
+  public int invalidateByEmailAndType(String email, AuthTokenType tokenType, Long domainId) {
     return update(
-        "usedAt = CURRENT_TIMESTAMP where email = ?1 and tokenType = ?2 and usedAt is null",
+        "usedAt = CURRENT_TIMESTAMP where email = ?1 and tokenType = ?2 and domainId = ?3 and"
+            + " usedAt is null",
         email,
-        tokenType);
+        tokenType,
+        domainId);
   }
 
   public long deleteExpiredTokens() {
@@ -39,8 +44,14 @@ public class AuthTokenRepository implements PanacheRepository<AuthToken> {
    * Counts recent OTP tokens created for a given email within a time window. Used for rate
    * limiting.
    */
-  public long countRecentByEmailAndType(String email, AuthTokenType tokenType, int minutes) {
+  public long countRecentByEmailAndType(
+      String email, AuthTokenType tokenType, int minutes, Long domainId) {
     Instant cutoff = Instant.now().minus(minutes, ChronoUnit.MINUTES);
-    return count("email = ?1 and tokenType = ?2 and createdAt > ?3", email, tokenType, cutoff);
+    return count(
+        "email = ?1 and tokenType = ?2 and createdAt > ?3 and domainId = ?4",
+        email,
+        tokenType,
+        cutoff,
+        domainId);
   }
 }

@@ -130,9 +130,17 @@ public class GpsService {
             .findActiveById(userId)
             .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
+    Long domainId = pedalonsContext.getDomainId();
+
     oauthStateRepository.persist(
         new GpsOAuthState(
-            user, state, serviceType, Instant.now().plusSeconds(600), codeVerifier, redirectUri));
+            user,
+            state,
+            serviceType,
+            Instant.now().plusSeconds(600),
+            codeVerifier,
+            redirectUri,
+            domainId));
 
     return new GpsOAuthUrlResponse(authUrl);
   }
@@ -151,6 +159,11 @@ public class GpsService {
             .orElseThrow(() -> new BusinessException(ErrorCode.GPS_INVALID_STATE));
 
     if (oauthState.getServiceType() != serviceType) {
+      throw new BusinessException(ErrorCode.GPS_INVALID_STATE);
+    }
+
+    Long currentDomainId = pedalonsContext.getDomainId();
+    if (!oauthState.getDomainId().equals(currentDomainId)) {
       throw new BusinessException(ErrorCode.GPS_INVALID_STATE);
     }
 
@@ -215,6 +228,7 @@ public class GpsService {
   /**
    * Get all GPS service connections for the current user.
    */
+  @Logged
   public List<GpsServiceConnectionDto> getConnectionsForUser() {
     Long userId = pedalonsContext.getUserId();
     return connectionRepository.findByUser(userId).stream()

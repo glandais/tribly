@@ -74,7 +74,8 @@ public class AuthService {
     }
 
     // Invalidate any existing verification tokens for this email
-    authTokenRepository.invalidateByEmailAndType(request.email(), AuthTokenType.EMAIL_VERIFICATION);
+    authTokenRepository.invalidateByEmailAndType(
+        request.email(), AuthTokenType.EMAIL_VERIFICATION, domain.getId());
 
     // Generate verification token
     String token = generateSecureToken();
@@ -86,7 +87,8 @@ public class AuthService {
             request.email(),
             tokenHash,
             AuthTokenType.EMAIL_VERIFICATION,
-            Instant.now().plus(Duration.ofHours(emailVerificationExpiryHours)));
+            Instant.now().plus(Duration.ofHours(emailVerificationExpiryHours)),
+            domain.getId());
     authToken.setPendingDisplayName(request.displayName());
     authToken.setPendingDomainId(domain.getId());
     authTokenRepository.persist(authToken);
@@ -145,14 +147,15 @@ public class AuthService {
     // Rate limiting: check if too many OTP requests in the window
     long recentCount =
         authTokenRepository.countRecentByEmailAndType(
-            request.email(), AuthTokenType.OTP, otpRateLimitWindowMinutes);
+            request.email(), AuthTokenType.OTP, otpRateLimitWindowMinutes, domain.getId());
     if (recentCount >= otpMaxAttempts) {
       // Silent return to prevent enumeration - rate limited
       return;
     }
 
     // Invalidate any existing OTPs for this email
-    authTokenRepository.invalidateByEmailAndType(request.email(), AuthTokenType.OTP);
+    authTokenRepository.invalidateByEmailAndType(
+        request.email(), AuthTokenType.OTP, domain.getId());
 
     // Generate 6-digit OTP code
     String otpCode = generateOtpCode();
@@ -164,7 +167,8 @@ public class AuthService {
             request.email(),
             tokenHash,
             AuthTokenType.OTP,
-            Instant.now().plus(Duration.ofMinutes(otpExpiryMinutes)));
+            Instant.now().plus(Duration.ofMinutes(otpExpiryMinutes)),
+            domain.getId());
     authTokenRepository.persist(authToken);
 
     // Send OTP email
@@ -174,10 +178,11 @@ public class AuthService {
   @Transactional
   @Public
   public AuthResult verifyOtp(String email, String code, String userAgent, String ipAddress) {
+    Long domainId = domainResolver.getDomainId();
     String tokenHash = hashToken(code);
     AuthToken authToken =
         authTokenRepository
-            .findValidByEmailAndType(email, AuthTokenType.OTP)
+            .findValidByEmailAndType(email, AuthTokenType.OTP, domainId)
             .orElseThrow(() -> new BadRequestException(ErrorCode.TOKEN_INVALID));
 
     // Verify the code matches

@@ -375,6 +375,11 @@ public class PasskeyService {
 
       webAuthnManager.verify(authenticationData, authenticationParameters);
 
+      // Verify the passkey belongs to the current domain
+      if (!passkey.getUser().getDomain().getId().equals(domain.getId())) {
+        throw new ForbiddenException();
+      }
+
       // Update sign count
       if (authenticationData.getAuthenticatorData() != null) {
         long newSignCount = authenticationData.getAuthenticatorData().getSignCount();
