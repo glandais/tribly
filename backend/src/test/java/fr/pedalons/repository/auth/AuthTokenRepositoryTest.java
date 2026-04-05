@@ -4,7 +4,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import fr.pedalons.AbstractBaseTest;
 import fr.pedalons.domain.auth.AuthToken;
+import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.enums.AuthTokenType;
+import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.util.TestDataCleaner;
 import fr.pedalons.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -22,10 +24,15 @@ class AuthTokenRepositoryTest extends AbstractBaseTest {
   @Inject AuthTokenRepository authTokenRepository;
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
+  @Inject DomainResolver domainResolver;
+
+  private Domain domain;
 
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
+    domain = dataService.getOrCreateDefaultDomain();
+    domainResolver.setDomainForTest(domain);
   }
 
   @Test
@@ -77,7 +84,8 @@ class AuthTokenRepositoryTest extends AbstractBaseTest {
     dataService.createAuthToken("test@example.com", "magic-hash", AuthTokenType.OTP, expiresAt);
 
     Optional<AuthToken> result =
-        authTokenRepository.findValidByEmailAndType("test@example.com", AuthTokenType.OTP);
+        authTokenRepository.findValidByEmailAndType(
+            "test@example.com", AuthTokenType.OTP, domain.getId());
 
     assertTrue(result.isPresent());
     assertEquals(AuthTokenType.OTP, result.get().getTokenType());
@@ -90,7 +98,7 @@ class AuthTokenRepositoryTest extends AbstractBaseTest {
 
     Optional<AuthToken> result =
         authTokenRepository.findValidByEmailAndType(
-            "test@example.com", AuthTokenType.EMAIL_VERIFICATION);
+            "test@example.com", AuthTokenType.EMAIL_VERIFICATION, domain.getId());
 
     assertTrue(result.isEmpty());
   }
@@ -100,7 +108,8 @@ class AuthTokenRepositoryTest extends AbstractBaseTest {
     dataService.createExpiredAuthToken("test@example.com", "expired-hash", AuthTokenType.OTP);
 
     Optional<AuthToken> result =
-        authTokenRepository.findValidByEmailAndType("test@example.com", AuthTokenType.OTP);
+        authTokenRepository.findValidByEmailAndType(
+            "test@example.com", AuthTokenType.OTP, domain.getId());
 
     assertTrue(result.isEmpty());
   }
@@ -113,12 +122,13 @@ class AuthTokenRepositoryTest extends AbstractBaseTest {
     dataService.createAuthToken("test@example.com", "token-2", AuthTokenType.OTP, expiresAt);
 
     int invalidatedCount =
-        authTokenRepository.invalidateByEmailAndType("test@example.com", AuthTokenType.OTP);
+        authTokenRepository.invalidateByEmailAndType(
+            "test@example.com", AuthTokenType.OTP, domain.getId());
 
     assertEquals(2, invalidatedCount);
     assertTrue(
         authTokenRepository
-            .findValidByEmailAndType("test@example.com", AuthTokenType.OTP)
+            .findValidByEmailAndType("test@example.com", AuthTokenType.OTP, domain.getId())
             .isEmpty());
   }
 
@@ -130,11 +140,13 @@ class AuthTokenRepositoryTest extends AbstractBaseTest {
     dataService.createAuthToken(
         "test@example.com", "verify-hash", AuthTokenType.EMAIL_VERIFICATION, expiresAt);
 
-    authTokenRepository.invalidateByEmailAndType("test@example.com", AuthTokenType.OTP);
+    authTokenRepository.invalidateByEmailAndType(
+        "test@example.com", AuthTokenType.OTP, domain.getId());
 
     assertTrue(
         authTokenRepository
-            .findValidByEmailAndType("test@example.com", AuthTokenType.EMAIL_VERIFICATION)
+            .findValidByEmailAndType(
+                "test@example.com", AuthTokenType.EMAIL_VERIFICATION, domain.getId())
             .isPresent());
   }
 

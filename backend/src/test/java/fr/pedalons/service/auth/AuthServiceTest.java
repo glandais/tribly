@@ -144,7 +144,9 @@ class AuthServiceTest extends AbstractBaseTest {
 
     authService.requestOtp(request);
 
-    var tokens = authTokenRepository.findValidByEmailAndType("otp@example.com", AuthTokenType.OTP);
+    var tokens =
+        authTokenRepository.findValidByEmailAndType(
+            "otp@example.com", AuthTokenType.OTP, domain.getId());
     assertTrue(tokens.isPresent());
 
     assertEquals(1, mailbox.getMailsSentTo("otp@example.com").size());
@@ -312,7 +314,8 @@ class AuthServiceTest extends AbstractBaseTest {
             email,
             tokenHash,
             AuthTokenType.EMAIL_VERIFICATION,
-            Instant.now().plus(24, ChronoUnit.HOURS));
+            Instant.now().plus(24, ChronoUnit.HOURS),
+            domain.getId());
     authToken.setPendingDisplayName(displayName);
     authToken.setPendingDomainId(domain.getId());
     authTokenRepository.persist(authToken);
@@ -326,7 +329,8 @@ class AuthServiceTest extends AbstractBaseTest {
             email,
             tokenHash,
             AuthTokenType.EMAIL_VERIFICATION,
-            Instant.now().minus(1, ChronoUnit.HOURS));
+            Instant.now().minus(1, ChronoUnit.HOURS),
+            domain.getId());
     authToken.setPendingDisplayName(displayName);
     authToken.setPendingDomainId(domain.getId());
     authTokenRepository.persist(authToken);
@@ -341,7 +345,8 @@ class AuthServiceTest extends AbstractBaseTest {
             user.getEmail(),
             tokenHash,
             AuthTokenType.OTP,
-            Instant.now().plus(5, ChronoUnit.MINUTES));
+            Instant.now().plus(5, ChronoUnit.MINUTES),
+            domain.getId());
     authTokenRepository.persist(authToken);
   }
 

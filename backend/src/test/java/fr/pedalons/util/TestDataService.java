@@ -852,7 +852,9 @@ public class TestDataService {
       String tokenHash,
       fr.pedalons.enums.AuthTokenType tokenType,
       java.time.Instant expiresAt) {
-    var token = new fr.pedalons.domain.auth.AuthToken(email, tokenHash, tokenType, expiresAt);
+    var token =
+        new fr.pedalons.domain.auth.AuthToken(
+            email, tokenHash, tokenType, expiresAt, getOrCreateDefaultDomain().getId());
     authTokenRepository.persistAndFlush(token);
     return token;
   }
@@ -864,7 +866,9 @@ public class TestDataService {
       String tokenHash,
       fr.pedalons.enums.AuthTokenType tokenType,
       java.time.Instant expiresAt) {
-    var token = new fr.pedalons.domain.auth.AuthToken(user, email, tokenHash, tokenType, expiresAt);
+    var token =
+        new fr.pedalons.domain.auth.AuthToken(
+            user, email, tokenHash, tokenType, expiresAt, getOrCreateDefaultDomain().getId());
     authTokenRepository.persistAndFlush(token);
     return token;
   }
@@ -874,7 +878,11 @@ public class TestDataService {
       String email, String tokenHash, fr.pedalons.enums.AuthTokenType tokenType) {
     var token =
         new fr.pedalons.domain.auth.AuthToken(
-            email, tokenHash, tokenType, java.time.Instant.now().minusSeconds(3600));
+            email,
+            tokenHash,
+            tokenType,
+            java.time.Instant.now().minusSeconds(3600),
+            getOrCreateDefaultDomain().getId());
     authTokenRepository.persistAndFlush(token);
     return token;
   }
@@ -977,7 +985,13 @@ public class TestDataService {
       User user, String state, GpsServiceType serviceType, java.time.Instant expiresAt) {
     var oauthState =
         new fr.pedalons.domain.gps.GpsOAuthState(
-            user, state, serviceType, expiresAt, null, "http://localhost/callback");
+            user,
+            state,
+            serviceType,
+            expiresAt,
+            null,
+            "http://localhost/callback",
+            getOrCreateDefaultDomain().getId());
     gpsOAuthStateRepository.persistAndFlush(oauthState);
     return oauthState;
   }
@@ -992,7 +1006,8 @@ public class TestDataService {
             serviceType,
             java.time.Instant.now().minusSeconds(3600),
             null,
-            "http://localhost/callback");
+            "http://localhost/callback",
+            getOrCreateDefaultDomain().getId());
     gpsOAuthStateRepository.persistAndFlush(oauthState);
     return oauthState;
   }
