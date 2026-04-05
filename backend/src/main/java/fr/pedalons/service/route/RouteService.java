@@ -109,8 +109,12 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
       } else {
         gpx = gpxProcessingService.fromPoints(route.getName(), routePoints);
       }
-      // Process GPX file and update route
-      TrackMetadata metadata = gpxProcessingService.createTracks(route, gpx);
+      // Phase 1: CPU + S3 (transaction suspended, DB connection released)
+      GpxProcessingService.GpxProcessingResult gpxResult =
+          gpxProcessingService.processGpxData(route, gpx);
+
+      // Phase 2: DB persist (transaction resumed, short burst)
+      TrackMetadata metadata = gpxProcessingService.persistGpxData(route, gpxResult);
 
       route.setDistance(metadata.distance());
       route.setElevationGain(metadata.elevationGain());
@@ -170,12 +174,15 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
       if (gpx != null) {
         // Delete old GPX files
         gpxProcessingService.deleteRouteFiles(route);
-
         route.getTracks().clear();
         route.getWaypoints().clear();
 
-        // Process GPX file and update route
-        TrackMetadata metadata = gpxProcessingService.createTracks(route, gpx);
+        // Phase 1: CPU + S3 (transaction suspended, DB connection released)
+        GpxProcessingService.GpxProcessingResult gpxResult =
+            gpxProcessingService.processGpxData(route, gpx);
+
+        // Phase 2: DB persist (transaction resumed, short burst)
+        TrackMetadata metadata = gpxProcessingService.persistGpxData(route, gpxResult);
 
         route.setDistance(metadata.distance());
         route.setElevationGain(metadata.elevationGain());

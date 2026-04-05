@@ -183,7 +183,7 @@ public class AssetService {
     return storageService.retrieve(key);
   }
 
-  private File createTempFile(long fileId) throws IOException {
+  public File createTempFile(long fileId) throws IOException {
     Path tempDir = Path.of(System.getProperty("java.io.tmpdir"), "pedalons-assets");
     Files.createDirectories(tempDir);
     return new File(tempDir.toFile(), TsidUtils.toString(fileId));
@@ -194,11 +194,53 @@ public class AssetService {
     return Path.of(System.getProperty("java.io.tmpdir"), "pedalons-assets", idString).toFile();
   }
 
-  private String getAssetKey(Team team, long fileId) {
+  public String getAssetKey(Team team, long fileId) {
     String teamId = TsidUtils.toString(team.getId());
     String idString = TsidUtils.toString(fileId);
     String subPath = idString.substring(0, 4);
     return ASSETS_PREFIX + "/" + teamId + "/" + subPath + "/" + idString;
+  }
+
+  /**
+   * Uploads a pre-computed temp file to S3. Used by GPX processing pipeline where the file
+   * content is prepared before the DB transaction to minimize connection hold time.
+   *
+   * @return the detected content type
+   */
+  public String uploadTempFileToS3(Team team, long fileId, String fileName) throws IOException {
+    File tempFile = getTempFile(fileId);
+    String contentType = getContentType(tempFile, fileName);
+    String key = getAssetKey(team, fileId);
+    Map<String, String> metadata =
+        Map.of(
+            "file-id", TsidUtils.toString(fileId),
+            "team-id", TsidUtils.toString(team.getId()),
+            "file-name", fileName);
+    try (InputStream fis = new FileInputStream(tempFile)) {
+      storageService.store(key, fis, contentType, tempFile.length(), metadata);
+    }
+    tempFile.delete();
+    return contentType;
+  }
+
+  /**
+   * Persists an asset record for a file already uploaded to S3. Used by GPX processing pipeline
+   * after {@link #uploadTempFileToS3}.
+   */
+  @Transactional
+  public Asset persistAsset(
+      Team team,
+      TeamEntity owner,
+      AssetType type,
+      long fileId,
+      String fileName,
+      String contentType) {
+    User creator = pedalonsContext.getUser();
+    Asset asset = new Asset(creator, team, type, fileId, fileName, contentType);
+    asset.setTeamEntity(owner);
+    owner.getAssets().add(asset);
+    assetRepository.persist(asset);
+    return asset;
   }
 
   @CheckAccess(entityType = EntityType.ASSET, action = ActionType.READ)

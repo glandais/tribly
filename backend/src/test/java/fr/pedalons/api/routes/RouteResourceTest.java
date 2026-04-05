@@ -207,6 +207,50 @@ class RouteResourceTest extends AbstractResourceTest {
   }
 
   @Test
+  void createRoute_withInvalidGpx_shouldReturn400AndNotCreateRoute() {
+    File invalidGpx = new File("src/test/resources/invalid.gpx");
+
+    RouteRequest route =
+        new RouteRequest(
+            "Route That Should Not Exist",
+            MediaDto.builder().build(),
+            SurfaceType.GRAVEL,
+            Visibility.PUBLIC,
+            null);
+
+    int routesBefore =
+        given()
+            .auth()
+            .oauth2(getAccessToken(USER1))
+            .when()
+            .get("/api/teams/" + team1Slug + "/routes")
+            .then()
+            .statusCode(200)
+            .extract()
+            .path("total");
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .multiPart("route", route, MediaType.APPLICATION_JSON)
+        .multiPart("gpxFile", invalidGpx, "application/gpx+xml")
+        .when()
+        .post("/api/teams/" + team1Slug + "/routes")
+        .then()
+        .statusCode(400)
+        .body("code", equalTo("GPX_FAILURE"));
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .when()
+        .get("/api/teams/" + team1Slug + "/routes")
+        .then()
+        .statusCode(200)
+        .body("total", equalTo(routesBefore));
+  }
+
+  @Test
   void createRoute_withoutGpxFile_shouldReturn400() {
     RouteRequest route =
         new RouteRequest(

@@ -265,7 +265,7 @@ class GpxProcessingServiceTest extends AbstractBaseTest {
     PedalonsException exception =
         assertThrows(PedalonsException.class, () -> gpxProcessingService.createTracks(route, gpx));
 
-    assertTrue(exception.getMessage().contains("GPX_FAILURE"));
+    assertTrue(exception.getMessage().contains("GPX_EMPTY"));
   }
 
   @Test
