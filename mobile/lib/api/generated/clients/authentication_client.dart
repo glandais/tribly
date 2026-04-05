@@ -7,9 +7,12 @@ import 'package:retrofit/retrofit.dart';
 import 'package:retrofit/error_logger.dart';
 
 import '../models/auth_response.dart';
+import '../models/forgot_password_request.dart';
+import '../models/login_request.dart';
 import '../models/message_response.dart';
 import '../models/otp_request.dart';
 import '../models/register_request.dart';
+import '../models/reset_password_request.dart';
 import '../models/verify_otp_request.dart';
 import '../models/verify_token_request.dart';
 
@@ -19,6 +22,28 @@ part 'authentication_client.g.dart';
 abstract class AuthenticationClient {
   factory AuthenticationClient(Dio dio, {String? baseUrl}) =
       _AuthenticationClient;
+
+  /// Request password reset.
+  ///
+  /// Send a 6-digit code to the user's email to reset their password.
+  ///
+  /// [body] - Name not received - field will be skipped.
+  @POST('/api/auth/forgot-password')
+  Future<MessageResponse> forgotPassword({
+    @Body() required ForgotPasswordRequest body,
+  });
+
+  /// Login with password.
+  ///
+  /// Authenticate using email and password.
+  ///
+  /// [body] - Name not received - field will be skipped.
+  @POST('/api/auth/login')
+  Future<AuthResponse> loginWithPassword({
+    @Body() required LoginRequest body,
+    @Header('X-Forwarded-For') String? xForwardedFor,
+    @Header('X-Real-IP') String? xRealIp,
+  });
 
   /// Logout.
   ///
@@ -74,6 +99,18 @@ abstract class AuthenticationClient {
   @POST('/api/auth/register')
   Future<MessageResponse> register({
     @Body() required RegisterRequest body,
+  });
+
+  /// Reset password.
+  ///
+  /// Verify the OTP code and set a new password.
+  ///
+  /// [body] - Name not received - field will be skipped.
+  @POST('/api/auth/reset-password')
+  Future<AuthResponse> resetPassword({
+    @Body() required ResetPasswordRequest body,
+    @Header('X-Forwarded-For') String? xForwardedFor,
+    @Header('X-Real-IP') String? xRealIp,
   });
 
   /// Verify email.

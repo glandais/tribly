@@ -52,15 +52,44 @@
       "registerError": "Erreur lors de l'enregistrement du passkey: {error}",
       "verificationSent": "Un email de vérification a été envoyé à {email}"
     },
+    "password": "Mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "passwordPlaceholder": "Votre mot de passe",
+    "forgotPassword": {
+      "title": "Mot de passe oublié",
+      "subtitle": "Entrez votre email pour recevoir un code de réinitialisation",
+      "submit": "Envoyer le code",
+      "sent": {
+        "title": "Code envoyé",
+        "checkEmail": "Vérifiez votre boîte de réception et entrez le code ci-dessous.",
+        "backToLogin": "Retour à la connexion"
+      }
+    },
+    "resetPassword": {
+      "title": "Réinitialiser le mot de passe",
+      "subtitle": "Entrez le code reçu par email puis votre nouveau mot de passe",
+      "codeLabel": "Code à 6 chiffres",
+      "newPasswordLabel": "Nouveau mot de passe",
+      "confirmPasswordLabel": "Confirmer le mot de passe",
+      "submit": "Réinitialiser",
+      "success": "Mot de passe réinitialisé avec succès"
+    },
+    "validation": {
+      "passwordMin": "Le mot de passe doit faire au moins 8 caractères",
+      "passwordMismatch": "Les mots de passe ne correspondent pas"
+    },
     "errors": {
       "emailRequired": "L'email est requis",
+      "passwordRequired": "Le mot de passe est requis",
       "emailInvalid": "Email invalide",
       "displayNameRequired": "Le nom d'affichage est requis",
       "displayNameTooShort": "Au moins 2 caractères",
       "displayNameTooLong": "100 caractères maximum",
       "tokenMissing": "Token manquant",
       "authFailed": "Erreur lors de l'authentification",
-      "generic": "Erreur: {error}"
+      "generic": "Erreur: {error}",
+      "INVALID_CREDENTIALS": "Email ou mot de passe incorrect",
+      "PASSWORD_NOT_SET": "Aucun mot de passe défini. Un code de réinitialisation a été envoyé à votre email."
     }
   },
   "common": {

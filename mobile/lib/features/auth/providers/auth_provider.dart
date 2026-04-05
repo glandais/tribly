@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
@@ -81,8 +82,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
     if (response.accessToken != null) {
       try {
         user = await _ref.read(usersClientProvider).getMe();
-      } catch (_) {
-        // Fall back to auth response user
+      } on DioException catch (e) {
+        debugPrint('[AuthNotifier] getMe failed after auth: ${e.message}');
+        // Intentional fallback to JWT user on network/server error
+      } catch (e) {
+        debugPrint('[AuthNotifier] Unexpected error in getMe: $e');
       }
     }
 
@@ -92,8 +96,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
       try {
         final passkeys = await _repository.listPasskeys(response.accessToken!);
         hasPasskeys = passkeys.isNotEmpty;
-      } catch (_) {
-        // Ignore passkey check errors
+      } on DioException catch (e) {
+        debugPrint('[AuthNotifier] listPasskeys failed after auth: ${e.message}');
+        // Non-fatal: user can still log in without passkey info
+      } catch (e) {
+        debugPrint('[AuthNotifier] Unexpected error in listPasskeys: $e');
       }
     }
 
@@ -110,14 +117,56 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<MessageResponse> register({
     required String email,
     required String displayName,
+    required String password,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final response = await _repository.register(
-        RegisterRequest(email: email, displayName: displayName),
+        RegisterRequest(email: email, displayName: displayName, password: password),
       );
       state = state.copyWith(isLoading: false);
       return response;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: getErrorMessage(e));
+      rethrow;
+    }
+  }
+
+  /// Login with email and password
+  Future<void> loginWithPassword(String email, String password) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final response = await _repository.loginWithPassword(email, password);
+      await _handleAuthSuccess(response);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: getErrorMessage(e));
+      rethrow;
+    }
+  }
+
+  /// Request password reset OTP
+  Future<MessageResponse> requestPasswordReset(String email) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final response = await _repository.forgotPassword(email);
+      state = state.copyWith(isLoading: false);
+      return response;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: getErrorMessage(e));
+      rethrow;
+    }
+  }
+
+  /// Reset password with OTP code
+  Future<void> resetPassword(
+    String email,
+    String code,
+    String newPassword,
+  ) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final response = await _repository.resetPassword(email, code, newPassword);
+      await _handleAuthSuccess(response);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: getErrorMessage(e));
       rethrow;

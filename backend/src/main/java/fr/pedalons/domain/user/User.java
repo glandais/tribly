@@ -58,6 +58,9 @@ public class User extends BaseEntity {
   @Column(name = "deleted", nullable = false)
   private boolean deleted = false;
 
+  @Column(name = "password_hash", length = 255)
+  private @Nullable String passwordHash;
+
   public User(Domain domain, String email, String displayName) {
     super(null);
     this.domain = domain;

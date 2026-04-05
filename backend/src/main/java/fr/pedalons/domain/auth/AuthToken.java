@@ -48,6 +48,9 @@ public class AuthToken {
   @Column(name = "pending_domain_id")
   private @Nullable Long pendingDomainId;
 
+  @Column(name = "pending_password_hash", length = 255)
+  private @Nullable String pendingPasswordHash;
+
   @Column(name = "domain_id", nullable = false)
   private Long domainId;
 

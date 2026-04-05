@@ -25,9 +25,13 @@ import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.Logged;
 import fr.pedalons.service.security.annotation.Public;
+import io.quarkus.elytron.security.common.BcryptUtil;
+import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
@@ -90,6 +94,7 @@ public class AuthService {
             Instant.now().plus(Duration.ofHours(emailVerificationExpiryHours)),
             domain.getId());
     authToken.setPendingDisplayName(request.displayName());
+    authToken.setPendingPasswordHash(BcryptUtil.bcryptHash(request.password()));
     authToken.setPendingDomainId(domain.getId());
     authTokenRepository.persist(authToken);
 
@@ -126,6 +131,7 @@ public class AuthService {
         Objects.requireNonNull(
             authToken.getPendingDisplayName(), "Pending display name should not be null");
     User user = new User(domain, authToken.getEmail(), displayName);
+    user.setPasswordHash(authToken.getPendingPasswordHash());
     user.markEmailVerified();
     user.recordLogin();
     userRepository.persist(user);
@@ -149,7 +155,7 @@ public class AuthService {
         authTokenRepository.countRecentByEmailAndType(
             request.email(), AuthTokenType.OTP, otpRateLimitWindowMinutes, domain.getId());
     if (recentCount >= otpMaxAttempts) {
-      // Silent return to prevent enumeration - rate limited
+      Log.warnf("OTP rate limit exceeded for email=%s domain=%d", request.email(), domain.getId());
       return;
     }
 
@@ -171,8 +177,14 @@ public class AuthService {
             domain.getId());
     authTokenRepository.persist(authToken);
 
-    // Send OTP email
-    authEmailService.sendOtpEmail(request.email(), otpCode);
+    // Send OTP email — catch failures so the token persists and the 200 response is still sent
+    // (anti-enumeration: always return success regardless of email delivery)
+    try {
+      authEmailService.sendOtpEmail(request.email(), otpCode);
+    } catch (Exception e) {
+      Log.errorf(
+          e, "Failed to send OTP email to email=%s domain=%d", request.email(), domain.getId());
+    }
   }
 
   @Transactional
@@ -185,8 +197,10 @@ public class AuthService {
             .findValidByEmailAndType(email, AuthTokenType.OTP, domainId)
             .orElseThrow(() -> new BadRequestException(ErrorCode.TOKEN_INVALID));
 
-    // Verify the code matches
-    if (!authToken.getTokenHash().equals(tokenHash)) {
+    // Verify the code matches (constant-time comparison to prevent timing attacks)
+    if (!MessageDigest.isEqual(
+        authToken.getTokenHash().getBytes(StandardCharsets.UTF_8),
+        tokenHash.getBytes(StandardCharsets.UTF_8))) {
       throw new BadRequestException(ErrorCode.TOKEN_INVALID);
     }
 
@@ -197,6 +211,111 @@ public class AuthService {
       throw new BadRequestException(ErrorCode.TOKEN_INVALID);
     }
 
+    user.recordLogin();
+
+    return createAuthResult(user, userAgent, ipAddress);
+  }
+
+  @Transactional
+  @Public
+  public AuthResult loginWithPassword(
+      String email, String password, String userAgent, String ipAddress) {
+    Domain domain = domainResolver.getDomain();
+    User user =
+        userRepository
+            .findByEmailAndDomain(domain.getId(), email)
+            .orElseThrow(() -> new BadRequestException(ErrorCode.INVALID_CREDENTIALS));
+
+    if (user.getPasswordHash() == null) {
+      // Return INVALID_CREDENTIALS to avoid leaking whether the account exists
+      // (same response as user-not-found above)
+      throw new BadRequestException(ErrorCode.INVALID_CREDENTIALS);
+    }
+
+    if (!BcryptUtil.matches(password, user.getPasswordHash())) {
+      throw new BadRequestException(ErrorCode.INVALID_CREDENTIALS);
+    }
+
+    user.recordLogin();
+    return createAuthResult(user, userAgent, ipAddress);
+  }
+
+  @Transactional
+  @Public
+  public void requestPasswordReset(String email) {
+    Domain domain = domainResolver.getDomain();
+    User user = userRepository.findByEmailAndDomain(domain.getId(), email).orElse(null);
+
+    // Always respond success to prevent email enumeration
+    if (user == null || !user.isEmailVerified()) {
+      return;
+    }
+
+    // Rate limit
+    long recentCount =
+        authTokenRepository.countRecentByEmailAndType(
+            email, AuthTokenType.PASSWORD_RESET, otpRateLimitWindowMinutes, domain.getId());
+    if (recentCount >= otpMaxAttempts) {
+      Log.warnf("Password reset rate limit exceeded for email=%s domain=%d", email, domain.getId());
+      return;
+    }
+
+    // Invalidate existing reset tokens
+    authTokenRepository.invalidateByEmailAndType(
+        email, AuthTokenType.PASSWORD_RESET, domain.getId());
+
+    String code = generateOtpCode();
+    String tokenHash = hashToken(code);
+
+    AuthToken authToken =
+        new AuthToken(
+            user,
+            email,
+            tokenHash,
+            AuthTokenType.PASSWORD_RESET,
+            Instant.now().plus(Duration.ofMinutes(otpExpiryMinutes)),
+            domain.getId());
+    authTokenRepository.persist(authToken);
+
+    // Send reset email — catch failures so the token persists and the 200 response is still sent
+    // (anti-enumeration: always return success regardless of email delivery)
+    try {
+      authEmailService.sendPasswordResetEmail(email, code);
+    } catch (Exception e) {
+      Log.errorf(
+          e, "Failed to send password reset email to email=%s domain=%d", email, domain.getId());
+    }
+  }
+
+  @Transactional
+  @Public
+  public AuthResult resetPassword(
+      String email, String code, String newPassword, String userAgent, String ipAddress) {
+    Long domainId = domainResolver.getDomainId();
+    String tokenHash = hashToken(code);
+
+    AuthToken authToken =
+        authTokenRepository
+            .findValidByEmailAndType(email, AuthTokenType.PASSWORD_RESET, domainId)
+            .orElseThrow(() -> new BadRequestException(ErrorCode.TOKEN_INVALID));
+
+    // Constant-time comparison to prevent timing attacks
+    if (!MessageDigest.isEqual(
+        authToken.getTokenHash().getBytes(StandardCharsets.UTF_8),
+        tokenHash.getBytes(StandardCharsets.UTF_8))) {
+      throw new BadRequestException(ErrorCode.TOKEN_INVALID);
+    }
+
+    authToken.markUsed();
+
+    // Use the user already associated with the token — avoids a redundant DB lookup
+    // and eliminates a TOCTOU window after the token is consumed
+    User user = authToken.getUser();
+    if (user == null) {
+      throw new BadRequestException(ErrorCode.USER_NOT_FOUND);
+    }
+
+    user.setPasswordHash(BcryptUtil.bcryptHash(newPassword));
     user.recordLogin();
 
     return createAuthResult(user, userAgent, ipAddress);

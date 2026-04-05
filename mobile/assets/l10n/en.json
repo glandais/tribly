@@ -52,15 +52,44 @@
       "registerError": "Error registering passkey: {error}",
       "verificationSent": "A verification email has been sent to {email}"
     },
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "passwordPlaceholder": "Your password",
+    "forgotPassword": {
+      "title": "Forgot password",
+      "subtitle": "Enter your email to receive a reset code",
+      "submit": "Send code",
+      "sent": {
+        "title": "Code sent",
+        "checkEmail": "Check your inbox and enter the code below.",
+        "backToLogin": "Back to login"
+      }
+    },
+    "resetPassword": {
+      "title": "Reset password",
+      "subtitle": "Enter the code from your email then your new password",
+      "codeLabel": "6-digit code",
+      "newPasswordLabel": "New password",
+      "confirmPasswordLabel": "Confirm password",
+      "submit": "Reset password",
+      "success": "Password reset successfully"
+    },
+    "validation": {
+      "passwordMin": "Password must be at least 8 characters",
+      "passwordMismatch": "Passwords do not match"
+    },
     "errors": {
       "emailRequired": "Email is required",
+      "passwordRequired": "Password is required",
       "emailInvalid": "Invalid email",
       "displayNameRequired": "Display name is required",
       "displayNameTooShort": "At least 2 characters",
       "displayNameTooLong": "100 characters maximum",
       "tokenMissing": "Token missing",
       "authFailed": "Authentication failed",
-      "generic": "Error: {error}"
+      "generic": "Error: {error}",
+      "INVALID_CREDENTIALS": "Incorrect email or password",
+      "PASSWORD_NOT_SET": "No password set. A reset code has been sent to your email."
     }
   },
   "common": {

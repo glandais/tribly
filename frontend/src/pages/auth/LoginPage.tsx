@@ -1,15 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation, Trans } from 'react-i18next'
 import { useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
-import {
-  IconFingerprint,
-  IconMail,
-  IconUserPlus,
-  IconArrowLeft,
-  IconRefresh,
-} from '@tabler/icons-react'
+import { IconFingerprint, IconUserPlus, IconLock } from '@tabler/icons-react'
 import {
   Center,
   Paper,
@@ -19,18 +13,20 @@ import {
   Button,
   Anchor,
   TextInput,
-  Stepper,
-  Alert,
-  Group,
-  PinInput,
+  PasswordInput,
+  Divider,
 } from '@mantine/core'
 import { startAuthentication, browserSupportsWebAuthn } from '@simplewebauthn/browser'
 import { useAuth } from '../../hooks/useAuth'
 import { useAppName } from '../../hooks/useAppName'
 import { useAuthStore } from '../../store/authStore'
 import { paths } from '@/config/paths'
+import {
+  loginWithPassword,
+  register as registerUser,
+} from '@/api/endpoints/authentication/authentication'
 
-type AuthMethod = 'otp' | 'register' | null
+type Mode = 'login' | 'register'
 
 export function LoginPage() {
   const { t } = useTranslation()
@@ -40,31 +36,26 @@ export function LoginPage() {
   const appName = useAppName()
   const { setAccessToken, setUser } = useAuthStore()
 
-  // Get redirect target from location state (preserving query params)
   const fromLocation = location.state?.from
   const redirectTo = fromLocation
     ? `${fromLocation.pathname}${fromLocation.search || ''}`
     : paths.home()
 
-  const [activeStep, setActiveStep] = useState(0)
-  const [selectedMethod, setSelectedMethod] = useState<AuthMethod>(null)
+  const [mode, setMode] = useState<Mode>('login')
   const [isLoading, setIsLoading] = useState(false)
-  const [otpEmail, setOtpEmail] = useState<string | null>(null)
-  const [otpCode, setOtpCode] = useState('')
-  const [canResend, setCanResend] = useState(false)
-  const [resendCountdown, setResendCountdown] = useState(0)
   const [passkeySupported] = useState(() => browserSupportsWebAuthn())
 
-  const otpForm = useForm({
-    initialValues: { email: '' },
+  const loginForm = useForm({
+    initialValues: { email: '', password: '' },
     validate: {
       email: (v) =>
         !v || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? t('auth.validation.email') : null,
+      password: (v) => (!v ? t('auth.validation.required') : null),
     },
   })
 
   const registerForm = useForm({
-    initialValues: { email: '', displayName: '' },
+    initialValues: { email: '', displayName: '', password: '', confirmPassword: '' },
     validate: {
       email: (v) =>
         !v || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? t('auth.validation.email') : null,
@@ -74,6 +65,9 @@ export function LoginPage() {
           : v.length > 100
             ? t('auth.validation.displayNameMax')
             : null,
+      password: (v) => (v.length < 8 ? t('auth.validation.passwordMin') : null),
+      confirmPassword: (v, values) =>
+        v !== values.password ? t('auth.validation.passwordMismatch') : null,
     },
   })
 
@@ -82,16 +76,6 @@ export function LoginPage() {
       navigate(redirectTo)
     }
   }, [isAuthenticated, navigate, redirectTo])
-
-  // Countdown timer for resend button
-  useEffect(() => {
-    if (resendCountdown > 0) {
-      const timer = setTimeout(() => setResendCountdown(resendCountdown - 1), 1000)
-      return () => clearTimeout(timer)
-    } else if (otpEmail) {
-      setCanResend(true)
-    }
-  }, [resendCountdown, otpEmail])
 
   const handlePasskeyLogin = async () => {
     setIsLoading(true)
@@ -127,7 +111,7 @@ export function LoginPage() {
       }
     } catch (error) {
       if (error instanceof Error && error.name === 'NotAllowedError') {
-        return // User cancelled
+        return
       }
       notifications.show({ message: t('auth.errors.passkeyFailed'), color: 'red' })
     } finally {
@@ -135,319 +119,179 @@ export function LoginPage() {
     }
   }
 
-  const handleOtpRequest = async (values: { email: string }) => {
+  const handleLogin = async (values: { email: string; password: string }) => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/auth/otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
+      const data = await loginWithPassword({ email: values.email, password: values.password })
+      if (data.accessToken) setAccessToken(data.accessToken)
+      if (data.user) setUser(data.user)
+      navigate(redirectTo)
+    } catch (error: unknown) {
+      console.error('Login failed', error)
+      const code = (error as { response?: { data?: { code?: string } } })?.response?.data?.code
+      notifications.show({
+        message: t(`auth.errors.${code}` as Parameters<typeof t>[0], {
+          defaultValue: t('auth.errors.loginFailed'),
+        }),
+        color: 'red',
       })
-
-      if (response.ok) {
-        setOtpEmail(values.email)
-        setOtpCode('')
-        setCanResend(false)
-        setResendCountdown(30) // 30 seconds before allowing resend
-        setActiveStep(2)
-      } else {
-        notifications.show({ message: t('auth.errors.otpFailed'), color: 'red' })
-      }
-    } catch {
-      notifications.show({ message: t('auth.errors.otpFailed'), color: 'red' })
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleOtpVerify = async (code: string) => {
-    if (code.length !== 6 || !otpEmail) return
-
+  const handleRegister = async (values: {
+    email: string
+    displayName: string
+    password: string
+  }) => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/auth/otp/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ email: otpEmail, code }),
+      await registerUser({
+        email: values.email,
+        displayName: values.displayName,
+        password: values.password,
       })
-
-      if (response.ok) {
-        const data = await response.json()
-        setAccessToken(data.accessToken)
-        setUser(data.user)
-        navigate(redirectTo)
-      } else {
-        notifications.show({ message: t('auth.errors.otpInvalid'), color: 'red' })
-        setOtpCode('')
-      }
-    } catch {
-      notifications.show({ message: t('auth.errors.otpVerifyFailed'), color: 'red' })
-      setOtpCode('')
+      notifications.show({
+        message: t('auth.register.success.checkEmail'),
+        color: 'green',
+      })
+      setMode('login')
+      loginForm.setFieldValue('email', values.email)
+    } catch (error: unknown) {
+      console.error('Registration failed', error)
+      const code = (error as { response?: { data?: { code?: string } } })?.response?.data?.code
+      notifications.show({
+        message: t(`auth.errors.${code}` as Parameters<typeof t>[0], {
+          defaultValue: t('auth.errors.registrationFailed'),
+        }),
+        color: 'red',
+      })
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const handleResendOtp = async () => {
-    if (!otpEmail || !canResend) return
-    await handleOtpRequest({ email: otpEmail })
-  }
-
-  const handleRegister = async (values: { email: string; displayName: string }) => {
-    setIsLoading(true)
-    try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
-      })
-
-      if (response.ok) {
-        setOtpEmail(values.email)
-        setActiveStep(2)
-      } else {
-        const error = await response.json()
-        notifications.show({
-          message: t(`auth.errors.${error.code || 'registrationFailed'}`),
-          color: 'red',
-        })
-      }
-    } catch {
-      notifications.show({ message: t('auth.errors.registrationFailed'), color: 'red' })
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const selectMethod = (method: AuthMethod) => {
-    setSelectedMethod(method)
-    setActiveStep(1)
-  }
-
-  const goBack = () => {
-    if (activeStep === 2) {
-      setActiveStep(1)
-      setOtpEmail(null)
-      setOtpCode('')
-    } else {
-      setActiveStep(0)
-      setSelectedMethod(null)
-    }
-  }
-
-  const renderMethodSelection = () => (
-    <Stack>
-      <Stack gap="xs" ta="center">
-        <Title order={1}>{t('welcome', { appName })}</Title>
-        <Text c="dimmed">{t('auth.login.subtitle')}</Text>
-      </Stack>
-
-      <Stack gap="sm">
-        {passkeySupported && (
-          <Button
-            variant="filled"
-            size="lg"
-            leftSection={<IconFingerprint size={24} />}
-            onClick={handlePasskeyLogin}
-            loading={isLoading}
-          >
-            {t('auth.login.methods.passkey')}
-          </Button>
-        )}
-        <Button
-          variant="light"
-          size="lg"
-          leftSection={<IconMail size={24} />}
-          onClick={() => selectMethod('otp')}
-        >
-          {t('auth.login.methods.otp')}
-        </Button>
-        <Button
-          variant="subtle"
-          size="lg"
-          leftSection={<IconUserPlus size={24} />}
-          onClick={() => selectMethod('register')}
-        >
-          {t('auth.login.methods.register')}
-        </Button>
-      </Stack>
-
-      <Text size="sm" c="dimmed" ta="center">
-        <Trans
-          i18nKey="auth.login.termsText"
-          components={{
-            termsLink: <Anchor href={paths.terms()} />,
-            privacyLink: <Anchor href={paths.privacy()} />,
-          }}
-        />
-      </Text>
-    </Stack>
-  )
-
-  const renderForm = () => {
-    switch (selectedMethod) {
-      case 'otp':
-        return (
-          <form onSubmit={otpForm.onSubmit(handleOtpRequest)}>
-            <Stack>
-              <Text size="sm" c="dimmed">
-                {t('auth.otp.description')}
-              </Text>
-              <TextInput
-                label={t('auth.form.email')}
-                placeholder="email@example.com"
-                autoComplete="email"
-                {...otpForm.getInputProps('email')}
-              />
-              <Button
-                type="submit"
-                fullWidth
-                loading={isLoading}
-                leftSection={<IconMail size={20} />}
-              >
-                {t('auth.otp.send')}
-              </Button>
-            </Stack>
-          </form>
-        )
-
-      case 'register':
-        return (
-          <form onSubmit={registerForm.onSubmit(handleRegister)}>
-            <Stack>
-              <TextInput
-                label={t('auth.form.email')}
-                placeholder="email@example.com"
-                autoComplete="email"
-                {...registerForm.getInputProps('email')}
-              />
-              <TextInput
-                label={t('auth.form.displayName')}
-                placeholder={t('auth.form.displayNamePlaceholder')}
-                autoComplete="name"
-                {...registerForm.getInputProps('displayName')}
-              />
-              <Button
-                type="submit"
-                fullWidth
-                loading={isLoading}
-                leftSection={<IconUserPlus size={20} />}
-              >
-                {t('auth.register.button')}
-              </Button>
-            </Stack>
-          </form>
-        )
-
-      default:
-        return null
-    }
-  }
-
-  const renderOtpVerification = () => (
-    <Stack ta="center">
-      <IconMail size={48} style={{ margin: '0 auto' }} color="var(--mantine-color-blue-6)" />
-      <Title order={2}>{t('auth.otp.verify.title')}</Title>
-      {otpEmail && (
-        <Text c="dimmed">
-          <Trans
-            i18nKey="auth.otp.verify.sentTo"
-            values={{ email: otpEmail }}
-            components={{ strong: <Text span fw={500} /> }}
-          />
-        </Text>
-      )}
-      <Alert color="blue" variant="light">
-        <Text size="sm">{t('auth.otp.verify.instruction')}</Text>
-      </Alert>
-      <PinInput
-        length={6}
-        type="number"
-        value={otpCode}
-        onChange={(value) => {
-          setOtpCode(value)
-          if (value.length === 6) {
-            handleOtpVerify(value)
-          }
-        }}
-        disabled={isLoading}
-        size="xl"
-        style={{ justifyContent: 'center' }}
-      />
-      <Group justify="center" gap="xs">
-        <Button
-          variant="subtle"
-          size="compact-sm"
-          leftSection={<IconArrowLeft size={16} />}
-          onClick={goBack}
-        >
-          {t('common.back')}
-        </Button>
-        <Button
-          variant="subtle"
-          size="compact-sm"
-          leftSection={<IconRefresh size={16} />}
-          onClick={handleResendOtp}
-          disabled={!canResend || isLoading}
-        >
-          {canResend ? t('auth.otp.resend') : t('auth.otp.resendIn', { seconds: resendCountdown })}
-        </Button>
-      </Group>
-    </Stack>
-  )
-
-  const renderRegistrationSuccess = () => (
-    <Stack ta="center">
-      <IconMail size={48} style={{ margin: '0 auto' }} color="var(--mantine-color-green-6)" />
-      <Title order={2}>{t('auth.register.success.title')}</Title>
-      {otpEmail && (
-        <Text c="dimmed">
-          <Trans
-            i18nKey="auth.register.success.message"
-            values={{ email: otpEmail }}
-            components={{ strong: <Text span fw={500} /> }}
-          />
-        </Text>
-      )}
-      <Alert color="blue" variant="light">
-        <Text size="sm">{t('auth.register.success.checkEmail')}</Text>
-      </Alert>
-    </Stack>
-  )
-
-  const renderCompleted = () => {
-    if (selectedMethod === 'register') {
-      return renderRegistrationSuccess()
-    }
-    return renderOtpVerification()
   }
 
   return (
     <Center mih="70vh">
       <Paper shadow="lg" radius="lg" p="xl" w="100%" maw={420}>
-        <Stepper active={activeStep} allowNextStepsSelect={false}>
-          <Stepper.Step label={t('auth.steps.method')}>{renderMethodSelection()}</Stepper.Step>
-          <Stepper.Step label={t('auth.steps.credentials')}>
-            <Stack>
-              <Group>
-                <Button
-                  variant="subtle"
-                  size="compact-sm"
-                  leftSection={<IconArrowLeft size={16} />}
-                  onClick={goBack}
-                >
-                  {t('common.back')}
-                </Button>
-              </Group>
-              <Title order={2} ta="center">
-                {selectedMethod === 'register' ? t('auth.register.title') : t('auth.otp.title')}
-              </Title>
-              {renderForm()}
+        {mode === 'login' ? (
+          <Stack>
+            <Stack gap="xs" ta="center">
+              <Title order={1}>{t('welcome', { appName })}</Title>
+              <Text c="dimmed">{t('auth.login.subtitle')}</Text>
             </Stack>
-          </Stepper.Step>
-          <Stepper.Completed>{renderCompleted()}</Stepper.Completed>
-        </Stepper>
+
+            <form onSubmit={loginForm.onSubmit(handleLogin)}>
+              <Stack>
+                <TextInput
+                  label={t('auth.form.email')}
+                  placeholder="email@example.com"
+                  autoComplete="email"
+                  {...loginForm.getInputProps('email')}
+                />
+                <PasswordInput
+                  label={t('auth.form.password')}
+                  placeholder={t('auth.form.passwordPlaceholder')}
+                  autoComplete="current-password"
+                  leftSection={<IconLock size={16} />}
+                  {...loginForm.getInputProps('password')}
+                />
+                <Anchor component={Link} to={paths.forgotPassword()} size="sm" ta="right">
+                  {t('auth.login.forgotPassword')}
+                </Anchor>
+                <Button type="submit" fullWidth loading={isLoading}>
+                  {t('auth.login.button')}
+                </Button>
+              </Stack>
+            </form>
+
+            {passkeySupported && (
+              <>
+                <Divider label={t('common.or')} labelPosition="center" />
+                <Button
+                  variant="default"
+                  fullWidth
+                  leftSection={<IconFingerprint size={20} />}
+                  onClick={handlePasskeyLogin}
+                  loading={isLoading}
+                >
+                  {t('auth.login.methods.passkey')}
+                </Button>
+              </>
+            )}
+
+            <Text size="sm" ta="center">
+              {t('auth.login.noAccount')}{' '}
+              <Anchor component="button" onClick={() => setMode('register')}>
+                {t('auth.login.methods.register')}
+              </Anchor>
+            </Text>
+
+            <Text size="xs" c="dimmed" ta="center">
+              <Trans
+                i18nKey="auth.login.termsText"
+                components={{
+                  termsLink: <Anchor href={paths.terms()} />,
+                  privacyLink: <Anchor href={paths.privacy()} />,
+                }}
+              />
+            </Text>
+          </Stack>
+        ) : (
+          <Stack>
+            <Stack gap="xs" ta="center">
+              <Title order={2}>{t('auth.register.title')}</Title>
+              <Text c="dimmed">{t('auth.register.subtitle')}</Text>
+            </Stack>
+
+            <form onSubmit={registerForm.onSubmit(handleRegister)}>
+              <Stack>
+                <TextInput
+                  label={t('auth.form.email')}
+                  placeholder="email@example.com"
+                  autoComplete="email"
+                  {...registerForm.getInputProps('email')}
+                />
+                <TextInput
+                  label={t('auth.form.displayName')}
+                  placeholder={t('auth.form.displayNamePlaceholder')}
+                  autoComplete="name"
+                  {...registerForm.getInputProps('displayName')}
+                />
+                <PasswordInput
+                  label={t('auth.form.password')}
+                  placeholder={t('auth.form.passwordPlaceholder')}
+                  autoComplete="new-password"
+                  leftSection={<IconLock size={16} />}
+                  {...registerForm.getInputProps('password')}
+                />
+                <PasswordInput
+                  label={t('auth.form.confirmPassword')}
+                  placeholder={t('auth.form.confirmPasswordPlaceholder')}
+                  autoComplete="new-password"
+                  leftSection={<IconLock size={16} />}
+                  {...registerForm.getInputProps('confirmPassword')}
+                />
+                <Button
+                  type="submit"
+                  fullWidth
+                  loading={isLoading}
+                  leftSection={<IconUserPlus size={20} />}
+                >
+                  {t('auth.register.button')}
+                </Button>
+              </Stack>
+            </form>
+
+            <Text size="sm" ta="center">
+              {t('auth.register.haveAccount')}{' '}
+              <Anchor component="button" onClick={() => setMode('login')}>
+                {t('auth.login.title')}
+              </Anchor>
+            </Text>
+          </Stack>
+        )}
       </Paper>
     </Center>
   )

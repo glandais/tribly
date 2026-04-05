@@ -41,6 +41,35 @@ class AuthRepository {
     return _authClient.verifyOtp(body: VerifyOtpRequest(email: email, code: code));
   }
 
+  /// Login with email and password
+  Future<AuthResponse> loginWithPassword(String email, String password) {
+    return _authClient.loginWithPassword(
+      body: LoginRequest(email: email, password: password),
+    );
+  }
+
+  /// Request password reset OTP
+  Future<MessageResponse> forgotPassword(String email) {
+    return _authClient.forgotPassword(
+      body: ForgotPasswordRequest(email: email),
+    );
+  }
+
+  /// Reset password with OTP code
+  Future<AuthResponse> resetPassword(
+    String email,
+    String code,
+    String newPassword,
+  ) {
+    return _authClient.resetPassword(
+      body: ResetPasswordRequest(
+        email: email,
+        code: code,
+        newPassword: newPassword,
+      ),
+    );
+  }
+
   /// Refresh access token
   /// Note: Uses Dio directly because the generated client doesn't support X-Refresh-Token header
   Future<AuthResponse> refreshToken(String refreshToken) async {

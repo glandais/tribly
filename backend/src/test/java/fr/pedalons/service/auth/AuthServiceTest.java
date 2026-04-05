@@ -57,7 +57,7 @@ class AuthServiceTest extends AbstractBaseTest {
 
   @Test
   void register_shouldCreateVerificationToken() {
-    RegisterRequest request = new RegisterRequest("new@example.com", "New User");
+    RegisterRequest request = new RegisterRequest("new@example.com", "New User", "password123");
 
     authService.register(request);
 
@@ -70,7 +70,7 @@ class AuthServiceTest extends AbstractBaseTest {
 
   @Test
   void register_shouldSendVerificationEmail() {
-    RegisterRequest request = new RegisterRequest("new@example.com", "New User");
+    RegisterRequest request = new RegisterRequest("new@example.com", "New User", "password123");
 
     authService.register(request);
 
@@ -82,7 +82,8 @@ class AuthServiceTest extends AbstractBaseTest {
   @Test
   void register_shouldThrowIfEmailExists() {
     dataService.createVerifiedUser("existing@example.com", "Existing User");
-    RegisterRequest request = new RegisterRequest("existing@example.com", "New User");
+    RegisterRequest request =
+        new RegisterRequest("existing@example.com", "New User", "password123");
 
     assertThrows(BadRequestException.class, () -> authService.register(request));
   }
@@ -95,7 +96,7 @@ class AuthServiceTest extends AbstractBaseTest {
     dataService.createAuthToken(
         "test@example.com", "old-hash", AuthTokenType.EMAIL_VERIFICATION, expiresAt);
 
-    RegisterRequest request = new RegisterRequest("test@example.com", "Test User");
+    RegisterRequest request = new RegisterRequest("test@example.com", "Test User", "password123");
     authService.register(request);
 
     // Old token should be invalidated
@@ -304,6 +305,112 @@ class AuthServiceTest extends AbstractBaseTest {
     assertThrows(NotFoundException.class, () -> authService.getUserByEmail("nonexistent@test.com"));
   }
 
+  // --- Password login tests ---
+
+  @Test
+  void loginWithPassword_shouldReturnAuthResult() {
+    createVerifiedUserWithPassword("login@example.com", "Login User", "mypassword123");
+
+    AuthResult result =
+        authService.loginWithPassword("login@example.com", "mypassword123", "Agent", "IP");
+
+    assertNotNull(result.response().accessToken());
+    assertEquals("login@example.com", result.response().user().email());
+  }
+
+  @Test
+  void loginWithPassword_withNoPasswordSet_shouldThrowInvalidCredentials() {
+    dataService.createVerifiedUser("nopassword@example.com", "No Password");
+
+    BadRequestException ex =
+        assertThrows(
+            BadRequestException.class,
+            () ->
+                authService.loginWithPassword("nopassword@example.com", "anypass", "Agent", "IP"));
+    assertEquals(fr.pedalons.dto.error.ErrorCode.INVALID_CREDENTIALS, ex.getErrorCode());
+  }
+
+  @Test
+  void loginWithPassword_withWrongPassword_shouldThrowInvalidCredentials() {
+    createVerifiedUserWithPassword("login2@example.com", "Login User", "correctpass");
+
+    assertThrows(
+        BadRequestException.class,
+        () -> authService.loginWithPassword("login2@example.com", "wrongpass", "Agent", "IP"));
+  }
+
+  // --- RequestPasswordReset tests ---
+
+  @Test
+  void requestPasswordReset_shouldCreateTokenAndSendEmail() {
+    createVerifiedUserWithPassword("reset@example.com", "Reset User", "oldpass");
+    mailbox.clear();
+
+    authService.requestPasswordReset("reset@example.com");
+
+    var tokens =
+        authTokenRepository.findValidByEmailAndType(
+            "reset@example.com", AuthTokenType.PASSWORD_RESET, domain.getId());
+    assertTrue(tokens.isPresent());
+    assertEquals(1, mailbox.getMailsSentTo("reset@example.com").size());
+  }
+
+  @Test
+  void requestPasswordReset_shouldNotThrowForNonexistentUser() {
+    assertDoesNotThrow(() -> authService.requestPasswordReset("ghost@example.com"));
+    assertEquals(0, mailbox.getTotalMessagesSent());
+  }
+
+  @Test
+  void requestPasswordReset_shouldNotSendForUnverifiedUser() {
+    dataService.createUser("unverified@example.com", "Unverified");
+
+    authService.requestPasswordReset("unverified@example.com");
+
+    assertEquals(0, mailbox.getTotalMessagesSent());
+  }
+
+  // --- ResetPassword tests ---
+
+  @Test
+  void resetPassword_shouldUpdatePasswordAndReturnAuthResult() {
+    User user = createVerifiedUserWithPassword("reset2@example.com", "Reset2 User", "oldpass");
+    createPasswordResetToken(user, "reset2@example.com", "123456");
+
+    AuthResult result =
+        authService.resetPassword("reset2@example.com", "123456", "newpass123", "Agent", "IP");
+
+    assertNotNull(result.response().accessToken());
+    assertEquals("reset2@example.com", result.response().user().email());
+  }
+
+  @Test
+  void resetPassword_withAlreadyUsedToken_shouldThrow() {
+    User user = createVerifiedUserWithPassword("reset3@example.com", "Reset3 User", "oldpass");
+    createPasswordResetToken(user, "reset3@example.com", "777888");
+
+    // First use succeeds
+    authService.resetPassword("reset3@example.com", "777888", "newpass123", "Agent", "IP");
+
+    // Second use must fail
+    assertThrows(
+        BadRequestException.class,
+        () ->
+            authService.resetPassword(
+                "reset3@example.com", "777888", "anotherpass", "Agent", "IP"));
+  }
+
+  @Test
+  void resetPassword_withExpiredToken_shouldThrow() {
+    User user = createVerifiedUserWithPassword("reset4@example.com", "Reset4 User", "oldpass");
+    createExpiredPasswordResetToken(user, "reset4@example.com", "999111");
+
+    assertThrows(
+        BadRequestException.class,
+        () ->
+            authService.resetPassword("reset4@example.com", "999111", "newpass123", "Agent", "IP"));
+  }
+
   // --- Helper methods ---
 
   @Transactional
@@ -333,6 +440,43 @@ class AuthServiceTest extends AbstractBaseTest {
             domain.getId());
     authToken.setPendingDisplayName(displayName);
     authToken.setPendingDomainId(domain.getId());
+    authTokenRepository.persist(authToken);
+  }
+
+  @Transactional
+  User createVerifiedUserWithPassword(String email, String displayName, String password) {
+    User user = new User(domain, email, displayName);
+    user.markEmailVerified();
+    user.setPasswordHash(io.quarkus.elytron.security.common.BcryptUtil.bcryptHash(password));
+    userRepository.persistAndFlush(user);
+    return user;
+  }
+
+  @Transactional
+  void createPasswordResetToken(User user, String email, String code) {
+    String tokenHash = hashToken(code);
+    AuthToken authToken =
+        new AuthToken(
+            user,
+            email,
+            tokenHash,
+            AuthTokenType.PASSWORD_RESET,
+            Instant.now().plus(5, ChronoUnit.MINUTES),
+            domain.getId());
+    authTokenRepository.persist(authToken);
+  }
+
+  @Transactional
+  void createExpiredPasswordResetToken(User user, String email, String code) {
+    String tokenHash = hashToken(code);
+    AuthToken authToken =
+        new AuthToken(
+            user,
+            email,
+            tokenHash,
+            AuthTokenType.PASSWORD_RESET,
+            Instant.now().minus(1, ChronoUnit.HOURS),
+            domain.getId());
     authTokenRepository.persist(authToken);
   }
 

@@ -96,6 +96,12 @@ enum ErrorCode {
   authorizationPending('AUTHORIZATION_PENDING'),
   @JsonValue('GPS_CREDENTIAL_ALREADY_EXISTS')
   gpsCredentialAlreadyExists('GPS_CREDENTIAL_ALREADY_EXISTS'),
+  @JsonValue('GPS_TOKEN_EXCHANGE_FAILED')
+  gpsTokenExchangeFailed('GPS_TOKEN_EXCHANGE_FAILED'),
+  @JsonValue('ENCRYPTION_FAILED')
+  encryptionFailed('ENCRYPTION_FAILED'),
+  @JsonValue('DECRYPTION_FAILED')
+  decryptionFailed('DECRYPTION_FAILED'),
 
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
   $unknown(null)

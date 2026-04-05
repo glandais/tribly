@@ -1284,6 +1284,20 @@
           }
         }
       },
+      "ForgotPasswordRequest" : {
+        "description" : "Forgot password request",
+        "type" : "object",
+        "required" : [ "email" ],
+        "properties" : {
+          "email" : {
+            "type" : "string",
+            "description" : "Email address",
+            "examples" : [ "user@example.com" ],
+            "pattern" : "\\S",
+            "maxLength" : 250
+          }
+        }
+      },
       "GeoJsonLineString" : {
         "type" : "object",
         "required" : [ "type", "coordinates" ],
@@ -1432,6 +1446,26 @@
         "externalDocs" : {
           "description" : "As defined by 'partial-time' in RFC3339",
           "url" : "https://www.rfc-editor.org/rfc/rfc3339.html#section-5.6"
+        }
+      },
+      "LoginRequest" : {
+        "description" : "Password login request",
+        "type" : "object",
+        "required" : [ "email", "password" ],
+        "properties" : {
+          "email" : {
+            "type" : "string",
+            "description" : "Email address",
+            "examples" : [ "user@example.com" ],
+            "pattern" : "\\S",
+            "maxLength" : 250
+          },
+          "password" : {
+            "type" : "string",
+            "description" : "Password",
+            "pattern" : "\\S",
+            "maxLength" : 100
+          }
         }
       },
       "MediaDto" : {
@@ -1957,7 +1991,7 @@
       "RegisterRequest" : {
         "description" : "User registration request",
         "type" : "object",
-        "required" : [ "email", "displayName" ],
+        "required" : [ "email", "displayName", "password" ],
         "properties" : {
           "email" : {
             "type" : "string",
@@ -1973,6 +2007,13 @@
             "pattern" : "\\S",
             "minLength" : 1,
             "maxLength" : 200
+          },
+          "password" : {
+            "type" : "string",
+            "description" : "Password (min 8 chars)",
+            "pattern" : "\\S",
+            "minLength" : 8,
+            "maxLength" : 100
           }
         }
       },
@@ -1991,6 +2032,31 @@
               "type" : "string"
             },
             "description" : "Ordered list of page IDs"
+          }
+        }
+      },
+      "ResetPasswordRequest" : {
+        "description" : "Reset password request",
+        "type" : "object",
+        "required" : [ "email", "code", "newPassword" ],
+        "properties" : {
+          "email" : {
+            "type" : "string",
+            "description" : "Email address",
+            "pattern" : "\\S",
+            "maxLength" : 250
+          },
+          "code" : {
+            "type" : "string",
+            "description" : "6-digit OTP code",
+            "pattern" : "^\\d{6}$"
+          },
+          "newPassword" : {
+            "type" : "string",
+            "description" : "New password (min 8 chars)",
+            "pattern" : "\\S",
+            "minLength" : 8,
+            "maxLength" : 100
           }
         }
       },
@@ -4632,6 +4698,92 @@
         } ]
       }
     },
+    "/api/auth/forgot-password" : {
+      "post" : {
+        "summary" : "Request password reset",
+        "description" : "Send a 6-digit code to the user's email to reset their password",
+        "operationId" : "forgotPassword",
+        "tags" : [ "Authentication" ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ForgotPasswordRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Reset code sent (if email exists)",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MessageResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          }
+        }
+      }
+    },
+    "/api/auth/login" : {
+      "post" : {
+        "summary" : "Login with password",
+        "description" : "Authenticate using email and password",
+        "operationId" : "loginWithPassword",
+        "tags" : [ "Authentication" ],
+        "parameters" : [ {
+          "name" : "X-Forwarded-For",
+          "in" : "header",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "X-Real-IP",
+          "in" : "header",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Login successful",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid credentials or password not set",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/logout" : {
       "post" : {
         "summary" : "Logout",
@@ -5129,6 +5281,59 @@
           },
           "400" : {
             "description" : "Invalid request or email already registered",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/reset-password" : {
+      "post" : {
+        "summary" : "Reset password",
+        "description" : "Verify the OTP code and set a new password",
+        "operationId" : "resetPassword",
+        "tags" : [ "Authentication" ],
+        "parameters" : [ {
+          "name" : "X-Forwarded-For",
+          "in" : "header",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "X-Real-IP",
+          "in" : "header",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ResetPasswordRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Password reset, logged in",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid or expired code",
             "content" : {
               "application/json" : {
                 "schema" : {

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/auth/presentation/pages/forgot_password_page.dart';
 import '../features/auth/presentation/pages/login_page.dart';
+import '../features/auth/presentation/pages/reset_password_page.dart';
 import '../features/auth/presentation/pages/verify_email_page.dart';
 import '../features/auth/providers/auth_provider.dart';
 import '../features/calendar/presentation/pages/calendar_page.dart';
@@ -42,6 +44,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Auth-related routes that don't require login
       final isAuthRoute = location.startsWith('/login') ||
           location.startsWith('/verify-email') ||
+          location.startsWith('/forgot-password') ||
+          location.startsWith('/reset-password') ||
           location.startsWith('/privacy') ||
           location.startsWith('/terms');
 
@@ -67,6 +71,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/verify-email',
         builder: (context, state) => VerifyEmailPage(
           token: state.uri.queryParameters['token'],
+        ),
+      ),
+      GoRoute(
+        path: '/forgot-password',
+        builder: (context, state) => const ForgotPasswordPage(),
+      ),
+      GoRoute(
+        path: '/reset-password',
+        builder: (context, state) => ResetPasswordPage(
+          email: state.uri.queryParameters['email'] ?? '',
         ),
       ),
 

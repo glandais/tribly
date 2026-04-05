@@ -7,16 +7,13 @@ import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
-@Schema(description = "User registration request")
+@Schema(description = "Password login request")
 @ValidateSchema
 @Builder
-public record RegisterRequest(
+public record LoginRequest(
     @NotBlank
         @Email
         @Size(max = 250)
         @Schema(description = "Email address", examples = "user@example.com")
         String email,
-    @NotBlank @Size(min = 1, max = 200) @Schema(description = "Display name", examples = "John Doe")
-        String displayName,
-    @NotBlank @Size(min = 8, max = 100) @Schema(description = "Password (min 8 chars)")
-        String password) {}
+    @NotBlank @Size(max = 100) @Schema(description = "Password") String password) {}

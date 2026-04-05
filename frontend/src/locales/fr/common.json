@@ -934,5 +934,7 @@
   "admin.users.removeAdmin": "Retirer admin plateforme",
   "admin.users.cannotRemoveOwnAdmin": "Impossible de retirer votre propre rôle admin plateforme",
   "admin.users.empty.title": "Aucun utilisateur",
-  "admin.users.empty.description": "Aucun utilisateur n'est encore inscrit."
+  "admin.users.empty.description": "Aucun utilisateur n'est encore inscrit.",
+  "common.back": "Retour",
+  "common.or": "ou"
 }

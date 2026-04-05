@@ -1,7 +1,10 @@
 package fr.pedalons.api.auth;
 
+import fr.pedalons.dto.auth.request.ForgotPasswordRequest;
+import fr.pedalons.dto.auth.request.LoginRequest;
 import fr.pedalons.dto.auth.request.OtpRequest;
 import fr.pedalons.dto.auth.request.RegisterRequest;
+import fr.pedalons.dto.auth.request.ResetPasswordRequest;
 import fr.pedalons.dto.auth.request.VerifyOtpRequest;
 import fr.pedalons.dto.auth.request.VerifyTokenRequest;
 import fr.pedalons.dto.auth.response.AuthResponse;
@@ -145,6 +148,83 @@ public class AuthResource {
   }
 
   @POST
+  @Path("/login")
+  @PermitAll
+  @Operation(summary = "Login with password", description = "Authenticate using email and password")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Login successful",
+        content = @Content(schema = @Schema(implementation = AuthResponse.class))),
+    @APIResponse(
+        responseCode = "400",
+        description = "Invalid credentials or password not set",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response loginWithPassword(
+      @Valid LoginRequest request,
+      @Context HttpHeaders headers,
+      @HeaderParam("X-Forwarded-For") @Nullable String forwardedFor,
+      @HeaderParam("X-Real-IP") @Nullable String realIp) {
+    String userAgent = headers.getHeaderString(HttpHeaders.USER_AGENT);
+    String ipAddress = getClientIp(forwardedFor, realIp);
+
+    AuthResult result =
+        authService.loginWithPassword(request.email(), request.password(), userAgent, ipAddress);
+    return Response.ok(result.response())
+        .cookie(createRefreshTokenCookie(result.refreshToken()))
+        .build();
+  }
+
+  @POST
+  @Path("/forgot-password")
+  @PermitAll
+  @Operation(
+      summary = "Request password reset",
+      description = "Send a 6-digit code to the user's email to reset their password")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Reset code sent (if email exists)",
+        content = @Content(schema = @Schema(implementation = MessageResponse.class)))
+  })
+  public Response forgotPassword(@Valid ForgotPasswordRequest request) {
+    authService.requestPasswordReset(request.email());
+    return Response.ok(new MessageResponse("If the email exists, a reset code has been sent"))
+        .build();
+  }
+
+  @POST
+  @Path("/reset-password")
+  @PermitAll
+  @Operation(summary = "Reset password", description = "Verify the OTP code and set a new password")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Password reset, logged in",
+        content = @Content(schema = @Schema(implementation = AuthResponse.class))),
+    @APIResponse(
+        responseCode = "400",
+        description = "Invalid or expired code",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response resetPassword(
+      @Valid ResetPasswordRequest request,
+      @Context HttpHeaders headers,
+      @HeaderParam("X-Forwarded-For") @Nullable String forwardedFor,
+      @HeaderParam("X-Real-IP") @Nullable String realIp) {
+    String userAgent = headers.getHeaderString(HttpHeaders.USER_AGENT);
+    String ipAddress = getClientIp(forwardedFor, realIp);
+
+    AuthResult result =
+        authService.resetPassword(
+            request.email(), request.code(), request.newPassword(), userAgent, ipAddress);
+    return Response.ok(result.response())
+        .cookie(createRefreshTokenCookie(result.refreshToken()))
+        .build();
+  }
+
+  @POST
   @Path("/refresh")
   @PermitAll
   @Operation(
@@ -213,6 +293,18 @@ public class AuthResource {
     return Response.noContent().cookie(deleteRefreshTokenCookie()).build();
   }
 
+  private NewCookie.SameSite parsedSameSite() {
+    try {
+      return NewCookie.SameSite.valueOf(cookieSameSite.toUpperCase());
+    } catch (IllegalArgumentException e) {
+      throw new IllegalStateException(
+          "Invalid pedalons.auth.cookie.same-site value: '"
+              + cookieSameSite
+              + "'. Valid values: STRICT, LAX, NONE",
+          e);
+    }
+  }
+
   private NewCookie createRefreshTokenCookie(String refreshToken) {
     return new NewCookie.Builder(REFRESH_TOKEN_COOKIE)
         .value(refreshToken)
@@ -220,7 +312,7 @@ public class AuthResource {
         .maxAge(refreshTokenExpiryDays * 24 * 60 * 60)
         .httpOnly(true)
         .secure(cookieSecure)
-        .sameSite(NewCookie.SameSite.valueOf(cookieSameSite.toUpperCase()))
+        .sameSite(parsedSameSite())
         .build();
   }
 
@@ -231,7 +323,7 @@ public class AuthResource {
         .maxAge(0)
         .httpOnly(true)
         .secure(cookieSecure)
-        .sameSite(NewCookie.SameSite.valueOf(cookieSameSite.toUpperCase()))
+        .sameSite(parsedSameSite())
         .build();
   }
 

@@ -926,5 +926,7 @@
   "admin.users.removeAdmin": "Remove platform admin",
   "admin.users.cannotRemoveOwnAdmin": "Cannot remove your own platform admin role",
   "admin.users.empty.title": "No users",
-  "admin.users.empty.description": "No users have registered yet."
+  "admin.users.empty.description": "No users have registered yet.",
+  "common.back": "Back",
+  "common.or": "or"
 }

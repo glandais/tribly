@@ -17,6 +17,12 @@ const VerifyEmailPage = lazy(() =>
 const MagicLinkVerifyPage = lazy(() =>
   import('../pages/auth/MagicLinkVerifyPage').then((m) => ({ default: m.MagicLinkVerifyPage }))
 )
+const ForgotPasswordPage = lazy(() =>
+  import('../pages/auth/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage }))
+)
+const ResetPasswordPage = lazy(() =>
+  import('../pages/auth/ResetPasswordPage').then((m) => ({ default: m.ResetPasswordPage }))
+)
 const UserProfilePage = lazy(() =>
   import('../pages/auth/UserProfilePage').then((m) => ({ default: m.UserProfilePage }))
 )
@@ -235,6 +241,22 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('auth.magicLink.verify.title') },
+  },
+  {
+    id: 'forgot-password',
+    path: paths.forgotPassword(),
+    component: ForgotPasswordPage,
+    auth: 'unauthenticated',
+    parentId: null,
+    breadcrumb: { type: 'static', i18nKey: tRegister('auth.forgotPassword.title') },
+  },
+  {
+    id: 'reset-password',
+    path: paths.resetPassword(),
+    component: ResetPasswordPage,
+    auth: 'unauthenticated',
+    parentId: null,
+    breadcrumb: { type: 'static', i18nKey: tRegister('auth.resetPassword.title') },
   },
   {
     id: 'profile',

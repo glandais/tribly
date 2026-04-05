@@ -16,6 +16,9 @@ abstract class RegisterRequest with _$RegisterRequest {
 
     /// Display name
     required String displayName,
+
+    /// Password (min 8 chars)
+    required String password,
   }) = _RegisterRequest;
 
   factory RegisterRequest.fromJson(Map<String, Object?> json) =>

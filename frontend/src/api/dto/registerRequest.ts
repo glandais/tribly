@@ -15,4 +15,11 @@ export interface RegisterRequest {
    * @pattern \S
    */
   displayName: string
+  /**
+   * Password (min 8 chars)
+   * @minLength 8
+   * @maxLength 100
+   * @pattern \S
+   */
+  password: string
 }

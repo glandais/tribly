@@ -1,6 +1,99 @@
 import * as zod from 'zod'
 
 /**
+ * Send a 6-digit code to the user's email to reset their password
+ * @summary Request password reset
+ */
+export const forgotPasswordBodyEmailMax = 250
+
+export const forgotPasswordBodyEmailRegExp = new RegExp('\\S')
+
+export const ForgotPasswordBody = zod
+  .object({
+    email: zod
+      .string()
+      .max(forgotPasswordBodyEmailMax)
+      .regex(forgotPasswordBodyEmailRegExp)
+      .describe('Email address'),
+  })
+  .describe('Forgot password request')
+
+export const ForgotPasswordResponse = zod
+  .object({
+    message: zod.string().optional().describe('Response message'),
+  })
+  .describe('Simple message response')
+
+/**
+ * Authenticate using email and password
+ * @summary Login with password
+ */
+export const LoginWithPasswordHeader = zod.object({
+  'X-Forwarded-For': zod.string().optional(),
+  'X-Real-IP': zod.string().optional(),
+})
+
+export const loginWithPasswordBodyEmailMax = 250
+
+export const loginWithPasswordBodyEmailRegExp = new RegExp('\\S')
+export const loginWithPasswordBodyPasswordMax = 100
+
+export const loginWithPasswordBodyPasswordRegExp = new RegExp('\\S')
+
+export const LoginWithPasswordBody = zod
+  .object({
+    email: zod
+      .string()
+      .max(loginWithPasswordBodyEmailMax)
+      .regex(loginWithPasswordBodyEmailRegExp)
+      .describe('Email address'),
+    password: zod
+      .string()
+      .max(loginWithPasswordBodyPasswordMax)
+      .regex(loginWithPasswordBodyPasswordRegExp)
+      .describe('Password'),
+  })
+  .describe('Password login request')
+
+export const LoginWithPasswordResponse = zod
+  .object({
+    accessToken: zod.string().optional().describe('JWT access token'),
+    expiresIn: zod.number().optional().describe('Token expiry in seconds'),
+    user: zod
+      .object({
+        id: zod.string().describe('User ID (TSID)'),
+        email: zod.string().describe('User email address'),
+        displayName: zod.string().describe('User display name'),
+        avatarUrl: zod.string().optional().describe('User avatar URL'),
+        createdAt: zod.iso.datetime({}).optional().describe('Account creation timestamp'),
+        unitSystem: zod
+          .enum(['METRIC', 'IMPERIAL'])
+          .optional()
+          .describe('Preferred unit system (metric or imperial)'),
+        platformRole: zod
+          .enum(['PLATFORM_ADMIN'])
+          .optional()
+          .describe('Platform role (null if regular user)'),
+        connectedServices: zod
+          .array(
+            zod
+              .object({
+                serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']).describe('Service type identifier'),
+                displayName: zod.string().describe('Display name of the service'),
+                connectedAt: zod.iso.datetime({}).describe('When the service was connected'),
+              })
+              .describe('GPS service connection information')
+          )
+          .optional()
+          .describe('Connected GPS services'),
+      })
+      .optional()
+      .describe('Authenticated user'),
+    refreshToken: zod.string().optional().describe('Refresh token (for mobile clients)'),
+  })
+  .describe('Authentication response')
+
+/**
  * Logout and invalidate the refresh token
  * @summary Logout
  */
@@ -153,6 +246,10 @@ export const registerBodyEmailRegExp = new RegExp('\\S')
 export const registerBodyDisplayNameMax = 200
 
 export const registerBodyDisplayNameRegExp = new RegExp('\\S')
+export const registerBodyPasswordMin = 8
+export const registerBodyPasswordMax = 100
+
+export const registerBodyPasswordRegExp = new RegExp('\\S')
 
 export const RegisterBody = zod
   .object({
@@ -167,6 +264,12 @@ export const RegisterBody = zod
       .max(registerBodyDisplayNameMax)
       .regex(registerBodyDisplayNameRegExp)
       .describe('Display name'),
+    password: zod
+      .string()
+      .min(registerBodyPasswordMin)
+      .max(registerBodyPasswordMax)
+      .regex(registerBodyPasswordRegExp)
+      .describe('Password (min 8 chars)'),
   })
   .describe('User registration request')
 
@@ -175,6 +278,79 @@ export const RegisterResponse = zod
     message: zod.string().optional().describe('Response message'),
   })
   .describe('Simple message response')
+
+/**
+ * Verify the OTP code and set a new password
+ * @summary Reset password
+ */
+export const ResetPasswordHeader = zod.object({
+  'X-Forwarded-For': zod.string().optional(),
+  'X-Real-IP': zod.string().optional(),
+})
+
+export const resetPasswordBodyEmailMax = 250
+
+export const resetPasswordBodyEmailRegExp = new RegExp('\\S')
+export const resetPasswordBodyCodeRegExp = new RegExp('^\\d{6}$')
+export const resetPasswordBodyNewPasswordMin = 8
+export const resetPasswordBodyNewPasswordMax = 100
+
+export const resetPasswordBodyNewPasswordRegExp = new RegExp('\\S')
+
+export const ResetPasswordBody = zod
+  .object({
+    email: zod
+      .string()
+      .max(resetPasswordBodyEmailMax)
+      .regex(resetPasswordBodyEmailRegExp)
+      .describe('Email address'),
+    code: zod.string().regex(resetPasswordBodyCodeRegExp).describe('6-digit OTP code'),
+    newPassword: zod
+      .string()
+      .min(resetPasswordBodyNewPasswordMin)
+      .max(resetPasswordBodyNewPasswordMax)
+      .regex(resetPasswordBodyNewPasswordRegExp)
+      .describe('New password (min 8 chars)'),
+  })
+  .describe('Reset password request')
+
+export const ResetPasswordResponse = zod
+  .object({
+    accessToken: zod.string().optional().describe('JWT access token'),
+    expiresIn: zod.number().optional().describe('Token expiry in seconds'),
+    user: zod
+      .object({
+        id: zod.string().describe('User ID (TSID)'),
+        email: zod.string().describe('User email address'),
+        displayName: zod.string().describe('User display name'),
+        avatarUrl: zod.string().optional().describe('User avatar URL'),
+        createdAt: zod.iso.datetime({}).optional().describe('Account creation timestamp'),
+        unitSystem: zod
+          .enum(['METRIC', 'IMPERIAL'])
+          .optional()
+          .describe('Preferred unit system (metric or imperial)'),
+        platformRole: zod
+          .enum(['PLATFORM_ADMIN'])
+          .optional()
+          .describe('Platform role (null if regular user)'),
+        connectedServices: zod
+          .array(
+            zod
+              .object({
+                serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']).describe('Service type identifier'),
+                displayName: zod.string().describe('Display name of the service'),
+                connectedAt: zod.iso.datetime({}).describe('When the service was connected'),
+              })
+              .describe('GPS service connection information')
+          )
+          .optional()
+          .describe('Connected GPS services'),
+      })
+      .optional()
+      .describe('Authenticated user'),
+    refreshToken: zod.string().optional().describe('Refresh token (for mobile clients)'),
+  })
+  .describe('Authentication response')
 
 /**
  * Verify email address and complete registration
