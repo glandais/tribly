@@ -8,8 +8,10 @@ import fr.pedalons.domain.auth.AuthToken;
 import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.enums.AuthTokenType;
+import fr.pedalons.enums.GpsServiceType;
 import fr.pedalons.repository.auth.AuthSessionRepository;
 import fr.pedalons.repository.auth.AuthTokenRepository;
+import fr.pedalons.repository.gps.GpsOAuthStateRepository;
 import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.util.TestDataCleaner;
 import fr.pedalons.util.TestDataService;
@@ -27,6 +29,7 @@ class AuthCleanupSchedulerTest extends AbstractBaseTest {
   @Inject AuthCleanupScheduler authCleanupScheduler;
   @Inject AuthSessionRepository authSessionRepository;
   @Inject AuthTokenRepository authTokenRepository;
+  @Inject GpsOAuthStateRepository gpsOAuthStateRepository;
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
   @Inject DomainResolver domainResolver;
@@ -144,6 +147,32 @@ class AuthCleanupSchedulerTest extends AbstractBaseTest {
       authCleanupScheduler.cleanupExpiredAuthData();
 
       assertEquals(2, authTokenRepository.count());
+    }
+  }
+
+  @Nested
+  class CleanupExpiredGpsOAuthStates {
+
+    @Test
+    void shouldDeleteExpiredGpsOAuthStates() {
+      Instant futureExpiry = Instant.now().plus(10, ChronoUnit.MINUTES);
+      dataService.createExpiredGpsOAuthState(user, "expired-state", GpsServiceType.HAMMERHEAD);
+      dataService.createGpsOAuthState(user, "valid-state", GpsServiceType.HAMMERHEAD, futureExpiry);
+
+      authCleanupScheduler.cleanupExpiredAuthData();
+
+      assertEquals(1, gpsOAuthStateRepository.count());
+    }
+
+    @Test
+    void shouldNotDeleteValidGpsOAuthStates() {
+      Instant futureExpiry = Instant.now().plus(10, ChronoUnit.MINUTES);
+      dataService.createGpsOAuthState(user, "state-1", GpsServiceType.HAMMERHEAD, futureExpiry);
+      dataService.createGpsOAuthState(user, "state-2", GpsServiceType.GARMIN, futureExpiry);
+
+      authCleanupScheduler.cleanupExpiredAuthData();
+
+      assertEquals(2, gpsOAuthStateRepository.count());
     }
   }
 }

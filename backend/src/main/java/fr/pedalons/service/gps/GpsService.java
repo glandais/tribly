@@ -3,6 +3,7 @@ package fr.pedalons.service.gps;
 import fr.pedalons.common.exception.BusinessException;
 import fr.pedalons.common.exception.InternalException;
 import fr.pedalons.domain.asset.Asset;
+import fr.pedalons.domain.gps.GpsOAuthState;
 import fr.pedalons.domain.gps.GpsServiceConnection;
 import fr.pedalons.domain.route.Route;
 import fr.pedalons.domain.user.User;
@@ -19,6 +20,7 @@ import fr.pedalons.infrastructure.gps.PkceUtils;
 import fr.pedalons.infrastructure.gps.RouteUploadResult;
 import fr.pedalons.infrastructure.gps.TokenResponse;
 import fr.pedalons.infrastructure.security.TokenEncryptionService;
+import fr.pedalons.repository.gps.GpsOAuthStateRepository;
 import fr.pedalons.repository.gps.GpsServiceConnectionRepository;
 import fr.pedalons.repository.user.UserRepository;
 import fr.pedalons.service.asset.AssetService;
@@ -36,8 +38,6 @@ import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import org.jboss.logging.Logger;
 
 /**
@@ -49,8 +49,7 @@ public class GpsService {
 
   private static final Logger LOG = Logger.getLogger(GpsService.class);
 
-  // In-memory state storage for OAuth flow (consider Redis for production multi-instance)
-  private final Map<String, OAuthState> pendingStates = new ConcurrentHashMap<>();
+  @Inject GpsOAuthStateRepository oauthStateRepository;
 
   @Inject GpsServiceConnectionRepository connectionRepository;
 
@@ -87,6 +86,7 @@ public class GpsService {
    * Returns the authorization URL to redirect the user to.
    */
   @Logged
+  @Transactional
   public GpsOAuthUrlResponse initiateOAuth(GpsServiceType serviceType) {
     // Check if GPS service is configured for this domain
     if (!credentialService.isServiceAvailable(serviceType)) {
@@ -125,11 +125,14 @@ public class GpsService {
       authUrl = client.getAuthorizationUrl(state, redirectUri);
     }
 
-    // Store state with user ID, expiry, code verifier, and redirect URI
-    pendingStates.put(
-        state,
-        new OAuthState(
-            userId, serviceType, Instant.now().plusSeconds(600), codeVerifier, redirectUri));
+    User user =
+        userRepository
+            .findActiveById(userId)
+            .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+    oauthStateRepository.persist(
+        new GpsOAuthState(
+            user, state, serviceType, Instant.now().plusSeconds(600), codeVerifier, redirectUri));
 
     return new GpsOAuthUrlResponse(authUrl);
   }
@@ -141,26 +144,27 @@ public class GpsService {
   @Transactional
   @Public
   public void handleCallback(GpsServiceType serviceType, String code, String state) {
-    // Validate state
-    OAuthState oauthState = pendingStates.remove(state);
-    if (oauthState == null) {
-      throw new BusinessException(ErrorCode.GPS_INVALID_STATE);
-    }
-    if (oauthState.expiresAt().isBefore(Instant.now())) {
-      throw new BusinessException(ErrorCode.GPS_STATE_EXPIRED);
-    }
-    if (oauthState.serviceType() != serviceType) {
+    // Validate state (findValidByState filters expired states)
+    GpsOAuthState oauthState =
+        oauthStateRepository
+            .findValidByState(state)
+            .orElseThrow(() -> new BusinessException(ErrorCode.GPS_INVALID_STATE));
+
+    if (oauthState.getServiceType() != serviceType) {
       throw new BusinessException(ErrorCode.GPS_INVALID_STATE);
     }
 
-    Long userId = oauthState.userId();
-    String redirectUri = oauthState.redirectUri();
+    // Delete state immediately after validation (single use)
+    oauthStateRepository.delete(oauthState);
+
+    Long userId = oauthState.getUser().getId();
+    String redirectUri = oauthState.getRedirectUri();
 
     // Exchange code for tokens
     GpsServiceClient client = getClient(serviceType);
     TokenResponse tokens;
-    if (client.supportsPkce() && oauthState.codeVerifier() != null) {
-      tokens = client.exchangeCode(code, redirectUri, oauthState.codeVerifier());
+    if (client.supportsPkce() && oauthState.getCodeVerifier() != null) {
+      tokens = client.exchangeCode(code, redirectUri, oauthState.getCodeVerifier());
     } else {
       tokens = client.exchangeCode(code, redirectUri);
     }
@@ -306,11 +310,4 @@ public class GpsService {
   public String getFrontendBaseUrl() {
     return domainResolver.getDomain().getBaseUrl();
   }
-
-  private record OAuthState(
-      Long userId,
-      GpsServiceType serviceType,
-      Instant expiresAt,
-      String codeVerifier,
-      String redirectUri) {}
 }

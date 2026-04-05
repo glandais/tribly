@@ -969,4 +969,31 @@ public class TestDataService {
     credential.setActive(false);
     domainGpsCredentialRepository.getEntityManager().merge(credential);
   }
+
+  @Inject fr.pedalons.repository.gps.GpsOAuthStateRepository gpsOAuthStateRepository;
+
+  @Transactional
+  public fr.pedalons.domain.gps.GpsOAuthState createGpsOAuthState(
+      User user, String state, GpsServiceType serviceType, java.time.Instant expiresAt) {
+    var oauthState =
+        new fr.pedalons.domain.gps.GpsOAuthState(
+            user, state, serviceType, expiresAt, null, "http://localhost/callback");
+    gpsOAuthStateRepository.persistAndFlush(oauthState);
+    return oauthState;
+  }
+
+  @Transactional
+  public fr.pedalons.domain.gps.GpsOAuthState createExpiredGpsOAuthState(
+      User user, String state, GpsServiceType serviceType) {
+    var oauthState =
+        new fr.pedalons.domain.gps.GpsOAuthState(
+            user,
+            state,
+            serviceType,
+            java.time.Instant.now().minusSeconds(3600),
+            null,
+            "http://localhost/callback");
+    gpsOAuthStateRepository.persistAndFlush(oauthState);
+    return oauthState;
+  }
 }
