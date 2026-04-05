@@ -15,7 +15,7 @@ Pedalons est une plateforme multi-tenant mature pour equipes cyclistes, comprena
 | 3 | **Mettre en place les backups PostgreSQL et MinIO** — aucun backup, perte de donnees possible | Infra | CRITIQUE | M | |
 | 4 | **Ajouter des tests frontend** — 0 tests malgre Vitest installe | Frontend | CRITIQUE | L | ⚠️ |
 | 5 | **Ajouter des tests mobile** — 0 tests, pas meme de repertoire test/ | Mobile | CRITIQUE | M | |
-| 6 | **Corriger le bug `TeamEntityType.AD` hardcode dans `updateSlug()`** — slug redirects ne fonctionnent pas pour les non-ads | Backend | CRITIQUE | S | |
+| 6 | **Corriger le bug `TeamEntityType.AD` hardcode dans `updateSlug()`** — slug redirects ne fonctionnent pas pour les non-ads | Backend | CRITIQUE | S | ✅ |
 | 7 | **Ajouter rate limiting sur `/api/device/oauth/complete`** — brute force possible sur les user codes | Securite | CRITIQUE | S | |
 | 8 | **Creer un pipeline CD** — aucun deploiement automatise, images tagguees `:latest` | Infra | CRITIQUE | L | |
 | 9 | **Retirer `maximum-scale=1.0`** du viewport — bloque le zoom pour les malvoyants | Frontend | CRITIQUE | S | |
@@ -56,12 +56,12 @@ Backend Quarkus 3.31.2, Java 21 (compile en Java 25), ~90 fichiers de test. Arch
 
 | # | Probleme | Severite | Effort | Fichiers | Statut |
 |---|----------|----------|--------|----------|--------|
-| B1 | Bug `TeamEntityType.AD` hardcode dans `updateSlug()` — les redirections de slug ne fonctionnent que pour les Ads | Critique | S | `TeamEntityService.java:90` | |
-| B2 | `<release>25</release>` dans pom.xml vs parent `maven.compiler.release=21` — risque en prod si JDK 21 | Important | S | `backend/pom.xml:281` | |
-| B3 | `hibernate-spatial` version geree hors BOM Quarkus — risque d'incompatibilite | Important | S | `backend/pom.xml:92-95` | |
+| B1 | Bug `TeamEntityType.AD` hardcode dans `updateSlug()` — les redirections de slug ne fonctionnent que pour les Ads | Critique | S | `TeamEntityService.java:90` | ✅ |
+| B2 | `<release>25</release>` dans pom.xml vs parent `maven.compiler.release=21` — risque en prod si JDK 21 | Important | S | `backend/pom.xml:281` | ✅ |
+| B3 | `hibernate-spatial` version geree hors BOM Quarkus — risque d'incompatibilite | Important | S | `backend/pom.xml:92-95` | ✅ |
 | B4 | `@Transactional` duplique sur Resources (deja present dans Services) | Important | M | `RideResource`, `PostResource`, `TripResource`, etc. | |
-| B5 | `GlobalExceptionMapper` logue toutes les exceptions en ERROR (y compris 4xx) | Important | S | `GlobalExceptionMapper.java:33` | |
-| B6 | ~5 `RuntimeException` dans le code prod au lieu d'exceptions metier | Important | M | `RouteService`, `GarminClient`, `TokenEncryptionService`, etc. | ⚠️ |
+| B5 | `GlobalExceptionMapper` logue toutes les exceptions en ERROR (y compris 4xx) | Important | S | `GlobalExceptionMapper.java:33` | ✅ |
+| B6 | ~5 `RuntimeException` dans le code prod au lieu d'exceptions metier | Important | M | `RouteService`, `GarminClient`, `TokenEncryptionService`, etc. | ✅ |
 | B7 | Traitement GPX complet dans une seule transaction (connexion DB longue) | Important | L | `GpxProcessingService.java` | |
 | B8 | Etat OAuth stocke en `ConcurrentHashMap` (pas multi-instance, fuite memoire) | Important | M | `GpsService.java:52` | |
 | B9 | Requetes N+1 sur les listings (pas de JOIN FETCH) | Important | L | `TeamEntityRepository.java` | |
@@ -352,7 +352,7 @@ Les deux clients partagent des problemes communs :
 | 1 | Securiser `/api/device/oauth/complete` : `@RolesAllowed("user")` + userId du JWT | Securite | ✅ |
 | 2 | Ajouter rate limiting sur `/api/device/oauth/complete` | Securite | |
 | 3 | Changer `branches: ['tmp']` en `['develop']` dans `ci.yml` | Infra | ✅ |
-| 4 | Corriger le bug `TeamEntityType.AD` dans `TeamEntityService.updateSlug()` | Backend | |
+| 4 | Corriger le bug `TeamEntityType.AD` dans `TeamEntityService.updateSlug()` | Backend | ✅ |
 | 5 | Retirer `maximum-scale=1.0` de `index.html` | Frontend | |
 | 6 | Corriger la cle i18n `common.back` → `actions.back` dans LoginPage | Frontend | |
 | 7 | Corriger "Groupe" hardcode et validation Zod non traduite dans RideEditor | Frontend | |
@@ -368,9 +368,9 @@ Les deux clients partagent des problemes communs :
 | 12 | Creer le pipeline CD (build, tag, push images) | Infra |
 | 13 | Ajouter `quarkus-micrometer-registry-prometheus` | Backend |
 | 14 | Implementer la rotation des refresh tokens | Securite |
-| 15 | Aligner `<release>` Java (21 ou 25) dans le POM | Backend |
+| 15 | Aligner `<release>` Java (21 ou 25) dans le POM | Backend | ✅ |
 | 16 | Retirer `@Transactional` des Resources | Backend |
-| 17 | Passer les logs 4xx en WARN dans GlobalExceptionMapper | Backend |
+| 17 | Passer les logs 4xx en WARN dans GlobalExceptionMapper | Backend | ✅ |
 | 18 | Cacher le User dans `PedalonsQueryContext` | Backend |
 | 19 | Ajouter des tests frontend Phase 1 (utils, hooks, stores) | Frontend |
 | 20 | Ajouter des tests mobile Phase 1 (AuthNotifier, interceptor, repos) | Mobile |
@@ -428,15 +428,16 @@ Les deux clients partagent des problemes communs :
 
 | Severite | Backend | Frontend | Mobile | Karoo | Garmin | Infra | Securite | Docs | Total |
 |----------|---------|----------|--------|-------|--------|-------|----------|------|-------|
-| Critique | 1 | 4 | 2 | 3 | 3 | 6 | 1 | 1 | **21** |
-| Important | 11 | 9 | 8 | 7 | 7 | 10 | 5 | 4 | **61** |
+| Critique | 0 | 4 | 2 | 3 | 3 | 6 | 1 | 1 | **20** |
+| Important | 7 | 9 | 8 | 7 | 7 | 10 | 5 | 4 | **57** |
 | Mineur | 3 | 2 | 3 | 3 | 3 | 5 | 5 | 2 | **26** |
-| **Total** | **15** | **15** | **13** | **13** | **13** | **21** | **11** | **7** | **108** |
+| **Total** | **10** | **15** | **13** | **13** | **13** | **21** | **11** | **7** | **103** |
 
 ### Points corriges depuis l'audit initial
 
 | Composant | Corriges | Details |
 |-----------|----------|---------|
+| Backend | B1, B2, B3, B5, B6 | B1: `updateSlug()`. B2: Java 25. B3: hibernate-spatial BOM. B5: logs 4xx/5xx. B6: RuntimeException → exceptions metier |
 | Karoo | K4, K5, K8, K11 | Compose BOM 2026.03.00, ktor 3.4.2, generateQrCode partage, package documente |
 | Infrastructure | I1, I8, I16, I18 | CI sur develop, tests frontend actives, backend/.env dans .gitignore |
 | Securite | S1, S14 | @RolesAllowed sur /complete, Apache Tika pour validation uploads |

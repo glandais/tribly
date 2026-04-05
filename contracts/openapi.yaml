@@ -1154,6 +1154,9 @@ components:
       - GPX_NOT_FOUND
       - AUTHORIZATION_PENDING
       - GPS_CREDENTIAL_ALREADY_EXISTS
+      - GPS_TOKEN_EXCHANGE_FAILED
+      - ENCRYPTION_FAILED
+      - DECRYPTION_FAILED
     ErrorDetails:
       oneOf:
       - $ref: "#/components/schemas/ErrorValidationDetails"

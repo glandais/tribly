@@ -187,7 +187,7 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
       }
     } catch (Exception e) {
       gpxProcessingService.deleteRouteFiles(route);
-      throw new RuntimeException(e);
+      throw new BusinessException(ErrorCode.GPX_FAILURE, e);
     }
 
     updateMedia(route, request.media());

@@ -30,38 +30,58 @@ public class GlobalExceptionMapper implements ExceptionMapper<Throwable> {
 
   @Override
   public Response toResponse(Throwable exception) {
-    LOG.error("Error", exception);
     switch (exception) {
       case NotFoundException ignored -> {
+        LOG.warnv("Not found: {0}", getPath());
         return notFound();
       }
       case EntityNotFoundException ignored -> {
+        LOG.warnv("Entity not found: {0}", getPath());
         return notFound();
       }
       case NotAuthorizedException ignored -> {
+        LOG.warnv("Unauthorized: {0}", getPath());
         return unauthorized();
       }
       case ForbiddenException ignored -> {
+        LOG.warnv("Forbidden: {0}", getPath());
         return forbidden();
       }
       case ConstraintViolationException cve -> {
+        LOG.warnv("Validation error: {0}", getPath());
         return validationError(cve);
       }
       case IllegalArgumentException ignored -> {
+        LOG.warnv("Bad request: {0}", getPath());
         return badRequest();
       }
       case PedalonsException be -> {
+        if (be.getStatus().getFamily() == Response.Status.Family.CLIENT_ERROR) {
+          LOG.warnv("Client error: {0} {1}", be.getErrorCode(), getPath());
+        } else {
+          LOG.errorv(be, "Server error: {0} {1}", be.getErrorCode(), getPath());
+        }
         return pedalonsError(be);
       }
       case WebApplicationException wae -> {
         Response originalResponse = wae.getResponse();
-        return Response.status(originalResponse.getStatus())
-            .entity(new ErrorResponse(ErrorCode.UNKNOWN))
-            .build();
+        int status = originalResponse.getStatus();
+        if (status >= 500) {
+          LOG.errorv(wae, "Server error {0}: {1}", status, getPath());
+        } else {
+          LOG.warnv("Client error {0}: {1}", status, getPath());
+        }
+        return Response.status(status).entity(new ErrorResponse(ErrorCode.UNKNOWN)).build();
       }
-      default -> {}
+      default -> {
+        LOG.error("Unexpected error: " + getPath(), exception);
+      }
     }
     return internal();
+  }
+
+  private String getPath() {
+    return uriInfo != null ? uriInfo.getRequestUri().getPath() : "unknown";
   }
 
   private Response notFound() {

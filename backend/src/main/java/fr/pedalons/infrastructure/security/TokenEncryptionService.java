@@ -1,5 +1,7 @@
 package fr.pedalons.infrastructure.security;
 
+import fr.pedalons.common.exception.InternalException;
+import fr.pedalons.dto.error.ErrorCode;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.nio.charset.StandardCharsets;
@@ -60,7 +62,7 @@ public class TokenEncryptionService {
 
       return result;
     } catch (Exception e) {
-      throw new RuntimeException("Failed to encrypt token", e);
+      throw new InternalException(ErrorCode.ENCRYPTION_FAILED, e);
     }
   }
 
@@ -85,7 +87,7 @@ public class TokenEncryptionService {
       byte[] plaintext = cipher.doFinal(ciphertext);
       return new String(plaintext, StandardCharsets.UTF_8);
     } catch (Exception e) {
-      throw new RuntimeException("Failed to decrypt token", e);
+      throw new InternalException(ErrorCode.DECRYPTION_FAILED, e);
     }
   }
 }

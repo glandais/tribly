@@ -1,6 +1,7 @@
 package fr.pedalons.infrastructure.gps;
 
 import fr.pedalons.common.exception.BusinessException;
+import fr.pedalons.common.exception.InternalException;
 import fr.pedalons.domain.gps.DomainGpsCredential;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.enums.GpsServiceType;
@@ -141,12 +142,14 @@ public class GarminClient implements GpsServiceClient {
 
       if (response.statusCode() != 200) {
         LOG.errorf("Garmin token request failed: %d %s", response.statusCode(), response.body());
-        throw new RuntimeException("Failed to exchange code: " + response.statusCode());
+        throw new InternalException(
+            ErrorCode.GPS_TOKEN_EXCHANGE_FAILED,
+            new IOException("Garmin token request failed: " + response.statusCode()));
       }
 
       return parseTokenResponse(response.body());
     } catch (IOException | InterruptedException e) {
-      throw new RuntimeException("Failed to request token from Garmin", e);
+      throw new InternalException(ErrorCode.GPS_TOKEN_EXCHANGE_FAILED, e);
     }
   }
 

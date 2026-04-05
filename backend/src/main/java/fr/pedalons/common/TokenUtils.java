@@ -51,7 +51,7 @@ public final class TokenUtils {
       byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
       return Base64.getEncoder().encodeToString(hash);
     } catch (NoSuchAlgorithmException e) {
-      throw new RuntimeException("SHA-256 not available", e);
+      throw new IllegalStateException("SHA-256 not available", e);
     }
   }
 }

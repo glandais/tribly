@@ -8,7 +8,6 @@ import fr.pedalons.domain.team.Team;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.common.request.WithVisibility;
 import fr.pedalons.dto.error.ErrorCode;
-import fr.pedalons.enums.TeamEntityType;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.infrastructure.exception.*;
 import fr.pedalons.repository.common.TeamEntityRepository;
@@ -87,7 +86,8 @@ public abstract class TeamEntityService<
       throw new ConflictException(ErrorCode.SLUG_TAKEN);
     }
 
-    slugService.clearEntityRedirect(entity.getTeam().getId(), TeamEntityType.AD, newSlug);
+    slugService.clearEntityRedirect(
+        entity.getTeam().getId(), getRepository().getEntityType(), newSlug);
     slugService.createEntityRedirect(entity, oldSlug);
 
     entity.setSlug(newSlug);

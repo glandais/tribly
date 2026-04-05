@@ -1,5 +1,7 @@
 package fr.pedalons.infrastructure.gps;
 
+import fr.pedalons.common.exception.BusinessException;
+import fr.pedalons.dto.error.ErrorCode;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
@@ -78,7 +80,7 @@ public class GarminCourseConverter {
 
       return buildJsonCourse(courseName, totalDistance, elevationGain, elevationLoss, geoPoints);
     } catch (Exception e) {
-      throw new RuntimeException("Failed to parse GPX content", e);
+      throw new BusinessException(ErrorCode.GPX_FAILURE, e);
     }
   }
 

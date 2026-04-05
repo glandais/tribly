@@ -39,7 +39,7 @@ public final class PkceUtils {
       byte[] hash = digest.digest(codeVerifier.getBytes(StandardCharsets.US_ASCII));
       return Base64.getUrlEncoder().withoutPadding().encodeToString(hash);
     } catch (NoSuchAlgorithmException e) {
-      throw new RuntimeException("SHA-256 not available", e);
+      throw new IllegalStateException("SHA-256 not available", e);
     }
   }
 }

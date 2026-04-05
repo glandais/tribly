@@ -1,6 +1,7 @@
 package fr.pedalons.service.gps;
 
 import fr.pedalons.common.exception.BusinessException;
+import fr.pedalons.common.exception.InternalException;
 import fr.pedalons.domain.asset.Asset;
 import fr.pedalons.domain.gps.GpsServiceConnection;
 import fr.pedalons.domain.route.Route;
@@ -297,7 +298,7 @@ public class GpsService {
     try (InputStream is = assetService.getAssetContent(gpxAsset)) {
       return is.readAllBytes();
     } catch (IOException e) {
-      throw new RuntimeException("Failed to read GPX file", e);
+      throw new InternalException(ErrorCode.GPX_FAILURE, e);
     }
   }
 
