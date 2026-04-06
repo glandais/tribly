@@ -50,7 +50,7 @@ public abstract class TeamEntityService<
 
   protected void validateVisibility(Team team, WithVisibility request) {
     // Validate visibility: private teams can only have team-only items
-    if (team.getVisibility() != Visibility.PUBLIC && request.visibility() == Visibility.PUBLIC) {
+    if (team.getVisibility() == Visibility.TEAM && request.visibility() != Visibility.TEAM) {
       throw new BusinessException(ErrorCode.INVALID_VISIBILITY);
     }
   }

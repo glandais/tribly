@@ -171,7 +171,9 @@ export function RouteDetailView({
             </Badge>
           )}
           <Badge color="gray" variant="light" size="lg">
-            {t(`visibility.${route.visibility.toLowerCase() as 'public' | 'team'}`)}
+            {t(
+              `visibility.${route.visibility.toLowerCase() as 'public' | 'public_unlisted' | 'team'}`
+            )}
           </Badge>
           <Text size="sm" c="dimmed">
             {t('routes.detail.info.createdAt')}: {new Date(route.createdAt).toLocaleDateString()}

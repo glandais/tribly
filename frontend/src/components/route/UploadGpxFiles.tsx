@@ -4,15 +4,16 @@ import { Button, Text } from '@mantine/core'
 import { IconUpload } from '@tabler/icons-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { createRoute, getListRoutesQueryKey } from '@/api/endpoints/routes/routes'
-import { Visibility, SurfaceType } from '@/api/dto'
+import { SurfaceType, TeamDetailDto } from '@/api/dto'
 import { defaultMedia } from '@/lib/apiUtils'
 
 export interface UploadGpxFilesProps {
-  teamSlug: string
+  team: TeamDetailDto
   disabled?: boolean
 }
 
-export function UploadGpxFiles({ teamSlug, disabled }: UploadGpxFilesProps) {
+export function UploadGpxFiles({ team, disabled }: UploadGpxFilesProps) {
+  const teamSlug = team.slug
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -39,7 +40,7 @@ export function UploadGpxFiles({ teamSlug, disabled }: UploadGpxFilesProps) {
         await createRoute(teamSlug, {
           route: {
             name,
-            visibility: Visibility.TEAM,
+            visibility: team.visibility,
             surfaceType: SurfaceType.ROAD,
             media: defaultMedia(),
           },

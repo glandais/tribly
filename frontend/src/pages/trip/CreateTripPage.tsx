@@ -9,7 +9,7 @@ import { Container, Stack, Title, Text } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { useCreateTrip } from '../../api/endpoints/trips/trips'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
-import { Visibility, Status, TripRequest } from '@/api/dto'
+import { Status, TripRequest } from '@/api/dto'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TripEditor } from '../../components/trip/TripEditor'
 import { defaultMedia } from '@/lib/apiUtils'
@@ -62,7 +62,7 @@ export function CreateTripPage() {
     name: '',
     media: defaultMedia(),
     dateTime: tripStartDate,
-    visibility: team.visibility === Visibility.TEAM ? Visibility.TEAM : Visibility.PUBLIC,
+    visibility: team.visibility,
     status: Status.DRAFT,
     publishAt: undefined,
     routeSlug: undefined,

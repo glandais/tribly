@@ -49,7 +49,7 @@ public class TeamMembershipService {
   public MemberDto joinTeam(String teamSlug) {
     Team team = teamService.getTeam(teamSlug);
     // Security checks
-    if (team.getVisibility() != Visibility.PUBLIC) {
+    if (team.getVisibility() == Visibility.TEAM) {
       throw new ForbiddenException();
     }
 

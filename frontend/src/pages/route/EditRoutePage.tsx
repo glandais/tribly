@@ -14,7 +14,7 @@ import {
   getListRoutesQueryKey,
 } from '@/api/endpoints/routes/routes'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
-import { Visibility, SurfaceType, RouteRequest } from '@/api/dto'
+import { SurfaceType, RouteRequest } from '@/api/dto'
 import { LoadingPage } from '@/components/common/LoadingSpinner'
 import { RouteEditor } from '@/components/route/RouteEditor'
 
@@ -81,7 +81,7 @@ export function EditRoutePage() {
     name: route.name,
     media: route.media,
     surfaceType: route.surfaceType || SurfaceType.ROAD,
-    visibility: team.visibility === Visibility.TEAM ? Visibility.TEAM : route.visibility,
+    visibility: route.visibility,
   }
 
   // Check if route has a single track (required for planner mode)

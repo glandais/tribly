@@ -30,7 +30,9 @@ export const ListAllPublicationsResponse = zod
                     id: zod.string().describe('Team ID (TSID)'),
                     name: zod.string().describe('Team name'),
                     slug: zod.string().describe('Team URL slug'),
-                    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+                    visibility: zod
+                      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                      .describe('Whether the team is public'),
                   })
                   .describe('Team'),
                 id: zod.string().describe('Publication ID (TSID)'),
@@ -187,7 +189,9 @@ export const ListAllPublicationsResponse = zod
                 status: zod
                   .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                   .describe('Publication status'),
-                visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+                visibility: zod
+                  .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                  .describe('Visibility level'),
                 publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
                 createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
                 routeSlug: zod.string().optional().describe('Route slug'),
@@ -284,7 +288,9 @@ export const ListAllPublicationsResponse = zod
                     id: zod.string().describe('Team ID (TSID)'),
                     name: zod.string().describe('Team name'),
                     slug: zod.string().describe('Team URL slug'),
-                    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+                    visibility: zod
+                      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                      .describe('Whether the team is public'),
                   })
                   .describe('Team'),
                 id: zod.string().describe('Publication ID (TSID)'),
@@ -441,7 +447,9 @@ export const ListAllPublicationsResponse = zod
                 status: zod
                   .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                   .describe('Publication status'),
-                visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+                visibility: zod
+                  .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                  .describe('Visibility level'),
                 publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
                 createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
                 deleted: zod.boolean().describe('Whether the post is soft-deleted'),
@@ -455,7 +463,9 @@ export const ListAllPublicationsResponse = zod
                     id: zod.string().describe('Team ID (TSID)'),
                     name: zod.string().describe('Team name'),
                     slug: zod.string().describe('Team URL slug'),
-                    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+                    visibility: zod
+                      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                      .describe('Whether the team is public'),
                   })
                   .describe('Team'),
                 id: zod.string().describe('Publication ID (TSID)'),
@@ -612,7 +622,9 @@ export const ListAllPublicationsResponse = zod
                 status: zod
                   .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                   .describe('Publication status'),
-                visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+                visibility: zod
+                  .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                  .describe('Visibility level'),
                 publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
                 createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
                 routeSlug: zod.string().optional().describe('Route slug'),
@@ -863,7 +875,7 @@ export const ListAllPublicationsResponse = zod
           .and(
             zod.object({
               type: zod.enum(['RIDE', 'POST', 'TRIP']).optional(),
-              visibility: zod.enum(['TEAM', 'PUBLIC']).optional(),
+              visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).optional(),
               name: zod.string().optional(),
             })
           )
@@ -910,7 +922,9 @@ export const ListPublicationsResponse = zod
                     id: zod.string().describe('Team ID (TSID)'),
                     name: zod.string().describe('Team name'),
                     slug: zod.string().describe('Team URL slug'),
-                    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+                    visibility: zod
+                      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                      .describe('Whether the team is public'),
                   })
                   .describe('Team'),
                 id: zod.string().describe('Publication ID (TSID)'),
@@ -1067,7 +1081,9 @@ export const ListPublicationsResponse = zod
                 status: zod
                   .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                   .describe('Publication status'),
-                visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+                visibility: zod
+                  .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                  .describe('Visibility level'),
                 publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
                 createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
                 routeSlug: zod.string().optional().describe('Route slug'),
@@ -1164,7 +1180,9 @@ export const ListPublicationsResponse = zod
                     id: zod.string().describe('Team ID (TSID)'),
                     name: zod.string().describe('Team name'),
                     slug: zod.string().describe('Team URL slug'),
-                    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+                    visibility: zod
+                      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                      .describe('Whether the team is public'),
                   })
                   .describe('Team'),
                 id: zod.string().describe('Publication ID (TSID)'),
@@ -1321,7 +1339,9 @@ export const ListPublicationsResponse = zod
                 status: zod
                   .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                   .describe('Publication status'),
-                visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+                visibility: zod
+                  .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                  .describe('Visibility level'),
                 publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
                 createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
                 deleted: zod.boolean().describe('Whether the post is soft-deleted'),
@@ -1335,7 +1355,9 @@ export const ListPublicationsResponse = zod
                     id: zod.string().describe('Team ID (TSID)'),
                     name: zod.string().describe('Team name'),
                     slug: zod.string().describe('Team URL slug'),
-                    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+                    visibility: zod
+                      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                      .describe('Whether the team is public'),
                   })
                   .describe('Team'),
                 id: zod.string().describe('Publication ID (TSID)'),
@@ -1492,7 +1514,9 @@ export const ListPublicationsResponse = zod
                 status: zod
                   .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                   .describe('Publication status'),
-                visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+                visibility: zod
+                  .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                  .describe('Visibility level'),
                 publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
                 createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
                 routeSlug: zod.string().optional().describe('Route slug'),
@@ -1743,7 +1767,7 @@ export const ListPublicationsResponse = zod
           .and(
             zod.object({
               type: zod.enum(['RIDE', 'POST', 'TRIP']).optional(),
-              visibility: zod.enum(['TEAM', 'PUBLIC']).optional(),
+              visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).optional(),
               name: zod.string().optional(),
             })
           )

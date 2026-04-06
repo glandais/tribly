@@ -2,10 +2,10 @@ import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
-import type { RouteDto, TeamDetailDto, Visibility, SurfaceType, RouteRequest } from '@/api/dto'
+import type { RouteDto, TeamDetailDto, SurfaceType, RouteRequest } from '@/api/dto'
 import { RouteEditor } from './RouteEditor'
 import { useCreateRoute, getListRoutesQueryKey } from '@/api/endpoints/routes/routes'
-import { Visibility as VisibilityEnum, SurfaceType as SurfaceTypeEnum } from '@/api/dto'
+import { SurfaceType as SurfaceTypeEnum } from '@/api/dto'
 import { defaultMedia } from '@/lib/apiUtils'
 import { Modal } from '@mantine/core'
 
@@ -25,9 +25,7 @@ export function CreateRouteModal({ isOpen, onClose, onRouteCreated, team }: Crea
     name: '',
     media: defaultMedia(),
     surfaceType: SurfaceTypeEnum.ROAD as SurfaceType,
-    visibility: (team.visibility === VisibilityEnum.TEAM
-      ? VisibilityEnum.TEAM
-      : VisibilityEnum.PUBLIC) as Visibility,
+    visibility: team.visibility,
   }
 
   const handleSubmit = async (data: RouteRequest, gpxFile?: File) => {

@@ -10,7 +10,7 @@ import { Container, Stack, Group, Title, Text, Button } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { useCreateRide } from '../../api/endpoints/rides/rides'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
-import { Visibility, Status } from '@/api/dto'
+import { Status } from '@/api/dto'
 import type { RideRequest, RideTemplateDto } from '@/api/dto'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { RideEditor } from '../../components/ride/RideEditor'
@@ -79,7 +79,7 @@ export function CreateRidePage() {
         name: '',
         media: defaultMedia(),
         dateTime: getNextSunday(),
-        visibility: team.visibility === Visibility.TEAM ? Visibility.TEAM : Visibility.PUBLIC,
+        visibility: team.visibility,
         status: Status.DRAFT,
         publishAt: undefined,
         routeSlug: undefined,

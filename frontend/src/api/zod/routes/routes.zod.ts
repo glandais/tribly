@@ -63,7 +63,9 @@ export const ListAllRoutesResponse = zod
                 id: zod.string().describe('Team ID (TSID)'),
                 name: zod.string().describe('Team name'),
                 slug: zod.string().describe('Team URL slug'),
-                visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+                visibility: zod
+                  .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                  .describe('Whether the team is public'),
               })
               .describe('Team'),
             name: zod.string().describe('Route name'),
@@ -218,7 +220,9 @@ export const ListAllRoutesResponse = zod
             elevationGain: zod.number().describe('Total elevation gain in meters'),
             elevationLoss: zod.number().describe('Total elevation loss in meters'),
             surfaceType: zod.enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED']).describe('Surface type'),
-            visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the route is public'),
+            visibility: zod
+              .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+              .describe('Whether the route is public'),
             createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
             deleted: zod.boolean().describe('Whether the route is soft-deleted'),
           })
@@ -298,7 +302,9 @@ export const ListRoutesResponse = zod
                 id: zod.string().describe('Team ID (TSID)'),
                 name: zod.string().describe('Team name'),
                 slug: zod.string().describe('Team URL slug'),
-                visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+                visibility: zod
+                  .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                  .describe('Whether the team is public'),
               })
               .describe('Team'),
             name: zod.string().describe('Route name'),
@@ -453,7 +459,9 @@ export const ListRoutesResponse = zod
             elevationGain: zod.number().describe('Total elevation gain in meters'),
             elevationLoss: zod.number().describe('Total elevation loss in meters'),
             surfaceType: zod.enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED']).describe('Surface type'),
-            visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the route is public'),
+            visibility: zod
+              .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+              .describe('Whether the route is public'),
             createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
             deleted: zod.boolean().describe('Whether the route is soft-deleted'),
           })
@@ -636,7 +644,9 @@ export const CreateRouteBody = zod.object({
         })
         .describe('Media'),
       surfaceType: zod.enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED']).describe('Surface type'),
-      visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the route is publicly visible'),
+      visibility: zod
+        .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+        .describe('Whether the route is publicly visible'),
       points: zod
         .array(
           zod.object({
@@ -823,7 +833,9 @@ export const UpdateRouteBody = zod.object({
         })
         .describe('Media'),
       surfaceType: zod.enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED']).describe('Surface type'),
-      visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the route is publicly visible'),
+      visibility: zod
+        .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+        .describe('Whether the route is publicly visible'),
       points: zod
         .array(
           zod.object({
@@ -848,7 +860,9 @@ export const UpdateRouteResponse = zod
         id: zod.string().describe('Team ID (TSID)'),
         name: zod.string().describe('Team name'),
         slug: zod.string().describe('Team URL slug'),
-        visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+        visibility: zod
+          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+          .describe('Whether the team is public'),
       })
       .describe('Team'),
     name: zod.string().describe('Route name'),
@@ -1003,7 +1017,9 @@ export const UpdateRouteResponse = zod
     elevationGain: zod.number().describe('Total elevation gain in meters'),
     elevationLoss: zod.number().describe('Total elevation loss in meters'),
     surfaceType: zod.enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED']).describe('Surface type'),
-    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the route is public'),
+    visibility: zod
+      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+      .describe('Whether the route is public'),
     createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
     deleted: zod.boolean().describe('Whether the route is soft-deleted'),
   })
@@ -1027,7 +1043,9 @@ export const GetRouteResponse = zod
         id: zod.string().describe('Team ID (TSID)'),
         name: zod.string().describe('Team name'),
         slug: zod.string().describe('Team URL slug'),
-        visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+        visibility: zod
+          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+          .describe('Whether the team is public'),
       })
       .describe('Team'),
     name: zod.string().describe('Route name'),
@@ -1182,7 +1200,9 @@ export const GetRouteResponse = zod
     elevationGain: zod.number().describe('Total elevation gain in meters'),
     elevationLoss: zod.number().describe('Total elevation loss in meters'),
     surfaceType: zod.enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED']).describe('Surface type'),
-    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the route is public'),
+    visibility: zod
+      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+      .describe('Whether the route is public'),
     start: zod
       .object({
         type: zod.enum(['Point']),
@@ -1297,7 +1317,9 @@ export const ChangeRouteSlugResponse = zod
         id: zod.string().describe('Team ID (TSID)'),
         name: zod.string().describe('Team name'),
         slug: zod.string().describe('Team URL slug'),
-        visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+        visibility: zod
+          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+          .describe('Whether the team is public'),
       })
       .describe('Team'),
     name: zod.string().describe('Route name'),
@@ -1452,7 +1474,9 @@ export const ChangeRouteSlugResponse = zod
     elevationGain: zod.number().describe('Total elevation gain in meters'),
     elevationLoss: zod.number().describe('Total elevation loss in meters'),
     surfaceType: zod.enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED']).describe('Surface type'),
-    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the route is public'),
+    visibility: zod
+      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+      .describe('Whether the route is public'),
     start: zod
       .object({
         type: zod.enum(['Point']),

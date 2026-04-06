@@ -46,7 +46,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
   const isMember = !!team.role
   const isAdmin = team.role === 'ADMIN'
   const isOrganizer = team.role === 'ADMIN' || team.role === 'ORGANIZER'
-  const canJoin = isAuthenticated && !isMember && team.visibility === 'PUBLIC'
+  const canJoin = isAuthenticated && !isMember && team.visibility !== 'TEAM'
   const canLeave = isMember && !isAdmin
 
   const joinMutation = useJoinTeam()
@@ -125,9 +125,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
     ]
 
     // Add dynamic pages - filter by visibility (PUBLIC pages or member can see TEAM pages)
-    const visiblePages = (team.pages ?? []).filter(
-      (page) => page.visibility === 'PUBLIC' || isMember
-    )
+    const visiblePages = (team.pages ?? []).filter((page) => page.visibility !== 'TEAM' || isMember)
 
     const pageTabs: NavButtonItem[] = visiblePages.map((page) => ({
       id: page.slug,
@@ -157,7 +155,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
           <Group justify="space-between" align="flex-start" wrap="wrap">
             <Group gap="sm">
               <Title order={1}>{team.name}</Title>
-              {team.visibility === 'TEAM' && <VisibilityBadge visibility={team.visibility} />}
+              <VisibilityBadge visibility={team.visibility} />
             </Group>
 
             <Group gap="sm">

@@ -142,6 +142,7 @@ export function TeamForm({
           description={t('teams.create.form.visibility.hint')}
           data={[
             { value: Visibility.TEAM, label: t('visibility.team') },
+            { value: Visibility.PUBLIC_UNLISTED, label: t('visibility.public_unlisted') },
             { value: Visibility.PUBLIC, label: t('visibility.public') },
           ]}
           {...form.getInputProps('visibility')}

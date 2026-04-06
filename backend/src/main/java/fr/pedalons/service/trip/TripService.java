@@ -149,7 +149,7 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
     Route route = null;
     if (routeSlug != null) {
       route = routeService.get(teamSlug, routeSlug);
-      if (visibility == Visibility.PUBLIC && route.getVisibility() != Visibility.PUBLIC) {
+      if (visibility != Visibility.TEAM && route.getVisibility() == Visibility.TEAM) {
         throw new BusinessException(ErrorCode.PUBLIC_TRIP_PRIVATE_ROUTE);
       }
     }

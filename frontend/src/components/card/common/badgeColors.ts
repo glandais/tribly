@@ -38,6 +38,7 @@ export const SURFACE_COLORS = {
 // Visibility colors
 export const VISIBILITY_COLORS = {
   PUBLIC: 'blue',
+  PUBLIC_UNLISTED: 'orange',
   TEAM: 'gray',
 } as const
 

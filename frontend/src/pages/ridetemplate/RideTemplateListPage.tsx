@@ -180,7 +180,7 @@ export function RideTemplateListPage() {
                           color={template.visibility === 'PUBLIC' ? 'green' : 'gray'}
                         >
                           {t(
-                            `visibility.${template.visibility.toLowerCase() as 'public' | 'team'}`
+                            `visibility.${template.visibility.toLowerCase() as 'public' | 'public_unlisted' | 'team'}`
                           )}
                         </Badge>
                       </Group>

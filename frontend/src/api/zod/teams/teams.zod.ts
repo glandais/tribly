@@ -180,7 +180,9 @@ export const ListTeamsResponse = zod
                     id: zod.string().describe('Page ID (TSID)'),
                     title: zod.string().describe('Page title'),
                     slug: zod.string().describe('Page URL slug'),
-                    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+                    visibility: zod
+                      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                      .describe('Visibility level'),
                     order: zod.number().describe('Page order'),
                     deleted: zod.boolean().describe('Whether the page is soft-deleted'),
                   })
@@ -188,7 +190,9 @@ export const ListTeamsResponse = zod
               )
               .optional()
               .describe('Additional team pages'),
-            visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+            visibility: zod
+              .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+              .describe('Whether the team is public'),
             enableTrips: zod.boolean().describe('Trips enabled'),
             enableAds: zod.boolean().describe('Ads enabled'),
             enablePosts: zod.boolean().describe('Posts enabled'),
@@ -380,7 +384,7 @@ export const CreateTeamBody = zod
           .describe('Assets'),
       })
       .describe('Media'),
-    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Team visibility'),
+    visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Team visibility'),
     enableTrips: zod.boolean().describe('Trips enabled for team'),
     enableAds: zod.boolean().describe('Ads enabled for team'),
     enablePosts: zod.boolean().describe('Posts enabled for team'),
@@ -563,7 +567,7 @@ export const UpdateTeamBody = zod
           .describe('Assets'),
       })
       .describe('Media'),
-    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Team visibility'),
+    visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Team visibility'),
     enableTrips: zod.boolean().describe('Trips enabled for team'),
     enableAds: zod.boolean().describe('Ads enabled for team'),
     enablePosts: zod.boolean().describe('Posts enabled for team'),
@@ -738,7 +742,9 @@ export const UpdateTeamResponse = zod
             id: zod.string().describe('Page ID (TSID)'),
             title: zod.string().describe('Page title'),
             slug: zod.string().describe('Page URL slug'),
-            visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+            visibility: zod
+              .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+              .describe('Visibility level'),
             order: zod.number().describe('Page order'),
             deleted: zod.boolean().describe('Whether the page is soft-deleted'),
           })
@@ -746,7 +752,9 @@ export const UpdateTeamResponse = zod
       )
       .optional()
       .describe('Additional team pages'),
-    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+    visibility: zod
+      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+      .describe('Whether the team is public'),
     enableTrips: zod.boolean().describe('Trips enabled'),
     enableAds: zod.boolean().describe('Ads enabled'),
     enablePosts: zod.boolean().describe('Posts enabled'),
@@ -935,7 +943,9 @@ export const GetTeamResponse = zod
             id: zod.string().describe('Page ID (TSID)'),
             title: zod.string().describe('Page title'),
             slug: zod.string().describe('Page URL slug'),
-            visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+            visibility: zod
+              .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+              .describe('Visibility level'),
             order: zod.number().describe('Page order'),
             deleted: zod.boolean().describe('Whether the page is soft-deleted'),
           })
@@ -943,7 +953,9 @@ export const GetTeamResponse = zod
       )
       .optional()
       .describe('Additional team pages'),
-    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+    visibility: zod
+      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+      .describe('Whether the team is public'),
     enableTrips: zod.boolean().describe('Trips enabled'),
     enableAds: zod.boolean().describe('Ads enabled'),
     enablePosts: zod.boolean().describe('Posts enabled'),
@@ -1154,7 +1166,9 @@ export const ChangeTeamSlugResponse = zod
             id: zod.string().describe('Page ID (TSID)'),
             title: zod.string().describe('Page title'),
             slug: zod.string().describe('Page URL slug'),
-            visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+            visibility: zod
+              .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+              .describe('Visibility level'),
             order: zod.number().describe('Page order'),
             deleted: zod.boolean().describe('Whether the page is soft-deleted'),
           })
@@ -1162,7 +1176,9 @@ export const ChangeTeamSlugResponse = zod
       )
       .optional()
       .describe('Additional team pages'),
-    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+    visibility: zod
+      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+      .describe('Whether the team is public'),
     enableTrips: zod.boolean().describe('Trips enabled'),
     enableAds: zod.boolean().describe('Ads enabled'),
     enablePosts: zod.boolean().describe('Posts enabled'),

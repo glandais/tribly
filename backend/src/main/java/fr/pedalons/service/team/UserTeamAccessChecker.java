@@ -35,7 +35,7 @@ public class UserTeamAccessChecker implements AccessChecker {
       return false;
     }
     return switch (action) {
-      case JOIN -> team != null && team.getVisibility() == Visibility.PUBLIC;
+      case JOIN -> team != null && team.getVisibility() != Visibility.TEAM;
       case READ, LIST, CREATE, UPDATE, DELETE -> teamRole != null && teamRole.isAdmin();
       case LEAVE -> teamRole != null;
       case LIST_ALL_TEAMS -> false;

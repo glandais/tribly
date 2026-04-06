@@ -28,14 +28,18 @@ export const ListTemplatesResponse = zod
                 id: zod.string().describe('Team ID (TSID)'),
                 name: zod.string().describe('Team name'),
                 slug: zod.string().describe('Team URL slug'),
-                visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+                visibility: zod
+                  .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                  .describe('Whether the team is public'),
               })
               .describe('Team'),
             id: zod.string().describe('Template ID (TSID)'),
             slug: zod.string().describe('Template slug'),
             name: zod.string().describe('Template name'),
             markdown: zod.string().describe('Template description (markdown)'),
-            visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+            visibility: zod
+              .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+              .describe('Visibility level'),
             status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Default status'),
             createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
             updatedAt: zod.iso.datetime({}).describe('Last update timestamp'),
@@ -88,7 +92,7 @@ export const CreateTemplateBody = zod
       .regex(createTemplateBodyNameRegExp)
       .describe('Template name'),
     markdown: zod.string().describe('Template description (markdown)'),
-    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+    visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     status: zod
       .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
       .describe('Default status for rides created from this template'),
@@ -138,7 +142,7 @@ export const UpdateTemplateBody = zod
       .regex(updateTemplateBodyNameRegExp)
       .describe('Template name'),
     markdown: zod.string().describe('Template description (markdown)'),
-    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+    visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     status: zod
       .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
       .describe('Default status for rides created from this template'),
@@ -170,14 +174,16 @@ export const UpdateTemplateResponse = zod
         id: zod.string().describe('Team ID (TSID)'),
         name: zod.string().describe('Team name'),
         slug: zod.string().describe('Team URL slug'),
-        visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+        visibility: zod
+          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+          .describe('Whether the team is public'),
       })
       .describe('Team'),
     id: zod.string().describe('Template ID (TSID)'),
     slug: zod.string().describe('Template slug'),
     name: zod.string().describe('Template name'),
     markdown: zod.string().describe('Template description (markdown)'),
-    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+    visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Default status'),
     createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
     updatedAt: zod.iso.datetime({}).describe('Last update timestamp'),
@@ -215,14 +221,16 @@ export const GetTemplateResponse = zod
         id: zod.string().describe('Team ID (TSID)'),
         name: zod.string().describe('Team name'),
         slug: zod.string().describe('Team URL slug'),
-        visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+        visibility: zod
+          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+          .describe('Whether the team is public'),
       })
       .describe('Team'),
     id: zod.string().describe('Template ID (TSID)'),
     slug: zod.string().describe('Template slug'),
     name: zod.string().describe('Template name'),
     markdown: zod.string().describe('Template description (markdown)'),
-    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+    visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Default status'),
     createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
     updatedAt: zod.iso.datetime({}).describe('Last update timestamp'),

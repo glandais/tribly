@@ -71,7 +71,7 @@ public class RideTemplateService {
     User creator = pedalonsContext.getUser();
     // Validate visibility: private teams can only have team-only templates
     Visibility visibility = request.visibility();
-    if (team.getVisibility() != Visibility.PUBLIC && visibility == Visibility.PUBLIC) {
+    if (team.getVisibility() == Visibility.TEAM && visibility != Visibility.TEAM) {
       throw new BusinessException(ErrorCode.INVALID_VISIBILITY);
     }
 
@@ -119,7 +119,7 @@ public class RideTemplateService {
             .orElseThrow(() -> new NotFoundException(EntityType.RIDE_TEMPLATE, templateSlug));
 
     // Validate visibility: private teams can only have team-only templates
-    if (team.getVisibility() != Visibility.PUBLIC && request.visibility() == Visibility.PUBLIC) {
+    if (team.getVisibility() == Visibility.TEAM && request.visibility() != Visibility.TEAM) {
       throw new BusinessException(ErrorCode.INVALID_VISIBILITY);
     }
 

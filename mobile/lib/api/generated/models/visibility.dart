@@ -8,6 +8,8 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 enum Visibility {
   @JsonValue('TEAM')
   team('TEAM'),
+  @JsonValue('PUBLIC_UNLISTED')
+  publicUnlisted('PUBLIC_UNLISTED'),
   @JsonValue('PUBLIC')
   public('PUBLIC'),
 

@@ -3391,6 +3391,7 @@ components:
       type: string
       enum:
       - TEAM
+      - PUBLIC_UNLISTED
       - PUBLIC
     WaypointDto:
       type: object

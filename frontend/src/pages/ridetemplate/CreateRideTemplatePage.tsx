@@ -11,7 +11,7 @@ import {
 } from '@/api/endpoints/ride-templates/ride-templates'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { RideTemplateEditor } from '../../components/ridetemplate/RideTemplateEditor'
-import { Visibility, Status, RideTemplateRequest } from '@/api/dto'
+import { Status, RideTemplateRequest } from '@/api/dto'
 import { paths } from '@/config/paths'
 
 export function CreateRideTemplatePage() {
@@ -44,7 +44,7 @@ export function CreateRideTemplatePage() {
   const initialValues = {
     name: '',
     markdown: '',
-    visibility: team.visibility === Visibility.TEAM ? Visibility.TEAM : Visibility.PUBLIC,
+    visibility: team.visibility,
     status: Status.PUBLISHED,
     groups: [
       {

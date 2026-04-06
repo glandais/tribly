@@ -13,7 +13,7 @@ export const ListPagesResponseItem = zod
     id: zod.string().describe('Page ID (TSID)'),
     title: zod.string().describe('Page title'),
     slug: zod.string().describe('Page URL slug'),
-    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+    visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     order: zod.number().describe('Page order'),
     deleted: zod.boolean().describe('Whether the page is soft-deleted'),
   })
@@ -187,7 +187,7 @@ export const CreatePageBody = zod
           .describe('Assets'),
       })
       .describe('Page content'),
-    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+    visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
   })
   .describe('Team page request')
 
@@ -210,7 +210,7 @@ export const ReorderPagesResponseItem = zod
     id: zod.string().describe('Page ID (TSID)'),
     title: zod.string().describe('Page title'),
     slug: zod.string().describe('Page URL slug'),
-    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+    visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     order: zod.number().describe('Page order'),
     deleted: zod.boolean().describe('Whether the page is soft-deleted'),
   })
@@ -385,7 +385,7 @@ export const UpdatePageBody = zod
           .describe('Assets'),
       })
       .describe('Page content'),
-    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+    visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
   })
   .describe('Team page request')
 
@@ -396,7 +396,9 @@ export const UpdatePageResponse = zod
         id: zod.string().describe('Team ID (TSID)'),
         name: zod.string().describe('Team name'),
         slug: zod.string().describe('Team URL slug'),
-        visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+        visibility: zod
+          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+          .describe('Whether the team is public'),
       })
       .describe('Team'),
     id: zod.string().describe('Page ID (TSID)'),
@@ -549,7 +551,7 @@ export const UpdatePageResponse = zod
           .describe('Assets'),
       })
       .describe('Page content'),
-    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+    visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     order: zod.number().describe('Page order'),
     deleted: zod.boolean().describe('Whether the page is soft-deleted'),
   })
@@ -571,7 +573,9 @@ export const GetPageResponse = zod
         id: zod.string().describe('Team ID (TSID)'),
         name: zod.string().describe('Team name'),
         slug: zod.string().describe('Team URL slug'),
-        visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+        visibility: zod
+          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+          .describe('Whether the team is public'),
       })
       .describe('Team'),
     id: zod.string().describe('Page ID (TSID)'),
@@ -724,7 +728,7 @@ export const GetPageResponse = zod
           .describe('Assets'),
       })
       .describe('Page content'),
-    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+    visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     order: zod.number().describe('Page order'),
     deleted: zod.boolean().describe('Whether the page is soft-deleted'),
   })
@@ -769,7 +773,9 @@ export const ChangePageSlugResponse = zod
         id: zod.string().describe('Team ID (TSID)'),
         name: zod.string().describe('Team name'),
         slug: zod.string().describe('Team URL slug'),
-        visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+        visibility: zod
+          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+          .describe('Whether the team is public'),
       })
       .describe('Team'),
     id: zod.string().describe('Page ID (TSID)'),
@@ -922,7 +928,7 @@ export const ChangePageSlugResponse = zod
           .describe('Assets'),
       })
       .describe('Page content'),
-    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+    visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     order: zod.number().describe('Page order'),
     deleted: zod.boolean().describe('Whether the page is soft-deleted'),
   })

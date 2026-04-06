@@ -48,28 +48,25 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
    * Find publications across multiple teams with proper visibility filtering.
    */
   default PedalonsPage<T> find(Q query) {
-    PedalonsQuery pedalonsQuery = getPedalonsQuery(query);
+    PedalonsQuery pedalonsQuery = getPedalonsQuery(query, true);
     return getPage(pedalonsQuery, query);
   }
 
   default Optional<T> findOne(Q query) {
-    PedalonsQuery pedalonsQuery = getPedalonsQuery(query);
+    PedalonsQuery pedalonsQuery = getPedalonsQuery(query, false);
     return findOne(pedalonsQuery);
   }
 
   default List<T> findAll(Q query) {
-    PedalonsQuery pedalonsQuery = getPedalonsQuery(query);
+    PedalonsQuery pedalonsQuery = getPedalonsQuery(query, true);
     return findAll(pedalonsQuery);
   }
 
-  private PedalonsQuery getPedalonsQuery(Q query) {
+  private PedalonsQuery getPedalonsQuery(Q query, boolean list) {
     // Build base query
     PedalonsQuery pedalonsQuery;
 
-    AndClause publicEntity = new AndClause();
-    publicEntity.add(new SimpleClause("te.team.visibility = 'PUBLIC'", Map.of()));
-    publicEntity.add(new SimpleClause("te.visibility = 'PUBLIC'", Map.of()));
-    publicEntity.add(new SimpleClause("te.status IN ('PUBLISHED', 'CANCELLED')", Map.of()));
+    AndClause publicEntity = getPublicEntity(list);
 
     if (query.userId() == null) {
       pedalonsQuery =
@@ -186,6 +183,25 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
     }
     pedalonsQuery = andSpecific(pedalonsQuery, query);
     return pedalonsQuery;
+  }
+
+  private static AndClause getPublicEntity(boolean list) {
+    AndClause publicEntity = new AndClause();
+    OrClause teamVisibilityClause = new OrClause();
+    teamVisibilityClause.add(new SimpleClause("te.team.visibility = 'PUBLIC'", Map.of()));
+    teamVisibilityClause.add(new SimpleClause("te.team.visibility = 'PUBLIC_UNLISTED'", Map.of()));
+    publicEntity.add(teamVisibilityClause);
+    if (list) {
+      publicEntity.add(new SimpleClause("te.visibility = 'PUBLIC'", Map.of()));
+    } else {
+      OrClause teamEntityVisibilityClause = new OrClause();
+      teamEntityVisibilityClause.add(new SimpleClause("te.visibility = 'PUBLIC'", Map.of()));
+      teamEntityVisibilityClause.add(
+          new SimpleClause("te.visibility = 'PUBLIC_UNLISTED'", Map.of()));
+      publicEntity.add(teamEntityVisibilityClause);
+    }
+    publicEntity.add(new SimpleClause("te.status IN ('PUBLISHED', 'CANCELLED')", Map.of()));
+    return publicEntity;
   }
 
   default PedalonsQuery andSpecific(PedalonsQuery pedalonsQuery, Q query) {

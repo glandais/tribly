@@ -72,7 +72,7 @@ export function RouteListPage() {
           <Title order={2}>{t('routes.list.title')}</Title>
           {canCreateRoute && (
             <Group gap="sm">
-              <UploadGpxFiles teamSlug={teamSlug!} />
+              <UploadGpxFiles team={team} />
               <Button
                 component="a"
                 href={paths.routeNew(teamSlug!)}

@@ -145,7 +145,7 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
     Route route = null;
     if (routeSlug != null) {
       route = routeService.get(teamSlug, routeSlug);
-      if (visibility == Visibility.PUBLIC && route.getVisibility() != Visibility.PUBLIC) {
+      if (visibility != Visibility.TEAM && route.getVisibility() == Visibility.TEAM) {
         throw new BusinessException(ErrorCode.PUBLIC_RIDE_PRIVATE_ROUTE);
       }
     }

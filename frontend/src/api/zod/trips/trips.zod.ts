@@ -172,7 +172,7 @@ export const CreateTripBody = zod
       .describe('Trip media'),
     dateTime: zod.iso.datetime({}).describe('Trip start date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Trip status'),
-    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+    visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     routeSlug: zod.string().optional().describe('Overall route slug for the trip'),
     publishAt: zod.iso
       .datetime({})
@@ -520,7 +520,7 @@ export const UpdateTripBody = zod
       .describe('Trip media'),
     dateTime: zod.iso.datetime({}).describe('Trip start date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Trip status'),
-    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+    visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     routeSlug: zod.string().optional().describe('Overall route slug for the trip'),
     publishAt: zod.iso
       .datetime({})
@@ -703,7 +703,9 @@ export const UpdateTripResponse = zod
         id: zod.string().describe('Team ID (TSID)'),
         name: zod.string().describe('Team name'),
         slug: zod.string().describe('Team URL slug'),
-        visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+        visibility: zod
+          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+          .describe('Whether the team is public'),
       })
       .describe('Team'),
     id: zod.string().describe('Publication ID (TSID)'),
@@ -858,7 +860,7 @@ export const UpdateTripResponse = zod
       .describe('Publication media'),
     dateTime: zod.iso.datetime({}).describe('Trip start date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
-    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+    visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
     createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
     routeSlug: zod.string().optional().describe('Route slug'),
@@ -1099,7 +1101,9 @@ export const GetTripResponse = zod
         id: zod.string().describe('Team ID (TSID)'),
         name: zod.string().describe('Team name'),
         slug: zod.string().describe('Team URL slug'),
-        visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+        visibility: zod
+          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+          .describe('Whether the team is public'),
       })
       .describe('Team'),
     id: zod.string().describe('Publication ID (TSID)'),
@@ -1254,7 +1258,7 @@ export const GetTripResponse = zod
       .describe('Publication media'),
     dateTime: zod.iso.datetime({}).describe('Trip start date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
-    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+    visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
     createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
     routeSlug: zod.string().optional().describe('Route slug'),
@@ -1536,7 +1540,9 @@ export const ChangeTripSlugResponse = zod
         id: zod.string().describe('Team ID (TSID)'),
         name: zod.string().describe('Team name'),
         slug: zod.string().describe('Team URL slug'),
-        visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+        visibility: zod
+          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+          .describe('Whether the team is public'),
       })
       .describe('Team'),
     id: zod.string().describe('Publication ID (TSID)'),
@@ -1691,7 +1697,7 @@ export const ChangeTripSlugResponse = zod
       .describe('Publication media'),
     dateTime: zod.iso.datetime({}).describe('Trip start date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
-    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+    visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
     createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
     routeSlug: zod.string().optional().describe('Route slug'),

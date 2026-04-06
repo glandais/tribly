@@ -854,6 +854,7 @@
   "unknown": "Unknown",
   "visibility.label": "Visibility",
   "visibility.public": "Public",
+  "visibility.public_unlisted": "Unlisted",
   "visibility.team": "Team only",
   "welcome": "Welcome to {{appName}}",
   "nav.admin": "Admin",

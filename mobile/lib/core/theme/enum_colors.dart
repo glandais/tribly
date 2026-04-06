@@ -96,6 +96,8 @@ extension VisibilityColors on Visibility {
   Color color(Brightness brightness) => switch (this) {
         Visibility.public => BrandColors.resolve(
             BrandColors.blueLight, BrandColors.blueDark, brightness),
+        Visibility.publicUnlisted => BrandColors.resolve(
+            BrandColors.orangeLight, BrandColors.orangeDark, brightness),
         Visibility.team => BrandColors.resolve(
             BrandColors.grayLight, BrandColors.grayDark, brightness),
         Visibility.$unknown => BrandColors.resolve(

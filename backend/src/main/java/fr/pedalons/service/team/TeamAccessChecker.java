@@ -44,7 +44,7 @@ public class TeamAccessChecker implements AccessChecker {
         if (team == null) {
           yield false;
         }
-        if (team.getVisibility() == Visibility.PUBLIC) {
+        if (team.getVisibility() != Visibility.TEAM) {
           yield true;
         }
         yield teamRole != null;

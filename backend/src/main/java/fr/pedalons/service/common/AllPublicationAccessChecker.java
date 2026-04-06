@@ -41,7 +41,7 @@ public class AllPublicationAccessChecker implements AccessChecker {
       // all publications, SQL filtered
       return true;
     }
-    if (team.getVisibility() == Visibility.PUBLIC) {
+    if (team.getVisibility() != Visibility.TEAM) {
       return true;
     }
     return user != null && teamRole != null;

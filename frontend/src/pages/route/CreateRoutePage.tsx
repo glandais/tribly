@@ -10,7 +10,7 @@ import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { RouteEditor } from '../../components/route/RouteEditor'
 import { useCreateRoute, getListRoutesQueryKey } from '@/api/endpoints/routes/routes'
-import { Visibility, SurfaceType, RouteRequest } from '@/api/dto'
+import { SurfaceType, RouteRequest } from '@/api/dto'
 import { defaultMedia } from '@/lib/apiUtils'
 
 export function CreateRoutePage() {
@@ -76,7 +76,7 @@ export function CreateRoutePage() {
     name: '',
     media: defaultMedia(),
     surfaceType: SurfaceType.ROAD,
-    visibility: team.visibility === Visibility.TEAM ? Visibility.TEAM : Visibility.PUBLIC,
+    visibility: team.visibility,
   }
 
   return (

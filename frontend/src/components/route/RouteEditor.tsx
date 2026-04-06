@@ -268,6 +268,7 @@ export function RouteEditor({
           <Radio.Group label={t('visibility.label')} {...form.getInputProps('visibility')}>
             <Stack gap="xs" mt="xs">
               <Radio value="TEAM" label={t('visibility.team')} />
+              <Radio value="PUBLIC_UNLISTED" label={t('visibility.public_unlisted')} />
               <Radio value="PUBLIC" label={t('visibility.public')} />
             </Stack>
           </Radio.Group>

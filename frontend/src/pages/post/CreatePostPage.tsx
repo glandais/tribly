@@ -11,7 +11,7 @@ import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { PostEditor } from '../../components/post/PostEditor'
 import { defaultMedia } from '@/lib/apiUtils'
 import { paths } from '@/config/paths'
-import { PostRequest, Visibility, Status } from '../../api/dto'
+import { PostRequest, Status } from '../../api/dto'
 
 export function CreatePostPage() {
   const { t } = useTranslation()
@@ -49,7 +49,7 @@ export function CreatePostPage() {
     name: '',
     media: defaultMedia(),
     dateTime: new Date().toISOString(),
-    visibility: team.visibility === Visibility.TEAM ? Visibility.TEAM : Visibility.PUBLIC,
+    visibility: team.visibility,
     status: Status.DRAFT,
     publishAt: undefined,
   }
