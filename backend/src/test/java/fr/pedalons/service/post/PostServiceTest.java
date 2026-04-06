@@ -376,7 +376,6 @@ class PostServiceTest extends AbstractBaseTest {
       userService.setUserForTest(organizer);
       postService.deletePost(publicTeam.getSlug(), post.getSlug());
 
-      userService.setUserForTest(admin);
       assertThrows(
           PedalonsException.class, () -> postService.getDto(publicTeam.getSlug(), post.getSlug()));
     }

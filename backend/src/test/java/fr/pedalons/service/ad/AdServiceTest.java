@@ -412,7 +412,7 @@ class AdServiceTest extends AbstractBaseTest {
       userService.setUserForTest(member);
       adService.deleteAd(team.getSlug(), ad.getSlug());
 
-      userService.setUserForTest(admin);
+      userService.setUserForTest(member);
       assertThrows(PedalonsException.class, () -> adService.getDto(team.getSlug(), ad.getSlug()));
     }
 
@@ -423,6 +423,7 @@ class AdServiceTest extends AbstractBaseTest {
       userService.setUserForTest(admin);
       adService.deleteAd(team.getSlug(), ad.getSlug());
 
+      userService.setUserForTest(member);
       assertThrows(PedalonsException.class, () -> adService.getDto(team.getSlug(), ad.getSlug()));
     }
 

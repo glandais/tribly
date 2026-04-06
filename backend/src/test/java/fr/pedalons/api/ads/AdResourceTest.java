@@ -196,7 +196,7 @@ class AdResourceTest extends AbstractResourceTest {
     // Verify ad is no longer accessible
     given()
         .auth()
-        .oauth2(getAccessToken(USER1))
+        .oauth2(getAccessToken(USER2))
         .when()
         .get("/api/teams/" + team1Slug + "/ads/" + adSlug)
         .then()

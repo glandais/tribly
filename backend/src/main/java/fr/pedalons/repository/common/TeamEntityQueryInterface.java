@@ -20,4 +20,6 @@ public interface TeamEntityQueryInterface extends PageInterface {
   @Nullable Instant from();
 
   @Nullable Instant to();
+
+  boolean includeDeleted();
 }

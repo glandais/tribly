@@ -330,7 +330,7 @@ class RideResourceTest extends AbstractResourceTest {
     // Verify it's gone
     given()
         .auth()
-        .oauth2(getAccessToken(USER1))
+        .oauth2(getAccessToken(USER2))
         .when()
         .get("/api/teams/" + team1Slug + "/rides/" + rideSlug)
         .then()

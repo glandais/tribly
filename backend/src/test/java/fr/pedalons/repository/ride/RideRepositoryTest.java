@@ -53,7 +53,8 @@ class RideRepositoryTest extends AbstractBaseTest {
       Ride ride = dataService.createRide(team, user, "Test Ride", "test-ride", now);
 
       Optional<Ride> result =
-          rideRepository.findByTeamAndSlug(domain.getId(), team.getId(), user.getId(), "test-ride");
+          rideRepository.findByTeamAndSlug(
+              domain.getId(), team.getId(), user.getId(), "test-ride", false);
 
       assertTrue(result.isPresent());
       assertEquals(ride.getId(), result.get().getId());
@@ -66,7 +67,7 @@ class RideRepositoryTest extends AbstractBaseTest {
 
       Optional<Ride> result =
           rideRepository.findByTeamAndSlug(
-              domain.getId(), team.getId(), user.getId(), "non-existent");
+              domain.getId(), team.getId(), user.getId(), "non-existent", false);
 
       assertTrue(result.isEmpty());
     }
@@ -78,7 +79,8 @@ class RideRepositoryTest extends AbstractBaseTest {
       dataService.deleteRide(ride);
 
       Optional<Ride> result =
-          rideRepository.findByTeamAndSlug(domain.getId(), team.getId(), user.getId(), "test-ride");
+          rideRepository.findByTeamAndSlug(
+              domain.getId(), team.getId(), user.getId(), "test-ride", false);
 
       assertTrue(result.isEmpty());
     }
@@ -90,7 +92,8 @@ class RideRepositoryTest extends AbstractBaseTest {
       dataService.createRide(otherTeam, user, "Test Ride", "test-ride", now);
 
       Optional<Ride> result =
-          rideRepository.findByTeamAndSlug(domain.getId(), team.getId(), user.getId(), "test-ride");
+          rideRepository.findByTeamAndSlug(
+              domain.getId(), team.getId(), user.getId(), "test-ride", false);
 
       assertTrue(result.isEmpty());
     }
@@ -106,7 +109,8 @@ class RideRepositoryTest extends AbstractBaseTest {
       Ride ride = dataService.createRide(team, user, "Test Ride", "test-ride", now);
 
       Optional<Ride> result =
-          rideRepository.findByTeamAndId(domain.getId(), team.getId(), user.getId(), ride.getId());
+          rideRepository.findByTeamAndId(
+              domain.getId(), team.getId(), user.getId(), ride.getId(), false);
 
       assertTrue(result.isPresent());
       assertEquals(ride.getId(), result.get().getId());
@@ -118,7 +122,8 @@ class RideRepositoryTest extends AbstractBaseTest {
       dataService.createRide(team, user, "Test Ride", "test-ride", now);
 
       Optional<Ride> result =
-          rideRepository.findByTeamAndId(domain.getId(), team.getId(), user.getId(), 999999L);
+          rideRepository.findByTeamAndId(
+              domain.getId(), team.getId(), user.getId(), 999999L, false);
 
       assertTrue(result.isEmpty());
     }
@@ -130,7 +135,8 @@ class RideRepositoryTest extends AbstractBaseTest {
       dataService.deleteRide(ride);
 
       Optional<Ride> result =
-          rideRepository.findByTeamAndId(domain.getId(), team.getId(), user.getId(), ride.getId());
+          rideRepository.findByTeamAndId(
+              domain.getId(), team.getId(), user.getId(), ride.getId(), false);
 
       assertTrue(result.isEmpty());
     }
@@ -142,7 +148,8 @@ class RideRepositoryTest extends AbstractBaseTest {
       Ride ride = dataService.createRide(otherTeam, user, "Test Ride", "test-ride", now);
 
       Optional<Ride> result =
-          rideRepository.findByTeamAndId(domain.getId(), team.getId(), user.getId(), ride.getId());
+          rideRepository.findByTeamAndId(
+              domain.getId(), team.getId(), user.getId(), ride.getId(), false);
 
       assertTrue(result.isEmpty());
     }
@@ -190,7 +197,8 @@ class RideRepositoryTest extends AbstractBaseTest {
     @DisplayName("getQuerySlug should build correct query")
     void getQuerySlug_shouldBuildCorrectQuery() {
       TeamEntityQueryBasic query =
-          rideRepository.getQuerySlug(domain.getId(), team.getId(), user.getId(), "test-slug");
+          rideRepository.getQuerySlug(
+              domain.getId(), team.getId(), user.getId(), "test-slug", false);
 
       assertEquals(domain.getId(), query.domainId());
       assertTrue(query.teamIds().contains(team.getId()));
@@ -202,7 +210,7 @@ class RideRepositoryTest extends AbstractBaseTest {
     @DisplayName("getQuerySlug should work with null userId")
     void getQuerySlug_shouldWorkWithNullUserId() {
       TeamEntityQueryBasic query =
-          rideRepository.getQuerySlug(domain.getId(), team.getId(), null, "test-slug");
+          rideRepository.getQuerySlug(domain.getId(), team.getId(), null, "test-slug", false);
 
       assertEquals(domain.getId(), query.domainId());
       assertTrue(query.teamIds().contains(team.getId()));
@@ -214,7 +222,7 @@ class RideRepositoryTest extends AbstractBaseTest {
     @DisplayName("getQueryId should build correct query")
     void getQueryId_shouldBuildCorrectQuery() {
       TeamEntityQueryBasic query =
-          rideRepository.getQueryId(domain.getId(), team.getId(), user.getId(), 12345L);
+          rideRepository.getQueryId(domain.getId(), team.getId(), user.getId(), 12345L, false);
 
       assertEquals(domain.getId(), query.domainId());
       assertTrue(query.teamIds().contains(team.getId()));
@@ -226,7 +234,7 @@ class RideRepositoryTest extends AbstractBaseTest {
     @DisplayName("getQueryId should work with null userId")
     void getQueryId_shouldWorkWithNullUserId() {
       TeamEntityQueryBasic query =
-          rideRepository.getQueryId(domain.getId(), team.getId(), null, 12345L);
+          rideRepository.getQueryId(domain.getId(), team.getId(), null, 12345L, false);
 
       assertEquals(domain.getId(), query.domainId());
       assertTrue(query.teamIds().contains(team.getId()));

@@ -43,9 +43,11 @@ public class TeamRepository implements BaseRepository<Team> {
                 "select t, ut.role,(SELECT COUNT(ut3) FROM UserTeam ut3 WHERE ut3.team.id ="
                     + " t.id) from Team t left join UserTeam ut on ut.team.id ="
                     + " t.id AND ut.user.id = :userId WHERE")
-            .and("t.deleted = false", Map.of())
             .and("t.domain.id = :domainId", Map.of("domainId", teamQuery.domainId()))
             .order("name asc");
+    if (!teamQuery.includeDeleted()) {
+      pedalonsQuery.and("t.deleted = false", Map.of());
+    }
     pedalonsQuery.addParam("userId", teamQuery.userId());
     if (teamQuery.id() != null) {
       pedalonsQuery.and("t.id = :id", Map.of("id", teamQuery.id()));
@@ -86,9 +88,18 @@ public class TeamRepository implements BaseRepository<Team> {
     return getPage(panacheQuery, teamQuery.page(), teamQuery.size());
   }
 
-  public Optional<TeamAndRole> findOne(Long domainId, Long id, @Nullable Long userId) {
+  public Optional<TeamAndRole> findOne(
+      Long domainId, Long id, @Nullable Long userId, boolean includeDeleted) {
     PedalonsPage<TeamAndRole> page =
-        find(TeamQuery.builder().domainId(domainId).userId(userId).id(id).page(0).size(1).build());
+        find(
+            TeamQuery.builder()
+                .domainId(domainId)
+                .userId(userId)
+                .id(id)
+                .page(0)
+                .size(1)
+                .includeDeleted(includeDeleted)
+                .build());
     if (page.items().isEmpty()) {
       return Optional.empty();
     } else {

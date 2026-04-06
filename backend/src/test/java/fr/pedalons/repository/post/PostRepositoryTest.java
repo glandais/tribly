@@ -53,7 +53,8 @@ class PostRepositoryTest extends AbstractBaseTest {
       Post post = dataService.createPost(team, user, "Test Post", now);
 
       Optional<Post> result =
-          postRepository.findByTeamAndSlug(domain.getId(), team.getId(), user.getId(), "test-post");
+          postRepository.findByTeamAndSlug(
+              domain.getId(), team.getId(), user.getId(), "test-post", false);
 
       assertTrue(result.isPresent());
       assertEquals(post.getId(), result.get().getId());
@@ -66,7 +67,7 @@ class PostRepositoryTest extends AbstractBaseTest {
 
       Optional<Post> result =
           postRepository.findByTeamAndSlug(
-              domain.getId(), team.getId(), user.getId(), "non-existent");
+              domain.getId(), team.getId(), user.getId(), "non-existent", false);
 
       assertTrue(result.isEmpty());
     }
@@ -78,7 +79,8 @@ class PostRepositoryTest extends AbstractBaseTest {
       dataService.deletePost(post);
 
       Optional<Post> result =
-          postRepository.findByTeamAndSlug(domain.getId(), team.getId(), user.getId(), "test-post");
+          postRepository.findByTeamAndSlug(
+              domain.getId(), team.getId(), user.getId(), "test-post", false);
 
       assertTrue(result.isEmpty());
     }
@@ -90,7 +92,8 @@ class PostRepositoryTest extends AbstractBaseTest {
       dataService.createPost(otherTeam, user, "Test Post", now);
 
       Optional<Post> result =
-          postRepository.findByTeamAndSlug(domain.getId(), team.getId(), user.getId(), "test-post");
+          postRepository.findByTeamAndSlug(
+              domain.getId(), team.getId(), user.getId(), "test-post", false);
 
       assertTrue(result.isEmpty());
     }
@@ -106,7 +109,8 @@ class PostRepositoryTest extends AbstractBaseTest {
       Post post = dataService.createPost(team, user, "Test Post", now);
 
       Optional<Post> result =
-          postRepository.findByTeamAndId(domain.getId(), team.getId(), user.getId(), post.getId());
+          postRepository.findByTeamAndId(
+              domain.getId(), team.getId(), user.getId(), post.getId(), false);
 
       assertTrue(result.isPresent());
       assertEquals(post.getId(), result.get().getId());
@@ -118,7 +122,8 @@ class PostRepositoryTest extends AbstractBaseTest {
       dataService.createPost(team, user, "Test Post", now);
 
       Optional<Post> result =
-          postRepository.findByTeamAndId(domain.getId(), team.getId(), user.getId(), 999999L);
+          postRepository.findByTeamAndId(
+              domain.getId(), team.getId(), user.getId(), 999999L, false);
 
       assertTrue(result.isEmpty());
     }
@@ -130,7 +135,8 @@ class PostRepositoryTest extends AbstractBaseTest {
       dataService.deletePost(post);
 
       Optional<Post> result =
-          postRepository.findByTeamAndId(domain.getId(), team.getId(), user.getId(), post.getId());
+          postRepository.findByTeamAndId(
+              domain.getId(), team.getId(), user.getId(), post.getId(), false);
 
       assertTrue(result.isEmpty());
     }
@@ -142,7 +148,8 @@ class PostRepositoryTest extends AbstractBaseTest {
       Post post = dataService.createPost(otherTeam, user, "Test Post", now);
 
       Optional<Post> result =
-          postRepository.findByTeamAndId(domain.getId(), team.getId(), user.getId(), post.getId());
+          postRepository.findByTeamAndId(
+              domain.getId(), team.getId(), user.getId(), post.getId(), false);
 
       assertTrue(result.isEmpty());
     }
@@ -190,7 +197,8 @@ class PostRepositoryTest extends AbstractBaseTest {
     @DisplayName("getQuerySlug should build correct query")
     void getQuerySlug_shouldBuildCorrectQuery() {
       TeamEntityQueryBasic query =
-          postRepository.getQuerySlug(domain.getId(), team.getId(), user.getId(), "test-slug");
+          postRepository.getQuerySlug(
+              domain.getId(), team.getId(), user.getId(), "test-slug", false);
 
       assertEquals(domain.getId(), query.domainId());
       assertTrue(query.teamIds().contains(team.getId()));
@@ -202,7 +210,7 @@ class PostRepositoryTest extends AbstractBaseTest {
     @DisplayName("getQuerySlug should work with null userId")
     void getQuerySlug_shouldWorkWithNullUserId() {
       TeamEntityQueryBasic query =
-          postRepository.getQuerySlug(domain.getId(), team.getId(), null, "test-slug");
+          postRepository.getQuerySlug(domain.getId(), team.getId(), null, "test-slug", false);
 
       assertEquals(domain.getId(), query.domainId());
       assertTrue(query.teamIds().contains(team.getId()));
@@ -214,7 +222,7 @@ class PostRepositoryTest extends AbstractBaseTest {
     @DisplayName("getQueryId should build correct query")
     void getQueryId_shouldBuildCorrectQuery() {
       TeamEntityQueryBasic query =
-          postRepository.getQueryId(domain.getId(), team.getId(), user.getId(), 12345L);
+          postRepository.getQueryId(domain.getId(), team.getId(), user.getId(), 12345L, false);
 
       assertEquals(domain.getId(), query.domainId());
       assertTrue(query.teamIds().contains(team.getId()));
@@ -226,7 +234,7 @@ class PostRepositoryTest extends AbstractBaseTest {
     @DisplayName("getQueryId should work with null userId")
     void getQueryId_shouldWorkWithNullUserId() {
       TeamEntityQueryBasic query =
-          postRepository.getQueryId(domain.getId(), team.getId(), null, 12345L);
+          postRepository.getQueryId(domain.getId(), team.getId(), null, 12345L, false);
 
       assertEquals(domain.getId(), query.domainId());
       assertTrue(query.teamIds().contains(team.getId()));

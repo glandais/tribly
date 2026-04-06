@@ -143,6 +143,7 @@ public class DeviceRouteService {
             .to(to)
             .page(0)
             .size(50)
+            .includeDeleted(false)
             .build();
 
     List<Ride> rides = rideRepository.findAll(query);
@@ -234,6 +235,7 @@ public class DeviceRouteService {
             .userId(userId)
             .page(0)
             .size(LATEST_ROUTES_PER_TEAM)
+            .includeDeleted(false)
             .build();
 
     List<Route> routes = routeRepository.findAll(query);
@@ -301,7 +303,7 @@ public class DeviceRouteService {
     // Find route (domainId from team for multi-tenant isolation)
     Long domainId = team.getDomain().getId();
     return routeRepository
-        .findByTeamAndSlug(domainId, team.getId(), userId, routeSlug)
+        .findByTeamAndSlug(domainId, team.getId(), userId, routeSlug, false)
         .orElseThrow(() -> new NotFoundException(EntityType.ROUTE, routeSlug));
   }
 

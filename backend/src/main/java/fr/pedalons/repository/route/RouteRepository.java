@@ -120,22 +120,26 @@ public class RouteRepository implements TeamEntityRepository<Route, RouteQuery> 
   }
 
   @Override
-  public RouteQuery getQuerySlug(Long domainId, Long teamId, @Nullable Long userId, String slug) {
+  public RouteQuery getQuerySlug(
+      Long domainId, Long teamId, @Nullable Long userId, String slug, boolean includeDeleted) {
     return RouteQuery.builder()
         .domainId(domainId)
         .teamIds(Set.of(teamId))
         .userId(userId)
         .slug(slug)
+        .includeDeleted(includeDeleted)
         .build();
   }
 
   @Override
-  public RouteQuery getQueryId(Long domainId, Long teamId, @Nullable Long userId, Long id) {
+  public RouteQuery getQueryId(
+      Long domainId, Long teamId, @Nullable Long userId, Long id, boolean includeDeleted) {
     return RouteQuery.builder()
         .domainId(domainId)
         .teamIds(Set.of(teamId))
         .userId(userId)
         .id(id)
+        .includeDeleted(includeDeleted)
         .build();
   }
 }

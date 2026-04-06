@@ -267,6 +267,7 @@ class TeamPageServiceTest extends AbstractBaseTest {
       queryContext.setUserForTest(admin);
       teamPageService.deletePage(team.getSlug(), page.getSlug());
 
+      queryContext.setUserForTest(member);
       assertThrows(
           NotFoundException.class, () -> teamPageService.getDto(team.getSlug(), page.getSlug()));
     }

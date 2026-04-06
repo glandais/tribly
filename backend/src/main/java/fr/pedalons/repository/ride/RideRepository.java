@@ -23,23 +23,25 @@ public class RideRepository implements TeamEntityRepository<Ride, TeamEntityQuer
 
   @Override
   public TeamEntityQueryBasic getQuerySlug(
-      Long domainId, Long teamId, @Nullable Long userId, String slug) {
+      Long domainId, Long teamId, @Nullable Long userId, String slug, boolean includeDeleted) {
     return TeamEntityQueryBasic.builder()
         .domainId(domainId)
         .teamIds(Set.of(teamId))
         .userId(userId)
         .slug(slug)
+        .includeDeleted(includeDeleted)
         .build();
   }
 
   @Override
   public TeamEntityQueryBasic getQueryId(
-      Long domainId, Long teamId, @Nullable Long userId, Long id) {
+      Long domainId, Long teamId, @Nullable Long userId, Long id, boolean includeDeleted) {
     return TeamEntityQueryBasic.builder()
         .domainId(domainId)
         .teamIds(Set.of(teamId))
         .userId(userId)
         .id(id)
+        .includeDeleted(includeDeleted)
         .build();
   }
 }

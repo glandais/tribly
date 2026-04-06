@@ -215,7 +215,8 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
   @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.LIST)
   public RouteListResponse getRoutes(String teamSlug, RouteSearchParams params) {
     Team team = teamService.getTeam(teamSlug);
-    return getRoutesWithTeamIds(Set.of(team.getId()), pedalonsContext.getUserNullable(), params);
+    return getRoutesWithTeamIds(
+        Set.of(team.getId()), pedalonsContext.getUserNullable(), params, isIncludeDeleted(team));
   }
 
   /**
@@ -223,11 +224,14 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
    */
   @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.LIST_ALL_TEAMS)
   public RouteListResponse getAllRoutes(RouteSearchParams params) {
-    return getRoutesWithTeamIds(null, pedalonsContext.getUserNullable(), params);
+    return getRoutesWithTeamIds(null, pedalonsContext.getUserNullable(), params, false);
   }
 
   private RouteListResponse getRoutesWithTeamIds(
-      @Nullable Set<Long> teamIds, @Nullable User user, RouteSearchParams params) {
+      @Nullable Set<Long> teamIds,
+      @Nullable User user,
+      RouteSearchParams params,
+      boolean includeDeleted) {
     PedalonsPage<Route> routes =
         routeRepository.find(
             RouteQuery.builder()
@@ -250,6 +254,7 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
                 .nearType(params.nearType())
                 .sortBy(params.sortBy())
                 .sortDir(params.sortDir())
+                .includeDeleted(includeDeleted)
                 .build());
     List<RouteDto> dtos =
         routes.items().stream().map(route -> RouteDto.from(route, assetService)).toList();

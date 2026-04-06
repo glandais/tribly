@@ -25,17 +25,19 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
     return count("team.id = ?1 and slug = ?2", teamId, slug) > 0;
   }
 
-  Q getQuerySlug(Long domainId, Long teamId, @Nullable Long userId, String slug);
+  Q getQuerySlug(
+      Long domainId, Long teamId, @Nullable Long userId, String slug, boolean includeDeleted);
 
-  Q getQueryId(Long domainId, Long teamId, @Nullable Long userId, Long id);
+  Q getQueryId(Long domainId, Long teamId, @Nullable Long userId, Long id, boolean includeDeleted);
 
   default Optional<T> findByTeamAndSlug(
-      Long domainId, Long teamId, @Nullable Long userId, String slug) {
-    return findOne(getQuerySlug(domainId, teamId, userId, slug));
+      Long domainId, Long teamId, @Nullable Long userId, String slug, boolean includeDeleted) {
+    return findOne(getQuerySlug(domainId, teamId, userId, slug, includeDeleted));
   }
 
-  default Optional<T> findByTeamAndId(Long domainId, Long teamId, @Nullable Long userId, Long id) {
-    return findOne(getQueryId(domainId, teamId, userId, id));
+  default Optional<T> findByTeamAndId(
+      Long domainId, Long teamId, @Nullable Long userId, Long id, boolean includeDeleted) {
+    return findOne(getQueryId(domainId, teamId, userId, id, includeDeleted));
   }
 
   TeamEntityType getEntityType();
@@ -132,12 +134,14 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
       pedalonsQuery.and(visibilityFilter);
     }
 
+    if (!query.includeDeleted()) {
+      // entity not deleted
+      pedalonsQuery.and("te.deleted = false", Map.of());
+    }
     pedalonsQuery =
         pedalonsQuery
             // filter by domain
             .and("te.team.domain.id = :domainId", Map.of("domainId", query.domainId()))
-            // entity not deleted
-            .and("te.deleted = false", Map.of())
             // team not deleted
             .and("te.team.deleted = false", Map.of())
             // not trip or (trip enabled and routes enabled)

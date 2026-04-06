@@ -4,6 +4,7 @@ import fr.pedalons.dto.common.PedalonsPage;
 import fr.pedalons.repository.query.PedalonsQuery;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
+import io.quarkus.logging.Log;
 import jakarta.persistence.NonUniqueResultException;
 import java.util.List;
 import java.util.Optional;
@@ -11,7 +12,9 @@ import java.util.Optional;
 public interface BaseRepository<T> extends PanacheRepository<T> {
 
   default PedalonsPage<T> getPage(PedalonsQuery pedalonsQuery, int page, int size) {
-    PanacheQuery<T> panacheQuery = find(pedalonsQuery.getStringQuery(), pedalonsQuery.getParams());
+    String stringQuery = pedalonsQuery.getStringQuery();
+    Log.debugf("Query: %s", stringQuery);
+    PanacheQuery<T> panacheQuery = find(stringQuery, pedalonsQuery.getParams());
     return getPage(panacheQuery, page, size);
   }
 

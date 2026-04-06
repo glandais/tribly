@@ -1000,7 +1000,7 @@ class TeamEntityRepositoryFindTest extends AbstractBaseTest {
 
       var result =
           routeRepository.findByTeamAndSlug(
-              domain.getId(), publicTeam.getId(), publicTeamOwner.getId(), route.getSlug());
+              domain.getId(), publicTeam.getId(), publicTeamOwner.getId(), route.getSlug(), false);
 
       assertTrue(result.isPresent());
       assertEquals(route.getId(), result.get().getId());
@@ -1015,7 +1015,7 @@ class TeamEntityRepositoryFindTest extends AbstractBaseTest {
 
       var result =
           routeRepository.findByTeamAndSlug(
-              domain.getId(), privateTeam.getId(), publicTeamOwner.getId(), route.getSlug());
+              domain.getId(), privateTeam.getId(), publicTeamOwner.getId(), route.getSlug(), false);
 
       assertTrue(result.isEmpty());
     }
@@ -1027,7 +1027,11 @@ class TeamEntityRepositoryFindTest extends AbstractBaseTest {
 
       var result =
           routeRepository.findByTeamAndSlug(
-              domain.getId(), publicTeam.getId(), publicTeamOwner.getId(), "nonexistent-slug");
+              domain.getId(),
+              publicTeam.getId(),
+              publicTeamOwner.getId(),
+              "nonexistent-slug",
+              false);
 
       assertTrue(result.isEmpty());
     }
@@ -1041,7 +1045,7 @@ class TeamEntityRepositoryFindTest extends AbstractBaseTest {
 
       var result =
           routeRepository.findByTeamAndSlug(
-              domain.getId(), publicTeam.getId(), publicTeamOwner.getId(), route.getSlug());
+              domain.getId(), publicTeam.getId(), publicTeamOwner.getId(), route.getSlug(), false);
 
       assertTrue(result.isEmpty());
     }
@@ -1054,7 +1058,11 @@ class TeamEntityRepositoryFindTest extends AbstractBaseTest {
 
       var result =
           routeRepository.findByTeamAndSlug(
-              domain.getId(), publicTeam.getId(), publicTeamOwner.getId(), teamRoute.getSlug());
+              domain.getId(),
+              publicTeam.getId(),
+              publicTeamOwner.getId(),
+              teamRoute.getSlug(),
+              false);
 
       assertTrue(result.isPresent());
       assertEquals("Team Route", result.get().getName());
@@ -1075,7 +1083,11 @@ class TeamEntityRepositoryFindTest extends AbstractBaseTest {
 
       var result =
           routeRepository.findByTeamAndSlug(
-              domain.getId(), publicTeam.getId(), publicTeamOwner.getId(), draftRoute.getSlug());
+              domain.getId(),
+              publicTeam.getId(),
+              publicTeamOwner.getId(),
+              draftRoute.getSlug(),
+              false);
 
       assertTrue(result.isPresent());
       assertEquals("Draft Route", result.get().getName());
@@ -1091,7 +1103,7 @@ class TeamEntityRepositoryFindTest extends AbstractBaseTest {
 
       var result =
           routeRepository.findByTeamAndSlug(
-              domain.getId(), publicTeam.getId(), publicTeamOwner.getId(), route.getSlug());
+              domain.getId(), publicTeam.getId(), publicTeamOwner.getId(), route.getSlug(), false);
 
       // Note: findByTeamAndSlug does NOT filter by team.deleted
       assertFalse(result.isPresent());
@@ -1110,10 +1122,14 @@ class TeamEntityRepositoryFindTest extends AbstractBaseTest {
 
       var result1 =
           routeRepository.findByTeamAndSlug(
-              domain.getId(), publicTeam.getId(), publicTeamOwner.getId(), route1.getSlug());
+              domain.getId(), publicTeam.getId(), publicTeamOwner.getId(), route1.getSlug(), false);
       var result2 =
           routeRepository.findByTeamAndSlug(
-              domain.getId(), anotherTeam.getId(), publicTeamOwner.getId(), route2.getSlug());
+              domain.getId(),
+              anotherTeam.getId(),
+              publicTeamOwner.getId(),
+              route2.getSlug(),
+              false);
 
       assertTrue(result1.isPresent());
       assertTrue(result2.isPresent());

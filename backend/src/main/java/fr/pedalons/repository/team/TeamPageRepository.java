@@ -50,22 +50,25 @@ public class TeamPageRepository implements TeamEntityRepository<TeamPage, TeamPa
 
   @Override
   public TeamPageQuery getQuerySlug(
-      Long domainId, Long teamId, @Nullable Long userId, String slug) {
+      Long domainId, Long teamId, @Nullable Long userId, String slug, boolean includeDeleted) {
     return TeamPageQuery.builder()
         .domainId(domainId)
         .teamIds(Set.of(teamId))
         .userId(userId)
         .slug(slug)
+        .includeDeleted(includeDeleted)
         .build();
   }
 
   @Override
-  public TeamPageQuery getQueryId(Long domainId, Long teamId, @Nullable Long userId, Long id) {
+  public TeamPageQuery getQueryId(
+      Long domainId, Long teamId, @Nullable Long userId, Long id, boolean includeDeleted) {
     return TeamPageQuery.builder()
         .domainId(domainId)
         .teamIds(Set.of(teamId))
         .userId(userId)
         .id(id)
+        .includeDeleted(includeDeleted)
         .build();
   }
 }

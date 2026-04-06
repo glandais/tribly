@@ -18,5 +18,6 @@ public record TeamPageQuery(
     @Nullable Instant from,
     @Nullable Instant to,
     int page,
-    int size)
+    int size,
+    boolean includeDeleted)
     implements TeamEntityQueryInterface {}

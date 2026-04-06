@@ -33,6 +33,8 @@ public abstract class TeamEntityService<
 
   @Inject protected PedalonsQueryContext pedalonsContext;
 
+  @Inject protected IncludeDeletedService includeDeletedService;
+
   protected abstract R getRepository();
 
   protected abstract D toDto(T entity);
@@ -56,16 +58,25 @@ public abstract class TeamEntityService<
   protected T findBySlug(Team team, String entitySlug) {
     Long domainId = pedalonsContext.getDomainId();
     Long userId = pedalonsContext.getUserIdNullable();
+    boolean includeDeleted = isIncludeDeleted(team);
     Optional<T> byTeamAndSlug =
-        getRepository().findByTeamAndSlug(domainId, team.getId(), userId, entitySlug);
+        getRepository()
+            .findByTeamAndSlug(domainId, team.getId(), userId, entitySlug, includeDeleted);
     return byTeamAndSlug.orElseGet(
         () ->
             slugService
                 .resolveEntityRedirect(team.getId(), getRepository().getEntityType(), entitySlug)
                 .map(TeamEntitySlugRedirect::getEntityId)
-                .flatMap(id -> getRepository().findByTeamAndId(domainId, team.getId(), userId, id))
+                .flatMap(
+                    id ->
+                        getRepository()
+                            .findByTeamAndId(domainId, team.getId(), userId, id, includeDeleted))
                 .orElseThrow(
                     () -> new NotFoundException(getRepository().getAllEntityType(), entitySlug)));
+  }
+
+  protected boolean isIncludeDeleted(Team team) {
+    return includeDeletedService.isTeamEntityIncludeDeleted(team);
   }
 
   @Transactional

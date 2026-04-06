@@ -368,7 +368,7 @@ class RouteServiceTest extends AbstractBaseTest {
     queryContext.setUserForTest(admin);
     routeService.deleteRoute(team.getSlug(), routeSlug);
 
-    queryContext.setUserForTest(admin);
+    queryContext.setUserForTest(member);
     assertThrows(PedalonsException.class, () -> routeService.getDto(team.getSlug(), routeSlug));
 
     // Cleanup handled by gpxProcessingService.deleteRouteFiles

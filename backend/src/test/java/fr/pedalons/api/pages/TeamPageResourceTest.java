@@ -294,7 +294,7 @@ class TeamPageResourceTest extends AbstractResourceTest {
     // Verify deletion
     given()
         .auth()
-        .oauth2(getAccessToken(USER1))
+        .oauth2(getAccessToken(USER2))
         .when()
         .get("/api/teams/" + team1Slug + "/pages/" + toDelete.getSlug())
         .then()

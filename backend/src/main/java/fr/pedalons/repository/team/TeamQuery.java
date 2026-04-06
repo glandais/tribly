@@ -13,5 +13,6 @@ public record TeamQuery(
     @Nullable Long id,
     @Nullable Long userId,
     @Nullable MinRole minRole,
-    @Nullable String search)
+    @Nullable String search,
+    boolean includeDeleted)
     implements PageInterface {}

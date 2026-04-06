@@ -33,5 +33,6 @@ public record RouteQuery(
     @Nullable NearType nearType,
     // Sorting
     @Nullable RouteSortBy sortBy,
-    @Nullable SortDirection sortDir)
+    @Nullable SortDirection sortDir,
+    boolean includeDeleted)
     implements TeamEntityQueryInterface {}

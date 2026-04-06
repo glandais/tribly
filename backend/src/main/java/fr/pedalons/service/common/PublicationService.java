@@ -1,6 +1,7 @@
 package fr.pedalons.service.common;
 
 import fr.pedalons.domain.common.Publication;
+import fr.pedalons.domain.team.Team;
 import fr.pedalons.dto.common.PedalonsPage;
 import fr.pedalons.dto.publications.response.PublicationDto;
 import fr.pedalons.dto.publications.response.PublicationListResponse;
@@ -31,6 +32,8 @@ public class PublicationService {
 
   @Inject TeamService teamService;
 
+  @Inject IncludeDeletedService includeDeletedService;
+
   @CheckAccess(entityType = EntityType.PUBLICATION, action = ActionType.LIST_ALL_TEAMS)
   public PublicationListResponse listAll(
       @Nullable PublicationType type,
@@ -39,7 +42,7 @@ public class PublicationService {
       @Nullable Instant to,
       int page,
       int size) {
-    return list(type, null, search, from, to, page, size);
+    return list(type, null, search, from, to, page, size, false);
   }
 
   @CheckAccess(entityType = EntityType.PUBLICATION, action = ActionType.LIST)
@@ -51,8 +54,10 @@ public class PublicationService {
       @Nullable Instant to,
       int page,
       int size) {
-    Long teamId = teamService.getTeam(teamSlug).getId();
-    return list(type, Set.of(teamId), search, from, to, page, size);
+    Team team = teamService.getTeam(teamSlug);
+    Long teamId = team.getId();
+    boolean includeDeleted = includeDeletedService.isTeamEntityIncludeDeleted(team);
+    return list(type, Set.of(teamId), search, from, to, page, size, includeDeleted);
   }
 
   protected PublicationListResponse list(
@@ -62,7 +67,8 @@ public class PublicationService {
       @Nullable Instant from,
       @Nullable Instant to,
       int page,
-      int size) {
+      int size,
+      boolean includeDeleted) {
     PedalonsPage<Publication> publications =
         allPublicationRepository.find(
             PublicationQuery.builder()
@@ -75,6 +81,7 @@ public class PublicationService {
                 .to(to)
                 .page(page)
                 .size(size)
+                .includeDeleted(includeDeleted)
                 .build());
     List<PublicationDto> dtos =
         publications.items().stream()

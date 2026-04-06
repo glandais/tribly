@@ -46,7 +46,7 @@ class AdRepositoryTest extends AbstractBaseTest {
     @Test
     void getQuerySlug_shouldBuildCorrectQuery() {
       AdQuery query =
-          adRepository.getQuerySlug(domain.getId(), team.getId(), user.getId(), "test-slug");
+          adRepository.getQuerySlug(domain.getId(), team.getId(), user.getId(), "test-slug", false);
 
       assertEquals(domain.getId(), query.domainId());
       assertTrue(query.teamIds().contains(team.getId()));
@@ -56,7 +56,8 @@ class AdRepositoryTest extends AbstractBaseTest {
 
     @Test
     void getQuerySlug_shouldWorkWithNullUserId() {
-      AdQuery query = adRepository.getQuerySlug(domain.getId(), team.getId(), null, "test-slug");
+      AdQuery query =
+          adRepository.getQuerySlug(domain.getId(), team.getId(), null, "test-slug", false);
 
       assertEquals(domain.getId(), query.domainId());
       assertTrue(query.teamIds().contains(team.getId()));
@@ -66,7 +67,8 @@ class AdRepositoryTest extends AbstractBaseTest {
 
     @Test
     void getQueryId_shouldBuildCorrectQuery() {
-      AdQuery query = adRepository.getQueryId(domain.getId(), team.getId(), user.getId(), 12345L);
+      AdQuery query =
+          adRepository.getQueryId(domain.getId(), team.getId(), user.getId(), 12345L, false);
 
       assertEquals(domain.getId(), query.domainId());
       assertTrue(query.teamIds().contains(team.getId()));
@@ -76,7 +78,7 @@ class AdRepositoryTest extends AbstractBaseTest {
 
     @Test
     void getQueryId_shouldWorkWithNullUserId() {
-      AdQuery query = adRepository.getQueryId(domain.getId(), team.getId(), null, 12345L);
+      AdQuery query = adRepository.getQueryId(domain.getId(), team.getId(), null, 12345L, false);
 
       assertEquals(domain.getId(), query.domainId());
       assertTrue(query.teamIds().contains(team.getId()));

@@ -19,5 +19,6 @@ public record AdQuery(
     @Nullable Instant to,
     @Nullable AdType adType,
     int page,
-    int size)
+    int size,
+    boolean includeDeleted)
     implements TeamEntityQueryInterface {}

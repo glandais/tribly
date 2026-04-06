@@ -205,6 +205,7 @@ public class CalendarService {
             .teamIds(teamIds)
             .from(from)
             .to(to)
+            .includeDeleted(false)
             .build());
   }
 

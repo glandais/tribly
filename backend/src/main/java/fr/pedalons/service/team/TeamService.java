@@ -17,6 +17,7 @@ import fr.pedalons.dto.teams.response.TeamDetailDto;
 import fr.pedalons.dto.teams.response.TeamListResponse;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
+import fr.pedalons.enums.PlatformRole;
 import fr.pedalons.enums.TeamRole;
 import fr.pedalons.infrastructure.exception.*;
 import fr.pedalons.repository.team.TeamQuery;
@@ -62,9 +63,16 @@ public class TeamService {
   }
 
   protected TeamAndRole getTeamAndRole(Long id) {
+    boolean includeDeleted = isIncludeDeleted();
     return teamRepository
-        .findOne(pedalonsContext.getDomainId(), id, pedalonsContext.getUserIdNullable())
+        .findOne(
+            pedalonsContext.getDomainId(), id, pedalonsContext.getUserIdNullable(), includeDeleted)
         .orElseThrow(() -> new NotFoundException(EntityType.TEAM, id));
+  }
+
+  private boolean isIncludeDeleted() {
+    User userNullable = pedalonsContext.getUserNullable();
+    return userNullable != null && userNullable.getPlatformRole() == PlatformRole.PLATFORM_ADMIN;
   }
 
   @Transactional
@@ -98,6 +106,7 @@ public class TeamService {
   @Transactional
   @CheckAccess(entityType = EntityType.TEAM, action = ActionType.LIST)
   public TeamListResponse listTeams(MinRole minRole, @Nullable String search, int page, int size) {
+    boolean includeDeleted = isIncludeDeleted();
     PedalonsPage<TeamAndRole> teams =
         teamRepository.find(
             TeamQuery.builder()
@@ -107,6 +116,7 @@ public class TeamService {
                 .search(search)
                 .page(page)
                 .size(size)
+                .includeDeleted(includeDeleted)
                 .build());
     List<TeamDetailDto> dtos =
         teams.items().stream()

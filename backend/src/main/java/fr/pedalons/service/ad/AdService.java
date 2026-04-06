@@ -77,6 +77,7 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
                 .to(to)
                 .page(page)
                 .size(size)
+                .includeDeleted(isIncludeDeleted(team))
                 .build());
     List<AdDto> dtos = ads.items().stream().map(ad -> AdDto.from(ad, assetService)).toList();
     return new AdListResponse(dtos, ads.total(), page, size);
