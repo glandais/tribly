@@ -53,6 +53,7 @@ class RideRepository {
               endPlace: p.endPlace,
               thumbnailLightUrl: p.thumbnailLightUrl,
               thumbnailDarkUrl: p.thumbnailDarkUrl,
+              deleted: p.deleted,
             ))
         .toList();
   }
