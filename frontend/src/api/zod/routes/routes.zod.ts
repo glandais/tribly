@@ -220,6 +220,7 @@ export const ListAllRoutesResponse = zod
             surfaceType: zod.enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED']).describe('Surface type'),
             visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the route is public'),
             createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
+            deleted: zod.boolean().describe('Whether the route is soft-deleted'),
           })
           .describe('Route summary data')
       )
@@ -454,6 +455,7 @@ export const ListRoutesResponse = zod
             surfaceType: zod.enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED']).describe('Surface type'),
             visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the route is public'),
             createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
+            deleted: zod.boolean().describe('Whether the route is soft-deleted'),
           })
           .describe('Route summary data')
       )
@@ -1003,6 +1005,7 @@ export const UpdateRouteResponse = zod
     surfaceType: zod.enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED']).describe('Surface type'),
     visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the route is public'),
     createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
+    deleted: zod.boolean().describe('Whether the route is soft-deleted'),
   })
   .describe('Route summary data')
 
@@ -1249,6 +1252,7 @@ export const GetRouteResponse = zod
         })
       )
       .describe('Waypoints'),
+    deleted: zod.boolean().describe('Whether the route is soft-deleted'),
   })
   .describe('Detailed route information')
 
@@ -1518,5 +1522,253 @@ export const ChangeRouteSlugResponse = zod
         })
       )
       .describe('Waypoints'),
+    deleted: zod.boolean().describe('Whether the route is soft-deleted'),
+  })
+  .describe('Detailed route information')
+
+/**
+ * Restore a soft-deleted route. Requires route creator or team admin permissions.
+ * @summary Restore route
+ */
+export const UndeleteRouteParams = zod.object({
+  routeSlug: zod.string().describe('Route slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
+})
+
+export const UndeleteRouteResponse = zod
+  .object({
+    id: zod.string().describe('Route ID (TSID)'),
+    slug: zod.string().describe('Route slug'),
+    team: zod
+      .object({
+        id: zod.string().describe('Team ID (TSID)'),
+        name: zod.string().describe('Team name'),
+        slug: zod.string().describe('Team URL slug'),
+        visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+      })
+      .describe('Team'),
+    name: zod.string().describe('Route name'),
+    media: zod
+      .object({
+        markdown: zod.string().describe('Markdown'),
+        assets: zod
+          .object({
+            logo: zod
+              .object({
+                id: zod.string().describe('ID (TSID)'),
+                fileName: zod.string().describe('Filename'),
+                contentType: zod.string().describe('Content-Type'),
+                url: zod.string().describe('url'),
+                imageUrl: zod.string().optional().describe('image template url'),
+                imageDimensions: zod
+                  .object({
+                    width: zod.number().optional(),
+                    height: zod.number().optional(),
+                  })
+                  .optional()
+                  .describe('image dimensions'),
+              })
+              .optional()
+              .describe('Logo'),
+            images: zod
+              .array(
+                zod.object({
+                  id: zod.string().describe('ID (TSID)'),
+                  fileName: zod.string().describe('Filename'),
+                  contentType: zod.string().describe('Content-Type'),
+                  url: zod.string().describe('url'),
+                  imageUrl: zod.string().optional().describe('image template url'),
+                  imageDimensions: zod
+                    .object({
+                      width: zod.number().optional(),
+                      height: zod.number().optional(),
+                    })
+                    .optional()
+                    .describe('image dimensions'),
+                })
+              )
+              .describe('Images'),
+            attachments: zod
+              .array(
+                zod.object({
+                  id: zod.string().describe('ID (TSID)'),
+                  fileName: zod.string().describe('Filename'),
+                  contentType: zod.string().describe('Content-Type'),
+                  url: zod.string().describe('url'),
+                  imageUrl: zod.string().optional().describe('image template url'),
+                  imageDimensions: zod
+                    .object({
+                      width: zod.number().optional(),
+                      height: zod.number().optional(),
+                    })
+                    .optional()
+                    .describe('image dimensions'),
+                })
+              )
+              .describe('Attachments'),
+            originalGpx: zod
+              .object({
+                id: zod.string().describe('ID (TSID)'),
+                fileName: zod.string().describe('Filename'),
+                contentType: zod.string().describe('Content-Type'),
+                url: zod.string().describe('url'),
+                imageUrl: zod.string().optional().describe('image template url'),
+                imageDimensions: zod
+                  .object({
+                    width: zod.number().optional(),
+                    height: zod.number().optional(),
+                  })
+                  .optional()
+                  .describe('image dimensions'),
+              })
+              .optional()
+              .describe('Original GPX'),
+            gpx: zod
+              .object({
+                id: zod.string().describe('ID (TSID)'),
+                fileName: zod.string().describe('Filename'),
+                contentType: zod.string().describe('Content-Type'),
+                url: zod.string().describe('url'),
+                imageUrl: zod.string().optional().describe('image template url'),
+                imageDimensions: zod
+                  .object({
+                    width: zod.number().optional(),
+                    height: zod.number().optional(),
+                  })
+                  .optional()
+                  .describe('image dimensions'),
+              })
+              .optional()
+              .describe('GPX'),
+            fit: zod
+              .object({
+                id: zod.string().describe('ID (TSID)'),
+                fileName: zod.string().describe('Filename'),
+                contentType: zod.string().describe('Content-Type'),
+                url: zod.string().describe('url'),
+                imageUrl: zod.string().optional().describe('image template url'),
+                imageDimensions: zod
+                  .object({
+                    width: zod.number().optional(),
+                    height: zod.number().optional(),
+                  })
+                  .optional()
+                  .describe('image dimensions'),
+              })
+              .optional()
+              .describe('FIT'),
+            thumbnailLight: zod
+              .object({
+                id: zod.string().describe('ID (TSID)'),
+                fileName: zod.string().describe('Filename'),
+                contentType: zod.string().describe('Content-Type'),
+                url: zod.string().describe('url'),
+                imageUrl: zod.string().optional().describe('image template url'),
+                imageDimensions: zod
+                  .object({
+                    width: zod.number().optional(),
+                    height: zod.number().optional(),
+                  })
+                  .optional()
+                  .describe('image dimensions'),
+              })
+              .optional()
+              .describe('Light thumbnail'),
+            thumbnailDark: zod
+              .object({
+                id: zod.string().describe('ID (TSID)'),
+                fileName: zod.string().describe('Filename'),
+                contentType: zod.string().describe('Content-Type'),
+                url: zod.string().describe('url'),
+                imageUrl: zod.string().optional().describe('image template url'),
+                imageDimensions: zod
+                  .object({
+                    width: zod.number().optional(),
+                    height: zod.number().optional(),
+                  })
+                  .optional()
+                  .describe('image dimensions'),
+              })
+              .optional()
+              .describe('Dark thumbnail'),
+          })
+          .describe('Assets'),
+      })
+      .describe('Media'),
+    distance: zod.number().describe('Distance in meters'),
+    elevationGain: zod.number().describe('Total elevation gain in meters'),
+    elevationLoss: zod.number().describe('Total elevation loss in meters'),
+    surfaceType: zod.enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED']).describe('Surface type'),
+    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the route is public'),
+    start: zod
+      .object({
+        type: zod.enum(['Point']),
+        coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+      })
+      .optional()
+      .describe('Location coordinates [longitude, latitude]'),
+    end: zod
+      .object({
+        type: zod.enum(['Point']),
+        coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+      })
+      .optional()
+      .describe('Location coordinates [longitude, latitude]'),
+    createdBy: zod
+      .object({
+        id: zod.string().describe('User ID (TSID)'),
+        displayName: zod.string().describe('User display name'),
+        avatarUrl: zod.string().optional().describe('User avatar URL'),
+      })
+      .describe('Creator user'),
+    createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
+    updatedAt: zod.iso.datetime({}).describe('Last update timestamp'),
+    tracks: zod
+      .array(
+        zod
+          .object({
+            line: zod.object({
+              type: zod.enum(['LineString']),
+              coordinates: zod
+                .array(zod.array(zod.number()))
+                .describe('Array of [lon, lat] coordinates'),
+            }),
+            climbs: zod
+              .array(
+                zod
+                  .object({
+                    startDistance: zod
+                      .number()
+                      .describe('Start distance from route start in meters'),
+                    endDistance: zod.number().describe('End distance from route start in meters'),
+                    elevationGain: zod.number().describe('Elevation gain in meters'),
+                    averageGradient: zod.number().describe('Average gradient percentage'),
+                    maxGradient: zod.number().describe('Maximum gradient percentage'),
+                    category: zod
+                      .enum(['HC', 'CAT1', 'CAT2', 'CAT3', 'CAT4'])
+                      .optional()
+                      .describe('Climb category (HC, 1, 2, 3, 4)'),
+                  })
+                  .describe('Climb segment information')
+              )
+              .describe('List of climbs on the route'),
+          })
+          .describe('GPX track with track points')
+      )
+      .describe('Tracks'),
+    waypoints: zod
+      .array(
+        zod.object({
+          geometry: zod
+            .object({
+              type: zod.enum(['Point']),
+              coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+            })
+            .describe('Location coordinates [longitude, latitude]'),
+          name: zod.string().optional(),
+        })
+      )
+      .describe('Waypoints'),
+    deleted: zod.boolean().describe('Whether the route is soft-deleted'),
   })
   .describe('Detailed route information')

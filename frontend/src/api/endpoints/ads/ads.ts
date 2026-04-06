@@ -736,3 +736,81 @@ export const useChangeAdSlug = <TError = ErrorType<ErrorResponse>, TContext = un
 > => {
   return useMutation(getChangeAdSlugMutationOptions(options), queryClient)
 }
+/**
+ * Restore a soft-deleted ad. Only the creator or an admin can restore.
+ * @summary Restore ad
+ */
+export const undeleteAd = (
+  teamSlug: string,
+  slug: string,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<AdEditDto>(
+    { url: `/api/teams/${teamSlug}/ads/${slug}/undelete`, method: 'POST', signal },
+    options
+  )
+}
+
+export const getUndeleteAdMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof undeleteAd>>,
+    TError,
+    { teamSlug: string; slug: string },
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof undeleteAd>>,
+  TError,
+  { teamSlug: string; slug: string },
+  TContext
+> => {
+  const mutationKey = ['undeleteAd']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof undeleteAd>>,
+    { teamSlug: string; slug: string }
+  > = (props) => {
+    const { teamSlug, slug } = props ?? {}
+
+    return undeleteAd(teamSlug, slug, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type UndeleteAdMutationResult = NonNullable<Awaited<ReturnType<typeof undeleteAd>>>
+
+export type UndeleteAdMutationError = ErrorType<ErrorResponse>
+
+/**
+ * @summary Restore ad
+ */
+export const useUndeleteAd = <TError = ErrorType<ErrorResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof undeleteAd>>,
+      TError,
+      { teamSlug: string; slug: string },
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof undeleteAd>>,
+  TError,
+  { teamSlug: string; slug: string },
+  TContext
+> => {
+  return useMutation(getUndeleteAdMutationOptions(options), queryClient)
+}

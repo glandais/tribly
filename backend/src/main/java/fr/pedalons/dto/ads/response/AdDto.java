@@ -31,7 +31,8 @@ public record AdDto(
     @Schema(description = "Location description") @Nullable String locationDescription,
     @Schema(description = "Creation timestamp", required = true) Instant createdAt,
     @Schema(description = "Creation timestamp", required = true) Instant updatedAt,
-    @Schema(description = "Creator ID (TSID)", required = true) String createdById) {
+    @Schema(description = "Creator ID (TSID)", required = true) String createdById,
+    @Schema(description = "Whether the ad is soft-deleted", required = true) boolean deleted) {
 
   public static AdDto from(Ad ad, AssetService assetService) {
     return new AdDto(
@@ -48,6 +49,7 @@ public record AdDto(
         ad.getLocationDescription(),
         ad.getCreatedAt(),
         ad.getUpdatedAt(),
-        TsidUtils.toString(ad.getCreatedBy().getId()));
+        TsidUtils.toString(ad.getCreatedBy().getId()),
+        ad.isDeleted());
   }
 }

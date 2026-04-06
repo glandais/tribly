@@ -157,6 +157,38 @@ public class TripResource {
   }
 
   @POST
+  @Path("/{tripSlug}/undelete")
+  @Operation(
+      operationId = "undeleteTrip",
+      summary = "Restore trip",
+      description = "Restore a soft-deleted trip. Requires organizer permissions.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Trip restored successfully",
+        content = @Content(schema = @Schema(implementation = TripDto.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "User is not authorized to restore this trip",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team or trip not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  @RolesAllowed("user")
+  public Response undeleteTrip(
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
+      @Parameter(description = "Trip URL slug") @PathParam("tripSlug") String tripSlug) {
+    TripDto dto = tripService.undeleteTrip(teamSlug, tripSlug);
+    return Response.ok(dto).build();
+  }
+
+  @POST
   @Path("/{tripSlug}/join")
   @Operation(summary = "Join trip", description = "Join a trip as a participant")
   @APIResponses({

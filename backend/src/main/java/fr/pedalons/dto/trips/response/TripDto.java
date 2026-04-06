@@ -84,6 +84,9 @@ public class TripDto implements PublicationDto {
   @Schema(description = "Thumbnail URL (dark)")
   final String thumbnailDarkUrl;
 
+  @Schema(description = "Whether the trip is soft-deleted", required = true)
+  final boolean deleted;
+
   public TripDto(
       TeamPublicationDto team,
       String id,
@@ -101,7 +104,8 @@ public class TripDto implements PublicationDto {
       List<TripStageDto> stages,
       List<PublicUserDto> participants,
       @Nullable String thumbnailLightUrl,
-      @Nullable String thumbnailDarkUrl) {
+      @Nullable String thumbnailDarkUrl,
+      boolean deleted) {
     super();
     this.team = team;
     this.id = id;
@@ -120,6 +124,7 @@ public class TripDto implements PublicationDto {
     this.participants = participants;
     this.thumbnailLightUrl = thumbnailLightUrl;
     this.thumbnailDarkUrl = thumbnailDarkUrl;
+    this.deleted = deleted;
   }
 
   public static TripDto from(Trip trip, boolean stageDetails, AssetService assetService) {
@@ -177,6 +182,7 @@ public class TripDto implements PublicationDto {
         stageDtos,
         participantDtos,
         thumbnailLightUrl,
-        thumbnailDarkUrl);
+        thumbnailDarkUrl,
+        trip.isDeleted());
   }
 }

@@ -46,4 +46,6 @@ export interface TripDto {
   thumbnailLightUrl?: string
   /** Thumbnail URL (dark) */
   thumbnailDarkUrl?: string
+  /** Whether the trip is soft-deleted */
+  deleted: boolean
 }

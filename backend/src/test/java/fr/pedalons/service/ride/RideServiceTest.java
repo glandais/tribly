@@ -1092,6 +1092,33 @@ class RideServiceTest extends AbstractBaseTest {
     assertThrows(PedalonsException.class, () -> rideService.deleteRide(team.getSlug(), "test"));
   }
 
+  // ==================== Undelete Ride ====================
+
+  @Test
+  void undeleteRide_shouldRestoreDeletedRide() {
+    dataService.createRide(team, admin, "Test", "test", Instant.now());
+
+    userService.setUserForTest(organizer);
+    rideService.deleteRide(team.getSlug(), "test");
+
+    userService.setUserForTest(admin);
+    RideDto result = rideService.undeleteRide(team.getSlug(), "test");
+
+    assertFalse(result.isDeleted());
+    assertEquals("test", result.getSlug());
+  }
+
+  @Test
+  void undeleteRide_shouldThrowForNonOrganizer() {
+    dataService.createRide(team, admin, "Test", "test", Instant.now());
+
+    userService.setUserForTest(organizer);
+    rideService.deleteRide(team.getSlug(), "test");
+
+    userService.setUserForTest(member);
+    assertThrows(PedalonsException.class, () -> rideService.undeleteRide(team.getSlug(), "test"));
+  }
+
   // ==================== List Groups ====================
 
   @Test

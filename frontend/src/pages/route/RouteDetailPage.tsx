@@ -6,7 +6,13 @@ import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { paths } from '../../config/paths'
 import { Box, Button, Group, SimpleGrid, Skeleton, Stack, Text, Title, Center } from '@mantine/core'
-import { useGetRoute, useDeleteRoute, getListRoutesQueryKey } from '@/api/endpoints/routes/routes'
+import {
+  useGetRoute,
+  useDeleteRoute,
+  useUndeleteRoute,
+  getGetRouteQueryKey,
+  getListRoutesQueryKey,
+} from '@/api/endpoints/routes/routes'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { RouteDetailView } from '../../components/route/RouteDetailView'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
@@ -28,6 +34,7 @@ export function RouteDetailPage() {
     query: { enabled: !!teamSlug && !!routeSlug },
   })
   const deleteRouteMutation = useDeleteRoute()
+  const undeleteRouteMutation = useUndeleteRoute()
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
@@ -48,6 +55,24 @@ export function RouteDetailPage() {
               color: 'green',
             })
             navigate(paths.routes(teamSlug))
+          },
+        }
+      )
+    }
+  }
+
+  const handleRestore = async () => {
+    if (routeSlug && teamSlug) {
+      await undeleteRouteMutation.mutateAsync(
+        { teamSlug: teamSlug, routeSlug },
+        {
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: getGetRouteQueryKey(teamSlug, routeSlug) })
+            queryClient.invalidateQueries({ queryKey: getListRoutesQueryKey(teamSlug) })
+            notifications.show({
+              message: i18next.t('routes.notifications.restored'),
+              color: 'green',
+            })
           },
         }
       )
@@ -97,6 +122,16 @@ export function RouteDetailPage() {
               <Button variant="default" component="a" href={paths.routeEdit(teamSlug!, routeSlug!)}>
                 {t('actions.edit')}
               </Button>
+              {route.deleted && (
+                <Button
+                  variant="outline"
+                  color="green"
+                  onClick={handleRestore}
+                  loading={undeleteRouteMutation.isPending}
+                >
+                  {t('actions.restore')}
+                </Button>
+              )}
               <Button variant="outline" color="danger" onClick={() => setShowDeleteConfirm(true)}>
                 {t('actions.delete')}
               </Button>

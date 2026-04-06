@@ -444,6 +444,36 @@ class AdServiceTest extends AbstractBaseTest {
   }
 
   @Nested
+  class UndeleteAd {
+
+    @Test
+    void shouldRestoreDeletedAd() {
+      Ad ad = dataService.createAd(team, member, "To Restore", AdType.SALE);
+
+      userService.setUserForTest(member);
+      adService.deleteAd(team.getSlug(), ad.getSlug());
+
+      userService.setUserForTest(admin);
+      AdEditDto result = adService.undeleteAd(team.getSlug(), ad.getSlug());
+
+      assertFalse(result.deleted());
+      assertEquals(ad.getSlug(), result.slug());
+    }
+
+    @Test
+    void shouldThrowForNonCreatorMember() {
+      Ad ad = dataService.createAd(team, admin, "Admin Ad", AdType.SALE);
+
+      userService.setUserForTest(admin);
+      adService.deleteAd(team.getSlug(), ad.getSlug());
+
+      userService.setUserForTest(member);
+      assertThrows(
+          PedalonsException.class, () -> adService.undeleteAd(team.getSlug(), ad.getSlug()));
+    }
+  }
+
+  @Nested
   class AdsDisabled {
 
     @Test

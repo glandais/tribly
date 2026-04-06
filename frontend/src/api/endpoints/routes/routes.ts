@@ -745,3 +745,81 @@ export const useChangeRouteSlug = <TError = ErrorType<ErrorResponse>, TContext =
 > => {
   return useMutation(getChangeRouteSlugMutationOptions(options), queryClient)
 }
+/**
+ * Restore a soft-deleted route. Requires route creator or team admin permissions.
+ * @summary Restore route
+ */
+export const undeleteRoute = (
+  teamSlug: string,
+  routeSlug: string,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<RouteDetailDto>(
+    { url: `/api/teams/${teamSlug}/routes/${routeSlug}/undelete`, method: 'POST', signal },
+    options
+  )
+}
+
+export const getUndeleteRouteMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof undeleteRoute>>,
+    TError,
+    { teamSlug: string; routeSlug: string },
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof undeleteRoute>>,
+  TError,
+  { teamSlug: string; routeSlug: string },
+  TContext
+> => {
+  const mutationKey = ['undeleteRoute']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof undeleteRoute>>,
+    { teamSlug: string; routeSlug: string }
+  > = (props) => {
+    const { teamSlug, routeSlug } = props ?? {}
+
+    return undeleteRoute(teamSlug, routeSlug, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type UndeleteRouteMutationResult = NonNullable<Awaited<ReturnType<typeof undeleteRoute>>>
+
+export type UndeleteRouteMutationError = ErrorType<ErrorResponse>
+
+/**
+ * @summary Restore route
+ */
+export const useUndeleteRoute = <TError = ErrorType<ErrorResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof undeleteRoute>>,
+      TError,
+      { teamSlug: string; routeSlug: string },
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof undeleteRoute>>,
+  TError,
+  { teamSlug: string; routeSlug: string },
+  TContext
+> => {
+  return useMutation(getUndeleteRouteMutationOptions(options), queryClient)
+}

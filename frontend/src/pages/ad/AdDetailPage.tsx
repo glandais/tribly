@@ -29,6 +29,7 @@ import {
   useGetAd,
   useUpdateAd,
   useDeleteAd,
+  useUndeleteAd,
   getListAdsQueryKey,
   getGetAdQueryKey,
 } from '../../api/endpoints/ads/ads'
@@ -75,6 +76,7 @@ export function AdDetailPage() {
 
   const updateMutation = useUpdateAd()
   const deleteMutation = useDeleteAd()
+  const undeleteMutation = useUndeleteAd()
 
   if (isLoadingTeam || isLoadingAd) {
     return <LoadingPage message={t('loading')} />
@@ -168,6 +170,18 @@ export function AdDetailPage() {
     )
   }
 
+  const handleRestore = () => {
+    undeleteMutation.mutate(
+      { teamSlug: teamSlug!, slug: adSlug! },
+      {
+        onSuccess: () => {
+          invalidateAds()
+          notifications.show({ message: i18next.t('ads.notifications.restored'), color: 'green' })
+        },
+      }
+    )
+  }
+
   return (
     <Container size="md" py="xl">
       {/* Header */}
@@ -220,6 +234,15 @@ export function AdDetailPage() {
                   {ad.status === Status.PUBLISHED && (
                     <Menu.Item onClick={() => setShowUnpublishConfirm(true)} color="warning">
                       {t('actions.unpublish')}
+                    </Menu.Item>
+                  )}
+                  {ad.deleted && (
+                    <Menu.Item
+                      onClick={handleRestore}
+                      color="green"
+                      disabled={undeleteMutation.isPending}
+                    >
+                      {t('actions.restore')}
                     </Menu.Item>
                   )}
                   <Menu.Divider />

@@ -211,6 +211,37 @@ public class AdResource {
     return Response.noContent().build();
   }
 
+  @POST
+  @Path("/{slug}/undelete")
+  @Operation(
+      operationId = "undeleteAd",
+      summary = "Restore ad",
+      description = "Restore a soft-deleted ad. Only the creator or an admin can restore.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Ad restored successfully",
+        content = @Content(schema = @Schema(implementation = AdEditDto.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "User is not authorized to restore this ad",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team or ad not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response undeleteAd(
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
+      @Parameter(description = "Ad URL slug") @PathParam("slug") String slug) {
+    AdEditDto dto = adService.undeleteAd(teamSlug, slug);
+    return Response.ok(dto).build();
+  }
+
   @PATCH
   @Path("/{slug}/slug")
   @Operation(

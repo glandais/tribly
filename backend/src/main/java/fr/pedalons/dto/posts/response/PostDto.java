@@ -56,6 +56,9 @@ public class PostDto implements PublicationDto {
   @Schema(description = "Creation timestamp")
   final Instant createdAt;
 
+  @Schema(description = "Whether the post is soft-deleted", required = true)
+  final boolean deleted;
+
   public PostDto(
       TeamPublicationDto team,
       String id,
@@ -66,7 +69,8 @@ public class PostDto implements PublicationDto {
       Status status,
       Visibility visibility,
       @Nullable Instant publishAt,
-      @Nullable Instant createdAt) {
+      @Nullable Instant createdAt,
+      boolean deleted) {
     super();
     this.team = team;
     this.id = id;
@@ -78,6 +82,7 @@ public class PostDto implements PublicationDto {
     this.visibility = visibility;
     this.publishAt = publishAt;
     this.createdAt = createdAt;
+    this.deleted = deleted;
   }
 
   public static PostDto from(Post post, AssetService assetService) {
@@ -91,6 +96,7 @@ public class PostDto implements PublicationDto {
         post.getStatus(),
         post.getVisibility(),
         post.getPublishAt(),
-        post.getCreatedAt());
+        post.getCreatedAt(),
+        post.isDeleted());
   }
 }

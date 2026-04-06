@@ -6,7 +6,14 @@ import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { paths } from '../../config/paths'
-import { IconPlus, IconFileText, IconPencil, IconTrash, IconMenu2 } from '@tabler/icons-react'
+import {
+  IconPlus,
+  IconFileText,
+  IconPencil,
+  IconTrash,
+  IconMenu2,
+  IconRestore,
+} from '@tabler/icons-react'
 import {
   ActionIcon,
   Box,
@@ -23,6 +30,7 @@ import { useGetTeam, getGetTeamQueryKey } from '@/api/endpoints/teams/teams'
 import {
   useListPages,
   useDeletePage,
+  useUndeletePage,
   useReorderPages,
   getListPagesQueryKey,
 } from '@/api/endpoints/team-pages/team-pages'
@@ -48,6 +56,7 @@ export function TeamPagesAdminPage() {
     query: { enabled: !!teamSlug },
   })
   const deleteMutation = useDeletePage()
+  const undeleteMutation = useUndeletePage()
   const reorderMutation = useReorderPages()
 
   useCanonicalPath(team ? paths.teamAdminPages(team.slug) : undefined)
@@ -69,6 +78,24 @@ export function TeamPagesAdminPage() {
 
   const handleDelete = (page: TeamPageSummaryDto) => {
     setPageToDelete(page)
+  }
+
+  const handleRestore = (page: TeamPageSummaryDto) => {
+    if (teamSlug) {
+      undeleteMutation.mutate(
+        { teamSlug: teamSlug, pageSlug: page.slug },
+        {
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: getListPagesQueryKey(teamSlug) })
+            queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
+            notifications.show({
+              message: i18next.t('teams.pages.notifications.restored'),
+              color: 'green',
+            })
+          },
+        }
+      )
+    }
   }
 
   const confirmDelete = () => {
@@ -203,6 +230,17 @@ export function TeamPagesAdminPage() {
                     >
                       <IconPencil size={20} />
                     </ActionIcon>
+                    {page.deleted && (
+                      <ActionIcon
+                        variant="subtle"
+                        color="green"
+                        onClick={() => handleRestore(page)}
+                        loading={undeleteMutation.isPending}
+                        title={t('actions.restore')}
+                      >
+                        <IconRestore size={20} />
+                      </ActionIcon>
+                    )}
                     <ActionIcon
                       variant="subtle"
                       color="danger"

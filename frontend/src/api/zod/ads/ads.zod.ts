@@ -193,6 +193,7 @@ export const ListAdsResponse = zod
             createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
             updatedAt: zod.iso.datetime({}).describe('Creation timestamp'),
             createdById: zod.string().describe('Creator ID (TSID)'),
+            deleted: zod.boolean().describe('Whether the ad is soft-deleted'),
           })
           .describe('Ad data')
       )
@@ -753,6 +754,7 @@ export const UpdateAdResponse = zod
     createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
     updatedAt: zod.iso.datetime({}).describe('Creation timestamp'),
     createdById: zod.string().describe('Creator ID (TSID)'),
+    deleted: zod.boolean().describe('Whether the ad is soft-deleted'),
   })
   .describe('Ad data')
 
@@ -934,6 +936,7 @@ export const GetAdResponse = zod
     createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
     updatedAt: zod.iso.datetime({}).describe('Creation timestamp'),
     createdById: zod.string().describe('Creator ID (TSID)'),
+    deleted: zod.boolean().describe('Whether the ad is soft-deleted'),
   })
   .describe('Ad data')
 
@@ -1131,6 +1134,7 @@ export const GetAdEditResponse = zod
     createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
     updatedAt: zod.iso.datetime({}).describe('Creation timestamp'),
     createdById: zod.string().describe('Creator ID (TSID)'),
+    deleted: zod.boolean().describe('Whether the ad is soft-deleted'),
   })
   .describe('Ad data')
 
@@ -1326,5 +1330,195 @@ export const ChangeAdSlugResponse = zod
     createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
     updatedAt: zod.iso.datetime({}).describe('Creation timestamp'),
     createdById: zod.string().describe('Creator ID (TSID)'),
+    deleted: zod.boolean().describe('Whether the ad is soft-deleted'),
+  })
+  .describe('Ad data')
+
+/**
+ * Restore a soft-deleted ad. Only the creator or an admin can restore.
+ * @summary Restore ad
+ */
+export const UndeleteAdParams = zod.object({
+  slug: zod.string().describe('Ad URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
+})
+
+export const UndeleteAdResponse = zod
+  .object({
+    team: zod
+      .object({
+        id: zod.string().describe('Team ID (TSID)'),
+        name: zod.string().describe('Team name'),
+        slug: zod.string().describe('Team URL slug'),
+        visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+      })
+      .describe('Team'),
+    id: zod.string().describe('Ad ID (TSID)'),
+    slug: zod.string().describe('Ad URL slug'),
+    name: zod.string().describe('Ad name'),
+    media: zod
+      .object({
+        markdown: zod.string().describe('Markdown'),
+        assets: zod
+          .object({
+            logo: zod
+              .object({
+                id: zod.string().describe('ID (TSID)'),
+                fileName: zod.string().describe('Filename'),
+                contentType: zod.string().describe('Content-Type'),
+                url: zod.string().describe('url'),
+                imageUrl: zod.string().optional().describe('image template url'),
+                imageDimensions: zod
+                  .object({
+                    width: zod.number().optional(),
+                    height: zod.number().optional(),
+                  })
+                  .optional()
+                  .describe('image dimensions'),
+              })
+              .optional()
+              .describe('Logo'),
+            images: zod
+              .array(
+                zod.object({
+                  id: zod.string().describe('ID (TSID)'),
+                  fileName: zod.string().describe('Filename'),
+                  contentType: zod.string().describe('Content-Type'),
+                  url: zod.string().describe('url'),
+                  imageUrl: zod.string().optional().describe('image template url'),
+                  imageDimensions: zod
+                    .object({
+                      width: zod.number().optional(),
+                      height: zod.number().optional(),
+                    })
+                    .optional()
+                    .describe('image dimensions'),
+                })
+              )
+              .describe('Images'),
+            attachments: zod
+              .array(
+                zod.object({
+                  id: zod.string().describe('ID (TSID)'),
+                  fileName: zod.string().describe('Filename'),
+                  contentType: zod.string().describe('Content-Type'),
+                  url: zod.string().describe('url'),
+                  imageUrl: zod.string().optional().describe('image template url'),
+                  imageDimensions: zod
+                    .object({
+                      width: zod.number().optional(),
+                      height: zod.number().optional(),
+                    })
+                    .optional()
+                    .describe('image dimensions'),
+                })
+              )
+              .describe('Attachments'),
+            originalGpx: zod
+              .object({
+                id: zod.string().describe('ID (TSID)'),
+                fileName: zod.string().describe('Filename'),
+                contentType: zod.string().describe('Content-Type'),
+                url: zod.string().describe('url'),
+                imageUrl: zod.string().optional().describe('image template url'),
+                imageDimensions: zod
+                  .object({
+                    width: zod.number().optional(),
+                    height: zod.number().optional(),
+                  })
+                  .optional()
+                  .describe('image dimensions'),
+              })
+              .optional()
+              .describe('Original GPX'),
+            gpx: zod
+              .object({
+                id: zod.string().describe('ID (TSID)'),
+                fileName: zod.string().describe('Filename'),
+                contentType: zod.string().describe('Content-Type'),
+                url: zod.string().describe('url'),
+                imageUrl: zod.string().optional().describe('image template url'),
+                imageDimensions: zod
+                  .object({
+                    width: zod.number().optional(),
+                    height: zod.number().optional(),
+                  })
+                  .optional()
+                  .describe('image dimensions'),
+              })
+              .optional()
+              .describe('GPX'),
+            fit: zod
+              .object({
+                id: zod.string().describe('ID (TSID)'),
+                fileName: zod.string().describe('Filename'),
+                contentType: zod.string().describe('Content-Type'),
+                url: zod.string().describe('url'),
+                imageUrl: zod.string().optional().describe('image template url'),
+                imageDimensions: zod
+                  .object({
+                    width: zod.number().optional(),
+                    height: zod.number().optional(),
+                  })
+                  .optional()
+                  .describe('image dimensions'),
+              })
+              .optional()
+              .describe('FIT'),
+            thumbnailLight: zod
+              .object({
+                id: zod.string().describe('ID (TSID)'),
+                fileName: zod.string().describe('Filename'),
+                contentType: zod.string().describe('Content-Type'),
+                url: zod.string().describe('url'),
+                imageUrl: zod.string().optional().describe('image template url'),
+                imageDimensions: zod
+                  .object({
+                    width: zod.number().optional(),
+                    height: zod.number().optional(),
+                  })
+                  .optional()
+                  .describe('image dimensions'),
+              })
+              .optional()
+              .describe('Light thumbnail'),
+            thumbnailDark: zod
+              .object({
+                id: zod.string().describe('ID (TSID)'),
+                fileName: zod.string().describe('Filename'),
+                contentType: zod.string().describe('Content-Type'),
+                url: zod.string().describe('url'),
+                imageUrl: zod.string().optional().describe('image template url'),
+                imageDimensions: zod
+                  .object({
+                    width: zod.number().optional(),
+                    height: zod.number().optional(),
+                  })
+                  .optional()
+                  .describe('image dimensions'),
+              })
+              .optional()
+              .describe('Dark thumbnail'),
+          })
+          .describe('Assets'),
+      })
+      .describe('Ad media'),
+    status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Ad status'),
+    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+    adType: zod.enum(['SALE', 'RENTAL', 'WANTED']).describe('Ad type'),
+    price: zod.number().optional().describe('Price'),
+    rentalPeriod: zod.enum(['DAY', 'WEEK', 'MONTH']).optional().describe('Rental period'),
+    locationGeometry: zod
+      .object({
+        type: zod.enum(['Point']),
+        coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+      })
+      .optional()
+      .describe('Location coordinates [longitude, latitude]'),
+    locationDescription: zod.string().optional().describe('Location description'),
+    createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
+    updatedAt: zod.iso.datetime({}).describe('Creation timestamp'),
+    createdById: zod.string().describe('Creator ID (TSID)'),
+    deleted: zod.boolean().describe('Whether the ad is soft-deleted'),
   })
   .describe('Ad data')

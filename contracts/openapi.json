@@ -5,7 +5,7 @@
       "AdDto" : {
         "description" : "Ad data",
         "type" : "object",
-        "required" : [ "team", "id", "slug", "name", "media", "status", "visibility", "adType", "createdAt", "updatedAt", "createdById" ],
+        "required" : [ "team", "id", "slug", "name", "media", "status", "visibility", "adType", "createdAt", "updatedAt", "createdById", "deleted" ],
         "properties" : {
           "team" : {
             "description" : "Team",
@@ -70,13 +70,17 @@
           "createdById" : {
             "type" : "string",
             "description" : "Creator ID (TSID)"
+          },
+          "deleted" : {
+            "type" : "boolean",
+            "description" : "Whether the ad is soft-deleted"
           }
         }
       },
       "AdEditDto" : {
         "description" : "Ad data",
         "type" : "object",
-        "required" : [ "team", "id", "slug", "name", "media", "status", "visibility", "adType", "createdAt", "updatedAt", "createdById" ],
+        "required" : [ "team", "id", "slug", "name", "media", "status", "visibility", "adType", "createdAt", "updatedAt", "createdById", "deleted" ],
         "properties" : {
           "team" : {
             "description" : "Team",
@@ -162,6 +166,10 @@
           "createdById" : {
             "type" : "string",
             "description" : "Creator ID (TSID)"
+          },
+          "deleted" : {
+            "type" : "boolean",
+            "description" : "Whether the ad is soft-deleted"
           }
         }
       },
@@ -1781,7 +1789,7 @@
       "PostDto" : {
         "description" : "Post summary data",
         "type" : "object",
-        "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "visibility" ],
+        "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "visibility", "deleted" ],
         "properties" : {
           "type" : {
             "description" : "Type",
@@ -1834,6 +1842,10 @@
             "description" : "Creation timestamp",
             "type" : "string",
             "$ref" : "#/components/schemas/Instant"
+          },
+          "deleted" : {
+            "type" : "boolean",
+            "description" : "Whether the post is soft-deleted"
           }
         }
       },
@@ -2063,7 +2075,7 @@
       "RideDto" : {
         "description" : "Ride summary data",
         "type" : "object",
-        "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "visibility", "participantCount", "groupCount", "groups", "topParticipants" ],
+        "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "visibility", "participantCount", "groupCount", "groups", "topParticipants", "deleted" ],
         "properties" : {
           "type" : {
             "description" : "Type",
@@ -2162,6 +2174,10 @@
           "thumbnailDarkUrl" : {
             "type" : "string",
             "description" : "Thumbnail URL (dark)"
+          },
+          "deleted" : {
+            "type" : "boolean",
+            "description" : "Whether the ride is soft-deleted"
           }
         }
       },
@@ -2515,7 +2531,7 @@
       "RouteDetailDto" : {
         "description" : "Detailed route information",
         "type" : "object",
-        "required" : [ "id", "slug", "team", "name", "media", "distance", "elevationGain", "elevationLoss", "surfaceType", "visibility", "createdBy", "createdAt", "updatedAt", "tracks", "waypoints" ],
+        "required" : [ "id", "slug", "team", "name", "media", "distance", "elevationGain", "elevationLoss", "surfaceType", "visibility", "createdBy", "createdAt", "updatedAt", "tracks", "waypoints", "deleted" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -2600,13 +2616,17 @@
               "$ref" : "#/components/schemas/WaypointDto"
             },
             "description" : "Waypoints"
+          },
+          "deleted" : {
+            "type" : "boolean",
+            "description" : "Whether the route is soft-deleted"
           }
         }
       },
       "RouteDto" : {
         "description" : "Route summary data",
         "type" : "object",
-        "required" : [ "id", "slug", "team", "name", "media", "distance", "elevationGain", "elevationLoss", "surfaceType", "visibility", "createdAt" ],
+        "required" : [ "id", "slug", "team", "name", "media", "distance", "elevationGain", "elevationLoss", "surfaceType", "visibility", "createdAt", "deleted" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -2659,6 +2679,10 @@
             "description" : "Creation timestamp",
             "type" : "string",
             "$ref" : "#/components/schemas/Instant"
+          },
+          "deleted" : {
+            "type" : "boolean",
+            "description" : "Whether the route is soft-deleted"
           }
         }
       },
@@ -2983,7 +3007,7 @@
       "TeamPageDto" : {
         "description" : "Team page detail",
         "type" : "object",
-        "required" : [ "team", "id", "title", "slug", "media", "visibility", "order" ],
+        "required" : [ "team", "id", "title", "slug", "media", "visibility", "order", "deleted" ],
         "properties" : {
           "team" : {
             "description" : "Team",
@@ -3016,6 +3040,10 @@
             "type" : "integer",
             "format" : "int32",
             "description" : "Page order"
+          },
+          "deleted" : {
+            "type" : "boolean",
+            "description" : "Whether the page is soft-deleted"
           }
         }
       },
@@ -3046,7 +3074,7 @@
       "TeamPageSummaryDto" : {
         "description" : "Team page summary for listings",
         "type" : "object",
-        "required" : [ "id", "title", "slug", "visibility", "order" ],
+        "required" : [ "id", "title", "slug", "visibility", "order", "deleted" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -3069,6 +3097,10 @@
             "type" : "integer",
             "format" : "int32",
             "description" : "Page order"
+          },
+          "deleted" : {
+            "type" : "boolean",
+            "description" : "Whether the page is soft-deleted"
           }
         }
       },
@@ -3194,7 +3226,7 @@
       "TripDto" : {
         "description" : "Trip data",
         "type" : "object",
-        "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "visibility", "participantCount", "stageCount", "stages", "participants" ],
+        "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "visibility", "participantCount", "stageCount", "stages", "participants", "deleted" ],
         "properties" : {
           "type" : {
             "description" : "Type",
@@ -3283,6 +3315,10 @@
           "thumbnailDarkUrl" : {
             "type" : "string",
             "description" : "Thumbnail URL (dark)"
+          },
+          "deleted" : {
+            "type" : "boolean",
+            "description" : "Whether the trip is soft-deleted"
           }
         }
       },
@@ -7383,6 +7419,76 @@
         } ]
       }
     },
+    "/api/teams/{teamSlug}/ads/{slug}/undelete" : {
+      "post" : {
+        "summary" : "Restore ad",
+        "description" : "Restore a soft-deleted ad. Only the creator or an admin can restore.",
+        "operationId" : "undeleteAd",
+        "tags" : [ "Ads" ],
+        "parameters" : [ {
+          "description" : "Ad URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Ad restored successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AdEditDto"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "User is not authorized to restore this ad",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team or ad not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
     "/api/teams/{teamSlug}/assets" : {
       "post" : {
         "summary" : "Create asset",
@@ -8515,6 +8621,76 @@
         } ]
       }
     },
+    "/api/teams/{teamSlug}/pages/{pageSlug}/undelete" : {
+      "post" : {
+        "summary" : "Restore page",
+        "description" : "Restore a soft-deleted team page. Requires admin permissions.",
+        "operationId" : "undeletePage",
+        "tags" : [ "Team Pages" ],
+        "parameters" : [ {
+          "description" : "Page URL slug",
+          "name" : "pageSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Page restored successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TeamPageDto"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "User is not a team admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team or page not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
     "/api/teams/{teamSlug}/places" : {
       "get" : {
         "summary" : "List places",
@@ -9404,6 +9580,76 @@
           },
           "403" : {
             "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{teamSlug}/posts/{postSlug}/undelete" : {
+      "post" : {
+        "summary" : "Restore post",
+        "description" : "Restore a soft-deleted post. Requires organizer permissions.",
+        "operationId" : "undeletePost",
+        "tags" : [ "Posts" ],
+        "parameters" : [ {
+          "description" : "Post URL slug",
+          "name" : "postSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Post restored successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PostDto"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "User is not authorized to restore this post",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team or post not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         },
         "security" : [ {
@@ -10573,6 +10819,76 @@
         } ]
       }
     },
+    "/api/teams/{teamSlug}/rides/{rideSlug}/undelete" : {
+      "post" : {
+        "summary" : "Restore ride",
+        "description" : "Restore a soft-deleted ride. Requires organizer permissions.",
+        "operationId" : "undeleteRide",
+        "tags" : [ "Rides" ],
+        "parameters" : [ {
+          "description" : "Ride URL slug",
+          "name" : "rideSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Ride restored successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RideDto"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "User is not authorized to restore this ride",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team or ride not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
     "/api/teams/{teamSlug}/routes" : {
       "get" : {
         "summary" : "List routes",
@@ -11293,6 +11609,76 @@
           },
           "409" : {
             "description" : "Slug already in use",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{teamSlug}/routes/{routeSlug}/undelete" : {
+      "post" : {
+        "summary" : "Restore route",
+        "description" : "Restore a soft-deleted route. Requires route creator or team admin permissions.",
+        "operationId" : "undeleteRoute",
+        "tags" : [ "Routes" ],
+        "parameters" : [ {
+          "description" : "Route slug",
+          "name" : "routeSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Route restored successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RouteDetailDto"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "User is not authorized to restore this route",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team or route not found",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -12060,6 +12446,76 @@
           },
           "409" : {
             "description" : "Slug already in use",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{teamSlug}/trips/{tripSlug}/undelete" : {
+      "post" : {
+        "summary" : "Restore trip",
+        "description" : "Restore a soft-deleted trip. Requires organizer permissions.",
+        "operationId" : "undeleteTrip",
+        "tags" : [ "Trips" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Trip URL slug",
+          "name" : "tripSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Trip restored successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TripDto"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "User is not authorized to restore this trip",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team or trip not found",
             "content" : {
               "application/json" : {
                 "schema" : {

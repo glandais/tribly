@@ -14,4 +14,6 @@ export interface TeamPageSummaryDto {
   visibility: Visibility
   /** Page order */
   order: number
+  /** Whether the page is soft-deleted */
+  deleted: boolean
 }

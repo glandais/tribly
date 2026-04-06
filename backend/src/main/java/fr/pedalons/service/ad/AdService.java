@@ -141,6 +141,16 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
     adRepository.persist(ad);
   }
 
+  @CheckAccess(entityType = EntityType.AD, action = ActionType.DELETE)
+  @Transactional
+  public AdEditDto undeleteAd(String teamSlug, String adSlug) {
+    Team team = teamService.getTeam(teamSlug);
+    Ad ad = findBySlugIncludeDeleted(team, adSlug);
+    ad.setDeleted(false);
+    adRepository.persist(ad);
+    return AdEditDto.from(ad, assetService);
+  }
+
   private void verifyAd(Team team, AdRequest request) {
     // Validate rental period for rental ads
     if (request.adType() == AdType.RENTAL && request.rentalPeriod() == null) {

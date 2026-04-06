@@ -273,6 +273,7 @@ export const ListAllPublicationsResponse = zod
                   .describe('Preview of first participants (max 5)'),
                 thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
                 thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
+                deleted: zod.boolean().describe('Whether the ride is soft-deleted'),
               })
               .describe('Ride summary data'),
             zod
@@ -443,6 +444,7 @@ export const ListAllPublicationsResponse = zod
                 visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
                 publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
                 createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
+                deleted: zod.boolean().describe('Whether the post is soft-deleted'),
               })
               .describe('Post summary data'),
             zod
@@ -854,6 +856,7 @@ export const ListAllPublicationsResponse = zod
                   .describe('Trip participants'),
                 thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
                 thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
+                deleted: zod.boolean().describe('Whether the trip is soft-deleted'),
               })
               .describe('Trip data'),
           ])
@@ -1150,6 +1153,7 @@ export const ListPublicationsResponse = zod
                   .describe('Preview of first participants (max 5)'),
                 thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
                 thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
+                deleted: zod.boolean().describe('Whether the ride is soft-deleted'),
               })
               .describe('Ride summary data'),
             zod
@@ -1320,6 +1324,7 @@ export const ListPublicationsResponse = zod
                 visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
                 publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
                 createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
+                deleted: zod.boolean().describe('Whether the post is soft-deleted'),
               })
               .describe('Post summary data'),
             zod
@@ -1731,6 +1736,7 @@ export const ListPublicationsResponse = zod
                   .describe('Trip participants'),
                 thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
                 thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
+                deleted: zod.boolean().describe('Whether the trip is soft-deleted'),
               })
               .describe('Trip data'),
           ])

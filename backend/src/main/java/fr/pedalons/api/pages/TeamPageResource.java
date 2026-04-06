@@ -180,6 +180,38 @@ public class TeamPageResource {
     return Response.noContent().build();
   }
 
+  @POST
+  @Path("/{pageSlug}/undelete")
+  @Operation(
+      operationId = "undeletePage",
+      summary = "Restore page",
+      description = "Restore a soft-deleted team page. Requires admin permissions.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Page restored successfully",
+        content = @Content(schema = @Schema(implementation = TeamPageDto.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "User is not a team admin",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team or page not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  @RolesAllowed("user")
+  public Response undeletePage(
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
+      @Parameter(description = "Page URL slug") @PathParam("pageSlug") String pageSlug) {
+    TeamPageDto dto = teamPageService.undeletePage(teamSlug, pageSlug);
+    return Response.ok(dto).build();
+  }
+
   @PUT
   @Path("/reorder")
   @Operation(

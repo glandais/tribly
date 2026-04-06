@@ -399,4 +399,37 @@ class PostServiceTest extends AbstractBaseTest {
           () -> postService.deletePost(publicTeam.getSlug(), "nonexistent"));
     }
   }
+
+  @Nested
+  class UndeletePost {
+
+    @Test
+    void shouldRestoreDeletedPost() {
+      Post post =
+          dataService.createPost(publicTeam, admin, "To Restore", Instant.now(), Visibility.PUBLIC);
+
+      userService.setUserForTest(organizer);
+      postService.deletePost(publicTeam.getSlug(), post.getSlug());
+
+      userService.setUserForTest(admin);
+      PostDto result = postService.undeletePost(publicTeam.getSlug(), post.getSlug());
+
+      assertFalse(result.isDeleted());
+      assertEquals(post.getSlug(), result.getSlug());
+    }
+
+    @Test
+    void shouldThrowForMember() {
+      Post post =
+          dataService.createPost(publicTeam, admin, "Test", Instant.now(), Visibility.PUBLIC);
+
+      userService.setUserForTest(organizer);
+      postService.deletePost(publicTeam.getSlug(), post.getSlug());
+
+      userService.setUserForTest(member);
+      assertThrows(
+          PedalonsException.class,
+          () -> postService.undeletePost(publicTeam.getSlug(), post.getSlug()));
+    }
+  }
 }

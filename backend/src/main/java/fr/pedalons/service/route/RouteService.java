@@ -262,7 +262,7 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
   }
 
   /**
-   * Delete route (soft delete) and cleanup files.
+   * Delete route (soft delete).
    */
   @Transactional
   @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.DELETE)
@@ -272,9 +272,16 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
 
     route.setDeleted(true);
     routeRepository.persist(route);
+  }
 
-    // Delete associated files
-    gpxProcessingService.deleteRouteFiles(route);
+  @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.DELETE)
+  @Transactional
+  public RouteDetailDto undeleteRoute(String teamSlug, String slug) {
+    Team team = teamService.getTeam(teamSlug);
+    Route route = findBySlugIncludeDeleted(team, slug);
+    route.setDeleted(false);
+    routeRepository.persist(route);
+    return RouteDetailDto.from(route, assetService);
   }
 
   @Override

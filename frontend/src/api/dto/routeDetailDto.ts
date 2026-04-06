@@ -44,4 +44,6 @@ export interface RouteDetailDto {
   tracks: TrackDto[]
   /** Waypoints */
   waypoints: WaypointDto[]
+  /** Whether the route is soft-deleted */
+  deleted: boolean
 }

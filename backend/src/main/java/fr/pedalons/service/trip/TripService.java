@@ -239,6 +239,16 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
     tripRepository.persist(trip);
   }
 
+  @CheckAccess(entityType = EntityType.TRIP, action = ActionType.DELETE)
+  @Transactional
+  public TripDto undeleteTrip(String teamSlug, String tripSlug) {
+    Team team = teamService.getTeam(teamSlug);
+    Trip trip = findBySlugIncludeDeleted(team, tripSlug);
+    trip.setDeleted(false);
+    tripRepository.persist(trip);
+    return TripDto.from(trip, true, assetService);
+  }
+
   @Transactional
   @CheckAccess(entityType = EntityType.TRIP, action = ActionType.JOIN)
   public TripParticipationDto joinTrip(String teamSlug, String tripSlug) {

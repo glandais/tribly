@@ -75,6 +75,22 @@ public abstract class TeamEntityService<
                     () -> new NotFoundException(getRepository().getAllEntityType(), entitySlug)));
   }
 
+  protected T findBySlugIncludeDeleted(Team team, String entitySlug) {
+    Long domainId = pedalonsContext.getDomainId();
+    Long userId = pedalonsContext.getUserIdNullable();
+    Optional<T> byTeamAndSlug =
+        getRepository().findByTeamAndSlug(domainId, team.getId(), userId, entitySlug, true);
+    return byTeamAndSlug.orElseGet(
+        () ->
+            slugService
+                .resolveEntityRedirect(team.getId(), getRepository().getEntityType(), entitySlug)
+                .map(TeamEntitySlugRedirect::getEntityId)
+                .flatMap(
+                    id -> getRepository().findByTeamAndId(domainId, team.getId(), userId, id, true))
+                .orElseThrow(
+                    () -> new NotFoundException(getRepository().getAllEntityType(), entitySlug)));
+  }
+
   protected boolean isIncludeDeleted(Team team) {
     return includeDeletedService.isTeamEntityIncludeDeleted(team);
   }

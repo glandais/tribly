@@ -32,6 +32,7 @@ import {
   useGetTrip,
   useUpdateTrip,
   useDeleteTrip,
+  useUndeleteTrip,
   useJoinTrip,
   useLeaveTrip,
   getGetTripQueryKey,
@@ -86,6 +87,7 @@ export function TripDetailPage() {
 
   const updateMutation = useUpdateTrip()
   const deleteMutation = useDeleteTrip()
+  const undeleteMutation = useUndeleteTrip()
   const joinMutation = useJoinTrip()
   const leaveMutation = useLeaveTrip()
 
@@ -200,6 +202,19 @@ export function TripDetailPage() {
     setShowDeleteConfirm(false)
   }
 
+  const handleRestore = () => {
+    undeleteMutation.mutate(
+      { teamSlug: teamSlug!, tripSlug: tripSlug! },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
+          notifications.show({ message: t('trips.notifications.restored'), color: 'green' })
+        },
+      }
+    )
+  }
+
   const handleJoin = () => {
     joinMutation.mutate(
       { teamSlug: teamSlug!, tripSlug: tripSlug! },
@@ -292,6 +307,15 @@ export function TripDetailPage() {
                     {trip.status === Status.CANCELLED && (
                       <Menu.Item onClick={() => setShowUncancelConfirm(true)} color="green">
                         {t('trips.detail.actions.uncancel')}
+                      </Menu.Item>
+                    )}
+                    {trip.deleted && (
+                      <Menu.Item
+                        onClick={handleRestore}
+                        color="green"
+                        disabled={undeleteMutation.isPending}
+                      >
+                        {t('actions.restore')}
                       </Menu.Item>
                     )}
                     <Menu.Divider />

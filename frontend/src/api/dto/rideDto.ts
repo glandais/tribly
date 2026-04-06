@@ -51,4 +51,6 @@ export interface RideDto {
   thumbnailLightUrl?: string
   /** Thumbnail URL (dark) */
   thumbnailDarkUrl?: string
+  /** Whether the ride is soft-deleted */
+  deleted: boolean
 }

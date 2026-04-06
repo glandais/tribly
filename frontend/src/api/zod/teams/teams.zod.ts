@@ -182,6 +182,7 @@ export const ListTeamsResponse = zod
                     slug: zod.string().describe('Page URL slug'),
                     visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
                     order: zod.number().describe('Page order'),
+                    deleted: zod.boolean().describe('Whether the page is soft-deleted'),
                   })
                   .describe('Team page summary for listings')
               )
@@ -739,6 +740,7 @@ export const UpdateTeamResponse = zod
             slug: zod.string().describe('Page URL slug'),
             visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
             order: zod.number().describe('Page order'),
+            deleted: zod.boolean().describe('Whether the page is soft-deleted'),
           })
           .describe('Team page summary for listings')
       )
@@ -935,6 +937,7 @@ export const GetTeamResponse = zod
             slug: zod.string().describe('Page URL slug'),
             visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
             order: zod.number().describe('Page order'),
+            deleted: zod.boolean().describe('Whether the page is soft-deleted'),
           })
           .describe('Team page summary for listings')
       )
@@ -1153,6 +1156,7 @@ export const ChangeTeamSlugResponse = zod
             slug: zod.string().describe('Page URL slug'),
             visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
             order: zod.number().describe('Page order'),
+            deleted: zod.boolean().describe('Whether the page is soft-deleted'),
           })
           .describe('Team page summary for listings')
       )

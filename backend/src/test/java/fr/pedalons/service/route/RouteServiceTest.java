@@ -370,9 +370,6 @@ class RouteServiceTest extends AbstractBaseTest {
 
     queryContext.setUserForTest(member);
     assertThrows(PedalonsException.class, () -> routeService.getDto(team.getSlug(), routeSlug));
-
-    // Cleanup handled by gpxProcessingService.deleteRouteFiles
-    createdRoute = null; // Prevent double cleanup in @AfterEach
   }
 
   @Test
@@ -382,5 +379,33 @@ class RouteServiceTest extends AbstractBaseTest {
     queryContext.setUserForTest(member);
     assertThrows(
         PedalonsException.class, () -> routeService.deleteRoute(team.getSlug(), route.getSlug()));
+  }
+
+  // ==================== Undelete Route ====================
+
+  @Test
+  void undeleteRoute_shouldRestoreDeletedRoute() {
+    Route route = dataService.createRoute(team, admin, "To Restore");
+
+    queryContext.setUserForTest(organizer);
+    routeService.deleteRoute(team.getSlug(), route.getSlug());
+
+    queryContext.setUserForTest(admin);
+    RouteDetailDto result = routeService.undeleteRoute(team.getSlug(), route.getSlug());
+
+    assertFalse(result.deleted());
+    assertEquals(route.getSlug(), result.slug());
+  }
+
+  @Test
+  void undeleteRoute_shouldThrowForNonOrganizer() {
+    Route route = dataService.createRoute(team, admin, "Test");
+
+    queryContext.setUserForTest(organizer);
+    routeService.deleteRoute(team.getSlug(), route.getSlug());
+
+    queryContext.setUserForTest(member);
+    assertThrows(
+        PedalonsException.class, () -> routeService.undeleteRoute(team.getSlug(), route.getSlug()));
   }
 }

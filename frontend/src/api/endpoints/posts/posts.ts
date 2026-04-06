@@ -481,3 +481,81 @@ export const useChangePostSlug = <TError = ErrorType<ErrorResponse | void>, TCon
 > => {
   return useMutation(getChangePostSlugMutationOptions(options), queryClient)
 }
+/**
+ * Restore a soft-deleted post. Requires organizer permissions.
+ * @summary Restore post
+ */
+export const undeletePost = (
+  teamSlug: string,
+  postSlug: string,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<PostDto>(
+    { url: `/api/teams/${teamSlug}/posts/${postSlug}/undelete`, method: 'POST', signal },
+    options
+  )
+}
+
+export const getUndeletePostMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof undeletePost>>,
+    TError,
+    { teamSlug: string; postSlug: string },
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof undeletePost>>,
+  TError,
+  { teamSlug: string; postSlug: string },
+  TContext
+> => {
+  const mutationKey = ['undeletePost']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof undeletePost>>,
+    { teamSlug: string; postSlug: string }
+  > = (props) => {
+    const { teamSlug, postSlug } = props ?? {}
+
+    return undeletePost(teamSlug, postSlug, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type UndeletePostMutationResult = NonNullable<Awaited<ReturnType<typeof undeletePost>>>
+
+export type UndeletePostMutationError = ErrorType<ErrorResponse>
+
+/**
+ * @summary Restore post
+ */
+export const useUndeletePost = <TError = ErrorType<ErrorResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof undeletePost>>,
+      TError,
+      { teamSlug: string; postSlug: string },
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof undeletePost>>,
+  TError,
+  { teamSlug: string; postSlug: string },
+  TContext
+> => {
+  return useMutation(getUndeletePostMutationOptions(options), queryClient)
+}

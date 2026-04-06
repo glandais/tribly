@@ -24,6 +24,7 @@ import {
   useGetPost,
   useUpdatePost,
   useDeletePost,
+  useUndeletePost,
   getGetPostQueryKey,
 } from '../../api/endpoints/posts/posts'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
@@ -65,6 +66,7 @@ export function PostDetailPage() {
 
   const updateMutation = useUpdatePost()
   const deleteMutation = useDeletePost()
+  const undeleteMutation = useUndeletePost()
 
   useCanonicalPath(team && post ? paths.post(team.slug, post.slug) : undefined)
 
@@ -167,6 +169,18 @@ export function PostDetailPage() {
     )
   }
 
+  const handleRestore = () => {
+    undeleteMutation.mutate(
+      { teamSlug: teamSlug!, postSlug: postSlug! },
+      {
+        onSuccess: () => {
+          invalidatePosts()
+          notifications.show({ message: i18next.t('posts.notifications.restored'), color: 'green' })
+        },
+      }
+    )
+  }
+
   return (
     <Container size="md" py="xl">
       <Stack>
@@ -223,6 +237,15 @@ export function PostDetailPage() {
                     {post.status === Status.CANCELLED && (
                       <Menu.Item onClick={() => setShowUncancelConfirm(true)} color="green">
                         {t('posts.detail.actions.uncancel')}
+                      </Menu.Item>
+                    )}
+                    {post.deleted && (
+                      <Menu.Item
+                        onClick={handleRestore}
+                        color="green"
+                        disabled={undeleteMutation.isPending}
+                      >
+                        {t('actions.restore')}
                       </Menu.Item>
                     )}
                     <Menu.Divider />

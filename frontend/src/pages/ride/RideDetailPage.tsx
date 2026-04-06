@@ -32,6 +32,7 @@ import {
   useGetRide,
   useUpdateRide,
   useDeleteRide,
+  useUndeleteRide,
   useJoinGroup,
   useLeaveGroup,
   getGetRideQueryKey,
@@ -88,6 +89,7 @@ export function RideDetailPage() {
   const navigate = useNavigate()
   const updateMutation = useUpdateRide()
   const deleteMutation = useDeleteRide()
+  const undeleteMutation = useUndeleteRide()
   const joinMutation = useJoinGroup()
   const leaveMutation = useLeaveGroup()
 
@@ -215,6 +217,19 @@ export function RideDetailPage() {
     setShowDeleteConfirm(false)
   }
 
+  const handleRestore = () => {
+    undeleteMutation.mutate(
+      { teamSlug: teamSlug!, rideSlug: rideSlug! },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
+          notifications.show({ message: t('rides.notifications.restored'), color: 'green' })
+        },
+      }
+    )
+  }
+
   const handleJoinGroup = (groupId: string) => {
     setJoiningGroupId(groupId)
     joinMutation.mutate(
@@ -301,6 +316,15 @@ export function RideDetailPage() {
                   {ride.status === Status.CANCELLED && (
                     <Menu.Item onClick={() => setShowUncancelConfirm(true)} color="green">
                       {t('rides.detail.actions.uncancel')}
+                    </Menu.Item>
+                  )}
+                  {ride.deleted && (
+                    <Menu.Item
+                      onClick={handleRestore}
+                      color="green"
+                      disabled={undeleteMutation.isPending}
+                    >
+                      {t('actions.restore')}
                     </Menu.Item>
                   )}
                   <Menu.Divider />

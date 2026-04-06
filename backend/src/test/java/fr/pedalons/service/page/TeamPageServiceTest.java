@@ -6,6 +6,7 @@ import fr.pedalons.AbstractBaseTest;
 import fr.pedalons.common.TsidUtils;
 import fr.pedalons.common.exception.BusinessException;
 import fr.pedalons.common.exception.ForbiddenException;
+import fr.pedalons.common.exception.PedalonsException;
 import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.team.TeamPage;
@@ -287,6 +288,37 @@ class TeamPageServiceTest extends AbstractBaseTest {
       queryContext.setUserForTest(admin);
       assertThrows(
           ForbiddenException.class, () -> teamPageService.deletePage(team.getSlug(), "about"));
+    }
+  }
+
+  @Nested
+  class UndeletePage {
+
+    @Test
+    void shouldRestoreDeletedPage() {
+      TeamPage page = dataService.createAdditionalPage(team, admin, "To Restore", 1);
+
+      queryContext.setUserForTest(admin);
+      teamPageService.deletePage(team.getSlug(), page.getSlug());
+
+      queryContext.setUserForTest(admin);
+      TeamPageDto result = teamPageService.undeletePage(team.getSlug(), page.getSlug());
+
+      assertFalse(result.deleted());
+      assertEquals(page.getSlug(), result.slug());
+    }
+
+    @Test
+    void shouldThrowForNonAdmin() {
+      TeamPage page = dataService.createAdditionalPage(team, admin, "Test Page", 1);
+
+      queryContext.setUserForTest(admin);
+      teamPageService.deletePage(team.getSlug(), page.getSlug());
+
+      queryContext.setUserForTest(member);
+      assertThrows(
+          PedalonsException.class,
+          () -> teamPageService.undeletePage(team.getSlug(), page.getSlug()));
     }
   }
 

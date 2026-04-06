@@ -1,2 +1,1 @@
-
-export type RegisterPasskeyBody = {[key: string]: unknown};
+export type RegisterPasskeyBody = { [key: string]: unknown }

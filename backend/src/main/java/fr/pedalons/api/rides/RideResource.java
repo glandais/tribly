@@ -156,6 +156,38 @@ public class RideResource {
     return Response.noContent().build();
   }
 
+  @POST
+  @Path("/{rideSlug}/undelete")
+  @Operation(
+      operationId = "undeleteRide",
+      summary = "Restore ride",
+      description = "Restore a soft-deleted ride. Requires organizer permissions.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Ride restored successfully",
+        content = @Content(schema = @Schema(implementation = RideDto.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "User is not authorized to restore this ride",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team or ride not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  @RolesAllowed("user")
+  public Response undeleteRide(
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
+      @Parameter(description = "Ride URL slug") @PathParam("rideSlug") String rideSlug) {
+    RideDto dto = rideService.undeleteRide(teamSlug, rideSlug);
+    return Response.ok(dto).build();
+  }
+
   @PATCH
   @Path("/{rideSlug}/slug")
   @Operation(

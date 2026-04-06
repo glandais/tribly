@@ -30,4 +30,6 @@ export interface RouteDto {
   visibility: Visibility
   /** Creation timestamp */
   createdAt: Instant
+  /** Whether the route is soft-deleted */
+  deleted: boolean
 }

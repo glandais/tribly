@@ -691,3 +691,81 @@ export const useChangePageSlug = <TError = ErrorType<ErrorResponse>, TContext = 
 > => {
   return useMutation(getChangePageSlugMutationOptions(options), queryClient)
 }
+/**
+ * Restore a soft-deleted team page. Requires admin permissions.
+ * @summary Restore page
+ */
+export const undeletePage = (
+  teamSlug: string,
+  pageSlug: string,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<TeamPageDto>(
+    { url: `/api/teams/${teamSlug}/pages/${pageSlug}/undelete`, method: 'POST', signal },
+    options
+  )
+}
+
+export const getUndeletePageMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof undeletePage>>,
+    TError,
+    { teamSlug: string; pageSlug: string },
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof undeletePage>>,
+  TError,
+  { teamSlug: string; pageSlug: string },
+  TContext
+> => {
+  const mutationKey = ['undeletePage']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof undeletePage>>,
+    { teamSlug: string; pageSlug: string }
+  > = (props) => {
+    const { teamSlug, pageSlug } = props ?? {}
+
+    return undeletePage(teamSlug, pageSlug, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type UndeletePageMutationResult = NonNullable<Awaited<ReturnType<typeof undeletePage>>>
+
+export type UndeletePageMutationError = ErrorType<ErrorResponse>
+
+/**
+ * @summary Restore page
+ */
+export const useUndeletePage = <TError = ErrorType<ErrorResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof undeletePage>>,
+      TError,
+      { teamSlug: string; pageSlug: string },
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof undeletePage>>,
+  TError,
+  { teamSlug: string; pageSlug: string },
+  TContext
+> => {
+  return useMutation(getUndeletePageMutationOptions(options), queryClient)
+}

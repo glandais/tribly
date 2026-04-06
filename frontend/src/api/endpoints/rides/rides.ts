@@ -653,3 +653,81 @@ export const useChangeRideSlug = <TError = ErrorType<ErrorResponse>, TContext = 
 > => {
   return useMutation(getChangeRideSlugMutationOptions(options), queryClient)
 }
+/**
+ * Restore a soft-deleted ride. Requires organizer permissions.
+ * @summary Restore ride
+ */
+export const undeleteRide = (
+  teamSlug: string,
+  rideSlug: string,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<RideDto>(
+    { url: `/api/teams/${teamSlug}/rides/${rideSlug}/undelete`, method: 'POST', signal },
+    options
+  )
+}
+
+export const getUndeleteRideMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof undeleteRide>>,
+    TError,
+    { teamSlug: string; rideSlug: string },
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof undeleteRide>>,
+  TError,
+  { teamSlug: string; rideSlug: string },
+  TContext
+> => {
+  const mutationKey = ['undeleteRide']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof undeleteRide>>,
+    { teamSlug: string; rideSlug: string }
+  > = (props) => {
+    const { teamSlug, rideSlug } = props ?? {}
+
+    return undeleteRide(teamSlug, rideSlug, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type UndeleteRideMutationResult = NonNullable<Awaited<ReturnType<typeof undeleteRide>>>
+
+export type UndeleteRideMutationError = ErrorType<ErrorResponse>
+
+/**
+ * @summary Restore ride
+ */
+export const useUndeleteRide = <TError = ErrorType<ErrorResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof undeleteRide>>,
+      TError,
+      { teamSlug: string; rideSlug: string },
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof undeleteRide>>,
+  TError,
+  { teamSlug: string; rideSlug: string },
+  TContext
+> => {
+  return useMutation(getUndeleteRideMutationOptions(options), queryClient)
+}

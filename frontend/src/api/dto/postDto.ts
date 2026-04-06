@@ -30,4 +30,6 @@ export interface PostDto {
   publishAt?: Instant
   /** Creation timestamp */
   createdAt?: Instant
+  /** Whether the post is soft-deleted */
+  deleted: boolean
 }

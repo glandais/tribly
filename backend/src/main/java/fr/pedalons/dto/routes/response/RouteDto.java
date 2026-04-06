@@ -27,7 +27,8 @@ public record RouteDto(
     @Schema(description = "Total elevation loss in meters", required = true) Float elevationLoss,
     @Schema(description = "Surface type", required = true) SurfaceType surfaceType,
     @Schema(description = "Whether the route is public", required = true) Visibility visibility,
-    @Schema(description = "Creation timestamp", required = true) Instant createdAt) {
+    @Schema(description = "Creation timestamp", required = true) Instant createdAt,
+    @Schema(description = "Whether the route is soft-deleted", required = true) boolean deleted) {
   public static RouteDto from(Route route, AssetService assetService) {
     return new RouteDto(
         TsidUtils.toString(route.getId()),
@@ -40,6 +41,7 @@ public record RouteDto(
         route.getElevationLoss(),
         route.getSurfaceType(),
         route.getVisibility(),
-        route.getCreatedAt());
+        route.getCreatedAt(),
+        route.isDeleted());
   }
 }

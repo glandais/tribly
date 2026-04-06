@@ -18,7 +18,8 @@ public record TeamPageDto(
     @Schema(description = "Page URL slug", required = true) String slug,
     @Schema(description = "Page content", required = true) MediaDto media,
     @Schema(description = "Visibility level", required = true) Visibility visibility,
-    @Schema(description = "Page order", required = true) int order) {
+    @Schema(description = "Page order", required = true) int order,
+    @Schema(description = "Whether the page is soft-deleted", required = true) boolean deleted) {
 
   public static TeamPageDto from(TeamPage page, AssetService assetService) {
     return new TeamPageDto(
@@ -28,6 +29,7 @@ public record TeamPageDto(
         page.getSlug(),
         MediaDto.from(page, assetService),
         page.getVisibility(),
-        page.getPageOrder() != null ? page.getPageOrder() : 0);
+        page.getPageOrder() != null ? page.getPageOrder() : 0,
+        page.isDeleted());
   }
 }

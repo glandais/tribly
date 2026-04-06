@@ -274,6 +274,39 @@ public class RouteResource {
     return Response.noContent().build();
   }
 
+  @POST
+  @Path("/{routeSlug}/undelete")
+  @Operation(
+      operationId = "undeleteRoute",
+      summary = "Restore route",
+      description =
+          "Restore a soft-deleted route. Requires route creator or team admin permissions.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Route restored successfully",
+        content = @Content(schema = @Schema(implementation = RouteDetailDto.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "User is not authorized to restore this route",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team or route not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  @RolesAllowed("user")
+  public Response undeleteRoute(
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
+      @Parameter(description = "Route slug") @PathParam("routeSlug") String routeSlug) {
+    RouteDetailDto dto = routeService.undeleteRoute(teamSlug, routeSlug);
+    return Response.ok(dto).build();
+  }
+
   @PATCH
   @Path("/{routeSlug}/slug")
   @Operation(

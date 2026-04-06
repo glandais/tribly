@@ -13,7 +13,8 @@ public record TeamPageSummaryDto(
     @Schema(description = "Page title", required = true) String title,
     @Schema(description = "Page URL slug", required = true) String slug,
     @Schema(description = "Visibility level", required = true) Visibility visibility,
-    @Schema(description = "Page order", required = true) int order) {
+    @Schema(description = "Page order", required = true) int order,
+    @Schema(description = "Whether the page is soft-deleted", required = true) boolean deleted) {
 
   public static TeamPageSummaryDto from(TeamPage page) {
     return new TeamPageSummaryDto(
@@ -21,6 +22,7 @@ public record TeamPageSummaryDto(
         page.getName(),
         page.getSlug(),
         page.getVisibility(),
-        page.getPageOrder() != null ? page.getPageOrder() : 0);
+        page.getPageOrder() != null ? page.getPageOrder() : 0,
+        page.isDeleted());
   }
 }

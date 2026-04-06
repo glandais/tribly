@@ -149,6 +149,16 @@ public class TeamPageService extends TeamEntityService<TeamPage, TeamPageReposit
     teamPageRepository.persist(page);
   }
 
+  @CheckAccess(entityType = EntityType.TEAM_PAGE, action = ActionType.DELETE)
+  @Transactional
+  public TeamPageDto undeletePage(String teamSlug, String pageSlug) {
+    Team team = teamService.getTeam(teamSlug);
+    TeamPage page = findBySlugIncludeDeleted(team, pageSlug);
+    page.setDeleted(false);
+    teamPageRepository.persist(page);
+    return TeamPageDto.from(page, assetService);
+  }
+
   @Transactional
   @CheckAccess(entityType = EntityType.TEAM_PAGE, action = ActionType.CREATE)
   public List<TeamPageSummaryDto> reorderPages(String teamSlug, ReorderPagesRequest request) {

@@ -17,6 +17,7 @@ components:
       - createdAt
       - updatedAt
       - createdById
+      - deleted
       properties:
         team:
           description: Team
@@ -68,6 +69,9 @@ components:
         createdById:
           type: string
           description: Creator ID (TSID)
+        deleted:
+          type: boolean
+          description: Whether the ad is soft-deleted
     AdEditDto:
       description: Ad data
       type: object
@@ -83,6 +87,7 @@ components:
       - createdAt
       - updatedAt
       - createdById
+      - deleted
       properties:
         team:
           description: Team
@@ -156,6 +161,9 @@ components:
         createdById:
           type: string
           description: Creator ID (TSID)
+        deleted:
+          type: boolean
+          description: Whether the ad is soft-deleted
     AdListResponse:
       description: Paginated ad list response
       type: object
@@ -1678,6 +1686,7 @@ components:
       - dateTime
       - status
       - visibility
+      - deleted
       properties:
         type:
           description: Type
@@ -1720,6 +1729,9 @@ components:
           description: Creation timestamp
           type: string
           $ref: "#/components/schemas/Instant"
+        deleted:
+          type: boolean
+          description: Whether the post is soft-deleted
     PostListResponse:
       description: Paginated post list response
       type: object
@@ -1938,6 +1950,7 @@ components:
       - groupCount
       - groups
       - topParticipants
+      - deleted
       properties:
         type:
           description: Type
@@ -2015,6 +2028,9 @@ components:
         thumbnailDarkUrl:
           type: string
           description: Thumbnail URL (dark)
+        deleted:
+          type: boolean
+          description: Whether the ride is soft-deleted
     RideGroupDto:
       type: object
       description: Ride group information
@@ -2344,6 +2360,7 @@ components:
       - updatedAt
       - tracks
       - waypoints
+      - deleted
       properties:
         id:
           type: string
@@ -2410,6 +2427,9 @@ components:
           items:
             $ref: "#/components/schemas/WaypointDto"
           description: Waypoints
+        deleted:
+          type: boolean
+          description: Whether the route is soft-deleted
     RouteDto:
       description: Route summary data
       type: object
@@ -2425,6 +2445,7 @@ components:
       - surfaceType
       - visibility
       - createdAt
+      - deleted
       properties:
         id:
           type: string
@@ -2467,6 +2488,9 @@ components:
           description: Creation timestamp
           type: string
           $ref: "#/components/schemas/Instant"
+        deleted:
+          type: boolean
+          description: Whether the route is soft-deleted
     RouteListResponse:
       description: Paginated route list response
       type: object
@@ -2782,6 +2806,7 @@ components:
       - media
       - visibility
       - order
+      - deleted
       properties:
         team:
           description: Team
@@ -2808,6 +2833,9 @@ components:
           type: integer
           format: int32
           description: Page order
+        deleted:
+          type: boolean
+          description: Whether the page is soft-deleted
     TeamPageRequest:
       description: Team page request
       type: object
@@ -2839,6 +2867,7 @@ components:
       - slug
       - visibility
       - order
+      - deleted
       properties:
         id:
           type: string
@@ -2857,6 +2886,9 @@ components:
           type: integer
           format: int32
           description: Page order
+        deleted:
+          type: boolean
+          description: Whether the page is soft-deleted
     TeamPublicationDto:
       type: object
       description: Team information
@@ -2997,6 +3029,7 @@ components:
       - stageCount
       - stages
       - participants
+      - deleted
       properties:
         type:
           description: Type
@@ -3066,6 +3099,9 @@ components:
         thumbnailDarkUrl:
           type: string
           description: Thumbnail URL (dark)
+        deleted:
+          type: boolean
+          description: Whether the trip is soft-deleted
     TripListResponse:
       description: Paginated trip list response
       type: object
@@ -5968,6 +6004,54 @@ paths:
       security:
       - SecurityScheme:
         - user
+  /api/teams/{teamSlug}/ads/{slug}/undelete:
+    post:
+      summary: Restore ad
+      description: Restore a soft-deleted ad. Only the creator or an admin can restore.
+      operationId: undeleteAd
+      tags:
+      - Ads
+      parameters:
+      - description: Ad URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Ad restored successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdEditDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not authorized to restore this ad
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team or ad not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
   /api/teams/{teamSlug}/assets:
     post:
       summary: Create asset
@@ -6736,6 +6820,54 @@ paths:
       security:
       - SecurityScheme:
         - user
+  /api/teams/{teamSlug}/pages/{pageSlug}/undelete:
+    post:
+      summary: Restore page
+      description: Restore a soft-deleted team page. Requires admin permissions.
+      operationId: undeletePage
+      tags:
+      - Team Pages
+      parameters:
+      - description: Page URL slug
+        name: pageSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Page restored successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamPageDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not a team admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team or page not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
   /api/teams/{teamSlug}/places:
     get:
       summary: List places
@@ -7354,6 +7486,54 @@ paths:
           description: Not Authorized
         "403":
           description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{teamSlug}/posts/{postSlug}/undelete:
+    post:
+      summary: Restore post
+      description: Restore a soft-deleted post. Requires organizer permissions.
+      operationId: undeletePost
+      tags:
+      - Posts
+      parameters:
+      - description: Post URL slug
+        name: postSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Post restored successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not authorized to restore this post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team or post not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
       security:
       - SecurityScheme:
         - user
@@ -8159,6 +8339,54 @@ paths:
       security:
       - SecurityScheme:
         - user
+  /api/teams/{teamSlug}/rides/{rideSlug}/undelete:
+    post:
+      summary: Restore ride
+      description: Restore a soft-deleted ride. Requires organizer permissions.
+      operationId: undeleteRide
+      tags:
+      - Rides
+      parameters:
+      - description: Ride URL slug
+        name: rideSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Ride restored successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RideDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not authorized to restore this ride
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team or ride not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
   /api/teams/{teamSlug}/routes:
     get:
       summary: List routes
@@ -8665,6 +8893,55 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "409":
           description: Slug already in use
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{teamSlug}/routes/{routeSlug}/undelete:
+    post:
+      summary: Restore route
+      description: Restore a soft-deleted route. Requires route creator or team admin
+        permissions.
+      operationId: undeleteRoute
+      tags:
+      - Routes
+      parameters:
+      - description: Route slug
+        name: routeSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Route restored successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouteDetailDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not authorized to restore this route
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team or route not found
           content:
             application/json:
               schema:
@@ -9190,6 +9467,54 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "409":
           description: Slug already in use
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{teamSlug}/trips/{tripSlug}/undelete:
+    post:
+      summary: Restore trip
+      description: Restore a soft-deleted trip. Requires organizer permissions.
+      operationId: undeleteTrip
+      tags:
+      - Trips
+      parameters:
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Trip URL slug
+        name: tripSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Trip restored successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TripDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not authorized to restore this trip
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team or trip not found
           content:
             application/json:
               schema:

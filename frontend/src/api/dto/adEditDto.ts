@@ -41,4 +41,6 @@ export interface AdEditDto {
   updatedAt: Instant
   /** Creator ID (TSID) */
   createdById: string
+  /** Whether the ad is soft-deleted */
+  deleted: boolean
 }

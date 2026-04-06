@@ -115,4 +115,14 @@ public class PostService extends TeamEntityService<Post, PostRepository, PostDto
     post.setDeleted(true);
     postRepository.persist(post);
   }
+
+  @CheckAccess(entityType = EntityType.POST, action = ActionType.DELETE)
+  @Transactional
+  public PostDto undeletePost(String teamSlug, String postSlug) {
+    Team team = teamService.getTeam(teamSlug);
+    Post post = findBySlugIncludeDeleted(team, postSlug);
+    post.setDeleted(false);
+    postRepository.persist(post);
+    return PostDto.from(post, assetService);
+  }
 }

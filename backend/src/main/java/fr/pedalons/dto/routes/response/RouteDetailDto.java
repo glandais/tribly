@@ -38,7 +38,8 @@ public record RouteDetailDto(
     @Schema(description = "Creation timestamp", required = true) Instant createdAt,
     @Schema(description = "Last update timestamp", required = true) Instant updatedAt,
     @Schema(description = "Tracks", required = true) List<TrackDto> tracks,
-    @Schema(description = "Waypoints", required = true) List<WaypointDto> waypoints) {
+    @Schema(description = "Waypoints", required = true) List<WaypointDto> waypoints,
+    @Schema(description = "Whether the route is soft-deleted", required = true) boolean deleted) {
   public static RouteDetailDto from(Route route, AssetService assetService) {
     return new RouteDetailDto(
         TsidUtils.toString(route.getId()),
@@ -57,6 +58,7 @@ public record RouteDetailDto(
         route.getCreatedAt(),
         route.getUpdatedAt(),
         route.getTracks().stream().map(TrackDto::from).toList(),
-        route.getWaypoints().stream().map(WaypointDto::from).toList());
+        route.getWaypoints().stream().map(WaypointDto::from).toList(),
+        route.isDeleted());
   }
 }

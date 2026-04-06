@@ -1029,6 +1029,38 @@ class TripServiceTest extends AbstractBaseTest {
     }
   }
 
+  // ==================== Undelete Trip ====================
+
+  @Nested
+  class UndeleteTrip {
+
+    @Test
+    void shouldRestoreDeletedTrip() {
+      Trip trip = dataService.createTrip(team, admin, "Test Trip", Instant.now());
+
+      userService.setUserForTest(organizer);
+      tripService.deleteTrip(team.getSlug(), trip.getSlug());
+
+      userService.setUserForTest(admin);
+      TripDto result = tripService.undeleteTrip(team.getSlug(), trip.getSlug());
+
+      assertFalse(result.isDeleted());
+      assertEquals(trip.getSlug(), result.getSlug());
+    }
+
+    @Test
+    void shouldThrowForNonOrganizer() {
+      Trip trip = dataService.createTrip(team, admin, "Test Trip", Instant.now());
+
+      userService.setUserForTest(organizer);
+      tripService.deleteTrip(team.getSlug(), trip.getSlug());
+
+      userService.setUserForTest(member);
+      assertThrows(
+          PedalonsException.class, () -> tripService.undeleteTrip(team.getSlug(), trip.getSlug()));
+    }
+  }
+
   // ==================== Join Trip ====================
 
   @Nested

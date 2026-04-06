@@ -232,6 +232,16 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
     rideRepository.persist(ride);
   }
 
+  @CheckAccess(entityType = EntityType.RIDE, action = ActionType.DELETE)
+  @Transactional
+  public RideDto undeleteRide(String teamSlug, String rideSlug) {
+    Team team = teamService.getTeam(teamSlug);
+    Ride ride = findBySlugIncludeDeleted(team, rideSlug);
+    ride.setDeleted(false);
+    rideRepository.persist(ride);
+    return RideDto.from(ride, true, assetService);
+  }
+
   @Transactional
   @CheckAccess(entityType = EntityType.RIDE, action = ActionType.JOIN)
   public RideParticipationDto joinGroup(String teamSlug, String rideSlug, Long groupId) {

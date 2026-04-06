@@ -97,6 +97,9 @@ public class RideDto implements PublicationDto {
   @Schema(description = "Thumbnail URL (dark)")
   final String thumbnailDarkUrl;
 
+  @Schema(description = "Whether the ride is soft-deleted", required = true)
+  final boolean deleted;
+
   public RideDto(
       TeamPublicationDto team,
       String id,
@@ -116,7 +119,8 @@ public class RideDto implements PublicationDto {
       @Nullable PlaceDetailDto endPlace,
       List<PublicUserDto> topParticipants,
       @Nullable String thumbnailLightUrl,
-      @Nullable String thumbnailDarkUrl) {
+      @Nullable String thumbnailDarkUrl,
+      boolean deleted) {
     super();
     this.team = team;
     this.id = id;
@@ -137,6 +141,7 @@ public class RideDto implements PublicationDto {
     this.topParticipants = topParticipants;
     this.thumbnailLightUrl = thumbnailLightUrl;
     this.thumbnailDarkUrl = thumbnailDarkUrl;
+    this.deleted = deleted;
   }
 
   public static RideDto from(Ride ride, boolean groupDetails, AssetService assetService) {
@@ -202,6 +207,7 @@ public class RideDto implements PublicationDto {
         endPlace != null ? PlaceDetailDto.from(endPlace) : null,
         topParticipants,
         thumbnailLightUrl,
-        thumbnailDarkUrl);
+        thumbnailDarkUrl,
+        ride.isDeleted());
   }
 }
