@@ -49,6 +49,9 @@ abstract class RouteDto with _$RouteDto {
 
     /// Creation timestamp
     required String createdAt,
+
+    /// Whether the route is soft-deleted
+    required bool deleted,
   }) = _RouteDto;
 
   factory RouteDto.fromJson(Map<String, Object?> json) =>

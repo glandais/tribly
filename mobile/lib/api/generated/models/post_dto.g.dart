@@ -16,6 +16,7 @@ _PostDto _$PostDtoFromJson(Map<String, dynamic> json) => _PostDto(
   dateTime: json['dateTime'] as String,
   status: json['status'] as String,
   visibility: json['visibility'] as String,
+  deleted: json['deleted'] as bool,
   publishAt: json['publishAt'] as String?,
   createdAt: json['createdAt'] as String?,
 );
@@ -30,6 +31,7 @@ Map<String, dynamic> _$PostDtoToJson(_PostDto instance) => <String, dynamic>{
   'dateTime': instance.dateTime,
   'status': instance.status,
   'visibility': instance.visibility,
+  'deleted': instance.deleted,
   'publishAt': instance.publishAt,
   'createdAt': instance.createdAt,
 };

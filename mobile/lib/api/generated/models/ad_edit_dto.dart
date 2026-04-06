@@ -53,6 +53,9 @@ abstract class AdEditDto with _$AdEditDto {
     /// Creator ID (TSID)
     required String createdById,
 
+    /// Whether the ad is soft-deleted
+    required bool deleted,
+
     /// Price
     num? price,
 

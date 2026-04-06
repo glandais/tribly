@@ -216,4 +216,17 @@ abstract class RoutesClient {
     @Path('teamSlug') required String teamSlug,
     @Body() required SlugChangeRequest body,
   });
+
+  /// Restore route.
+  ///
+  /// Restore a soft-deleted route. Requires route creator or team admin permissions.
+  ///
+  /// [routeSlug] - Route slug.
+  ///
+  /// [teamSlug] - Team URL slug.
+  @POST('/api/teams/{teamSlug}/routes/{routeSlug}/undelete')
+  Future<RouteDetailDto> undeleteRoute({
+    @Path('routeSlug') required String routeSlug,
+    @Path('teamSlug') required String teamSlug,
+  });
 }

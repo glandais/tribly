@@ -24,7 +24,8 @@ mixin _$PostDto {
  MediaDto get media;/// Publication date/time
  String get dateTime;/// Publication status
  String get status;/// Visibility level
- String get visibility;/// Publication timestamp
+ String get visibility;/// Whether the post is soft-deleted
+ bool get deleted;/// Publication timestamp
  String? get publishAt;/// Creation timestamp
  String? get createdAt;
 /// Create a copy of PostDto
@@ -39,16 +40,16 @@ $PostDtoCopyWith<PostDto> get copyWith => _$PostDtoCopyWithImpl<PostDto>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PostDto&&(identical(other.type, type) || other.type == type)&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.publishAt, publishAt) || other.publishAt == publishAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PostDto&&(identical(other.type, type) || other.type == type)&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.publishAt, publishAt) || other.publishAt == publishAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,team,id,slug,name,media,dateTime,status,visibility,publishAt,createdAt);
+int get hashCode => Object.hash(runtimeType,type,team,id,slug,name,media,dateTime,status,visibility,deleted,publishAt,createdAt);
 
 @override
 String toString() {
-  return 'PostDto(type: $type, team: $team, id: $id, slug: $slug, name: $name, media: $media, dateTime: $dateTime, status: $status, visibility: $visibility, publishAt: $publishAt, createdAt: $createdAt)';
+  return 'PostDto(type: $type, team: $team, id: $id, slug: $slug, name: $name, media: $media, dateTime: $dateTime, status: $status, visibility: $visibility, deleted: $deleted, publishAt: $publishAt, createdAt: $createdAt)';
 }
 
 
@@ -59,7 +60,7 @@ abstract mixin class $PostDtoCopyWith<$Res>  {
   factory $PostDtoCopyWith(PostDto value, $Res Function(PostDto) _then) = _$PostDtoCopyWithImpl;
 @useResult
 $Res call({
- String type, TeamPublicationDto team, String id, String slug, String name, MediaDto media, String dateTime, String status, String visibility, String? publishAt, String? createdAt
+ String type, TeamPublicationDto team, String id, String slug, String name, MediaDto media, String dateTime, String status, String visibility, bool deleted, String? publishAt, String? createdAt
 });
 
 
@@ -76,7 +77,7 @@ class _$PostDtoCopyWithImpl<$Res>
 
 /// Create a copy of PostDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? media = null,Object? dateTime = null,Object? status = null,Object? visibility = null,Object? publishAt = freezed,Object? createdAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? media = null,Object? dateTime = null,Object? status = null,Object? visibility = null,Object? deleted = null,Object? publishAt = freezed,Object? createdAt = freezed,}) {
   return _then(_self.copyWith(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,team: null == team ? _self.team : team // ignore: cast_nullable_to_non_nullable
@@ -87,7 +88,8 @@ as String,media: null == media ? _self.media : media // ignore: cast_nullable_to
 as MediaDto,dateTime: null == dateTime ? _self.dateTime : dateTime // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
-as String,publishAt: freezed == publishAt ? _self.publishAt : publishAt // ignore: cast_nullable_to_non_nullable
+as String,deleted: null == deleted ? _self.deleted : deleted // ignore: cast_nullable_to_non_nullable
+as bool,publishAt: freezed == publishAt ? _self.publishAt : publishAt // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
@@ -192,10 +194,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String type,  TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  String? publishAt,  String? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String type,  TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  bool deleted,  String? publishAt,  String? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PostDto() when $default != null:
-return $default(_that.type,_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.publishAt,_that.createdAt);case _:
+return $default(_that.type,_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.deleted,_that.publishAt,_that.createdAt);case _:
   return orElse();
 
 }
@@ -213,10 +215,10 @@ return $default(_that.type,_that.team,_that.id,_that.slug,_that.name,_that.media
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String type,  TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  String? publishAt,  String? createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String type,  TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  bool deleted,  String? publishAt,  String? createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _PostDto():
-return $default(_that.type,_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.publishAt,_that.createdAt);case _:
+return $default(_that.type,_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.deleted,_that.publishAt,_that.createdAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -233,10 +235,10 @@ return $default(_that.type,_that.team,_that.id,_that.slug,_that.name,_that.media
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String type,  TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  String? publishAt,  String? createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String type,  TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  bool deleted,  String? publishAt,  String? createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _PostDto() when $default != null:
-return $default(_that.type,_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.publishAt,_that.createdAt);case _:
+return $default(_that.type,_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.deleted,_that.publishAt,_that.createdAt);case _:
   return null;
 
 }
@@ -248,7 +250,7 @@ return $default(_that.type,_that.team,_that.id,_that.slug,_that.name,_that.media
 @JsonSerializable()
 
 class _PostDto implements PostDto {
-  const _PostDto({required this.type, required this.team, required this.id, required this.slug, required this.name, required this.media, required this.dateTime, required this.status, required this.visibility, this.publishAt, this.createdAt});
+  const _PostDto({required this.type, required this.team, required this.id, required this.slug, required this.name, required this.media, required this.dateTime, required this.status, required this.visibility, required this.deleted, this.publishAt, this.createdAt});
   factory _PostDto.fromJson(Map<String, dynamic> json) => _$PostDtoFromJson(json);
 
 /// Type
@@ -269,6 +271,8 @@ class _PostDto implements PostDto {
 @override final  String status;
 /// Visibility level
 @override final  String visibility;
+/// Whether the post is soft-deleted
+@override final  bool deleted;
 /// Publication timestamp
 @override final  String? publishAt;
 /// Creation timestamp
@@ -287,16 +291,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PostDto&&(identical(other.type, type) || other.type == type)&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.publishAt, publishAt) || other.publishAt == publishAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PostDto&&(identical(other.type, type) || other.type == type)&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.publishAt, publishAt) || other.publishAt == publishAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,team,id,slug,name,media,dateTime,status,visibility,publishAt,createdAt);
+int get hashCode => Object.hash(runtimeType,type,team,id,slug,name,media,dateTime,status,visibility,deleted,publishAt,createdAt);
 
 @override
 String toString() {
-  return 'PostDto(type: $type, team: $team, id: $id, slug: $slug, name: $name, media: $media, dateTime: $dateTime, status: $status, visibility: $visibility, publishAt: $publishAt, createdAt: $createdAt)';
+  return 'PostDto(type: $type, team: $team, id: $id, slug: $slug, name: $name, media: $media, dateTime: $dateTime, status: $status, visibility: $visibility, deleted: $deleted, publishAt: $publishAt, createdAt: $createdAt)';
 }
 
 
@@ -307,7 +311,7 @@ abstract mixin class _$PostDtoCopyWith<$Res> implements $PostDtoCopyWith<$Res> {
   factory _$PostDtoCopyWith(_PostDto value, $Res Function(_PostDto) _then) = __$PostDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String type, TeamPublicationDto team, String id, String slug, String name, MediaDto media, String dateTime, String status, String visibility, String? publishAt, String? createdAt
+ String type, TeamPublicationDto team, String id, String slug, String name, MediaDto media, String dateTime, String status, String visibility, bool deleted, String? publishAt, String? createdAt
 });
 
 
@@ -324,7 +328,7 @@ class __$PostDtoCopyWithImpl<$Res>
 
 /// Create a copy of PostDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? media = null,Object? dateTime = null,Object? status = null,Object? visibility = null,Object? publishAt = freezed,Object? createdAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? media = null,Object? dateTime = null,Object? status = null,Object? visibility = null,Object? deleted = null,Object? publishAt = freezed,Object? createdAt = freezed,}) {
   return _then(_PostDto(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,team: null == team ? _self.team : team // ignore: cast_nullable_to_non_nullable
@@ -335,7 +339,8 @@ as String,media: null == media ? _self.media : media // ignore: cast_nullable_to
 as MediaDto,dateTime: null == dateTime ? _self.dateTime : dateTime // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
-as String,publishAt: freezed == publishAt ? _self.publishAt : publishAt // ignore: cast_nullable_to_non_nullable
+as String,deleted: null == deleted ? _self.deleted : deleted // ignore: cast_nullable_to_non_nullable
+as bool,publishAt: freezed == publishAt ? _self.publishAt : publishAt // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String?,
   ));

@@ -26,7 +26,8 @@ mixin _$AdDto {
  String get adType;/// Creation timestamp
  String get createdAt;/// Creation timestamp
  String get updatedAt;/// Creator ID (TSID)
- String get createdById;/// Price
+ String get createdById;/// Whether the ad is soft-deleted
+ bool get deleted;/// Price
  num? get price;/// Rental period
  String? get rentalPeriod;/// Location description
  String? get locationDescription;
@@ -42,16 +43,16 @@ $AdDtoCopyWith<AdDto> get copyWith => _$AdDtoCopyWithImpl<AdDto>(this as AdDto, 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdDto&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.adType, adType) || other.adType == adType)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.createdById, createdById) || other.createdById == createdById)&&(identical(other.price, price) || other.price == price)&&(identical(other.rentalPeriod, rentalPeriod) || other.rentalPeriod == rentalPeriod)&&(identical(other.locationDescription, locationDescription) || other.locationDescription == locationDescription));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdDto&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.adType, adType) || other.adType == adType)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.createdById, createdById) || other.createdById == createdById)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.price, price) || other.price == price)&&(identical(other.rentalPeriod, rentalPeriod) || other.rentalPeriod == rentalPeriod)&&(identical(other.locationDescription, locationDescription) || other.locationDescription == locationDescription));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,team,id,slug,name,media,status,visibility,adType,createdAt,updatedAt,createdById,price,rentalPeriod,locationDescription);
+int get hashCode => Object.hash(runtimeType,team,id,slug,name,media,status,visibility,adType,createdAt,updatedAt,createdById,deleted,price,rentalPeriod,locationDescription);
 
 @override
 String toString() {
-  return 'AdDto(team: $team, id: $id, slug: $slug, name: $name, media: $media, status: $status, visibility: $visibility, adType: $adType, createdAt: $createdAt, updatedAt: $updatedAt, createdById: $createdById, price: $price, rentalPeriod: $rentalPeriod, locationDescription: $locationDescription)';
+  return 'AdDto(team: $team, id: $id, slug: $slug, name: $name, media: $media, status: $status, visibility: $visibility, adType: $adType, createdAt: $createdAt, updatedAt: $updatedAt, createdById: $createdById, deleted: $deleted, price: $price, rentalPeriod: $rentalPeriod, locationDescription: $locationDescription)';
 }
 
 
@@ -62,7 +63,7 @@ abstract mixin class $AdDtoCopyWith<$Res>  {
   factory $AdDtoCopyWith(AdDto value, $Res Function(AdDto) _then) = _$AdDtoCopyWithImpl;
 @useResult
 $Res call({
- TeamPublicationDto team, String id, String slug, String name, MediaDto media, String status, String visibility, String adType, String createdAt, String updatedAt, String createdById, num? price, String? rentalPeriod, String? locationDescription
+ TeamPublicationDto team, String id, String slug, String name, MediaDto media, String status, String visibility, String adType, String createdAt, String updatedAt, String createdById, bool deleted, num? price, String? rentalPeriod, String? locationDescription
 });
 
 
@@ -79,7 +80,7 @@ class _$AdDtoCopyWithImpl<$Res>
 
 /// Create a copy of AdDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? media = null,Object? status = null,Object? visibility = null,Object? adType = null,Object? createdAt = null,Object? updatedAt = null,Object? createdById = null,Object? price = freezed,Object? rentalPeriod = freezed,Object? locationDescription = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? media = null,Object? status = null,Object? visibility = null,Object? adType = null,Object? createdAt = null,Object? updatedAt = null,Object? createdById = null,Object? deleted = null,Object? price = freezed,Object? rentalPeriod = freezed,Object? locationDescription = freezed,}) {
   return _then(_self.copyWith(
 team: null == team ? _self.team : team // ignore: cast_nullable_to_non_nullable
 as TeamPublicationDto,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -92,7 +93,8 @@ as String,adType: null == adType ? _self.adType : adType // ignore: cast_nullabl
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as String,createdById: null == createdById ? _self.createdById : createdById // ignore: cast_nullable_to_non_nullable
-as String,price: freezed == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
+as String,deleted: null == deleted ? _self.deleted : deleted // ignore: cast_nullable_to_non_nullable
+as bool,price: freezed == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
 as num?,rentalPeriod: freezed == rentalPeriod ? _self.rentalPeriod : rentalPeriod // ignore: cast_nullable_to_non_nullable
 as String?,locationDescription: freezed == locationDescription ? _self.locationDescription : locationDescription // ignore: cast_nullable_to_non_nullable
 as String?,
@@ -198,10 +200,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String status,  String visibility,  String adType,  String createdAt,  String updatedAt,  String createdById,  num? price,  String? rentalPeriod,  String? locationDescription)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String status,  String visibility,  String adType,  String createdAt,  String updatedAt,  String createdById,  bool deleted,  num? price,  String? rentalPeriod,  String? locationDescription)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AdDto() when $default != null:
-return $default(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.status,_that.visibility,_that.adType,_that.createdAt,_that.updatedAt,_that.createdById,_that.price,_that.rentalPeriod,_that.locationDescription);case _:
+return $default(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.status,_that.visibility,_that.adType,_that.createdAt,_that.updatedAt,_that.createdById,_that.deleted,_that.price,_that.rentalPeriod,_that.locationDescription);case _:
   return orElse();
 
 }
@@ -219,10 +221,10 @@ return $default(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.stat
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String status,  String visibility,  String adType,  String createdAt,  String updatedAt,  String createdById,  num? price,  String? rentalPeriod,  String? locationDescription)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String status,  String visibility,  String adType,  String createdAt,  String updatedAt,  String createdById,  bool deleted,  num? price,  String? rentalPeriod,  String? locationDescription)  $default,) {final _that = this;
 switch (_that) {
 case _AdDto():
-return $default(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.status,_that.visibility,_that.adType,_that.createdAt,_that.updatedAt,_that.createdById,_that.price,_that.rentalPeriod,_that.locationDescription);case _:
+return $default(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.status,_that.visibility,_that.adType,_that.createdAt,_that.updatedAt,_that.createdById,_that.deleted,_that.price,_that.rentalPeriod,_that.locationDescription);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -239,10 +241,10 @@ return $default(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.stat
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String status,  String visibility,  String adType,  String createdAt,  String updatedAt,  String createdById,  num? price,  String? rentalPeriod,  String? locationDescription)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String status,  String visibility,  String adType,  String createdAt,  String updatedAt,  String createdById,  bool deleted,  num? price,  String? rentalPeriod,  String? locationDescription)?  $default,) {final _that = this;
 switch (_that) {
 case _AdDto() when $default != null:
-return $default(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.status,_that.visibility,_that.adType,_that.createdAt,_that.updatedAt,_that.createdById,_that.price,_that.rentalPeriod,_that.locationDescription);case _:
+return $default(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.status,_that.visibility,_that.adType,_that.createdAt,_that.updatedAt,_that.createdById,_that.deleted,_that.price,_that.rentalPeriod,_that.locationDescription);case _:
   return null;
 
 }
@@ -254,7 +256,7 @@ return $default(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.stat
 @JsonSerializable()
 
 class _AdDto implements AdDto {
-  const _AdDto({required this.team, required this.id, required this.slug, required this.name, required this.media, required this.status, required this.visibility, required this.adType, required this.createdAt, required this.updatedAt, required this.createdById, this.price, this.rentalPeriod, this.locationDescription});
+  const _AdDto({required this.team, required this.id, required this.slug, required this.name, required this.media, required this.status, required this.visibility, required this.adType, required this.createdAt, required this.updatedAt, required this.createdById, required this.deleted, this.price, this.rentalPeriod, this.locationDescription});
   factory _AdDto.fromJson(Map<String, dynamic> json) => _$AdDtoFromJson(json);
 
 /// Team
@@ -279,6 +281,8 @@ class _AdDto implements AdDto {
 @override final  String updatedAt;
 /// Creator ID (TSID)
 @override final  String createdById;
+/// Whether the ad is soft-deleted
+@override final  bool deleted;
 /// Price
 @override final  num? price;
 /// Rental period
@@ -299,16 +303,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdDto&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.adType, adType) || other.adType == adType)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.createdById, createdById) || other.createdById == createdById)&&(identical(other.price, price) || other.price == price)&&(identical(other.rentalPeriod, rentalPeriod) || other.rentalPeriod == rentalPeriod)&&(identical(other.locationDescription, locationDescription) || other.locationDescription == locationDescription));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdDto&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.adType, adType) || other.adType == adType)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.createdById, createdById) || other.createdById == createdById)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.price, price) || other.price == price)&&(identical(other.rentalPeriod, rentalPeriod) || other.rentalPeriod == rentalPeriod)&&(identical(other.locationDescription, locationDescription) || other.locationDescription == locationDescription));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,team,id,slug,name,media,status,visibility,adType,createdAt,updatedAt,createdById,price,rentalPeriod,locationDescription);
+int get hashCode => Object.hash(runtimeType,team,id,slug,name,media,status,visibility,adType,createdAt,updatedAt,createdById,deleted,price,rentalPeriod,locationDescription);
 
 @override
 String toString() {
-  return 'AdDto(team: $team, id: $id, slug: $slug, name: $name, media: $media, status: $status, visibility: $visibility, adType: $adType, createdAt: $createdAt, updatedAt: $updatedAt, createdById: $createdById, price: $price, rentalPeriod: $rentalPeriod, locationDescription: $locationDescription)';
+  return 'AdDto(team: $team, id: $id, slug: $slug, name: $name, media: $media, status: $status, visibility: $visibility, adType: $adType, createdAt: $createdAt, updatedAt: $updatedAt, createdById: $createdById, deleted: $deleted, price: $price, rentalPeriod: $rentalPeriod, locationDescription: $locationDescription)';
 }
 
 
@@ -319,7 +323,7 @@ abstract mixin class _$AdDtoCopyWith<$Res> implements $AdDtoCopyWith<$Res> {
   factory _$AdDtoCopyWith(_AdDto value, $Res Function(_AdDto) _then) = __$AdDtoCopyWithImpl;
 @override @useResult
 $Res call({
- TeamPublicationDto team, String id, String slug, String name, MediaDto media, String status, String visibility, String adType, String createdAt, String updatedAt, String createdById, num? price, String? rentalPeriod, String? locationDescription
+ TeamPublicationDto team, String id, String slug, String name, MediaDto media, String status, String visibility, String adType, String createdAt, String updatedAt, String createdById, bool deleted, num? price, String? rentalPeriod, String? locationDescription
 });
 
 
@@ -336,7 +340,7 @@ class __$AdDtoCopyWithImpl<$Res>
 
 /// Create a copy of AdDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? media = null,Object? status = null,Object? visibility = null,Object? adType = null,Object? createdAt = null,Object? updatedAt = null,Object? createdById = null,Object? price = freezed,Object? rentalPeriod = freezed,Object? locationDescription = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? media = null,Object? status = null,Object? visibility = null,Object? adType = null,Object? createdAt = null,Object? updatedAt = null,Object? createdById = null,Object? deleted = null,Object? price = freezed,Object? rentalPeriod = freezed,Object? locationDescription = freezed,}) {
   return _then(_AdDto(
 team: null == team ? _self.team : team // ignore: cast_nullable_to_non_nullable
 as TeamPublicationDto,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -349,7 +353,8 @@ as String,adType: null == adType ? _self.adType : adType // ignore: cast_nullabl
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as String,createdById: null == createdById ? _self.createdById : createdById // ignore: cast_nullable_to_non_nullable
-as String,price: freezed == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
+as String,deleted: null == deleted ? _self.deleted : deleted // ignore: cast_nullable_to_non_nullable
+as bool,price: freezed == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
 as num?,rentalPeriod: freezed == rentalPeriod ? _self.rentalPeriod : rentalPeriod // ignore: cast_nullable_to_non_nullable
 as String?,locationDescription: freezed == locationDescription ? _self.locationDescription : locationDescription // ignore: cast_nullable_to_non_nullable
 as String?,

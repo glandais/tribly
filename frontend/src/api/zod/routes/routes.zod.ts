@@ -1568,7 +1568,9 @@ export const UndeleteRouteResponse = zod
         id: zod.string().describe('Team ID (TSID)'),
         name: zod.string().describe('Team name'),
         slug: zod.string().describe('Team URL slug'),
-        visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+        visibility: zod
+          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+          .describe('Whether the team is public'),
       })
       .describe('Team'),
     name: zod.string().describe('Route name'),
@@ -1723,7 +1725,9 @@ export const UndeleteRouteResponse = zod
     elevationGain: zod.number().describe('Total elevation gain in meters'),
     elevationLoss: zod.number().describe('Total elevation loss in meters'),
     surfaceType: zod.enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED']).describe('Surface type'),
-    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the route is public'),
+    visibility: zod
+      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+      .describe('Whether the route is public'),
     start: zod
       .object({
         type: zod.enum(['Point']),

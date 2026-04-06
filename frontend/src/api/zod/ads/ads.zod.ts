@@ -1362,7 +1362,9 @@ export const UndeleteAdResponse = zod
         id: zod.string().describe('Team ID (TSID)'),
         name: zod.string().describe('Team name'),
         slug: zod.string().describe('Team URL slug'),
-        visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+        visibility: zod
+          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+          .describe('Whether the team is public'),
       })
       .describe('Team'),
     id: zod.string().describe('Ad ID (TSID)'),
@@ -1516,7 +1518,7 @@ export const UndeleteAdResponse = zod
       })
       .describe('Ad media'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Ad status'),
-    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+    visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     adType: zod.enum(['SALE', 'RENTAL', 'WANTED']).describe('Ad type'),
     price: zod.number().optional().describe('Price'),
     rentalPeriod: zod.enum(['DAY', 'WEEK', 'MONTH']).optional().describe('Rental period'),

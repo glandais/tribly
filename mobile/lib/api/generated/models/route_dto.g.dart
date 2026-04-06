@@ -18,6 +18,7 @@ _RouteDto _$RouteDtoFromJson(Map<String, dynamic> json) => _RouteDto(
   surfaceType: json['surfaceType'] as String,
   visibility: json['visibility'] as String,
   createdAt: json['createdAt'] as String,
+  deleted: json['deleted'] as bool,
 );
 
 Map<String, dynamic> _$RouteDtoToJson(_RouteDto instance) => <String, dynamic>{
@@ -32,4 +33,5 @@ Map<String, dynamic> _$RouteDtoToJson(_RouteDto instance) => <String, dynamic>{
   'surfaceType': instance.surfaceType,
   'visibility': instance.visibility,
   'createdAt': instance.createdAt,
+  'deleted': instance.deleted,
 };

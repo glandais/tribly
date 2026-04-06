@@ -22,7 +22,8 @@ mixin _$TeamPageDto {
  String get slug;/// Page content
  MediaDto get media;/// Visibility level
  String get visibility;/// Page order
- int get order;
+ int get order;/// Whether the page is soft-deleted
+ bool get deleted;
 /// Create a copy of TeamPageDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -35,16 +36,16 @@ $TeamPageDtoCopyWith<TeamPageDto> get copyWith => _$TeamPageDtoCopyWithImpl<Team
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeamPageDto&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.media, media) || other.media == media)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.order, order) || other.order == order));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeamPageDto&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.media, media) || other.media == media)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.order, order) || other.order == order)&&(identical(other.deleted, deleted) || other.deleted == deleted));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,team,id,title,slug,media,visibility,order);
+int get hashCode => Object.hash(runtimeType,team,id,title,slug,media,visibility,order,deleted);
 
 @override
 String toString() {
-  return 'TeamPageDto(team: $team, id: $id, title: $title, slug: $slug, media: $media, visibility: $visibility, order: $order)';
+  return 'TeamPageDto(team: $team, id: $id, title: $title, slug: $slug, media: $media, visibility: $visibility, order: $order, deleted: $deleted)';
 }
 
 
@@ -55,7 +56,7 @@ abstract mixin class $TeamPageDtoCopyWith<$Res>  {
   factory $TeamPageDtoCopyWith(TeamPageDto value, $Res Function(TeamPageDto) _then) = _$TeamPageDtoCopyWithImpl;
 @useResult
 $Res call({
- TeamPublicationDto team, String id, String title, String slug, MediaDto media, String visibility, int order
+ TeamPublicationDto team, String id, String title, String slug, MediaDto media, String visibility, int order, bool deleted
 });
 
 
@@ -72,7 +73,7 @@ class _$TeamPageDtoCopyWithImpl<$Res>
 
 /// Create a copy of TeamPageDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? team = null,Object? id = null,Object? title = null,Object? slug = null,Object? media = null,Object? visibility = null,Object? order = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? team = null,Object? id = null,Object? title = null,Object? slug = null,Object? media = null,Object? visibility = null,Object? order = null,Object? deleted = null,}) {
   return _then(_self.copyWith(
 team: null == team ? _self.team : team // ignore: cast_nullable_to_non_nullable
 as TeamPublicationDto,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -81,7 +82,8 @@ as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non
 as String,media: null == media ? _self.media : media // ignore: cast_nullable_to_non_nullable
 as MediaDto,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
 as String,order: null == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
-as int,
+as int,deleted: null == deleted ? _self.deleted : deleted // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 /// Create a copy of TeamPageDto
@@ -184,10 +186,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( TeamPublicationDto team,  String id,  String title,  String slug,  MediaDto media,  String visibility,  int order)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( TeamPublicationDto team,  String id,  String title,  String slug,  MediaDto media,  String visibility,  int order,  bool deleted)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TeamPageDto() when $default != null:
-return $default(_that.team,_that.id,_that.title,_that.slug,_that.media,_that.visibility,_that.order);case _:
+return $default(_that.team,_that.id,_that.title,_that.slug,_that.media,_that.visibility,_that.order,_that.deleted);case _:
   return orElse();
 
 }
@@ -205,10 +207,10 @@ return $default(_that.team,_that.id,_that.title,_that.slug,_that.media,_that.vis
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( TeamPublicationDto team,  String id,  String title,  String slug,  MediaDto media,  String visibility,  int order)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( TeamPublicationDto team,  String id,  String title,  String slug,  MediaDto media,  String visibility,  int order,  bool deleted)  $default,) {final _that = this;
 switch (_that) {
 case _TeamPageDto():
-return $default(_that.team,_that.id,_that.title,_that.slug,_that.media,_that.visibility,_that.order);case _:
+return $default(_that.team,_that.id,_that.title,_that.slug,_that.media,_that.visibility,_that.order,_that.deleted);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -225,10 +227,10 @@ return $default(_that.team,_that.id,_that.title,_that.slug,_that.media,_that.vis
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( TeamPublicationDto team,  String id,  String title,  String slug,  MediaDto media,  String visibility,  int order)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( TeamPublicationDto team,  String id,  String title,  String slug,  MediaDto media,  String visibility,  int order,  bool deleted)?  $default,) {final _that = this;
 switch (_that) {
 case _TeamPageDto() when $default != null:
-return $default(_that.team,_that.id,_that.title,_that.slug,_that.media,_that.visibility,_that.order);case _:
+return $default(_that.team,_that.id,_that.title,_that.slug,_that.media,_that.visibility,_that.order,_that.deleted);case _:
   return null;
 
 }
@@ -240,7 +242,7 @@ return $default(_that.team,_that.id,_that.title,_that.slug,_that.media,_that.vis
 @JsonSerializable()
 
 class _TeamPageDto implements TeamPageDto {
-  const _TeamPageDto({required this.team, required this.id, required this.title, required this.slug, required this.media, required this.visibility, required this.order});
+  const _TeamPageDto({required this.team, required this.id, required this.title, required this.slug, required this.media, required this.visibility, required this.order, required this.deleted});
   factory _TeamPageDto.fromJson(Map<String, dynamic> json) => _$TeamPageDtoFromJson(json);
 
 /// Team
@@ -257,6 +259,8 @@ class _TeamPageDto implements TeamPageDto {
 @override final  String visibility;
 /// Page order
 @override final  int order;
+/// Whether the page is soft-deleted
+@override final  bool deleted;
 
 /// Create a copy of TeamPageDto
 /// with the given fields replaced by the non-null parameter values.
@@ -271,16 +275,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeamPageDto&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.media, media) || other.media == media)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.order, order) || other.order == order));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeamPageDto&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.media, media) || other.media == media)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.order, order) || other.order == order)&&(identical(other.deleted, deleted) || other.deleted == deleted));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,team,id,title,slug,media,visibility,order);
+int get hashCode => Object.hash(runtimeType,team,id,title,slug,media,visibility,order,deleted);
 
 @override
 String toString() {
-  return 'TeamPageDto(team: $team, id: $id, title: $title, slug: $slug, media: $media, visibility: $visibility, order: $order)';
+  return 'TeamPageDto(team: $team, id: $id, title: $title, slug: $slug, media: $media, visibility: $visibility, order: $order, deleted: $deleted)';
 }
 
 
@@ -291,7 +295,7 @@ abstract mixin class _$TeamPageDtoCopyWith<$Res> implements $TeamPageDtoCopyWith
   factory _$TeamPageDtoCopyWith(_TeamPageDto value, $Res Function(_TeamPageDto) _then) = __$TeamPageDtoCopyWithImpl;
 @override @useResult
 $Res call({
- TeamPublicationDto team, String id, String title, String slug, MediaDto media, String visibility, int order
+ TeamPublicationDto team, String id, String title, String slug, MediaDto media, String visibility, int order, bool deleted
 });
 
 
@@ -308,7 +312,7 @@ class __$TeamPageDtoCopyWithImpl<$Res>
 
 /// Create a copy of TeamPageDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? team = null,Object? id = null,Object? title = null,Object? slug = null,Object? media = null,Object? visibility = null,Object? order = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? team = null,Object? id = null,Object? title = null,Object? slug = null,Object? media = null,Object? visibility = null,Object? order = null,Object? deleted = null,}) {
   return _then(_TeamPageDto(
 team: null == team ? _self.team : team // ignore: cast_nullable_to_non_nullable
 as TeamPublicationDto,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -317,7 +321,8 @@ as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non
 as String,media: null == media ? _self.media : media // ignore: cast_nullable_to_non_nullable
 as MediaDto,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
 as String,order: null == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
-as int,
+as int,deleted: null == deleted ? _self.deleted : deleted // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

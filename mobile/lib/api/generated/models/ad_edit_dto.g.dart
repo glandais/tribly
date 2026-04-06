@@ -18,6 +18,7 @@ _AdEditDto _$AdEditDtoFromJson(Map<String, dynamic> json) => _AdEditDto(
   createdAt: json['createdAt'] as String,
   updatedAt: json['updatedAt'] as String,
   createdById: json['createdById'] as String,
+  deleted: json['deleted'] as bool,
   price: json['price'] as num?,
   rentalPeriod: json['rentalPeriod'] as String?,
   locationGeometry: json['locationGeometry'] == null
@@ -41,6 +42,7 @@ Map<String, dynamic> _$AdEditDtoToJson(_AdEditDto instance) =>
       'createdAt': instance.createdAt,
       'updatedAt': instance.updatedAt,
       'createdById': instance.createdById,
+      'deleted': instance.deleted,
       'price': instance.price,
       'rentalPeriod': instance.rentalPeriod,
       'locationGeometry': instance.locationGeometry?.toJson(),

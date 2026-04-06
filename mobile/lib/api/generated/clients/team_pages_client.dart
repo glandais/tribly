@@ -111,4 +111,17 @@ abstract class TeamPagesClient {
     @Path('teamSlug') required String teamSlug,
     @Body() required SlugChangeRequest body,
   });
+
+  /// Restore page.
+  ///
+  /// Restore a soft-deleted team page. Requires admin permissions.
+  ///
+  /// [pageSlug] - Page URL slug.
+  ///
+  /// [teamSlug] - Team URL slug.
+  @POST('/api/teams/{teamSlug}/pages/{pageSlug}/undelete')
+  Future<TeamPageDto> undeletePage({
+    @Path('pageSlug') required String pageSlug,
+    @Path('teamSlug') required String teamSlug,
+  });
 }

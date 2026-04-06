@@ -20,7 +20,8 @@ mixin _$TeamPageSummaryDto {
  String get title;/// Page URL slug
  String get slug;/// Visibility level
  String get visibility;/// Page order
- int get order;
+ int get order;/// Whether the page is soft-deleted
+ bool get deleted;
 /// Create a copy of TeamPageSummaryDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -33,16 +34,16 @@ $TeamPageSummaryDtoCopyWith<TeamPageSummaryDto> get copyWith => _$TeamPageSummar
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeamPageSummaryDto&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.order, order) || other.order == order));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeamPageSummaryDto&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.order, order) || other.order == order)&&(identical(other.deleted, deleted) || other.deleted == deleted));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,slug,visibility,order);
+int get hashCode => Object.hash(runtimeType,id,title,slug,visibility,order,deleted);
 
 @override
 String toString() {
-  return 'TeamPageSummaryDto(id: $id, title: $title, slug: $slug, visibility: $visibility, order: $order)';
+  return 'TeamPageSummaryDto(id: $id, title: $title, slug: $slug, visibility: $visibility, order: $order, deleted: $deleted)';
 }
 
 
@@ -53,7 +54,7 @@ abstract mixin class $TeamPageSummaryDtoCopyWith<$Res>  {
   factory $TeamPageSummaryDtoCopyWith(TeamPageSummaryDto value, $Res Function(TeamPageSummaryDto) _then) = _$TeamPageSummaryDtoCopyWithImpl;
 @useResult
 $Res call({
- String id, String title, String slug, String visibility, int order
+ String id, String title, String slug, String visibility, int order, bool deleted
 });
 
 
@@ -70,14 +71,15 @@ class _$TeamPageSummaryDtoCopyWithImpl<$Res>
 
 /// Create a copy of TeamPageSummaryDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? slug = null,Object? visibility = null,Object? order = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? slug = null,Object? visibility = null,Object? order = null,Object? deleted = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
 as String,order: null == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
-as int,
+as int,deleted: null == deleted ? _self.deleted : deleted // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -162,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  String slug,  String visibility,  int order)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  String slug,  String visibility,  int order,  bool deleted)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TeamPageSummaryDto() when $default != null:
-return $default(_that.id,_that.title,_that.slug,_that.visibility,_that.order);case _:
+return $default(_that.id,_that.title,_that.slug,_that.visibility,_that.order,_that.deleted);case _:
   return orElse();
 
 }
@@ -183,10 +185,10 @@ return $default(_that.id,_that.title,_that.slug,_that.visibility,_that.order);ca
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  String slug,  String visibility,  int order)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  String slug,  String visibility,  int order,  bool deleted)  $default,) {final _that = this;
 switch (_that) {
 case _TeamPageSummaryDto():
-return $default(_that.id,_that.title,_that.slug,_that.visibility,_that.order);case _:
+return $default(_that.id,_that.title,_that.slug,_that.visibility,_that.order,_that.deleted);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -203,10 +205,10 @@ return $default(_that.id,_that.title,_that.slug,_that.visibility,_that.order);ca
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  String slug,  String visibility,  int order)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  String slug,  String visibility,  int order,  bool deleted)?  $default,) {final _that = this;
 switch (_that) {
 case _TeamPageSummaryDto() when $default != null:
-return $default(_that.id,_that.title,_that.slug,_that.visibility,_that.order);case _:
+return $default(_that.id,_that.title,_that.slug,_that.visibility,_that.order,_that.deleted);case _:
   return null;
 
 }
@@ -218,7 +220,7 @@ return $default(_that.id,_that.title,_that.slug,_that.visibility,_that.order);ca
 @JsonSerializable()
 
 class _TeamPageSummaryDto implements TeamPageSummaryDto {
-  const _TeamPageSummaryDto({required this.id, required this.title, required this.slug, required this.visibility, required this.order});
+  const _TeamPageSummaryDto({required this.id, required this.title, required this.slug, required this.visibility, required this.order, required this.deleted});
   factory _TeamPageSummaryDto.fromJson(Map<String, dynamic> json) => _$TeamPageSummaryDtoFromJson(json);
 
 /// Page ID (TSID)
@@ -231,6 +233,8 @@ class _TeamPageSummaryDto implements TeamPageSummaryDto {
 @override final  String visibility;
 /// Page order
 @override final  int order;
+/// Whether the page is soft-deleted
+@override final  bool deleted;
 
 /// Create a copy of TeamPageSummaryDto
 /// with the given fields replaced by the non-null parameter values.
@@ -245,16 +249,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeamPageSummaryDto&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.order, order) || other.order == order));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeamPageSummaryDto&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.order, order) || other.order == order)&&(identical(other.deleted, deleted) || other.deleted == deleted));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,slug,visibility,order);
+int get hashCode => Object.hash(runtimeType,id,title,slug,visibility,order,deleted);
 
 @override
 String toString() {
-  return 'TeamPageSummaryDto(id: $id, title: $title, slug: $slug, visibility: $visibility, order: $order)';
+  return 'TeamPageSummaryDto(id: $id, title: $title, slug: $slug, visibility: $visibility, order: $order, deleted: $deleted)';
 }
 
 
@@ -265,7 +269,7 @@ abstract mixin class _$TeamPageSummaryDtoCopyWith<$Res> implements $TeamPageSumm
   factory _$TeamPageSummaryDtoCopyWith(_TeamPageSummaryDto value, $Res Function(_TeamPageSummaryDto) _then) = __$TeamPageSummaryDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String title, String slug, String visibility, int order
+ String id, String title, String slug, String visibility, int order, bool deleted
 });
 
 
@@ -282,14 +286,15 @@ class __$TeamPageSummaryDtoCopyWithImpl<$Res>
 
 /// Create a copy of TeamPageSummaryDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? slug = null,Object? visibility = null,Object? order = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? slug = null,Object? visibility = null,Object? order = null,Object? deleted = null,}) {
   return _then(_TeamPageSummaryDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
 as String,order: null == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
-as int,
+as int,deleted: null == deleted ? _self.deleted : deleted // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

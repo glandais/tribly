@@ -24,6 +24,7 @@ _TripDto _$TripDtoFromJson(Map<String, dynamic> json) => _TripDto(
   participants: (json['participants'] as List<dynamic>)
       .map((e) => PublicUserDto.fromJson(e as Map<String, dynamic>))
       .toList(),
+  deleted: json['deleted'] as bool,
   publishAt: json['publishAt'] as String?,
   createdAt: json['createdAt'] as String?,
   routeSlug: json['routeSlug'] as String?,
@@ -45,6 +46,7 @@ Map<String, dynamic> _$TripDtoToJson(_TripDto instance) => <String, dynamic>{
   'stageCount': instance.stageCount,
   'stages': instance.stages.map((e) => e.toJson()).toList(),
   'participants': instance.participants.map((e) => e.toJson()).toList(),
+  'deleted': instance.deleted,
   'publishAt': instance.publishAt,
   'createdAt': instance.createdAt,
   'routeSlug': instance.routeSlug,

@@ -14,6 +14,7 @@ _TeamPageDto _$TeamPageDtoFromJson(Map<String, dynamic> json) => _TeamPageDto(
   media: MediaDto.fromJson(json['media'] as Map<String, dynamic>),
   visibility: json['visibility'] as String,
   order: (json['order'] as num).toInt(),
+  deleted: json['deleted'] as bool,
 );
 
 Map<String, dynamic> _$TeamPageDtoToJson(_TeamPageDto instance) =>
@@ -25,4 +26,5 @@ Map<String, dynamic> _$TeamPageDtoToJson(_TeamPageDto instance) =>
       'media': instance.media.toJson(),
       'visibility': instance.visibility,
       'order': instance.order,
+      'deleted': instance.deleted,
     };

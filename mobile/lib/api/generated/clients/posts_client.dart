@@ -86,4 +86,17 @@ abstract class PostsClient {
     @Path('teamSlug') required String teamSlug,
     @Body() required SlugChangeRequest body,
   });
+
+  /// Restore post.
+  ///
+  /// Restore a soft-deleted post. Requires organizer permissions.
+  ///
+  /// [postSlug] - Post URL slug.
+  ///
+  /// [teamSlug] - Team URL slug.
+  @POST('/api/teams/{teamSlug}/posts/{postSlug}/undelete')
+  Future<PostDto> undeletePost({
+    @Path('postSlug') required String postSlug,
+    @Path('teamSlug') required String teamSlug,
+  });
 }

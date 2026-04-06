@@ -13,6 +13,7 @@ _TeamPageSummaryDto _$TeamPageSummaryDtoFromJson(Map<String, dynamic> json) =>
       slug: json['slug'] as String,
       visibility: json['visibility'] as String,
       order: (json['order'] as num).toInt(),
+      deleted: json['deleted'] as bool,
     );
 
 Map<String, dynamic> _$TeamPageSummaryDtoToJson(_TeamPageSummaryDto instance) =>
@@ -22,4 +23,5 @@ Map<String, dynamic> _$TeamPageSummaryDtoToJson(_TeamPageSummaryDto instance) =>
       'slug': instance.slug,
       'visibility': instance.visibility,
       'order': instance.order,
+      'deleted': instance.deleted,
     };

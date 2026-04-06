@@ -24,6 +24,7 @@ _RideDto _$RideDtoFromJson(Map<String, dynamic> json) => _RideDto(
   topParticipants: (json['topParticipants'] as List<dynamic>)
       .map((e) => PublicUserDto.fromJson(e as Map<String, dynamic>))
       .toList(),
+  deleted: json['deleted'] as bool,
   publishAt: json['publishAt'] as String?,
   createdAt: json['createdAt'] as String?,
   routeSlug: json['routeSlug'] as String?,
@@ -51,6 +52,7 @@ Map<String, dynamic> _$RideDtoToJson(_RideDto instance) => <String, dynamic>{
   'groupCount': instance.groupCount,
   'groups': instance.groups.map((e) => e.toJson()).toList(),
   'topParticipants': instance.topParticipants.map((e) => e.toJson()).toList(),
+  'deleted': instance.deleted,
   'publishAt': instance.publishAt,
   'createdAt': instance.createdAt,
   'routeSlug': instance.routeSlug,

@@ -62,6 +62,9 @@ sealed class PublicationDto with _$PublicationDto {
     /// Preview of first participants (max 5)
     required List<PublicUserDto> topParticipants,
 
+    /// Whether the ride is soft-deleted
+    required bool deleted,
+
     /// Publication timestamp
     String? publishAt,
 
@@ -110,6 +113,9 @@ sealed class PublicationDto with _$PublicationDto {
     /// Visibility level
     required String visibility,
 
+    /// Whether the post is soft-deleted
+    required bool deleted,
+
     /// Publication timestamp
     String? publishAt,
 
@@ -154,6 +160,9 @@ sealed class PublicationDto with _$PublicationDto {
 
     /// Trip participants
     required List<PublicUserDto> participants,
+
+    /// Whether the trip is soft-deleted
+    required bool deleted,
 
     /// Publication timestamp
     String? publishAt,

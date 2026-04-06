@@ -130,4 +130,17 @@ abstract class AdsClient {
     @Path('teamSlug') required String teamSlug,
     @Body() required SlugChangeRequest body,
   });
+
+  /// Restore ad.
+  ///
+  /// Restore a soft-deleted ad. Only the creator or an admin can restore.
+  ///
+  /// [slug] - Ad URL slug.
+  ///
+  /// [teamSlug] - Team URL slug.
+  @POST('/api/teams/{teamSlug}/ads/{slug}/undelete')
+  Future<AdEditDto> undeleteAd({
+    @Path('slug') required String slug,
+    @Path('teamSlug') required String teamSlug,
+  });
 }

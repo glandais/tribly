@@ -60,6 +60,9 @@ abstract class TripDto with _$TripDto {
     /// Trip participants
     required List<PublicUserDto> participants,
 
+    /// Whether the trip is soft-deleted
+    required bool deleted,
+
     /// Publication timestamp
     String? publishAt,
 

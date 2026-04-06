@@ -65,6 +65,9 @@ abstract class RouteDetailDto with _$RouteDetailDto {
 
     /// Waypoints
     required List<WaypointDto> waypoints,
+
+    /// Whether the route is soft-deleted
+    required bool deleted,
     GeoJsonPoint? start,
     GeoJsonPoint? end,
   }) = _RouteDetailDto;

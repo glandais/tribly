@@ -1260,7 +1260,9 @@ export const UndeleteRideResponse = zod
         id: zod.string().describe('Team ID (TSID)'),
         name: zod.string().describe('Team name'),
         slug: zod.string().describe('Team URL slug'),
-        visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
+        visibility: zod
+          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+          .describe('Whether the team is public'),
       })
       .describe('Team'),
     id: zod.string().describe('Publication ID (TSID)'),
@@ -1415,7 +1417,7 @@ export const UndeleteRideResponse = zod
       .describe('Publication media'),
     dateTime: zod.iso.datetime({}).describe('Publication date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
-    visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Visibility level'),
+    visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
     createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
     routeSlug: zod.string().optional().describe('Route slug'),

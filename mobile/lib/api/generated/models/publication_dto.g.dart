@@ -24,6 +24,7 @@ PublicationDtoRide _$PublicationDtoRideFromJson(Map<String, dynamic> json) =>
       topParticipants: (json['topParticipants'] as List<dynamic>)
           .map((e) => PublicUserDto.fromJson(e as Map<String, dynamic>))
           .toList(),
+      deleted: json['deleted'] as bool,
       publishAt: json['publishAt'] as String?,
       createdAt: json['createdAt'] as String?,
       routeSlug: json['routeSlug'] as String?,
@@ -53,6 +54,7 @@ Map<String, dynamic> _$PublicationDtoRideToJson(
   'groupCount': instance.groupCount,
   'groups': instance.groups.map((e) => e.toJson()).toList(),
   'topParticipants': instance.topParticipants.map((e) => e.toJson()).toList(),
+  'deleted': instance.deleted,
   'publishAt': instance.publishAt,
   'createdAt': instance.createdAt,
   'routeSlug': instance.routeSlug,
@@ -73,6 +75,7 @@ PublicationDtoPost _$PublicationDtoPostFromJson(Map<String, dynamic> json) =>
       dateTime: json['dateTime'] as String,
       status: json['status'] as String,
       visibility: json['visibility'] as String,
+      deleted: json['deleted'] as bool,
       publishAt: json['publishAt'] as String?,
       createdAt: json['createdAt'] as String?,
       $type: json['type'] as String?,
@@ -88,6 +91,7 @@ Map<String, dynamic> _$PublicationDtoPostToJson(PublicationDtoPost instance) =>
       'dateTime': instance.dateTime,
       'status': instance.status,
       'visibility': instance.visibility,
+      'deleted': instance.deleted,
       'publishAt': instance.publishAt,
       'createdAt': instance.createdAt,
       'type': instance.$type,
@@ -111,6 +115,7 @@ PublicationDtoTrip _$PublicationDtoTripFromJson(Map<String, dynamic> json) =>
       participants: (json['participants'] as List<dynamic>)
           .map((e) => PublicUserDto.fromJson(e as Map<String, dynamic>))
           .toList(),
+      deleted: json['deleted'] as bool,
       publishAt: json['publishAt'] as String?,
       createdAt: json['createdAt'] as String?,
       routeSlug: json['routeSlug'] as String?,
@@ -133,6 +138,7 @@ Map<String, dynamic> _$PublicationDtoTripToJson(PublicationDtoTrip instance) =>
       'stageCount': instance.stageCount,
       'stages': instance.stages.map((e) => e.toJson()).toList(),
       'participants': instance.participants.map((e) => e.toJson()).toList(),
+      'deleted': instance.deleted,
       'publishAt': instance.publishAt,
       'createdAt': instance.createdAt,
       'routeSlug': instance.routeSlug,

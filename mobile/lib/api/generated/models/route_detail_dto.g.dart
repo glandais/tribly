@@ -29,6 +29,7 @@ _RouteDetailDto _$RouteDetailDtoFromJson(Map<String, dynamic> json) =>
       waypoints: (json['waypoints'] as List<dynamic>)
           .map((e) => WaypointDto.fromJson(e as Map<String, dynamic>))
           .toList(),
+      deleted: json['deleted'] as bool,
       start: json['start'] == null
           ? null
           : GeoJsonPoint.fromJson(json['start'] as Map<String, dynamic>),
@@ -54,6 +55,7 @@ Map<String, dynamic> _$RouteDetailDtoToJson(_RouteDetailDto instance) =>
       'updatedAt': instance.updatedAt,
       'tracks': instance.tracks.map((e) => e.toJson()).toList(),
       'waypoints': instance.waypoints.map((e) => e.toJson()).toList(),
+      'deleted': instance.deleted,
       'start': instance.start?.toJson(),
       'end': instance.end?.toJson(),
     };

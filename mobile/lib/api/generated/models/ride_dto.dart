@@ -61,6 +61,9 @@ abstract class RideDto with _$RideDto {
     /// Preview of first participants (max 5)
     required List<PublicUserDto> topParticipants,
 
+    /// Whether the ride is soft-deleted
+    required bool deleted,
+
     /// Publication timestamp
     String? publishAt,
 

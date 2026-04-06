@@ -35,6 +35,9 @@ abstract class TeamPageDto with _$TeamPageDto {
 
     /// Page order
     required int order,
+
+    /// Whether the page is soft-deleted
+    required bool deleted,
   }) = _TeamPageDto;
 
   factory TeamPageDto.fromJson(Map<String, Object?> json) =>

@@ -46,6 +46,9 @@ abstract class PostDto with _$PostDto {
     /// Visibility level
     required String visibility,
 
+    /// Whether the post is soft-deleted
+    required bool deleted,
+
     /// Publication timestamp
     String? publishAt,
 

@@ -50,7 +50,8 @@ mixin _$PublicationDto {
  MediaDto get media;/// Publication date/time
  String get dateTime;/// Publication status
  String get status;/// Visibility level
- String get visibility;/// Publication timestamp
+ String get visibility;/// Whether the ride is soft-deleted
+ bool get deleted;/// Publication timestamp
  String? get publishAt;/// Creation timestamp
  String? get createdAt;
 /// Create a copy of PublicationDto
@@ -65,16 +66,16 @@ $PublicationDtoCopyWith<PublicationDto> get copyWith => _$PublicationDtoCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PublicationDto&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.publishAt, publishAt) || other.publishAt == publishAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PublicationDto&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.publishAt, publishAt) || other.publishAt == publishAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,team,id,slug,name,media,dateTime,status,visibility,publishAt,createdAt);
+int get hashCode => Object.hash(runtimeType,team,id,slug,name,media,dateTime,status,visibility,deleted,publishAt,createdAt);
 
 @override
 String toString() {
-  return 'PublicationDto(team: $team, id: $id, slug: $slug, name: $name, media: $media, dateTime: $dateTime, status: $status, visibility: $visibility, publishAt: $publishAt, createdAt: $createdAt)';
+  return 'PublicationDto(team: $team, id: $id, slug: $slug, name: $name, media: $media, dateTime: $dateTime, status: $status, visibility: $visibility, deleted: $deleted, publishAt: $publishAt, createdAt: $createdAt)';
 }
 
 
@@ -85,7 +86,7 @@ abstract mixin class $PublicationDtoCopyWith<$Res>  {
   factory $PublicationDtoCopyWith(PublicationDto value, $Res Function(PublicationDto) _then) = _$PublicationDtoCopyWithImpl;
 @useResult
 $Res call({
- TeamPublicationDto team, String id, String slug, String name, MediaDto media, String dateTime, String status, String visibility, String? publishAt, String? createdAt
+ TeamPublicationDto team, String id, String slug, String name, MediaDto media, String dateTime, String status, String visibility, bool deleted, String? publishAt, String? createdAt
 });
 
 
@@ -102,7 +103,7 @@ class _$PublicationDtoCopyWithImpl<$Res>
 
 /// Create a copy of PublicationDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? media = null,Object? dateTime = null,Object? status = null,Object? visibility = null,Object? publishAt = freezed,Object? createdAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? media = null,Object? dateTime = null,Object? status = null,Object? visibility = null,Object? deleted = null,Object? publishAt = freezed,Object? createdAt = freezed,}) {
   return _then(_self.copyWith(
 team: null == team ? _self.team : team // ignore: cast_nullable_to_non_nullable
 as TeamPublicationDto,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -112,7 +113,8 @@ as String,media: null == media ? _self.media : media // ignore: cast_nullable_to
 as MediaDto,dateTime: null == dateTime ? _self.dateTime : dateTime // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
-as String,publishAt: freezed == publishAt ? _self.publishAt : publishAt // ignore: cast_nullable_to_non_nullable
+as String,deleted: null == deleted ? _self.deleted : deleted // ignore: cast_nullable_to_non_nullable
+as bool,publishAt: freezed == publishAt ? _self.publishAt : publishAt // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
@@ -220,12 +222,12 @@ return trip(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  int participantCount,  int groupCount,  List<RideGroupDto> groups,  List<PublicUserDto> topParticipants,  String? publishAt,  String? createdAt,  String? routeSlug,  PlaceDetailDto? startPlace,  PlaceDetailDto? endPlace,  String? thumbnailLightUrl,  String? thumbnailDarkUrl)?  ride,TResult Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  String? publishAt,  String? createdAt)?  post,TResult Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  int participantCount,  int stageCount,  List<TripStageDto> stages,  List<PublicUserDto> participants,  String? publishAt,  String? createdAt,  String? routeSlug,  String? thumbnailLightUrl,  String? thumbnailDarkUrl)?  trip,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  int participantCount,  int groupCount,  List<RideGroupDto> groups,  List<PublicUserDto> topParticipants,  bool deleted,  String? publishAt,  String? createdAt,  String? routeSlug,  PlaceDetailDto? startPlace,  PlaceDetailDto? endPlace,  String? thumbnailLightUrl,  String? thumbnailDarkUrl)?  ride,TResult Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  bool deleted,  String? publishAt,  String? createdAt)?  post,TResult Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  int participantCount,  int stageCount,  List<TripStageDto> stages,  List<PublicUserDto> participants,  bool deleted,  String? publishAt,  String? createdAt,  String? routeSlug,  String? thumbnailLightUrl,  String? thumbnailDarkUrl)?  trip,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case PublicationDtoRide() when ride != null:
-return ride(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.participantCount,_that.groupCount,_that.groups,_that.topParticipants,_that.publishAt,_that.createdAt,_that.routeSlug,_that.startPlace,_that.endPlace,_that.thumbnailLightUrl,_that.thumbnailDarkUrl);case PublicationDtoPost() when post != null:
-return post(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.publishAt,_that.createdAt);case PublicationDtoTrip() when trip != null:
-return trip(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.participantCount,_that.stageCount,_that.stages,_that.participants,_that.publishAt,_that.createdAt,_that.routeSlug,_that.thumbnailLightUrl,_that.thumbnailDarkUrl);case _:
+return ride(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.participantCount,_that.groupCount,_that.groups,_that.topParticipants,_that.deleted,_that.publishAt,_that.createdAt,_that.routeSlug,_that.startPlace,_that.endPlace,_that.thumbnailLightUrl,_that.thumbnailDarkUrl);case PublicationDtoPost() when post != null:
+return post(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.deleted,_that.publishAt,_that.createdAt);case PublicationDtoTrip() when trip != null:
+return trip(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.participantCount,_that.stageCount,_that.stages,_that.participants,_that.deleted,_that.publishAt,_that.createdAt,_that.routeSlug,_that.thumbnailLightUrl,_that.thumbnailDarkUrl);case _:
   return orElse();
 
 }
@@ -243,12 +245,12 @@ return trip(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  int participantCount,  int groupCount,  List<RideGroupDto> groups,  List<PublicUserDto> topParticipants,  String? publishAt,  String? createdAt,  String? routeSlug,  PlaceDetailDto? startPlace,  PlaceDetailDto? endPlace,  String? thumbnailLightUrl,  String? thumbnailDarkUrl)  ride,required TResult Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  String? publishAt,  String? createdAt)  post,required TResult Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  int participantCount,  int stageCount,  List<TripStageDto> stages,  List<PublicUserDto> participants,  String? publishAt,  String? createdAt,  String? routeSlug,  String? thumbnailLightUrl,  String? thumbnailDarkUrl)  trip,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  int participantCount,  int groupCount,  List<RideGroupDto> groups,  List<PublicUserDto> topParticipants,  bool deleted,  String? publishAt,  String? createdAt,  String? routeSlug,  PlaceDetailDto? startPlace,  PlaceDetailDto? endPlace,  String? thumbnailLightUrl,  String? thumbnailDarkUrl)  ride,required TResult Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  bool deleted,  String? publishAt,  String? createdAt)  post,required TResult Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  int participantCount,  int stageCount,  List<TripStageDto> stages,  List<PublicUserDto> participants,  bool deleted,  String? publishAt,  String? createdAt,  String? routeSlug,  String? thumbnailLightUrl,  String? thumbnailDarkUrl)  trip,}) {final _that = this;
 switch (_that) {
 case PublicationDtoRide():
-return ride(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.participantCount,_that.groupCount,_that.groups,_that.topParticipants,_that.publishAt,_that.createdAt,_that.routeSlug,_that.startPlace,_that.endPlace,_that.thumbnailLightUrl,_that.thumbnailDarkUrl);case PublicationDtoPost():
-return post(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.publishAt,_that.createdAt);case PublicationDtoTrip():
-return trip(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.participantCount,_that.stageCount,_that.stages,_that.participants,_that.publishAt,_that.createdAt,_that.routeSlug,_that.thumbnailLightUrl,_that.thumbnailDarkUrl);}
+return ride(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.participantCount,_that.groupCount,_that.groups,_that.topParticipants,_that.deleted,_that.publishAt,_that.createdAt,_that.routeSlug,_that.startPlace,_that.endPlace,_that.thumbnailLightUrl,_that.thumbnailDarkUrl);case PublicationDtoPost():
+return post(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.deleted,_that.publishAt,_that.createdAt);case PublicationDtoTrip():
+return trip(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.participantCount,_that.stageCount,_that.stages,_that.participants,_that.deleted,_that.publishAt,_that.createdAt,_that.routeSlug,_that.thumbnailLightUrl,_that.thumbnailDarkUrl);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -262,12 +264,12 @@ return trip(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  int participantCount,  int groupCount,  List<RideGroupDto> groups,  List<PublicUserDto> topParticipants,  String? publishAt,  String? createdAt,  String? routeSlug,  PlaceDetailDto? startPlace,  PlaceDetailDto? endPlace,  String? thumbnailLightUrl,  String? thumbnailDarkUrl)?  ride,TResult? Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  String? publishAt,  String? createdAt)?  post,TResult? Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  int participantCount,  int stageCount,  List<TripStageDto> stages,  List<PublicUserDto> participants,  String? publishAt,  String? createdAt,  String? routeSlug,  String? thumbnailLightUrl,  String? thumbnailDarkUrl)?  trip,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  int participantCount,  int groupCount,  List<RideGroupDto> groups,  List<PublicUserDto> topParticipants,  bool deleted,  String? publishAt,  String? createdAt,  String? routeSlug,  PlaceDetailDto? startPlace,  PlaceDetailDto? endPlace,  String? thumbnailLightUrl,  String? thumbnailDarkUrl)?  ride,TResult? Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  bool deleted,  String? publishAt,  String? createdAt)?  post,TResult? Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  int participantCount,  int stageCount,  List<TripStageDto> stages,  List<PublicUserDto> participants,  bool deleted,  String? publishAt,  String? createdAt,  String? routeSlug,  String? thumbnailLightUrl,  String? thumbnailDarkUrl)?  trip,}) {final _that = this;
 switch (_that) {
 case PublicationDtoRide() when ride != null:
-return ride(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.participantCount,_that.groupCount,_that.groups,_that.topParticipants,_that.publishAt,_that.createdAt,_that.routeSlug,_that.startPlace,_that.endPlace,_that.thumbnailLightUrl,_that.thumbnailDarkUrl);case PublicationDtoPost() when post != null:
-return post(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.publishAt,_that.createdAt);case PublicationDtoTrip() when trip != null:
-return trip(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.participantCount,_that.stageCount,_that.stages,_that.participants,_that.publishAt,_that.createdAt,_that.routeSlug,_that.thumbnailLightUrl,_that.thumbnailDarkUrl);case _:
+return ride(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.participantCount,_that.groupCount,_that.groups,_that.topParticipants,_that.deleted,_that.publishAt,_that.createdAt,_that.routeSlug,_that.startPlace,_that.endPlace,_that.thumbnailLightUrl,_that.thumbnailDarkUrl);case PublicationDtoPost() when post != null:
+return post(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.deleted,_that.publishAt,_that.createdAt);case PublicationDtoTrip() when trip != null:
+return trip(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.participantCount,_that.stageCount,_that.stages,_that.participants,_that.deleted,_that.publishAt,_that.createdAt,_that.routeSlug,_that.thumbnailLightUrl,_that.thumbnailDarkUrl);case _:
   return null;
 
 }
@@ -279,7 +281,7 @@ return trip(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime
 @JsonSerializable()
 
 class PublicationDtoRide implements PublicationDto {
-  const PublicationDtoRide({required this.team, required this.id, required this.slug, required this.name, required this.media, required this.dateTime, required this.status, required this.visibility, required this.participantCount, required this.groupCount, required final  List<RideGroupDto> groups, required final  List<PublicUserDto> topParticipants, this.publishAt, this.createdAt, this.routeSlug, this.startPlace, this.endPlace, this.thumbnailLightUrl, this.thumbnailDarkUrl, final  String? $type}): _groups = groups,_topParticipants = topParticipants,$type = $type ?? 'RIDE';
+  const PublicationDtoRide({required this.team, required this.id, required this.slug, required this.name, required this.media, required this.dateTime, required this.status, required this.visibility, required this.participantCount, required this.groupCount, required final  List<RideGroupDto> groups, required final  List<PublicUserDto> topParticipants, required this.deleted, this.publishAt, this.createdAt, this.routeSlug, this.startPlace, this.endPlace, this.thumbnailLightUrl, this.thumbnailDarkUrl, final  String? $type}): _groups = groups,_topParticipants = topParticipants,$type = $type ?? 'RIDE';
   factory PublicationDtoRide.fromJson(Map<String, dynamic> json) => _$PublicationDtoRideFromJson(json);
 
 /// Team
@@ -320,6 +322,8 @@ class PublicationDtoRide implements PublicationDto {
   return EqualUnmodifiableListView(_topParticipants);
 }
 
+/// Whether the ride is soft-deleted
+@override final  bool deleted;
 /// Publication timestamp
 @override final  String? publishAt;
 /// Creation timestamp
@@ -352,16 +356,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PublicationDtoRide&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.participantCount, participantCount) || other.participantCount == participantCount)&&(identical(other.groupCount, groupCount) || other.groupCount == groupCount)&&const DeepCollectionEquality().equals(other._groups, _groups)&&const DeepCollectionEquality().equals(other._topParticipants, _topParticipants)&&(identical(other.publishAt, publishAt) || other.publishAt == publishAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.startPlace, startPlace) || other.startPlace == startPlace)&&(identical(other.endPlace, endPlace) || other.endPlace == endPlace)&&(identical(other.thumbnailLightUrl, thumbnailLightUrl) || other.thumbnailLightUrl == thumbnailLightUrl)&&(identical(other.thumbnailDarkUrl, thumbnailDarkUrl) || other.thumbnailDarkUrl == thumbnailDarkUrl));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PublicationDtoRide&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.participantCount, participantCount) || other.participantCount == participantCount)&&(identical(other.groupCount, groupCount) || other.groupCount == groupCount)&&const DeepCollectionEquality().equals(other._groups, _groups)&&const DeepCollectionEquality().equals(other._topParticipants, _topParticipants)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.publishAt, publishAt) || other.publishAt == publishAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.startPlace, startPlace) || other.startPlace == startPlace)&&(identical(other.endPlace, endPlace) || other.endPlace == endPlace)&&(identical(other.thumbnailLightUrl, thumbnailLightUrl) || other.thumbnailLightUrl == thumbnailLightUrl)&&(identical(other.thumbnailDarkUrl, thumbnailDarkUrl) || other.thumbnailDarkUrl == thumbnailDarkUrl));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,team,id,slug,name,media,dateTime,status,visibility,participantCount,groupCount,const DeepCollectionEquality().hash(_groups),const DeepCollectionEquality().hash(_topParticipants),publishAt,createdAt,routeSlug,startPlace,endPlace,thumbnailLightUrl,thumbnailDarkUrl]);
+int get hashCode => Object.hashAll([runtimeType,team,id,slug,name,media,dateTime,status,visibility,participantCount,groupCount,const DeepCollectionEquality().hash(_groups),const DeepCollectionEquality().hash(_topParticipants),deleted,publishAt,createdAt,routeSlug,startPlace,endPlace,thumbnailLightUrl,thumbnailDarkUrl]);
 
 @override
 String toString() {
-  return 'PublicationDto.ride(team: $team, id: $id, slug: $slug, name: $name, media: $media, dateTime: $dateTime, status: $status, visibility: $visibility, participantCount: $participantCount, groupCount: $groupCount, groups: $groups, topParticipants: $topParticipants, publishAt: $publishAt, createdAt: $createdAt, routeSlug: $routeSlug, startPlace: $startPlace, endPlace: $endPlace, thumbnailLightUrl: $thumbnailLightUrl, thumbnailDarkUrl: $thumbnailDarkUrl)';
+  return 'PublicationDto.ride(team: $team, id: $id, slug: $slug, name: $name, media: $media, dateTime: $dateTime, status: $status, visibility: $visibility, participantCount: $participantCount, groupCount: $groupCount, groups: $groups, topParticipants: $topParticipants, deleted: $deleted, publishAt: $publishAt, createdAt: $createdAt, routeSlug: $routeSlug, startPlace: $startPlace, endPlace: $endPlace, thumbnailLightUrl: $thumbnailLightUrl, thumbnailDarkUrl: $thumbnailDarkUrl)';
 }
 
 
@@ -372,7 +376,7 @@ abstract mixin class $PublicationDtoRideCopyWith<$Res> implements $PublicationDt
   factory $PublicationDtoRideCopyWith(PublicationDtoRide value, $Res Function(PublicationDtoRide) _then) = _$PublicationDtoRideCopyWithImpl;
 @override @useResult
 $Res call({
- TeamPublicationDto team, String id, String slug, String name, MediaDto media, String dateTime, String status, String visibility, int participantCount, int groupCount, List<RideGroupDto> groups, List<PublicUserDto> topParticipants, String? publishAt, String? createdAt, String? routeSlug, PlaceDetailDto? startPlace, PlaceDetailDto? endPlace, String? thumbnailLightUrl, String? thumbnailDarkUrl
+ TeamPublicationDto team, String id, String slug, String name, MediaDto media, String dateTime, String status, String visibility, int participantCount, int groupCount, List<RideGroupDto> groups, List<PublicUserDto> topParticipants, bool deleted, String? publishAt, String? createdAt, String? routeSlug, PlaceDetailDto? startPlace, PlaceDetailDto? endPlace, String? thumbnailLightUrl, String? thumbnailDarkUrl
 });
 
 
@@ -389,7 +393,7 @@ class _$PublicationDtoRideCopyWithImpl<$Res>
 
 /// Create a copy of PublicationDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? media = null,Object? dateTime = null,Object? status = null,Object? visibility = null,Object? participantCount = null,Object? groupCount = null,Object? groups = null,Object? topParticipants = null,Object? publishAt = freezed,Object? createdAt = freezed,Object? routeSlug = freezed,Object? startPlace = freezed,Object? endPlace = freezed,Object? thumbnailLightUrl = freezed,Object? thumbnailDarkUrl = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? media = null,Object? dateTime = null,Object? status = null,Object? visibility = null,Object? participantCount = null,Object? groupCount = null,Object? groups = null,Object? topParticipants = null,Object? deleted = null,Object? publishAt = freezed,Object? createdAt = freezed,Object? routeSlug = freezed,Object? startPlace = freezed,Object? endPlace = freezed,Object? thumbnailLightUrl = freezed,Object? thumbnailDarkUrl = freezed,}) {
   return _then(PublicationDtoRide(
 team: null == team ? _self.team : team // ignore: cast_nullable_to_non_nullable
 as TeamPublicationDto,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -403,7 +407,8 @@ as String,participantCount: null == participantCount ? _self.participantCount : 
 as int,groupCount: null == groupCount ? _self.groupCount : groupCount // ignore: cast_nullable_to_non_nullable
 as int,groups: null == groups ? _self._groups : groups // ignore: cast_nullable_to_non_nullable
 as List<RideGroupDto>,topParticipants: null == topParticipants ? _self._topParticipants : topParticipants // ignore: cast_nullable_to_non_nullable
-as List<PublicUserDto>,publishAt: freezed == publishAt ? _self.publishAt : publishAt // ignore: cast_nullable_to_non_nullable
+as List<PublicUserDto>,deleted: null == deleted ? _self.deleted : deleted // ignore: cast_nullable_to_non_nullable
+as bool,publishAt: freezed == publishAt ? _self.publishAt : publishAt // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String?,routeSlug: freezed == routeSlug ? _self.routeSlug : routeSlug // ignore: cast_nullable_to_non_nullable
 as String?,startPlace: freezed == startPlace ? _self.startPlace : startPlace // ignore: cast_nullable_to_non_nullable
@@ -463,7 +468,7 @@ $PlaceDetailDtoCopyWith<$Res>? get endPlace {
 @JsonSerializable()
 
 class PublicationDtoPost implements PublicationDto {
-  const PublicationDtoPost({required this.team, required this.id, required this.slug, required this.name, required this.media, required this.dateTime, required this.status, required this.visibility, this.publishAt, this.createdAt, final  String? $type}): $type = $type ?? 'POST';
+  const PublicationDtoPost({required this.team, required this.id, required this.slug, required this.name, required this.media, required this.dateTime, required this.status, required this.visibility, required this.deleted, this.publishAt, this.createdAt, final  String? $type}): $type = $type ?? 'POST';
   factory PublicationDtoPost.fromJson(Map<String, dynamic> json) => _$PublicationDtoPostFromJson(json);
 
 /// Team
@@ -482,6 +487,8 @@ class PublicationDtoPost implements PublicationDto {
 @override final  String status;
 /// Visibility level
 @override final  String visibility;
+/// Whether the post is soft-deleted
+@override final  bool deleted;
 /// Publication timestamp
 @override final  String? publishAt;
 /// Creation timestamp
@@ -504,16 +511,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PublicationDtoPost&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.publishAt, publishAt) || other.publishAt == publishAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PublicationDtoPost&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.publishAt, publishAt) || other.publishAt == publishAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,team,id,slug,name,media,dateTime,status,visibility,publishAt,createdAt);
+int get hashCode => Object.hash(runtimeType,team,id,slug,name,media,dateTime,status,visibility,deleted,publishAt,createdAt);
 
 @override
 String toString() {
-  return 'PublicationDto.post(team: $team, id: $id, slug: $slug, name: $name, media: $media, dateTime: $dateTime, status: $status, visibility: $visibility, publishAt: $publishAt, createdAt: $createdAt)';
+  return 'PublicationDto.post(team: $team, id: $id, slug: $slug, name: $name, media: $media, dateTime: $dateTime, status: $status, visibility: $visibility, deleted: $deleted, publishAt: $publishAt, createdAt: $createdAt)';
 }
 
 
@@ -524,7 +531,7 @@ abstract mixin class $PublicationDtoPostCopyWith<$Res> implements $PublicationDt
   factory $PublicationDtoPostCopyWith(PublicationDtoPost value, $Res Function(PublicationDtoPost) _then) = _$PublicationDtoPostCopyWithImpl;
 @override @useResult
 $Res call({
- TeamPublicationDto team, String id, String slug, String name, MediaDto media, String dateTime, String status, String visibility, String? publishAt, String? createdAt
+ TeamPublicationDto team, String id, String slug, String name, MediaDto media, String dateTime, String status, String visibility, bool deleted, String? publishAt, String? createdAt
 });
 
 
@@ -541,7 +548,7 @@ class _$PublicationDtoPostCopyWithImpl<$Res>
 
 /// Create a copy of PublicationDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? media = null,Object? dateTime = null,Object? status = null,Object? visibility = null,Object? publishAt = freezed,Object? createdAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? media = null,Object? dateTime = null,Object? status = null,Object? visibility = null,Object? deleted = null,Object? publishAt = freezed,Object? createdAt = freezed,}) {
   return _then(PublicationDtoPost(
 team: null == team ? _self.team : team // ignore: cast_nullable_to_non_nullable
 as TeamPublicationDto,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -551,7 +558,8 @@ as String,media: null == media ? _self.media : media // ignore: cast_nullable_to
 as MediaDto,dateTime: null == dateTime ? _self.dateTime : dateTime // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
-as String,publishAt: freezed == publishAt ? _self.publishAt : publishAt // ignore: cast_nullable_to_non_nullable
+as String,deleted: null == deleted ? _self.deleted : deleted // ignore: cast_nullable_to_non_nullable
+as bool,publishAt: freezed == publishAt ? _self.publishAt : publishAt // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
@@ -582,7 +590,7 @@ $MediaDtoCopyWith<$Res> get media {
 @JsonSerializable()
 
 class PublicationDtoTrip implements PublicationDto {
-  const PublicationDtoTrip({required this.team, required this.id, required this.slug, required this.name, required this.media, required this.dateTime, required this.status, required this.visibility, required this.participantCount, required this.stageCount, required final  List<TripStageDto> stages, required final  List<PublicUserDto> participants, this.publishAt, this.createdAt, this.routeSlug, this.thumbnailLightUrl, this.thumbnailDarkUrl, final  String? $type}): _stages = stages,_participants = participants,$type = $type ?? 'TRIP';
+  const PublicationDtoTrip({required this.team, required this.id, required this.slug, required this.name, required this.media, required this.dateTime, required this.status, required this.visibility, required this.participantCount, required this.stageCount, required final  List<TripStageDto> stages, required final  List<PublicUserDto> participants, required this.deleted, this.publishAt, this.createdAt, this.routeSlug, this.thumbnailLightUrl, this.thumbnailDarkUrl, final  String? $type}): _stages = stages,_participants = participants,$type = $type ?? 'TRIP';
   factory PublicationDtoTrip.fromJson(Map<String, dynamic> json) => _$PublicationDtoTripFromJson(json);
 
 /// Team
@@ -623,6 +631,8 @@ class PublicationDtoTrip implements PublicationDto {
   return EqualUnmodifiableListView(_participants);
 }
 
+/// Whether the trip is soft-deleted
+@override final  bool deleted;
 /// Publication timestamp
 @override final  String? publishAt;
 /// Creation timestamp
@@ -651,16 +661,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PublicationDtoTrip&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.participantCount, participantCount) || other.participantCount == participantCount)&&(identical(other.stageCount, stageCount) || other.stageCount == stageCount)&&const DeepCollectionEquality().equals(other._stages, _stages)&&const DeepCollectionEquality().equals(other._participants, _participants)&&(identical(other.publishAt, publishAt) || other.publishAt == publishAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.thumbnailLightUrl, thumbnailLightUrl) || other.thumbnailLightUrl == thumbnailLightUrl)&&(identical(other.thumbnailDarkUrl, thumbnailDarkUrl) || other.thumbnailDarkUrl == thumbnailDarkUrl));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PublicationDtoTrip&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.participantCount, participantCount) || other.participantCount == participantCount)&&(identical(other.stageCount, stageCount) || other.stageCount == stageCount)&&const DeepCollectionEquality().equals(other._stages, _stages)&&const DeepCollectionEquality().equals(other._participants, _participants)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.publishAt, publishAt) || other.publishAt == publishAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.thumbnailLightUrl, thumbnailLightUrl) || other.thumbnailLightUrl == thumbnailLightUrl)&&(identical(other.thumbnailDarkUrl, thumbnailDarkUrl) || other.thumbnailDarkUrl == thumbnailDarkUrl));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,team,id,slug,name,media,dateTime,status,visibility,participantCount,stageCount,const DeepCollectionEquality().hash(_stages),const DeepCollectionEquality().hash(_participants),publishAt,createdAt,routeSlug,thumbnailLightUrl,thumbnailDarkUrl);
+int get hashCode => Object.hash(runtimeType,team,id,slug,name,media,dateTime,status,visibility,participantCount,stageCount,const DeepCollectionEquality().hash(_stages),const DeepCollectionEquality().hash(_participants),deleted,publishAt,createdAt,routeSlug,thumbnailLightUrl,thumbnailDarkUrl);
 
 @override
 String toString() {
-  return 'PublicationDto.trip(team: $team, id: $id, slug: $slug, name: $name, media: $media, dateTime: $dateTime, status: $status, visibility: $visibility, participantCount: $participantCount, stageCount: $stageCount, stages: $stages, participants: $participants, publishAt: $publishAt, createdAt: $createdAt, routeSlug: $routeSlug, thumbnailLightUrl: $thumbnailLightUrl, thumbnailDarkUrl: $thumbnailDarkUrl)';
+  return 'PublicationDto.trip(team: $team, id: $id, slug: $slug, name: $name, media: $media, dateTime: $dateTime, status: $status, visibility: $visibility, participantCount: $participantCount, stageCount: $stageCount, stages: $stages, participants: $participants, deleted: $deleted, publishAt: $publishAt, createdAt: $createdAt, routeSlug: $routeSlug, thumbnailLightUrl: $thumbnailLightUrl, thumbnailDarkUrl: $thumbnailDarkUrl)';
 }
 
 
@@ -671,7 +681,7 @@ abstract mixin class $PublicationDtoTripCopyWith<$Res> implements $PublicationDt
   factory $PublicationDtoTripCopyWith(PublicationDtoTrip value, $Res Function(PublicationDtoTrip) _then) = _$PublicationDtoTripCopyWithImpl;
 @override @useResult
 $Res call({
- TeamPublicationDto team, String id, String slug, String name, MediaDto media, String dateTime, String status, String visibility, int participantCount, int stageCount, List<TripStageDto> stages, List<PublicUserDto> participants, String? publishAt, String? createdAt, String? routeSlug, String? thumbnailLightUrl, String? thumbnailDarkUrl
+ TeamPublicationDto team, String id, String slug, String name, MediaDto media, String dateTime, String status, String visibility, int participantCount, int stageCount, List<TripStageDto> stages, List<PublicUserDto> participants, bool deleted, String? publishAt, String? createdAt, String? routeSlug, String? thumbnailLightUrl, String? thumbnailDarkUrl
 });
 
 
@@ -688,7 +698,7 @@ class _$PublicationDtoTripCopyWithImpl<$Res>
 
 /// Create a copy of PublicationDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? media = null,Object? dateTime = null,Object? status = null,Object? visibility = null,Object? participantCount = null,Object? stageCount = null,Object? stages = null,Object? participants = null,Object? publishAt = freezed,Object? createdAt = freezed,Object? routeSlug = freezed,Object? thumbnailLightUrl = freezed,Object? thumbnailDarkUrl = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? media = null,Object? dateTime = null,Object? status = null,Object? visibility = null,Object? participantCount = null,Object? stageCount = null,Object? stages = null,Object? participants = null,Object? deleted = null,Object? publishAt = freezed,Object? createdAt = freezed,Object? routeSlug = freezed,Object? thumbnailLightUrl = freezed,Object? thumbnailDarkUrl = freezed,}) {
   return _then(PublicationDtoTrip(
 team: null == team ? _self.team : team // ignore: cast_nullable_to_non_nullable
 as TeamPublicationDto,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -702,7 +712,8 @@ as String,participantCount: null == participantCount ? _self.participantCount : 
 as int,stageCount: null == stageCount ? _self.stageCount : stageCount // ignore: cast_nullable_to_non_nullable
 as int,stages: null == stages ? _self._stages : stages // ignore: cast_nullable_to_non_nullable
 as List<TripStageDto>,participants: null == participants ? _self._participants : participants // ignore: cast_nullable_to_non_nullable
-as List<PublicUserDto>,publishAt: freezed == publishAt ? _self.publishAt : publishAt // ignore: cast_nullable_to_non_nullable
+as List<PublicUserDto>,deleted: null == deleted ? _self.deleted : deleted // ignore: cast_nullable_to_non_nullable
+as bool,publishAt: freezed == publishAt ? _self.publishAt : publishAt // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String?,routeSlug: freezed == routeSlug ? _self.routeSlug : routeSlug // ignore: cast_nullable_to_non_nullable
 as String?,thumbnailLightUrl: freezed == thumbnailLightUrl ? _self.thumbnailLightUrl : thumbnailLightUrl // ignore: cast_nullable_to_non_nullable

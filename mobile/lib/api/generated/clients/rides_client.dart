@@ -119,4 +119,17 @@ abstract class RidesClient {
     @Path('teamSlug') required String teamSlug,
     @Body() required SlugChangeRequest body,
   });
+
+  /// Restore ride.
+  ///
+  /// Restore a soft-deleted ride. Requires organizer permissions.
+  ///
+  /// [rideSlug] - Ride URL slug.
+  ///
+  /// [teamSlug] - Team URL slug.
+  @POST('/api/teams/{teamSlug}/rides/{rideSlug}/undelete')
+  Future<RideDto> undeleteRide({
+    @Path('rideSlug') required String rideSlug,
+    @Path('teamSlug') required String teamSlug,
+  });
 }

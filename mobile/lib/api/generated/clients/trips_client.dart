@@ -113,4 +113,17 @@ abstract class TripsClient {
     @Path('tripSlug') required String tripSlug,
     @Body() required SlugChangeRequest body,
   });
+
+  /// Restore trip.
+  ///
+  /// Restore a soft-deleted trip. Requires organizer permissions.
+  ///
+  /// [teamSlug] - Team URL slug.
+  ///
+  /// [tripSlug] - Trip URL slug.
+  @POST('/api/teams/{teamSlug}/trips/{tripSlug}/undelete')
+  Future<TripDto> undeleteTrip({
+    @Path('teamSlug') required String teamSlug,
+    @Path('tripSlug') required String tripSlug,
+  });
 }
