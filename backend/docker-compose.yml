@@ -87,7 +87,7 @@ services:
       - minio_data:/data
 
   tileserver:
-    image: maptiler/tileserver-gl:v5.5.0
+    image: maptiler/tileserver-gl:v5.6.0
     container_name: pedalons-dev-tileserver
     restart: unless-stopped
     networks:
