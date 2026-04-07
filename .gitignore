@@ -90,3 +90,4 @@ frontend/*.pem
 
 .playwright-mcp
 .superdesign
+.superpowers

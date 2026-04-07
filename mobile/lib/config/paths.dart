@@ -27,7 +27,10 @@ class Paths {
 
   // Teams
   static String team(String teamSlug) => '/teams/$teamSlug'; // applink OK
+  static String teamFeed(String teamSlug) => '/teams/$teamSlug/feed';
   static String teamCalendar(String teamSlug) => '/teams/$teamSlug/calendar'; // applink OK
+  static String teamAbout(String teamSlug) => '/teams/$teamSlug/about'; // applink OK
+  static String teamAds(String teamSlug) => '/teams/$teamSlug/ads';
 
   // Rides
   static String ride(String teamSlug, String rideSlug) =>

@@ -26,8 +26,9 @@ final calendarEventsProvider = FutureProvider.family<List<CalendarEventDto>,
 
 class CalendarPage extends ConsumerStatefulWidget {
   final String? teamSlug;
+  final bool embedded;
 
-  const CalendarPage({super.key, this.teamSlug});
+  const CalendarPage({super.key, this.teamSlug, this.embedded = false});
 
   @override
   ConsumerState<CalendarPage> createState() => _CalendarPageState();
@@ -94,34 +95,30 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
     final params = (start: _monthStart, end: _monthEnd, teamSlug: widget.teamSlug);
     final eventsAsync = ref.watch(calendarEventsProvider(params));
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('calendar.title'.tr()),
-      ),
-      body: Column(
-        children: [
-          // Month selector
-          ContentWidthConstraint(
-            child: _MonthSelector(
-              selectedMonth: _selectedMonth,
-              onPreviousMonth: () {
-                setState(() {
-                  _selectedMonth =
-                      DateTime(_selectedMonth.year, _selectedMonth.month - 1, 1);
-                });
-              },
-              onNextMonth: () {
-                setState(() {
-                  _selectedMonth =
-                      DateTime(_selectedMonth.year, _selectedMonth.month + 1, 1);
-                });
-              },
-            ),
+    final body = Column(
+      children: [
+        // Month selector
+        ContentWidthConstraint(
+          child: _MonthSelector(
+            selectedMonth: _selectedMonth,
+            onPreviousMonth: () {
+              setState(() {
+                _selectedMonth =
+                    DateTime(_selectedMonth.year, _selectedMonth.month - 1, 1);
+              });
+            },
+            onNextMonth: () {
+              setState(() {
+                _selectedMonth =
+                    DateTime(_selectedMonth.year, _selectedMonth.month + 1, 1);
+              });
+            },
           ),
+        ),
 
-          // Events list
-          Expanded(
-            child: eventsAsync.when(
+        // Events list
+        Expanded(
+          child: eventsAsync.when(
               data: (events) {
                 if (events.isEmpty) {
                   return Center(
@@ -222,7 +219,17 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
             ),
           ),
         ],
+      );
+
+    if (widget.embedded) {
+      return body;
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('calendar.title'.tr()),
       ),
+      body: body,
     );
   }
 }

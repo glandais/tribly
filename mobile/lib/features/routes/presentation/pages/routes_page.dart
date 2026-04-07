@@ -19,81 +19,88 @@ final teamRoutesPageProvider =
 
 class RoutesPage extends ConsumerWidget {
   final String teamSlug;
+  final bool embedded;
 
-  const RoutesPage({super.key, required this.teamSlug});
+  const RoutesPage({super.key, required this.teamSlug, this.embedded = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final routesAsync = ref.watch(teamRoutesPageProvider(teamSlug));
 
+    final body = routesAsync.when(
+      data: (routes) {
+        if (routes.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedEmptyState(
+                  child: Icon(
+                    Icons.route,
+                    size: 64,
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'routes.empty'.tr(),
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ],
+            ),
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: () => ref.refresh(teamRoutesPageProvider(teamSlug).future),
+          child: AnimatedResponsiveGrid(
+            padding: const EdgeInsets.all(16),
+            itemCount: routes.length,
+            childAspectRatio: 1.2,
+            itemBuilder: (context, index) {
+              return _RouteGridItem(route: routes[index]);
+            },
+          ),
+        );
+      },
+      loading: () => GridView.builder(
+        padding: const EdgeInsets.all(16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 1.2,
+        ),
+        itemCount: 4,
+        itemBuilder: (context, index) => const ShimmerRouteGridItem(),
+      ),
+      error: (error, stack) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
+            const SizedBox(height: 16),
+            Text(getErrorMessage(error)),
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed: () =>
+                  ref.invalidate(teamRoutesPageProvider(teamSlug)),
+              child: Text('common.retry'.tr()),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (embedded) {
+      return body;
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text('routes.title'.tr()),
       ),
-      body: routesAsync.when(
-        data: (routes) {
-          if (routes.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  AnimatedEmptyState(
-                    child: Icon(
-                      Icons.route,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'routes.empty'.tr(),
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ],
-              ),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: () => ref.refresh(teamRoutesPageProvider(teamSlug).future),
-            child: AnimatedResponsiveGrid(
-              padding: const EdgeInsets.all(16),
-              itemCount: routes.length,
-              childAspectRatio: 1.2,
-              itemBuilder: (context, index) {
-                return _RouteGridItem(route: routes[index]);
-              },
-            ),
-          );
-        },
-        loading: () => GridView.builder(
-          padding: const EdgeInsets.all(16),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.2,
-          ),
-          itemCount: 4,
-          itemBuilder: (context, index) => const ShimmerRouteGridItem(),
-        ),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
-              const SizedBox(height: 16),
-              Text(getErrorMessage(error)),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: () =>
-                    ref.invalidate(teamRoutesPageProvider(teamSlug)),
-                child: Text('common.retry'.tr()),
-              ),
-            ],
-          ),
-        ),
-      ),
+      body: body,
     );
   }
 }

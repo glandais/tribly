@@ -13,19 +13,25 @@ import '../features/home/presentation/pages/home_page.dart';
 import '../features/legal/presentation/pages/legal_page.dart';
 import '../features/navigation/presentation/shell/main_shell.dart';
 import '../features/profile/presentation/pages/profile_page.dart';
+import '../api/generated/export.dart';
 import '../features/ads/presentation/pages/ad_detail_page.dart';
+import '../features/ads/presentation/pages/ads_page.dart';
 import '../features/posts/presentation/pages/post_detail_page.dart';
 import '../features/rides/presentation/pages/ride_detail_page.dart';
 import '../features/trips/presentation/pages/stage_detail_page.dart';
 import '../features/trips/presentation/pages/trip_detail_page.dart';
 import '../features/routes/presentation/pages/route_detail_page.dart';
 import '../features/routes/presentation/pages/routes_page.dart';
+import '../features/teams/presentation/pages/team_about_page.dart';
 import '../features/teams/presentation/pages/team_detail_page.dart';
+import '../features/teams/presentation/pages/team_feed_page.dart';
 import '../features/teams/presentation/pages/teams_page.dart';
+import '../features/teams/presentation/shell/team_shell.dart';
 import 'paths.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
+final _teamShellNavigatorKey = GlobalKey<NavigatorState>();
 
 /// Provider for the initial deep link path (set in main.dart)
 final initialDeepLinkProvider = Provider<String?>((ref) => null);
@@ -152,85 +158,154 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
 
-      // Detail pages (outside shell for full screen)
-      GoRoute(
-        path: '/teams/:teamSlug',
-        builder: (context, state) => TeamDetailPage(
-          teamSlug: state.pathParameters['teamSlug']!,
+      // Team shell with bottom navigation
+      ShellRoute(
+        navigatorKey: _teamShellNavigatorKey,
+        builder: (context, state, child) => TeamShell(
+          state: state,
+          child: child,
         ),
         routes: [
-          // About redirects to team detail
+          // Team root redirects to feed
           GoRoute(
-            path: 'about',
-            redirect: (context, state) =>
-                Paths.team(state.pathParameters['teamSlug']!),
-          ),
-          // Team's routes list
-          GoRoute(
-            path: 'routes',
-            builder: (context, state) => RoutesPage(
-              teamSlug: state.pathParameters['teamSlug']!,
-            ),
+            path: '/teams/:teamSlug',
+            redirect: (context, state) {
+              final teamSlug = state.pathParameters['teamSlug']!;
+              // Only redirect exact match, not sub-paths
+              if (state.matchedLocation == '/teams/$teamSlug') {
+                return Paths.teamFeed(teamSlug);
+              }
+              return null;
+            },
             routes: [
-              // Route detail
+              // Feed tab
               GoRoute(
-                path: ':routeSlug',
+                path: 'feed',
+                pageBuilder: (context, state) {
+                  final teamSlug = state.pathParameters['teamSlug']!;
+                  return NoTransitionPage(
+                    child: _TeamTabPageWrapper(
+                      teamSlug: teamSlug,
+                      builder: (team) => TeamFeedPage(
+                        teamSlug: teamSlug,
+                        team: team,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              // Calendar tab
+              GoRoute(
+                path: 'calendar',
+                pageBuilder: (context, state) {
+                  final teamSlug = state.pathParameters['teamSlug']!;
+                  return NoTransitionPage(
+                    child: CalendarPage(
+                      teamSlug: teamSlug,
+                      embedded: true,
+                    ),
+                  );
+                },
+              ),
+              // Routes tab
+              GoRoute(
+                path: 'routes',
+                pageBuilder: (context, state) {
+                  final teamSlug = state.pathParameters['teamSlug']!;
+                  return NoTransitionPage(
+                    child: RoutesPage(
+                      teamSlug: teamSlug,
+                      embedded: true,
+                    ),
+                  );
+                },
+              ),
+              // Ads tab
+              GoRoute(
+                path: 'ads',
+                pageBuilder: (context, state) {
+                  final teamSlug = state.pathParameters['teamSlug']!;
+                  return NoTransitionPage(
+                    child: _TeamTabPageWrapper(
+                      teamSlug: teamSlug,
+                      builder: (team) => AdsPage(
+                        teamSlug: teamSlug,
+                        team: team,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              // About tab
+              GoRoute(
+                path: 'about',
+                pageBuilder: (context, state) {
+                  final teamSlug = state.pathParameters['teamSlug']!;
+                  return NoTransitionPage(
+                    child: _TeamTabPageWrapper(
+                      teamSlug: teamSlug,
+                      builder: (team) => TeamAboutPage(
+                        teamSlug: teamSlug,
+                        team: team,
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+              // Detail pages (full screen, outside team shell)
+              GoRoute(
+                path: 'routes/:routeSlug',
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) => RouteDetailPage(
                   teamSlug: state.pathParameters['teamSlug']!,
                   routeSlug: state.pathParameters['routeSlug']!,
                 ),
               ),
-            ],
-          ),
-          // Ride detail
-          GoRoute(
-            path: 'rides/:rideSlug',
-            builder: (context, state) => RideDetailPage(
-              teamSlug: state.pathParameters['teamSlug']!,
-              rideSlug: state.pathParameters['rideSlug']!,
-            ),
-          ),
-          // Post detail
-          GoRoute(
-            path: 'posts/:postSlug',
-            builder: (context, state) => PostDetailPage(
-              teamSlug: state.pathParameters['teamSlug']!,
-              postSlug: state.pathParameters['postSlug']!,
-            ),
-          ),
-          // Ad detail
-          GoRoute(
-            path: 'ads/:adSlug',
-            builder: (context, state) => AdDetailPage(
-              teamSlug: state.pathParameters['teamSlug']!,
-              adSlug: state.pathParameters['adSlug']!,
-            ),
-          ),
-          // Trip detail
-          GoRoute(
-            path: 'trips/:tripSlug',
-            builder: (context, state) => TripDetailPage(
-              teamSlug: state.pathParameters['teamSlug']!,
-              tripSlug: state.pathParameters['tripSlug']!,
-            ),
-            routes: [
-              // Stage detail
               GoRoute(
-                path: 'stages/:stageSlug',
-                builder: (context, state) => StageDetailPage(
+                path: 'rides/:rideSlug',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => RideDetailPage(
                   teamSlug: state.pathParameters['teamSlug']!,
-                  tripSlug: state.pathParameters['tripSlug']!,
-                  stageSlug: state.pathParameters['stageSlug']!,
+                  rideSlug: state.pathParameters['rideSlug']!,
                 ),
               ),
+              GoRoute(
+                path: 'posts/:postSlug',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => PostDetailPage(
+                  teamSlug: state.pathParameters['teamSlug']!,
+                  postSlug: state.pathParameters['postSlug']!,
+                ),
+              ),
+              GoRoute(
+                path: 'ads/:adSlug',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => AdDetailPage(
+                  teamSlug: state.pathParameters['teamSlug']!,
+                  adSlug: state.pathParameters['adSlug']!,
+                ),
+              ),
+              GoRoute(
+                path: 'trips/:tripSlug',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => TripDetailPage(
+                  teamSlug: state.pathParameters['teamSlug']!,
+                  tripSlug: state.pathParameters['tripSlug']!,
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'stages/:stageSlug',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => StageDetailPage(
+                      teamSlug: state.pathParameters['teamSlug']!,
+                      tripSlug: state.pathParameters['tripSlug']!,
+                      stageSlug: state.pathParameters['stageSlug']!,
+                    ),
+                  ),
+                ],
+              ),
             ],
-          ),
-          // Team calendar
-          GoRoute(
-            path: 'calendar',
-            builder: (context, state) => CalendarPage(
-              teamSlug: state.pathParameters['teamSlug']!,
-            ),
           ),
         ],
       ),
@@ -273,3 +348,29 @@ final routerProvider = Provider<GoRouter>((ref) {
     ),
   );
 });
+
+/// Wrapper that provides [TeamDetailDto] to team tab pages.
+///
+/// Watches [teamDetailProvider] and passes the team to the builder.
+/// The shell already handles loading/error states, so by the time
+/// tab pages render, the team data should be cached.
+class _TeamTabPageWrapper extends ConsumerWidget {
+  final String teamSlug;
+  final Widget Function(TeamDetailDto team) builder;
+
+  const _TeamTabPageWrapper({
+    required this.teamSlug,
+    required this.builder,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final teamAsync = ref.watch(teamDetailProvider(teamSlug));
+
+    return teamAsync.when(
+      data: (team) => builder(team),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (_, _) => const SizedBox.shrink(),
+    );
+  }
+}

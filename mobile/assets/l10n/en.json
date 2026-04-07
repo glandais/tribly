@@ -139,7 +139,21 @@
     "discover": "Discover teams",
     "members": "{count} members",
     "membersLabel": "Members",
-    "about": "About"
+    "about": "About",
+    "tabs": {
+      "feed": "Feed",
+      "calendar": "Calendar",
+      "routes": "Routes",
+      "ads": "Ads",
+      "about": "About"
+    },
+    "feed": {
+      "empty": "No publications"
+    },
+    "aboutPage": {
+      "createdYear": "Created",
+      "pages": "Pages"
+    }
   },
   "rides": {
     "title": "Rides",
@@ -160,6 +174,7 @@
   },
   "ads": {
     "title": "Ads",
+    "empty": "No ads",
     "adType": {
       "SALE": "For sale",
       "RENTAL": "For rent",
