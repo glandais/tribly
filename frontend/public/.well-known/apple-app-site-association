@@ -6,6 +6,8 @@
         "appID": "7Q49262697.fr.pedalons.mobile",
         "paths": [
           "/teams/*/rides/*",
+          "/teams/*/posts/*",
+          "/teams/*/ads/*",
           "/teams/*/routes/*",
           "/teams/*/routes",
           "/teams/*/about",

@@ -155,6 +155,25 @@
     "selectGroup": "Choisir un groupe",
     "description": "Description"
   },
+  "posts": {
+    "title": "Publications"
+  },
+  "ads": {
+    "title": "Annonces",
+    "adType": {
+      "SALE": "Vente",
+      "RENTAL": "Location",
+      "WANTED": "Recherche"
+    },
+    "detail": {
+      "priceNegotiable": "Prix à négocier"
+    },
+    "rentalPeriod": {
+      "DAY": "Jour",
+      "WEEK": "Semaine",
+      "MONTH": "Mois"
+    }
+  },
   "routes": {
     "title": "Parcours",
     "empty": "Aucun parcours",

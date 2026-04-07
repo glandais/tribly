@@ -13,6 +13,8 @@ import '../features/home/presentation/pages/home_page.dart';
 import '../features/legal/presentation/pages/legal_page.dart';
 import '../features/navigation/presentation/shell/main_shell.dart';
 import '../features/profile/presentation/pages/profile_page.dart';
+import '../features/ads/presentation/pages/ad_detail_page.dart';
+import '../features/posts/presentation/pages/post_detail_page.dart';
 import '../features/rides/presentation/pages/ride_detail_page.dart';
 import '../features/routes/presentation/pages/route_detail_page.dart';
 import '../features/routes/presentation/pages/routes_page.dart';
@@ -184,6 +186,22 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => RideDetailPage(
               teamSlug: state.pathParameters['teamSlug']!,
               rideSlug: state.pathParameters['rideSlug']!,
+            ),
+          ),
+          // Post detail
+          GoRoute(
+            path: 'posts/:postSlug',
+            builder: (context, state) => PostDetailPage(
+              teamSlug: state.pathParameters['teamSlug']!,
+              postSlug: state.pathParameters['postSlug']!,
+            ),
+          ),
+          // Ad detail
+          GoRoute(
+            path: 'ads/:adSlug',
+            builder: (context, state) => AdDetailPage(
+              teamSlug: state.pathParameters['teamSlug']!,
+              adSlug: state.pathParameters['adSlug']!,
             ),
           ),
           // Team calendar

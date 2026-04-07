@@ -125,3 +125,7 @@ final publicationsClientProvider = Provider<PublicationsClient>((ref) {
 final gpsServicesClientProvider = Provider<GpsServicesClient>((ref) {
   return ref.watch(apiClientProvider).gpsServices;
 });
+
+final adsClientProvider = Provider<AdsClient>((ref) {
+  return ref.watch(apiClientProvider).ads;
+});

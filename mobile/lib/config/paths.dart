@@ -33,8 +33,16 @@ class Paths {
   static String ride(String teamSlug, String rideSlug) =>
       '/teams/$teamSlug/rides/$rideSlug'; // applink OK
 
+  // Posts
+  static String post(String teamSlug, String postSlug) =>
+      '/teams/$teamSlug/posts/$postSlug'; // applink OK
+
   // Routes
   static String routes(String teamSlug) => '/teams/$teamSlug/routes'; // applink OK
   static String route(String teamSlug, String routeSlug) =>
       '/teams/$teamSlug/routes/$routeSlug'; // applink OK
+
+  // Ads
+  static String ad(String teamSlug, String adSlug) =>
+      '/teams/$teamSlug/ads/$adSlug'; // applink OK
 }

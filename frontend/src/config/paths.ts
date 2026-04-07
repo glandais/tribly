@@ -56,7 +56,7 @@ export const paths = {
 
   // Posts
   postNew: (teamSlug: string) => `/teams/${teamSlug}/posts/new`,
-  post: (teamSlug: string, postSlug: string) => `/teams/${teamSlug}/posts/${postSlug}`,
+  post: (teamSlug: string, postSlug: string) => `/teams/${teamSlug}/posts/${postSlug}`, // mobile OK
   postEdit: (teamSlug: string, postSlug: string) => `/teams/${teamSlug}/posts/${postSlug}/edit`,
 
   // Routes
@@ -68,7 +68,7 @@ export const paths = {
   // Ads
   ads: (teamSlug: string) => `/teams/${teamSlug}/ads`,
   adNew: (teamSlug: string) => `/teams/${teamSlug}/ads/new`,
-  ad: (teamSlug: string, adSlug: string) => `/teams/${teamSlug}/ads/${adSlug}`,
+  ad: (teamSlug: string, adSlug: string) => `/teams/${teamSlug}/ads/${adSlug}`, // mobile OK
   adEdit: (teamSlug: string, adSlug: string) => `/teams/${teamSlug}/ads/${adSlug}/edit`,
 
   // Platform Admin

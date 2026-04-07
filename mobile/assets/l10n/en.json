@@ -155,6 +155,25 @@
     "selectGroup": "Select a group",
     "description": "Description"
   },
+  "posts": {
+    "title": "Posts"
+  },
+  "ads": {
+    "title": "Ads",
+    "adType": {
+      "SALE": "For sale",
+      "RENTAL": "For rent",
+      "WANTED": "Wanted"
+    },
+    "detail": {
+      "priceNegotiable": "Price negotiable"
+    },
+    "rentalPeriod": {
+      "DAY": "Day",
+      "WEEK": "Week",
+      "MONTH": "Month"
+    }
+  },
   "routes": {
     "title": "Routes",
     "empty": "No routes",

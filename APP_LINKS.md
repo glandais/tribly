@@ -42,6 +42,8 @@ Ajouter le pattern dans `applinks.details[0].paths` :
         "appID": "7Q49262697.fr.pedalons.mobile",
         "paths": [
           "/teams/*/rides/*",
+          "/teams/*/posts/*",
+          "/teams/*/ads/*",
           "/teams/*/routes/*",
           "/teams/*/routes",
           "/teams/*/about",
@@ -88,6 +90,8 @@ Ajouter un `<data>` dans l'intent-filter existant. Utiliser `android:pathPattern
     <data android:scheme="https" android:host="www.pedalons.fr" />
     <!-- Patterns dynamiques -->
     <data android:pathPattern="/teams/.*/rides/.*" />
+    <data android:pathPattern="/teams/.*/posts/.*" />
+    <data android:pathPattern="/teams/.*/ads/.*" />
     <data android:pathPattern="/teams/.*/routes/.*" />
     <data android:pathPattern="/teams/.*/routes" />
     <data android:pathPattern="/teams/.*/about" />
