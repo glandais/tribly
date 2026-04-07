@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "7Q49262697.fr.pedalons.mobile",
+        "paths": ["*"]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["7Q49262697.fr.pedalons.mobile"]
+  }
+}
