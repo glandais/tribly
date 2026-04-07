@@ -49,10 +49,10 @@ export const paths = {
 
   // Trips
   tripNew: (teamSlug: string) => `/teams/${teamSlug}/trips/new`,
-  trip: (teamSlug: string, tripSlug: string) => `/teams/${teamSlug}/trips/${tripSlug}`,
+  trip: (teamSlug: string, tripSlug: string) => `/teams/${teamSlug}/trips/${tripSlug}`, // mobile OK
   tripEdit: (teamSlug: string, tripSlug: string) => `/teams/${teamSlug}/trips/${tripSlug}/edit`,
   stage: (teamSlug: string, tripSlug: string, stageSlug: string) =>
-    `/teams/${teamSlug}/trips/${tripSlug}/stages/${stageSlug}`,
+    `/teams/${teamSlug}/trips/${tripSlug}/stages/${stageSlug}`, // mobile OK
 
   // Posts
   postNew: (teamSlug: string) => `/teams/${teamSlug}/posts/new`,

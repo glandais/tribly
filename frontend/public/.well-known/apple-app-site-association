@@ -8,6 +8,8 @@
           "/teams/*/rides/*",
           "/teams/*/posts/*",
           "/teams/*/ads/*",
+          "/teams/*/trips/*/stages/*",
+          "/teams/*/trips/*",
           "/teams/*/routes/*",
           "/teams/*/routes",
           "/teams/*/about",

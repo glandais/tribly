@@ -343,16 +343,51 @@ class _EventCard extends StatelessWidget {
 
   DateTime get _startDate => DateTime.parse(event.start);
 
+  void Function()? _onTap(BuildContext context) {
+    switch (event.type) {
+      case 'RIDE':
+        return () => context.push(Paths.ride(event.teamSlug, event.entitySlug));
+      case 'TRIP_STAGE':
+        if (event.tripSlug != null) {
+          return () => context.push(
+              Paths.stage(event.teamSlug, event.tripSlug!, event.entitySlug));
+        }
+        return null;
+      default:
+        return null;
+    }
+  }
+
+  IconData get _icon {
+    switch (event.type) {
+      case 'RIDE':
+        return Icons.directions_bike;
+      case 'TRIP_STAGE':
+        return Icons.hiking;
+      default:
+        return Icons.event;
+    }
+  }
+
+  Color _color(BuildContext context) {
+    switch (event.type) {
+      case 'RIDE':
+        return Theme.of(context).colorScheme.primary;
+      case 'TRIP_STAGE':
+        return Theme.of(context).colorScheme.tertiary;
+      default:
+        return Theme.of(context).colorScheme.outline;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isRide = event.type == 'RIDE';
+    final color = _color(context);
 
     return Padding(
       padding: const EdgeInsets.only(left: 60, bottom: 8),
       child: AnimatedCard(
-        onTap: isRide
-            ? () => context.push(Paths.ride(event.teamSlug, event.entitySlug))
-            : null,
+        onTap: _onTap(context),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
@@ -361,18 +396,14 @@ class _EventCard extends StatelessWidget {
                 width: 4,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: isRide
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.tertiary,
+                  color: color,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
               const SizedBox(width: 12),
               Icon(
-                isRide ? Icons.directions_bike : Icons.event,
-                color: isRide
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.tertiary,
+                _icon,
+                color: color,
               ),
               const SizedBox(width: 12),
               Expanded(

@@ -44,6 +44,8 @@ Ajouter le pattern dans `applinks.details[0].paths` :
           "/teams/*/rides/*",
           "/teams/*/posts/*",
           "/teams/*/ads/*",
+          "/teams/*/trips/*/stages/*",
+          "/teams/*/trips/*",
           "/teams/*/routes/*",
           "/teams/*/routes",
           "/teams/*/about",
@@ -92,6 +94,8 @@ Ajouter un `<data>` dans l'intent-filter existant. Utiliser `android:pathPattern
     <data android:pathPattern="/teams/.*/rides/.*" />
     <data android:pathPattern="/teams/.*/posts/.*" />
     <data android:pathPattern="/teams/.*/ads/.*" />
+    <data android:pathPattern="/teams/.*/trips/.*/stages/.*" />
+    <data android:pathPattern="/teams/.*/trips/.*" />
     <data android:pathPattern="/teams/.*/routes/.*" />
     <data android:pathPattern="/teams/.*/routes" />
     <data android:pathPattern="/teams/.*/about" />

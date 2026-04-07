@@ -16,6 +16,8 @@ import '../features/profile/presentation/pages/profile_page.dart';
 import '../features/ads/presentation/pages/ad_detail_page.dart';
 import '../features/posts/presentation/pages/post_detail_page.dart';
 import '../features/rides/presentation/pages/ride_detail_page.dart';
+import '../features/trips/presentation/pages/stage_detail_page.dart';
+import '../features/trips/presentation/pages/trip_detail_page.dart';
 import '../features/routes/presentation/pages/route_detail_page.dart';
 import '../features/routes/presentation/pages/routes_page.dart';
 import '../features/teams/presentation/pages/team_detail_page.dart';
@@ -203,6 +205,25 @@ final routerProvider = Provider<GoRouter>((ref) {
               teamSlug: state.pathParameters['teamSlug']!,
               adSlug: state.pathParameters['adSlug']!,
             ),
+          ),
+          // Trip detail
+          GoRoute(
+            path: 'trips/:tripSlug',
+            builder: (context, state) => TripDetailPage(
+              teamSlug: state.pathParameters['teamSlug']!,
+              tripSlug: state.pathParameters['tripSlug']!,
+            ),
+            routes: [
+              // Stage detail
+              GoRoute(
+                path: 'stages/:stageSlug',
+                builder: (context, state) => StageDetailPage(
+                  teamSlug: state.pathParameters['teamSlug']!,
+                  tripSlug: state.pathParameters['tripSlug']!,
+                  stageSlug: state.pathParameters['stageSlug']!,
+                ),
+              ),
+            ],
           ),
           // Team calendar
           GoRoute(

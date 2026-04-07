@@ -45,4 +45,10 @@ class Paths {
   // Ads
   static String ad(String teamSlug, String adSlug) =>
       '/teams/$teamSlug/ads/$adSlug'; // applink OK
+
+  // Trips
+  static String trip(String teamSlug, String tripSlug) =>
+      '/teams/$teamSlug/trips/$tripSlug'; // applink OK
+  static String stage(String teamSlug, String tripSlug, String stageSlug) =>
+      '/teams/$teamSlug/trips/$tripSlug/stages/$stageSlug'; // applink OK
 }
