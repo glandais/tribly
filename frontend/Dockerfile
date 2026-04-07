@@ -30,6 +30,9 @@ FROM steebchen/nginx-spa:stable
 # Copy the built application
 COPY --from=build /app/dist/ /app
 
+# Override default Nginx config to serve apple-app-site-association as JSON
+COPY nginx-spa.conf /etc/nginx/conf.d/default.conf
+
 EXPOSE 80
 
 CMD ["nginx"]
