@@ -30,7 +30,7 @@ public class GarminClient implements GpsServiceClient {
   private static final String TOKEN_URL = "https://diauth.garmin.com/di-oauth2-service/oauth/token";
   private static final String COURSE_UPLOAD_URL =
       "https://apis.garmin.com/training-api/courses/v1/course";
-  private static final String SCOPE = "COURSE_WRITE";
+
 
   @Inject DomainGpsCredentialService credentialService;
 
@@ -81,8 +81,6 @@ public class GarminClient implements GpsServiceClient {
         + urlEncode(getClientId())
         + "&redirect_uri="
         + urlEncode(redirectUri)
-        + "&scope="
-        + urlEncode(SCOPE)
         + "&state="
         + urlEncode(state)
         + "&code_challenge="
