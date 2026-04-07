@@ -190,7 +190,10 @@ class _TeamDetailContent extends ConsumerWidget {
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           const SizedBox(height: 8),
-                          Text(team.about.markdown),
+                          MarkdownContent(
+                            data: team.about.markdown,
+                            images: team.about.assets.images,
+                          ),
                         ],
                       ),
                     ),

@@ -11,6 +11,7 @@ import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../data/route_repository.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../widgets/route_map.dart';
 
 final routeDetailProvider = FutureProvider.family<RouteDetailDto,
@@ -223,7 +224,10 @@ class _RouteDetailContent extends ConsumerWidget {
                                         Theme.of(context).textTheme.titleMedium,
                                   ),
                                   const SizedBox(height: 8),
-                                  Text(route.media.markdown),
+                                  MarkdownContent(
+                                    data: route.media.markdown,
+                                    images: route.media.assets.images,
+                                  ),
                                 ],
                               ),
                             ),

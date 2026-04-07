@@ -10,6 +10,7 @@ import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/safe_string.dart';
 import '../../../../core/widgets/authenticated_image.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../../../../core/widgets/team_banner.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../data/ride_repository.dart';
@@ -422,7 +423,10 @@ class _RideDetailContent extends ConsumerWidget {
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         const SizedBox(height: 8),
-                        Text(ride.media.markdown),
+                        MarkdownContent(
+                          data: ride.media.markdown,
+                          images: ride.media.assets.images,
+                        ),
                       ],
                     ),
                   ),

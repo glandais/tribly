@@ -1,7 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:markdown_widget/markdown_widget.dart';
+
+import '../../../../core/widgets/widgets.dart';
 
 enum LegalPageType { privacy, terms }
 
@@ -44,7 +45,7 @@ class _LegalPageState extends State<LegalPage> {
       appBar: AppBar(title: Text(title)),
       body: _markdown == null
           ? const Center(child: CircularProgressIndicator())
-          : MarkdownWidget(data: _markdown!),
+          : MarkdownContent(data: _markdown!, shrinkWrap: false),
     );
   }
 }
