@@ -18,7 +18,7 @@ class Paths {
   static String login() => '/login'; // applink OK
   static String register() => '/register'; // applink OK
   static String verifyEmail() => '/verify-email'; // applink OK
-  static String forgotPassword() => '/forgot-password';
+  static String forgotPassword() => '/forgot-password'; // applink OK
   static String resetPassword() => '/reset-password'; // applink OK
 
   // Teams

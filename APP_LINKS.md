@@ -10,8 +10,8 @@ Toutes les configurations pointent vers `www.pedalons.fr`.
 
 | Fichier | Rôle |
 |---------|------|
-| `frontend/src/config/paths.ts` | Paths frontend (source de vérité) |
-| `mobile/lib/config/paths.dart` | Paths mobile (miroir du frontend) |
+| `frontend/src/config/paths.ts` | Paths frontend (source de vérité, `// mobile OK` = route mobile) |
+| `mobile/lib/config/paths.dart` | Paths mobile (miroir du frontend, `// applink OK` = app link configuré) |
 | `mobile/lib/config/router.dart` | GoRouter - routes Flutter |
 | `frontend/public/.well-known/apple-app-site-association` | iOS Universal Links |
 | `frontend/public/.well-known/assetlinks.json` | Android App Links |
@@ -23,9 +23,10 @@ Toutes les configurations pointent vers `www.pedalons.fr`.
 
 ### 1. S'assurer que la route existe dans le mobile
 
-- Ajouter le path builder dans `mobile/lib/config/paths.dart`
+- Ajouter le path builder dans `mobile/lib/config/paths.dart` avec `// applink OK`
 - Ajouter la route dans `mobile/lib/config/router.dart`
 - Vérifier que le path est identique à celui de `frontend/src/config/paths.ts`
+- Ajouter `// mobile OK` dans `frontend/src/config/paths.ts`
 
 ### 2. iOS - apple-app-site-association
 
@@ -42,7 +43,21 @@ Ajouter le pattern dans `applinks.details[0].paths` :
         "paths": [
           "/teams/*/rides/*",
           "/teams/*/routes/*",
-          "/nouvelle/route/*"
+          "/teams/*/routes",
+          "/teams/*/about",
+          "/teams/*/calendar",
+          "/teams/*",
+          "/teams",
+          "/calendar",
+          "/profile",
+          "/privacy",
+          "/terms",
+          "/verify-email",
+          "/reset-password",
+          "/forgot-password",
+          "/login",
+          "/register",
+          "/"
         ]
       }
     ]
@@ -61,7 +76,7 @@ Ref : https://developer.apple.com/documentation/bundleresources/applinks
 
 Fichier : `mobile/android/app/src/main/AndroidManifest.xml`
 
-Ajouter un `<data android:pathPattern="..." />` dans l'intent-filter existant :
+Ajouter un `<data>` dans l'intent-filter existant. Utiliser `android:pathPattern` pour les patterns dynamiques, `android:path` pour les chemins exacts :
 
 ```xml
 <intent-filter android:autoVerify="true">
@@ -69,16 +84,31 @@ Ajouter un `<data android:pathPattern="..." />` dans l'intent-filter existant :
     <category android:name="android.intent.category.DEFAULT" />
     <category android:name="android.intent.category.BROWSABLE" />
     <data android:scheme="https" android:host="www.pedalons.fr" />
+    <!-- Patterns dynamiques -->
     <data android:pathPattern="/teams/.*/rides/.*" />
     <data android:pathPattern="/teams/.*/routes/.*" />
-    <data android:pathPattern="/nouvelle/route/.*" />
+    <data android:pathPattern="/teams/.*/routes" />
+    <data android:pathPattern="/teams/.*/about" />
+    <data android:pathPattern="/teams/.*/calendar" />
+    <data android:pathPattern="/teams/.*" />
+    <!-- Chemins exacts -->
+    <data android:path="/teams" />
+    <data android:path="/calendar" />
+    <data android:path="/profile" />
+    <data android:path="/privacy" />
+    <data android:path="/terms" />
+    <data android:path="/verify-email" />
+    <data android:path="/reset-password" />
+    <data android:path="/forgot-password" />
+    <data android:path="/login" />
+    <data android:path="/register" />
+    <data android:path="/" />
 </intent-filter>
 ```
 
-Syntaxe `pathPattern` :
-- `.*` = n'importe quelle séquence de caractères
-- `.` = un seul caractère quelconque
-- `\\` = échapper un caractère littéral
+Syntaxe :
+- `android:path` = chemin exact
+- `android:pathPattern` : `.*` = n'importe quelle séquence, `.` = un caractère quelconque
 
 Ref : https://developer.android.com/training/app-links
 
@@ -136,10 +166,3 @@ adb shell pm get-app-links fr.pedalons.mobile
 # Tester un lien
 adb shell am start -a android.intent.action.VIEW -d "https://www.pedalons.fr/teams/mon-equipe/rides/sortie" fr.pedalons.mobile
 ```
-
-## Routes actuellement couvertes
-
-| Pattern | Exemple |
-|---------|---------|
-| `/teams/*/rides/*` | `/teams/mon-equipe/rides/sortie-dimanche` |
-| `/teams/*/routes/*` | `/teams/mon-equipe/routes/col-du-galibier` |

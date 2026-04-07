@@ -18,6 +18,7 @@
           "/terms",
           "/verify-email",
           "/reset-password",
+          "/forgot-password",
           "/login",
           "/register",
           "/"
