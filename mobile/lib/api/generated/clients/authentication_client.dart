@@ -103,7 +103,7 @@ abstract class AuthenticationClient {
 
   /// Reset password.
   ///
-  /// Verify the OTP code and set a new password.
+  /// Verify the reset token and set a new password.
   ///
   /// [body] - Name not received - field will be skipped.
   @POST('/api/auth/reset-password')

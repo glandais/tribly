@@ -60,12 +60,16 @@
     },
     "resetPassword": {
       "title": "Reset password",
-      "subtitle": "Enter the code from your email then your new password",
-      "codeLabel": "6-digit code",
+      "subtitle": "Choose a new password",
       "newPasswordLabel": "New password",
       "confirmPasswordLabel": "Confirm password",
       "submit": "Reset password",
-      "success": "Password reset successfully"
+      "success": "Password reset successfully",
+      "error": {
+        "title": "Invalid link",
+        "message": "This reset link is invalid or has expired.",
+        "requestNew": "Request a new link"
+      }
     },
     "validation": {
       "passwordMin": "Password must be at least 8 characters",

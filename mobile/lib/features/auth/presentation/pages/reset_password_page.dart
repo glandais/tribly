@@ -10,25 +10,24 @@ import '../../../../core/utils/api_error_handler.dart';
 import '../../providers/auth_provider.dart';
 
 class ResetPasswordPage extends ConsumerStatefulWidget {
-  final String email;
+  final String token;
 
-  const ResetPasswordPage({super.key, required this.email});
+  const ResetPasswordPage({super.key, required this.token});
 
   @override
   ConsumerState<ResetPasswordPage> createState() => _ResetPasswordPageState();
 }
 
 class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
-  final _codeController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   String? _errorMessage;
+  bool _tokenInvalid = false;
 
   @override
   void dispose() {
-    _codeController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -45,8 +44,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
     try {
       final authNotifier = ref.read(authProvider.notifier);
       await authNotifier.resetPassword(
-        widget.email,
-        _codeController.text.trim(),
+        widget.token,
         _passwordController.text,
       );
       if (mounted) {
@@ -54,7 +52,6 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
       }
     } catch (e) {
       if (mounted) {
-        // Inspect the raw API error code before translation to avoid locale mismatch
         String? apiCode;
         if (e is DioException) {
           final data = e.response?.data;
@@ -63,9 +60,10 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
           }
         }
         setState(() {
-          _errorMessage = getErrorMessage(e);
           if (apiCode == 'TOKEN_INVALID') {
-            _codeController.clear();
+            _tokenInvalid = true;
+          } else {
+            _errorMessage = getErrorMessage(e);
           }
         });
       }
@@ -91,118 +89,136 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
             padding: const EdgeInsets.all(24),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 400),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'auth.resetPassword.subtitle'.tr(),
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 32),
-
-                    if (_errorMessage != null) ...[
-                      Card(
-                        color: theme.colorScheme.errorContainer,
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Text(
-                            _errorMessage!,
-                            style: TextStyle(color: theme.colorScheme.onErrorContainer),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-
-                    // 6-digit code field
-                    TextFormField(
-                      controller: _codeController,
-                      keyboardType: TextInputType.number,
-                      maxLength: 6,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        letterSpacing: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      decoration: InputDecoration(
-                        labelText: 'auth.resetPassword.codeLabel'.tr(),
-                        hintText: '000000',
-                        counterText: '',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.length != 6) {
-                          return 'auth.otp.invalid'.tr();
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // New password
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      autofillHints: const [AutofillHints.newPassword],
-                      decoration: InputDecoration(
-                        labelText: 'auth.resetPassword.newPasswordLabel'.tr(),
-                        prefixIcon: const Icon(Icons.lock),
-                        border: const OutlineInputBorder(),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.length < 8) {
-                          return 'auth.validation.passwordMin'.tr();
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Confirm password
-                    TextFormField(
-                      controller: _confirmPasswordController,
-                      obscureText: true,
-                      autofillHints: const [AutofillHints.newPassword],
-                      decoration: InputDecoration(
-                        labelText: 'auth.resetPassword.confirmPasswordLabel'.tr(),
-                        prefixIcon: const Icon(Icons.lock_outline),
-                        border: const OutlineInputBorder(),
-                      ),
-                      validator: (value) {
-                        if (value != _passwordController.text) {
-                          return 'auth.validation.passwordMismatch'.tr();
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 24),
-
-                    FilledButton(
-                      onPressed: _isLoading ? null : _handleReset,
-                      style: FilledButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text('auth.resetPassword.submit'.tr()),
-                    ),
-                  ],
-                ),
-              ),
+              child: widget.token.isEmpty || _tokenInvalid
+                  ? _buildErrorState(theme)
+                  : _buildForm(theme),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Icon(Icons.error_outline, size: 64, color: theme.colorScheme.error),
+        const SizedBox(height: 16),
+        Text(
+          'auth.resetPassword.error.title'.tr(),
+          style: theme.textTheme.headlineSmall,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'auth.resetPassword.error.message'.tr(),
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 24),
+        FilledButton(
+          onPressed: () => context.go(Paths.forgotPassword()),
+          style: FilledButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+          ),
+          child: Text('auth.resetPassword.error.requestNew'.tr()),
+        ),
+        const SizedBox(height: 12),
+        OutlinedButton(
+          onPressed: () => context.go(Paths.login()),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+          ),
+          child: Text('auth.forgotPassword.backToLogin'.tr()),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildForm(ThemeData theme) {
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'auth.resetPassword.subtitle'.tr(),
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 32),
+
+          if (_errorMessage != null) ...[
+            Card(
+              color: theme.colorScheme.errorContainer,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Text(
+                  _errorMessage!,
+                  style: TextStyle(color: theme.colorScheme.onErrorContainer),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          // New password
+          TextFormField(
+            controller: _passwordController,
+            obscureText: true,
+            autofillHints: const [AutofillHints.newPassword],
+            decoration: InputDecoration(
+              labelText: 'auth.resetPassword.newPasswordLabel'.tr(),
+              prefixIcon: const Icon(Icons.lock),
+              border: const OutlineInputBorder(),
+            ),
+            validator: (value) {
+              if (value == null || value.length < 8) {
+                return 'auth.validation.passwordMin'.tr();
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+
+          // Confirm password
+          TextFormField(
+            controller: _confirmPasswordController,
+            obscureText: true,
+            autofillHints: const [AutofillHints.newPassword],
+            decoration: InputDecoration(
+              labelText: 'auth.resetPassword.confirmPasswordLabel'.tr(),
+              prefixIcon: const Icon(Icons.lock_outline),
+              border: const OutlineInputBorder(),
+            ),
+            validator: (value) {
+              if (value != _passwordController.text) {
+                return 'auth.validation.passwordMismatch'.tr();
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 24),
+
+          FilledButton(
+            onPressed: _isLoading ? null : _handleReset,
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+            child: _isLoading
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text('auth.resetPassword.submit'.tr()),
+          ),
+        ],
       ),
     );
   }

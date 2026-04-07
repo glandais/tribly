@@ -11,11 +11,8 @@ part 'reset_password_request.g.dart';
 @Freezed()
 abstract class ResetPasswordRequest with _$ResetPasswordRequest {
   const factory ResetPasswordRequest({
-    /// Email address
-    required String email,
-
-    /// 6-digit OTP code
-    required String code,
+    /// Password reset token
+    required String token,
 
     /// New password (min 8 chars)
     required String newPassword,

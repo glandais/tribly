@@ -243,7 +243,7 @@ export const routesConfig: RoutesConfig = [
     id: 'reset-password',
     path: paths.resetPassword(),
     component: ResetPasswordPage,
-    auth: 'unauthenticated',
+    auth: 'public',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('auth.resetPassword.title') },
   },

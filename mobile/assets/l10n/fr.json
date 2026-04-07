@@ -60,12 +60,16 @@
     },
     "resetPassword": {
       "title": "Réinitialiser le mot de passe",
-      "subtitle": "Entrez le code reçu par email puis votre nouveau mot de passe",
-      "codeLabel": "Code à 6 chiffres",
+      "subtitle": "Choisissez un nouveau mot de passe",
       "newPasswordLabel": "Nouveau mot de passe",
       "confirmPasswordLabel": "Confirmer le mot de passe",
       "submit": "Réinitialiser",
-      "success": "Mot de passe réinitialisé avec succès"
+      "success": "Mot de passe réinitialisé avec succès",
+      "error": {
+        "title": "Lien invalide",
+        "message": "Ce lien de réinitialisation est invalide ou a expiré.",
+        "requestNew": "Demander un nouveau lien"
+      }
     },
     "validation": {
       "passwordMin": "Le mot de passe doit faire au moins 8 caractères",

@@ -67,6 +67,9 @@ public class AuthService {
   @ConfigProperty(name = "pedalons.auth.email-verification.expiry-hours", defaultValue = "24")
   int emailVerificationExpiryHours;
 
+  @ConfigProperty(name = "pedalons.auth.password-reset.expiry-hours", defaultValue = "1")
+  int passwordResetExpiryHours;
+
   @Transactional
   @Public
   public void register(RegisterRequest request) {
@@ -264,8 +267,8 @@ public class AuthService {
     authTokenRepository.invalidateByEmailAndType(
         email, AuthTokenType.PASSWORD_RESET, domain.getId());
 
-    String code = generateOtpCode();
-    String tokenHash = hashToken(code);
+    String token = generateSecureToken();
+    String tokenHash = hashToken(token);
 
     AuthToken authToken =
         new AuthToken(
@@ -273,14 +276,14 @@ public class AuthService {
             email,
             tokenHash,
             AuthTokenType.PASSWORD_RESET,
-            Instant.now().plus(Duration.ofMinutes(otpExpiryMinutes)),
+            Instant.now().plus(Duration.ofHours(passwordResetExpiryHours)),
             domain.getId());
     authTokenRepository.persist(authToken);
 
     // Send reset email — catch failures so the token persists and the 200 response is still sent
     // (anti-enumeration: always return success regardless of email delivery)
     try {
-      authEmailService.sendPasswordResetEmail(email, code);
+      authEmailService.sendPasswordResetEmail(email, token);
     } catch (Exception e) {
       Log.errorf(
           e, "Failed to send password reset email to email=%s domain=%d", email, domain.getId());
@@ -290,26 +293,20 @@ public class AuthService {
   @Transactional
   @Public
   public AuthResult resetPassword(
-      String email, String code, String newPassword, String userAgent, String ipAddress) {
-    Long domainId = domainResolver.getDomainId();
-    String tokenHash = hashToken(code);
+      String token, String newPassword, String userAgent, String ipAddress) {
+    String tokenHash = hashToken(token);
 
     AuthToken authToken =
         authTokenRepository
-            .findValidByEmailAndType(email, AuthTokenType.PASSWORD_RESET, domainId)
+            .findValidByTokenHash(tokenHash)
             .orElseThrow(() -> new BadRequestException(ErrorCode.TOKEN_INVALID));
 
-    // Constant-time comparison to prevent timing attacks
-    if (!MessageDigest.isEqual(
-        authToken.getTokenHash().getBytes(StandardCharsets.UTF_8),
-        tokenHash.getBytes(StandardCharsets.UTF_8))) {
+    if (authToken.getTokenType() != AuthTokenType.PASSWORD_RESET) {
       throw new BadRequestException(ErrorCode.TOKEN_INVALID);
     }
 
     authToken.markUsed();
 
-    // Use the user already associated with the token — avoids a redundant DB lookup
-    // and eliminates a TOCTOU window after the token is consumed
     User user = authToken.getUser();
     if (user == null) {
       throw new BadRequestException(ErrorCode.USER_NOT_FOUND);

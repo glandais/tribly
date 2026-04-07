@@ -197,7 +197,9 @@ public class AuthResource {
   @POST
   @Path("/reset-password")
   @PermitAll
-  @Operation(summary = "Reset password", description = "Verify the OTP code and set a new password")
+  @Operation(
+      summary = "Reset password",
+      description = "Verify the reset token and set a new password")
   @APIResponses({
     @APIResponse(
         responseCode = "200",
@@ -205,7 +207,7 @@ public class AuthResource {
         content = @Content(schema = @Schema(implementation = AuthResponse.class))),
     @APIResponse(
         responseCode = "400",
-        description = "Invalid or expired code",
+        description = "Invalid or expired token",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response resetPassword(
@@ -217,8 +219,7 @@ public class AuthResource {
     String ipAddress = getClientIp(forwardedFor, realIp);
 
     AuthResult result =
-        authService.resetPassword(
-            request.email(), request.code(), request.newPassword(), userAgent, ipAddress);
+        authService.resetPassword(request.token(), request.newPassword(), userAgent, ipAddress);
     return Response.ok(result.response())
         .cookie(createRefreshTokenCookie(result.refreshToken()))
         .build();

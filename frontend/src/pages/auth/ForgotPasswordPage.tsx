@@ -12,7 +12,6 @@ export function ForgotPasswordPage() {
   const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
   const [sent, setSent] = useState(false)
-  const [sentEmail, setSentEmail] = useState('')
 
   const form = useForm({
     initialValues: { email: '' },
@@ -26,7 +25,6 @@ export function ForgotPasswordPage() {
     setIsLoading(true)
     try {
       await forgotPassword(values)
-      setSentEmail(values.email)
       setSent(true)
     } catch (error: unknown) {
       console.error('Forgot password request failed', error)
@@ -44,13 +42,6 @@ export function ForgotPasswordPage() {
             <IconMail size={48} style={{ margin: '0 auto' }} color="var(--mantine-color-green-6)" />
             <Title order={2}>{t('auth.forgotPassword.sent.title')}</Title>
             <Text c="dimmed">{t('auth.forgotPassword.sent.checkEmail')}</Text>
-            <Button
-              component={Link}
-              to={`${paths.resetPassword()}?email=${encodeURIComponent(sentEmail)}`}
-              variant="filled"
-            >
-              {t('auth.resetPassword.title')}
-            </Button>
             <Anchor component={Link} to={paths.login()} size="sm">
               <IconArrowLeft size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
               {t('auth.forgotPassword.backToLogin')}

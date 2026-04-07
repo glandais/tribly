@@ -525,17 +525,16 @@ class AuthResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  void resetPassword_withValidCode_shouldReturn200AndLogin() {
+  void resetPassword_withValidToken_shouldReturn200AndLogin() {
     createVerifiedUserWithPassword("reset@example.com", "Reset User", "oldpassword");
-    createPasswordResetToken("reset@example.com", "654321");
+    createPasswordResetToken("reset@example.com", "reset-token-654321");
 
     given()
         .contentType(ContentType.JSON)
         .body(
             """
             {
-              "email": "reset@example.com",
-              "code": "654321",
+              "token": "reset-token-654321",
               "newPassword": "newpassword123"
             }
             """)
@@ -549,17 +548,16 @@ class AuthResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  void resetPassword_withInvalidCode_shouldReturn400() {
+  void resetPassword_withInvalidToken_shouldReturn400() {
     createVerifiedUserWithPassword("reset@example.com", "Reset User", "oldpassword");
-    createPasswordResetToken("reset@example.com", "654321");
+    createPasswordResetToken("reset@example.com", "reset-token-654321");
 
     given()
         .contentType(ContentType.JSON)
         .body(
             """
             {
-              "email": "reset@example.com",
-              "code": "000000",
+              "token": "wrong-token",
               "newPassword": "newpassword123"
             }
             """)
@@ -573,7 +571,7 @@ class AuthResourceTest extends AbstractResourceTest {
   @Test
   void resetPassword_afterReset_shouldAllowLoginWithNewPassword() {
     createVerifiedUserWithPassword("reset2@example.com", "Reset2 User", "oldpassword");
-    createPasswordResetToken("reset2@example.com", "111222");
+    createPasswordResetToken("reset2@example.com", "reset-token-111222");
 
     // Reset password
     given()
@@ -581,8 +579,7 @@ class AuthResourceTest extends AbstractResourceTest {
         .body(
             """
             {
-              "email": "reset2@example.com",
-              "code": "111222",
+              "token": "reset-token-111222",
               "newPassword": "brandnewpass"
             }
             """)
@@ -609,9 +606,9 @@ class AuthResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  void resetPassword_withAlreadyUsedCode_shouldReturn400() {
+  void resetPassword_withAlreadyUsedToken_shouldReturn400() {
     createVerifiedUserWithPassword("reset3@example.com", "Reset3 User", "oldpassword");
-    createPasswordResetToken("reset3@example.com", "777888");
+    createPasswordResetToken("reset3@example.com", "reset-token-777888");
 
     // First use succeeds
     given()
@@ -619,8 +616,7 @@ class AuthResourceTest extends AbstractResourceTest {
         .body(
             """
             {
-              "email": "reset3@example.com",
-              "code": "777888",
+              "token": "reset-token-777888",
               "newPassword": "newpassword123"
             }
             """)
@@ -635,8 +631,7 @@ class AuthResourceTest extends AbstractResourceTest {
         .body(
             """
             {
-              "email": "reset3@example.com",
-              "code": "777888",
+              "token": "reset-token-777888",
               "newPassword": "anotherpassword"
             }
             """)
@@ -672,17 +667,16 @@ class AuthResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  void resetPassword_withExpiredCode_shouldReturn400() {
+  void resetPassword_withExpiredToken_shouldReturn400() {
     createVerifiedUserWithPassword("reset4@example.com", "Reset4 User", "oldpassword");
-    createExpiredPasswordResetToken("reset4@example.com", "999111");
+    createExpiredPasswordResetToken("reset4@example.com", "reset-token-999111");
 
     given()
         .contentType(ContentType.JSON)
         .body(
             """
             {
-              "email": "reset4@example.com",
-              "code": "999111",
+              "token": "reset-token-999111",
               "newPassword": "newpassword123"
             }
             """)

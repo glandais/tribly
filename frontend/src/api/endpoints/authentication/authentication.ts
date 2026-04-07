@@ -577,7 +577,7 @@ export const useRegister = <TError = ErrorType<ErrorResponse>, TContext = unknow
   return useMutation(getRegisterMutationOptions(options), queryClient)
 }
 /**
- * Verify the OTP code and set a new password
+ * Verify the reset token and set a new password
  * @summary Reset password
  */
 export const resetPassword = (

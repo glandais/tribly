@@ -280,7 +280,7 @@ export const RegisterResponse = zod
   .describe('Simple message response')
 
 /**
- * Verify the OTP code and set a new password
+ * Verify the reset token and set a new password
  * @summary Reset password
  */
 export const ResetPasswordHeader = zod.object({
@@ -288,10 +288,9 @@ export const ResetPasswordHeader = zod.object({
   'X-Real-IP': zod.string().optional(),
 })
 
-export const resetPasswordBodyEmailMax = 250
+export const resetPasswordBodyTokenMax = 100
 
-export const resetPasswordBodyEmailRegExp = new RegExp('\\S')
-export const resetPasswordBodyCodeRegExp = new RegExp('^\\d{6}$')
+export const resetPasswordBodyTokenRegExp = new RegExp('\\S')
 export const resetPasswordBodyNewPasswordMin = 8
 export const resetPasswordBodyNewPasswordMax = 100
 
@@ -299,12 +298,11 @@ export const resetPasswordBodyNewPasswordRegExp = new RegExp('\\S')
 
 export const ResetPasswordBody = zod
   .object({
-    email: zod
+    token: zod
       .string()
-      .max(resetPasswordBodyEmailMax)
-      .regex(resetPasswordBodyEmailRegExp)
-      .describe('Email address'),
-    code: zod.string().regex(resetPasswordBodyCodeRegExp).describe('6-digit OTP code'),
+      .max(resetPasswordBodyTokenMax)
+      .regex(resetPasswordBodyTokenRegExp)
+      .describe('Password reset token'),
     newPassword: zod
       .string()
       .min(resetPasswordBodyNewPasswordMin)

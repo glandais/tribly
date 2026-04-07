@@ -3,16 +3,11 @@
  */
 export interface ResetPasswordRequest {
   /**
-   * Email address
-   * @maxLength 250
+   * Password reset token
+   * @maxLength 100
    * @pattern \S
    */
-  email: string
-  /**
-   * 6-digit OTP code
-   * @pattern ^\d{6}$
-   */
-  code: string
+  token: string
   /**
    * New password (min 8 chars)
    * @minLength 8

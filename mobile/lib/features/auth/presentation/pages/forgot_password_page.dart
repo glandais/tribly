@@ -18,6 +18,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   final _emailController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
+  bool _sent = false;
 
   @override
   void dispose() {
@@ -36,19 +37,13 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
       final authNotifier = ref.read(authProvider.notifier);
       await authNotifier.requestPasswordReset(_emailController.text.trim());
       if (mounted) {
-        final email = _emailController.text.trim();
-        context.push(
-          '${Paths.resetPassword()}?email=${Uri.encodeComponent(email)}',
-        );
+        setState(() => _sent = true);
       }
     } catch (e) {
-      // The server already handles anti-enumeration (always returns 200 for unknown emails).
-      // Surface real errors (network failure, server crash) to the user.
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(getErrorMessage(e))),
         );
-        setState(() => _isLoading = false);
       }
     } finally {
       if (mounted) {
@@ -72,11 +67,42 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
             padding: const EdgeInsets.all(24),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 400),
-              child: _buildForm(theme),
+              child: _sent ? _buildSentState(theme) : _buildForm(theme),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildSentState(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Icon(Icons.mark_email_read, size: 64, color: theme.colorScheme.primary),
+        const SizedBox(height: 16),
+        Text(
+          'auth.forgotPassword.sent.title'.tr(),
+          style: theme.textTheme.headlineSmall,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'auth.forgotPassword.sent.checkEmail'.tr(),
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 24),
+        OutlinedButton(
+          onPressed: () => context.go(Paths.login()),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+          ),
+          child: Text('auth.forgotPassword.backToLogin'.tr()),
+        ),
+      ],
     );
   }
 
@@ -133,5 +159,4 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
       ),
     );
   }
-
 }

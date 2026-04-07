@@ -63,26 +63,28 @@ public class AuthEmailService {
     mailer.send(Mail.withText(email, subject, body));
   }
 
-  public void sendPasswordResetEmail(String email, String code) {
+  public void sendPasswordResetEmail(String email, String token) {
     Domain domain = domainResolver.getDomain();
     String appName = domain.getName();
+    String resetUrl = domain.getBaseUrl() + "/reset-password?token=" + token;
     String subject = "Réinitialisation de votre mot de passe - " + appName;
     String body =
         """
         Bonjour,
 
-        Votre code de réinitialisation de mot de passe pour %s est :
+        Vous avez demandé la réinitialisation de votre mot de passe pour %s. \
+        Cliquez sur le lien ci-dessous pour choisir un nouveau mot de passe :
 
-            %s
+        %s
 
-        Ce code expire dans 5 minutes et ne peut être utilisé qu'une seule fois.
+        Ce lien expire dans 1 heure et ne peut être utilisé qu'une seule fois.
 
         Si vous n'avez pas demandé cette réinitialisation, vous pouvez ignorer cet email.
 
         Cordialement,
         L'équipe %s
         """
-            .formatted(appName, code, appName);
+            .formatted(appName, resetUrl, appName);
 
     mailer.send(Mail.withText(email, subject, body));
   }

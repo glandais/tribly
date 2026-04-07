@@ -3,19 +3,8 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
-import { IconArrowLeft, IconLock } from '@tabler/icons-react'
-import {
-  Center,
-  Paper,
-  Stack,
-  Title,
-  Text,
-  Button,
-  Anchor,
-  PasswordInput,
-  PinInput,
-  Alert,
-} from '@mantine/core'
+import { IconArrowLeft, IconLock, IconX } from '@tabler/icons-react'
+import { Center, Paper, Stack, Title, Text, Button, Anchor, PasswordInput } from '@mantine/core'
 import { useAuthStore } from '../../store/authStore'
 import { paths } from '@/config/paths'
 import { resetPassword as resetPasswordApi } from '@/api/endpoints/authentication/authentication'
@@ -24,15 +13,13 @@ export function ResetPasswordPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const emailFromUrl = searchParams.get('email') ?? ''
+  const token = searchParams.get('token')
   const { setAccessToken, setUser } = useAuthStore()
 
   const [isLoading, setIsLoading] = useState(false)
-  const [step, setStep] = useState<'code' | 'password'>('code')
-  const [verifiedCode, setVerifiedCode] = useState('')
-  const [pinValue, setPinValue] = useState('')
+  const [error, setError] = useState<'invalid' | null>(null)
 
-  const passwordForm = useForm({
+  const form = useForm({
     initialValues: { newPassword: '', confirmPassword: '' },
     validate: {
       newPassword: (v) => (!v || v.length < 8 ? t('auth.validation.passwordMin') : null),
@@ -41,32 +28,42 @@ export function ResetPasswordPage() {
     },
   })
 
-  const handleCodeComplete = (code: string) => {
-    if (code.length === 6) {
-      setVerifiedCode(code)
-      setStep('password')
-    }
+  if (!token || error === 'invalid') {
+    return (
+      <Center mih="70vh">
+        <Paper shadow="lg" radius="lg" p="xl" w="100%" maw={420}>
+          <Stack ta="center">
+            <IconX size={48} style={{ margin: '0 auto' }} color="var(--mantine-color-red-6)" />
+            <Title order={2}>{t('auth.resetPassword.error.title')}</Title>
+            <Text c="dimmed">{t('auth.resetPassword.error.message')}</Text>
+            <Button component={Link} to={paths.forgotPassword()} fullWidth>
+              {t('auth.resetPassword.error.requestNew')}
+            </Button>
+            <Anchor component={Link} to={paths.login()} size="sm">
+              <IconArrowLeft size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+              {t('auth.forgotPassword.backToLogin')}
+            </Anchor>
+          </Stack>
+        </Paper>
+      </Center>
+    )
   }
 
   const handleResetPassword = async (values: { newPassword: string }) => {
     setIsLoading(true)
     try {
       const data = await resetPasswordApi({
-        email: emailFromUrl,
-        code: verifiedCode,
+        token,
         newPassword: values.newPassword,
       })
       if (data.accessToken) setAccessToken(data.accessToken)
       if (data.user) setUser(data.user)
       navigate(paths.home())
-    } catch (error: unknown) {
-      console.error('Reset password failed', error)
-      const code = (error as { response?: { data?: { code?: string } } })?.response?.data?.code
+    } catch (err: unknown) {
+      console.error('Reset password failed', err)
+      const code = (err as { response?: { data?: { code?: string } } })?.response?.data?.code
       if (code === 'TOKEN_INVALID') {
-        setStep('code')
-        setPinValue('')
-        setVerifiedCode('')
-        notifications.show({ message: t('auth.errors.otpInvalid'), color: 'red' })
+        setError('invalid')
       } else {
         notifications.show({ message: t('auth.errors.resetPasswordFailed'), color: 'red' })
       }
@@ -84,49 +81,27 @@ export function ResetPasswordPage() {
             <Text c="dimmed">{t('auth.resetPassword.subtitle')}</Text>
           </Stack>
 
-          {step === 'code' && (
-            <Stack ta="center">
-              <Alert color="blue" variant="light">
-                <Text size="sm">{t('auth.otp.verify.instruction')}</Text>
-              </Alert>
-              <PinInput
-                length={6}
-                type="number"
-                value={pinValue}
-                onChange={(v) => {
-                  setPinValue(v)
-                  handleCodeComplete(v)
-                }}
-                disabled={isLoading}
-                size="xl"
-                style={{ justifyContent: 'center' }}
+          <form onSubmit={form.onSubmit(handleResetPassword)}>
+            <Stack>
+              <PasswordInput
+                label={t('auth.form.newPassword')}
+                placeholder={t('auth.form.passwordPlaceholder')}
+                autoComplete="new-password"
+                leftSection={<IconLock size={16} />}
+                {...form.getInputProps('newPassword')}
               />
+              <PasswordInput
+                label={t('auth.form.confirmPassword')}
+                placeholder={t('auth.form.confirmPasswordPlaceholder')}
+                autoComplete="new-password"
+                leftSection={<IconLock size={16} />}
+                {...form.getInputProps('confirmPassword')}
+              />
+              <Button type="submit" fullWidth loading={isLoading}>
+                {t('auth.resetPassword.submit')}
+              </Button>
             </Stack>
-          )}
-
-          {step === 'password' && (
-            <form onSubmit={passwordForm.onSubmit(handleResetPassword)}>
-              <Stack>
-                <PasswordInput
-                  label={t('auth.form.newPassword')}
-                  placeholder={t('auth.form.passwordPlaceholder')}
-                  autoComplete="new-password"
-                  leftSection={<IconLock size={16} />}
-                  {...passwordForm.getInputProps('newPassword')}
-                />
-                <PasswordInput
-                  label={t('auth.form.confirmPassword')}
-                  placeholder={t('auth.form.confirmPasswordPlaceholder')}
-                  autoComplete="new-password"
-                  leftSection={<IconLock size={16} />}
-                  {...passwordForm.getInputProps('confirmPassword')}
-                />
-                <Button type="submit" fullWidth loading={isLoading}>
-                  {t('auth.resetPassword.submit')}
-                </Button>
-              </Stack>
-            </form>
-          )}
+          </form>
 
           <Anchor component={Link} to={paths.login()} size="sm" ta="center">
             <IconArrowLeft size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />

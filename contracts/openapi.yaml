@@ -1914,19 +1914,14 @@ components:
       description: Reset password request
       type: object
       required:
-      - email
-      - code
+      - token
       - newPassword
       properties:
-        email:
+        token:
           type: string
-          description: Email address
+          description: Password reset token
           pattern: \S
-          maxLength: 250
-        code:
-          type: string
-          description: 6-digit OTP code
-          pattern: "^\\d{6}$"
+          maxLength: 100
         newPassword:
           type: string
           description: New password (min 8 chars)
@@ -4558,7 +4553,7 @@ paths:
   /api/auth/reset-password:
     post:
       summary: Reset password
-      description: Verify the OTP code and set a new password
+      description: Verify the reset token and set a new password
       operationId: resetPassword
       tags:
       - Authentication
@@ -4585,7 +4580,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/AuthResponse"
         "400":
-          description: Invalid or expired code
+          description: Invalid or expired token
           content:
             application/json:
               schema:

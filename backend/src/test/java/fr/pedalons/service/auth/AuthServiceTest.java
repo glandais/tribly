@@ -375,10 +375,10 @@ class AuthServiceTest extends AbstractBaseTest {
   @Test
   void resetPassword_shouldUpdatePasswordAndReturnAuthResult() {
     User user = createVerifiedUserWithPassword("reset2@example.com", "Reset2 User", "oldpass");
-    createPasswordResetToken(user, "reset2@example.com", "123456");
+    createPasswordResetToken(user, "reset2@example.com", "reset-token-123456");
 
     AuthResult result =
-        authService.resetPassword("reset2@example.com", "123456", "newpass123", "Agent", "IP");
+        authService.resetPassword("reset-token-123456", "newpass123", "Agent", "IP");
 
     assertNotNull(result.response().accessToken());
     assertEquals("reset2@example.com", result.response().user().email());
@@ -387,28 +387,25 @@ class AuthServiceTest extends AbstractBaseTest {
   @Test
   void resetPassword_withAlreadyUsedToken_shouldThrow() {
     User user = createVerifiedUserWithPassword("reset3@example.com", "Reset3 User", "oldpass");
-    createPasswordResetToken(user, "reset3@example.com", "777888");
+    createPasswordResetToken(user, "reset3@example.com", "reset-token-777888");
 
     // First use succeeds
-    authService.resetPassword("reset3@example.com", "777888", "newpass123", "Agent", "IP");
+    authService.resetPassword("reset-token-777888", "newpass123", "Agent", "IP");
 
     // Second use must fail
     assertThrows(
         BadRequestException.class,
-        () ->
-            authService.resetPassword(
-                "reset3@example.com", "777888", "anotherpass", "Agent", "IP"));
+        () -> authService.resetPassword("reset-token-777888", "anotherpass", "Agent", "IP"));
   }
 
   @Test
   void resetPassword_withExpiredToken_shouldThrow() {
     User user = createVerifiedUserWithPassword("reset4@example.com", "Reset4 User", "oldpass");
-    createExpiredPasswordResetToken(user, "reset4@example.com", "999111");
+    createExpiredPasswordResetToken(user, "reset4@example.com", "reset-token-999111");
 
     assertThrows(
         BadRequestException.class,
-        () ->
-            authService.resetPassword("reset4@example.com", "999111", "newpass123", "Agent", "IP"));
+        () -> authService.resetPassword("reset-token-999111", "newpass123", "Agent", "IP"));
   }
 
   // --- Helper methods ---

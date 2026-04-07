@@ -158,15 +158,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  /// Reset password with OTP code
+  /// Reset password with token from email link
   Future<void> resetPassword(
-    String email,
-    String code,
+    String token,
     String newPassword,
   ) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final response = await _repository.resetPassword(email, code, newPassword);
+      final response = await _repository.resetPassword(token, newPassword);
       await _handleAuthSuccess(response);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: getErrorMessage(e));

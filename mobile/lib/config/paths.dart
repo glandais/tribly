@@ -19,7 +19,7 @@ class Paths {
   static String register() => '/register'; // applink OK
   static String verifyEmail() => '/verify-email'; // applink OK
   static String forgotPassword() => '/forgot-password';
-  static String resetPassword() => '/reset-password';
+  static String resetPassword() => '/reset-password'; // applink OK
 
   // Teams
   static String team(String teamSlug) => '/teams/$teamSlug'; // applink OK

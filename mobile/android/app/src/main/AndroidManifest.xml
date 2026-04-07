@@ -42,6 +42,7 @@
                 <data android:path="/privacy" />
                 <data android:path="/terms" />
                 <data android:path="/verify-email" />
+                <data android:path="/reset-password" />
                 <data android:path="/login" />
                 <data android:path="/register" />
                 <data android:path="/" />

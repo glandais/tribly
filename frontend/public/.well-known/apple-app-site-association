@@ -16,6 +16,7 @@
           "/privacy",
           "/terms",
           "/verify-email",
+          "/reset-password",
           "/login",
           "/register",
           "/"
