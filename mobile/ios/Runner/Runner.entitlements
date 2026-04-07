@@ -2,12 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Associated Domains for Universal Links and WebAuthn -->
-	<!-- Update with your actual domain when deploying -->
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:pedalons.fr</string>
-		<string>webcredentials:pedalons.fr</string>
+		<string>applinks:www.pedalons.fr</string>
+		<string>webcredentials:www.pedalons.fr</string>
 	</array>
 </dict>
 </plist>

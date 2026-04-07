@@ -1,7 +1,7 @@
 name: pedalons
 description: "Pédalons mobile app - cycling team platform"
 publish_to: 'none'
-version: 0.1.0
+version: 1.0.0
 
 environment:
   sdk: ^3.10.4
