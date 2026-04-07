@@ -213,6 +213,27 @@
     "fr": "Français",
     "en": "English"
   },
+  "device": {
+    "title": "Connexion appareil",
+    "verifying": "Vérification du code...",
+    "completing": "Autorisation en cours...",
+    "manualEntry": {
+      "title": "Entrez le code",
+      "description": "Saisissez le code à 6 caractères affiché sur votre appareil GPS.",
+      "tryAgain": "Réessayer"
+    },
+    "errors": {
+      "title": "Erreur",
+      "invalidCode": "Code invalide",
+      "invalidCodeMessage": "Ce code est invalide ou a expiré. Veuillez générer un nouveau code depuis votre appareil.",
+      "authorizationFailed": "Échec de l'autorisation. Veuillez réessayer."
+    },
+    "success": {
+      "title": "Connexion réussie !",
+      "message": "Votre appareil a été autorisé avec succès.",
+      "returnToDevice": "Vous pouvez maintenant retourner sur votre appareil. Il devrait se connecter automatiquement."
+    }
+  },
   "errors": {
     "api": {
       "ALREADY_REGISTERED": "Vous participez déjà à cette sortie",

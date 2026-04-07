@@ -213,6 +213,27 @@
     "fr": "Français",
     "en": "English"
   },
+  "device": {
+    "title": "Device connection",
+    "verifying": "Verifying code...",
+    "completing": "Authorizing...",
+    "manualEntry": {
+      "title": "Enter the code",
+      "description": "Enter the 6-character code displayed on your GPS device.",
+      "tryAgain": "Try again"
+    },
+    "errors": {
+      "title": "Error",
+      "invalidCode": "Invalid code",
+      "invalidCodeMessage": "This code is invalid or has expired. Please generate a new code from your device.",
+      "authorizationFailed": "Authorization failed. Please try again."
+    },
+    "success": {
+      "title": "Connection successful!",
+      "message": "Your device has been authorized successfully.",
+      "returnToDevice": "You can now return to your device. It should connect automatically."
+    }
+  },
   "errors": {
     "api": {
       "ALREADY_REGISTERED": "You are already registered for this ride",

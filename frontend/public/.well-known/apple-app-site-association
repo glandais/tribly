@@ -21,6 +21,8 @@
           "/forgot-password",
           "/login",
           "/register",
+          "/garmin",
+          "/karoo",
           "/"
         ]
       }

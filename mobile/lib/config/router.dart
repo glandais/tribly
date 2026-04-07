@@ -7,6 +7,7 @@ import '../features/auth/presentation/pages/login_page.dart';
 import '../features/auth/presentation/pages/reset_password_page.dart';
 import '../features/auth/presentation/pages/verify_email_page.dart';
 import '../features/auth/providers/auth_provider.dart';
+import '../features/device/presentation/pages/device_verify_page.dart';
 import '../features/calendar/presentation/pages/calendar_page.dart';
 import '../features/home/presentation/pages/home_page.dart';
 import '../features/legal/presentation/pages/legal_page.dart';
@@ -88,6 +89,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/reset-password',
         builder: (context, state) => ResetPasswordPage(
           token: state.uri.queryParameters['token'] ?? '',
+        ),
+      ),
+
+      // Device verification routes
+      GoRoute(
+        path: '/garmin',
+        builder: (context, state) => DeviceVerifyPage(
+          code: state.uri.queryParameters['code'],
+        ),
+      ),
+      GoRoute(
+        path: '/karoo',
+        builder: (context, state) => DeviceVerifyPage(
+          code: state.uri.queryParameters['code'],
         ),
       ),
 

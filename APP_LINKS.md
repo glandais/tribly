@@ -57,6 +57,8 @@ Ajouter le pattern dans `applinks.details[0].paths` :
           "/forgot-password",
           "/login",
           "/register",
+          "/garmin",
+          "/karoo",
           "/"
         ]
       }
@@ -102,6 +104,8 @@ Ajouter un `<data>` dans l'intent-filter existant. Utiliser `android:pathPattern
     <data android:path="/forgot-password" />
     <data android:path="/login" />
     <data android:path="/register" />
+    <data android:path="/garmin" />
+    <data android:path="/karoo" />
     <data android:path="/" />
 </intent-filter>
 ```

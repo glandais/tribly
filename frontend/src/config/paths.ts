@@ -5,8 +5,8 @@
 export const paths = {
   home: () => '/', // mobile OK
   login: () => '/login', // mobile OK
-  deviceVerifyGarmin: () => '/garmin',
-  deviceVerifyKaroo: () => '/karoo',
+  deviceVerifyGarmin: () => '/garmin', // mobile OK
+  deviceVerifyKaroo: () => '/karoo', // mobile OK
   verifyEmail: () => '/verify-email', // mobile OK
   forgotPassword: () => '/forgot-password', // mobile OK
   resetPassword: () => '/reset-password', // mobile OK

@@ -47,6 +47,8 @@
                 <data android:path="/forgot-password" />
                 <data android:path="/login" />
                 <data android:path="/register" />
+                <data android:path="/garmin" />
+                <data android:path="/karoo" />
                 <data android:path="/" />
             </intent-filter>
         </activity>

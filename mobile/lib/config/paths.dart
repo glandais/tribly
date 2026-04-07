@@ -21,6 +21,10 @@ class Paths {
   static String forgotPassword() => '/forgot-password'; // applink OK
   static String resetPassword() => '/reset-password'; // applink OK
 
+  // Device verification
+  static String deviceVerifyGarmin() => '/garmin'; // applink OK
+  static String deviceVerifyKaroo() => '/karoo'; // applink OK
+
   // Teams
   static String team(String teamSlug) => '/teams/$teamSlug'; // applink OK
   static String teamCalendar(String teamSlug) => '/teams/$teamSlug/calendar'; // applink OK
