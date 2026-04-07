@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useForm } from '@mantine/form'
 import { zodFormValidator } from '@/lib/formUtils'
 import { useTranslation } from 'react-i18next'
@@ -28,19 +28,6 @@ import type { RouteDto, TeamDetailDto, TripRequest } from '@/api/dto'
 import { Status } from '@/api/dto'
 import { defaultMedia } from '@/lib/apiUtils'
 import { CreateTripBody } from '@/api/zod/trips/trips.zod'
-
-const tripSchema = CreateTripBody.refine(
-  (data) => {
-    if (data.status === Status.DRAFT && data.publishAt) {
-      return new Date(data.publishAt) > new Date()
-    }
-    return true
-  },
-  {
-    message: 'Publish date must be in the future for draft posts',
-    path: ['publishAt'],
-  }
-)
 
 interface TripEditorProps {
   team: TeamDetailDto
@@ -77,6 +64,23 @@ export function TripEditor({
   const [showRoutePickerModal, setShowRoutePickerModal] = useState(false)
   const [showCreateRouteModal, setShowCreateRouteModal] = useState(false)
   const [pickerTarget, setPickerTarget] = useState<Target | null>(null)
+
+  const tripSchema = useMemo(
+    () =>
+      CreateTripBody.refine(
+        (data) => {
+          if (data.status === Status.DRAFT && data.publishAt) {
+            return new Date(data.publishAt) > new Date()
+          }
+          return true
+        },
+        {
+          message: t('form.publishAt.futureRequired'),
+          path: ['publishAt'],
+        }
+      ),
+    [t]
+  )
 
   const form = useForm<TripRequest>({
     validate: zodFormValidator<TripRequest>(tripSchema),

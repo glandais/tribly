@@ -42,6 +42,12 @@ export function Layout() {
     window.scrollTo(0, 0)
   }, [pathname])
 
+  // Update document title on route change
+  useEffect(() => {
+    const label = breadcrumbItems.at(-1)?.label
+    document.title = label ? `${label} — ${appName}` : appName
+  }, [breadcrumbItems, appName])
+
   // Close mobile menu on Escape key
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {

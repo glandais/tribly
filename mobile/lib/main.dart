@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:app_links/app_links.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +18,7 @@ void main() async {
   // Handle initial deep link (app opened via link)
   final initialLink = await appLinks.getInitialLink();
   if (initialLink != null) {
-    debugPrint('Initial deep link: $initialLink');
+    log('Initial deep link: $initialLink', name: 'main');
   }
 
   runApp(
@@ -58,7 +60,7 @@ class _DeepLinkHandlerState extends ConsumerState<_DeepLinkHandler> {
     super.initState();
     // Listen for deep links while app is running
     widget.appLinks.uriLinkStream.listen((Uri uri) {
-      debugPrint('Deep link received: $uri');
+      log('Deep link received: $uri', name: 'main');
       // GoRouter handles the navigation via routerConfig
       final router = ref.read(routerProvider);
       router.go(uri.path + (uri.query.isNotEmpty ? '?${uri.query}' : ''));

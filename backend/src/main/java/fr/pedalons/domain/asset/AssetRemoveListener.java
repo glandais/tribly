@@ -1,7 +1,7 @@
 package fr.pedalons.domain.asset;
 
-import fr.pedalons.common.TsidUtils;
 import fr.pedalons.infrastructure.storage.StorageService;
+import fr.pedalons.service.asset.AssetService;
 import jakarta.inject.Inject;
 import jakarta.persistence.PreRemove;
 import org.jboss.logging.Logger;
@@ -9,16 +9,14 @@ import org.jboss.logging.Logger;
 public class AssetRemoveListener {
 
   private static final Logger LOG = Logger.getLogger(AssetRemoveListener.class);
-  private static final String ASSETS_PREFIX = "assets";
 
   @Inject StorageService storageService;
 
+  @Inject AssetService assetService;
+
   @PreRemove
   void onPreRemove(Asset asset) {
-    String teamId = TsidUtils.toString(asset.getTeam().getId());
-    String fileIdString = TsidUtils.toString(asset.getFileId());
-    String subPath = fileIdString.substring(0, 4);
-    String key = ASSETS_PREFIX + "/" + teamId + "/" + subPath + "/" + fileIdString;
+    String key = assetService.getAssetKey(asset.getTeam(), asset.getFileId());
     try {
       storageService.delete(key);
     } catch (Exception e) {

@@ -1,10 +1,19 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:maplibre/maplibre.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../core/theme/pedalons_colors.dart';
+
+class _KmMarker {
+  final double lng;
+  final double lat;
+  final String label;
+
+  const _KmMarker({required this.lng, required this.lat, required this.label});
+}
 
 class RouteMap extends StatefulWidget {
   final RouteDetailDto route;
@@ -121,6 +130,113 @@ class _RouteMapState extends State<RouteMap> {
           'circle-stroke-width': 2,
           'circle-stroke-color': '#FFFFFF',
         },
+      ),
+    );
+
+    // Km markers
+    await _addKmMarkerLayers(style, coordinates);
+  }
+
+  int _kmMarkerInterval(double distanceKm) {
+    if (distanceKm < 10) return 1;
+    if (distanceKm < 20) return 2;
+    if (distanceKm < 50) return 5;
+    return 10;
+  }
+
+  double _haversineM(double lng1, double lat1, double lng2, double lat2) {
+    const r = 6371000.0;
+    final dLat = (lat2 - lat1) * pi / 180;
+    final dLon = (lng2 - lng1) * pi / 180;
+    final a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(lat1 * pi / 180) * cos(lat2 * pi / 180) * sin(dLon / 2) * sin(dLon / 2);
+    return r * 2 * atan2(sqrt(a), sqrt(1 - a));
+  }
+
+  List<_KmMarker> _computeKmMarkers(List<List<double>> coords) {
+    final totalM = widget.route.distance;
+    if (totalM <= 0 || coords.length < 2) return [];
+
+    final intervalM = _kmMarkerInterval(totalM / 1000) * 1000.0;
+
+    // Use 4th coordinate element (cumulative distance) when present, else compute
+    final hasCumDist = coords[0].length >= 4 && coords.last[3] > 0;
+    final cumDists = List<double>.filled(coords.length, 0.0);
+    if (hasCumDist) {
+      for (int i = 0; i < coords.length; i++) {
+        cumDists[i] = coords[i][3];
+      }
+    } else {
+      double acc = 0;
+      for (int i = 1; i < coords.length; i++) {
+        acc += _haversineM(coords[i - 1][0], coords[i - 1][1], coords[i][0], coords[i][1]);
+        cumDists[i] = acc;
+      }
+    }
+
+    final markers = <_KmMarker>[];
+    double targetDist = intervalM;
+
+    while (targetDist < totalM) {
+      final idx = cumDists.indexWhere((d) => d >= targetDist);
+      if (idx > 0) {
+        final p0 = coords[idx - 1];
+        final p1 = coords[idx];
+        final span = cumDists[idx] - cumDists[idx - 1];
+        final t = span == 0 ? 0.0 : (targetDist - cumDists[idx - 1]) / span;
+        markers.add(_KmMarker(
+          lng: p0[0] + t * (p1[0] - p0[0]),
+          lat: p0[1] + t * (p1[1] - p0[1]),
+          label: '${(targetDist / 1000).round()}',
+        ));
+      }
+      targetDist += intervalM;
+    }
+
+    return markers;
+  }
+
+  Future<void> _addKmMarkerLayers(StyleController style, List<List<double>> coordinates) async {
+    final markers = _computeKmMarkers(coordinates);
+    if (markers.isEmpty) return;
+
+    final geoJson = jsonEncode({
+      'type': 'FeatureCollection',
+      'features': markers
+          .map((m) => {
+                'type': 'Feature',
+                'geometry': {
+                  'type': 'Point',
+                  'coordinates': [m.lng, m.lat],
+                },
+                'properties': {'label': m.label},
+              })
+          .toList(),
+    });
+
+    await style.addSource(GeoJsonSource(id: 'km-markers', data: geoJson));
+    await style.addLayer(
+      const CircleStyleLayer(
+        id: 'km-markers-circle',
+        sourceId: 'km-markers',
+        paint: {
+          'circle-radius': 12,
+          'circle-color': '#FFFFFF',
+          'circle-stroke-width': 1.5,
+          'circle-stroke-color': '#AAAAAA',
+        },
+      ),
+    );
+    await style.addLayer(
+      SymbolStyleLayer(
+        id: 'km-markers-label',
+        sourceId: 'km-markers',
+        layout: {
+          'text-field': ['get', 'label'],
+          'text-size': 11,
+          'text-font': ['Noto Sans Bold', 'Noto Sans Regular'],
+        },
+        paint: const {'text-color': '#000000'},
       ),
     );
   }

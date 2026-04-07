@@ -1,6 +1,7 @@
 import { Marker } from 'react-map-gl/maplibre'
 import { Box, Text, useComputedColorScheme } from '@mantine/core'
 import { getOverlayBg } from '@/lib/colors'
+import { computeKmMarkers } from './mapUtils'
 
 interface MarkerProps {
   longitude: number
@@ -55,6 +56,50 @@ export function HoverMarker({ longitude, latitude }: MarkerProps) {
         }}
       />
     </Marker>
+  )
+}
+
+interface KmMarkerProps extends MarkerProps {
+  label: string
+}
+
+export function KmMarker({ longitude, latitude, label }: KmMarkerProps) {
+  return (
+    <Marker longitude={longitude} latitude={latitude} anchor="center">
+      <Box
+        w={22}
+        h={22}
+        style={{
+          borderRadius: '50%',
+          border: '1.5px solid #AAAAAA',
+          backgroundColor: 'white',
+          boxShadow: 'var(--mantine-shadow-sm)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Text size="xs" fw={700} style={{ color: '#000000', lineHeight: 1 }}>
+          {label}
+        </Text>
+      </Box>
+    </Marker>
+  )
+}
+
+interface KmMarkersLayerProps {
+  coords: number[][]
+  totalDistanceM: number
+}
+
+export function KmMarkersLayer({ coords, totalDistanceM }: KmMarkersLayerProps) {
+  const markers = computeKmMarkers(coords, totalDistanceM)
+  return (
+    <>
+      {markers.map((m) => (
+        <KmMarker key={m.label} longitude={m.lng} latitude={m.lat} label={m.label} />
+      ))}
+    </>
   )
 }
 

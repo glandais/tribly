@@ -1,5 +1,6 @@
+import 'dart:developer';
+
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
@@ -83,10 +84,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
       try {
         user = await _ref.read(usersClientProvider).getMe();
       } on DioException catch (e) {
-        debugPrint('[AuthNotifier] getMe failed after auth: ${e.message}');
+        log('[AuthNotifier] getMe failed after auth: ${e.message}', name: 'AuthNotifier');
         // Intentional fallback to JWT user on network/server error
       } catch (e) {
-        debugPrint('[AuthNotifier] Unexpected error in getMe: $e');
+        log('[AuthNotifier] Unexpected error in getMe: $e', name: 'AuthNotifier');
       }
     }
 
@@ -97,10 +98,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
         final passkeys = await _repository.listPasskeys(response.accessToken!);
         hasPasskeys = passkeys.isNotEmpty;
       } on DioException catch (e) {
-        debugPrint('[AuthNotifier] listPasskeys failed after auth: ${e.message}');
+        log('[AuthNotifier] listPasskeys failed after auth: ${e.message}', name: 'AuthNotifier');
         // Non-fatal: user can still log in without passkey info
       } catch (e) {
-        debugPrint('[AuthNotifier] Unexpected error in listPasskeys: $e');
+        log('[AuthNotifier] Unexpected error in listPasskeys: $e', name: 'AuthNotifier');
       }
     }
 

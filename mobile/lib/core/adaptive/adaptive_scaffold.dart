@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import 'breakpoints.dart';
@@ -45,7 +46,7 @@ class AdaptiveScaffold extends StatelessWidget {
               (dest) => NavigationDestination(
                 icon: Icon(dest.icon),
                 selectedIcon: Icon(dest.selectedIcon),
-                label: dest.label,
+                label: dest.label.tr(),
               ),
             )
             .toList(),
@@ -72,7 +73,7 @@ class AdaptiveScaffold extends StatelessWidget {
                   (dest) => NavigationRailDestination(
                     icon: Icon(dest.icon),
                     selectedIcon: Icon(dest.selectedIcon),
-                    label: Text(dest.label),
+                    label: Text(dest.label.tr()),
                   ),
                 )
                 .toList(),

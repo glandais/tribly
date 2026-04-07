@@ -21,25 +21,25 @@ const kAppDestinations = [
     path: '/home',
     icon: Icons.home_outlined,
     selectedIcon: Icons.home,
-    label: 'Accueil',
+    label: 'nav.home',
   ),
   AppDestination(
     path: '/teams',
     icon: Icons.group_outlined,
     selectedIcon: Icons.group,
-    label: 'Équipes',
+    label: 'nav.teams',
   ),
   AppDestination(
     path: '/calendar',
     icon: Icons.calendar_today_outlined,
     selectedIcon: Icons.calendar_today,
-    label: 'Calendrier',
+    label: 'nav.calendar',
   ),
   AppDestination(
     path: '/profile',
     icon: Icons.person_outlined,
     selectedIcon: Icons.person,
-    label: 'Profil',
+    label: 'nav.profile',
   ),
 ];
 

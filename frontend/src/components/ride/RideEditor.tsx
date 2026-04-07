@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useForm } from '@mantine/form'
 import { zodFormValidator } from '@/lib/formUtils'
 import { useTranslation } from 'react-i18next'
@@ -29,19 +29,6 @@ import { PlaceAutocomplete } from '../common/PlaceAutocomplete'
 import type { RouteDto, TeamDetailDto, RideRequest } from '@/api/dto'
 import { Status } from '@/api/dto'
 import { CreateRideBody } from '@/api/zod/rides/rides.zod'
-
-const rideSchema = CreateRideBody.refine(
-  (data) => {
-    if (data.status === Status.DRAFT && data.publishAt) {
-      return new Date(data.publishAt) > new Date()
-    }
-    return true
-  },
-  {
-    message: 'Publish date must be in the future for draft posts',
-    path: ['publishAt'],
-  }
-)
 
 type Target = { type: 'group'; index: number } | { type: 'ride' }
 
@@ -78,6 +65,23 @@ export function RideEditor({
   const [showCreateRouteModal, setShowCreateRouteModal] = useState(false)
   const [pickerTarget, setPickerTarget] = useState<Target | null>(null)
 
+  const rideSchema = useMemo(
+    () =>
+      CreateRideBody.refine(
+        (data) => {
+          if (data.status === Status.DRAFT && data.publishAt) {
+            return new Date(data.publishAt) > new Date()
+          }
+          return true
+        },
+        {
+          message: t('form.publishAt.futureRequired'),
+          path: ['publishAt'],
+        }
+      ),
+    [t]
+  )
+
   const form = useForm<RideRequest>({
     validate: zodFormValidator<RideRequest>(rideSchema),
     initialValues,
@@ -93,7 +97,9 @@ export function RideEditor({
   }, [status, form])
 
   const handleAddGroup = () => {
-    form.insertListItem('groups', { name: `Groupe ${groups.length + 1}` })
+    form.insertListItem('groups', {
+      name: t('rides.create.form.groups.defaultName', { number: groups.length + 1 }),
+    })
   }
 
   const handleRemoveGroup = (index: number) => {

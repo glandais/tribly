@@ -31,7 +31,6 @@ public class GarminClient implements GpsServiceClient {
   private static final String COURSE_UPLOAD_URL =
       "https://apis.garmin.com/training-api/courses/v1/course";
 
-
   @Inject DomainGpsCredentialService credentialService;
 
   @Inject HttpClient httpClient;

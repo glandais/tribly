@@ -6,13 +6,13 @@ import 'package:go_router/go_router.dart';
 import '../../../../api/generated/export.dart';
 import '../../../../api/pedalons_api_client.dart';
 import '../../../../core/utils/api_error_handler.dart';
-import '../../../../core/utils/formatters.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/adaptive/adaptive.dart';
 import '../../../../core/widgets/authenticated_image.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../../core/utils/safe_string.dart';
 import '../../../rides/data/ride_repository.dart';
+import '../../../rides/presentation/widgets/ride_card.dart';
 import '../../../routes/data/route_repository.dart';
 import '../../data/team_repository.dart';
 
@@ -55,7 +55,7 @@ class TeamDetailPage extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
               const SizedBox(height: 16),
               Text(getErrorMessage(error)),
               const SizedBox(height: 16),
@@ -247,7 +247,7 @@ class _TeamDetailContent extends ConsumerWidget {
                         horizontal: 16,
                         vertical: 4,
                       ),
-                      child: _RideCard(ride: rides[index]),
+                      child: RideCard(ride: rides[index]),
                     );
                   },
                 );
@@ -369,120 +369,6 @@ class _StatItem extends StatelessWidget {
         ),
       ],
     );
-  }
-}
-
-class _RideCard extends ConsumerWidget {
-  final RideDto ride;
-
-  const _RideCard({required this.ride});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final token = ref.watch(accessTokenHolderProvider);
-
-    final thumbnailUrl = Theme.of(context).brightness == Brightness.dark
-        ? ride.thumbnailDarkUrl
-        : ride.thumbnailLightUrl;
-
-    return AnimatedCard(
-      onTap: () => context.push(Paths.ride(ride.team.slug, ride.slug)),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            // Thumbnail or icon with Hero animation
-            Hero(
-              tag: 'ride-thumbnail-${ride.slug}',
-              child: Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  image: thumbnailUrl != null
-                      ? DecorationImage(
-                          image: AuthenticatedDecorationImage.fromUrl(
-                            thumbnailUrl,
-                            token,
-                          )!,
-                          fit: BoxFit.cover,
-                        )
-                      : null,
-                ),
-                child: thumbnailUrl == null
-                    ? Icon(
-                        Icons.directions_bike,
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      )
-                    : null,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    ride.name,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.calendar_today,
-                        size: 14,
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        _formatDate(DateTime.parse(ride.dateTime)),
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.people,
-                        size: 14,
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'rides.participants'.tr(namedArgs: {'count': ride.participantCount.toString()}),
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const Icon(Icons.chevron_right),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final dateDay = DateTime(date.year, date.month, date.day);
-    final dayDiff = dateDay.difference(today).inDays;
-    final time = AppFormatters.formatTime(date);
-    if (dayDiff == 0) {
-      return "${AppFormatters.today} $time";
-    } else if (dayDiff == 1) {
-      return "${AppFormatters.tomorrow} $time";
-    }
-    return "${AppFormatters.formatFullDate(date)} $time";
   }
 }
 

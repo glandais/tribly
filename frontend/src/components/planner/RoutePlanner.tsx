@@ -11,6 +11,7 @@ import {
 import { IconTrash } from '@tabler/icons-react'
 import { ActionIcon, Box, Group, Loader, Stack, Text, useComputedColorScheme } from '@mantine/core'
 import { PedalonsMap } from '../map/PedalonsMap'
+import { KmMarkersLayer } from '../map/MapMarkers'
 import { UndoRedoControl } from './UndoRedoControl'
 import { RouterProfileSelector } from './RouterProfileSelector'
 import { useUnits } from '../../hooks/useUnits'
@@ -547,6 +548,11 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
                 }}
               />
             </Source>
+          )}
+
+          {/* Km markers */}
+          {routeGeoJson && route.dist > 0 && (
+            <KmMarkersLayer coords={routeGeoJson.coordinates} totalDistanceM={route.dist} />
           )}
 
           {/* Drag connection lines */}

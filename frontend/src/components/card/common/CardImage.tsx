@@ -39,6 +39,7 @@ export function CardImage({ media, alt, height = 160, type }: CardImageProps) {
         alt={alt}
         h={height}
         fit="cover"
+        loading="lazy"
       />
     )
   }

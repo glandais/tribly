@@ -100,6 +100,61 @@ export function distance(lng1: number, lat1: number, lng2: number, lat2: number)
   return R * c
 }
 
+// Returns km marker interval based on total distance
+export function getKmMarkerInterval(distanceKm: number): number {
+  if (distanceKm < 10) return 1
+  if (distanceKm < 20) return 2
+  if (distanceKm < 50) return 5
+  return 10
+}
+
+// Compute km marker positions along coords.
+// coords is [lng, lat, ele?, cumDistM?][]. If cumDistM (4th element) is present it is used
+// directly; otherwise cumulative distance is computed using haversine.
+export function computeKmMarkers(
+  coords: number[][],
+  totalDistanceM: number
+): { lng: number; lat: number; label: string }[] {
+  if (totalDistanceM <= 0 || coords.length < 2) return []
+
+  const intervalM = getKmMarkerInterval(totalDistanceM / 1000) * 1000
+
+  // Build cumulative-distance array: use 4th element when available, else compute
+  const hasCumDist = coords[0].length >= 4 && coords[coords.length - 1][3] > 0
+  const cumDists: number[] = hasCumDist
+    ? coords.map((p) => p[3])
+    : new Array<number>(coords.length).fill(0)
+
+  if (!hasCumDist) {
+    let acc = 0
+    for (let i = 1; i < coords.length; i++) {
+      acc += distance(coords[i - 1][0], coords[i - 1][1], coords[i][0], coords[i][1])
+      cumDists[i] = acc
+    }
+  }
+
+  const markers: { lng: number; lat: number; label: string }[] = []
+  let targetDist = intervalM
+
+  while (targetDist < totalDistanceM) {
+    const idx = cumDists.findIndex((d) => d >= targetDist)
+    if (idx > 0) {
+      const p0 = coords[idx - 1]
+      const p1 = coords[idx]
+      const span = cumDists[idx] - cumDists[idx - 1]
+      const t = span === 0 ? 0 : (targetDist - cumDists[idx - 1]) / span
+      markers.push({
+        lng: p0[0] + t * (p1[0] - p0[0]),
+        lat: p0[1] + t * (p1[1] - p0[1]),
+        label: String(Math.round(targetDist / 1000)),
+      })
+    }
+    targetDist += intervalM
+  }
+
+  return markers
+}
+
 // Find nearest point to lat/lng
 export function findNearestPoint(
   trackPoints: number[][],

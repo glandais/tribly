@@ -289,6 +289,8 @@
   "form.charCount_many": "{{count}}/{{max}} caractères",
   "form.charCount_other": "{{count}}/{{max}} caractères",
   "form.description": "Description",
+  "form.publishAt.futureRequired": "La date de publication doit être dans le futur",
+  "form.rentalPeriod.required": "La période de location est requise pour les annonces de location",
   "form.publishAtHint": "Définissez une date/heure pour une publication automatique",
   "form.status": "Statut",
   "form.title": "Titre",
@@ -943,6 +945,5 @@
   "admin.users.cannotRemoveOwnAdmin": "Impossible de retirer votre propre rôle admin plateforme",
   "admin.users.empty.title": "Aucun utilisateur",
   "admin.users.empty.description": "Aucun utilisateur n'est encore inscrit.",
-  "common.back": "Retour",
   "common.or": "ou"
 }

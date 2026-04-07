@@ -88,7 +88,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Icon(Icons.lock_reset, size: 64, color: Colors.blue),
+          Icon(Icons.lock_reset, size: 64, color: theme.colorScheme.primary),
           const SizedBox(height: 16),
           Text(
             'auth.forgotPassword.subtitle'.tr(),
@@ -140,7 +140,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Icon(Icons.mark_email_read, size: 64, color: Colors.green),
+        Icon(Icons.mark_email_read, size: 64, color: theme.colorScheme.primary),
         const SizedBox(height: 16),
         Text(
           'auth.forgotPassword.sent.title'.tr(),

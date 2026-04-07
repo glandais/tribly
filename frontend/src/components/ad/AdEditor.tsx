@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useForm } from '@mantine/form'
 import { zodFormValidator } from '@/lib/formUtils'
 import { useTranslation } from 'react-i18next'
@@ -8,19 +8,6 @@ import { CreateAdBody } from '@/api/zod/ads/ads.zod'
 import { MediaEditor } from '../common/MediaEditor'
 import { SlugEditor } from '../common/SlugEditor'
 import { GeocoderAutocomplete } from '../common/GeocoderAutocomplete'
-
-const adSchema = CreateAdBody.refine(
-  (data) => {
-    if (data.adType === AdType.RENTAL) {
-      return data.rentalPeriod !== undefined
-    }
-    return true
-  },
-  {
-    message: 'Rental period is required for rental ads',
-    path: ['rentalPeriod'],
-  }
-)
 
 interface AdEditorProps {
   teamSlug: string
@@ -48,6 +35,23 @@ export function AdEditor({
   canEditSlug = false,
 }: AdEditorProps) {
   const { t } = useTranslation()
+
+  const adSchema = useMemo(
+    () =>
+      CreateAdBody.refine(
+        (data) => {
+          if (data.adType === AdType.RENTAL) {
+            return data.rentalPeriod !== undefined
+          }
+          return true
+        },
+        {
+          message: t('form.rentalPeriod.required'),
+          path: ['rentalPeriod'],
+        }
+      ),
+    [t]
+  )
 
   const form = useForm<AdRequest>({
     validate: zodFormValidator<AdRequest>(adSchema),

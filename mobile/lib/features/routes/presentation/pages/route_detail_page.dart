@@ -47,7 +47,7 @@ class RouteDetailPage extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
               const SizedBox(height: 16),
               Text(getErrorMessage(error)),
               const SizedBox(height: 16),
@@ -138,7 +138,7 @@ class _RouteDetailContent extends ConsumerWidget {
                       const BorderRadius.vertical(top: Radius.circular(16)),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
+                      color: Theme.of(context).shadowColor.withValues(alpha: 0.2),
                       blurRadius: 10,
                       offset: const Offset(0, -2),
                     ),

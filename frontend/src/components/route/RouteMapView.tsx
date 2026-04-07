@@ -22,7 +22,13 @@ import {
 } from 'chart.js'
 import { Box, Center, Paper, Text, useComputedColorScheme, useMantineTheme } from '@mantine/core'
 import type { RouteDetailDto } from '@/api/dto'
-import { StartMarker, EndMarker, HoverMarker, WaypointMarker } from '../map/MapMarkers'
+import {
+  StartMarker,
+  EndMarker,
+  HoverMarker,
+  WaypointMarker,
+  KmMarkersLayer,
+} from '../map/MapMarkers'
 import {
   NEUTRAL_COLOR,
   getColorFromGradient,
@@ -395,6 +401,9 @@ export function RouteMapView({ route }: RouteMapViewProps) {
                 />
               )
           )}
+
+          {/* Km markers */}
+          <KmMarkersLayer coords={trackPoints} totalDistanceM={route.distance} />
 
           {/* Hover marker */}
           {hoveredPoint && <HoverMarker longitude={hoveredPoint[0]} latitude={hoveredPoint[1]} />}

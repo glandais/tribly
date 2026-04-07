@@ -113,4 +113,16 @@ class AppFormatters {
 
   /// Returns "Tomorrow" translation
   static String get tomorrow => tr('dates.tomorrow');
+
+  /// Formats a ride date relative to today (Today/Tomorrow/full date) with time.
+  static String formatRideDate(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final dateDay = DateTime(date.year, date.month, date.day);
+    final dayDiff = dateDay.difference(today).inDays;
+    final time = formatTime(date);
+    if (dayDiff == 0) return '${AppFormatters.today} $time';
+    if (dayDiff == 1) return '${AppFormatters.tomorrow} $time';
+    return '${formatFullDate(date)} $time';
+  }
 }

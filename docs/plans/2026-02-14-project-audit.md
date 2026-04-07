@@ -63,13 +63,13 @@ Backend Quarkus 3.31.2, Java 21 (compile en Java 25), ~90 fichiers de test. Arch
 | B5 | `GlobalExceptionMapper` logue toutes les exceptions en ERROR (y compris 4xx) | Important | S | `GlobalExceptionMapper.java:33` | ✅ |
 | B6 | ~5 `RuntimeException` dans le code prod au lieu d'exceptions metier | Important | M | `RouteService`, `GarminClient`, `TokenEncryptionService`, etc. | ✅ |
 | B7 | Traitement GPX complet dans une seule transaction (connexion DB longue) | Important | L | `GpxProcessingService.java` | ✅ |
-| B8 | Etat OAuth stocke en `ConcurrentHashMap` (pas multi-instance, fuite memoire) | Important | M | `GpsService.java:52` | |
+| B8 | Etat OAuth stocke en `ConcurrentHashMap` (pas multi-instance, fuite memoire) | Important | M | `GpsService.java:52` | ✅ |
 | B9 | Requetes N+1 sur les listings (pas de JOIN FETCH) | Important | L | `TeamEntityRepository.java` | |
 | B10 | `PedalonsQueryContext.getUserNullable()` re-requete la DB a chaque appel | Important | S | `PedalonsQueryContext.java:92-95` | |
 | B11 | `FetchType.EAGER` sur plusieurs `@ManyToOne` (Ride.route, Ride.start, etc.) | Important | M | `Ride.java`, `RideGroup.java`, `Team.java` | |
 | B12 | Pas de test pour `DeviceAuthService` (device code flow) | Important | M | Nouveau fichier test | |
-| B13 | Code commente dans `PedalonsException` (~40 lignes) | Mineur | S | `PedalonsException.java:23-65` | |
-| B14 | Logique cle S3 dupliquee (`AssetService` vs `AssetRemoveListener`) | Mineur | S | `AssetService.java`, `AssetRemoveListener.java` | ⚠️ |
+| B13 | Code commente dans `PedalonsException` (~40 lignes) | Mineur | S | `PedalonsException.java:23-65` | ✅ |
+| B14 | Logique cle S3 dupliquee (`AssetService` vs `AssetRemoveListener`) | Mineur | S | `AssetService.java`, `AssetRemoveListener.java` | ✅ |
 | B15 | Indexes redondants avec contraintes UNIQUE sur `device_codes` | Mineur | S | `V5__device_codes.sql` | |
 
 ---
@@ -95,18 +95,18 @@ React 19, TypeScript 5.9, Vite 7, Mantine 8, ~97 composants TSX. 1 test fictif (
 | F1 | `maximum-scale=1.0` dans viewport — bloque le zoom, violation WCAG 2.1 | Critique | S | `index.html:8` | |
 | F2 | 0 tests reels malgre Vitest + testing-library installes (1 test fictif present) | Critique | L | `src/**/*.test.ts(x)` | ⚠️ |
 | F3 | Configuration Vitest manquante (pas de vitest.config.ts) | Critique | S | `vite.config.ts` ou nouveau fichier | |
-| F4 | Cle i18n `common.back` inexistante dans LoginPage (devrait etre `actions.back`) | Critique | S | `LoginPage.tsx:385,440` | |
+| F4 | Cle i18n `common.back` inexistante dans LoginPage (devrait etre `actions.back`) | Critique | S | `LoginPage.tsx:385,440` | ✅ |
 | F5 | FullCalendar 7.0.0-beta.6 — API instable, pas de support prod | Important | M | `package.json` | ✅ |
-| F6 | Pas de titres de page dynamiques (titre statique partout) | Important | M | Toutes les pages | |
+| F6 | Pas de titres de page dynamiques (titre statique partout) | Important | M | Toutes les pages | ✅ |
 | F7 | Skip-to-content non implemente (cle i18n existe) | Important | S | `Layout.tsx` | |
-| F8 | Images sans `loading="lazy"` | Important | S | `CardImage.tsx`, `AssetImage.tsx` | |
-| F9 | "Groupe" hardcode en francais dans RideEditor | Important | S | `RideEditor.tsx:96` | |
-| F10 | Message validation Zod hardcode en anglais | Important | S | `RideEditor.tsx:42` | |
-| F11 | Liens `/terms` et `/privacy` vers pages inexistantes | Important | M | `LoginPage.tsx:280-281` | |
+| F8 | Images sans `loading="lazy"` | Important | S | `CardImage.tsx`, `AssetImage.tsx` | ✅ |
+| F9 | "Groupe" hardcode en francais dans RideEditor | Important | S | `RideEditor.tsx:96` | ✅ |
+| F10 | Message validation Zod hardcode en anglais | Important | S | `RideEditor.tsx:42` | ✅ |
+| F11 | Liens `/terms` et `/privacy` vers pages inexistantes | Important | M | `LoginPage.tsx:280-281` | ✅ |
 | F12 | Sitemap.xml manquant | Important | M | Backend endpoint | |
 | F13 | Pas de SSR = SEO limite pour les bots | Important | XL | Migration architecturale | |
 | F14 | `dayjs` utilise uniquement dans `i18n/index.ts` | Mineur | S | `package.json` | ⚠️ |
-| F15 | 8 cles `_many` manquantes en EN (coherence structurelle) | Mineur | S | `en/common.json` | |
+| F15 | 8 cles `_many` manquantes en EN (coherence structurelle) | Mineur | S | `en/common.json` | ✅ |
 
 ---
 
@@ -131,14 +131,14 @@ Flutter, Dart 3.10+, Riverpod 3, GoRouter 17. 8 features (auth, home, teams, rid
 | M2 | Memory leak — stream subscription non dispose dans `_DeepLinkHandler` | Critique | S | `main.dart:60` | |
 | M3 | `rules.md` recommande ValueNotifier mais le code utilise Riverpod — contradiction | Important | S | `rules.md` | ⚠️ |
 | M4 | Dependances inutilisees : `hooks_riverpod` (flutter_hooks retire, riverpod_generator reste en dev dep) | Important | S | `pubspec.yaml` | ⚠️ |
-| M5 | Labels de navigation hardcodes en francais | Important | S | `navigation_destination.dart` | |
-| M6 | Widgets dupliques (`_RideCard`, `_StatItem`, `_formatDate`) | Important | M | `home_page.dart`, `team_detail_page.dart` | |
-| M7 | Couleurs hardcodees (`Colors.green/blue/red`) | Important | S | `verify_email_page.dart`, `ride_detail_page.dart`, etc. | |
-| M8 | Pas de renderer Markdown pour les descriptions | Important | M | `ride_detail_page.dart`, `route_detail_page.dart` | |
+| M5 | Labels de navigation hardcodes en francais | Important | S | `navigation_destination.dart` | ✅ |
+| M6 | Widgets dupliques (`_RideCard`, `_StatItem`, `_formatDate`) | Important | M | `home_page.dart`, `team_detail_page.dart` | ✅ |
+| M7 | Couleurs hardcodees (`Colors.green/blue/red`) | Important | S | `verify_email_page.dart`, `ride_detail_page.dart`, etc. | ✅ |
+| M8 | Pas de renderer Markdown pour les descriptions | Important | M | `ride_detail_page.dart`, `route_detail_page.dart` | ✅ |
 | M9 | Feature parity manquante : Posts, Comments, Publications feed | Important | XL | Nouveaux features | |
 | M10 | 6 TODOs non implementes (discover teams, delete account, notifications) | Important | L | `profile_page.dart`, `teams_page.dart` | |
 | M11 | Lint rules trop minimales (`analysis_options.yaml`) | Moyen | S | `analysis_options.yaml` | |
-| M12 | `debugPrint` au lieu de `dart:developer.log` | Mineur | S | `main.dart` | |
+| M12 | `debugPrint` au lieu de `dart:developer.log` | Mineur | S | `main.dart` | ✅ |
 | M13 | Pas de gestion offline | Mineur | XL | Transversal | |
 
 ---
@@ -392,7 +392,7 @@ Les deux clients partagent des problemes communs :
 | 31 | Ajouter `loading="lazy"` sur les images | Frontend |
 | 32 | Ajouter JOIN FETCH / entity graphs pour les listings | Backend |
 | 33 | Extraire le traitement fichier/S3 hors transaction GPX | Backend |
-| 34 | Migrer l'etat OAuth en DB/Redis | Backend |
+| 34 | Migrer l'etat OAuth en DB/Redis | Backend | ✅ |
 | 35 | Ajouter renderer Markdown dans le mobile | Mobile |
 | 36 | Extraire widgets dupliques dans le mobile | Mobile |
 | 37 | Generer un sitemap.xml dynamique | Frontend/Backend |
@@ -428,16 +428,16 @@ Les deux clients partagent des problemes communs :
 
 | Severite | Backend | Frontend | Mobile | Karoo | Garmin | Infra | Securite | Docs | Total |
 |----------|---------|----------|--------|-------|--------|-------|----------|------|-------|
-| Critique | 0 | 4 | 2 | 3 | 3 | 6 | 1 | 1 | **20** |
-| Important | 7 | 9 | 8 | 7 | 7 | 10 | 5 | 4 | **57** |
-| Mineur | 3 | 2 | 3 | 3 | 3 | 5 | 5 | 2 | **26** |
-| **Total** | **10** | **15** | **13** | **13** | **13** | **21** | **11** | **7** | **103** |
+| Critique | 0 | 3 | 2 | 3 | 3 | 6 | 1 | 1 | **19** |
+| Important | 6 | 3 | 8 | 7 | 7 | 10 | 5 | 4 | **50** |
+| Mineur | 1 | 1 | 3 | 3 | 3 | 5 | 5 | 2 | **23** |
+| **Total** | **7** | **7** | **13** | **13** | **13** | **21** | **11** | **7** | **92** |
 
 ### Points corriges depuis l'audit initial
 
 | Composant | Corriges | Details |
 |-----------|----------|---------|
-| Backend | B1, B2, B3, B5, B6 | B1: `updateSlug()`. B2: Java 25. B3: hibernate-spatial BOM. B5: logs 4xx/5xx. B6: RuntimeException → exceptions metier |
+| Backend | B1, B2, B3, B5, B6, B7, B8, B13, B14 | B1: `updateSlug()`. B2: Java 25. B3: hibernate-spatial BOM. B5: logs 4xx/5xx. B6: RuntimeException → exceptions metier. B7: GPX hors transaction unique. B8: OAuth state migre en DB. B13: code commente supprime. B14: cle S3 deduplication via `AssetService.getAssetKey()` |
 | Karoo | K4, K5, K8, K11 | Compose BOM 2026.03.00, ktor 3.4.2, generateQrCode partage, package documente |
 | Infrastructure | I1, I8, I16, I18 | CI sur develop, tests frontend actives, backend/.env dans .gitignore |
 | Securite | S1, S14 | @RolesAllowed sur /complete, Apache Tika pour validation uploads |

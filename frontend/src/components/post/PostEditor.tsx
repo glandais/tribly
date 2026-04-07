@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useForm } from '@mantine/form'
 import { zodFormValidator } from '@/lib/formUtils'
 import { useTranslation } from 'react-i18next'
@@ -9,19 +9,6 @@ import { MediaEditor } from '../common/MediaEditor'
 import { SlugEditor } from '../common/SlugEditor'
 import { Status, PostRequest } from '@/api/dto'
 import { CreatePostBody } from '@/api/zod/posts/posts.zod'
-
-const postSchema = CreatePostBody.refine(
-  (data) => {
-    if (data.status === Status.DRAFT && data.publishAt) {
-      return new Date(data.publishAt) > new Date()
-    }
-    return true
-  },
-  {
-    message: 'Publish date must be in the future for draft posts',
-    path: ['publishAt'],
-  }
-)
 
 interface PostEditorProps {
   team: TeamDetailDto
@@ -51,6 +38,23 @@ export function PostEditor({
   canEditSlug = false,
 }: PostEditorProps) {
   const { t } = useTranslation()
+
+  const postSchema = useMemo(
+    () =>
+      CreatePostBody.refine(
+        (data) => {
+          if (data.status === Status.DRAFT && data.publishAt) {
+            return new Date(data.publishAt) > new Date()
+          }
+          return true
+        },
+        {
+          message: t('form.publishAt.futureRequired'),
+          path: ['publishAt'],
+        }
+      ),
+    [t]
+  )
 
   const form = useForm<PostRequest>({
     validate: zodFormValidator<PostRequest>(postSchema),

@@ -129,7 +129,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                     Icon(
                       Icons.check_circle,
                       size: 80,
-                      color: Colors.green,
+                      color: theme.colorScheme.primary,
                     ),
                     const SizedBox(height: 24),
                     Text(
@@ -147,10 +147,10 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                         padding: const EdgeInsets.all(16),
                         child: Column(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.fingerprint,
                               size: 48,
-                              color: Colors.blue,
+                              color: theme.colorScheme.primary,
                             ),
                             const SizedBox(height: 16),
                             Text(
@@ -181,7 +181,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                     Icon(
                       Icons.check_circle,
                       size: 80,
-                      color: Colors.green,
+                      color: theme.colorScheme.primary,
                     ),
                     const SizedBox(height: 24),
                     Text(
