@@ -140,6 +140,12 @@ final routerProvider = Provider<GoRouter>((ref) {
           teamSlug: state.pathParameters['teamSlug']!,
         ),
         routes: [
+          // About redirects to team detail
+          GoRoute(
+            path: 'about',
+            redirect: (context, state) =>
+                Paths.team(state.pathParameters['teamSlug']!),
+          ),
           // Team's routes list
           GoRoute(
             path: 'routes',

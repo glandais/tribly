@@ -34,6 +34,7 @@
                 <data android:pathPattern="/teams/.*/rides/.*" />
                 <data android:pathPattern="/teams/.*/routes/.*" />
                 <data android:pathPattern="/teams/.*/routes" />
+                <data android:pathPattern="/teams/.*/about" />
                 <data android:pathPattern="/teams/.*/calendar" />
                 <data android:pathPattern="/teams/.*" />
                 <data android:path="/teams" />
