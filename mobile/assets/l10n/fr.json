@@ -25,13 +25,6 @@
       "enablePrompt": "Activez Passkey pour vous connecter avec votre empreinte",
       "enable": "Activer"
     },
-    "magicLink": {
-      "title": "Connexion par email",
-      "send": "Envoyer le lien",
-      "sent": "Un lien de connexion a été envoyé à {email}",
-      "codePrompt": "Un code à 6 chiffres sera envoyé à votre email",
-      "registerPrompt": "Créez votre compte pour rejoindre les équipes cyclistes"
-    },
     "otp": {
       "title": "Entrez votre code",
       "sent": "Un code à 6 chiffres a été envoyé à",

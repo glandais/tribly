@@ -22,14 +22,18 @@ import 'paths.dart';
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
+/// Provider for the initial deep link path (set in main.dart)
+final initialDeepLinkProvider = Provider<String?>((ref) => null);
+
 /// Provider for the app router
 final routerProvider = Provider<GoRouter>((ref) {
   final isAuthenticated = ref.watch(authProvider.select((s) => s.isAuthenticated));
   final isInitialized = ref.watch(authProvider.select((s) => s.isInitialized));
+  final initialDeepLink = ref.read(initialDeepLinkProvider);
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: '/home',
+    initialLocation: initialDeepLink ?? '/home',
     debugLogDiagnostics: true,
     redirect: (context, state) {
 
@@ -65,6 +69,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginPage(),
+      ),
+      GoRoute(
+        path: '/register',
+        builder: (context, state) => const LoginPage(initialRegister: true),
       ),
       GoRoute(
         path: '/verify-email',

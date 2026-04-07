@@ -14,9 +14,6 @@ const DeviceVerifyPage = lazy(() =>
 const VerifyEmailPage = lazy(() =>
   import('../pages/auth/VerifyEmailPage').then((m) => ({ default: m.VerifyEmailPage }))
 )
-const MagicLinkVerifyPage = lazy(() =>
-  import('../pages/auth/MagicLinkVerifyPage').then((m) => ({ default: m.MagicLinkVerifyPage }))
-)
 const ForgotPasswordPage = lazy(() =>
   import('../pages/auth/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage }))
 )
@@ -233,14 +230,6 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('auth.verifyEmail.title') },
-  },
-  {
-    id: 'magic-link-verify',
-    path: paths.magicLinkVerify(),
-    component: MagicLinkVerifyPage,
-    auth: 'public',
-    parentId: null,
-    breadcrumb: { type: 'static', i18nKey: tRegister('auth.magicLink.verify.title') },
   },
   {
     id: 'forgot-password',

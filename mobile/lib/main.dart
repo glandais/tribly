@@ -21,6 +21,13 @@ void main() async {
     log('Initial deep link: $initialLink', name: 'main');
   }
 
+  String? initialPath;
+  if (initialLink != null) {
+    final path = initialLink.path.isEmpty ? '/' : initialLink.path;
+    final query = initialLink.query.isNotEmpty ? '?${initialLink.query}' : '';
+    initialPath = path + query;
+  }
+
   runApp(
     EasyLocalization(
       supportedLocales: const [Locale('en'), Locale('fr')],
@@ -28,8 +35,8 @@ void main() async {
       fallbackLocale: const Locale('fr'),
       child: ProviderScope(
         overrides: [
-          // If there's an initial deep link, we could pass it here
-          // For now, GoRouter handles it via the URL
+          if (initialPath != null)
+            initialDeepLinkProvider.overrideWithValue(initialPath),
         ],
         child: _DeepLinkHandler(
           appLinks: appLinks,

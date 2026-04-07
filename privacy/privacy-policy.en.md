@@ -25,7 +25,7 @@ To secure access to your account, we process:
 
 - **Passkeys (WebAuthn)**: credential ID, public key, and signature counter. The private key stays on your device and is never transmitted to us.
 - **Session tokens**: a refresh token (hashed, never stored in plain text) is kept in a secure HttpOnly cookie for up to 30 days.
-- **Magic links and one-time passwords (OTP)**: hashed server-side, valid for 5 minutes.
+- **One-time passwords (OTP)**: hashed server-side, valid for 5 minutes.
 - **GPS device pairing codes**: temporary codes (10 minutes) to connect Karoo or Garmin devices.
 
 ### Session Data
@@ -140,7 +140,7 @@ Connecting to third-party GPS services (Hammerhead, Garmin) involves a data tran
 |-----------|-----------------|
 | Account data | As long as your account is active |
 | Login sessions | 30 days after last use |
-| Temporary authentication tokens (OTP, magic links) | 5 minutes |
+| Temporary authentication tokens (OTP) | 5 minutes |
 | Device pairing codes | 10 minutes |
 | WebAuthn challenges | 5 minutes |
 | Content (rides, posts, routes) | Until you delete it |

@@ -25,23 +25,26 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
 
-            <!-- Deep Links for email verification and magic links -->
+            <!-- App Links for rides and routes -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <!-- Update host to your domain when deploying -->
-                <data android:scheme="https" android:host="pedalons.fr" />
-                <data android:pathPrefix="/verify-email" />
-                <data android:pathPrefix="/magic-link/verify" />
-            </intent-filter>
-
-            <!-- Custom scheme for development -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="pedalons" android:host="auth" />
+                <data android:scheme="https" android:host="www.pedalons.fr" />
+                <data android:pathPattern="/teams/.*/rides/.*" />
+                <data android:pathPattern="/teams/.*/routes/.*" />
+                <data android:pathPattern="/teams/.*/routes" />
+                <data android:pathPattern="/teams/.*/calendar" />
+                <data android:pathPattern="/teams/.*" />
+                <data android:path="/teams" />
+                <data android:path="/calendar" />
+                <data android:path="/profile" />
+                <data android:path="/privacy" />
+                <data android:path="/terms" />
+                <data android:path="/verify-email" />
+                <data android:path="/login" />
+                <data android:path="/register" />
+                <data android:path="/" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

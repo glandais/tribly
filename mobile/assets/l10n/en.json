@@ -25,13 +25,6 @@
       "enablePrompt": "Enable Passkey to login with your fingerprint",
       "enable": "Enable"
     },
-    "magicLink": {
-      "title": "Login by email",
-      "send": "Send link",
-      "sent": "A login link has been sent to {email}",
-      "codePrompt": "A 6-digit code will be sent to your email",
-      "registerPrompt": "Create your account to join cycling teams"
-    },
     "otp": {
       "title": "Enter your code",
       "sent": "A 6-digit code has been sent to",

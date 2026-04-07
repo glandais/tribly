@@ -86,7 +86,6 @@
   "auth.login.methods.register": "Créer un compte",
   "auth.login.noAccount": "Pas encore de compte ?",
   "auth.login.subtitle": "Connectez-vous pour gérer votre équipe cycliste",
-  "auth.login.tabs.magicLink": "Lien magique",
   "auth.login.tabs.passkey": "Passkey",
   "auth.login.tabs.password": "Mot de passe",
   "auth.login.termsText": "En vous connectant, vous acceptez nos <termsLink>Conditions d'utilisation</termsLink> et notre <privacyLink>Politique de confidentialité</privacyLink>",

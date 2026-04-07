@@ -42,7 +42,7 @@ This agent should be invoked when changes touch:
 - [ ] Refresh tokens are hashed before storage (SHA-256)
 - [ ] OTP codes have rate limiting and max attempts
 - [ ] WebAuthn challenges are single-use and expire
-- [ ] Magic link tokens are single-use
+- [ ] OTP codes are single-use
 - [ ] Password reset tokens expire appropriately
 
 ### 2. Authorization

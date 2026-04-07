@@ -11,14 +11,16 @@ import '../../services/passkey_service.dart';
 enum _Mode { login, register }
 
 class LoginPage extends ConsumerStatefulWidget {
-  const LoginPage({super.key});
+  final bool initialRegister;
+
+  const LoginPage({super.key, this.initialRegister = false});
 
   @override
   ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
-  _Mode _mode = _Mode.login;
+  late _Mode _mode = widget.initialRegister ? _Mode.register : _Mode.login;
 
   // Login fields
   final _emailController = TextEditingController();

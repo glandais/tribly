@@ -5,34 +5,32 @@ class Paths {
   Paths._();
 
   // Main tabs
-  static String home() => '/home';
-  static String teams() => '/teams';
-  static String calendar() => '/calendar';
-  static String profile() => '/profile';
+  static String home() => '/home'; // applink OK (/)
+  static String teams() => '/teams'; // applink OK
+  static String calendar() => '/calendar'; // applink OK
+  static String profile() => '/profile'; // applink OK
 
   // Legal
-  static String privacy() => '/privacy';
-  static String terms() => '/terms';
+  static String privacy() => '/privacy'; // applink OK
+  static String terms() => '/terms'; // applink OK
 
   // Auth
-  static String login() => '/login';
-  static String register() => '/register';
-  static String verifyEmail() => '/verify-email';
-  static String magicLinkVerify() => '/magic-link/verify';
+  static String login() => '/login'; // applink OK
+  static String register() => '/register'; // applink OK
+  static String verifyEmail() => '/verify-email'; // applink OK
   static String forgotPassword() => '/forgot-password';
   static String resetPassword() => '/reset-password';
 
   // Teams
-  static String teamsNew() => '/teams/new';
-  static String team(String teamSlug) => '/teams/$teamSlug';
-  static String teamCalendar(String teamSlug) => '/teams/$teamSlug/calendar';
+  static String team(String teamSlug) => '/teams/$teamSlug'; // applink OK
+  static String teamCalendar(String teamSlug) => '/teams/$teamSlug/calendar'; // applink OK
 
   // Rides
   static String ride(String teamSlug, String rideSlug) =>
-      '/teams/$teamSlug/rides/$rideSlug';
+      '/teams/$teamSlug/rides/$rideSlug'; // applink OK
 
   // Routes
-  static String routes(String teamSlug) => '/teams/$teamSlug/routes';
+  static String routes(String teamSlug) => '/teams/$teamSlug/routes'; // applink OK
   static String route(String teamSlug, String routeSlug) =>
-      '/teams/$teamSlug/routes/$routeSlug';
+      '/teams/$teamSlug/routes/$routeSlug'; // applink OK
 }

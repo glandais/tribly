@@ -4,7 +4,22 @@
     "details": [
       {
         "appID": "7Q49262697.fr.pedalons.mobile",
-        "paths": ["*"]
+        "paths": [
+          "/teams/*/rides/*",
+          "/teams/*/routes/*",
+          "/teams/*/routes",
+          "/teams/*/calendar",
+          "/teams/*",
+          "/teams",
+          "/calendar",
+          "/profile",
+          "/privacy",
+          "/terms",
+          "/verify-email",
+          "/login",
+          "/register",
+          "/"
+        ]
       }
     ]
   },

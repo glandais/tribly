@@ -91,7 +91,7 @@ mvn test
 src/main/java/com/pedalons/
 ├── api/               # REST resources organized by domain
 │   ├── admin/         #   Platform admin endpoints
-│   ├── auth/          #   Login, passkeys, magic links
+│   ├── auth/          #   Login, passkeys, OTP
 │   ├── device/        #   Device code flow (Karoo, Garmin)
 │   └── ...            #   rides, routes, posts, trips, teams, etc.
 ├── common/            # TsidUtils, custom exceptions, ErrorCode
@@ -119,7 +119,7 @@ The API covers these functional areas:
 
 | Domain | Resources | Description |
 |--------|-----------|-------------|
-| Auth | AuthResource, PasskeyResource | Login (password, magic link, passkeys), token refresh |
+| Auth | AuthResource, PasskeyResource | Login (password, OTP, passkeys), token refresh |
 | Teams | TeamResource, TeamMemberResource | Team CRUD, member management, roles |
 | Rides | RideResource, RideTemplateResource | Scheduled group rides with participation |
 | Routes | RouteResource, AllRouteResource | GPX routes with tracks, waypoints, elevation |

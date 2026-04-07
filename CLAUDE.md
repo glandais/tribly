@@ -14,7 +14,7 @@ See [BRANDING.md](BRANDING.md) for logo, icon assets, brand colors, and full the
 | Frontend | TypeScript 5 (tsgo for type checking), React 19, Vite 8, Mantine UI, Zustand, React Query |
 | Mobile | Flutter, Dart (see `mobile/rules.md` for detailed guidelines) |
 | Karoo | Kotlin, Jetpack Compose, karoo-ext SDK, ktor-client-karoo |
-| Auth | Database auth with JWT (password, magic link, passkeys/WebAuthn) |
+| Auth | Database auth with JWT (password, OTP, passkeys/WebAuthn) |
 | IDs | TSID via hypersistence-utils (Long internally, lowercase string in API) |
 | API | OpenAPI 3.1 contract-first with code generation |
 

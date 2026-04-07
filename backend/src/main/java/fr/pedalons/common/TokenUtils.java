@@ -9,7 +9,7 @@ import java.util.Base64;
 /**
  * Utility class for secure token generation and hashing.
  *
- * <p>Used for authentication tokens (refresh tokens, magic links, email verification).
+ * <p>Used for authentication tokens (refresh tokens, OTP, email verification).
  */
 public final class TokenUtils {
 

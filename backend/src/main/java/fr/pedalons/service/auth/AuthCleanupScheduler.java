@@ -16,7 +16,7 @@ import org.jboss.logging.Logger;
  *
  * <ul>
  *   <li>Expired or revoked auth sessions
- *   <li>Expired or used auth tokens (email verification, magic links)
+ *   <li>Expired or used auth tokens (email verification, OTP)
  *   <li>Expired GPS OAuth states
  * </ul>
  */

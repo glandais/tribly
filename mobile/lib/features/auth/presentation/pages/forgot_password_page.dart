@@ -18,8 +18,6 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   final _emailController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
-  bool _sent = false;
-  String _sentEmail = '';
 
   @override
   void dispose() {
@@ -38,10 +36,10 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
       final authNotifier = ref.read(authProvider.notifier);
       await authNotifier.requestPasswordReset(_emailController.text.trim());
       if (mounted) {
-        setState(() {
-          _sentEmail = _emailController.text.trim();
-          _sent = true;
-        });
+        final email = _emailController.text.trim();
+        context.push(
+          '${Paths.resetPassword()}?email=${Uri.encodeComponent(email)}',
+        );
       }
     } catch (e) {
       // The server already handles anti-enumeration (always returns 200 for unknown emails).
@@ -74,7 +72,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
             padding: const EdgeInsets.all(24),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 400),
-              child: _sent ? _buildSentView(theme) : _buildForm(theme),
+              child: _buildForm(theme),
             ),
           ),
         ),
@@ -136,41 +134,4 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     );
   }
 
-  Widget _buildSentView(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Icon(Icons.mark_email_read, size: 64, color: theme.colorScheme.primary),
-        const SizedBox(height: 16),
-        Text(
-          'auth.forgotPassword.sent.title'.tr(),
-          style: theme.textTheme.headlineSmall,
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'auth.forgotPassword.sent.checkEmail'.tr(),
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 32),
-        FilledButton(
-          onPressed: () => context.push(
-            '${Paths.resetPassword()}?email=${Uri.encodeComponent(_sentEmail)}',
-          ),
-          style: FilledButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-          ),
-          child: Text('auth.resetPassword.title'.tr()),
-        ),
-        const SizedBox(height: 16),
-        TextButton(
-          onPressed: () => context.go(Paths.login()),
-          child: Text('auth.forgotPassword.sent.backToLogin'.tr()),
-        ),
-      ],
-    );
-  }
 }
