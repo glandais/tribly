@@ -7,12 +7,12 @@ import 'package:maplibre/maplibre.dart';
 import '../../../../api/generated/export.dart';
 import '../../../../core/theme/pedalons_colors.dart';
 
-class _KmMarker {
+class _KmMarkerData {
   final double lng;
   final double lat;
   final String label;
 
-  const _KmMarker({required this.lng, required this.lat, required this.label});
+  const _KmMarkerData({required this.lng, required this.lat, required this.label});
 }
 
 class RouteMap extends StatefulWidget {
@@ -26,6 +26,7 @@ class RouteMap extends StatefulWidget {
 
 class _RouteMapState extends State<RouteMap> {
   MapController? _controller;
+  List<_KmMarkerData> _kmMarkers = [];
 
   String _mapStyle(BuildContext context) {
     final brightness = MediaQuery.platformBrightnessOf(context);
@@ -46,10 +47,38 @@ class _RouteMapState extends State<RouteMap> {
       onStyleLoaded: (style) async {
         final brightness = MediaQuery.platformBrightnessOf(context);
         await _addRouteLayers(style, brightness);
+        _computeAndSetKmMarkers();
         // Delay fitBounds to let the map complete its layout
         await Future<void>.delayed(const Duration(milliseconds: 100));
         _fitRouteBounds();
       },
+      children: [
+        if (_kmMarkers.isNotEmpty)
+          WidgetLayer(
+            markers: _kmMarkers
+                .map((m) => Marker(
+                      point: Geographic(lon: m.lng, lat: m.lat),
+                      size: const Size(28, 28),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.grey, width: 1.5),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          m.label,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ))
+                .toList(),
+          ),
+      ],
     );
   }
 
@@ -132,9 +161,16 @@ class _RouteMapState extends State<RouteMap> {
         },
       ),
     );
+  }
 
-    // Km markers
-    await _addKmMarkerLayers(style, coordinates);
+  void _computeAndSetKmMarkers() {
+    final coordinates = widget.route.tracks
+        .expand((track) => track.line.coordinates)
+        .toList();
+    final markers = _computeKmMarkers(coordinates);
+    if (markers.isNotEmpty) {
+      setState(() => _kmMarkers = markers);
+    }
   }
 
   int _kmMarkerInterval(double distanceKm) {
@@ -153,7 +189,7 @@ class _RouteMapState extends State<RouteMap> {
     return r * 2 * atan2(sqrt(a), sqrt(1 - a));
   }
 
-  List<_KmMarker> _computeKmMarkers(List<List<double>> coords) {
+  List<_KmMarkerData> _computeKmMarkers(List<List<double>> coords) {
     final totalM = widget.route.distance;
     if (totalM <= 0 || coords.length < 2) return [];
 
@@ -174,7 +210,7 @@ class _RouteMapState extends State<RouteMap> {
       }
     }
 
-    final markers = <_KmMarker>[];
+    final markers = <_KmMarkerData>[];
     double targetDist = intervalM;
 
     while (targetDist < totalM) {
@@ -184,7 +220,7 @@ class _RouteMapState extends State<RouteMap> {
         final p1 = coords[idx];
         final span = cumDists[idx] - cumDists[idx - 1];
         final t = span == 0 ? 0.0 : (targetDist - cumDists[idx - 1]) / span;
-        markers.add(_KmMarker(
+        markers.add(_KmMarkerData(
           lng: p0[0] + t * (p1[0] - p0[0]),
           lat: p0[1] + t * (p1[1] - p0[1]),
           label: '${(targetDist / 1000).round()}',
@@ -194,51 +230,6 @@ class _RouteMapState extends State<RouteMap> {
     }
 
     return markers;
-  }
-
-  Future<void> _addKmMarkerLayers(StyleController style, List<List<double>> coordinates) async {
-    final markers = _computeKmMarkers(coordinates);
-    if (markers.isEmpty) return;
-
-    final geoJson = jsonEncode({
-      'type': 'FeatureCollection',
-      'features': markers
-          .map((m) => {
-                'type': 'Feature',
-                'geometry': {
-                  'type': 'Point',
-                  'coordinates': [m.lng, m.lat],
-                },
-                'properties': {'label': m.label},
-              })
-          .toList(),
-    });
-
-    await style.addSource(GeoJsonSource(id: 'km-markers', data: geoJson));
-    await style.addLayer(
-      const CircleStyleLayer(
-        id: 'km-markers-circle',
-        sourceId: 'km-markers',
-        paint: {
-          'circle-radius': 12,
-          'circle-color': '#FFFFFF',
-          'circle-stroke-width': 1.5,
-          'circle-stroke-color': '#AAAAAA',
-        },
-      ),
-    );
-    await style.addLayer(
-      SymbolStyleLayer(
-        id: 'km-markers-label',
-        sourceId: 'km-markers',
-        layout: {
-          'text-field': ['get', 'label'],
-          'text-size': 11,
-          'text-font': ['Noto Sans Bold', 'Noto Sans Regular'],
-        },
-        paint: const {'text-color': '#000000'},
-      ),
-    );
   }
 
   void _fitRouteBounds() {
