@@ -130,7 +130,11 @@
     "upcomingRides": "Prochaines sorties",
     "noUpcomingRides": "Aucune sortie prévue cette semaine",
     "unableToLoadEvents": "Impossible de charger les événements",
-    "joinTeamPrompt": "Rejoignez une équipe pour commencer"
+    "joinTeamPrompt": "Rejoignez une équipe pour commencer",
+    "feed": {
+      "all": "Tout",
+      "empty": "Aucune publication"
+    }
   },
   "teams": {
     "title": "Mes équipes",

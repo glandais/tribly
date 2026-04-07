@@ -130,7 +130,11 @@
     "upcomingRides": "Upcoming rides",
     "noUpcomingRides": "No rides planned this week",
     "unableToLoadEvents": "Unable to load events",
-    "joinTeamPrompt": "Join a team to get started"
+    "joinTeamPrompt": "Join a team to get started",
+    "feed": {
+      "all": "All",
+      "empty": "No publications"
+    }
   },
   "teams": {
     "title": "My teams",

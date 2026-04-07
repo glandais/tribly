@@ -1,73 +1,45 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../api/pedalons_api_client.dart';
-import '../../../../config/paths.dart';
 import '../../../../core/adaptive/adaptive.dart';
 import '../../../../core/utils/api_error_handler.dart';
-import '../../../../core/widgets/authenticated_image.dart';
 import '../../../../core/widgets/widgets.dart';
-import '../../../../core/utils/safe_string.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../auth/services/passkey_service.dart';
-import '../../../rides/presentation/widgets/ride_card.dart';
-import '../../../teams/data/team_repository.dart';
+import '../../../teams/presentation/widgets/publication_card.dart';
 
-/// Provider for upcoming rides on home page (via publications endpoint)
-final homeUpcomingRidesProvider =
-    FutureProvider<List<RideDto>>((ref) async {
-  final client = ref.watch(publicationsClientProvider);
-  final response = await client.listAllPublications(
-    type: PublicationType.ride,
-    from: DateTime.now().toUtc().toIso8601String(),
-    size: 5,
-  );
-  return response.publications
-      .whereType<PublicationDtoRide>()
-      .map((p) => RideDto(
-            type: 'RIDE',
-            team: p.team,
-            id: p.id,
-            slug: p.slug,
-            name: p.name,
-            media: p.media,
-            dateTime: p.dateTime,
-            status: p.status,
-            visibility: p.visibility,
-            participantCount: p.participantCount,
-            groupCount: p.groupCount,
-            groups: p.groups,
-            topParticipants: p.topParticipants,
-            publishAt: p.publishAt,
-            createdAt: p.createdAt,
-            routeSlug: p.routeSlug,
-            startPlace: p.startPlace,
-            endPlace: p.endPlace,
-            thumbnailLightUrl: p.thumbnailLightUrl,
-            thumbnailDarkUrl: p.thumbnailDarkUrl,
-            deleted: p.deleted,
-          ))
-      .toList();
-});
+/// Provider for home publications feed
+final _homePublicationsProvider = FutureProvider.family<
+    PublicationListResponse, ({int page, PublicationType? type})>(
+  (ref, params) async {
+    final client = ref.watch(publicationsClientProvider);
+    return client.listAllPublications(
+      page: params.page,
+      size: 20,
+      type: params.type,
+    );
+  },
+);
 
-/// Provider for user's teams on home page
-final homeTeamsProvider = FutureProvider<List<TeamDetailDto>>((ref) async {
-  final repository = ref.watch(teamRepositoryProvider);
-  return repository.getMyTeams();
-});
-
-class HomePage extends ConsumerWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends ConsumerState<HomePage> {
+  PublicationType? _selectedType;
+
+  @override
+  Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final theme = Theme.of(context);
-    final upcomingRides = ref.watch(homeUpcomingRidesProvider);
-    final teams = ref.watch(homeTeamsProvider);
+    final params = (page: 0, type: _selectedType);
+    final publicationsAsync = ref.watch(_homePublicationsProvider(params));
 
     final userName = authState.user?.displayName.split(' ').firstOrNull ??
         'home.defaultGreeting'.tr();
@@ -75,8 +47,7 @@ class HomePage extends ConsumerWidget {
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: () async {
-          ref.invalidate(homeUpcomingRidesProvider);
-          ref.invalidate(homeTeamsProvider);
+          ref.invalidate(_homePublicationsProvider(params));
         },
         child: CustomScrollView(
           slivers: [
@@ -150,92 +121,101 @@ class HomePage extends ConsumerWidget {
                 ),
               ),
 
-            // Upcoming events section
+            // Type filter chips
             SliverToBoxAdapter(
               child: ContentWidthConstraint(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'home.upcomingRides'.tr(),
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _FilterChip(
+                        label: 'home.feed.all'.tr(),
+                        selected: _selectedType == null,
+                        onSelected: () => setState(() => _selectedType = null),
                       ),
-                    ),
-                    TextButton(
-                      onPressed: () => context.go(Paths.calendar()),
-                      child: Text('common.viewAll'.tr()),
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      _FilterChip(
+                        label: 'rides.title'.tr(),
+                        icon: Icons.directions_bike,
+                        selected: _selectedType == PublicationType.ride,
+                        onSelected: () =>
+                            setState(() => _selectedType = PublicationType.ride),
+                      ),
+                      const SizedBox(width: 8),
+                      _FilterChip(
+                        label: 'posts.title'.tr(),
+                        icon: Icons.article,
+                        selected: _selectedType == PublicationType.post,
+                        onSelected: () =>
+                            setState(() => _selectedType = PublicationType.post),
+                      ),
+                      const SizedBox(width: 8),
+                      _FilterChip(
+                        label: 'trips.title'.tr(),
+                        icon: Icons.hiking,
+                        selected: _selectedType == PublicationType.trip,
+                        onSelected: () =>
+                            setState(() => _selectedType = PublicationType.trip),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
 
-            upcomingRides.when(
-              data: (rides) {
-                if (rides.isEmpty) {
-                  return SliverToBoxAdapter(
-                    child: ContentWidthConstraint(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: Column(
-                            children: [
-                              AnimatedEmptyState(
-                                child: Icon(
-                                  Icons.event_available,
-                                  size: 48,
-                                  color: theme.colorScheme.outline,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text('home.noUpcomingRides'.tr()),
-                            ],
+            // Publications feed
+            publicationsAsync.when(
+              data: (response) {
+                final publications = response.publications;
+                if (publications.isEmpty) {
+                  return SliverFillRemaining(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          AnimatedEmptyState(
+                            child: Icon(
+                              Icons.dynamic_feed,
+                              size: 64,
+                              color: theme.colorScheme.outline,
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'home.feed.empty'.tr(),
+                            style: theme.textTheme.titleMedium,
+                          ),
+                        ],
                       ),
                     ),
                   );
                 }
 
-                final displayCount = rides.length > 3 ? 3 : rides.length;
-                return SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      if (index >= displayCount) return null;
-                      final ride = rides[index];
+                return SliverPadding(
+                  padding: const EdgeInsets.all(16),
+                  sliver: SliverList.separated(
+                    itemCount: publications.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 8),
+                    itemBuilder: (context, index) {
                       return ContentWidthConstraint(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 4,
-                        ),
-                        child: StaggeredListItem(
-                          index: index,
-                          child: RideCard(key: ValueKey(ride.slug), ride: ride, showTeamName: true),
-                        ),
+                        child: PublicationCard(
+                            publication: publications[index]),
                       );
                     },
-                    childCount: displayCount,
                   ),
                 );
               },
-              loading: () => SliverToBoxAdapter(
-                child: ContentWidthConstraint(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    children: List.generate(
-                      3,
-                      (index) => const Padding(
-                        padding: EdgeInsets.only(bottom: 8),
-                        child: ShimmerEventCard(),
-                      ),
-                    ),
+              loading: () => SliverPadding(
+                padding: const EdgeInsets.all(16),
+                sliver: SliverToBoxAdapter(
+                  child: ContentWidthConstraint(
+                    child: const ShimmerCardList(itemCount: 5),
                   ),
                 ),
               ),
-              error: (_, _) => SliverToBoxAdapter(
+              error: (error, _) => SliverToBoxAdapter(
                 child: ContentWidthConstraint(
                   padding: const EdgeInsets.all(16),
                   child: Card(
@@ -243,96 +223,19 @@ class HomePage extends ConsumerWidget {
                       padding: const EdgeInsets.all(16),
                       child: Row(
                         children: [
-                          Icon(Icons.error_outline, color: theme.colorScheme.error),
+                          Icon(Icons.error_outline,
+                              color: theme.colorScheme.error),
                           const SizedBox(width: 12),
-                          Expanded(child: Text('home.unableToLoadEvents'.tr())),
+                          Expanded(child: Text(getErrorMessage(error))),
                           TextButton(
-                            onPressed: () => ref.invalidate(homeUpcomingRidesProvider),
+                            onPressed: () => ref
+                                .invalidate(_homePublicationsProvider(params)),
                             child: Text('common.retry'.tr()),
                           ),
                         ],
                       ),
                     ),
                   ),
-                ),
-              ),
-            ),
-
-            // My teams section
-            SliverToBoxAdapter(
-              child: ContentWidthConstraint(
-                padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'home.myTeams'.tr(),
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () => context.go(Paths.teams()),
-                      child: Text('common.viewAll'.tr()),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            teams.when(
-              data: (teamList) {
-                if (teamList.isEmpty) {
-                  return SliverToBoxAdapter(
-                    child: ContentWidthConstraint(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: Column(
-                            children: [
-                              AnimatedEmptyState(
-                                child: Icon(
-                                  Icons.group_add,
-                                  size: 48,
-                                  color: theme.colorScheme.outline,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text('home.joinTeamPrompt'.tr()),
-                              const SizedBox(height: 16),
-                              FilledButton.icon(
-                                onPressed: () => context.go(Paths.teams()),
-                                icon: const Icon(Icons.search),
-                                label: Text('common.discover'.tr()),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }
-
-                return SliverToBoxAdapter(
-                  child: _AdaptiveTeamChips(teams: teamList),
-                );
-              },
-              loading: () => SliverToBoxAdapter(
-                child: SizedBox(
-                  height: 100,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: 4,
-                    itemBuilder: (context, index) => const ShimmerTeamChip(),
-                  ),
-                ),
-              ),
-              error: (_, _) => SliverToBoxAdapter(
-                child: ContentWidthConstraint(
-                  padding: const EdgeInsets.all(16),
-                  child: Text('common.loadError'.tr()),
                 ),
               ),
             ),
@@ -364,94 +267,34 @@ class HomePage extends ConsumerWidget {
   }
 }
 
-class _TeamChip extends ConsumerWidget {
-  final TeamDetailDto team;
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final IconData? icon;
+  final bool selected;
+  final VoidCallback onSelected;
 
-  const _TeamChip({super.key, required this.team});
-
-  String? get _logoUrl => team.about.assets.logo?.url;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.only(right: 12),
-      child: AnimatedCard(
-        onTap: () => context.push(Paths.team(team.slug)),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Hero animation for team logo
-              Hero(
-                tag: 'team-logo-${team.slug}',
-                child: AuthenticatedCircleAvatar(
-                  imageUrl: _logoUrl,
-                  fallbackText: team.name.safeFirstUpper(),
-                  radius: 20,
-                  fontSize: 16,
-                ),
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: 80,
-                child: Text(
-                  team.name,
-                  style: theme.textTheme.bodySmall,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Adaptive team chips that wrap on larger screens instead of horizontal scroll.
-class _AdaptiveTeamChips extends StatelessWidget {
-  final List<TeamDetailDto> teams;
-
-  const _AdaptiveTeamChips({required this.teams});
+  const _FilterChip({
+    required this.label,
+    this.icon,
+    required this.selected,
+    required this.onSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
-    final sizeClass = Breakpoints.getWindowSizeClass(width);
-    final displayTeams = teams.length > 5 ? teams.sublist(0, 5) : teams;
-
-    // On compact screens, use horizontal scroll with staggered animation
-    if (sizeClass == WindowSizeClass.compact) {
-      return SizedBox(
-        height: 100,
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          itemCount: displayTeams.length,
-          itemBuilder: (context, index) => StaggeredListItem(
-            index: index,
-            child: _TeamChip(key: ValueKey(displayTeams[index].slug), team: displayTeams[index]),
-          ),
-        ),
-      );
-    }
-
-    // On larger screens, use wrap layout with staggered animation
-    return ContentWidthConstraint(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Wrap(
-        spacing: 12,
-        runSpacing: 12,
-        children: displayTeams.asMap().entries.map((entry) => StaggeredListItem(
-          index: entry.key,
-          child: _TeamChip(key: ValueKey(entry.value.slug), team: entry.value),
-        )).toList(),
+    return FilterChip(
+      label: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 16),
+            const SizedBox(width: 4),
+          ],
+          Text(label),
+        ],
       ),
+      selected: selected,
+      onSelected: (_) => onSelected(),
     );
   }
 }
