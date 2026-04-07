@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../../config/paths.dart';
 import '../../../../core/utils/api_error_handler.dart';
@@ -171,10 +172,13 @@ class ProfilePage extends ConsumerWidget {
                     color: theme.colorScheme.outline,
                   ),
                   title: Text('profile.version'.tr()),
-                  trailing: Text(
-                    '1.0.0',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.outline,
+                  trailing: FutureBuilder<PackageInfo>(
+                    future: PackageInfo.fromPlatform(),
+                    builder: (context, snapshot) => Text(
+                      snapshot.data?.version ?? '',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.outline,
+                      ),
                     ),
                   ),
                 ),
