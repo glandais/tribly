@@ -13,7 +13,7 @@ List<AppDestination> buildTeamDestinations(TeamDetailDto team) {
   return [
     // Feed — always visible
     AppDestination(
-      path: Paths.teamFeed(slug),
+      path: Paths.team(slug),
       icon: Icons.dynamic_feed_outlined,
       selectedIcon: Icons.dynamic_feed,
       label: 'teams.tabs.feed',
@@ -53,13 +53,18 @@ List<AppDestination> buildTeamDestinations(TeamDetailDto team) {
 }
 
 /// Finds the destination index for a given location within team destinations.
+///
+/// Checks more specific paths first (longer paths) to avoid prefix conflicts.
+/// For example, `/teams/x/calendar` should match calendar, not feed (`/teams/x`).
 int getTeamDestinationIndex(
     String location, List<AppDestination> destinations) {
-  for (int i = 0; i < destinations.length; i++) {
+  // Check non-feed destinations first (they have more specific paths)
+  for (int i = 1; i < destinations.length; i++) {
     if (location == destinations[i].path ||
         location.startsWith('${destinations[i].path}/')) {
       return i;
     }
   }
-  return 0; // Default to feed
+  // Default to feed (index 0 = team root)
+  return 0;
 }

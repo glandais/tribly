@@ -166,43 +166,34 @@ final routerProvider = Provider<GoRouter>((ref) {
           child: child,
         ),
         routes: [
-          // Team root redirects to feed
+          // Team root shows feed (default tab)
           GoRoute(
             path: '/teams/:teamSlug',
-            redirect: (context, state) {
+            pageBuilder: (context, state) {
               final teamSlug = state.pathParameters['teamSlug']!;
-              // Only redirect exact match, not sub-paths
-              if (state.matchedLocation == '/teams/$teamSlug') {
-                return Paths.teamFeed(teamSlug);
-              }
-              return null;
+              return NoTransitionPage(
+                child: _TeamTabPageWrapper(
+                  teamSlug: teamSlug,
+                  builder: (team) => TeamFeedPage(
+                    teamSlug: teamSlug,
+                    team: team,
+                  ),
+                ),
+              );
             },
             routes: [
-              // Feed tab
-              GoRoute(
-                path: 'feed',
-                pageBuilder: (context, state) {
-                  final teamSlug = state.pathParameters['teamSlug']!;
-                  return NoTransitionPage(
-                    child: _TeamTabPageWrapper(
-                      teamSlug: teamSlug,
-                      builder: (team) => TeamFeedPage(
-                        teamSlug: teamSlug,
-                        team: team,
-                      ),
-                    ),
-                  );
-                },
-              ),
               // Calendar tab
               GoRoute(
                 path: 'calendar',
                 pageBuilder: (context, state) {
                   final teamSlug = state.pathParameters['teamSlug']!;
                   return NoTransitionPage(
-                    child: CalendarPage(
+                    child: _TeamTabPageWrapper(
                       teamSlug: teamSlug,
-                      embedded: true,
+                      builder: (team) => _TeamCalendarTab(
+                        teamSlug: teamSlug,
+                        team: team,
+                      ),
                     ),
                   );
                 },
@@ -213,9 +204,12 @@ final routerProvider = Provider<GoRouter>((ref) {
                 pageBuilder: (context, state) {
                   final teamSlug = state.pathParameters['teamSlug']!;
                   return NoTransitionPage(
-                    child: RoutesPage(
+                    child: _TeamTabPageWrapper(
                       teamSlug: teamSlug,
-                      embedded: true,
+                      builder: (team) => _TeamRoutesTab(
+                        teamSlug: teamSlug,
+                        team: team,
+                      ),
                     ),
                   );
                 },
@@ -371,6 +365,58 @@ class _TeamTabPageWrapper extends ConsumerWidget {
       data: (team) => builder(team),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, _) => const SizedBox.shrink(),
+    );
+  }
+}
+
+/// Wraps CalendarPage with TeamSliverAppBar when used as a team tab.
+class _TeamCalendarTab extends StatelessWidget {
+  final String teamSlug;
+  final TeamDetailDto team;
+
+  const _TeamCalendarTab({required this.teamSlug, required this.team});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        AppBar(
+          title: Text(team.name),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => context.go(Paths.teams()),
+          ),
+        ),
+        Expanded(
+          child: CalendarPage(teamSlug: teamSlug, embedded: true),
+        ),
+      ],
+    );
+  }
+}
+
+/// Wraps RoutesPage with a back-button AppBar when used as a team tab.
+class _TeamRoutesTab extends StatelessWidget {
+  final String teamSlug;
+  final TeamDetailDto team;
+
+  const _TeamRoutesTab({required this.teamSlug, required this.team});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        AppBar(
+          title: Text(team.name),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => context.go(Paths.teams()),
+          ),
+        ),
+        Expanded(
+          child: RoutesPage(teamSlug: teamSlug, embedded: true),
+        ),
+      ],
     );
   }
 }

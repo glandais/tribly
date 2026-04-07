@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
+import '../../../../config/paths.dart';
 import '../../../../core/utils/safe_string.dart';
 import '../../../../core/widgets/authenticated_image.dart';
 
@@ -18,6 +20,10 @@ class TeamSliverAppBar extends StatelessWidget {
     return SliverAppBar(
       expandedHeight: 160,
       pinned: true,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () => context.go(Paths.teams()),
+      ),
       flexibleSpace: FlexibleSpaceBar(
         title: Text(
           team.name,
