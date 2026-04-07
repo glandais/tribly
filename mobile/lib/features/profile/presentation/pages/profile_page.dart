@@ -4,10 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../../../api/pedalons_api_client.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/safe_string.dart';
 import '../../../../core/widgets/authenticated_image.dart';
+import '../../../auth/data/auth_repository.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../auth/services/passkey_service.dart';
 
@@ -113,12 +115,14 @@ class ProfilePage extends ConsumerWidget {
                         ? 'profile.passkeys.enabled'.tr()
                         : 'profile.passkeys.notConfigured'.tr(),
                   ),
-                  trailing: authState.hasPasskeys
-                      ? Icon(Icons.check_circle, color: theme.colorScheme.primary)
-                      : FilledButton.tonal(
-                          onPressed: () => _registerPasskey(context, ref),
-                          child: Text('profile.passkeys.add'.tr()),
-                        ),
+                  trailing: FilledButton.tonal(
+                    onPressed: () => _registerPasskey(context, ref),
+                    child: Text(
+                      authState.hasPasskeys
+                          ? 'profile.passkeys.replace'.tr()
+                          : 'profile.passkeys.add'.tr(),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -247,14 +251,29 @@ class ProfilePage extends ConsumerWidget {
 
   Future<void> _registerPasskey(BuildContext context, WidgetRef ref) async {
     try {
+      final repository = ref.read(authRepositoryProvider);
+      final accessToken = ref.read(accessTokenHolderProvider)!;
+
+      // List existing passkeys before registering the new one
+      final existingPasskeys = await repository.listPasskeys(accessToken);
+
+      // Register new passkey
       final passkeyService = ref.read(passkeyServiceProvider);
-      await passkeyService.register(deviceName: 'Mobile');
+      final newPasskey = await passkeyService.register(deviceName: 'Mobile');
+
+      // Delete old passkeys (keep only the new one)
+      for (final passkey in existingPasskeys) {
+        final id = passkey.id;
+        if (id != null && id != newPasskey.id) {
+          await repository.deletePasskey(id, accessToken);
+        }
+      }
+
+      ref.read(authProvider.notifier).setHasPasskeys(true);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('auth.passkey.success'.tr())),
         );
-        // Refresh auth state to update passkey status
-        ref.invalidate(authProvider);
       }
     } catch (e) {
       if (context.mounted) {

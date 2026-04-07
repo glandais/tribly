@@ -24,15 +24,14 @@ final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
 /// Provider for the app router
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authProvider);
+  final isAuthenticated = ref.watch(authProvider.select((s) => s.isAuthenticated));
+  final isInitialized = ref.watch(authProvider.select((s) => s.isInitialized));
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/home',
     debugLogDiagnostics: true,
     redirect: (context, state) {
-      final isAuthenticated = authState.isAuthenticated;
-      final isInitialized = authState.isInitialized;
 
       // Wait for initialization
       if (!isInitialized) {

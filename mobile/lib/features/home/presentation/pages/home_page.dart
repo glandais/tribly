@@ -348,11 +348,11 @@ class HomePage extends ConsumerWidget {
     try {
       final passkeyService = ref.read(passkeyServiceProvider);
       await passkeyService.register(deviceName: 'Mobile');
+      ref.read(authProvider.notifier).setHasPasskeys(true);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('auth.passkey.success'.tr())),
         );
-        ref.invalidate(authProvider);
       }
     } catch (e) {
       if (context.mounted) {

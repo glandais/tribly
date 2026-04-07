@@ -192,18 +192,13 @@
       "title": "Passkeys",
       "enabled": "Biometric login enabled",
       "notConfigured": "Not configured",
-      "add": "Add"
+      "add": "Add",
+      "replace": "Replace"
     },
-    "magicLink": {
-      "title": "Magic Link",
-      "description": "Login by email"
-    },
-    "notifications": "Notifications",
     "language": "Language",
     "version": "Version",
     "privacy": "Privacy policy",
-    "terms": "Terms of use",
-    "deleteAccount": "Delete my account"
+    "terms": "Terms of use"
   },
   "dialog": {
     "logout": {
