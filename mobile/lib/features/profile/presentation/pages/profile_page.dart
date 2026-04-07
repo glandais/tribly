@@ -119,16 +119,6 @@ class ProfilePage extends ConsumerWidget {
                           child: Text('profile.passkeys.add'.tr()),
                         ),
                 ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: Icon(
-                    Icons.email,
-                    color: theme.colorScheme.outline,
-                  ),
-                  title: Text('profile.magicLink.title'.tr()),
-                  subtitle: Text('profile.magicLink.description'.tr()),
-                  trailing: Icon(Icons.check_circle, color: theme.colorScheme.primary),
-                ),
               ],
             ),
           ),
@@ -145,20 +135,6 @@ class ProfilePage extends ConsumerWidget {
           Card(
             child: Column(
               children: [
-                ListTile(
-                  leading: Icon(
-                    Icons.notifications_outlined,
-                    color: theme.colorScheme.outline,
-                  ),
-                  title: Text('profile.notifications'.tr()),
-                  trailing: Switch(
-                    value: true,
-                    onChanged: (value) {
-                      // TODO: Implement notification settings
-                    },
-                  ),
-                ),
-                const Divider(height: 1),
                 ListTile(
                   leading: Icon(
                     Icons.language,
@@ -224,19 +200,6 @@ class ProfilePage extends ConsumerWidget {
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 32),
-
-          // Danger zone
-          OutlinedButton.icon(
-            onPressed: () {
-              // TODO: Delete account flow
-            },
-            style: OutlinedButton.styleFrom(
-              foregroundColor: theme.colorScheme.error,
-            ),
-            icon: const Icon(Icons.delete_forever),
-            label: Text('profile.deleteAccount'.tr()),
           ),
         ],
       ),
