@@ -56,7 +56,7 @@ class TripRepositoryTest extends AbstractBaseTest {
 
       Optional<Trip> result =
           tripRepository.findByTeamAndSlug(
-              domain.getId(), team.getId(), user.getId(), "test-trip", false);
+              domain.getId(), team.getId(), user.getId(), "test-trip", false, false);
 
       assertTrue(result.isPresent());
       assertEquals(trip.getId(), result.get().getId());
@@ -69,7 +69,7 @@ class TripRepositoryTest extends AbstractBaseTest {
 
       Optional<Trip> result =
           tripRepository.findByTeamAndSlug(
-              domain.getId(), team.getId(), user.getId(), "non-existent", false);
+              domain.getId(), team.getId(), user.getId(), "non-existent", false, false);
 
       assertTrue(result.isEmpty());
     }
@@ -82,7 +82,7 @@ class TripRepositoryTest extends AbstractBaseTest {
 
       Optional<Trip> result =
           tripRepository.findByTeamAndSlug(
-              domain.getId(), team.getId(), user.getId(), "test-trip", false);
+              domain.getId(), team.getId(), user.getId(), "test-trip", false, false);
 
       assertTrue(result.isEmpty());
     }
@@ -95,7 +95,7 @@ class TripRepositoryTest extends AbstractBaseTest {
 
       Optional<Trip> result =
           tripRepository.findByTeamAndSlug(
-              domain.getId(), team.getId(), user.getId(), "test-trip", false);
+              domain.getId(), team.getId(), user.getId(), "test-trip", false, false);
 
       assertTrue(result.isEmpty());
     }
@@ -157,7 +157,7 @@ class TripRepositoryTest extends AbstractBaseTest {
 
       Optional<Trip> result =
           tripRepository.findByTeamAndId(
-              domain.getId(), team.getId(), user.getId(), trip.getId(), false);
+              domain.getId(), team.getId(), user.getId(), trip.getId(), false, false);
 
       assertTrue(result.isPresent());
       assertEquals(trip.getId(), result.get().getId());
@@ -170,7 +170,7 @@ class TripRepositoryTest extends AbstractBaseTest {
 
       Optional<Trip> result =
           tripRepository.findByTeamAndId(
-              domain.getId(), team.getId(), user.getId(), 999999L, false);
+              domain.getId(), team.getId(), user.getId(), 999999L, false, false);
 
       assertTrue(result.isEmpty());
     }
@@ -183,7 +183,7 @@ class TripRepositoryTest extends AbstractBaseTest {
 
       Optional<Trip> result =
           tripRepository.findByTeamAndId(
-              domain.getId(), team.getId(), user.getId(), trip.getId(), false);
+              domain.getId(), team.getId(), user.getId(), trip.getId(), false, false);
 
       assertTrue(result.isEmpty());
     }
@@ -196,7 +196,7 @@ class TripRepositoryTest extends AbstractBaseTest {
 
       Optional<Trip> result =
           tripRepository.findByTeamAndId(
-              domain.getId(), team.getId(), user.getId(), trip.getId(), false);
+              domain.getId(), team.getId(), user.getId(), trip.getId(), false, false);
 
       assertTrue(result.isEmpty());
     }
@@ -211,7 +211,7 @@ class TripRepositoryTest extends AbstractBaseTest {
     void getQuerySlug_shouldBuildCorrectQuery() {
       var query =
           tripRepository.getQuerySlug(
-              domain.getId(), team.getId(), user.getId(), "test-slug", false);
+              domain.getId(), team.getId(), user.getId(), "test-slug", false, false);
 
       assertEquals(domain.getId(), query.domainId());
       assertTrue(query.teamIds().contains(team.getId()));
@@ -223,7 +223,8 @@ class TripRepositoryTest extends AbstractBaseTest {
     @DisplayName("getQueryId should build correct query")
     void getQueryId_shouldBuildCorrectQuery() {
       var query =
-          tripRepository.getQueryId(domain.getId(), team.getId(), user.getId(), 12345L, false);
+          tripRepository.getQueryId(
+              domain.getId(), team.getId(), user.getId(), 12345L, false, false);
 
       assertEquals(domain.getId(), query.domainId());
       assertTrue(query.teamIds().contains(team.getId()));

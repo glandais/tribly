@@ -1,8 +1,10 @@
 package fr.pedalons.service.security;
 
 import fr.pedalons.common.exception.ForbiddenException;
+import fr.pedalons.domain.user.User;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
+import fr.pedalons.enums.PlatformRole;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
@@ -18,6 +20,8 @@ public class SecurityVerifier {
   private static final Logger LOG = Logger.getLogger(SecurityVerifier.class);
 
   @Inject Instance<AccessChecker> accessCheckers;
+
+  @Inject PedalonsQueryContext pedalonsContext;
 
   final Map<EntityType, AccessChecker> accessCheckerMap = new EnumMap<>(EntityType.class);
 
@@ -43,6 +47,10 @@ public class SecurityVerifier {
   }
 
   protected boolean hasAccess(EntityType entityType, ActionType action, List<Object> params) {
+    User userNullable = pedalonsContext.getUserNullable();
+    if (userNullable != null && userNullable.getPlatformRole() == PlatformRole.PLATFORM_ADMIN) {
+      return true;
+    }
     AccessChecker accessChecker = getAccessChecker(entityType);
     return accessChecker.hasRights(action, params);
   }

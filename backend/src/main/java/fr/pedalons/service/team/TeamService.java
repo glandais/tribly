@@ -64,14 +64,14 @@ public class TeamService {
   }
 
   protected TeamAndRole getTeamAndRole(Long id) {
-    boolean includeDeleted = isIncludeDeleted();
+    boolean platformAdmin = isPlatformAdmin();
     return teamRepository
         .findOne(
-            pedalonsContext.getDomainId(), id, pedalonsContext.getUserIdNullable(), includeDeleted)
+            pedalonsContext.getDomainId(), id, pedalonsContext.getUserIdNullable(), platformAdmin)
         .orElseThrow(() -> new NotFoundException(EntityType.TEAM, id));
   }
 
-  private boolean isIncludeDeleted() {
+  private boolean isPlatformAdmin() {
     User userNullable = pedalonsContext.getUserNullable();
     return userNullable != null && userNullable.getPlatformRole() == PlatformRole.PLATFORM_ADMIN;
   }
@@ -113,13 +113,14 @@ public class TeamService {
     UserTeam membership = new UserTeam(creator, creator, team, TeamRole.ADMIN);
     userTeamRepository.persist(membership);
 
-    return TeamDetailDto.from(new TeamAndRole(team, TeamRole.ADMIN, 1L), assetService);
+    return TeamDetailDto.from(new TeamAndRole(team, TeamRole.ADMIN, 1L), assetService, false);
   }
 
   @Transactional
   @CheckAccess(entityType = EntityType.TEAM, action = ActionType.LIST)
-  public TeamListResponse listTeams(MinRole minRole, @Nullable String search, int page, int size) {
-    boolean includeDeleted = isIncludeDeleted();
+  public TeamListResponse listTeams(
+      @Nullable MinRole minRole, @Nullable String search, int page, int size) {
+    boolean platformAdmin = isPlatformAdmin();
     PedalonsPage<TeamAndRole> teams =
         teamRepository.find(
             TeamQuery.builder()
@@ -129,11 +130,11 @@ public class TeamService {
                 .search(search)
                 .page(page)
                 .size(size)
-                .includeDeleted(includeDeleted)
+                .platformAdmin(platformAdmin)
                 .build());
     List<TeamDetailDto> dtos =
         teams.items().stream()
-            .map(teamAndRole -> TeamDetailDto.from(teamAndRole, assetService))
+            .map(teamAndRole -> TeamDetailDto.from(teamAndRole, assetService, platformAdmin))
             .toList();
     return new TeamListResponse(dtos, teams.total(), page, size);
   }
@@ -142,7 +143,7 @@ public class TeamService {
   public TeamDetailDto getTeamDetailDto(String teamSlug) {
     Team team = getTeam(teamSlug);
     TeamAndRole teamAndRole = getTeamAndRole(team.getId());
-    return TeamDetailDto.from(teamAndRole, assetService);
+    return TeamDetailDto.from(teamAndRole, assetService, isPlatformAdmin());
   }
 
   @Transactional
@@ -151,8 +152,7 @@ public class TeamService {
     Team team = getTeam(teamSlug);
 
     team.setName(request.name());
-    User user = pedalonsContext.getUser();
-    boolean isPlatformAdmin = user.getPlatformRole() == PlatformRole.PLATFORM_ADMIN;
+    boolean isPlatformAdmin = isPlatformAdmin();
     if (team.isVisibilityEditable() || isPlatformAdmin) {
       team.setVisibility(request.visibility());
     } else if (request.visibility() != team.getVisibility()) {

@@ -206,6 +206,7 @@ public class CalendarService {
             .from(from)
             .to(to)
             .includeDeleted(false)
+            .platformAdmin(false)
             .build());
   }
 

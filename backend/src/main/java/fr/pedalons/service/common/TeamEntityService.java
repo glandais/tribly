@@ -5,9 +5,11 @@ import fr.pedalons.common.exception.ConflictException;
 import fr.pedalons.domain.common.TeamEntity;
 import fr.pedalons.domain.common.TeamEntitySlugRedirect;
 import fr.pedalons.domain.team.Team;
+import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.common.request.WithVisibility;
 import fr.pedalons.dto.error.ErrorCode;
+import fr.pedalons.enums.PlatformRole;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.infrastructure.exception.*;
 import fr.pedalons.repository.common.TeamEntityRepository;
@@ -59,9 +61,11 @@ public abstract class TeamEntityService<
     Long domainId = pedalonsContext.getDomainId();
     Long userId = pedalonsContext.getUserIdNullable();
     boolean includeDeleted = isIncludeDeleted(team);
+    boolean platformAdmin = isPlatformAdmin();
     Optional<T> byTeamAndSlug =
         getRepository()
-            .findByTeamAndSlug(domainId, team.getId(), userId, entitySlug, includeDeleted);
+            .findByTeamAndSlug(
+                domainId, team.getId(), userId, entitySlug, includeDeleted, platformAdmin);
     return byTeamAndSlug.orElseGet(
         () ->
             slugService
@@ -70,7 +74,8 @@ public abstract class TeamEntityService<
                 .flatMap(
                     id ->
                         getRepository()
-                            .findByTeamAndId(domainId, team.getId(), userId, id, includeDeleted))
+                            .findByTeamAndId(
+                                domainId, team.getId(), userId, id, includeDeleted, platformAdmin))
                 .orElseThrow(
                     () -> new NotFoundException(getRepository().getAllEntityType(), entitySlug)));
   }
@@ -79,20 +84,27 @@ public abstract class TeamEntityService<
     Long domainId = pedalonsContext.getDomainId();
     Long userId = pedalonsContext.getUserIdNullable();
     Optional<T> byTeamAndSlug =
-        getRepository().findByTeamAndSlug(domainId, team.getId(), userId, entitySlug, true);
+        getRepository().findByTeamAndSlug(domainId, team.getId(), userId, entitySlug, true, false);
     return byTeamAndSlug.orElseGet(
         () ->
             slugService
                 .resolveEntityRedirect(team.getId(), getRepository().getEntityType(), entitySlug)
                 .map(TeamEntitySlugRedirect::getEntityId)
                 .flatMap(
-                    id -> getRepository().findByTeamAndId(domainId, team.getId(), userId, id, true))
+                    id ->
+                        getRepository()
+                            .findByTeamAndId(domainId, team.getId(), userId, id, true, false))
                 .orElseThrow(
                     () -> new NotFoundException(getRepository().getAllEntityType(), entitySlug)));
   }
 
   protected boolean isIncludeDeleted(Team team) {
     return includeDeletedService.isTeamEntityIncludeDeleted(team);
+  }
+
+  protected boolean isPlatformAdmin() {
+    User userNullable = pedalonsContext.getUserNullable();
+    return userNullable != null && userNullable.getPlatformRole() == PlatformRole.PLATFORM_ADMIN;
   }
 
   @Transactional

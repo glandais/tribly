@@ -49,25 +49,37 @@ public class AllPublicationRepository
 
   @Override
   public PublicationQuery getQuerySlug(
-      Long domainId, Long teamId, @Nullable Long userId, String slug, boolean includeDeleted) {
+      Long domainId,
+      Long teamId,
+      @Nullable Long userId,
+      String slug,
+      boolean includeDeleted,
+      boolean platformAdmin) {
     return PublicationQuery.builder()
         .domainId(domainId)
         .teamIds(Set.of(teamId))
         .userId(userId)
         .slug(slug)
         .includeDeleted(includeDeleted)
+        .platformAdmin(platformAdmin)
         .build();
   }
 
   @Override
   public PublicationQuery getQueryId(
-      Long domainId, Long teamId, @Nullable Long userId, Long id, boolean includeDeleted) {
+      Long domainId,
+      Long teamId,
+      @Nullable Long userId,
+      Long id,
+      boolean includeDeleted,
+      boolean platformAdmin) {
     return PublicationQuery.builder()
         .domainId(domainId)
         .teamIds(Set.of(teamId))
         .userId(userId)
         .id(id)
         .includeDeleted(includeDeleted)
+        .platformAdmin(platformAdmin)
         .build();
   }
 }

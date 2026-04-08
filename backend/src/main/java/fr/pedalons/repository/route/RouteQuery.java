@@ -34,5 +34,6 @@ public record RouteQuery(
     // Sorting
     @Nullable RouteSortBy sortBy,
     @Nullable SortDirection sortDir,
-    boolean includeDeleted)
+    boolean includeDeleted,
+    boolean platformAdmin)
     implements TeamEntityQueryInterface {}

@@ -195,7 +195,7 @@ class TeamServiceTest extends AbstractBaseTest {
     dataService.createTeam(user1, "Private Team", "private", Visibility.TEAM);
 
     queryContext.setUserForTest(null);
-    TeamListResponse result = teamService.listTeams(MinRole.NOT_MEMBER, null, 0, 10);
+    TeamListResponse result = teamService.listTeams(null, null, 0, 10);
 
     assertEquals(2, result.teams().size());
   }
@@ -233,7 +233,7 @@ class TeamServiceTest extends AbstractBaseTest {
     }
 
     queryContext.setUserForTest(null);
-    TeamListResponse result = teamService.listTeams(MinRole.NOT_MEMBER, null, 0, 2);
+    TeamListResponse result = teamService.listTeams(null, null, 0, 2);
 
     assertEquals(2, result.teams().size());
     assertEquals(5, result.total());

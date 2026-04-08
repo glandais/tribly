@@ -17,5 +17,6 @@ public record TeamEntityQueryBasic(
     @Nullable Instant to,
     int page,
     int size,
-    boolean includeDeleted)
+    boolean includeDeleted,
+    boolean platformAdmin)
     implements TeamEntityQueryInterface {}

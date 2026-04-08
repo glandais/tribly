@@ -52,8 +52,7 @@ public class TeamResource {
           int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
-    TeamListResponse teams =
-        teamService.listTeams(minRole == null ? MinRole.NOT_MEMBER : minRole, search, page, size);
+    TeamListResponse teams = teamService.listTeams(minRole, search, page, size);
     return Response.ok(teams).build();
   }
 

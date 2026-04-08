@@ -1,4 +1,4 @@
 @NullMarked
-package fr.pedalons.infrastructure.cache;
+package fr.pedalons.infrastructure.email;
 
 import org.jspecify.annotations.NullMarked;

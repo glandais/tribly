@@ -1510,7 +1510,6 @@ components:
     MinRole:
       type: string
       enum:
-      - NOT_MEMBER
       - MEMBER
       - ORGANIZER
       - ADMIN

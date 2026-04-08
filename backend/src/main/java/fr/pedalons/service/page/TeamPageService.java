@@ -67,6 +67,7 @@ public class TeamPageService extends TeamEntityService<TeamPage, TeamPageReposit
                 .page(0)
                 .size(100)
                 .includeDeleted(isIncludeDeleted(team))
+                .platformAdmin(isPlatformAdmin())
                 .build());
     return teamPages.items().stream()
         .sorted(Comparator.comparing(t -> t.getPageOrder() == null ? 0 : t.getPageOrder()))

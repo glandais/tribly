@@ -45,7 +45,8 @@ public record TeamDetailDto(
             description = "Team location coordinates [longitude, latitude]",
             implementation = GeoJsonPoint.class)
         Point<G2D> geometry) {
-  public static TeamDetailDto from(TeamAndRole teamAndRole, AssetService assetService) {
+  public static TeamDetailDto from(
+      TeamAndRole teamAndRole, AssetService assetService, boolean platformAdmin) {
     Team team = teamAndRole.team();
     List<TeamPageSummaryDto> pages =
         team.getAdditionalPages().stream().map(TeamPageSummaryDto::from).toList();
@@ -65,7 +66,7 @@ public record TeamDetailDto(
         team.isJoinable(),
         team.isAddMemberAllowed(),
         teamAndRole.memberCount(),
-        teamAndRole.teamRole(),
+        platformAdmin ? TeamRole.ADMIN : teamAndRole.teamRole(),
         team.getCreatedAt(),
         team.getGeometry());
   }

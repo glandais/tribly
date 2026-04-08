@@ -133,9 +133,11 @@ export function TeamMembersPage() {
       <Box py="md">
         <Group justify="space-between" mb="lg">
           <Title order={2}>{t('teams.detail.members.title')}</Title>
-          <Button onClick={() => setShowAddMember(true)} leftSection={<IconPlus size={16} />}>
-            {t('teams.detail.members.addMember')}
-          </Button>
+          {team.addMemberAllowed && (
+            <Button onClick={() => setShowAddMember(true)} leftSection={<IconPlus size={16} />}>
+              {t('teams.detail.members.addMember')}
+            </Button>
+          )}
         </Group>
 
         {isLoadingMembers ? (

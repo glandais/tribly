@@ -26,18 +26,39 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
   }
 
   Q getQuerySlug(
-      Long domainId, Long teamId, @Nullable Long userId, String slug, boolean includeDeleted);
+      Long domainId,
+      Long teamId,
+      @Nullable Long userId,
+      String slug,
+      boolean includeDeleted,
+      boolean platformAdmin);
 
-  Q getQueryId(Long domainId, Long teamId, @Nullable Long userId, Long id, boolean includeDeleted);
+  Q getQueryId(
+      Long domainId,
+      Long teamId,
+      @Nullable Long userId,
+      Long id,
+      boolean includeDeleted,
+      boolean platformAdmin);
 
   default Optional<T> findByTeamAndSlug(
-      Long domainId, Long teamId, @Nullable Long userId, String slug, boolean includeDeleted) {
-    return findOne(getQuerySlug(domainId, teamId, userId, slug, includeDeleted));
+      Long domainId,
+      Long teamId,
+      @Nullable Long userId,
+      String slug,
+      boolean includeDeleted,
+      boolean platformAdmin) {
+    return findOne(getQuerySlug(domainId, teamId, userId, slug, includeDeleted, platformAdmin));
   }
 
   default Optional<T> findByTeamAndId(
-      Long domainId, Long teamId, @Nullable Long userId, Long id, boolean includeDeleted) {
-    return findOne(getQueryId(domainId, teamId, userId, id, includeDeleted));
+      Long domainId,
+      Long teamId,
+      @Nullable Long userId,
+      Long id,
+      boolean includeDeleted,
+      boolean platformAdmin) {
+    return findOne(getQueryId(domainId, teamId, userId, id, includeDeleted, platformAdmin));
   }
 
   TeamEntityType getEntityType();
@@ -84,51 +105,53 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
                       + "where")
               .addParam("userId", query.userId());
 
-      OrClause visibilityFilter = new OrClause();
+      if (!query.platformAdmin()) {
+        OrClause visibilityFilter = new OrClause();
 
-      // public
-      visibilityFilter.add(publicEntity);
+        // public
+        visibilityFilter.add(publicEntity);
 
-      // OR
+        // OR
 
-      // team member and PUBLISHED/CANCELLED
-      AndClause teamEntity = new AndClause();
-      teamEntity.add(new SimpleClause("ut IS NOT NULL", Map.of()));
-      teamEntity.add(new SimpleClause("te.status IN ('PUBLISHED', 'CANCELLED')", Map.of()));
-      visibilityFilter.add(teamEntity);
+        // team member and PUBLISHED/CANCELLED
+        AndClause teamEntity = new AndClause();
+        teamEntity.add(new SimpleClause("ut IS NOT NULL", Map.of()));
+        teamEntity.add(new SimpleClause("te.status IN ('PUBLISHED', 'CANCELLED')", Map.of()));
+        visibilityFilter.add(teamEntity);
 
-      // OR
+        // OR
 
-      // ad creator
-      AndClause adCreator = new AndClause();
-      // still member
-      adCreator.add(new SimpleClause("ut IS NOT NULL", Map.of()));
-      adCreator.add(new SimpleClause("TYPE(te) = Ad", Map.of()));
-      // userId already defined
-      adCreator.add(new SimpleClause("te.createdBy.id = :userId", Map.of()));
-      visibilityFilter.add(adCreator);
+        // ad creator
+        AndClause adCreator = new AndClause();
+        // still member
+        adCreator.add(new SimpleClause("ut IS NOT NULL", Map.of()));
+        adCreator.add(new SimpleClause("TYPE(te) = Ad", Map.of()));
+        // userId already defined
+        adCreator.add(new SimpleClause("te.createdBy.id = :userId", Map.of()));
+        visibilityFilter.add(adCreator);
 
-      // OR
+        // OR
 
-      // organizer
-      AndClause organizer = new AndClause();
-      organizer.add(new SimpleClause("ut.role = 'ORGANIZER'", Map.of()));
-      // can't see DRAFT TeamPage
-      organizer.add(new SimpleClause("TYPE(te) <> TeamPage", Map.of()));
-      // can't see DRAFT Ads
-      organizer.add(new SimpleClause("TYPE(te) <> Ad", Map.of()));
-      visibilityFilter.add(organizer);
+        // organizer
+        AndClause organizer = new AndClause();
+        organizer.add(new SimpleClause("ut.role = 'ORGANIZER'", Map.of()));
+        // can't see DRAFT TeamPage
+        organizer.add(new SimpleClause("TYPE(te) <> TeamPage", Map.of()));
+        // can't see DRAFT Ads
+        organizer.add(new SimpleClause("TYPE(te) <> Ad", Map.of()));
+        visibilityFilter.add(organizer);
 
-      // OR
+        // OR
 
-      // admin
-      AndClause draftEntity = new AndClause();
-      draftEntity.add(new SimpleClause("ut.role = 'ADMIN'", Map.of()));
-      // can't see DRAFT Ads
-      draftEntity.add(new SimpleClause("TYPE(te) <> Ad", Map.of()));
-      visibilityFilter.add(draftEntity);
+        // admin
+        AndClause draftEntity = new AndClause();
+        draftEntity.add(new SimpleClause("ut.role = 'ADMIN'", Map.of()));
+        // can't see DRAFT Ads
+        draftEntity.add(new SimpleClause("TYPE(te) <> Ad", Map.of()));
+        visibilityFilter.add(draftEntity);
 
-      pedalonsQuery.and(visibilityFilter);
+        pedalonsQuery.and(visibilityFilter);
+      }
     }
 
     if (!query.includeDeleted()) {
@@ -187,18 +210,12 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
 
   private static AndClause getPublicEntity(boolean list) {
     AndClause publicEntity = new AndClause();
-    OrClause teamVisibilityClause = new OrClause();
-    teamVisibilityClause.add(new SimpleClause("te.team.visibility = 'PUBLIC'", Map.of()));
-    teamVisibilityClause.add(new SimpleClause("te.team.visibility = 'PUBLIC_UNLISTED'", Map.of()));
-    publicEntity.add(teamVisibilityClause);
     if (list) {
+      publicEntity.add(new SimpleClause("te.team.visibility = 'PUBLIC'", Map.of()));
       publicEntity.add(new SimpleClause("te.visibility = 'PUBLIC'", Map.of()));
     } else {
-      OrClause teamEntityVisibilityClause = new OrClause();
-      teamEntityVisibilityClause.add(new SimpleClause("te.visibility = 'PUBLIC'", Map.of()));
-      teamEntityVisibilityClause.add(
-          new SimpleClause("te.visibility = 'PUBLIC_UNLISTED'", Map.of()));
-      publicEntity.add(teamEntityVisibilityClause);
+      publicEntity.add(new SimpleClause("te.team.visibility <> 'TEAM'", Map.of()));
+      publicEntity.add(new SimpleClause("te.visibility <> 'TEAM'", Map.of()));
     }
     publicEntity.add(new SimpleClause("te.status IN ('PUBLISHED', 'CANCELLED')", Map.of()));
     return publicEntity;

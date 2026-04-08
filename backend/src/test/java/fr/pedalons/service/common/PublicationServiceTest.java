@@ -74,7 +74,8 @@ class PublicationServiceTest extends AbstractBaseTest {
 
       queryContext.setUserForTest(null);
       PublicationListResponse result =
-          publicationService.list(null, Set.of(team.getId()), null, null, null, 0, 10, false);
+          publicationService.list(
+              null, Set.of(team.getId()), null, null, null, 0, 10, false, false);
 
       assertEquals(2, result.publications().size());
       assertTrue(
@@ -89,7 +90,8 @@ class PublicationServiceTest extends AbstractBaseTest {
 
       queryContext.setUserForTest(member);
       PublicationListResponse result =
-          publicationService.list(null, Set.of(team.getId()), null, null, null, 0, 10, false);
+          publicationService.list(
+              null, Set.of(team.getId()), null, null, null, 0, 10, false, false);
 
       assertEquals(2, result.publications().size());
     }
@@ -102,7 +104,8 @@ class PublicationServiceTest extends AbstractBaseTest {
 
       queryContext.setUserForTest(null);
       PublicationListResponse result =
-          publicationService.list(null, Set.of(team.getId()), null, null, null, 0, 10, false);
+          publicationService.list(
+              null, Set.of(team.getId()), null, null, null, 0, 10, false, false);
 
       assertEquals(1, result.publications().size());
       assertEquals("Team1 Ride", result.publications().getFirst().getName());
@@ -121,7 +124,7 @@ class PublicationServiceTest extends AbstractBaseTest {
       queryContext.setUserForTest(null);
       PublicationListResponse result =
           publicationService.list(
-              null, Set.of(team.getId()), null, yesterday, tomorrow, 0, 10, false);
+              null, Set.of(team.getId()), null, yesterday, tomorrow, 0, 10, false, false);
 
       assertEquals(1, result.publications().size());
       assertEquals("Recent Ride", result.publications().getFirst().getName());
@@ -135,7 +138,8 @@ class PublicationServiceTest extends AbstractBaseTest {
 
       queryContext.setUserForTest(null);
       PublicationListResponse result =
-          publicationService.list(null, Set.of(team.getId()), "Mountain", null, null, 0, 10, false);
+          publicationService.list(
+              null, Set.of(team.getId()), "Mountain", null, null, 0, 10, false, false);
 
       assertEquals(1, result.publications().size());
       assertEquals("Mountain Ride", result.publications().getFirst().getName());
@@ -151,7 +155,7 @@ class PublicationServiceTest extends AbstractBaseTest {
 
       queryContext.setUserForTest(null);
       PublicationListResponse result =
-          publicationService.list(null, Set.of(team.getId()), null, null, null, 0, 3, false);
+          publicationService.list(null, Set.of(team.getId()), null, null, null, 0, 3, false, false);
 
       assertEquals(3, result.publications().size());
       assertEquals(5, result.total());
@@ -169,7 +173,7 @@ class PublicationServiceTest extends AbstractBaseTest {
 
       queryContext.setUserForTest(null);
       PublicationListResponse result =
-          publicationService.list(null, Set.of(team.getId()), null, null, null, 1, 3, false);
+          publicationService.list(null, Set.of(team.getId()), null, null, null, 1, 3, false, false);
 
       assertEquals(2, result.publications().size());
       assertEquals(5, result.total());
@@ -186,7 +190,8 @@ class PublicationServiceTest extends AbstractBaseTest {
 
       queryContext.setUserForTest(null);
       PublicationListResponse result =
-          publicationService.list(null, Set.of(team.getId()), null, null, null, 0, 10, false);
+          publicationService.list(
+              null, Set.of(team.getId()), null, null, null, 0, 10, false, false);
 
       assertEquals(1, result.publications().size());
       assertEquals("Published Ride", result.publications().getFirst().getName());
@@ -202,7 +207,8 @@ class PublicationServiceTest extends AbstractBaseTest {
 
       queryContext.setUserForTest(null);
       PublicationListResponse result =
-          publicationService.list(null, Set.of(team.getId()), null, null, null, 0, 10, false);
+          publicationService.list(
+              null, Set.of(team.getId()), null, null, null, 0, 10, false, false);
 
       assertEquals(1, result.publications().size());
       assertEquals("Active Ride", result.publications().getFirst().getName());
@@ -216,7 +222,8 @@ class PublicationServiceTest extends AbstractBaseTest {
 
       queryContext.setUserForTest(null);
       PublicationListResponse result =
-          publicationService.list(null, Set.of(team.getId()), null, null, null, 0, 10, false);
+          publicationService.list(
+              null, Set.of(team.getId()), null, null, null, 0, 10, false, false);
 
       assertEquals(2, result.publications().size());
       assertTrue(result.publications().stream().anyMatch(p -> p.getName().equals("Test Ride")));
@@ -227,7 +234,8 @@ class PublicationServiceTest extends AbstractBaseTest {
     void shouldReturnEmptyListWhenNoPublications() {
       queryContext.setUserForTest(null);
       PublicationListResponse result =
-          publicationService.list(null, Set.of(team.getId()), null, null, null, 0, 10, false);
+          publicationService.list(
+              null, Set.of(team.getId()), null, null, null, 0, 10, false, false);
 
       assertTrue(result.publications().isEmpty());
       assertEquals(0, result.total());
@@ -243,7 +251,7 @@ class PublicationServiceTest extends AbstractBaseTest {
       queryContext.setUserForTest(null);
       PublicationListResponse result =
           publicationService.list(
-              null, Set.of(team.getId(), team2.getId()), null, null, null, 0, 10, false);
+              null, Set.of(team.getId(), team2.getId()), null, null, null, 0, 10, false, false);
 
       assertEquals(2, result.publications().size());
     }
@@ -257,7 +265,7 @@ class PublicationServiceTest extends AbstractBaseTest {
 
       queryContext.setUserForTest(null);
       PublicationListResponse result =
-          publicationService.list(null, null, null, null, null, 0, 10, false);
+          publicationService.list(null, null, null, null, null, 0, 10, false, false);
 
       assertEquals(2, result.publications().size());
     }

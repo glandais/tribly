@@ -9,9 +9,9 @@ import fr.pedalons.repository.common.BaseRepository;
 import fr.pedalons.repository.query.OrClause;
 import fr.pedalons.repository.query.PedalonsQuery;
 import fr.pedalons.repository.query.SimpleClause;
-import fr.pedalons.service.team.request.MinRole;
 import fr.pedalons.service.team.response.TeamAndRole;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
+import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +45,7 @@ public class TeamRepository implements BaseRepository<Team> {
                     + " t.id AND ut.user.id = :userId WHERE")
             .and("t.domain.id = :domainId", Map.of("domainId", teamQuery.domainId()))
             .order("name asc");
-    if (!teamQuery.includeDeleted()) {
+    if (!teamQuery.platformAdmin()) {
       pedalonsQuery.and("t.deleted = false", Map.of());
     }
     pedalonsQuery.addParam("userId", teamQuery.userId());
@@ -56,13 +56,15 @@ public class TeamRepository implements BaseRepository<Team> {
         SearchClause.addSearch(
             pedalonsQuery, Set.of("t.name", "t.aboutPage.markdown"), teamQuery.search());
     if (teamQuery.userId() != null) {
-      if (teamQuery.minRole() == null || teamQuery.minRole() == MinRole.NOT_MEMBER) {
+      if (teamQuery.platformAdmin()) {
+        Log.debugf("Platform admin, all teams");
+      } else if (teamQuery.minRole() == null) {
         OrClause or = new OrClause();
 
         or.add(
             new SimpleClause(
-                "(t.visibility = :visibility OR ut IS NOT NULL)",
-                Map.of("visibility", Visibility.PUBLIC)));
+                "(t.visibility <> :visibility OR ut IS NOT NULL)",
+                Map.of("visibility", Visibility.TEAM)));
         or.add(new SimpleClause("ut IS NOT NULL", Map.of()));
 
         pedalonsQuery.and(or);
@@ -79,7 +81,7 @@ public class TeamRepository implements BaseRepository<Team> {
         pedalonsQuery.and("ut.role in (:userRoles)", Map.of("userRoles", roles));
       }
     } else {
-      pedalonsQuery.and("t.visibility = :visibility", Map.of("visibility", Visibility.PUBLIC));
+      pedalonsQuery.and("t.visibility <> :visibility", Map.of("visibility", Visibility.TEAM));
     }
     String stringQuery = pedalonsQuery.getStringQuery();
     Map<String, @Nullable Object> params = pedalonsQuery.getParams();
@@ -89,7 +91,7 @@ public class TeamRepository implements BaseRepository<Team> {
   }
 
   public Optional<TeamAndRole> findOne(
-      Long domainId, Long id, @Nullable Long userId, boolean includeDeleted) {
+      Long domainId, Long id, @Nullable Long userId, boolean platformAdmin) {
     PedalonsPage<TeamAndRole> page =
         find(
             TeamQuery.builder()
@@ -98,7 +100,7 @@ public class TeamRepository implements BaseRepository<Team> {
                 .id(id)
                 .page(0)
                 .size(1)
-                .includeDeleted(includeDeleted)
+                .platformAdmin(platformAdmin)
                 .build());
     if (page.items().isEmpty()) {
       return Optional.empty();

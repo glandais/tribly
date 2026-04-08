@@ -6,8 +6,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 @JsonEnum()
 enum MinRole {
-  @JsonValue('NOT_MEMBER')
-  notMember('NOT_MEMBER'),
   @JsonValue('MEMBER')
   member('MEMBER'),
   @JsonValue('ORGANIZER')

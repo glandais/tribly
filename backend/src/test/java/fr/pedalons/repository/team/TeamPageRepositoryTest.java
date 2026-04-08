@@ -46,7 +46,7 @@ class TeamPageRepositoryTest extends AbstractBaseTest {
     void getQuerySlug_shouldBuildCorrectQuery() {
       TeamPageQuery query =
           teamPageRepository.getQuerySlug(
-              domain.getId(), team.getId(), user.getId(), "test-slug", false);
+              domain.getId(), team.getId(), user.getId(), "test-slug", false, false);
 
       assertEquals(domain.getId(), query.domainId());
       assertTrue(query.teamIds().contains(team.getId()));
@@ -57,7 +57,8 @@ class TeamPageRepositoryTest extends AbstractBaseTest {
     @Test
     void getQuerySlug_shouldWorkWithNullUserId() {
       TeamPageQuery query =
-          teamPageRepository.getQuerySlug(domain.getId(), team.getId(), null, "test-slug", false);
+          teamPageRepository.getQuerySlug(
+              domain.getId(), team.getId(), null, "test-slug", false, false);
 
       assertEquals(domain.getId(), query.domainId());
       assertTrue(query.teamIds().contains(team.getId()));
@@ -68,7 +69,8 @@ class TeamPageRepositoryTest extends AbstractBaseTest {
     @Test
     void getQueryId_shouldBuildCorrectQuery() {
       TeamPageQuery query =
-          teamPageRepository.getQueryId(domain.getId(), team.getId(), user.getId(), 12345L, false);
+          teamPageRepository.getQueryId(
+              domain.getId(), team.getId(), user.getId(), 12345L, false, false);
 
       assertEquals(domain.getId(), query.domainId());
       assertTrue(query.teamIds().contains(team.getId()));
@@ -79,7 +81,7 @@ class TeamPageRepositoryTest extends AbstractBaseTest {
     @Test
     void getQueryId_shouldWorkWithNullUserId() {
       TeamPageQuery query =
-          teamPageRepository.getQueryId(domain.getId(), team.getId(), null, 12345L, false);
+          teamPageRepository.getQueryId(domain.getId(), team.getId(), null, 12345L, false, false);
 
       assertEquals(domain.getId(), query.domainId());
       assertTrue(query.teamIds().contains(team.getId()));

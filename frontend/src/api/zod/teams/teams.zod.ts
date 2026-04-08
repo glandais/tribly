@@ -8,10 +8,7 @@ export const listTeamsQueryPageDefault = 0
 export const listTeamsQuerySizeDefault = 20
 
 export const ListTeamsQueryParams = zod.object({
-  minRole: zod
-    .enum(['NOT_MEMBER', 'MEMBER', 'ORGANIZER', 'ADMIN'])
-    .optional()
-    .describe('Minimum role in team'),
+  minRole: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']).optional().describe('Minimum role in team'),
   page: zod.number().default(listTeamsQueryPageDefault).describe('Page number (0-indexed)'),
   search: zod.string().optional().describe('Search query to filter teams by name'),
   size: zod.number().default(listTeamsQuerySizeDefault).describe('Page size'),

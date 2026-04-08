@@ -23,25 +23,37 @@ public class PostRepository implements TeamEntityRepository<Post, TeamEntityQuer
 
   @Override
   public TeamEntityQueryBasic getQuerySlug(
-      Long domainId, Long teamId, @Nullable Long userId, String slug, boolean includeDeleted) {
+      Long domainId,
+      Long teamId,
+      @Nullable Long userId,
+      String slug,
+      boolean includeDeleted,
+      boolean platformAdmin) {
     return TeamEntityQueryBasic.builder()
         .domainId(domainId)
         .teamIds(Set.of(teamId))
         .userId(userId)
         .slug(slug)
         .includeDeleted(includeDeleted)
+        .platformAdmin(platformAdmin)
         .build();
   }
 
   @Override
   public TeamEntityQueryBasic getQueryId(
-      Long domainId, Long teamId, @Nullable Long userId, Long id, boolean includeDeleted) {
+      Long domainId,
+      Long teamId,
+      @Nullable Long userId,
+      Long id,
+      boolean includeDeleted,
+      boolean platformAdmin) {
     return TeamEntityQueryBasic.builder()
         .domainId(domainId)
         .teamIds(Set.of(teamId))
         .userId(userId)
         .id(id)
         .includeDeleted(includeDeleted)
+        .platformAdmin(platformAdmin)
         .build();
   }
 }

@@ -1044,7 +1044,7 @@ class RouteRepositoryTest extends AbstractBaseTest {
     void getQuerySlug_shouldBuildCorrectQuery() {
       RouteQuery query =
           routeRepository.getQuerySlug(
-              domain.getId(), team.getId(), user.getId(), "test-slug", false);
+              domain.getId(), team.getId(), user.getId(), "test-slug", false, false);
 
       assertEquals(domain.getId(), query.domainId());
       assertTrue(query.teamIds().contains(team.getId()));
@@ -1055,7 +1055,8 @@ class RouteRepositoryTest extends AbstractBaseTest {
     @Test
     void getQuerySlug_shouldWorkWithNullUserId() {
       RouteQuery query =
-          routeRepository.getQuerySlug(domain.getId(), team.getId(), null, "test-slug", false);
+          routeRepository.getQuerySlug(
+              domain.getId(), team.getId(), null, "test-slug", false, false);
 
       assertEquals(domain.getId(), query.domainId());
       assertTrue(query.teamIds().contains(team.getId()));
@@ -1066,7 +1067,8 @@ class RouteRepositoryTest extends AbstractBaseTest {
     @Test
     void getQueryId_shouldBuildCorrectQuery() {
       RouteQuery query =
-          routeRepository.getQueryId(domain.getId(), team.getId(), user.getId(), 12345L, false);
+          routeRepository.getQueryId(
+              domain.getId(), team.getId(), user.getId(), 12345L, false, false);
 
       assertEquals(domain.getId(), query.domainId());
       assertTrue(query.teamIds().contains(team.getId()));
@@ -1077,7 +1079,7 @@ class RouteRepositoryTest extends AbstractBaseTest {
     @Test
     void getQueryId_shouldWorkWithNullUserId() {
       RouteQuery query =
-          routeRepository.getQueryId(domain.getId(), team.getId(), null, 12345L, false);
+          routeRepository.getQueryId(domain.getId(), team.getId(), null, 12345L, false, false);
 
       assertEquals(domain.getId(), query.domainId());
       assertTrue(query.teamIds().contains(team.getId()));

@@ -22,4 +22,6 @@ public interface TeamEntityQueryInterface extends PageInterface {
   @Nullable Instant to();
 
   boolean includeDeleted();
+
+  boolean platformAdmin();
 }

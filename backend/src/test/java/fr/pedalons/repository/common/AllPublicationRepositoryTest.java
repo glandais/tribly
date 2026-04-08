@@ -61,7 +61,7 @@ class AllPublicationRepositoryTest extends AbstractBaseTest {
     void getQuerySlug_shouldBuildCorrectQuery() {
       PublicationQuery query =
           publicationRepository.getQuerySlug(
-              domain.getId(), team.getId(), user.getId(), "test-slug", false);
+              domain.getId(), team.getId(), user.getId(), "test-slug", false, false);
 
       assertEquals(domain.getId(), query.domainId());
       assertTrue(query.teamIds().contains(team.getId()));
@@ -74,7 +74,7 @@ class AllPublicationRepositoryTest extends AbstractBaseTest {
     void getQuerySlug_shouldWorkWithNullUserId() {
       PublicationQuery query =
           publicationRepository.getQuerySlug(
-              domain.getId(), team.getId(), null, "test-slug", false);
+              domain.getId(), team.getId(), null, "test-slug", false, false);
 
       assertEquals(domain.getId(), query.domainId());
       assertTrue(query.teamIds().contains(team.getId()));
@@ -87,7 +87,7 @@ class AllPublicationRepositoryTest extends AbstractBaseTest {
     void getQueryId_shouldBuildCorrectQuery() {
       PublicationQuery query =
           publicationRepository.getQueryId(
-              domain.getId(), team.getId(), user.getId(), 12345L, false);
+              domain.getId(), team.getId(), user.getId(), 12345L, false, false);
 
       assertEquals(domain.getId(), query.domainId());
       assertTrue(query.teamIds().contains(team.getId()));
@@ -99,7 +99,8 @@ class AllPublicationRepositoryTest extends AbstractBaseTest {
     @DisplayName("getQueryId should work with null userId")
     void getQueryId_shouldWorkWithNullUserId() {
       PublicationQuery query =
-          publicationRepository.getQueryId(domain.getId(), team.getId(), null, 12345L, false);
+          publicationRepository.getQueryId(
+              domain.getId(), team.getId(), null, 12345L, false, false);
 
       assertEquals(domain.getId(), query.domainId());
       assertTrue(query.teamIds().contains(team.getId()));

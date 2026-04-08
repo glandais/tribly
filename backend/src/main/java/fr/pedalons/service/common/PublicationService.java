@@ -2,12 +2,14 @@ package fr.pedalons.service.common;
 
 import fr.pedalons.domain.common.Publication;
 import fr.pedalons.domain.team.Team;
+import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.common.PedalonsPage;
 import fr.pedalons.dto.publications.response.PublicationDto;
 import fr.pedalons.dto.publications.response.PublicationListResponse;
 import fr.pedalons.dto.publications.response.PublicationType;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
+import fr.pedalons.enums.PlatformRole;
 import fr.pedalons.repository.common.AllPublicationRepository;
 import fr.pedalons.repository.common.PublicationQuery;
 import fr.pedalons.service.asset.AssetService;
@@ -34,6 +36,8 @@ public class PublicationService {
 
   @Inject IncludeDeletedService includeDeletedService;
 
+  @Inject PedalonsQueryContext pedalonsContext;
+
   @CheckAccess(entityType = EntityType.PUBLICATION, action = ActionType.LIST_ALL_TEAMS)
   public PublicationListResponse listAll(
       @Nullable PublicationType type,
@@ -42,7 +46,7 @@ public class PublicationService {
       @Nullable Instant to,
       int page,
       int size) {
-    return list(type, null, search, from, to, page, size, false);
+    return list(type, null, search, from, to, page, size, false, isPlatformAdmin());
   }
 
   @CheckAccess(entityType = EntityType.PUBLICATION, action = ActionType.LIST)
@@ -57,7 +61,8 @@ public class PublicationService {
     Team team = teamService.getTeam(teamSlug);
     Long teamId = team.getId();
     boolean includeDeleted = includeDeletedService.isTeamEntityIncludeDeleted(team);
-    return list(type, Set.of(teamId), search, from, to, page, size, includeDeleted);
+    return list(
+        type, Set.of(teamId), search, from, to, page, size, includeDeleted, isPlatformAdmin());
   }
 
   protected PublicationListResponse list(
@@ -68,7 +73,8 @@ public class PublicationService {
       @Nullable Instant to,
       int page,
       int size,
-      boolean includeDeleted) {
+      boolean includeDeleted,
+      boolean platformAdmin) {
     PedalonsPage<Publication> publications =
         allPublicationRepository.find(
             PublicationQuery.builder()
@@ -82,11 +88,17 @@ public class PublicationService {
                 .page(page)
                 .size(size)
                 .includeDeleted(includeDeleted)
+                .platformAdmin(platformAdmin)
                 .build());
     List<PublicationDto> dtos =
         publications.items().stream()
             .map(publication -> PublicationDto.from(publication, assetService))
             .toList();
     return new PublicationListResponse(dtos, publications.total(), page, size);
+  }
+
+  protected boolean isPlatformAdmin() {
+    User userNullable = pedalonsContext.getUserNullable();
+    return userNullable != null && userNullable.getPlatformRole() == PlatformRole.PLATFORM_ADMIN;
   }
 }

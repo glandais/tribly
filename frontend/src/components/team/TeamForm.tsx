@@ -17,6 +17,7 @@ import {
   Text,
   Divider,
   Title,
+  Badge,
 } from '@mantine/core'
 import {
   useCreateTeam,
@@ -34,45 +35,6 @@ import { CreateTeamBody } from '@/api/zod/teams/teams.zod'
 import { useAuthStore, selectIsPlatformAdmin } from '@/store/authStore'
 
 const teamSchema = CreateTeamBody
-
-interface GovernanceAttrs {
-  visibilityEditable: boolean
-  joinable: boolean
-  addMemberAllowed: boolean
-}
-
-interface GovernancePanelProps {
-  attrs: GovernanceAttrs
-  onChange: (attrs: GovernanceAttrs) => void
-}
-
-function TeamGovernancePanel({ attrs, onChange }: GovernancePanelProps) {
-  const { t } = useTranslation()
-
-  return (
-    <>
-      <Divider mt="md" />
-      <Stack gap="xs">
-        <Title order={4}>{t('teams.settings.platformAdmin.title')}</Title>
-        <Switch
-          label={t('teams.settings.platformAdmin.visibilityEditable')}
-          checked={attrs.visibilityEditable}
-          onChange={(e) => onChange({ ...attrs, visibilityEditable: e.currentTarget.checked })}
-        />
-        <Switch
-          label={t('teams.settings.platformAdmin.joinable')}
-          checked={attrs.joinable}
-          onChange={(e) => onChange({ ...attrs, joinable: e.currentTarget.checked })}
-        />
-        <Switch
-          label={t('teams.settings.platformAdmin.addMemberAllowed')}
-          checked={attrs.addMemberAllowed}
-          onChange={(e) => onChange({ ...attrs, addMemberAllowed: e.currentTarget.checked })}
-        />
-      </Stack>
-    </>
-  )
-}
 
 interface TeamFormProps {
   teamSlug?: string
@@ -99,11 +61,11 @@ export function TeamForm({
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const isPlatformAdmin = useAuthStore(selectIsPlatformAdmin)
-  const [governanceAttrs, setGovernanceAttrs] = useState<GovernanceAttrs>({
-    visibilityEditable: initialValues.visibilityEditable ?? false,
-    joinable: initialValues.joinable ?? false,
-    addMemberAllowed: initialValues.addMemberAllowed ?? false,
-  })
+  const [visibilityEditable, setVisibilityEditable] = useState(
+    initialValues.visibilityEditable ?? false
+  )
+  const [joinable, setJoinable] = useState(initialValues.joinable ?? false)
+  const [addMemberAllowed, setAddMemberAllowed] = useState(initialValues.addMemberAllowed ?? false)
 
   const createMutation = useCreateTeam()
   const updateMutation = useUpdateTeam()
@@ -149,7 +111,7 @@ export function TeamForm({
             queryClient.setQueryData(getGetTeamQueryKey(team.slug), team)
             if (isPlatformAdmin && teamId) {
               adminAttrsMutation.mutate(
-                { teamId, data: governanceAttrs },
+                { teamId, data: { visibilityEditable, joinable, addMemberAllowed } },
                 {
                   onSuccess: () => {
                     queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(team.slug) })
@@ -226,19 +188,6 @@ export function TeamForm({
           </Text>
         </Stack>
 
-        {!create && (initialValues.visibilityEditable || isPlatformAdmin) && (
-          <Select
-            label={t('teams.create.form.visibility.label')}
-            description={t('teams.create.form.visibility.hint')}
-            data={[
-              { value: Visibility.TEAM, label: t('visibility.team') },
-              { value: Visibility.PUBLIC_UNLISTED, label: t('visibility.public_unlisted') },
-              { value: Visibility.PUBLIC, label: t('visibility.public') },
-            ]}
-            {...form.getInputProps('visibility')}
-          />
-        )}
-
         <GeocoderAutocomplete
           value={form.values.geometry as GeoJsonPoint | null | undefined}
           onChange={(point) => form.setFieldValue('geometry', point ?? undefined)}
@@ -285,8 +234,60 @@ export function TeamForm({
           {...form.getInputProps('enableAds', { type: 'checkbox' })}
         />
 
-        {!create && isPlatformAdmin && teamId && (
-          <TeamGovernancePanel attrs={governanceAttrs} onChange={setGovernanceAttrs} />
+        {!create && (
+          <>
+            <Divider mt="md" />
+            <Stack gap="xs">
+              <Title order={4}>{t('teams.settings.platformAdmin.title')}</Title>
+
+              {initialValues.visibilityEditable || isPlatformAdmin ? (
+                <Select
+                  label={t('teams.create.form.visibility.label')}
+                  description={t('teams.create.form.visibility.hint')}
+                  data={[
+                    { value: Visibility.TEAM, label: t('visibility.team') },
+                    { value: Visibility.PUBLIC_UNLISTED, label: t('visibility.public_unlisted') },
+                    { value: Visibility.PUBLIC, label: t('visibility.public') },
+                  ]}
+                  {...form.getInputProps('visibility')}
+                />
+              ) : (
+                <Group gap="xs">
+                  <Text size="sm" fw={500}>
+                    {t('teams.create.form.visibility.label')}
+                  </Text>
+                  <Badge variant="light">
+                    {
+                      {
+                        [Visibility.TEAM]: t('visibility.team'),
+                        [Visibility.PUBLIC_UNLISTED]: t('visibility.public_unlisted'),
+                        [Visibility.PUBLIC]: t('visibility.public'),
+                      }[form.values.visibility]
+                    }
+                  </Badge>
+                </Group>
+              )}
+
+              <Switch
+                label={t('teams.settings.platformAdmin.visibilityEditable')}
+                checked={visibilityEditable}
+                disabled={!isPlatformAdmin || !teamId}
+                onChange={(e) => setVisibilityEditable(e.currentTarget.checked)}
+              />
+              <Switch
+                label={t('teams.settings.platformAdmin.joinable')}
+                checked={joinable}
+                disabled={!isPlatformAdmin || !teamId}
+                onChange={(e) => setJoinable(e.currentTarget.checked)}
+              />
+              <Switch
+                label={t('teams.settings.platformAdmin.addMemberAllowed')}
+                checked={addMemberAllowed}
+                disabled={!isPlatformAdmin || !teamId}
+                onChange={(e) => setAddMemberAllowed(e.currentTarget.checked)}
+              />
+            </Stack>
+          </>
         )}
 
         <Group justify="flex-end" pt="md">

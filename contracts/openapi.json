@@ -1597,7 +1597,7 @@
       },
       "MinRole" : {
         "type" : "string",
-        "enum" : [ "NOT_MEMBER", "MEMBER", "ORGANIZER", "ADMIN" ]
+        "enum" : [ "MEMBER", "ORGANIZER", "ADMIN" ]
       },
       "NearType" : {
         "type" : "string",

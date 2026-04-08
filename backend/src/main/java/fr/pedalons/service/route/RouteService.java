@@ -255,6 +255,7 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
                 .sortBy(params.sortBy())
                 .sortDir(params.sortDir())
                 .includeDeleted(includeDeleted)
+                .platformAdmin(isPlatformAdmin())
                 .build());
     List<RouteDto> dtos =
         routes.items().stream().map(route -> RouteDto.from(route, assetService)).toList();
