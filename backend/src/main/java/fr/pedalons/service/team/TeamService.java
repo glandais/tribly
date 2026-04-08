@@ -1,8 +1,6 @@
 package fr.pedalons.service.team;
 
-import static fr.pedalons.dto.error.ErrorCode.INVALID_SLUG;
-import static fr.pedalons.dto.error.ErrorCode.SLUG_TAKEN;
-import static fr.pedalons.dto.error.ErrorCode.TEAM_CREATION_DISABLED;
+import static fr.pedalons.dto.error.ErrorCode.*;
 
 import fr.pedalons.common.exception.BusinessException;
 import fr.pedalons.common.exception.ConflictException;
@@ -19,6 +17,7 @@ import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.PlatformRole;
 import fr.pedalons.enums.TeamRole;
+import fr.pedalons.enums.Visibility;
 import fr.pedalons.infrastructure.exception.*;
 import fr.pedalons.repository.team.TeamQuery;
 import fr.pedalons.repository.team.TeamRepository;
@@ -38,6 +37,8 @@ import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
 public class TeamService {
+
+  private static final int MAX_ADMIN_TEAMS_PER_USER = 1;
 
   @Inject UserTeamRepository userTeamRepository;
 
@@ -84,13 +85,25 @@ public class TeamService {
     }
     User creator = pedalonsContext.getUser();
     Long domainId = domain.getId();
+    if (creator.getPlatformRole() != PlatformRole.PLATFORM_ADMIN) {
+      long existingAdminTeams =
+          userTeamRepository.countAdminTeamsByUserAndDomain(creator.getId(), domainId);
+      if (existingAdminTeams >= MAX_ADMIN_TEAMS_PER_USER) {
+        throw new BusinessException(USER_TEAM_LIMIT_REACHED);
+      }
+    }
     String slug =
         slugService.generateSlug(
             request.name(), s -> teamRepository.existsBySlugAndDomain(domainId, s));
     slugService.clearTeamRedirect(domainId, slug);
 
-    Team team = new Team(domain, creator, request.name(), slug, request.visibility());
-    team.setVisibility(request.visibility());
+    if (request.visibility() != Visibility.TEAM) {
+      throw new BusinessException(INVALID_VISIBILITY);
+    }
+    Team team = new Team(domain, creator, request.name(), slug, Visibility.TEAM);
+    team.setVisibilityEditable(false);
+    team.setJoinable(false);
+    team.setAddMemberAllowed(false);
     team.setGeometry(request.geometry());
 
     teamRepository.persistAndFlush(team);
@@ -138,7 +151,13 @@ public class TeamService {
     Team team = getTeam(teamSlug);
 
     team.setName(request.name());
-    team.setVisibility(request.visibility());
+    User user = pedalonsContext.getUser();
+    boolean isPlatformAdmin = user.getPlatformRole() == PlatformRole.PLATFORM_ADMIN;
+    if (team.isVisibilityEditable() || isPlatformAdmin) {
+      team.setVisibility(request.visibility());
+    } else if (request.visibility() != team.getVisibility()) {
+      throw new BusinessException(INVALID_VISIBILITY);
+    }
     team.setEnableTrips(request.enableTrips());
     team.setEnableAds(request.enableAds());
     team.setEnablePosts(request.enablePosts());

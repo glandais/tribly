@@ -78,6 +78,15 @@ public class Team extends BaseEntity {
   @Nullable
   private Point<G2D> geometry;
 
+  @Column(name = "visibility_editable", nullable = false)
+  private boolean visibilityEditable = false;
+
+  @Column(name = "joinable", nullable = false)
+  private boolean joinable = false;
+
+  @Column(name = "add_member_allowed", nullable = false)
+  private boolean addMemberAllowed = false;
+
   @Column(name = "deleted", nullable = false)
   private boolean deleted = false;
 

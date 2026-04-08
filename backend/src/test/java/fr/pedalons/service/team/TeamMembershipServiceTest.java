@@ -46,6 +46,8 @@ class TeamMembershipServiceTest extends AbstractBaseTest {
     domainResolver.setDomainForTest(domain);
     admin = dataService.createUser("admin@example.com", "Admin");
     team = dataService.createTeam(admin, "Test Team", "test-team", Visibility.PUBLIC);
+    dataService.setTeamJoinable(team, true);
+    dataService.setTeamAddMemberAllowed(team, true);
     user1 = dataService.createUser("user1@example.com", "User One");
     user2 = dataService.createUser("user2@example.com", "User Two");
   }
@@ -89,6 +91,16 @@ class TeamMembershipServiceTest extends AbstractBaseTest {
   // ==================== Join Team ====================
 
   @Test
+  void joinTeam_whenNotJoinable_shouldThrowForbidden() {
+    dataService.setTeamJoinable(team, false);
+
+    queryContext.setUserForTest(user1);
+    PedalonsException ex =
+        assertThrows(PedalonsException.class, () -> membershipService.joinTeam(team.getSlug()));
+    assertEquals("FORBIDDEN", ex.getMessage());
+  }
+
+  @Test
   void joinTeam_shouldJoinPublicTeam() {
     queryContext.setUserForTest(user1);
     MemberDto result = membershipService.joinTeam(team.getSlug());
@@ -122,6 +134,18 @@ class TeamMembershipServiceTest extends AbstractBaseTest {
   }
 
   // ==================== Add Member ====================
+
+  @Test
+  void addMember_whenNotAllowed_shouldThrowTeamAddMemberNotAllowed() {
+    dataService.setTeamAddMemberAllowed(team, false);
+
+    queryContext.setUserForTest(admin);
+    PedalonsException ex =
+        assertThrows(
+            PedalonsException.class,
+            () -> membershipService.addMember(team.getSlug(), user1.getId(), TeamRole.MEMBER));
+    assertEquals("TEAM_ADD_MEMBER_NOT_ALLOWED", ex.getMessage());
+  }
 
   @Test
   void addMember_shouldAddMemberAsAdmin() {

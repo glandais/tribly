@@ -25,6 +25,11 @@ export const AdminListTeamsResponse = zod
             domainId: zod.string().describe('Domain ID this team belongs to'),
             domainName: zod.string().describe('Domain hostname'),
             visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Team visibility'),
+            visibilityEditable: zod
+              .boolean()
+              .describe('Whether visibility is editable by team admins'),
+            joinable: zod.boolean().describe('Whether any domain user can join this team'),
+            addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
             deleted: zod.boolean().describe('Is team soft-deleted'),
             memberCount: zod.number().describe('Number of members'),
             createdAt: zod.iso.datetime({}).describe('Team creation timestamp'),
@@ -54,6 +59,42 @@ export const AdminGetTeamResponse = zod
     domainId: zod.string().describe('Domain ID this team belongs to'),
     domainName: zod.string().describe('Domain hostname'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Team visibility'),
+    visibilityEditable: zod.boolean().describe('Whether visibility is editable by team admins'),
+    joinable: zod.boolean().describe('Whether any domain user can join this team'),
+    addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
+    deleted: zod.boolean().describe('Is team soft-deleted'),
+    memberCount: zod.number().describe('Number of members'),
+    createdAt: zod.iso.datetime({}).describe('Team creation timestamp'),
+  })
+  .describe('Admin team view with domain info')
+
+/**
+ * Update platform-controlled team governance attributes
+ * @summary Update team governance attributes
+ */
+export const AdminUpdateTeamAttributesParams = zod.object({
+  teamId: zod.string().describe('Team ID'),
+})
+
+export const AdminUpdateTeamAttributesBody = zod
+  .object({
+    visibilityEditable: zod.boolean().describe('Whether team admins can change visibility'),
+    joinable: zod.boolean().describe('Whether any domain user can join this public team'),
+    addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
+  })
+  .describe('Platform admin request to update team governance attributes')
+
+export const AdminUpdateTeamAttributesResponse = zod
+  .object({
+    id: zod.string().describe('Team ID (TSID)'),
+    name: zod.string().describe('Team name'),
+    slug: zod.string().describe('Team URL slug'),
+    domainId: zod.string().describe('Domain ID this team belongs to'),
+    domainName: zod.string().describe('Domain hostname'),
+    visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Team visibility'),
+    visibilityEditable: zod.boolean().describe('Whether visibility is editable by team admins'),
+    joinable: zod.boolean().describe('Whether any domain user can join this team'),
+    addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
     deleted: zod.boolean().describe('Is team soft-deleted'),
     memberCount: zod.number().describe('Number of members'),
     createdAt: zod.iso.datetime({}).describe('Team creation timestamp'),
@@ -76,6 +117,9 @@ export const AdminToggleTeamDeletedResponse = zod
     domainId: zod.string().describe('Domain ID this team belongs to'),
     domainName: zod.string().describe('Domain hostname'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Team visibility'),
+    visibilityEditable: zod.boolean().describe('Whether visibility is editable by team admins'),
+    joinable: zod.boolean().describe('Whether any domain user can join this team'),
+    addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
     deleted: zod.boolean().describe('Is team soft-deleted'),
     memberCount: zod.number().describe('Number of members'),
     createdAt: zod.iso.datetime({}).describe('Team creation timestamp'),

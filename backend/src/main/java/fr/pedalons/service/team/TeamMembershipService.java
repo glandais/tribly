@@ -11,8 +11,8 @@ import fr.pedalons.dto.teams.response.MemberDto;
 import fr.pedalons.dto.teams.response.MemberListResponse;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
+import fr.pedalons.enums.PlatformRole;
 import fr.pedalons.enums.TeamRole;
-import fr.pedalons.enums.Visibility;
 import fr.pedalons.infrastructure.exception.*;
 import fr.pedalons.repository.team.UserTeamRepository;
 import fr.pedalons.repository.user.UserRepository;
@@ -48,11 +48,6 @@ public class TeamMembershipService {
   @CheckAccess(entityType = EntityType.USER_TEAM, action = ActionType.JOIN)
   public MemberDto joinTeam(String teamSlug) {
     Team team = teamService.getTeam(teamSlug);
-    // Security checks
-    if (team.getVisibility() == Visibility.TEAM) {
-      throw new ForbiddenException();
-    }
-
     return doAddMember(team, TeamRole.MEMBER, pedalonsContext.getUser());
   }
 
@@ -60,6 +55,11 @@ public class TeamMembershipService {
   @CheckAccess(entityType = EntityType.USER_TEAM, action = ActionType.CREATE)
   public MemberDto addMember(String teamSlug, Long targetUserId, TeamRole role) {
     Team team = teamService.getTeam(teamSlug);
+    User actingUser = pedalonsContext.getUser();
+    boolean isPlatformAdmin = actingUser.getPlatformRole() == PlatformRole.PLATFORM_ADMIN;
+    if (!isPlatformAdmin && !team.isAddMemberAllowed()) {
+      throw new BusinessException(ErrorCode.TEAM_ADD_MEMBER_NOT_ALLOWED);
+    }
     User targetUser =
         userRepository
             .findActiveById(targetUserId)
@@ -117,7 +117,6 @@ public class TeamMembershipService {
         userRepository
             .findActiveById(targetUserId)
             .orElseThrow(() -> new NotFoundException(EntityType.USER, targetUserId));
-    // Security checks
     requireCanRemoveMember(actingUser, teamRole, targetUser);
 
     UserTeam targetMembership =

@@ -88,7 +88,7 @@ class TeamResourceTest extends AbstractResourceTest {
         new TeamRequest(
             "API Test Team",
             MediaDto.builder().build(),
-            Visibility.PUBLIC,
+            Visibility.TEAM,
             true,
             true,
             true,
@@ -97,7 +97,7 @@ class TeamResourceTest extends AbstractResourceTest {
             null);
     given()
         .auth()
-        .oauth2(getAccessToken(USER1))
+        .oauth2(getAccessToken(USER5))
         .contentType("application/json")
         .body(teamRequest)
         .when()
@@ -106,7 +106,7 @@ class TeamResourceTest extends AbstractResourceTest {
         .statusCode(201)
         .body("name", equalTo("API Test Team"))
         .body("slug", startsWith("api-test-team"))
-        .body("visibility", equalTo("PUBLIC"));
+        .body("visibility", equalTo("TEAM"));
   }
 
   @Test

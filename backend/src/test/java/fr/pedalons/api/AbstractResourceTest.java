@@ -68,6 +68,8 @@ public abstract class AbstractResourceTest extends AbstractBaseTest {
 
     // Create test team with organizer
     team1 = dataService.createTeam(user1, "Team 1", "team-1", Visibility.PUBLIC);
+    dataService.setTeamJoinable(team1, true);
+    dataService.setTeamAddMemberAllowed(team1, true);
     dataService.addUserToTeam(user2, team1, TeamRole.ORGANIZER);
     dataService.addUserToTeam(user3, team1, TeamRole.MEMBER);
     team1Slug = team1.getSlug();

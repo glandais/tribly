@@ -21,7 +21,10 @@ mixin _$AdminTeamDto {
  String get slug;/// Domain ID this team belongs to
  String get domainId;/// Domain hostname
  String get domainName;/// Team visibility
- String get visibility;/// Is team soft-deleted
+ String get visibility;/// Whether visibility is editable by team admins
+ bool get visibilityEditable;/// Whether any domain user can join this team
+ bool get joinable;/// Whether team admins can add members
+ bool get addMemberAllowed;/// Is team soft-deleted
  bool get deleted;/// Number of members
  int get memberCount;/// Team creation timestamp
  String get createdAt;
@@ -37,16 +40,16 @@ $AdminTeamDtoCopyWith<AdminTeamDto> get copyWith => _$AdminTeamDtoCopyWithImpl<A
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminTeamDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.domainId, domainId) || other.domainId == domainId)&&(identical(other.domainName, domainName) || other.domainName == domainName)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.memberCount, memberCount) || other.memberCount == memberCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminTeamDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.domainId, domainId) || other.domainId == domainId)&&(identical(other.domainName, domainName) || other.domainName == domainName)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.visibilityEditable, visibilityEditable) || other.visibilityEditable == visibilityEditable)&&(identical(other.joinable, joinable) || other.joinable == joinable)&&(identical(other.addMemberAllowed, addMemberAllowed) || other.addMemberAllowed == addMemberAllowed)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.memberCount, memberCount) || other.memberCount == memberCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,slug,domainId,domainName,visibility,deleted,memberCount,createdAt);
+int get hashCode => Object.hash(runtimeType,id,name,slug,domainId,domainName,visibility,visibilityEditable,joinable,addMemberAllowed,deleted,memberCount,createdAt);
 
 @override
 String toString() {
-  return 'AdminTeamDto(id: $id, name: $name, slug: $slug, domainId: $domainId, domainName: $domainName, visibility: $visibility, deleted: $deleted, memberCount: $memberCount, createdAt: $createdAt)';
+  return 'AdminTeamDto(id: $id, name: $name, slug: $slug, domainId: $domainId, domainName: $domainName, visibility: $visibility, visibilityEditable: $visibilityEditable, joinable: $joinable, addMemberAllowed: $addMemberAllowed, deleted: $deleted, memberCount: $memberCount, createdAt: $createdAt)';
 }
 
 
@@ -57,7 +60,7 @@ abstract mixin class $AdminTeamDtoCopyWith<$Res>  {
   factory $AdminTeamDtoCopyWith(AdminTeamDto value, $Res Function(AdminTeamDto) _then) = _$AdminTeamDtoCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String slug, String domainId, String domainName, String visibility, bool deleted, int memberCount, String createdAt
+ String id, String name, String slug, String domainId, String domainName, String visibility, bool visibilityEditable, bool joinable, bool addMemberAllowed, bool deleted, int memberCount, String createdAt
 });
 
 
@@ -74,7 +77,7 @@ class _$AdminTeamDtoCopyWithImpl<$Res>
 
 /// Create a copy of AdminTeamDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? slug = null,Object? domainId = null,Object? domainName = null,Object? visibility = null,Object? deleted = null,Object? memberCount = null,Object? createdAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? slug = null,Object? domainId = null,Object? domainName = null,Object? visibility = null,Object? visibilityEditable = null,Object? joinable = null,Object? addMemberAllowed = null,Object? deleted = null,Object? memberCount = null,Object? createdAt = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -82,7 +85,10 @@ as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non
 as String,domainId: null == domainId ? _self.domainId : domainId // ignore: cast_nullable_to_non_nullable
 as String,domainName: null == domainName ? _self.domainName : domainName // ignore: cast_nullable_to_non_nullable
 as String,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
-as String,deleted: null == deleted ? _self.deleted : deleted // ignore: cast_nullable_to_non_nullable
+as String,visibilityEditable: null == visibilityEditable ? _self.visibilityEditable : visibilityEditable // ignore: cast_nullable_to_non_nullable
+as bool,joinable: null == joinable ? _self.joinable : joinable // ignore: cast_nullable_to_non_nullable
+as bool,addMemberAllowed: null == addMemberAllowed ? _self.addMemberAllowed : addMemberAllowed // ignore: cast_nullable_to_non_nullable
+as bool,deleted: null == deleted ? _self.deleted : deleted // ignore: cast_nullable_to_non_nullable
 as bool,memberCount: null == memberCount ? _self.memberCount : memberCount // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String,
@@ -170,10 +176,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String slug,  String domainId,  String domainName,  String visibility,  bool deleted,  int memberCount,  String createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String slug,  String domainId,  String domainName,  String visibility,  bool visibilityEditable,  bool joinable,  bool addMemberAllowed,  bool deleted,  int memberCount,  String createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AdminTeamDto() when $default != null:
-return $default(_that.id,_that.name,_that.slug,_that.domainId,_that.domainName,_that.visibility,_that.deleted,_that.memberCount,_that.createdAt);case _:
+return $default(_that.id,_that.name,_that.slug,_that.domainId,_that.domainName,_that.visibility,_that.visibilityEditable,_that.joinable,_that.addMemberAllowed,_that.deleted,_that.memberCount,_that.createdAt);case _:
   return orElse();
 
 }
@@ -191,10 +197,10 @@ return $default(_that.id,_that.name,_that.slug,_that.domainId,_that.domainName,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String slug,  String domainId,  String domainName,  String visibility,  bool deleted,  int memberCount,  String createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String slug,  String domainId,  String domainName,  String visibility,  bool visibilityEditable,  bool joinable,  bool addMemberAllowed,  bool deleted,  int memberCount,  String createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _AdminTeamDto():
-return $default(_that.id,_that.name,_that.slug,_that.domainId,_that.domainName,_that.visibility,_that.deleted,_that.memberCount,_that.createdAt);case _:
+return $default(_that.id,_that.name,_that.slug,_that.domainId,_that.domainName,_that.visibility,_that.visibilityEditable,_that.joinable,_that.addMemberAllowed,_that.deleted,_that.memberCount,_that.createdAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -211,10 +217,10 @@ return $default(_that.id,_that.name,_that.slug,_that.domainId,_that.domainName,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String slug,  String domainId,  String domainName,  String visibility,  bool deleted,  int memberCount,  String createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String slug,  String domainId,  String domainName,  String visibility,  bool visibilityEditable,  bool joinable,  bool addMemberAllowed,  bool deleted,  int memberCount,  String createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _AdminTeamDto() when $default != null:
-return $default(_that.id,_that.name,_that.slug,_that.domainId,_that.domainName,_that.visibility,_that.deleted,_that.memberCount,_that.createdAt);case _:
+return $default(_that.id,_that.name,_that.slug,_that.domainId,_that.domainName,_that.visibility,_that.visibilityEditable,_that.joinable,_that.addMemberAllowed,_that.deleted,_that.memberCount,_that.createdAt);case _:
   return null;
 
 }
@@ -226,7 +232,7 @@ return $default(_that.id,_that.name,_that.slug,_that.domainId,_that.domainName,_
 @JsonSerializable()
 
 class _AdminTeamDto implements AdminTeamDto {
-  const _AdminTeamDto({required this.id, required this.name, required this.slug, required this.domainId, required this.domainName, required this.visibility, required this.deleted, required this.memberCount, required this.createdAt});
+  const _AdminTeamDto({required this.id, required this.name, required this.slug, required this.domainId, required this.domainName, required this.visibility, required this.visibilityEditable, required this.joinable, required this.addMemberAllowed, required this.deleted, required this.memberCount, required this.createdAt});
   factory _AdminTeamDto.fromJson(Map<String, dynamic> json) => _$AdminTeamDtoFromJson(json);
 
 /// Team ID (TSID)
@@ -241,6 +247,12 @@ class _AdminTeamDto implements AdminTeamDto {
 @override final  String domainName;
 /// Team visibility
 @override final  String visibility;
+/// Whether visibility is editable by team admins
+@override final  bool visibilityEditable;
+/// Whether any domain user can join this team
+@override final  bool joinable;
+/// Whether team admins can add members
+@override final  bool addMemberAllowed;
 /// Is team soft-deleted
 @override final  bool deleted;
 /// Number of members
@@ -261,16 +273,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminTeamDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.domainId, domainId) || other.domainId == domainId)&&(identical(other.domainName, domainName) || other.domainName == domainName)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.memberCount, memberCount) || other.memberCount == memberCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminTeamDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.domainId, domainId) || other.domainId == domainId)&&(identical(other.domainName, domainName) || other.domainName == domainName)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.visibilityEditable, visibilityEditable) || other.visibilityEditable == visibilityEditable)&&(identical(other.joinable, joinable) || other.joinable == joinable)&&(identical(other.addMemberAllowed, addMemberAllowed) || other.addMemberAllowed == addMemberAllowed)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.memberCount, memberCount) || other.memberCount == memberCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,slug,domainId,domainName,visibility,deleted,memberCount,createdAt);
+int get hashCode => Object.hash(runtimeType,id,name,slug,domainId,domainName,visibility,visibilityEditable,joinable,addMemberAllowed,deleted,memberCount,createdAt);
 
 @override
 String toString() {
-  return 'AdminTeamDto(id: $id, name: $name, slug: $slug, domainId: $domainId, domainName: $domainName, visibility: $visibility, deleted: $deleted, memberCount: $memberCount, createdAt: $createdAt)';
+  return 'AdminTeamDto(id: $id, name: $name, slug: $slug, domainId: $domainId, domainName: $domainName, visibility: $visibility, visibilityEditable: $visibilityEditable, joinable: $joinable, addMemberAllowed: $addMemberAllowed, deleted: $deleted, memberCount: $memberCount, createdAt: $createdAt)';
 }
 
 
@@ -281,7 +293,7 @@ abstract mixin class _$AdminTeamDtoCopyWith<$Res> implements $AdminTeamDtoCopyWi
   factory _$AdminTeamDtoCopyWith(_AdminTeamDto value, $Res Function(_AdminTeamDto) _then) = __$AdminTeamDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String slug, String domainId, String domainName, String visibility, bool deleted, int memberCount, String createdAt
+ String id, String name, String slug, String domainId, String domainName, String visibility, bool visibilityEditable, bool joinable, bool addMemberAllowed, bool deleted, int memberCount, String createdAt
 });
 
 
@@ -298,7 +310,7 @@ class __$AdminTeamDtoCopyWithImpl<$Res>
 
 /// Create a copy of AdminTeamDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? slug = null,Object? domainId = null,Object? domainName = null,Object? visibility = null,Object? deleted = null,Object? memberCount = null,Object? createdAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? slug = null,Object? domainId = null,Object? domainName = null,Object? visibility = null,Object? visibilityEditable = null,Object? joinable = null,Object? addMemberAllowed = null,Object? deleted = null,Object? memberCount = null,Object? createdAt = null,}) {
   return _then(_AdminTeamDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -306,7 +318,10 @@ as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non
 as String,domainId: null == domainId ? _self.domainId : domainId // ignore: cast_nullable_to_non_nullable
 as String,domainName: null == domainName ? _self.domainName : domainName // ignore: cast_nullable_to_non_nullable
 as String,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
-as String,deleted: null == deleted ? _self.deleted : deleted // ignore: cast_nullable_to_non_nullable
+as String,visibilityEditable: null == visibilityEditable ? _self.visibilityEditable : visibilityEditable // ignore: cast_nullable_to_non_nullable
+as bool,joinable: null == joinable ? _self.joinable : joinable // ignore: cast_nullable_to_non_nullable
+as bool,addMemberAllowed: null == addMemberAllowed ? _self.addMemberAllowed : addMemberAllowed // ignore: cast_nullable_to_non_nullable
+as bool,deleted: null == deleted ? _self.deleted : deleted // ignore: cast_nullable_to_non_nullable
 as bool,memberCount: null == memberCount ? _self.memberCount : memberCount // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String,

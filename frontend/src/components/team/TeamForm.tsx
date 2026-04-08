@@ -5,25 +5,83 @@ import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
-import { TextInput, Select, Checkbox, Button, Group, Stack, Text } from '@mantine/core'
+import { useState } from 'react'
+import {
+  TextInput,
+  Select,
+  Checkbox,
+  Switch,
+  Button,
+  Group,
+  Stack,
+  Text,
+  Divider,
+  Title,
+} from '@mantine/core'
 import {
   useCreateTeam,
   useUpdateTeam,
   getListTeamsQueryKey,
   getGetTeamQueryKey,
 } from '@/api/endpoints/teams/teams'
+import { useAdminUpdateTeamAttributes } from '@/api/endpoints/admin-teams/admin-teams'
 import { SlugEditor } from '../common/SlugEditor'
 import { Visibility, TeamDetailDto, TeamRequest, GeoJsonPoint } from '@/api/dto'
 import { MediaEditor } from '../common/MediaEditor'
 import { GeocoderAutocomplete } from '../common/GeocoderAutocomplete'
 import { paths } from '@/config/paths'
 import { CreateTeamBody } from '@/api/zod/teams/teams.zod'
+import { useAuthStore, selectIsPlatformAdmin } from '@/store/authStore'
 
 const teamSchema = CreateTeamBody
 
+interface GovernanceAttrs {
+  visibilityEditable: boolean
+  joinable: boolean
+  addMemberAllowed: boolean
+}
+
+interface GovernancePanelProps {
+  attrs: GovernanceAttrs
+  onChange: (attrs: GovernanceAttrs) => void
+}
+
+function TeamGovernancePanel({ attrs, onChange }: GovernancePanelProps) {
+  const { t } = useTranslation()
+
+  return (
+    <>
+      <Divider mt="md" />
+      <Stack gap="xs">
+        <Title order={4}>{t('teams.settings.platformAdmin.title')}</Title>
+        <Switch
+          label={t('teams.settings.platformAdmin.visibilityEditable')}
+          checked={attrs.visibilityEditable}
+          onChange={(e) => onChange({ ...attrs, visibilityEditable: e.currentTarget.checked })}
+        />
+        <Switch
+          label={t('teams.settings.platformAdmin.joinable')}
+          checked={attrs.joinable}
+          onChange={(e) => onChange({ ...attrs, joinable: e.currentTarget.checked })}
+        />
+        <Switch
+          label={t('teams.settings.platformAdmin.addMemberAllowed')}
+          checked={attrs.addMemberAllowed}
+          onChange={(e) => onChange({ ...attrs, addMemberAllowed: e.currentTarget.checked })}
+        />
+      </Stack>
+    </>
+  )
+}
+
 interface TeamFormProps {
   teamSlug?: string
-  initialValues: TeamRequest
+  teamId?: string
+  initialValues: TeamRequest & {
+    visibilityEditable?: boolean
+    joinable?: boolean
+    addMemberAllowed?: boolean
+  }
   onSuccess: (team: TeamDetailDto) => void
   create: boolean
   onSlugChange?: (newSlug: string) => Promise<void>
@@ -31,6 +89,7 @@ interface TeamFormProps {
 
 export function TeamForm({
   teamSlug,
+  teamId,
   initialValues,
   onSuccess,
   create,
@@ -39,9 +98,16 @@ export function TeamForm({
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const isPlatformAdmin = useAuthStore(selectIsPlatformAdmin)
+  const [governanceAttrs, setGovernanceAttrs] = useState<GovernanceAttrs>({
+    visibilityEditable: initialValues.visibilityEditable ?? false,
+    joinable: initialValues.joinable ?? false,
+    addMemberAllowed: initialValues.addMemberAllowed ?? false,
+  })
 
   const createMutation = useCreateTeam()
   const updateMutation = useUpdateTeam()
+  const adminAttrsMutation = useAdminUpdateTeamAttributes()
   const mutation = teamSlug ? updateMutation : createMutation
 
   function getSubmitButtonText(): string {
@@ -81,12 +147,35 @@ export function TeamForm({
             queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
             queryClient.invalidateQueries({ queryKey: getListTeamsQueryKey() })
             queryClient.setQueryData(getGetTeamQueryKey(team.slug), team)
-            notifications.show({
-              message: i18next.t('teams.notifications.updated'),
-              color: 'green',
-            })
-            onSuccess(team)
-            navigate(paths.team(team.slug))
+            if (isPlatformAdmin && teamId) {
+              adminAttrsMutation.mutate(
+                { teamId, data: governanceAttrs },
+                {
+                  onSuccess: () => {
+                    queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(team.slug) })
+                    notifications.show({
+                      message: i18next.t('teams.notifications.updated'),
+                      color: 'green',
+                    })
+                    onSuccess(team)
+                    navigate(paths.team(team.slug))
+                  },
+                  onError: () => {
+                    notifications.show({
+                      message: i18next.t('teams.notifications.governanceUpdateFailed'),
+                      color: 'red',
+                    })
+                  },
+                }
+              )
+            } else {
+              notifications.show({
+                message: i18next.t('teams.notifications.updated'),
+                color: 'green',
+              })
+              onSuccess(team)
+              navigate(paths.team(team.slug))
+            }
           },
         }
       )
@@ -137,16 +226,18 @@ export function TeamForm({
           </Text>
         </Stack>
 
-        <Select
-          label={t('teams.create.form.visibility.label')}
-          description={t('teams.create.form.visibility.hint')}
-          data={[
-            { value: Visibility.TEAM, label: t('visibility.team') },
-            { value: Visibility.PUBLIC_UNLISTED, label: t('visibility.public_unlisted') },
-            { value: Visibility.PUBLIC, label: t('visibility.public') },
-          ]}
-          {...form.getInputProps('visibility')}
-        />
+        {!create && (initialValues.visibilityEditable || isPlatformAdmin) && (
+          <Select
+            label={t('teams.create.form.visibility.label')}
+            description={t('teams.create.form.visibility.hint')}
+            data={[
+              { value: Visibility.TEAM, label: t('visibility.team') },
+              { value: Visibility.PUBLIC_UNLISTED, label: t('visibility.public_unlisted') },
+              { value: Visibility.PUBLIC, label: t('visibility.public') },
+            ]}
+            {...form.getInputProps('visibility')}
+          />
+        )}
 
         <GeocoderAutocomplete
           value={form.values.geometry as GeoJsonPoint | null | undefined}
@@ -193,6 +284,10 @@ export function TeamForm({
           description={t('teams.create.form.enableAds.hint')}
           {...form.getInputProps('enableAds', { type: 'checkbox' })}
         />
+
+        {!create && isPlatformAdmin && teamId && (
+          <TeamGovernancePanel attrs={governanceAttrs} onChange={setGovernanceAttrs} />
+        )}
 
         <Group justify="flex-end" pt="md">
           <Button

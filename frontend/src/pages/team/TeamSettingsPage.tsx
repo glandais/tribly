@@ -110,6 +110,7 @@ export function TeamSettingsPage() {
 
         <TeamForm
           teamSlug={teamSlug}
+          teamId={team.id}
           initialValues={{ ...team, media: team.about }}
           onSuccess={handleSuccess}
           create={false}

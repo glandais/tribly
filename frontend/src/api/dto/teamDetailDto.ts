@@ -31,6 +31,12 @@ export interface TeamDetailDto {
   enableRides: boolean
   /** Routes enabled */
   enableRoutes: boolean
+  /** Whether visibility is editable by team admins */
+  visibilityEditable: boolean
+  /** Whether any domain user can join this team */
+  joinable: boolean
+  /** Whether team admins can add members */
+  addMemberAllowed: boolean
   /** Number of team members */
   memberCount: number
   /** Current user's role (null if not a member) */

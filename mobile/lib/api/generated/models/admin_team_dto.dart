@@ -32,6 +32,15 @@ abstract class AdminTeamDto with _$AdminTeamDto {
     /// Team visibility
     required String visibility,
 
+    /// Whether visibility is editable by team admins
+    required bool visibilityEditable,
+
+    /// Whether any domain user can join this team
+    required bool joinable,
+
+    /// Whether team admins can add members
+    required bool addMemberAllowed,
+
     /// Is team soft-deleted
     required bool deleted,
 

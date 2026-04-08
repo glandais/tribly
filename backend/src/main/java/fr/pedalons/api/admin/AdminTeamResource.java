@@ -1,5 +1,6 @@
 package fr.pedalons.api.admin;
 
+import fr.pedalons.dto.admin.AdminTeamAttributesRequest;
 import fr.pedalons.dto.admin.AdminTeamDto;
 import fr.pedalons.dto.admin.AdminTeamListResponse;
 import fr.pedalons.dto.common.PedalonsPage;
@@ -8,6 +9,7 @@ import fr.pedalons.service.admin.AdminTeamService;
 import fr.pedalons.service.security.annotation.Admin;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
+import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -82,6 +84,35 @@ public class AdminTeamResource {
   public Response getTeam(@Parameter(description = "Team ID") @PathParam("teamId") String teamId) {
 
     AdminTeamDto team = adminTeamService.getTeam(teamId);
+    return Response.ok(team).build();
+  }
+
+  @PATCH
+  @Path("/{teamId}/attributes")
+  @Admin
+  @Operation(
+      operationId = "adminUpdateTeamAttributes",
+      summary = "Update team governance attributes",
+      description = "Update platform-controlled team governance attributes")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Team attributes updated successfully",
+        content = @Content(schema = @Schema(implementation = AdminTeamDto.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "Forbidden - not a platform admin",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response updateTeamAttributes(
+      @Parameter(description = "Team ID") @PathParam("teamId") String teamId,
+      @Valid AdminTeamAttributesRequest request) {
+
+    AdminTeamDto team = adminTeamService.updateTeamAttributes(teamId, request);
     return Response.ok(team).build();
   }
 

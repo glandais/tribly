@@ -6,6 +6,7 @@ import 'package:dio/dio.dart' hide Headers;
 import 'package:retrofit/retrofit.dart';
 import 'package:retrofit/error_logger.dart';
 
+import '../models/admin_team_attributes_request.dart';
 import '../models/admin_team_dto.dart';
 import '../models/admin_team_list_response.dart';
 
@@ -39,6 +40,19 @@ abstract class AdminTeamsClient {
   @GET('/api/admin/teams/{teamId}')
   Future<AdminTeamDto> adminGetTeam({
     @Path('teamId') required String teamId,
+  });
+
+  /// Update team governance attributes.
+  ///
+  /// Update platform-controlled team governance attributes.
+  ///
+  /// [teamId] - Team ID.
+  ///
+  /// [body] - Name not received - field will be skipped.
+  @PATCH('/api/admin/teams/{teamId}/attributes')
+  Future<AdminTeamDto> adminUpdateTeamAttributes({
+    @Path('teamId') required String teamId,
+    @Body() required AdminTeamAttributesRequest body,
   });
 
   /// Toggle team deleted.

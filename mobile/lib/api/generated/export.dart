@@ -43,6 +43,7 @@ export 'models/admin_domain_dto.dart';
 export 'models/admin_domain_list_response.dart';
 export 'models/admin_gps_credential_dto.dart';
 export 'models/admin_stats_dto.dart';
+export 'models/admin_team_attributes_request.dart';
 export 'models/admin_team_dto.dart';
 export 'models/admin_team_list_response.dart';
 export 'models/admin_user_dto.dart';

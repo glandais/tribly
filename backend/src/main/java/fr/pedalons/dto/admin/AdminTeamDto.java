@@ -16,6 +16,12 @@ public record AdminTeamDto(
     @Schema(description = "Domain ID this team belongs to", required = true) String domainId,
     @Schema(description = "Domain hostname", required = true) String domainName,
     @Schema(description = "Team visibility", required = true) Visibility visibility,
+    @Schema(description = "Whether visibility is editable by team admins", required = true)
+        boolean visibilityEditable,
+    @Schema(description = "Whether any domain user can join this team", required = true)
+        boolean joinable,
+    @Schema(description = "Whether team admins can add members", required = true)
+        boolean addMemberAllowed,
     @Schema(description = "Is team soft-deleted", required = true) boolean deleted,
     @Schema(description = "Number of members", required = true) long memberCount,
     @Schema(description = "Team creation timestamp", required = true) Instant createdAt) {
@@ -28,6 +34,9 @@ public record AdminTeamDto(
         TsidUtils.toString(team.getDomain().getId()),
         team.getDomain().getDomain(),
         team.getVisibility(),
+        team.isVisibilityEditable(),
+        team.isJoinable(),
+        team.isAddMemberAllowed(),
         team.isDeleted(),
         memberCount,
         team.getCreatedAt());

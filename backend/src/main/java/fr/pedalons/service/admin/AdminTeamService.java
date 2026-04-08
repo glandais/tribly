@@ -3,6 +3,7 @@ package fr.pedalons.service.admin;
 import fr.pedalons.common.TsidUtils;
 import fr.pedalons.common.exception.NotFoundException;
 import fr.pedalons.domain.team.Team;
+import fr.pedalons.dto.admin.AdminTeamAttributesRequest;
 import fr.pedalons.dto.admin.AdminTeamDto;
 import fr.pedalons.dto.common.PedalonsPage;
 import fr.pedalons.dto.error.ErrorCode;
@@ -52,6 +53,18 @@ public class AdminTeamService {
   @Admin
   public AdminTeamDto getTeam(String teamId) {
     Team team = findTeam(teamId);
+    long memberCount = userTeamRepository.count("team.id = ?1", team.getId());
+    return AdminTeamDto.from(team, memberCount);
+  }
+
+  @Admin
+  @Transactional
+  public AdminTeamDto updateTeamAttributes(String teamId, AdminTeamAttributesRequest request) {
+    Team team = findTeam(teamId);
+    team.setVisibilityEditable(request.visibilityEditable());
+    team.setJoinable(request.joinable());
+    team.setAddMemberAllowed(request.addMemberAllowed());
+    teamRepository.persist(team);
     long memberCount = userTeamRepository.count("team.id = ?1", team.getId());
     return AdminTeamDto.from(team, memberCount);
   }

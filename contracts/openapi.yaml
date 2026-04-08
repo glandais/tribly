@@ -392,6 +392,29 @@ components:
           type: integer
           format: int64
           description: Total number of users
+    AdminTeamAttributesRequest:
+      description: Platform admin request to update team governance attributes
+      type: object
+      required:
+      - visibilityEditable
+      - joinable
+      - addMemberAllowed
+      properties:
+        visibilityEditable:
+          type: boolean
+          description: Whether team admins can change visibility
+          examples:
+          - false
+        joinable:
+          type: boolean
+          description: Whether any domain user can join this public team
+          examples:
+          - false
+        addMemberAllowed:
+          type: boolean
+          description: Whether team admins can add members
+          examples:
+          - false
     AdminTeamDto:
       description: Admin team view with domain info
       type: object
@@ -402,6 +425,9 @@ components:
       - domainId
       - domainName
       - visibility
+      - visibilityEditable
+      - joinable
+      - addMemberAllowed
       - deleted
       - memberCount
       - createdAt
@@ -427,6 +453,15 @@ components:
           description: Team visibility
           type: string
           $ref: "#/components/schemas/Visibility"
+        visibilityEditable:
+          type: boolean
+          description: Whether visibility is editable by team admins
+        joinable:
+          type: boolean
+          description: Whether any domain user can join this team
+        addMemberAllowed:
+          type: boolean
+          description: Whether team admins can add members
         deleted:
           type: boolean
           description: Is team soft-deleted
@@ -1154,6 +1189,9 @@ components:
       - DOMAIN_NOT_FOUND
       - TEAM_NOT_FOUND
       - TEAM_CREATION_DISABLED
+      - USER_TEAM_LIMIT_REACHED
+      - TEAM_JOIN_NOT_ALLOWED
+      - TEAM_ADD_MEMBER_NOT_ALLOWED
       - GPS_SERVICE_ALREADY_CONNECTED
       - GPS_SERVICE_NOT_CONNECTED
       - GPS_SERVICE_NOT_CONFIGURED
@@ -2688,6 +2726,9 @@ components:
       - enablePosts
       - enableRides
       - enableRoutes
+      - visibilityEditable
+      - joinable
+      - addMemberAllowed
       - memberCount
       - createdAt
       properties:
@@ -2730,6 +2771,15 @@ components:
         enableRoutes:
           type: boolean
           description: Routes enabled
+        visibilityEditable:
+          type: boolean
+          description: Whether visibility is editable by team admins
+        joinable:
+          type: boolean
+          description: Whether any domain user can join this team
+        addMemberAllowed:
+          type: boolean
+          description: Whether team admins can add members
         memberCount:
           type: integer
           format: int64
@@ -3949,6 +3999,50 @@ paths:
       responses:
         "200":
           description: Team retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminTeamDto"
+        "404":
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - not a platform admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
+  /api/admin/teams/{teamId}/attributes:
+    patch:
+      summary: Update team governance attributes
+      description: Update platform-controlled team governance attributes
+      operationId: adminUpdateTeamAttributes
+      tags:
+      - Admin - Teams
+      parameters:
+      - description: Team ID
+        name: teamId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminTeamAttributesRequest"
+        required: true
+      responses:
+        "200":
+          description: Team attributes updated successfully
           content:
             application/json:
               schema:

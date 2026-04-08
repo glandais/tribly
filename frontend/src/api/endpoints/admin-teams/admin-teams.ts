@@ -16,13 +16,14 @@ import type {
 
 import type {
   AdminListTeamsParams,
+  AdminTeamAttributesRequest,
   AdminTeamDto,
   AdminTeamListResponse,
   ErrorResponse,
 } from '../../dto'
 
 import { axiosMutator } from '../../../lib/axiosInstance'
-import type { ErrorType } from '../../../lib/axiosInstance'
+import type { ErrorType, BodyType } from '../../../lib/axiosInstance'
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
@@ -264,6 +265,95 @@ export function useAdminGetTeam<
   return { ...query, queryKey: queryOptions.queryKey }
 }
 
+/**
+ * Update platform-controlled team governance attributes
+ * @summary Update team governance attributes
+ */
+export const adminUpdateTeamAttributes = (
+  teamId: string,
+  adminTeamAttributesRequest: BodyType<AdminTeamAttributesRequest>,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<AdminTeamDto>(
+    {
+      url: `/api/admin/teams/${teamId}/attributes`,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      data: adminTeamAttributesRequest,
+      signal,
+    },
+    options
+  )
+}
+
+export const getAdminUpdateTeamAttributesMutationOptions = <
+  TError = ErrorType<void | ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminUpdateTeamAttributes>>,
+    TError,
+    { teamId: string; data: BodyType<AdminTeamAttributesRequest> },
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof adminUpdateTeamAttributes>>,
+  TError,
+  { teamId: string; data: BodyType<AdminTeamAttributesRequest> },
+  TContext
+> => {
+  const mutationKey = ['adminUpdateTeamAttributes']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof adminUpdateTeamAttributes>>,
+    { teamId: string; data: BodyType<AdminTeamAttributesRequest> }
+  > = (props) => {
+    const { teamId, data } = props ?? {}
+
+    return adminUpdateTeamAttributes(teamId, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type AdminUpdateTeamAttributesMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminUpdateTeamAttributes>>
+>
+export type AdminUpdateTeamAttributesMutationBody = BodyType<AdminTeamAttributesRequest>
+export type AdminUpdateTeamAttributesMutationError = ErrorType<void | ErrorResponse>
+
+/**
+ * @summary Update team governance attributes
+ */
+export const useAdminUpdateTeamAttributes = <
+  TError = ErrorType<void | ErrorResponse>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof adminUpdateTeamAttributes>>,
+      TError,
+      { teamId: string; data: BodyType<AdminTeamAttributesRequest> },
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof adminUpdateTeamAttributes>>,
+  TError,
+  { teamId: string; data: BodyType<AdminTeamAttributesRequest> },
+  TContext
+> => {
+  return useMutation(getAdminUpdateTeamAttributesMutationOptions(options), queryClient)
+}
 /**
  * Toggle team soft-delete status (archive/restore)
  * @summary Toggle team deleted

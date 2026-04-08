@@ -31,6 +31,12 @@ public record TeamDetailDto(
     @Schema(description = "Posts enabled", required = true) boolean enablePosts,
     @Schema(description = "Rides enabled", required = true) boolean enableRides,
     @Schema(description = "Routes enabled", required = true) boolean enableRoutes,
+    @Schema(description = "Whether visibility is editable by team admins", required = true)
+        boolean visibilityEditable,
+    @Schema(description = "Whether any domain user can join this team", required = true)
+        boolean joinable,
+    @Schema(description = "Whether team admins can add members", required = true)
+        boolean addMemberAllowed,
     @Schema(description = "Number of team members", required = true) long memberCount,
     @Nullable @Schema(description = "Current user's role (null if not a member)") TeamRole role,
     @Schema(description = "Team creation timestamp", required = true) Instant createdAt,
@@ -55,6 +61,9 @@ public record TeamDetailDto(
         team.isEnablePosts(),
         team.isEnableRides(),
         team.isEnableRoutes(),
+        team.isVisibilityEditable(),
+        team.isJoinable(),
+        team.isAddMemberAllowed(),
         teamAndRole.memberCount(),
         teamAndRole.teamRole(),
         team.getCreatedAt(),

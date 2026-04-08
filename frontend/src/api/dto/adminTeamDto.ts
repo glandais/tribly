@@ -17,6 +17,12 @@ export interface AdminTeamDto {
   domainName: string
   /** Team visibility */
   visibility: Visibility
+  /** Whether visibility is editable by team admins */
+  visibilityEditable: boolean
+  /** Whether any domain user can join this team */
+  joinable: boolean
+  /** Whether team admins can add members */
+  addMemberAllowed: boolean
   /** Is team soft-deleted */
   deleted: boolean
   /** Number of members */

@@ -236,6 +236,24 @@ After this, the "Admin" link will appear in the header menu, providing access to
 - **Teams**: View all teams, archive/restore
 - **Users**: View all users, grant/revoke platform admin role
 
+## Team Governance
+
+Platform admins control the following per-team attributes (configurable via the team admin page):
+
+| Attribute | Description |
+|-----------|-------------|
+| `visibilityEditable` | If `true`, team admins can change visibility. If `false`, only platform admins can. |
+| `joinable` | If `true` and the team is public, any domain user can self-join. |
+| `addMemberAllowed` | If `true`, team admins can add members directly. If `false`, only platform admins can. |
+
+When a user creates a team, defaults are:
+- `visibility`: `TEAM` (enforced by the backend)
+- `visibilityEditable`: `false`
+- `joinable`: `false`
+- `addMemberAllowed`: `false`
+
+A non-platform-admin user can create at most one team per domain.
+
 ## Garmin Connect IQ App Development
 
 The Garmin app (`garmin-app/`) allows users to browse and download routes directly to their Garmin devices. See README inside `garmin-app/` folder

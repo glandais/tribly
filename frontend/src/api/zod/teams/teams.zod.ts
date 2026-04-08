@@ -198,6 +198,11 @@ export const ListTeamsResponse = zod
             enablePosts: zod.boolean().describe('Posts enabled'),
             enableRides: zod.boolean().describe('Rides enabled'),
             enableRoutes: zod.boolean().describe('Routes enabled'),
+            visibilityEditable: zod
+              .boolean()
+              .describe('Whether visibility is editable by team admins'),
+            joinable: zod.boolean().describe('Whether any domain user can join this team'),
+            addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
             memberCount: zod.number().describe('Number of team members'),
             role: zod
               .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
@@ -760,6 +765,9 @@ export const UpdateTeamResponse = zod
     enablePosts: zod.boolean().describe('Posts enabled'),
     enableRides: zod.boolean().describe('Rides enabled'),
     enableRoutes: zod.boolean().describe('Routes enabled'),
+    visibilityEditable: zod.boolean().describe('Whether visibility is editable by team admins'),
+    joinable: zod.boolean().describe('Whether any domain user can join this team'),
+    addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
     memberCount: zod.number().describe('Number of team members'),
     role: zod
       .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
@@ -961,6 +969,9 @@ export const GetTeamResponse = zod
     enablePosts: zod.boolean().describe('Posts enabled'),
     enableRides: zod.boolean().describe('Rides enabled'),
     enableRoutes: zod.boolean().describe('Routes enabled'),
+    visibilityEditable: zod.boolean().describe('Whether visibility is editable by team admins'),
+    joinable: zod.boolean().describe('Whether any domain user can join this team'),
+    addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
     memberCount: zod.number().describe('Number of team members'),
     role: zod
       .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
@@ -1184,6 +1195,9 @@ export const ChangeTeamSlugResponse = zod
     enablePosts: zod.boolean().describe('Posts enabled'),
     enableRides: zod.boolean().describe('Rides enabled'),
     enableRoutes: zod.boolean().describe('Routes enabled'),
+    visibilityEditable: zod.boolean().describe('Whether visibility is editable by team admins'),
+    joinable: zod.boolean().describe('Whether any domain user can join this team'),
+    addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
     memberCount: zod.number().describe('Number of team members'),
     role: zod
       .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])

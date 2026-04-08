@@ -28,7 +28,7 @@ export function CreateTeamPage() {
   const initialValues = {
     name: '',
     media: defaultMedia(),
-    visibility: Visibility.PUBLIC,
+    visibility: Visibility.TEAM,
     enableTrips: true,
     enableAds: true,
     enablePosts: true,

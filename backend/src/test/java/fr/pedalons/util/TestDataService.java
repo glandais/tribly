@@ -163,6 +163,44 @@ public class TestDataService {
   }
 
   @Transactional
+  public User createPlatformAdminUser(String email, String displayName) {
+    Domain domain = getOrCreateDefaultDomain();
+    User user = new User(domain, email, displayName);
+    user.setPlatformRole(fr.pedalons.enums.PlatformRole.PLATFORM_ADMIN);
+    userRepository.persistAndFlush(user);
+    return user;
+  }
+
+  @Transactional
+  public Team findTeamBySlug(Domain domain, String slug) {
+    return teamRepository.findBySlugAndDomain(domain.getId(), slug).orElseThrow();
+  }
+
+  @Transactional
+  public void setTeamJoinable(Team team, boolean joinable) {
+    Team managed = teamRepository.findById(team.getId());
+    managed.setJoinable(joinable);
+  }
+
+  @Transactional
+  public void setTeamAddMemberAllowed(Team team, boolean allowed) {
+    Team managed = teamRepository.findById(team.getId());
+    managed.setAddMemberAllowed(allowed);
+  }
+
+  @Transactional
+  public void setTeamVisibilityEditable(Team team, boolean editable) {
+    Team managed = teamRepository.findById(team.getId());
+    managed.setVisibilityEditable(editable);
+  }
+
+  @Transactional
+  public void setTeamVisibility(Team team, Visibility visibility) {
+    Team managed = teamRepository.findById(team.getId());
+    managed.setVisibility(visibility);
+  }
+
+  @Transactional
   public Team createTeam(User user, String name, String slug, Visibility visibility) {
     Domain domain = user.getDomain();
     Team team = new Team(domain, user, name, slug, visibility);

@@ -1,7 +1,6 @@
 package fr.pedalons.service.team;
 
 import fr.pedalons.domain.team.Team;
-import fr.pedalons.domain.user.User;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.TeamRole;
@@ -35,7 +34,6 @@ public class TeamAccessChecker implements AccessChecker {
 
     Context context = pedalonsContext.getContext(params);
     Team team = context.team();
-    User user = context.user();
     TeamRole teamRole = context.teamRole();
 
     return switch (action) {

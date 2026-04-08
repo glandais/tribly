@@ -48,6 +48,15 @@ abstract class TeamDetailDto with _$TeamDetailDto {
     /// Routes enabled
     required bool enableRoutes,
 
+    /// Whether visibility is editable by team admins
+    required bool visibilityEditable,
+
+    /// Whether any domain user can join this team
+    required bool joinable,
+
+    /// Whether team admins can add members
+    required bool addMemberAllowed,
+
     /// Number of team members
     required int memberCount,
 

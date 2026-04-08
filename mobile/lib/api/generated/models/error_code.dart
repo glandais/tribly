@@ -80,6 +80,12 @@ enum ErrorCode {
   teamNotFound('TEAM_NOT_FOUND'),
   @JsonValue('TEAM_CREATION_DISABLED')
   teamCreationDisabled('TEAM_CREATION_DISABLED'),
+  @JsonValue('USER_TEAM_LIMIT_REACHED')
+  userTeamLimitReached('USER_TEAM_LIMIT_REACHED'),
+  @JsonValue('TEAM_JOIN_NOT_ALLOWED')
+  teamJoinNotAllowed('TEAM_JOIN_NOT_ALLOWED'),
+  @JsonValue('TEAM_ADD_MEMBER_NOT_ALLOWED')
+  teamAddMemberNotAllowed('TEAM_ADD_MEMBER_NOT_ALLOWED'),
   @JsonValue('GPS_SERVICE_ALREADY_CONNECTED')
   gpsServiceAlreadyConnected('GPS_SERVICE_ALREADY_CONNECTED'),
   @JsonValue('GPS_SERVICE_NOT_CONNECTED')

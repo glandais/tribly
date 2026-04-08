@@ -26,6 +26,26 @@ public class UserTeamRepository implements BaseRepository<UserTeam> {
     return getPage(pedalonsQuery, page, size);
   }
 
+  /**
+   * Returns the number of non-deleted teams where the given user holds an ADMIN role within the
+   * specified domain. Used to enforce the {@code MAX_ADMIN_TEAMS_PER_USER} creation limit for
+   * non-platform-admin users.
+   */
+  public long countAdminTeamsByUserAndDomain(Long userId, Long domainId) {
+    return getEntityManager()
+        .createQuery(
+            "SELECT COUNT(ut) FROM UserTeam ut "
+                + "JOIN ut.team t "
+                + "WHERE ut.user.id = :userId AND t.domain.id = :domainId "
+                + "AND ut.role = :role "
+                + "AND t.deleted = false",
+            Long.class)
+        .setParameter("userId", userId)
+        .setParameter("domainId", domainId)
+        .setParameter("role", TeamRole.ADMIN)
+        .getSingleResult();
+  }
+
   public long countAdminsByTeam(Long teamId) {
     return count(
         "team.id = ?1 and role = ?2 and " + "team.deleted = false and user.deleted = false",

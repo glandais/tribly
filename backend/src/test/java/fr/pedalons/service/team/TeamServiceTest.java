@@ -58,7 +58,7 @@ class TeamServiceTest extends AbstractBaseTest {
         new TeamRequest(
             "Test Team",
             MediaDto.builder().markdown("A test team").build(),
-            Visibility.PUBLIC,
+            Visibility.TEAM,
             true,
             true,
             true,
@@ -73,7 +73,7 @@ class TeamServiceTest extends AbstractBaseTest {
     assertEquals("Test Team", result.name());
     assertEquals("test-team", result.slug());
     assertEquals("A test team", result.about().markdown());
-    assertEquals(Visibility.PUBLIC, result.visibility());
+    assertEquals(Visibility.TEAM, result.visibility());
     assertEquals(TeamRole.ADMIN, result.role());
     assertEquals(1L, result.memberCount());
   }
@@ -84,7 +84,7 @@ class TeamServiceTest extends AbstractBaseTest {
         new TeamRequest(
             "My Team",
             MediaDto.builder().build(),
-            Visibility.PUBLIC,
+            Visibility.TEAM,
             true,
             true,
             true,
@@ -104,7 +104,7 @@ class TeamServiceTest extends AbstractBaseTest {
         new TeamRequest(
             "Test Team",
             MediaDto.builder().build(),
-            Visibility.PUBLIC,
+            Visibility.TEAM,
             true,
             true,
             true,
@@ -115,7 +115,7 @@ class TeamServiceTest extends AbstractBaseTest {
         new TeamRequest(
             "Test Team",
             MediaDto.builder().build(),
-            Visibility.PUBLIC,
+            Visibility.TEAM,
             true,
             true,
             true,
@@ -131,6 +131,59 @@ class TeamServiceTest extends AbstractBaseTest {
     assertEquals("test-team", team1.slug());
     assertNotEquals("test-team", team2.slug());
     assertTrue(team2.slug().startsWith("test-team-"));
+  }
+
+  @Test
+  void createTeam_shouldRejectNonTeamVisibility() {
+    TeamRequest request =
+        new TeamRequest(
+            "My Team",
+            MediaDto.builder().build(),
+            Visibility.PUBLIC,
+            true,
+            true,
+            true,
+            true,
+            true,
+            null);
+
+    queryContext.setUserForTest(user1);
+    BusinessException ex =
+        assertThrows(BusinessException.class, () -> teamService.createTeam(request));
+    assertEquals("INVALID_VISIBILITY", ex.getMessage());
+  }
+
+  @Test
+  void createTeam_shouldEnforceOneTeamLimit() {
+    TeamRequest request =
+        new TeamRequest(
+            "My Team",
+            MediaDto.builder().build(),
+            Visibility.TEAM,
+            true,
+            true,
+            true,
+            true,
+            true,
+            null);
+
+    queryContext.setUserForTest(user1);
+    teamService.createTeam(request);
+
+    TeamRequest request2 =
+        new TeamRequest(
+            "Second Team",
+            MediaDto.builder().build(),
+            Visibility.TEAM,
+            true,
+            true,
+            true,
+            true,
+            true,
+            null);
+    BusinessException ex =
+        assertThrows(BusinessException.class, () -> teamService.createTeam(request2));
+    assertEquals("USER_TEAM_LIMIT_REACHED", ex.getMessage());
   }
 
   // ==================== List Teams ====================
@@ -204,6 +257,7 @@ class TeamServiceTest extends AbstractBaseTest {
   @Test
   void updateTeam_shouldUpdateAllFields() {
     Team team = dataService.createTeam(user1, "Original", "original", Visibility.PUBLIC);
+    dataService.setTeamVisibilityEditable(team, true);
     TeamRequest request =
         new TeamRequest(
             "Updated Name",
@@ -221,6 +275,73 @@ class TeamServiceTest extends AbstractBaseTest {
 
     assertEquals("Updated Name", result.name());
     assertEquals("Updated description", result.about().markdown());
+    assertEquals(Visibility.TEAM, result.visibility());
+  }
+
+  @Test
+  void updateTeam_withLockedVisibility_shouldThrowWhenChangingVisibility() {
+    Team team = dataService.createTeam(user1, "Locked Team", "locked", Visibility.PUBLIC);
+    // visibilityEditable is false by default
+    TeamRequest request =
+        new TeamRequest(
+            "Locked Team",
+            MediaDto.builder().build(),
+            Visibility.TEAM,
+            true,
+            true,
+            true,
+            true,
+            true,
+            null);
+
+    queryContext.setUserForTest(user1);
+    BusinessException ex =
+        assertThrows(
+            BusinessException.class, () -> teamService.updateTeam(team.getSlug(), request));
+    assertEquals("INVALID_VISIBILITY", ex.getMessage());
+  }
+
+  @Test
+  void updateTeam_withLockedVisibility_shouldSucceedWhenVisibilityUnchanged() {
+    Team team = dataService.createTeam(user1, "Locked Team", "locked", Visibility.PUBLIC);
+    TeamRequest request =
+        new TeamRequest(
+            "New Name",
+            MediaDto.builder().build(),
+            Visibility.PUBLIC,
+            true,
+            true,
+            true,
+            true,
+            true,
+            null);
+
+    queryContext.setUserForTest(user1);
+    TeamDetailDto result = teamService.updateTeam(team.getSlug(), request);
+
+    assertEquals("New Name", result.name());
+    assertEquals(Visibility.PUBLIC, result.visibility());
+  }
+
+  @Test
+  void updateTeam_withEditableVisibility_shouldAllowChange() {
+    Team team = dataService.createTeam(user1, "Editable Team", "editable", Visibility.PUBLIC);
+    dataService.setTeamVisibilityEditable(team, true);
+    TeamRequest request =
+        new TeamRequest(
+            "Editable Team",
+            MediaDto.builder().build(),
+            Visibility.TEAM,
+            true,
+            true,
+            true,
+            true,
+            true,
+            null);
+
+    queryContext.setUserForTest(user1);
+    TeamDetailDto result = teamService.updateTeam(team.getSlug(), request);
+
     assertEquals(Visibility.TEAM, result.visibility());
   }
 
