@@ -129,3 +129,7 @@ final gpsServicesClientProvider = Provider<GpsServicesClient>((ref) {
 final adsClientProvider = Provider<AdsClient>((ref) {
   return ref.watch(apiClientProvider).ads;
 });
+
+final teamPagesClientProvider = Provider<TeamPagesClient>((ref) {
+  return ref.watch(apiClientProvider).teamPages;
+});

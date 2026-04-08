@@ -3,9 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../api/generated/export.dart';
+import '../../../../api/pedalons_api_client.dart';
 import '../../../../core/adaptive/adaptive.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../widgets/team_sliver_app_bar.dart';
+
+/// Provider for a single team page's full content
+final _teamPageProvider =
+    FutureProvider.family<TeamPageDto, ({String teamSlug, String pageSlug})>(
+  (ref, params) async {
+    final client = ref.watch(teamPagesClientProvider);
+    return client.getPage(teamSlug: params.teamSlug, pageSlug: params.pageSlug);
+  },
+);
 
 class TeamAboutPage extends ConsumerWidget {
   final String teamSlug;
@@ -19,6 +29,11 @@ class TeamAboutPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final visiblePages = team.pages
+            ?.where((p) => !p.deleted)
+            .toList()
+          ?..sort((a, b) => a.order.compareTo(b.order));
+
     return CustomScrollView(
       slivers: [
         TeamSliverAppBar(team: team),
@@ -72,32 +87,69 @@ class TeamAboutPage extends ConsumerWidget {
             ),
           ),
 
-        // Custom pages
-        if (team.pages != null && team.pages!.isNotEmpty)
-          SliverToBoxAdapter(
-            child: ContentWidthConstraint(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'teams.aboutPage.pages'.tr(),
-                    style: Theme.of(context).textTheme.titleMedium,
+        // Team pages — each displayed inline with its content
+        if (visiblePages != null && visiblePages.isNotEmpty)
+          ...visiblePages.map((pageSummary) => SliverToBoxAdapter(
+                child: ContentWidthConstraint(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: _TeamPageCard(
+                    teamSlug: teamSlug,
+                    pageSummary: pageSummary,
                   ),
-                  const SizedBox(height: 8),
-                  ...team.pages!.map((page) => Card(
-                        child: ListTile(
-                          leading: const Icon(Icons.description),
-                          title: Text(page.title),
-                        ),
-                      )),
-                ],
-              ),
-            ),
-          ),
+                ),
+              )),
 
         const SliverPadding(padding: EdgeInsets.only(bottom: 32)),
       ],
+    );
+  }
+}
+
+/// Displays a team page's full content inline.
+class _TeamPageCard extends ConsumerWidget {
+  final String teamSlug;
+  final TeamPageSummaryDto pageSummary;
+
+  const _TeamPageCard({
+    required this.teamSlug,
+    required this.pageSummary,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final params = (teamSlug: teamSlug, pageSlug: pageSummary.slug);
+    final pageAsync = ref.watch(_teamPageProvider(params));
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              pageSummary.title,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            pageAsync.when(
+              data: (page) => MarkdownContent(
+                data: page.media.markdown,
+                images: page.media.assets.images,
+              ),
+              loading: () => const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (error, _) => Text(
+                'common.loadError'.tr(),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.error),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
