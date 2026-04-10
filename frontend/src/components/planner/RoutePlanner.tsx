@@ -14,6 +14,7 @@ import { PedalonsMap } from '../map/PedalonsMap'
 import { KmMarkersLayer } from '../map/MapMarkers'
 import { UndoRedoControl } from './UndoRedoControl'
 import { RouterProfileSelector } from './RouterProfileSelector'
+import { RoutePlannerMiniMap } from './RoutePlannerMiniMap'
 import { useUnits } from '../../hooks/useUnits'
 import { useRoutePlanner, findAnchorStartPoint, findAnchorEndPoint } from '../../hooks/useRoutePlanner'
 import type { GeoPoint } from '@/api/dto'
@@ -118,6 +119,9 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
     }))
     onPointsChange(allPoints)
   }, [routeGeoJson, onPointsChange])
+
+  // Cursor position for mini-map (desktop only)
+  const [cursorPosition, setCursorPosition] = useState<{ lng: number; lat: number } | null>(null)
 
   // State for effective start on edition
   const [startDragPoint, setStartDragPoint] = useState<RoutePoint | undefined>(undefined)
@@ -321,6 +325,10 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
 
   const handleMouseMove = useCallback(
     (event: MapMouseEvent) => {
+      if (!isTouchDevice) {
+        setCursorPosition({ lng: event.lngLat.lng, lat: event.lngLat.lat })
+      }
+
       if (draggingGhost) {
         setDraggingGhost((prev) =>
           prev ? { ...prev, lng: event.lngLat.lng, lat: event.lngLat.lat } : null
@@ -368,11 +376,12 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
 
       setHoverPoint(null)
     },
-    [route, routeGeoJson, draggingGhost, draggingMarker, controlPoints]
+    [route, routeGeoJson, draggingGhost, draggingMarker, controlPoints, isTouchDevice]
   )
 
   const handleMouseLeave = useCallback(() => {
     setHoverPoint(null)
+    setCursorPosition(null)
   }, [])
 
   const handleMapMouseDown = useCallback(
@@ -757,6 +766,14 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
               <Text size="sm">{t('planner.menu.delete')}</Text>
             </Group>
           </Box>
+        )}
+
+        {/* Mini-map: desktop only, follows cursor */}
+        {!isTouchDevice && cursorPosition && (
+          <RoutePlannerMiniMap
+            center={cursorPosition}
+            routeGeoJson={routeGeoJson}
+          />
         )}
 
         {/* Instructions overlay */}
