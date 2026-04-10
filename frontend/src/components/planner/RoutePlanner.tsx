@@ -15,7 +15,7 @@ import { KmMarkersLayer } from '../map/MapMarkers'
 import { UndoRedoControl } from './UndoRedoControl'
 import { RouterProfileSelector } from './RouterProfileSelector'
 import { useUnits } from '../../hooks/useUnits'
-import { useRoutePlanner, findBboxStartPoint, findBboxEndPoint } from '../../hooks/useRoutePlanner'
+import { useRoutePlanner, findAnchorStartPoint, findAnchorEndPoint } from '../../hooks/useRoutePlanner'
 import type { GeoPoint } from '@/api/dto'
 // maplibre-gl CSS is provided by maplibre-theme in index.css
 import { RoutePoint } from '@/lib/planner'
@@ -58,7 +58,7 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
     redo,
   } = useRoutePlanner({ initialTrack })
 
-  const getMapBounds = useCallback(() => mapRef.current?.getBounds() ?? null, [])
+  const getMapZoom = useCallback(() => mapRef.current?.getZoom() ?? DEFAULT_ZOOM, [])
 
   // Calculate initial view state from track bounds or team location
   const initialViewState = useMemo(() => {
@@ -200,9 +200,9 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
 
   const handleContextMenuDelete = useCallback(() => {
     if (!contextMenu) return
-    removeControlPoint(contextMenu.idx, ctrlKeyRef.current, getMapBounds())
+    removeControlPoint(contextMenu.idx, ctrlKeyRef.current, getMapZoom())
     setContextMenu(null)
-  }, [contextMenu, removeControlPoint, getMapBounds])
+  }, [contextMenu, removeControlPoint, getMapZoom])
 
   // Track Ctrl key state for direct line mode + undo/redo shortcuts
   const ctrlKeyRef = useRef(false)
@@ -232,12 +232,12 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
   const handleMarkerDragStart = useCallback(
     (idx: number) => (event: MarkerDragEvent) => {
       setDraggingMarker({ idx, lng: event.lngLat.lng, lat: event.lngLat.lat })
-      const bounds = getMapBounds()
-      setStartDragPoint(findBboxStartPoint(route, idx, bounds))
-      setEndDragPoint(findBboxEndPoint(route, idx, bounds))
+      const zoom = getMapZoom()
+      setStartDragPoint(findAnchorStartPoint(route, idx, zoom))
+      setEndDragPoint(findAnchorEndPoint(route, idx, zoom))
       setHoverPoint(null)
     },
-    [route, getMapBounds]
+    [route, getMapZoom]
   )
 
   const handleMarkerDrag = useCallback(
@@ -267,9 +267,9 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
   const handleMarkerRightClick = useCallback(
     (index: number) => (event: React.MouseEvent) => {
       event.preventDefault()
-      removeControlPoint(index, ctrlKeyRef.current, getMapBounds())
+      removeControlPoint(index, ctrlKeyRef.current, getMapZoom())
     },
-    [removeControlPoint, getMapBounds]
+    [removeControlPoint, getMapZoom]
   )
 
   const handleMapClick = useCallback(
@@ -296,9 +296,9 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
           const nearestIds = around(route.index, event.lngLat.lng, event.lngLat.lat, 1, 1)
           if (nearestIds.length === 1) {
             const nearestId = nearestIds[0]
-            const bounds = getMapBounds()
-            const start = findBboxStartPoint(route, nearestId, bounds)
-            const end = findBboxEndPoint(route, nearestId, bounds)
+            const zoom = getMapZoom()
+            const start = findAnchorStartPoint(route, nearestId, zoom)
+            const end = findAnchorEndPoint(route, nearestId, zoom)
             insertControlPoint(start, { lng: event.lngLat.lng, lat: event.lngLat.lat }, end, false)
             return
           }
@@ -314,7 +314,7 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
       routeGeoJson,
       route,
       insertControlPoint,
-      getMapBounds,
+      getMapZoom,
       isTouchDevice,
     ]
   )
@@ -387,12 +387,12 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
         lat: hoverPoint.lat,
         idx: hoverPoint.idx,
       })
-      const bounds = getMapBounds()
-      setStartDragPoint(findBboxStartPoint(route, hoverPoint.idx, bounds))
-      setEndDragPoint(findBboxEndPoint(route, hoverPoint.idx, bounds))
+      const zoom = getMapZoom()
+      setStartDragPoint(findAnchorStartPoint(route, hoverPoint.idx, zoom))
+      setEndDragPoint(findAnchorEndPoint(route, hoverPoint.idx, zoom))
       setHoverPoint(null)
     },
-    [hoverPoint, getMapBounds, route]
+    [hoverPoint, getMapZoom, route]
   )
 
   const handleMouseUp = useCallback(() => {
@@ -413,6 +413,22 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
     distance: route.dist,
     ascend: route.ascend,
   }
+
+  // Anchor points: non-manual simplified route points, each tagged with their min zoom level.
+  // The MapLibre filter [">=", ["zoom"], ["get", "zoom"]] shows them natively as the map zooms.
+  const anchorGeoJson = useMemo(() => {
+    if (!routeGeoJson) return null
+    return {
+      type: 'FeatureCollection' as const,
+      features: route.points
+        .filter((p) => !p.manual)
+        .map((p) => ({
+          type: 'Feature' as const,
+          geometry: { type: 'Point' as const, coordinates: [p.lng, p.lat] },
+          properties: { zoom: p.zoom },
+        })),
+    }
+  }, [route.points, routeGeoJson])
 
   // Compute connection lines and boundary points when dragging
   const { dragConnectionLines } = useMemo(() => {
@@ -545,6 +561,24 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
                   'line-color': '#4F46E5',
                   'line-width': 5,
                   'line-opacity': 0.8,
+                }}
+              />
+            </Source>
+          )}
+
+          {/* Anchor points: visible at their computed min zoom level */}
+          {anchorGeoJson && (
+            <Source id="anchors" type="geojson" data={anchorGeoJson}>
+              <Layer
+                id="anchor-points"
+                type="circle"
+                filter={['>=', ['zoom'], ['get', 'zoom']]}
+                paint={{
+                  'circle-radius': 5,
+                  'circle-color': 'white',
+                  'circle-stroke-width': 2,
+                  'circle-stroke-color': '#4F46E5',
+                  'circle-opacity': 0.9,
                 }}
               />
             </Source>

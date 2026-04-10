@@ -15,6 +15,8 @@ export interface RoutePoint {
   lat: number
   ele?: number
   manual: boolean
+  rdpDistance?: number
+  zoom: number
 }
 
 export interface Route {
@@ -50,6 +52,19 @@ function getAscend(points: RoutePoint[]): number {
   return ascend
 }
 
+const EARTH_RADIUS = 6371008.8
+const MIN_ANCHOR_ZOOM = 0
+const MAX_ANCHOR_ZOOM = 22
+
+function getZoomLevelForDistance(lat: number, dist?: number): number {
+  if (dist === undefined || dist <= 0) return MIN_ANCHOR_ZOOM
+  const rad = (lat * Math.PI) / 180
+  return Math.min(
+    MAX_ANCHOR_ZOOM,
+    Math.max(MIN_ANCHOR_ZOOM, Math.round(Math.log2((EARTH_RADIUS * Math.cos(rad)) / dist)))
+  )
+}
+
 function createPoint(lng: number, lat: number, ele?: number): RoutePoint {
   return {
     id: `p-${++pointIdCounter}`,
@@ -58,6 +73,7 @@ function createPoint(lng: number, lat: number, ele?: number): RoutePoint {
     lat,
     ele,
     manual: false,
+    zoom: 0,
   }
 }
 
@@ -69,6 +85,7 @@ export function computeRoute(input: RoutePoint[]): Route {
   const points = ramerDouglasPeucker(input, 5)
   points.forEach((p, idx) => {
     p.idx = idx
+    p.zoom = p.manual ? MIN_ANCHOR_ZOOM : getZoomLevelForDistance(p.lat, p.rdpDistance)
   })
   const index = new KDBush(points.length)
   for (const { lng, lat } of points) index.add(lng, lat)
@@ -232,7 +249,7 @@ function ramerDouglasPeucker(points: RoutePoint[], epsilon: number = 50): RouteP
   }
 
   points[0].manual = true
-  const filtered = [points[0]]
+  const filtered: RoutePoint[] = [points[0]]
   ramerDouglasPeuckerRecursive(points, filtered, epsilon, 0, points.length - 1)
   points[points.length - 1].manual = true
   filtered.push(points[points.length - 1])
@@ -262,7 +279,9 @@ function ramerDouglasPeuckerRecursive(
 
   if (largest.distance > epsilon && largest.index != 0) {
     ramerDouglasPeuckerRecursive(points, filtered, epsilon, start, largest.index)
-    filtered.push(points[largest.index])
+    const kept = points[largest.index]
+    kept.rdpDistance = largest.distance
+    filtered.push(kept)
     ramerDouglasPeuckerRecursive(points, filtered, epsilon, largest.index, end)
   }
 }

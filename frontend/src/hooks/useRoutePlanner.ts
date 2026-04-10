@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
-import type { LngLatBounds } from 'maplibre-gl'
 import {
   add,
   computeRoute,
@@ -40,59 +39,47 @@ interface UseRoutePlannerReturn {
     end: RoutePoint | undefined,
     direct?: boolean
   ) => void
-  removeControlPoint: (index: number, direct?: boolean, bounds?: LngLatBounds | null) => void
+  removeControlPoint: (index: number, direct?: boolean, zoom?: number) => void
   clearRoute: () => void
   undo: () => void
   redo: () => void
 }
 
 /**
- * Find the start boundary for a bbox-scoped operation.
+ * Find the start anchor for a zoom-scoped operation.
  * Walks backward through route.points from fromRouteIdx,
- * returns the first route point still inside the bbox.
- * @param fromRouteIdx - route index to walk backward from (defaults to the control point's route index)
+ * returns the nearest point that is an anchor at the given zoom level.
  */
-export function findBboxStartPoint(
+export function findAnchorStartPoint(
   route: Route,
   fromRouteIdx: number,
-  bounds: LngLatBounds | null | undefined
+  zoom: number
 ): RoutePoint | undefined {
-  if (fromRouteIdx <= 0 || !bounds) return undefined
+  if (fromRouteIdx <= 0) return undefined
 
   for (let i = fromRouteIdx - 1; i >= 0; i--) {
     const p = route.points[i]
-    if (!bounds.contains([p.lng, p.lat])) {
-      return route.points[Math.min(i + 1, fromRouteIdx - 1)]
-    }
-    if (p.manual) {
-      return p
-    }
+    if (p.manual || p.zoom <= zoom) return p
   }
 
   return route.points[0]
 }
 
 /**
- * Find the end boundary for a bbox-scoped operation.
+ * Find the end anchor for a zoom-scoped operation.
  * Walks forward through route.points from fromRouteIdx,
- * returns the last route point still inside the bbox.
- * @param fromRouteIdx - route index to walk forward from (defaults to the control point's route index)
+ * returns the nearest point that is an anchor at the given zoom level.
  */
-export function findBboxEndPoint(
+export function findAnchorEndPoint(
   route: Route,
   fromRouteIdx: number,
-  bounds: LngLatBounds | null | undefined
+  zoom: number
 ): RoutePoint | undefined {
-  if (fromRouteIdx >= route.points.length - 1 || !bounds) return undefined
+  if (fromRouteIdx >= route.points.length - 1) return undefined
 
   for (let i = fromRouteIdx + 1; i < route.points.length; i++) {
     const p = route.points[i]
-    if (!bounds.contains([p.lng, p.lat])) {
-      return route.points[Math.max(i - 1, fromRouteIdx + 1)]
-    }
-    if (p.manual) {
-      return p
-    }
+    if (p.manual || p.zoom <= zoom) return p
   }
 
   return route.points[route.points.length - 1]
@@ -166,9 +153,9 @@ export function useRoutePlanner(options?: UseRoutePlannerOptions): UseRoutePlann
   )
 
   const removeControlPoint = useCallback(
-    (index: number, direct = false, bounds?: LngLatBounds | null) => {
-      const start = findBboxStartPoint(route, index, bounds)
-      const end = findBboxEndPoint(route, index, bounds)
+    (index: number, direct = false, zoom = 0) => {
+      const start = findAnchorStartPoint(route, index, zoom)
+      const end = findAnchorEndPoint(route, index, zoom)
       executeRouteOperation((route) => remove(route, start, end, routerProfile, direct))
     },
     [executeRouteOperation, route, routerProfile]
