@@ -1,7 +1,7 @@
 name: pedalons
 description: "Pédalons mobile app - cycling team platform"
 publish_to: 'none'
-version: 1.0.0
+version: 1.0.0+2
 
 environment:
   sdk: ^3.10.4
@@ -79,4 +79,5 @@ flutter:
 
   assets:
     - assets/l10n/
+    - assets/icon.png
     - privacy/

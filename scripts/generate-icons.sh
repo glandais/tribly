@@ -59,6 +59,10 @@ generate_mobile() {
   magick "$PNG" -resize 336x336 "$LAUNCH_DIR/LaunchImage@2x.png"
   magick "$PNG" -resize 504x504 "$LAUNCH_DIR/LaunchImage@3x.png"
   echo "  LaunchImage.png (168/336/504)"
+
+  # Copy icon for in-app usage (login page, etc.)
+  cp "$PNG" "$REPO_ROOT/mobile/assets/icon.png"
+  echo "  assets/icon.png (1024x1024)"
 }
 
 generate_karoo() {

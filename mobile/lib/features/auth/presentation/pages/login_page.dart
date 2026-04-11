@@ -178,10 +178,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 32),
-                  Icon(
-                    Icons.directions_bike,
-                    size: 80,
-                    color: theme.colorScheme.primary,
+                  Image.asset(
+                    'assets/icon.png',
+                    width: 80,
+                    height: 80,
                   ),
                   const SizedBox(height: 16),
                   Text(
