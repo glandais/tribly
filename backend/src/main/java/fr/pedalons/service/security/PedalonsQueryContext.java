@@ -149,6 +149,7 @@ public class PedalonsQueryContext {
     }
   }
 
+  @SuppressWarnings("unchecked")
   @Nullable
   public <T> T getParam(List<Object> params, int i) {
     return (T) params.get(i);
