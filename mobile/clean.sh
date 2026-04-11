@@ -2,6 +2,9 @@
 set -e
 
 flutter clean
+dart run openapi_retrofit_generator
+dart run build_runner build --delete-conflicting-outputs
+
 rm -rf build
 
 # iOS

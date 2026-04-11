@@ -12,4 +12,10 @@ public record UpdateDomainRequest(
         String name,
     @NotBlank @Size(max = 500) @Schema(description = "Base URL for the domain", required = true)
         String baseUrl,
-    @Schema(description = "Whether domain is single-team mode") boolean singleTeam) {}
+    @Schema(description = "Whether domain is single-team mode") boolean singleTeam,
+    @Size(max = 1000)
+        @Schema(
+            description =
+                "Android app SHA-256 certificate fingerprints for passkey origin verification"
+                    + " (comma-separated, colon-hex format)")
+        String androidFingerprints) {}

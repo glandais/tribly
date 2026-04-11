@@ -34,6 +34,9 @@ public class Domain {
   @Column(name = "single_team", nullable = false)
   private boolean singleTeam = false;
 
+  @Column(name = "android_fingerprints", length = 1000)
+  private String androidFingerprints;
+
   @Column(name = "active", nullable = false)
   private boolean active = true;
 

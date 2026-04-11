@@ -16,7 +16,11 @@ import { UndoRedoControl } from './UndoRedoControl'
 import { RouterProfileSelector } from './RouterProfileSelector'
 import { RoutePlannerMiniMap } from './RoutePlannerMiniMap'
 import { useUnits } from '../../hooks/useUnits'
-import { useRoutePlanner, findAnchorStartPoint, findAnchorEndPoint } from '../../hooks/useRoutePlanner'
+import {
+  useRoutePlanner,
+  findAnchorStartPoint,
+  findAnchorEndPoint,
+} from '../../hooks/useRoutePlanner'
 import type { GeoPoint } from '@/api/dto'
 // maplibre-gl CSS is provided by maplibre-theme in index.css
 import { RoutePoint } from '@/lib/planner'
@@ -770,10 +774,7 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
 
         {/* Mini-map: desktop only, follows cursor */}
         {!isTouchDevice && cursorPosition && (
-          <RoutePlannerMiniMap
-            center={cursorPosition}
-            routeGeoJson={routeGeoJson}
-          />
+          <RoutePlannerMiniMap center={cursorPosition} routeGeoJson={routeGeoJson} />
         )}
 
         {/* Instructions overlay */}

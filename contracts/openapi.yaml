@@ -302,6 +302,10 @@ components:
         singleTeam:
           type: boolean
           description: Whether domain is single-team mode
+        androidFingerprints:
+          type: string
+          description: "Android app SHA-256 certificate fingerprints for passkey origin\
+            \ verification (comma-separated, colon-hex format)"
         active:
           type: boolean
           description: Whether domain is active
@@ -904,6 +908,11 @@ components:
         singleTeam:
           type: boolean
           description: Whether domain is single-team mode
+        androidFingerprints:
+          type: string
+          description: "Android app SHA-256 certificate fingerprints for passkey origin\
+            \ verification (comma-separated, colon-hex format)"
+          maxLength: 1000
     CreateGpsCredentialRequest:
       description: Request to create a new GPS credential
       type: object
@@ -3304,6 +3313,11 @@ components:
         singleTeam:
           type: boolean
           description: Whether domain is single-team mode
+        androidFingerprints:
+          type: string
+          description: "Android app SHA-256 certificate fingerprints for passkey origin\
+            \ verification (comma-separated, colon-hex format)"
+          maxLength: 1000
     UpdateGpsCredentialRequest:
       description: Request to update a GPS credential
       type: object

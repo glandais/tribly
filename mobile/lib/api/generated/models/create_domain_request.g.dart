@@ -12,6 +12,7 @@ _CreateDomainRequest _$CreateDomainRequestFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String,
       baseUrl: json['baseUrl'] as String,
       singleTeam: json['singleTeam'] as bool?,
+      androidFingerprints: json['androidFingerprints'] as String?,
     );
 
 Map<String, dynamic> _$CreateDomainRequestToJson(
@@ -21,4 +22,5 @@ Map<String, dynamic> _$CreateDomainRequestToJson(
   'name': instance.name,
   'baseUrl': instance.baseUrl,
   'singleTeam': instance.singleTeam,
+  'androidFingerprints': instance.androidFingerprints,
 };

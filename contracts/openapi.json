@@ -313,6 +313,10 @@
             "type" : "boolean",
             "description" : "Whether domain is single-team mode"
           },
+          "androidFingerprints" : {
+            "type" : "string",
+            "description" : "Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)"
+          },
           "active" : {
             "type" : "boolean",
             "description" : "Whether domain is active"
@@ -984,6 +988,11 @@
           "singleTeam" : {
             "type" : "boolean",
             "description" : "Whether domain is single-team mode"
+          },
+          "androidFingerprints" : {
+            "type" : "string",
+            "description" : "Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)",
+            "maxLength" : 1000
           }
         }
       },
@@ -3535,6 +3544,11 @@
           "singleTeam" : {
             "type" : "boolean",
             "description" : "Whether domain is single-team mode"
+          },
+          "androidFingerprints" : {
+            "type" : "string",
+            "description" : "Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)",
+            "maxLength" : 1000
           }
         }
       },

@@ -19,6 +19,9 @@ abstract class UpdateDomainRequest with _$UpdateDomainRequest {
 
     /// Whether domain is single-team mode
     bool? singleTeam,
+
+    /// Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)
+    String? androidFingerprints,
   }) = _UpdateDomainRequest;
 
   factory UpdateDomainRequest.fromJson(Map<String, Object?> json) =>

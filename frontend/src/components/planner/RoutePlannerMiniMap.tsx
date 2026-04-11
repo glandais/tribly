@@ -77,21 +77,43 @@ export function RoutePlannerMiniMap({ center, routeGeoJson }: RoutePlannerMiniMa
       </Map>
 
       {/* Crosshair */}
-      <Box pos="absolute" top="50%" left={0} right={0} h={1} bg="rgba(0,0,0,0.5)" style={{ transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-      <Box pos="absolute" left="50%" top={0} bottom={0} w={1} bg="rgba(0,0,0,0.5)" style={{ transform: 'translateX(-50%)', pointerEvents: 'none' }} />
+      <Box
+        pos="absolute"
+        top="50%"
+        left={0}
+        right={0}
+        h={1}
+        bg="rgba(0,0,0,0.5)"
+        style={{ transform: 'translateY(-50%)', pointerEvents: 'none' }}
+      />
+      <Box
+        pos="absolute"
+        left="50%"
+        top={0}
+        bottom={0}
+        w={1}
+        bg="rgba(0,0,0,0.5)"
+        style={{ transform: 'translateX(-50%)', pointerEvents: 'none' }}
+      />
 
       {/* Zoom controls */}
-      <Stack
-        pos="absolute"
-        top={8}
-        right={8}
-        gap={2}
-        style={{ pointerEvents: 'auto' }}
-      >
-        <ActionIcon size="xs" variant="white" onClick={zoomIn} disabled={zoom >= MAX_ZOOM} style={{ boxShadow: 'var(--mantine-shadow-xs)' }}>
+      <Stack pos="absolute" top={8} right={8} gap={2} style={{ pointerEvents: 'auto' }}>
+        <ActionIcon
+          size="xs"
+          variant="white"
+          onClick={zoomIn}
+          disabled={zoom >= MAX_ZOOM}
+          style={{ boxShadow: 'var(--mantine-shadow-xs)' }}
+        >
           <IconPlus size={10} />
         </ActionIcon>
-        <ActionIcon size="xs" variant="white" onClick={zoomOut} disabled={zoom <= MIN_ZOOM} style={{ boxShadow: 'var(--mantine-shadow-xs)' }}>
+        <ActionIcon
+          size="xs"
+          variant="white"
+          onClick={zoomOut}
+          disabled={zoom <= MIN_ZOOM}
+          style={{ boxShadow: 'var(--mantine-shadow-xs)' }}
+        >
           <IconMinus size={10} />
         </ActionIcon>
       </Stack>

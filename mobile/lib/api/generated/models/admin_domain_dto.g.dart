@@ -17,6 +17,7 @@ _AdminDomainDto _$AdminDomainDtoFromJson(Map<String, dynamic> json) =>
       teamCount: (json['teamCount'] as num).toInt(),
       userCount: (json['userCount'] as num).toInt(),
       createdAt: json['createdAt'] as String,
+      androidFingerprints: json['androidFingerprints'] as String?,
     );
 
 Map<String, dynamic> _$AdminDomainDtoToJson(_AdminDomainDto instance) =>
@@ -30,4 +31,5 @@ Map<String, dynamic> _$AdminDomainDtoToJson(_AdminDomainDto instance) =>
       'teamCount': instance.teamCount,
       'userCount': instance.userCount,
       'createdAt': instance.createdAt,
+      'androidFingerprints': instance.androidFingerprints,
     };

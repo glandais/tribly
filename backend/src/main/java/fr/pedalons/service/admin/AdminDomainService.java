@@ -64,9 +64,14 @@ public class AdminDomainService {
   @Admin
   @Transactional
   public AdminDomainDto createDomain(
-      String domainName, String name, String baseUrl, boolean singleTeam) {
+      String domainName,
+      String name,
+      String baseUrl,
+      boolean singleTeam,
+      String androidFingerprints) {
     Domain domain = new Domain(domainName, name, baseUrl);
     domain.setSingleTeam(singleTeam);
+    domain.setAndroidFingerprints(androidFingerprints);
     domainRepository.persist(domain);
     return AdminDomainDto.from(domain, 0, 0);
   }
@@ -74,11 +79,16 @@ public class AdminDomainService {
   @Admin
   @Transactional
   public AdminDomainDto updateDomain(
-      String domainId, String name, String baseUrl, boolean singleTeam) {
+      String domainId,
+      String name,
+      String baseUrl,
+      boolean singleTeam,
+      String androidFingerprints) {
     Domain domain = findDomain(domainId);
     domain.setName(name);
     domain.setBaseUrl(baseUrl);
     domain.setSingleTeam(singleTeam);
+    domain.setAndroidFingerprints(androidFingerprints);
     domainRepository.persist(domain);
     long teamCount = teamRepository.count("domain.id = ?1 and deleted = false", domain.getId());
     long userCount = userRepository.count("domain.id = ?1 and deleted = false", domain.getId());

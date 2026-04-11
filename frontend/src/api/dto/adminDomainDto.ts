@@ -14,6 +14,8 @@ export interface AdminDomainDto {
   baseUrl: string
   /** Whether domain is single-team mode */
   singleTeam: boolean
+  /** Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format) */
+  androidFingerprints?: string
   /** Whether domain is active */
   active: boolean
   /** Number of teams in this domain */

@@ -18,6 +18,7 @@ import {
   Paper,
   Select,
   PasswordInput,
+  Textarea,
   Divider,
   Alert,
   Loader,
@@ -54,6 +55,7 @@ interface DomainFormValues {
   name: string
   baseUrl: string
   singleTeam: boolean
+  androidFingerprints: string
 }
 
 interface CredentialFormValues {
@@ -79,6 +81,7 @@ export function DomainFormModal({ isOpen, onClose, domain }: DomainFormModalProp
       name: '',
       baseUrl: '',
       singleTeam: false,
+      androidFingerprints: '',
     },
   })
 
@@ -90,6 +93,7 @@ export function DomainFormModal({ isOpen, onClose, domain }: DomainFormModalProp
         name: domain?.name ?? '',
         baseUrl: domain?.baseUrl ?? '',
         singleTeam: domain?.singleTeam ?? false,
+        androidFingerprints: domain?.androidFingerprints ?? '',
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -104,6 +108,7 @@ export function DomainFormModal({ isOpen, onClose, domain }: DomainFormModalProp
             name: values.name,
             baseUrl: values.baseUrl,
             singleTeam: values.singleTeam,
+            androidFingerprints: values.androidFingerprints || undefined,
           },
         },
         {
@@ -125,6 +130,7 @@ export function DomainFormModal({ isOpen, onClose, domain }: DomainFormModalProp
             name: values.name,
             baseUrl: values.baseUrl,
             singleTeam: values.singleTeam,
+            androidFingerprints: values.androidFingerprints || undefined,
           },
         },
         {
@@ -174,6 +180,15 @@ export function DomainFormModal({ isOpen, onClose, domain }: DomainFormModalProp
           <Switch
             label={t('admin.domains.singleTeam')}
             {...domainForm.getInputProps('singleTeam', { type: 'checkbox' })}
+          />
+          <Textarea
+            label={t('admin.domains.androidFingerprints')}
+            description={t('admin.domains.androidFingerprintsDescription')}
+            placeholder={t('admin.domains.androidFingerprintsPlaceholder')}
+            autosize
+            minRows={2}
+            maxRows={4}
+            {...domainForm.getInputProps('androidFingerprints')}
           />
 
           {isEditMode && domain && (

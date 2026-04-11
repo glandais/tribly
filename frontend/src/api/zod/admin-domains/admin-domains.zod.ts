@@ -23,6 +23,12 @@ export const ListDomainsResponse = zod
             name: zod.string().describe('Domain display name'),
             baseUrl: zod.string().describe('Base URL for the domain'),
             singleTeam: zod.boolean().describe('Whether domain is single-team mode'),
+            androidFingerprints: zod
+              .string()
+              .optional()
+              .describe(
+                'Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)'
+              ),
             active: zod.boolean().describe('Whether domain is active'),
             teamCount: zod.number().describe('Number of teams in this domain'),
             userCount: zod.number().describe('Number of users in this domain'),
@@ -50,6 +56,7 @@ export const createDomainBodyNameRegExp = new RegExp('\\S')
 export const createDomainBodyBaseUrlMax = 500
 
 export const createDomainBodyBaseUrlRegExp = new RegExp('\\S')
+export const createDomainBodyAndroidFingerprintsMax = 1000
 
 export const CreateDomainBody = zod
   .object({
@@ -69,6 +76,13 @@ export const CreateDomainBody = zod
       .regex(createDomainBodyBaseUrlRegExp)
       .describe('Base URL for the domain'),
     singleTeam: zod.boolean().optional().describe('Whether domain is single-team mode'),
+    androidFingerprints: zod
+      .string()
+      .max(createDomainBodyAndroidFingerprintsMax)
+      .optional()
+      .describe(
+        'Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)'
+      ),
   })
   .describe('Request to create a new domain')
 
@@ -98,6 +112,7 @@ export const updateDomainBodyNameRegExp = new RegExp('\\S')
 export const updateDomainBodyBaseUrlMax = 500
 
 export const updateDomainBodyBaseUrlRegExp = new RegExp('\\S')
+export const updateDomainBodyAndroidFingerprintsMax = 1000
 
 export const UpdateDomainBody = zod
   .object({
@@ -112,6 +127,13 @@ export const UpdateDomainBody = zod
       .regex(updateDomainBodyBaseUrlRegExp)
       .describe('Base URL for the domain'),
     singleTeam: zod.boolean().optional().describe('Whether domain is single-team mode'),
+    androidFingerprints: zod
+      .string()
+      .max(updateDomainBodyAndroidFingerprintsMax)
+      .optional()
+      .describe(
+        'Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)'
+      ),
   })
   .describe('Request to update a domain')
 
@@ -122,6 +144,12 @@ export const UpdateDomainResponse = zod
     name: zod.string().describe('Domain display name'),
     baseUrl: zod.string().describe('Base URL for the domain'),
     singleTeam: zod.boolean().describe('Whether domain is single-team mode'),
+    androidFingerprints: zod
+      .string()
+      .optional()
+      .describe(
+        'Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)'
+      ),
     active: zod.boolean().describe('Whether domain is active'),
     teamCount: zod.number().describe('Number of teams in this domain'),
     userCount: zod.number().describe('Number of users in this domain'),
@@ -144,6 +172,12 @@ export const GetDomainResponse = zod
     name: zod.string().describe('Domain display name'),
     baseUrl: zod.string().describe('Base URL for the domain'),
     singleTeam: zod.boolean().describe('Whether domain is single-team mode'),
+    androidFingerprints: zod
+      .string()
+      .optional()
+      .describe(
+        'Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)'
+      ),
     active: zod.boolean().describe('Whether domain is active'),
     teamCount: zod.number().describe('Number of teams in this domain'),
     userCount: zod.number().describe('Number of users in this domain'),
@@ -264,6 +298,12 @@ export const ToggleDomainActiveResponse = zod
     name: zod.string().describe('Domain display name'),
     baseUrl: zod.string().describe('Base URL for the domain'),
     singleTeam: zod.boolean().describe('Whether domain is single-team mode'),
+    androidFingerprints: zod
+      .string()
+      .optional()
+      .describe(
+        'Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)'
+      ),
     active: zod.boolean().describe('Whether domain is active'),
     teamCount: zod.number().describe('Number of teams in this domain'),
     userCount: zod.number().describe('Number of users in this domain'),

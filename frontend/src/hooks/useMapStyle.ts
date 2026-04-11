@@ -11,8 +11,15 @@ export function useMapStyle() {
   const colorScheme = useComputedColorScheme('light')
   const defaultStyle = colorScheme === 'dark' ? DEFAULT_DARK_STYLE : DEFAULT_LIGHT_STYLE
 
-  const { savedStyleId, terrain3d, hillshade, setStyleId, clearStylePreference, setTerrain3d, setHillshade } =
-    useMapStyleStore()
+  const {
+    savedStyleId,
+    terrain3d,
+    hillshade,
+    setStyleId,
+    clearStylePreference,
+    setTerrain3d,
+    setHillshade,
+  } = useMapStyleStore()
 
   const styleId = savedStyleId ?? defaultStyle
 

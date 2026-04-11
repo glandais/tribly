@@ -169,10 +169,9 @@ public class PasskeyService {
       // Verify the registration
       var domain = domainResolver.getDomain();
       Challenge challenge = new DefaultChallenge(Base64.getUrlDecoder().decode(challengeValue));
-      Origin originObj = new Origin(domain.getBaseUrl());
       ServerProperty serverProperty =
           ServerProperty.builder()
-              .origins(Set.of(originObj))
+              .origins(buildOrigins(domain))
               .rpId(domain.getDomain())
               .challenge(challenge)
               .build();
@@ -362,10 +361,9 @@ public class PasskeyService {
       // Verify the authentication
       var domain = domainResolver.getDomain();
       Challenge challenge = new DefaultChallenge(Base64.getUrlDecoder().decode(challengeValue));
-      Origin originObj = new Origin(domain.getBaseUrl());
       ServerProperty serverProperty =
           ServerProperty.builder()
-              .origins(Set.of(originObj))
+              .origins(buildOrigins(domain))
               .rpId(domain.getDomain())
               .challenge(challenge)
               .build();
@@ -411,5 +409,37 @@ public class PasskeyService {
             .orElseThrow(() -> new NotFoundException(ErrorCode.PASSKEY_NOT_FOUND));
 
     passkeyRepository.delete(passkey);
+  }
+
+  /**
+   * Build the set of allowed origins for WebAuthn verification. Includes the web origin from the
+   * domain's base URL, plus any Android app origins derived from SHA-256 certificate fingerprints
+   * stored in {@code domain.androidFingerprints} (comma-separated, colon-hex format).
+   */
+  private Set<Origin> buildOrigins(Domain domain) {
+    Set<Origin> origins = new HashSet<>();
+    origins.add(new Origin(domain.getBaseUrl()));
+
+    String fingerprints = domain.getAndroidFingerprints();
+    if (fingerprints != null && !fingerprints.isBlank()) {
+      for (String fingerprint : fingerprints.split(",")) {
+        String trimmed = fingerprint.trim();
+        if (!trimmed.isEmpty()) {
+          origins.add(new Origin("android:apk-key-hash-sha256:" + hexToBase64Url(trimmed)));
+        }
+      }
+    }
+
+    return origins;
+  }
+
+  /** Convert a colon-separated hex fingerprint (e.g. "18:A9:F7:...") to base64url (no padding). */
+  private static String hexToBase64Url(String colonHex) {
+    String[] parts = colonHex.split(":");
+    byte[] bytes = new byte[parts.length];
+    for (int i = 0; i < parts.length; i++) {
+      bytes[i] = (byte) Integer.parseInt(parts[i], 16);
+    }
+    return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
   }
 }

@@ -140,7 +140,11 @@ public class AdminDomainResource {
 
     AdminDomainDto domain =
         adminDomainService.createDomain(
-            request.domain(), request.name(), request.baseUrl(), request.singleTeam());
+            request.domain(),
+            request.name(),
+            request.baseUrl(),
+            request.singleTeam(),
+            request.androidFingerprints());
     return Response.status(Response.Status.CREATED).entity(domain).build();
   }
 
@@ -171,7 +175,11 @@ public class AdminDomainResource {
 
     AdminDomainDto domain =
         adminDomainService.updateDomain(
-            domainId, request.name(), request.baseUrl(), request.singleTeam());
+            domainId,
+            request.name(),
+            request.baseUrl(),
+            request.singleTeam(),
+            request.androidFingerprints());
     return Response.ok(domain).build();
   }
 

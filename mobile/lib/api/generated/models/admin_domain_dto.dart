@@ -39,6 +39,9 @@ abstract class AdminDomainDto with _$AdminDomainDto {
 
     /// Domain creation timestamp
     required String createdAt,
+
+    /// Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)
+    String? androidFingerprints,
   }) = _AdminDomainDto;
 
   factory AdminDomainDto.fromJson(Map<String, Object?> json) =>

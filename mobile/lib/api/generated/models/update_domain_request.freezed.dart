@@ -18,7 +18,8 @@ mixin _$UpdateDomainRequest {
 /// Domain display name
  String get name;/// Base URL for the domain
  String get baseUrl;/// Whether domain is single-team mode
- bool? get singleTeam;
+ bool? get singleTeam;/// Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)
+ String? get androidFingerprints;
 /// Create a copy of UpdateDomainRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -31,16 +32,16 @@ $UpdateDomainRequestCopyWith<UpdateDomainRequest> get copyWith => _$UpdateDomain
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateDomainRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateDomainRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam)&&(identical(other.androidFingerprints, androidFingerprints) || other.androidFingerprints == androidFingerprints));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,baseUrl,singleTeam);
+int get hashCode => Object.hash(runtimeType,name,baseUrl,singleTeam,androidFingerprints);
 
 @override
 String toString() {
-  return 'UpdateDomainRequest(name: $name, baseUrl: $baseUrl, singleTeam: $singleTeam)';
+  return 'UpdateDomainRequest(name: $name, baseUrl: $baseUrl, singleTeam: $singleTeam, androidFingerprints: $androidFingerprints)';
 }
 
 
@@ -51,7 +52,7 @@ abstract mixin class $UpdateDomainRequestCopyWith<$Res>  {
   factory $UpdateDomainRequestCopyWith(UpdateDomainRequest value, $Res Function(UpdateDomainRequest) _then) = _$UpdateDomainRequestCopyWithImpl;
 @useResult
 $Res call({
- String name, String baseUrl, bool? singleTeam
+ String name, String baseUrl, bool? singleTeam, String? androidFingerprints
 });
 
 
@@ -68,12 +69,13 @@ class _$UpdateDomainRequestCopyWithImpl<$Res>
 
 /// Create a copy of UpdateDomainRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? baseUrl = null,Object? singleTeam = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? baseUrl = null,Object? singleTeam = freezed,Object? androidFingerprints = freezed,}) {
   return _then(_self.copyWith(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,baseUrl: null == baseUrl ? _self.baseUrl : baseUrl // ignore: cast_nullable_to_non_nullable
 as String,singleTeam: freezed == singleTeam ? _self.singleTeam : singleTeam // ignore: cast_nullable_to_non_nullable
-as bool?,
+as bool?,androidFingerprints: freezed == androidFingerprints ? _self.androidFingerprints : androidFingerprints // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -158,10 +160,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String baseUrl,  bool? singleTeam)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String baseUrl,  bool? singleTeam,  String? androidFingerprints)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UpdateDomainRequest() when $default != null:
-return $default(_that.name,_that.baseUrl,_that.singleTeam);case _:
+return $default(_that.name,_that.baseUrl,_that.singleTeam,_that.androidFingerprints);case _:
   return orElse();
 
 }
@@ -179,10 +181,10 @@ return $default(_that.name,_that.baseUrl,_that.singleTeam);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String baseUrl,  bool? singleTeam)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String baseUrl,  bool? singleTeam,  String? androidFingerprints)  $default,) {final _that = this;
 switch (_that) {
 case _UpdateDomainRequest():
-return $default(_that.name,_that.baseUrl,_that.singleTeam);case _:
+return $default(_that.name,_that.baseUrl,_that.singleTeam,_that.androidFingerprints);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +201,10 @@ return $default(_that.name,_that.baseUrl,_that.singleTeam);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String baseUrl,  bool? singleTeam)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String baseUrl,  bool? singleTeam,  String? androidFingerprints)?  $default,) {final _that = this;
 switch (_that) {
 case _UpdateDomainRequest() when $default != null:
-return $default(_that.name,_that.baseUrl,_that.singleTeam);case _:
+return $default(_that.name,_that.baseUrl,_that.singleTeam,_that.androidFingerprints);case _:
   return null;
 
 }
@@ -214,7 +216,7 @@ return $default(_that.name,_that.baseUrl,_that.singleTeam);case _:
 @JsonSerializable()
 
 class _UpdateDomainRequest implements UpdateDomainRequest {
-  const _UpdateDomainRequest({required this.name, required this.baseUrl, this.singleTeam});
+  const _UpdateDomainRequest({required this.name, required this.baseUrl, this.singleTeam, this.androidFingerprints});
   factory _UpdateDomainRequest.fromJson(Map<String, dynamic> json) => _$UpdateDomainRequestFromJson(json);
 
 /// Domain display name
@@ -223,6 +225,8 @@ class _UpdateDomainRequest implements UpdateDomainRequest {
 @override final  String baseUrl;
 /// Whether domain is single-team mode
 @override final  bool? singleTeam;
+/// Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)
+@override final  String? androidFingerprints;
 
 /// Create a copy of UpdateDomainRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -237,16 +241,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateDomainRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateDomainRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam)&&(identical(other.androidFingerprints, androidFingerprints) || other.androidFingerprints == androidFingerprints));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,baseUrl,singleTeam);
+int get hashCode => Object.hash(runtimeType,name,baseUrl,singleTeam,androidFingerprints);
 
 @override
 String toString() {
-  return 'UpdateDomainRequest(name: $name, baseUrl: $baseUrl, singleTeam: $singleTeam)';
+  return 'UpdateDomainRequest(name: $name, baseUrl: $baseUrl, singleTeam: $singleTeam, androidFingerprints: $androidFingerprints)';
 }
 
 
@@ -257,7 +261,7 @@ abstract mixin class _$UpdateDomainRequestCopyWith<$Res> implements $UpdateDomai
   factory _$UpdateDomainRequestCopyWith(_UpdateDomainRequest value, $Res Function(_UpdateDomainRequest) _then) = __$UpdateDomainRequestCopyWithImpl;
 @override @useResult
 $Res call({
- String name, String baseUrl, bool? singleTeam
+ String name, String baseUrl, bool? singleTeam, String? androidFingerprints
 });
 
 
@@ -274,12 +278,13 @@ class __$UpdateDomainRequestCopyWithImpl<$Res>
 
 /// Create a copy of UpdateDomainRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? baseUrl = null,Object? singleTeam = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? baseUrl = null,Object? singleTeam = freezed,Object? androidFingerprints = freezed,}) {
   return _then(_UpdateDomainRequest(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,baseUrl: null == baseUrl ? _self.baseUrl : baseUrl // ignore: cast_nullable_to_non_nullable
 as String,singleTeam: freezed == singleTeam ? _self.singleTeam : singleTeam // ignore: cast_nullable_to_non_nullable
-as bool?,
+as bool?,androidFingerprints: freezed == androidFingerprints ? _self.androidFingerprints : androidFingerprints // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

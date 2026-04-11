@@ -22,4 +22,9 @@ export interface CreateDomainRequest {
   baseUrl: string
   /** Whether domain is single-team mode */
   singleTeam?: boolean
+  /**
+   * Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)
+   * @maxLength 1000
+   */
+  androidFingerprints?: string
 }

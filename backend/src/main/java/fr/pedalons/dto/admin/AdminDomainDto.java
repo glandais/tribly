@@ -15,6 +15,11 @@ public record AdminDomainDto(
     @Schema(description = "Domain display name", required = true) String name,
     @Schema(description = "Base URL for the domain", required = true) String baseUrl,
     @Schema(description = "Whether domain is single-team mode", required = true) boolean singleTeam,
+    @Schema(
+            description =
+                "Android app SHA-256 certificate fingerprints for passkey origin verification"
+                    + " (comma-separated, colon-hex format)")
+        String androidFingerprints,
     @Schema(description = "Whether domain is active", required = true) boolean active,
     @Schema(description = "Number of teams in this domain", required = true) long teamCount,
     @Schema(description = "Number of users in this domain", required = true) long userCount,
@@ -27,6 +32,7 @@ public record AdminDomainDto(
         domain.getName(),
         domain.getBaseUrl(),
         domain.isSingleTeam(),
+        domain.getAndroidFingerprints(),
         domain.isActive(),
         teamCount,
         userCount,

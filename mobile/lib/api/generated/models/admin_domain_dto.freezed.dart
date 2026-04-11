@@ -24,7 +24,8 @@ mixin _$AdminDomainDto {
  bool get active;/// Number of teams in this domain
  int get teamCount;/// Number of users in this domain
  int get userCount;/// Domain creation timestamp
- String get createdAt;
+ String get createdAt;/// Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)
+ String? get androidFingerprints;
 /// Create a copy of AdminDomainDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -37,16 +38,16 @@ $AdminDomainDtoCopyWith<AdminDomainDto> get copyWith => _$AdminDomainDtoCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminDomainDto&&(identical(other.id, id) || other.id == id)&&(identical(other.domain, domain) || other.domain == domain)&&(identical(other.name, name) || other.name == name)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam)&&(identical(other.active, active) || other.active == active)&&(identical(other.teamCount, teamCount) || other.teamCount == teamCount)&&(identical(other.userCount, userCount) || other.userCount == userCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminDomainDto&&(identical(other.id, id) || other.id == id)&&(identical(other.domain, domain) || other.domain == domain)&&(identical(other.name, name) || other.name == name)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam)&&(identical(other.active, active) || other.active == active)&&(identical(other.teamCount, teamCount) || other.teamCount == teamCount)&&(identical(other.userCount, userCount) || other.userCount == userCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.androidFingerprints, androidFingerprints) || other.androidFingerprints == androidFingerprints));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,domain,name,baseUrl,singleTeam,active,teamCount,userCount,createdAt);
+int get hashCode => Object.hash(runtimeType,id,domain,name,baseUrl,singleTeam,active,teamCount,userCount,createdAt,androidFingerprints);
 
 @override
 String toString() {
-  return 'AdminDomainDto(id: $id, domain: $domain, name: $name, baseUrl: $baseUrl, singleTeam: $singleTeam, active: $active, teamCount: $teamCount, userCount: $userCount, createdAt: $createdAt)';
+  return 'AdminDomainDto(id: $id, domain: $domain, name: $name, baseUrl: $baseUrl, singleTeam: $singleTeam, active: $active, teamCount: $teamCount, userCount: $userCount, createdAt: $createdAt, androidFingerprints: $androidFingerprints)';
 }
 
 
@@ -57,7 +58,7 @@ abstract mixin class $AdminDomainDtoCopyWith<$Res>  {
   factory $AdminDomainDtoCopyWith(AdminDomainDto value, $Res Function(AdminDomainDto) _then) = _$AdminDomainDtoCopyWithImpl;
 @useResult
 $Res call({
- String id, String domain, String name, String baseUrl, bool singleTeam, bool active, int teamCount, int userCount, String createdAt
+ String id, String domain, String name, String baseUrl, bool singleTeam, bool active, int teamCount, int userCount, String createdAt, String? androidFingerprints
 });
 
 
@@ -74,7 +75,7 @@ class _$AdminDomainDtoCopyWithImpl<$Res>
 
 /// Create a copy of AdminDomainDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? domain = null,Object? name = null,Object? baseUrl = null,Object? singleTeam = null,Object? active = null,Object? teamCount = null,Object? userCount = null,Object? createdAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? domain = null,Object? name = null,Object? baseUrl = null,Object? singleTeam = null,Object? active = null,Object? teamCount = null,Object? userCount = null,Object? createdAt = null,Object? androidFingerprints = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,domain: null == domain ? _self.domain : domain // ignore: cast_nullable_to_non_nullable
@@ -85,7 +86,8 @@ as bool,active: null == active ? _self.active : active // ignore: cast_nullable_
 as bool,teamCount: null == teamCount ? _self.teamCount : teamCount // ignore: cast_nullable_to_non_nullable
 as int,userCount: null == userCount ? _self.userCount : userCount // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as String,
+as String,androidFingerprints: freezed == androidFingerprints ? _self.androidFingerprints : androidFingerprints // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -170,10 +172,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String domain,  String name,  String baseUrl,  bool singleTeam,  bool active,  int teamCount,  int userCount,  String createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String domain,  String name,  String baseUrl,  bool singleTeam,  bool active,  int teamCount,  int userCount,  String createdAt,  String? androidFingerprints)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AdminDomainDto() when $default != null:
-return $default(_that.id,_that.domain,_that.name,_that.baseUrl,_that.singleTeam,_that.active,_that.teamCount,_that.userCount,_that.createdAt);case _:
+return $default(_that.id,_that.domain,_that.name,_that.baseUrl,_that.singleTeam,_that.active,_that.teamCount,_that.userCount,_that.createdAt,_that.androidFingerprints);case _:
   return orElse();
 
 }
@@ -191,10 +193,10 @@ return $default(_that.id,_that.domain,_that.name,_that.baseUrl,_that.singleTeam,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String domain,  String name,  String baseUrl,  bool singleTeam,  bool active,  int teamCount,  int userCount,  String createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String domain,  String name,  String baseUrl,  bool singleTeam,  bool active,  int teamCount,  int userCount,  String createdAt,  String? androidFingerprints)  $default,) {final _that = this;
 switch (_that) {
 case _AdminDomainDto():
-return $default(_that.id,_that.domain,_that.name,_that.baseUrl,_that.singleTeam,_that.active,_that.teamCount,_that.userCount,_that.createdAt);case _:
+return $default(_that.id,_that.domain,_that.name,_that.baseUrl,_that.singleTeam,_that.active,_that.teamCount,_that.userCount,_that.createdAt,_that.androidFingerprints);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -211,10 +213,10 @@ return $default(_that.id,_that.domain,_that.name,_that.baseUrl,_that.singleTeam,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String domain,  String name,  String baseUrl,  bool singleTeam,  bool active,  int teamCount,  int userCount,  String createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String domain,  String name,  String baseUrl,  bool singleTeam,  bool active,  int teamCount,  int userCount,  String createdAt,  String? androidFingerprints)?  $default,) {final _that = this;
 switch (_that) {
 case _AdminDomainDto() when $default != null:
-return $default(_that.id,_that.domain,_that.name,_that.baseUrl,_that.singleTeam,_that.active,_that.teamCount,_that.userCount,_that.createdAt);case _:
+return $default(_that.id,_that.domain,_that.name,_that.baseUrl,_that.singleTeam,_that.active,_that.teamCount,_that.userCount,_that.createdAt,_that.androidFingerprints);case _:
   return null;
 
 }
@@ -226,7 +228,7 @@ return $default(_that.id,_that.domain,_that.name,_that.baseUrl,_that.singleTeam,
 @JsonSerializable()
 
 class _AdminDomainDto implements AdminDomainDto {
-  const _AdminDomainDto({required this.id, required this.domain, required this.name, required this.baseUrl, required this.singleTeam, required this.active, required this.teamCount, required this.userCount, required this.createdAt});
+  const _AdminDomainDto({required this.id, required this.domain, required this.name, required this.baseUrl, required this.singleTeam, required this.active, required this.teamCount, required this.userCount, required this.createdAt, this.androidFingerprints});
   factory _AdminDomainDto.fromJson(Map<String, dynamic> json) => _$AdminDomainDtoFromJson(json);
 
 /// Domain ID (TSID)
@@ -247,6 +249,8 @@ class _AdminDomainDto implements AdminDomainDto {
 @override final  int userCount;
 /// Domain creation timestamp
 @override final  String createdAt;
+/// Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)
+@override final  String? androidFingerprints;
 
 /// Create a copy of AdminDomainDto
 /// with the given fields replaced by the non-null parameter values.
@@ -261,16 +265,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminDomainDto&&(identical(other.id, id) || other.id == id)&&(identical(other.domain, domain) || other.domain == domain)&&(identical(other.name, name) || other.name == name)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam)&&(identical(other.active, active) || other.active == active)&&(identical(other.teamCount, teamCount) || other.teamCount == teamCount)&&(identical(other.userCount, userCount) || other.userCount == userCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminDomainDto&&(identical(other.id, id) || other.id == id)&&(identical(other.domain, domain) || other.domain == domain)&&(identical(other.name, name) || other.name == name)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam)&&(identical(other.active, active) || other.active == active)&&(identical(other.teamCount, teamCount) || other.teamCount == teamCount)&&(identical(other.userCount, userCount) || other.userCount == userCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.androidFingerprints, androidFingerprints) || other.androidFingerprints == androidFingerprints));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,domain,name,baseUrl,singleTeam,active,teamCount,userCount,createdAt);
+int get hashCode => Object.hash(runtimeType,id,domain,name,baseUrl,singleTeam,active,teamCount,userCount,createdAt,androidFingerprints);
 
 @override
 String toString() {
-  return 'AdminDomainDto(id: $id, domain: $domain, name: $name, baseUrl: $baseUrl, singleTeam: $singleTeam, active: $active, teamCount: $teamCount, userCount: $userCount, createdAt: $createdAt)';
+  return 'AdminDomainDto(id: $id, domain: $domain, name: $name, baseUrl: $baseUrl, singleTeam: $singleTeam, active: $active, teamCount: $teamCount, userCount: $userCount, createdAt: $createdAt, androidFingerprints: $androidFingerprints)';
 }
 
 
@@ -281,7 +285,7 @@ abstract mixin class _$AdminDomainDtoCopyWith<$Res> implements $AdminDomainDtoCo
   factory _$AdminDomainDtoCopyWith(_AdminDomainDto value, $Res Function(_AdminDomainDto) _then) = __$AdminDomainDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String domain, String name, String baseUrl, bool singleTeam, bool active, int teamCount, int userCount, String createdAt
+ String id, String domain, String name, String baseUrl, bool singleTeam, bool active, int teamCount, int userCount, String createdAt, String? androidFingerprints
 });
 
 
@@ -298,7 +302,7 @@ class __$AdminDomainDtoCopyWithImpl<$Res>
 
 /// Create a copy of AdminDomainDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? domain = null,Object? name = null,Object? baseUrl = null,Object? singleTeam = null,Object? active = null,Object? teamCount = null,Object? userCount = null,Object? createdAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? domain = null,Object? name = null,Object? baseUrl = null,Object? singleTeam = null,Object? active = null,Object? teamCount = null,Object? userCount = null,Object? createdAt = null,Object? androidFingerprints = freezed,}) {
   return _then(_AdminDomainDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,domain: null == domain ? _self.domain : domain // ignore: cast_nullable_to_non_nullable
@@ -309,7 +313,8 @@ as bool,active: null == active ? _self.active : active // ignore: cast_nullable_
 as bool,teamCount: null == teamCount ? _self.teamCount : teamCount // ignore: cast_nullable_to_non_nullable
 as int,userCount: null == userCount ? _self.userCount : userCount // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as String,
+as String,androidFingerprints: freezed == androidFingerprints ? _self.androidFingerprints : androidFingerprints // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
