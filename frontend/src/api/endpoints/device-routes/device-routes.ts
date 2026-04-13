@@ -156,13 +156,8 @@ export const deviceDownloadFit = (
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
-  return axiosMutator<Blob>(
-    {
-      url: `/api/device/routes/${teamSlug}/${routeSlug}/fit`,
-      method: 'GET',
-      responseType: 'blob',
-      signal,
-    },
+  return axiosMutator<unknown>(
+    { url: `/api/device/routes/${teamSlug}/${routeSlug}/fit`, method: 'GET', signal },
     options
   )
 }
@@ -173,7 +168,7 @@ export const getDeviceDownloadFitQueryKey = (teamSlug: string, routeSlug: string
 
 export const getDeviceDownloadFitQueryOptions = <
   TData = Awaited<ReturnType<typeof deviceDownloadFit>>,
-  TError = ErrorType<Blob>,
+  TError = ErrorType<ErrorResponse>,
 >(
   teamSlug: string,
   routeSlug: string,
@@ -202,11 +197,11 @@ export const getDeviceDownloadFitQueryOptions = <
 export type DeviceDownloadFitQueryResult = NonNullable<
   Awaited<ReturnType<typeof deviceDownloadFit>>
 >
-export type DeviceDownloadFitQueryError = ErrorType<Blob>
+export type DeviceDownloadFitQueryError = ErrorType<ErrorResponse>
 
 export function useDeviceDownloadFit<
   TData = Awaited<ReturnType<typeof deviceDownloadFit>>,
-  TError = ErrorType<Blob>,
+  TError = ErrorType<ErrorResponse>,
 >(
   teamSlug: string,
   routeSlug: string,
@@ -226,7 +221,7 @@ export function useDeviceDownloadFit<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useDeviceDownloadFit<
   TData = Awaited<ReturnType<typeof deviceDownloadFit>>,
-  TError = ErrorType<Blob>,
+  TError = ErrorType<ErrorResponse>,
 >(
   teamSlug: string,
   routeSlug: string,
@@ -246,7 +241,7 @@ export function useDeviceDownloadFit<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useDeviceDownloadFit<
   TData = Awaited<ReturnType<typeof deviceDownloadFit>>,
-  TError = ErrorType<Blob>,
+  TError = ErrorType<ErrorResponse>,
 >(
   teamSlug: string,
   routeSlug: string,
@@ -262,7 +257,7 @@ export function useDeviceDownloadFit<
 
 export function useDeviceDownloadFit<
   TData = Awaited<ReturnType<typeof deviceDownloadFit>>,
-  TError = ErrorType<Blob>,
+  TError = ErrorType<ErrorResponse>,
 >(
   teamSlug: string,
   routeSlug: string,

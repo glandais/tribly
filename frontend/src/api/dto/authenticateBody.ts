@@ -1,2 +1,1 @@
-
-export type AuthenticateBody = {[key: string]: unknown};
+export type AuthenticateBody = { [key: string]: unknown }
