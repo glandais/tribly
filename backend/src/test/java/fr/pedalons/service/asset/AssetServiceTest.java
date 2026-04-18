@@ -14,6 +14,7 @@ import fr.pedalons.dto.assets.response.DownloadableAsset;
 import fr.pedalons.dto.common.asset.AssetDto;
 import fr.pedalons.dto.common.asset.AssetsDto;
 import fr.pedalons.dto.common.asset.MediaDto;
+import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.enums.AssetType;
 import fr.pedalons.enums.TeamRole;
 import fr.pedalons.enums.Visibility;
@@ -84,6 +85,11 @@ class AssetServiceTest extends AbstractBaseTest {
     // Clean up any created files
   }
 
+  private static final String SAMPLE_TXT_CONTENT =
+      "This is a plain text file used for unit testing the asset upload pipeline.\n"
+          + "It contains regular English sentences with normal punctuation,\n"
+          + "so that Magika reliably classifies the content as plain text.";
+
   private InputStream getExampleGpxStream() {
     InputStream resourceAsStream = getClass().getClassLoader().getResourceAsStream("example.gpx");
     assertNotNull(resourceAsStream, "example.gpx not found in test resources");
@@ -94,6 +100,10 @@ class AssetServiceTest extends AbstractBaseTest {
     InputStream resourceAsStream = getClass().getClassLoader().getResourceAsStream("image.png");
     assertNotNull(resourceAsStream, "image.png not found in test resources");
     return resourceAsStream;
+  }
+
+  private InputStream getSampleTxtStream() {
+    return new ByteArrayInputStream(SAMPLE_TXT_CONTENT.getBytes(StandardCharsets.UTF_8));
   }
 
   private String getAssetKey(Team t, long fileId) {
@@ -108,11 +118,11 @@ class AssetServiceTest extends AbstractBaseTest {
 
     @Test
     void shouldCreateAssetForOrganizer() throws Exception {
-      InputStream content =
-          new ByteArrayInputStream("test content".getBytes(StandardCharsets.UTF_8));
+      InputStream content = getSampleTxtStream();
 
       queryContext.setUserForTest(organizer);
-      AssetDto result = assetService.createAsset(team.getSlug(), content, "test.txt");
+      AssetDto result =
+          assetService.createAsset(team.getSlug(), AssetType.ATTACHMENT, content, "test.txt");
 
       assertNotNull(result);
       assertNotNull(result.id());
@@ -122,10 +132,11 @@ class AssetServiceTest extends AbstractBaseTest {
 
     @Test
     void shouldCreateAssetForNonOrganizer() throws IOException {
-      InputStream content = new ByteArrayInputStream("test".getBytes());
+      InputStream content = getSampleTxtStream();
 
       queryContext.setUserForTest(member);
-      AssetDto result = assetService.createAsset(team.getSlug(), content, "test.txt");
+      AssetDto result =
+          assetService.createAsset(team.getSlug(), AssetType.ATTACHMENT, content, "test.txt");
 
       assertNotNull(result);
       assertNotNull(result.id());
@@ -139,17 +150,16 @@ class AssetServiceTest extends AbstractBaseTest {
 
     @Test
     void shouldCreateAssetWithContent() throws Exception {
-      InputStream content =
-          new ByteArrayInputStream("file content".getBytes(StandardCharsets.UTF_8));
+      InputStream content = getSampleTxtStream();
 
       queryContext.setUserForTest(member);
       AssetWithFile result =
-          assetService.addAssetStream(team, AssetType.IMAGE, null, content, "image.png");
+          assetService.addAssetStream(team, AssetType.ATTACHMENT, null, content, "file.txt");
 
       assertNotNull(result);
       assertNotNull(result.asset());
       assertNotNull(result.file());
-      assertEquals("image.png", result.asset().getFileName());
+      assertEquals("file.txt", result.asset().getFileName());
       // Temp file is deleted after S3 upload when content is provided
       assertFalse(result.file().exists());
     }
@@ -209,9 +219,7 @@ class AssetServiceTest extends AbstractBaseTest {
 
     @Test
     void shouldDetectContentTypeForPng() throws Exception {
-      // Create a minimal PNG file (1x1 transparent pixel)
-      byte[] pngBytes = new byte[] {(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
-      InputStream content = new ByteArrayInputStream(pngBytes);
+      InputStream content = getTestImageStream();
       queryContext.setUserForTest(organizer);
       AssetWithFile assetWithFile =
           assetService.addAssetStream(team, AssetType.IMAGE, null, content, "image.png");
@@ -289,10 +297,10 @@ class AssetServiceTest extends AbstractBaseTest {
 
     @Test
     void shouldDeleteFromS3() throws Exception {
-      InputStream content = new ByteArrayInputStream("to delete".getBytes());
+      InputStream content = getSampleTxtStream();
       queryContext.setUserForTest(organizer);
       AssetWithFile assetWithFile =
-          assetService.addAssetStream(team, AssetType.IMAGE, null, content, "delete-me.txt");
+          assetService.addAssetStream(team, AssetType.ATTACHMENT, null, content, "delete-me.txt");
       // Temp file is deleted after S3 upload
       assertFalse(assetWithFile.file().exists());
 
@@ -413,6 +421,61 @@ class AssetServiceTest extends AbstractBaseTest {
   }
 
   @Nested
+  class FileTypeValidation {
+
+    private static final String HTML_PAYLOAD =
+        "<!DOCTYPE html>\n"
+            + "<html>\n"
+            + "<head><title>Malicious</title></head>\n"
+            + "<body>\n"
+            + "<h1>Not an image</h1>\n"
+            + "<p>Long enough html content for Magika to identify the type reliably.</p>\n"
+            + "<script>alert('xss');</script>\n"
+            + "</body>\n"
+            + "</html>\n";
+
+    @Test
+    void shouldRejectPngForGpxSlot() {
+      InputStream pngContent = getTestImageStream();
+
+      queryContext.setUserForTest(member);
+      PedalonsException ex =
+          assertThrows(
+              PedalonsException.class,
+              () ->
+                  assetService.addAssetStream(
+                      team, AssetType.ROUTE_ORIGINAL_GPX, null, pngContent, "fake.png"));
+      assertEquals(ErrorCode.FILE_TYPE_REJECTED, ex.getErrorCode());
+    }
+
+    @Test
+    void shouldRejectScriptedContentForImageSlot() {
+      InputStream content = new ByteArrayInputStream(HTML_PAYLOAD.getBytes(StandardCharsets.UTF_8));
+
+      queryContext.setUserForTest(member);
+      PedalonsException ex =
+          assertThrows(
+              PedalonsException.class,
+              () -> assetService.addAssetStream(team, AssetType.IMAGE, null, content, "evil.png"));
+      assertEquals(ErrorCode.FILE_TYPE_REJECTED, ex.getErrorCode());
+    }
+
+    @Test
+    void shouldRejectScriptedContentForAttachmentSlot() {
+      InputStream content = new ByteArrayInputStream(HTML_PAYLOAD.getBytes(StandardCharsets.UTF_8));
+
+      queryContext.setUserForTest(member);
+      PedalonsException ex =
+          assertThrows(
+              PedalonsException.class,
+              () ->
+                  assetService.addAssetStream(
+                      team, AssetType.ATTACHMENT, null, content, "evil.html"));
+      assertEquals(ErrorCode.FILE_TYPE_REJECTED, ex.getErrorCode());
+    }
+  }
+
+  @Nested
   class ImageDimensionExtraction {
 
     @Test
@@ -431,19 +494,18 @@ class AssetServiceTest extends AbstractBaseTest {
     }
 
     @Test
-    void shouldHandleInvalidImageGracefully() throws Exception {
-      // Invalid image content (not a real image)
+    void shouldHandleInvalidImageGracefully() {
       InputStream invalidContent =
           new ByteArrayInputStream("not an image".getBytes(StandardCharsets.UTF_8));
 
       queryContext.setUserForTest(member);
-      AssetWithFile result =
-          assetService.addAssetStream(team, AssetType.IMAGE, null, invalidContent, "fake.png");
-
-      assertNotNull(result);
-      // Should not fail, just have no dimensions
-      assertNull(result.asset().getWidth());
-      assertNull(result.asset().getHeight());
+      PedalonsException ex =
+          assertThrows(
+              PedalonsException.class,
+              () ->
+                  assetService.addAssetStream(
+                      team, AssetType.IMAGE, null, invalidContent, "fake.png"));
+      assertEquals(ErrorCode.FILE_TYPE_REJECTED, ex.getErrorCode());
     }
 
     @Test

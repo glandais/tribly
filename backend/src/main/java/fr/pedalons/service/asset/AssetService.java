@@ -12,6 +12,8 @@ import fr.pedalons.dto.common.asset.AssetsDto;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.enums.*;
 import fr.pedalons.infrastructure.exception.NotFoundException;
+import fr.pedalons.infrastructure.filetype.DetectedFileType;
+import fr.pedalons.infrastructure.filetype.FileTypeDetector;
 import fr.pedalons.infrastructure.imgproxy.ImgProxyService;
 import fr.pedalons.infrastructure.storage.StorageService;
 import fr.pedalons.repository.asset.AssetRepository;
@@ -38,14 +40,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
-import org.apache.tika.Tika;
-import org.apache.tika.io.TikaInputStream;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.metadata.TikaCoreProperties;
+import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
 public class AssetService {
+
+  private static final Logger LOG = Logger.getLogger(AssetService.class);
 
   private static final String ASSETS_PREFIX = "assets";
 
@@ -63,14 +64,15 @@ public class AssetService {
 
   @Inject StorageService storageService;
 
-  private final Tika tika = new Tika();
+  @Inject FileTypeDetector fileTypeDetector;
 
   @CheckAccess(entityType = EntityType.ASSET, action = ActionType.CREATE)
-  public AssetDto createAsset(String teamSlug, InputStream inputStream, String fileName)
+  public AssetDto createAsset(
+      String teamSlug, AssetType assetType, InputStream inputStream, String fileName)
       throws IOException {
     Team team = teamService.getTeam(teamSlug);
     // every member can create asset (ads, ...)
-    AssetWithFile assetFile = addAssetStream(team, AssetType.IMAGE, null, inputStream, fileName);
+    AssetWithFile assetFile = addAssetStream(team, assetType, null, inputStream, fileName);
     return map(assetFile.asset());
   }
 
@@ -101,7 +103,7 @@ public class AssetService {
     if (content != null) {
       // Copy content to temp file for content type detection
       Files.copy(content, tempFile.toPath());
-      contentType = getContentType(tempFile, fileName);
+      contentType = detectAndValidate(tempFile, fileName, type);
 
       // Upload to S3 with metadata
       String key = getAssetKey(team, fileId);
@@ -114,11 +116,16 @@ public class AssetService {
         storageService.store(key, fis, contentType, tempFile.length(), metadata);
       }
 
-      // Clean up temp file after upload
-      tempFile.delete();
+      deleteTempFile(tempFile);
     } else {
-      // No content - create temp file for external writing
+      // No content - create temp file for external writing. Magika validation cannot run yet
+      // because there is no payload; the caller is expected to populate the temp file and then
+      // invoke uploadAssetFile(...) which re-runs detectAndValidate against the written bytes.
       contentType = getContentTypeFromFileName(fileName);
+      LOG.debugf(
+          "Skipping Magika validation: no upload payload yet for fileName=%s assetType=%s"
+              + " (caller must invoke uploadAssetFile after writing the temp file)",
+          fileName, type);
     }
 
     Asset asset = new Asset(creator, team, type, fileId, fileName, contentType);
@@ -131,7 +138,10 @@ public class AssetService {
         asset.setWidth(read.getWidth());
         asset.setHeight(read.getHeight());
       } catch (Exception e) {
-        // imgproxy may fail for invalid images - continue without dimensions
+        LOG.warnf(
+            e,
+            "Failed to extract image dimensions for asset fileId=%s",
+            TsidUtils.toString(fileId));
       }
     }
 
@@ -150,7 +160,7 @@ public class AssetService {
       throw new IOException("Temp file not found for asset: " + asset.getId());
     }
 
-    String contentType = getContentType(tempFile, asset.getFileName());
+    String contentType = detectAndValidate(tempFile, asset.getFileName(), asset.getType());
     asset.setContentType(contentType);
 
     String key = getAssetKey(asset.getTeam(), asset.getFileId());
@@ -164,8 +174,7 @@ public class AssetService {
       storageService.store(key, fis, contentType, tempFile.length(), metadata);
     }
 
-    // Clean up temp file
-    tempFile.delete();
+    deleteTempFile(tempFile);
   }
 
   /**
@@ -207,9 +216,10 @@ public class AssetService {
    *
    * @return the detected content type
    */
-  public String uploadTempFileToS3(Team team, long fileId, String fileName) throws IOException {
+  public String uploadTempFileToS3(Team team, AssetType type, long fileId, String fileName)
+      throws IOException {
     File tempFile = getTempFile(fileId);
-    String contentType = getContentType(tempFile, fileName);
+    String contentType = detectAndValidate(tempFile, fileName, type);
     String key = getAssetKey(team, fileId);
     Map<String, String> metadata =
         Map.of(
@@ -219,8 +229,15 @@ public class AssetService {
     try (InputStream fis = new FileInputStream(tempFile)) {
       storageService.store(key, fis, contentType, tempFile.length(), metadata);
     }
-    tempFile.delete();
+    deleteTempFile(tempFile);
     return contentType;
+  }
+
+  private static void deleteTempFile(File tempFile) {
+    if (!tempFile.delete() && tempFile.exists()) {
+      LOG.warnf(
+          "Failed to delete temp asset file %s — may leak on disk", tempFile.getAbsolutePath());
+    }
   }
 
   /**
@@ -257,52 +274,14 @@ public class AssetService {
     return Response.fromResponse(imgProxyService.getPhoto(accept, key, size, size)).build();
   }
 
-  private String getContentType(File file, String fileName) {
-    Metadata metadata = new Metadata();
-    metadata.set(TikaCoreProperties.RESOURCE_NAME_KEY, fileName);
-    String contentTypeOverride = getContentTypeOverride(fileName);
-    if (contentTypeOverride != null) {
-      metadata.set(TikaCoreProperties.CONTENT_TYPE_USER_OVERRIDE, contentTypeOverride);
-    }
-    if (!file.exists()) {
-      try {
-        return tika.detect(null, metadata);
-      } catch (IOException e) {
-        return MediaType.APPLICATION_OCTET_STREAM;
-      }
-    } else {
-      try (TikaInputStream fis = TikaInputStream.get(file.toPath(), metadata)) {
-        return tika.detect(fis, metadata);
-      } catch (IOException e) {
-        return MediaType.APPLICATION_OCTET_STREAM;
-      }
-    }
+  private String detectAndValidate(File file, String fileName, AssetType type) {
+    DetectedFileType detected = fileTypeDetector.detectAndValidate(file, fileName, type);
+    return detected.mimeType();
   }
 
   private String getContentTypeFromFileName(String fileName) {
     String guessed = URLConnection.guessContentTypeFromName(fileName);
     return guessed != null ? guessed : MediaType.APPLICATION_OCTET_STREAM;
-  }
-
-  @Nullable
-  private String getContentTypeOverride(String fileName) {
-    String fileNameLowerCase = fileName.toLowerCase();
-    if (fileNameLowerCase.endsWith(".png")) {
-      return "image/png";
-    }
-    if (fileNameLowerCase.endsWith(".gif")) {
-      return "image/gif";
-    }
-    if (fileNameLowerCase.endsWith(".jpg")) {
-      return "image/jpeg";
-    }
-    if (fileNameLowerCase.endsWith(".gpx")) {
-      return "application/gpx+xml";
-    }
-    if (fileNameLowerCase.endsWith(".fit")) {
-      return "application/vnd.ant.fit";
-    }
-    return null;
   }
 
   private Asset getAsset(Long id) {

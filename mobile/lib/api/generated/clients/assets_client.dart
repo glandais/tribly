@@ -8,6 +8,7 @@ import 'package:retrofit/retrofit.dart';
 import 'package:retrofit/error_logger.dart';
 
 import '../models/asset_dto.dart';
+import '../models/asset_type_request.dart';
 
 part 'assets_client.g.dart';
 
@@ -19,11 +20,14 @@ abstract class AssetsClient {
   ///
   /// [teamSlug] - Team URL slug.
   ///
+  /// [assetType] - Asset type.
+  ///
   /// [file] - Name not received - field will be skipped.
   @MultiPart()
   @POST('/api/teams/{teamSlug}/assets')
   Future<AssetDto> uploadAsset({
     @Path('teamSlug') required String teamSlug,
+    @Query('assetType') required AssetTypeRequest assetType,
     @Part(name: 'file') MultipartFile? file,
   });
 }

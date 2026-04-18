@@ -44,6 +44,10 @@ enum ErrorCode {
   gpxFailure('GPX_FAILURE'),
   @JsonValue('FILE_REQUIRED')
   fileRequired('FILE_REQUIRED'),
+  @JsonValue('FILE_TYPE_REJECTED')
+  fileTypeRejected('FILE_TYPE_REJECTED'),
+  @JsonValue('FILE_DETECTION_FAILED')
+  fileDetectionFailed('FILE_DETECTION_FAILED'),
   @JsonValue('TOO_MANY_TEAM_PAGES')
   tooManyTeamPages('TOO_MANY_TEAM_PAGES'),
   @JsonValue('GPX_EMPTY')

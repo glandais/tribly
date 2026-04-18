@@ -6,7 +6,7 @@ import type {
   UseMutationResult,
 } from '@tanstack/react-query'
 
-import type { AssetDto, ErrorResponse, UploadAssetBody } from '../../dto'
+import type { AssetDto, ErrorResponse, UploadAssetBody, UploadAssetParams } from '../../dto'
 
 import { axiosMutator } from '../../../lib/axiosInstance'
 import type { ErrorType, BodyType } from '../../../lib/axiosInstance'
@@ -19,6 +19,7 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 export const uploadAsset = (
   teamSlug: string,
   uploadAssetBody: BodyType<UploadAssetBody>,
+  params: UploadAssetParams,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
@@ -28,7 +29,7 @@ export const uploadAsset = (
   }
 
   return axiosMutator<AssetDto>(
-    { url: `/api/teams/${teamSlug}/assets`, method: 'POST', data: formData, signal },
+    { url: `/api/teams/${teamSlug}/assets`, method: 'POST', data: formData, params, signal },
     options
   )
 }
@@ -40,14 +41,14 @@ export const getUploadAssetMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof uploadAsset>>,
     TError,
-    { teamSlug: string; data: BodyType<UploadAssetBody> },
+    { teamSlug: string; data: BodyType<UploadAssetBody>; params: UploadAssetParams },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof uploadAsset>>,
   TError,
-  { teamSlug: string; data: BodyType<UploadAssetBody> },
+  { teamSlug: string; data: BodyType<UploadAssetBody>; params: UploadAssetParams },
   TContext
 > => {
   const mutationKey = ['uploadAsset']
@@ -59,11 +60,11 @@ export const getUploadAssetMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof uploadAsset>>,
-    { teamSlug: string; data: BodyType<UploadAssetBody> }
+    { teamSlug: string; data: BodyType<UploadAssetBody>; params: UploadAssetParams }
   > = (props) => {
-    const { teamSlug, data } = props ?? {}
+    const { teamSlug, data, params } = props ?? {}
 
-    return uploadAsset(teamSlug, data, requestOptions)
+    return uploadAsset(teamSlug, data, params, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -81,7 +82,7 @@ export const useUploadAsset = <TError = ErrorType<ErrorResponse>, TContext = unk
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof uploadAsset>>,
       TError,
-      { teamSlug: string; data: BodyType<UploadAssetBody> },
+      { teamSlug: string; data: BodyType<UploadAssetBody>; params: UploadAssetParams },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -90,7 +91,7 @@ export const useUploadAsset = <TError = ErrorType<ErrorResponse>, TContext = unk
 ): UseMutationResult<
   Awaited<ReturnType<typeof uploadAsset>>,
   TError,
-  { teamSlug: string; data: BodyType<UploadAssetBody> },
+  { teamSlug: string; data: BodyType<UploadAssetBody>; params: UploadAssetParams },
   TContext
 > => {
   return useMutation(getUploadAssetMutationOptions(options), queryClient)

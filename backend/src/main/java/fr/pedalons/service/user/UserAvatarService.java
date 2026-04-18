@@ -2,8 +2,13 @@ package fr.pedalons.service.user;
 
 import fr.pedalons.common.TsidUtils;
 import fr.pedalons.common.exception.BusinessException;
+import fr.pedalons.common.exception.NotFoundException;
+import fr.pedalons.common.exception.PedalonsException;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.error.ErrorCode;
+import fr.pedalons.enums.AssetType;
+import fr.pedalons.infrastructure.filetype.DetectedFileType;
+import fr.pedalons.infrastructure.filetype.FileTypeDetector;
 import fr.pedalons.infrastructure.imgproxy.ImgProxyService;
 import fr.pedalons.infrastructure.storage.StorageService;
 import fr.pedalons.repository.user.UserRepository;
@@ -19,14 +24,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
 public class UserAvatarService {
+
+  private static final Logger LOG = Logger.getLogger(UserAvatarService.class);
 
   private static final int AVATAR_SIZE = 256;
   private static final String AVATARS_PREFIX = "avatars";
@@ -38,6 +45,8 @@ public class UserAvatarService {
   @Inject PedalonsQueryContext pedalonsContext;
 
   @Inject StorageService storageService;
+
+  @Inject FileTypeDetector fileTypeDetector;
 
   @Logged
   @Transactional
@@ -51,7 +60,17 @@ public class UserAvatarService {
     // Save original file temporarily
     Files.copy(content, tempFile.toPath());
 
-    String contentType = getContentType(tempFile, fileName);
+    DetectedFileType detected;
+    try {
+      detected = fileTypeDetector.detectAndValidate(tempFile, fileName, AssetType.IMAGE);
+    } catch (PedalonsException e) {
+      tempFile.delete();
+      throw e;
+    } catch (RuntimeException e) {
+      tempFile.delete();
+      throw new BusinessException(ErrorCode.INVALID_FORMAT, e);
+    }
+    String contentType = detected.mimeType();
     if (!contentType.startsWith("image/")) {
       tempFile.delete();
       throw new BusinessException(ErrorCode.INVALID_FORMAT);
@@ -129,7 +148,7 @@ public class UserAvatarService {
 
     // Verify file exists
     if (!storageService.exists(key)) {
-      throw new BusinessException(ErrorCode.UNKNOWN);
+      throw new NotFoundException(ErrorCode.NOT_FOUND);
     }
 
     return Response.fromResponse(
@@ -138,7 +157,8 @@ public class UserAvatarService {
   }
 
   private File createTempFile(long fileId) throws IOException {
-    Path tempDir = Files.createTempDirectory("pedalons-avatars");
+    Path tempDir = Path.of(System.getProperty("java.io.tmpdir"), "pedalons-avatars");
+    Files.createDirectories(tempDir);
     return new File(tempDir.toFile(), TsidUtils.toString(fileId));
   }
 
@@ -160,48 +180,11 @@ public class UserAvatarService {
         String key = getAvatarKey(fileId);
         storageService.delete(key);
       } catch (Exception e) {
-        // Ignore errors when deleting old avatar
+        LOG.warnf(
+            e, "Failed to delete old avatar from S3 (orphaned object) avatarUrl=%s", avatarUrl);
       }
+    } else {
+      LOG.warnf("Skipping avatar deletion: malformed avatar URL %s", avatarUrl);
     }
-  }
-
-  private String getContentType(File file, String fileName) {
-    // First check for known overrides based on extension
-    String contentTypeOverride = getContentTypeOverride(fileName);
-    if (contentTypeOverride != null) {
-      return contentTypeOverride;
-    }
-
-    // Try to probe content type from file content
-    try {
-      String probed = Files.probeContentType(file.toPath());
-      if (probed != null) {
-        return probed;
-      }
-    } catch (IOException ignored) {
-      // Fall through to filename-based detection
-    }
-
-    // Fall back to filename-based detection
-    String guessed = URLConnection.guessContentTypeFromName(fileName);
-    return guessed != null ? guessed : "application/octet-stream";
-  }
-
-  @Nullable
-  private String getContentTypeOverride(String fileName) {
-    String fileNameLowerCase = fileName.toLowerCase();
-    if (fileNameLowerCase.endsWith(".png")) {
-      return "image/png";
-    }
-    if (fileNameLowerCase.endsWith(".gif")) {
-      return "image/gif";
-    }
-    if (fileNameLowerCase.endsWith(".jpg") || fileNameLowerCase.endsWith(".jpeg")) {
-      return "image/jpeg";
-    }
-    if (fileNameLowerCase.endsWith(".webp")) {
-      return "image/webp";
-    }
-    return null;
   }
 }

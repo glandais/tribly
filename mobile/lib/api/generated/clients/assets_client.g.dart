@@ -22,10 +22,11 @@ class _AssetsClient implements AssetsClient {
   @override
   Future<AssetDto> uploadAsset({
     required String teamSlug,
+    required AssetTypeRequest assetType,
     MultipartFile? file,
   }) async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'assetType': assetType.toJson()};
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     final _data = FormData();
