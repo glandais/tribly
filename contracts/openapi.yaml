@@ -609,6 +609,12 @@ components:
           description: image dimensions
           type: object
           $ref: "#/components/schemas/AssetDimensionsDto"
+    AssetTypeRequest:
+      type: string
+      enum:
+      - LOGO
+      - IMAGE
+      - ATTACHMENT
     AssetsDto:
       type: object
       properties:
@@ -1180,6 +1186,8 @@ components:
       - PUBLIC_TRIP_PRIVATE_ROUTE
       - GPX_FAILURE
       - FILE_REQUIRED
+      - FILE_TYPE_REJECTED
+      - FILE_DETECTION_FAILED
       - TOO_MANY_TEAM_PAGES
       - GPX_EMPTY
       - INVALID_FORMAT
@@ -6168,6 +6176,12 @@ paths:
         required: true
         schema:
           type: string
+      - description: Asset type
+        required: true
+        name: assetType
+        in: query
+        schema:
+          $ref: "#/components/schemas/AssetTypeRequest"
       requestBody:
         content:
           multipart/form-data:

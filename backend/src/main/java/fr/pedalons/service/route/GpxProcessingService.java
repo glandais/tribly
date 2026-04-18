@@ -5,6 +5,7 @@ import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 
 import fr.pedalons.common.GeoPoint;
 import fr.pedalons.common.exception.BusinessException;
+import fr.pedalons.common.exception.PedalonsException;
 import fr.pedalons.domain.asset.Asset;
 import fr.pedalons.domain.route.GpxTrack;
 import fr.pedalons.domain.route.GpxWaypoint;
@@ -170,9 +171,8 @@ public class GpxProcessingService {
           gpxElevationFixer.fixElevation(path);
           LOG.infov("Fixed elevation with SRTM data");
         } catch (Exception e) {
-          LOG.warnv(
-              "SRTM elevation fix failed for route {0}, using original elevations: {1}",
-              routeId, e);
+          LOG.warnf(
+              e, "SRTM elevation fix failed for route %s, using original elevations", routeId);
         }
 
         GPXFilter.filterPointsDouglasPeucker(path);
@@ -259,7 +259,7 @@ public class GpxProcessingService {
               windDirection);
 
       return new GpxProcessingResult(aggregated, tracks, waypoints, uploadedAssets);
-    } catch (BusinessException e) {
+    } catch (PedalonsException e) {
       throw e;
     } catch (Exception e) {
       LOG.errorv("GPX processing failed for route {0}", routeId, e);
@@ -282,7 +282,7 @@ public class GpxProcessingService {
       tmp.delete();
       throw new BusinessException(ErrorCode.GPX_FAILURE, e);
     }
-    String contentType = assetService.uploadTempFileToS3(team, fileId, fileName);
+    String contentType = assetService.uploadTempFileToS3(team, type, fileId, fileName);
     return new PreparedAsset(type, fileName, fileId, contentType);
   }
 
@@ -314,7 +314,7 @@ public class GpxProcessingService {
       try {
         storageService.delete(assetService.getAssetKey(team, pa.fileId()));
       } catch (Exception e) {
-        LOG.warnv("S3 cleanup failed for fileId {0}: {1}", pa.fileId(), e.getMessage());
+        LOG.warnf(e, "S3 cleanup failed for fileId %s", pa.fileId());
       }
     }
   }

@@ -51,7 +51,7 @@ export function MediaEditor({
     setImageError(null)
 
     try {
-      const asset = await uploadAsset(teamSlug, { file })
+      const asset = await uploadAsset(teamSlug, { file }, { assetType: 'IMAGE' })
       onChange({
         ...value,
         assets: { ...value.assets, images: [...value.assets.images, asset] },
@@ -73,7 +73,7 @@ export function MediaEditor({
     setLogoError(null)
 
     try {
-      const asset = await uploadAsset(teamSlug, { file })
+      const asset = await uploadAsset(teamSlug, { file }, { assetType: 'LOGO' })
       onChange({ ...value, assets: { ...value.assets, logo: asset } })
     } catch {
       setLogoError(t('error.loading'))
@@ -97,7 +97,7 @@ export function MediaEditor({
     const newAttachments: AssetDto[] = []
     try {
       for (const file of Array.from(files)) {
-        const asset = await uploadAsset(teamSlug, { file })
+        const asset = await uploadAsset(teamSlug, { file }, { assetType: 'ATTACHMENT' })
         newAttachments.push(asset)
       }
       onChange({

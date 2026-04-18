@@ -10,6 +10,7 @@ import lombok.Setter;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.jspecify.annotations.Nullable;
 
 @Setter
 @Getter
@@ -35,6 +36,7 @@ public class Domain {
   private boolean singleTeam = false;
 
   @Column(name = "android_fingerprints", length = 1000)
+  @Nullable
   private String androidFingerprints;
 
   @Column(name = "active", nullable = false)

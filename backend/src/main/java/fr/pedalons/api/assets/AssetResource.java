@@ -1,6 +1,8 @@
 package fr.pedalons.api.assets;
 
+import fr.pedalons.common.exception.BadRequestException;
 import fr.pedalons.common.exception.BusinessException;
+import fr.pedalons.dto.assets.request.AssetTypeRequest;
 import fr.pedalons.dto.common.asset.AssetDto;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.dto.error.ErrorResponse;
@@ -27,6 +29,7 @@ import org.jspecify.annotations.Nullable;
 @Tag(name = "Assets", description = "Assets management operations")
 @RolesAllowed("user")
 public class AssetResource {
+
   @Inject AssetService assetService;
 
   /**
@@ -60,8 +63,13 @@ public class AssetResource {
   })
   public Response uploadAsset(
       @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
+      @Parameter(description = "Asset type", required = true) @QueryParam("assetType")
+          AssetTypeRequest assetType,
       @RestForm("file") @Nullable FileUpload fileUpload)
       throws Exception {
+    if (assetType == null) {
+      throw new BadRequestException(ErrorCode.BAD_REQUEST);
+    }
 
     // Validate file
     if (fileUpload == null || fileUpload.filePath() == null) {
@@ -71,7 +79,10 @@ public class AssetResource {
 
     AssetDto assetDto =
         assetService.createAsset(
-            teamSlug, new FileInputStream(fileUpload.filePath().toFile()), fileName);
+            teamSlug,
+            assetType.getAssetType(),
+            new FileInputStream(fileUpload.filePath().toFile()),
+            fileName);
 
     return Response.status(Response.Status.CREATED).entity(assetDto).build();
   }

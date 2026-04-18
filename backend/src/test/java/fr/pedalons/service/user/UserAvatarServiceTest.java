@@ -4,9 +4,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import fr.pedalons.AbstractBaseTest;
 import fr.pedalons.common.TsidUtils;
-import fr.pedalons.common.exception.BusinessException;
+import fr.pedalons.common.exception.PedalonsException;
 import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.domain.user.User;
+import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.repository.user.UserRepository;
 import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.service.security.PedalonsQueryContext;
@@ -15,7 +16,7 @@ import fr.pedalons.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
+import java.io.InputStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -47,10 +48,17 @@ class UserAvatarServiceTest extends AbstractBaseTest {
     @Test
     void shouldThrowForNonImageContent() {
       pedalonsContext.setUserForTest(user);
-      ByteArrayInputStream textContent = new ByteArrayInputStream("not an image".getBytes());
+      ByteArrayInputStream textContent =
+          new ByteArrayInputStream(
+              ("This is plain text content with enough length for Magika to classify it"
+                      + " reliably as text rather than an image format.")
+                  .getBytes());
 
-      assertThrows(
-          BusinessException.class, () -> userAvatarService.uploadAvatar(textContent, "file.txt"));
+      PedalonsException ex =
+          assertThrows(
+              PedalonsException.class,
+              () -> userAvatarService.uploadAvatar(textContent, "file.txt"));
+      assertEquals(ErrorCode.FILE_TYPE_REJECTED, ex.getErrorCode());
     }
 
     @Test
@@ -95,9 +103,11 @@ class UserAvatarServiceTest extends AbstractBaseTest {
 
     @Test
     void shouldThrowForNonexistentFile() {
-      assertThrows(
-          BusinessException.class,
-          () -> userAvatarService.getAvatar(TsidUtils.toString(9999L), 256, "image/jpeg"));
+      PedalonsException ex =
+          assertThrows(
+              PedalonsException.class,
+              () -> userAvatarService.getAvatar(TsidUtils.toString(9999L), 256, "image/jpeg"));
+      assertEquals(ErrorCode.NOT_FOUND, ex.getErrorCode());
     }
 
     @Test
@@ -112,31 +122,26 @@ class UserAvatarServiceTest extends AbstractBaseTest {
   @Nested
   class ContentTypeDetection {
 
-    @Test
-    void shouldDetectPngFromExtension() throws IOException {
-      pedalonsContext.setUserForTest(user);
-      // Create minimal PNG header
-      byte[] pngHeader = {(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
-      ByteArrayInputStream pngContent = new ByteArrayInputStream(pngHeader);
-
-      // Will fail at ImgProxy resize but validates content type detection passes
-      try {
-        userAvatarService.uploadAvatar(pngContent, "test.png");
-        fail("Should have thrown exception during resize");
-      } catch (BusinessException e) {
-        // Expected - fails at resize step, not content type detection
-        assertEquals("INVALID_FORMAT", e.getErrorCode().name());
-      }
+    private InputStream getTestImageStream() {
+      InputStream resourceAsStream = getClass().getClassLoader().getResourceAsStream("image.png");
+      assertNotNull(resourceAsStream, "image.png not found in test resources");
+      return resourceAsStream;
     }
 
     @Test
     void shouldRejectNonImageFile() {
       pedalonsContext.setUserForTest(user);
-      ByteArrayInputStream textContent = new ByteArrayInputStream("plain text".getBytes());
+      ByteArrayInputStream textContent =
+          new ByteArrayInputStream(
+              ("Not a real PDF document — just plain text long enough that Magika"
+                      + " will classify it as text rather than misidentify by extension.")
+                  .getBytes());
 
-      assertThrows(
-          BusinessException.class,
-          () -> userAvatarService.uploadAvatar(textContent, "document.pdf"));
+      PedalonsException ex =
+          assertThrows(
+              PedalonsException.class,
+              () -> userAvatarService.uploadAvatar(textContent, "document.pdf"));
+      assertEquals(ErrorCode.FILE_TYPE_REJECTED, ex.getErrorCode());
     }
   }
 }

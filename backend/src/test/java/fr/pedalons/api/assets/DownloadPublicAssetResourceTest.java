@@ -113,13 +113,13 @@ class DownloadPublicAssetResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  void getAvatar_nonexistentFileId_shouldReturn400() {
+  void getAvatar_nonexistentFileId_shouldReturn404() {
     given()
         .header("Accept", "image/jpeg")
         .when()
         .get("/api/download/public/avatars/" + TsidUtils.toString(999999L) + "/256")
         .then()
-        .statusCode(400);
+        .statusCode(404);
   }
 
   @Test

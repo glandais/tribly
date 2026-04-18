@@ -22,7 +22,7 @@ public class MinioTestResource implements QuarkusTestResourceLifecycleManager {
     network = Network.newNetwork();
 
     s3mock =
-        new S3MockContainer("latest")
+        new S3MockContainer("5.0.0")
             .withInitialBuckets("pedalons-test")
             .withNetwork(network)
             .withNetworkAliases("s3mock");
