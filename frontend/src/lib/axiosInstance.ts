@@ -61,6 +61,13 @@ AXIOS_INSTANCE.interceptors.response.use(
       return Promise.reject(error)
     }
 
+    // Anonymous users have no session to refresh. A 401 on a public page
+    // (e.g. an endpoint that requires auth called while browsing anonymously)
+    // must not trigger a redirect to login — just propagate the error.
+    if (!useAuthStore.getState().isAuthenticated) {
+      return Promise.reject(error)
+    }
+
     if (isRefreshing) {
       // If already refreshing, queue this request
       return new Promise((resolve, reject) => {

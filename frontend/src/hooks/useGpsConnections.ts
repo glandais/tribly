@@ -23,10 +23,12 @@ interface RouteUploadResponse {
  */
 export function useGpsConnections() {
   const queryClient = useQueryClient()
-  const { user, refetchUser } = useAuth()
+  const { user, refetchUser, isAuthenticated } = useAuth()
 
   // Fetch available services for this domain
-  const { data: availableServices = [], isLoading: isLoadingAvailable } = useGetAvailableServices()
+  const { data: availableServices = [], isLoading: isLoadingAvailable } = useGetAvailableServices({
+    query: { enabled: isAuthenticated },
+  })
 
   const connectedServices = useMemo(() => user?.connectedServices ?? [], [user?.connectedServices])
 
