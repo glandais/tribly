@@ -34,7 +34,7 @@ export function PasskeyManager() {
   const queryClient = useQueryClient()
   const setHasPasskeys = useAuthStore((state) => state.setHasPasskeys)
 
-  const [isSupported, setIsSupported] = useState(true)
+  const [isSupported] = useState(() => isPasskeySupported())
   const [hasPlatformAuth, setHasPlatformAuth] = useState(false)
   const [isRegistering, setIsRegistering] = useState(false)
   const [registerError, setRegisterError] = useState<string | null>(null)
@@ -46,7 +46,6 @@ export function PasskeyManager() {
   const deletePasskeyMutation = useDeletePasskey()
 
   useEffect(() => {
-    setIsSupported(isPasskeySupported())
     isPlatformAuthenticatorAvailable().then(setHasPlatformAuth)
   }, [])
 

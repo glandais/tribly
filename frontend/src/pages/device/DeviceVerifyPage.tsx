@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { notifications } from '@mantine/notifications'
@@ -29,26 +29,22 @@ export function DeviceVerifyPage() {
 
   const isKarooPage = location.pathname === '/karoo'
 
-  const [isVerifying, setIsVerifying] = useState(true)
+  const userCode = searchParams.get('code')?.toUpperCase()
+
+  const [isVerifying, setIsVerifying] = useState(() => Boolean(searchParams.get('code')))
   const [codeValid, setCodeValid] = useState(false)
-  const [isCompleting, setIsCompleting] = useState(false)
   const [completed, setCompleted] = useState(false)
   const [manualCode, setManualCode] = useState('')
-
-  const userCode = searchParams.get('code')?.toUpperCase()
+  const hasInitiatedComplete = useRef(false)
 
   // Verify the user code exists
   useEffect(() => {
-    if (!userCode) {
-      setIsVerifying(false)
-      return
-    }
-
-    // Reset state when code changes (important for manual entry)
-    setIsVerifying(true)
-    setCodeValid(false)
+    if (!userCode) return
 
     const verifyCode = async () => {
+      // Reset state when code changes (important for manual entry)
+      setIsVerifying(true)
+      setCodeValid(false)
       try {
         const response = await fetch(`/api/device/oauth/verify?code=${userCode}`)
         if (response.ok) {
@@ -71,8 +67,6 @@ export function DeviceVerifyPage() {
   const completeAuthorization = useCallback(async () => {
     if (!userCode) return
 
-    setIsCompleting(true)
-
     try {
       await AXIOS_INSTANCE.post('/api/device/oauth/complete', { userCode })
       setCompleted(true)
@@ -81,17 +75,17 @@ export function DeviceVerifyPage() {
         message: t('device.errors.authorizationFailed'),
         color: 'red',
       })
-    } finally {
-      setIsCompleting(false)
+      hasInitiatedComplete.current = false
     }
   }, [userCode, t])
 
   // Auto-complete authorization when code is valid (user is already authenticated)
   useEffect(() => {
-    if (user && codeValid && !completed && !isCompleting) {
+    if (user && codeValid && !completed && !hasInitiatedComplete.current) {
+      hasInitiatedComplete.current = true
       completeAuthorization()
     }
-  }, [user, codeValid, completed, isCompleting, completeAuthorization])
+  }, [user, codeValid, completed, completeAuthorization])
 
   // Show loading while verifying code
   if (isVerifying) {

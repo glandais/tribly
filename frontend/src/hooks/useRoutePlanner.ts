@@ -105,7 +105,9 @@ export function useRoutePlanner(options?: UseRoutePlannerOptions): UseRoutePlann
   )
 
   const routeRef = useRef(route)
-  routeRef.current = route
+  useEffect(() => {
+    routeRef.current = route
+  })
 
   // Generic executor for all route operations
   const executeRouteOperation = useCallback(async (operation: (route: Route) => Promise<Route>) => {
@@ -191,14 +193,6 @@ export function useRoutePlanner(options?: UseRoutePlannerOptions): UseRoutePlann
   const routeGeoJson = useMemo(() => {
     if (route.points.length < 2) return null
     return geojson(route)
-  }, [route])
-
-  // Calculate route with segment caching
-  useEffect(() => {
-    if (route.points.length < 2) {
-      setError(null)
-      return
-    }
   }, [route])
 
   return {
