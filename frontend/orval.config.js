@@ -11,6 +11,7 @@ export default defineConfig({
       httpClient: 'axios',
       target: 'src/api/endpoints',
       schemas: 'src/api/dto',
+      formatter: 'prettier',
       override: {
         header: false,
         mutator: {
@@ -29,6 +30,7 @@ export default defineConfig({
       client: 'zod',
       target: 'src/api/zod',
       fileExtension: '.zod.ts',
+      formatter: 'prettier',
       override: {
         header: false,
       }
