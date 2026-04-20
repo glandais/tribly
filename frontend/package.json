@@ -25,7 +25,7 @@
     "i18n:status": "i18next-cli status",
     "i18n:extract": "i18next-cli extract",
     "generate-icons": "pwa-assets-generator --config pwa-assets.config.ts",
-    "check": "pnpm generate-api && pnpm format && pnpm typecheck && pnpm lint && pnpm build"
+    "check": "pnpm install && pnpm generate-api && pnpm format && pnpm typecheck && pnpm lint && pnpm build"
   },
   "dependencies": {
     "@mantine/schedule": "^9.0.2",
