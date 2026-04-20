@@ -27,6 +27,12 @@ export function HomeLayout({ header = <></>, currentTab, children }: HomeLayoutP
         icon: IconNews,
       },
       {
+        id: 'teams',
+        path: paths.teams(),
+        label: t('teams.title'),
+        icon: IconUsers,
+      },
+      {
         id: 'calendar',
         path: paths.calendar(),
         label: t('calendar.title'),
@@ -38,12 +44,6 @@ export function HomeLayout({ header = <></>, currentTab, children }: HomeLayoutP
         path: paths.allRoutes(),
         label: t('nav.routes'),
         icon: IconRoute,
-      },
-      {
-        id: 'teams',
-        path: paths.teams(),
-        label: t('teams.title'),
-        icon: IconUsers,
       },
     ]
     return allTabs.filter((tab) => !tab.requiresAuth || isAuthenticated)

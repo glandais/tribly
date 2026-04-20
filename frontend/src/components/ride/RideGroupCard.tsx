@@ -1,14 +1,33 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { IconBolt, IconUsers, IconClock, IconMap, IconDownload } from '@tabler/icons-react'
-import { Paper, Group, Text, Button, Badge, UnstyledButton, Anchor } from '@mantine/core'
-import type { RideGroupDto } from '@/api/dto'
+import {
+  IconBolt,
+  IconUsers,
+  IconClock,
+  IconMap,
+  IconDownload,
+  IconDeviceMobile,
+} from '@tabler/icons-react'
+import {
+  Paper,
+  Group,
+  Text,
+  Button,
+  Badge,
+  UnstyledButton,
+  Anchor,
+  Menu,
+  Loader,
+} from '@mantine/core'
+import type { RideGroupDto, GpsServiceType } from '@/api/dto'
 import { useGetRoute } from '@/api/endpoints/routes/routes'
 import { UserAvatarGroup } from '../common/UserAvatar'
 import { ParticipantListModal } from './ParticipantListModal'
 import { paths } from '@/config/paths'
 import { useUnits } from '@/hooks/useUnits'
+import { useAuth } from '@/hooks/useAuth'
+import { useGpsConnections } from '@/hooks/useGpsConnections'
 
 interface RideGroupCardProps {
   group: RideGroupDto
@@ -37,6 +56,8 @@ export function RideGroupCard({
 }: RideGroupCardProps) {
   const { t } = useTranslation()
   const { speed } = useUnits()
+  const { isAuthenticated } = useAuth()
+  const { connectedServices, uploadRoute, isUploading } = useGpsConnections()
   const [showParticipants, setShowParticipants] = useState(false)
   const isFull = group.maxParticipants && group.countParticipants >= group.maxParticipants
 
@@ -47,6 +68,12 @@ export function RideGroupCard({
   const { data: route } = useGetRoute(teamSlug, effectiveRouteSlug!, {
     query: { enabled: !!effectiveRouteSlug },
   })
+
+  const handleSendToDevice = (serviceType: GpsServiceType) => {
+    if (effectiveRouteSlug) {
+      uploadRoute({ serviceType, teamSlug, routeSlug: effectiveRouteSlug })
+    }
+  }
 
   return (
     <Paper
@@ -176,6 +203,30 @@ export function RideGroupCard({
                 {t('rides.detail.groups.route.downloadFit')}
               </Group>
             </Anchor>
+          )}
+          {isAuthenticated && connectedServices.length > 0 && (
+            <Menu shadow="md" width={200}>
+              <Menu.Target>
+                <UnstyledButton disabled={isUploading}>
+                  <Group gap={4}>
+                    {isUploading ? <Loader size={16} /> : <IconDeviceMobile size={16} />}
+                    <Text size="xs" c="dimmed">
+                      {t('routes.detail.sendToDevice')}
+                    </Text>
+                  </Group>
+                </UnstyledButton>
+              </Menu.Target>
+              <Menu.Dropdown>
+                {connectedServices.map((service) => (
+                  <Menu.Item
+                    key={service.serviceType}
+                    onClick={() => handleSendToDevice(service.serviceType)}
+                  >
+                    {t(`gps.services.${service.serviceType.toLowerCase() as 'hammerhead'}`)}
+                  </Menu.Item>
+                ))}
+              </Menu.Dropdown>
+            </Menu>
           )}
         </Group>
       )}
