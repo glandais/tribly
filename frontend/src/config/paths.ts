@@ -66,10 +66,10 @@ export const paths = {
   routeEdit: (teamSlug: string, routeSlug: string) => `/teams/${teamSlug}/routes/${routeSlug}/edit`,
 
   // Ads
-  ads: (teamSlug: string) => `/teams/${teamSlug}/ads`,
-  adNew: (teamSlug: string) => `/teams/${teamSlug}/ads/new`,
-  ad: (teamSlug: string, adSlug: string) => `/teams/${teamSlug}/ads/${adSlug}`, // mobile OK
-  adEdit: (teamSlug: string, adSlug: string) => `/teams/${teamSlug}/ads/${adSlug}/edit`,
+  ads: (teamSlug: string) => `/teams/${teamSlug}/classifieds`,
+  adNew: (teamSlug: string) => `/teams/${teamSlug}/classifieds/new`,
+  ad: (teamSlug: string, adSlug: string) => `/teams/${teamSlug}/classifieds/${adSlug}`, // mobile OK
+  adEdit: (teamSlug: string, adSlug: string) => `/teams/${teamSlug}/classifieds/${adSlug}/edit`,
 
   // Platform Admin
   admin: () => '/admin',

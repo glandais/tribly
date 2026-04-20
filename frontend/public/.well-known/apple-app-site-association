@@ -7,7 +7,7 @@
         "paths": [
           "/teams/*/rides/*",
           "/teams/*/posts/*",
-          "/teams/*/ads/*",
+          "/teams/*/classifieds/*",
           "/teams/*/trips/*/stages/*",
           "/teams/*/trips/*",
           "/teams/*/routes/*",

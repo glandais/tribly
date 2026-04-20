@@ -45,7 +45,7 @@ class _AdsClient implements AdsClient {
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/api/teams/${teamSlug}/ads',
+            '/api/teams/${teamSlug}/classifieds',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -76,7 +76,7 @@ class _AdsClient implements AdsClient {
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/api/teams/${teamSlug}/ads',
+            '/api/teams/${teamSlug}/classifieds',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -108,7 +108,7 @@ class _AdsClient implements AdsClient {
       Options(method: 'PUT', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/api/teams/${teamSlug}/ads/${slug}',
+            '/api/teams/${teamSlug}/classifieds/${slug}',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -135,7 +135,7 @@ class _AdsClient implements AdsClient {
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/api/teams/${teamSlug}/ads/${slug}',
+            '/api/teams/${teamSlug}/classifieds/${slug}',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -165,7 +165,7 @@ class _AdsClient implements AdsClient {
       Options(method: 'DELETE', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/api/teams/${teamSlug}/ads/${slug}',
+            '/api/teams/${teamSlug}/classifieds/${slug}',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -187,7 +187,7 @@ class _AdsClient implements AdsClient {
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/api/teams/${teamSlug}/ads/${slug}/edit',
+            '/api/teams/${teamSlug}/classifieds/${slug}/edit',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -219,7 +219,7 @@ class _AdsClient implements AdsClient {
       Options(method: 'PATCH', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/api/teams/${teamSlug}/ads/${slug}/slug',
+            '/api/teams/${teamSlug}/classifieds/${slug}/slug',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -249,7 +249,7 @@ class _AdsClient implements AdsClient {
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/api/teams/${teamSlug}/ads/${slug}/undelete',
+            '/api/teams/${teamSlug}/classifieds/${slug}/undelete',
             queryParameters: queryParameters,
             data: _data,
           )

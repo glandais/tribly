@@ -33,7 +33,7 @@
                 <data android:scheme="https" android:host="www.pedalons.fr" />
                 <data android:pathPattern="/teams/.*/rides/.*" />
                 <data android:pathPattern="/teams/.*/posts/.*" />
-                <data android:pathPattern="/teams/.*/ads/.*" />
+                <data android:pathPattern="/teams/.*/classifieds/.*" />
                 <data android:pathPattern="/teams/.*/trips/.*/stages/.*" />
                 <data android:pathPattern="/teams/.*/trips/.*" />
                 <data android:pathPattern="/teams/.*/routes/.*" />

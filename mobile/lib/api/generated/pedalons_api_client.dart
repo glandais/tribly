@@ -19,8 +19,8 @@ import 'clients/publications_client.dart';
 import 'clients/router_client.dart';
 import 'clients/routes_client.dart';
 import 'clients/teams_client.dart';
-import 'clients/ads_client.dart';
 import 'clients/assets_client.dart';
+import 'clients/ads_client.dart';
 import 'clients/team_members_client.dart';
 import 'clients/team_pages_client.dart';
 import 'clients/places_client.dart';
@@ -64,8 +64,8 @@ class PedalonsApiClient {
   RouterClient? _router;
   RoutesClient? _routes;
   TeamsClient? _teams;
-  AdsClient? _ads;
   AssetsClient? _assets;
+  AdsClient? _ads;
   TeamMembersClient? _teamMembers;
   TeamPagesClient? _teamPages;
   PlacesClient? _places;
@@ -121,9 +121,9 @@ class PedalonsApiClient {
 
   TeamsClient get teams => _teams ??= TeamsClient(_dio, baseUrl: _baseUrl);
 
-  AdsClient get ads => _ads ??= AdsClient(_dio, baseUrl: _baseUrl);
-
   AssetsClient get assets => _assets ??= AssetsClient(_dio, baseUrl: _baseUrl);
+
+  AdsClient get ads => _ads ??= AdsClient(_dio, baseUrl: _baseUrl);
 
   TeamMembersClient get teamMembers =>
       _teamMembers ??= TeamMembersClient(_dio, baseUrl: _baseUrl);

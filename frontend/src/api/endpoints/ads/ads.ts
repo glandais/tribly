@@ -40,13 +40,13 @@ export const listAds = (
   signal?: AbortSignal
 ) => {
   return axiosMutator<AdListResponse>(
-    { url: `/api/teams/${teamSlug}/ads`, method: 'GET', params, signal },
+    { url: `/api/teams/${teamSlug}/classifieds`, method: 'GET', params, signal },
     options
   )
 }
 
 export const getListAdsQueryKey = (teamSlug: string, params?: ListAdsParams) => {
-  return [`/api/teams/${teamSlug}/ads`, ...(params ? [params] : [])] as const
+  return [`/api/teams/${teamSlug}/classifieds`, ...(params ? [params] : [])] as const
 }
 
 export const getListAdsQueryOptions = <
@@ -166,7 +166,7 @@ export const createAd = (
 ) => {
   return axiosMutator<AdDto>(
     {
-      url: `/api/teams/${teamSlug}/ads`,
+      url: `/api/teams/${teamSlug}/classifieds`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: adRequest,
@@ -251,7 +251,7 @@ export const updateAd = (
 ) => {
   return axiosMutator<AdDto>(
     {
-      url: `/api/teams/${teamSlug}/ads/${slug}`,
+      url: `/api/teams/${teamSlug}/classifieds/${slug}`,
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       data: adRequest,
@@ -334,13 +334,13 @@ export const getAd = (
   signal?: AbortSignal
 ) => {
   return axiosMutator<AdDto>(
-    { url: `/api/teams/${teamSlug}/ads/${slug}`, method: 'GET', signal },
+    { url: `/api/teams/${teamSlug}/classifieds/${slug}`, method: 'GET', signal },
     options
   )
 }
 
 export const getGetAdQueryKey = (teamSlug: string, slug: string) => {
-  return [`/api/teams/${teamSlug}/ads/${slug}`] as const
+  return [`/api/teams/${teamSlug}/classifieds/${slug}`] as const
 }
 
 export const getGetAdQueryOptions = <
@@ -459,7 +459,7 @@ export const deleteAd = (
   signal?: AbortSignal
 ) => {
   return axiosMutator<void>(
-    { url: `/api/teams/${teamSlug}/ads/${slug}`, method: 'DELETE', signal },
+    { url: `/api/teams/${teamSlug}/classifieds/${slug}`, method: 'DELETE', signal },
     options
   )
 }
@@ -537,13 +537,13 @@ export const getAdEdit = (
   signal?: AbortSignal
 ) => {
   return axiosMutator<AdEditDto>(
-    { url: `/api/teams/${teamSlug}/ads/${slug}/edit`, method: 'GET', signal },
+    { url: `/api/teams/${teamSlug}/classifieds/${slug}/edit`, method: 'GET', signal },
     options
   )
 }
 
 export const getGetAdEditQueryKey = (teamSlug: string, slug: string) => {
-  return [`/api/teams/${teamSlug}/ads/${slug}/edit`] as const
+  return [`/api/teams/${teamSlug}/classifieds/${slug}/edit`] as const
 }
 
 export const getGetAdEditQueryOptions = <
@@ -664,7 +664,7 @@ export const changeAdSlug = (
 ) => {
   return axiosMutator<AdDto>(
     {
-      url: `/api/teams/${teamSlug}/ads/${slug}/slug`,
+      url: `/api/teams/${teamSlug}/classifieds/${slug}/slug`,
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       data: slugChangeRequest,
@@ -747,7 +747,7 @@ export const undeleteAd = (
   signal?: AbortSignal
 ) => {
   return axiosMutator<AdEditDto>(
-    { url: `/api/teams/${teamSlug}/ads/${slug}/undelete`, method: 'POST', signal },
+    { url: `/api/teams/${teamSlug}/classifieds/${slug}/undelete`, method: 'POST', signal },
     options
   )
 }

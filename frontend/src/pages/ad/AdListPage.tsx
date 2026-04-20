@@ -18,7 +18,11 @@ import {
   Space,
 } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
-import { useListAds, listAds, getListAdsQueryKey } from '../../api/endpoints/ads/ads'
+import {
+  useListAds,
+  listAds,
+  getListAdsQueryKey,
+} from '../../api/endpoints/ads/ads'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { AdCard, AdCardSkeleton } from '../../components/ad'
 import { LoadingPage } from '../../components/common/LoadingSpinner'

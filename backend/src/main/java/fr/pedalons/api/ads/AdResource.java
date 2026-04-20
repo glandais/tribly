@@ -25,7 +25,7 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jspecify.annotations.Nullable;
 
-@Path("/api/teams/{teamSlug}/ads")
+@Path("/api/teams/{teamSlug}/classifieds")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Ads", description = "Ad management operations")

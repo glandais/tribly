@@ -42,7 +42,7 @@ class AdResourceTest extends AbstractResourceTest {
         .contentType("application/json")
         .body(createAdRequest(name))
         .when()
-        .post("/api/teams/" + team1Slug + "/ads")
+        .post("/api/teams/" + team1Slug + "/classifieds")
         .then()
         .statusCode(201)
         .extract()
@@ -61,7 +61,7 @@ class AdResourceTest extends AbstractResourceTest {
         .contentType("application/json")
         .body(request)
         .when()
-        .post("/api/teams/" + team1Slug + "/ads")
+        .post("/api/teams/" + team1Slug + "/classifieds")
         .then()
         .statusCode(201)
         .body("name", equalTo("Member Ad"))
@@ -76,7 +76,7 @@ class AdResourceTest extends AbstractResourceTest {
         .contentType("application/json")
         .body(request)
         .when()
-        .post("/api/teams/" + team1Slug + "/ads")
+        .post("/api/teams/" + team1Slug + "/classifieds")
         .then()
         .statusCode(401);
   }
@@ -91,7 +91,7 @@ class AdResourceTest extends AbstractResourceTest {
         .contentType("application/json")
         .body(request)
         .when()
-        .post("/api/teams/" + team1Slug + "/ads")
+        .post("/api/teams/" + team1Slug + "/classifieds")
         .then()
         .statusCode(403);
   }
@@ -106,7 +106,7 @@ class AdResourceTest extends AbstractResourceTest {
         .auth()
         .oauth2(getAccessToken(USER3))
         .when()
-        .get("/api/teams/" + team1Slug + "/ads/" + adSlug)
+        .get("/api/teams/" + team1Slug + "/classifieds/" + adSlug)
         .then()
         .statusCode(200)
         .body("name", equalTo("Public Ad"));
@@ -118,7 +118,7 @@ class AdResourceTest extends AbstractResourceTest {
         .auth()
         .oauth2(getAccessToken(USER1))
         .when()
-        .get("/api/teams/" + team1Slug + "/ads/nonexistent-ad")
+        .get("/api/teams/" + team1Slug + "/classifieds/nonexistent-ad")
         .then()
         .statusCode(404);
   }
@@ -146,7 +146,7 @@ class AdResourceTest extends AbstractResourceTest {
         .contentType("application/json")
         .body(request)
         .when()
-        .put("/api/teams/" + team1Slug + "/ads/" + adSlug)
+        .put("/api/teams/" + team1Slug + "/classifieds/" + adSlug)
         .then()
         .statusCode(200)
         .body("name", equalTo("Updated Ad"))
@@ -174,7 +174,7 @@ class AdResourceTest extends AbstractResourceTest {
         .contentType("application/json")
         .body(request)
         .when()
-        .put("/api/teams/" + team1Slug + "/ads/" + adSlug)
+        .put("/api/teams/" + team1Slug + "/classifieds/" + adSlug)
         .then()
         .statusCode(403);
   }
@@ -189,7 +189,7 @@ class AdResourceTest extends AbstractResourceTest {
         .auth()
         .oauth2(getAccessToken(USER1))
         .when()
-        .delete("/api/teams/" + team1Slug + "/ads/" + adSlug)
+        .delete("/api/teams/" + team1Slug + "/classifieds/" + adSlug)
         .then()
         .statusCode(204);
 
@@ -198,7 +198,7 @@ class AdResourceTest extends AbstractResourceTest {
         .auth()
         .oauth2(getAccessToken(USER2))
         .when()
-        .get("/api/teams/" + team1Slug + "/ads/" + adSlug)
+        .get("/api/teams/" + team1Slug + "/classifieds/" + adSlug)
         .then()
         .statusCode(404);
   }
@@ -211,7 +211,7 @@ class AdResourceTest extends AbstractResourceTest {
         .auth()
         .oauth2(getAccessToken(USER3))
         .when()
-        .delete("/api/teams/" + team1Slug + "/ads/" + adSlug)
+        .delete("/api/teams/" + team1Slug + "/classifieds/" + adSlug)
         .then()
         .statusCode(403);
   }
@@ -228,7 +228,7 @@ class AdResourceTest extends AbstractResourceTest {
         .contentType("application/json")
         .body(new SlugChangeRequest("new-ad-slug"))
         .when()
-        .patch("/api/teams/" + team1Slug + "/ads/" + adSlug + "/slug")
+        .patch("/api/teams/" + team1Slug + "/classifieds/" + adSlug + "/slug")
         .then()
         .statusCode(200)
         .body("slug", equalTo("new-ad-slug"));
@@ -244,7 +244,7 @@ class AdResourceTest extends AbstractResourceTest {
         .contentType("application/json")
         .body(new SlugChangeRequest("hacked-slug"))
         .when()
-        .patch("/api/teams/" + team1Slug + "/ads/" + adSlug + "/slug")
+        .patch("/api/teams/" + team1Slug + "/classifieds/" + adSlug + "/slug")
         .then()
         .statusCode(403);
   }
@@ -260,7 +260,7 @@ class AdResourceTest extends AbstractResourceTest {
         .auth()
         .oauth2(getAccessToken(USER3))
         .when()
-        .get("/api/teams/" + team1Slug + "/ads")
+        .get("/api/teams/" + team1Slug + "/classifieds")
         .then()
         .statusCode(200)
         .body("ads.size()", greaterThanOrEqualTo(2));
@@ -277,7 +277,7 @@ class AdResourceTest extends AbstractResourceTest {
         .queryParam("page", 0)
         .queryParam("size", 10)
         .when()
-        .get("/api/teams/" + team1Slug + "/ads")
+        .get("/api/teams/" + team1Slug + "/classifieds")
         .then()
         .statusCode(200);
   }

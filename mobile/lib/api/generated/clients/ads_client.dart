@@ -36,7 +36,7 @@ abstract class AdsClient {
   /// [size] - Page size.
   ///
   /// [to] - End date filter (ISO format).
-  @GET('/api/teams/{teamSlug}/ads')
+  @GET('/api/teams/{teamSlug}/classifieds')
   Future<AdListResponse> listAds({
     @Path('teamSlug') required String teamSlug,
     @Query('page') int? page = 0,
@@ -54,7 +54,7 @@ abstract class AdsClient {
   /// [teamSlug] - Team URL slug.
   ///
   /// [body] - Name not received - field will be skipped.
-  @POST('/api/teams/{teamSlug}/ads')
+  @POST('/api/teams/{teamSlug}/classifieds')
   Future<AdDto> createAd({
     @Path('teamSlug') required String teamSlug,
     @Body() required AdRequest body,
@@ -69,7 +69,7 @@ abstract class AdsClient {
   /// [teamSlug] - Team URL slug.
   ///
   /// [body] - Name not received - field will be skipped.
-  @PUT('/api/teams/{teamSlug}/ads/{slug}')
+  @PUT('/api/teams/{teamSlug}/classifieds/{slug}')
   Future<AdDto> updateAd({
     @Path('slug') required String slug,
     @Path('teamSlug') required String teamSlug,
@@ -83,7 +83,7 @@ abstract class AdsClient {
   /// [slug] - Ad URL slug.
   ///
   /// [teamSlug] - Team URL slug.
-  @GET('/api/teams/{teamSlug}/ads/{slug}')
+  @GET('/api/teams/{teamSlug}/classifieds/{slug}')
   Future<AdDto> getAd({
     @Path('slug') required String slug,
     @Path('teamSlug') required String teamSlug,
@@ -96,7 +96,7 @@ abstract class AdsClient {
   /// [slug] - Ad URL slug.
   ///
   /// [teamSlug] - Team URL slug.
-  @DELETE('/api/teams/{teamSlug}/ads/{slug}')
+  @DELETE('/api/teams/{teamSlug}/classifieds/{slug}')
   Future<void> deleteAd({
     @Path('slug') required String slug,
     @Path('teamSlug') required String teamSlug,
@@ -109,7 +109,7 @@ abstract class AdsClient {
   /// [slug] - Ad URL slug.
   ///
   /// [teamSlug] - Team URL slug.
-  @GET('/api/teams/{teamSlug}/ads/{slug}/edit')
+  @GET('/api/teams/{teamSlug}/classifieds/{slug}/edit')
   Future<AdEditDto> getAdEdit({
     @Path('slug') required String slug,
     @Path('teamSlug') required String teamSlug,
@@ -124,7 +124,7 @@ abstract class AdsClient {
   /// [teamSlug] - Team URL slug.
   ///
   /// [body] - Name not received - field will be skipped.
-  @PATCH('/api/teams/{teamSlug}/ads/{slug}/slug')
+  @PATCH('/api/teams/{teamSlug}/classifieds/{slug}/slug')
   Future<AdDto> changeAdSlug({
     @Path('slug') required String slug,
     @Path('teamSlug') required String teamSlug,
@@ -138,7 +138,7 @@ abstract class AdsClient {
   /// [slug] - Ad URL slug.
   ///
   /// [teamSlug] - Team URL slug.
-  @POST('/api/teams/{teamSlug}/ads/{slug}/undelete')
+  @POST('/api/teams/{teamSlug}/classifieds/{slug}/undelete')
   Future<AdEditDto> undeleteAd({
     @Path('slug') required String slug,
     @Path('teamSlug') required String teamSlug,

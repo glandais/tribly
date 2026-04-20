@@ -29,7 +29,7 @@ class Paths {
   static String team(String teamSlug) => '/teams/$teamSlug'; // applink OK
   static String teamCalendar(String teamSlug) => '/teams/$teamSlug/calendar'; // applink OK
   static String teamAbout(String teamSlug) => '/teams/$teamSlug/about'; // applink OK
-  static String teamAds(String teamSlug) => '/teams/$teamSlug/ads';
+  static String teamAds(String teamSlug) => '/teams/$teamSlug/classifieds';
 
   // Rides
   static String ride(String teamSlug, String rideSlug) =>
@@ -46,7 +46,7 @@ class Paths {
 
   // Ads
   static String ad(String teamSlug, String adSlug) =>
-      '/teams/$teamSlug/ads/$adSlug'; // applink OK
+      '/teams/$teamSlug/classifieds/$adSlug'; // applink OK
 
   // Trips
   static String trip(String teamSlug, String tripSlug) =>

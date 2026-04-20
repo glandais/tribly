@@ -7004,7 +7004,199 @@
         } ]
       }
     },
-    "/api/teams/{teamSlug}/ads" : {
+    "/api/teams/{teamSlug}/assets" : {
+      "post" : {
+        "summary" : "Create asset",
+        "operationId" : "uploadAsset",
+        "tags" : [ "Assets" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "file" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  }
+                }
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Asset created successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AssetDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request or file",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "User is not a team member",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{teamSlug}/calendar/events" : {
+      "get" : {
+        "summary" : "Get team calendar events",
+        "description" : "Get calendar events for a specific team",
+        "operationId" : "getTeamEvents",
+        "tags" : [ "Calendar" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Start date (ISO 8601)",
+          "name" : "from",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "End date (ISO 8601)",
+          "name" : "to",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Events retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CalendarEventsResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/teams/{teamSlug}/calendar/ics" : {
+      "get" : {
+        "summary" : "Get team ICS feed",
+        "description" : "Get ICS calendar feed for a specific team (requires token)",
+        "operationId" : "getTeamIcsFeed",
+        "tags" : [ "Calendar" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Calendar access token",
+          "name" : "token",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "ICS feed retrieved successfully",
+            "content" : {
+              "text/calendar" : { }
+            }
+          },
+          "403" : {
+            "description" : "Invalid token or user not member of team",
+            "content" : {
+              "text/calendar" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team not found",
+            "content" : {
+              "text/calendar" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/teams/{teamSlug}/classifieds" : {
       "get" : {
         "summary" : "List ads",
         "description" : "Get paginated list of ads for a team with optional filtering",
@@ -7178,7 +7370,7 @@
         } ]
       }
     },
-    "/api/teams/{teamSlug}/ads/{slug}" : {
+    "/api/teams/{teamSlug}/classifieds/{slug}" : {
       "put" : {
         "summary" : "Update ad",
         "description" : "Update ad information. Only the creator or an admin can update.",
@@ -7383,7 +7575,7 @@
         } ]
       }
     },
-    "/api/teams/{teamSlug}/ads/{slug}/edit" : {
+    "/api/teams/{teamSlug}/classifieds/{slug}/edit" : {
       "get" : {
         "summary" : "Get ad details for edit",
         "description" : "Get detailed ad information",
@@ -7439,7 +7631,7 @@
         } ]
       }
     },
-    "/api/teams/{teamSlug}/ads/{slug}/slug" : {
+    "/api/teams/{teamSlug}/classifieds/{slug}/slug" : {
       "patch" : {
         "summary" : "Change ad slug",
         "description" : "Change ad URL slug. Requires admin permissions.",
@@ -7539,7 +7731,7 @@
         } ]
       }
     },
-    "/api/teams/{teamSlug}/ads/{slug}/undelete" : {
+    "/api/teams/{teamSlug}/classifieds/{slug}/undelete" : {
       "post" : {
         "summary" : "Restore ad",
         "description" : "Restore a soft-deleted ad. Only the creator or an admin can restore.",
@@ -7607,198 +7799,6 @@
         "security" : [ {
           "SecurityScheme" : [ "user" ]
         } ]
-      }
-    },
-    "/api/teams/{teamSlug}/assets" : {
-      "post" : {
-        "summary" : "Create asset",
-        "operationId" : "uploadAsset",
-        "tags" : [ "Assets" ],
-        "parameters" : [ {
-          "description" : "Team URL slug",
-          "name" : "teamSlug",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "multipart/form-data" : {
-              "schema" : {
-                "type" : "object",
-                "properties" : {
-                  "file" : {
-                    "type" : "string",
-                    "format" : "binary"
-                  }
-                }
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "201" : {
-            "description" : "Asset created successfully",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/AssetDto"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Invalid request or file",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "User is not a team member",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Team not found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "security" : [ {
-          "SecurityScheme" : [ "user" ]
-        } ]
-      }
-    },
-    "/api/teams/{teamSlug}/calendar/events" : {
-      "get" : {
-        "summary" : "Get team calendar events",
-        "description" : "Get calendar events for a specific team",
-        "operationId" : "getTeamEvents",
-        "tags" : [ "Calendar" ],
-        "parameters" : [ {
-          "description" : "Team URL slug",
-          "name" : "teamSlug",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "description" : "Start date (ISO 8601)",
-          "name" : "from",
-          "in" : "query",
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "description" : "End date (ISO 8601)",
-          "name" : "to",
-          "in" : "query",
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "Events retrieved successfully",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/CalendarEventsResponse"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Team not found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/teams/{teamSlug}/calendar/ics" : {
-      "get" : {
-        "summary" : "Get team ICS feed",
-        "description" : "Get ICS calendar feed for a specific team (requires token)",
-        "operationId" : "getTeamIcsFeed",
-        "tags" : [ "Calendar" ],
-        "parameters" : [ {
-          "description" : "Team URL slug",
-          "name" : "teamSlug",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "description" : "Calendar access token",
-          "name" : "token",
-          "in" : "query",
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "ICS feed retrieved successfully",
-            "content" : {
-              "text/calendar" : { }
-            }
-          },
-          "403" : {
-            "description" : "Invalid token or user not member of team",
-            "content" : {
-              "text/calendar" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Team not found",
-            "content" : {
-              "text/calendar" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
       }
     },
     "/api/teams/{teamSlug}/members" : {

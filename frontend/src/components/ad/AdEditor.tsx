@@ -88,7 +88,7 @@ export function AdEditor({
         {currentSlug && onSlugChange && (
           <SlugEditor
             currentSlug={currentSlug}
-            baseUrl={`/teams/${teamSlug}/ads/`}
+            baseUrl={`/teams/${teamSlug}/classifieds/`}
             onSlugChange={onSlugChange}
             disabled={!canEditSlug}
           />

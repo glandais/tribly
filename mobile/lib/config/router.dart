@@ -216,7 +216,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
               // Ads tab
               GoRoute(
-                path: 'ads',
+                path: 'classifieds',
                 pageBuilder: (context, state) {
                   final teamSlug = state.pathParameters['teamSlug']!;
                   return NoTransitionPage(
@@ -273,7 +273,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 ),
               ),
               GoRoute(
-                path: 'ads/:adSlug',
+                path: 'classifieds/:adSlug',
                 parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) => AdDetailPage(
                   teamSlug: state.pathParameters['teamSlug']!,

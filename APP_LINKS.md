@@ -43,7 +43,7 @@ Ajouter le pattern dans `applinks.details[0].paths` :
         "paths": [
           "/teams/*/rides/*",
           "/teams/*/posts/*",
-          "/teams/*/ads/*",
+          "/teams/*/classifieds/*",
           "/teams/*/trips/*/stages/*",
           "/teams/*/trips/*",
           "/teams/*/routes/*",
@@ -93,7 +93,7 @@ Ajouter un `<data>` dans l'intent-filter existant. Utiliser `android:pathPattern
     <!-- Patterns dynamiques -->
     <data android:pathPattern="/teams/.*/rides/.*" />
     <data android:pathPattern="/teams/.*/posts/.*" />
-    <data android:pathPattern="/teams/.*/ads/.*" />
+    <data android:pathPattern="/teams/.*/classifieds/.*" />
     <data android:pathPattern="/teams/.*/trips/.*/stages/.*" />
     <data android:pathPattern="/teams/.*/trips/.*" />
     <data android:pathPattern="/teams/.*/routes/.*" />
