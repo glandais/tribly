@@ -31,29 +31,51 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="www.pedalons.fr" />
-                <data android:pathPattern="/teams/.*/rides/.*" />
-                <data android:pathPattern="/teams/.*/posts/.*" />
-                <data android:pathPattern="/teams/.*/classifieds/.*" />
-                <data android:pathPattern="/teams/.*/trips/.*/stages/.*" />
-                <data android:pathPattern="/teams/.*/trips/.*" />
-                <data android:pathPattern="/teams/.*/routes/.*" />
-                <data android:pathPattern="/teams/.*/routes" />
-                <data android:pathPattern="/teams/.*/about" />
-                <data android:pathPattern="/teams/.*/calendar" />
-                <data android:pathPattern="/teams/.*" />
-                <data android:path="/teams" />
-                <data android:path="/calendar" />
-                <data android:path="/profile" />
-                <data android:path="/privacy" />
-                <data android:path="/terms" />
-                <data android:path="/verify-email" />
-                <data android:path="/reset-password" />
-                <data android:path="/forgot-password" />
+                <!-- BEGIN generated-deeplinks -->
+                <data android:path="/" />
                 <data android:path="/login" />
+                <data android:path="/connexion" />
                 <data android:path="/register" />
+                <data android:path="/inscription" />
+                <data android:path="/verify-email" />
+                <data android:path="/verifier-email" />
+                <data android:path="/forgot-password" />
+                <data android:path="/mot-de-passe-oublie" />
+                <data android:path="/reset-password" />
+                <data android:path="/nouveau-mot-de-passe" />
                 <data android:path="/garmin" />
                 <data android:path="/karoo" />
-                <data android:path="/" />
+                <data android:path="/privacy" />
+                <data android:path="/confidentialite" />
+                <data android:path="/terms" />
+                <data android:path="/cgu" />
+                <data android:path="/profile" />
+                <data android:path="/profil" />
+                <data android:path="/calendar" />
+                <data android:path="/calendrier" />
+                <data android:path="/teams" />
+                <data android:path="/equipes" />
+                <data android:pathPattern="/teams/.*" />
+                <data android:pathPattern="/equipes/.*" />
+                <data android:pathPattern="/teams/.*/about" />
+                <data android:pathPattern="/equipes/.*/a-propos" />
+                <data android:pathPattern="/teams/.*/calendar" />
+                <data android:pathPattern="/equipes/.*/calendrier" />
+                <data android:pathPattern="/teams/.*/rides/.*" />
+                <data android:pathPattern="/equipes/.*/sorties/.*" />
+                <data android:pathPattern="/teams/.*/trips/.*" />
+                <data android:pathPattern="/equipes/.*/voyages/.*" />
+                <data android:pathPattern="/teams/.*/trips/.*/stages/.*" />
+                <data android:pathPattern="/equipes/.*/voyages/.*/etapes/.*" />
+                <data android:pathPattern="/teams/.*/posts/.*" />
+                <data android:pathPattern="/equipes/.*/articles/.*" />
+                <data android:pathPattern="/teams/.*/routes" />
+                <data android:pathPattern="/equipes/.*/parcours" />
+                <data android:pathPattern="/teams/.*/routes/.*" />
+                <data android:pathPattern="/equipes/.*/parcours/.*" />
+                <data android:pathPattern="/teams/.*/classifieds/.*" />
+                <data android:pathPattern="/equipes/.*/annonces/.*" />
+                <!-- END generated-deeplinks -->
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

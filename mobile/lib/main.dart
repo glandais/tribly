@@ -47,7 +47,9 @@ void main() async {
   );
 }
 
-/// Widget that handles deep links while the app is running
+/// Widget that handles deep links (initial + runtime), expanding detail-page
+/// targets into a full ancestor stack so back navigates through the logical
+/// hierarchy instead of closing the app.
 class _DeepLinkHandler extends ConsumerStatefulWidget {
   final AppLinks appLinks;
   final Widget child;
@@ -65,13 +67,30 @@ class _DeepLinkHandlerState extends ConsumerState<_DeepLinkHandler> {
   @override
   void initState() {
     super.initState();
-    // Listen for deep links while app is running
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final initialPath = ref.read(initialDeepLinkProvider);
+      if (initialPath != null) _openWithHierarchy(initialPath);
+    });
+
     widget.appLinks.uriLinkStream.listen((Uri uri) {
       log('Deep link received: $uri', name: 'main');
-      // GoRouter handles the navigation via routerConfig
-      final router = ref.read(routerProvider);
-      router.go(uri.path + (uri.query.isNotEmpty ? '?${uri.query}' : ''));
+      final path = uri.path + (uri.query.isNotEmpty ? '?${uri.query}' : '');
+      _openWithHierarchy(path);
     });
+  }
+
+  void _openWithHierarchy(String path) {
+    final router = ref.read(routerProvider);
+    final ancestors = ancestorsForDeepLink(path);
+    if (ancestors.isEmpty) {
+      router.go(path);
+      return;
+    }
+    router.go(ancestors.first);
+    for (final p in ancestors.skip(1)) {
+      router.push(p);
+    }
+    router.push(path);
   }
 
   @override

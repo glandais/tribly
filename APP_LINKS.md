@@ -1,136 +1,142 @@
 # App Links
 
-Ce document décrit la procédure pour qu'un lien web `https://www.pedalons.fr/...` ouvre l'app mobile au lieu du navigateur.
+Ce document décrit comment un lien web `https://www.pedalons.fr/...` ouvre l'app mobile au lieu du navigateur.
 
-## Domaine
+## Source de vérité : `contracts/routes.yaml`
 
-Toutes les configurations pointent vers `www.pedalons.fr`.
+Toutes les routes d'UI — leurs variantes de langue, les plateformes concernées et leur éligibilité aux deep links — sont déclarées dans `contracts/routes.yaml`. Le script `scripts/generate-routes.mjs` régénère les fichiers plateforme à partir de ce YAML.
 
-## Fichiers concernés
+Exécution :
+
+```bash
+cd frontend
+pnpm generate-routes
+```
+
+Fichiers générés / maintenus :
 
 | Fichier | Rôle |
 |---------|------|
-| `frontend/src/config/paths.ts` | Paths frontend (source de vérité, `// mobile OK` = route mobile) |
-| `mobile/lib/config/paths.dart` | Paths mobile (miroir du frontend, `// applink OK` = app link configuré) |
-| `mobile/lib/config/router.dart` | GoRouter - routes Flutter |
-| `frontend/public/.well-known/apple-app-site-association` | iOS Universal Links |
-| `frontend/public/.well-known/assetlinks.json` | Android App Links |
+| `frontend/src/config/paths.generated.ts` | Builders TypeScript typés (+ `pathVariants`, `LOCALES`) |
+| `mobile/lib/config/paths.generated.dart` | Classe `Paths` + `PathVariants` (Dart) |
+| `frontend/public/.well-known/apple-app-site-association` | iOS Universal Links — toutes les variantes de langue |
+| `mobile/android/app/src/main/AndroidManifest.xml` | Section `<intent-filter>` entre les marqueurs `BEGIN/END generated-deeplinks` |
+
+Fichiers **non** générés mais nécessaires :
+
+| Fichier | Rôle |
+|---------|------|
+| `frontend/src/config/paths.ts` | Re-export de `paths.generated.ts` (point d'import stable) |
+| `frontend/src/config/locale-context.ts` | Lit la locale courante via `i18next` |
+| `mobile/lib/config/paths.dart` | Re-export de `paths.generated.dart` |
+| `mobile/lib/config/locale_context.dart` | Variable globale de locale, synchronisée depuis `context.locale.languageCode` dans `app.dart` |
+| `frontend/src/config/routes.config.ts` | Déclaration des routes web avec `pathVariants.xxx()` |
+| `mobile/lib/config/router.dart` | GoRouter — enregistre toutes les variantes via `_perLocale(...)` et `_teamShellTrees()` |
+| `frontend/public/.well-known/assetlinks.json` | Associe le domaine au package Android (SHA256 fingerprint) |
 | `mobile/ios/Runner/Runner.entitlements` | Domaines associés iOS |
-| `mobile/android/app/src/main/AndroidManifest.xml` | Intent filters Android |
 | `mobile/lib/main.dart` | Deep link handler (package `app_links`) |
 
-## Ajouter un app link pour une nouvelle route
+## Ajouter ou modifier une route
 
-### 1. S'assurer que la route existe dans le mobile
+### 1. Éditer `contracts/routes.yaml`
 
-- Ajouter le path builder dans `mobile/lib/config/paths.dart` avec `// applink OK`
-- Ajouter la route dans `mobile/lib/config/router.dart`
-- Vérifier que le path est identique à celui de `frontend/src/config/paths.ts`
-- Ajouter `// mobile OK` dans `frontend/src/config/paths.ts`
+```yaml
+- id: ride
+  path:
+    en: /teams/{teamSlug}/rides/{rideSlug}
+    fr: /equipes/{teamSlug}/sorties/{rideSlug}
+  params:
+    - teamSlug
+    - rideSlug
+  web: true
+  mobile: true
+  deeplink: true
+```
 
-### 2. iOS - apple-app-site-association
+Champs :
+- `id` : identifiant unique camelCase, utilisé comme nom de builder (`paths.ride`, `Paths.ride`)
+- `path` : map `locale → template`. `{name}` pour les paramètres.
+- `params` : liste de noms de paramètres. Chaque nom doit apparaître comme `{name}` dans toutes les locales.
+- `web` / `mobile` : émettre un builder dans `paths.generated.ts` / `paths.generated.dart` (défauts : `web: true`, `mobile: false`)
+- `mobileName` (optionnel) : nom de méthode Dart différent de `id` (ex. `ads` → `Paths.teamAds`)
+- `deeplink` : inclure dans AASA + AndroidManifest (défaut `false`)
 
-Fichier : `frontend/public/.well-known/apple-app-site-association`
+### 2. Régénérer
 
-Ajouter le pattern dans `applinks.details[0].paths` :
+```bash
+cd frontend && pnpm generate-routes
+```
 
-```json
+Le générateur :
+- Émet des builders locale-aware : `paths.ride(a, b)` retourne l'URL dans la locale courante (`getCurrentLocale()`).
+- Émet `pathVariants.ride(a, b)` retournant `{en: '...', fr: '...'}` pour enregistrer toutes les variantes dans les routeurs.
+- Agrège et déduplique les patterns dans AASA et AndroidManifest (`*` pour iOS, `.*` pour Android).
+
+### 3. Câbler la page dans les routeurs
+
+**Web** — Ajouter une entrée dans `frontend/src/config/routes.config.ts` :
+
+```ts
 {
-  "applinks": {
-    "details": [
-      {
-        "appID": "7Q49262697.fr.pedalons.mobile",
-        "paths": [
-          "/teams/*/rides/*",
-          "/teams/*/posts/*",
-          "/teams/*/classifieds/*",
-          "/teams/*/trips/*/stages/*",
-          "/teams/*/trips/*",
-          "/teams/*/routes/*",
-          "/teams/*/routes",
-          "/teams/*/about",
-          "/teams/*/calendar",
-          "/teams/*",
-          "/teams",
-          "/calendar",
-          "/profile",
-          "/privacy",
-          "/terms",
-          "/verify-email",
-          "/reset-password",
-          "/forgot-password",
-          "/login",
-          "/register",
-          "/garmin",
-          "/karoo",
-          "/"
-        ]
-      }
-    ]
-  }
+  id: 'ride-detail',
+  paths: pathVariants.ride(':teamSlug', ':rideSlug'),
+  component: RideDetailPage,
+  auth: 'public',
+  parentId: 'team-detail',
+  breadcrumb: { type: 'dynamic', entity: 'ride' },
 }
 ```
 
-Syntaxe des patterns :
-- `*` = n'importe quelle sous-chaîne (un seul segment ou plus)
-- `?` = un seul caractère
-- `NOT /path` = exclure un path
+`RouteGenerator.tsx` émet un `<Route>` React Router par variante unique.
 
-Ref : https://developer.apple.com/documentation/bundleresources/applinks
+**Mobile** — Ajouter une `GoRoute` dans `mobile/lib/config/router.dart` :
 
-### 3. Android - AndroidManifest.xml
+- Pour une route plate : `..._perLocale(PathVariants.xxx(), (ctx, st) => MyPage())`
+- Pour une route dans la team shell : l'ajouter dans `_teamShellTree(locale)` en dérivant le segment via `underTeam(PathVariants.xxx(':teamSlug', ...))` (qui utilise `_relativeTo`)
 
-Fichier : `mobile/android/app/src/main/AndroidManifest.xml`
+### 4. Vérifier
 
-Ajouter un `<data>` dans l'intent-filter existant. Utiliser `android:pathPattern` pour les patterns dynamiques, `android:path` pour les chemins exacts :
+```bash
+# Frontend
+cd frontend && pnpm typecheck && pnpm lint && pnpm build
 
-```xml
-<intent-filter android:autoVerify="true">
-    <action android:name="android.intent.action.VIEW" />
-    <category android:name="android.intent.category.DEFAULT" />
-    <category android:name="android.intent.category.BROWSABLE" />
-    <data android:scheme="https" android:host="www.pedalons.fr" />
-    <!-- Patterns dynamiques -->
-    <data android:pathPattern="/teams/.*/rides/.*" />
-    <data android:pathPattern="/teams/.*/posts/.*" />
-    <data android:pathPattern="/teams/.*/classifieds/.*" />
-    <data android:pathPattern="/teams/.*/trips/.*/stages/.*" />
-    <data android:pathPattern="/teams/.*/trips/.*" />
-    <data android:pathPattern="/teams/.*/routes/.*" />
-    <data android:pathPattern="/teams/.*/routes" />
-    <data android:pathPattern="/teams/.*/about" />
-    <data android:pathPattern="/teams/.*/calendar" />
-    <data android:pathPattern="/teams/.*" />
-    <!-- Chemins exacts -->
-    <data android:path="/teams" />
-    <data android:path="/calendar" />
-    <data android:path="/profile" />
-    <data android:path="/privacy" />
-    <data android:path="/terms" />
-    <data android:path="/verify-email" />
-    <data android:path="/reset-password" />
-    <data android:path="/forgot-password" />
-    <data android:path="/login" />
-    <data android:path="/register" />
-    <data android:path="/garmin" />
-    <data android:path="/karoo" />
-    <data android:path="/" />
-</intent-filter>
+# Mobile
+cd mobile && flutter analyze
+
+# Android App Links
+curl -s https://www.pedalons.fr/.well-known/assetlinks.json | jq .
+adb shell pm get-app-links fr.pedalons.mobile
+adb shell am start -a android.intent.action.VIEW \
+  -d "https://www.pedalons.fr/teams/mon-equipe/rides/sortie" fr.pedalons.mobile
+
+# iOS Universal Links
+curl -s https://www.pedalons.fr/.well-known/apple-app-site-association | jq .
+# Sur device : Réglages > Développeur > Universal Links > Diagnostics
 ```
 
-Syntaxe :
-- `android:path` = chemin exact
-- `android:pathPattern` : `.*` = n'importe quelle séquence, `.` = un caractère quelconque
+## Multi-locale
 
-Ref : https://developer.android.com/training/app-links
+Une URL dans n'importe quelle langue supportée (`en`, `fr`) est reconnue par l'app et par le deep linking. Les URLs **générées** par `Paths.xxx()` / `paths.xxx()` utilisent la locale courante de l'utilisateur :
 
-### 4. assetlinks.json (Android uniquement)
+- Frontend : `i18next.language` → détecteur navigateur + préférence utilisateur
+- Mobile : `context.locale.languageCode` propagé dans `locale_context.dart` par `PedalonsApp.build()`
 
-Fichier : `frontend/public/.well-known/assetlinks.json`
+Donc un user FR partage `/equipes/mon-club/sorties/balade-dimanche` ; un user EN reçoit le lien, l'OS ouvre l'app (AASA/manifest acceptent la variante FR), GoRouter/React Router la matche et affiche la bonne page.
 
-Ce fichier ne filtre pas par path, il associe le domaine au package Android. Il ne nécessite de modification que si le package name ou le certificat de signature change.
+## Deep link handler mobile
 
-Pour obtenir le SHA256 fingerprint :
+`mobile/lib/main.dart` utilise le package `app_links` :
+- Au lancement : `appLinks.getInitialLink()` remplit `initialDeepLinkProvider`.
+- En cours d'exécution : `appLinks.uriLinkStream` passe le path à `GoRouter.go()`.
+
+Aucune modification nécessaire sauf traitement spécial de query params.
+
+## Références
+
+- [Android App Links](https://developer.android.com/training/app-links)
+- [iOS Universal Links](https://developer.apple.com/documentation/bundleresources/applinks)
+
+### Empreintes de signature Android
 
 ```bash
 # Debug
@@ -140,41 +146,4 @@ keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -sto
 keytool -list -v -keystore <release-keystore> -alias <alias>
 ```
 
-### 5. Entitlements iOS
-
-Fichier : `mobile/ios/Runner/Runner.entitlements`
-
-Ne nécessite de modification que si le domaine change. Le domaine `www.pedalons.fr` est déjà configuré.
-
-## Deep link handler
-
-Le traitement des deep links est dans `mobile/lib/main.dart` via le package `app_links` :
-- Au lancement : `appLinks.getInitialLink()` récupère le lien qui a ouvert l'app
-- En cours d'exécution : `appLinks.uriLinkStream` écoute les nouveaux liens
-- Le path est passé directement à `GoRouter.go()`
-
-Aucune modification nécessaire dans le handler sauf si un traitement spécial est requis (query params, etc.).
-
-## Vérification
-
-### iOS
-
-```bash
-# Vérifier que le fichier est accessible
-curl -s https://www.pedalons.fr/.well-known/apple-app-site-association | jq .
-
-# Sur device : Réglages > Développeur > Universal Links > Diagnostics
-```
-
-### Android
-
-```bash
-# Vérifier que le fichier est accessible
-curl -s https://www.pedalons.fr/.well-known/assetlinks.json | jq .
-
-# Vérifier la configuration sur device
-adb shell pm get-app-links fr.pedalons.mobile
-
-# Tester un lien
-adb shell am start -a android.intent.action.VIEW -d "https://www.pedalons.fr/teams/mon-equipe/rides/sortie" fr.pedalons.mobile
-```
+Le SHA256 doit correspondre à ce que déclare `frontend/public/.well-known/assetlinks.json`.

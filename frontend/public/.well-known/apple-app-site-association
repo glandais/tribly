@@ -5,34 +5,56 @@
       {
         "appID": "7Q49262697.fr.pedalons.mobile",
         "paths": [
-          "/teams/*/rides/*",
-          "/teams/*/posts/*",
-          "/teams/*/classifieds/*",
-          "/teams/*/trips/*/stages/*",
-          "/teams/*/trips/*",
-          "/teams/*/routes/*",
-          "/teams/*/routes",
-          "/teams/*/about",
-          "/teams/*/calendar",
-          "/teams/*",
-          "/teams",
-          "/calendar",
-          "/profile",
-          "/privacy",
-          "/terms",
-          "/verify-email",
-          "/reset-password",
-          "/forgot-password",
+          "/",
           "/login",
+          "/connexion",
           "/register",
+          "/inscription",
+          "/verify-email",
+          "/verifier-email",
+          "/forgot-password",
+          "/mot-de-passe-oublie",
+          "/reset-password",
+          "/nouveau-mot-de-passe",
           "/garmin",
           "/karoo",
-          "/"
+          "/privacy",
+          "/confidentialite",
+          "/terms",
+          "/cgu",
+          "/profile",
+          "/profil",
+          "/calendar",
+          "/calendrier",
+          "/teams",
+          "/equipes",
+          "/teams/*",
+          "/equipes/*",
+          "/teams/*/about",
+          "/equipes/*/a-propos",
+          "/teams/*/calendar",
+          "/equipes/*/calendrier",
+          "/teams/*/rides/*",
+          "/equipes/*/sorties/*",
+          "/teams/*/trips/*",
+          "/equipes/*/voyages/*",
+          "/teams/*/trips/*/stages/*",
+          "/equipes/*/voyages/*/etapes/*",
+          "/teams/*/posts/*",
+          "/equipes/*/articles/*",
+          "/teams/*/routes",
+          "/equipes/*/parcours",
+          "/teams/*/routes/*",
+          "/equipes/*/parcours/*",
+          "/teams/*/classifieds/*",
+          "/equipes/*/annonces/*"
         ]
       }
     ]
   },
   "webcredentials": {
-    "apps": ["7Q49262697.fr.pedalons.mobile"]
+    "apps": [
+      "7Q49262697.fr.pedalons.mobile"
+    ]
   }
 }

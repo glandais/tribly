@@ -1,0 +1,434 @@
+# UI routes source of truth.
+# Generator: scripts/generate-routes.mjs
+# Outputs:
+#   - frontend/src/config/paths.generated.ts
+#   - mobile/lib/config/paths.generated.dart
+#   - mobile/android/app/src/main/AndroidManifest.xml (deeplink section between markers)
+#   - frontend/public/.well-known/apple-app-site-association
+#
+# Fields:
+#   id:         unique camelCase identifier, becomes the builder function name
+#   path:       string "/..." (shorthand for {en: "/..."}) or map {locale: "/..."}
+#   params:     list of parameter names — must appear as {name} in every locale path
+#   web:        emit a builder in paths.generated.ts (default: true)
+#   mobile:     emit a builder in paths.generated.dart (default: false)
+#   mobileName: optional override for the mobile builder name (default: id)
+#   deeplink:   register this path in AASA + AndroidManifest (default: false)
+#
+# Every route must define `en`. `fr` is optional; if absent, routers only register `en`.
+# When `en` and `fr` resolve to the same URL, the deeplink section dedupes automatically.
+
+routes:
+  # --- Root / misc ---
+  - id: home
+    path:
+      en: /
+      fr: /
+    web: true
+    mobile: true
+    deeplink: true
+
+  # --- Auth ---
+  - id: login
+    path:
+      en: /login
+      fr: /connexion
+    web: true
+    mobile: true
+    deeplink: true
+  - id: register
+    path:
+      en: /register
+      fr: /inscription
+    web: false
+    mobile: true
+    deeplink: true
+  - id: verifyEmail
+    path:
+      en: /verify-email
+      fr: /verifier-email
+    web: true
+    mobile: true
+    deeplink: true
+  - id: forgotPassword
+    path:
+      en: /forgot-password
+      fr: /mot-de-passe-oublie
+    web: true
+    mobile: true
+    deeplink: true
+  - id: resetPassword
+    path:
+      en: /reset-password
+      fr: /nouveau-mot-de-passe
+    web: true
+    mobile: true
+    deeplink: true
+
+  # --- Device verification (brand names kept as-is) ---
+  - id: deviceVerifyGarmin
+    path:
+      en: /garmin
+      fr: /garmin
+    web: true
+    mobile: true
+    deeplink: true
+  - id: deviceVerifyKaroo
+    path:
+      en: /karoo
+      fr: /karoo
+    web: true
+    mobile: true
+    deeplink: true
+
+  # --- Legal ---
+  - id: privacy
+    path:
+      en: /privacy
+      fr: /confidentialite
+    web: true
+    mobile: true
+    deeplink: true
+  - id: terms
+    path:
+      en: /terms
+      fr: /cgu
+    web: true
+    mobile: true
+    deeplink: true
+
+  # --- User tabs ---
+  - id: profile
+    path:
+      en: /profile
+      fr: /profil
+    web: true
+    mobile: true
+    deeplink: true
+  - id: calendar
+    path:
+      en: /calendar
+      fr: /calendrier
+    web: true
+    mobile: true
+    deeplink: true
+  - id: allRoutes
+    path:
+      en: /routes
+      fr: /parcours
+    web: true
+    mobile: false
+    deeplink: false
+
+  # --- Teams ---
+  - id: teams
+    path:
+      en: /teams
+      fr: /equipes
+    web: true
+    mobile: true
+    deeplink: true
+  - id: teamsNew
+    path:
+      en: /teams/new
+      fr: /equipes/nouvelle
+    web: true
+  - id: team
+    path:
+      en: /teams/{teamSlug}
+      fr: /equipes/{teamSlug}
+    params:
+      - teamSlug
+    web: true
+    mobile: true
+    deeplink: true
+  - id: teamAbout
+    path:
+      en: /teams/{teamSlug}/about
+      fr: /equipes/{teamSlug}/a-propos
+    params:
+      - teamSlug
+    web: true
+    mobile: true
+    deeplink: true
+  - id: teamCalendar
+    path:
+      en: /teams/{teamSlug}/calendar
+      fr: /equipes/{teamSlug}/calendrier
+    params:
+      - teamSlug
+    web: true
+    mobile: true
+    deeplink: true
+
+  # --- Team pages (segment "pages" is already French) ---
+  - id: teamPage
+    path:
+      en: /teams/{teamSlug}/pages/{pageSlug}
+      fr: /equipes/{teamSlug}/pages/{pageSlug}
+    params:
+      - teamSlug
+      - pageSlug
+    web: true
+
+  # --- Team admin ---
+  - id: teamAdmin
+    path:
+      en: /teams/{teamSlug}/admin
+      fr: /equipes/{teamSlug}/admin
+    params:
+      - teamSlug
+    web: true
+  - id: teamAdminPlaces
+    path:
+      en: /teams/{teamSlug}/admin/places
+      fr: /equipes/{teamSlug}/admin/lieux
+    params:
+      - teamSlug
+    web: true
+  - id: teamAdminPages
+    path:
+      en: /teams/{teamSlug}/admin/pages
+      fr: /equipes/{teamSlug}/admin/pages
+    params:
+      - teamSlug
+    web: true
+  - id: teamAdminPageNew
+    path:
+      en: /teams/{teamSlug}/admin/pages/new
+      fr: /equipes/{teamSlug}/admin/pages/nouvelle
+    params:
+      - teamSlug
+    web: true
+  - id: teamAdminPageEdit
+    path:
+      en: /teams/{teamSlug}/admin/pages/{pageSlug}/edit
+      fr: /equipes/{teamSlug}/admin/pages/{pageSlug}/modifier
+    params:
+      - teamSlug
+      - pageSlug
+    web: true
+  - id: teamMembers
+    path:
+      en: /teams/{teamSlug}/admin/members
+      fr: /equipes/{teamSlug}/admin/membres
+    params:
+      - teamSlug
+    web: true
+  - id: teamSettings
+    path:
+      en: /teams/{teamSlug}/admin/settings
+      fr: /equipes/{teamSlug}/admin/parametres
+    params:
+      - teamSlug
+    web: true
+
+  # --- Rides ---
+  - id: rideNew
+    path:
+      en: /teams/{teamSlug}/rides/new
+      fr: /equipes/{teamSlug}/sorties/nouvelle
+    params:
+      - teamSlug
+    web: true
+  - id: ride
+    path:
+      en: /teams/{teamSlug}/rides/{rideSlug}
+      fr: /equipes/{teamSlug}/sorties/{rideSlug}
+    params:
+      - teamSlug
+      - rideSlug
+    web: true
+    mobile: true
+    deeplink: true
+  - id: rideEdit
+    path:
+      en: /teams/{teamSlug}/rides/{rideSlug}/edit
+      fr: /equipes/{teamSlug}/sorties/{rideSlug}/modifier
+    params:
+      - teamSlug
+      - rideSlug
+    web: true
+
+  # --- Ride templates ---
+  - id: rideTemplates
+    path:
+      en: /teams/{teamSlug}/admin/ride-templates
+      fr: /equipes/{teamSlug}/admin/modeles-sortie
+    params:
+      - teamSlug
+    web: true
+  - id: rideTemplateNew
+    path:
+      en: /teams/{teamSlug}/admin/ride-templates/new
+      fr: /equipes/{teamSlug}/admin/modeles-sortie/nouveau
+    params:
+      - teamSlug
+    web: true
+  - id: rideTemplateEdit
+    path:
+      en: /teams/{teamSlug}/admin/ride-templates/{templateSlug}/edit
+      fr: /equipes/{teamSlug}/admin/modeles-sortie/{templateSlug}/modifier
+    params:
+      - teamSlug
+      - templateSlug
+    web: true
+
+  # --- Trips ---
+  - id: tripNew
+    path:
+      en: /teams/{teamSlug}/trips/new
+      fr: /equipes/{teamSlug}/voyages/nouveau
+    params:
+      - teamSlug
+    web: true
+  - id: trip
+    path:
+      en: /teams/{teamSlug}/trips/{tripSlug}
+      fr: /equipes/{teamSlug}/voyages/{tripSlug}
+    params:
+      - teamSlug
+      - tripSlug
+    web: true
+    mobile: true
+    deeplink: true
+  - id: tripEdit
+    path:
+      en: /teams/{teamSlug}/trips/{tripSlug}/edit
+      fr: /equipes/{teamSlug}/voyages/{tripSlug}/modifier
+    params:
+      - teamSlug
+      - tripSlug
+    web: true
+  - id: stage
+    path:
+      en: /teams/{teamSlug}/trips/{tripSlug}/stages/{stageSlug}
+      fr: /equipes/{teamSlug}/voyages/{tripSlug}/etapes/{stageSlug}
+    params:
+      - teamSlug
+      - tripSlug
+      - stageSlug
+    web: true
+    mobile: true
+    deeplink: true
+
+  # --- Posts ---
+  - id: postNew
+    path:
+      en: /teams/{teamSlug}/posts/new
+      fr: /equipes/{teamSlug}/articles/nouveau
+    params:
+      - teamSlug
+    web: true
+  - id: post
+    path:
+      en: /teams/{teamSlug}/posts/{postSlug}
+      fr: /equipes/{teamSlug}/articles/{postSlug}
+    params:
+      - teamSlug
+      - postSlug
+    web: true
+    mobile: true
+    deeplink: true
+  - id: postEdit
+    path:
+      en: /teams/{teamSlug}/posts/{postSlug}/edit
+      fr: /equipes/{teamSlug}/articles/{postSlug}/modifier
+    params:
+      - teamSlug
+      - postSlug
+    web: true
+
+  # --- Team routes (GPX) ---
+  - id: routes
+    path:
+      en: /teams/{teamSlug}/routes
+      fr: /equipes/{teamSlug}/parcours
+    params:
+      - teamSlug
+    web: true
+    mobile: true
+    deeplink: true
+  - id: routeNew
+    path:
+      en: /teams/{teamSlug}/routes/new
+      fr: /equipes/{teamSlug}/parcours/nouveau
+    params:
+      - teamSlug
+    web: true
+  - id: route
+    path:
+      en: /teams/{teamSlug}/routes/{routeSlug}
+      fr: /equipes/{teamSlug}/parcours/{routeSlug}
+    params:
+      - teamSlug
+      - routeSlug
+    web: true
+    mobile: true
+    deeplink: true
+  - id: routeEdit
+    path:
+      en: /teams/{teamSlug}/routes/{routeSlug}/edit
+      fr: /equipes/{teamSlug}/parcours/{routeSlug}/modifier
+    params:
+      - teamSlug
+      - routeSlug
+    web: true
+
+  # --- Ads (classifieds) ---
+  - id: ads
+    path:
+      en: /teams/{teamSlug}/classifieds
+      fr: /equipes/{teamSlug}/annonces
+    params:
+      - teamSlug
+    web: true
+    mobile: true
+    mobileName: teamAds
+  - id: adNew
+    path:
+      en: /teams/{teamSlug}/classifieds/new
+      fr: /equipes/{teamSlug}/annonces/nouvelle
+    params:
+      - teamSlug
+    web: true
+  - id: ad
+    path:
+      en: /teams/{teamSlug}/classifieds/{adSlug}
+      fr: /equipes/{teamSlug}/annonces/{adSlug}
+    params:
+      - teamSlug
+      - adSlug
+    web: true
+    mobile: true
+    deeplink: true
+  - id: adEdit
+    path:
+      en: /teams/{teamSlug}/classifieds/{adSlug}/edit
+      fr: /equipes/{teamSlug}/annonces/{adSlug}/modifier
+    params:
+      - teamSlug
+      - adSlug
+    web: true
+
+  # --- Platform admin ---
+  - id: admin
+    path:
+      en: /admin
+      fr: /admin
+    web: true
+  - id: adminDomains
+    path:
+      en: /admin/domains
+      fr: /admin/domaines
+    web: true
+  - id: adminTeams
+    path:
+      en: /admin/teams
+      fr: /admin/equipes
+    web: true
+  - id: adminUsers
+    path:
+      en: /admin/users
+      fr: /admin/utilisateurs
+    web: true

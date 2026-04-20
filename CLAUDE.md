@@ -34,6 +34,7 @@ pnpm dev                           # Dev server
 pnpm build                         # Vite build (no type checking)
 pnpm typecheck                     # Type checking via tsgo (typescript-go)
 pnpm generate-api                  # Generate API client from OpenAPI
+pnpm generate-routes               # Generate path builders + deeplinks from contracts/routes.yaml
 pnpm lint                          # ESLint
 pnpm lint:fix                      # ESLint with auto-fix
 pnpm format                        # Prettier format
@@ -105,7 +106,7 @@ frontend/src/
 │   ├── endpoints/    # Generated API functions
 │   └── zod/          # Generated Zod schemas
 ├── components/       # By domain (common/, team/, ride/, route/, post/, trip/, etc.)
-├── config/           # paths.ts, routes.config.ts, appConfig.ts
+├── config/           # paths.ts (re-export), paths.generated.ts, locale-context.ts, routes.config.ts, appConfig.ts
 ├── hooks/            # React Query wrappers
 ├── lib/              # axiosInstance.ts, apiUtils.ts
 ├── locales/{en,fr}/  # i18n (French default)
@@ -116,6 +117,7 @@ frontend/src/
 
 mobile/lib/
 ├── main.dart         # Application entry point
+├── config/           # router.dart, paths.dart (re-export), paths.generated.dart, locale_context.dart
 ├── presentation/     # Widgets and screens
 ├── domain/           # Business logic
 ├── data/             # Models and API clients
@@ -148,9 +150,19 @@ Backend database migrations live in `backend/src/main/resources/db/migration/`. 
 
 ## Contract-First Workflow
 
+### API contract
 1. Annotate backend resources with SmallRye OpenAPI
 2. Run `mvn package -DskipTests` in backend/ → generates `contracts/openapi.yaml` and `contracts/openapi.json`
 3. Run `pnpm generate-api` in frontend/ → generates TypeScript client from OpenAPI
+
+### UI routes contract
+1. Edit `contracts/routes.yaml` (single source of truth — multi-locale path templates, deeplink/mobile flags)
+2. Run `pnpm generate-routes` in frontend/ → regenerates:
+   - `frontend/src/config/paths.generated.ts` (`paths`, `pathVariants`, `Locale`)
+   - `mobile/lib/config/paths.generated.dart` (`Paths`, `PathVariants`)
+   - `frontend/public/.well-known/apple-app-site-association`
+   - `mobile/android/app/src/main/AndroidManifest.xml` (between `BEGIN/END generated-deeplinks` markers)
+3. See [APP_LINKS.md](APP_LINKS.md) for the full deeplink workflow
 
 ## Key Patterns
 
@@ -192,7 +204,8 @@ Backend database migrations live in `backend/src/main/resources/db/migration/`. 
 - `MediaEditor` needs `teamSlug` prop for uploads (hidden during team creation)
 - Logos: `TeamAvatar` (with initials fallback) vs `EntityLogo` (no fallback)
 - Never use SVG for icons, use `@tabler/icons-react`
-- Never use hard coded links, use paths.XXX(YYYslug) from `config/paths.ts`
+- Never use hard coded links, use paths.XXX(YYYslug) from `config/paths.ts` (returns the URL in the user's current locale)
+- To add/rename a route: edit `contracts/routes.yaml` then `pnpm generate-routes` — never hand-edit `paths.generated.ts`, `paths.generated.dart`, AASA, or the deeplink section of `AndroidManifest.xml`
 - Templated i18n keys must use type annotations: `t(\`status.\${x satisfies 'DRAFT' | 'PUBLISHED'}\`)` (validated by `pnpm i18n:lint`)
 
 **Mobile**:

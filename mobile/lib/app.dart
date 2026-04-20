@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'config/locale_context.dart';
 import 'config/router.dart';
 import 'core/theme/theme.dart';
 import 'features/auth/providers/auth_provider.dart';
@@ -25,6 +26,7 @@ class _PedalonsAppState extends ConsumerState<PedalonsApp> {
 
   @override
   Widget build(BuildContext context) {
+    setCurrentLocale(context.locale.languageCode);
     final authState = ref.watch(authProvider);
     final router = ref.watch(routerProvider);
 

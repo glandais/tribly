@@ -166,6 +166,17 @@ cd frontend
 pnpm generate-api
 ```
 
+### Generate UI Route Paths
+
+UI routes (per-locale URL templates, deeplinks, path builders) are declared in `contracts/routes.yaml`. Regenerate `paths.generated.ts` / `paths.generated.dart`, AASA and the AndroidManifest deeplink section with:
+
+```bash
+cd frontend
+pnpm generate-routes
+```
+
+See [APP_LINKS.md](APP_LINKS.md) for the full workflow.
+
 ### Run Tests
 
 ```bash

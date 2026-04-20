@@ -7,9 +7,6 @@ import { Layout } from '../components/common/Layout'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { Loader } from '@mantine/core'
 
-/**
- * Wrap component based on auth requirement
- */
 function wrapWithAuth(element: React.ReactNode, auth: AuthRequirement): React.ReactNode {
   switch (auth) {
     case 'authenticated':
@@ -23,9 +20,10 @@ function wrapWithAuth(element: React.ReactNode, auth: AuthRequirement): React.Re
 }
 
 /**
- * Generate a Route element from configuration
+ * Emit one React Router `<Route>` per locale variant so any URL matches the
+ * same component regardless of the user's current language.
  */
-function generateRoute(config: RouteConfig): React.ReactNode {
+function generateRoutes(config: RouteConfig): React.ReactNode[] {
   const Component = config.component
 
   const element = (
@@ -36,22 +34,21 @@ function generateRoute(config: RouteConfig): React.ReactNode {
 
   const wrappedElement = wrapWithAuth(element, config.auth)
 
-  // Handle index routes
   if (config.index) {
-    return <Route key={config.id} index element={wrappedElement} />
+    return [<Route key={`${config.id}:index`} index element={wrappedElement} />]
   }
 
-  return <Route key={config.id} path={config.path} element={wrappedElement} />
+  const uniquePaths = [...new Set(Object.values(config.paths))]
+  return uniquePaths.map((path) => (
+    <Route key={`${config.id}:${path}`} path={path} element={wrappedElement} />
+  ))
 }
 
-/**
- * Main route generator component
- */
 export function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
-        {routesConfig.map(generateRoute)}
+        {routesConfig.flatMap(generateRoutes)}
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

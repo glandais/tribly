@@ -7,7 +7,7 @@ import i18next from 'eslint-plugin-i18next'
 import { defineConfig } from "eslint/config";
 
 export default defineConfig(
-  { ignores: ['dist', 'src/api'] },
+  { ignores: ['dist', 'src/api', 'src/config/paths.generated.ts'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],

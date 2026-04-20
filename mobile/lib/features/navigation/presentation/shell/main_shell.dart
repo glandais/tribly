@@ -49,7 +49,7 @@ class _MainShellState extends ConsumerState<MainShell> {
 
   void _onDestinationSelected(int index) {
     if (index != _currentIndex) {
-      context.go(kAppDestinations[index].path);
+      context.go(kAppDestinations[index].currentPath);
     }
   }
 

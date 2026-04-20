@@ -114,7 +114,7 @@ class _TeamShellContentState extends State<_TeamShellContent> {
 
   void _onDestinationSelected(int index) {
     if (index != _currentIndex) {
-      context.go(_destinations[index].path);
+      context.go(_destinations[index].currentPath);
     }
   }
 

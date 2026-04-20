@@ -21,19 +21,20 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "generate-api": "rm -rf src/api && orval --config orval.config.js",
+    "generate-routes": "node ../scripts/generate-routes.mjs",
     "i18n:lint": "i18next-cli lint",
     "i18n:status": "i18next-cli status",
     "i18n:extract": "i18next-cli extract",
     "generate-icons": "pwa-assets-generator --config pwa-assets.config.ts",
-    "check": "pnpm install && pnpm generate-api && pnpm format && pnpm typecheck && pnpm lint && pnpm build"
+    "check": "pnpm install && pnpm generate-api && pnpm generate-routes && pnpm format && pnpm typecheck && pnpm lint && pnpm build"
   },
   "dependencies": {
-    "@mantine/schedule": "^9.0.2",
     "@mantine/core": "^9.0.2",
     "@mantine/dates": "^9.0.2",
     "@mantine/form": "^9.0.2",
     "@mantine/hooks": "^9.0.2",
     "@mantine/notifications": "^9.0.2",
+    "@mantine/schedule": "^9.0.2",
     "@mantine/tiptap": "^9.0.2",
     "@simplewebauthn/browser": "^13.3.0",
     "@tabler/icons-react": "^3.41.1",
@@ -77,7 +78,6 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
-    "@vite-pwa/assets-generator": "^1.0.2",
     "@eslint/js": "^9.39.2",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.2",
@@ -88,6 +88,7 @@
     "@types/react-map-gl": "^6.1.8",
     "@types/unist": "^3.0.3",
     "@typescript/native-preview": "7.0.0-dev.20260419.1",
+    "@vite-pwa/assets-generator": "^1.0.2",
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "^4.1.4",
     "@vitest/ui": "^4.1.4",
@@ -108,6 +109,7 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.58.2",
     "vite": "^8.0.9",
-    "vitest": "^4.1.4"
+    "vitest": "^4.1.4",
+    "yaml": "^2.8.3"
   }
 }

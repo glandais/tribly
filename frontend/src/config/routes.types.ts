@@ -1,4 +1,5 @@
 import type { ComponentType, LazyExoticComponent } from 'react'
+import type { Locale } from './paths'
 
 /**
  * Authentication requirement for a route
@@ -50,8 +51,8 @@ export interface RouteConfig {
   /** Unique identifier for this route */
   id: string
 
-  /** URL path pattern (react-router format) */
-  path: string
+  /** URL path patterns per locale (react-router format). */
+  paths: Record<Locale, string>
 
   /** Page component to render */
   component: ComponentType | LazyExoticComponent<ComponentType>

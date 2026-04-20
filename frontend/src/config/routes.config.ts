@@ -1,6 +1,6 @@
 import { lazy } from 'react'
 import type { RoutesConfig } from './routes.types'
-import { paths } from './paths'
+import { pathVariants } from './paths'
 import { tRegister } from '@/lib/i18nUtils'
 
 // Lazy load page components for code splitting
@@ -162,7 +162,7 @@ export const routesConfig: RoutesConfig = [
   // === Home ===
   {
     id: 'home',
-    path: paths.home(),
+    paths: pathVariants.home(),
     component: HomePage,
     auth: 'public',
     parentId: null,
@@ -172,7 +172,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'all-routes',
-    path: paths.allRoutes(),
+    paths: pathVariants.allRoutes(),
     component: AllRoutesPage,
     auth: 'public',
     parentId: null,
@@ -183,7 +183,7 @@ export const routesConfig: RoutesConfig = [
   // === Legal Routes ===
   {
     id: 'privacy',
-    path: paths.privacy(),
+    paths: pathVariants.privacy(),
     component: PrivacyPolicyPage,
     auth: 'public',
     parentId: null,
@@ -191,7 +191,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'terms',
-    path: paths.terms(),
+    paths: pathVariants.terms(),
     component: TermsOfServicePage,
     auth: 'public',
     parentId: null,
@@ -201,7 +201,7 @@ export const routesConfig: RoutesConfig = [
   // === Auth Routes ===
   {
     id: 'login',
-    path: paths.login(),
+    paths: pathVariants.login(),
     component: LoginPage,
     auth: 'unauthenticated',
     parentId: null,
@@ -209,7 +209,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'device-verify-garmin',
-    path: paths.deviceVerifyGarmin(),
+    paths: pathVariants.deviceVerifyGarmin(),
     component: DeviceVerifyPage,
     auth: 'authenticated',
     parentId: null,
@@ -217,7 +217,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'device-verify-karoo',
-    path: paths.deviceVerifyKaroo(),
+    paths: pathVariants.deviceVerifyKaroo(),
     component: DeviceVerifyPage,
     auth: 'authenticated',
     parentId: null,
@@ -225,7 +225,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'verify-email',
-    path: paths.verifyEmail(),
+    paths: pathVariants.verifyEmail(),
     component: VerifyEmailPage,
     auth: 'public',
     parentId: null,
@@ -233,7 +233,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'forgot-password',
-    path: paths.forgotPassword(),
+    paths: pathVariants.forgotPassword(),
     component: ForgotPasswordPage,
     auth: 'unauthenticated',
     parentId: null,
@@ -241,7 +241,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'reset-password',
-    path: paths.resetPassword(),
+    paths: pathVariants.resetPassword(),
     component: ResetPasswordPage,
     auth: 'public',
     parentId: null,
@@ -249,7 +249,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'profile',
-    path: paths.profile(),
+    paths: pathVariants.profile(),
     component: UserProfilePage,
     auth: 'authenticated',
     parentId: null,
@@ -257,7 +257,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'calendar',
-    path: paths.calendar(),
+    paths: pathVariants.calendar(),
     component: CalendarPage,
     auth: 'authenticated',
     parentId: null,
@@ -268,7 +268,7 @@ export const routesConfig: RoutesConfig = [
   // === Team Routes ===
   {
     id: 'teams',
-    path: paths.teams(),
+    paths: pathVariants.teams(),
     component: TeamListPage,
     auth: 'public',
     parentId: null,
@@ -277,7 +277,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'teams-new',
-    path: paths.teamsNew(),
+    paths: pathVariants.teamsNew(),
     component: CreateTeamPage,
     auth: 'authenticated',
     parentId: 'teams',
@@ -286,7 +286,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'team-detail',
-    path: paths.team(':teamSlug'),
+    paths: pathVariants.team(':teamSlug'),
     component: PublicationListPage,
     auth: 'public',
     parentId: 'teams',
@@ -295,7 +295,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'team-about',
-    path: paths.teamAbout(':teamSlug'),
+    paths: pathVariants.teamAbout(':teamSlug'),
     component: TeamAboutPage,
     auth: 'public',
     parentId: 'team-detail',
@@ -303,7 +303,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'team-calendar',
-    path: paths.teamCalendar(':teamSlug'),
+    paths: pathVariants.teamCalendar(':teamSlug'),
     component: TeamCalendarPage,
     auth: 'public',
     parentId: 'team-detail',
@@ -311,7 +311,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'team-page',
-    path: paths.teamPage(':teamSlug', ':pageSlug'),
+    paths: pathVariants.teamPage(':teamSlug', ':pageSlug'),
     component: TeamPageDetailPage,
     auth: 'public',
     parentId: 'team-detail',
@@ -320,7 +320,7 @@ export const routesConfig: RoutesConfig = [
   // === Team Admin Routes ===
   {
     id: 'team-admin',
-    path: paths.teamAdmin(':teamSlug'),
+    paths: pathVariants.teamAdmin(':teamSlug'),
     component: TeamAdminPage,
     auth: 'authenticated',
     parentId: 'team-detail',
@@ -328,7 +328,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'team-admin-places',
-    path: paths.teamAdminPlaces(':teamSlug'),
+    paths: pathVariants.teamAdminPlaces(':teamSlug'),
     component: TeamPlacesPage,
     auth: 'authenticated',
     parentId: 'team-admin',
@@ -336,7 +336,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'team-admin-pages',
-    path: paths.teamAdminPages(':teamSlug'),
+    paths: pathVariants.teamAdminPages(':teamSlug'),
     component: TeamPagesAdminPage,
     auth: 'authenticated',
     parentId: 'team-admin',
@@ -344,7 +344,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'team-admin-page-new',
-    path: paths.teamAdminPageNew(':teamSlug'),
+    paths: pathVariants.teamAdminPageNew(':teamSlug'),
     component: CreateTeamPagePage,
     auth: 'authenticated',
     parentId: 'team-admin-pages',
@@ -353,7 +353,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'team-admin-page-edit',
-    path: paths.teamAdminPageEdit(':teamSlug', ':pageSlug'),
+    paths: pathVariants.teamAdminPageEdit(':teamSlug', ':pageSlug'),
     component: EditTeamPagePage,
     auth: 'authenticated',
     parentId: 'team-admin-pages',
@@ -362,7 +362,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'team-members',
-    path: paths.teamMembers(':teamSlug'),
+    paths: pathVariants.teamMembers(':teamSlug'),
     component: TeamMembersPage,
     auth: 'authenticated',
     parentId: 'team-admin',
@@ -370,7 +370,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'team-settings',
-    path: paths.teamSettings(':teamSlug'),
+    paths: pathVariants.teamSettings(':teamSlug'),
     component: TeamSettingsPage,
     auth: 'authenticated',
     parentId: 'team-admin',
@@ -381,7 +381,7 @@ export const routesConfig: RoutesConfig = [
   // Note: rides have parent team-detail (no rides list page)
   {
     id: 'ride-new',
-    path: paths.rideNew(':teamSlug'),
+    paths: pathVariants.rideNew(':teamSlug'),
     component: CreateRidePage,
     auth: 'authenticated',
     parentId: 'team-detail',
@@ -390,7 +390,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'ride-detail',
-    path: paths.ride(':teamSlug', ':rideSlug'),
+    paths: pathVariants.ride(':teamSlug', ':rideSlug'),
     component: RideDetailPage,
     auth: 'public',
     parentId: 'team-detail',
@@ -398,7 +398,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'ride-edit',
-    path: paths.rideEdit(':teamSlug', ':rideSlug'),
+    paths: pathVariants.rideEdit(':teamSlug', ':rideSlug'),
     component: EditRidePage,
     auth: 'authenticated',
     parentId: 'ride-detail',
@@ -409,7 +409,7 @@ export const routesConfig: RoutesConfig = [
   // === Ride Template Routes ===
   {
     id: 'ride-templates',
-    path: paths.rideTemplates(':teamSlug'),
+    paths: pathVariants.rideTemplates(':teamSlug'),
     component: RideTemplateListPage,
     auth: 'authenticated',
     parentId: 'team-admin',
@@ -417,7 +417,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'ride-template-new',
-    path: paths.rideTemplateNew(':teamSlug'),
+    paths: pathVariants.rideTemplateNew(':teamSlug'),
     component: CreateRideTemplatePage,
     auth: 'authenticated',
     parentId: 'ride-templates',
@@ -426,7 +426,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'ride-template-edit',
-    path: paths.rideTemplateEdit(':teamSlug', ':templateSlug'),
+    paths: pathVariants.rideTemplateEdit(':teamSlug', ':templateSlug'),
     component: EditRideTemplatePage,
     auth: 'authenticated',
     parentId: 'ride-templates',
@@ -438,7 +438,7 @@ export const routesConfig: RoutesConfig = [
   // Note: trips have parent team-detail (no trips list page)
   {
     id: 'trip-new',
-    path: paths.tripNew(':teamSlug'),
+    paths: pathVariants.tripNew(':teamSlug'),
     component: CreateTripPage,
     auth: 'authenticated',
     parentId: 'team-detail',
@@ -447,7 +447,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'trip-detail',
-    path: paths.trip(':teamSlug', ':tripSlug'),
+    paths: pathVariants.trip(':teamSlug', ':tripSlug'),
     component: TripDetailPage,
     auth: 'public',
     parentId: 'team-detail',
@@ -455,7 +455,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'trip-edit',
-    path: paths.tripEdit(':teamSlug', ':tripSlug'),
+    paths: pathVariants.tripEdit(':teamSlug', ':tripSlug'),
     component: EditTripPage,
     auth: 'authenticated',
     parentId: 'trip-detail',
@@ -464,7 +464,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'stage-detail',
-    path: paths.stage(':teamSlug', ':tripSlug', ':stageSlug'),
+    paths: pathVariants.stage(':teamSlug', ':tripSlug', ':stageSlug'),
     component: StageDetailPage,
     auth: 'public',
     parentId: 'trip-detail',
@@ -475,7 +475,7 @@ export const routesConfig: RoutesConfig = [
   // Note: posts have parent team-detail (no posts list page)
   {
     id: 'post-new',
-    path: paths.postNew(':teamSlug'),
+    paths: pathVariants.postNew(':teamSlug'),
     component: CreatePostPage,
     auth: 'authenticated',
     parentId: 'team-detail',
@@ -484,7 +484,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'post-detail',
-    path: paths.post(':teamSlug', ':postSlug'),
+    paths: pathVariants.post(':teamSlug', ':postSlug'),
     component: PostDetailPage,
     auth: 'public',
     parentId: 'team-detail',
@@ -492,7 +492,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'post-edit',
-    path: paths.postEdit(':teamSlug', ':postSlug'),
+    paths: pathVariants.postEdit(':teamSlug', ':postSlug'),
     component: EditPostPage,
     auth: 'authenticated',
     parentId: 'post-detail',
@@ -504,7 +504,7 @@ export const routesConfig: RoutesConfig = [
   // Note: routes have a list page, so route-detail has parent 'routes'
   {
     id: 'routes',
-    path: paths.routes(':teamSlug'),
+    paths: pathVariants.routes(':teamSlug'),
     component: RouteListPage,
     auth: 'public',
     parentId: 'team-detail',
@@ -512,7 +512,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'route-new',
-    path: paths.routeNew(':teamSlug'),
+    paths: pathVariants.routeNew(':teamSlug'),
     component: CreateRoutePage,
     auth: 'authenticated',
     parentId: 'routes',
@@ -521,7 +521,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'route-detail',
-    path: paths.route(':teamSlug', ':routeSlug'),
+    paths: pathVariants.route(':teamSlug', ':routeSlug'),
     component: RouteDetailPage,
     auth: 'public',
     parentId: 'routes',
@@ -529,7 +529,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'route-edit',
-    path: paths.routeEdit(':teamSlug', ':routeSlug'),
+    paths: pathVariants.routeEdit(':teamSlug', ':routeSlug'),
     component: EditRoutePage,
     auth: 'authenticated',
     parentId: 'route-detail',
@@ -540,7 +540,7 @@ export const routesConfig: RoutesConfig = [
   // === Ad Routes ===
   {
     id: 'ads',
-    path: paths.ads(':teamSlug'),
+    paths: pathVariants.ads(':teamSlug'),
     component: AdListPage,
     auth: 'public',
     parentId: 'team-detail',
@@ -548,7 +548,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'ad-new',
-    path: paths.adNew(':teamSlug'),
+    paths: pathVariants.adNew(':teamSlug'),
     component: CreateAdPage,
     auth: 'authenticated',
     parentId: 'ads',
@@ -557,7 +557,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'ad-detail',
-    path: paths.ad(':teamSlug', ':adSlug'),
+    paths: pathVariants.ad(':teamSlug', ':adSlug'),
     component: AdDetailPage,
     auth: 'public',
     parentId: 'ads',
@@ -565,7 +565,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'ad-edit',
-    path: paths.adEdit(':teamSlug', ':adSlug'),
+    paths: pathVariants.adEdit(':teamSlug', ':adSlug'),
     component: EditAdPage,
     auth: 'authenticated',
     parentId: 'ad-detail',
@@ -576,7 +576,7 @@ export const routesConfig: RoutesConfig = [
   // === Platform Admin Routes ===
   {
     id: 'admin',
-    path: paths.admin(),
+    paths: pathVariants.admin(),
     component: AdminDashboardPage,
     auth: 'authenticated',
     parentId: null,
@@ -584,7 +584,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'admin-domains',
-    path: paths.adminDomains(),
+    paths: pathVariants.adminDomains(),
     component: AdminDomainsPage,
     auth: 'authenticated',
     parentId: 'admin',
@@ -592,7 +592,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'admin-teams',
-    path: paths.adminTeams(),
+    paths: pathVariants.adminTeams(),
     component: AdminTeamsPage,
     auth: 'authenticated',
     parentId: 'admin',
@@ -600,7 +600,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'admin-users',
-    path: paths.adminUsers(),
+    paths: pathVariants.adminUsers(),
     component: AdminUsersPage,
     auth: 'authenticated',
     parentId: 'admin',

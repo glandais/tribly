@@ -35,6 +35,7 @@ mkcert localhost 127.0.0.1   # generates localhost+1.pem and localhost+1-key.pem
 | `pnpm build` | TypeScript check + production build |
 | `pnpm preview` | Preview production build locally |
 | `pnpm generate-api` | Regenerate API client from OpenAPI contract |
+| `pnpm generate-routes` | Regenerate path builders + deeplinks from `../contracts/routes.yaml` |
 | `pnpm lint` | ESLint |
 | `pnpm format` | Prettier |
 | `pnpm test` | Vitest (watch mode) |
@@ -81,7 +82,7 @@ src/
 │   ├── endpoints/    # React Query hooks per API tag
 │   └── zod/          # Zod validation schemas
 ├── components/       # Organized by domain (common/, team/, ride/, route/, post/, trip/, ...)
-├── config/           # paths.ts (navigation), routes.config.ts (route definitions), appConfig.ts
+├── config/           # paths.ts (re-export), paths.generated.ts (generated), locale-context.ts, routes.config.ts, appConfig.ts
 ├── hooks/            # Custom React Query wrappers (useAuth, useComments, usePaginatedQuery, ...)
 ├── lib/              # axiosInstance.ts (auth, error handling), apiUtils.ts
 ├── locales/          # fr/ (default), en/ — single "common" namespace per language
@@ -93,7 +94,8 @@ src/
 
 ## Key Conventions
 
-- **Navigation**: Always use `paths.xxx()` from `config/paths.ts` — never hard-code URLs.
+- **Navigation**: Always use `paths.xxx()` from `config/paths.ts` — never hard-code URLs. Returns the URL in the user's current locale (driven by i18next).
+- **Adding a route**: Edit `../contracts/routes.yaml`, then `pnpm generate-routes`. Register the page in `config/routes.config.ts` via `pathVariants.xxx()`. See [../APP_LINKS.md](../APP_LINKS.md).
 - **Confirmations**: Always use the `ConfirmDialog` component — never `window.confirm()` or custom modals.
 - **Icons**: Always use `@tabler/icons-react` — never inline SVGs.
 - **i18n**: French is the default language. Templated keys need type annotations: `` t(`status.${x satisfies 'DRAFT' | 'PUBLISHED'}`) ``.

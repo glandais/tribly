@@ -26,9 +26,11 @@ lib/
 ├── main.dart              # Entry point, deep link handling, ProviderScope
 ├── app.dart               # PedalonsApp widget, theme configuration
 ├── config/
-│   ├── router.dart        # GoRouter configuration with auth redirects
-│   ├── paths.dart         # Type-safe path builders (mirrors frontend)
-│   └── app_config.dart    # API URLs, WebAuthn config (compile-time env)
+│   ├── router.dart            # GoRouter configuration with auth redirects (registers all locale variants)
+│   ├── paths.dart             # Re-export of paths.generated.dart
+│   ├── paths.generated.dart   # Generated from ../../../contracts/routes.yaml — DO NOT EDIT
+│   ├── locale_context.dart    # Mutable current-locale, synced from context.locale in app.dart
+│   └── app_config.dart        # API URLs, WebAuthn config (compile-time env)
 ├── api/
 │   ├── pedalons_api_client.dart  # Dio providers, client providers
 │   ├── interceptors/           # Auth interceptor with token refresh
@@ -83,9 +85,14 @@ class MyWidget extends ConsumerWidget {
 
 ```dart
 // Always use Paths.xxx() instead of hardcoded strings
+// Paths is locale-aware: returns /equipes/... when locale is fr, /teams/... for en
 context.go(Paths.team(teamSlug));
 context.go(Paths.ride(teamSlug, rideSlug));
 ```
+
+Path declarations live in `../contracts/routes.yaml` (single source of truth shared with the frontend). After editing the YAML, run `pnpm generate-routes` from `frontend/` — it regenerates `lib/config/paths.generated.dart` and the Android deeplink section. See [../APP_LINKS.md](../APP_LINKS.md).
+
+`router.dart` registers every locale variant so deep links in any supported language match. Flat routes use `_perLocale(PathVariants.xxx(), ...)`; the team shell uses `_teamShellTrees()` which derives segments from `PathVariants` via `_relativeTo`.
 
 **API Clients**: Provider-based dependency injection
 
@@ -109,11 +116,12 @@ final teamsClientProvider = Provider<TeamsClient>((ref) => ref.watch(apiClientPr
 
 ## Critical Gotchas
 
-- **Never edit generated code** in `lib/api/generated/` - run generators instead
+- **Never edit generated code** in `lib/api/generated/` or `lib/config/paths.generated.dart` — edit source and regenerate (see Contract-First and Path Management)
 - **Build order matters**: freezed → json_serializable → retrofit_generator (configured in `build.yaml`)
 - **Two Dio instances**: `baseDioProvider` (no auth) for login/register, `dioProvider` (with auth interceptor) for protected endpoints
 - **Token sync**: Auth state updates must call `_syncTokenToHolder()` for interceptor to see new token
-- **Deep links**: Handled by `app_links` package, GoRouter processes the path
+- **Deep links**: Handled by `app_links` package, GoRouter processes the path. Manifest intent-filters are generated from `../contracts/routes.yaml` — see [../APP_LINKS.md](../APP_LINKS.md)
+- **Locale**: `app.dart` propagates `context.locale.languageCode` into `locale_context.dart` so `Paths.xxx()` returns the right variant
 - Config via `--dart-define`: `flutter run --dart-define=API_BASE_URL=http://localhost:8080`
 
 ## Detailed Guidelines
