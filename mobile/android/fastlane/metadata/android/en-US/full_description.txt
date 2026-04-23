@@ -1,0 +1,1 @@
+Pedalons est une plateforme cycliste multi-tenant destinée aux clubs et groupes pour organiser des sorties, partager des parcours, coordonner des événements et fédérer une communauté.

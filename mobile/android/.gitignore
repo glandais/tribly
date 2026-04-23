@@ -12,3 +12,8 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+
+# Fastlane (metadata/ is kept; it's the source of truth for Play Store listing)
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/test_output
