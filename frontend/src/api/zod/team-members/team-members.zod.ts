@@ -41,7 +41,10 @@ export const GetMembersResponse = zod
               })
               .describe('User'),
             role: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']).describe('Member role'),
-            joinedAt: zod.iso.datetime({}).optional().describe('When the user joined the team'),
+            joinedAt: zod.iso
+              .datetime({ offset: true })
+              .optional()
+              .describe('When the user joined the team'),
           })
           .describe('Team member information')
       )
@@ -122,7 +125,10 @@ export const UpdateMemberRoleResponse = zod
       })
       .describe('User'),
     role: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']).describe('Member role'),
-    joinedAt: zod.iso.datetime({}).optional().describe('When the user joined the team'),
+    joinedAt: zod.iso
+      .datetime({ offset: true })
+      .optional()
+      .describe('When the user joined the team'),
   })
   .describe('Team member information')
 

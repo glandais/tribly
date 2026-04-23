@@ -167,11 +167,11 @@ export const CreatePostBody = zod
           .describe('Assets'),
       })
       .describe('Post description'),
-    dateTime: zod.iso.datetime({}).describe('Post date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Post date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Post status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso
-      .datetime({})
+      .datetime({ offset: true })
       .optional()
       .describe('Publication timestamp (for scheduled publishing)'),
   })
@@ -345,11 +345,11 @@ export const UpdatePostBody = zod
           .describe('Assets'),
       })
       .describe('Post description'),
-    dateTime: zod.iso.datetime({}).describe('Post date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Post date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Post status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso
-      .datetime({})
+      .datetime({ offset: true })
       .optional()
       .describe('Publication timestamp (for scheduled publishing)'),
   })
@@ -518,11 +518,11 @@ export const UpdatePostResponse = zod
           .describe('Assets'),
       })
       .describe('Publication media'),
-    dateTime: zod.iso.datetime({}).describe('Publication date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
-    publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
-    createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
+    publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
     deleted: zod.boolean().describe('Whether the post is soft-deleted'),
   })
   .describe('Post summary data')
@@ -699,11 +699,11 @@ export const GetPostResponse = zod
           .describe('Assets'),
       })
       .describe('Publication media'),
-    dateTime: zod.iso.datetime({}).describe('Publication date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
-    publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
-    createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
+    publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
     deleted: zod.boolean().describe('Whether the post is soft-deleted'),
   })
   .describe('Post summary data')
@@ -903,11 +903,11 @@ export const ChangePostSlugResponse = zod
           .describe('Assets'),
       })
       .describe('Publication media'),
-    dateTime: zod.iso.datetime({}).describe('Publication date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
-    publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
-    createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
+    publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
     deleted: zod.boolean().describe('Whether the post is soft-deleted'),
   })
   .describe('Post summary data')
@@ -1084,11 +1084,11 @@ export const UndeletePostResponse = zod
           .describe('Assets'),
       })
       .describe('Publication media'),
-    dateTime: zod.iso.datetime({}).describe('Publication date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
-    publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
-    createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
+    publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
     deleted: zod.boolean().describe('Whether the post is soft-deleted'),
   })
   .describe('Post summary data')

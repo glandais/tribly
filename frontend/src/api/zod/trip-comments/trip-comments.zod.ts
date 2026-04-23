@@ -23,7 +23,7 @@ export const ListTripCommentsResponse = zod
                 avatarUrl: zod.string().optional().describe('User avatar URL'),
               })
               .describe('Comment author'),
-            createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
+            createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
             parentId: zod.string().optional().describe('Parent comment ID (for replies)'),
             replies: zod.array(zod.unknown()).describe('Replies to this comment'),
           })

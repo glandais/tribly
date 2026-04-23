@@ -41,8 +41,8 @@ export const ListTemplatesResponse = zod
               .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
               .describe('Visibility level'),
             status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Default status'),
-            createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
-            updatedAt: zod.iso.datetime({}).describe('Last update timestamp'),
+            createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
+            updatedAt: zod.iso.datetime({ offset: true }).describe('Last update timestamp'),
             groupCount: zod.number().describe('Number of groups'),
             groups: zod
               .array(
@@ -185,8 +185,8 @@ export const UpdateTemplateResponse = zod
     markdown: zod.string().describe('Template description (markdown)'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Default status'),
-    createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
-    updatedAt: zod.iso.datetime({}).describe('Last update timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
+    updatedAt: zod.iso.datetime({ offset: true }).describe('Last update timestamp'),
     groupCount: zod.number().describe('Number of groups'),
     groups: zod
       .array(
@@ -232,8 +232,8 @@ export const GetTemplateResponse = zod
     markdown: zod.string().describe('Template description (markdown)'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Default status'),
-    createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
-    updatedAt: zod.iso.datetime({}).describe('Last update timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
+    updatedAt: zod.iso.datetime({ offset: true }).describe('Last update timestamp'),
     groupCount: zod.number().describe('Number of groups'),
     groups: zod
       .array(

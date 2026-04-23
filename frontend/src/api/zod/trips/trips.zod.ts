@@ -170,12 +170,12 @@ export const CreateTripBody = zod
           .describe('Assets'),
       })
       .describe('Trip media'),
-    dateTime: zod.iso.datetime({}).describe('Trip start date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Trip status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     routeSlug: zod.string().optional().describe('Overall route slug for the trip'),
     publishAt: zod.iso
-      .datetime({})
+      .datetime({ offset: true })
       .optional()
       .describe('Publication timestamp (for scheduled publishing)'),
     stages: zod
@@ -189,7 +189,7 @@ export const CreateTripBody = zod
               .max(createTripBodyStagesItemNameMax)
               .regex(createTripBodyStagesItemNameRegExp)
               .describe('Stage name'),
-            dateTime: zod.iso.datetime({}).describe('Stage date\/time'),
+            dateTime: zod.iso.datetime({ offset: true }).describe('Stage date\/time'),
             routeSlug: zod.string().optional().describe('Route slug for this stage'),
             startPlaceId: zod.string().optional().describe('Start place ID (TSID)'),
             endPlaceId: zod.string().optional().describe('End place ID (TSID)'),
@@ -518,12 +518,12 @@ export const UpdateTripBody = zod
           .describe('Assets'),
       })
       .describe('Trip media'),
-    dateTime: zod.iso.datetime({}).describe('Trip start date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Trip status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     routeSlug: zod.string().optional().describe('Overall route slug for the trip'),
     publishAt: zod.iso
-      .datetime({})
+      .datetime({ offset: true })
       .optional()
       .describe('Publication timestamp (for scheduled publishing)'),
     stages: zod
@@ -537,7 +537,7 @@ export const UpdateTripBody = zod
               .max(updateTripBodyStagesItemNameMax)
               .regex(updateTripBodyStagesItemNameRegExp)
               .describe('Stage name'),
-            dateTime: zod.iso.datetime({}).describe('Stage date\/time'),
+            dateTime: zod.iso.datetime({ offset: true }).describe('Stage date\/time'),
             routeSlug: zod.string().optional().describe('Route slug for this stage'),
             startPlaceId: zod.string().optional().describe('Start place ID (TSID)'),
             endPlaceId: zod.string().optional().describe('End place ID (TSID)'),
@@ -858,11 +858,11 @@ export const UpdateTripResponse = zod
           .describe('Assets'),
       })
       .describe('Publication media'),
-    dateTime: zod.iso.datetime({}).describe('Trip start date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
-    publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
-    createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
+    publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
     routeSlug: zod.string().optional().describe('Route slug'),
     participantCount: zod.number().describe('Number of participants'),
     stageCount: zod.number().describe('Number of stages'),
@@ -873,7 +873,7 @@ export const UpdateTripResponse = zod
             id: zod.string().describe('Stage ID (TSID)'),
             slug: zod.string().describe('Stage slug'),
             name: zod.string().describe('Stage name'),
-            dateTime: zod.iso.datetime({}).describe('Stage date\/time'),
+            dateTime: zod.iso.datetime({ offset: true }).describe('Stage date\/time'),
             routeSlug: zod.string().optional().describe('Route slug'),
             startPlace: zod
               .object({
@@ -1256,11 +1256,11 @@ export const GetTripResponse = zod
           .describe('Assets'),
       })
       .describe('Publication media'),
-    dateTime: zod.iso.datetime({}).describe('Trip start date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
-    publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
-    createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
+    publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
     routeSlug: zod.string().optional().describe('Route slug'),
     participantCount: zod.number().describe('Number of participants'),
     stageCount: zod.number().describe('Number of stages'),
@@ -1271,7 +1271,7 @@ export const GetTripResponse = zod
             id: zod.string().describe('Stage ID (TSID)'),
             slug: zod.string().describe('Stage slug'),
             name: zod.string().describe('Stage name'),
-            dateTime: zod.iso.datetime({}).describe('Stage date\/time'),
+            dateTime: zod.iso.datetime({ offset: true }).describe('Stage date\/time'),
             routeSlug: zod.string().optional().describe('Route slug'),
             startPlace: zod
               .object({
@@ -1695,11 +1695,11 @@ export const ChangeTripSlugResponse = zod
           .describe('Assets'),
       })
       .describe('Publication media'),
-    dateTime: zod.iso.datetime({}).describe('Trip start date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
-    publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
-    createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
+    publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
     routeSlug: zod.string().optional().describe('Route slug'),
     participantCount: zod.number().describe('Number of participants'),
     stageCount: zod.number().describe('Number of stages'),
@@ -1710,7 +1710,7 @@ export const ChangeTripSlugResponse = zod
             id: zod.string().describe('Stage ID (TSID)'),
             slug: zod.string().describe('Stage slug'),
             name: zod.string().describe('Stage name'),
-            dateTime: zod.iso.datetime({}).describe('Stage date\/time'),
+            dateTime: zod.iso.datetime({ offset: true }).describe('Stage date\/time'),
             routeSlug: zod.string().optional().describe('Route slug'),
             startPlace: zod
               .object({
@@ -2093,11 +2093,11 @@ export const UndeleteTripResponse = zod
           .describe('Assets'),
       })
       .describe('Publication media'),
-    dateTime: zod.iso.datetime({}).describe('Trip start date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
-    publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
-    createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
+    publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
     routeSlug: zod.string().optional().describe('Route slug'),
     participantCount: zod.number().describe('Number of participants'),
     stageCount: zod.number().describe('Number of stages'),
@@ -2108,7 +2108,7 @@ export const UndeleteTripResponse = zod
             id: zod.string().describe('Stage ID (TSID)'),
             slug: zod.string().describe('Stage slug'),
             name: zod.string().describe('Stage name'),
-            dateTime: zod.iso.datetime({}).describe('Stage date\/time'),
+            dateTime: zod.iso.datetime({ offset: true }).describe('Stage date\/time'),
             routeSlug: zod.string().optional().describe('Route slug'),
             startPlace: zod
               .object({

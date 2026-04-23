@@ -24,7 +24,7 @@ export const UpdateMeResponse = zod
     email: zod.string().describe('User email address'),
     displayName: zod.string().describe('User display name'),
     avatarUrl: zod.string().optional().describe('User avatar URL'),
-    createdAt: zod.iso.datetime({}).optional().describe('Account creation timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).optional().describe('Account creation timestamp'),
     unitSystem: zod
       .enum(['METRIC', 'IMPERIAL'])
       .optional()
@@ -39,7 +39,9 @@ export const UpdateMeResponse = zod
           .object({
             serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']).describe('Service type identifier'),
             displayName: zod.string().describe('Display name of the service'),
-            connectedAt: zod.iso.datetime({}).describe('When the service was connected'),
+            connectedAt: zod.iso
+              .datetime({ offset: true })
+              .describe('When the service was connected'),
           })
           .describe('GPS service connection information')
       )
@@ -58,7 +60,7 @@ export const GetMeResponse = zod
     email: zod.string().describe('User email address'),
     displayName: zod.string().describe('User display name'),
     avatarUrl: zod.string().optional().describe('User avatar URL'),
-    createdAt: zod.iso.datetime({}).optional().describe('Account creation timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).optional().describe('Account creation timestamp'),
     unitSystem: zod
       .enum(['METRIC', 'IMPERIAL'])
       .optional()
@@ -73,7 +75,9 @@ export const GetMeResponse = zod
           .object({
             serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']).describe('Service type identifier'),
             displayName: zod.string().describe('Display name of the service'),
-            connectedAt: zod.iso.datetime({}).describe('When the service was connected'),
+            connectedAt: zod.iso
+              .datetime({ offset: true })
+              .describe('When the service was connected'),
           })
           .describe('GPS service connection information')
       )
@@ -96,7 +100,7 @@ export const UploadAvatarResponse = zod
     email: zod.string().describe('User email address'),
     displayName: zod.string().describe('User display name'),
     avatarUrl: zod.string().optional().describe('User avatar URL'),
-    createdAt: zod.iso.datetime({}).optional().describe('Account creation timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).optional().describe('Account creation timestamp'),
     unitSystem: zod
       .enum(['METRIC', 'IMPERIAL'])
       .optional()
@@ -111,7 +115,9 @@ export const UploadAvatarResponse = zod
           .object({
             serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']).describe('Service type identifier'),
             displayName: zod.string().describe('Display name of the service'),
-            connectedAt: zod.iso.datetime({}).describe('When the service was connected'),
+            connectedAt: zod.iso
+              .datetime({ offset: true })
+              .describe('When the service was connected'),
           })
           .describe('GPS service connection information')
       )
@@ -130,7 +136,7 @@ export const DeleteAvatarResponse = zod
     email: zod.string().describe('User email address'),
     displayName: zod.string().describe('User display name'),
     avatarUrl: zod.string().optional().describe('User avatar URL'),
-    createdAt: zod.iso.datetime({}).optional().describe('Account creation timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).optional().describe('Account creation timestamp'),
     unitSystem: zod
       .enum(['METRIC', 'IMPERIAL'])
       .optional()
@@ -145,7 +151,9 @@ export const DeleteAvatarResponse = zod
           .object({
             serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']).describe('Service type identifier'),
             displayName: zod.string().describe('Display name of the service'),
-            connectedAt: zod.iso.datetime({}).describe('When the service was connected'),
+            connectedAt: zod.iso
+              .datetime({ offset: true })
+              .describe('When the service was connected'),
           })
           .describe('GPS service connection information')
       )

@@ -31,8 +31,11 @@ export const ListUsersResponse = zod
               .optional()
               .describe('Platform role (null if regular user)'),
             emailVerified: zod.boolean().describe('Whether email is verified'),
-            createdAt: zod.iso.datetime({}).describe('User creation timestamp'),
-            lastLoginAt: zod.iso.datetime({}).optional().describe('Last login timestamp'),
+            createdAt: zod.iso.datetime({ offset: true }).describe('User creation timestamp'),
+            lastLoginAt: zod.iso
+              .datetime({ offset: true })
+              .optional()
+              .describe('Last login timestamp'),
           })
           .describe('Admin user view with domain info')
       )
@@ -63,8 +66,8 @@ export const GetAdminUserResponse = zod
       .optional()
       .describe('Platform role (null if regular user)'),
     emailVerified: zod.boolean().describe('Whether email is verified'),
-    createdAt: zod.iso.datetime({}).describe('User creation timestamp'),
-    lastLoginAt: zod.iso.datetime({}).optional().describe('Last login timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('User creation timestamp'),
+    lastLoginAt: zod.iso.datetime({ offset: true }).optional().describe('Last login timestamp'),
   })
   .describe('Admin user view with domain info')
 
@@ -97,7 +100,7 @@ export const AssignPlatformRoleResponse = zod
       .optional()
       .describe('Platform role (null if regular user)'),
     emailVerified: zod.boolean().describe('Whether email is verified'),
-    createdAt: zod.iso.datetime({}).describe('User creation timestamp'),
-    lastLoginAt: zod.iso.datetime({}).optional().describe('Last login timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('User creation timestamp'),
+    lastLoginAt: zod.iso.datetime({ offset: true }).optional().describe('Last login timestamp'),
   })
   .describe('Admin user view with domain info')

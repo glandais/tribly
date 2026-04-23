@@ -194,8 +194,8 @@ export const ListAdsResponse = zod
             price: zod.number().optional().describe('Price'),
             rentalPeriod: zod.enum(['DAY', 'WEEK', 'MONTH']).optional().describe('Rental period'),
             locationDescription: zod.string().optional().describe('Location description'),
-            createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
-            updatedAt: zod.iso.datetime({}).describe('Creation timestamp'),
+            createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
+            updatedAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
             createdById: zod.string().describe('Creator ID (TSID)'),
             deleted: zod.boolean().describe('Whether the ad is soft-deleted'),
           })
@@ -757,8 +757,8 @@ export const UpdateAdResponse = zod
     price: zod.number().optional().describe('Price'),
     rentalPeriod: zod.enum(['DAY', 'WEEK', 'MONTH']).optional().describe('Rental period'),
     locationDescription: zod.string().optional().describe('Location description'),
-    createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
-    updatedAt: zod.iso.datetime({}).describe('Creation timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
+    updatedAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     createdById: zod.string().describe('Creator ID (TSID)'),
     deleted: zod.boolean().describe('Whether the ad is soft-deleted'),
   })
@@ -941,8 +941,8 @@ export const GetAdResponse = zod
     price: zod.number().optional().describe('Price'),
     rentalPeriod: zod.enum(['DAY', 'WEEK', 'MONTH']).optional().describe('Rental period'),
     locationDescription: zod.string().optional().describe('Location description'),
-    createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
-    updatedAt: zod.iso.datetime({}).describe('Creation timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
+    updatedAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     createdById: zod.string().describe('Creator ID (TSID)'),
     deleted: zod.boolean().describe('Whether the ad is soft-deleted'),
   })
@@ -1141,8 +1141,8 @@ export const GetAdEditResponse = zod
       .optional()
       .describe('Location coordinates [longitude, latitude]'),
     locationDescription: zod.string().optional().describe('Location description'),
-    createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
-    updatedAt: zod.iso.datetime({}).describe('Creation timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
+    updatedAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     createdById: zod.string().describe('Creator ID (TSID)'),
     deleted: zod.boolean().describe('Whether the ad is soft-deleted'),
   })
@@ -1339,8 +1339,8 @@ export const ChangeAdSlugResponse = zod
     price: zod.number().optional().describe('Price'),
     rentalPeriod: zod.enum(['DAY', 'WEEK', 'MONTH']).optional().describe('Rental period'),
     locationDescription: zod.string().optional().describe('Location description'),
-    createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
-    updatedAt: zod.iso.datetime({}).describe('Creation timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
+    updatedAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     createdById: zod.string().describe('Creator ID (TSID)'),
     deleted: zod.boolean().describe('Whether the ad is soft-deleted'),
   })
@@ -1530,8 +1530,8 @@ export const UndeleteAdResponse = zod
       .optional()
       .describe('Location coordinates [longitude, latitude]'),
     locationDescription: zod.string().optional().describe('Location description'),
-    createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
-    updatedAt: zod.iso.datetime({}).describe('Creation timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
+    updatedAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     createdById: zod.string().describe('Creator ID (TSID)'),
     deleted: zod.boolean().describe('Whether the ad is soft-deleted'),
   })

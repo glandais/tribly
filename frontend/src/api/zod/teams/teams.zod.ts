@@ -205,7 +205,7 @@ export const ListTeamsResponse = zod
               .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
               .optional()
               .describe("Current user's role (null if not a member)"),
-            createdAt: zod.iso.datetime({}).describe('Team creation timestamp'),
+            createdAt: zod.iso.datetime({ offset: true }).describe('Team creation timestamp'),
             geometry: zod
               .object({
                 type: zod.enum(['Point']),
@@ -770,7 +770,7 @@ export const UpdateTeamResponse = zod
       .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
       .optional()
       .describe("Current user's role (null if not a member)"),
-    createdAt: zod.iso.datetime({}).describe('Team creation timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Team creation timestamp'),
     geometry: zod
       .object({
         type: zod.enum(['Point']),
@@ -974,7 +974,7 @@ export const GetTeamResponse = zod
       .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
       .optional()
       .describe("Current user's role (null if not a member)"),
-    createdAt: zod.iso.datetime({}).describe('Team creation timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Team creation timestamp'),
     geometry: zod
       .object({
         type: zod.enum(['Point']),
@@ -1200,7 +1200,7 @@ export const ChangeTeamSlugResponse = zod
       .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
       .optional()
       .describe("Current user's role (null if not a member)"),
-    createdAt: zod.iso.datetime({}).describe('Team creation timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Team creation timestamp'),
     geometry: zod
       .object({
         type: zod.enum(['Point']),

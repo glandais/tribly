@@ -174,14 +174,14 @@ export const CreateRideBody = zod
           .describe('Assets'),
       })
       .describe('Ride media'),
-    dateTime: zod.iso.datetime({}).describe('Ride date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Ride date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Ride status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     routeSlug: zod.string().optional().describe('Route slug'),
     startPlaceId: zod.string().optional().describe('Start place ID (TSID)'),
     endPlaceId: zod.string().optional().describe('End place ID (TSID)'),
     publishAt: zod.iso
-      .datetime({})
+      .datetime({ offset: true })
       .optional()
       .describe('Publication timestamp (for scheduled publishing)'),
     groups: zod
@@ -389,14 +389,14 @@ export const UpdateRideBody = zod
           .describe('Assets'),
       })
       .describe('Ride media'),
-    dateTime: zod.iso.datetime({}).describe('Ride date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Ride date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Ride status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     routeSlug: zod.string().optional().describe('Route slug'),
     startPlaceId: zod.string().optional().describe('Start place ID (TSID)'),
     endPlaceId: zod.string().optional().describe('End place ID (TSID)'),
     publishAt: zod.iso
-      .datetime({})
+      .datetime({ offset: true })
       .optional()
       .describe('Publication timestamp (for scheduled publishing)'),
     groups: zod
@@ -592,11 +592,11 @@ export const UpdateRideResponse = zod
           .describe('Assets'),
       })
       .describe('Publication media'),
-    dateTime: zod.iso.datetime({}).describe('Publication date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
-    publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
-    createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
+    publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
     routeSlug: zod.string().optional().describe('Route slug'),
     participantCount: zod.number().describe('Number of participants'),
     groupCount: zod.number().describe('Number of groups'),
@@ -852,11 +852,11 @@ export const GetRideResponse = zod
           .describe('Assets'),
       })
       .describe('Publication media'),
-    dateTime: zod.iso.datetime({}).describe('Publication date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
-    publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
-    createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
+    publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
     routeSlug: zod.string().optional().describe('Route slug'),
     participantCount: zod.number().describe('Number of participants'),
     groupCount: zod.number().describe('Number of groups'),
@@ -1155,11 +1155,11 @@ export const ChangeRideSlugResponse = zod
           .describe('Assets'),
       })
       .describe('Publication media'),
-    dateTime: zod.iso.datetime({}).describe('Publication date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
-    publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
-    createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
+    publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
     routeSlug: zod.string().optional().describe('Route slug'),
     participantCount: zod.number().describe('Number of participants'),
     groupCount: zod.number().describe('Number of groups'),
@@ -1415,11 +1415,11 @@ export const UndeleteRideResponse = zod
           .describe('Assets'),
       })
       .describe('Publication media'),
-    dateTime: zod.iso.datetime({}).describe('Publication date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
-    publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
-    createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
+    publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
     routeSlug: zod.string().optional().describe('Route slug'),
     participantCount: zod.number().describe('Number of participants'),
     groupCount: zod.number().describe('Number of groups'),

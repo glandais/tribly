@@ -223,7 +223,7 @@ export const ListAllRoutesResponse = zod
             visibility: zod
               .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
               .describe('Whether the route is public'),
-            createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
+            createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
             deleted: zod.boolean().describe('Whether the route is soft-deleted'),
           })
           .describe('Route summary data')
@@ -462,7 +462,7 @@ export const ListRoutesResponse = zod
             visibility: zod
               .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
               .describe('Whether the route is public'),
-            createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
+            createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
             deleted: zod.boolean().describe('Whether the route is soft-deleted'),
           })
           .describe('Route summary data')
@@ -1020,7 +1020,7 @@ export const UpdateRouteResponse = zod
     visibility: zod
       .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
       .describe('Whether the route is public'),
-    createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     deleted: zod.boolean().describe('Whether the route is soft-deleted'),
   })
   .describe('Route summary data')
@@ -1224,8 +1224,8 @@ export const GetRouteResponse = zod
         avatarUrl: zod.string().optional().describe('User avatar URL'),
       })
       .describe('Creator user'),
-    createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
-    updatedAt: zod.iso.datetime({}).describe('Last update timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
+    updatedAt: zod.iso.datetime({ offset: true }).describe('Last update timestamp'),
     tracks: zod
       .array(
         zod
@@ -1498,8 +1498,8 @@ export const ChangeRouteSlugResponse = zod
         avatarUrl: zod.string().optional().describe('User avatar URL'),
       })
       .describe('Creator user'),
-    createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
-    updatedAt: zod.iso.datetime({}).describe('Last update timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
+    updatedAt: zod.iso.datetime({ offset: true }).describe('Last update timestamp'),
     tracks: zod
       .array(
         zod
@@ -1749,8 +1749,8 @@ export const UndeleteRouteResponse = zod
         avatarUrl: zod.string().optional().describe('User avatar URL'),
       })
       .describe('Creator user'),
-    createdAt: zod.iso.datetime({}).describe('Creation timestamp'),
-    updatedAt: zod.iso.datetime({}).describe('Last update timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
+    updatedAt: zod.iso.datetime({ offset: true }).describe('Last update timestamp'),
     tracks: zod
       .array(
         zod

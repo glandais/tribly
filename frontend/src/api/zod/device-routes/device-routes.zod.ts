@@ -18,7 +18,10 @@ export const DeviceListRoutesResponse = zod
             teamSlug: zod.string().describe('Team slug'),
             rideSlug: zod.string().describe('Ride slug'),
             rideName: zod.string().describe('Ride name'),
-            startDateTime: zod.iso.datetime({}).optional().describe('Start date\/time'),
+            startDateTime: zod.iso
+              .datetime({ offset: true })
+              .optional()
+              .describe('Start date\/time'),
             entries: zod
               .array(
                 zod

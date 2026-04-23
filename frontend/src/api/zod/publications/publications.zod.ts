@@ -185,15 +185,21 @@ export const ListAllPublicationsResponse = zod
                       .describe('Assets'),
                   })
                   .describe('Publication media'),
-                dateTime: zod.iso.datetime({}).describe('Publication date\/time'),
+                dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
                 status: zod
                   .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                   .describe('Publication status'),
                 visibility: zod
                   .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
                   .describe('Visibility level'),
-                publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
-                createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
+                publishAt: zod.iso
+                  .datetime({ offset: true })
+                  .optional()
+                  .describe('Publication timestamp'),
+                createdAt: zod.iso
+                  .datetime({ offset: true })
+                  .optional()
+                  .describe('Creation timestamp'),
                 routeSlug: zod.string().optional().describe('Route slug'),
                 participantCount: zod.number().describe('Number of participants'),
                 groupCount: zod.number().describe('Number of groups'),
@@ -443,15 +449,21 @@ export const ListAllPublicationsResponse = zod
                       .describe('Assets'),
                   })
                   .describe('Publication media'),
-                dateTime: zod.iso.datetime({}).describe('Publication date\/time'),
+                dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
                 status: zod
                   .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                   .describe('Publication status'),
                 visibility: zod
                   .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
                   .describe('Visibility level'),
-                publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
-                createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
+                publishAt: zod.iso
+                  .datetime({ offset: true })
+                  .optional()
+                  .describe('Publication timestamp'),
+                createdAt: zod.iso
+                  .datetime({ offset: true })
+                  .optional()
+                  .describe('Creation timestamp'),
                 deleted: zod.boolean().describe('Whether the post is soft-deleted'),
               })
               .describe('Post summary data'),
@@ -618,15 +630,21 @@ export const ListAllPublicationsResponse = zod
                       .describe('Assets'),
                   })
                   .describe('Publication media'),
-                dateTime: zod.iso.datetime({}).describe('Trip start date\/time'),
+                dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date\/time'),
                 status: zod
                   .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                   .describe('Publication status'),
                 visibility: zod
                   .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
                   .describe('Visibility level'),
-                publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
-                createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
+                publishAt: zod.iso
+                  .datetime({ offset: true })
+                  .optional()
+                  .describe('Publication timestamp'),
+                createdAt: zod.iso
+                  .datetime({ offset: true })
+                  .optional()
+                  .describe('Creation timestamp'),
                 routeSlug: zod.string().optional().describe('Route slug'),
                 participantCount: zod.number().describe('Number of participants'),
                 stageCount: zod.number().describe('Number of stages'),
@@ -637,7 +655,7 @@ export const ListAllPublicationsResponse = zod
                         id: zod.string().describe('Stage ID (TSID)'),
                         slug: zod.string().describe('Stage slug'),
                         name: zod.string().describe('Stage name'),
-                        dateTime: zod.iso.datetime({}).describe('Stage date\/time'),
+                        dateTime: zod.iso.datetime({ offset: true }).describe('Stage date\/time'),
                         routeSlug: zod.string().optional().describe('Route slug'),
                         startPlace: zod
                           .object({
@@ -1077,15 +1095,21 @@ export const ListPublicationsResponse = zod
                       .describe('Assets'),
                   })
                   .describe('Publication media'),
-                dateTime: zod.iso.datetime({}).describe('Publication date\/time'),
+                dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
                 status: zod
                   .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                   .describe('Publication status'),
                 visibility: zod
                   .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
                   .describe('Visibility level'),
-                publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
-                createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
+                publishAt: zod.iso
+                  .datetime({ offset: true })
+                  .optional()
+                  .describe('Publication timestamp'),
+                createdAt: zod.iso
+                  .datetime({ offset: true })
+                  .optional()
+                  .describe('Creation timestamp'),
                 routeSlug: zod.string().optional().describe('Route slug'),
                 participantCount: zod.number().describe('Number of participants'),
                 groupCount: zod.number().describe('Number of groups'),
@@ -1335,15 +1359,21 @@ export const ListPublicationsResponse = zod
                       .describe('Assets'),
                   })
                   .describe('Publication media'),
-                dateTime: zod.iso.datetime({}).describe('Publication date\/time'),
+                dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
                 status: zod
                   .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                   .describe('Publication status'),
                 visibility: zod
                   .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
                   .describe('Visibility level'),
-                publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
-                createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
+                publishAt: zod.iso
+                  .datetime({ offset: true })
+                  .optional()
+                  .describe('Publication timestamp'),
+                createdAt: zod.iso
+                  .datetime({ offset: true })
+                  .optional()
+                  .describe('Creation timestamp'),
                 deleted: zod.boolean().describe('Whether the post is soft-deleted'),
               })
               .describe('Post summary data'),
@@ -1510,15 +1540,21 @@ export const ListPublicationsResponse = zod
                       .describe('Assets'),
                   })
                   .describe('Publication media'),
-                dateTime: zod.iso.datetime({}).describe('Trip start date\/time'),
+                dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date\/time'),
                 status: zod
                   .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                   .describe('Publication status'),
                 visibility: zod
                   .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
                   .describe('Visibility level'),
-                publishAt: zod.iso.datetime({}).optional().describe('Publication timestamp'),
-                createdAt: zod.iso.datetime({}).optional().describe('Creation timestamp'),
+                publishAt: zod.iso
+                  .datetime({ offset: true })
+                  .optional()
+                  .describe('Publication timestamp'),
+                createdAt: zod.iso
+                  .datetime({ offset: true })
+                  .optional()
+                  .describe('Creation timestamp'),
                 routeSlug: zod.string().optional().describe('Route slug'),
                 participantCount: zod.number().describe('Number of participants'),
                 stageCount: zod.number().describe('Number of stages'),
@@ -1529,7 +1565,7 @@ export const ListPublicationsResponse = zod
                         id: zod.string().describe('Stage ID (TSID)'),
                         slug: zod.string().describe('Stage slug'),
                         name: zod.string().describe('Stage name'),
-                        dateTime: zod.iso.datetime({}).describe('Stage date\/time'),
+                        dateTime: zod.iso.datetime({ offset: true }).describe('Stage date\/time'),
                         routeSlug: zod.string().optional().describe('Route slug'),
                         startPlace: zod
                           .object({

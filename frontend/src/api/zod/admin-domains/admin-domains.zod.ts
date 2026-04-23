@@ -32,7 +32,7 @@ export const ListDomainsResponse = zod
             active: zod.boolean().describe('Whether domain is active'),
             teamCount: zod.number().describe('Number of teams in this domain'),
             userCount: zod.number().describe('Number of users in this domain'),
-            createdAt: zod.iso.datetime({}).describe('Domain creation timestamp'),
+            createdAt: zod.iso.datetime({ offset: true }).describe('Domain creation timestamp'),
           })
           .describe('Admin domain view with statistics')
       )
@@ -153,7 +153,7 @@ export const UpdateDomainResponse = zod
     active: zod.boolean().describe('Whether domain is active'),
     teamCount: zod.number().describe('Number of teams in this domain'),
     userCount: zod.number().describe('Number of users in this domain'),
-    createdAt: zod.iso.datetime({}).describe('Domain creation timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Domain creation timestamp'),
   })
   .describe('Admin domain view with statistics')
 
@@ -181,7 +181,7 @@ export const GetDomainResponse = zod
     active: zod.boolean().describe('Whether domain is active'),
     teamCount: zod.number().describe('Number of teams in this domain'),
     userCount: zod.number().describe('Number of users in this domain'),
-    createdAt: zod.iso.datetime({}).describe('Domain creation timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Domain creation timestamp'),
   })
   .describe('Admin domain view with statistics')
 
@@ -199,7 +199,7 @@ export const ListDomainGpsCredentialsResponseItem = zod
     serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']).describe('GPS service type'),
     clientId: zod.string().describe('OAuth client ID'),
     active: zod.boolean().describe('Whether credential is active'),
-    createdAt: zod.iso.datetime({}).describe('Credential creation timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Credential creation timestamp'),
   })
   .describe('Admin GPS credential view (without secret)')
 export const ListDomainGpsCredentialsResponse = zod.array(ListDomainGpsCredentialsResponseItem)
@@ -270,7 +270,7 @@ export const UpdateDomainGpsCredentialResponse = zod
     serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']).describe('GPS service type'),
     clientId: zod.string().describe('OAuth client ID'),
     active: zod.boolean().describe('Whether credential is active'),
-    createdAt: zod.iso.datetime({}).describe('Credential creation timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Credential creation timestamp'),
   })
   .describe('Admin GPS credential view (without secret)')
 
@@ -307,6 +307,6 @@ export const ToggleDomainActiveResponse = zod
     active: zod.boolean().describe('Whether domain is active'),
     teamCount: zod.number().describe('Number of teams in this domain'),
     userCount: zod.number().describe('Number of users in this domain'),
-    createdAt: zod.iso.datetime({}).describe('Domain creation timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Domain creation timestamp'),
   })
   .describe('Admin domain view with statistics')

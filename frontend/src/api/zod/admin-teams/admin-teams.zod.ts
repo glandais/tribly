@@ -32,7 +32,7 @@ export const AdminListTeamsResponse = zod
             addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
             deleted: zod.boolean().describe('Is team soft-deleted'),
             memberCount: zod.number().describe('Number of members'),
-            createdAt: zod.iso.datetime({}).describe('Team creation timestamp'),
+            createdAt: zod.iso.datetime({ offset: true }).describe('Team creation timestamp'),
           })
           .describe('Admin team view with domain info')
       )
@@ -64,7 +64,7 @@ export const AdminGetTeamResponse = zod
     addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
     deleted: zod.boolean().describe('Is team soft-deleted'),
     memberCount: zod.number().describe('Number of members'),
-    createdAt: zod.iso.datetime({}).describe('Team creation timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Team creation timestamp'),
   })
   .describe('Admin team view with domain info')
 
@@ -97,7 +97,7 @@ export const AdminUpdateTeamAttributesResponse = zod
     addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
     deleted: zod.boolean().describe('Is team soft-deleted'),
     memberCount: zod.number().describe('Number of members'),
-    createdAt: zod.iso.datetime({}).describe('Team creation timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Team creation timestamp'),
   })
   .describe('Admin team view with domain info')
 
@@ -122,6 +122,6 @@ export const AdminToggleTeamDeletedResponse = zod
     addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
     deleted: zod.boolean().describe('Is team soft-deleted'),
     memberCount: zod.number().describe('Number of members'),
-    createdAt: zod.iso.datetime({}).describe('Team creation timestamp'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Team creation timestamp'),
   })
   .describe('Admin team view with domain info')
