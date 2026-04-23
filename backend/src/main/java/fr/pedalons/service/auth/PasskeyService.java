@@ -222,7 +222,7 @@ public class PasskeyService {
     } catch (BadRequestException e) {
       throw e;
     } catch (Exception e) {
-      throw new BadRequestException(ErrorCode.BAD_REQUEST);
+      throw new BadRequestException(ErrorCode.BAD_REQUEST, e);
     }
   }
 
