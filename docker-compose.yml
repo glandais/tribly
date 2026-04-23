@@ -32,6 +32,8 @@ services:
       - pedalons
     env_file:
       - .env
+    environment:
+      ERROR_LOG_DETAILS: "true"
     volumes:
       - ./data/storage:/mnt/storage
       - ./data/keys:/mnt/keys:ro

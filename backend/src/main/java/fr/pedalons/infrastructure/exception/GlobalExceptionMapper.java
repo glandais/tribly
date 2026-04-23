@@ -18,6 +18,7 @@ import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
@@ -28,36 +29,39 @@ public class GlobalExceptionMapper implements ExceptionMapper<Throwable> {
 
   @Context @Nullable UriInfo uriInfo;
 
+  @ConfigProperty(name = "pedalons.error.log-details", defaultValue = "false")
+  boolean logDetails;
+
   @Override
   public Response toResponse(Throwable exception) {
     switch (exception) {
-      case NotFoundException ignored -> {
-        LOG.warnv("Not found: {0}", getPath());
+      case NotFoundException e -> {
+        warn(e, "Not found: {0}", getPath());
         return notFound();
       }
-      case EntityNotFoundException ignored -> {
-        LOG.warnv("Entity not found: {0}", getPath());
+      case EntityNotFoundException e -> {
+        warn(e, "Entity not found: {0}", getPath());
         return notFound();
       }
-      case NotAuthorizedException ignored -> {
-        LOG.warnv("Unauthorized: {0}", getPath());
+      case NotAuthorizedException e -> {
+        warn(e, "Unauthorized: {0}", getPath());
         return unauthorized();
       }
-      case ForbiddenException ignored -> {
-        LOG.warnv("Forbidden: {0}", getPath());
+      case ForbiddenException e -> {
+        warn(e, "Forbidden: {0}", getPath());
         return forbidden();
       }
       case ConstraintViolationException cve -> {
-        LOG.warnv("Validation error: {0}", getPath());
+        warn(cve, "Validation error: {0}", getPath());
         return validationError(cve);
       }
-      case IllegalArgumentException ignored -> {
-        LOG.warnv("Bad request: {0}", getPath());
+      case IllegalArgumentException e -> {
+        warn(e, "Bad request: {0}", getPath());
         return badRequest();
       }
       case PedalonsException be -> {
         if (be.getStatus().getFamily() == Response.Status.Family.CLIENT_ERROR) {
-          LOG.warnv("Client error: {0} {1}", be.getErrorCode(), getPath());
+          warn(be, "Client error: {0} {1}", be.getErrorCode(), getPath());
         } else {
           LOG.errorv(be, "Server error: {0} {1}", be.getErrorCode(), getPath());
         }
@@ -69,7 +73,7 @@ public class GlobalExceptionMapper implements ExceptionMapper<Throwable> {
         if (status >= 500) {
           LOG.errorv(wae, "Server error {0}: {1}", status, getPath());
         } else {
-          LOG.warnv("Client error {0}: {1}", status, getPath());
+          warn(wae, "Client error {0}: {1}", status, getPath());
         }
         return Response.status(status).entity(new ErrorResponse(ErrorCode.UNKNOWN)).build();
       }
@@ -78,6 +82,14 @@ public class GlobalExceptionMapper implements ExceptionMapper<Throwable> {
       }
     }
     return internal();
+  }
+
+  private void warn(Throwable t, String format, Object... params) {
+    if (logDetails) {
+      LOG.warnv(t, format, params);
+    } else {
+      LOG.warnv(format, params);
+    }
   }
 
   private String getPath() {
