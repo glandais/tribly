@@ -187,12 +187,14 @@ export function LoginPage() {
                 <TextInput
                   label={t('auth.form.email')}
                   placeholder="email@example.com"
+                  name="email"
                   autoComplete="email"
                   {...loginForm.getInputProps('email')}
                 />
                 <PasswordInput
                   label={t('auth.form.password')}
                   placeholder={t('auth.form.passwordPlaceholder')}
+                  name="password"
                   autoComplete="current-password"
                   leftSection={<IconLock size={16} />}
                   {...loginForm.getInputProps('password')}
@@ -250,18 +252,21 @@ export function LoginPage() {
                 <TextInput
                   label={t('auth.form.email')}
                   placeholder="email@example.com"
+                  name="email"
                   autoComplete="email"
                   {...registerForm.getInputProps('email')}
                 />
                 <TextInput
                   label={t('auth.form.displayName')}
                   placeholder={t('auth.form.displayNamePlaceholder')}
+                  name="name"
                   autoComplete="name"
                   {...registerForm.getInputProps('displayName')}
                 />
                 <PasswordInput
                   label={t('auth.form.password')}
                   placeholder={t('auth.form.passwordPlaceholder')}
+                  name="new-password"
                   autoComplete="new-password"
                   leftSection={<IconLock size={16} />}
                   {...registerForm.getInputProps('password')}
@@ -269,6 +274,7 @@ export function LoginPage() {
                 <PasswordInput
                   label={t('auth.form.confirmPassword')}
                   placeholder={t('auth.form.confirmPasswordPlaceholder')}
+                  name="new-password-confirm"
                   autoComplete="new-password"
                   leftSection={<IconLock size={16} />}
                   {...registerForm.getInputProps('confirmPassword')}

@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -78,6 +79,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     try {
       final authNotifier = ref.read(authProvider.notifier);
       await authNotifier.loginWithPassword(email, password);
+      TextInput.finishAutofillContext();
       if (mounted) {
         context.go(Paths.home());
       }
@@ -136,6 +138,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         displayName: _regDisplayNameController.text.trim(),
         password: _regPasswordController.text,
       );
+      TextInput.finishAutofillContext();
       if (mounted) {
         setState(() => _mode = _Mode.login);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -238,69 +241,71 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
         Form(
           key: _loginFormKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                autofillHints: const [AutofillHints.email],
-                decoration: InputDecoration(
-                  labelText: 'auth.email'.tr(),
-                  prefixIcon: const Icon(Icons.email),
-                  border: const OutlineInputBorder(),
+          child: AutofillGroup(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextFormField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  autofillHints: const [AutofillHints.email],
+                  decoration: InputDecoration(
+                    labelText: 'auth.email'.tr(),
+                    prefixIcon: const Icon(Icons.email),
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'auth.errors.emailRequired'.tr();
+                    }
+                    if (!value.contains('@')) {
+                      return 'auth.errors.emailInvalid'.tr();
+                    }
+                    return null;
+                  },
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'auth.errors.emailRequired'.tr();
-                  }
-                  if (!value.contains('@')) {
-                    return 'auth.errors.emailInvalid'.tr();
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _passwordController,
-                obscureText: true,
-                autofillHints: const [AutofillHints.password],
-                decoration: InputDecoration(
-                  labelText: 'auth.password'.tr(),
-                  prefixIcon: const Icon(Icons.lock),
-                  border: const OutlineInputBorder(),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  autofillHints: const [AutofillHints.password],
+                  decoration: InputDecoration(
+                    labelText: 'auth.password'.tr(),
+                    prefixIcon: const Icon(Icons.lock),
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'auth.errors.passwordRequired'.tr();
+                    }
+                    return null;
+                  },
+                  onFieldSubmitted: (_) => _handleLogin(),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'auth.errors.passwordRequired'.tr();
-                  }
-                  return null;
-                },
-                onFieldSubmitted: (_) => _handleLogin(),
-              ),
-              const SizedBox(height: 4),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () => context.push(Paths.forgotPassword()),
-                  child: Text('auth.forgotPassword.title'.tr()),
+                const SizedBox(height: 4),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => context.push(Paths.forgotPassword()),
+                    child: Text('auth.forgotPassword.title'.tr()),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              FilledButton(
-                onPressed: _isLoading ? null : _handleLogin,
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                const SizedBox(height: 8),
+                FilledButton(
+                  onPressed: _isLoading ? null : _handleLogin,
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text('auth.login'.tr()),
                 ),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text('auth.login'.tr()),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
 
@@ -356,99 +361,101 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
         Form(
           key: _registerFormKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(
-                controller: _regEmailController,
-                keyboardType: TextInputType.emailAddress,
-                autofillHints: const [AutofillHints.email],
-                decoration: InputDecoration(
-                  labelText: 'auth.email'.tr(),
-                  prefixIcon: const Icon(Icons.email),
-                  border: const OutlineInputBorder(),
+          child: AutofillGroup(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextFormField(
+                  controller: _regEmailController,
+                  keyboardType: TextInputType.emailAddress,
+                  autofillHints: const [AutofillHints.newUsername, AutofillHints.email],
+                  decoration: InputDecoration(
+                    labelText: 'auth.email'.tr(),
+                    prefixIcon: const Icon(Icons.email),
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'auth.errors.emailRequired'.tr();
+                    }
+                    if (!value.contains('@')) {
+                      return 'auth.errors.emailInvalid'.tr();
+                    }
+                    return null;
+                  },
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'auth.errors.emailRequired'.tr();
-                  }
-                  if (!value.contains('@')) {
-                    return 'auth.errors.emailInvalid'.tr();
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _regDisplayNameController,
-                autofillHints: const [AutofillHints.name],
-                decoration: InputDecoration(
-                  labelText: 'auth.displayName'.tr(),
-                  prefixIcon: const Icon(Icons.person),
-                  border: const OutlineInputBorder(),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _regDisplayNameController,
+                  autofillHints: const [AutofillHints.name],
+                  decoration: InputDecoration(
+                    labelText: 'auth.displayName'.tr(),
+                    prefixIcon: const Icon(Icons.person),
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'auth.errors.displayNameRequired'.tr();
+                    }
+                    if (value.length < 2) {
+                      return 'auth.errors.displayNameTooShort'.tr();
+                    }
+                    if (value.length > 100) {
+                      return 'auth.errors.displayNameTooLong'.tr();
+                    }
+                    return null;
+                  },
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'auth.errors.displayNameRequired'.tr();
-                  }
-                  if (value.length < 2) {
-                    return 'auth.errors.displayNameTooShort'.tr();
-                  }
-                  if (value.length > 100) {
-                    return 'auth.errors.displayNameTooLong'.tr();
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _regPasswordController,
-                obscureText: true,
-                autofillHints: const [AutofillHints.newPassword],
-                decoration: InputDecoration(
-                  labelText: 'auth.password'.tr(),
-                  prefixIcon: const Icon(Icons.lock),
-                  border: const OutlineInputBorder(),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _regPasswordController,
+                  obscureText: true,
+                  autofillHints: const [AutofillHints.newPassword],
+                  decoration: InputDecoration(
+                    labelText: 'auth.password'.tr(),
+                    prefixIcon: const Icon(Icons.lock),
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.length < 8) {
+                      return 'auth.validation.passwordMin'.tr();
+                    }
+                    return null;
+                  },
                 ),
-                validator: (value) {
-                  if (value == null || value.length < 8) {
-                    return 'auth.validation.passwordMin'.tr();
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _regConfirmPasswordController,
-                obscureText: true,
-                autofillHints: const [AutofillHints.newPassword],
-                decoration: InputDecoration(
-                  labelText: 'auth.confirmPassword'.tr(),
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  border: const OutlineInputBorder(),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _regConfirmPasswordController,
+                  obscureText: true,
+                  autofillHints: const [AutofillHints.newPassword],
+                  decoration: InputDecoration(
+                    labelText: 'auth.confirmPassword'.tr(),
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value != _regPasswordController.text) {
+                      return 'auth.validation.passwordMismatch'.tr();
+                    }
+                    return null;
+                  },
                 ),
-                validator: (value) {
-                  if (value != _regPasswordController.text) {
-                    return 'auth.validation.passwordMismatch'.tr();
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 24),
-              FilledButton(
-                onPressed: _isLoading ? null : _handleRegister,
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                const SizedBox(height: 24),
+                FilledButton(
+                  onPressed: _isLoading ? null : _handleRegister,
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text('auth.register'.tr()),
                 ),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text('auth.register'.tr()),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
 
