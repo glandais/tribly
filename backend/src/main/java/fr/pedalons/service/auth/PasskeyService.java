@@ -425,7 +425,7 @@ public class PasskeyService {
       for (String fingerprint : fingerprints.split(",")) {
         String trimmed = fingerprint.trim();
         if (!trimmed.isEmpty()) {
-          origins.add(new Origin("android:apk-key-hash-sha256:" + hexToBase64Url(trimmed)));
+          origins.add(new Origin("android:apk-key-hash:" + hexToBase64Url(trimmed)));
         }
       }
     }
