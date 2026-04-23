@@ -33,7 +33,7 @@ services:
     env_file:
       - .env
     environment:
-      ERROR_LOG_DETAILS: "true"
+      ERROR_LOG_DETAILS: "false"
     volumes:
       - ./data/storage:/mnt/storage
       - ./data/keys:/mnt/keys:ro
