@@ -1,7 +1,7 @@
 services:
   # Reverse proxy
   traefik:
-    image: traefik:3.6
+    image: traefik:v3.7
     container_name: pedalons-traefik
     restart: unless-stopped
     networks:
