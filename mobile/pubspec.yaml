@@ -28,11 +28,11 @@ dependencies:
 
 
   # WebAuthn/Passkeys
-  passkeys: ^2.1.0
+  passkeys: ^2.19.0
   passkeys_platform_interface: ^2.6.0
 
   # Secure storage
-  flutter_secure_storage: ^10.0.0
+  flutter_secure_storage: ^10.1.0
 
   # Deep links
   app_links: ^7.0.0
@@ -71,7 +71,7 @@ dev_dependencies:
   freezed: ^3.2.5
   json_serializable: ^6.13.0
   riverpod_generator: ^4.0.0
-  retrofit_generator: ^10.2.5
+  retrofit_generator: ^10.2.6
   openapi_retrofit_generator: ^2.0.0
 
 flutter:
