@@ -19,7 +19,7 @@ services:
       retries: 5
 
   imgproxy:
-    image: ghcr.io/imgproxy/imgproxy:v3.31.3
+    image: ghcr.io/imgproxy/imgproxy:v4.0.1
     container_name: pedalons-dev-imgproxy
     restart: unless-stopped
     networks:
