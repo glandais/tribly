@@ -29,7 +29,14 @@ export const uploadAsset = (
   }
 
   return axiosMutator<AssetDto>(
-    { url: `/api/teams/${teamSlug}/assets`, method: 'POST', data: formData, params, signal },
+    {
+      url: `/api/teams/${teamSlug}/assets`,
+      method: 'POST',
+      headers: { 'Content-Type': 'multipart/form-data' },
+      data: formData,
+      params,
+      signal,
+    },
     options
   )
 }

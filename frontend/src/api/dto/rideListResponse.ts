@@ -1,4 +1,4 @@
-import type { RideDto } from './rideDto'
+import type { RideDto } from './rideDto.ts'
 
 /**
  * Paginated ride list response

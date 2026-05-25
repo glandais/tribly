@@ -1,4 +1,4 @@
-import type { MinRole } from './minRole'
+import type { MinRole } from './minRole.ts'
 
 export type ListTeamsParams = {
   /**

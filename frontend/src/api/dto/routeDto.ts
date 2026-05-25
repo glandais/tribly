@@ -1,8 +1,8 @@
-import type { Instant } from './instant'
-import type { MediaDto } from './mediaDto'
-import type { SurfaceType } from './surfaceType'
-import type { TeamPublicationDto } from './teamPublicationDto'
-import type { Visibility } from './visibility'
+import type { Instant } from './instant.ts'
+import type { MediaDto } from './mediaDto.ts'
+import type { SurfaceType } from './surfaceType.ts'
+import type { TeamPublicationDto } from './teamPublicationDto.ts'
+import type { Visibility } from './visibility.ts'
 
 /**
  * Route summary data

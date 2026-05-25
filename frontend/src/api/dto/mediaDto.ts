@@ -1,4 +1,4 @@
-import type { AssetsDto } from './assetsDto'
+import type { AssetsDto } from './assetsDto.ts'
 
 export interface MediaDto {
   /** Markdown */

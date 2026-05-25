@@ -1,5 +1,5 @@
-import type { Instant } from './instant'
-import type { Visibility } from './visibility'
+import type { Instant } from './instant.ts'
+import type { Visibility } from './visibility.ts'
 
 /**
  * Admin team view with domain info

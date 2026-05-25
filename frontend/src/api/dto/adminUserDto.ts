@@ -1,5 +1,5 @@
-import type { Instant } from './instant'
-import type { PlatformRole } from './platformRole'
+import type { Instant } from './instant.ts'
+import type { PlatformRole } from './platformRole.ts'
 
 /**
  * Admin user view with domain info

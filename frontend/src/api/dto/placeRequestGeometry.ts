@@ -1,4 +1,4 @@
-import type { PlaceRequestGeometryType } from './placeRequestGeometryType'
+import type { PlaceRequestGeometryType } from './placeRequestGeometryType.ts'
 
 /**
  * Geographic coordinates [longitude, latitude]

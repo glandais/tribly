@@ -13,7 +13,7 @@ flutter test                       # Run tests
 flutter analyze                    # Static analysis
 
 # Code generation (after modifying models or API)
-dart run build_runner build --delete-conflicting-outputs
+dart run build_runner build
 
 # API client generation from OpenAPI
 dart run openapi_retrofit_generator
@@ -58,7 +58,7 @@ lib/
 
 1. Backend generates `contracts/openapi.yaml`
 2. Run `dart run openapi_retrofit_generator` → generates `lib/api/generated/`
-3. Run `dart run build_runner build --delete-conflicting-outputs` for freezed/json_serializable
+3. Run `dart run build_runner build` for freezed/json_serializable
 
 Generated code uses:
 - **Retrofit** for HTTP clients (annotations → `.g.dart`)

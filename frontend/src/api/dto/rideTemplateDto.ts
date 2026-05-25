@@ -1,8 +1,8 @@
-import type { Instant } from './instant'
-import type { RideTemplateGroupDto } from './rideTemplateGroupDto'
-import type { Status } from './status'
-import type { TeamPublicationDto } from './teamPublicationDto'
-import type { Visibility } from './visibility'
+import type { Instant } from './instant.ts'
+import type { RideTemplateGroupDto } from './rideTemplateGroupDto.ts'
+import type { Status } from './status.ts'
+import type { TeamPublicationDto } from './teamPublicationDto.ts'
+import type { Visibility } from './visibility.ts'
 
 /**
  * Ride template response

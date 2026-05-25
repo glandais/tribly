@@ -1,4 +1,4 @@
-import type { PlaceRequestGeometry } from './placeRequestGeometry'
+import type { PlaceRequestGeometry } from './placeRequestGeometry.ts'
 
 /**
  * Place create/update request

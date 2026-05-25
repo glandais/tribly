@@ -1,7 +1,7 @@
-import type { GpsServiceConnectionDto } from './gpsServiceConnectionDto'
-import type { Instant } from './instant'
-import type { PlatformRole } from './platformRole'
-import type { UnitSystem } from './unitSystem'
+import type { GpsServiceConnectionDto } from './gpsServiceConnectionDto.ts'
+import type { Instant } from './instant.ts'
+import type { PlatformRole } from './platformRole.ts'
+import type { UnitSystem } from './unitSystem.ts'
 
 /**
  * User profile data

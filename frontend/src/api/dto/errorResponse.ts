@@ -1,5 +1,5 @@
-import type { ErrorCode } from './errorCode'
-import type { ErrorDetails } from './errorDetails'
+import type { ErrorCode } from './errorCode.ts'
+import type { ErrorDetails } from './errorDetails.ts'
 
 /**
  * Error response

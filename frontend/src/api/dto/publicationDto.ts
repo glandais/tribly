@@ -1,8 +1,8 @@
-import type { PostDto } from './postDto'
-import type { PublicationType } from './publicationType'
-import type { RideDto } from './rideDto'
-import type { TripDto } from './tripDto'
-import type { Visibility } from './visibility'
+import type { PostDto } from './postDto.ts'
+import type { PublicationType } from './publicationType.ts'
+import type { RideDto } from './rideDto.ts'
+import type { TripDto } from './tripDto.ts'
+import type { Visibility } from './visibility.ts'
 
 /**
  * Publication data

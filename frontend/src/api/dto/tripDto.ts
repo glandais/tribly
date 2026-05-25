@@ -1,11 +1,11 @@
-import type { Instant } from './instant'
-import type { MediaDto } from './mediaDto'
-import type { PublicUserDto } from './publicUserDto'
-import type { Status } from './status'
-import type { TeamPublicationDto } from './teamPublicationDto'
-import type { TripDtoType } from './tripDtoType'
-import type { TripStageDto } from './tripStageDto'
-import type { Visibility } from './visibility'
+import type { Instant } from './instant.ts'
+import type { MediaDto } from './mediaDto.ts'
+import type { PublicUserDto } from './publicUserDto.ts'
+import type { Status } from './status.ts'
+import type { TeamPublicationDto } from './teamPublicationDto.ts'
+import type { TripDtoType } from './tripDtoType.ts'
+import type { TripStageDto } from './tripStageDto.ts'
+import type { Visibility } from './visibility.ts'
 
 /**
  * Trip data

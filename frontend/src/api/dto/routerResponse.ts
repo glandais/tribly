@@ -1,4 +1,4 @@
-import type { GeoJsonLineString } from './geoJsonLineString'
+import type { GeoJsonLineString } from './geoJsonLineString.ts'
 
 export interface RouterResponse {
   route: GeoJsonLineString

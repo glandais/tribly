@@ -1,4 +1,4 @@
-import type { AdEditDtoLocationGeometryType } from './adEditDtoLocationGeometryType'
+import type { AdEditDtoLocationGeometryType } from './adEditDtoLocationGeometryType.ts'
 
 /**
  * Location coordinates [longitude, latitude]

@@ -1,4 +1,4 @@
-import type { MemberDto } from './memberDto'
+import type { MemberDto } from './memberDto.ts'
 
 /**
  * Paginated member list response

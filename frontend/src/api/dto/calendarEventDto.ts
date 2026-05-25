@@ -1,5 +1,5 @@
-import type { CalendarEventType } from './calendarEventType'
-import type { Instant } from './instant'
+import type { CalendarEventType } from './calendarEventType.ts'
+import type { Instant } from './instant.ts'
 
 /**
  * Calendar event data

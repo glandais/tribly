@@ -65,11 +65,14 @@ export const getListTemplatesQueryOptions = <
   const queryFn: QueryFunction<Awaited<ReturnType<typeof listTemplates>>> = ({ signal }) =>
     listTemplates(teamSlug, params, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!teamSlug, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof listTemplates>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  return {
+    queryKey,
+    queryFn,
+    enabled: teamSlug !== null && teamSlug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof listTemplates>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
 }
 
 export type ListTemplatesQueryResult = NonNullable<Awaited<ReturnType<typeof listTemplates>>>
@@ -362,7 +365,11 @@ export const getGetTemplateQueryOptions = <
   return {
     queryKey,
     queryFn,
-    enabled: !!(teamSlug && templateSlug),
+    enabled:
+      teamSlug !== null &&
+      teamSlug !== undefined &&
+      templateSlug !== null &&
+      templateSlug !== undefined,
     ...queryOptions,
   } as UseQueryOptions<Awaited<ReturnType<typeof getTemplate>>, TError, TData> & {
     queryKey: DataTag<QueryKey, TData, TError>

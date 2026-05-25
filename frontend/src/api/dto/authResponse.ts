@@ -1,4 +1,4 @@
-import type { UserDto } from './userDto'
+import type { UserDto } from './userDto.ts'
 
 /**
  * Authentication response

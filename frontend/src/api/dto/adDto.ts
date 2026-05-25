@@ -1,10 +1,10 @@
-import type { AdType } from './adType'
-import type { Instant } from './instant'
-import type { MediaDto } from './mediaDto'
-import type { RentalPeriod } from './rentalPeriod'
-import type { Status } from './status'
-import type { TeamPublicationDto } from './teamPublicationDto'
-import type { Visibility } from './visibility'
+import type { AdType } from './adType.ts'
+import type { Instant } from './instant.ts'
+import type { MediaDto } from './mediaDto.ts'
+import type { RentalPeriod } from './rentalPeriod.ts'
+import type { Status } from './status.ts'
+import type { TeamPublicationDto } from './teamPublicationDto.ts'
+import type { Visibility } from './visibility.ts'
 
 /**
  * Ad data

@@ -61,7 +61,11 @@ export const getListRouteCommentsQueryOptions = <
   return {
     queryKey,
     queryFn,
-    enabled: !!(teamSlug && entitySlug),
+    enabled:
+      teamSlug !== null &&
+      teamSlug !== undefined &&
+      entitySlug !== null &&
+      entitySlug !== undefined,
     ...queryOptions,
   } as UseQueryOptions<Awaited<ReturnType<typeof listRouteComments>>, TError, TData> & {
     queryKey: DataTag<QueryKey, TData, TError>

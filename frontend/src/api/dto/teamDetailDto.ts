@@ -1,9 +1,9 @@
-import type { Instant } from './instant'
-import type { MediaDto } from './mediaDto'
-import type { TeamDetailDtoGeometry } from './teamDetailDtoGeometry'
-import type { TeamPageSummaryDto } from './teamPageSummaryDto'
-import type { TeamRole } from './teamRole'
-import type { Visibility } from './visibility'
+import type { Instant } from './instant.ts'
+import type { MediaDto } from './mediaDto.ts'
+import type { TeamDetailDtoGeometry } from './teamDetailDtoGeometry.ts'
+import type { TeamPageSummaryDto } from './teamPageSummaryDto.ts'
+import type { TeamRole } from './teamRole.ts'
+import type { Visibility } from './visibility.ts'
 
 /**
  * Detailed team information

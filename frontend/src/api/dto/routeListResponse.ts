@@ -1,4 +1,4 @@
-import type { RouteDto } from './routeDto'
+import type { RouteDto } from './routeDto.ts'
 
 /**
  * Paginated route list response

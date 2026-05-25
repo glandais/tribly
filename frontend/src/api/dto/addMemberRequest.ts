@@ -1,4 +1,4 @@
-import type { TeamRole } from './teamRole'
+import type { TeamRole } from './teamRole.ts'
 
 /**
  * Request to add a member to the team

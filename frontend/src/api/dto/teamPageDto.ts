@@ -1,6 +1,6 @@
-import type { MediaDto } from './mediaDto'
-import type { TeamPublicationDto } from './teamPublicationDto'
-import type { Visibility } from './visibility'
+import type { MediaDto } from './mediaDto.ts'
+import type { TeamPublicationDto } from './teamPublicationDto.ts'
+import type { Visibility } from './visibility.ts'
 
 /**
  * Team page detail

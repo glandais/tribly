@@ -1,5 +1,5 @@
-import type { GpsServiceType } from './gpsServiceType'
-import type { Instant } from './instant'
+import type { GpsServiceType } from './gpsServiceType.ts'
+import type { Instant } from './instant.ts'
 
 /**
  * Admin GPS credential view (without secret)

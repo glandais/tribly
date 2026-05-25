@@ -1,4 +1,4 @@
-import type { AdRequestLocationGeometryType } from './adRequestLocationGeometryType'
+import type { AdRequestLocationGeometryType } from './adRequestLocationGeometryType.ts'
 
 /**
  * Location coordinates [longitude, latitude]

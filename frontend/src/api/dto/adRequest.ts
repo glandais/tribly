@@ -1,8 +1,8 @@
-import type { AdRequestLocationGeometry } from './adRequestLocationGeometry'
-import type { AdType } from './adType'
-import type { MediaDto } from './mediaDto'
-import type { RentalPeriod } from './rentalPeriod'
-import type { Status } from './status'
+import type { AdRequestLocationGeometry } from './adRequestLocationGeometry.ts'
+import type { AdType } from './adType.ts'
+import type { MediaDto } from './mediaDto.ts'
+import type { RentalPeriod } from './rentalPeriod.ts'
+import type { Status } from './status.ts'
 
 /**
  * Ad request

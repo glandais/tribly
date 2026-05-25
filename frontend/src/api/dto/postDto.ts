@@ -1,9 +1,9 @@
-import type { Instant } from './instant'
-import type { MediaDto } from './mediaDto'
-import type { PostDtoType } from './postDtoType'
-import type { Status } from './status'
-import type { TeamPublicationDto } from './teamPublicationDto'
-import type { Visibility } from './visibility'
+import type { Instant } from './instant.ts'
+import type { MediaDto } from './mediaDto.ts'
+import type { PostDtoType } from './postDtoType.ts'
+import type { Status } from './status.ts'
+import type { TeamPublicationDto } from './teamPublicationDto.ts'
+import type { Visibility } from './visibility.ts'
 
 /**
  * Post summary data

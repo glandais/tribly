@@ -237,7 +237,8 @@ export const getGetRideQueryOptions = <
   return {
     queryKey,
     queryFn,
-    enabled: !!(teamSlug && rideSlug),
+    enabled:
+      teamSlug !== null && teamSlug !== undefined && rideSlug !== null && rideSlug !== undefined,
     ...queryOptions,
   } as UseQueryOptions<Awaited<ReturnType<typeof getRide>>, TError, TData> & {
     queryKey: DataTag<QueryKey, TData, TError>

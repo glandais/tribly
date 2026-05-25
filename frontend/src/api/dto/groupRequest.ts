@@ -1,4 +1,4 @@
-import type { LocalTime } from './localTime'
+import type { LocalTime } from './localTime.ts'
 
 /**
  * Ride group creation request

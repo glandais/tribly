@@ -1,7 +1,7 @@
-import type { Instant } from './instant'
-import type { MediaDto } from './mediaDto'
-import type { Status } from './status'
-import type { Visibility } from './visibility'
+import type { Instant } from './instant.ts'
+import type { MediaDto } from './mediaDto.ts'
+import type { Status } from './status.ts'
+import type { Visibility } from './visibility.ts'
 
 /**
  * Post request

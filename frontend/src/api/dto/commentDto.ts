@@ -1,5 +1,5 @@
-import type { Instant } from './instant'
-import type { PublicUserDto } from './publicUserDto'
+import type { Instant } from './instant.ts'
+import type { PublicUserDto } from './publicUserDto.ts'
 
 /**
  * Comment data

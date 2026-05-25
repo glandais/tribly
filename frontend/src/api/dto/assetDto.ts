@@ -1,4 +1,4 @@
-import type { AssetDimensionsDto } from './assetDimensionsDto'
+import type { AssetDimensionsDto } from './assetDimensionsDto.ts'
 
 export interface AssetDto {
   /** ID (TSID) */

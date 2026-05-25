@@ -1,4 +1,4 @@
-import type { AdminTeamDto } from './adminTeamDto'
+import type { AdminTeamDto } from './adminTeamDto.ts'
 
 /**
  * Paginated admin team list response

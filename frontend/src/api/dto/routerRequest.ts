@@ -1,5 +1,5 @@
-import type { GeoPoint } from './geoPoint'
-import type { RouterProfile } from './routerProfile'
+import type { GeoPoint } from './geoPoint.ts'
+import type { RouterProfile } from './routerProfile.ts'
 
 export interface RouterRequest {
   from: GeoPoint

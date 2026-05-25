@@ -1,4 +1,4 @@
-import type { GeoJsonLineStringType } from './geoJsonLineStringType'
+import type { GeoJsonLineStringType } from './geoJsonLineStringType.ts'
 
 export interface GeoJsonLineString {
   type: GeoJsonLineStringType

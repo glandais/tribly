@@ -466,11 +466,14 @@ export const getGetTeamEventsQueryOptions = <
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getTeamEvents>>> = ({ signal }) =>
     getTeamEvents(teamSlug, params, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!teamSlug, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getTeamEvents>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  return {
+    queryKey,
+    queryFn,
+    enabled: teamSlug !== null && teamSlug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getTeamEvents>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
 }
 
 export type GetTeamEventsQueryResult = NonNullable<Awaited<ReturnType<typeof getTeamEvents>>>
@@ -591,11 +594,14 @@ export const getGetTeamIcsFeedQueryOptions = <
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getTeamIcsFeed>>> = ({ signal }) =>
     getTeamIcsFeed(teamSlug, params, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!teamSlug, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getTeamIcsFeed>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  return {
+    queryKey,
+    queryFn,
+    enabled: teamSlug !== null && teamSlug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getTeamIcsFeed>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
 }
 
 export type GetTeamIcsFeedQueryResult = NonNullable<Awaited<ReturnType<typeof getTeamIcsFeed>>>

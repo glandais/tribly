@@ -1,4 +1,4 @@
-import type { RideTemplateDto } from './rideTemplateDto'
+import type { RideTemplateDto } from './rideTemplateDto.ts'
 
 /**
  * Paginated ride template list response

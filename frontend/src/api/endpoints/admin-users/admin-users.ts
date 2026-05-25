@@ -182,11 +182,14 @@ export const getGetAdminUserQueryOptions = <
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminUser>>> = ({ signal }) =>
     getAdminUser(userId, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!userId, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getAdminUser>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  return {
+    queryKey,
+    queryFn,
+    enabled: userId !== null && userId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getAdminUser>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
 }
 
 export type GetAdminUserQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminUser>>>

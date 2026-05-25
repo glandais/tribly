@@ -1,7 +1,7 @@
-import type { GeoPoint } from './geoPoint'
-import type { MediaDto } from './mediaDto'
-import type { SurfaceType } from './surfaceType'
-import type { Visibility } from './visibility'
+import type { GeoPoint } from './geoPoint.ts'
+import type { MediaDto } from './mediaDto.ts'
+import type { SurfaceType } from './surfaceType.ts'
+import type { Visibility } from './visibility.ts'
 
 /**
  * Route update request

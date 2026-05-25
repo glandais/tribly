@@ -19,7 +19,7 @@ flutter pub get
 dart run openapi_retrofit_generator
 
 # Generate freezed/json_serializable code
-dart run build_runner build --delete-conflicting-outputs
+dart run build_runner build
 ```
 
 ## Development
@@ -113,7 +113,7 @@ After modifying models or when the backend API changes:
 dart run openapi_retrofit_generator
 
 # Regenerate freezed/json models
-dart run build_runner build --delete-conflicting-outputs
+dart run build_runner build
 ```
 
 ## Project Structure

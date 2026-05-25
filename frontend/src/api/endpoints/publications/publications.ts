@@ -186,11 +186,14 @@ export const getListPublicationsQueryOptions = <
   const queryFn: QueryFunction<Awaited<ReturnType<typeof listPublications>>> = ({ signal }) =>
     listPublications(teamSlug, params, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!teamSlug, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof listPublications>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  return {
+    queryKey,
+    queryFn,
+    enabled: teamSlug !== null && teamSlug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof listPublications>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
 }
 
 export type ListPublicationsQueryResult = NonNullable<Awaited<ReturnType<typeof listPublications>>>

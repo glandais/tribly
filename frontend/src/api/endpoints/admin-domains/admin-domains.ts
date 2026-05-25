@@ -462,11 +462,14 @@ export const getGetDomainQueryOptions = <
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getDomain>>> = ({ signal }) =>
     getDomain(domainId, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!domainId, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getDomain>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  return {
+    queryKey,
+    queryFn,
+    enabled: domainId !== null && domainId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getDomain>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
 }
 
 export type GetDomainQueryResult = NonNullable<Awaited<ReturnType<typeof getDomain>>>
@@ -584,11 +587,14 @@ export const getListDomainGpsCredentialsQueryOptions = <
     signal,
   }) => listDomainGpsCredentials(domainId, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!domainId, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof listDomainGpsCredentials>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  return {
+    queryKey,
+    queryFn,
+    enabled: domainId !== null && domainId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof listDomainGpsCredentials>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
 }
 
 export type ListDomainGpsCredentialsQueryResult = NonNullable<

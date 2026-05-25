@@ -5,6 +5,6 @@ flutter pub get
 dart run openapi_retrofit_generator
 
 # Generate freezed/json_serializable code
-dart run build_runner build --delete-conflicting-outputs
+dart run build_runner build
 
 flutter analyze

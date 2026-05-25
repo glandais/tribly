@@ -1,4 +1,4 @@
-import type { ClimbCategory } from './climbCategory'
+import type { ClimbCategory } from './climbCategory.ts'
 
 /**
  * Climb segment information

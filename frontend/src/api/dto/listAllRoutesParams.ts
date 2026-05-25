@@ -1,9 +1,9 @@
-import type { Hilliness } from './hilliness'
-import type { NearType } from './nearType'
-import type { RouteSortBy } from './routeSortBy'
-import type { SortDirection } from './sortDirection'
-import type { SurfaceType } from './surfaceType'
-import type { WindDirection } from './windDirection'
+import type { Hilliness } from './hilliness.ts'
+import type { NearType } from './nearType.ts'
+import type { RouteSortBy } from './routeSortBy.ts'
+import type { SortDirection } from './sortDirection.ts'
+import type { SurfaceType } from './surfaceType.ts'
+import type { WindDirection } from './windDirection.ts'
 
 export type ListAllRoutesParams = {
   /**

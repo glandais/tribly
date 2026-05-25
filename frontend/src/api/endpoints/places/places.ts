@@ -65,11 +65,14 @@ export const getListPlacesQueryOptions = <
   const queryFn: QueryFunction<Awaited<ReturnType<typeof listPlaces>>> = ({ signal }) =>
     listPlaces(teamSlug, params, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!teamSlug, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof listPlaces>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  return {
+    queryKey,
+    queryFn,
+    enabled: teamSlug !== null && teamSlug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof listPlaces>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
 }
 
 export type ListPlacesQueryResult = NonNullable<Awaited<ReturnType<typeof listPlaces>>>
@@ -362,7 +365,8 @@ export const getGetPlaceQueryOptions = <
   return {
     queryKey,
     queryFn,
-    enabled: !!(teamSlug && placeId),
+    enabled:
+      teamSlug !== null && teamSlug !== undefined && placeId !== null && placeId !== undefined,
     ...queryOptions,
   } as UseQueryOptions<Awaited<ReturnType<typeof getPlace>>, TError, TData> & {
     queryKey: DataTag<QueryKey, TData, TError>

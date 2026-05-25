@@ -66,11 +66,14 @@ export const getGetMembersQueryOptions = <
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getMembers>>> = ({ signal }) =>
     getMembers(teamSlug, params, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!teamSlug, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getMembers>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  return {
+    queryKey,
+    queryFn,
+    enabled: teamSlug !== null && teamSlug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getMembers>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
 }
 
 export type GetMembersQueryResult = NonNullable<Awaited<ReturnType<typeof getMembers>>>

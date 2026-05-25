@@ -1,5 +1,5 @@
-import type { LocalTime } from './localTime'
-import type { PublicUserDto } from './publicUserDto'
+import type { LocalTime } from './localTime.ts'
+import type { PublicUserDto } from './publicUserDto.ts'
 
 /**
  * Ride group information

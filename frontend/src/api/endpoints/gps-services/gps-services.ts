@@ -189,11 +189,14 @@ export const getHandleCallbackQueryOptions = <
   const queryFn: QueryFunction<Awaited<ReturnType<typeof handleCallback>>> = ({ signal }) =>
     handleCallback(serviceType, params, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!serviceType, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof handleCallback>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  return {
+    queryKey,
+    queryFn,
+    enabled: serviceType !== null && serviceType !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof handleCallback>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
 }
 
 export type HandleCallbackQueryResult = NonNullable<Awaited<ReturnType<typeof handleCallback>>>
@@ -312,11 +315,14 @@ export const getGetConnectUrlQueryOptions = <
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getConnectUrl>>> = ({ signal }) =>
     getConnectUrl(serviceType, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!serviceType, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getConnectUrl>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  return {
+    queryKey,
+    queryFn,
+    enabled: serviceType !== null && serviceType !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getConnectUrl>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
 }
 
 export type GetConnectUrlQueryResult = NonNullable<Awaited<ReturnType<typeof getConnectUrl>>>

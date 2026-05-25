@@ -1,4 +1,4 @@
-import type { RouteRequest } from './routeRequest'
+import type { RouteRequest } from './routeRequest.ts'
 
 export type CreateRouteBody = {
   route?: RouteRequest

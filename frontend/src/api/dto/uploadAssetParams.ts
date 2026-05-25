@@ -1,4 +1,4 @@
-import type { AssetTypeRequest } from './assetTypeRequest'
+import type { AssetTypeRequest } from './assetTypeRequest.ts'
 
 export type UploadAssetParams = {
   /**

@@ -1,6 +1,6 @@
-import type { EntityType } from './entityType'
-import type { NotFoundDetailsType } from './notFoundDetailsType'
-import type { SearchedBy } from './searchedBy'
+import type { EntityType } from './entityType.ts'
+import type { NotFoundDetailsType } from './notFoundDetailsType.ts'
+import type { SearchedBy } from './searchedBy.ts'
 
 export interface NotFoundDetails {
   type: NotFoundDetailsType

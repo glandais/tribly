@@ -1,4 +1,4 @@
-import type { GpsServiceType } from './gpsServiceType'
+import type { GpsServiceType } from './gpsServiceType.ts'
 
 /**
  * Response containing user's device connection status

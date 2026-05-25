@@ -64,11 +64,14 @@ export const getListPagesQueryOptions = <
   const queryFn: QueryFunction<Awaited<ReturnType<typeof listPages>>> = ({ signal }) =>
     listPages(teamSlug, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!teamSlug, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof listPages>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  return {
+    queryKey,
+    queryFn,
+    enabled: teamSlug !== null && teamSlug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof listPages>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
 }
 
 export type ListPagesQueryResult = NonNullable<Awaited<ReturnType<typeof listPages>>>
@@ -441,7 +444,8 @@ export const getGetPageQueryOptions = <
   return {
     queryKey,
     queryFn,
-    enabled: !!(teamSlug && pageSlug),
+    enabled:
+      teamSlug !== null && teamSlug !== undefined && pageSlug !== null && pageSlug !== undefined,
     ...queryOptions,
   } as UseQueryOptions<Awaited<ReturnType<typeof getPage>>, TError, TData> & {
     queryKey: DataTag<QueryKey, TData, TError>

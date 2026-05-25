@@ -140,7 +140,7 @@ jobs:
 
       - name: Run code generation
         working-directory: ./mobile
-        run: dart run build_runner build --delete-conflicting-outputs
+        run: dart run build_runner build
 
       - name: Analyze
         working-directory: ./mobile

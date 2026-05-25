@@ -291,7 +291,13 @@ export const uploadAvatar = (
   }
 
   return axiosMutator<UserDto>(
-    { url: `/api/users/me/avatar`, method: 'POST', data: formData, signal },
+    {
+      url: `/api/users/me/avatar`,
+      method: 'POST',
+      headers: { 'Content-Type': 'multipart/form-data' },
+      data: formData,
+      signal,
+    },
     options
   )
 }

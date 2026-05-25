@@ -49,7 +49,7 @@ flutter pub get                    # Install dependencies
 flutter run                        # Run on connected device/emulator
 flutter test                       # Run tests
 flutter analyze                    # Static analysis
-dart run build_runner build --delete-conflicting-outputs  # Code generation
+dart run build_runner build  # Code generation
 
 # Karoo Extension (karoo/)
 ./gradlew assembleDebug            # Build debug APK
@@ -212,7 +212,7 @@ Backend database migrations live in `backend/src/main/resources/db/migration/`. 
 - See `mobile/rules.md` for comprehensive Flutter/Dart guidelines
 - Use `go_router` for navigation, `json_serializable` for JSON parsing
 - Prefer Flutter's built-in state management (ValueNotifier, ChangeNotifier) over third-party packages
-- Run `dart run build_runner build --delete-conflicting-outputs` after modifying serializable models
+- Run `dart run build_runner build` after modifying serializable models
 
 **Karoo Extension**:
 - Follow Hammerhead SDK guidelines: no wildcard imports, Java 11 target

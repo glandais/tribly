@@ -1,4 +1,4 @@
-import type { AdType } from './adType'
+import type { AdType } from './adType.ts'
 
 export type ListAdsParams = {
   /**

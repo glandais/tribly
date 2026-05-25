@@ -1,4 +1,4 @@
-import type { PublicationDto } from './publicationDto'
+import type { PublicationDto } from './publicationDto.ts'
 
 /**
  * Paginated publication list response

@@ -1,6 +1,6 @@
-import type { Instant } from './instant'
-import type { MediaDto } from './mediaDto'
-import type { PlaceDetailDto } from './placeDetailDto'
+import type { Instant } from './instant.ts'
+import type { MediaDto } from './mediaDto.ts'
+import type { PlaceDetailDto } from './placeDetailDto.ts'
 
 /**
  * Trip stage information

@@ -67,11 +67,14 @@ export const getListAdsQueryOptions = <
   const queryFn: QueryFunction<Awaited<ReturnType<typeof listAds>>> = ({ signal }) =>
     listAds(teamSlug, params, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!teamSlug, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof listAds>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  return {
+    queryKey,
+    queryFn,
+    enabled: teamSlug !== null && teamSlug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof listAds>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
 }
 
 export type ListAdsQueryResult = NonNullable<Awaited<ReturnType<typeof listAds>>>
@@ -361,11 +364,14 @@ export const getGetAdQueryOptions = <
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getAd>>> = ({ signal }) =>
     getAd(teamSlug, slug, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!(teamSlug && slug), ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getAd>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  return {
+    queryKey,
+    queryFn,
+    enabled: teamSlug !== null && teamSlug !== undefined && slug !== null && slug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getAd>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
 }
 
 export type GetAdQueryResult = NonNullable<Awaited<ReturnType<typeof getAd>>>
@@ -564,11 +570,14 @@ export const getGetAdEditQueryOptions = <
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdEdit>>> = ({ signal }) =>
     getAdEdit(teamSlug, slug, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!(teamSlug && slug), ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getAdEdit>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  return {
+    queryKey,
+    queryFn,
+    enabled: teamSlug !== null && teamSlug !== undefined && slug !== null && slug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getAdEdit>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
 }
 
 export type GetAdEditQueryResult = NonNullable<Awaited<ReturnType<typeof getAdEdit>>>

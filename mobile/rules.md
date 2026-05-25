@@ -277,7 +277,7 @@ linter:
 
 * **Build order:** freezed -> json_serializable -> retrofit_generator
   (configured in `build.yaml`).
-* **Regenerate:** `dart run build_runner build --delete-conflicting-outputs`
+* **Regenerate:** `dart run build_runner build`
 
 
 ### Logging
@@ -313,7 +313,7 @@ linter:
   run the build command:
 
   ```shell
-  dart run build_runner build --delete-conflicting-outputs
+  dart run build_runner build
   ```
 
 ## Testing

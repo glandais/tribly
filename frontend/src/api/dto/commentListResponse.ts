@@ -1,4 +1,4 @@
-import type { CommentDto } from './commentDto'
+import type { CommentDto } from './commentDto.ts'
 
 /**
  * List of comments response

@@ -1,5 +1,5 @@
-import type { ClimbDto } from './climbDto'
-import type { GeoJsonLineString } from './geoJsonLineString'
+import type { ClimbDto } from './climbDto.ts'
+import type { GeoJsonLineString } from './geoJsonLineString.ts'
 
 /**
  * GPX track with track points

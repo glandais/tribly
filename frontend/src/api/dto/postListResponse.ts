@@ -1,4 +1,4 @@
-import type { PostDto } from './postDto'
+import type { PostDto } from './postDto.ts'
 
 /**
  * Paginated post list response

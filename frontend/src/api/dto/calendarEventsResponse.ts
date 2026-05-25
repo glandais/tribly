@@ -1,4 +1,4 @@
-import type { CalendarEventDto } from './calendarEventDto'
+import type { CalendarEventDto } from './calendarEventDto.ts'
 
 /**
  * Calendar events response

@@ -39,7 +39,7 @@ cd frontend && pnpm build
 ### 3. Regenerate Mobile Client
 
 ```bash
-cd mobile && dart run openapi_retrofit_generator && dart run build_runner build --delete-conflicting-outputs
+cd mobile && dart run openapi_retrofit_generator && dart run build_runner build
 ```
 
 This generates:
@@ -61,4 +61,4 @@ cd mobile && flutter analyze
 
 - **Empty schemas in OpenAPI**: Missing `@Schema(implementation = ...)` in `@APIResponse` annotations
 - **Orval errors**: Usually caused by invalid OpenAPI spec - check backend annotations
-- **Mobile build_runner conflicts**: Use `--delete-conflicting-outputs` flag (already included above)
+- **Mobile build_runner conflicts**: `build_runner build` deletes conflicting outputs by default (the old `--delete-conflicting-outputs` flag was removed in build_runner 2.5.0)

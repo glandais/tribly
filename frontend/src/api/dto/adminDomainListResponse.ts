@@ -1,4 +1,4 @@
-import type { AdminDomainDto } from './adminDomainDto'
+import type { AdminDomainDto } from './adminDomainDto.ts'
 
 /**
  * Paginated admin domain list response

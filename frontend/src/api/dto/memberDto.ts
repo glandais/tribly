@@ -1,7 +1,7 @@
-import type { Instant } from './instant'
-import type { PublicUserDto } from './publicUserDto'
-import type { TeamPublicationDto } from './teamPublicationDto'
-import type { TeamRole } from './teamRole'
+import type { Instant } from './instant.ts'
+import type { PublicUserDto } from './publicUserDto.ts'
+import type { TeamPublicationDto } from './teamPublicationDto.ts'
+import type { TeamRole } from './teamRole.ts'
 
 /**
  * Team member information

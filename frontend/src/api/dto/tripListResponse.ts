@@ -1,4 +1,4 @@
-import type { TripDto } from './tripDto'
+import type { TripDto } from './tripDto.ts'
 
 /**
  * Paginated trip list response

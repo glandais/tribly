@@ -1,4 +1,4 @@
-import type { UnitSystem } from './unitSystem'
+import type { UnitSystem } from './unitSystem.ts'
 
 /**
  * User profile update request

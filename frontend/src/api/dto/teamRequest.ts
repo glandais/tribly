@@ -1,6 +1,6 @@
-import type { MediaDto } from './mediaDto'
-import type { TeamRequestGeometry } from './teamRequestGeometry'
-import type { Visibility } from './visibility'
+import type { MediaDto } from './mediaDto.ts'
+import type { TeamRequestGeometry } from './teamRequestGeometry.ts'
+import type { Visibility } from './visibility.ts'
 
 /**
  * Team creation request

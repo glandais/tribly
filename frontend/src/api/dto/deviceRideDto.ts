@@ -1,5 +1,5 @@
-import type { DeviceRideEntryDto } from './deviceRideEntryDto'
-import type { Instant } from './instant'
+import type { DeviceRideEntryDto } from './deviceRideEntryDto.ts'
+import type { Instant } from './instant.ts'
 
 /**
  * Ride information for device applications

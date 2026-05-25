@@ -187,7 +187,8 @@ export const getDeviceDownloadFitQueryOptions = <
   return {
     queryKey,
     queryFn,
-    enabled: !!(teamSlug && routeSlug),
+    enabled:
+      teamSlug !== null && teamSlug !== undefined && routeSlug !== null && routeSlug !== undefined,
     ...queryOptions,
   } as UseQueryOptions<Awaited<ReturnType<typeof deviceDownloadFit>>, TError, TData> & {
     queryKey: DataTag<QueryKey, TData, TError>
@@ -317,7 +318,8 @@ export const getDeviceDownloadGpxQueryOptions = <
   return {
     queryKey,
     queryFn,
-    enabled: !!(teamSlug && routeSlug),
+    enabled:
+      teamSlug !== null && teamSlug !== undefined && routeSlug !== null && routeSlug !== undefined,
     ...queryOptions,
   } as UseQueryOptions<Awaited<ReturnType<typeof deviceDownloadGpx>>, TError, TData> & {
     queryKey: DataTag<QueryKey, TData, TError>

@@ -231,7 +231,8 @@ export const getGetPostQueryOptions = <
   return {
     queryKey,
     queryFn,
-    enabled: !!(teamSlug && postSlug),
+    enabled:
+      teamSlug !== null && teamSlug !== undefined && postSlug !== null && postSlug !== undefined,
     ...queryOptions,
   } as UseQueryOptions<Awaited<ReturnType<typeof getPost>>, TError, TData> & {
     queryKey: DataTag<QueryKey, TData, TError>

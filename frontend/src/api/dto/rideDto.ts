@@ -1,12 +1,12 @@
-import type { Instant } from './instant'
-import type { MediaDto } from './mediaDto'
-import type { PlaceDetailDto } from './placeDetailDto'
-import type { PublicUserDto } from './publicUserDto'
-import type { RideDtoType } from './rideDtoType'
-import type { RideGroupDto } from './rideGroupDto'
-import type { Status } from './status'
-import type { TeamPublicationDto } from './teamPublicationDto'
-import type { Visibility } from './visibility'
+import type { Instant } from './instant.ts'
+import type { MediaDto } from './mediaDto.ts'
+import type { PlaceDetailDto } from './placeDetailDto.ts'
+import type { PublicUserDto } from './publicUserDto.ts'
+import type { RideDtoType } from './rideDtoType.ts'
+import type { RideGroupDto } from './rideGroupDto.ts'
+import type { Status } from './status.ts'
+import type { TeamPublicationDto } from './teamPublicationDto.ts'
+import type { Visibility } from './visibility.ts'
 
 /**
  * Ride summary data

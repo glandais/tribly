@@ -1,4 +1,4 @@
-import type { AdminUserDto } from './adminUserDto'
+import type { AdminUserDto } from './adminUserDto.ts'
 
 /**
  * Paginated admin user list response

@@ -1,4 +1,4 @@
-import type { GeoJsonPointType } from './geoJsonPointType'
+import type { GeoJsonPointType } from './geoJsonPointType.ts'
 
 /**
  * Location coordinates [longitude, latitude]

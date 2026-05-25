@@ -1,4 +1,4 @@
-import type { Visibility } from './visibility'
+import type { Visibility } from './visibility.ts'
 
 /**
  * Team page summary for listings

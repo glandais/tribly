@@ -1,4 +1,4 @@
-import type { TeamDetailDtoGeometryType } from './teamDetailDtoGeometryType'
+import type { TeamDetailDtoGeometryType } from './teamDetailDtoGeometryType.ts'
 
 /**
  * Team location coordinates [longitude, latitude]

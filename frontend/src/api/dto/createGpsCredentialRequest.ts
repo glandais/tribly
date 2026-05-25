@@ -1,4 +1,4 @@
-import type { GpsServiceType } from './gpsServiceType'
+import type { GpsServiceType } from './gpsServiceType.ts'
 
 /**
  * Request to create a new GPS credential

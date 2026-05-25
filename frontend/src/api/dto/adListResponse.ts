@@ -1,4 +1,4 @@
-import type { AdDto } from './adDto'
+import type { AdDto } from './adDto.ts'
 
 /**
  * Paginated ad list response

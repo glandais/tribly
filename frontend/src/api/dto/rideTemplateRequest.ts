@@ -1,6 +1,6 @@
-import type { RideTemplateGroupRequest } from './rideTemplateGroupRequest'
-import type { Status } from './status'
-import type { Visibility } from './visibility'
+import type { RideTemplateGroupRequest } from './rideTemplateGroupRequest.ts'
+import type { Status } from './status.ts'
+import type { Visibility } from './visibility.ts'
 
 /**
  * Ride template request

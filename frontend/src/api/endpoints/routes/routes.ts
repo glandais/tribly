@@ -188,11 +188,14 @@ export const getListRoutesQueryOptions = <
   const queryFn: QueryFunction<Awaited<ReturnType<typeof listRoutes>>> = ({ signal }) =>
     listRoutes(teamSlug, params, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!teamSlug, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof listRoutes>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  return {
+    queryKey,
+    queryFn,
+    enabled: teamSlug !== null && teamSlug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof listRoutes>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
 }
 
 export type ListRoutesQueryResult = NonNullable<Awaited<ReturnType<typeof listRoutes>>>
@@ -287,17 +290,20 @@ export const createRoute = (
 ) => {
   const formData = new FormData()
   if (createRouteBody.route !== undefined) {
-    formData.append(
-      `route`,
-      new Blob([JSON.stringify(createRouteBody.route)], { type: 'application/json' })
-    )
+    formData.append(`route`, JSON.stringify(createRouteBody.route))
   }
   if (createRouteBody.gpxFile !== undefined) {
     formData.append(`gpxFile`, createRouteBody.gpxFile)
   }
 
   return axiosMutator<RouteDto>(
-    { url: `/api/teams/${teamSlug}/routes`, method: 'POST', data: formData, signal },
+    {
+      url: `/api/teams/${teamSlug}/routes`,
+      method: 'POST',
+      headers: { 'Content-Type': 'multipart/form-data' },
+      data: formData,
+      signal,
+    },
     options
   )
 }
@@ -377,17 +383,20 @@ export const updateRoute = (
 ) => {
   const formData = new FormData()
   if (updateRouteBody.route !== undefined) {
-    formData.append(
-      `route`,
-      new Blob([JSON.stringify(updateRouteBody.route)], { type: 'application/json' })
-    )
+    formData.append(`route`, JSON.stringify(updateRouteBody.route))
   }
   if (updateRouteBody.gpxFile !== undefined) {
     formData.append(`gpxFile`, updateRouteBody.gpxFile)
   }
 
   return axiosMutator<RouteDto>(
-    { url: `/api/teams/${teamSlug}/routes/${routeSlug}`, method: 'PUT', data: formData, signal },
+    {
+      url: `/api/teams/${teamSlug}/routes/${routeSlug}`,
+      method: 'PUT',
+      headers: { 'Content-Type': 'multipart/form-data' },
+      data: formData,
+      signal,
+    },
     options
   )
 }
@@ -495,7 +504,8 @@ export const getGetRouteQueryOptions = <
   return {
     queryKey,
     queryFn,
-    enabled: !!(teamSlug && routeSlug),
+    enabled:
+      teamSlug !== null && teamSlug !== undefined && routeSlug !== null && routeSlug !== undefined,
     ...queryOptions,
   } as UseQueryOptions<Awaited<ReturnType<typeof getRoute>>, TError, TData> & {
     queryKey: DataTag<QueryKey, TData, TError>

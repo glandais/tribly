@@ -1,4 +1,4 @@
-import type { GeoJsonPoint } from './geoJsonPoint'
+import type { GeoJsonPoint } from './geoJsonPoint.ts'
 
 export interface WaypointDto {
   geometry: GeoJsonPoint

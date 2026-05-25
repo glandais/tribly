@@ -1,4 +1,4 @@
-import type { AssetDto } from './assetDto'
+import type { AssetDto } from './assetDto.ts'
 
 export interface AssetsDto {
   /** Logo */

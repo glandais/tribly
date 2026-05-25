@@ -1,4 +1,4 @@
-import type { PlatformRole } from './platformRole'
+import type { PlatformRole } from './platformRole.ts'
 
 /**
  * Request to assign or remove platform role

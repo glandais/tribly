@@ -1,4 +1,4 @@
-import type { TeamDetailDto } from './teamDetailDto'
+import type { TeamDetailDto } from './teamDetailDto.ts'
 
 /**
  * Paginated team list response

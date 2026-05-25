@@ -237,7 +237,8 @@ export const getGetTripQueryOptions = <
   return {
     queryKey,
     queryFn,
-    enabled: !!(teamSlug && tripSlug),
+    enabled:
+      teamSlug !== null && teamSlug !== undefined && tripSlug !== null && tripSlug !== undefined,
     ...queryOptions,
   } as UseQueryOptions<Awaited<ReturnType<typeof getTrip>>, TError, TData> & {
     queryKey: DataTag<QueryKey, TData, TError>

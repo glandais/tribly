@@ -182,11 +182,14 @@ export const getAdminGetTeamQueryOptions = <
   const queryFn: QueryFunction<Awaited<ReturnType<typeof adminGetTeam>>> = ({ signal }) =>
     adminGetTeam(teamId, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!teamId, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof adminGetTeam>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  return {
+    queryKey,
+    queryFn,
+    enabled: teamId !== null && teamId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof adminGetTeam>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
 }
 
 export type AdminGetTeamQueryResult = NonNullable<Awaited<ReturnType<typeof adminGetTeam>>>

@@ -1,12 +1,12 @@
-import type { GeoJsonPoint } from './geoJsonPoint'
-import type { Instant } from './instant'
-import type { MediaDto } from './mediaDto'
-import type { PublicUserDto } from './publicUserDto'
-import type { SurfaceType } from './surfaceType'
-import type { TeamPublicationDto } from './teamPublicationDto'
-import type { TrackDto } from './trackDto'
-import type { Visibility } from './visibility'
-import type { WaypointDto } from './waypointDto'
+import type { GeoJsonPoint } from './geoJsonPoint.ts'
+import type { Instant } from './instant.ts'
+import type { MediaDto } from './mediaDto.ts'
+import type { PublicUserDto } from './publicUserDto.ts'
+import type { SurfaceType } from './surfaceType.ts'
+import type { TeamPublicationDto } from './teamPublicationDto.ts'
+import type { TrackDto } from './trackDto.ts'
+import type { Visibility } from './visibility.ts'
+import type { WaypointDto } from './waypointDto.ts'
 
 /**
  * Detailed route information

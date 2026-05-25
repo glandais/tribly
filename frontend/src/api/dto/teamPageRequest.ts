@@ -1,5 +1,5 @@
-import type { MediaDto } from './mediaDto'
-import type { Visibility } from './visibility'
+import type { MediaDto } from './mediaDto.ts'
+import type { Visibility } from './visibility.ts'
 
 /**
  * Team page request

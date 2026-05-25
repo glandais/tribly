@@ -1,5 +1,5 @@
-import type { Instant } from './instant'
-import type { MediaDto } from './mediaDto'
+import type { Instant } from './instant.ts'
+import type { MediaDto } from './mediaDto.ts'
 
 /**
  * Trip stage creation request

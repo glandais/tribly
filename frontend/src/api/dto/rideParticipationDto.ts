@@ -1,4 +1,4 @@
-import type { Instant } from './instant'
+import type { Instant } from './instant.ts'
 
 /**
  * Ride participation information

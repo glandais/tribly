@@ -1,4 +1,4 @@
-import type { TeamRequestGeometryType } from './teamRequestGeometryType'
+import type { TeamRequestGeometryType } from './teamRequestGeometryType.ts'
 
 /**
  * Team location coordinates [longitude, latitude]

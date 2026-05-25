@@ -1,4 +1,4 @@
-import type { PublicationType } from './publicationType'
+import type { PublicationType } from './publicationType.ts'
 
 export type ListAllPublicationsParams = {
   /**

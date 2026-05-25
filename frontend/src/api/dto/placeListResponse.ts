@@ -1,4 +1,4 @@
-import type { PlaceDetailDto } from './placeDetailDto'
+import type { PlaceDetailDto } from './placeDetailDto.ts'
 
 /**
  * Paginated place list response
