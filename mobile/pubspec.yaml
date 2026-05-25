@@ -32,7 +32,7 @@ dependencies:
   passkeys_platform_interface: ^2.6.0
 
   # Secure storage
-  flutter_secure_storage: ^10.1.0
+  flutter_secure_storage: ^10.3.0
 
   # Deep links
   app_links: ^7.0.0
