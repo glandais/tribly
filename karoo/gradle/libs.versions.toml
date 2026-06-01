@@ -1,18 +1,18 @@
 [versions]
 agp = "8.13.2"
-kotlin = "2.2.10"
+kotlin = "2.3.21"
 karoo-ext = "1.1.9"
-ktor = "3.4.2"
+ktor = "3.5.0"
 ktor-client-karoo = "1.0.1"
-compose-bom = "2026.03.00"
-core-ktx = "1.15.0"
+compose-bom = "2026.05.01"
+core-ktx = "1.18.0"
 lifecycle = "2.10.0"
-activity-compose = "1.10.1"
-navigation-compose = "2.9.7"
+activity-compose = "1.13.0"
+navigation-compose = "2.9.8"
 datastore = "1.2.1"
 zxing = "4.3.0"
-kotlinx-serialization = "1.8.1"
-ben-manes-versions = "0.53.0"
+kotlinx-serialization = "1.11.0"
+ben-manes-versions = "0.54.0"
 
 [libraries]
 karoo-ext = { module = "io.hammerhead:karoo-ext", version.ref = "karoo-ext" }
