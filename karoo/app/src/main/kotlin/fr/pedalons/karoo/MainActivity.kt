@@ -8,6 +8,8 @@ import android.text.format.DateFormat
 import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -108,8 +110,6 @@ sealed class NavState {
 class MainActivity : ComponentActivity() {
 
     companion object {
-        private const val REQUEST_AUTH = 100
-        private const val REQUEST_GPS_CONNECT = 101
         private const val BASE_URL = "https://www.pedalons.fr"
     }
 
@@ -117,6 +117,19 @@ class MainActivity : ComponentActivity() {
     private lateinit var authManager: AuthManager
     private lateinit var karooSystem: KarooSystemService
     private var userProfileConsumerId: String? = null
+
+    // Activity Result API launchers (registered in onCreate)
+    private val authLauncher: ActivityResultLauncher<Intent> =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == AuthActivity.RESULT_SUCCESS) {
+                onAuthSuccess?.invoke()
+            }
+        }
+
+    private val gpsConnectLauncher: ActivityResultLauncher<Intent> =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            onGpsConnectComplete?.invoke()
+        }
 
     // Navigation state accessible from key events
     internal var onNavigationChanged: ((Int) -> Unit)? = null
@@ -179,29 +192,14 @@ class MainActivity : ComponentActivity() {
         val intent = Intent(this, AuthActivity::class.java).apply {
             putExtra(AuthActivity.EXTRA_BASE_URL, BASE_URL)
         }
-        startActivityForResult(intent, REQUEST_AUTH)
+        authLauncher.launch(intent)
     }
 
     internal fun startGpsConnectFlow() {
         val intent = Intent(this, GpsConnectActivity::class.java).apply {
             putExtra(GpsConnectActivity.EXTRA_BASE_URL, BASE_URL)
         }
-        startActivityForResult(intent, REQUEST_GPS_CONNECT)
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        when (requestCode) {
-            REQUEST_AUTH -> {
-                if (resultCode == AuthActivity.RESULT_SUCCESS) {
-                    onAuthSuccess?.invoke()
-                }
-            }
-            REQUEST_GPS_CONNECT -> {
-                onGpsConnectComplete?.invoke()
-            }
-        }
+        gpsConnectLauncher.launch(intent)
     }
 
     // Callbacks for activity results

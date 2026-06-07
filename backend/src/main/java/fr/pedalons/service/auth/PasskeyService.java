@@ -150,6 +150,7 @@ public class PasskeyService {
     QuarkusTransaction.requiringNew().run(() -> challengeRepository.deleteById(challengeId));
 
     try {
+      @SuppressWarnings("unchecked")
       Map<String, Object> responseInner = (Map<String, Object>) response.get("response");
       // Parse the registration response
       String clientDataJSON = (String) responseInner.get("clientDataJSON");
