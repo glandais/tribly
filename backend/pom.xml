@@ -12,7 +12,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-        <quarkus.platform.version>3.36.1</quarkus.platform.version>
+        <quarkus.platform.version>3.36.2</quarkus.platform.version>
         <compiler-plugin.version>3.15.0</compiler-plugin.version>
         <surefire-plugin.version>3.5.6</surefire-plugin.version>
         <checkstyle-plugin.version>3.6.0</checkstyle-plugin.version>
@@ -25,7 +25,7 @@
         <dependencyversion-maven-plugin.version>1.0.0</dependencyversion-maven-plugin.version>
         <geolatte-geojson.version>1.11</geolatte-geojson.version>
         <archunit-junit5.version>1.4.2</archunit-junit5.version>
-        <webauthn4j-core.version>0.31.6.RELEASE</webauthn4j-core.version>
+        <webauthn4j-core.version>0.31.7.RELEASE</webauthn4j-core.version>
         <timeshape.version>2025b.28</timeshape.version>
         <s3mock-testcontainers.version>5.0.0</s3mock-testcontainers.version>
     </properties>
