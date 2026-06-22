@@ -889,10 +889,10 @@ packages:
     dependency: "direct main"
     description:
       name: passkeys
-      sha256: "88e7e67aef731dd0e25dd321c98cd421d3d3b188c885ec18a50d2532f779ef0f"
+      sha256: "09e55fed6ff40499e6bb901da13ab58985e966b05fb91da8323ac081683e97ba"
       url: "https://pub.dev"
     source: hosted
-    version: "2.19.0"
+    version: "2.20.0"
   passkeys_android:
     dependency: transitive
     description:
@@ -961,10 +961,10 @@ packages:
     dependency: "direct main"
     description:
       name: path_provider
-      sha256: "50c5dd5b6e1aaf6fb3a78b33f6aa3afca52bf903a8a5298f53101fdaee55bbcd"
+      sha256: a7f4874f987173da295a61c181b8ee71dab59b332a486b391babf26a1b884825
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.5"
+    version: "2.1.6"
   path_provider_android:
     dependency: transitive
     description:
@@ -1129,10 +1129,10 @@ packages:
     dependency: "direct dev"
     description:
       name: retrofit_generator
-      sha256: "7b7a7bbd61da2f2cac0646fc852515886c958cafad3c7f01f25b5b2bc451405b"
+      sha256: "0c6468f776e449de3886b0d68fa668943e005d884e618487fdf8b1323becdf88"
       url: "https://pub.dev"
     source: hosted
-    version: "10.2.6"
+    version: "10.2.7"
   riverpod:
     dependency: transitive
     description:
