@@ -29,7 +29,7 @@ public class MinioTestResource implements QuarkusTestResourceLifecycleManager {
     s3mock.start();
 
     imgproxy =
-        new GenericContainer<>("ghcr.io/imgproxy/imgproxy:v3.30.1")
+        new GenericContainer<>("ghcr.io/imgproxy/imgproxy:v4.0.5")
             .withNetwork(network)
             .withExposedPorts(8080)
             .withEnv("IMGPROXY_USE_S3", "true")
