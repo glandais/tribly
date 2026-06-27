@@ -80,6 +80,28 @@ updates:
           - "minor"
           - "patch"
 
+  # Bundler dependencies (fastlane — mobile release tooling)
+  - package-ecosystem: "bundler"
+    directories:
+      - "/mobile/android"
+      - "/mobile/ios"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 5
+    assignees:
+      - "glandais"
+    commit-message:
+      prefix: "deps(bundler)"
+      include: "scope"
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
   # Docker dependencies (Frontend)
   - package-ecosystem: "docker"
     directory: "/frontend"
