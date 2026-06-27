@@ -22,14 +22,14 @@ public class MinioTestResource implements QuarkusTestResourceLifecycleManager {
     network = Network.newNetwork();
 
     s3mock =
-        new S3MockContainer("5.0.0")
+        new S3MockContainer(ContainerImages.s3mockVersion())
             .withInitialBuckets("pedalons-test")
             .withNetwork(network)
             .withNetworkAliases("s3mock");
     s3mock.start();
 
     imgproxy =
-        new GenericContainer<>("ghcr.io/imgproxy/imgproxy:v4.0.5")
+        new GenericContainer<>(ContainerImages.compose("imgproxy"))
             .withNetwork(network)
             .withExposedPorts(8080)
             .withEnv("IMGPROXY_USE_S3", "true")

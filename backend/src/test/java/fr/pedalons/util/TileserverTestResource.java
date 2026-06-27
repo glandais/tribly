@@ -20,7 +20,7 @@ public class TileserverTestResource implements QuarkusTestResourceLifecycleManag
     Path dataDir = Path.of("../data/tileserver").toAbsolutePath().normalize();
 
     tileserver =
-        new GenericContainer<>("maptiler/tileserver-gl:v5.5.0")
+        new GenericContainer<>(ContainerImages.compose("tileserver"))
             .withExposedPorts(8080)
             .withCopyFileToContainer(MountableFile.forHostPath(dataDir), "/data")
             .waitingFor(new HttpWaitStrategy().forPath("/health").forPort(8080));

@@ -272,6 +272,15 @@
     </dependencies>
 
     <build>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+            </testResource>
+            <testResource>
+                <filtering>true</filtering>
+                <directory>src/test/resources-filtered</directory>
+            </testResource>
+        </testResources>
         <plugins>
             <plugin>
                 <groupId>${quarkus.platform.group-id}</groupId>
