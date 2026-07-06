@@ -12,12 +12,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-        <quarkus.platform.version>3.37.0</quarkus.platform.version>
+        <quarkus.platform.version>3.37.1</quarkus.platform.version>
         <compiler-plugin.version>3.15.0</compiler-plugin.version>
         <surefire-plugin.version>3.5.6</surefire-plugin.version>
         <checkstyle-plugin.version>3.6.0</checkstyle-plugin.version>
-        <spotless-plugin.version>3.7.0</spotless-plugin.version>
-        <hypersistence-utils-hibernate.version>3.15.3</hypersistence-utils-hibernate.version>
+        <spotless-plugin.version>3.8.0</spotless-plugin.version>
+        <hypersistence-utils-hibernate.version>3.15.4</hypersistence-utils-hibernate.version>
         <gpx.version>1.4.0</gpx.version>
         <lombok.version>1.18.46</lombok.version>
         <jspecify.version>1.0.0</jspecify.version>
@@ -25,7 +25,7 @@
         <dependencyversion-maven-plugin.version>1.0.0</dependencyversion-maven-plugin.version>
         <geolatte-geojson.version>1.11</geolatte-geojson.version>
         <archunit-junit5.version>1.4.2</archunit-junit5.version>
-        <webauthn4j-core.version>0.31.7.RELEASE</webauthn4j-core.version>
+        <webauthn4j-core.version>0.31.8.RELEASE</webauthn4j-core.version>
         <timeshape.version>2026b.29</timeshape.version>
         <s3mock-testcontainers.version>5.1.0</s3mock-testcontainers.version>
     </properties>
