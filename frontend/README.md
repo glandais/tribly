@@ -6,8 +6,7 @@ React SPA for the Pédalons cycling team management platform. Built with TypeScr
 
 - Node.js 20+
 - pnpm 10+
-- Backend running on `localhost:8080` (see root [README](../README.md))
-- Docker infrastructure up (`docker compose up -d` from repo root)
+- An API to talk to — either the production API (default, no setup) or a local backend on `localhost:8080` (see root [README](../README.md)) with Docker infrastructure up (`docker compose up -d` from repo root)
 
 ## Getting Started
 
@@ -16,7 +15,22 @@ pnpm install
 pnpm dev
 ```
 
-The dev server starts at https://localhost:5173 and proxies `/api` requests to the backend.
+The dev server starts at https://localhost:5173 and proxies `/api` requests to the API target.
+
+### API Target
+
+The dev/preview server proxies `/api` to a configurable target, controlled by the `VITE_API_TARGET` env var:
+
+- **No `.env` file** → defaults to the production API `https://www.pedalons.fr`. No backend needed locally.
+- **Local backend** → copy `.env.example` to `.env` and set the target:
+
+  ```bash
+  cp .env.example .env
+  # then in .env:
+  VITE_API_TARGET=http://localhost:8080
+  ```
+
+The proxy derives `X-Forwarded-Host` / `X-Forwarded-Proto` from the target URL so multi-tenant domain resolution stays correct. `.env` is git-ignored; `.env.example` is committed.
 
 ### HTTPS Setup (required for WebAuthn/passkeys)
 
@@ -99,6 +113,6 @@ src/
 - **Confirmations**: Always use the `ConfirmDialog` component — never `window.confirm()` or custom modals.
 - **Icons**: Always use `@tabler/icons-react` — never inline SVGs.
 - **i18n**: French is the default language. Templated keys need type annotations: `` t(`status.${x satisfies 'DRAFT' | 'PUBLISHED'}`) ``.
-- **Config**: Runtime config from `/api/config` endpoint — no `.env` files for app config.
+- **Config**: Runtime app config comes from the `/api/config` endpoint — no `.env` files for app config. The only `.env` var is `VITE_API_TARGET`, which just points the dev-server proxy at an API (see [API Target](#api-target)).
 - **Logos**: `TeamAvatar` (with initials fallback) vs `EntityLogo` (no fallback).
 - **Forms**: Mantine `useForm` + Zod schemas from `api/zod/`. Separate `XxxForm` component + `CreateXxxPage`/`EditXxxPage` pages.

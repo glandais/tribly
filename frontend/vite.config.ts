@@ -1,4 +1,4 @@
-import { defineConfig, PluginOption } from 'vite'
+import { defineConfig, loadEnv, PluginOption } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 import fs from 'fs'
@@ -31,7 +31,14 @@ function requestLogger(): PluginOption {
   }
 }
 
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  // API proxy target: from .env (VITE_API_TARGET) or prod by default
+  const env = loadEnv(mode, __dirname, '')
+  const apiTarget = env.VITE_API_TARGET || 'https://www.pedalons.fr'
+  const apiUrl = new URL(apiTarget)
+  const isHttps = apiUrl.protocol === 'https:'
+
+  return {
   plugins: [
     requestLogger(),
     react(),
@@ -191,17 +198,14 @@ export default defineConfig({
     https: loadHttpsCerts(),
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: apiTarget,
         changeOrigin: true,
-        secure: false,
+        secure: isHttps,
         configure: (proxy) => {
-          proxy.on('proxyReq', (proxyReq, req) => {
-            // Forward actual host for proper domain resolution
-            // HTTP/2 uses :authority instead of host header
-            const host = req.headers.host || req.headers[':authority'] || 'localhost:5173'
-            proxyReq.setHeader('X-Forwarded-Host', host)
-            // Use https if certs are loaded
-            proxyReq.setHeader('X-Forwarded-Proto', loadHttpsCerts() ? 'https' : 'http')
+          proxy.on('proxyReq', (proxyReq) => {
+            // Force the target host so DomainResolver finds the right tenant
+            proxyReq.setHeader('X-Forwarded-Host', apiUrl.host)
+            proxyReq.setHeader('X-Forwarded-Proto', isHttps ? 'https' : 'http')
           })
         },
       },
@@ -211,14 +215,15 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: apiTarget,
         changeOrigin: true,
-        secure: false,
+        secure: isHttps,
         headers: {
-          'X-Forwarded-Host': 'localhost:5173',
-          'X-Forwarded-Proto': 'http',
+          'X-Forwarded-Host': apiUrl.host,
+          'X-Forwarded-Proto': isHttps ? 'https' : 'http',
         },
       },
     },
   },
+  }
 })
