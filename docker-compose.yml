@@ -35,6 +35,9 @@ services:
       - .env
     environment:
       ERROR_LOG_DETAILS: "false"
+      PEDALONS_BOOTSTRAP_DOMAIN: "localhost"
+      PEDALONS_BOOTSTRAP_DOMAIN_NAME: "Pédalons"
+      PEDALONS_BOOTSTRAP_BASE_URL: "http://localhost:8090"
     volumes:
       - ./data/storage:/mnt/storage
       - ./data/keys:/mnt/keys:ro
@@ -44,6 +47,37 @@ services:
       - "traefik.http.routers.quarkus.rule=PathPrefix(`/api`)"
       - "traefik.http.routers.quarkus.priority=100"
       - "traefik.http.services.quarkus.loadbalancer.server.port=8080"
+
+  backend-restore:
+    image: ghcr.io/glandais/pedalons-backend:latest
+    container_name: pedalons-backend-restore
+    profiles:
+      - restore
+    restart: "no"
+    user: "${PUID:-1000}:${PGID:-1000}"
+    networks:
+      - pedalons
+    env_file:
+      - .env
+    environment:
+      ERROR_LOG_DETAILS: "false"
+      PEDALONS_MIGRATION_BIKETEAM_ENABLED: "true"
+      PEDALONS_MIGRATION_BIKETEAM_TEAM_ID: "n-peloton"
+      PEDALONS_MIGRATION_BIKETEAM_TARGET_DOMAIN: "localhost"
+      PEDALONS_MIGRATION_BIKETEAM_TARGET_DOMAIN_NAME: "Pédalons"
+      PEDALONS_MIGRATION_BIKETEAM_TARGET_DOMAIN_BASE_URL: "http://localhost:8090"
+      PEDALONS_MIGRATION_BIKETEAM_TARGET_TEAM_SLUG: "n-peloton"
+      PEDALONS_MIGRATION_BIKETEAM_DATA_DIR: "/mnt/biketeam/production/data"
+      PEDALONS_MIGRATION_BIKETEAM_ADMIN_EMAIL: "gabriel.landais@gmail.com"
+      BIKETEAM_DB_URL: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/biketeam_import
+      BIKETEAM_DB_USER: ${POSTGRES_USER}
+      BIKETEAM_DB_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./data/storage:/mnt/storage
+      - ./data/keys:/mnt/keys:ro
+      - ../biketeam-backup:/mnt/biketeam:ro
+    labels:
+      - "traefik.enable=false"
 
   frontend:
     image: pedalons-frontend:${ENV_NAME}
@@ -64,6 +98,10 @@ services:
     restart: unless-stopped
     networks:
       - pedalons
+    # Loopback-only: lets scripts/biketeam_restore.sh reach the DB from the host
+    # without exposing it beyond this machine.
+    ports:
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:

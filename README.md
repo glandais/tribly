@@ -93,7 +93,27 @@ Backend available at:
 - Swagger UI: http://localhost:8080/q/swagger-ui
 - Health: http://localhost:8080/q/health
 
-### Create a domain for localhost
+### Default domain and platform admin
+
+#### Bootstrapping
+
+
+On startup the backend creates a default `Domain` and a `PLATFORM_ADMIN` `User` if they don't yet
+exist (idempotent — see `BootstrapService`). Defaults match the localhost dev setup; override via
+environment variables for other environments:
+
+| Variable | Default |
+|----------|---------|
+| `PEDALONS_BOOTSTRAP_ENABLED` | `true` |
+| `PEDALONS_BOOTSTRAP_DOMAIN` | `localhost` |
+| `PEDALONS_BOOTSTRAP_DOMAIN_NAME` | `Pedalons Dev` |
+| `PEDALONS_BOOTSTRAP_BASE_URL` | `https://localhost:5173` |
+| `PEDALONS_BOOTSTRAP_ADMIN_EMAIL` | `gabriel.landais@gmail.com` |
+| `PEDALONS_BOOTSTRAP_ADMIN_DISPLAY_NAME` | `Gaby Landais` |
+
+The admin is created with `password_hash = NULL` — first login is via OTP or passkey.
+
+#### SQL
 
 Nothing works until at least one domain exists — every request resolves its tenant from the `Host` header. Open a `psql` prompt on the dev database:
 

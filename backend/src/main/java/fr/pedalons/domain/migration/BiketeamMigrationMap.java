@@ -1,0 +1,77 @@
+package fr.pedalons.domain.migration;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
+import jakarta.persistence.Table;
+import java.io.Serializable;
+import java.time.Instant;
+import java.util.Objects;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+/**
+ * Maps a biketeam source row (entityType + biketeamId) to the tribly entity that was created /
+ * updated for it. Populated by {@code BiketeamMigrationService} so re-runs find existing tribly
+ * entities instead of creating duplicates.
+ */
+@Setter
+@Getter
+@Entity
+@Table(name = "biketeam_migration_map")
+@IdClass(BiketeamMigrationMap.Key.class)
+@NoArgsConstructor
+public class BiketeamMigrationMap {
+
+  @Id
+  @Column(name = "entity_type", nullable = false, length = 40)
+  private String entityType;
+
+  @Id
+  @Column(name = "biketeam_id", nullable = false, length = 255)
+  private String biketeamId;
+
+  @Column(name = "tribly_id", nullable = false)
+  private long triblyId;
+
+  @Column(name = "synced_at", nullable = false)
+  private Instant syncedAt = Instant.now();
+
+  public BiketeamMigrationMap(String entityType, String biketeamId, long triblyId) {
+    this.entityType = entityType;
+    this.biketeamId = biketeamId;
+    this.triblyId = triblyId;
+  }
+
+  public void touch() {
+    this.syncedAt = Instant.now();
+  }
+
+  @Getter
+  @Setter
+  @NoArgsConstructor
+  public static class Key implements Serializable {
+    private String entityType;
+    private String biketeamId;
+
+    public Key(String entityType, String biketeamId) {
+      this.entityType = entityType;
+      this.biketeamId = biketeamId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (!(o instanceof Key key)) return false;
+      return Objects.equals(entityType, key.entityType)
+          && Objects.equals(biketeamId, key.biketeamId);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(entityType, biketeamId);
+    }
+  }
+}
