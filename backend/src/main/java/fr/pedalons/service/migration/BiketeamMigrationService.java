@@ -309,45 +309,86 @@ public class BiketeamMigrationService {
       return Map.of();
     }
     Map<String, Long> idMap = new HashMap<>();
+    int placeholders = 0;
+    int skipped = 0;
     for (BiketeamReader.BtUser bt : reader.findUsersByIds(new ArrayList<>(referenced))) {
-      if (bt.email() == null || bt.email().isBlank()) {
+      String email = resolveEmail(bt);
+      if (email == null) {
+        LOG.warnf("Skipping biketeam user %s: no email and no external id to derive one", bt.id());
+        skipped++;
         continue;
+      }
+      boolean deliverable = hasRealEmail(bt);
+      if (!deliverable) {
+        placeholders++;
       }
       try {
         QuarkusTransaction.requiringNew()
             .run(
                 () -> {
-                  User user = upsertUserByEmail(domain, bt);
+                  User user = upsertUserByEmail(domain, bt, email, deliverable);
                   mapRepo.upsert(T_USER, bt.id(), user.getId());
                   idMap.put(bt.id(), user.getId());
                 });
       } catch (Exception e) {
-        LOG.warnf(e, "Failed to migrate user biketeam.id=%s email=%s", bt.id(), bt.email());
+        LOG.warnf(e, "Failed to migrate user biketeam.id=%s email=%s", bt.id(), email);
       }
     }
+    LOG.infof(
+        "Migrated %d users (%d with a placeholder email, %d skipped)",
+        idMap.size(), placeholders, skipped);
     return idMap;
   }
 
-  private User upsertUserByEmail(Domain domain, BiketeamReader.BtUser bt) {
-    String email = bt.email().toLowerCase(Locale.ROOT);
-    return userRepository
-        .findByEmailAndDomain(domain.getId(), email)
-        .map(u -> updateUser(u, bt))
-        .orElseGet(() -> createUser(domain, bt));
+  private static boolean hasRealEmail(BiketeamReader.BtUser bt) {
+    return bt.email() != null && !bt.email().isBlank();
   }
 
-  private User createUser(Domain domain, BiketeamReader.BtUser bt) {
-    String email = bt.email().toLowerCase(Locale.ROOT);
-    User user = new User(domain, email, displayNameFor(bt));
-    user.setEmailVerified(true);
-    user.setEmailVerifiedAt(Instant.now());
+  /**
+   * Biketeam allowed Strava/Facebook/Google accounts to exist without an email, which tribly's
+   * {@code User} requires. Derive a stable, unique — but undeliverable — address from the external
+   * id so those members keep their memberships, participations and comments.
+   *
+   * @return null when the account has neither an email nor any external id
+   */
+  private @Nullable String resolveEmail(BiketeamReader.BtUser bt) {
+    if (hasRealEmail(bt)) {
+      return bt.email().toLowerCase(Locale.ROOT);
+    }
+    String domain = config.getPlaceholderEmailDomain();
+    String localPart = null;
+    if (bt.stravaId() != null) {
+      localPart = "strava_" + bt.stravaId();
+    } else if (bt.facebookId() != null && !bt.facebookId().isBlank()) {
+      localPart = "facebook_" + bt.facebookId().trim();
+    } else if (bt.googleId() != null && !bt.googleId().isBlank()) {
+      localPart = "google_" + bt.googleId().trim();
+    }
+    return localPart == null ? null : (localPart + "@" + domain).toLowerCase(Locale.ROOT);
+  }
+
+  private User upsertUserByEmail(
+      Domain domain, BiketeamReader.BtUser bt, String email, boolean deliverable) {
+    return userRepository
+        .findByEmailAndDomain(domain.getId(), email)
+        .map(u -> updateUser(u, bt, deliverable))
+        .orElseGet(() -> createUser(domain, bt, email, deliverable));
+  }
+
+  private User createUser(
+      Domain domain, BiketeamReader.BtUser bt, String email, boolean deliverable) {
+    User user = new User(domain, email, displayNameFor(bt, email));
+    if (deliverable) {
+      user.setEmailVerified(true);
+      user.setEmailVerifiedAt(Instant.now());
+    }
     userRepository.persist(user);
     return user;
   }
 
-  private User updateUser(User user, BiketeamReader.BtUser bt) {
-    user.setDisplayName(displayNameFor(bt));
-    if (!user.isEmailVerified()) {
+  private User updateUser(User user, BiketeamReader.BtUser bt, boolean deliverable) {
+    user.setDisplayName(displayNameFor(bt, user.getEmail()));
+    if (deliverable && !user.isEmailVerified()) {
       user.setEmailVerified(true);
       user.setEmailVerifiedAt(Instant.now());
     }
@@ -358,11 +399,11 @@ public class BiketeamMigrationService {
     return user;
   }
 
-  private String displayNameFor(BiketeamReader.BtUser bt) {
+  private String displayNameFor(BiketeamReader.BtUser bt, String fallback) {
     String first = bt.firstName() == null ? "" : bt.firstName().trim();
     String last = bt.lastName() == null ? "" : bt.lastName().trim();
     String dn = (first + " " + last).trim();
-    return dn.isEmpty() ? bt.email() : dn;
+    return dn.isEmpty() ? fallback : dn;
   }
 
   // ─── User-team memberships ────────────────────────────────────────────────

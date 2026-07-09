@@ -31,14 +31,22 @@ public class BiketeamReader {
   public record BtTeam(
       String id, String name, String city, String country, LocalDate createdAt, boolean deletion) {}
 
+  /**
+   * {@code email} is null for the many biketeam accounts created through a Strava/Facebook/Google
+   * login, where biketeam never asked for one. The external ids let the migration synthesize a
+   * stable placeholder address for them.
+   */
   public record BtUser(
       String id,
-      String email,
+      @Nullable String email,
       String firstName,
       String lastName,
       @Nullable String city,
       boolean admin,
-      boolean deletion) {}
+      boolean deletion,
+      @Nullable Long stravaId,
+      @Nullable String facebookId,
+      @Nullable String googleId) {}
 
   public record BtUserRole(String userId, String teamId, String role) {}
 
@@ -195,10 +203,11 @@ public class BiketeamReader {
     }
     String placeholders = String.join(",", ids.stream().map(x -> "?").toList());
     String sql =
-        "SELECT id, email, first_name, last_name, city, admin, deletion FROM user_account "
+        "SELECT id, email, first_name, last_name, city, admin, deletion, "
+            + "strava_id, facebook_id, google_id FROM user_account "
             + "WHERE id IN ("
             + placeholders
-            + ") AND email IS NOT NULL AND email <> ''";
+            + ")";
     return many(
         sql,
         ps -> {
@@ -206,15 +215,29 @@ public class BiketeamReader {
             ps.setString(i + 1, ids.get(i));
           }
         },
-        rs ->
-            new BtUser(
-                rs.getString(1),
-                rs.getString(2),
-                rs.getString(3),
-                rs.getString(4),
-                rs.getString(5),
-                rs.getBoolean(6),
-                rs.getBoolean(7)));
+        rs -> {
+          String id = rs.getString(1);
+          String email = rs.getString(2);
+          String firstName = rs.getString(3);
+          String lastName = rs.getString(4);
+          String city = rs.getString(5);
+          boolean admin = rs.getBoolean(6);
+          boolean deletion = rs.getBoolean(7);
+          // wasNull() reports on the column just read, so it has to be consulted right here.
+          long strava = rs.getLong(8);
+          Long stravaId = rs.wasNull() ? null : strava;
+          return new BtUser(
+              id,
+              email,
+              firstName,
+              lastName,
+              city,
+              admin,
+              deletion,
+              stravaId,
+              rs.getString(9),
+              rs.getString(10));
+        });
   }
 
   public List<BtUserRole> findUserRoles(String teamId) {

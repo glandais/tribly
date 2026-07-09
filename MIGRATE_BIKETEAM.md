@@ -48,6 +48,16 @@ docker compose --profile restore down backend-restore
 Config lives in the `backend-restore` service in docker-compose.yml. Re-running it is
 safe: already-migrated rows are matched through the biketeam→tribly id mapping table.
 
+## Members without an email
+
+Biketeam let people sign in through Strava, Facebook or Google without ever giving an
+email; tribly requires one. Those accounts are migrated with a placeholder address —
+`strava_<stravaId>@pedalons.fr`, `facebook_<id>@…`, `google_<id>@…` — under
+`placeholder-email-domain`. The address is unique and stable across replays but is not
+deliverable, so the account is left **unverified** and cannot log in until its owner
+claims it. This keeps their memberships, ride participations and comments; skipping them
+would have dropped roughly 60% of n-peloton's participation history.
+
 ## Running the migration from dev mode instead
 
 PEDALONS_MIGRATION_BIKETEAM_ENABLED=true \

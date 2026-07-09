@@ -35,6 +35,12 @@ public class BiketeamMigrationConfig {
   @ConfigProperty(name = "pedalons.migration.biketeam.admin-email", defaultValue = "")
   String adminEmail;
 
+  /** Mail domain of the placeholder addresses given to biketeam accounts that had no email. */
+  @ConfigProperty(
+      name = "pedalons.migration.biketeam.placeholder-email-domain",
+      defaultValue = "pedalons.fr")
+  String placeholderEmailDomain;
+
   /** Empty when the biketeam data export isn't mounted — GPX tracks and images are then skipped. */
   public String getDataDir() {
     return dataDir.orElse("");
