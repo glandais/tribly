@@ -80,6 +80,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -90,6 +92,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -136,6 +139,14 @@ public class BiketeamMigrationService {
   private static final String T_POST = "POST";
   private static final String T_COMMENT = "COMMENT";
   private static final String T_ASSET = "ASSET";
+
+  /** MD5 of biketeam's placeholder team logo — see {@link #isPlaceholderLogo}. */
+  private static final Set<String> PLACEHOLDER_LOGO_MD5 =
+      Set.of(
+          // misc/<team>/logo.png as stored by ImageService.save (resized once at team creation)
+          "fc9ed08a9d6f7f1989c804c8a6961721",
+          // biketeam's src/main/resources/default-images/empty.png, unresized
+          "b63f0a99a10ed3b8bdf36acc72f620a5");
 
   @Inject BiketeamMigrationConfig config;
   @Inject BiketeamReader reader;
@@ -235,6 +246,7 @@ public class BiketeamMigrationService {
     // No membership for the migration admin: each team gets its own admins from user_role.
     Team team = ensureTargetTeam(domain, admin, btTeam);
     migrateTeamDescription(team, sourceTeam);
+    migrateTeamLogo(team, sourceTeam);
 
     Map<String, Long> userIds = migrateUsers(domain, sourceTeam);
     migrateUserTeams(team, sourceTeam, userIds);
@@ -328,6 +340,89 @@ public class BiketeamMigrationService {
     teamRepository.persist(managed);
     mapRepo.upsert(T_TEAM_PAGE, sourceTeam, about.getId());
     LOG.infof("Migrated team description into the about page of '%s'", managed.getSlug());
+  }
+
+  // ─── Team logo ────────────────────────────────────────────────────────────
+
+  /**
+   * Biketeam kept the team logo at {@code misc/<teamId>/logo.<ext>}. Tribly reads a team's logo from
+   * the {@code LOGO} asset of its about page ({@code TeamAvatar} renders {@code
+   * team.about.assets.logo}), so that is where it lands.
+   *
+   * <p>No {@code ::asset{}} directive here, unlike {@link #attachImage}: a logo is addressed through
+   * {@code assets.logo}, not from the markdown, and a directive would render it inline in the page.
+   * {@code AssetService.updateAssets} keeps it regardless — it re-adds {@code assets.logo()} without
+   * consulting the markdown.
+   */
+  @Transactional
+  protected void migrateTeamLogo(Team team, String sourceTeam) {
+    if (config.getDataDir().isBlank()) {
+      return;
+    }
+    Path logo = findTeamLogo(sourceTeam);
+    if (logo == null || isPlaceholderLogo(logo)) {
+      return;
+    }
+    String key = "misc:" + sourceTeam;
+    if (mapRepo.findTriblyId(T_ASSET, key) != null) {
+      return;
+    }
+    Team managed = teamRepository.findByIdOptional(team.getId()).orElseThrow();
+    TeamPage about = managed.getAboutPage();
+    if (about == null) {
+      LOG.warnf("Team '%s' has no about page — skipping logo", managed.getSlug());
+      return;
+    }
+    try (InputStream in = Files.newInputStream(logo)) {
+      AssetWithFile awf =
+          assetService.addAsset(about, AssetType.LOGO, logo.getFileName().toString());
+      Files.copy(in, awf.file().toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+      assetService.uploadAssetFile(awf.asset());
+      readImageDimensions(logo, awf.asset());
+      mapRepo.upsert(T_ASSET, key, awf.asset().getId());
+      LOG.infof("Migrated logo of team '%s'", managed.getSlug());
+    } catch (IOException e) {
+      LOG.warnf(e, "Failed to upload logo %s for team %s", logo, sourceTeam);
+    }
+  }
+
+  /** {@code misc/<team>/logo.<ext>}, whatever the extension — and never {@code heatmap.png}. */
+  private @Nullable Path findTeamLogo(String sourceTeam) {
+    Path dir = Path.of(config.getDataDir(), "misc", sourceTeam);
+    if (!Files.isDirectory(dir)) {
+      return null;
+    }
+    try (Stream<Path> stream = Files.list(dir)) {
+      return stream.filter(p -> baseName(p).equals("logo")).findFirst().orElse(null);
+    } catch (IOException e) {
+      LOG.warnf(e, "Failed to list %s", dir);
+      return null;
+    }
+  }
+
+  /**
+   * Biketeam handed every new team a copy of its {@code default-images/empty.png} placeholder, so a
+   * logo file existing proves nothing: 70 of the 188 exported teams never replaced it. Importing
+   * those would replace tribly's initials avatar with a blank square.
+   *
+   * <p>Digest of the bytes as biketeam stored them — {@code ImageService.save} re-encodes the
+   * placeholder once, identically, at team creation. The resource itself is listed too, in case a
+   * copy escaped the resize.
+   */
+  private static boolean isPlaceholderLogo(Path logo) {
+    try {
+      byte[] digest = MessageDigest.getInstance("MD5").digest(Files.readAllBytes(logo));
+      return PLACEHOLDER_LOGO_MD5.contains(HexFormat.of().formatHex(digest));
+    } catch (IOException | NoSuchAlgorithmException e) {
+      LOG.warnf(e, "Could not digest %s — importing it as a real logo", logo);
+      return false;
+    }
+  }
+
+  private static String baseName(Path path) {
+    String name = path.getFileName().toString();
+    int dot = name.lastIndexOf('.');
+    return dot == -1 ? name : name.substring(0, dot);
   }
 
   private static String renderTeamDescription(BiketeamReader.BtTeamDescription d) {
@@ -1162,17 +1257,7 @@ public class BiketeamMigrationService {
     }
     Path image;
     try (Stream<Path> stream = Files.list(dir)) {
-      image =
-          stream
-              .filter(
-                  p -> {
-                    String n = p.getFileName().toString();
-                    int dot = n.lastIndexOf('.');
-                    String base = dot == -1 ? n : n.substring(0, dot);
-                    return base.equals(biketeamEntityId);
-                  })
-              .findFirst()
-              .orElse(null);
+      image = stream.filter(p -> baseName(p).equals(biketeamEntityId)).findFirst().orElse(null);
     } catch (IOException e) {
       LOG.warnf(e, "Failed to list %s", dir);
       return;

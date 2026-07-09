@@ -117,6 +117,17 @@ collapse onto the migration timestamp.
 Places, users, memberships and participations carry no date in biketeam, so theirs is the
 migration time.
 
+## Team logos
+
+Biketeam kept the team logo at `misc/<teamId>/logo.png|jpg`. Tribly has no logo column: `TeamAvatar`
+reads `team.about.assets.logo`, so the file is imported as a `LOGO` asset on the team's about page.
+No `::asset{}` directive is added — a logo is addressed through `assets.logo`, not from the markdown.
+
+Biketeam handed every new team a copy of its `default-images/empty.png` placeholder, so the file
+being present means nothing: **70 of the 188 exported teams never replaced it**. Those are skipped by
+comparing the file digest against the placeholder, which leaves tribly's initials avatar in place.
+`heatmap.png`, which sits in the same directory, is never picked up.
+
 ## Members without an email
 
 Biketeam let people sign in through Strava, Facebook or Google without ever giving an
