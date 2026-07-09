@@ -49,18 +49,24 @@ services:
       - "traefik.http.services.quarkus.loadbalancer.server.port=8080"
 
   backend-restore:
-    image: ghcr.io/glandais/pedalons-backend:latest
-    container_name: pedalons-backend-restore
+    image: pedalons-backend:${ENV_NAME}
+    container_name: ${ENV_NAME}-backend-restore
     profiles:
       - restore
     restart: "no"
     user: "${PUID:-1000}:${PGID:-1000}"
     networks:
       - pedalons
+    depends_on:
+      postgres:
+        condition: service_healthy
     env_file:
       - .env
     environment:
       ERROR_LOG_DETAILS: "false"
+      PEDALONS_BOOTSTRAP_DOMAIN: "localhost"
+      PEDALONS_BOOTSTRAP_DOMAIN_NAME: "Pédalons"
+      PEDALONS_BOOTSTRAP_BASE_URL: "http://localhost:8090"
       PEDALONS_MIGRATION_BIKETEAM_ENABLED: "true"
       PEDALONS_MIGRATION_BIKETEAM_TEAM_ID: "n-peloton"
       PEDALONS_MIGRATION_BIKETEAM_TARGET_DOMAIN: "localhost"

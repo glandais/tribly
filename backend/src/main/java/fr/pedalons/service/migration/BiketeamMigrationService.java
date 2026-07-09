@@ -943,7 +943,7 @@ public class BiketeamMigrationService {
 
   /**
    * Attach the first matching image (any extension) found at
-   * {gpx-dir}/{subdir}/{team}/{entityId}.* — pub-images / ride-images / trip-images.
+   * {data-dir}/{subdir}/{team}/{entityId}.* — pub-images / ride-images / trip-images.
    *
    * <p>After upload we (a) read pixel dimensions from the local file and (b) append a
    * {@code ::asset{id="..."}} directive to the entity's markdown. Without the directive, tribly's
@@ -1115,10 +1115,6 @@ public class BiketeamMigrationService {
 
   private MediaDto emptyMedia() {
     return MediaDto.builder().build();
-  }
-
-  private MediaDto mediaWithMarkdown(@Nullable String md) {
-    return new MediaDto(md == null ? "" : md, AssetsDto.builder().build());
   }
 
   /**

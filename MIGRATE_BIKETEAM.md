@@ -1,16 +1,16 @@
 # Reset
 
-docker compose kill
-docker compose rm
-docker volume ls | grep tribly
-docker volume rm tribly_minio_data tribly_postgres_data
+Wipes the stack and its data — postgres, minio, and the assets written to `./data/storage`.
+
+docker compose --profile restore down -v --remove-orphans
+rm -rf ./data/storage/*
 docker compose up -d
 
 # Backup data
 
 rsync -avz biketeam@main.tomacla.info:/home/biketeam/production ../biketeam-backup/
 
-cat ../biketeam-backup/production/.env
+cat ../biketeam-backup/production/.env | grep POSTGRES_PASSWORD
 
 ssh biketeam@main.tomacla.info
 pg_dump -Fc -U biketeam -d biketeam_production -h localhost -f /tmp/biketeam_export.dump
@@ -20,8 +20,9 @@ rsync -avz biketeam@main.tomacla.info:/tmp/biketeam_export.dump ../biketeam-back
 
 # Restore the dump into biketeam_import
 
-The compose postgres publishes 5432 on 127.0.0.1, so the script reaches it from the
-host. User and password default to POSTGRES_USER / POSTGRES_PASSWORD, read from .env.
+The compose postgres publishes `POSTGRES_HOST_PORT` (default 5432) on 127.0.0.1, so the
+script reaches it from the host. User and password default to POSTGRES_USER /
+POSTGRES_PASSWORD, read from .env.
 
 ./scripts/biketeam_restore.sh ../biketeam-backup/biketeam_export.dump
 
@@ -30,6 +31,11 @@ host. User and password default to POSTGRES_USER / POSTGRES_PASSWORD, read from 
 The `restore` profile starts a second backend that migrates `biketeam_import` into the
 main database at startup. It reads the GPX/images from `../biketeam-backup`, mounted
 read-only at `/mnt/biketeam`. It is not routed through traefik.
+
+It runs the same `pedalons-backend:${ENV_NAME}` image as the `backend` service, so build it
+first — the migration code only exists in a locally built image:
+
+./build.sh
 
 docker compose --profile restore up -d backend-restore
 docker compose logs -f backend-restore
@@ -63,4 +69,5 @@ the dump into whichever postgres the dev profile points at.
 
 `admin-email` is required — the migration aborts if it is blank. `target-domain-name`
 and `target-domain-base-url` are optional: they default to the hostname and to
-`https://{target-domain}`.
+`https://{target-domain}`. `data-dir` is optional too; leaving it blank skips GPX tracks
+and images.
