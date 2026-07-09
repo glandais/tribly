@@ -94,6 +94,29 @@ cannot be self-joined.
 The migration reads and writes private teams as PLATFORM_ADMIN without joining them:
 `TeamEntityRepository` skips the whole visibility filter when `query.platformAdmin()` is set.
 
+## Dates
+
+`BaseEntity.createdAt` is a `@CreationTimestamp` mapped `updatable = false`: Hibernate stamps it on
+insert and never writes it again, so the migration restores the biketeam date with a plain SQL
+update right after each insert.
+
+| tribly | biketeam source |
+|---|---|
+| `Team.createdAt` (and its about page) | `team.created_at` (a date → midnight Paris) |
+| `Route.createdAt` and `dateTime` | `map.posted_at` (a date; biketeam has no finer timestamp) |
+| `Ride` / `Trip` / `Post` `.createdAt` | their `published_at` |
+| `Ride.dateTime` | `ride.date` + earliest group meeting time |
+| `Trip.dateTime` | `trip.start_date` + `meeting_time` |
+| `Post.dateTime` | `publication.published_at` |
+| `Comment.createdAt` | `message.published_at` |
+
+`Comment` matters most: it has no business date, `CommentDto` exposes `createdAt` and
+`CommentRepository` sorts on it, so without this the whole 2021→2026 discussion history would
+collapse onto the migration timestamp.
+
+Places, users, memberships and participations carry no date in biketeam, so theirs is the
+migration time.
+
 ## Members without an email
 
 Biketeam let people sign in through Strava, Facebook or Google without ever giving an

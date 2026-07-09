@@ -74,6 +74,7 @@ import io.quarkus.arc.ManagedContext;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import java.io.IOException;
 import java.io.InputStream;
@@ -82,7 +83,9 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -138,6 +141,7 @@ public class BiketeamMigrationService {
   @Inject BiketeamReader reader;
   @Inject BiketeamMigrationMapRepository mapRepo;
   @Inject BootstrapService bootstrapService;
+  @Inject EntityManager em;
 
   @Inject DomainResolver domainResolver;
   @Inject PedalonsQueryContext pedalonsContext;
@@ -274,6 +278,10 @@ public class BiketeamMigrationService {
     team.setAddMemberAllowed(true);
     teamRepository.persistAndFlush(team);
     mapRepo.upsert(T_TEAM, slug, team.getId());
+    Instant createdAt = atParis(src.createdAt(), null);
+    backdate("teams", team.getId(), createdAt);
+    // The about page is cascade-created with the team and has no date of its own in biketeam.
+    backdate("team_entities", team.getAboutPage().getId(), createdAt);
     return team;
   }
 
@@ -657,6 +665,7 @@ public class BiketeamMigrationService {
     routeRepository.persist(route);
     mapRepo.upsert(T_ROUTE, bt.id(), route.getId());
     ids.put(bt.id(), route.getId());
+    backdate("team_entities", route.getId(), atParis(bt.postedAt(), null));
   }
 
   private @Nullable Path locateGpx(String sourceTeam, String mapId) {
@@ -789,6 +798,7 @@ public class BiketeamMigrationService {
     mapRepo.upsert(T_POST, bt.id(), post.getId());
     ids.put(bt.id(), post.getId());
     attachImage(post, sourceTeam, "pub-images", bt.id());
+    backdate("team_entities", post.getId(), bt.publishedAt());
   }
 
   // ─── Rides ────────────────────────────────────────────────────────────────
@@ -935,6 +945,7 @@ public class BiketeamMigrationService {
     }
 
     attachImage(ride, sourceTeam, "ride-images", bt.id());
+    backdate("team_entities", ride.getId(), bt.publishedAt());
   }
 
   // ─── Trips ────────────────────────────────────────────────────────────────
@@ -1051,6 +1062,7 @@ public class BiketeamMigrationService {
     }
 
     attachImage(trip, sourceTeam, "trip-images", bt.id());
+    backdate("team_entities", trip.getId(), bt.publishedAt());
   }
 
   // ─── Comments (Messages) ──────────────────────────────────────────────────
@@ -1104,6 +1116,8 @@ public class BiketeamMigrationService {
             : new Comment(actor, target, m.content());
     commentRepository.persistAndFlush(comment);
     mapRepo.upsert(T_COMMENT, m.id(), comment.getId());
+    // Comment has no business date: CommentDto exposes createdAt and the repository sorts on it.
+    backdate("comments", comment.getId(), m.publishedAt());
   }
 
   private @Nullable TeamEntity resolveCommentTarget(
@@ -1209,6 +1223,25 @@ public class BiketeamMigrationService {
     }
     String separator = md.isEmpty() ? "" : "\n\n";
     entity.setMarkdown(md + separator + directive);
+  }
+
+  // ─── Creation timestamps ──────────────────────────────────────────────────
+
+  /**
+   * Restores the biketeam creation date on a row we just wrote. {@code BaseEntity.createdAt} is a
+   * {@code @CreationTimestamp} mapped {@code updatable = false}: Hibernate stamps it on insert and
+   * never writes it again, so neither the entity setter nor an HQL bulk update reaches it. Plain
+   * SQL does.
+   */
+  private void backdate(String table, long id, @Nullable Instant createdAt) {
+    if (createdAt == null) {
+      return;
+    }
+    em.createNativeQuery(
+            "update " + table + " set created_at = :ts, updated_at = :ts where id = :id")
+        .setParameter("ts", OffsetDateTime.ofInstant(createdAt, ZoneOffset.UTC))
+        .setParameter("id", id)
+        .executeUpdate();
   }
 
   // ─── Mapping helpers ──────────────────────────────────────────────────────
