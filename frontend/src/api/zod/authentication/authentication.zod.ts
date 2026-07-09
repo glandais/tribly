@@ -106,6 +106,14 @@ export const LogoutHeader = zod.object({
   'X-Refresh-Token': zod.string().optional(),
 })
 
+export const LogoutResponse = zod.void()
+
+/**
+ * Logout from all devices by invalidating all refresh tokens
+ * @summary Logout all sessions
+ */
+export const LogoutAllResponse = zod.void()
+
 /**
  * Send a 6-digit OTP code to the user's email for passwordless login
  * @summary Request OTP

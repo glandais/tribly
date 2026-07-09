@@ -15,22 +15,40 @@ import type {
 } from '@tanstack/react-query'
 
 import type {
+  AdminDomainAliasDto,
   AdminDomainDto,
   AdminDomainListResponse,
   AdminGpsCredentialDto,
   AdminStatsDto,
+  CreateDomainAliasRequest,
   CreateDomainRequest,
   CreateGpsCredentialRequest,
   ErrorResponse,
   ListDomainsParams,
+  UpdateDomainAliasRequest,
   UpdateDomainRequest,
   UpdateGpsCredentialRequest,
 } from '../../dto'
 
-import { axiosMutator } from '../../../lib/axiosInstance'
-import type { ErrorType, BodyType } from '../../../lib/axiosInstance'
+import { axiosMutator } from '../../../lib/axiosInstance.ts'
+import type { ErrorType, BodyType } from '../../../lib/axiosInstance.ts'
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
+
+const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKey: K } => {
+  const result = { queryKey } as T & { queryKey: K }
+  for (const key of Object.keys(query)) {
+    // The explicit queryKey always wins, matching the previous
+    // `{ ...query, queryKey }` spread where it was set last.
+    if (key === 'queryKey') continue
+    Object.defineProperty(result, key, {
+      enumerable: true,
+      configurable: true,
+      get: () => (query as Record<string, unknown>)[key],
+    })
+  }
+  return result
+}
 
 /**
  * Get a paginated list of all domains
@@ -148,7 +166,7 @@ export function useListDomains<
     queryKey: DataTag<QueryKey, TData, TError>
   }
 
-  return { ...query, queryKey: queryOptions.queryKey }
+  return withQueryKey(query, queryOptions.queryKey)
 }
 
 /**
@@ -339,7 +357,7 @@ export function useGetStats<
     queryKey: DataTag<QueryKey, TData, TError>
   }
 
-  return { ...query, queryKey: queryOptions.queryKey }
+  return withQueryKey(query, queryOptions.queryKey)
 }
 
 /**
@@ -545,9 +563,473 @@ export function useGetDomain<
     queryKey: DataTag<QueryKey, TData, TError>
   }
 
-  return { ...query, queryKey: queryOptions.queryKey }
+  return withQueryKey(query, queryOptions.queryKey)
 }
 
+/**
+ * Get all dedicated hostnames (aliases) pinned to teams of a domain
+ * @summary List domain aliases
+ */
+export const listDomainAliases = (
+  domainId: string,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<AdminDomainAliasDto[]>(
+    { url: `/api/admin/domains/${domainId}/aliases`, method: 'GET', signal },
+    options
+  )
+}
+
+export const getListDomainAliasesQueryKey = (domainId: string) => {
+  return [`/api/admin/domains/${domainId}/aliases`] as const
+}
+
+export const getListDomainAliasesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listDomainAliases>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  domainId: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listDomainAliases>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getListDomainAliasesQueryKey(domainId)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listDomainAliases>>> = ({ signal }) =>
+    listDomainAliases(domainId, requestOptions, signal)
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: domainId !== null && domainId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof listDomainAliases>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+}
+
+export type ListDomainAliasesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listDomainAliases>>
+>
+export type ListDomainAliasesQueryError = ErrorType<void | ErrorResponse>
+
+export function useListDomainAliases<
+  TData = Awaited<ReturnType<typeof listDomainAliases>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  domainId: string,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof listDomainAliases>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listDomainAliases>>,
+          TError,
+          Awaited<ReturnType<typeof listDomainAliases>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListDomainAliases<
+  TData = Awaited<ReturnType<typeof listDomainAliases>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  domainId: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listDomainAliases>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listDomainAliases>>,
+          TError,
+          Awaited<ReturnType<typeof listDomainAliases>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListDomainAliases<
+  TData = Awaited<ReturnType<typeof listDomainAliases>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  domainId: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listDomainAliases>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List domain aliases
+ */
+
+export function useListDomainAliases<
+  TData = Awaited<ReturnType<typeof listDomainAliases>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  domainId: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listDomainAliases>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getListDomainAliasesQueryOptions(domainId, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * Create a dedicated hostname pinned to a team of the domain
+ * @summary Create domain alias
+ */
+export const createDomainAlias = (
+  domainId: string,
+  createDomainAliasRequest: BodyType<CreateDomainAliasRequest>,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<AdminDomainAliasDto>(
+    {
+      url: `/api/admin/domains/${domainId}/aliases`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: createDomainAliasRequest,
+      signal,
+    },
+    options
+  )
+}
+
+export const getCreateDomainAliasMutationOptions = <
+  TError = ErrorType<ErrorResponse | void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createDomainAlias>>,
+    TError,
+    { domainId: string; data: BodyType<CreateDomainAliasRequest> },
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createDomainAlias>>,
+  TError,
+  { domainId: string; data: BodyType<CreateDomainAliasRequest> },
+  TContext
+> => {
+  const mutationKey = ['createDomainAlias']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createDomainAlias>>,
+    { domainId: string; data: BodyType<CreateDomainAliasRequest> }
+  > = (props) => {
+    const { domainId, data } = props ?? {}
+
+    return createDomainAlias(domainId, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type CreateDomainAliasMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createDomainAlias>>
+>
+export type CreateDomainAliasMutationBody = BodyType<CreateDomainAliasRequest>
+export type CreateDomainAliasMutationError = ErrorType<ErrorResponse | void>
+
+/**
+ * @summary Create domain alias
+ */
+export const useCreateDomainAlias = <TError = ErrorType<ErrorResponse | void>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof createDomainAlias>>,
+      TError,
+      { domainId: string; data: BodyType<CreateDomainAliasRequest> },
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof createDomainAlias>>,
+  TError,
+  { domainId: string; data: BodyType<CreateDomainAliasRequest> },
+  TContext
+> => {
+  return useMutation(getCreateDomainAliasMutationOptions(options), queryClient)
+}
+/**
+ * Update a dedicated hostname's pinned team or branding
+ * @summary Update domain alias
+ */
+export const updateDomainAlias = (
+  domainId: string,
+  aliasId: string,
+  updateDomainAliasRequest: BodyType<UpdateDomainAliasRequest>,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<AdminDomainAliasDto>(
+    {
+      url: `/api/admin/domains/${domainId}/aliases/${aliasId}`,
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      data: updateDomainAliasRequest,
+      signal,
+    },
+    options
+  )
+}
+
+export const getUpdateDomainAliasMutationOptions = <
+  TError = ErrorType<ErrorResponse | void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateDomainAlias>>,
+    TError,
+    { domainId: string; aliasId: string; data: BodyType<UpdateDomainAliasRequest> },
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateDomainAlias>>,
+  TError,
+  { domainId: string; aliasId: string; data: BodyType<UpdateDomainAliasRequest> },
+  TContext
+> => {
+  const mutationKey = ['updateDomainAlias']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateDomainAlias>>,
+    { domainId: string; aliasId: string; data: BodyType<UpdateDomainAliasRequest> }
+  > = (props) => {
+    const { domainId, aliasId, data } = props ?? {}
+
+    return updateDomainAlias(domainId, aliasId, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type UpdateDomainAliasMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateDomainAlias>>
+>
+export type UpdateDomainAliasMutationBody = BodyType<UpdateDomainAliasRequest>
+export type UpdateDomainAliasMutationError = ErrorType<ErrorResponse | void>
+
+/**
+ * @summary Update domain alias
+ */
+export const useUpdateDomainAlias = <TError = ErrorType<ErrorResponse | void>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateDomainAlias>>,
+      TError,
+      { domainId: string; aliasId: string; data: BodyType<UpdateDomainAliasRequest> },
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof updateDomainAlias>>,
+  TError,
+  { domainId: string; aliasId: string; data: BodyType<UpdateDomainAliasRequest> },
+  TContext
+> => {
+  return useMutation(getUpdateDomainAliasMutationOptions(options), queryClient)
+}
+/**
+ * Delete a dedicated hostname
+ * @summary Delete domain alias
+ */
+export const deleteDomainAlias = (
+  domainId: string,
+  aliasId: string,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<void>(
+    { url: `/api/admin/domains/${domainId}/aliases/${aliasId}`, method: 'DELETE', signal },
+    options
+  )
+}
+
+export const getDeleteDomainAliasMutationOptions = <
+  TError = ErrorType<void | ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteDomainAlias>>,
+    TError,
+    { domainId: string; aliasId: string },
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteDomainAlias>>,
+  TError,
+  { domainId: string; aliasId: string },
+  TContext
+> => {
+  const mutationKey = ['deleteDomainAlias']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteDomainAlias>>,
+    { domainId: string; aliasId: string }
+  > = (props) => {
+    const { domainId, aliasId } = props ?? {}
+
+    return deleteDomainAlias(domainId, aliasId, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type DeleteDomainAliasMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteDomainAlias>>
+>
+
+export type DeleteDomainAliasMutationError = ErrorType<void | ErrorResponse>
+
+/**
+ * @summary Delete domain alias
+ */
+export const useDeleteDomainAlias = <TError = ErrorType<void | ErrorResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deleteDomainAlias>>,
+      TError,
+      { domainId: string; aliasId: string },
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof deleteDomainAlias>>,
+  TError,
+  { domainId: string; aliasId: string },
+  TContext
+> => {
+  return useMutation(getDeleteDomainAliasMutationOptions(options), queryClient)
+}
+/**
+ * Enable or disable a dedicated hostname
+ * @summary Toggle domain alias active status
+ */
+export const toggleDomainAliasActive = (
+  domainId: string,
+  aliasId: string,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<AdminDomainAliasDto>(
+    {
+      url: `/api/admin/domains/${domainId}/aliases/${aliasId}/toggle-active`,
+      method: 'POST',
+      signal,
+    },
+    options
+  )
+}
+
+export const getToggleDomainAliasActiveMutationOptions = <
+  TError = ErrorType<void | ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof toggleDomainAliasActive>>,
+    TError,
+    { domainId: string; aliasId: string },
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof toggleDomainAliasActive>>,
+  TError,
+  { domainId: string; aliasId: string },
+  TContext
+> => {
+  const mutationKey = ['toggleDomainAliasActive']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof toggleDomainAliasActive>>,
+    { domainId: string; aliasId: string }
+  > = (props) => {
+    const { domainId, aliasId } = props ?? {}
+
+    return toggleDomainAliasActive(domainId, aliasId, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type ToggleDomainAliasActiveMutationResult = NonNullable<
+  Awaited<ReturnType<typeof toggleDomainAliasActive>>
+>
+
+export type ToggleDomainAliasActiveMutationError = ErrorType<void | ErrorResponse>
+
+/**
+ * @summary Toggle domain alias active status
+ */
+export const useToggleDomainAliasActive = <
+  TError = ErrorType<void | ErrorResponse>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof toggleDomainAliasActive>>,
+      TError,
+      { domainId: string; aliasId: string },
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof toggleDomainAliasActive>>,
+  TError,
+  { domainId: string; aliasId: string },
+  TContext
+> => {
+  return useMutation(getToggleDomainAliasActiveMutationOptions(options), queryClient)
+}
 /**
  * Get all GPS credentials for a domain
  * @summary List GPS credentials
@@ -680,7 +1162,7 @@ export function useListDomainGpsCredentials<
     queryKey: DataTag<QueryKey, TData, TError>
   }
 
-  return { ...query, queryKey: queryOptions.queryKey }
+  return withQueryKey(query, queryOptions.queryKey)
 }
 
 /**

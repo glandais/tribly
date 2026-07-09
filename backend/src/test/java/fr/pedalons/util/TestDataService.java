@@ -13,6 +13,7 @@ import fr.pedalons.domain.common.TeamEntity;
 import fr.pedalons.domain.common.TeamEntitySlugRedirect;
 import fr.pedalons.domain.place.Place;
 import fr.pedalons.domain.platform.Domain;
+import fr.pedalons.domain.platform.DomainAlias;
 import fr.pedalons.domain.post.Post;
 import fr.pedalons.domain.ride.*;
 import fr.pedalons.domain.ridetemplate.RideTemplate;
@@ -35,6 +36,7 @@ import fr.pedalons.repository.calendar.CalendarTokenRepository;
 import fr.pedalons.repository.comment.CommentRepository;
 import fr.pedalons.repository.common.TeamEntitySlugRedirectRepository;
 import fr.pedalons.repository.place.PlaceRepository;
+import fr.pedalons.repository.platform.DomainAliasRepository;
 import fr.pedalons.repository.platform.DomainRepository;
 import fr.pedalons.repository.post.PostRepository;
 import fr.pedalons.repository.ride.RideGroupRepository;
@@ -78,6 +80,7 @@ public class TestDataService {
   @Inject RideParticipationRepository participationRepository;
   @Inject RouteRepository routeRepository;
   @Inject DomainRepository domainRepository;
+  @Inject DomainAliasRepository domainAliasRepository;
 
   @Transactional
   public Domain getOrCreateDefaultDomain() {
@@ -96,6 +99,26 @@ public class TestDataService {
     Domain domain = new Domain(domainName, name, baseUrl);
     domainRepository.persistAndFlush(domain);
     return domain;
+  }
+
+  @Transactional
+  public DomainAlias createDomainAlias(
+      String hostname, Domain domain, Team pinnedTeam, String name, String baseUrl) {
+    DomainAlias alias = new DomainAlias(hostname, domain, pinnedTeam, name, baseUrl);
+    domainAliasRepository.persistAndFlush(alias);
+    return alias;
+  }
+
+  @Transactional
+  public void setDomainAliasActive(DomainAlias alias, boolean active) {
+    DomainAlias managed = domainAliasRepository.findById(alias.getId());
+    managed.setActive(active);
+  }
+
+  @Transactional
+  public void softDeleteTeam(Team team) {
+    Team managed = teamRepository.findById(team.getId());
+    managed.setDeleted(true);
   }
 
   @Transactional

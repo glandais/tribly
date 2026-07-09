@@ -89,7 +89,7 @@ public class IcsGenerationService {
   }
 
   private String buildEventUrl(CalendarEventDto event) {
-    String baseUrl = domainResolver.getDomain().getBaseUrl();
+    String baseUrl = domainResolver.getEffectiveBaseUrl();
     return switch (event.type()) {
       case RIDE -> baseUrl + "/teams/" + event.teamSlug() + "/rides/" + event.entitySlug();
       case TRIP_STAGE -> {

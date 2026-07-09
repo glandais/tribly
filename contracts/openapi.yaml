@@ -271,6 +271,52 @@ components:
           description: Role to assign (defaults to MEMBER)
           type: string
           $ref: "#/components/schemas/TeamRole"
+    AdminDomainAliasDto:
+      description: Admin view of a domain alias (dedicated hostname pinned to a team)
+      type: object
+      required:
+      - id
+      - hostname
+      - domainId
+      - pinnedTeamId
+      - pinnedTeamSlug
+      - name
+      - baseUrl
+      - active
+      - createdAt
+      properties:
+        id:
+          type: string
+          description: Alias ID (TSID)
+        hostname:
+          type: string
+          description: Alias hostname
+        domainId:
+          type: string
+          description: Parent domain ID (TSID)
+        pinnedTeamId:
+          type: string
+          description: Pinned team ID (TSID)
+        pinnedTeamSlug:
+          type: string
+          description: Pinned team slug
+        name:
+          type: string
+          description: Alias display name
+        baseUrl:
+          type: string
+          description: Base URL for the alias
+        androidFingerprints:
+          type: string
+          description: "Android app SHA-256 certificate fingerprints for passkey origin\
+            \ verification (comma-separated, colon-hex format)"
+        active:
+          type: boolean
+          description: Whether alias is active
+        createdAt:
+          description: Alias creation timestamp
+          type: string
+          $ref: "#/components/schemas/Instant"
     AdminDomainDto:
       description: Admin domain view with statistics
       type: object
@@ -881,13 +927,52 @@ components:
       properties:
         webAuthnRpId:
           type: string
-          description: WebAuthn Relying Party ID (domain)
+          description: WebAuthn Relying Party ID (effective host)
         appName:
           type: string
           description: Application name
         singleTeam:
           type: boolean
           description: Single team mode - team creation disabled
+        pinnedTeamSlug:
+          type: string
+          description: "Slug of the team the site is pinned to (dedicated hostname\
+            \ / alias). Null on a regular multi-team domain. When set, the app roots\
+            \ on this team."
+    CreateDomainAliasRequest:
+      description: Request to create a domain alias (dedicated hostname pinned to
+        a team)
+      type: object
+      required:
+      - hostname
+      - teamSlug
+      - name
+      - baseUrl
+      properties:
+        hostname:
+          type: string
+          description: Alias hostname
+          pattern: \S
+          maxLength: 250
+        teamSlug:
+          type: string
+          description: Slug of the team to pin (must belong to the domain)
+          pattern: \S
+        name:
+          type: string
+          description: Alias display name
+          pattern: \S
+          maxLength: 250
+        baseUrl:
+          type: string
+          description: Base URL for the alias
+          pattern: \S
+          maxLength: 500
+        androidFingerprints:
+          type: string
+          description: "Android app SHA-256 certificate fingerprints for passkey origin\
+            \ verification (comma-separated, colon-hex format)"
+          maxLength: 1000
     CreateDomainRequest:
       description: Request to create a new domain
       type: object
@@ -1220,6 +1305,9 @@ components:
       - GPS_TOKEN_EXCHANGE_FAILED
       - ENCRYPTION_FAILED
       - DECRYPTION_FAILED
+      - DOMAIN_ALIAS_NOT_FOUND
+      - DOMAIN_ALIAS_HOSTNAME_EXISTS
+      - DOMAIN_ALIAS_TEAM_MISMATCH
     ErrorDetails:
       oneOf:
       - $ref: "#/components/schemas/ErrorValidationDetails"
@@ -3301,6 +3389,33 @@ components:
       enum:
       - METRIC
       - IMPERIAL
+    UpdateDomainAliasRequest:
+      description: Request to update a domain alias
+      type: object
+      required:
+      - teamSlug
+      - name
+      - baseUrl
+      properties:
+        teamSlug:
+          type: string
+          description: Slug of the team to pin (must belong to the domain)
+          pattern: \S
+        name:
+          type: string
+          description: Alias display name
+          pattern: \S
+          maxLength: 250
+        baseUrl:
+          type: string
+          description: Base URL for the alias
+          pattern: \S
+          maxLength: 500
+        androidFingerprints:
+          type: string
+          description: "Android app SHA-256 certificate fingerprints for passkey origin\
+            \ verification (comma-separated, colon-hex format)"
+          maxLength: 1000
     UpdateDomainRequest:
       description: Request to update a domain
       type: object
@@ -3715,6 +3830,240 @@ paths:
                 $ref: "#/components/schemas/AdminDomainDto"
         "404":
           description: Domain not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - not a platform admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
+  /api/admin/domains/{domainId}/aliases:
+    get:
+      summary: List domain aliases
+      description: Get all dedicated hostnames (aliases) pinned to teams of a domain
+      operationId: listDomainAliases
+      tags:
+      - Admin - Domains
+      parameters:
+      - description: Domain ID
+        name: domainId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Aliases retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminDomainAliasDto"
+        "404":
+          description: Domain not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - not a platform admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
+    post:
+      summary: Create domain alias
+      description: Create a dedicated hostname pinned to a team of the domain
+      operationId: createDomainAlias
+      tags:
+      - Admin - Domains
+      parameters:
+      - description: Domain ID
+        name: domainId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDomainAliasRequest"
+        required: true
+      responses:
+        "201":
+          description: Alias created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminDomainAliasDto"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Domain or team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Hostname already in use
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - not a platform admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
+  /api/admin/domains/{domainId}/aliases/{aliasId}:
+    put:
+      summary: Update domain alias
+      description: Update a dedicated hostname's pinned team or branding
+      operationId: updateDomainAlias
+      tags:
+      - Admin - Domains
+      parameters:
+      - description: Alias ID
+        name: aliasId
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Domain ID
+        name: domainId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDomainAliasRequest"
+        required: true
+      responses:
+        "200":
+          description: Alias updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminDomainAliasDto"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: "Domain, alias or team not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - not a platform admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
+    delete:
+      summary: Delete domain alias
+      description: Delete a dedicated hostname
+      operationId: deleteDomainAlias
+      tags:
+      - Admin - Domains
+      parameters:
+      - description: Alias ID
+        name: aliasId
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Domain ID
+        name: domainId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Alias deleted successfully
+        "404":
+          description: Domain or alias not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - not a platform admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
+  /api/admin/domains/{domainId}/aliases/{aliasId}/toggle-active:
+    post:
+      summary: Toggle domain alias active status
+      description: Enable or disable a dedicated hostname
+      operationId: toggleDomainAliasActive
+      tags:
+      - Admin - Domains
+      parameters:
+      - description: Alias ID
+        name: aliasId
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Domain ID
+        name: domainId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Alias status toggled successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminDomainAliasDto"
+        "404":
+          description: Domain or alias not found
           content:
             application/json:
               schema:

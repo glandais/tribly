@@ -1,8 +1,8 @@
 package fr.pedalons.service.auth;
 
-import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.infrastructure.email.EmailService;
 import fr.pedalons.service.security.DomainResolver;
+import fr.pedalons.service.security.ResolvedSite;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.Map;
@@ -15,9 +15,9 @@ public class AuthEmailService {
   @Inject DomainResolver domainResolver;
 
   public void sendVerificationEmail(String email, String displayName, String token) {
-    Domain domain = domainResolver.getDomain();
-    String appName = domain.getName();
-    String verifyUrl = domain.getBaseUrl() + "/verify-email?token=" + token;
+    ResolvedSite site = domainResolver.getResolvedSite();
+    String appName = site.effectiveName();
+    String verifyUrl = site.effectiveBaseUrl() + "/verify-email?token=" + token;
     emailService.sendEmail(
         email,
         EmailService.EMAIL_VERIFICATION,
@@ -26,15 +26,14 @@ public class AuthEmailService {
   }
 
   public void sendOtpEmail(String email, String code) {
-    Domain domain = domainResolver.getDomain();
-    String appName = domain.getName();
+    String appName = domainResolver.getEffectiveName();
     emailService.sendEmail(email, EmailService.OTP, "fr", Map.of("appName", appName, "code", code));
   }
 
   public void sendPasswordResetEmail(String email, String token) {
-    Domain domain = domainResolver.getDomain();
-    String appName = domain.getName();
-    String resetUrl = domain.getBaseUrl() + "/reset-password?token=" + token;
+    ResolvedSite site = domainResolver.getResolvedSite();
+    String appName = site.effectiveName();
+    String resetUrl = site.effectiveBaseUrl() + "/reset-password?token=" + token;
     emailService.sendEmail(
         email, EmailService.PASSWORD_RESET, "fr", Map.of("appName", appName, "resetUrl", resetUrl));
   }

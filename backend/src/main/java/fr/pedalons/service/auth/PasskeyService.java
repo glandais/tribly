@@ -28,6 +28,7 @@ import fr.pedalons.repository.auth.WebAuthnChallengeRepository;
 import fr.pedalons.repository.user.UserRepository;
 import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.service.security.PedalonsQueryContext;
+import fr.pedalons.service.security.ResolvedSite;
 import fr.pedalons.service.security.annotation.Logged;
 import fr.pedalons.service.security.annotation.Public;
 import io.quarkus.narayana.jta.QuarkusTransaction;
@@ -97,14 +98,14 @@ public class PasskeyService {
             .toList();
 
     // Build registration options
-    var domain = domainResolver.getDomain();
+    ResolvedSite site = domainResolver.getResolvedSite();
     Map<String, Object> options = new LinkedHashMap<>();
     options.put("challenge", challengeBase64);
     options.put(
         "rp",
         Map.of(
-            "id", domain.getDomain(),
-            "name", domain.getName()));
+            "id", site.effectiveHost(),
+            "name", site.effectiveName()));
     options.put(
         "user",
         Map.of(
@@ -168,12 +169,12 @@ public class PasskeyService {
       RegistrationData registrationData = webAuthnManager.parse(registrationRequest);
 
       // Verify the registration
-      var domain = domainResolver.getDomain();
+      ResolvedSite site = domainResolver.getResolvedSite();
       Challenge challenge = new DefaultChallenge(Base64.getUrlDecoder().decode(challengeValue));
       ServerProperty serverProperty =
           ServerProperty.builder()
-              .origins(buildOrigins(domain))
-              .rpId(domain.getDomain())
+              .origins(buildOrigins(site))
+              .rpId(site.effectiveHost())
               .challenge(challenge)
               .build();
 
@@ -276,11 +277,10 @@ public class PasskeyService {
     challengeRepository.persist(challenge);
 
     // Build authentication options
-    var domain = domainResolver.getDomain();
     Map<String, Object> options = new LinkedHashMap<>();
     options.put("challenge", challengeBase64);
     options.put("timeout", 60000);
-    options.put("rpId", domain.getDomain());
+    options.put("rpId", domainResolver.getEffectiveHost());
     options.put("userVerification", "preferred");
     if (!allowCredentials.isEmpty()) {
       options.put("allowCredentials", allowCredentials);
@@ -360,12 +360,12 @@ public class PasskeyService {
               );
 
       // Verify the authentication
-      var domain = domainResolver.getDomain();
+      ResolvedSite site = domainResolver.getResolvedSite();
       Challenge challenge = new DefaultChallenge(Base64.getUrlDecoder().decode(challengeValue));
       ServerProperty serverProperty =
           ServerProperty.builder()
-              .origins(buildOrigins(domain))
-              .rpId(domain.getDomain())
+              .origins(buildOrigins(site))
+              .rpId(site.effectiveHost())
               .challenge(challenge)
               .build();
 
@@ -374,8 +374,8 @@ public class PasskeyService {
 
       webAuthnManager.verify(authenticationData, authenticationParameters);
 
-      // Verify the passkey belongs to the current domain
-      if (!passkey.getUser().getDomain().getId().equals(domain.getId())) {
+      // Verify the passkey belongs to the current (parent) domain
+      if (!passkey.getUser().getDomain().getId().equals(domainResolver.getDomainId())) {
         throw new ForbiddenException();
       }
 
@@ -414,14 +414,14 @@ public class PasskeyService {
 
   /**
    * Build the set of allowed origins for WebAuthn verification. Includes the web origin from the
-   * domain's base URL, plus any Android app origins derived from SHA-256 certificate fingerprints
-   * stored in {@code domain.androidFingerprints} (comma-separated, colon-hex format).
+   * resolved site's effective base URL, plus any Android app origins derived from SHA-256
+   * certificate fingerprints (comma-separated, colon-hex format).
    */
-  private Set<Origin> buildOrigins(Domain domain) {
+  private Set<Origin> buildOrigins(ResolvedSite site) {
     Set<Origin> origins = new HashSet<>();
-    origins.add(new Origin(domain.getBaseUrl()));
+    origins.add(new Origin(site.effectiveBaseUrl()));
 
-    String fingerprints = domain.getAndroidFingerprints();
+    String fingerprints = site.effectiveAndroidFingerprints();
     if (fingerprints != null && !fingerprints.isBlank()) {
       for (String fingerprint : fingerprints.split(",")) {
         String trimmed = fingerprint.trim();

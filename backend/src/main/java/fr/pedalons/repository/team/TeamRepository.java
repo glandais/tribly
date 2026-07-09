@@ -29,6 +29,10 @@ public class TeamRepository implements BaseRepository<Team> {
         .firstResultOptional();
   }
 
+  public Optional<Team> findActiveById(Long id) {
+    return find("id = ?1 and deleted = false", id).firstResultOptional();
+  }
+
   public boolean existsBySlugAndDomain(Long domainId, String slug) {
     return count("domain.id = ?1 and slug = ?2 and deleted = false", domainId, slug) > 0;
   }

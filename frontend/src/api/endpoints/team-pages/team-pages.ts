@@ -23,10 +23,25 @@ import type {
   TeamPageSummaryDto,
 } from '../../dto'
 
-import { axiosMutator } from '../../../lib/axiosInstance'
-import type { ErrorType, BodyType } from '../../../lib/axiosInstance'
+import { axiosMutator } from '../../../lib/axiosInstance.ts'
+import type { ErrorType, BodyType } from '../../../lib/axiosInstance.ts'
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
+
+const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKey: K } => {
+  const result = { queryKey } as T & { queryKey: K }
+  for (const key of Object.keys(query)) {
+    // The explicit queryKey always wins, matching the previous
+    // `{ ...query, queryKey }` spread where it was set last.
+    if (key === 'queryKey') continue
+    Object.defineProperty(result, key, {
+      enumerable: true,
+      configurable: true,
+      get: () => (query as Record<string, unknown>)[key],
+    })
+  }
+  return result
+}
 
 /**
  * Get list of additional pages for a team
@@ -147,7 +162,7 @@ export function useListPages<
     queryKey: DataTag<QueryKey, TData, TError>
   }
 
-  return { ...query, queryKey: queryOptions.queryKey }
+  return withQueryKey(query, queryOptions.queryKey)
 }
 
 /**
@@ -529,7 +544,7 @@ export function useGetPage<
     queryKey: DataTag<QueryKey, TData, TError>
   }
 
-  return { ...query, queryKey: queryOptions.queryKey }
+  return withQueryKey(query, queryOptions.queryKey)
 }
 
 /**

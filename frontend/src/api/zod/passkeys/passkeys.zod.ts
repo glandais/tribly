@@ -122,3 +122,5 @@ export const GetRegistrationOptionsResponse = zod.unknown()
 export const DeletePasskeyParams = zod.object({
   id: zod.string(),
 })
+
+export const DeletePasskeyResponse = zod.void()

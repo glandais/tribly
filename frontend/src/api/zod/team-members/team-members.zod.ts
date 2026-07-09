@@ -73,6 +73,34 @@ export const AddMemberBody = zod
   })
   .describe('Request to add a member to the team')
 
+export const AddMemberResponse = zod
+  .object({
+    team: zod
+      .object({
+        id: zod.string().describe('Team ID (TSID)'),
+        name: zod.string().describe('Team name'),
+        slug: zod.string().describe('Team URL slug'),
+        visibility: zod
+          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+          .describe('Whether the team is public'),
+      })
+      .describe('Team'),
+    id: zod.string().describe('Membership ID (TSID)'),
+    user: zod
+      .object({
+        id: zod.string().describe('User ID (TSID)'),
+        displayName: zod.string().describe('User display name'),
+        avatarUrl: zod.string().optional().describe('User avatar URL'),
+      })
+      .describe('User'),
+    role: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']).describe('Member role'),
+    joinedAt: zod.iso
+      .datetime({ offset: true })
+      .optional()
+      .describe('When the user joined the team'),
+  })
+  .describe('Team member information')
+
 /**
  * Request to join a team
  * @summary Join team
@@ -81,6 +109,34 @@ export const JoinTeamParams = zod.object({
   teamSlug: zod.string().describe('Team URL slug'),
 })
 
+export const JoinTeamResponse = zod
+  .object({
+    team: zod
+      .object({
+        id: zod.string().describe('Team ID (TSID)'),
+        name: zod.string().describe('Team name'),
+        slug: zod.string().describe('Team URL slug'),
+        visibility: zod
+          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+          .describe('Whether the team is public'),
+      })
+      .describe('Team'),
+    id: zod.string().describe('Membership ID (TSID)'),
+    user: zod
+      .object({
+        id: zod.string().describe('User ID (TSID)'),
+        displayName: zod.string().describe('User display name'),
+        avatarUrl: zod.string().optional().describe('User avatar URL'),
+      })
+      .describe('User'),
+    role: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']).describe('Member role'),
+    joinedAt: zod.iso
+      .datetime({ offset: true })
+      .optional()
+      .describe('When the user joined the team'),
+  })
+  .describe('Team member information')
+
 /**
  * Leave a team
  * @summary Leave team
@@ -88,6 +144,8 @@ export const JoinTeamParams = zod.object({
 export const LeaveTeamParams = zod.object({
   teamSlug: zod.string().describe('Team URL slug'),
 })
+
+export const LeaveTeamResponse = zod.void()
 
 /**
  * Update a team member's role. Requires ADMIN role.
@@ -140,3 +198,5 @@ export const RemoveMemberParams = zod.object({
   memberId: zod.string().describe('Member user ID (TSID)'),
   teamSlug: zod.string().describe('Team URL slug'),
 })
+
+export const RemoveMemberResponse = zod.void()

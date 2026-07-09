@@ -4,7 +4,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import fr.pedalons.AbstractBaseTest;
 import fr.pedalons.domain.platform.Domain;
+import fr.pedalons.domain.platform.DomainAlias;
+import fr.pedalons.domain.team.Team;
+import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.config.ConfigDto;
+import fr.pedalons.enums.Visibility;
 import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.util.TestDataCleaner;
 import fr.pedalons.util.TestDataService;
@@ -37,5 +41,49 @@ class ConfigServiceTest extends AbstractBaseTest {
     assertNotNull(config);
     assertNotNull(config.webAuthnRpId());
     assertNotNull(config.appName());
+  }
+
+  @Test
+  void getConfig_onRegularDomain_hasNoPinnedTeamAndReflectsDomain() {
+    ConfigDto config = configService.getConfig();
+
+    assertEquals(domain.getDomain(), config.webAuthnRpId());
+    assertEquals(domain.getName(), config.appName());
+    assertFalse(config.singleTeam());
+    assertNull(config.pinnedTeamSlug());
+  }
+
+  @Test
+  void getConfig_onAlias_isSingleTeamAndReturnsPinnedTeamSlugAndAliasBranding() {
+    User user = dataService.createUser("owner@example.com", "Owner");
+    Team team = dataService.createTeam(user, "My Team", "my-team", Visibility.PUBLIC);
+    DomainAlias alias =
+        dataService.createDomainAlias(
+            "myteam.localhost", domain, team, "My Team Site", "http://myteam.localhost");
+    domainResolver.setAliasForTest(alias);
+
+    ConfigDto config = configService.getConfig();
+
+    assertTrue(config.singleTeam());
+    assertEquals("myteam.localhost", config.webAuthnRpId());
+    assertEquals("My Team Site", config.appName());
+    assertEquals("my-team", config.pinnedTeamSlug());
+  }
+
+  @Test
+  void getConfig_onAliasWithSoftDeletedPinnedTeam_fallsBackToNoPinnedSlug() {
+    User user = dataService.createUser("owner@example.com", "Owner");
+    Team team = dataService.createTeam(user, "Gone Team", "gone-team", Visibility.PUBLIC);
+    DomainAlias alias =
+        dataService.createDomainAlias(
+            "gone.localhost", domain, team, "Gone Site", "http://gone.localhost");
+    dataService.softDeleteTeam(team);
+    domainResolver.setAliasForTest(alias);
+
+    ConfigDto config = configService.getConfig();
+
+    // Still single-team mode (alias), but the pinned team no longer resolves.
+    assertTrue(config.singleTeam());
+    assertNull(config.pinnedTeamSlug());
   }
 }

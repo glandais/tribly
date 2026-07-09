@@ -87,6 +87,12 @@ export const GetMeResponse = zod
   .describe('User profile data')
 
 /**
+ * Delete the current user's account
+ * @summary Delete current user
+ */
+export const DeleteCurrentUserResponse = zod.void()
+
+/**
  * Upload a new avatar image for the current user. Image will be resized to 256x256.
  * @summary Upload user avatar
  */

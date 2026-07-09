@@ -24,9 +24,18 @@ import {
   Loader,
   Center,
 } from '@mantine/core'
-import { IconPlus, IconPencil, IconTrash, IconCheck, IconX } from '@tabler/icons-react'
+import {
+  IconPlus,
+  IconPencil,
+  IconTrash,
+  IconCheck,
+  IconX,
+  IconToggleLeft,
+  IconToggleRight,
+} from '@tabler/icons-react'
 import type {
   AdminDomainDto,
+  AdminDomainAliasDto,
   AdminGpsCredentialDto,
   CreateGpsCredentialRequest,
   UpdateGpsCredentialRequest,
@@ -41,6 +50,12 @@ import {
   useUpdateDomainGpsCredential,
   useDeleteDomainGpsCredential,
   getListDomainGpsCredentialsQueryKey,
+  useListDomainAliases,
+  useCreateDomainAlias,
+  useUpdateDomainAlias,
+  useDeleteDomainAlias,
+  useToggleDomainAliasActive,
+  getListDomainAliasesQueryKey,
 } from '@/api/endpoints/admin-domains/admin-domains'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 
@@ -195,6 +210,8 @@ export function DomainFormModal({ isOpen, onClose, domain }: DomainFormModalProp
             <>
               <Divider my="md" />
               <GpsCredentialsSection domainId={domain.id} />
+              <Divider my="md" />
+              <DomainAliasesSection domainId={domain.id} />
             </>
           )}
 
@@ -532,6 +549,362 @@ function GpsCredentialsSection({ domainId }: { domainId: string }) {
         onConfirm={handleDeleteCredential}
         title={t('admin.domains.gpsCredentials.deleteConfirm.title')}
         message={t('admin.domains.gpsCredentials.deleteConfirm.message')}
+        variant="danger"
+        isLoading={deleteMutation.isPending}
+      />
+    </Stack>
+  )
+}
+
+interface AliasFormValues {
+  hostname: string
+  teamSlug: string
+  name: string
+  baseUrl: string
+  androidFingerprints: string
+}
+
+function DomainAliasesSection({ domainId }: { domainId: string }) {
+  const { t } = useTranslation()
+  const queryClient = useQueryClient()
+  const [isAdding, setIsAdding] = useState(false)
+  const [editingAliasId, setEditingAliasId] = useState<string | null>(null)
+  const [deleteAlias, setDeleteAlias] = useState<AdminDomainAliasDto | null>(null)
+
+  const { data: aliases, isLoading } = useListDomainAliases(domainId)
+
+  const createMutation = useCreateDomainAlias()
+  const updateMutation = useUpdateDomainAlias()
+  const deleteMutation = useDeleteDomainAlias()
+  const toggleMutation = useToggleDomainAliasActive()
+
+  const emptyValues: AliasFormValues = {
+    hostname: '',
+    teamSlug: '',
+    name: '',
+    baseUrl: '',
+    androidFingerprints: '',
+  }
+  const addForm = useForm<AliasFormValues>({ initialValues: emptyValues })
+  const editForm = useForm<AliasFormValues>({ initialValues: emptyValues })
+
+  const invalidate = () =>
+    queryClient.invalidateQueries({ queryKey: getListDomainAliasesQueryKey(domainId) })
+
+  const handleAdd = async (values: AliasFormValues) => {
+    await createMutation.mutateAsync(
+      {
+        domainId,
+        data: {
+          hostname: values.hostname,
+          teamSlug: values.teamSlug,
+          name: values.name,
+          baseUrl: values.baseUrl,
+          androidFingerprints: values.androidFingerprints || undefined,
+        },
+      },
+      {
+        onSuccess: () => {
+          invalidate()
+          notifications.show({
+            message: t('admin.domains.aliases.notifications.created'),
+            color: 'green',
+          })
+          setIsAdding(false)
+          addForm.reset()
+        },
+      }
+    )
+  }
+
+  const handleUpdate = async (aliasId: string, values: AliasFormValues) => {
+    await updateMutation.mutateAsync(
+      {
+        domainId,
+        aliasId,
+        data: {
+          teamSlug: values.teamSlug,
+          name: values.name,
+          baseUrl: values.baseUrl,
+          androidFingerprints: values.androidFingerprints || undefined,
+        },
+      },
+      {
+        onSuccess: () => {
+          invalidate()
+          notifications.show({
+            message: t('admin.domains.aliases.notifications.updated'),
+            color: 'green',
+          })
+          setEditingAliasId(null)
+        },
+      }
+    )
+  }
+
+  const handleDelete = async () => {
+    if (!deleteAlias) return
+    await deleteMutation.mutateAsync(
+      { domainId, aliasId: deleteAlias.id },
+      {
+        onSuccess: () => {
+          invalidate()
+          notifications.show({
+            message: t('admin.domains.aliases.notifications.deleted'),
+            color: 'green',
+          })
+          setDeleteAlias(null)
+        },
+      }
+    )
+  }
+
+  const handleToggle = (aliasId: string) => {
+    toggleMutation.mutate({ domainId, aliasId }, { onSuccess: invalidate })
+  }
+
+  const startEdit = (alias: AdminDomainAliasDto) => {
+    editForm.setValues({
+      hostname: alias.hostname,
+      teamSlug: alias.pinnedTeamSlug,
+      name: alias.name,
+      baseUrl: alias.baseUrl,
+      androidFingerprints: alias.androidFingerprints ?? '',
+    })
+    setEditingAliasId(alias.id)
+  }
+
+  if (isLoading) {
+    return (
+      <Center py="md">
+        <Loader size="sm" />
+      </Center>
+    )
+  }
+
+  return (
+    <Stack>
+      <Group justify="space-between">
+        <Text fw={500}>{t('admin.domains.aliases.title')}</Text>
+        {!isAdding && (
+          <Button
+            size="xs"
+            variant="light"
+            leftSection={<IconPlus size={14} />}
+            onClick={() => setIsAdding(true)}
+          >
+            {t('admin.domains.aliases.add')}
+          </Button>
+        )}
+      </Group>
+
+      <Text size="xs" c="dimmed">
+        {t('admin.domains.aliases.description')}
+      </Text>
+
+      {isAdding && (
+        <Paper withBorder p="sm">
+          <Stack gap="sm">
+            <TextInput
+              label={t('admin.domains.aliases.hostname')}
+              placeholder="myteam.fr"
+              required
+              {...addForm.getInputProps('hostname')}
+            />
+            <TextInput
+              label={t('admin.domains.aliases.teamSlug')}
+              required
+              {...addForm.getInputProps('teamSlug')}
+            />
+            <TextInput
+              label={t('admin.domains.aliases.name')}
+              required
+              {...addForm.getInputProps('name')}
+            />
+            <TextInput
+              label={t('admin.domains.aliases.baseUrl')}
+              placeholder="https://myteam.fr"
+              required
+              {...addForm.getInputProps('baseUrl')}
+            />
+            <Textarea
+              label={t('admin.domains.androidFingerprints')}
+              description={t('admin.domains.androidFingerprintsDescription')}
+              placeholder={t('admin.domains.androidFingerprintsPlaceholder')}
+              autosize
+              minRows={2}
+              maxRows={4}
+              {...addForm.getInputProps('androidFingerprints')}
+            />
+            <Group justify="flex-end">
+              <Button
+                size="xs"
+                variant="default"
+                type="button"
+                onClick={() => {
+                  setIsAdding(false)
+                  addForm.reset()
+                }}
+              >
+                {t('actions.cancelAction')}
+              </Button>
+              <Button
+                size="xs"
+                type="button"
+                loading={createMutation.isPending}
+                onClick={() => addForm.onSubmit(handleAdd)()}
+              >
+                {t('actions.save')}
+              </Button>
+            </Group>
+          </Stack>
+        </Paper>
+      )}
+
+      {aliases && aliases.length > 0 ? (
+        <Table.ScrollContainer minWidth={500}>
+          <Table striped highlightOnHover>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>{t('admin.domains.aliases.hostname')}</Table.Th>
+                <Table.Th>{t('admin.domains.aliases.teamSlug')}</Table.Th>
+                <Table.Th ta="center">{t('admin.domains.status')}</Table.Th>
+                <Table.Th ta="center">{t('admin.domains.actions')}</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {aliases.map((alias) =>
+                editingAliasId === alias.id ? (
+                  <Table.Tr key={alias.id}>
+                    <Table.Td colSpan={4}>
+                      <Stack gap="xs">
+                        <Text size="sm" fw={500}>
+                          {alias.hostname}
+                        </Text>
+                        <Group grow>
+                          <TextInput
+                            label={t('admin.domains.aliases.teamSlug')}
+                            size="xs"
+                            required
+                            {...editForm.getInputProps('teamSlug')}
+                          />
+                          <TextInput
+                            label={t('admin.domains.aliases.name')}
+                            size="xs"
+                            required
+                            {...editForm.getInputProps('name')}
+                          />
+                        </Group>
+                        <TextInput
+                          label={t('admin.domains.aliases.baseUrl')}
+                          size="xs"
+                          required
+                          {...editForm.getInputProps('baseUrl')}
+                        />
+                        <Textarea
+                          label={t('admin.domains.androidFingerprints')}
+                          size="xs"
+                          autosize
+                          minRows={2}
+                          maxRows={4}
+                          {...editForm.getInputProps('androidFingerprints')}
+                        />
+                        <Group justify="flex-end">
+                          <ActionIcon
+                            variant="subtle"
+                            color="gray"
+                            type="button"
+                            onClick={() => setEditingAliasId(null)}
+                          >
+                            <IconX size={16} />
+                          </ActionIcon>
+                          <ActionIcon
+                            variant="subtle"
+                            color="green"
+                            type="button"
+                            loading={updateMutation.isPending}
+                            onClick={() =>
+                              editForm.onSubmit((values) => handleUpdate(alias.id, values))()
+                            }
+                          >
+                            <IconCheck size={16} />
+                          </ActionIcon>
+                        </Group>
+                      </Stack>
+                    </Table.Td>
+                  </Table.Tr>
+                ) : (
+                  <Table.Tr key={alias.id}>
+                    <Table.Td>
+                      <Text size="sm">{alias.hostname}</Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm" c="dimmed">
+                        {alias.pinnedTeamSlug}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td ta="center">
+                      <Badge color={alias.active ? 'green' : 'gray'} size="sm">
+                        {alias.active ? t('admin.status.active') : t('admin.status.inactive')}
+                      </Badge>
+                    </Table.Td>
+                    <Table.Td ta="center">
+                      <Group gap="xs" justify="center">
+                        <Tooltip label={t('actions.edit')}>
+                          <ActionIcon variant="subtle" onClick={() => startEdit(alias)}>
+                            <IconPencil size={16} />
+                          </ActionIcon>
+                        </Tooltip>
+                        <Tooltip
+                          label={
+                            alias.active
+                              ? t('admin.domains.deactivate')
+                              : t('admin.domains.activate')
+                          }
+                        >
+                          <ActionIcon
+                            variant="subtle"
+                            loading={toggleMutation.isPending}
+                            onClick={() => handleToggle(alias.id)}
+                          >
+                            {alias.active ? (
+                              <IconToggleRight size={18} />
+                            ) : (
+                              <IconToggleLeft size={18} />
+                            )}
+                          </ActionIcon>
+                        </Tooltip>
+                        <Tooltip label={t('actions.delete')}>
+                          <ActionIcon
+                            variant="subtle"
+                            color="red"
+                            onClick={() => setDeleteAlias(alias)}
+                          >
+                            <IconTrash size={16} />
+                          </ActionIcon>
+                        </Tooltip>
+                      </Group>
+                    </Table.Td>
+                  </Table.Tr>
+                )
+              )}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
+      ) : (
+        !isAdding && (
+          <Alert color="gray" variant="light">
+            {t('admin.domains.aliases.empty')}
+          </Alert>
+        )
+      )}
+
+      <ConfirmDialog
+        isOpen={!!deleteAlias}
+        onClose={() => setDeleteAlias(null)}
+        onConfirm={handleDelete}
+        title={t('admin.domains.aliases.deleteConfirm.title')}
+        message={t('admin.domains.aliases.deleteConfirm.message')}
         variant="danger"
         isLoading={deleteMutation.isPending}
       />

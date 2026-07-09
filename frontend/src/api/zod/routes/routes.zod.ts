@@ -662,6 +662,180 @@ export const CreateRouteBody = zod.object({
   gpxFile: zod.instanceof(File).optional(),
 })
 
+export const CreateRouteResponse = zod
+  .object({
+    id: zod.string().describe('Route ID (TSID)'),
+    slug: zod.string().describe('Route slug'),
+    team: zod
+      .object({
+        id: zod.string().describe('Team ID (TSID)'),
+        name: zod.string().describe('Team name'),
+        slug: zod.string().describe('Team URL slug'),
+        visibility: zod
+          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+          .describe('Whether the team is public'),
+      })
+      .describe('Team'),
+    name: zod.string().describe('Route name'),
+    media: zod
+      .object({
+        markdown: zod.string().describe('Markdown'),
+        assets: zod
+          .object({
+            logo: zod
+              .object({
+                id: zod.string().describe('ID (TSID)'),
+                fileName: zod.string().describe('Filename'),
+                contentType: zod.string().describe('Content-Type'),
+                url: zod.string().describe('url'),
+                imageUrl: zod.string().optional().describe('image template url'),
+                imageDimensions: zod
+                  .object({
+                    width: zod.number().optional(),
+                    height: zod.number().optional(),
+                  })
+                  .optional()
+                  .describe('image dimensions'),
+              })
+              .optional()
+              .describe('Logo'),
+            images: zod
+              .array(
+                zod.object({
+                  id: zod.string().describe('ID (TSID)'),
+                  fileName: zod.string().describe('Filename'),
+                  contentType: zod.string().describe('Content-Type'),
+                  url: zod.string().describe('url'),
+                  imageUrl: zod.string().optional().describe('image template url'),
+                  imageDimensions: zod
+                    .object({
+                      width: zod.number().optional(),
+                      height: zod.number().optional(),
+                    })
+                    .optional()
+                    .describe('image dimensions'),
+                })
+              )
+              .describe('Images'),
+            attachments: zod
+              .array(
+                zod.object({
+                  id: zod.string().describe('ID (TSID)'),
+                  fileName: zod.string().describe('Filename'),
+                  contentType: zod.string().describe('Content-Type'),
+                  url: zod.string().describe('url'),
+                  imageUrl: zod.string().optional().describe('image template url'),
+                  imageDimensions: zod
+                    .object({
+                      width: zod.number().optional(),
+                      height: zod.number().optional(),
+                    })
+                    .optional()
+                    .describe('image dimensions'),
+                })
+              )
+              .describe('Attachments'),
+            originalGpx: zod
+              .object({
+                id: zod.string().describe('ID (TSID)'),
+                fileName: zod.string().describe('Filename'),
+                contentType: zod.string().describe('Content-Type'),
+                url: zod.string().describe('url'),
+                imageUrl: zod.string().optional().describe('image template url'),
+                imageDimensions: zod
+                  .object({
+                    width: zod.number().optional(),
+                    height: zod.number().optional(),
+                  })
+                  .optional()
+                  .describe('image dimensions'),
+              })
+              .optional()
+              .describe('Original GPX'),
+            gpx: zod
+              .object({
+                id: zod.string().describe('ID (TSID)'),
+                fileName: zod.string().describe('Filename'),
+                contentType: zod.string().describe('Content-Type'),
+                url: zod.string().describe('url'),
+                imageUrl: zod.string().optional().describe('image template url'),
+                imageDimensions: zod
+                  .object({
+                    width: zod.number().optional(),
+                    height: zod.number().optional(),
+                  })
+                  .optional()
+                  .describe('image dimensions'),
+              })
+              .optional()
+              .describe('GPX'),
+            fit: zod
+              .object({
+                id: zod.string().describe('ID (TSID)'),
+                fileName: zod.string().describe('Filename'),
+                contentType: zod.string().describe('Content-Type'),
+                url: zod.string().describe('url'),
+                imageUrl: zod.string().optional().describe('image template url'),
+                imageDimensions: zod
+                  .object({
+                    width: zod.number().optional(),
+                    height: zod.number().optional(),
+                  })
+                  .optional()
+                  .describe('image dimensions'),
+              })
+              .optional()
+              .describe('FIT'),
+            thumbnailLight: zod
+              .object({
+                id: zod.string().describe('ID (TSID)'),
+                fileName: zod.string().describe('Filename'),
+                contentType: zod.string().describe('Content-Type'),
+                url: zod.string().describe('url'),
+                imageUrl: zod.string().optional().describe('image template url'),
+                imageDimensions: zod
+                  .object({
+                    width: zod.number().optional(),
+                    height: zod.number().optional(),
+                  })
+                  .optional()
+                  .describe('image dimensions'),
+              })
+              .optional()
+              .describe('Light thumbnail'),
+            thumbnailDark: zod
+              .object({
+                id: zod.string().describe('ID (TSID)'),
+                fileName: zod.string().describe('Filename'),
+                contentType: zod.string().describe('Content-Type'),
+                url: zod.string().describe('url'),
+                imageUrl: zod.string().optional().describe('image template url'),
+                imageDimensions: zod
+                  .object({
+                    width: zod.number().optional(),
+                    height: zod.number().optional(),
+                  })
+                  .optional()
+                  .describe('image dimensions'),
+              })
+              .optional()
+              .describe('Dark thumbnail'),
+          })
+          .describe('Assets'),
+      })
+      .describe('Route description'),
+    distance: zod.number().describe('Distance in meters'),
+    elevationGain: zod.number().describe('Total elevation gain in meters'),
+    elevationLoss: zod.number().describe('Total elevation loss in meters'),
+    surfaceType: zod.enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED']).describe('Surface type'),
+    visibility: zod
+      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+      .describe('Whether the route is public'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
+    deleted: zod.boolean().describe('Whether the route is soft-deleted'),
+  })
+  .describe('Route summary data')
+
 /**
  * Update route metadata (name, markdown, etc.) and optionally replace the GPX file. If a new GPX file is provided, the old track data and climbs will be replaced.
  * @summary Update route
@@ -1285,6 +1459,8 @@ export const DeleteRouteParams = zod.object({
   teamSlug: zod.string().describe('Team URL slug'),
 })
 
+export const DeleteRouteResponse = zod.void()
+
 /**
  * Change route URL slug. Requires organizer permissions.
  * @summary Change route slug
@@ -1296,7 +1472,7 @@ export const ChangeRouteSlugParams = zod.object({
 
 export const changeRouteSlugBodySlugMax = 200
 
-export const changeRouteSlugBodySlugRegExp = new RegExp('^[a-z0-9]+(-[a-z0-9]+)\*$')
+export const changeRouteSlugBodySlugRegExp = new RegExp('^[a-z0-9]+(-[a-z0-9]+)*$')
 
 export const ChangeRouteSlugBody = zod
   .object({

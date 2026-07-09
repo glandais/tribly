@@ -1,15 +1,19 @@
 package fr.pedalons.api.admin;
 
+import fr.pedalons.dto.admin.AdminDomainAliasDto;
 import fr.pedalons.dto.admin.AdminDomainDto;
 import fr.pedalons.dto.admin.AdminDomainListResponse;
 import fr.pedalons.dto.admin.AdminGpsCredentialDto;
 import fr.pedalons.dto.admin.AdminStatsDto;
+import fr.pedalons.dto.admin.CreateDomainAliasRequest;
 import fr.pedalons.dto.admin.CreateDomainRequest;
 import fr.pedalons.dto.admin.CreateGpsCredentialRequest;
+import fr.pedalons.dto.admin.UpdateDomainAliasRequest;
 import fr.pedalons.dto.admin.UpdateDomainRequest;
 import fr.pedalons.dto.admin.UpdateGpsCredentialRequest;
 import fr.pedalons.dto.common.PedalonsPage;
 import fr.pedalons.dto.error.ErrorResponse;
+import fr.pedalons.service.admin.AdminDomainAliasService;
 import fr.pedalons.service.admin.AdminDomainGpsCredentialService;
 import fr.pedalons.service.admin.AdminDomainService;
 import fr.pedalons.service.security.annotation.Admin;
@@ -38,6 +42,8 @@ public class AdminDomainResource {
   @Inject AdminDomainService adminDomainService;
 
   @Inject AdminDomainGpsCredentialService gpsCredentialService;
+
+  @Inject AdminDomainAliasService aliasService;
 
   @GET
   @Path("/stats")
@@ -341,6 +347,167 @@ public class AdminDomainResource {
       @Parameter(description = "Credential ID") @PathParam("credentialId") String credentialId) {
 
     gpsCredentialService.deleteCredential(domainId, credentialId);
+    return Response.noContent().build();
+  }
+
+  // Domain alias endpoints (dedicated hostnames pinned to a team)
+
+  @GET
+  @Path("/{domainId}/aliases")
+  @Admin
+  @Operation(
+      operationId = "listDomainAliases",
+      summary = "List domain aliases",
+      description = "Get all dedicated hostnames (aliases) pinned to teams of a domain")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Aliases retrieved successfully",
+        content =
+            @Content(
+                schema =
+                    @Schema(
+                        type = org.eclipse.microprofile.openapi.annotations.enums.SchemaType.ARRAY,
+                        implementation = AdminDomainAliasDto.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Domain not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "Forbidden - not a platform admin",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response listDomainAliases(
+      @Parameter(description = "Domain ID") @PathParam("domainId") String domainId) {
+
+    List<AdminDomainAliasDto> aliases = aliasService.listAliases(domainId);
+    return Response.ok(aliases).build();
+  }
+
+  @POST
+  @Path("/{domainId}/aliases")
+  @Admin
+  @Operation(
+      operationId = "createDomainAlias",
+      summary = "Create domain alias",
+      description = "Create a dedicated hostname pinned to a team of the domain")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "201",
+        description = "Alias created successfully",
+        content = @Content(schema = @Schema(implementation = AdminDomainAliasDto.class))),
+    @APIResponse(
+        responseCode = "400",
+        description = "Invalid request",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Domain or team not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "409",
+        description = "Hostname already in use",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "Forbidden - not a platform admin",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response createDomainAlias(
+      @Parameter(description = "Domain ID") @PathParam("domainId") String domainId,
+      @Valid CreateDomainAliasRequest request) {
+
+    AdminDomainAliasDto alias = aliasService.createAlias(domainId, request);
+    return Response.status(Response.Status.CREATED).entity(alias).build();
+  }
+
+  @PUT
+  @Path("/{domainId}/aliases/{aliasId}")
+  @Admin
+  @Operation(
+      operationId = "updateDomainAlias",
+      summary = "Update domain alias",
+      description = "Update a dedicated hostname's pinned team or branding")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Alias updated successfully",
+        content = @Content(schema = @Schema(implementation = AdminDomainAliasDto.class))),
+    @APIResponse(
+        responseCode = "400",
+        description = "Invalid request",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Domain, alias or team not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "Forbidden - not a platform admin",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response updateDomainAlias(
+      @Parameter(description = "Domain ID") @PathParam("domainId") String domainId,
+      @Parameter(description = "Alias ID") @PathParam("aliasId") String aliasId,
+      @Valid UpdateDomainAliasRequest request) {
+
+    AdminDomainAliasDto alias = aliasService.updateAlias(domainId, aliasId, request);
+    return Response.ok(alias).build();
+  }
+
+  @POST
+  @Path("/{domainId}/aliases/{aliasId}/toggle-active")
+  @Admin
+  @Operation(
+      operationId = "toggleDomainAliasActive",
+      summary = "Toggle domain alias active status",
+      description = "Enable or disable a dedicated hostname")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Alias status toggled successfully",
+        content = @Content(schema = @Schema(implementation = AdminDomainAliasDto.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Domain or alias not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "Forbidden - not a platform admin",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response toggleDomainAliasActive(
+      @Parameter(description = "Domain ID") @PathParam("domainId") String domainId,
+      @Parameter(description = "Alias ID") @PathParam("aliasId") String aliasId) {
+
+    AdminDomainAliasDto alias = aliasService.toggleAliasActive(domainId, aliasId);
+    return Response.ok(alias).build();
+  }
+
+  @DELETE
+  @Path("/{domainId}/aliases/{aliasId}")
+  @Admin
+  @Operation(
+      operationId = "deleteDomainAlias",
+      summary = "Delete domain alias",
+      description = "Delete a dedicated hostname")
+  @APIResponses({
+    @APIResponse(responseCode = "204", description = "Alias deleted successfully"),
+    @APIResponse(
+        responseCode = "404",
+        description = "Domain or alias not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "Forbidden - not a platform admin",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response deleteDomainAlias(
+      @Parameter(description = "Domain ID") @PathParam("domainId") String domainId,
+      @Parameter(description = "Alias ID") @PathParam("aliasId") String aliasId) {
+
+    aliasService.deleteAlias(domainId, aliasId);
     return Response.noContent().build();
   }
 }

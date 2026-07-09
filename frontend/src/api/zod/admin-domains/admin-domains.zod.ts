@@ -86,6 +86,26 @@ export const CreateDomainBody = zod
   })
   .describe('Request to create a new domain')
 
+export const CreateDomainResponse = zod
+  .object({
+    id: zod.string().describe('Domain ID (TSID)'),
+    domain: zod.string().describe('Domain hostname'),
+    name: zod.string().describe('Domain display name'),
+    baseUrl: zod.string().describe('Base URL for the domain'),
+    singleTeam: zod.boolean().describe('Whether domain is single-team mode'),
+    androidFingerprints: zod
+      .string()
+      .optional()
+      .describe(
+        'Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)'
+      ),
+    active: zod.boolean().describe('Whether domain is active'),
+    teamCount: zod.number().describe('Number of teams in this domain'),
+    userCount: zod.number().describe('Number of users in this domain'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Domain creation timestamp'),
+  })
+  .describe('Admin domain view with statistics')
+
 /**
  * Get overall platform statistics
  * @summary Get platform statistics
@@ -186,6 +206,210 @@ export const GetDomainResponse = zod
   .describe('Admin domain view with statistics')
 
 /**
+ * Get all dedicated hostnames (aliases) pinned to teams of a domain
+ * @summary List domain aliases
+ */
+export const ListDomainAliasesParams = zod.object({
+  domainId: zod.string().describe('Domain ID'),
+})
+
+export const ListDomainAliasesResponseItem = zod
+  .object({
+    id: zod.string().describe('Alias ID (TSID)'),
+    hostname: zod.string().describe('Alias hostname'),
+    domainId: zod.string().describe('Parent domain ID (TSID)'),
+    pinnedTeamId: zod.string().describe('Pinned team ID (TSID)'),
+    pinnedTeamSlug: zod.string().describe('Pinned team slug'),
+    name: zod.string().describe('Alias display name'),
+    baseUrl: zod.string().describe('Base URL for the alias'),
+    androidFingerprints: zod
+      .string()
+      .optional()
+      .describe(
+        'Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)'
+      ),
+    active: zod.boolean().describe('Whether alias is active'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Alias creation timestamp'),
+  })
+  .describe('Admin view of a domain alias (dedicated hostname pinned to a team)')
+export const ListDomainAliasesResponse = zod.array(ListDomainAliasesResponseItem)
+
+/**
+ * Create a dedicated hostname pinned to a team of the domain
+ * @summary Create domain alias
+ */
+export const CreateDomainAliasParams = zod.object({
+  domainId: zod.string().describe('Domain ID'),
+})
+
+export const createDomainAliasBodyHostnameMax = 250
+
+export const createDomainAliasBodyHostnameRegExp = new RegExp('\\S')
+export const createDomainAliasBodyTeamSlugRegExp = new RegExp('\\S')
+export const createDomainAliasBodyNameMax = 250
+
+export const createDomainAliasBodyNameRegExp = new RegExp('\\S')
+export const createDomainAliasBodyBaseUrlMax = 500
+
+export const createDomainAliasBodyBaseUrlRegExp = new RegExp('\\S')
+export const createDomainAliasBodyAndroidFingerprintsMax = 1000
+
+export const CreateDomainAliasBody = zod
+  .object({
+    hostname: zod
+      .string()
+      .max(createDomainAliasBodyHostnameMax)
+      .regex(createDomainAliasBodyHostnameRegExp)
+      .describe('Alias hostname'),
+    teamSlug: zod
+      .string()
+      .regex(createDomainAliasBodyTeamSlugRegExp)
+      .describe('Slug of the team to pin (must belong to the domain)'),
+    name: zod
+      .string()
+      .max(createDomainAliasBodyNameMax)
+      .regex(createDomainAliasBodyNameRegExp)
+      .describe('Alias display name'),
+    baseUrl: zod
+      .string()
+      .max(createDomainAliasBodyBaseUrlMax)
+      .regex(createDomainAliasBodyBaseUrlRegExp)
+      .describe('Base URL for the alias'),
+    androidFingerprints: zod
+      .string()
+      .max(createDomainAliasBodyAndroidFingerprintsMax)
+      .optional()
+      .describe(
+        'Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)'
+      ),
+  })
+  .describe('Request to create a domain alias (dedicated hostname pinned to a team)')
+
+export const CreateDomainAliasResponse = zod
+  .object({
+    id: zod.string().describe('Alias ID (TSID)'),
+    hostname: zod.string().describe('Alias hostname'),
+    domainId: zod.string().describe('Parent domain ID (TSID)'),
+    pinnedTeamId: zod.string().describe('Pinned team ID (TSID)'),
+    pinnedTeamSlug: zod.string().describe('Pinned team slug'),
+    name: zod.string().describe('Alias display name'),
+    baseUrl: zod.string().describe('Base URL for the alias'),
+    androidFingerprints: zod
+      .string()
+      .optional()
+      .describe(
+        'Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)'
+      ),
+    active: zod.boolean().describe('Whether alias is active'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Alias creation timestamp'),
+  })
+  .describe('Admin view of a domain alias (dedicated hostname pinned to a team)')
+
+/**
+ * Update a dedicated hostname's pinned team or branding
+ * @summary Update domain alias
+ */
+export const UpdateDomainAliasParams = zod.object({
+  aliasId: zod.string().describe('Alias ID'),
+  domainId: zod.string().describe('Domain ID'),
+})
+
+export const updateDomainAliasBodyTeamSlugRegExp = new RegExp('\\S')
+export const updateDomainAliasBodyNameMax = 250
+
+export const updateDomainAliasBodyNameRegExp = new RegExp('\\S')
+export const updateDomainAliasBodyBaseUrlMax = 500
+
+export const updateDomainAliasBodyBaseUrlRegExp = new RegExp('\\S')
+export const updateDomainAliasBodyAndroidFingerprintsMax = 1000
+
+export const UpdateDomainAliasBody = zod
+  .object({
+    teamSlug: zod
+      .string()
+      .regex(updateDomainAliasBodyTeamSlugRegExp)
+      .describe('Slug of the team to pin (must belong to the domain)'),
+    name: zod
+      .string()
+      .max(updateDomainAliasBodyNameMax)
+      .regex(updateDomainAliasBodyNameRegExp)
+      .describe('Alias display name'),
+    baseUrl: zod
+      .string()
+      .max(updateDomainAliasBodyBaseUrlMax)
+      .regex(updateDomainAliasBodyBaseUrlRegExp)
+      .describe('Base URL for the alias'),
+    androidFingerprints: zod
+      .string()
+      .max(updateDomainAliasBodyAndroidFingerprintsMax)
+      .optional()
+      .describe(
+        'Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)'
+      ),
+  })
+  .describe('Request to update a domain alias')
+
+export const UpdateDomainAliasResponse = zod
+  .object({
+    id: zod.string().describe('Alias ID (TSID)'),
+    hostname: zod.string().describe('Alias hostname'),
+    domainId: zod.string().describe('Parent domain ID (TSID)'),
+    pinnedTeamId: zod.string().describe('Pinned team ID (TSID)'),
+    pinnedTeamSlug: zod.string().describe('Pinned team slug'),
+    name: zod.string().describe('Alias display name'),
+    baseUrl: zod.string().describe('Base URL for the alias'),
+    androidFingerprints: zod
+      .string()
+      .optional()
+      .describe(
+        'Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)'
+      ),
+    active: zod.boolean().describe('Whether alias is active'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Alias creation timestamp'),
+  })
+  .describe('Admin view of a domain alias (dedicated hostname pinned to a team)')
+
+/**
+ * Delete a dedicated hostname
+ * @summary Delete domain alias
+ */
+export const DeleteDomainAliasParams = zod.object({
+  aliasId: zod.string().describe('Alias ID'),
+  domainId: zod.string().describe('Domain ID'),
+})
+
+export const DeleteDomainAliasResponse = zod.void()
+
+/**
+ * Enable or disable a dedicated hostname
+ * @summary Toggle domain alias active status
+ */
+export const ToggleDomainAliasActiveParams = zod.object({
+  aliasId: zod.string().describe('Alias ID'),
+  domainId: zod.string().describe('Domain ID'),
+})
+
+export const ToggleDomainAliasActiveResponse = zod
+  .object({
+    id: zod.string().describe('Alias ID (TSID)'),
+    hostname: zod.string().describe('Alias hostname'),
+    domainId: zod.string().describe('Parent domain ID (TSID)'),
+    pinnedTeamId: zod.string().describe('Pinned team ID (TSID)'),
+    pinnedTeamSlug: zod.string().describe('Pinned team slug'),
+    name: zod.string().describe('Alias display name'),
+    baseUrl: zod.string().describe('Base URL for the alias'),
+    androidFingerprints: zod
+      .string()
+      .optional()
+      .describe(
+        'Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)'
+      ),
+    active: zod.boolean().describe('Whether alias is active'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Alias creation timestamp'),
+  })
+  .describe('Admin view of a domain alias (dedicated hostname pinned to a team)')
+
+/**
  * Get all GPS credentials for a domain
  * @summary List GPS credentials
  */
@@ -233,6 +457,16 @@ export const CreateDomainGpsCredentialBody = zod
     active: zod.boolean().optional().describe('Whether credential is active'),
   })
   .describe('Request to create a new GPS credential')
+
+export const CreateDomainGpsCredentialResponse = zod
+  .object({
+    id: zod.string().describe('Credential ID (TSID)'),
+    serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']).describe('GPS service type'),
+    clientId: zod.string().describe('OAuth client ID'),
+    active: zod.boolean().describe('Whether credential is active'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Credential creation timestamp'),
+  })
+  .describe('Admin GPS credential view (without secret)')
 
 /**
  * Update a GPS credential for a domain
@@ -282,6 +516,8 @@ export const DeleteDomainGpsCredentialParams = zod.object({
   credentialId: zod.string().describe('Credential ID'),
   domainId: zod.string().describe('Domain ID'),
 })
+
+export const DeleteDomainGpsCredentialResponse = zod.void()
 
 /**
  * Enable or disable a domain

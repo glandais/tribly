@@ -117,6 +117,44 @@ export const CreateTemplateBody = zod
   })
   .describe('Ride template request')
 
+export const CreateTemplateResponse = zod
+  .object({
+    team: zod
+      .object({
+        id: zod.string().describe('Team ID (TSID)'),
+        name: zod.string().describe('Team name'),
+        slug: zod.string().describe('Team URL slug'),
+        visibility: zod
+          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+          .describe('Whether the team is public'),
+      })
+      .describe('Team'),
+    id: zod.string().describe('Template ID (TSID)'),
+    slug: zod.string().describe('Template slug'),
+    name: zod.string().describe('Template name'),
+    markdown: zod.string().describe('Template description (markdown)'),
+    visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
+    status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Default status'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
+    updatedAt: zod.iso.datetime({ offset: true }).describe('Last update timestamp'),
+    groupCount: zod.number().describe('Number of groups'),
+    groups: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Group ID (TSID)'),
+            name: zod.string().describe('Group name'),
+            time: zod.string().optional(),
+            averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
+            maxParticipants: zod.number().optional().describe('Maximum participants'),
+            sortOrder: zod.number().describe('Sort order'),
+          })
+          .describe('Ride template group information')
+      )
+      .describe('Template groups'),
+  })
+  .describe('Ride template response')
+
 /**
  * Update ride template information. Requires organizer permissions.
  * @summary Update ride template
@@ -260,3 +298,5 @@ export const DeleteTemplateParams = zod.object({
   teamSlug: zod.string().describe('Team URL slug'),
   templateSlug: zod.string().describe('Template URL slug'),
 })
+
+export const DeleteTemplateResponse = zod.void()

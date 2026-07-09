@@ -40,6 +40,8 @@ export const GetGlobalIcsFeedQueryParams = zod.object({
   token: zod.string().optional().describe('Calendar access token'),
 })
 
+export const GetGlobalIcsFeedResponse = zod.unknown()
+
 /**
  * Get or create the user's calendar token for ICS feed access
  * @summary Get calendar token
@@ -111,3 +113,5 @@ export const GetTeamIcsFeedParams = zod.object({
 export const GetTeamIcsFeedQueryParams = zod.object({
   token: zod.string().optional().describe('Calendar access token'),
 })
+
+export const GetTeamIcsFeedResponse = zod.unknown()

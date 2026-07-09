@@ -103,6 +103,22 @@ export const CreatePlaceBody = zod
   })
   .describe('Place create\/update request')
 
+export const CreatePlaceResponse = zod.object({
+  id: zod.string().describe('Place ID (TSID)'),
+  name: zod.string(),
+  address: zod.string().optional(),
+  link: zod.string().optional(),
+  startPlace: zod.boolean(),
+  endPlace: zod.boolean(),
+  geometry: zod
+    .object({
+      type: zod.enum(['Point']),
+      coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+    })
+    .optional()
+    .describe('Location coordinates [longitude, latitude]'),
+})
+
 /**
  * Update an existing place
  * @summary Update place
@@ -202,3 +218,5 @@ export const DeletePlaceParams = zod.object({
   placeId: zod.string().describe('Place ID (TSID)'),
   teamSlug: zod.string().describe('Team URL slug'),
 })
+
+export const DeletePlaceResponse = zod.void()

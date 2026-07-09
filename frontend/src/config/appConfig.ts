@@ -27,3 +27,12 @@ export async function fetchAppConfig(): Promise<ConfigDto> {
 export function getAppConfig(): ConfigDto | null {
   return cachedConfig
 }
+
+/**
+ * When the site is served on a dedicated hostname (domain alias) pinned to a single team, returns
+ * that team's slug. The app then roots on this team instead of showing the multi-team landing.
+ * Returns null on a regular multi-team domain.
+ */
+export function getPinnedTeamSlug(): string | null {
+  return cachedConfig?.pinnedTeamSlug ?? null
+}

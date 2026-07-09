@@ -8,8 +8,8 @@ import type {
 
 import type { ErrorResponse, RouterRequest, RouterResponse } from '../../dto'
 
-import { axiosMutator } from '../../../lib/axiosInstance'
-import type { ErrorType, BodyType } from '../../../lib/axiosInstance'
+import { axiosMutator } from '../../../lib/axiosInstance.ts'
+import type { ErrorType, BodyType } from '../../../lib/axiosInstance.ts'
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 

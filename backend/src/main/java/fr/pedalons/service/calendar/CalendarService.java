@@ -141,7 +141,7 @@ public class CalendarService {
   }
 
   private CalendarTokenDto buildTokenDto(CalendarToken token) {
-    String baseUrl = domainResolver.getDomain().getBaseUrl();
+    String baseUrl = domainResolver.getEffectiveBaseUrl();
     String globalFeedUrl = baseUrl + "/api/calendar/ics?token=" + token.getToken();
     String teamFeedUrlTemplate =
         baseUrl + "/api/teams/{teamSlug}/calendar/ics?token=" + token.getToken();

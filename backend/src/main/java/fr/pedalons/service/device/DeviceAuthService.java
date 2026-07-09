@@ -62,7 +62,7 @@ public class DeviceAuthService {
 
   @Public
   public String getFrontendBaseUrl() {
-    return domainResolver.getDomain().getBaseUrl();
+    return domainResolver.getEffectiveBaseUrl();
   }
 
   /**

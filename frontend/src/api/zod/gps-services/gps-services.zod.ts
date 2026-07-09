@@ -21,6 +21,8 @@ export const HandleCallbackQueryParams = zod.object({
   state: zod.string().optional(),
 })
 
+export const HandleCallbackResponse = zod.void()
+
 /**
  * Get the OAuth authorization URL to connect a GPS service
  * @summary Get OAuth authorization URL
@@ -42,6 +44,8 @@ export const GetConnectUrlResponse = zod
 export const DisconnectParams = zod.object({
   serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']).describe('GPS service type'),
 })
+
+export const DisconnectResponse = zod.void()
 
 /**
  * Upload a route to a connected GPS service

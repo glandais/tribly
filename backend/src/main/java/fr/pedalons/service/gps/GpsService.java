@@ -110,7 +110,7 @@ public class GpsService {
 
     GpsServiceClient client = getClient(serviceType);
     String redirectUri =
-        pedalonsContext.getDomain().getBaseUrl()
+        domainResolver.getEffectiveBaseUrl()
             + "/api/gps/callback/"
             + serviceType.name().toLowerCase();
     String authUrl;
@@ -322,6 +322,6 @@ public class GpsService {
 
   @Public
   public String getFrontendBaseUrl() {
-    return domainResolver.getDomain().getBaseUrl();
+    return domainResolver.getEffectiveBaseUrl();
   }
 }

@@ -1,7 +1,10 @@
 import { useState, useCallback } from 'react'
+import { Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Box, Select, Stack, Title, Group, Paper, Text, Center, SimpleGrid } from '@mantine/core'
 import { IconNews } from '@tabler/icons-react'
+import { paths } from '../../config/paths'
+import { getPinnedTeamSlug } from '../../config/appConfig'
 import {
   useListAllPublications,
   listAllPublications,
@@ -27,6 +30,7 @@ const filterToType: Record<FilterValue, PublicationType | undefined> = {
 export function HomePage() {
   const { t } = useTranslation()
   const appName = useAppName()
+  const pinnedTeamSlug = getPinnedTeamSlug()
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<FilterValue>('all')
@@ -70,6 +74,11 @@ export function HomePage() {
     totalItems: publicationsData?.total ?? 0,
     prefetchPage,
   })
+
+  // Dedicated hostname (domain alias): root the app on the pinned team.
+  if (pinnedTeamSlug) {
+    return <Navigate to={paths.team(pinnedTeamSlug)} replace />
+  }
 
   return (
     <HomeLayout currentTab="feed">

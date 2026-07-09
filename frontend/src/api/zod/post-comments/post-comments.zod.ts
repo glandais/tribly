@@ -57,6 +57,23 @@ export const CreatePostCommentBody = zod
   })
   .describe('Comment creation request')
 
+export const CreatePostCommentResponse = zod
+  .object({
+    id: zod.string().describe('Comment ID (TSID)'),
+    content: zod.string().describe('Comment content'),
+    author: zod
+      .object({
+        id: zod.string().describe('User ID (TSID)'),
+        displayName: zod.string().describe('User display name'),
+        avatarUrl: zod.string().optional().describe('User avatar URL'),
+      })
+      .describe('Comment author'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
+    parentId: zod.string().optional().describe('Parent comment ID (for replies)'),
+    replies: zod.array(zod.unknown()).describe('Replies to this comment'),
+  })
+  .describe('Comment data')
+
 /**
  * @summary Delete post comment
  */
@@ -65,3 +82,5 @@ export const DeletePostCommentParams = zod.object({
   entitySlug: zod.string().describe('Post URL slug'),
   teamSlug: zod.string().describe('Team URL slug'),
 })
+
+export const DeletePostCommentResponse = zod.void()

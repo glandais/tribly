@@ -71,6 +71,8 @@ export const DeviceDownloadFitParams = zod.object({
   teamSlug: zod.string().describe('Team URL slug'),
 })
 
+export const DeviceDownloadFitResponse = zod.unknown()
+
 /**
  * Download route as GPX file for GPS devices
  * @summary Download GPX file
@@ -79,6 +81,8 @@ export const DeviceDownloadGpxParams = zod.object({
   routeSlug: zod.string().describe('Route URL slug'),
   teamSlug: zod.string().describe('Team URL slug'),
 })
+
+export const DeviceDownloadGpxResponse = zod.unknown()
 
 /**
  * Upload route to a cloud GPS service (e.g., Hammerhead, Garmin Connect)
