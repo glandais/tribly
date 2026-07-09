@@ -49,7 +49,13 @@ Quarkus dev mode provides live reload — code changes are reflected automatical
 
 ### 3. Create a domain
 
-The platform is multi-tenant by HTTP domain. You need at least one domain entry to use the app:
+The platform is multi-tenant by HTTP domain. You need at least one domain entry to use the app.
+
+Open a `psql` prompt on the dev database started by `docker compose up -d`:
+
+```bash
+docker exec -it pedalons-dev-postgres psql -U pedalons -d pedalons
+```
 
 ```sql
 INSERT INTO domains (id, domain, name, base_url, single_team, active, deleted, created_at, updated_at, version)
@@ -61,6 +67,8 @@ VALUES (
     false, true, false, NOW(), NOW(), 0
 );
 ```
+
+`id` is a TSID generated inline, not a sequence. When hand-writing UPDATEs against entity tables, also bump `version` and set `updated_at = NOW()` — Hibernate uses `version` for optimistic locking. The deployed stack uses a different container (`pedalons-postgres`) with credentials from `.env`; see [Running SQL](../README.md#running-sql) in the root README.
 
 ## Commands
 

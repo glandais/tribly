@@ -95,6 +95,14 @@ Backend available at:
 
 ### Create a domain for localhost
 
+Nothing works until at least one domain exists — every request resolves its tenant from the `Host` header. Open a `psql` prompt on the dev database:
+
+```bash
+docker exec -it pedalons-dev-postgres psql -U pedalons -d pedalons
+```
+
+Then insert a domain matching the host you browse the frontend with:
+
 ```sql
 INSERT INTO domains (id, domain, name, base_url, single_team, active, deleted, created_at, updated_at, version)
 VALUES (
@@ -110,6 +118,8 @@ VALUES (
     0
 );
 ```
+
+See [Running SQL](#running-sql) for the deployed stack, and [Bootstrapping a new deployment](#bootstrapping-a-new-deployment) for what to do next.
 
 ### Start Frontend
 
@@ -197,13 +207,64 @@ cd backend && ./mvnw checkstyle:check
 cd frontend && pnpm lint
 ```
 
+## Running SQL
+
+Two different PostgreSQL containers exist depending on how you run Pedalons. Check which one you have with `docker ps` before running anything.
+
+| Setup | Compose file | Container | Credentials |
+|-------|--------------|-----------|-------------|
+| Local dev | `backend/docker-compose.yml` | `pedalons-dev-postgres` | Hardcoded (`pedalons` / `pedalons`) |
+| Deployed stack | `docker-compose.yml` (root) | `pedalons-postgres` | From `.env` (not versioned) |
+
+**Local dev** — the port is published on `127.0.0.1:5432`, so any client works:
+
+```bash
+docker exec -it pedalons-dev-postgres psql -U pedalons -d pedalons
+```
+
+**Deployed stack** — no port is published, so go through the container. Read the credentials from the container's own environment rather than typing them, which keeps secrets out of your shell history:
+
+```bash
+# Interactive session
+docker exec -it pedalons-postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
+
+# One-off statement
+docker exec pedalons-postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c "SELECT domain, name, active FROM domains;"'
+```
+
+Use `-v ON_ERROR_STOP=1` for anything that writes: without it `psql` reports the error and carries on to the next statement, so a failed migration script looks like it succeeded.
+
+### Writing to entity tables by hand
+
+Tables backing a JPA entity carry two columns Hibernate manages for you, and hand-written SQL has to maintain them:
+
+- `updated_at` — set it to `NOW()` on every UPDATE.
+- `version` — optimistic locking. **Increment it on every UPDATE.** If you don't, an entity already loaded in memory can silently overwrite your change the next time it is persisted.
+
+```sql
+UPDATE users
+   SET platform_role = 'PLATFORM_ADMIN',
+       updated_at    = NOW(),
+       version       = COALESCE(version, 0) + 1
+ WHERE email = 'your-email@example.com'
+   AND deleted = false;
+```
+
+IDs are TSIDs (`bigint`), not sequences. Generate one inline when inserting:
+
+```sql
+(EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT * 1000000 + (RANDOM() * 999999)::INT
+```
+
 ## Multi-Tenancy
 
 Pedalons is multi-tenant: each domain (hostname) has isolated teams and users. The domain is resolved from the `Host` or `X-Forwarded-Host` HTTP header.
 
-### Creating a Domain
+### Bootstrapping a new deployment
 
-No admin UI yet. Create domains directly in PostgreSQL:
+Domains and platform admins are managed from the admin UI (`/admin`), but a brand-new database can't reach it: you need a domain before you can register a user, and a user before anyone can be an admin. Break the cycle with SQL, once, then use the UI for everything after.
+
+**1. Create the first domain** (see [Running SQL](#running-sql) for how to get a `psql` prompt):
 
 ```sql
 INSERT INTO domains (id, domain, name, base_url, single_team, active, deleted, created_at, updated_at, version)
@@ -227,21 +288,33 @@ VALUES (
 | `name` | App name shown in emails, WebAuthn prompts, and UI |
 | `base_url` | Full URL with protocol, used in email links and calendar feeds |
 
-### Setting Up a Platform Admin
+Verify the backend resolves it — a known host returns `200`, an unknown one `404 DOMAIN_NOT_FOUND`:
 
-To access the platform admin interface (`/admin`), a user must have the `PLATFORM_ADMIN` role:
+```bash
+curl -s -H 'Host: monclub.fr' http://localhost:8080/api/config
+```
 
-1. **Create a domain** (see above) and start the application
-2. **Register a user** through the normal signup flow
-3. **Grant platform admin role** via SQL:
+**2. Register a user** through the normal signup flow. This sends a verification email, so the mailer must work: in `prod` the backend sends via Brevo, which rejects calls from IPs missing from its [authorised IPs](https://app.brevo.com/security/authorised_ips) allowlist. A rejected call surfaces as a misleading `401 UNKNOWN` on `/api/auth/register`, because `GlobalExceptionMapper` replays the upstream status verbatim.
+
+**3. Grant the platform admin role** via SQL:
 
 ```sql
 UPDATE users
-SET platform_role = 'PLATFORM_ADMIN'
-WHERE email = 'your-email@example.com';
+   SET platform_role = 'PLATFORM_ADMIN',
+       updated_at    = NOW(),
+       version       = COALESCE(version, 0) + 1
+ WHERE email = 'your-email@example.com'
+   AND deleted = false;
 ```
 
-After this, the "Admin" link will appear in the header menu, providing access to:
+`platform_role` is constrained to `PLATFORM_ADMIN` or `NULL` — it is the only role in the `PlatformRole` enum. No re-login is needed: the role is not carried in the JWT, `AdminInterceptor` reads it from the database on every request.
+
+The role lives on `users`, a table scoped by `domain_id`. You are therefore an admin *of that domain*, despite the "platform admin" name — add a second domain and you'll need a fresh account and a fresh `UPDATE` there.
+
+### Using the admin interface
+
+Once you are a platform admin, the "Admin" link appears in the header menu, providing access to:
+
 - **Dashboard**: Platform statistics
 - **Domains**: Manage domains (create, edit, activate/deactivate)
 - **Teams**: View all teams, archive/restore
