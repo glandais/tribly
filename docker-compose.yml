@@ -106,7 +106,8 @@ services:
     volumes:
       - "./services/varnish/varnish.vcl:/etc/varnish/default.vcl"
     tmpfs:
-      - /var/lib/varnish:exec
+      # varnishd runs as uid/gid 1000; a root-owned tmpfs leaves it unable to create its working dir
+      - /var/lib/varnish:exec,uid=1000,gid=1000
     environment:
       - VARNISH_SIZE=20G
     command: "-p default_ttl=86400"
