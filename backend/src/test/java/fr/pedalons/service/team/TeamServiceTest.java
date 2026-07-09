@@ -239,6 +239,129 @@ class TeamServiceTest extends AbstractBaseTest {
     assertEquals(5, result.total());
   }
 
+  // ==================== Visibility: PUBLIC_UNLISTED ====================
+
+  @Test
+  void listTeams_shouldExcludePublicUnlistedForAnonymous() {
+    dataService.createTeam(user1, "Public Team", "public", Visibility.PUBLIC);
+    dataService.createTeam(user2, "Unlisted Team", "unlisted", Visibility.PUBLIC_UNLISTED);
+
+    queryContext.setUserForTest(null);
+    TeamListResponse result = teamService.listTeams(null, null, 0, 10);
+
+    assertEquals(1, result.teams().size());
+    assertEquals("public", result.teams().getFirst().slug());
+  }
+
+  @Test
+  void listTeams_shouldExcludePublicUnlistedForLoggedNonMember() {
+    dataService.createTeam(user1, "Public Team", "public", Visibility.PUBLIC);
+    dataService.createTeam(user1, "Unlisted Team", "unlisted", Visibility.PUBLIC_UNLISTED);
+
+    // user2 is a member of neither team
+    queryContext.setUserForTest(user2);
+    TeamListResponse result = teamService.listTeams(null, null, 0, 10);
+
+    assertEquals(1, result.teams().size());
+    assertEquals("public", result.teams().getFirst().slug());
+  }
+
+  @Test
+  void listTeams_shouldIncludePublicUnlistedForMember() {
+    // user1 is ADMIN/member of the unlisted team it creates
+    dataService.createTeam(user1, "Unlisted Team", "unlisted", Visibility.PUBLIC_UNLISTED);
+    dataService.createTeam(user2, "Public Team", "public", Visibility.PUBLIC);
+
+    queryContext.setUserForTest(user1);
+    TeamListResponse result = teamService.listTeams(null, null, 0, 10);
+
+    // public team is visible to everyone, unlisted appears because user1 is a member
+    assertEquals(2, result.teams().size());
+    assertTrue(result.teams().stream().anyMatch(t -> t.slug().equals("unlisted")));
+    assertTrue(result.teams().stream().anyMatch(t -> t.slug().equals("public")));
+  }
+
+  @Test
+  void listTeams_shouldReturnPublicUnlistedForPlatformAdmin() {
+    User admin =
+        dataService.createPlatformAdminUser("platform-admin@example.com", "Platform Admin");
+    dataService.createTeam(user1, "Public Team", "public", Visibility.PUBLIC);
+    dataService.createTeam(user1, "Unlisted Team", "unlisted", Visibility.PUBLIC_UNLISTED);
+    dataService.createTeam(user1, "Private Team", "private", Visibility.TEAM);
+
+    queryContext.setUserForTest(admin);
+    TeamListResponse result = teamService.listTeams(null, null, 0, 10);
+
+    // platform admin sees every team regardless of visibility
+    assertEquals(3, result.teams().size());
+    assertTrue(result.teams().stream().anyMatch(t -> t.slug().equals("unlisted")));
+  }
+
+  @Test
+  void listTeams_shouldReturnDeletedUnlistedForPlatformAdmin() {
+    User admin =
+        dataService.createPlatformAdminUser("platform-admin@example.com", "Platform Admin");
+    Team unlisted =
+        dataService.createTeam(user1, "Unlisted Team", "unlisted", Visibility.PUBLIC_UNLISTED);
+    dataService.softDeleteTeam(unlisted);
+
+    queryContext.setUserForTest(admin);
+    TeamListResponse adminResult = teamService.listTeams(null, null, 0, 10);
+    assertTrue(adminResult.teams().stream().anyMatch(t -> t.slug().equals("unlisted")));
+
+    // a regular anonymous listing must not surface the deleted unlisted team
+    queryContext.setUserForTest(null);
+    TeamListResponse anonResult = teamService.listTeams(null, null, 0, 10);
+    assertTrue(anonResult.teams().stream().noneMatch(t -> t.slug().equals("unlisted")));
+  }
+
+  @Test
+  void listTeams_minRoleFilter_shouldIgnoreVisibility() {
+    // user1 is ADMIN of an unlisted team; the minRole path must return it purely on role,
+    // independent of the visibility clause
+    dataService.createTeam(user1, "Unlisted Team", "unlisted", Visibility.PUBLIC_UNLISTED);
+
+    queryContext.setUserForTest(user1);
+    TeamListResponse result = teamService.listTeams(MinRole.ADMIN, null, 0, 10);
+
+    assertEquals(1, result.teams().size());
+    assertEquals("unlisted", result.teams().getFirst().slug());
+  }
+
+  @Test
+  void listTeams_search_shouldNotFindPublicUnlistedForAnonymous() {
+    dataService.createTeam(user1, "Secret Public", "secret-public", Visibility.PUBLIC);
+    dataService.createTeam(user1, "Secret Club", "secret-club", Visibility.PUBLIC_UNLISTED);
+
+    queryContext.setUserForTest(null);
+    TeamListResponse result = teamService.listTeams(null, "Secret", 0, 10);
+
+    assertEquals(1, result.teams().size());
+    assertEquals("secret-public", result.teams().getFirst().slug());
+  }
+
+  @Test
+  void getTeamDetailDto_publicUnlisted_anonymous_shouldReturnTeam() {
+    Team team =
+        dataService.createTeam(user1, "Unlisted Team", "unlisted", Visibility.PUBLIC_UNLISTED);
+
+    queryContext.setUserForTest(null);
+    TeamDetailDto result = teamService.getTeamDetailDto(team.getSlug());
+
+    // direct access by URL is the whole point of an unlisted team
+    assertEquals("unlisted", result.slug());
+    assertEquals(Visibility.PUBLIC_UNLISTED, result.visibility());
+  }
+
+  @Test
+  void getTeamDetailDto_privateTeam_anonymous_shouldThrowForbidden() {
+    Team team = dataService.createTeam(user1, "Private Team", "private", Visibility.TEAM);
+
+    queryContext.setUserForTest(null);
+    // a TEAM-visibility team is not reachable by URL for a non-member
+    assertThrows(ForbiddenException.class, () -> teamService.getTeamDetailDto(team.getSlug()));
+  }
+
   // ==================== Get Team ====================
 
   @Test

@@ -82,6 +82,86 @@ class TeamResourceTest extends AbstractResourceTest {
         .body("visibility", equalTo("PUBLIC"));
   }
 
+  // ==================== Visibility: PUBLIC_UNLISTED ====================
+
+  @Test
+  void listTeams_anonymous_shouldExcludePublicUnlisted() {
+    dataService.createTeam(user4, "Unlisted Club", "unlisted-club", Visibility.PUBLIC_UNLISTED);
+
+    given()
+        .when()
+        .get("/api/teams")
+        .then()
+        .statusCode(200)
+        // team1 is PUBLIC and must be listed, the unlisted team must never be
+        .body("teams.slug", hasItem(team1Slug))
+        .body("teams.slug", not(hasItem("unlisted-club")))
+        .body("teams.slug", not(hasItem(team2Slug)));
+  }
+
+  @Test
+  void listTeams_member_shouldIncludePublicUnlisted() {
+    dataService.createTeam(user4, "Unlisted Club", "unlisted-club", Visibility.PUBLIC_UNLISTED);
+
+    // user4 is ADMIN/member of the unlisted team, so it must appear in its own listing
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER4))
+        .when()
+        .get("/api/teams")
+        .then()
+        .statusCode(200)
+        .body("teams.slug", hasItem("unlisted-club"));
+  }
+
+  @Test
+  void listTeams_loggedNonMember_shouldExcludePublicUnlisted() {
+    dataService.createTeam(user4, "Unlisted Club", "unlisted-club", Visibility.PUBLIC_UNLISTED);
+
+    // user5 is a member of neither the unlisted team nor team1/team2
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER5))
+        .when()
+        .get("/api/teams")
+        .then()
+        .statusCode(200)
+        .body("teams.slug", not(hasItem("unlisted-club")));
+  }
+
+  @Test
+  void listTeams_anonymousSearch_shouldNotFindPublicUnlisted() {
+    dataService.createTeam(user4, "Hidden Squad", "hidden-squad", Visibility.PUBLIC_UNLISTED);
+
+    given()
+        .queryParam("search", "Hidden")
+        .when()
+        .get("/api/teams")
+        .then()
+        .statusCode(200)
+        .body("teams.slug", not(hasItem("hidden-squad")));
+  }
+
+  @Test
+  void getTeam_publicUnlisted_anonymous_shouldReturnTeamDetails() {
+    dataService.createTeam(user4, "Unlisted Club", "unlisted-club", Visibility.PUBLIC_UNLISTED);
+
+    // direct URL access is the whole point of an unlisted team
+    given()
+        .when()
+        .get("/api/teams/unlisted-club")
+        .then()
+        .statusCode(200)
+        .body("slug", equalTo("unlisted-club"))
+        .body("visibility", equalTo("PUBLIC_UNLISTED"));
+  }
+
+  @Test
+  void getTeam_privateTeam_anonymous_shouldReturn403() {
+    // team2 has TEAM visibility: not reachable by URL for a non-member
+    given().when().get("/api/teams/" + team2Slug).then().statusCode(403);
+  }
+
   @Test
   void createTeamViaApi_shouldCreateTeamSuccessfully() {
     TeamRequest teamRequest =

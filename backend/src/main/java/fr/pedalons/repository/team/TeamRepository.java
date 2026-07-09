@@ -42,6 +42,14 @@ public class TeamRepository implements BaseRepository<Team> {
   }
 
   public PedalonsPage<TeamAndRole> find(TeamQuery teamQuery) {
+    return find(teamQuery, true);
+  }
+
+  /**
+   * A PUBLIC_UNLISTED team is reachable by its URL but must never surface in a listing, so the
+   * visibility clause is stricter when {@code list} is true.
+   */
+  private PedalonsPage<TeamAndRole> find(TeamQuery teamQuery, boolean list) {
     PedalonsQuery pedalonsQuery =
         new PedalonsQuery(
                 "select t, ut.role,(SELECT COUNT(ut3) FROM UserTeam ut3 WHERE ut3.team.id ="
@@ -65,10 +73,7 @@ public class TeamRepository implements BaseRepository<Team> {
       } else if (teamQuery.minRole() == null) {
         OrClause or = new OrClause();
 
-        or.add(
-            new SimpleClause(
-                "(t.visibility <> :visibility OR ut IS NOT NULL)",
-                Map.of("visibility", Visibility.TEAM)));
+        or.add(visibleTeam(list));
         or.add(new SimpleClause("ut IS NOT NULL", Map.of()));
 
         pedalonsQuery.and(or);
@@ -85,13 +90,19 @@ public class TeamRepository implements BaseRepository<Team> {
         pedalonsQuery.and("ut.role in (:userRoles)", Map.of("userRoles", roles));
       }
     } else {
-      pedalonsQuery.and("t.visibility <> :visibility", Map.of("visibility", Visibility.TEAM));
+      pedalonsQuery.and(visibleTeam(list));
     }
     String stringQuery = pedalonsQuery.getStringQuery();
     Map<String, @Nullable Object> params = pedalonsQuery.getParams();
     log.debug("{} {}", stringQuery, params);
     PanacheQuery<TeamAndRole> panacheQuery = find(stringQuery, params).project(TeamAndRole.class);
     return getPage(panacheQuery, teamQuery.page(), teamQuery.size());
+  }
+
+  private static SimpleClause visibleTeam(boolean list) {
+    return list
+        ? new SimpleClause("t.visibility = :visibility", Map.of("visibility", Visibility.PUBLIC))
+        : new SimpleClause("t.visibility <> :visibility", Map.of("visibility", Visibility.TEAM));
   }
 
   public Optional<TeamAndRole> findOne(
@@ -105,7 +116,8 @@ public class TeamRepository implements BaseRepository<Team> {
                 .page(0)
                 .size(1)
                 .platformAdmin(platformAdmin)
-                .build());
+                .build(),
+            false);
     if (page.items().isEmpty()) {
       return Optional.empty();
     } else {
