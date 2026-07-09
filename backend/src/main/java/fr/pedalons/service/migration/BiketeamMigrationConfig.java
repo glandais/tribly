@@ -1,6 +1,7 @@
 package fr.pedalons.service.migration;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import java.util.Optional;
 import lombok.Getter;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
@@ -26,11 +27,18 @@ public class BiketeamMigrationConfig {
   @ConfigProperty(name = "pedalons.migration.biketeam.target-team-slug", defaultValue = "")
   String targetTeamSlug;
 
-  @ConfigProperty(name = "pedalons.migration.biketeam.data-dir", defaultValue = "")
-  String dataDir;
+  // Optional, not defaultValue="": SmallRye converts an empty String back to null and refuses to
+  // inject it. Absent when the migration runs without the biketeam data export.
+  @ConfigProperty(name = "pedalons.migration.biketeam.data-dir")
+  Optional<String> dataDir;
 
   @ConfigProperty(name = "pedalons.migration.biketeam.admin-email", defaultValue = "")
   String adminEmail;
+
+  /** Empty when the biketeam data export isn't mounted — GPX tracks and images are then skipped. */
+  public String getDataDir() {
+    return dataDir.orElse("");
+  }
 
   /** Falls back to the hostname when left unset. */
   public String getTargetDomainName() {

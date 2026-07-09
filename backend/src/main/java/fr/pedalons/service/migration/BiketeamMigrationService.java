@@ -499,7 +499,7 @@ public class BiketeamMigrationService {
   }
 
   private @Nullable Path locateGpx(String sourceTeam, String mapId) {
-    if (config.getDataDir() == null || config.getDataDir().isBlank()) {
+    if (config.getDataDir().isBlank()) {
       return null;
     }
     Path candidate = Path.of(config.getDataDir(), "gpx", sourceTeam, mapId + ".gpx");
@@ -952,7 +952,7 @@ public class BiketeamMigrationService {
    */
   private void attachImage(
       TeamEntity entity, String sourceTeam, String subdir, String biketeamEntityId) {
-    if (config.getDataDir() == null || config.getDataDir().isBlank()) {
+    if (config.getDataDir().isBlank()) {
       return;
     }
     Path dir = Path.of(config.getDataDir(), subdir, sourceTeam);
