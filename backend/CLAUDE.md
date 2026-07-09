@@ -16,6 +16,38 @@ mvn checkstyle:check               # Lint check
 mvn package -DskipTests            # Build + generate contracts/openapi.yaml
 ```
 
+## Code Coverage
+
+`mvn test` writes reports to `target/jacoco-report/` (csv, xml, html).
+
+```bash
+./scripts/coverage-report.sh                                  # All classes, sorted by coverage
+./scripts/coverage-report.sh 'fr.pedalons.service'            # Filter by package
+./scripts/coverage-report.sh 'fr.pedalons.repository' missed  # Sort by missed lines
+```
+
+## Supporting Services
+
+| Service | Port | Purpose |
+|---------|------|---------|
+| imgproxy | 38080 | Image optimization/transformation (WebP, AVIF, JXL) |
+| valhalla | 8002 | Routing engine (Valhalla turn-by-turn) |
+
+## Source Layout
+
+```
+src/main/java/fr/pedalons/
+├── api/              # REST resources (thin controllers)
+├── common/           # Utilities (TsidUtils, exceptions)
+├── dto/              # Request/response DTOs by domain
+├── domain/           # JPA entities organized by subdomain
+│   └── common/       # BaseEntity, TeamEntity, Publication
+├── enums/            # Shared enums (Status, TeamRole, Visibility, AssetType)
+├── infrastructure/   # Cross-cutting (security, cache, valhalla, imgproxy)
+├── repository/       # Panache repositories
+└── service/          # Business logic
+```
+
 ## Architecture Layers
 
 **Resource → Service → Repository**, each layer has a specific role:
@@ -27,12 +59,23 @@ mvn package -DskipTests            # Build + generate contracts/openapi.yaml
 ## Entity Hierarchy
 
 ```
-BaseEntity (TSID id, timestamps, soft delete)
-└── TeamEntity (slug, visibility, status, team reference)
+BaseEntity (TSID id, timestamps, version — no soft delete)
+└── TeamEntity (slug, visibility, status, team reference, deleted)
     └── Publication (single-table inheritance)
         ├── Ride
         └── Post
 ```
+
+`Team`, `User`, and `Domain` each carry their own `deleted` field. Every other
+`BaseEntity` subclass (Comment, Place, Asset, UserTeam, RideGroup, RideParticipation,
+TripParticipation, RideTemplate, RideTemplateGroup, GpxTrack, GpxWaypoint, CalendarToken)
+and the standalone `Passkey` / `GpsServiceConnection` use hard delete.
+
+## Key Patterns
+
+- **Slugs**: Unique per team, auto-generated from title → see `SlugService.generateSlug()`
+- **TSID conversion**: `TsidUtils.toString()` / `TsidUtils.toLong()` in `common/`
+- **Assets**: Upload via `assetsApi.uploadAsset()`, type assigned by field placement in `AssetsDto` → see `AssetService.updateAssets()`
 
 ## Security & Authorization
 
@@ -50,6 +93,16 @@ BaseEntity (TSID id, timestamps, soft delete)
 - Role-based access per user's team membership
 
 Repository methods follow: `findByTeamAndSlug(domainId, teamId, userId, slug)`, `findByTeamAndId(...)`.
+
+## JPQL/HQL
+
+- Use `IS NOT NULL` / `IS NULL` — never `<> null` or `= null` (always evaluates to UNKNOWN/FALSE due to SQL null semantics)
+- Example: after a left join, check `ut IS NOT NULL` to verify the join produced a match
+
+## OpenAPI
+
+- Empty schemas = missing `@Schema(implementation = ...)` in `@APIResponse`
+- See `RideResource.java` for a complete annotation example
 
 ## Error Handling
 

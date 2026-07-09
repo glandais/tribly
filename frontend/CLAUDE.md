@@ -26,6 +26,23 @@ TypeScript 5, React 19, Vite, Mantine UI 8, React Router 7, TanStack React Query
 
 ## Architecture
 
+```
+src/
+├── api/              # Generated from Orval (pnpm generate-api)
+│   ├── dto/          # Generated DTOs
+│   ├── endpoints/    # Generated API functions
+│   └── zod/          # Generated Zod schemas
+├── components/       # By domain (common/, team/, ride/, route/, post/, trip/, etc.)
+├── config/           # paths.ts (re-export), paths.generated.ts, locale-context.ts, routes.config.ts, appConfig.ts
+├── hooks/            # React Query wrappers
+├── lib/              # axiosInstance.ts, apiUtils.ts
+├── locales/{en,fr}/  # i18n (French default)
+├── pages/            # Route-level components
+├── store/            # Zustand stores
+├── types/            # TypeScript type definitions
+└── utils/            # Utility functions
+```
+
 ### API Layer (generated — do not edit `src/api/`)
 
 Orval generates from `../contracts/openapi.json`:
