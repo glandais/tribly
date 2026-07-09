@@ -316,7 +316,7 @@ public class BiketeamMigrationService {
     }
     about.setMarkdown(markdown);
     about.setStatus(Status.PUBLISHED);
-    about.setVisibility(managed.getVisibility());
+    about.setVisibility(contentVisibility(managed.getVisibility()));
     teamRepository.persist(managed);
     mapRepo.upsert(T_TEAM_PAGE, sourceTeam, about.getId());
     LOG.infof("Migrated team description into the about page of '%s'", managed.getSlug());
@@ -631,7 +631,11 @@ public class BiketeamMigrationService {
     // Biketeam dropped its per-map visibility flag, so a route is exactly as visible as its team.
     RouteRequest req =
         new RouteRequest(
-            bt.name(), emptyMedia(), mapSurface(bt.type()), team.getVisibility(), null);
+            bt.name(),
+            emptyMedia(),
+            mapSurface(bt.type()),
+            contentVisibility(team.getVisibility()),
+            null);
     Route route = null;
     if (mapped != null) {
       route = routeRepository.findByIdOptional(mapped).orElse(null);
@@ -706,12 +710,12 @@ public class BiketeamMigrationService {
               tpl.name(),
               slug,
               biketeamToMarkdown(tpl.description()),
-              team.getVisibility(),
+              contentVisibility(team.getVisibility()),
               Status.PUBLISHED);
       rideTemplateRepository.persistAndFlush(target);
     } else {
       target.setName(tpl.name());
-      target.setVisibility(team.getVisibility());
+      target.setVisibility(contentVisibility(team.getVisibility()));
       target.setMarkdown(biketeamToMarkdown(tpl.description()));
       rideTemplateRepository.persist(target);
     }
@@ -771,8 +775,8 @@ public class BiketeamMigrationService {
             mediaWithExisting(biketeamToMarkdown(bt.content()), existing),
             bt.publishedAt() != null ? bt.publishedAt() : Instant.now(),
             mapStatus(bt.publishedStatus()),
-            // Publications carry no listed_in_feed flag: they follow the team.
-            team.getVisibility(),
+            // Publications carry no listed_in_feed flag: biketeam always lists them.
+            contentVisibility(team.getVisibility()),
             null);
     Post post;
     if (existing != null) {
@@ -880,7 +884,7 @@ public class BiketeamMigrationService {
             mediaWithExisting(biketeamToMarkdown(bt.description()), existing),
             dateTime,
             mapStatus(bt.publishedStatus()),
-            entityVisibility(team.getVisibility(), bt.listedInFeed()),
+            contentVisibility(team.getVisibility(), bt.listedInFeed()),
             null,
             placeIdString(placeIds, bt.startPlaceId()),
             placeIdString(placeIds, bt.endPlaceId()),
@@ -1009,7 +1013,7 @@ public class BiketeamMigrationService {
             mediaWithExisting(biketeamToMarkdown(bt.description()), existing),
             dateTime,
             mapStatus(bt.publishedStatus()),
-            entityVisibility(team.getVisibility(), bt.listedInFeed()),
+            contentVisibility(team.getVisibility(), bt.listedInFeed()),
             null,
             null,
             stageRequests);
@@ -1264,15 +1268,28 @@ public class BiketeamMigrationService {
   }
 
   /**
-   * Biketeam has no per-entity visibility: content is as visible as its team. Its {@code
-   * listed_in_feed} flag only hides a ride or trip from the team feed — a direct link still works —
-   * which is what {@code PUBLIC_UNLISTED} means here.
+   * Visibility of content that biketeam always lists — routes, posts, ride templates. Only the team
+   * can hide it.
    */
-  private static Visibility entityVisibility(Visibility teamVisibility, boolean listedInFeed) {
+  private static Visibility contentVisibility(Visibility teamVisibility) {
+    return contentVisibility(teamVisibility, true);
+  }
+
+  /**
+   * Biketeam has no per-entity visibility beyond {@code listed_in_feed}, which hides a ride or trip
+   * from the team feed while leaving a direct link working — exactly {@code PUBLIC_UNLISTED}.
+   *
+   * <p>The team's own unlisted-ness is deliberately not pushed down onto its content. {@code
+   * getPublicEntity} already requires {@code team.visibility = 'PUBLIC'} to list anything, so
+   * marking the items of an unlisted team PUBLIC_UNLISTED would change nothing today — but it would
+   * stick: promoting that team to PUBLIC later would leave its whole feed hidden, where biketeam
+   * would have shown it.
+   */
+  private static Visibility contentVisibility(Visibility teamVisibility, boolean listedInFeed) {
     if (teamVisibility == Visibility.TEAM) {
       return Visibility.TEAM;
     }
-    return listedInFeed ? teamVisibility : Visibility.PUBLIC_UNLISTED;
+    return listedInFeed ? Visibility.PUBLIC : Visibility.PUBLIC_UNLISTED;
   }
 
   private static Status mapStatus(@Nullable String biketeamStatus) {

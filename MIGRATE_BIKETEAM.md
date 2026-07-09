@@ -62,9 +62,18 @@ have no admin of their own and end up with none; the platform admin can still ma
 
 ## Visibility
 
-Biketeam has no per-entity visibility: a route, ride, trip or post is exactly as visible as its
-team. Only `ride.listed_in_feed` / `trip.listed_in_feed` differ, and they merely hide an item
-from the team feed — a direct link still opens it — which is what `PUBLIC_UNLISTED` means here.
+Tribly gates content on two fields at once (`TeamEntityRepository.getPublicEntity`): listing needs
+`team.visibility = 'PUBLIC'` **and** `te.visibility = 'PUBLIC'`; a direct link needs both to be
+anything other than `TEAM`.
+
+Biketeam's only per-item flag is `ride.listed_in_feed` / `trip.listed_in_feed`, which hides an item
+from the team feed while a direct link still opens it — exactly `PUBLIC_UNLISTED`. Routes, posts
+and ride templates have no such flag and are always listed, so they map to `PUBLIC`.
+
+Item visibility comes from the item's own flag, never from the team's unlisted-ness. Pushing the
+team's `PUBLIC_UNLISTED` down onto its content would change nothing today, but it would stick:
+promoting that team to `PUBLIC` later would leave its whole feed hidden. A `TEAM` team clamps
+everything under it to `TEAM`, which `validateVisibility` requires anyway.
 
 | biketeam `team.visibility` | tribly | teams |
 |---|---|---|
