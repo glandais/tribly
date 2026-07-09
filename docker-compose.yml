@@ -7,7 +7,8 @@ services:
     networks:
       - pedalons
     ports:
-      - "${HTTP_PORT:-8090}:80"
+      # Loopback uniquement : le TLS est termine par Caddy sur l'hote.
+      - "127.0.0.1:${HTTP_PORT:-8090}:80"
     command:
       - "--api.dashboard=false"
       - "--providers.docker=true"
