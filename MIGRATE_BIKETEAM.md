@@ -46,7 +46,8 @@ app. Stop it yourself once the logs show `Biketeam migration completed`:
 docker compose --profile restore down backend-restore
 
 Config lives in the `backend-restore` service in docker-compose.yml. Re-running it is
-safe: already-migrated rows are matched through the biketeam→tribly id mapping table.
+safe: already-migrated rows are matched through the biketeam→tribly id mapping table,
+and a replay repairs rows that a previous run left missing.
 
 ## Members without an email
 

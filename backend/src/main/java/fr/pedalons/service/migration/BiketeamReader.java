@@ -48,6 +48,19 @@ public class BiketeamReader {
       @Nullable String facebookId,
       @Nullable String googleId) {}
 
+  /** Free-text presentation plus contact details, shown on the biketeam team home page. */
+  public record BtTeamDescription(
+      @Nullable String description,
+      @Nullable String addressStreetLine,
+      @Nullable String addressPostalCode,
+      @Nullable String addressPostalCity,
+      @Nullable String phoneNumber,
+      @Nullable String email,
+      @Nullable String facebook,
+      @Nullable String twitter,
+      @Nullable String instagram,
+      @Nullable String other) {}
+
   public record BtUserRole(String userId, String teamId, String role) {}
 
   public record BtPlace(
@@ -195,6 +208,26 @@ public class BiketeamReader {
                 rs.getString(4),
                 toLocalDate(rs.getDate(5)),
                 rs.getBoolean(6)));
+  }
+
+  public @Nullable BtTeamDescription findTeamDescription(String teamId) {
+    return one(
+        "SELECT description, address_street_line, address_postal_code, address_postal_city, "
+            + "phone_number, email, facebook, twitter, instagram, other "
+            + "FROM team_description WHERE team_id = ?",
+        ps -> ps.setString(1, teamId),
+        rs ->
+            new BtTeamDescription(
+                rs.getString(1),
+                rs.getString(2),
+                rs.getString(3),
+                rs.getString(4),
+                rs.getString(5),
+                rs.getString(6),
+                rs.getString(7),
+                rs.getString(8),
+                rs.getString(9),
+                rs.getString(10)));
   }
 
   public List<BtUser> findUsersByIds(List<String> ids) {

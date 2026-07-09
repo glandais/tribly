@@ -18,6 +18,7 @@ import fr.pedalons.domain.ridetemplate.RideTemplate;
 import fr.pedalons.domain.ridetemplate.RideTemplateGroup;
 import fr.pedalons.domain.route.Route;
 import fr.pedalons.domain.team.Team;
+import fr.pedalons.domain.team.TeamPage;
 import fr.pedalons.domain.team.UserTeam;
 import fr.pedalons.domain.trip.Trip;
 import fr.pedalons.domain.trip.TripParticipation;
@@ -92,6 +93,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.geolatte.geom.G2D;
 import org.geolatte.geom.Point;
@@ -116,6 +118,7 @@ public class BiketeamMigrationService {
   // Mapping table entity types
   private static final String T_USER = "USER";
   private static final String T_TEAM = "TEAM";
+  private static final String T_TEAM_PAGE = "TEAM_PAGE";
   private static final String T_USER_TEAM = "USER_TEAM";
   private static final String T_PLACE = "PLACE";
   private static final String T_ROUTE = "ROUTE";
@@ -189,6 +192,7 @@ public class BiketeamMigrationService {
 
     Team team = ensureTargetTeam(domain, admin);
     ensureMembership(team, admin, TeamRole.ADMIN);
+    migrateTeamDescription(team, config.getSourceTeamId());
 
     String sourceTeam = config.getSourceTeamId();
     LOG.infof("Migrating data scoped to biketeam team_id='%s'", sourceTeam);
@@ -287,6 +291,117 @@ public class BiketeamMigrationService {
     }
     UserTeam ut = new UserTeam(user, user, team, role);
     userTeamRepository.persist(ut);
+  }
+
+  // ─── Team description ─────────────────────────────────────────────────────
+
+  /**
+   * Biketeam held the team presentation and its contact details in {@code team_description}. Tribly
+   * has no equivalent columns, so both are rendered into the team's about page markdown.
+   */
+  @Transactional
+  protected void migrateTeamDescription(Team team, String sourceTeam) {
+    BiketeamReader.BtTeamDescription src = reader.findTeamDescription(sourceTeam);
+    if (src == null) {
+      return;
+    }
+    String markdown = renderTeamDescription(src);
+    if (markdown.isBlank()) {
+      return;
+    }
+    Team managed = teamRepository.findByIdOptional(team.getId()).orElseThrow();
+    TeamPage about = managed.getAboutPage();
+    if (about == null) {
+      LOG.warnf("Team '%s' has no about page — skipping team description", managed.getSlug());
+      return;
+    }
+    about.setMarkdown(markdown);
+    about.setStatus(Status.PUBLISHED);
+    teamRepository.persist(managed);
+    mapRepo.upsert(T_TEAM_PAGE, sourceTeam, about.getId());
+    LOG.infof("Migrated team description into the about page of '%s'", managed.getSlug());
+  }
+
+  private static String renderTeamDescription(BiketeamReader.BtTeamDescription d) {
+    StringBuilder md = new StringBuilder(biketeamToMarkdown(d.description()));
+
+    List<String> address = new ArrayList<>();
+    addIfPresent(address, d.addressStreetLine());
+    addIfPresent(address, joinNonBlank(" ", d.addressPostalCode(), d.addressPostalCity()));
+
+    List<String> entries = new ArrayList<>();
+    addEntry(entries, "Téléphone", d.phoneNumber());
+    addEntry(entries, "Email", link(d.email(), "mailto:" + trimmed(d.email())));
+    addEntry(entries, "Facebook", socialLink(d.facebook(), "https://www.facebook.com/"));
+    addEntry(entries, "Instagram", socialLink(d.instagram(), "https://www.instagram.com/"));
+    addEntry(entries, "Twitter", socialLink(d.twitter(), "https://twitter.com/"));
+    addEntry(entries, "Site", webLink(d.other()));
+
+    if (address.isEmpty() && entries.isEmpty()) {
+      return md.toString();
+    }
+    if (md.length() > 0) {
+      md.append("\n\n");
+    }
+    md.append("## Contact");
+    if (!address.isEmpty()) {
+      // Two trailing spaces = markdown hard break, so the address stays on its own lines.
+      md.append("\n\n").append(String.join("  \n", address));
+    }
+    if (!entries.isEmpty()) {
+      md.append("\n\n").append(String.join("\n", entries));
+    }
+    return md.toString();
+  }
+
+  private static void addIfPresent(List<String> target, @Nullable String value) {
+    String v = trimmed(value);
+    if (!v.isEmpty()) {
+      target.add(v);
+    }
+  }
+
+  private static void addEntry(List<String> target, String label, @Nullable String rendered) {
+    if (rendered != null && !rendered.isBlank()) {
+      target.add("- " + label + " : " + rendered);
+    }
+  }
+
+  /** Renders {@code [text](url)}, or null when the value is absent. */
+  private static @Nullable String link(@Nullable String text, @Nullable String url) {
+    String t = trimmed(text);
+    return t.isEmpty() ? null : "[" + t + "](" + url + ")";
+  }
+
+  /** Biketeam stores bare handles; some users typed a full URL instead. */
+  private static @Nullable String socialLink(@Nullable String handle, String baseUrl) {
+    String h = trimmed(handle);
+    if (h.isEmpty()) {
+      return null;
+    }
+    return h.startsWith("http") ? link(h, h) : link(h, baseUrl + h);
+  }
+
+  /** A free-text field in biketeam: linkify it only when it actually looks like a URL. */
+  private static @Nullable String webLink(@Nullable String value) {
+    String v = trimmed(value);
+    if (v.isEmpty()) {
+      return null;
+    }
+    return v.startsWith("http") ? link(v, v) : v;
+  }
+
+  private static @Nullable String joinNonBlank(String separator, String... parts) {
+    String joined =
+        Stream.of(parts)
+            .map(BiketeamMigrationService::trimmed)
+            .filter(s -> !s.isEmpty())
+            .collect(Collectors.joining(separator));
+    return joined.isEmpty() ? null : joined;
+  }
+
+  private static String trimmed(@Nullable String s) {
+    return s == null ? "" : s.trim();
   }
 
   // ─── Users ────────────────────────────────────────────────────────────────
@@ -735,19 +850,27 @@ public class BiketeamMigrationService {
       Map<String, Long> ids) {
     List<BiketeamReader.BtRideGroup> groups = groupsByRide.getOrDefault(bt.id(), List.of());
     Instant dateTime = atParis(bt.date(), earliestMeetingTime(groups));
+    Long mapped = mapRepo.findTriblyId(T_RIDE, bt.id());
+    Ride existing = mapped != null ? rideRepository.findByIdOptional(mapped).orElse(null) : null;
+
+    // On replay, hand each group back its tribly id. Without it RideService.updateRide treats every
+    // group as new, drops the old ones and cascade-deletes their participations.
+    Set<Long> liveGroupIds =
+        existing == null
+            ? Set.of()
+            : existing.getGroups().stream().map(RideGroup::getId).collect(Collectors.toSet());
     List<GroupRequest> groupRequests =
         groups.stream()
             .map(
                 g ->
                     GroupRequest.builder()
+                        .id(existingGroupId(g.id(), liveGroupIds))
                         .name(g.name())
                         .time(g.meetingTime())
                         .averageSpeed(toFloat(g.averageSpeed()))
                         .routeSlug(routeSlugFromBiketeamId(routeIds, g.mapId()))
                         .build())
             .toList();
-    Long mapped = mapRepo.findTriblyId(T_RIDE, bt.id());
-    Ride existing = mapped != null ? rideRepository.findByIdOptional(mapped).orElse(null) : null;
     RideRequest req =
         new RideRequest(
             bt.title(),
@@ -789,12 +912,17 @@ public class BiketeamMigrationService {
         User u = userRepository.findActiveById(triblyUserId).orElse(null);
         if (u == null) continue;
         String mappingKey = g.id() + ":" + p.userId();
-        if (mapRepo.findTriblyId(T_RIDE_PARTICIPATION, mappingKey) != null) continue;
-        if (rideParticipationRepository
-            .findByUserAndGroup(u.getId(), tribGroup.getId())
-            .isPresent()) continue;
-        RideParticipation rp = new RideParticipation(tribGroup, u);
-        rideParticipationRepository.persist(rp);
+        // Trust the database, not the mapping row: a mapping entry can outlive the participation it
+        // points at, and skipping on its mere presence would never restore the missing row.
+        RideParticipation rp =
+            rideParticipationRepository
+                .findByUserAndGroup(u.getId(), tribGroup.getId())
+                .orElseGet(
+                    () -> {
+                      RideParticipation created = new RideParticipation(tribGroup, u);
+                      rideParticipationRepository.persist(created);
+                      return created;
+                    });
         mapRepo.upsert(T_RIDE_PARTICIPATION, mappingKey, rp.getId());
       }
     }
@@ -850,10 +978,20 @@ public class BiketeamMigrationService {
       Map<String, Long> ids) {
     Instant dateTime = atParis(bt.startDate(), bt.meetingTime());
     List<BiketeamReader.BtTripStage> stages = stagesByTrip.getOrDefault(bt.id(), List.of());
+    Long mapped = mapRepo.findTriblyId(T_TRIP, bt.id());
+    Trip existing = mapped != null ? tripRepository.findByIdOptional(mapped).orElse(null) : null;
+
+    // Same as ride groups: an id-less StageRequest makes TripService.updateTrip soft-delete the old
+    // stage and create a replacement, so every replay would leave another dead stage behind.
+    Set<Long> liveStageIds =
+        existing == null
+            ? Set.of()
+            : existing.getStages().stream().map(TripStage::getId).collect(Collectors.toSet());
     List<StageRequest> stageRequests = new ArrayList<>();
     for (BiketeamReader.BtTripStage s : stages) {
       stageRequests.add(
           StageRequest.builder()
+              .id(existingStageId(s.id(), liveStageIds))
               .name(s.name())
               .dateTime(atParis(s.date(), null))
               .routeSlug(routeSlugFromBiketeamId(routeIds, s.mapId()))
@@ -862,8 +1000,6 @@ public class BiketeamMigrationService {
               .media(emptyMedia())
               .build());
     }
-    Long mapped = mapRepo.findTriblyId(T_TRIP, bt.id());
-    Trip existing = mapped != null ? tripRepository.findByIdOptional(mapped).orElse(null) : null;
     TripRequest req =
         new TripRequest(
             bt.title(),
@@ -898,7 +1034,10 @@ public class BiketeamMigrationService {
       mapRepo.upsert(T_TRIP_PARTICIPATION, bt.id() + ":" + p.userId(), tp.getId());
     }
 
-    List<TripStage> tribStages = new ArrayList<>(trip.getStages());
+    // Trip.stages has no @SQLRestriction, so soft-deleted stages come along; they all carry
+    // sortOrder 0 and would otherwise head the list and steal the mapping.
+    List<TripStage> tribStages =
+        trip.getStages().stream().filter(s -> !s.isDeleted()).collect(Collectors.toList());
     tribStages.sort(Comparator.comparingInt(TripStage::getSortOrder));
     for (int i = 0; i < Math.min(tribStages.size(), stages.size()); i++) {
       mapRepo.upsert(T_TRIP_STAGE, stages.get(i).id(), tribStages.get(i).getId());
@@ -1135,6 +1274,24 @@ public class BiketeamMigrationService {
 
   private static @Nullable Float toFloat(@Nullable Double d) {
     return d == null ? null : d.floatValue();
+  }
+
+  private @Nullable String existingGroupId(String biketeamGroupId, Set<Long> liveGroupIds) {
+    return liveEntityId(T_RIDE_GROUP, biketeamGroupId, liveGroupIds);
+  }
+
+  private @Nullable String existingStageId(String biketeamStageId, Set<Long> liveStageIds) {
+    return liveEntityId(T_TRIP_STAGE, biketeamStageId, liveStageIds);
+  }
+
+  /**
+   * The tribly id of an already-migrated child row, as a TSID string, or null when it must be
+   * created. A mapping row is only trusted when the target still belongs to the parent — a stale one
+   * would make the update call fail with {@code NotFoundException}.
+   */
+  private @Nullable String liveEntityId(String entityType, String biketeamId, Set<Long> liveIds) {
+    Long triblyId = mapRepo.findTriblyId(entityType, biketeamId);
+    return triblyId != null && liveIds.contains(triblyId) ? TsidUtils.toString(triblyId) : null;
   }
 
   private @Nullable String routeSlugFromBiketeamId(
