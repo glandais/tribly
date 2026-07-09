@@ -49,6 +49,29 @@ Config lives in the `backend-restore` service in docker-compose.yml. Re-running 
 safe: already-migrated rows are matched through the biketeam→tribly id mapping table,
 and a replay repairs rows that a previous run left missing.
 
+## Known failures
+
+A full local run of the 2026-07 dump (187 teams, ~70 min) lost 28 rows, all for reasons that
+predate the migration. Everything else reconciles exactly against the source.
+
+| What | Count | Cause |
+|---|---|---|
+| Routes | 22 | The `.gpx` file is simply missing from the export — the `map` row points at nothing (`GPX_EMPTY`). |
+| Routes | 3 | Emoji in the track/waypoint name, written by biketeam as two separate UTF-16 surrogate character references (`&#55357;&#56629;`), which is not valid XML (`GPX_FAILURE`). |
+| Trips | 3 | Two stages of the same trip created in the same millisecond collide on `uk_team_entity_slug` — see below. The trip and its 22 stages roll back. |
+
+No team failed. The 25 lost routes were referenced by no ride and no trip stage.
+
+`TripStage`'s constructor mints a slug as `"stage-" + System.currentTimeMillis()`, commented as
+"temporary… should be updated by the service" — but `TripService.setStageProperties` never rewrites
+it, so it is the final slug. Two stages of one team created within the same millisecond therefore
+violate the unique constraint. This is an application bug, not a migration bug: the same collision
+is reachable from the UI by creating a trip with several stages. The migration just hits it often
+enough to be noticed.
+
+`FileTypeDetector` also logs one WARN per generated FIT file (~5400 of them): Magika has no
+signature for FIT, so it falls back to the extension and **accepts** the upload. Harmless noise.
+
 ## Which teams get migrated
 
 `team-id` names one biketeam team, and — since biketeam ids are already slugs — the tribly
@@ -124,9 +147,10 @@ reads `team.about.assets.logo`, so the file is imported as a `LOGO` asset on the
 No `::asset{}` directive is added — a logo is addressed through `assets.logo`, not from the markdown.
 
 Biketeam handed every new team a copy of its `default-images/empty.png` placeholder, so the file
-being present means nothing: **70 of the 188 exported teams never replaced it**. Those are skipped by
-comparing the file digest against the placeholder, which leaves tribly's initials avatar in place.
-`heatmap.png`, which sits in the same directory, is never picked up.
+being present means nothing: **70 of the 187 exported teams never replaced it**, leaving 117 real
+logos. Those 70 are skipped by comparing the file digest against the placeholder, which leaves
+tribly's initials avatar in place. `heatmap.png`, which sits in the same directory, is never picked
+up, and neither is `misc/logo.png` — that one is biketeam's own platform logo, not a team's.
 
 ## Members without an email
 
