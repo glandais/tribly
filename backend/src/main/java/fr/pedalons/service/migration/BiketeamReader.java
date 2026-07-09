@@ -417,10 +417,12 @@ public class BiketeamReader {
     }
     String placeholders = String.join(",", rideIds.stream().map(x -> "?").toList());
     String sql =
+        // Biketeam has no explicit group order. Sort them the way a rider reads a ride sheet:
+        // earliest departure first, then by name. `id` only breaks ties, to keep replays stable.
         "SELECT id, ride_id, name, average_speed, meeting_time, map_id"
             + " FROM ride_group WHERE ride_id IN ("
             + placeholders
-            + ")";
+            + ") ORDER BY ride_id, meeting_time ASC NULLS LAST, name ASC, id ASC";
     return many(
         sql,
         ps -> {
@@ -533,9 +535,11 @@ public class BiketeamReader {
     }
     String placeholders = String.join(",", tripIds.stream().map(x -> "?").toList());
     String sql =
+        // `ORDER BY id` sorted stages by random UUID. Chronological is the only order that means
+        // anything for a trip; `name` then `id` break ties, the latter to keep replays stable.
         "SELECT id, trip_id, date, name, map_id, alternative FROM trip_stage WHERE trip_id IN ("
             + placeholders
-            + ") ORDER BY id ASC";
+            + ") ORDER BY trip_id, date ASC NULLS LAST, name ASC, id ASC";
     return many(
         sql,
         ps -> {

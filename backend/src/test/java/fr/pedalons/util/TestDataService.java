@@ -670,16 +670,14 @@ public class TestDataService {
 
   @Transactional
   public TripStage createTripStage(User createdBy, Trip trip, String name) {
-    TripStage stage = new TripStage(createdBy, trip, name);
-    stage.setSlug(SlugService.slugify(name));
+    TripStage stage = new TripStage(createdBy, trip, name, SlugService.slugify(name));
     tripStageRepository.persistAndFlush(stage);
     return stage;
   }
 
   @Transactional
   public TripStage createTripStage(User createdBy, Trip trip, String name, int sortOrder) {
-    TripStage stage = new TripStage(createdBy, trip, name);
-    stage.setSlug(SlugService.slugify(name));
+    TripStage stage = new TripStage(createdBy, trip, name, SlugService.slugify(name));
     stage.setSortOrder(sortOrder);
     tripStageRepository.persistAndFlush(stage);
     return stage;
@@ -687,8 +685,7 @@ public class TestDataService {
 
   @Transactional
   public TripStage createTripStage(User createdBy, Trip trip, String name, Instant dateTime) {
-    TripStage stage = new TripStage(createdBy, trip, name);
-    stage.setSlug(SlugService.slugify(name));
+    TripStage stage = new TripStage(createdBy, trip, name, SlugService.slugify(name));
     stage.setDateTime(dateTime);
     tripStageRepository.persistAndFlush(stage);
     return stage;

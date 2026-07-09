@@ -51,26 +51,31 @@ and a replay repairs rows that a previous run left missing.
 
 ## Known failures
 
-A full local run of the 2026-07 dump (187 teams, ~70 min) lost 28 rows, all for reasons that
-predate the migration. Everything else reconciles exactly against the source.
+A full local run of the 2026-07 dump (187 teams, ~70 min) loses 25 routes, for reasons that predate
+the migration and cannot be fixed here. Everything else reconciles exactly against the source.
 
 | What | Count | Cause |
 |---|---|---|
 | Routes | 22 | The `.gpx` file is simply missing from the export — the `map` row points at nothing (`GPX_EMPTY`). |
 | Routes | 3 | Emoji in the track/waypoint name, written by biketeam as two separate UTF-16 surrogate character references (`&#55357;&#56629;`), which is not valid XML (`GPX_FAILURE`). |
-| Trips | 3 | Two stages of the same trip created in the same millisecond collide on `uk_team_entity_slug` — see below. The trip and its 22 stages roll back. |
 
-No team failed. The 25 lost routes were referenced by no ride and no trip stage.
+No team failed, and the 25 lost routes were referenced by no ride and no trip stage.
 
-`TripStage`'s constructor mints a slug as `"stage-" + System.currentTimeMillis()`, commented as
-"temporary… should be updated by the service" — but `TripService.setStageProperties` never rewrites
-it, so it is the final slug. Two stages of one team created within the same millisecond therefore
-violate the unique constraint. This is an application bug, not a migration bug: the same collision
-is reachable from the UI by creating a trip with several stages. The migration just hits it often
-enough to be noticed.
+That same run also lost 3 trips and their 22 stages to a `uk_team_entity_slug` collision, since
+fixed: `TripStage`'s constructor minted the slug as `"stage-" + System.currentTimeMillis()` and no
+one ever replaced it, so two stages created in the same millisecond collided — and every surviving
+stage carried a timestamp for a slug. `TripService` now derives it from the stage name, like every
+other entity.
 
 `FileTypeDetector` also logs one WARN per generated FIT file (~5400 of them): Magika has no
 signature for FIT, so it falls back to the extension and **accepts** the upload. Harmless noise.
+
+## Ordering of groups and stages
+
+Biketeam stores no order for a ride's groups, and sorted a trip's stages by their (random) UUID.
+Tribly's `sortOrder` is the index in the request list, so the reader sorts both by departure time
+first, then by name, with `id` breaking ties so replays stay stable. Nothing sorts them in
+`RideService`/`TripService`, where `sortOrder` belongs to whoever arranged them in the UI.
 
 ## Which teams get migrated
 

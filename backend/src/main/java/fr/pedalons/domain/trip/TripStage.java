@@ -58,18 +58,9 @@ public class TripStage extends TeamEntity {
     this.trip = trip;
   }
 
-  /**
-   * Convenience constructor that derives team and visibility from the trip.
-   * Generates a temporary slug that should be updated by the service.
-   */
-  public TripStage(User createdBy, Trip trip, String name) {
-    super(
-        createdBy,
-        trip.getTeam(),
-        trip.getDateTime(),
-        name,
-        "stage-" + System.currentTimeMillis(),
-        trip.getVisibility());
+  /** Convenience constructor that derives team, date and visibility from the trip. */
+  public TripStage(User createdBy, Trip trip, String name, String slug) {
+    super(createdBy, trip.getTeam(), trip.getDateTime(), name, slug, trip.getVisibility());
     this.trip = trip;
   }
 

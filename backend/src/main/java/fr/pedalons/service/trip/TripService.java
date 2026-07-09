@@ -18,6 +18,7 @@ import fr.pedalons.dto.trips.response.TripParticipationDto;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.Status;
+import fr.pedalons.enums.TeamEntityType;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.infrastructure.exception.*;
 import fr.pedalons.repository.place.PlaceRepository;
@@ -114,12 +115,29 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
 
   private void createTripStage(
       String teamSlug, User user, Trip trip, StageRequest stageRequest, int sortOrder) {
-    TripStage stage = new TripStage(user, trip, stageRequest.name());
+    TripStage stage = new TripStage(user, trip, stageRequest.name(), stageSlug(trip, stageRequest));
     setStageProperties(teamSlug, trip, stage, stageRequest, sortOrder, user);
     trip.addStage(stage);
     tripStageRepository.persistAndFlush(stage);
     updateMedia(stage, stageRequest.media());
     tripStageRepository.persist(stage);
+  }
+
+  /**
+   * {@code TripStageRepository} is a plain {@code BaseRepository}, so the {@code
+   * generateSlug(name, teamId, repository)} overload is out of reach — the uniqueness probe is spelt
+   * out instead. It counts soft-deleted stages too, matching {@code uk_team_entity_slug}, which has
+   * no {@code deleted} predicate. Panache adds the discriminator, so only stages are considered.
+   */
+  private String stageSlug(Trip trip, StageRequest stageRequest) {
+    Long teamId = trip.getTeam().getId();
+    String slug =
+        slugService.generateSlug(
+            stageRequest.name(),
+            candidate ->
+                tripStageRepository.count("team.id = ?1 and slug = ?2", teamId, candidate) > 0);
+    slugService.clearEntityRedirect(teamId, TeamEntityType.TRIP_STAGE, slug);
+    return slug;
   }
 
   private void setStageProperties(
