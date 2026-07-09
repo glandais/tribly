@@ -35,9 +35,12 @@ services:
       - .env
     environment:
       ERROR_LOG_DETAILS: "false"
-      PEDALONS_BOOTSTRAP_DOMAIN: "localhost"
-      PEDALONS_BOOTSTRAP_DOMAIN_NAME: "Pédalons"
-      PEDALONS_BOOTSTRAP_BASE_URL: "http://localhost:8090"
+      # Restated from .env with :? so a missing value stops `up` instead of booting a broken Domain.
+      PEDALONS_BOOTSTRAP_DOMAIN: ${PEDALONS_BOOTSTRAP_DOMAIN:?set it in .env}
+      PEDALONS_BOOTSTRAP_DOMAIN_NAME: ${PEDALONS_BOOTSTRAP_DOMAIN_NAME:?set it in .env}
+      PEDALONS_BOOTSTRAP_BASE_URL: ${PEDALONS_BOOTSTRAP_BASE_URL:?set it in .env}
+      PEDALONS_BOOTSTRAP_ADMIN_EMAIL: ${PEDALONS_BOOTSTRAP_ADMIN_EMAIL:?set it in .env}
+      PEDALONS_BOOTSTRAP_ADMIN_DISPLAY_NAME: ${PEDALONS_BOOTSTRAP_ADMIN_DISPLAY_NAME:?set it in .env}
     volumes:
       - ./data/storage:/mnt/storage
       - ./data/keys:/mnt/keys:ro
@@ -64,13 +67,18 @@ services:
       - .env
     environment:
       ERROR_LOG_DETAILS: "false"
-      PEDALONS_BOOTSTRAP_DOMAIN: "localhost"
-      PEDALONS_BOOTSTRAP_DOMAIN_NAME: "Pédalons"
-      PEDALONS_BOOTSTRAP_BASE_URL: "http://localhost:8090"
+      # Writes into this Domain — same values as the backend service, from .env.
+      PEDALONS_BOOTSTRAP_DOMAIN: ${PEDALONS_BOOTSTRAP_DOMAIN:?set it in .env}
+      PEDALONS_BOOTSTRAP_DOMAIN_NAME: ${PEDALONS_BOOTSTRAP_DOMAIN_NAME:?set it in .env}
+      PEDALONS_BOOTSTRAP_BASE_URL: ${PEDALONS_BOOTSTRAP_BASE_URL:?set it in .env}
+      PEDALONS_BOOTSTRAP_ADMIN_EMAIL: ${PEDALONS_BOOTSTRAP_ADMIN_EMAIL:?set it in .env}
+      PEDALONS_BOOTSTRAP_ADMIN_DISPLAY_NAME: ${PEDALONS_BOOTSTRAP_ADMIN_DISPLAY_NAME:?set it in .env}
       PEDALONS_MIGRATION_BIKETEAM_ENABLED: "true"
       # Unset: migrate every biketeam team. Set to a team id to migrate just that one.
       # PEDALONS_MIGRATION_BIKETEAM_TEAM_ID: "n-peloton"
       PEDALONS_MIGRATION_BIKETEAM_DATA_DIR: "/mnt/biketeam/production/data"
+      # A mail domain, not a hostname: biketeam users with no email get strava_<id>@<this>.
+      PEDALONS_MIGRATION_BIKETEAM_PLACEHOLDER_EMAIL_DOMAIN: "pedalons.fr"
       BIKETEAM_DB_URL: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/biketeam_import
       BIKETEAM_DB_USER: ${POSTGRES_USER}
       BIKETEAM_DB_PASSWORD: ${POSTGRES_PASSWORD}

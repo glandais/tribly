@@ -95,5 +95,16 @@ owns them, and the migration calls `BootstrapService` to get them — so `bootst
 where the data lands, and `bootstrap.admin-email` is the PLATFORM_ADMIN it writes as. Both are
 required; the migration aborts if either is blank.
 
+Nothing is defaulted in `application.properties`: `%dev` carries the dev values, and every
+deployment passes `PEDALONS_BOOTSTRAP_*` through `.env`. docker-compose.yml restates them with
+`${VAR:?}`, so a missing one stops `docker compose up` rather than quietly creating a Domain
+under the wrong hostname. Note that `.env` is *sourced* by `build.sh` and
+`scripts/biketeam_restore.sh` — quote any value containing a space.
+
+`bootstrap.base-url` is not the tenant key; `bootstrap.domain` is, matched against
+`X-Forwarded-Host`/`Host`. base-url only builds absolute URLs: the links in emails and the
+WebAuthn origin of passkeys. Both, along with `domain-name`, are read **only when the Domain row
+is created** — changing the env var afterwards has no effect.
+
 Of the migration's own settings, `data-dir` is optional (unset skips GPX tracks and images),
 and dropping `team-id` migrates every team instead of a single one.
