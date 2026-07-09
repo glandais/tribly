@@ -70,11 +70,7 @@ services:
       PEDALONS_MIGRATION_BIKETEAM_ENABLED: "true"
       # Unset: migrate every biketeam team. Set to a team id to migrate just that one.
       # PEDALONS_MIGRATION_BIKETEAM_TEAM_ID: "n-peloton"
-      PEDALONS_MIGRATION_BIKETEAM_TARGET_DOMAIN: "localhost"
-      PEDALONS_MIGRATION_BIKETEAM_TARGET_DOMAIN_NAME: "Pédalons"
-      PEDALONS_MIGRATION_BIKETEAM_TARGET_DOMAIN_BASE_URL: "http://localhost:8090"
       PEDALONS_MIGRATION_BIKETEAM_DATA_DIR: "/mnt/biketeam/production/data"
-      PEDALONS_MIGRATION_BIKETEAM_ADMIN_EMAIL: "gabriel.landais@gmail.com"
       BIKETEAM_DB_URL: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/biketeam_import
       BIKETEAM_DB_USER: ${POSTGRES_USER}
       BIKETEAM_DB_PASSWORD: ${POSTGRES_PASSWORD}

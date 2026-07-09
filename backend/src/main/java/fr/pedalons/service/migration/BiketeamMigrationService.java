@@ -39,7 +39,6 @@ import fr.pedalons.dto.trips.request.StageRequest;
 import fr.pedalons.dto.trips.request.TripRequest;
 import fr.pedalons.dto.trips.response.TripDto;
 import fr.pedalons.enums.AssetType;
-import fr.pedalons.enums.PlatformRole;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.SurfaceType;
 import fr.pedalons.enums.TeamRole;
@@ -48,7 +47,6 @@ import fr.pedalons.enums.WindDirection;
 import fr.pedalons.repository.comment.CommentRepository;
 import fr.pedalons.repository.migration.BiketeamMigrationMapRepository;
 import fr.pedalons.repository.place.PlaceRepository;
-import fr.pedalons.repository.platform.DomainRepository;
 import fr.pedalons.repository.post.PostRepository;
 import fr.pedalons.repository.ride.RideGroupRepository;
 import fr.pedalons.repository.ride.RideParticipationRepository;
@@ -63,6 +61,7 @@ import fr.pedalons.repository.trip.TripRepository;
 import fr.pedalons.repository.user.UserRepository;
 import fr.pedalons.service.asset.AssetService;
 import fr.pedalons.service.asset.response.AssetWithFile;
+import fr.pedalons.service.bootstrap.BootstrapService;
 import fr.pedalons.service.place.PlaceService;
 import fr.pedalons.service.post.PostService;
 import fr.pedalons.service.ride.RideService;
@@ -138,11 +137,11 @@ public class BiketeamMigrationService {
   @Inject BiketeamMigrationConfig config;
   @Inject BiketeamReader reader;
   @Inject BiketeamMigrationMapRepository mapRepo;
+  @Inject BootstrapService bootstrapService;
 
   @Inject DomainResolver domainResolver;
   @Inject PedalonsQueryContext pedalonsContext;
 
-  @Inject DomainRepository domainRepository;
   @Inject TeamRepository teamRepository;
   @Inject UserRepository userRepository;
   @Inject UserTeamRepository userTeamRepository;
@@ -185,9 +184,11 @@ public class BiketeamMigrationService {
   }
 
   private void runWithinRequest() {
-    Domain domain = resolveDomain();
+    // The domain and its PLATFORM_ADMIN belong to the bootstrap; the migration only consumes them.
+    BootstrapService.Identity identity = bootstrapService.ensureDomainAndAdmin();
+    Domain domain = identity.domain();
+    User admin = identity.admin();
 
-    User admin = bootstrapMigrationAdmin(domain);
     domainResolver.setDomainForTest(domain);
     pedalonsContext.setUserForTest(admin);
 
@@ -246,52 +247,6 @@ public class BiketeamMigrationService {
   }
 
   // ─── Domain / team / admin ────────────────────────────────────────────────
-
-  @Transactional
-  protected Domain resolveDomain() {
-    String domainName = config.getTargetDomain();
-    return domainRepository
-        .findByDomain(domainName)
-        .orElseGet(
-            () -> {
-              LOG.infof(
-                  "Target domain '%s' not found — creating it (name='%s', baseUrl='%s')",
-                  domainName, config.getTargetDomainName(), config.getTargetDomainBaseUrl());
-              Domain d =
-                  new Domain(
-                      domainName, config.getTargetDomainName(), config.getTargetDomainBaseUrl());
-              domainRepository.persistAndFlush(d);
-              return d;
-            });
-  }
-
-  @Transactional
-  protected User bootstrapMigrationAdmin(Domain domain) {
-    if (config.getAdminEmail().isBlank()) {
-      throw new IllegalStateException(
-          "pedalons.migration.biketeam.admin-email is blank; cannot bootstrap migration user");
-    }
-    String email = config.getAdminEmail().toLowerCase(Locale.ROOT);
-    User admin =
-        userRepository
-            .findByEmailAndDomain(domain.getId(), email)
-            .orElseGet(
-                () -> {
-                  User u = new User(domain, email, email);
-                  u.setEmailVerified(true);
-                  u.setEmailVerifiedAt(Instant.now());
-                  userRepository.persist(u);
-                  return u;
-                });
-    // PLATFORM_ADMIN is what lets the migration write through the normal services:
-    // SecurityVerifier.hasAccess short-circuits on it, so no team membership is needed.
-    if (admin.getPlatformRole() != PlatformRole.PLATFORM_ADMIN) {
-      admin.setPlatformRole(PlatformRole.PLATFORM_ADMIN);
-      userRepository.persist(admin);
-    }
-    LOG.infof("Using configured migration admin '%s' as PLATFORM_ADMIN", email);
-    return admin;
-  }
 
   @Transactional
   protected Team ensureTargetTeam(Domain domain, User admin, BiketeamReader.BtTeam src) {

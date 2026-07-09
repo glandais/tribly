@@ -23,9 +23,7 @@ public class BiketeamMigrationRunner {
       LOG.debug("Biketeam migration disabled");
       return;
     }
-    LOG.infof(
-        "Biketeam migration starting (team=%s → domain=%s)",
-        config.getTeamId().orElse("<all>"), config.getTargetDomain());
+    LOG.infof("Biketeam migration starting (team=%s)", config.getTeamId().orElse("<all>"));
     try {
       service.run();
       LOG.info("Biketeam migration completed");

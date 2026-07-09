@@ -28,6 +28,9 @@ public class BootstrapService {
   @Inject DomainRepository domainRepository;
   @Inject UserRepository userRepository;
 
+  /** The default domain and its platform administrator. */
+  public record Identity(Domain domain, User admin) {}
+
   void onStart(@Observes StartupEvent ev) {
     if (!config.enabled()) {
       LOG.debug("Bootstrap disabled");
@@ -38,13 +41,26 @@ public class BootstrapService {
       return;
     }
     try {
-      QuarkusTransaction.requiringNew().run(this::ensureDomainAndAdmin);
+      ensureDomainAndAdmin();
     } catch (Exception e) {
       LOG.error("Bootstrap failed", e);
     }
   }
 
-  private void ensureDomainAndAdmin() {
+  /**
+   * Creates the default domain and its platform admin if they are missing, and returns them either
+   * way. Idempotent, and safe to call outside the startup event — the biketeam migration relies on
+   * it rather than growing its own copy, since {@code StartupEvent} observers have no ordering.
+   */
+  public Identity ensureDomainAndAdmin() {
+    if (config.domain().isBlank() || config.adminEmail().isBlank()) {
+      throw new IllegalStateException(
+          "pedalons.bootstrap.domain and pedalons.bootstrap.admin-email are required");
+    }
+    return QuarkusTransaction.requiringNew().call(this::createOrUpdate);
+  }
+
+  private Identity createOrUpdate() {
     Domain domain =
         domainRepository
             .findByDomain(config.domain())
@@ -77,5 +93,6 @@ public class BootstrapService {
       admin.setPlatformRole(PlatformRole.PLATFORM_ADMIN);
       userRepository.persist(admin);
     }
+    return new Identity(domain, admin);
   }
 }

@@ -74,11 +74,11 @@ would have dropped roughly 60% of n-peloton's participation history.
 
 PEDALONS_MIGRATION_BIKETEAM_ENABLED=true \
 PEDALONS_MIGRATION_BIKETEAM_TEAM_ID=n-peloton \
-PEDALONS_MIGRATION_BIKETEAM_TARGET_DOMAIN=localhost \
-PEDALONS_MIGRATION_BIKETEAM_TARGET_DOMAIN_NAME=Pédalons \
-PEDALONS_MIGRATION_BIKETEAM_TARGET_DOMAIN_BASE_URL=https://localhost:5173 \
 PEDALONS_MIGRATION_BIKETEAM_DATA_DIR=/home/glandais/code/perso/biketeam-backup/production/data \
-PEDALONS_MIGRATION_BIKETEAM_ADMIN_EMAIL=gabriel.landais@gmail.com \
+PEDALONS_BOOTSTRAP_DOMAIN=localhost \
+PEDALONS_BOOTSTRAP_DOMAIN_NAME=Pédalons \
+PEDALONS_BOOTSTRAP_BASE_URL=https://localhost:5173 \
+PEDALONS_BOOTSTRAP_ADMIN_EMAIL=gabriel.landais@gmail.com \
 BIKETEAM_DB_URL=jdbc:postgresql://localhost:5432/biketeam_import \
 BIKETEAM_DB_USER=pedalons \
 BIKETEAM_DB_PASSWORD=pedalons_dev_password \
@@ -88,7 +88,12 @@ Note the credentials differ from the compose stack: `%dev` talks to a `pedalons`
 owned by `pedalons`, whereas docker-compose.yml runs `tribly` / `${POSTGRES_USER}`. Restore
 the dump into whichever postgres the dev profile points at.
 
-`admin-email` is required — the migration aborts if it is blank. `target-domain-name`
-and `target-domain-base-url` are optional: they default to the hostname and to
-`https://{target-domain}`. `data-dir` is optional too; leaving it blank skips GPX tracks
-and images. Dropping `team-id` migrates every team instead of a single one.
+## Configuration
+
+The target domain and the admin account are **not** migration settings. `pedalons.bootstrap.*`
+owns them, and the migration calls `BootstrapService` to get them — so `bootstrap.domain` is
+where the data lands, and `bootstrap.admin-email` is the PLATFORM_ADMIN it writes as. Both are
+required; the migration aborts if either is blank.
+
+Of the migration's own settings, `data-dir` is optional (unset skips GPX tracks and images),
+and dropping `team-id` migrates every team instead of a single one.
