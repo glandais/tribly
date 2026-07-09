@@ -53,9 +53,12 @@ and a replay repairs rows that a previous run left missing.
 
 `team-id` names one biketeam team, and — since biketeam ids are already slugs — the tribly
 team it becomes. Leave it unset and every live biketeam team is migrated, each in its own
-error boundary: a team that blows up is logged and the run moves on to the next one. The
-migration admin is made ADMIN of every team it touches, which is what lets it write through
-the normal services.
+error boundary: a team that blows up is logged and the run moves on to the next one.
+
+The migration admin (`admin-email`) is only made PLATFORM_ADMIN of the target domain —
+enough for `SecurityVerifier` to let it write through the normal services, without joining
+any team. Team membership comes from biketeam's own `user_role` rows. Four biketeam teams
+have no admin of their own and end up with none; the platform admin can still manage them.
 
 ## Members without an email
 

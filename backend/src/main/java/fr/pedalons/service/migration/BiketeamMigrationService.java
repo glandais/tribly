@@ -39,6 +39,7 @@ import fr.pedalons.dto.trips.request.StageRequest;
 import fr.pedalons.dto.trips.request.TripRequest;
 import fr.pedalons.dto.trips.response.TripDto;
 import fr.pedalons.enums.AssetType;
+import fr.pedalons.enums.PlatformRole;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.SurfaceType;
 import fr.pedalons.enums.TeamRole;
@@ -226,8 +227,8 @@ public class BiketeamMigrationService {
     String sourceTeam = btTeam.id();
     LOG.infof("Migrating biketeam team '%s' (%s)", sourceTeam, btTeam.name());
 
+    // No membership for the migration admin: each team gets its own admins from user_role.
     Team team = ensureTargetTeam(domain, admin, btTeam);
-    ensureMembership(team, admin, TeamRole.ADMIN);
     migrateTeamDescription(team, sourceTeam);
 
     Map<String, Long> userIds = migrateUsers(domain, sourceTeam);
@@ -282,7 +283,13 @@ public class BiketeamMigrationService {
                   userRepository.persist(u);
                   return u;
                 });
-    LOG.infof("Using configured migration admin '%s'", email);
+    // PLATFORM_ADMIN is what lets the migration write through the normal services:
+    // SecurityVerifier.hasAccess short-circuits on it, so no team membership is needed.
+    if (admin.getPlatformRole() != PlatformRole.PLATFORM_ADMIN) {
+      admin.setPlatformRole(PlatformRole.PLATFORM_ADMIN);
+      userRepository.persist(admin);
+    }
+    LOG.infof("Using configured migration admin '%s' as PLATFORM_ADMIN", email);
     return admin;
   }
 
