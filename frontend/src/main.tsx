@@ -4,6 +4,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MantineProvider, createTheme, virtualColor } from '@mantine/core'
 import { Notifications } from '@mantine/notifications'
 import App from './App'
+import { fetchAppConfig } from './config/appConfig'
+import { getGetConfigQueryKey } from './api/endpoints/configuration/configuration'
 import './index.css'
 
 // Initialize i18n before rendering
@@ -89,13 +91,25 @@ const queryClient = new QueryClient({
   },
 })
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <MantineProvider theme={theme} defaultColorScheme="auto">
-      <Notifications position="top-right" />
-      <QueryClientProvider client={queryClient}>
-        <App />
-      </QueryClientProvider>
-    </MantineProvider>
-  </React.StrictMode>
-)
+// The config drives single-team rooting, so it must be resolved before the first render:
+// getAppConfig()/getPinnedTeamSlug() are synchronous readers of this cache.
+async function bootstrap() {
+  try {
+    queryClient.setQueryData(getGetConfigQueryKey(), await fetchAppConfig())
+  } catch (error) {
+    console.error('Failed to load app config', error)
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')!).render(
+    <React.StrictMode>
+      <MantineProvider theme={theme} defaultColorScheme="auto">
+        <Notifications position="top-right" />
+        <QueryClientProvider client={queryClient}>
+          <App />
+        </QueryClientProvider>
+      </MantineProvider>
+    </React.StrictMode>
+  )
+}
+
+void bootstrap()

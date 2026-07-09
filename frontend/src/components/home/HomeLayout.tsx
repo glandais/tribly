@@ -4,7 +4,7 @@ import { Stack } from '@mantine/core'
 import { IconNews, IconCalendar, IconRoute, IconUsers } from '@tabler/icons-react'
 import { paths } from '@/config/paths'
 import { useAuth } from '@/hooks/useAuth'
-import { getPinnedTeamSlug } from '@/config/appConfig'
+import { isSingleTeam } from '@/config/appConfig'
 import { NavButtons, type NavButtonItem } from '../common/NavButtons'
 
 export type HomeTab = 'feed' | 'routes' | 'teams' | 'calendar'
@@ -18,10 +18,10 @@ interface HomeLayoutProps {
 export function HomeLayout({ header = <></>, currentTab, children }: HomeLayoutProps) {
   const { t } = useTranslation()
   const { isAuthenticated } = useAuth()
-  const pinnedTeamSlug = getPinnedTeamSlug()
+  const singleTeam = isSingleTeam()
 
   const tabs = useMemo(() => {
-    const allTabs: (NavButtonItem & { requiresAuth?: boolean; hideWhenPinned?: boolean })[] = [
+    const allTabs: (NavButtonItem & { requiresAuth?: boolean; hideWhenSingleTeam?: boolean })[] = [
       {
         id: 'feed',
         path: paths.home(),
@@ -33,8 +33,8 @@ export function HomeLayout({ header = <></>, currentTab, children }: HomeLayoutP
         path: paths.teams(),
         label: t('teams.title'),
         icon: IconUsers,
-        // On a dedicated single-team hostname, there is no team browsing.
-        hideWhenPinned: true,
+        // A single-team site has nothing to browse.
+        hideWhenSingleTeam: true,
       },
       {
         id: 'calendar',
@@ -51,9 +51,9 @@ export function HomeLayout({ header = <></>, currentTab, children }: HomeLayoutP
       },
     ]
     return allTabs.filter(
-      (tab) => (!tab.requiresAuth || isAuthenticated) && !(tab.hideWhenPinned && pinnedTeamSlug)
+      (tab) => (!tab.requiresAuth || isAuthenticated) && !(tab.hideWhenSingleTeam && singleTeam)
     )
-  }, [t, isAuthenticated, pinnedTeamSlug])
+  }, [t, isAuthenticated, singleTeam])
 
   return (
     <Stack>

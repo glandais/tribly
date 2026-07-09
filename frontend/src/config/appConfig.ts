@@ -36,3 +36,11 @@ export function getAppConfig(): ConfigDto | null {
 export function getPinnedTeamSlug(): string | null {
   return cachedConfig?.pinnedTeamSlug ?? null
 }
+
+/**
+ * True when the site hosts a single team: either the domain is flagged single-team, or the request
+ * came in on a hostname pinned to one team. Team browsing and team creation are then irrelevant.
+ */
+export function isSingleTeam(): boolean {
+  return cachedConfig?.singleTeam ?? false
+}
