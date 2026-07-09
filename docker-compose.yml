@@ -25,7 +25,7 @@ services:
       - "traefik.enable=false"
 
   backend:
-    image: ghcr.io/glandais/pedalons-backend:${ENV_NAME}
+    image: pedalons-backend:${ENV_NAME}
     container_name: ${ENV_NAME}-backend
     restart: unless-stopped
     user: "${PUID:-1000}:${PGID:-1000}"
@@ -46,7 +46,7 @@ services:
       - "traefik.http.services.quarkus.loadbalancer.server.port=8080"
 
   frontend:
-    image: ghcr.io/glandais/pedalons-frontend:${ENV_NAME}
+    image: pedalons-frontend:${ENV_NAME}
     container_name: ${ENV_NAME}-frontend
     restart: unless-stopped
     networks:
