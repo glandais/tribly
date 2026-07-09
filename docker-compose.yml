@@ -2,7 +2,7 @@ services:
   # Reverse proxy
   traefik:
     image: traefik:v3.7
-    container_name: pedalons-traefik
+    container_name: ${ENV_NAME}-traefik
     restart: unless-stopped
     networks:
       - pedalons
@@ -18,7 +18,7 @@ services:
       - "--log.level=WARN"
       - "--accesslog=true"
       - "--accesslog.filepath=/var/log/traefik/access.log"
-      - "--providers.docker.constraints=Label(`traefik.stack`,`${TRAEFIK_STACK}`)"
+      - "--providers.docker.constraints=Label(`traefik.stack`,`${ENV_NAME}`)"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     labels:
@@ -26,7 +26,7 @@ services:
 
   backend:
     image: ghcr.io/glandais/pedalons-backend:latest
-    container_name: pedalons-backend
+    container_name: ${ENV_NAME}-backend
     restart: unless-stopped
     user: "${PUID:-1000}:${PGID:-1000}"
     networks:
@@ -40,27 +40,27 @@ services:
       - ./data/keys:/mnt/keys:ro
     labels:
       - "traefik.enable=true"
-      - "traefik.stack=${TRAEFIK_STACK}"
+      - "traefik.stack=${ENV_NAME}"
       - "traefik.http.routers.quarkus.rule=PathPrefix(`/api`)"
       - "traefik.http.routers.quarkus.priority=100"
       - "traefik.http.services.quarkus.loadbalancer.server.port=8080"
 
   frontend:
     image: ghcr.io/glandais/pedalons-frontend:latest
-    container_name: pedalons-frontend
+    container_name: ${ENV_NAME}-frontend
     restart: unless-stopped
     networks:
       - pedalons
     labels:
       - "traefik.enable=true"
-      - "traefik.stack=${TRAEFIK_STACK}"
+      - "traefik.stack=${ENV_NAME}"
       - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
       - "traefik.http.routers.frontend.priority=1"
 
   postgres:
     image: postgis/postgis:17-3.5-alpine
-    container_name: pedalons-postgres
+    container_name: ${ENV_NAME}-postgres
     restart: unless-stopped
     networks:
       - pedalons
@@ -78,7 +78,7 @@ services:
 
   imgproxy:
     image: ghcr.io/imgproxy/imgproxy:v4.0.11
-    container_name: pedalons-imgproxy
+    container_name: ${ENV_NAME}-imgproxy
     restart: unless-stopped
     networks:
       - pedalons
@@ -100,7 +100,7 @@ services:
 
   varnish:
     image: varnish:9.0.3
-    container_name: pedalons-varnish
+    container_name: ${ENV_NAME}-varnish
     restart: unless-stopped
     networks:
       - pedalons
@@ -115,7 +115,7 @@ services:
 
   valhalla:
     image: ghcr.io/valhalla/valhalla-scripted:latest
-    container_name: pedalons-valhalla
+    container_name: ${ENV_NAME}-valhalla
     restart: unless-stopped
     networks:
       - pedalons
@@ -131,7 +131,7 @@ services:
 
   minio:
     image: minio/minio:RELEASE.2025-01-20T14-49-07Z
-    container_name: pedalons-minio
+    container_name: ${ENV_NAME}-minio
     command: server /data --console-address ":9001"
     restart: unless-stopped
     networks:
@@ -144,7 +144,7 @@ services:
 
   tileserver:
     image: maptiler/tileserver-gl:v5.6.0
-    container_name: pedalons-tileserver
+    container_name: ${ENV_NAME}-tileserver
     restart: unless-stopped
     networks:
       - pedalons
