@@ -28,8 +28,15 @@ public class BiketeamReader {
 
   // ─── Records ──────────────────────────────────────────────────────────────
 
+  /** {@code visibility} is one of PUBLIC, PUBLIC_UNLISTED, PRIVATE, PRIVATE_UNLISTED, USER. */
   public record BtTeam(
-      String id, String name, String city, String country, LocalDate createdAt, boolean deletion) {}
+      String id,
+      String name,
+      String city,
+      String country,
+      LocalDate createdAt,
+      @Nullable String visibility,
+      boolean deletion) {}
 
   /**
    * {@code email} is null for the many biketeam accounts created through a Strava/Facebook/Google
@@ -196,34 +203,33 @@ public class BiketeamReader {
 
   // ─── Queries ──────────────────────────────────────────────────────────────
 
+  private static final String TEAM_COLUMNS =
+      "id, name, city, country, created_at, visibility, deletion";
+
   /** Every live team, oldest id first — the source set when no single team is configured. */
   public List<BtTeam> findAllTeams() {
     return many(
-        "SELECT id, name, city, country, created_at, deletion FROM team "
-            + "WHERE deletion = false ORDER BY id",
+        "SELECT " + TEAM_COLUMNS + " FROM team WHERE deletion = false ORDER BY id",
         ps -> {},
-        rs ->
-            new BtTeam(
-                rs.getString(1),
-                rs.getString(2),
-                rs.getString(3),
-                rs.getString(4),
-                toLocalDate(rs.getDate(5)),
-                rs.getBoolean(6)));
+        BiketeamReader::toTeam);
   }
 
   public @Nullable BtTeam findTeam(String teamId) {
     return one(
-        "SELECT id, name, city, country, created_at, deletion FROM team WHERE id = ?",
+        "SELECT " + TEAM_COLUMNS + " FROM team WHERE id = ?",
         ps -> ps.setString(1, teamId),
-        rs ->
-            new BtTeam(
-                rs.getString(1),
-                rs.getString(2),
-                rs.getString(3),
-                rs.getString(4),
-                toLocalDate(rs.getDate(5)),
-                rs.getBoolean(6)));
+        BiketeamReader::toTeam);
+  }
+
+  private static BtTeam toTeam(ResultSet rs) throws SQLException {
+    return new BtTeam(
+        rs.getString(1),
+        rs.getString(2),
+        rs.getString(3),
+        rs.getString(4),
+        toLocalDate(rs.getDate(5)),
+        rs.getString(6),
+        rs.getBoolean(7));
   }
 
   public @Nullable BtTeamDescription findTeamDescription(String teamId) {

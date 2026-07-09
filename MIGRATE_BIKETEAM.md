@@ -60,6 +60,31 @@ enough for `SecurityVerifier` to let it write through the normal services, witho
 any team. Team membership comes from biketeam's own `user_role` rows. Four biketeam teams
 have no admin of their own and end up with none; the platform admin can still manage them.
 
+## Visibility
+
+Biketeam has no per-entity visibility: a route, ride, trip or post is exactly as visible as its
+team. Only `ride.listed_in_feed` / `trip.listed_in_feed` differ, and they merely hide an item
+from the team feed — a direct link still opens it — which is what `PUBLIC_UNLISTED` means here.
+
+| biketeam `team.visibility` | tribly | teams |
+|---|---|---|
+| `PUBLIC` | `PUBLIC` | 63 |
+| `PUBLIC_UNLISTED` | `PUBLIC_UNLISTED` | 7 |
+| `USER` (personal space) | `PUBLIC_UNLISTED` | 105 |
+| `PRIVATE` | `TEAM` | 4 |
+| `PRIVATE_UNLISTED` | `TEAM` | 8 |
+
+Both PRIVATE flavours mean "members only", which is `TEAM`; tribly has no unlisted-and-private,
+so that distinction is dropped. `USER` marks a personal training space that biketeam never lists,
+yet `Team.isPublic()` returns true for it, so anyone with the link can read it — `PUBLIC_UNLISTED`
+is the faithful translation. An unknown value maps to `TEAM`, the most restrictive.
+
+`Team.joinable` follows: biketeam puts `/join` behind `authorizePublicAccess`, so a `TEAM` team
+cannot be self-joined.
+
+The migration reads and writes private teams as PLATFORM_ADMIN without joining them:
+`TeamEntityRepository` skips the whole visibility filter when `query.platformAdmin()` is set.
+
 ## Members without an email
 
 Biketeam let people sign in through Strava, Facebook or Google without ever giving an

@@ -251,20 +251,26 @@ public class BiketeamMigrationService {
   @Transactional
   protected Team ensureTargetTeam(Domain domain, User admin, BiketeamReader.BtTeam src) {
     String slug = src.id();
+    Visibility visibility = mapTeamVisibility(src.visibility());
     Optional<Team> existing = teamRepository.findBySlugAndDomain(domain.getId(), slug);
     if (existing.isPresent()) {
       Team t = existing.get();
+      // Reconcile on replay: an earlier run may have left the team wide open.
+      t.setVisibility(visibility);
+      t.setJoinable(visibility != Visibility.TEAM);
+      teamRepository.persist(t);
       mapRepo.upsert(T_TEAM, slug, t.getId());
       return t;
     }
-    Team team = new Team(domain, admin, src.name(), slug, Visibility.PUBLIC);
+    Team team = new Team(domain, admin, src.name(), slug, visibility);
     team.setEnableRoutes(true);
     team.setEnableRides(true);
     team.setEnableTrips(true);
     team.setEnablePosts(true);
     team.setEnableAds(false);
     team.setVisibilityEditable(true);
-    team.setJoinable(true);
+    // Biketeam gates /join behind authorizePublicAccess, so a private team can't be self-joined.
+    team.setJoinable(visibility != Visibility.TEAM);
     team.setAddMemberAllowed(true);
     teamRepository.persistAndFlush(team);
     mapRepo.upsert(T_TEAM, slug, team.getId());
@@ -310,6 +316,7 @@ public class BiketeamMigrationService {
     }
     about.setMarkdown(markdown);
     about.setStatus(Status.PUBLISHED);
+    about.setVisibility(managed.getVisibility());
     teamRepository.persist(managed);
     mapRepo.upsert(T_TEAM_PAGE, sourceTeam, about.getId());
     LOG.infof("Migrated team description into the about page of '%s'", managed.getSlug());
@@ -621,9 +628,10 @@ public class BiketeamMigrationService {
       return;
     }
     Path gpx = locateGpx(sourceTeam, bt.id());
-    // Biketeam dropped its per-map visibility flag — all non-deleted routes are public.
+    // Biketeam dropped its per-map visibility flag, so a route is exactly as visible as its team.
     RouteRequest req =
-        new RouteRequest(bt.name(), emptyMedia(), mapSurface(bt.type()), Visibility.PUBLIC, null);
+        new RouteRequest(
+            bt.name(), emptyMedia(), mapSurface(bt.type()), team.getVisibility(), null);
     Route route = null;
     if (mapped != null) {
       route = routeRepository.findByIdOptional(mapped).orElse(null);
@@ -698,11 +706,12 @@ public class BiketeamMigrationService {
               tpl.name(),
               slug,
               biketeamToMarkdown(tpl.description()),
-              Visibility.PUBLIC,
+              team.getVisibility(),
               Status.PUBLISHED);
       rideTemplateRepository.persistAndFlush(target);
     } else {
       target.setName(tpl.name());
+      target.setVisibility(team.getVisibility());
       target.setMarkdown(biketeamToMarkdown(tpl.description()));
       rideTemplateRepository.persist(target);
     }
@@ -762,7 +771,8 @@ public class BiketeamMigrationService {
             mediaWithExisting(biketeamToMarkdown(bt.content()), existing),
             bt.publishedAt() != null ? bt.publishedAt() : Instant.now(),
             mapStatus(bt.publishedStatus()),
-            Visibility.PUBLIC,
+            // Publications carry no listed_in_feed flag: they follow the team.
+            team.getVisibility(),
             null);
     Post post;
     if (existing != null) {
@@ -870,7 +880,7 @@ public class BiketeamMigrationService {
             mediaWithExisting(biketeamToMarkdown(bt.description()), existing),
             dateTime,
             mapStatus(bt.publishedStatus()),
-            Visibility.PUBLIC,
+            entityVisibility(team.getVisibility(), bt.listedInFeed()),
             null,
             placeIdString(placeIds, bt.startPlaceId()),
             placeIdString(placeIds, bt.endPlaceId()),
@@ -999,7 +1009,7 @@ public class BiketeamMigrationService {
             mediaWithExisting(biketeamToMarkdown(bt.description()), existing),
             dateTime,
             mapStatus(bt.publishedStatus()),
-            Visibility.PUBLIC,
+            entityVisibility(team.getVisibility(), bt.listedInFeed()),
             null,
             null,
             stageRequests);
@@ -1232,6 +1242,37 @@ public class BiketeamMigrationService {
       case "NORTHWEST" -> WindDirection.NORTH_WEST;
       default -> null;
     };
+  }
+
+  /**
+   * Biketeam's five team visibilities collapse onto tribly's three. Both PRIVATE flavours mean
+   * "members only", which is exactly {@code TEAM}; the unlisted-ness of PRIVATE_UNLISTED has no
+   * tribly counterpart and is dropped. USER marks a personal training space: biketeam never lists
+   * it, yet {@code Team.isPublic()} lets anyone with the link read it, so PUBLIC_UNLISTED is the
+   * faithful translation. An unknown value maps to the most restrictive option.
+   */
+  private static Visibility mapTeamVisibility(@Nullable String biketeamVisibility) {
+    if (biketeamVisibility == null) {
+      return Visibility.TEAM;
+    }
+    return switch (biketeamVisibility.toUpperCase(Locale.ROOT)) {
+      case "PUBLIC" -> Visibility.PUBLIC;
+      case "PUBLIC_UNLISTED", "USER" -> Visibility.PUBLIC_UNLISTED;
+      case "PRIVATE", "PRIVATE_UNLISTED" -> Visibility.TEAM;
+      default -> Visibility.TEAM;
+    };
+  }
+
+  /**
+   * Biketeam has no per-entity visibility: content is as visible as its team. Its {@code
+   * listed_in_feed} flag only hides a ride or trip from the team feed — a direct link still works —
+   * which is what {@code PUBLIC_UNLISTED} means here.
+   */
+  private static Visibility entityVisibility(Visibility teamVisibility, boolean listedInFeed) {
+    if (teamVisibility == Visibility.TEAM) {
+      return Visibility.TEAM;
+    }
+    return listedInFeed ? teamVisibility : Visibility.PUBLIC_UNLISTED;
   }
 
   private static Status mapStatus(@Nullable String biketeamStatus) {
