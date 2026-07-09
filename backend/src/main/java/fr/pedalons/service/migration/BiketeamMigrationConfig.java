@@ -12,9 +12,12 @@ public class BiketeamMigrationConfig {
   @ConfigProperty(name = "pedalons.migration.biketeam.enabled", defaultValue = "false")
   boolean enabled;
 
-  /** Biketeam team ids are already slugs, so this doubles as the target tribly team slug. */
-  @ConfigProperty(name = "pedalons.migration.biketeam.team-id", defaultValue = "")
-  String teamId;
+  /**
+   * The single biketeam team to migrate; every team is migrated when absent. Biketeam team ids are
+   * already slugs, so this doubles as the target tribly team slug.
+   */
+  @ConfigProperty(name = "pedalons.migration.biketeam.team-id")
+  Optional<String> teamId;
 
   @ConfigProperty(name = "pedalons.migration.biketeam.target-domain", defaultValue = "")
   String targetDomain;

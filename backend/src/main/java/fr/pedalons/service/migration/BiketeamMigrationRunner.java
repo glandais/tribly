@@ -25,7 +25,7 @@ public class BiketeamMigrationRunner {
     }
     LOG.infof(
         "Biketeam migration starting (team=%s → domain=%s)",
-        config.getTeamId(), config.getTargetDomain());
+        config.getTeamId().orElse("<all>"), config.getTargetDomain());
     try {
       service.run();
       LOG.info("Biketeam migration completed");

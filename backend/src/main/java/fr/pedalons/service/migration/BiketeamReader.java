@@ -196,6 +196,22 @@ public class BiketeamReader {
 
   // ─── Queries ──────────────────────────────────────────────────────────────
 
+  /** Every live team, oldest id first — the source set when no single team is configured. */
+  public List<BtTeam> findAllTeams() {
+    return many(
+        "SELECT id, name, city, country, created_at, deletion FROM team "
+            + "WHERE deletion = false ORDER BY id",
+        ps -> {},
+        rs ->
+            new BtTeam(
+                rs.getString(1),
+                rs.getString(2),
+                rs.getString(3),
+                rs.getString(4),
+                toLocalDate(rs.getDate(5)),
+                rs.getBoolean(6)));
+  }
+
   public @Nullable BtTeam findTeam(String teamId) {
     return one(
         "SELECT id, name, city, country, created_at, deletion FROM team WHERE id = ?",

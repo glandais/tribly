@@ -190,12 +190,45 @@ public class BiketeamMigrationService {
     domainResolver.setDomainForTest(domain);
     pedalonsContext.setUserForTest(admin);
 
-    Team team = ensureTargetTeam(domain, admin);
-    ensureMembership(team, admin, TeamRole.ADMIN);
-    migrateTeamDescription(team, config.getTeamId());
+    List<BiketeamReader.BtTeam> sourceTeams = resolveSourceTeams();
+    LOG.infof("Migrating %d biketeam team(s)", sourceTeams.size());
 
-    String sourceTeam = config.getTeamId();
-    LOG.infof("Migrating data scoped to biketeam team_id='%s'", sourceTeam);
+    int failed = 0;
+    for (BiketeamReader.BtTeam sourceTeam : sourceTeams) {
+      try {
+        migrateTeam(domain, admin, sourceTeam);
+      } catch (Exception e) {
+        // One broken team must not cost us the other 182.
+        failed++;
+        LOG.errorf(e, "Failed to migrate biketeam team '%s'", sourceTeam.id());
+      }
+    }
+    if (failed > 0) {
+      LOG.warnf("%d of %d teams failed to migrate", failed, sourceTeams.size());
+    }
+  }
+
+  /** The configured team, or every live one when {@code team-id} is absent. */
+  private List<BiketeamReader.BtTeam> resolveSourceTeams() {
+    Optional<String> configured = config.getTeamId();
+    if (configured.isEmpty()) {
+      return reader.findAllTeams();
+    }
+    String teamId = configured.get();
+    BiketeamReader.BtTeam team = reader.findTeam(teamId);
+    if (team == null) {
+      throw new IllegalStateException("biketeam team '" + teamId + "' not found in the dump");
+    }
+    return List.of(team);
+  }
+
+  private void migrateTeam(Domain domain, User admin, BiketeamReader.BtTeam btTeam) {
+    String sourceTeam = btTeam.id();
+    LOG.infof("Migrating biketeam team '%s' (%s)", sourceTeam, btTeam.name());
+
+    Team team = ensureTargetTeam(domain, admin, btTeam);
+    ensureMembership(team, admin, TeamRole.ADMIN);
+    migrateTeamDescription(team, sourceTeam);
 
     Map<String, Long> userIds = migrateUsers(domain, sourceTeam);
     migrateUserTeams(team, sourceTeam, userIds);
@@ -254,17 +287,15 @@ public class BiketeamMigrationService {
   }
 
   @Transactional
-  protected Team ensureTargetTeam(Domain domain, User admin) {
-    String slug = config.getTeamId();
+  protected Team ensureTargetTeam(Domain domain, User admin, BiketeamReader.BtTeam src) {
+    String slug = src.id();
     Optional<Team> existing = teamRepository.findBySlugAndDomain(domain.getId(), slug);
     if (existing.isPresent()) {
       Team t = existing.get();
-      mapRepo.upsert(T_TEAM, config.getTeamId(), t.getId());
+      mapRepo.upsert(T_TEAM, slug, t.getId());
       return t;
     }
-    BiketeamReader.BtTeam src = reader.findTeam(config.getTeamId());
-    String displayName = src != null ? src.name() : "N-Peloton";
-    Team team = new Team(domain, admin, displayName, slug, Visibility.PUBLIC);
+    Team team = new Team(domain, admin, src.name(), slug, Visibility.PUBLIC);
     team.setEnableRoutes(true);
     team.setEnableRides(true);
     team.setEnableTrips(true);
@@ -274,7 +305,7 @@ public class BiketeamMigrationService {
     team.setJoinable(true);
     team.setAddMemberAllowed(true);
     teamRepository.persistAndFlush(team);
-    mapRepo.upsert(T_TEAM, config.getTeamId(), team.getId());
+    mapRepo.upsert(T_TEAM, slug, team.getId());
     return team;
   }
 

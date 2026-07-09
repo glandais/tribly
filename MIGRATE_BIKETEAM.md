@@ -49,6 +49,14 @@ Config lives in the `backend-restore` service in docker-compose.yml. Re-running 
 safe: already-migrated rows are matched through the biketeam→tribly id mapping table,
 and a replay repairs rows that a previous run left missing.
 
+## Which teams get migrated
+
+`team-id` names one biketeam team, and — since biketeam ids are already slugs — the tribly
+team it becomes. Leave it unset and every live biketeam team is migrated, each in its own
+error boundary: a team that blows up is logged and the run moves on to the next one. The
+migration admin is made ADMIN of every team it touches, which is what lets it write through
+the normal services.
+
 ## Members without an email
 
 Biketeam let people sign in through Strava, Facebook or Google without ever giving an
@@ -80,4 +88,4 @@ the dump into whichever postgres the dev profile points at.
 `admin-email` is required — the migration aborts if it is blank. `target-domain-name`
 and `target-domain-base-url` are optional: they default to the hostname and to
 `https://{target-domain}`. `data-dir` is optional too; leaving it blank skips GPX tracks
-and images.
+and images. Dropping `team-id` migrates every team instead of a single one.
