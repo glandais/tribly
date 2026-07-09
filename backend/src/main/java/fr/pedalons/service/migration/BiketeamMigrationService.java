@@ -192,9 +192,9 @@ public class BiketeamMigrationService {
 
     Team team = ensureTargetTeam(domain, admin);
     ensureMembership(team, admin, TeamRole.ADMIN);
-    migrateTeamDescription(team, config.getSourceTeamId());
+    migrateTeamDescription(team, config.getTeamId());
 
-    String sourceTeam = config.getSourceTeamId();
+    String sourceTeam = config.getTeamId();
     LOG.infof("Migrating data scoped to biketeam team_id='%s'", sourceTeam);
 
     Map<String, Long> userIds = migrateUsers(domain, sourceTeam);
@@ -255,14 +255,14 @@ public class BiketeamMigrationService {
 
   @Transactional
   protected Team ensureTargetTeam(Domain domain, User admin) {
-    String slug = config.getTargetTeamSlug();
+    String slug = config.getTeamId();
     Optional<Team> existing = teamRepository.findBySlugAndDomain(domain.getId(), slug);
     if (existing.isPresent()) {
       Team t = existing.get();
-      mapRepo.upsert(T_TEAM, config.getSourceTeamId(), t.getId());
+      mapRepo.upsert(T_TEAM, config.getTeamId(), t.getId());
       return t;
     }
-    BiketeamReader.BtTeam src = reader.findTeam(config.getSourceTeamId());
+    BiketeamReader.BtTeam src = reader.findTeam(config.getTeamId());
     String displayName = src != null ? src.name() : "N-Peloton";
     Team team = new Team(domain, admin, displayName, slug, Visibility.PUBLIC);
     team.setEnableRoutes(true);
@@ -274,7 +274,7 @@ public class BiketeamMigrationService {
     team.setJoinable(true);
     team.setAddMemberAllowed(true);
     teamRepository.persistAndFlush(team);
-    mapRepo.upsert(T_TEAM, config.getSourceTeamId(), team.getId());
+    mapRepo.upsert(T_TEAM, config.getTeamId(), team.getId());
     return team;
   }
 

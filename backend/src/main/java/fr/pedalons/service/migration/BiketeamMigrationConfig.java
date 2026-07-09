@@ -12,8 +12,9 @@ public class BiketeamMigrationConfig {
   @ConfigProperty(name = "pedalons.migration.biketeam.enabled", defaultValue = "false")
   boolean enabled;
 
+  /** Biketeam team ids are already slugs, so this doubles as the target tribly team slug. */
   @ConfigProperty(name = "pedalons.migration.biketeam.team-id", defaultValue = "")
-  String sourceTeamId;
+  String teamId;
 
   @ConfigProperty(name = "pedalons.migration.biketeam.target-domain", defaultValue = "")
   String targetDomain;
@@ -23,9 +24,6 @@ public class BiketeamMigrationConfig {
 
   @ConfigProperty(name = "pedalons.migration.biketeam.target-domain-base-url", defaultValue = "")
   String targetDomainBaseUrl;
-
-  @ConfigProperty(name = "pedalons.migration.biketeam.target-team-slug", defaultValue = "")
-  String targetTeamSlug;
 
   // Optional, not defaultValue="": SmallRye converts an empty String back to null and refuses to
   // inject it. Absent when the migration runs without the biketeam data export.
