@@ -95,6 +95,16 @@ public class PedalonsQueryContext {
     return user != null ? userRepository.findActiveById(user.getId()).orElse(null) : null;
   }
 
+  /**
+   * God mode for the user behind the current request. Callers holding a {@link User} resolved
+   * outside the request context — an ICS calendar token, for instance — must use {@link
+   * User#isPlatformAdmin()} directly instead.
+   */
+  public boolean isPlatformAdmin() {
+    User userNullable = getUserNullable();
+    return userNullable != null && userNullable.isPlatformAdmin();
+  }
+
   void init() {
     if (!initialized) {
       doInit();

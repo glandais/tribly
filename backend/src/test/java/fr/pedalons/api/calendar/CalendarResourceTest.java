@@ -48,6 +48,34 @@ class CalendarResourceTest extends AbstractResourceTest {
   }
 
   @Test
+  void getEvents_forUserWithoutTeam_shouldReturnNoEvents() {
+    // user4 belongs to no team: the personal calendar must not leak team1's public ride
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER4))
+        .when()
+        .get("/api/calendar/events")
+        .then()
+        .statusCode(200)
+        .body("events.size()", equalTo(0));
+  }
+
+  @Test
+  void getEvents_forPlatformAdminWithoutTeam_shouldReturnNoEvents() {
+    // God mode must not turn the personal calendar into a domain-wide one
+    dataService.createPlatformAdminUser("godmode@example.com", "God Mode");
+
+    given()
+        .auth()
+        .oauth2(getAccessToken("godmode"))
+        .when()
+        .get("/api/calendar/events")
+        .then()
+        .statusCode(200)
+        .body("events.size()", equalTo(0));
+  }
+
+  @Test
   void getEvents_shouldFilterByDateRange() {
     Instant from = Instant.now().minusSeconds(3600);
     Instant to = Instant.now().plusSeconds(3600);

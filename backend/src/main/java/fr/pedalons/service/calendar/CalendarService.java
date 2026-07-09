@@ -59,14 +59,14 @@ public class CalendarService {
   public CalendarEventsResponse getEventsForUser(
       AuthMode authMode, @Nullable Instant from, @Nullable Instant to) {
     User user = pedalonsQueryContext.getUser();
-    return getEventsForUserInternal(user.getId(), resolveFrom(from), resolveTo(to));
+    return getEventsForUserInternal(user, resolveFrom(from), resolveTo(to));
   }
 
   @CheckAccess(entityType = EntityType.CALENDAR, action = ActionType.LIST_ALL_TEAMS)
   public String generateIcs(AuthMode authMode, String token) {
     User user = validateToken(token);
     CalendarEventsResponse events =
-        getEventsForUserInternal(user.getId(), getDefaultFrom(), getDefaultTo());
+        getEventsForUserInternal(user, getDefaultFrom(), getDefaultTo());
     return icsGenerationService.generateIcs(events.events(), "Pedalons - Mes sorties");
   }
 
@@ -153,60 +153,71 @@ public class CalendarService {
     Set<Long> teamIds = Set.of(team.getId());
 
     List<CalendarEventDto> events = new ArrayList<>();
-    events.addAll(queryRides(teamIds, user.getId(), from, to));
-    events.addAll(queryTripStages(teamIds, user.getId(), from, to));
+    events.addAll(queryRides(teamIds, user, from, to));
+    events.addAll(queryTripStages(teamIds, user, from, to));
 
     return new CalendarEventsResponse(events);
   }
 
-  private CalendarEventsResponse getEventsForUserInternal(Long userId, Instant from, Instant to) {
+  private CalendarEventsResponse getEventsForUserInternal(User user, Instant from, Instant to) {
     Set<Long> teamIds =
-        userTeamRepository.findByUserId(userId).stream()
+        userTeamRepository.findByUserId(user.getId()).stream()
             .map(UserTeam::getTeam)
             .map(Team::getId)
             .collect(Collectors.toSet());
 
+    // An empty teamIds set means "no team filter" downstream, which would turn a personal calendar
+    // into a domain-wide one.
+    if (teamIds.isEmpty()) {
+      return new CalendarEventsResponse(List.of());
+    }
+
     List<CalendarEventDto> events = new ArrayList<>();
-    events.addAll(queryRides(teamIds, userId, from, to));
-    events.addAll(queryTripStages(teamIds, userId, from, to));
+    events.addAll(queryRides(teamIds, user, from, to));
+    events.addAll(queryTripStages(teamIds, user, from, to));
 
     return new CalendarEventsResponse(events);
   }
 
   private List<CalendarEventDto> queryRides(
-      Set<Long> teamIds, Long userId, Instant from, Instant to) {
+      Set<Long> teamIds, User user, Instant from, Instant to) {
 
-    return getPublications(teamIds, userId, from, to, PublicationType.RIDE).stream()
+    return getPublications(teamIds, user, from, to, PublicationType.RIDE).stream()
         .map(p -> (Ride) p)
         .map(this::toCalendarEvent)
         .toList();
   }
 
   private List<CalendarEventDto> queryTripStages(
-      Set<Long> teamIds, Long userId, Instant from, Instant to) {
-    return getPublications(teamIds, userId, from, to, PublicationType.TRIP).stream()
+      Set<Long> teamIds, User user, Instant from, Instant to) {
+    return getPublications(teamIds, user, from, to, PublicationType.TRIP).stream()
         .map(p -> (Trip) p)
         .flatMap(t -> t.getStages().stream())
         .map(this::toCalendarEvent)
         .toList();
   }
 
+  /**
+   * The ICS feeds authenticate through a calendar token rather than a session, so god mode is read
+   * off the resolved {@code user} — {@link
+   * fr.pedalons.service.security.PedalonsQueryContext#isPlatformAdmin()} would see no user there.
+   */
   private List<Publication> getPublications(
       @Nullable Set<Long> teamIds,
-      @Nullable Long userId,
+      User user,
       Instant from,
       Instant to,
       PublicationType publicationType) {
     return allPublicationRepository.findAll(
         PublicationQuery.builder()
             .domainId(pedalonsQueryContext.getDomainId())
-            .userId(userId)
+            .userId(user.getId())
             .type(publicationType)
             .teamIds(teamIds)
             .from(from)
             .to(to)
             .includeDeleted(false)
-            .platformAdmin(false)
+            .platformAdmin(user.isPlatformAdmin())
             .build());
   }
 

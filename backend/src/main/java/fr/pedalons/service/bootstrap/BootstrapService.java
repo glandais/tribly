@@ -89,7 +89,7 @@ public class BootstrapService {
                   return u;
                 });
 
-    if (admin.getPlatformRole() != PlatformRole.PLATFORM_ADMIN) {
+    if (!admin.isPlatformAdmin()) {
       admin.setPlatformRole(PlatformRole.PLATFORM_ADMIN);
       userRepository.persist(admin);
     }

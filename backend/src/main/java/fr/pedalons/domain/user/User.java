@@ -69,6 +69,10 @@ public class User extends BaseEntity {
     setCreatedBy(this);
   }
 
+  public boolean isPlatformAdmin() {
+    return platformRole == PlatformRole.PLATFORM_ADMIN;
+  }
+
   public void recordLogin() {
     this.lastLoginAt = Instant.now();
   }

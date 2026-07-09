@@ -2,14 +2,12 @@ package fr.pedalons.service.common;
 
 import fr.pedalons.domain.common.Publication;
 import fr.pedalons.domain.team.Team;
-import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.common.PedalonsPage;
 import fr.pedalons.dto.publications.response.PublicationDto;
 import fr.pedalons.dto.publications.response.PublicationListResponse;
 import fr.pedalons.dto.publications.response.PublicationType;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
-import fr.pedalons.enums.PlatformRole;
 import fr.pedalons.repository.common.AllPublicationRepository;
 import fr.pedalons.repository.common.PublicationQuery;
 import fr.pedalons.service.asset.AssetService;
@@ -35,8 +33,6 @@ public class PublicationService {
   @Inject TeamService teamService;
 
   @Inject IncludeDeletedService includeDeletedService;
-
-  @Inject PedalonsQueryContext pedalonsContext;
 
   @CheckAccess(entityType = EntityType.PUBLICATION, action = ActionType.LIST_ALL_TEAMS)
   public PublicationListResponse listAll(
@@ -98,7 +94,6 @@ public class PublicationService {
   }
 
   protected boolean isPlatformAdmin() {
-    User userNullable = pedalonsContext.getUserNullable();
-    return userNullable != null && userNullable.getPlatformRole() == PlatformRole.PLATFORM_ADMIN;
+    return pedalonsQueryContext.isPlatformAdmin();
   }
 }

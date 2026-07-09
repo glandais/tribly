@@ -15,7 +15,6 @@ import fr.pedalons.dto.teams.response.TeamDetailDto;
 import fr.pedalons.dto.teams.response.TeamListResponse;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
-import fr.pedalons.enums.PlatformRole;
 import fr.pedalons.enums.TeamRole;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.infrastructure.exception.*;
@@ -72,8 +71,7 @@ public class TeamService {
   }
 
   private boolean isPlatformAdmin() {
-    User userNullable = pedalonsContext.getUserNullable();
-    return userNullable != null && userNullable.getPlatformRole() == PlatformRole.PLATFORM_ADMIN;
+    return pedalonsContext.isPlatformAdmin();
   }
 
   @Transactional
@@ -85,7 +83,7 @@ public class TeamService {
     }
     User creator = pedalonsContext.getUser();
     Long domainId = domain.getId();
-    if (creator.getPlatformRole() != PlatformRole.PLATFORM_ADMIN) {
+    if (!creator.isPlatformAdmin()) {
       long existingAdminTeams =
           userTeamRepository.countAdminTeamsByUserAndDomain(creator.getId(), domainId);
       if (existingAdminTeams >= MAX_ADMIN_TEAMS_PER_USER) {

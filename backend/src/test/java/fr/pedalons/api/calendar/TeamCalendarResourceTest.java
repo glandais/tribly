@@ -251,4 +251,19 @@ class TeamCalendarResourceTest extends AbstractResourceTest {
         .then()
         .statusCode(403);
   }
+
+  @Test
+  void getTeamEvents_forPrivateTeam_asPlatformAdminNonMember_shouldReturnEvents() {
+    dataService.createRide(team2, user1, "Private Ride", "private-ride", now);
+    dataService.createPlatformAdminUser("godmode@example.com", "God Mode");
+
+    given()
+        .auth()
+        .oauth2(getAccessToken("godmode"))
+        .when()
+        .get("/api/teams/" + team2Slug + "/calendar/events")
+        .then()
+        .statusCode(200)
+        .body("events.title", hasItem("Private Ride"));
+  }
 }

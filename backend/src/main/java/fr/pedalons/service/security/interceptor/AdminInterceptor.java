@@ -2,7 +2,6 @@ package fr.pedalons.service.security.interceptor;
 
 import fr.pedalons.common.exception.ForbiddenException;
 import fr.pedalons.domain.user.User;
-import fr.pedalons.enums.PlatformRole;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.Admin;
 import jakarta.annotation.Priority;
@@ -23,7 +22,7 @@ public class AdminInterceptor {
     Admin ann = ctx.getMethod().getAnnotation(Admin.class);
     if (ann != null) {
       User user = pedalonsQueryContext.getUserNullable();
-      if (user == null || user.getPlatformRole() != PlatformRole.PLATFORM_ADMIN) {
+      if (user == null || !user.isPlatformAdmin()) {
         throw new ForbiddenException();
       }
     }

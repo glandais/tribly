@@ -5,11 +5,9 @@ import fr.pedalons.common.exception.ConflictException;
 import fr.pedalons.domain.common.TeamEntity;
 import fr.pedalons.domain.common.TeamEntitySlugRedirect;
 import fr.pedalons.domain.team.Team;
-import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.common.request.WithVisibility;
 import fr.pedalons.dto.error.ErrorCode;
-import fr.pedalons.enums.PlatformRole;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.infrastructure.exception.*;
 import fr.pedalons.repository.common.TeamEntityRepository;
@@ -103,8 +101,7 @@ public abstract class TeamEntityService<
   }
 
   protected boolean isPlatformAdmin() {
-    User userNullable = pedalonsContext.getUserNullable();
-    return userNullable != null && userNullable.getPlatformRole() == PlatformRole.PLATFORM_ADMIN;
+    return pedalonsContext.isPlatformAdmin();
   }
 
   @Transactional
