@@ -1,0 +1,49 @@
+package fr.pedalons.dto.gpx.response;
+
+import static org.geolatte.geom.builder.DSL.g;
+import static org.geolatte.geom.builder.DSL.point;
+import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
+
+import fr.pedalons.domain.gpx.GpxPreview;
+import fr.pedalons.dto.routes.response.TrackDto;
+import fr.pedalons.dto.routes.response.WaypointDto;
+import fr.pedalons.dto.validation.ValidateSchema;
+import java.time.Instant;
+import java.util.List;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+
+/**
+ * An analysed GPX file, shaped like the route detail payload so the frontend map and elevation
+ * chart can render it unchanged.
+ */
+@Schema(description = "Analysed GPX file, not attached to any team")
+@ValidateSchema
+public record GpxPreviewDto(
+    @Schema(description = "Public identifier used in URLs", required = true) String id,
+    @Schema(description = "Track name", required = true) String name,
+    @Schema(description = "Distance in meters", required = true) Float distance,
+    @Schema(description = "Total elevation gain in meters", required = true) Float elevationGain,
+    @Schema(description = "Total elevation loss in meters", required = true) Float elevationLoss,
+    @Schema(description = "Elevation gain per kilometer", required = true) Float hilliness,
+    @Schema(description = "Whether the current user created this preview", required = true)
+        boolean owned,
+    @Schema(description = "Creation timestamp", required = true) Instant createdAt,
+    @Schema(description = "Tracks", required = true) List<TrackDto> tracks,
+    @Schema(description = "Waypoints", required = true) List<WaypointDto> waypoints) {
+
+  public static GpxPreviewDto from(GpxPreview preview, boolean owned) {
+    return new GpxPreviewDto(
+        preview.getPublicId().toString(),
+        preview.getName(),
+        preview.getDistance(),
+        preview.getElevationGain(),
+        preview.getElevationLoss(),
+        preview.getHilliness(),
+        owned,
+        preview.getCreatedAt(),
+        preview.getTracks().stream().map(t -> TrackDto.of(t.trackPoints(), t.climbs())).toList(),
+        preview.getWaypoints().stream()
+            .map(w -> new WaypointDto(point(WGS84, g(w.lng(), w.lat())), w.name()))
+            .toList());
+  }
+}

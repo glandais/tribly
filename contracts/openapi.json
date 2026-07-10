@@ -878,8 +878,8 @@
         "enum" : [ "HC", "CAT1", "CAT2", "CAT3", "CAT4" ]
       },
       "ClimbDto" : {
-        "description" : "Climb segment information",
         "type" : "object",
+        "description" : "Climb segment information",
         "required" : [ "startDistance", "endDistance", "elevationGain", "averageGradient", "maxGradient" ],
         "properties" : {
           "startDistance" : {
@@ -1351,7 +1351,7 @@
       },
       "ErrorCode" : {
         "type" : "string",
-        "enum" : [ "BAD_REQUEST", "NOT_FOUND", "UNAUTHORIZED", "FORBIDDEN", "INTERNAL_ERROR", "UNKNOWN", "VALIDATION", "BUSINESS_RULE", "LAST_ADMIN", "ALREADY_REGISTERED", "NOT_REGISTERED", "INVALID_SLUG", "SLUG_TAKEN", "USER_NOT_SYNCED", "GROUP_FULL", "INVALID_VISIBILITY", "PUBLIC_TRIP_PRIVATE_ROUTE", "GPX_FAILURE", "FILE_REQUIRED", "FILE_TYPE_REJECTED", "FILE_DETECTION_FAILED", "TOO_MANY_TEAM_PAGES", "GPX_EMPTY", "INVALID_FORMAT", "RENTAL_PERIOD_MISSING", "STATUS_INVALID", "PUBLIC_RIDE_PRIVATE_ROUTE", "INVALID_CREDENTIALS", "EMAIL_NOT_VERIFIED", "EMAIL_ALREADY_EXISTS", "TOKEN_INVALID", "TOKEN_EXPIRED", "SESSION_EXPIRED", "PASSWORD_NOT_SET", "PASSKEY_NOT_FOUND", "USER_NOT_FOUND", "DOMAIN_NOT_FOUND", "TEAM_NOT_FOUND", "TEAM_CREATION_DISABLED", "USER_TEAM_LIMIT_REACHED", "TEAM_JOIN_NOT_ALLOWED", "TEAM_ADD_MEMBER_NOT_ALLOWED", "GPS_SERVICE_ALREADY_CONNECTED", "GPS_SERVICE_NOT_CONNECTED", "GPS_SERVICE_NOT_CONFIGURED", "GPS_INVALID_STATE", "GPS_STATE_EXPIRED", "GPX_NOT_FOUND", "AUTHORIZATION_PENDING", "GPS_CREDENTIAL_ALREADY_EXISTS", "GPS_TOKEN_EXCHANGE_FAILED", "ENCRYPTION_FAILED", "DECRYPTION_FAILED", "DOMAIN_ALIAS_NOT_FOUND", "DOMAIN_ALIAS_HOSTNAME_EXISTS", "DOMAIN_ALIAS_TEAM_MISMATCH" ]
+        "enum" : [ "BAD_REQUEST", "NOT_FOUND", "UNAUTHORIZED", "FORBIDDEN", "INTERNAL_ERROR", "UNKNOWN", "VALIDATION", "BUSINESS_RULE", "LAST_ADMIN", "ALREADY_REGISTERED", "NOT_REGISTERED", "INVALID_SLUG", "SLUG_TAKEN", "USER_NOT_SYNCED", "GROUP_FULL", "INVALID_VISIBILITY", "PUBLIC_TRIP_PRIVATE_ROUTE", "GPX_FAILURE", "FILE_REQUIRED", "FILE_TYPE_REJECTED", "FILE_DETECTION_FAILED", "FILE_TOO_LARGE", "TOO_MANY_TEAM_PAGES", "GPX_EMPTY", "INVALID_FORMAT", "RENTAL_PERIOD_MISSING", "STATUS_INVALID", "PUBLIC_RIDE_PRIVATE_ROUTE", "INVALID_CREDENTIALS", "EMAIL_NOT_VERIFIED", "EMAIL_ALREADY_EXISTS", "TOKEN_INVALID", "TOKEN_EXPIRED", "SESSION_EXPIRED", "PASSWORD_NOT_SET", "PASSKEY_NOT_FOUND", "USER_NOT_FOUND", "DOMAIN_NOT_FOUND", "TEAM_NOT_FOUND", "TEAM_CREATION_DISABLED", "USER_TEAM_LIMIT_REACHED", "TEAM_JOIN_NOT_ALLOWED", "TEAM_ADD_MEMBER_NOT_ALLOWED", "GPS_SERVICE_ALREADY_CONNECTED", "GPS_SERVICE_NOT_CONNECTED", "GPS_SERVICE_NOT_CONFIGURED", "GPS_INVALID_STATE", "GPS_STATE_EXPIRED", "GPX_NOT_FOUND", "AUTHORIZATION_PENDING", "GPS_CREDENTIAL_ALREADY_EXISTS", "GPS_TOKEN_EXCHANGE_FAILED", "ENCRYPTION_FAILED", "DECRYPTION_FAILED", "DOMAIN_ALIAS_NOT_FOUND", "DOMAIN_ALIAS_HOSTNAME_EXISTS", "DOMAIN_ALIAS_TEAM_MISMATCH" ]
       },
       "ErrorDetails" : {
         "oneOf" : [ {
@@ -1531,6 +1531,64 @@
       "GpsServiceType" : {
         "type" : "string",
         "enum" : [ "HAMMERHEAD", "GARMIN" ]
+      },
+      "GpxPreviewDto" : {
+        "description" : "Analysed GPX file, not attached to any team",
+        "type" : "object",
+        "required" : [ "id", "name", "distance", "elevationGain", "elevationLoss", "hilliness", "owned", "createdAt", "tracks", "waypoints" ],
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Public identifier used in URLs"
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Track name"
+          },
+          "distance" : {
+            "type" : "number",
+            "format" : "float",
+            "description" : "Distance in meters"
+          },
+          "elevationGain" : {
+            "type" : "number",
+            "format" : "float",
+            "description" : "Total elevation gain in meters"
+          },
+          "elevationLoss" : {
+            "type" : "number",
+            "format" : "float",
+            "description" : "Total elevation loss in meters"
+          },
+          "hilliness" : {
+            "type" : "number",
+            "format" : "float",
+            "description" : "Elevation gain per kilometer"
+          },
+          "owned" : {
+            "type" : "boolean",
+            "description" : "Whether the current user created this preview"
+          },
+          "createdAt" : {
+            "description" : "Creation timestamp",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "tracks" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TrackDto"
+            },
+            "description" : "Tracks"
+          },
+          "waypoints" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/WaypointDto"
+            },
+            "description" : "Waypoints"
+          }
+        }
       },
       "GroupRequest" : {
         "description" : "Ride group creation request",
@@ -3886,6 +3944,9 @@
   }, {
     "name" : "GPS Services",
     "description" : "GPS device integration operations"
+  }, {
+    "name" : "GPX previews",
+    "description" : "Analyse a GPX file outside of any team"
   }, {
     "name" : "Passkeys",
     "description" : "WebAuthn passkey management"
@@ -6899,6 +6960,323 @@
           },
           "403" : {
             "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/gpx-previews" : {
+      "post" : {
+        "summary" : "Analyse a GPX file",
+        "description" : "Uploads a GPX file, runs the elevation and climb pipeline, and stores the result under an unguessable identifier for 30 days",
+        "operationId" : "createPreview",
+        "tags" : [ "GPX previews" ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "gpxFile" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  }
+                }
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "GPX analysed successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/GpxPreviewDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Missing, oversized or unparseable GPX file",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/gpx-previews/{previewId}" : {
+      "get" : {
+        "summary" : "Get an analysed GPX file",
+        "description" : "Anyone holding the link may read the preview: the unguessable identifier is what grants access. Creating and deleting require an account.",
+        "operationId" : "getPreview",
+        "tags" : [ "GPX previews" ],
+        "parameters" : [ {
+          "description" : "Public preview identifier",
+          "name" : "previewId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Preview retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/GpxPreviewDto"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Preview not found or expired",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "summary" : "Delete an analysed GPX file",
+        "description" : "Only the creator may delete",
+        "operationId" : "deletePreview",
+        "tags" : [ "GPX previews" ],
+        "parameters" : [ {
+          "description" : "Public preview identifier",
+          "name" : "previewId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Preview deleted successfully"
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "User is not the creator",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Preview not found or expired",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/gpx-previews/{previewId}/gps/{serviceType}" : {
+      "post" : {
+        "summary" : "Send an analysed GPX file to a GPS service",
+        "description" : "Uploads the preview to the current user's connected Garmin or Hammerhead",
+        "operationId" : "uploadToGpsService",
+        "tags" : [ "GPX previews" ],
+        "parameters" : [ {
+          "description" : "Public preview identifier",
+          "name" : "previewId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "GPS service type",
+          "name" : "serviceType",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/components/schemas/GpsServiceType"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Upload completed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RouteUploadResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "GPS service not connected",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Preview not found or expired",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/gpx-previews/{previewId}/routes/{teamSlug}" : {
+      "post" : {
+        "summary" : "Save an analysed GPX file as a route",
+        "description" : "Creates a team route from the preview's original upload",
+        "operationId" : "createRouteFromPreview",
+        "tags" : [ "GPX previews" ],
+        "parameters" : [ {
+          "description" : "Public preview identifier",
+          "name" : "previewId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RouteRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Route created successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RouteDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "User is not a team member",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Preview or team not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         },
         "security" : [ {

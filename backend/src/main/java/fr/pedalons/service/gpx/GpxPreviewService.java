@@ -1,0 +1,297 @@
+package fr.pedalons.service.gpx;
+
+import fr.pedalons.common.exception.BusinessException;
+import fr.pedalons.common.exception.ForbiddenException;
+import fr.pedalons.common.exception.NotFoundException;
+import fr.pedalons.domain.gpx.GpxPreview;
+import fr.pedalons.domain.gpx.GpxPreview.PreviewTrack;
+import fr.pedalons.domain.gpx.GpxPreview.PreviewWaypoint;
+import fr.pedalons.domain.platform.Domain;
+import fr.pedalons.domain.user.User;
+import fr.pedalons.dto.error.ErrorCode;
+import fr.pedalons.dto.gps.response.RouteUploadResponse;
+import fr.pedalons.dto.gpx.response.GpxPreviewDto;
+import fr.pedalons.dto.routes.request.RouteRequest;
+import fr.pedalons.dto.routes.response.RouteDto;
+import fr.pedalons.enums.GpsServiceType;
+import fr.pedalons.infrastructure.storage.StorageService;
+import fr.pedalons.repository.gpx.GpxPreviewRepository;
+import fr.pedalons.service.gps.GpsService;
+import fr.pedalons.service.route.GpxProcessingService;
+import fr.pedalons.service.route.GpxProcessingService.ComputedGpx;
+import fr.pedalons.service.route.RouteService;
+import fr.pedalons.service.route.response.TrackMetadata;
+import fr.pedalons.service.security.PedalonsQueryContext;
+import fr.pedalons.service.security.annotation.Logged;
+import fr.pedalons.service.security.annotation.Public;
+import io.github.glandais.gpx.data.GPX;
+import io.quarkus.narayana.jta.QuarkusTransaction;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.UUID;
+import org.jboss.logging.Logger;
+
+/**
+ * GPX previews: files uploaded through the GPX tools page, analysed and rendered without ever
+ * becoming a {@code Route}.
+ *
+ * <p>Files live in S3 under {@code gpx-previews/{publicId}/}, written through {@link
+ * StorageService} rather than {@code AssetService} — an {@code Asset} requires a team, and a
+ * preview has none. Those keys carry no domain prefix, so <b>every</b> access must resolve the
+ * preview through {@link GpxPreviewRepository#findByPublicId} first: that domain-filtered lookup is
+ * the only thing standing between a leaked identifier and a cross-tenant read.
+ */
+@ApplicationScoped
+public class GpxPreviewService {
+
+  private static final Logger LOG = Logger.getLogger(GpxPreviewService.class);
+
+  private static final String KEY_PREFIX = "gpx-previews/";
+  private static final String ORIGINAL_GPX = "original.gpx";
+  private static final String FILTERED_GPX = "filtered.gpx";
+  private static final String GPX_CONTENT_TYPE = "application/gpx+xml";
+
+  /** Previews are throwaway artifacts; keep them for a month, like biketeam's /gpxtool. */
+  public static final int RETENTION_DAYS = 30;
+
+  @Inject GpxProcessingService gpxProcessingService;
+
+  @Inject GpxPreviewRepository gpxPreviewRepository;
+
+  @Inject StorageService storageService;
+
+  @Inject GpsService gpsService;
+
+  @Inject RouteService routeService;
+
+  @Inject PedalonsQueryContext pedalonsContext;
+
+  /**
+   * Parses and analyses an uploaded GPX file, stores it, and returns the persisted preview.
+   *
+   * <p>Deliberately not {@code @Transactional}: the pipeline (SRTM, Douglas-Peucker, climb
+   * detection) and the two S3 uploads run with no DB connection held, and only the final insert
+   * opens a transaction.
+   */
+  public GpxPreview create(Path gpxPath, String fallbackName) {
+    User creator = pedalonsContext.getUser();
+    Domain domain = pedalonsContext.getDomain();
+    UUID publicId = UUID.randomUUID();
+
+    GPX gpx = gpxProcessingService.parseGpx(gpxPath);
+
+    List<PreviewTrack> tracks;
+    List<PreviewWaypoint> waypoints;
+    TrackMetadata metadata;
+    try (ComputedGpx computed = gpxProcessingService.computeGpx(gpx)) {
+      upload(publicId, ORIGINAL_GPX, computed.originalGpx());
+      upload(publicId, FILTERED_GPX, computed.filteredGpx());
+
+      tracks =
+          computed.tracks().stream()
+              .map(
+                  t ->
+                      new PreviewTrack(
+                          t.name(),
+                          t.trackPoints(),
+                          t.climbs(),
+                          t.metadata().distance(),
+                          t.metadata().elevationGain(),
+                          t.metadata().elevationLoss()))
+              .toList();
+      waypoints =
+          computed.waypoints().stream()
+              .map(
+                  w ->
+                      new PreviewWaypoint(
+                          w.name(),
+                          w.location().getPosition().getLat(),
+                          w.location().getPosition().getLon()))
+              .toList();
+      metadata = computed.aggregated();
+    } catch (IOException e) {
+      deleteFiles(publicId);
+      throw new BusinessException(ErrorCode.GPX_FAILURE, e);
+    } catch (RuntimeException e) {
+      deleteFiles(publicId);
+      throw e;
+    }
+
+    String name = gpx.name() != null && !gpx.name().isBlank() ? gpx.name() : fallbackName;
+    GpxPreview preview =
+        new GpxPreview(
+            publicId,
+            domain,
+            creator,
+            truncateName(name),
+            metadata.distance(),
+            metadata.elevationGain(),
+            metadata.elevationLoss(),
+            metadata.hilliness(),
+            tracks,
+            waypoints);
+
+    try {
+      QuarkusTransaction.requiringNew().run(() -> gpxPreviewRepository.persist(preview));
+    } catch (RuntimeException e) {
+      deleteFiles(publicId);
+      throw e;
+    }
+    LOG.infov("Created GPX preview {0}", publicId);
+    return preview;
+  }
+
+  /** Analyses an uploaded GPX file. Entry point for the API layer. */
+  @Logged
+  public GpxPreviewDto createPreview(Path gpxPath, String fallbackName) {
+    return toDto(create(gpxPath, fallbackName));
+  }
+
+  /**
+   * Reads a preview by its public identifier. Entry point for the API layer.
+   *
+   * <p>Open to anonymous visitors: the link is what grants access, and an unguessable UUID is what
+   * makes it shareable. Creating and deleting still require an account.
+   */
+  @Public
+  public GpxPreviewDto getPreview(String publicId) {
+    return toDto(getByPublicId(publicId));
+  }
+
+  /** Resolves a preview within the current domain. Every read path goes through here. */
+  public GpxPreview getByPublicId(String publicId) {
+    return gpxPreviewRepository
+        .findByPublicId(pedalonsContext.getDomainId(), parseUuid(publicId))
+        .orElseThrow(() -> new NotFoundException(ErrorCode.GPX_NOT_FOUND));
+  }
+
+  public GpxPreviewDto toDto(GpxPreview preview) {
+    boolean owned = preview.getCreatedBy().getId().equals(pedalonsContext.getUserIdNullable());
+    return GpxPreviewDto.from(preview, owned);
+  }
+
+  /** Sends a preview's filtered GPX to one of the current user's connected GPS services. */
+  @Logged
+  public RouteUploadResponse uploadToGpsService(String publicId, GpsServiceType serviceType) {
+    GpxPreview preview = getByPublicId(publicId);
+    return gpsService.uploadGpx(serviceType, getFilteredGpxContent(preview), preview.getName());
+  }
+
+  /**
+   * Turns a preview into a real route on a team.
+   *
+   * <p>Replays the pipeline on the original upload rather than reusing the preview's computed
+   * tracks, so the route gets its own FIT file and thumbnails and stays independent of whatever
+   * processing the preview happened to receive.
+   *
+   * <p>Team authorization is enforced by {@code RouteService.createRoute}'s {@code @CheckAccess}.
+   */
+  @Logged
+  public RouteDto createRoute(String publicId, String teamSlug, RouteRequest request) {
+    GpxPreview preview = getByPublicId(publicId);
+    Path gpxPath = downloadOriginalGpx(preview);
+    try {
+      return routeService.createRoute(teamSlug, request, gpxPath);
+    } finally {
+      try {
+        Files.deleteIfExists(gpxPath);
+      } catch (IOException e) {
+        LOG.warnf(e, "Failed to delete temp GPX %s", gpxPath);
+      }
+    }
+  }
+
+  /** Only the creator may delete a preview; anyone with the link may read it. */
+  @Logged
+  @Transactional
+  public void delete(String publicId) {
+    GpxPreview preview = getByPublicId(publicId);
+    if (!preview.getCreatedBy().getId().equals(pedalonsContext.getUserId())) {
+      throw new ForbiddenException();
+    }
+    gpxPreviewRepository.delete(preview);
+    deleteFiles(preview.getPublicId());
+  }
+
+  /** The filtered GPX, as sent to GPS services. */
+  public byte[] getFilteredGpxContent(GpxPreview preview) {
+    try (InputStream is = storageService.retrieve(key(preview.getPublicId(), FILTERED_GPX))) {
+      return is.readAllBytes();
+    } catch (IOException e) {
+      throw new BusinessException(ErrorCode.GPX_FAILURE, e);
+    }
+  }
+
+  /**
+   * Downloads the untouched upload to a temp file, so route creation can replay the full pipeline
+   * on it and produce its own FIT and thumbnails.
+   *
+   * <p>The caller owns the returned file and must delete it.
+   */
+  public Path downloadOriginalGpx(GpxPreview preview) {
+    try {
+      Path temp = Files.createTempFile("gpx-preview-", ".gpx");
+      try (InputStream is = storageService.retrieve(key(preview.getPublicId(), ORIGINAL_GPX))) {
+        Files.copy(is, temp, StandardCopyOption.REPLACE_EXISTING);
+      }
+      return temp;
+    } catch (IOException e) {
+      throw new BusinessException(ErrorCode.GPX_FAILURE, e);
+    }
+  }
+
+  /** Purges previews past their retention window, S3 objects first. */
+  @Transactional
+  public int purgeExpired() {
+    Instant cutoff = Instant.now().minus(RETENTION_DAYS, ChronoUnit.DAYS);
+    List<GpxPreview> expired = gpxPreviewRepository.findExpired(cutoff);
+    for (GpxPreview preview : expired) {
+      deleteFiles(preview.getPublicId());
+      gpxPreviewRepository.delete(preview);
+    }
+    return expired.size();
+  }
+
+  private void upload(UUID publicId, String fileName, File file) throws IOException {
+    try (InputStream is = new FileInputStream(file)) {
+      storageService.store(key(publicId, fileName), is, GPX_CONTENT_TYPE, file.length());
+    }
+  }
+
+  private void deleteFiles(UUID publicId) {
+    for (String fileName : List.of(ORIGINAL_GPX, FILTERED_GPX)) {
+      try {
+        storageService.delete(key(publicId, fileName));
+      } catch (Exception e) {
+        LOG.warnf(e, "S3 cleanup failed for GPX preview %s/%s", publicId, fileName);
+      }
+    }
+  }
+
+  private static String key(UUID publicId, String fileName) {
+    return KEY_PREFIX + publicId + "/" + fileName;
+  }
+
+  private static UUID parseUuid(String publicId) {
+    try {
+      return UUID.fromString(publicId);
+    } catch (IllegalArgumentException e) {
+      throw new NotFoundException(ErrorCode.GPX_NOT_FOUND);
+    }
+  }
+
+  private static String truncateName(String name) {
+    return name.length() <= 250 ? name : name.substring(0, 250);
+  }
+}

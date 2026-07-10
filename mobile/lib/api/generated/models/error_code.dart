@@ -48,6 +48,8 @@ enum ErrorCode {
   fileTypeRejected('FILE_TYPE_REJECTED'),
   @JsonValue('FILE_DETECTION_FAILED')
   fileDetectionFailed('FILE_DETECTION_FAILED'),
+  @JsonValue('FILE_TOO_LARGE')
+  fileTooLarge('FILE_TOO_LARGE'),
   @JsonValue('TOO_MANY_TEAM_PAGES')
   tooManyTeamPages('TOO_MANY_TEAM_PAGES'),
   @JsonValue('GPX_EMPTY')

@@ -254,6 +254,85 @@ class GpxProcessingServiceTest extends AbstractBaseTest {
     assertEquals(lastPoint.lng(), result.end().getPosition().getLon(), 0.0001);
   }
 
+  // ==================== computeGpx (pure pipeline) ====================
+
+  @Test
+  void computeGpx_shouldSerializeOriginalBeforeAndFilteredAfterTheMutatingPipeline()
+      throws Exception {
+    GPX gpx = gpxProcessingService.parseGpx(getExampleGpxPath());
+
+    try (GpxProcessingService.ComputedGpx computed = gpxProcessingService.computeGpx(gpx)) {
+      assertTrue(computed.originalGpx().exists(), "Original GPX should be written");
+      assertTrue(computed.filteredGpx().exists(), "Filtered GPX should be written");
+      assertTrue(computed.originalGpx().length() > 0);
+      assertTrue(computed.filteredGpx().length() > 0);
+
+      byte[] original = java.nio.file.Files.readAllBytes(computed.originalGpx().toPath());
+      byte[] filtered = java.nio.file.Files.readAllBytes(computed.filteredGpx().toPath());
+      assertFalse(
+          java.util.Arrays.equals(original, filtered),
+          "Filtered GPX must differ from the original: it is written after resampling,"
+              + " elevation fixing and Douglas-Peucker simplification");
+    }
+  }
+
+  @Test
+  void computeGpx_shouldDeleteTempFilesOnClose() {
+    GPX gpx = gpxProcessingService.parseGpx(getExampleGpxPath());
+
+    File original;
+    File filtered;
+    try (GpxProcessingService.ComputedGpx computed = gpxProcessingService.computeGpx(gpx)) {
+      original = computed.originalGpx();
+      filtered = computed.filteredGpx();
+    }
+
+    assertFalse(original.exists(), "Original temp file should be deleted on close");
+    assertFalse(filtered.exists(), "Filtered temp file should be deleted on close");
+  }
+
+  @Test
+  void computeGpx_shouldComputeTracksAndAggregateMetadata() {
+    GPX gpx = gpxProcessingService.parseGpx(getTwoTracksGpxPath());
+
+    try (GpxProcessingService.ComputedGpx computed = gpxProcessingService.computeGpx(gpx)) {
+      assertEquals(2, computed.tracks().size());
+      for (GpxProcessingService.ComputedTrack track : computed.tracks()) {
+        assertNotNull(track.line());
+        assertFalse(track.trackPoints().isEmpty());
+        assertNotNull(track.climbs());
+        assertTrue(track.metadata().distance() > 0);
+      }
+
+      TrackMetadata aggregated = computed.aggregated();
+      float summed =
+          (float) computed.tracks().stream().mapToDouble(t -> t.metadata().distance()).sum();
+      assertEquals(summed, aggregated.distance(), "Distance should be the sum of all tracks");
+      assertNotNull(aggregated.start());
+      assertNotNull(aggregated.end());
+    }
+  }
+
+  @Test
+  void computeGpx_shouldNotRequireAUserOrTeam() {
+    // No context.setUserForTest(...): the pure pipeline must not touch the security context.
+    GPX gpx = gpxProcessingService.parseGpx(getExampleGpxPath());
+
+    try (GpxProcessingService.ComputedGpx computed = gpxProcessingService.computeGpx(gpx)) {
+      assertFalse(computed.tracks().isEmpty());
+    }
+  }
+
+  @Test
+  void computeGpx_shouldThrowForEmptyGpx() {
+    GPX gpx = gpxProcessingService.parseGpx(new File("src/test/resources/empty.gpx").toPath());
+
+    PedalonsException exception =
+        assertThrows(PedalonsException.class, () -> gpxProcessingService.computeGpx(gpx));
+
+    assertTrue(exception.getMessage().contains("GPX_EMPTY"));
+  }
+
   // ==================== Error Cases ====================
 
   @Test

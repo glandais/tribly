@@ -1,0 +1,195 @@
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
+import {
+  IconArrowUp,
+  IconArrowDown,
+  IconDeviceMobile,
+  IconRoute,
+  IconTrash,
+} from '@tabler/icons-react'
+import { Box, Button, Group, Loader, Menu, Modal, Select, Stack, Text, Title } from '@mantine/core'
+import { notifications } from '@mantine/notifications'
+import type { GpsServiceType, GpxPreviewDto } from '@/api/dto'
+import { SurfaceType } from '@/api/dto'
+import { createRouteFromPreview, useDeletePreview } from '@/api/endpoints/gpx-previews/gpx-previews'
+import { useListTeams } from '@/api/endpoints/teams/teams'
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
+import { RouteMapView } from '@/components/route/RouteMapView'
+import { paths } from '@/config/paths'
+import { useAuth } from '@/hooks/useAuth'
+import { useGpsConnections } from '@/hooks/useGpsConnections'
+import { useUnits } from '@/hooks/useUnits'
+import { defaultMedia } from '@/lib/apiUtils'
+
+interface GpxPreviewViewProps {
+  preview: GpxPreviewDto
+}
+
+/**
+ * Renders an analysed GPX file: the same map and elevation profile as a route. Anyone holding the
+ * link sees those; the actions below need an account, and deletion needs to be the creator.
+ */
+export function GpxPreviewView({ preview }: GpxPreviewViewProps) {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const { distance, elevation } = useUnits()
+  const { isAuthenticated } = useAuth()
+  const { connectedServices, uploadPreview, isUploadingPreview } = useGpsConnections()
+
+  const [saveOpened, setSaveOpened] = useState(false)
+  const [selectedTeam, setSelectedTeam] = useState<string | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
+  const [deleteOpened, setDeleteOpened] = useState(false)
+
+  const deletePreviewMutation = useDeletePreview()
+
+  // Only teams the user may create routes on.
+  const { data: teams } = useListTeams(
+    { minRole: 'ORGANIZER', size: 100 },
+    { query: { enabled: saveOpened && isAuthenticated } }
+  )
+  const teamOptions = (teams?.teams ?? [])
+    .filter((team) => team.enableRoutes)
+    .map((team) => ({ value: team.slug, label: team.name }))
+
+  const handleSendToDevice = (serviceType: GpsServiceType) => {
+    uploadPreview({ serviceType, previewId: preview.id })
+  }
+
+  const handleDelete = async () => {
+    await deletePreviewMutation.mutateAsync({ previewId: preview.id })
+    notifications.show({ message: t('gpxTools.preview.deleted'), color: 'green' })
+    navigate(paths.gpxTools())
+  }
+
+  const handleSaveAsRoute = async () => {
+    if (!selectedTeam) return
+    const team = teams?.teams.find((candidate) => candidate.slug === selectedTeam)
+    if (!team) return
+
+    setIsSaving(true)
+    try {
+      const route = await createRouteFromPreview(preview.id, selectedTeam, {
+        name: preview.name,
+        media: defaultMedia(),
+        surfaceType: SurfaceType.ROAD,
+        visibility: team.visibility,
+      })
+      notifications.show({ message: t('routes.notifications.created'), color: 'green' })
+      navigate(paths.route(selectedTeam, route.slug))
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  return (
+    <Stack>
+      <Title order={1}>{preview.name}</Title>
+
+      <Box>
+        <RouteMapView route={preview} />
+      </Box>
+
+      <Group gap="lg">
+        <Text>{distance(preview.distance)}</Text>
+        <Group gap={4}>
+          <IconArrowUp size={16} />
+          <Text>{elevation(preview.elevationGain)}</Text>
+        </Group>
+        <Group gap={4}>
+          <IconArrowDown size={16} />
+          <Text>{elevation(preview.elevationLoss)}</Text>
+        </Group>
+      </Group>
+
+      {/* Anonymous visitors get the map and the stats; the rest needs an account. */}
+      <Group gap="sm" wrap="wrap">
+        {isAuthenticated && (
+          <Button
+            variant="default"
+            size="sm"
+            leftSection={<IconRoute size={16} />}
+            onClick={() => setSaveOpened(true)}
+          >
+            {t('gpxTools.preview.saveAsRoute')}
+          </Button>
+        )}
+
+        {isAuthenticated && connectedServices.length > 0 && (
+          <Menu shadow="md" width={200}>
+            <Menu.Target>
+              <Button
+                variant="default"
+                size="sm"
+                leftSection={
+                  isUploadingPreview ? <Loader size={16} /> : <IconDeviceMobile size={16} />
+                }
+                disabled={isUploadingPreview}
+              >
+                {t('routes.detail.sendToDevice')}
+              </Button>
+            </Menu.Target>
+            <Menu.Dropdown>
+              {connectedServices.map((service) => (
+                <Menu.Item
+                  key={service.serviceType}
+                  onClick={() => handleSendToDevice(service.serviceType)}
+                >
+                  {service.serviceType}
+                </Menu.Item>
+              ))}
+            </Menu.Dropdown>
+          </Menu>
+        )}
+
+        {preview.owned && (
+          <Button
+            variant="default"
+            size="sm"
+            color="danger"
+            leftSection={<IconTrash size={16} />}
+            onClick={() => setDeleteOpened(true)}
+          >
+            {t('gpxTools.preview.delete')}
+          </Button>
+        )}
+      </Group>
+
+      <Modal
+        opened={saveOpened}
+        onClose={() => setSaveOpened(false)}
+        title={t('gpxTools.preview.saveAsRoute')}
+      >
+        <Stack>
+          <Select
+            label={t('gpxTools.preview.selectTeam')}
+            data={teamOptions}
+            value={selectedTeam}
+            onChange={setSelectedTeam}
+            nothingFoundMessage={t('gpxTools.preview.noTeam')}
+            searchable
+          />
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => setSaveOpened(false)}>
+              {t('actions.cancelAction')}
+            </Button>
+            <Button onClick={handleSaveAsRoute} disabled={!selectedTeam} loading={isSaving}>
+              {t('gpxTools.preview.save')}
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
+
+      <ConfirmDialog
+        isOpen={deleteOpened}
+        onClose={() => setDeleteOpened(false)}
+        onConfirm={handleDelete}
+        title={t('gpxTools.preview.delete')}
+        message={t('gpxTools.preview.deleteConfirm')}
+        variant="danger"
+        isLoading={deletePreviewMutation.isPending}
+      />
+    </Stack>
+  )
+}

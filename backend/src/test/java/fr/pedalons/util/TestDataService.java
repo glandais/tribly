@@ -11,6 +11,7 @@ import fr.pedalons.domain.calendar.CalendarToken;
 import fr.pedalons.domain.comment.Comment;
 import fr.pedalons.domain.common.TeamEntity;
 import fr.pedalons.domain.common.TeamEntitySlugRedirect;
+import fr.pedalons.domain.gpx.GpxPreview;
 import fr.pedalons.domain.place.Place;
 import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.domain.platform.DomainAlias;
@@ -465,6 +466,32 @@ public class TestDataService {
   @Transactional
   public void updateRoute(Route route) {
     routeRepository.getEntityManager().merge(route);
+  }
+
+  @Transactional
+  public GpxPreview createGpxPreview(Domain domain, User user, java.util.UUID publicId) {
+    GpxPreview preview =
+        new GpxPreview(
+            publicId, domain, user, "preview", 1000f, 100f, -100f, 100f, List.of(), List.of());
+    routeRepository.getEntityManager().persist(preview);
+    routeRepository.getEntityManager().flush();
+    return preview;
+  }
+
+  /**
+   * Ages a GPX preview so the retention job picks it up. Native query because {@code createdAt} is
+   * {@code @CreationTimestamp updatable = false}.
+   */
+  @Transactional
+  public void backdateGpxPreview(GpxPreview preview, int days) {
+    routeRepository
+        .getEntityManager()
+        .createNativeQuery(
+            "UPDATE gpx_previews SET created_at = created_at - CAST(:days AS interval) WHERE id ="
+                + " :id")
+        .setParameter("days", days + " days")
+        .setParameter("id", preview.getId())
+        .executeUpdate();
   }
 
   @Transactional

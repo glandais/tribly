@@ -17,7 +17,7 @@ import {
   UnstyledButton,
 } from '@mantine/core'
 import { useDisclosure, useHeadroom } from '@mantine/hooks'
-import { IconUser, IconLogout, IconShield } from '@tabler/icons-react'
+import { IconUser, IconLogout, IconShield, IconMapSearch } from '@tabler/icons-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useAppName } from '../../hooks/useAppName'
 import { useAuthStore, selectIsPlatformAdmin } from '@/store/authStore'
@@ -107,6 +107,13 @@ export function Layout() {
                     >
                       {t('nav.profile')}
                     </Menu.Item>
+                    <Menu.Item
+                      leftSection={<IconMapSearch size={14} />}
+                      component={Link}
+                      to={paths.gpxTools()}
+                    >
+                      {t('gpxTools.title')}
+                    </Menu.Item>
                     {isPlatformAdmin && (
                       <Menu.Item
                         leftSection={<IconShield size={14} />}
@@ -161,6 +168,15 @@ export function Layout() {
                   <Text size="sm">{user?.displayName}</Text>
                 </Group>
               </UnstyledButton>
+              <Button
+                variant="subtle"
+                leftSection={<IconMapSearch size={16} />}
+                component={Link}
+                to={paths.gpxTools()}
+                onClick={close}
+              >
+                {t('gpxTools.title')}
+              </Button>
               {isPlatformAdmin && (
                 <Button
                   variant="subtle"

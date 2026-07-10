@@ -973,5 +973,20 @@
   "admin.users.cannotRemoveOwnAdmin": "Cannot remove your own platform admin role",
   "admin.users.empty.title": "No users",
   "admin.users.empty.description": "No users have registered yet.",
-  "common.or": "or"
+  "common.or": "or",
+  "gpxTools.title": "GPX tools",
+  "gpxTools.subtitle": "Analyse a GPX file without attaching it to a team.",
+  "gpxTools.retentionNotice": "Files uploaded here are kept for 30 days, then deleted.",
+  "gpxTools.viewFile.title": "View a file",
+  "gpxTools.viewFile.description": "Upload a GPX file to see the map, elevation profile and detected climbs.",
+  "gpxTools.viewFile.submit": "Choose a file",
+  "gpxTools.preview.title": "Preview",
+  "gpxTools.preview.saveAsRoute": "Save as route",
+  "gpxTools.preview.selectTeam": "Team",
+  "gpxTools.preview.noTeam": "No team to create a route on",
+  "gpxTools.preview.save": "Save",
+  "errors.api.FILE_TOO_LARGE": "The file is too large",
+  "gpxTools.preview.delete": "Delete",
+  "gpxTools.preview.deleteConfirm": "Really delete this file? The link will stop working.",
+  "gpxTools.preview.deleted": "File deleted"
 }

@@ -251,6 +251,17 @@ public class GpsService {
   @Logged
   public RouteUploadResponse uploadRoute(
       GpsServiceType serviceType, String teamSlug, String routeSlug) {
+    Route route = routeService.get(teamSlug, routeSlug);
+    return uploadGpx(serviceType, getRouteGpxContent(route), route.getName());
+  }
+
+  /**
+   * Uploads GPX bytes to the current user's connection on a GPS service. The bytes may come from a
+   * route's stored asset or from a GPX preview, which owns no asset.
+   */
+  @Transactional
+  @Logged
+  public RouteUploadResponse uploadGpx(GpsServiceType serviceType, byte[] gpxContent, String name) {
     Long userId = pedalonsContext.getUserId();
 
     // Get connection
@@ -264,14 +275,10 @@ public class GpsService {
       refreshAccessToken(connection);
     }
 
-    // Get route and GPX file
-    Route route = routeService.get(teamSlug, routeSlug);
-    byte[] gpxContent = getRouteGpxContent(route);
-
     // Upload to service
     String accessToken = encryptionService.decrypt(connection.getAccessTokenEncrypted());
     GpsServiceClient client = getClient(serviceType);
-    RouteUploadResult result = client.uploadRoute(accessToken, gpxContent, route.getName());
+    RouteUploadResult result = client.uploadRoute(accessToken, gpxContent, name);
 
     // Update last used
     connection.markUsed();

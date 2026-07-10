@@ -25,15 +25,7 @@ export interface RouteParams {
  * Entity types that can provide dynamic breadcrumb labels
  */
 export type EntityType =
-  | 'team'
-  | 'ride'
-  | 'post'
-  | 'trip'
-  | 'stage'
-  | 'route'
-  | 'rideTemplate'
-  | 'ad'
-  | 'teamPage'
+  'team' | 'ride' | 'post' | 'trip' | 'stage' | 'route' | 'rideTemplate' | 'ad' | 'teamPage'
 
 /**
  * Breadcrumb label configuration
@@ -41,8 +33,7 @@ export type EntityType =
  * - Dynamic: object with entity type to fetch name from
  */
 export type BreadcrumbLabel =
-  | { type: 'static'; i18nKey: string }
-  | { type: 'dynamic'; entity: EntityType }
+  { type: 'static'; i18nKey: string } | { type: 'dynamic'; entity: EntityType }
 
 /**
  * Single route configuration entry

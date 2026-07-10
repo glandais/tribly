@@ -6,6 +6,7 @@ import { useAuth } from './useAuth'
 import { AXIOS_INSTANCE } from '@/lib/axiosInstance'
 import { getGetMeQueryKey } from '@/api/endpoints/users/users'
 import { useGetAvailableServices } from '@/api/endpoints/gps-services/gps-services'
+import { uploadToGpsService } from '@/api/endpoints/gpx-previews/gpx-previews'
 import type { GpsServiceType, GpsServiceConnectionDto } from '@/api/dto'
 
 interface GpsOAuthUrlResponse {
@@ -95,6 +96,21 @@ export function useGpsConnections() {
     },
   })
 
+  const notifyUploadResult = (data: RouteUploadResponse) => {
+    if (data.success) {
+      notifications.show({ message: i18next.t('gps.notifications.uploadSuccess'), color: 'green' })
+    } else {
+      notifications.show({
+        message: data.message || i18next.t('gps.notifications.uploadFailed'),
+        color: 'red',
+      })
+    }
+  }
+
+  const notifyUploadFailure = () => {
+    notifications.show({ message: i18next.t('gps.notifications.uploadFailed'), color: 'red' })
+  }
+
   /**
    * Upload a route to a connected GPS service.
    */
@@ -113,25 +129,18 @@ export function useGpsConnections() {
       )
       return response.data
     },
-    onSuccess: (data) => {
-      if (data.success) {
-        notifications.show({
-          message: i18next.t('gps.notifications.uploadSuccess'),
-          color: 'green',
-        })
-      } else {
-        notifications.show({
-          message: data.message || i18next.t('gps.notifications.uploadFailed'),
-          color: 'red',
-        })
-      }
-    },
-    onError: () => {
-      notifications.show({
-        message: i18next.t('gps.notifications.uploadFailed'),
-        color: 'red',
-      })
-    },
+    onSuccess: notifyUploadResult,
+    onError: notifyUploadFailure,
+  })
+
+  /**
+   * Upload an analysed GPX file (from the GPX tools) to a connected GPS service.
+   */
+  const uploadPreviewMutation = useMutation({
+    mutationFn: ({ serviceType, previewId }: { serviceType: GpsServiceType; previewId: string }) =>
+      uploadToGpsService(previewId, serviceType),
+    onSuccess: notifyUploadResult,
+    onError: notifyUploadFailure,
   })
 
   return {
@@ -147,5 +156,7 @@ export function useGpsConnections() {
     uploadRoute: uploadRouteMutation.mutate,
     uploadRouteAsync: uploadRouteMutation.mutateAsync,
     isUploading: uploadRouteMutation.isPending,
+    uploadPreview: uploadPreviewMutation.mutate,
+    isUploadingPreview: uploadPreviewMutation.isPending,
   }
 }

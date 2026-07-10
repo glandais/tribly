@@ -71,6 +71,18 @@ export const paths = {
       default: return '/routes/map'
     }
   },
+  gpxTools: () => {
+    switch (getCurrentLocale()) {
+      case 'fr': return '/outils-gpx'
+      default: return '/gpx-tools'
+    }
+  },
+  gpxToolsView: (previewId: string) => {
+    switch (getCurrentLocale()) {
+      case 'fr': return `/outils-gpx/${previewId}`
+      default: return `/gpx-tools/${previewId}`
+    }
+  },
   teams: () => {
     switch (getCurrentLocale()) {
       case 'fr': return '/equipes'
@@ -317,6 +329,8 @@ export const pathVariants = {
   calendar: (): Record<Locale, string> => ({ en: '/calendar', fr: '/calendrier' }),
   allRoutes: (): Record<Locale, string> => ({ en: '/routes', fr: '/parcours' }),
   allRoutesMap: (): Record<Locale, string> => ({ en: '/routes/map', fr: '/parcours/carte' }),
+  gpxTools: (): Record<Locale, string> => ({ en: '/gpx-tools', fr: '/outils-gpx' }),
+  gpxToolsView: (previewId: string): Record<Locale, string> => ({ en: `/gpx-tools/${previewId}`, fr: `/outils-gpx/${previewId}` }),
   teams: (): Record<Locale, string> => ({ en: '/teams', fr: '/equipes' }),
   teamsNew: (): Record<Locale, string> => ({ en: '/teams/new', fr: '/equipes/nouvelle' }),
   team: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}`, fr: `/equipes/${teamSlug}` }),

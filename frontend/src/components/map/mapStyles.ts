@@ -8,13 +8,7 @@ import { colorful, graybeard, eclipse, neutrino, shadow, satellite } from '@vers
 import { StyleSpecification } from 'react-map-gl/maplibre'
 
 export type MapStyleId =
-  | 'colorful'
-  | 'graybeard'
-  | 'eclipse'
-  | 'neutrino'
-  | 'shadow'
-  | 'satellite'
-  | 'ign-vector'
+  'colorful' | 'graybeard' | 'eclipse' | 'neutrino' | 'shadow' | 'satellite' | 'ign-vector'
 
 export interface MapStyle {
   id: MapStyleId

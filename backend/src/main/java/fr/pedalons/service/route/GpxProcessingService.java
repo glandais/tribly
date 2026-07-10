@@ -41,7 +41,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -61,6 +63,9 @@ import org.jspecify.annotations.Nullable;
 public class GpxProcessingService {
 
   private static final Logger LOG = Logger.getLogger(GpxProcessingService.class);
+
+  /** Sibling of the asset temp dir, so temp files can be moved across without copying bytes. */
+  private static final String TEMP_DIR = "pedalons-gpx";
 
   @Inject GPXFileReader gpxFileReader;
 
@@ -114,6 +119,144 @@ public class GpxProcessingService {
     return p;
   }
 
+  /** A single track, fully computed but not yet bound to any entity. */
+  public record ComputedTrack(
+      String name,
+      LineString<G2D> line,
+      List<GpxTrack.TrackPoint> trackPoints,
+      List<Climb> climbs,
+      TrackMetadata metadata) {}
+
+  /** A single waypoint, fully computed but not yet bound to any entity. */
+  public record ComputedWaypoint(String name, org.geolatte.geom.Point<G2D> location) {}
+
+  /**
+   * Outcome of {@link #computeGpx(GPX)}: the two GPX serializations as temp files, plus the
+   * computed tracks, waypoints and aggregated metadata.
+   *
+   * <p>Closing deletes any temp file still present. {@link #processGpxData} consumes the files by
+   * moving them, so closing is then a no-op — but on the error path it releases them.
+   */
+  public record ComputedGpx(
+      File originalGpx,
+      File filteredGpx,
+      List<ComputedTrack> tracks,
+      List<ComputedWaypoint> waypoints,
+      TrackMetadata aggregated)
+      implements AutoCloseable {
+
+    @Override
+    public void close() {
+      deleteQuietly(originalGpx);
+      deleteQuietly(filteredGpx);
+    }
+  }
+
+  private static void deleteQuietly(@Nullable File file) {
+    if (file != null && file.exists() && !file.delete()) {
+      LOG.warnf("Failed to delete temp GPX file %s — may leak on disk", file.getAbsolutePath());
+    }
+  }
+
+  /**
+   * The pure GPX pipeline: resample to one point per 10m, fix elevation with SRTM data, simplify
+   * with Douglas-Peucker, detect climbs, and aggregate metadata.
+   *
+   * <p>No database, no S3, no entities, no {@link Team} — which is what lets GPX previews (which
+   * belong to no team) reuse it. Callers own the returned temp files.
+   *
+   * <p>The GPX object is mutated in place by the pipeline, so {@code original.gpx} must be written
+   * before the loop and {@code filtered.gpx} after it. Keeping both serializations here makes that
+   * ordering a local property of this method rather than a rule callers must remember.
+   */
+  public ComputedGpx computeGpx(GPX gpx) {
+    if (gpx.paths().isEmpty()) {
+      throw new BusinessException(ErrorCode.GPX_EMPTY);
+    }
+    File original = null;
+    File filtered = null;
+    try {
+      original = writeGpxToTempFile(gpx, false);
+
+      List<ComputedWaypoint> waypoints = new ArrayList<>();
+      for (GPXWaypoint waypoint : gpx.waypoints()) {
+        waypoints.add(
+            new ComputedWaypoint(
+                waypoint.name(),
+                point(WGS84, g(waypoint.point().getLonDeg(), waypoint.point().getLatDeg()))));
+      }
+
+      List<ComputedTrack> tracks = new ArrayList<>();
+      List<TrackMetadata> tracksMetadata = new ArrayList<>();
+      for (GPXPath path : gpx.paths()) {
+        gpxPerDistance.computeOnePointPerDistance(path, 10.0);
+        LOG.infov("Resampled to {0} points (10m intervals)", path.getPoints().size());
+
+        try {
+          gpxElevationFixer.fixElevation(path);
+          LOG.infov("Fixed elevation with SRTM data");
+        } catch (Exception e) {
+          LOG.warnf(e, "SRTM elevation fix failed for %s, using original elevations", gpx.name());
+        }
+
+        GPXFilter.filterPointsDouglasPeucker(path);
+        LOG.infov("Simplified to {0} points (Douglas-Peucker)", path.getPoints().size());
+
+        List<Climb> climbs = new ArrayList<>(climbDetector.getClimbs(path));
+        LOG.infov("Detected {0} climbs", climbs.size());
+
+        TrackMetadata metadata = extractMetadata(path);
+        tracks.add(
+            new ComputedTrack(
+                path.getName(), toLineString(path), toTrackPoints(path), climbs, metadata));
+        tracksMetadata.add(metadata);
+      }
+
+      filtered = writeGpxToTempFile(gpx, true);
+
+      Vector wind = gpxDataComputer.getWind(gpx);
+      WindDirection windDirection = findDirectionFromVector(wind);
+
+      float distance = (float) tracksMetadata.stream().mapToDouble(TrackMetadata::distance).sum();
+      float elevationGain =
+          (float) tracksMetadata.stream().mapToDouble(TrackMetadata::elevationGain).sum();
+      float elevationLoss =
+          (float) tracksMetadata.stream().mapToDouble(TrackMetadata::elevationLoss).sum();
+      TrackMetadata aggregated =
+          new TrackMetadata(
+              distance,
+              elevationGain,
+              getHilliness(distance, elevationGain),
+              elevationLoss,
+              tracksMetadata.getFirst().start(),
+              tracksMetadata.getLast().end(),
+              windDirection);
+
+      return new ComputedGpx(original, filtered, tracks, waypoints, aggregated);
+    } catch (PedalonsException e) {
+      deleteQuietly(original);
+      deleteQuietly(filtered);
+      throw e;
+    } catch (Exception e) {
+      deleteQuietly(original);
+      deleteQuietly(filtered);
+      LOG.errorv("GPX computation failed for {0}", gpx.name(), e);
+      throw new BusinessException(ErrorCode.GPX_FAILURE, e);
+    }
+  }
+
+  private File writeGpxToTempFile(GPX gpx, boolean filtered) throws IOException {
+    Path tempDir = Files.createDirectories(Path.of(System.getProperty("java.io.tmpdir"), TEMP_DIR));
+    File file = Files.createTempFile(tempDir, "gpx-", ".gpx").toFile();
+    try {
+      gpxFileWriter.writeGPX(gpx, file, filtered);
+    } catch (Exception e) {
+      deleteQuietly(file);
+      throw new BusinessException(ErrorCode.GPX_FAILURE, e);
+    }
+    return file;
+  }
+
   /** Result of the CPU/S3 processing phase, passed to the DB persist phase. */
   record PreparedAsset(AssetType type, String fileName, long fileId, String contentType) {}
 
@@ -134,82 +277,23 @@ public class GpxProcessingService {
     User creator = pedalonsContext.getUser();
     Long routeId = route.getId();
     Team team = route.getTeam();
-    try {
-      if (gpx.paths().isEmpty()) {
-        throw new BusinessException(ErrorCode.GPX_EMPTY);
-      }
-
+    try (ComputedGpx computed = computeGpx(gpx)) {
       List<PreparedAsset> uploadedAssets = new ArrayList<>();
 
-      // Save original GPX
       uploadedAssets.add(
           prepareAndUpload(
               team,
               AssetType.ROUTE_ORIGINAL_GPX,
               "original.gpx",
-              tmp -> {
-                gpxFileWriter.writeGPX(gpx, tmp, false);
-              }));
+              tmp -> moveInto(computed.originalGpx(), tmp)));
       LOG.infov("Saved original GPX to S3");
 
-      List<GpxWaypoint> waypoints = new ArrayList<>();
-      for (GPXWaypoint waypoint : gpx.waypoints()) {
-        waypoints.add(
-            new GpxWaypoint(
-                creator,
-                waypoint.name(),
-                point(WGS84, g(waypoint.point().getLonDeg(), waypoint.point().getLatDeg()))));
-      }
-
-      List<GpxTrack> tracks = new ArrayList<>();
-      List<TrackMetadata> tracksMetadata = new ArrayList<>();
-      for (GPXPath path : gpx.paths()) {
-        gpxPerDistance.computeOnePointPerDistance(path, 10.0);
-        LOG.infov("Resampled to {0} points (10m intervals)", path.getPoints().size());
-
-        try {
-          gpxElevationFixer.fixElevation(path);
-          LOG.infov("Fixed elevation with SRTM data");
-        } catch (Exception e) {
-          LOG.warnf(
-              e, "SRTM elevation fix failed for route %s, using original elevations", routeId);
-        }
-
-        GPXFilter.filterPointsDouglasPeucker(path);
-        LOG.infov("Simplified to {0} points (Douglas-Peucker)", path.getPoints().size());
-
-        List<Climb> climbs = new ArrayList<>(climbDetector.getClimbs(path));
-        LOG.infov("Detected {0} climbs", climbs.size());
-
-        LineString<G2D> lineString = toLineString(path);
-        List<GpxTrack.TrackPoint> trackPoints = toTrackPoints(path);
-        TrackMetadata metadata = extractMetadata(path);
-
-        tracks.add(
-            new GpxTrack(
-                creator,
-                path.getName(),
-                lineString,
-                trackPoints,
-                climbs,
-                metadata.distance(),
-                metadata.elevationGain(),
-                metadata.elevationLoss()));
-        tracksMetadata.add(metadata);
-      }
-
-      Vector wind = gpxDataComputer.getWind(gpx);
-      WindDirection windDirection = findDirectionFromVector(wind);
-
-      // Save filtered GPX
       uploadedAssets.add(
           prepareAndUpload(
               team,
               AssetType.ROUTE_FILTERED_GPX,
               "filtered.gpx",
-              tmp -> {
-                gpxFileWriter.writeGPX(gpx, tmp, true);
-              }));
+              tmp -> moveInto(computed.filteredGpx(), tmp)));
       LOG.infov("Saved filtered GPX to S3");
 
       // Save FIT file
@@ -243,28 +327,38 @@ public class GpxProcessingService {
 
       LOG.infov("GPX processing complete for route {0}", routeId);
 
-      float distance = (float) tracksMetadata.stream().mapToDouble(TrackMetadata::distance).sum();
-      float elevationGain =
-          (float) tracksMetadata.stream().mapToDouble(TrackMetadata::elevationGain).sum();
-      float elevationLoss =
-          (float) tracksMetadata.stream().mapToDouble(TrackMetadata::elevationLoss).sum();
-      TrackMetadata aggregated =
-          new TrackMetadata(
-              distance,
-              elevationGain,
-              getHilliness(distance, elevationGain),
-              elevationLoss,
-              tracksMetadata.getFirst().start(),
-              tracksMetadata.getLast().end(),
-              windDirection);
+      List<GpxWaypoint> waypoints =
+          computed.waypoints().stream()
+              .map(w -> new GpxWaypoint(creator, w.name(), w.location()))
+              .toList();
 
-      return new GpxProcessingResult(aggregated, tracks, waypoints, uploadedAssets);
+      List<GpxTrack> tracks =
+          computed.tracks().stream()
+              .map(
+                  t ->
+                      new GpxTrack(
+                          creator,
+                          t.name(),
+                          t.line(),
+                          t.trackPoints(),
+                          t.climbs(),
+                          t.metadata().distance(),
+                          t.metadata().elevationGain(),
+                          t.metadata().elevationLoss()))
+              .toList();
+
+      return new GpxProcessingResult(computed.aggregated(), tracks, waypoints, uploadedAssets);
     } catch (PedalonsException e) {
       throw e;
     } catch (Exception e) {
       LOG.errorv("GPX processing failed for route {0}", routeId, e);
       throw new BusinessException(ErrorCode.GPX_FAILURE, e);
     }
+  }
+
+  /** Hands a temp file over to {@link #prepareAndUpload}'s destination without copying bytes. */
+  private static void moveInto(File source, File destination) throws IOException {
+    Files.move(source.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
   }
 
   @FunctionalInterface

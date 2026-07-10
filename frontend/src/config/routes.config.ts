@@ -121,6 +121,12 @@ const EditRoutePage = lazy(() =>
 const AllRoutesMapPage = lazy(() =>
   import('../pages/route/AllRoutesMapPage').then((m) => ({ default: m.AllRoutesMapPage }))
 )
+const GpxToolsPage = lazy(() =>
+  import('../pages/gpxtool/GpxToolsPage').then((m) => ({ default: m.GpxToolsPage }))
+)
+const GpxPreviewPage = lazy(() =>
+  import('../pages/gpxtool/GpxPreviewPage').then((m) => ({ default: m.GpxPreviewPage }))
+)
 const RoutesMapPage = lazy(() =>
   import('../pages/route/RoutesMapPage').then((m) => ({ default: m.RoutesMapPage }))
 )
@@ -193,6 +199,25 @@ export const routesConfig: RoutesConfig = [
     parentId: 'all-routes',
     subRouteIds: ['home', 'calendar', 'all-routes', 'teams'],
     breadcrumb: { type: 'static', i18nKey: tRegister('routes.view.map') },
+  },
+
+  // === GPX Tools Routes ===
+  {
+    id: 'gpx-tools',
+    paths: pathVariants.gpxTools(),
+    component: GpxToolsPage,
+    auth: 'authenticated',
+    parentId: null,
+    breadcrumb: { type: 'static', i18nKey: tRegister('gpxTools.title') },
+  },
+  {
+    id: 'gpx-tools-view',
+    paths: pathVariants.gpxToolsView(':previewId'),
+    component: GpxPreviewPage,
+    // The link is shareable: holding the unguessable id is enough to view it.
+    auth: 'public',
+    parentId: 'gpx-tools',
+    breadcrumb: { type: 'static', i18nKey: tRegister('gpxTools.preview.title') },
   },
 
   // === Legal Routes ===

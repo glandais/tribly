@@ -973,5 +973,20 @@
   "admin.users.cannotRemoveOwnAdmin": "Impossible de retirer votre propre rôle admin plateforme",
   "admin.users.empty.title": "Aucun utilisateur",
   "admin.users.empty.description": "Aucun utilisateur n'est encore inscrit.",
-  "common.or": "ou"
+  "common.or": "ou",
+  "gpxTools.title": "Outils GPX",
+  "gpxTools.subtitle": "Analysez un fichier GPX sans le rattacher à une équipe.",
+  "gpxTools.retentionNotice": "Les fichiers déposés ici sont conservés 30 jours, puis supprimés.",
+  "gpxTools.viewFile.title": "Visualiser un fichier",
+  "gpxTools.viewFile.description": "Déposez un fichier GPX pour voir la carte, le profil altimétrique et les cols détectés.",
+  "gpxTools.viewFile.submit": "Choisir un fichier",
+  "gpxTools.preview.title": "Visualisation",
+  "gpxTools.preview.saveAsRoute": "Enregistrer comme parcours",
+  "gpxTools.preview.selectTeam": "Équipe",
+  "gpxTools.preview.noTeam": "Aucune équipe où créer un parcours",
+  "gpxTools.preview.save": "Enregistrer",
+  "errors.api.FILE_TOO_LARGE": "Le fichier est trop volumineux",
+  "gpxTools.preview.delete": "Supprimer",
+  "gpxTools.preview.deleteConfirm": "Voulez-vous vraiment supprimer ce fichier ? Le lien ne sera plus accessible.",
+  "gpxTools.preview.deleted": "Fichier supprimé"
 }

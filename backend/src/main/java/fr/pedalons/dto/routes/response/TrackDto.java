@@ -8,6 +8,7 @@ import static org.geolatte.geom.crs.CoordinateReferenceSystems.addVerticalSystem
 import fr.pedalons.domain.route.GpxTrack;
 import fr.pedalons.dto.common.GeoJsonLineString;
 import fr.pedalons.dto.validation.ValidateSchema;
+import io.github.glandais.gpx.climb.Climb;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.geolatte.geom.G3D;
@@ -30,12 +31,14 @@ public record TrackDto(
           addVerticalSystem(WGS84, G3D.class, LinearUnit.METER), G3DM.class, LinearUnit.METER);
 
   public static TrackDto from(GpxTrack track) {
+    return of(track.getTrackPoints(), track.getClimbs());
+  }
+
+  /** Builds a track DTO straight from computed points and climbs, with no entity involved. */
+  public static TrackDto of(List<GpxTrack.TrackPoint> trackPoints, List<Climb> climbs) {
     G3DM[] geomPoints =
-        track.getTrackPoints().stream()
-            .map(p -> g(p.lng(), p.lat(), p.ele(), p.dist()))
-            .toArray(G3DM[]::new);
+        trackPoints.stream().map(p -> g(p.lng(), p.lat(), p.ele(), p.dist())).toArray(G3DM[]::new);
     LineString<G3DM> line = linestring(WGS84_3DM, geomPoints);
-    List<ClimbDto> routeClimbDtos = track.getClimbs().stream().map(ClimbDto::from).toList();
-    return new TrackDto(line, routeClimbDtos);
+    return new TrackDto(line, climbs.stream().map(ClimbDto::from).toList());
   }
 }

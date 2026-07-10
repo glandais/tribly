@@ -15,6 +15,7 @@ import 'clients/device_user_client.dart';
 import 'clients/device_o_auth_client.dart';
 import 'clients/device_routes_client.dart';
 import 'clients/gps_services_client.dart';
+import 'clients/gpx_previews_client.dart';
 import 'clients/publications_client.dart';
 import 'clients/router_client.dart';
 import 'clients/routes_client.dart';
@@ -60,6 +61,7 @@ class PedalonsApiClient {
   DeviceOAuthClient? _deviceOAuth;
   DeviceRoutesClient? _deviceRoutes;
   GpsServicesClient? _gpsServices;
+  GpxPreviewsClient? _gpxPreviews;
   PublicationsClient? _publications;
   RouterClient? _router;
   RoutesClient? _routes;
@@ -111,6 +113,9 @@ class PedalonsApiClient {
 
   GpsServicesClient get gpsServices =>
       _gpsServices ??= GpsServicesClient(_dio, baseUrl: _baseUrl);
+
+  GpxPreviewsClient get gpxPreviews =>
+      _gpxPreviews ??= GpxPreviewsClient(_dio, baseUrl: _baseUrl);
 
   PublicationsClient get publications =>
       _publications ??= PublicationsClient(_dio, baseUrl: _baseUrl);

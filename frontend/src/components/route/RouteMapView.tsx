@@ -71,8 +71,14 @@ const crosshairPlugin: Plugin<'line'> = {
   },
 }
 
+/**
+ * The subset of a route this view actually renders. Satisfied by both `RouteDetailDto` and
+ * `GpxPreviewDto`, which is what lets the GPX tools reuse the map and elevation chart as-is.
+ */
+export type MappableRoute = Pick<RouteDetailDto, 'tracks' | 'waypoints' | 'distance'>
+
 interface RouteMapViewProps {
-  route: RouteDetailDto
+  route: MappableRoute
 }
 
 export function RouteMapView({ route }: RouteMapViewProps) {

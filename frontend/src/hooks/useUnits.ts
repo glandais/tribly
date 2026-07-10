@@ -56,8 +56,7 @@ export function useUnits() {
       : 'routes.list.filters.distance.unit'
     return t(
       key satisfies
-        | 'routes.list.filters.distance.unit'
-        | 'routes.list.filters.distance.unit_imperial'
+        'routes.list.filters.distance.unit' | 'routes.list.filters.distance.unit_imperial'
     )
   }, [t, isImperial])
 
@@ -67,8 +66,7 @@ export function useUnits() {
       : 'routes.list.filters.elevationGain.unit'
     return t(
       key satisfies
-        | 'routes.list.filters.elevationGain.unit'
-        | 'routes.list.filters.elevationGain.unit_imperial'
+        'routes.list.filters.elevationGain.unit' | 'routes.list.filters.elevationGain.unit_imperial'
     )
   }, [t, isImperial])
 

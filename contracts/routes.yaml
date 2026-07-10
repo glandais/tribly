@@ -127,6 +127,24 @@ routes:
     mobile: false
     deeplink: false
 
+  # --- GPX tools ---
+  - id: gpxTools
+    path:
+      en: /gpx-tools
+      fr: /outils-gpx
+    web: true
+    mobile: false
+    deeplink: false
+  - id: gpxToolsView
+    path:
+      en: /gpx-tools/{previewId}
+      fr: /outils-gpx/{previewId}
+    params:
+      - previewId
+    web: true
+    mobile: false
+    deeplink: false
+
   # --- Teams ---
   - id: teams
     path:
