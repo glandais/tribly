@@ -308,9 +308,10 @@ public class GpxProcessingService {
       LOG.infov("Saved FIT file to S3");
 
       // Generate thumbnails (failures are non-fatal)
+      GPX thumbnailGpx = new GPX(gpx.name(), gpx.paths(), List.of());
       generateThumbnailAsset(
           team,
-          gpx,
+          thumbnailGpx,
           routeId,
           "colorful",
           AssetType.ROUTE_THUMBNAIL_LIGHT,
@@ -318,7 +319,7 @@ public class GpxProcessingService {
           uploadedAssets);
       generateThumbnailAsset(
           team,
-          gpx,
+          thumbnailGpx,
           routeId,
           "eclipse",
           AssetType.ROUTE_THUMBNAIL_DARK,
