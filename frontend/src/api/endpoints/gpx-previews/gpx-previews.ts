@@ -19,6 +19,8 @@ import type {
   ErrorResponse,
   GpsServiceType,
   GpxPreviewDto,
+  GpxPreviewListResponse,
+  ListMyPreviewsParams,
   RouteDto,
   RouteRequest,
   RouteUploadResponse,
@@ -43,6 +45,125 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
     })
   }
   return result
+}
+
+/**
+ * Returns the current user's previews still within the 30-day retention window, most recent first
+ * @summary List the current user's analysed GPX files
+ */
+export const listMyPreviews = (
+  params?: ListMyPreviewsParams,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<GpxPreviewListResponse>(
+    { url: `/api/gpx-previews`, method: 'GET', params, signal },
+    options
+  )
+}
+
+export const getListMyPreviewsQueryKey = (params?: ListMyPreviewsParams) => {
+  return [`/api/gpx-previews`, ...(params ? [params] : [])] as const
+}
+
+export const getListMyPreviewsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listMyPreviews>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  params?: ListMyPreviewsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyPreviews>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getListMyPreviewsQueryKey(params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listMyPreviews>>> = ({ signal }) =>
+    listMyPreviews(params, requestOptions, signal)
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listMyPreviews>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListMyPreviewsQueryResult = NonNullable<Awaited<ReturnType<typeof listMyPreviews>>>
+export type ListMyPreviewsQueryError = ErrorType<ErrorResponse | void>
+
+export function useListMyPreviews<
+  TData = Awaited<ReturnType<typeof listMyPreviews>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  params: undefined | ListMyPreviewsParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyPreviews>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMyPreviews>>,
+          TError,
+          Awaited<ReturnType<typeof listMyPreviews>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListMyPreviews<
+  TData = Awaited<ReturnType<typeof listMyPreviews>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  params?: ListMyPreviewsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyPreviews>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMyPreviews>>,
+          TError,
+          Awaited<ReturnType<typeof listMyPreviews>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListMyPreviews<
+  TData = Awaited<ReturnType<typeof listMyPreviews>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  params?: ListMyPreviewsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyPreviews>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List the current user's analysed GPX files
+ */
+
+export function useListMyPreviews<
+  TData = Awaited<ReturnType<typeof listMyPreviews>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  params?: ListMyPreviewsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyPreviews>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getListMyPreviewsQueryOptions(params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
 }
 
 /**

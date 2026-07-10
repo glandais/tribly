@@ -6,6 +6,7 @@ import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.dto.gps.response.RouteUploadResponse;
 import fr.pedalons.dto.gpx.request.GpxPreviewUpdateRequest;
 import fr.pedalons.dto.gpx.response.GpxPreviewDto;
+import fr.pedalons.dto.gpx.response.GpxPreviewListResponse;
 import fr.pedalons.dto.routes.request.RouteRequest;
 import fr.pedalons.dto.routes.response.RouteDto;
 import fr.pedalons.enums.GpsServiceType;
@@ -78,6 +79,30 @@ public class GpxPreviewResource {
     }
     GpxPreviewDto preview = gpxPreviewService.createPreview(gpxFile.filePath(), gpxFile.fileName());
     return Response.status(Response.Status.CREATED).entity(preview).build();
+  }
+
+  @GET
+  @Operation(
+      summary = "List the current user's analysed GPX files",
+      description =
+          "Returns the current user's previews still within the 30-day retention window, most"
+              + " recent first")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Previews listed successfully",
+        content = @Content(schema = @Schema(implementation = GpxPreviewListResponse.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  @RolesAllowed("user")
+  public GpxPreviewListResponse listMyPreviews(
+      @Parameter(description = "Zero-based page number") @QueryParam("page") @DefaultValue("0")
+          int page,
+      @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
+    return gpxPreviewService.listMine(page, size);
   }
 
   @GET

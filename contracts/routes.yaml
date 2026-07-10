@@ -135,6 +135,13 @@ routes:
     web: true
     mobile: false
     deeplink: false
+  - id: gpxToolsList
+    path:
+      en: /gpx-tools/my-files
+      fr: /outils-gpx/mes-fichiers
+    web: true
+    mobile: false
+    deeplink: false
   - id: gpxToolsView
     path:
       en: /gpx-tools/{previewId}

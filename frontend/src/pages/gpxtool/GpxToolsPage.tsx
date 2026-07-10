@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { IconMapSearch } from '@tabler/icons-react'
+import { IconListDetails, IconMapSearch } from '@tabler/icons-react'
 import { Button, Card, Group, SimpleGrid, Stack, Text, Title } from '@mantine/core'
 import { createPreview } from '@/api/endpoints/gpx-previews/gpx-previews'
 import { paths } from '@/config/paths'
@@ -60,6 +60,24 @@ export function GpxToolsPage() {
             />
             <Button onClick={() => fileInputRef.current?.click()} loading={isUploading}>
               {t('gpxTools.viewFile.submit')}
+            </Button>
+          </Stack>
+        </Card>
+
+        <Card withBorder padding="lg">
+          <Stack justify="space-between" h="100%">
+            <Stack gap="xs">
+              <Group gap="xs">
+                <IconListDetails size={20} />
+                <Text fw={500}>{t('gpxTools.listFiles.title')}</Text>
+              </Group>
+              <Text size="sm" c="dimmed">
+                {t('gpxTools.listFiles.description')}
+              </Text>
+            </Stack>
+
+            <Button variant="default" onClick={() => navigate(paths.gpxToolsList())}>
+              {t('gpxTools.listFiles.submit')}
             </Button>
           </Stack>
         </Card>

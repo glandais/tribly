@@ -9,9 +9,12 @@ import fr.pedalons.domain.gpx.GpxPreview.PreviewTrack;
 import fr.pedalons.domain.gpx.GpxPreview.PreviewWaypoint;
 import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.domain.user.User;
+import fr.pedalons.dto.common.PedalonsPage;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.dto.gps.response.RouteUploadResponse;
 import fr.pedalons.dto.gpx.response.GpxPreviewDto;
+import fr.pedalons.dto.gpx.response.GpxPreviewListResponse;
+import fr.pedalons.dto.gpx.response.GpxPreviewSummaryDto;
 import fr.pedalons.dto.routes.request.RouteRequest;
 import fr.pedalons.dto.routes.response.RouteDto;
 import fr.pedalons.enums.GpsServiceType;
@@ -213,6 +216,21 @@ public class GpxPreviewService {
   @Public
   public GpxPreviewDto getPreview(String publicId) {
     return toDto(getByPublicId(publicId));
+  }
+
+  /**
+   * Lists the current user's previews still within the retention window, most recent first. Scoped
+   * to the caller: only previews they created, in their domain.
+   */
+  @Logged
+  public GpxPreviewListResponse listMine(int page, int size) {
+    Instant cutoff = Instant.now().minus(RETENTION_DAYS, ChronoUnit.DAYS);
+    PedalonsPage<GpxPreview> previews =
+        gpxPreviewRepository.findByCreator(
+            pedalonsContext.getDomainId(), pedalonsContext.getUserId(), cutoff, page, size);
+    List<GpxPreviewSummaryDto> dtos =
+        previews.items().stream().map(GpxPreviewSummaryDto::from).toList();
+    return new GpxPreviewListResponse(dtos, previews.total(), page, size);
   }
 
   /** Resolves a preview within the current domain. Every read path goes through here. */

@@ -124,6 +124,9 @@ const AllRoutesMapPage = lazy(() =>
 const GpxToolsPage = lazy(() =>
   import('../pages/gpxtool/GpxToolsPage').then((m) => ({ default: m.GpxToolsPage }))
 )
+const MyGpxPreviewsPage = lazy(() =>
+  import('../pages/gpxtool/MyGpxPreviewsPage').then((m) => ({ default: m.MyGpxPreviewsPage }))
+)
 const GpxPreviewPage = lazy(() =>
   import('../pages/gpxtool/GpxPreviewPage').then((m) => ({ default: m.GpxPreviewPage }))
 )
@@ -212,6 +215,14 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('gpxTools.title') },
+  },
+  {
+    id: 'gpx-tools-list',
+    paths: pathVariants.gpxToolsList(),
+    component: MyGpxPreviewsPage,
+    auth: 'authenticated',
+    parentId: 'gpx-tools',
+    breadcrumb: { type: 'static', i18nKey: tRegister('gpxTools.listFiles.title') },
   },
   {
     id: 'gpx-tools-view',

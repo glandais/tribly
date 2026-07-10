@@ -1544,6 +1544,70 @@ components:
           items:
             $ref: "#/components/schemas/WaypointDto"
           description: Waypoints
+    GpxPreviewListResponse:
+      description: Paginated GPX preview list response
+      type: object
+      required:
+      - previews
+      - total
+      - page
+      - size
+      properties:
+        previews:
+          type: array
+          items:
+            $ref: "#/components/schemas/GpxPreviewSummaryDto"
+          description: List of GPX previews
+        total:
+          type: integer
+          format: int64
+          description: Total number of previews
+        page:
+          type: integer
+          format: int32
+          description: Current page number
+        size:
+          type: integer
+          format: int32
+          description: Page size
+    GpxPreviewSummaryDto:
+      type: object
+      description: "Summary of an analysed GPX file, for listing"
+      required:
+      - id
+      - name
+      - distance
+      - elevationGain
+      - elevationLoss
+      - hilliness
+      - createdAt
+      properties:
+        id:
+          type: string
+          description: Public identifier used in URLs
+        name:
+          type: string
+          description: Track name
+        distance:
+          type: number
+          format: float
+          description: Distance in meters
+        elevationGain:
+          type: number
+          format: float
+          description: Total elevation gain in meters
+        elevationLoss:
+          type: number
+          format: float
+          description: Total elevation loss in meters
+        hilliness:
+          type: number
+          format: float
+          description: Elevation gain per kilometer
+        createdAt:
+          description: Creation timestamp
+          type: string
+          $ref: "#/components/schemas/Instant"
     GpxPreviewUpdateRequest:
       description: GPX preview update request
       type: object
@@ -5810,6 +5874,46 @@ paths:
       - SecurityScheme:
         - user
   /api/gpx-previews:
+    get:
+      summary: List the current user's analysed GPX files
+      description: "Returns the current user's previews still within the 30-day retention\
+        \ window, most recent first"
+      operationId: listMyPreviews
+      tags:
+      - GPX previews
+      parameters:
+      - description: Zero-based page number
+        name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - description: Page size
+        name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 20
+      responses:
+        "200":
+          description: Previews listed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GpxPreviewListResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
     post:
       summary: Analyse a GPX file
       description: "Uploads a GPX file, runs the elevation and climb pipeline, and\

@@ -1,6 +1,41 @@
 import * as zod from 'zod'
 
 /**
+ * Returns the current user's previews still within the 30-day retention window, most recent first
+ * @summary List the current user's analysed GPX files
+ */
+export const listMyPreviewsQueryPageDefault = 0
+export const listMyPreviewsQuerySizeDefault = 20
+
+export const ListMyPreviewsQueryParams = zod.object({
+  page: zod.number().default(listMyPreviewsQueryPageDefault).describe('Zero-based page number'),
+  size: zod.number().default(listMyPreviewsQuerySizeDefault).describe('Page size'),
+})
+
+export const ListMyPreviewsResponse = zod
+  .object({
+    previews: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Public identifier used in URLs'),
+            name: zod.string().describe('Track name'),
+            distance: zod.number().describe('Distance in meters'),
+            elevationGain: zod.number().describe('Total elevation gain in meters'),
+            elevationLoss: zod.number().describe('Total elevation loss in meters'),
+            hilliness: zod.number().describe('Elevation gain per kilometer'),
+            createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
+          })
+          .describe('Summary of an analysed GPX file, for listing')
+      )
+      .describe('List of GPX previews'),
+    total: zod.number().describe('Total number of previews'),
+    page: zod.number().describe('Current page number'),
+    size: zod.number().describe('Page size'),
+  })
+  .describe('Paginated GPX preview list response')
+
+/**
  * Uploads a GPX file, runs the elevation and climb pipeline, and stores the result under an unguessable identifier for 30 days
  * @summary Analyse a GPX file
  */
