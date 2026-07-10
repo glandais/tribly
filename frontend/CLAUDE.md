@@ -65,6 +65,7 @@ Custom axios mutator in `lib/axiosInstance.ts` handles: JWT bearer tokens from a
 
 - **Server state**: React Query (generated hooks from Orval)
 - **Global client state**: Zustand — only `authStore` (JWT, user) and `preferencesStore` (unit system, persisted to localStorage)
+- **List page filters/search/pagination**: the query string, via `useUrlFilters` — never `useState`. See [URL_FILTERS.md](URL_FILTERS.md).
 - Auth initializes by calling `/api/auth/refresh` on mount; `useAuth` hook fetches `/api/users/me`
 
 ### Path Management
@@ -96,6 +97,7 @@ Custom axios mutator in `lib/axiosInstance.ts` handles: JWT bearer tokens from a
 
 ## Key Rules
 
+- **Never hold list filters, search or pagination in `useState`** — they belong in the query string via `useUrlFilters`, so they survive back-navigation and are shareable. See [URL_FILTERS.md](URL_FILTERS.md).
 - **Never edit `src/api/`** — it's generated. Run `pnpm generate-api` after backend OpenAPI changes.
 - **Never edit `paths.generated.ts`** — edit `../contracts/routes.yaml` and run `pnpm generate-routes`. See [../APP_LINKS.md](../APP_LINKS.md).
 - **Never hard-code links** — use `paths.xxx()` from `config/paths.ts` (locale-aware).

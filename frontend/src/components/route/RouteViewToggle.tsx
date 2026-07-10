@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Center, SegmentedControl } from '@mantine/core'
 import { IconList, IconMap } from '@tabler/icons-react'
@@ -15,6 +15,7 @@ export interface RouteViewToggleProps {
 export function RouteViewToggle({ current, teamSlug }: RouteViewToggleProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const { search } = useLocation()
 
   const targets: Record<RouteView, string> = teamSlug
     ? { list: paths.routes(teamSlug), map: paths.routesMap(teamSlug) }
@@ -23,7 +24,7 @@ export function RouteViewToggle({ current, teamSlug }: RouteViewToggleProps) {
   return (
     <SegmentedControl
       value={current}
-      onChange={(value) => navigate(targets[value as RouteView])}
+      onChange={(value) => navigate({ pathname: targets[value as RouteView], search })}
       data={[
         {
           value: 'list',

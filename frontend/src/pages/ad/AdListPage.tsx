@@ -1,11 +1,10 @@
-import { useState, useCallback } from 'react'
+import { useCallback } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { keepPreviousData } from '@tanstack/react-query'
-import { IconPlus, IconSearch } from '@tabler/icons-react'
+import { IconPlus } from '@tabler/icons-react'
 import {
   Button,
-  TextInput,
   Select,
   Stack,
   Group,
@@ -20,22 +19,31 @@ import {
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { useListAds, listAds, getListAdsQueryKey } from '../../api/endpoints/ads/ads'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
+import { useUrlFilters } from '../../hooks/useUrlFilters'
+import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
+import { adFiltersSchema, adFiltersAlias } from '../../hooks/filters/adFilters'
 import { AdCard, AdCardSkeleton } from '../../components/ad'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { Pagination } from '../../components/common/Pagination'
+import { SearchInput } from '../../components/common/SearchInput'
 import { TeamLayout } from '../../components/team/TeamLayout'
 import { paths } from '@/config/paths'
 import { AdType } from '../../api/dto'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
-const PAGE_SIZE = 12
-
 export function AdListPage() {
   const { t } = useTranslation()
   const { teamSlug } = useParams<{ teamSlug: string }>()
-  const [search, setSearch] = useState('')
-  const [adType, setAdType] = useState<AdType | undefined>(undefined)
-  const [page, setPage] = useState(0)
+
+  const { filters, setFilters } = useUrlFilters({
+    schema: adFiltersSchema,
+    alias: adFiltersAlias,
+  })
+  const commitSearch = useCallback(
+    (value: string) => setFilters({ search: value || undefined }),
+    [setFilters]
+  )
+  const [search, setSearch] = useDebouncedSearch(filters.search ?? '', commitSearch)
 
   const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },
@@ -44,39 +52,21 @@ export function AdListPage() {
     data: adsResponse,
     isLoading: isLoadingAds,
     isFetching,
-  } = useListAds(
-    teamSlug!,
-    {
-      search: search || undefined,
-      adType,
-      page,
-      size: PAGE_SIZE,
-    },
-    { query: { enabled: !!teamSlug, placeholderData: keepPreviousData } }
-  )
+  } = useListAds(teamSlug!, filters, {
+    query: { enabled: !!teamSlug, placeholderData: keepPreviousData },
+  })
 
   const prefetchPage = useCallback(
     (prefetchPageNum: number) => ({
-      queryKey: getListAdsQueryKey(teamSlug!, {
-        search: search || undefined,
-        adType,
-        page: prefetchPageNum,
-        size: PAGE_SIZE,
-      }),
-      queryFn: () =>
-        listAds(teamSlug!, {
-          search: search || undefined,
-          adType,
-          page: prefetchPageNum,
-          size: PAGE_SIZE,
-        }),
+      queryKey: getListAdsQueryKey(teamSlug!, { ...filters, page: prefetchPageNum }),
+      queryFn: () => listAds(teamSlug!, { ...filters, page: prefetchPageNum }),
     }),
-    [teamSlug, search, adType]
+    [teamSlug, filters]
   )
 
   const { totalPages } = usePaginatedQuery({
-    page,
-    pageSize: PAGE_SIZE,
+    page: filters.page,
+    pageSize: filters.size,
     totalItems: adsResponse?.total ?? 0,
     prefetchPage,
   })
@@ -94,16 +84,6 @@ export function AdListPage() {
   const isMember = !!team.role
   const ads = adsResponse?.ads || []
 
-  const handleSearchChange = (value: string) => {
-    setSearch(value)
-    setPage(0)
-  }
-
-  const handleAdTypeChange = (value: string) => {
-    setAdType(value === 'ALL' ? undefined : (value as AdType))
-    setPage(0)
-  }
-
   return (
     <TeamLayout team={team} currentTab="ads">
       {/* Header */}
@@ -119,18 +99,20 @@ export function AdListPage() {
 
       {/* Filters */}
       <Group align="flex-end" wrap="wrap">
-        <TextInput
-          style={{ flex: 1, minWidth: 200 }}
-          placeholder={t('ads.list.search.placeholder')}
+        <SearchInput
+          id="ads-search"
           value={search}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearchChange(e.target.value)}
-          leftSection={<IconSearch size={20} />}
-          aria-label={t('ads.list.search.label')}
+          onChange={setSearch}
+          placeholder={t('ads.list.search.placeholder')}
+          label={t('ads.list.search.label')}
+          style={{ flex: 1, minWidth: 200 }}
         />
         <Select
           w={{ base: '100%', sm: 180 }}
-          value={adType || 'ALL'}
-          onChange={(value: string | null) => handleAdTypeChange(value || 'ALL')}
+          value={filters.adType ?? 'ALL'}
+          onChange={(value: string | null) =>
+            setFilters({ adType: value && value !== 'ALL' ? (value as AdType) : undefined })
+          }
           placeholder={t('ads.list.filterByType')}
           data={[
             { value: 'ALL', label: t('ads.list.allTypes') },
@@ -156,7 +138,9 @@ export function AdListPage() {
             <Stack align="center" gap="sm">
               <Title order={3}>{t('ads.list.empty.title')}</Title>
               <Text c="dimmed">
-                {search || adType ? t('ads.list.noResults') : t('ads.list.empty.member')}
+                {filters.search || filters.adType
+                  ? t('ads.list.noResults')
+                  : t('ads.list.empty.member')}
               </Text>
             </Stack>
           </Center>
@@ -175,7 +159,11 @@ export function AdListPage() {
 
           {totalPages > 1 && (
             <Box mt="md">
-              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+              <Pagination
+                currentPage={filters.page}
+                totalPages={totalPages}
+                onPageChange={(page) => setFilters({ page })}
+              />
             </Box>
           )}
         </Stack>

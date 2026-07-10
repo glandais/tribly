@@ -1,37 +1,13 @@
-import { useState, useCallback } from 'react'
-import type { ListRoutesParams, ListAllRoutesParams } from '@/api/dto'
-import {
-  DEFAULT_ROUTE_SORT_BY,
-  DEFAULT_ROUTE_SORT_DIR,
-} from '../components/route/routeFilterDefaults'
+import { useState } from 'react'
+import { useUrlFilters } from './useUrlFilters'
+import { routeFiltersSchema, routeFiltersAlias } from './filters/routeFilters'
 
-type RouteFilters = ListRoutesParams | ListAllRoutesParams
-
-interface UseRouteFiltersOptions {
-  pageSize?: number
-}
-
-export function useRouteFilters<T extends RouteFilters>({
-  pageSize = 12,
-}: UseRouteFiltersOptions = {}) {
-  const [filters, setFilters] = useState<T>({
-    page: 0,
-    size: pageSize,
-    sortBy: DEFAULT_ROUTE_SORT_BY,
-    sortDir: DEFAULT_ROUTE_SORT_DIR,
-  } as T)
+export function useRouteFilters() {
   const [filtersOpen, setFiltersOpen] = useState(false)
-
-  const handleFiltersChange = useCallback(
-    (newFilters: T) => {
-      setFilters({ ...newFilters, size: pageSize })
-    },
-    [pageSize]
-  )
-
-  const handlePageChange = useCallback((page: number) => {
-    setFilters((prev) => ({ ...prev, page }))
-  }, [])
+  const { filters, setFilters, replaceFilters } = useUrlFilters({
+    schema: routeFiltersSchema,
+    alias: routeFiltersAlias,
+  })
 
   const hasFiltersOrSearch: boolean =
     (filters.search ? true : false) ||
@@ -45,12 +21,13 @@ export function useRouteFilters<T extends RouteFilters>({
 
   return {
     filters,
-    setFilters,
+    // RouteFilterPanel's "clear" hands back an object with the cleared keys
+    // omitted, so this must replace rather than merge.
+    handleFiltersChange: replaceFilters,
+    handlePageChange: (page: number) => setFilters({ page }),
     filtersOpen,
     setFiltersOpen,
-    handleFiltersChange,
-    handlePageChange,
     hasFiltersOrSearch,
-    pageSize,
+    pageSize: filters.size,
   }
 }

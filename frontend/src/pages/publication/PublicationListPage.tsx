@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { IconPlus, IconNews, IconChevronDown } from '@tabler/icons-react'
@@ -21,71 +21,68 @@ import {
   listPublications,
   getListPublicationsQueryKey,
 } from '../../api/endpoints/publications/publications'
-import { PublicationType } from '@/api/dto'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { PublicationCard, PublicationCardSkeleton } from '../../components/card'
 import { TeamLayout } from '../../components/team/TeamLayout'
 import { Pagination } from '../../components/common/Pagination'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
+import { useUrlFilters } from '../../hooks/useUrlFilters'
+import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
+import {
+  publicationFiltersSchema,
+  publicationFiltersAlias,
+  publicationFilterToType,
+  type PublicationFilterValue,
+} from '../../hooks/filters/publicationFilters'
 import { SearchInput } from '../../components/common/SearchInput'
 import { paths } from '@/config/paths'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
-type FilterValue = 'all' | 'ride' | 'post' | 'trip'
-
-const filterToType: Record<FilterValue, PublicationType | undefined> = {
-  all: undefined,
-  ride: PublicationType.RIDE,
-  post: PublicationType.POST,
-  trip: PublicationType.TRIP,
-}
-
 export function PublicationListPage() {
   const { t } = useTranslation()
   const { teamSlug } = useParams<{ teamSlug: string }>()
-  const [page, setPage] = useState(0)
-  const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState<FilterValue>('all')
-  const pageSize = 12 // Changed to 12 for better grid alignment (divisible by 2, 3, 4)
+
+  const { filters, setFilters } = useUrlFilters({
+    schema: publicationFiltersSchema,
+    alias: publicationFiltersAlias,
+  })
+  const commitSearch = useCallback(
+    (value: string) => setFilters({ search: value || undefined }),
+    [setFilters]
+  )
+  const [search, setSearch] = useDebouncedSearch(filters.search ?? '', commitSearch)
+
+  // `filter` is the page's own value; the API wants a PublicationType.
+  const apiParams = useMemo(
+    () => ({
+      search: filters.search,
+      page: filters.page,
+      size: filters.size,
+      type: publicationFilterToType[filters.filter],
+    }),
+    [filters]
+  )
 
   const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },
   })
   const { data: publicationsData, isLoading: isLoadingPublications } = useListPublications(
     teamSlug!,
-    {
-      search: search || undefined,
-      page,
-      size: pageSize,
-      type: filterToType[filter],
-    },
+    apiParams,
     { query: { enabled: !!teamSlug } }
   )
 
-  const resetPage = () => setPage(0)
-
   const prefetchPage = useCallback(
     (prefetchPageNum: number) => ({
-      queryKey: getListPublicationsQueryKey(teamSlug!, {
-        search: search || undefined,
-        page: prefetchPageNum,
-        size: pageSize,
-        type: filterToType[filter],
-      }),
-      queryFn: () =>
-        listPublications(teamSlug!, {
-          search: search || undefined,
-          page: prefetchPageNum,
-          size: pageSize,
-          type: filterToType[filter],
-        }),
+      queryKey: getListPublicationsQueryKey(teamSlug!, { ...apiParams, page: prefetchPageNum }),
+      queryFn: () => listPublications(teamSlug!, { ...apiParams, page: prefetchPageNum }),
     }),
-    [teamSlug, search, filter, pageSize]
+    [teamSlug, apiParams]
   )
 
   const { totalPages } = usePaginatedQuery({
-    page,
-    pageSize,
+    page: filters.page,
+    pageSize: filters.size,
     totalItems: publicationsData?.total ?? 0,
     prefetchPage,
   })
@@ -160,21 +157,17 @@ export function PublicationListPage() {
           <SearchInput
             id="publications-search"
             value={search}
-            onChange={(value) => {
-              setSearch(value)
-              resetPage()
-            }}
+            onChange={setSearch}
             placeholder={t('teams.publications.list.search.placeholder')}
             style={{ flex: 1 }}
             fullWidth
           />
           <Group gap="xs">
             <Select
-              value={filter}
+              value={filters.filter}
               onChange={(value) => {
                 if (value) {
-                  setFilter(value as FilterValue)
-                  resetPage()
+                  setFilters({ filter: value as PublicationFilterValue })
                 }
               }}
               data={[
@@ -212,7 +205,11 @@ export function PublicationListPage() {
             </SimpleGrid>
 
             <Box>
-              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+              <Pagination
+                currentPage={filters.page}
+                totalPages={totalPages}
+                onPageChange={(page) => setFilters({ page })}
+              />
             </Box>
           </Stack>
         ) : (

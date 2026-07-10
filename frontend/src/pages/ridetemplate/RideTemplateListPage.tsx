@@ -29,6 +29,12 @@ import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamAdminLayout } from '../../components/team/TeamAdminLayout'
 import { Pagination } from '../../components/common/Pagination'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
+import { useUrlFilters } from '../../hooks/useUrlFilters'
+import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
+import {
+  rideTemplateFiltersSchema,
+  rideTemplateFiltersAlias,
+} from '../../hooks/filters/rideTemplateFilters'
 import { SearchInput } from '../../components/common/SearchInput'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { MarkdownDisplay } from '../../components/common/MarkdownDisplay'
@@ -41,43 +47,35 @@ export function RideTemplateListPage() {
   const { speed } = useUnits()
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const queryClient = useQueryClient()
-  const [page, setPage] = useState(0)
-  const [search, setSearch] = useState('')
   const [templateToDelete, setTemplateToDelete] = useState<RideTemplateDto | null>(null)
-  const pageSize = 20
+
+  const { filters, setFilters } = useUrlFilters({
+    schema: rideTemplateFiltersSchema,
+    alias: rideTemplateFiltersAlias,
+  })
+  const commitSearch = useCallback(
+    (value: string) => setFilters({ search: value || undefined }),
+    [setFilters]
+  )
+  const [search, setSearch] = useDebouncedSearch(filters.search ?? '', commitSearch)
 
   const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },
   })
-  const { data: templatesData, isLoading: isLoadingTemplates } = useListTemplates(teamSlug!, {
-    search: search || undefined,
-    page,
-    size: pageSize,
-  })
+  const { data: templatesData, isLoading: isLoadingTemplates } = useListTemplates(teamSlug!, filters)
   const deleteMutation = useDeleteTemplate()
-
-  const resetPage = () => setPage(0)
 
   const prefetchPage = useCallback(
     (prefetchPageNum: number) => ({
-      queryKey: getListTemplatesQueryKey(teamSlug!, {
-        search: search || undefined,
-        page: prefetchPageNum,
-        size: pageSize,
-      }),
-      queryFn: () =>
-        listTemplates(teamSlug!, {
-          search: search || undefined,
-          page: prefetchPageNum,
-          size: pageSize,
-        }),
+      queryKey: getListTemplatesQueryKey(teamSlug!, { ...filters, page: prefetchPageNum }),
+      queryFn: () => listTemplates(teamSlug!, { ...filters, page: prefetchPageNum }),
     }),
-    [teamSlug, search, pageSize]
+    [teamSlug, filters]
   )
 
   const { totalPages } = usePaginatedQuery({
-    page,
-    pageSize,
+    page: filters.page,
+    pageSize: filters.size,
     totalItems: templatesData?.total ?? 0,
     prefetchPage,
   })
@@ -136,10 +134,7 @@ export function RideTemplateListPage() {
         <SearchInput
           id="templates-search"
           value={search}
-          onChange={(value) => {
-            setSearch(value)
-            resetPage()
-          }}
+          onChange={setSearch}
           placeholder={t('rideTemplates.list.search.placeholder')}
           label={t('rideTemplates.list.search.label')}
         />
@@ -226,7 +221,11 @@ export function RideTemplateListPage() {
             </Stack>
 
             <Box mt="xl">
-              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+              <Pagination
+                currentPage={filters.page}
+                totalPages={totalPages}
+                onPageChange={(page) => setFilters({ page })}
+              />
             </Box>
           </>
         ) : (

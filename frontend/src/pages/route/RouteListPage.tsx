@@ -7,7 +7,6 @@ import { IconPlus } from '@tabler/icons-react'
 import { Button, Group, Stack, Title } from '@mantine/core'
 import { useListRoutes, listRoutes, getListRoutesQueryKey } from '@/api/endpoints/routes/routes'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
-import type { ListRoutesParams } from '@/api/dto'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamLayout } from '../../components/team/TeamLayout'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
@@ -30,7 +29,7 @@ export function RouteListPage() {
     handlePageChange,
     hasFiltersOrSearch,
     pageSize,
-  } = useRouteFilters<ListRoutesParams>()
+  } = useRouteFilters()
 
   const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },
@@ -48,7 +47,7 @@ export function RouteListPage() {
   )
 
   const { totalPages } = usePaginatedQuery({
-    page: filters.page ?? 0,
+    page: filters.page,
     pageSize,
     totalItems: routesData?.total ?? 0,
     prefetchPage,
@@ -100,7 +99,7 @@ export function RouteListPage() {
           isLoading={isLoadingRoutes}
           showTeam={false}
           hasFiltersOrSearch={hasFiltersOrSearch}
-          currentPage={filters.page ?? 0}
+          currentPage={filters.page}
           totalPages={totalPages}
           onPageChange={handlePageChange}
           emptyAction={

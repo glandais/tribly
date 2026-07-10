@@ -6,7 +6,6 @@ import {
   listAllRoutes,
   getListAllRoutesQueryKey,
 } from '@/api/endpoints/routes/routes'
-import type { ListAllRoutesParams } from '@/api/dto'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { useRouteFilters } from '../../hooks/useRouteFilters'
 import { HomeLayout } from '../../components/home/HomeLayout'
@@ -23,7 +22,7 @@ export function AllRoutesPage() {
     handlePageChange,
     hasFiltersOrSearch,
     pageSize,
-  } = useRouteFilters<ListAllRoutesParams>()
+  } = useRouteFilters()
 
   const {
     data: routesData,
@@ -42,7 +41,7 @@ export function AllRoutesPage() {
   )
 
   const { totalPages } = usePaginatedQuery({
-    page: filters.page ?? 0,
+    page: filters.page,
     pageSize,
     totalItems: routesData?.total ?? 0,
     prefetchPage,
@@ -68,7 +67,7 @@ export function AllRoutesPage() {
           isError={isError}
           showTeam={true}
           hasFiltersOrSearch={hasFiltersOrSearch}
-          currentPage={filters.page ?? 0}
+          currentPage={filters.page}
           totalPages={totalPages}
           onPageChange={handlePageChange}
         />

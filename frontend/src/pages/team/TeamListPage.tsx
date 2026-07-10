@@ -1,13 +1,21 @@
-import { useState, useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { paths } from '../../config/paths'
 import { IconPlus, IconUsersGroup } from '@tabler/icons-react'
 import { useListTeams, listTeams, getListTeamsQueryKey } from '@/api/endpoints/teams/teams'
-import { MinRole } from '@/api/dto'
 import { useAuth } from '../../hooks/useAuth'
 import { getAppConfig } from '../../config/appConfig'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
+import { useUrlFilters } from '../../hooks/useUrlFilters'
+import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
+import {
+  makeTeamFiltersSchema,
+  teamFiltersAlias,
+  teamFiltersAlwaysSerialize,
+  teamFilterToMinRole,
+  type TeamFilterValue,
+} from '../../hooks/filters/teamFilters'
 import { TeamCard, TeamCardSkeleton } from '../../components/card'
 import { Pagination } from '../../components/common/Pagination'
 import { SearchInput } from '../../components/common/SearchInput'
@@ -26,58 +34,49 @@ import {
   Alert,
 } from '@mantine/core'
 
-type FilterValue = 'all' | 'member' | 'organizer' | 'admin'
-
-const filterToMinRole: Record<FilterValue, MinRole | undefined> = {
-  all: undefined,
-  member: MinRole.MEMBER,
-  organizer: MinRole.ORGANIZER,
-  admin: MinRole.ADMIN,
-}
-
 export function TeamListPage() {
   const { t } = useTranslation()
-  const [search, setSearch] = useState('')
   const { isAuthenticated } = useAuth()
   const config = getAppConfig()
 
-  const [page, setPage] = useState(0)
-  const pageSize = 12
-  const [filter, setFilter] = useState<FilterValue>(isAuthenticated ? 'member' : 'all')
-
-  const {
-    data: teamsData,
-    isLoading,
-    error,
-  } = useListTeams({
-    search,
-    page,
-    size: pageSize,
-    minRole: filterToMinRole[filter],
+  const schema = useMemo(
+    () => makeTeamFiltersSchema(isAuthenticated ? 'member' : 'all'),
+    [isAuthenticated]
+  )
+  const { filters, setFilters } = useUrlFilters({
+    schema,
+    alias: teamFiltersAlias,
+    alwaysSerialize: teamFiltersAlwaysSerialize,
   })
+  const commitSearch = useCallback(
+    (value: string) => setFilters({ search: value || undefined }),
+    [setFilters]
+  )
+  const [search, setSearch] = useDebouncedSearch(filters.search ?? '', commitSearch)
+
+  const apiParams = useMemo(
+    () => ({
+      search: filters.search,
+      page: filters.page,
+      size: filters.size,
+      minRole: teamFilterToMinRole[filters.filter],
+    }),
+    [filters]
+  )
+
+  const { data: teamsData, isLoading, error } = useListTeams(apiParams)
 
   const prefetchPage = useCallback(
     (prefetchPageNum: number) => ({
-      queryKey: getListTeamsQueryKey({
-        search,
-        page: prefetchPageNum,
-        size: pageSize,
-        minRole: filterToMinRole[filter],
-      }),
-      queryFn: () =>
-        listTeams({
-          search,
-          page: prefetchPageNum,
-          size: pageSize,
-          minRole: filterToMinRole[filter],
-        }),
+      queryKey: getListTeamsQueryKey({ ...apiParams, page: prefetchPageNum }),
+      queryFn: () => listTeams({ ...apiParams, page: prefetchPageNum }),
     }),
-    [search, filter, pageSize]
+    [apiParams]
   )
 
   const { totalPages } = usePaginatedQuery({
-    page,
-    pageSize,
+    page: filters.page,
+    pageSize: filters.size,
     totalItems: teamsData?.total ?? 0,
     prefetchPage,
   })
@@ -85,8 +84,6 @@ export function TeamListPage() {
   const teams = teamsData?.teams
   const hasTeams = (teamsData?.total ?? 0) > 0
   const canCreateTeam = isAuthenticated && (!config?.singleTeam || !hasTeams)
-
-  const resetPage = () => setPage(0)
 
   return (
     <HomeLayout currentTab="teams">
@@ -109,21 +106,15 @@ export function TeamListPage() {
           <SearchInput
             id="team-search"
             value={search}
-            onChange={(value) => {
-              setSearch(value)
-              resetPage()
-            }}
+            onChange={setSearch}
             placeholder={t('teams.list.search.placeholder')}
             label={t('teams.list.search.label')}
             style={{ flex: 1, minWidth: 200 }}
           />
           {isAuthenticated && (
             <Select
-              value={filter}
-              onChange={(value) => {
-                setFilter(value as FilterValue)
-                resetPage()
-              }}
+              value={filters.filter}
+              onChange={(value) => setFilters({ filter: value as TeamFilterValue })}
               data={[
                 { value: 'all', label: t('teams.list.filter.all') },
                 { value: 'member', label: t('roles.MEMBER') },
@@ -155,7 +146,11 @@ export function TeamListPage() {
             </SimpleGrid>
 
             <Box mt="lg">
-              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+              <Pagination
+                currentPage={filters.page}
+                totalPages={totalPages}
+                onPageChange={(page) => setFilters({ page })}
+              />
             </Box>
           </Stack>
         ) : (

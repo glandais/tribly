@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Box, Select, Stack, Title, Group, Paper, Text, Center, SimpleGrid } from '@mantine/core'
@@ -10,67 +10,64 @@ import {
   listAllPublications,
   getListAllPublicationsQueryKey,
 } from '../../api/endpoints/publications/publications'
-import { PublicationType } from '@/api/dto'
 import { PublicationCard, PublicationCardSkeleton } from '../../components/card'
 import { Pagination } from '../../components/common/Pagination'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
+import { useUrlFilters } from '../../hooks/useUrlFilters'
+import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
+import {
+  publicationFiltersSchema,
+  publicationFiltersAlias,
+  publicationFilterToType,
+  type PublicationFilterValue,
+} from '../../hooks/filters/publicationFilters'
 import { SearchInput } from '../../components/common/SearchInput'
 import { HomeLayout } from '../../components/home/HomeLayout'
 import { useAppName } from '../../hooks/useAppName'
-
-type FilterValue = 'all' | 'ride' | 'post' | 'trip'
-
-const filterToType: Record<FilterValue, PublicationType | undefined> = {
-  all: undefined,
-  ride: PublicationType.RIDE,
-  post: PublicationType.POST,
-  trip: PublicationType.TRIP,
-}
 
 export function HomePage() {
   const { t } = useTranslation()
   const appName = useAppName()
   const pinnedTeamSlug = getPinnedTeamSlug()
-  const [page, setPage] = useState(0)
-  const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState<FilterValue>('all')
-  const pageSize = 12
+
+  const { filters, setFilters } = useUrlFilters({
+    schema: publicationFiltersSchema,
+    alias: publicationFiltersAlias,
+  })
+  const commitSearch = useCallback(
+    (value: string) => setFilters({ search: value || undefined }),
+    [setFilters]
+  )
+  const [search, setSearch] = useDebouncedSearch(filters.search ?? '', commitSearch)
+
+  // `filter` is the page's own value; the API wants a PublicationType.
+  const apiParams = useMemo(
+    () => ({
+      search: filters.search,
+      page: filters.page,
+      size: filters.size,
+      type: publicationFilterToType[filters.filter],
+    }),
+    [filters]
+  )
 
   const {
     data: publicationsData,
     isLoading,
     isError,
-  } = useListAllPublications({
-    search: search || undefined,
-    page,
-    size: pageSize,
-    type: filterToType[filter],
-  })
-
-  const resetPage = () => setPage(0)
+  } = useListAllPublications(apiParams)
 
   const prefetchPage = useCallback(
     (prefetchPageNum: number) => ({
-      queryKey: getListAllPublicationsQueryKey({
-        search: search || undefined,
-        page: prefetchPageNum,
-        size: pageSize,
-        type: filterToType[filter],
-      }),
-      queryFn: () =>
-        listAllPublications({
-          search: search || undefined,
-          page: prefetchPageNum,
-          size: pageSize,
-          type: filterToType[filter],
-        }),
+      queryKey: getListAllPublicationsQueryKey({ ...apiParams, page: prefetchPageNum }),
+      queryFn: () => listAllPublications({ ...apiParams, page: prefetchPageNum }),
     }),
-    [search, filter, pageSize]
+    [apiParams]
   )
 
   const { totalPages } = usePaginatedQuery({
-    page,
-    pageSize,
+    page: filters.page,
+    pageSize: filters.size,
     totalItems: publicationsData?.total ?? 0,
     prefetchPage,
   })
@@ -98,20 +95,16 @@ export function HomePage() {
           <SearchInput
             id="publications-search"
             value={search}
-            onChange={(value) => {
-              setSearch(value)
-              resetPage()
-            }}
+            onChange={setSearch}
             placeholder={t('home.feed.search.placeholder')}
             label={t('home.feed.search.label')}
             style={{ flex: 1, minWidth: 200 }}
           />
           <Select
-            value={filter}
+            value={filters.filter}
             onChange={(value) => {
               if (value) {
-                setFilter(value as FilterValue)
-                resetPage()
+                setFilters({ filter: value as PublicationFilterValue })
               }
             }}
             data={[
@@ -151,7 +144,11 @@ export function HomePage() {
               ))}
             </SimpleGrid>
 
-            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+            <Pagination
+              currentPage={filters.page}
+              totalPages={totalPages}
+              onPageChange={(page) => setFilters({ page })}
+            />
           </Stack>
         ) : (
           /* Empty State */

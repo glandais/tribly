@@ -1,9 +1,11 @@
+import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { IconFilter, IconChevronDown, IconChevronUp, IconX } from '@tabler/icons-react'
 import { Collapse, Select, Button, Text, Paper, Group, SimpleGrid, Stack } from '@mantine/core'
 import { RangeInput } from '@/components/common/RangeInput'
 import { Hilliness, SurfaceType, WindDirection, RouteSortBy, SortDirection } from '@/api/dto'
-import type { ListRoutesParams } from '@/api/dto'
+import type { RouteFilters } from '@/hooks/filters/routeFilters'
+import { useDebouncedSearch } from '@/hooks/useDebouncedSearch'
 import { SearchInput } from '../common/SearchInput'
 import { useUnits } from '@/hooks/useUnits'
 import { DEFAULT_ROUTE_SORT_BY, DEFAULT_ROUTE_SORT_DIR } from './routeFilterDefaults'
@@ -11,8 +13,9 @@ import { DEFAULT_ROUTE_SORT_BY, DEFAULT_ROUTE_SORT_DIR } from './routeFilterDefa
 const NONE_VALUE = '_none'
 
 interface RouteFilterPanelProps {
-  filters: ListRoutesParams
-  onFiltersChange: (filters: ListRoutesParams) => void
+  filters: RouteFilters
+  /** Replaces the whole filter set: omitted keys fall back to their default. */
+  onFiltersChange: (filters: Partial<RouteFilters>) => void
   isOpen: boolean
   onOpenChange: (open: boolean) => void
 }
@@ -26,9 +29,15 @@ export function RouteFilterPanel({
   const { t } = useTranslation()
   const { config, distanceUnit, elevationUnit } = useUnits()
 
-  const updateFilter = <K extends keyof ListRoutesParams>(key: K, value: ListRoutesParams[K]) => {
+  const updateFilter = <K extends keyof RouteFilters>(key: K, value: RouteFilters[K]) => {
     onFiltersChange({ ...filters, [key]: value, page: 0 })
   }
+
+  const commitSearch = useCallback(
+    (value: string) => onFiltersChange({ ...filters, search: value || undefined, page: 0 }),
+    [filters, onFiltersChange]
+  )
+  const [search, setSearch] = useDebouncedSearch(filters.search ?? '', commitSearch)
 
   const clearFilters = () => {
     onFiltersChange({
@@ -82,8 +91,8 @@ export function RouteFilterPanel({
         <Paper withBorder p="md" mb="md">
           <SearchInput
             id="routes-search"
-            value={filters.search ?? ''}
-            onChange={(value) => updateFilter('search', value || undefined)}
+            value={search}
+            onChange={setSearch}
             placeholder={t('routes.list.search.placeholder')}
             label={t('routes.list.search.label')}
             fullWidth

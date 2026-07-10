@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Stack,
@@ -22,27 +21,27 @@ import {
   useAdminToggleTeamDeleted,
 } from '@/api/endpoints/admin-teams/admin-teams'
 import { useListDomains } from '@/api/endpoints/admin-domains/admin-domains'
+import { useUrlFilters } from '@/hooks/useUrlFilters'
+import { adminTeamFiltersSchema, adminTeamFiltersAlias } from '@/hooks/filters/adminFilters'
 import type { AdminTeamDto, Visibility } from '@/api/dto'
 
 export function AdminTeamsPage() {
   const { t } = useTranslation()
-  const [page, setPage] = useState(0)
-  const [domainFilter, setDomainFilter] = useState<string | null>(null)
-  const pageSize = 20
+
+  const { filters, setFilters } = useUrlFilters({
+    schema: adminTeamFiltersSchema,
+    alias: adminTeamFiltersAlias,
+  })
 
   const { data: domainsData } = useListDomains({ page: 0, size: 100 })
-  const { data, isLoading, error } = useAdminListTeams({
-    page,
-    size: pageSize,
-    domainId: domainFilter || undefined,
-  })
+  const { data, isLoading, error } = useAdminListTeams(filters)
   const toggleMutation = useAdminToggleTeamDeleted()
 
   const handleToggleDeleted = (teamId: string) => {
     toggleMutation.mutate({ teamId })
   }
 
-  const totalPages = data ? Math.ceil(data.total / pageSize) : 0
+  const totalPages = data ? Math.ceil(data.total / filters.size) : 0
 
   const domainOptions =
     domainsData?.domains.map((d) => ({
@@ -57,11 +56,8 @@ export function AdminTeamsPage() {
           <Select
             placeholder={t('admin.teams.filterByDomain')}
             data={domainOptions}
-            value={domainFilter}
-            onChange={(value) => {
-              setDomainFilter(value)
-              setPage(0)
-            }}
+            value={filters.domainId ?? null}
+            onChange={(value) => setFilters({ domainId: value || undefined })}
             clearable
             w={200}
           />
@@ -147,7 +143,11 @@ export function AdminTeamsPage() {
               </Table>
             </Table.ScrollContainer>
 
-            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+            <Pagination
+              currentPage={filters.page}
+              totalPages={totalPages}
+              onPageChange={(page) => setFilters({ page })}
+            />
           </Stack>
         ) : (
           <Paper withBorder p="xl" radius="md">

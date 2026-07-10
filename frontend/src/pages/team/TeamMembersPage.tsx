@@ -26,6 +26,11 @@ import type { PublicUserDto } from '@/api/dto'
 import { TeamRole } from '@/api/dto'
 import { Pagination } from '../../components/common/Pagination'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
+import { useUrlFilters } from '../../hooks/useUrlFilters'
+import {
+  teamMemberFiltersSchema,
+  teamMemberFiltersAlias,
+} from '../../hooks/filters/teamMemberFilters'
 
 export function TeamMembersPage() {
   const { t } = useTranslation()
@@ -34,29 +39,30 @@ export function TeamMembersPage() {
   const queryClient = useQueryClient()
   const [showAddMember, setShowAddMember] = useState(false)
   const [selectedRole, setSelectedRole] = useState<TeamRole>(TeamRole.MEMBER)
-  const [page, setPage] = useState(0)
-  const pageSize = 50
+
+  const { filters, setFilters } = useUrlFilters({
+    schema: teamMemberFiltersSchema,
+    alias: teamMemberFiltersAlias,
+  })
 
   const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },
   })
-  const { data: membersData, isLoading: isLoadingMembers } = useGetMembers(
-    teamSlug!,
-    { page, size: pageSize },
-    { query: { enabled: !!teamSlug } }
-  )
+  const { data: membersData, isLoading: isLoadingMembers } = useGetMembers(teamSlug!, filters, {
+    query: { enabled: !!teamSlug },
+  })
 
   const prefetchPage = useCallback(
     (prefetchPageNum: number) => ({
-      queryKey: getGetMembersQueryKey(teamSlug!, { page: prefetchPageNum, size: pageSize }),
-      queryFn: () => getMembers(teamSlug!, { page: prefetchPageNum, size: pageSize }),
+      queryKey: getGetMembersQueryKey(teamSlug!, { ...filters, page: prefetchPageNum }),
+      queryFn: () => getMembers(teamSlug!, { ...filters, page: prefetchPageNum }),
     }),
-    [teamSlug, pageSize]
+    [teamSlug, filters]
   )
 
   const { totalPages } = usePaginatedQuery({
-    page,
-    pageSize,
+    page: filters.page,
+    pageSize: filters.size,
     totalItems: membersData?.total ?? 0,
     prefetchPage,
   })
@@ -155,7 +161,11 @@ export function TeamMembersPage() {
             />
 
             <Box mt="xl">
-              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+              <Pagination
+                currentPage={filters.page}
+                totalPages={totalPages}
+                onPageChange={(page) => setFilters({ page })}
+              />
             </Box>
           </>
         ) : (

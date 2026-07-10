@@ -30,17 +30,22 @@ import {
   getListDomainsQueryKey,
 } from '@/api/endpoints/admin-domains/admin-domains'
 import { useQueryClient } from '@tanstack/react-query'
+import { useUrlFilters } from '@/hooks/useUrlFilters'
+import { adminDomainFiltersSchema, adminDomainFiltersAlias } from '@/hooks/filters/adminFilters'
 import type { AdminDomainDto } from '@/api/dto'
 
 export function AdminDomainsPage() {
   const { t } = useTranslation()
-  const [page, setPage] = useState(0)
-  const pageSize = 20
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingDomain, setEditingDomain] = useState<AdminDomainDto | undefined>(undefined)
 
+  const { filters, setFilters } = useUrlFilters({
+    schema: adminDomainFiltersSchema,
+    alias: adminDomainFiltersAlias,
+  })
+
   const queryClient = useQueryClient()
-  const { data, isLoading, error } = useListDomains({ page, size: pageSize })
+  const { data, isLoading, error } = useListDomains(filters)
   const toggleMutation = useToggleDomainActive()
 
   const currentHostname = window.location.hostname
@@ -67,7 +72,7 @@ export function AdminDomainsPage() {
     setEditingDomain(undefined)
   }
 
-  const totalPages = data ? Math.ceil(data.total / pageSize) : 0
+  const totalPages = data ? Math.ceil(data.total / filters.size) : 0
 
   return (
     <AdminLayout currentTab="domains">
@@ -172,7 +177,11 @@ export function AdminDomainsPage() {
               </Table>
             </Table.ScrollContainer>
 
-            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+            <Pagination
+              currentPage={filters.page}
+              totalPages={totalPages}
+              onPageChange={(page) => setFilters({ page })}
+            />
           </Stack>
         ) : (
           <Paper withBorder p="xl" radius="md">

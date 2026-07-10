@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Outlet, Link, useLocation } from 'react-router-dom'
+import { Outlet, Link, useLocation, useNavigationType } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   AppShell,
@@ -22,6 +22,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useAppName } from '../../hooks/useAppName'
 import { useAuthStore, selectIsPlatformAdmin } from '@/store/authStore'
 import { useBreadcrumb } from '../../hooks/useBreadcrumb'
+import { useScrollRestoration } from '../../hooks/useScrollRestoration'
 import { Breadcrumb } from './Breadcrumb'
 import { ColorSchemeSwitcher } from './ColorSchemeSwitcher'
 import { LanguageSwitcher } from './LanguageSwitcher'
@@ -35,12 +36,20 @@ export function Layout() {
   const { items: breadcrumbItems, showBackLink } = useBreadcrumb()
   const [opened, { toggle, close }] = useDisclosure(false)
   const { pathname } = useLocation()
+  const navigationType = useNavigationType()
+
+  // Mounted before the effect below so its cleanup records the scroll position
+  // while the outgoing route is still on screen.
+  useScrollRestoration()
 
   const pinned = useHeadroom({ fixedAt: 120 })
-  // Scroll to top on route change
+  // Scroll to top when entering a new route. POP is left to useScrollRestoration,
+  // and REPLACE (a filter edit) must not move the page at all.
   useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [pathname])
+    if (navigationType === 'PUSH') {
+      window.scrollTo(0, 0)
+    }
+  }, [pathname, navigationType])
 
   // Update document title on route change
   useEffect(() => {

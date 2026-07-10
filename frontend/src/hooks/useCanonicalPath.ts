@@ -27,7 +27,8 @@ export function useCanonicalPath(canonicalPath: string | undefined | null): void
     checkedRef.current = true
 
     if (canonicalPath !== window.location.pathname) {
-      navigate(canonicalPath, { replace: true })
+      // Keep the query string: it carries the page's filters.
+      navigate(canonicalPath + window.location.search + window.location.hash, { replace: true })
     }
   }, [canonicalPath, navigate])
 }

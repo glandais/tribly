@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Stack,
@@ -23,24 +23,29 @@ import { useListUsers, useAssignPlatformRole } from '@/api/endpoints/admin-users
 import { useListDomains } from '@/api/endpoints/admin-domains/admin-domains'
 import type { AdminUserDto } from '@/api/dto'
 import { useAuth } from '@/hooks/useAuth'
+import { useUrlFilters } from '@/hooks/useUrlFilters'
+import { useDebouncedSearch } from '@/hooks/useDebouncedSearch'
+import { adminUserFiltersSchema, adminUserFiltersAlias } from '@/hooks/filters/adminFilters'
 import { formatDate } from '@/utils/dateFormat'
 
 export function AdminUsersPage() {
   const { t, i18n } = useTranslation()
   const { user: currentUser } = useAuth()
-  const [page, setPage] = useState(0)
-  const [search, setSearch] = useState('')
-  const [domainFilter, setDomainFilter] = useState<string | null>(null)
-  const [adminOnly, setAdminOnly] = useState(false)
-  const pageSize = 20
+
+  const { filters, setFilters } = useUrlFilters({
+    schema: adminUserFiltersSchema,
+    alias: adminUserFiltersAlias,
+  })
+  const commitSearch = useCallback(
+    (value: string) => setFilters({ search: value || undefined }),
+    [setFilters]
+  )
+  const [search, setSearch] = useDebouncedSearch(filters.search ?? '', commitSearch)
 
   const { data: domainsData } = useListDomains({ page: 0, size: 100 })
   const { data, isLoading, error } = useListUsers({
-    page,
-    size: pageSize,
-    domainId: domainFilter || undefined,
-    search: search || undefined,
-    adminOnly: adminOnly || undefined,
+    ...filters,
+    adminOnly: filters.adminOnly || undefined,
   })
   const assignRoleMutation = useAssignPlatformRole()
 
@@ -52,15 +57,13 @@ export function AdminUsersPage() {
     })
   }
 
-  const totalPages = data ? Math.ceil(data.total / pageSize) : 0
+  const totalPages = data ? Math.ceil(data.total / filters.size) : 0
 
   const domainOptions =
     domainsData?.domains.map((d) => ({
       value: d.id,
       label: d.name,
     })) || []
-
-  const resetPage = () => setPage(0)
 
   return (
     <AdminLayout currentTab="users">
@@ -69,10 +72,7 @@ export function AdminUsersPage() {
           <SearchInput
             id="user-search"
             value={search}
-            onChange={(value) => {
-              setSearch(value)
-              resetPage()
-            }}
+            onChange={setSearch}
             placeholder={t('admin.users.searchPlaceholder')}
             label={t('admin.users.search')}
             style={{ flex: 1, minWidth: 200 }}
@@ -80,21 +80,15 @@ export function AdminUsersPage() {
           <Select
             placeholder={t('admin.users.filterByDomain')}
             data={domainOptions}
-            value={domainFilter}
-            onChange={(value) => {
-              setDomainFilter(value)
-              resetPage()
-            }}
+            value={filters.domainId ?? null}
+            onChange={(value) => setFilters({ domainId: value || undefined })}
             clearable
             w={200}
           />
           <Checkbox
             label={t('admin.users.adminOnly')}
-            checked={adminOnly}
-            onChange={(e) => {
-              setAdminOnly(e.currentTarget.checked)
-              resetPage()
-            }}
+            checked={filters.adminOnly}
+            onChange={(e) => setFilters({ adminOnly: e.currentTarget.checked })}
           />
         </Group>
 
@@ -189,7 +183,11 @@ export function AdminUsersPage() {
               </Table>
             </Table.ScrollContainer>
 
-            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+            <Pagination
+              currentPage={filters.page}
+              totalPages={totalPages}
+              onPageChange={(page) => setFilters({ page })}
+            />
           </Stack>
         ) : (
           <Paper withBorder p="xl" radius="md">
