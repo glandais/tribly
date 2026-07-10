@@ -56,7 +56,7 @@ export function StageDetailPage() {
 
   // Find stage and its route slug (derived before hooks to maintain consistent hook order)
   const stage = trip?.stages?.find((s) => s.slug === stageSlug)
-  const routeSlug = stage?.routeSlug
+  const routeSlug = stage?.route?.slug
 
   // Fetch route if stage has one
   const { data: route, isLoading: isLoadingRoute } = useGetRoute(teamSlug!, routeSlug ?? '', {

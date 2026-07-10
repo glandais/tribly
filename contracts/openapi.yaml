@@ -2623,8 +2623,8 @@ components:
           type: boolean
           description: Whether the route is soft-deleted
     RouteDto:
-      description: Route summary data
       type: object
+      description: Route summary data
       required:
       - id
       - slug
@@ -3420,9 +3420,10 @@ components:
           description: Stage date/time
           type: string
           $ref: "#/components/schemas/Instant"
-        routeSlug:
-          type: string
-          description: Route slug
+        route:
+          description: Route
+          type: object
+          $ref: "#/components/schemas/RouteDto"
         startPlace:
           description: Start place
           type: object

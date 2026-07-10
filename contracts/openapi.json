@@ -2811,8 +2811,8 @@
         }
       },
       "RouteDto" : {
-        "description" : "Route summary data",
         "type" : "object",
+        "description" : "Route summary data",
         "required" : [ "id", "slug", "team", "name", "media", "distance", "elevationGain", "elevationLoss", "surfaceType", "visibility", "createdAt", "deleted" ],
         "properties" : {
           "id" : {
@@ -3643,9 +3643,10 @@
             "type" : "string",
             "$ref" : "#/components/schemas/Instant"
           },
-          "routeSlug" : {
-            "type" : "string",
-            "description" : "Route slug"
+          "route" : {
+            "description" : "Route",
+            "type" : "object",
+            "$ref" : "#/components/schemas/RouteDto"
           },
           "startPlace" : {
             "description" : "Start place",

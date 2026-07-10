@@ -1,9 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { IconCalendar, IconMapPin } from '@tabler/icons-react'
+import { IconArrowsMaximize, IconArrowUp, IconCalendar, IconMapPin } from '@tabler/icons-react'
 import { Paper, Group, Text, UnstyledButton, Badge, Box } from '@mantine/core'
 import type { TripStageDto } from '@/api/dto'
 import { useFormattedDate } from '../../utils/dateFormat'
+import { useUnits } from '@/hooks/useUnits'
 import { MediaDisplay } from '../common/MediaDisplay'
 import { EntityLogo } from '../common/EntityLogo'
 import { paths } from '@/config/paths'
@@ -27,6 +28,7 @@ export function TripStageCard({
 }: TripStageCardProps) {
   const { t } = useTranslation()
   const { formatDateTime } = useFormattedDate()
+  const { distance, elevation } = useUnits()
   const navigate = useNavigate()
 
   return (
@@ -98,13 +100,13 @@ export function TripStageCard({
         </Group>
       )}
 
-      {stage.routeSlug && (
-        <Box mt="sm">
+      {stage.route && (
+        <Group mt="sm" gap="md" wrap="wrap">
           <UnstyledButton
             onClick={(e) => {
               e.preventDefault()
               e.stopPropagation()
-              navigate(paths.route(teamSlug, stage.routeSlug!))
+              navigate(paths.route(teamSlug, stage.route!.slug))
             }}
             styles={{
               root: {
@@ -119,7 +121,21 @@ export function TripStageCard({
           >
             {t('trips.stage.viewRoute')}
           </UnstyledButton>
-        </Box>
+          <Group gap="md" wrap="nowrap">
+            <Group gap={4}>
+              <IconArrowsMaximize size={16} color="var(--mantine-color-dimmed)" />
+              <Text size="sm" c="dimmed">
+                {distance(stage.route.distance)}
+              </Text>
+            </Group>
+            <Group gap={4}>
+              <IconArrowUp size={16} color="var(--mantine-color-dimmed)" />
+              <Text size="sm" c="dimmed">
+                {elevation(stage.route.elevationGain)}
+              </Text>
+            </Group>
+          </Group>
+        </Group>
       )}
     </Paper>
   )

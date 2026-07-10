@@ -7,6 +7,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'instant.dart';
 import 'media_dto.dart';
 import 'place_detail_dto.dart';
+import 'route_dto.dart';
 
 part 'trip_stage_dto.freezed.dart';
 part 'trip_stage_dto.g.dart';
@@ -33,8 +34,8 @@ abstract class TripStageDto with _$TripStageDto {
     /// Sort order
     required int sortOrder,
 
-    /// Route slug
-    String? routeSlug,
+    /// Route
+    RouteDto? route,
 
     /// Start place
     PlaceDetailDto? startPlace,

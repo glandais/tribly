@@ -377,7 +377,11 @@ export function TripDetailPage() {
                 />
               ) : (
                 <RoutesMapView
-                  items={trip.stages}
+                  items={trip.stages.map((stage) => ({
+                    id: stage.id,
+                    name: stage.name,
+                    routeSlug: stage.route?.slug,
+                  }))}
                   teamSlug={teamSlug!}
                   highlightedItemId={highlightedStageId}
                   onItemHover={setHighlightedStageId}

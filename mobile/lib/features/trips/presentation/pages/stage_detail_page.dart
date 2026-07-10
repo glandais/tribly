@@ -201,7 +201,7 @@ class _StageDetailContent extends StatelessWidget {
             ),
 
           // Route
-          if (stage.routeSlug != null)
+          if (stage.route != null)
             SliverToBoxAdapter(
               child: ContentWidthConstraint(
                 padding:
@@ -215,7 +215,7 @@ class _StageDetailContent extends StatelessWidget {
                     title: Text('trips.stage.viewRoute'.tr()),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () => context.push(
-                      Paths.route(trip.team.slug, stage.routeSlug!),
+                      Paths.route(trip.team.slug, stage.route!.slug),
                     ),
                   ),
                 ),

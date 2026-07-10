@@ -43,7 +43,8 @@ const ROUTE_COLORS = [
   '#e3a209',
 ]
 
-// Minimal interface that both RideGroupDto and TripStageDto satisfy
+// Minimal interface RideGroupDto satisfies directly; a trip stage carries the whole RouteDto,
+// so TripDetailPage narrows it down to the slug.
 export interface MapRouteItem {
   id: string
   name: string

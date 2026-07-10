@@ -1,6 +1,7 @@
 import type { Instant } from './instant.ts'
 import type { MediaDto } from './mediaDto.ts'
 import type { PlaceDetailDto } from './placeDetailDto.ts'
+import type { RouteDto } from './routeDto.ts'
 
 /**
  * Trip stage information
@@ -14,8 +15,8 @@ export interface TripStageDto {
   name: string
   /** Stage date/time */
   dateTime: Instant
-  /** Route slug */
-  routeSlug?: string
+  /** Route */
+  route?: RouteDto
   /** Start place */
   startPlace?: PlaceDetailDto
   /** End place */
