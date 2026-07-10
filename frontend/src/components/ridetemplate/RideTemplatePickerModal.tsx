@@ -18,6 +18,7 @@ import { useListTemplates } from '@/api/endpoints/ride-templates/ride-templates'
 import type { RideTemplateDto } from '@/api/dto'
 import { MarkdownDisplay } from '../common/MarkdownDisplay'
 import { Pagination } from '../common/Pagination'
+import { useScrollToListTopWithinContainer } from '@/hooks/useScrollToListTop'
 import { SearchInput } from '../common/SearchInput'
 import { useUnits } from '@/hooks/useUnits'
 
@@ -39,6 +40,7 @@ export function RideTemplatePickerModal({
   const { t } = useTranslation()
   const { speed } = useUnits()
   const [page, setPage] = useState(0)
+  const { listTopRef, scrollToListTop } = useScrollToListTopWithinContainer()
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
 
@@ -118,7 +120,7 @@ export function RideTemplatePickerModal({
         </Center>
       ) : (
         <>
-          <Stack gap="sm">
+          <Stack ref={listTopRef} gap="sm">
             {templates.map((template) => (
               <UnstyledButton
                 key={template.id}
@@ -172,7 +174,10 @@ export function RideTemplatePickerModal({
           <Pagination
             currentPage={page}
             totalPages={totalPages}
-            onPageChange={setPage}
+            onPageChange={(nextPage) => {
+              setPage(nextPage)
+              scrollToListTop()
+            }}
             variant="compact"
           />
         </>

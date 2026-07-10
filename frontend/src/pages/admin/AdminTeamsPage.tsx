@@ -22,6 +22,7 @@ import {
 } from '@/api/endpoints/admin-teams/admin-teams'
 import { useListDomains } from '@/api/endpoints/admin-domains/admin-domains'
 import { useUrlFilters } from '@/hooks/useUrlFilters'
+import { useScrollToListTop } from '@/hooks/useScrollToListTop'
 import { adminTeamFiltersSchema, adminTeamFiltersAlias } from '@/hooks/filters/adminFilters'
 import type { AdminTeamDto, Visibility } from '@/api/dto'
 
@@ -32,6 +33,7 @@ export function AdminTeamsPage() {
     schema: adminTeamFiltersSchema,
     alias: adminTeamFiltersAlias,
   })
+  const { listTopRef, scrollToListTop } = useScrollToListTop()
 
   const { data: domainsData } = useListDomains({ page: 0, size: 100 })
   const { data, isLoading, error } = useAdminListTeams(filters)
@@ -77,7 +79,7 @@ export function AdminTeamsPage() {
           </Stack>
         ) : data && data.teams.length > 0 ? (
           <Stack>
-            <Table.ScrollContainer minWidth={800}>
+            <Table.ScrollContainer ref={listTopRef} minWidth={800}>
               <Table striped highlightOnHover>
                 <Table.Thead>
                   <Table.Tr>
@@ -146,7 +148,10 @@ export function AdminTeamsPage() {
             <Pagination
               currentPage={filters.page}
               totalPages={totalPages}
-              onPageChange={(page) => setFilters({ page })}
+              onPageChange={(page) => {
+                setFilters({ page })
+                scrollToListTop()
+              }}
             />
           </Stack>
         ) : (

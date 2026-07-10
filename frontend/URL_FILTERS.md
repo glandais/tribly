@@ -82,6 +82,20 @@ Two non-obvious constraints, both learned the hard way:
 - **Never read `window.scrollY` when leaving a route.** `useEffect` cleanups run after the DOM already holds the incoming — usually shorter — page, so the browser has clamped `scrollY` to that page's height (500 silently becomes 85). A ref fed only by `scroll` events keeps the real value, because clamping does not dispatch a scroll event. The position is banked in a `useLayoutEffect` cleanup.
 - **A hidden tab never fires `requestAnimationFrame`.** The restore waits for the list to reach full height before scrolling — otherwise the browser clamps again — so that wait is scheduled with `rAF` when visible and `setTimeout` when not.
 
+## Bringing the list back into view on a page change (`useScrollToListTop`)
+
+Paginating from the bottom of a list would otherwise leave you at the bottom of the next one. Attach
+`listTopRef` to the element that starts the list and call `scrollToListTop()` from `onPageChange`,
+right after `setFilters({ page })`.
+
+- **Call it from the handler, never from an effect keyed on the page number.** Such an effect also
+  fires on mount, and on a back-navigation it would run just after `useScrollRestoration` restored
+  the position, throwing it away.
+- The offset clears the sticky `AppShell` header; Mantine's default 1250ms duration is cut to 300ms.
+- Inside a modal, use `useScrollToListTopWithinContainer`. Mantine's `Modal.content` carries the
+  `overflow-y`, so `useScrollIntoView` would animate the window and do nothing; the native
+  `scrollIntoView` walks up to the nearest scrollable ancestor instead.
+
 ## Gotchas elsewhere
 
 - **`useCanonicalPath` must preserve the query string.** It redirects with `navigate(path + search + hash)`. Passing only `path` silently wipes every filter on a canonical redirect.

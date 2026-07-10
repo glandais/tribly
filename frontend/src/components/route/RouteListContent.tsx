@@ -5,6 +5,7 @@ import { Box, Center, Paper, SimpleGrid, Stack, Text, Title } from '@mantine/cor
 import type { RouteDto } from '@/api/dto'
 import { RouteCard, RouteCardSkeleton } from '../card'
 import { Pagination } from '../common/Pagination'
+import { useScrollToListTop } from '@/hooks/useScrollToListTop'
 
 interface RouteListContentProps {
   routes: RouteDto[] | undefined
@@ -30,6 +31,12 @@ export function RouteListContent({
   emptyAction,
 }: RouteListContentProps) {
   const { t } = useTranslation()
+  const { listTopRef, scrollToListTop } = useScrollToListTop()
+
+  const handlePageChange = (page: number) => {
+    onPageChange(page)
+    scrollToListTop()
+  }
 
   if (isLoading) {
     return (
@@ -55,7 +62,7 @@ export function RouteListContent({
   if (routes && routes.length > 0) {
     return (
       <>
-        <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
+        <SimpleGrid ref={listTopRef} cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
           {routes.map((route) => (
             <RouteCard key={route.id} route={route} showTeam={showTeam} />
           ))}
@@ -65,7 +72,7 @@ export function RouteListContent({
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
-            onPageChange={onPageChange}
+            onPageChange={handlePageChange}
           />
         </Box>
       </>

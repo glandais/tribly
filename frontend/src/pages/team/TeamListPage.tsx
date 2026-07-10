@@ -10,6 +10,7 @@ import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { useUrlFilters } from '../../hooks/useUrlFilters'
 import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
 import { useMembershipDefault } from '../../hooks/useMembershipDefault'
+import { useScrollToListTop } from '../../hooks/useScrollToListTop'
 import {
   makeTeamFiltersSchema,
   teamFiltersAlias,
@@ -51,6 +52,7 @@ export function TeamListPage() {
     [setFilters]
   )
   const [search, setSearch] = useDebouncedSearch(filters.search ?? '', commitSearch)
+  const { listTopRef, scrollToListTop } = useScrollToListTop()
 
   const apiParams = useMemo(
     () => ({
@@ -138,7 +140,7 @@ export function TeamListPage() {
           </SimpleGrid>
         ) : teams && teams.length > 0 ? (
           <Stack>
-            <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
+            <SimpleGrid ref={listTopRef} cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
               {teams.map((team) => (
                 <TeamCard key={team.id} team={team} showRole={true} />
               ))}
@@ -148,7 +150,10 @@ export function TeamListPage() {
               <Pagination
                 currentPage={filters.page}
                 totalPages={totalPages}
-                onPageChange={(page) => setFilters({ page })}
+                onPageChange={(page) => {
+                  setFilters({ page })
+                  scrollToListTop()
+                }}
               />
             </Box>
           </Stack>

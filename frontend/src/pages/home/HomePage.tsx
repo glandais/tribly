@@ -16,6 +16,7 @@ import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { useUrlFilters } from '../../hooks/useUrlFilters'
 import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
 import { useMembershipDefault } from '../../hooks/useMembershipDefault'
+import { useScrollToListTop } from '../../hooks/useScrollToListTop'
 import { useAuth } from '../../hooks/useAuth'
 import {
   publicationFilterToType,
@@ -39,6 +40,7 @@ export function HomePage() {
 
   const membershipDefault = useMembershipDefault()
   const schema = useMemo(() => makeHomeFiltersSchema(membershipDefault), [membershipDefault])
+  const { listTopRef, scrollToListTop } = useScrollToListTop()
 
   const { filters, setFilters } = useUrlFilters({
     schema,
@@ -166,7 +168,7 @@ export function HomePage() {
         ) : publicationsData?.publications && publicationsData.publications.length > 0 ? (
           /* Publications Grid */
           <Stack>
-            <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
+            <SimpleGrid ref={listTopRef} cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
               {publicationsData.publications.map((publication) => (
                 <PublicationCard key={publication.id} publication={publication} showTeam={true} />
               ))}
@@ -175,7 +177,10 @@ export function HomePage() {
             <Pagination
               currentPage={filters.page}
               totalPages={totalPages}
-              onPageChange={(page) => setFilters({ page })}
+              onPageChange={(page) => {
+                setFilters({ page })
+                scrollToListTop()
+              }}
             />
           </Stack>
         ) : (

@@ -31,6 +31,7 @@ import { Pagination } from '../../components/common/Pagination'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { useUrlFilters } from '../../hooks/useUrlFilters'
 import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
+import { useScrollToListTop } from '../../hooks/useScrollToListTop'
 import {
   rideTemplateFiltersSchema,
   rideTemplateFiltersAlias,
@@ -58,6 +59,7 @@ export function RideTemplateListPage() {
     [setFilters]
   )
   const [search, setSearch] = useDebouncedSearch(filters.search ?? '', commitSearch)
+  const { listTopRef, scrollToListTop } = useScrollToListTop()
 
   const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },
@@ -146,7 +148,7 @@ export function RideTemplateListPage() {
           </Center>
         ) : templatesData?.templates && templatesData.templates.length > 0 ? (
           <>
-            <Stack>
+            <Stack ref={listTopRef}>
               {templatesData.templates.map((template) => (
                 <Paper key={template.id} withBorder p="md">
                   <Group justify="space-between" align="flex-start" wrap="nowrap">
@@ -224,7 +226,10 @@ export function RideTemplateListPage() {
               <Pagination
                 currentPage={filters.page}
                 totalPages={totalPages}
-                onPageChange={(page) => setFilters({ page })}
+                onPageChange={(page) => {
+                  setFilters({ page })
+                  scrollToListTop()
+                }}
               />
             </Box>
           </>

@@ -27,6 +27,7 @@ import { TeamRole } from '@/api/dto'
 import { Pagination } from '../../components/common/Pagination'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { useUrlFilters } from '../../hooks/useUrlFilters'
+import { useScrollToListTop } from '../../hooks/useScrollToListTop'
 import {
   teamMemberFiltersSchema,
   teamMemberFiltersAlias,
@@ -44,6 +45,7 @@ export function TeamMembersPage() {
     schema: teamMemberFiltersSchema,
     alias: teamMemberFiltersAlias,
   })
+  const { listTopRef, scrollToListTop } = useScrollToListTop()
 
   const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },
@@ -150,21 +152,26 @@ export function TeamMembersPage() {
           <TeamMemberListSkeleton count={5} />
         ) : membersData?.members && membersData.members.length > 0 ? (
           <>
-            <TeamMemberList
-              members={membersData.members}
-              currentUserRole={team.role}
-              currentUserId={user?.id ?? null}
-              onUpdateRole={handleUpdateRole}
-              onRemoveMember={handleRemoveMember}
-              isUpdating={updateRoleMutation.isPending}
-              isRemoving={removeMemberMutation.isPending}
-            />
+            <Box ref={listTopRef}>
+              <TeamMemberList
+                members={membersData.members}
+                currentUserRole={team.role}
+                currentUserId={user?.id ?? null}
+                onUpdateRole={handleUpdateRole}
+                onRemoveMember={handleRemoveMember}
+                isUpdating={updateRoleMutation.isPending}
+                isRemoving={removeMemberMutation.isPending}
+              />
+            </Box>
 
             <Box mt="xl">
               <Pagination
                 currentPage={filters.page}
                 totalPages={totalPages}
-                onPageChange={(page) => setFilters({ page })}
+                onPageChange={(page) => {
+                  setFilters({ page })
+                  scrollToListTop()
+                }}
               />
             </Box>
           </>

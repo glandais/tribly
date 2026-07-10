@@ -19,6 +19,7 @@ import { useListRoutes } from '@/api/endpoints/routes/routes'
 import type { RouteDto } from '@/api/dto'
 import { MarkdownDisplay } from '../../components/common/MarkdownDisplay'
 import { Pagination } from '../common/Pagination'
+import { useScrollToListTopWithinContainer } from '@/hooks/useScrollToListTop'
 import { SearchInput } from '../common/SearchInput'
 import { useUnits } from '@/hooks/useUnits'
 
@@ -45,6 +46,7 @@ export function RoutePickerModal({
   const { distance, elevation } = useUnits()
   const colorScheme = useComputedColorScheme('light')
   const [page, setPage] = useState(0)
+  const { listTopRef, scrollToListTop } = useScrollToListTopWithinContainer()
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
 
@@ -123,7 +125,7 @@ export function RoutePickerModal({
         </Center>
       ) : (
         <Stack>
-          <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+          <SimpleGrid ref={listTopRef} cols={{ base: 1, md: 2 }} spacing="md">
             {routes.map((route) => (
               <Button
                 key={route.id}
@@ -180,7 +182,10 @@ export function RoutePickerModal({
           <Pagination
             currentPage={page}
             totalPages={totalPages}
-            onPageChange={setPage}
+            onPageChange={(nextPage) => {
+              setPage(nextPage)
+              scrollToListTop()
+            }}
             variant="compact"
           />
         </Stack>

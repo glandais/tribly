@@ -21,6 +21,7 @@ import { useListAds, listAds, getListAdsQueryKey } from '../../api/endpoints/ads
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { useUrlFilters } from '../../hooks/useUrlFilters'
 import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
+import { useScrollToListTop } from '../../hooks/useScrollToListTop'
 import { adFiltersSchema, adFiltersAlias } from '../../hooks/filters/adFilters'
 import { AdCard, AdCardSkeleton } from '../../components/ad'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
@@ -44,6 +45,7 @@ export function AdListPage() {
     [setFilters]
   )
   const [search, setSearch] = useDebouncedSearch(filters.search ?? '', commitSearch)
+  const { listTopRef, scrollToListTop } = useScrollToListTop()
 
   const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },
@@ -148,6 +150,7 @@ export function AdListPage() {
       ) : (
         <Stack>
           <SimpleGrid
+            ref={listTopRef}
             cols={{ base: 1, sm: 2, lg: 3 }}
             spacing="lg"
             style={{ opacity: isFetching ? 0.5 : 1 }}
@@ -162,7 +165,10 @@ export function AdListPage() {
               <Pagination
                 currentPage={filters.page}
                 totalPages={totalPages}
-                onPageChange={(page) => setFilters({ page })}
+                onPageChange={(page) => {
+                  setFilters({ page })
+                  scrollToListTop()
+                }}
               />
             </Box>
           )}

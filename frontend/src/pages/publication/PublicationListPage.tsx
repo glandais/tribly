@@ -28,6 +28,7 @@ import { Pagination } from '../../components/common/Pagination'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { useUrlFilters } from '../../hooks/useUrlFilters'
 import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
+import { useScrollToListTop } from '../../hooks/useScrollToListTop'
 import {
   publicationFiltersSchema,
   publicationFiltersAlias,
@@ -51,6 +52,7 @@ export function PublicationListPage() {
     [setFilters]
   )
   const [search, setSearch] = useDebouncedSearch(filters.search ?? '', commitSearch)
+  const { listTopRef, scrollToListTop } = useScrollToListTop()
 
   // `filter` is the page's own value; the API wants a PublicationType.
   const apiParams = useMemo(
@@ -198,7 +200,7 @@ export function PublicationListPage() {
           </SimpleGrid>
         ) : publicationsData?.publications && publicationsData.publications.length > 0 ? (
           <Stack gap="xl">
-            <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
+            <SimpleGrid ref={listTopRef} cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
               {publicationsData.publications.map((publication) => (
                 <PublicationCard key={publication.id} publication={publication} showTeam={false} />
               ))}
@@ -208,7 +210,10 @@ export function PublicationListPage() {
               <Pagination
                 currentPage={filters.page}
                 totalPages={totalPages}
-                onPageChange={(page) => setFilters({ page })}
+                onPageChange={(page) => {
+                  setFilters({ page })
+                  scrollToListTop()
+                }}
               />
             </Box>
           </Stack>

@@ -25,6 +25,7 @@ import type { AdminUserDto } from '@/api/dto'
 import { useAuth } from '@/hooks/useAuth'
 import { useUrlFilters } from '@/hooks/useUrlFilters'
 import { useDebouncedSearch } from '@/hooks/useDebouncedSearch'
+import { useScrollToListTop } from '@/hooks/useScrollToListTop'
 import { adminUserFiltersSchema, adminUserFiltersAlias } from '@/hooks/filters/adminFilters'
 import { formatDate } from '@/utils/dateFormat'
 
@@ -41,6 +42,7 @@ export function AdminUsersPage() {
     [setFilters]
   )
   const [search, setSearch] = useDebouncedSearch(filters.search ?? '', commitSearch)
+  const { listTopRef, scrollToListTop } = useScrollToListTop()
 
   const { data: domainsData } = useListDomains({ page: 0, size: 100 })
   const { data, isLoading, error } = useListUsers({
@@ -106,7 +108,7 @@ export function AdminUsersPage() {
           </Stack>
         ) : data && data.users.length > 0 ? (
           <Stack>
-            <Table.ScrollContainer minWidth={800}>
+            <Table.ScrollContainer ref={listTopRef} minWidth={800}>
               <Table striped highlightOnHover>
                 <Table.Thead>
                   <Table.Tr>
@@ -186,7 +188,10 @@ export function AdminUsersPage() {
             <Pagination
               currentPage={filters.page}
               totalPages={totalPages}
-              onPageChange={(page) => setFilters({ page })}
+              onPageChange={(page) => {
+                setFilters({ page })
+                scrollToListTop()
+              }}
             />
           </Stack>
         ) : (

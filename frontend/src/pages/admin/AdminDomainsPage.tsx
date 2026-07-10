@@ -31,6 +31,7 @@ import {
 } from '@/api/endpoints/admin-domains/admin-domains'
 import { useQueryClient } from '@tanstack/react-query'
 import { useUrlFilters } from '@/hooks/useUrlFilters'
+import { useScrollToListTop } from '@/hooks/useScrollToListTop'
 import { adminDomainFiltersSchema, adminDomainFiltersAlias } from '@/hooks/filters/adminFilters'
 import type { AdminDomainDto } from '@/api/dto'
 
@@ -43,6 +44,7 @@ export function AdminDomainsPage() {
     schema: adminDomainFiltersSchema,
     alias: adminDomainFiltersAlias,
   })
+  const { listTopRef, scrollToListTop } = useScrollToListTop()
 
   const queryClient = useQueryClient()
   const { data, isLoading, error } = useListDomains(filters)
@@ -97,7 +99,7 @@ export function AdminDomainsPage() {
           </Stack>
         ) : data && data.domains.length > 0 ? (
           <Stack>
-            <Table.ScrollContainer minWidth={800}>
+            <Table.ScrollContainer ref={listTopRef} minWidth={800}>
               <Table striped highlightOnHover>
                 <Table.Thead>
                   <Table.Tr>
@@ -180,7 +182,10 @@ export function AdminDomainsPage() {
             <Pagination
               currentPage={filters.page}
               totalPages={totalPages}
-              onPageChange={(page) => setFilters({ page })}
+              onPageChange={(page) => {
+                setFilters({ page })
+                scrollToListTop()
+              }}
             />
           </Stack>
         ) : (
