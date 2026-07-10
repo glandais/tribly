@@ -6,6 +6,7 @@ import 'package:dio/dio.dart' hide Headers;
 import 'package:retrofit/retrofit.dart';
 import 'package:retrofit/error_logger.dart';
 
+import '../models/min_role.dart';
 import '../models/publication_list_response.dart';
 import '../models/publication_type.dart';
 
@@ -21,6 +22,8 @@ abstract class PublicationsClient {
   ///
   /// [from] - Start date filter (ISO format).
   ///
+  /// [minRole] - Only publications from teams where the user has at least this role. Yields nothing for an anonymous visitor.
+  ///
   /// [page] - Page number.
   ///
   /// [search] - Search by name/markdown.
@@ -35,6 +38,7 @@ abstract class PublicationsClient {
     @Query('page') int? page = 0,
     @Query('size') int? size = 20,
     @Query('from') String? from,
+    @Query('minRole') MinRole? minRole,
     @Query('search') String? search,
     @Query('to') String? to,
     @Query('type') PublicationType? type,
