@@ -87,6 +87,7 @@ public class PublicationService {
         allPublicationRepository.find(
             PublicationQuery.builder()
                 .domainId(pedalonsQueryContext.getDomainId())
+                .pinnedTeamId(pedalonsQueryContext.getPinnedTeamIdNullable())
                 .userId(pedalonsQueryContext.getUserIdNullable())
                 .type(type)
                 .teamIds(teamIds)

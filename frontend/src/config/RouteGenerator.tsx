@@ -1,10 +1,12 @@
 import { Suspense } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { routesConfig } from './routes.config'
 import type { RouteConfig, AuthRequirement } from './routes.types'
 import { AuthenticatedRoute, UnauthenticatedRoute } from '../components/auth/ProtectedRoute'
 import { Layout } from '../components/common/Layout'
 import { NotFoundPage } from '../pages/NotFoundPage'
+import { paths } from './paths'
+import { isSingleTeam } from './appConfig'
 import { Loader } from '@mantine/core'
 
 function wrapWithAuth(element: React.ReactNode, auth: AuthRequirement): React.ReactNode {
@@ -26,11 +28,15 @@ function wrapWithAuth(element: React.ReactNode, auth: AuthRequirement): React.Re
 function generateRoutes(config: RouteConfig): React.ReactNode[] {
   const Component = config.component
 
-  const element = (
-    <Suspense fallback={<Loader />}>
-      <Component />
-    </Suspense>
-  )
+  // Config is fetched before the first render (see main.tsx), so this read is stable and correct.
+  const element =
+    config.hideWhenSingleTeam && isSingleTeam() ? (
+      <Navigate to={paths.home()} replace />
+    ) : (
+      <Suspense fallback={<Loader />}>
+        <Component />
+      </Suspense>
+    )
 
   const wrappedElement = wrapWithAuth(element, config.auth)
 

@@ -10,6 +10,7 @@ public record TeamQuery(
     int page,
     int size,
     Long domainId,
+    @Nullable Long pinnedTeamId,
     @Nullable Long id,
     @Nullable Long userId,
     @Nullable MinRole minRole,

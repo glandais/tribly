@@ -55,6 +55,11 @@ public class TeamRepository implements BaseRepository<Team> {
                     + " t.id AND ut.user.id = :userId WHERE")
             .and("t.domain.id = :domainId", Map.of("domainId", teamQuery.domainId()))
             .order("name asc");
+    if (teamQuery.pinnedTeamId() != null) {
+      // A pinned alias host lists only its team, even for platform admins — a site scope like
+      // domain.
+      pedalonsQuery.and("t.id = :pinnedTeamId", Map.of("pinnedTeamId", teamQuery.pinnedTeamId()));
+    }
     if (!teamQuery.platformAdmin()) {
       pedalonsQuery.and("t.deleted = false", Map.of());
     }

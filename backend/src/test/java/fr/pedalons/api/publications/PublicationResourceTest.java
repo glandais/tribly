@@ -320,4 +320,35 @@ class PublicationResourceTest extends AbstractResourceTest {
         .statusCode(200)
         .body("publications.find { it.name == 'Findable Ride' }", notNullValue());
   }
+
+  @Test
+  void listAllPublications_onPinnedAliasHost_returnsOnlyPinnedTeam() {
+    createTestRide(team1Slug, "Pinned Team Ride");
+    createTestRide(team2Slug, "Other Team Ride");
+    dataService.createDomainAlias(
+        "np.localhost", domain, team1, "N-Peloton", "http://np.localhost");
+
+    // user1 is admin of both teams, so both rides are visible on the parent domain host.
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .when()
+        .get("/api/publications")
+        .then()
+        .statusCode(200)
+        .body("publications.find { it.name == 'Pinned Team Ride' }", notNullValue())
+        .body("publications.find { it.name == 'Other Team Ride' }", notNullValue());
+
+    // Pinned alias host: only the pinned team's ride survives, even for a member of the other team.
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .header("X-Forwarded-Host", "np.localhost")
+        .when()
+        .get("/api/publications")
+        .then()
+        .statusCode(200)
+        .body("publications.find { it.name == 'Pinned Team Ride' }", notNullValue())
+        .body("publications.find { it.name == 'Other Team Ride' }", nullValue());
+  }
 }

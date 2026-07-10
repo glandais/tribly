@@ -146,7 +146,8 @@ class TeamRepositoryTest extends AbstractBaseTest {
     Team team1 = dataService.createTeam(user1, "Team 1", "team-1", Visibility.PUBLIC);
     dataService.createTeam(user1, "Team 2", "team-2", Visibility.PUBLIC);
 
-    TeamQuery query = new TeamQuery(0, 10, domain.getId(), team1.getId(), null, null, null, false);
+    TeamQuery query =
+        new TeamQuery(0, 10, domain.getId(), null, team1.getId(), null, null, null, false);
     PedalonsPage<TeamAndRole> result = teamRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -161,7 +162,8 @@ class TeamRepositoryTest extends AbstractBaseTest {
 
     dataService.createTeam(user1, "Running Club", "running-club", Visibility.PUBLIC);
 
-    TeamQuery query = new TeamQuery(0, 10, domain.getId(), null, null, null, "%cycling%", false);
+    TeamQuery query =
+        new TeamQuery(0, 10, domain.getId(), null, null, null, null, "%cycling%", false);
     PedalonsPage<TeamAndRole> result = teamRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -176,7 +178,8 @@ class TeamRepositoryTest extends AbstractBaseTest {
     dataService.addUserToTeam(user2, team1, TeamRole.MEMBER);
 
     TeamQuery query =
-        new TeamQuery(0, 10, domain.getId(), null, user2.getId(), MinRole.MEMBER, null, false);
+        new TeamQuery(
+            0, 10, domain.getId(), null, null, user2.getId(), MinRole.MEMBER, null, false);
     PedalonsPage<TeamAndRole> result = teamRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -193,7 +196,8 @@ class TeamRepositoryTest extends AbstractBaseTest {
 
     dataService.addUserToTeam(user2, privateTeam, TeamRole.MEMBER);
 
-    TeamQuery query = new TeamQuery(0, 10, domain.getId(), null, user2.getId(), null, null, false);
+    TeamQuery query =
+        new TeamQuery(0, 10, domain.getId(), null, null, user2.getId(), null, null, false);
     PedalonsPage<TeamAndRole> result = teamRepository.find(query);
 
     assertEquals(2, result.items().size());
@@ -205,7 +209,7 @@ class TeamRepositoryTest extends AbstractBaseTest {
     Team deletedTeam = dataService.createTeam(user1, "Deleted Team", "deleted", Visibility.PUBLIC);
     dataService.deleteTeam(deletedTeam);
 
-    TeamQuery query = new TeamQuery(0, 10, domain.getId(), null, null, null, null, false);
+    TeamQuery query = new TeamQuery(0, 10, domain.getId(), null, null, null, null, null, false);
     PedalonsPage<TeamAndRole> result = teamRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -275,7 +279,7 @@ class TeamRepositoryTest extends AbstractBaseTest {
     Team deletedTeam = dataService.createTeam(user1, "Deleted Team", "deleted", Visibility.PUBLIC);
     dataService.deleteTeam(deletedTeam);
 
-    TeamQuery query = new TeamQuery(0, 10, domain.getId(), null, null, null, null, true);
+    TeamQuery query = new TeamQuery(0, 10, domain.getId(), null, null, null, null, null, true);
     PedalonsPage<TeamAndRole> result = teamRepository.find(query);
 
     assertEquals(2, result.items().size());

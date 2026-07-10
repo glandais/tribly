@@ -10,6 +10,7 @@ import {
 import { useBreadcrumbData } from './useBreadcrumbData'
 import type { BreadcrumbItemType, BreadcrumbSubItemType } from '../components/common/Breadcrumb'
 import { BreadcrumbLabel } from '@/config/routes.types'
+import { isSingleTeam } from '@/config/appConfig'
 
 export interface UseBreadcrumbResult {
   items: BreadcrumbItemType[]
@@ -37,7 +38,11 @@ export function useBreadcrumb(): UseBreadcrumbResult {
     }
 
     const { route, params } = matchResult
-    const chain = buildBreadcrumbChain(route.id)
+    // On a single-team site the "Teams" crumb points at a page that redirects away — drop it.
+    const singleTeam = isSingleTeam()
+    const chain = buildBreadcrumbChain(route.id).filter(
+      (rc) => !(singleTeam && rc.hideWhenSingleTeam)
+    )
 
     function resolveLabel(bc: BreadcrumbLabel): string {
       if (bc.type === 'static') {
@@ -66,6 +71,7 @@ export function useBreadcrumb(): UseBreadcrumbResult {
           .map((subRouteId) => {
             const subRoute = getRouteById(subRouteId)
             if (!subRoute || !subRoute.breadcrumb) return null
+            if (singleTeam && subRoute.hideWhenSingleTeam) return null
             const subLabel = resolveLabel(subRoute.breadcrumb)
             const subPath = buildRoutePath(subRoute, params)
             return { label: subLabel, path: subPath }

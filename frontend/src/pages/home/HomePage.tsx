@@ -1,10 +1,8 @@
 import { useCallback, useMemo } from 'react'
-import { Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Box, Select, Stack, Title, Group, Paper, Text, Center, SimpleGrid } from '@mantine/core'
 import { IconNews } from '@tabler/icons-react'
-import { paths } from '../../config/paths'
-import { getPinnedTeamSlug } from '../../config/appConfig'
+import { isSingleTeam } from '../../config/appConfig'
 import {
   useListAllPublications,
   listAllPublications,
@@ -35,7 +33,6 @@ import { useAppName } from '../../hooks/useAppName'
 export function HomePage() {
   const { t } = useTranslation()
   const appName = useAppName()
-  const pinnedTeamSlug = getPinnedTeamSlug()
   const { isAuthenticated } = useAuth()
 
   const membershipDefault = useMembershipDefault()
@@ -82,11 +79,6 @@ export function HomePage() {
     totalItems: publicationsData?.total ?? 0,
     prefetchPage,
   })
-
-  // Dedicated hostname (domain alias): root the app on the pinned team.
-  if (pinnedTeamSlug) {
-    return <Navigate to={paths.team(pinnedTeamSlug)} replace />
-  }
 
   return (
     <HomeLayout currentTab="feed">
@@ -166,7 +158,11 @@ export function HomePage() {
           <Stack>
             <SimpleGrid ref={listTopRef} cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
               {publicationsData.publications.map((publication) => (
-                <PublicationCard key={publication.id} publication={publication} showTeam={true} />
+                <PublicationCard
+                  key={publication.id}
+                  publication={publication}
+                  showTeam={!isSingleTeam()}
+                />
               ))}
             </SimpleGrid>
 

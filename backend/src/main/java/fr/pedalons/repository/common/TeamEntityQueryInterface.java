@@ -22,6 +22,13 @@ public interface TeamEntityQueryInterface extends PageInterface {
 
   @Nullable Set<Long> teamIds();
 
+  /**
+   * The team this site is pinned to, when the request arrived on a domain alias. A site scope, not a
+   * user filter: it narrows every query the way {@link #domainId()} does, and it ANDs with {@link
+   * #teamIds()} rather than replacing it. Null on a regular domain.
+   */
+  @Nullable Long pinnedTeamId();
+
   @Nullable String slug();
 
   @Nullable String search();

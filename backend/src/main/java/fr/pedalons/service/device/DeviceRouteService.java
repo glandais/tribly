@@ -137,6 +137,7 @@ public class DeviceRouteService {
     TeamEntityQueryBasic query =
         TeamEntityQueryBasic.builder()
             .domainId(pedalonsContext.getDomainId())
+            .pinnedTeamId(pedalonsContext.getPinnedTeamIdNullable())
             .teamIds(teamIds)
             .userId(userId)
             .from(from)
@@ -232,6 +233,7 @@ public class DeviceRouteService {
     RouteQuery query =
         RouteQuery.builder()
             .domainId(pedalonsContext.getDomainId())
+            .pinnedTeamId(pedalonsContext.getPinnedTeamIdNullable())
             .teamIds(teamIds)
             .userId(userId)
             .page(0)

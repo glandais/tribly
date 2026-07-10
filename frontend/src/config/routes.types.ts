@@ -76,6 +76,13 @@ export interface RouteConfig {
    * Use for create/edit pages that need clear navigation back
    */
   showBackLink?: boolean
+
+  /**
+   * Hide/redirect this route on a single-team site (domain flagged single-team, or a pinned alias
+   * host). Team browsing and team creation are meaningless there. Used both to redirect the route
+   * to home and to drop its breadcrumb crumb.
+   */
+  hideWhenSingleTeam?: boolean
 }
 
 /**

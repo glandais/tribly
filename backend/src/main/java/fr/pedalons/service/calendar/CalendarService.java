@@ -211,6 +211,7 @@ public class CalendarService {
     return allPublicationRepository.findAll(
         PublicationQuery.builder()
             .domainId(pedalonsQueryContext.getDomainId())
+            .pinnedTeamId(pedalonsQueryContext.getPinnedTeamIdNullable())
             .userId(user.getId())
             .type(publicationType)
             .teamIds(teamIds)

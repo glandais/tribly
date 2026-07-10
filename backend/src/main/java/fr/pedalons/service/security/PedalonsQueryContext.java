@@ -68,6 +68,10 @@ public class PedalonsQueryContext {
     return domainResolver.getDomainNullable();
   }
 
+  public @Nullable Long getPinnedTeamIdNullable() {
+    return domainResolver.getPinnedTeamIdNullable();
+  }
+
   public User getUser() {
     User user = getUserNullable();
     if (user == null) {

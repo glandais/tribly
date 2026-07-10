@@ -8,6 +8,7 @@ import fr.pedalons.common.exception.ConflictException;
 import fr.pedalons.common.exception.ForbiddenException;
 import fr.pedalons.common.exception.PedalonsException;
 import fr.pedalons.domain.platform.Domain;
+import fr.pedalons.domain.platform.DomainAlias;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.common.asset.MediaDto;
@@ -16,6 +17,7 @@ import fr.pedalons.dto.teams.response.TeamDetailDto;
 import fr.pedalons.dto.teams.response.TeamListResponse;
 import fr.pedalons.enums.TeamRole;
 import fr.pedalons.enums.Visibility;
+import fr.pedalons.infrastructure.exception.NotFoundException;
 import fr.pedalons.service.common.SlugService;
 import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.service.security.PedalonsQueryContext;
@@ -654,5 +656,60 @@ class TeamServiceTest extends AbstractBaseTest {
     // Should still be able to get team by old slug (redirect)
     TeamDetailDto result = teamService.getTeamDetailDto("old-slug");
     assertEquals("new-slug", result.slug());
+  }
+
+  // ==================== Pinned alias (single-team site) ====================
+
+  private DomainAlias pinAlias(Team pinnedTeam) {
+    DomainAlias alias =
+        dataService.createDomainAlias(
+            "np.localhost", domain, pinnedTeam, "N-Peloton", "http://np.localhost");
+    domainResolver.setAliasForTest(alias);
+    return alias;
+  }
+
+  @Test
+  void getTeam_onAlias_pinnedSlug_returnsTeam() {
+    Team pinned = dataService.createTeam(user1, "Pinned", "pinned", Visibility.PUBLIC);
+    pinAlias(pinned);
+
+    assertEquals(pinned.getId(), teamService.getTeam("pinned").getId());
+  }
+
+  @Test
+  void getTeam_onAlias_otherTeamSlug_throwsNotFound() {
+    Team pinned = dataService.createTeam(user1, "Pinned", "pinned", Visibility.PUBLIC);
+    dataService.createTeam(user1, "Other", "other", Visibility.PUBLIC);
+    pinAlias(pinned);
+
+    assertThrows(NotFoundException.class, () -> teamService.getTeam("other"));
+  }
+
+  @Test
+  void getTeam_onAlias_redirectToOtherTeam_throwsNotFound() {
+    Team pinned = dataService.createTeam(user1, "Pinned", "pinned", Visibility.PUBLIC);
+    dataService.createTeam(user1, "Other", "other-old", Visibility.PUBLIC);
+    queryContext.setUserForTest(user1);
+    // Leaves a redirect other-old -> other-new on the parent domain.
+    teamService.updateSlug("other-old", "other-new");
+
+    pinAlias(pinned);
+
+    // The redirect resolves to `other`, but the pin guard must still hide it.
+    assertThrows(NotFoundException.class, () -> teamService.getTeam("other-old"));
+  }
+
+  @Test
+  void listTeams_onAlias_returnsOnlyPinnedTeam() {
+    Team pinned = dataService.createTeam(user1, "Pinned", "pinned", Visibility.PUBLIC);
+    dataService.createTeam(user1, "Other", "other", Visibility.PUBLIC);
+    pinAlias(pinned);
+
+    queryContext.setUserForTest(null);
+    TeamListResponse result = teamService.listTeams(null, null, 0, 10);
+
+    assertEquals(1, result.total());
+    assertEquals(1, result.teams().size());
+    assertEquals("pinned", result.teams().getFirst().slug());
   }
 }

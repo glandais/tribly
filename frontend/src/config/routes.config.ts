@@ -314,6 +314,7 @@ export const routesConfig: RoutesConfig = [
     parentId: null,
     subRouteIds: ['home', 'calendar', 'all-routes', 'teams'],
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.title') },
+    hideWhenSingleTeam: true,
   },
   {
     id: 'teams-new',
@@ -323,6 +324,7 @@ export const routesConfig: RoutesConfig = [
     parentId: 'teams',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.create.title') },
     showBackLink: true,
+    hideWhenSingleTeam: true,
   },
   {
     id: 'team-detail',

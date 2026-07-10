@@ -31,7 +31,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.util.List;
-import java.util.Optional;
+import java.util.function.Supplier;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
@@ -51,23 +51,35 @@ public class TeamService {
 
   public Team getTeam(String teamSlug) {
     Long domainId = pedalonsContext.getDomainId();
-    Optional<Team> optionalTeam = teamRepository.findBySlugAndDomain(domainId, teamSlug);
-    if (optionalTeam.isPresent()) {
-      return optionalTeam.get();
-    }
-    Optional<TeamSlugRedirect> redirect = slugService.resolveTeamRedirect(domainId, teamSlug);
-    if (redirect.isPresent()) {
-      return redirect.get().getTeam();
-    }
-    throw new NotFoundException(EntityType.TEAM, teamSlug);
+    Team team =
+        teamRepository
+            .findBySlugAndDomain(domainId, teamSlug)
+            .or(
+                () ->
+                    slugService
+                        .resolveTeamRedirect(domainId, teamSlug)
+                        .map(TeamSlugRedirect::getTeam))
+            .orElseThrow(() -> new NotFoundException(EntityType.TEAM, teamSlug));
+    // A pinned alias host serves only its team; every other team of the parent domain is invisible,
+    // even after a slug redirect. Checked here so all team-scoped endpoints inherit it.
+    requirePinnedTeam(team.getId(), () -> new NotFoundException(EntityType.TEAM, teamSlug));
+    return team;
   }
 
   protected TeamAndRole getTeamAndRole(Long id) {
     boolean platformAdmin = isPlatformAdmin();
+    requirePinnedTeam(id, () -> new NotFoundException(EntityType.TEAM, id));
     return teamRepository
         .findOne(
             pedalonsContext.getDomainId(), id, pedalonsContext.getUserIdNullable(), platformAdmin)
         .orElseThrow(() -> new NotFoundException(EntityType.TEAM, id));
+  }
+
+  private void requirePinnedTeam(Long teamId, Supplier<RuntimeException> notFound) {
+    Long pinnedTeamId = pedalonsContext.getPinnedTeamIdNullable();
+    if (pinnedTeamId != null && !pinnedTeamId.equals(teamId)) {
+      throw notFound.get();
+    }
   }
 
   private boolean isPlatformAdmin() {
@@ -123,6 +135,7 @@ public class TeamService {
         teamRepository.find(
             TeamQuery.builder()
                 .domainId(pedalonsContext.getDomainId())
+                .pinnedTeamId(pedalonsContext.getPinnedTeamIdNullable())
                 .userId(pedalonsContext.getUserIdNullable())
                 .minRole(minRole)
                 .search(search)

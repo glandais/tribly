@@ -15,6 +15,7 @@ import {
   allRouteFiltersAlwaysSerialize,
 } from '../../hooks/filters/routeFilters'
 import { membershipToMinRole } from '../../hooks/filters/membership'
+import { isSingleTeam } from '../../config/appConfig'
 import { MembershipSelect } from '../../components/common/MembershipSelect'
 import { HomeLayout } from '../../components/home/HomeLayout'
 import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
@@ -93,7 +94,7 @@ export function AllRoutesPage() {
           routes={routesData?.routes}
           isLoading={isLoading}
           isError={isError}
-          showTeam={true}
+          showTeam={!isSingleTeam()}
           hasFiltersOrSearch={hasFiltersOrSearch}
           currentPage={filters.page}
           totalPages={totalPages}

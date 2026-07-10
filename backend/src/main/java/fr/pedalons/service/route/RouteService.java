@@ -278,6 +278,7 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
     User user = pedalonsContext.getUserNullable();
     return RouteQuery.builder()
         .domainId(pedalonsContext.getDomainId())
+        .pinnedTeamId(pedalonsContext.getPinnedTeamIdNullable())
         .userId(user == null ? null : user.getId())
         .teamIds(teamIds)
         .search(params.search())
@@ -307,6 +308,7 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
         routeRepository.find(
             RouteQuery.builder()
                 .domainId(pedalonsContext.getDomainId())
+                .pinnedTeamId(pedalonsContext.getPinnedTeamIdNullable())
                 .userId(user == null ? null : user.getId())
                 .teamIds(teamIds)
                 .search(params.search())

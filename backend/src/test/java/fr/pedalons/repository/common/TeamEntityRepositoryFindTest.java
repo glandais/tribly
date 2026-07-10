@@ -422,6 +422,41 @@ class TeamEntityRepositoryFindTest extends AbstractBaseTest {
 
       assertEquals(1, result.items().size());
     }
+
+    @Test
+    @DisplayName("Should restrict to the pinned team, ignoring other teams of the domain")
+    void find_shouldRestrictToPinnedTeam() {
+      dataService.createRoute(publicTeam, publicTeamOwner, "Pinned Team Route", Visibility.PUBLIC);
+      Team otherTeam =
+          dataService.createTeam(publicTeamOwner, "Other Team", "other-team", Visibility.PUBLIC);
+      dataService.createRoute(otherTeam, publicTeamOwner, "Other Team Route", Visibility.PUBLIC);
+
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).pinnedTeamId(publicTeam.getId()).build();
+      PedalonsPage<Route> result = routeRepository.find(query);
+
+      assertEquals(1, result.items().size());
+      assertEquals("Pinned Team Route", result.items().getFirst().getName());
+    }
+
+    @Test
+    @DisplayName("Should return empty when pinned team and teamIds point at different teams")
+    void find_pinnedTeamAndTeamIdsOfOtherTeam_returnsEmpty() {
+      dataService.createRoute(publicTeam, publicTeamOwner, "Pinned Team Route", Visibility.PUBLIC);
+      Team otherTeam =
+          dataService.createTeam(publicTeamOwner, "Other Team", "other-team", Visibility.PUBLIC);
+      dataService.createRoute(otherTeam, publicTeamOwner, "Other Team Route", Visibility.PUBLIC);
+
+      RouteQuery query =
+          RouteQuery.builder()
+              .domainId(domain.getId())
+              .pinnedTeamId(publicTeam.getId())
+              .teamIds(Set.of(otherTeam.getId()))
+              .build();
+      PedalonsPage<Route> result = routeRepository.find(query);
+
+      assertEquals(0, result.items().size());
+    }
   }
 
   @Nested

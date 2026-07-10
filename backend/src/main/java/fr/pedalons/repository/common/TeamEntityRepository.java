@@ -194,7 +194,18 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
             // filter by domain
             .and("te.team.domain.id = :domainId", Map.of("domainId", query.domainId()))
             // team not deleted
-            .and("te.team.deleted = false", Map.of())
+            .and("te.team.deleted = false", Map.of());
+
+    // Pin to a single team when the request arrived on a domain alias. A site scope like domainId
+    // above (platform admins included); it ANDs with the teamIds filter below.
+    Long pinnedTeamId = query.pinnedTeamId();
+    if (pinnedTeamId != null) {
+      pedalonsQuery =
+          pedalonsQuery.and("te.team.id = :pinnedTeamId", Map.of("pinnedTeamId", pinnedTeamId));
+    }
+
+    pedalonsQuery =
+        pedalonsQuery
             // not trip or (trip enabled and routes enabled)
             .and(
                 "(TYPE(te) <> Trip OR (te.team.enableTrips = true AND te.team.enableRoutes ="
