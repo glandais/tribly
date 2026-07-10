@@ -22,11 +22,18 @@ class _TeamMembersClient implements TeamMembersClient {
   @override
   Future<MemberListResponse> getMembers({
     required String teamSlug,
+    TeamRole? role,
+    String? search,
     int? page = 0,
     int? size = 50,
   }) async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{r'page': page, r'size': size};
+    final queryParameters = <String, dynamic>{
+      r'role': role?.toJson(),
+      r'search': search,
+      r'page': page,
+      r'size': size,
+    };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;

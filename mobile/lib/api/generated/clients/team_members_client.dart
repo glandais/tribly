@@ -9,6 +9,7 @@ import 'package:retrofit/error_logger.dart';
 import '../models/add_member_request.dart';
 import '../models/member_dto.dart';
 import '../models/member_list_response.dart';
+import '../models/team_role.dart';
 import '../models/update_member_role_request.dart';
 
 part 'team_members_client.g.dart';
@@ -25,10 +26,16 @@ abstract class TeamMembersClient {
   ///
   /// [page] - Page number.
   ///
+  /// [role] - Filter by role.
+  ///
+  /// [search] - Search by name or email.
+  ///
   /// [size] - Page size.
   @GET('/api/teams/{teamSlug}/members')
   Future<MemberListResponse> getMembers({
     @Path('teamSlug') required String teamSlug,
+    @Query('role') TeamRole? role,
+    @Query('search') String? search,
     @Query('page') int? page = 0,
     @Query('size') int? size = 50,
   });
