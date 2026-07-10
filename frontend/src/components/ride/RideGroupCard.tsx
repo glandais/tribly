@@ -8,6 +8,8 @@ import {
   IconMap,
   IconDownload,
   IconDeviceMobile,
+  IconArrowsMaximize,
+  IconArrowUp,
 } from '@tabler/icons-react'
 import {
   Paper,
@@ -55,7 +57,7 @@ export function RideGroupCard({
   isHighlighted = false,
 }: RideGroupCardProps) {
   const { t } = useTranslation()
-  const { speed } = useUnits()
+  const { speed, distance, elevation } = useUnits()
   const { isAuthenticated } = useAuth()
   const { connectedServices, uploadRoute, isUploading } = useGpsConnections()
   const [showParticipants, setShowParticipants] = useState(false)
@@ -141,6 +143,22 @@ export function RideGroupCard({
             <Text size="sm" c="dimmed">
               {speed(group.averageSpeed)}
             </Text>
+          </Group>
+        )}
+        {route && (
+          <Group gap="md" wrap="nowrap">
+            <Group gap={4}>
+              <IconArrowsMaximize size={16} />
+              <Text size="sm" c="dimmed">
+                {distance(route.distance)}
+              </Text>
+            </Group>
+            <Group gap={4}>
+              <IconArrowUp size={16} />
+              <Text size="sm" c="dimmed">
+                {elevation(route.elevationGain)}
+              </Text>
+            </Group>
           </Group>
         )}
         <UnstyledButton
