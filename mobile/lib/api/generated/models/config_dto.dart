@@ -11,7 +11,7 @@ part 'config_dto.g.dart';
 @Freezed()
 abstract class ConfigDto with _$ConfigDto {
   const factory ConfigDto({
-    /// WebAuthn Relying Party ID (domain)
+    /// WebAuthn Relying Party ID (effective host)
     required String webAuthnRpId,
 
     /// Application name
@@ -19,6 +19,9 @@ abstract class ConfigDto with _$ConfigDto {
 
     /// Single team mode - team creation disabled
     required bool singleTeam,
+
+    /// Slug of the team the site is pinned to (dedicated hostname / alias). Null on a regular multi-team domain. When set, the app roots on this team.
+    String? pinnedTeamSlug,
   }) = _ConfigDto;
 
   factory ConfigDto.fromJson(Map<String, Object?> json) =>

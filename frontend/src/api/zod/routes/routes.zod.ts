@@ -236,6 +236,18 @@ export const ListAllRoutesResponse = zod
   .describe('Paginated route list response')
 
 /**
+ * Mapbox vector tile holding the routes of all accessible teams, layer 'routes'. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
+ * @summary All routes vector tile
+ */
+export const AllRoutesTileParams = zod.object({
+  x: zod.number().describe('Tile column'),
+  y: zod.number().describe('Tile row'),
+  z: zod.number().describe('Zoom level'),
+})
+
+export const AllRoutesTileResponse = zod.unknown()
+
+/**
  * Get paginated list of routes for a team with optional filters and sorting
  * @summary List routes
  */
@@ -835,6 +847,19 @@ export const CreateRouteResponse = zod
     deleted: zod.boolean().describe('Whether the route is soft-deleted'),
   })
   .describe('Route summary data')
+
+/**
+ * Mapbox vector tile holding the team's routes, layer 'routes'. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
+ * @summary Team routes vector tile
+ */
+export const RoutesTileParams = zod.object({
+  teamSlug: zod.string().describe('Team URL slug'),
+  x: zod.number().describe('Tile column'),
+  y: zod.number().describe('Tile row'),
+  z: zod.number().describe('Zoom level'),
+})
+
+export const RoutesTileResponse = zod.unknown()
 
 /**
  * Update route metadata (name, markdown, etc.) and optionally replace the GPX file. If a new GPX file is provided, the old track data and climbs will be replaced.

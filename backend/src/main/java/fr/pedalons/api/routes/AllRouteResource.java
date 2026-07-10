@@ -3,6 +3,7 @@ package fr.pedalons.api.routes;
 import fr.pedalons.dto.routes.request.RouteSearchParams;
 import fr.pedalons.dto.routes.response.RouteListResponse;
 import fr.pedalons.enums.*;
+import fr.pedalons.infrastructure.jaxrs.PedalonsMediaType;
 import fr.pedalons.service.route.RouteService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
@@ -103,5 +104,29 @@ public class AllRouteResource {
     RouteListResponse routes = routeService.getAllRoutes(params);
 
     return Response.ok(routes).build();
+  }
+
+  /**
+   * Vector tile of the routes of every accessible team.
+   */
+  @GET
+  @PermitAll
+  @Path("/tiles/{z}/{x}/{y}.mvt")
+  @Produces(PedalonsMediaType.MAPBOX_VECTOR_TILE)
+  @Operation(
+      summary = "All routes vector tile",
+      description =
+          "Mapbox vector tile holding the routes of all accessible teams, layer 'routes'. "
+              + "Fetched directly by the map renderer, so it authenticates with the session cookie "
+              + "rather than a bearer token.")
+  @APIResponses({
+    @APIResponse(responseCode = "200", description = "Tile retrieved successfully"),
+    @APIResponse(responseCode = "400", description = "Invalid tile coordinates")
+  })
+  public Response allRoutesTile(
+      @Parameter(description = "Zoom level") @PathParam("z") int z,
+      @Parameter(description = "Tile column") @PathParam("x") int x,
+      @Parameter(description = "Tile row") @PathParam("y") int y) {
+    return RouteTiles.response(routeService.getAllRoutesTile(z, x, y));
   }
 }

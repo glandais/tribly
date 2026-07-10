@@ -119,6 +119,13 @@ routes:
     web: true
     mobile: false
     deeplink: false
+  - id: allRoutesMap
+    path:
+      en: /routes/map
+      fr: /parcours/carte
+    web: true
+    mobile: false
+    deeplink: false
 
   # --- Teams ---
   - id: teams
@@ -349,6 +356,13 @@ routes:
     web: true
     mobile: true
     deeplink: true
+  - id: routesMap
+    path:
+      en: /teams/{teamSlug}/routes/map
+      fr: /equipes/{teamSlug}/parcours/carte
+    params:
+      - teamSlug
+    web: true
   - id: routeNew
     path:
       en: /teams/{teamSlug}/routes/new

@@ -82,6 +82,29 @@ class _RoutesClient implements RoutesClient {
   }
 
   @override
+  Future<void> allRoutesTile({
+    required int x,
+    required int y,
+    required int z,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<void>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/api/routes/tiles/${z}/${x}/${y}.mvt',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    await _dio.fetch<void>(_options);
+  }
+
+  @override
   Future<RouteListResponse> listRoutes({
     required String teamSlug,
     int? page = 0,
@@ -185,6 +208,30 @@ class _RoutesClient implements RoutesClient {
       rethrow;
     }
     return _value;
+  }
+
+  @override
+  Future<void> routesTile({
+    required String teamSlug,
+    required int x,
+    required int y,
+    required int z,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<void>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/api/teams/${teamSlug}/routes/tiles/${z}/${x}/${y}.mvt',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    await _dio.fetch<void>(_options);
   }
 
   @override

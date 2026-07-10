@@ -10,6 +10,7 @@ _ConfigDto _$ConfigDtoFromJson(Map<String, dynamic> json) => _ConfigDto(
   webAuthnRpId: json['webAuthnRpId'] as String,
   appName: json['appName'] as String,
   singleTeam: json['singleTeam'] as bool,
+  pinnedTeamSlug: json['pinnedTeamSlug'] as String?,
 );
 
 Map<String, dynamic> _$ConfigDtoToJson(_ConfigDto instance) =>
@@ -17,4 +18,5 @@ Map<String, dynamic> _$ConfigDtoToJson(_ConfigDto instance) =>
       'webAuthnRpId': instance.webAuthnRpId,
       'appName': instance.appName,
       'singleTeam': instance.singleTeam,
+      'pinnedTeamSlug': instance.pinnedTeamSlug,
     };

@@ -15,10 +15,11 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ConfigDto {
 
-/// WebAuthn Relying Party ID (domain)
+/// WebAuthn Relying Party ID (effective host)
  String get webAuthnRpId;/// Application name
  String get appName;/// Single team mode - team creation disabled
- bool get singleTeam;
+ bool get singleTeam;/// Slug of the team the site is pinned to (dedicated hostname / alias). Null on a regular multi-team domain. When set, the app roots on this team.
+ String? get pinnedTeamSlug;
 /// Create a copy of ConfigDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -31,16 +32,16 @@ $ConfigDtoCopyWith<ConfigDto> get copyWith => _$ConfigDtoCopyWithImpl<ConfigDto>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ConfigDto&&(identical(other.webAuthnRpId, webAuthnRpId) || other.webAuthnRpId == webAuthnRpId)&&(identical(other.appName, appName) || other.appName == appName)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ConfigDto&&(identical(other.webAuthnRpId, webAuthnRpId) || other.webAuthnRpId == webAuthnRpId)&&(identical(other.appName, appName) || other.appName == appName)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam)&&(identical(other.pinnedTeamSlug, pinnedTeamSlug) || other.pinnedTeamSlug == pinnedTeamSlug));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,webAuthnRpId,appName,singleTeam);
+int get hashCode => Object.hash(runtimeType,webAuthnRpId,appName,singleTeam,pinnedTeamSlug);
 
 @override
 String toString() {
-  return 'ConfigDto(webAuthnRpId: $webAuthnRpId, appName: $appName, singleTeam: $singleTeam)';
+  return 'ConfigDto(webAuthnRpId: $webAuthnRpId, appName: $appName, singleTeam: $singleTeam, pinnedTeamSlug: $pinnedTeamSlug)';
 }
 
 
@@ -51,7 +52,7 @@ abstract mixin class $ConfigDtoCopyWith<$Res>  {
   factory $ConfigDtoCopyWith(ConfigDto value, $Res Function(ConfigDto) _then) = _$ConfigDtoCopyWithImpl;
 @useResult
 $Res call({
- String webAuthnRpId, String appName, bool singleTeam
+ String webAuthnRpId, String appName, bool singleTeam, String? pinnedTeamSlug
 });
 
 
@@ -68,12 +69,13 @@ class _$ConfigDtoCopyWithImpl<$Res>
 
 /// Create a copy of ConfigDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? webAuthnRpId = null,Object? appName = null,Object? singleTeam = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? webAuthnRpId = null,Object? appName = null,Object? singleTeam = null,Object? pinnedTeamSlug = freezed,}) {
   return _then(_self.copyWith(
 webAuthnRpId: null == webAuthnRpId ? _self.webAuthnRpId : webAuthnRpId // ignore: cast_nullable_to_non_nullable
 as String,appName: null == appName ? _self.appName : appName // ignore: cast_nullable_to_non_nullable
 as String,singleTeam: null == singleTeam ? _self.singleTeam : singleTeam // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,pinnedTeamSlug: freezed == pinnedTeamSlug ? _self.pinnedTeamSlug : pinnedTeamSlug // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -158,10 +160,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String webAuthnRpId,  String appName,  bool singleTeam)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String webAuthnRpId,  String appName,  bool singleTeam,  String? pinnedTeamSlug)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ConfigDto() when $default != null:
-return $default(_that.webAuthnRpId,_that.appName,_that.singleTeam);case _:
+return $default(_that.webAuthnRpId,_that.appName,_that.singleTeam,_that.pinnedTeamSlug);case _:
   return orElse();
 
 }
@@ -179,10 +181,10 @@ return $default(_that.webAuthnRpId,_that.appName,_that.singleTeam);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String webAuthnRpId,  String appName,  bool singleTeam)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String webAuthnRpId,  String appName,  bool singleTeam,  String? pinnedTeamSlug)  $default,) {final _that = this;
 switch (_that) {
 case _ConfigDto():
-return $default(_that.webAuthnRpId,_that.appName,_that.singleTeam);case _:
+return $default(_that.webAuthnRpId,_that.appName,_that.singleTeam,_that.pinnedTeamSlug);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +201,10 @@ return $default(_that.webAuthnRpId,_that.appName,_that.singleTeam);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String webAuthnRpId,  String appName,  bool singleTeam)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String webAuthnRpId,  String appName,  bool singleTeam,  String? pinnedTeamSlug)?  $default,) {final _that = this;
 switch (_that) {
 case _ConfigDto() when $default != null:
-return $default(_that.webAuthnRpId,_that.appName,_that.singleTeam);case _:
+return $default(_that.webAuthnRpId,_that.appName,_that.singleTeam,_that.pinnedTeamSlug);case _:
   return null;
 
 }
@@ -214,15 +216,17 @@ return $default(_that.webAuthnRpId,_that.appName,_that.singleTeam);case _:
 @JsonSerializable()
 
 class _ConfigDto implements ConfigDto {
-  const _ConfigDto({required this.webAuthnRpId, required this.appName, required this.singleTeam});
+  const _ConfigDto({required this.webAuthnRpId, required this.appName, required this.singleTeam, this.pinnedTeamSlug});
   factory _ConfigDto.fromJson(Map<String, dynamic> json) => _$ConfigDtoFromJson(json);
 
-/// WebAuthn Relying Party ID (domain)
+/// WebAuthn Relying Party ID (effective host)
 @override final  String webAuthnRpId;
 /// Application name
 @override final  String appName;
 /// Single team mode - team creation disabled
 @override final  bool singleTeam;
+/// Slug of the team the site is pinned to (dedicated hostname / alias). Null on a regular multi-team domain. When set, the app roots on this team.
+@override final  String? pinnedTeamSlug;
 
 /// Create a copy of ConfigDto
 /// with the given fields replaced by the non-null parameter values.
@@ -237,16 +241,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ConfigDto&&(identical(other.webAuthnRpId, webAuthnRpId) || other.webAuthnRpId == webAuthnRpId)&&(identical(other.appName, appName) || other.appName == appName)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ConfigDto&&(identical(other.webAuthnRpId, webAuthnRpId) || other.webAuthnRpId == webAuthnRpId)&&(identical(other.appName, appName) || other.appName == appName)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam)&&(identical(other.pinnedTeamSlug, pinnedTeamSlug) || other.pinnedTeamSlug == pinnedTeamSlug));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,webAuthnRpId,appName,singleTeam);
+int get hashCode => Object.hash(runtimeType,webAuthnRpId,appName,singleTeam,pinnedTeamSlug);
 
 @override
 String toString() {
-  return 'ConfigDto(webAuthnRpId: $webAuthnRpId, appName: $appName, singleTeam: $singleTeam)';
+  return 'ConfigDto(webAuthnRpId: $webAuthnRpId, appName: $appName, singleTeam: $singleTeam, pinnedTeamSlug: $pinnedTeamSlug)';
 }
 
 
@@ -257,7 +261,7 @@ abstract mixin class _$ConfigDtoCopyWith<$Res> implements $ConfigDtoCopyWith<$Re
   factory _$ConfigDtoCopyWith(_ConfigDto value, $Res Function(_ConfigDto) _then) = __$ConfigDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String webAuthnRpId, String appName, bool singleTeam
+ String webAuthnRpId, String appName, bool singleTeam, String? pinnedTeamSlug
 });
 
 
@@ -274,12 +278,13 @@ class __$ConfigDtoCopyWithImpl<$Res>
 
 /// Create a copy of ConfigDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? webAuthnRpId = null,Object? appName = null,Object? singleTeam = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? webAuthnRpId = null,Object? appName = null,Object? singleTeam = null,Object? pinnedTeamSlug = freezed,}) {
   return _then(_ConfigDto(
 webAuthnRpId: null == webAuthnRpId ? _self.webAuthnRpId : webAuthnRpId // ignore: cast_nullable_to_non_nullable
 as String,appName: null == appName ? _self.appName : appName // ignore: cast_nullable_to_non_nullable
 as String,singleTeam: null == singleTeam ? _self.singleTeam : singleTeam // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,pinnedTeamSlug: freezed == pinnedTeamSlug ? _self.pinnedTeamSlug : pinnedTeamSlug // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

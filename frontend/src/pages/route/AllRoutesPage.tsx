@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import { keepPreviousData } from '@tanstack/react-query'
-import { Stack } from '@mantine/core'
+import { Group, Stack } from '@mantine/core'
 import {
   useListAllRoutes,
   listAllRoutes,
@@ -12,6 +12,7 @@ import { useRouteFilters } from '../../hooks/useRouteFilters'
 import { HomeLayout } from '../../components/home/HomeLayout'
 import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
 import { RouteListContent } from '../../components/route/RouteListContent'
+import { RouteViewToggle } from '../../components/route/RouteViewToggle'
 
 export function AllRoutesPage() {
   const {
@@ -50,6 +51,10 @@ export function AllRoutesPage() {
   return (
     <HomeLayout currentTab="routes">
       <Stack my="lg">
+        <Group justify="flex-end">
+          <RouteViewToggle current="list" />
+        </Group>
+
         <RouteFilterPanel
           filters={filters}
           onFiltersChange={handleFiltersChange}

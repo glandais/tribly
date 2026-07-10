@@ -166,6 +166,146 @@ export function useListAllRoutes<
 }
 
 /**
+ * Mapbox vector tile holding the routes of all accessible teams, layer 'routes'. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
+ * @summary All routes vector tile
+ */
+export const allRoutesTile = (
+  z: number,
+  x: number,
+  y: number,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<unknown>(
+    { url: `/api/routes/tiles/${z}/${x}/${y}.mvt`, method: 'GET', signal },
+    options
+  )
+}
+
+export const getAllRoutesTileQueryKey = (z: number, x: number, y: number) => {
+  return [`/api/routes/tiles/${z}/${x}/${y}.mvt`] as const
+}
+
+export const getAllRoutesTileQueryOptions = <
+  TData = Awaited<ReturnType<typeof allRoutesTile>>,
+  TError = ErrorType<void>,
+>(
+  z: number,
+  x: number,
+  y: number,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof allRoutesTile>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAllRoutesTileQueryKey(z, x, y)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof allRoutesTile>>> = ({ signal }) =>
+    allRoutesTile(z, x, y, requestOptions, signal)
+
+  return {
+    queryKey,
+    queryFn,
+    enabled:
+      z !== null &&
+      z !== undefined &&
+      x !== null &&
+      x !== undefined &&
+      y !== null &&
+      y !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof allRoutesTile>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+}
+
+export type AllRoutesTileQueryResult = NonNullable<Awaited<ReturnType<typeof allRoutesTile>>>
+export type AllRoutesTileQueryError = ErrorType<void>
+
+export function useAllRoutesTile<
+  TData = Awaited<ReturnType<typeof allRoutesTile>>,
+  TError = ErrorType<void>,
+>(
+  z: number,
+  x: number,
+  y: number,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof allRoutesTile>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof allRoutesTile>>,
+          TError,
+          Awaited<ReturnType<typeof allRoutesTile>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAllRoutesTile<
+  TData = Awaited<ReturnType<typeof allRoutesTile>>,
+  TError = ErrorType<void>,
+>(
+  z: number,
+  x: number,
+  y: number,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof allRoutesTile>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof allRoutesTile>>,
+          TError,
+          Awaited<ReturnType<typeof allRoutesTile>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAllRoutesTile<
+  TData = Awaited<ReturnType<typeof allRoutesTile>>,
+  TError = ErrorType<void>,
+>(
+  z: number,
+  x: number,
+  y: number,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof allRoutesTile>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary All routes vector tile
+ */
+
+export function useAllRoutesTile<
+  TData = Awaited<ReturnType<typeof allRoutesTile>>,
+  TError = ErrorType<void>,
+>(
+  z: number,
+  x: number,
+  y: number,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof allRoutesTile>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getAllRoutesTileQueryOptions(z, x, y, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
  * Get paginated list of routes for a team with optional filters and sorting
  * @summary List routes
  */
@@ -385,6 +525,154 @@ export const useCreateRoute = <TError = ErrorType<ErrorResponse>, TContext = unk
 > => {
   return useMutation(getCreateRouteMutationOptions(options), queryClient)
 }
+/**
+ * Mapbox vector tile holding the team's routes, layer 'routes'. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
+ * @summary Team routes vector tile
+ */
+export const routesTile = (
+  teamSlug: string,
+  z: number,
+  x: number,
+  y: number,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<unknown>(
+    { url: `/api/teams/${teamSlug}/routes/tiles/${z}/${x}/${y}.mvt`, method: 'GET', signal },
+    options
+  )
+}
+
+export const getRoutesTileQueryKey = (teamSlug: string, z: number, x: number, y: number) => {
+  return [`/api/teams/${teamSlug}/routes/tiles/${z}/${x}/${y}.mvt`] as const
+}
+
+export const getRoutesTileQueryOptions = <
+  TData = Awaited<ReturnType<typeof routesTile>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  teamSlug: string,
+  z: number,
+  x: number,
+  y: number,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof routesTile>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getRoutesTileQueryKey(teamSlug, z, x, y)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof routesTile>>> = ({ signal }) =>
+    routesTile(teamSlug, z, x, y, requestOptions, signal)
+
+  return {
+    queryKey,
+    queryFn,
+    enabled:
+      teamSlug !== null &&
+      teamSlug !== undefined &&
+      z !== null &&
+      z !== undefined &&
+      x !== null &&
+      x !== undefined &&
+      y !== null &&
+      y !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof routesTile>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+}
+
+export type RoutesTileQueryResult = NonNullable<Awaited<ReturnType<typeof routesTile>>>
+export type RoutesTileQueryError = ErrorType<void | ErrorResponse>
+
+export function useRoutesTile<
+  TData = Awaited<ReturnType<typeof routesTile>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  teamSlug: string,
+  z: number,
+  x: number,
+  y: number,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof routesTile>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof routesTile>>,
+          TError,
+          Awaited<ReturnType<typeof routesTile>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useRoutesTile<
+  TData = Awaited<ReturnType<typeof routesTile>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  teamSlug: string,
+  z: number,
+  x: number,
+  y: number,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof routesTile>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof routesTile>>,
+          TError,
+          Awaited<ReturnType<typeof routesTile>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useRoutesTile<
+  TData = Awaited<ReturnType<typeof routesTile>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  teamSlug: string,
+  z: number,
+  x: number,
+  y: number,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof routesTile>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Team routes vector tile
+ */
+
+export function useRoutesTile<
+  TData = Awaited<ReturnType<typeof routesTile>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  teamSlug: string,
+  z: number,
+  x: number,
+  y: number,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof routesTile>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getRoutesTileQueryOptions(teamSlug, z, x, y, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
 /**
  * Update route metadata (name, markdown, etc.) and optionally replace the GPX file. If a new GPX file is provided, the old track data and climbs will be replaced.
  * @summary Update route

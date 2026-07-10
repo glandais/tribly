@@ -65,6 +65,12 @@ export const paths = {
       default: return '/routes'
     }
   },
+  allRoutesMap: () => {
+    switch (getCurrentLocale()) {
+      case 'fr': return '/parcours/carte'
+      default: return '/routes/map'
+    }
+  },
   teams: () => {
     switch (getCurrentLocale()) {
       case 'fr': return '/equipes'
@@ -227,6 +233,12 @@ export const paths = {
       default: return `/teams/${teamSlug}/routes`
     }
   },
+  routesMap: (teamSlug: string) => {
+    switch (getCurrentLocale()) {
+      case 'fr': return `/equipes/${teamSlug}/parcours/carte`
+      default: return `/teams/${teamSlug}/routes/map`
+    }
+  },
   routeNew: (teamSlug: string) => {
     switch (getCurrentLocale()) {
       case 'fr': return `/equipes/${teamSlug}/parcours/nouveau`
@@ -304,6 +316,7 @@ export const pathVariants = {
   profile: (): Record<Locale, string> => ({ en: '/profile', fr: '/profil' }),
   calendar: (): Record<Locale, string> => ({ en: '/calendar', fr: '/calendrier' }),
   allRoutes: (): Record<Locale, string> => ({ en: '/routes', fr: '/parcours' }),
+  allRoutesMap: (): Record<Locale, string> => ({ en: '/routes/map', fr: '/parcours/carte' }),
   teams: (): Record<Locale, string> => ({ en: '/teams', fr: '/equipes' }),
   teamsNew: (): Record<Locale, string> => ({ en: '/teams/new', fr: '/equipes/nouvelle' }),
   team: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}`, fr: `/equipes/${teamSlug}` }),
@@ -331,6 +344,7 @@ export const pathVariants = {
   post: (teamSlug: string, postSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/posts/${postSlug}`, fr: `/equipes/${teamSlug}/articles/${postSlug}` }),
   postEdit: (teamSlug: string, postSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/posts/${postSlug}/edit`, fr: `/equipes/${teamSlug}/articles/${postSlug}/modifier` }),
   routes: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/routes`, fr: `/equipes/${teamSlug}/parcours` }),
+  routesMap: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/routes/map`, fr: `/equipes/${teamSlug}/parcours/carte` }),
   routeNew: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/routes/new`, fr: `/equipes/${teamSlug}/parcours/nouveau` }),
   route: (teamSlug: string, routeSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/routes/${routeSlug}`, fr: `/equipes/${teamSlug}/parcours/${routeSlug}` }),
   routeEdit: (teamSlug: string, routeSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/routes/${routeSlug}/edit`, fr: `/equipes/${teamSlug}/parcours/${routeSlug}/modifier` }),

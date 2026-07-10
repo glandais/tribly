@@ -227,6 +227,39 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
     return getRoutesWithTeamIds(null, pedalonsContext.getUserNullable(), params, false);
   }
 
+  /**
+   * Vector tile of a team's routes, subject to the same access control as {@link #getRoutes}.
+   */
+  @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.LIST)
+  public byte[] getRoutesTile(String teamSlug, int z, int x, int y) {
+    Team team = teamService.getTeam(teamSlug);
+    return tile(Set.of(team.getId()), z, x, y);
+  }
+
+  /**
+   * Vector tile of the routes of every accessible team, subject to the same access control as
+   * {@link #getAllRoutes}.
+   */
+  @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.LIST_ALL_TEAMS)
+  public byte[] getAllRoutesTile(int z, int x, int y) {
+    return tile(null, z, x, y);
+  }
+
+  private byte[] tile(@Nullable Set<Long> teamIds, int z, int x, int y) {
+    User user = pedalonsContext.getUserNullable();
+    return routeRepository.mvtTile(
+        RouteQuery.builder()
+            .domainId(pedalonsContext.getDomainId())
+            .userId(user == null ? null : user.getId())
+            .teamIds(teamIds)
+            .includeDeleted(false)
+            .platformAdmin(isPlatformAdmin())
+            .build(),
+        z,
+        x,
+        y);
+  }
+
   private RouteListResponse getRoutesWithTeamIds(
       @Nullable Set<Long> teamIds,
       @Nullable User user,

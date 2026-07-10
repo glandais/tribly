@@ -12,8 +12,7 @@ enum SearchedBy {
   slug('SLUG'),
 
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
-  $unknown(null)
-  ;
+  $unknown(null);
 
   const SearchedBy(this.json);
 

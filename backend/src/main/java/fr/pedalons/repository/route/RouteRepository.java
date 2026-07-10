@@ -9,9 +9,12 @@ import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.NearType;
 import fr.pedalons.enums.SortDirection;
 import fr.pedalons.enums.TeamEntityType;
+import fr.pedalons.infrastructure.geom.TileUtils;
 import fr.pedalons.repository.common.TeamEntityRepository;
 import fr.pedalons.repository.query.PedalonsQuery;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.persistence.TypedQuery;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.geolatte.geom.G2D;
@@ -22,9 +25,48 @@ import org.jspecify.annotations.Nullable;
 public class RouteRepository implements TeamEntityRepository<Route, RouteQuery> {
   private static final int DEFAULT_NEAR_RADIUS = 25000;
 
+  private static final byte[] EMPTY_TILE = new byte[0];
+
+  /**
+   * Walks the tracks rather than the routes, so the geometry is at hand, but still binds {@code te}
+   * to the route: the visibility clauses apply unchanged. {@code route_mvt} is an aggregate (see
+   * {@code PedalonsFunctionContributor}), hence no ordering.
+   */
+  private static final QueryShape MVT_SHAPE =
+      new QueryShape(
+          "route_mvt(gt.geometry, :z, :x, :y, te.slug, te.name, te.team.slug, te.distance,"
+              + " te.elevationGain)",
+          "GpxTrack gt join gt.route te",
+          false);
+
   @Override
   public TeamEntityType getEntityType() {
     return TeamEntityType.ROUTE;
+  }
+
+  /**
+   * Renders the routes matching {@code query} as a Mapbox vector tile.
+   *
+   * @return the protobuf layer, or an empty array when no route intersects the tile
+   */
+  public byte[] mvtTile(RouteQuery query, int z, int x, int y) {
+    PedalonsQuery pedalonsQuery = getPedalonsQuery(query, true, MVT_SHAPE);
+    pedalonsQuery
+        .and(
+            "st_intersects(gt.geometry, :tileEnvelope) = true",
+            Map.of("tileEnvelope", TileUtils.tileEnvelope4326(z, x, y)))
+        .addParam("z", z)
+        .addParam("x", x)
+        .addParam("y", y);
+
+    TypedQuery<byte[]> typedQuery =
+        getEntityManager().createQuery(pedalonsQuery.getStringQuery(), byte[].class);
+    pedalonsQuery.getParams().forEach(typedQuery::setParameter);
+
+    // Aggregating over zero rows still yields one row, holding an empty tile.
+    List<byte[]> result = typedQuery.getResultList();
+    byte[] tile = result.isEmpty() ? null : result.getFirst();
+    return tile == null ? EMPTY_TILE : tile;
   }
 
   @Override

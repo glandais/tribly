@@ -224,4 +224,44 @@ class AllRouteResourceTest extends AbstractResourceTest {
         .body("page", equalTo(0))
         .body("size", equalTo(5));
   }
+
+  // ==================== Vector Tile Tests ====================
+
+  /** Tile covering the test routes, which run from (6, 45) to (6.1, 45.1). */
+  private static final String ROUTES_TILE = "/api/routes/tiles/8/132/92.mvt";
+
+  @Test
+  void allRoutesTile_withoutAuth_shouldOnlyContainPublicRoute() {
+    String tile = MvtAssert.decode(given().when().get(ROUTES_TILE));
+
+    MvtAssert.assertContainsSlugs(tile, publicRoute.getSlug());
+    MvtAssert.assertMissingSlugs(tile, teamRoute.getSlug());
+  }
+
+  @Test
+  void allRoutesTile_asNonMember_shouldOnlyContainPublicRoute() {
+    String tile =
+        MvtAssert.decode(given().auth().oauth2(getAccessToken(USER4)).when().get(ROUTES_TILE));
+
+    MvtAssert.assertContainsSlugs(tile, publicRoute.getSlug());
+    MvtAssert.assertMissingSlugs(tile, teamRoute.getSlug());
+  }
+
+  @Test
+  void allRoutesTile_asMember_shouldContainTeamRoute() {
+    String tile =
+        MvtAssert.decode(given().auth().oauth2(getAccessToken(USER3)).when().get(ROUTES_TILE));
+
+    MvtAssert.assertContainsSlugs(tile, publicRoute.getSlug(), teamRoute.getSlug());
+  }
+
+  @Test
+  void allRoutesTile_outsideRouteBounds_shouldBeEmpty() {
+    given().when().get("/api/routes/tiles/12/0/0.mvt").then().statusCode(200).body(emptyString());
+  }
+
+  @Test
+  void allRoutesTile_withCoordinatesOutsideZoomLevel_shouldReturnBadRequest() {
+    given().when().get("/api/routes/tiles/8/9999/92.mvt").then().statusCode(400);
+  }
 }

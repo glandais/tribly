@@ -112,10 +112,15 @@ enum ErrorCode {
   encryptionFailed('ENCRYPTION_FAILED'),
   @JsonValue('DECRYPTION_FAILED')
   decryptionFailed('DECRYPTION_FAILED'),
+  @JsonValue('DOMAIN_ALIAS_NOT_FOUND')
+  domainAliasNotFound('DOMAIN_ALIAS_NOT_FOUND'),
+  @JsonValue('DOMAIN_ALIAS_HOSTNAME_EXISTS')
+  domainAliasHostnameExists('DOMAIN_ALIAS_HOSTNAME_EXISTS'),
+  @JsonValue('DOMAIN_ALIAS_TEAM_MISMATCH')
+  domainAliasTeamMismatch('DOMAIN_ALIAS_TEAM_MISMATCH'),
 
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
-  $unknown(null)
-  ;
+  $unknown(null);
 
   const ErrorCode(this.json);
 

@@ -5897,6 +5897,44 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RouteListResponse"
+  /api/routes/tiles/{z}/{x}/{y}.mvt:
+    get:
+      summary: All routes vector tile
+      description: "Mapbox vector tile holding the routes of all accessible teams,\
+        \ layer 'routes'. Fetched directly by the map renderer, so it authenticates\
+        \ with the session cookie rather than a bearer token."
+      operationId: allRoutesTile
+      tags:
+      - Routes
+      parameters:
+      - description: Tile column
+        name: x
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - description: Tile row
+        name: "y"
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - description: Zoom level
+        name: z
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          description: Tile retrieved successfully
+          content:
+            application/vnd.mapbox-vector-tile: {}
+        "400":
+          description: Invalid tile coordinates
   /api/teams:
     get:
       summary: List public teams
@@ -9034,6 +9072,56 @@ paths:
       security:
       - SecurityScheme:
         - user
+  /api/teams/{teamSlug}/routes/tiles/{z}/{x}/{y}.mvt:
+    get:
+      summary: Team routes vector tile
+      description: "Mapbox vector tile holding the team's routes, layer 'routes'.\
+        \ Fetched directly by the map renderer, so it authenticates with the session\
+        \ cookie rather than a bearer token."
+      operationId: routesTile
+      tags:
+      - Routes
+      parameters:
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Tile column
+        name: x
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - description: Tile row
+        name: "y"
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - description: Zoom level
+        name: z
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          description: Tile retrieved successfully
+          content:
+            application/vnd.mapbox-vector-tile: {}
+        "400":
+          description: Invalid tile coordinates
+        "404":
+          description: Team not found
+          content:
+            application/vnd.mapbox-vector-tile:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/teams/{teamSlug}/routes/{entitySlug}/comments:
     get:
       summary: List route comments

@@ -18,8 +18,7 @@ enum ClimbCategory {
   cat4('CAT4'),
 
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
-  $unknown(null)
-  ;
+  $unknown(null);
 
   const ClimbCategory(this.json);
 

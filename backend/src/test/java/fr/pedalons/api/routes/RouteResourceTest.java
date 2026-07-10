@@ -654,4 +654,54 @@ class RouteResourceTest extends AbstractResourceTest {
         .then()
         .statusCode(401);
   }
+
+  // ==================== Vector Tile Tests ====================
+
+  /** Tile covering the test routes, which run from (6, 45) to (6.1, 45.1). */
+  private String routesTile() {
+    return "/api/teams/" + team1Slug + "/routes/tiles/8/132/92.mvt";
+  }
+
+  @Test
+  void routesTile_withoutAuth_shouldOnlyContainPublicRoute() {
+    Route publicRoute = dataService.createRoute(team1, user1, "Tile Public", Visibility.PUBLIC);
+    Route teamRoute = dataService.createRoute(team1, user1, "Tile Team", Visibility.TEAM);
+
+    String tile = MvtAssert.decode(given().when().get(routesTile()));
+
+    MvtAssert.assertContainsSlugs(tile, publicRoute.getSlug());
+    MvtAssert.assertMissingSlugs(tile, teamRoute.getSlug());
+  }
+
+  @Test
+  void routesTile_asMember_shouldContainTeamRoute() {
+    Route publicRoute = dataService.createRoute(team1, user1, "Tile Public", Visibility.PUBLIC);
+    Route teamRoute = dataService.createRoute(team1, user1, "Tile Team", Visibility.TEAM);
+
+    String tile =
+        MvtAssert.decode(given().auth().oauth2(getAccessToken(USER3)).when().get(routesTile()));
+
+    MvtAssert.assertContainsSlugs(tile, publicRoute.getSlug(), teamRoute.getSlug());
+  }
+
+  @Test
+  void routesTile_forUnknownTeam_shouldReturn404() {
+    given()
+        .when()
+        .get("/api/teams/does-not-exist/routes/tiles/8/132/92.mvt")
+        .then()
+        .statusCode(404);
+  }
+
+  @Test
+  void routesTile_outsideRouteBounds_shouldBeEmpty() {
+    dataService.createRoute(team1, user1, "Tile Public", Visibility.PUBLIC);
+
+    given()
+        .when()
+        .get("/api/teams/" + team1Slug + "/routes/tiles/12/0/0.mvt")
+        .then()
+        .statusCode(200)
+        .body(emptyString());
+  }
 }

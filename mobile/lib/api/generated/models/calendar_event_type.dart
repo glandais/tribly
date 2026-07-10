@@ -12,8 +12,7 @@ enum CalendarEventType {
   tripStage('TRIP_STAGE'),
 
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
-  $unknown(null)
-  ;
+  $unknown(null);
 
   const CalendarEventType(this.json);
 

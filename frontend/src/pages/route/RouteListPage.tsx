@@ -14,6 +14,7 @@ import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { useRouteFilters } from '../../hooks/useRouteFilters'
 import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
 import { RouteListContent } from '../../components/route/RouteListContent'
+import { RouteViewToggle } from '../../components/route/RouteViewToggle'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { UploadGpxFiles } from '../../components/route/UploadGpxFiles'
 
@@ -70,18 +71,21 @@ export function RouteListPage() {
       <Stack py="lg">
         <Group justify="space-between">
           <Title order={2}>{t('routes.list.title')}</Title>
-          {canCreateRoute && (
-            <Group gap="sm">
-              <UploadGpxFiles team={team} />
-              <Button
-                component="a"
-                href={paths.routeNew(teamSlug!)}
-                leftSection={<IconPlus size={16} />}
-              >
-                {t('routes.create.title')}
-              </Button>
-            </Group>
-          )}
+          <Group gap="sm">
+            <RouteViewToggle current="list" teamSlug={team.slug} />
+            {canCreateRoute && (
+              <>
+                <UploadGpxFiles team={team} />
+                <Button
+                  component="a"
+                  href={paths.routeNew(teamSlug!)}
+                  leftSection={<IconPlus size={16} />}
+                >
+                  {t('routes.create.title')}
+                </Button>
+              </>
+            )}
+          </Group>
         </Group>
 
         <RouteFilterPanel

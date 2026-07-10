@@ -667,6 +667,8 @@
   "routes.surfaceType.MIXED": "Mixte",
   "routes.surfaceType.MTB": "VTT",
   "routes.surfaceType.ROAD": "Route",
+  "routes.view.list": "Liste",
+  "routes.view.map": "Carte",
   "routes.upload.button": "Importer GPX",
   "routes.upload.progress": "{{current}}/{{total}}",
   "slug.edit": "Modifier l'URL",

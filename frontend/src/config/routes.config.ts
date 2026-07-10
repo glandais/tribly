@@ -118,6 +118,12 @@ const CreateRoutePage = lazy(() =>
 const EditRoutePage = lazy(() =>
   import('../pages/route/EditRoutePage').then((m) => ({ default: m.EditRoutePage }))
 )
+const AllRoutesMapPage = lazy(() =>
+  import('../pages/route/AllRoutesMapPage').then((m) => ({ default: m.AllRoutesMapPage }))
+)
+const RoutesMapPage = lazy(() =>
+  import('../pages/route/RoutesMapPage').then((m) => ({ default: m.RoutesMapPage }))
+)
 const AllRoutesPage = lazy(() =>
   import('../pages/route/AllRoutesPage').then((m) => ({ default: m.AllRoutesPage }))
 )
@@ -178,6 +184,15 @@ export const routesConfig: RoutesConfig = [
     parentId: null,
     subRouteIds: ['home', 'calendar', 'all-routes', 'teams'],
     breadcrumb: { type: 'static', i18nKey: tRegister('nav.routes') },
+  },
+  {
+    id: 'all-routes-map',
+    paths: pathVariants.allRoutesMap(),
+    component: AllRoutesMapPage,
+    auth: 'public',
+    parentId: 'all-routes',
+    subRouteIds: ['home', 'calendar', 'all-routes', 'teams'],
+    breadcrumb: { type: 'static', i18nKey: tRegister('routes.view.map') },
   },
 
   // === Legal Routes ===
@@ -509,6 +524,14 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: 'team-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('nav.routes') },
+  },
+  {
+    id: 'routes-map',
+    paths: pathVariants.routesMap(':teamSlug'),
+    component: RoutesMapPage,
+    auth: 'public',
+    parentId: 'routes',
+    breadcrumb: { type: 'static', i18nKey: tRegister('routes.view.map') },
   },
   {
     id: 'route-new',

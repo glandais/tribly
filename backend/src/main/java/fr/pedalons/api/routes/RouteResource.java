@@ -6,6 +6,7 @@ import fr.pedalons.dto.routes.request.RouteRequest;
 import fr.pedalons.dto.routes.request.RouteSearchParams;
 import fr.pedalons.dto.routes.response.*;
 import fr.pedalons.enums.*;
+import fr.pedalons.infrastructure.jaxrs.PedalonsMediaType;
 import fr.pedalons.service.route.RouteService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
@@ -117,6 +118,35 @@ public class RouteResource {
     RouteListResponse routes = routeService.getRoutes(teamSlug, params);
 
     return Response.ok(routes).build();
+  }
+
+  /**
+   * Vector tile of a team's routes.
+   */
+  @GET
+  @PermitAll
+  @Path("/tiles/{z}/{x}/{y}.mvt")
+  @Produces(PedalonsMediaType.MAPBOX_VECTOR_TILE)
+  @Operation(
+      summary = "Team routes vector tile",
+      description =
+          "Mapbox vector tile holding the team's routes, layer 'routes'. Fetched directly by the "
+              + "map renderer, so it authenticates with the session cookie rather than a bearer "
+              + "token.")
+  @APIResponses({
+    @APIResponse(responseCode = "200", description = "Tile retrieved successfully"),
+    @APIResponse(responseCode = "400", description = "Invalid tile coordinates"),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response routesTile(
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
+      @Parameter(description = "Zoom level") @PathParam("z") int z,
+      @Parameter(description = "Tile column") @PathParam("x") int x,
+      @Parameter(description = "Tile row") @PathParam("y") int y) {
+    return RouteTiles.response(routeService.getRoutesTile(teamSlug, z, x, y));
   }
 
   /**

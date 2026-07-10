@@ -6,12 +6,15 @@ import 'package:dio/dio.dart' hide Headers;
 import 'package:retrofit/retrofit.dart';
 import 'package:retrofit/error_logger.dart';
 
+import '../models/admin_domain_alias_dto.dart';
 import '../models/admin_domain_dto.dart';
 import '../models/admin_domain_list_response.dart';
 import '../models/admin_gps_credential_dto.dart';
 import '../models/admin_stats_dto.dart';
+import '../models/create_domain_alias_request.dart';
 import '../models/create_domain_request.dart';
 import '../models/create_gps_credential_request.dart';
+import '../models/update_domain_alias_request.dart';
 import '../models/update_domain_request.dart';
 import '../models/update_gps_credential_request.dart';
 
@@ -70,6 +73,71 @@ abstract class AdminDomainsClient {
   /// [domainId] - Domain ID.
   @GET('/api/admin/domains/{domainId}')
   Future<AdminDomainDto> getDomain({
+    @Path('domainId') required String domainId,
+  });
+
+  /// List domain aliases.
+  ///
+  /// Get all dedicated hostnames (aliases) pinned to teams of a domain.
+  ///
+  /// [domainId] - Domain ID.
+  @GET('/api/admin/domains/{domainId}/aliases')
+  Future<List<AdminDomainAliasDto>> listDomainAliases({
+    @Path('domainId') required String domainId,
+  });
+
+  /// Create domain alias.
+  ///
+  /// Create a dedicated hostname pinned to a team of the domain.
+  ///
+  /// [domainId] - Domain ID.
+  ///
+  /// [body] - Name not received - field will be skipped.
+  @POST('/api/admin/domains/{domainId}/aliases')
+  Future<AdminDomainAliasDto> createDomainAlias({
+    @Path('domainId') required String domainId,
+    @Body() required CreateDomainAliasRequest body,
+  });
+
+  /// Update domain alias.
+  ///
+  /// Update a dedicated hostname's pinned team or branding.
+  ///
+  /// [aliasId] - Alias ID.
+  ///
+  /// [domainId] - Domain ID.
+  ///
+  /// [body] - Name not received - field will be skipped.
+  @PUT('/api/admin/domains/{domainId}/aliases/{aliasId}')
+  Future<AdminDomainAliasDto> updateDomainAlias({
+    @Path('aliasId') required String aliasId,
+    @Path('domainId') required String domainId,
+    @Body() required UpdateDomainAliasRequest body,
+  });
+
+  /// Delete domain alias.
+  ///
+  /// Delete a dedicated hostname.
+  ///
+  /// [aliasId] - Alias ID.
+  ///
+  /// [domainId] - Domain ID.
+  @DELETE('/api/admin/domains/{domainId}/aliases/{aliasId}')
+  Future<void> deleteDomainAlias({
+    @Path('aliasId') required String aliasId,
+    @Path('domainId') required String domainId,
+  });
+
+  /// Toggle domain alias active status.
+  ///
+  /// Enable or disable a dedicated hostname.
+  ///
+  /// [aliasId] - Alias ID.
+  ///
+  /// [domainId] - Domain ID.
+  @POST('/api/admin/domains/{domainId}/aliases/{aliasId}/toggle-active')
+  Future<AdminDomainAliasDto> toggleDomainAliasActive({
+    @Path('aliasId') required String aliasId,
     @Path('domainId') required String domainId,
   });
 

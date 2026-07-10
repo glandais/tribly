@@ -66,6 +66,17 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
   EntityType getAllEntityType();
 
   /**
+   * What a query selects and where it selects it from. The visibility clauses only ever reference
+   * the aliases {@code te} (the team entity) and {@code ut} (the current user's membership), so any
+   * shape that binds those two aliases gets the exact same authorization rules.
+   *
+   * @param projection what to select, e.g. {@code te}
+   * @param from the from clause without the {@code UserTeam} join, e.g. {@code Route te}
+   * @param ordered whether to append the default ordering (an aggregate projection must not)
+   */
+  record QueryShape(String projection, String from, boolean ordered) {}
+
+  /**
    * Find publications across multiple teams with proper visibility filtering.
    */
   default PedalonsPage<T> find(Q query) {
@@ -84,6 +95,11 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
   }
 
   private PedalonsQuery getPedalonsQuery(Q query, boolean list) {
+    return getPedalonsQuery(
+        query, list, new QueryShape("te", getEntityType().getTypeName() + " te", true));
+  }
+
+  default PedalonsQuery getPedalonsQuery(Q query, boolean list, QueryShape shape) {
     // Build base query
     PedalonsQuery pedalonsQuery;
 
@@ -91,16 +107,18 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
 
     if (query.userId() == null) {
       pedalonsQuery =
-          new PedalonsQuery("select te from " + getEntityType().getTypeName() + " te where");
+          new PedalonsQuery("select " + shape.projection() + " from " + shape.from() + " where");
 
       // Anonymous user: only public publications from public teams
       pedalonsQuery = pedalonsQuery.and(publicEntity).and("TYPE(te) <> Ad", Map.of());
     } else {
       pedalonsQuery =
           new PedalonsQuery(
-                  "select te from "
-                      + getEntityType().getTypeName()
-                      + " te left join UserTeam ut on "
+                  "select "
+                      + shape.projection()
+                      + " from "
+                      + shape.from()
+                      + " left join UserTeam ut on "
                       + "ut.team.id = te.team.id and ut.user.id = :userId "
                       + "where")
               .addParam("userId", query.userId());
@@ -177,8 +195,11 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
             .and(
                 "(TYPE(te) <> Ride OR (te.team.enableRides = true AND te.team.enableRoutes ="
                     + " true))",
-                Map.of())
-            .order("dateTime desc");
+                Map.of());
+
+    if (shape.ordered()) {
+      pedalonsQuery = pedalonsQuery.order("dateTime desc");
+    }
 
     Set<Long> teamIds = query.teamIds();
     if (teamIds != null && !teamIds.isEmpty()) {

@@ -80,6 +80,22 @@ abstract class RoutesClient {
     @Query('windDirection') WindDirection? windDirection,
   });
 
+  /// All routes vector tile.
+  ///
+  /// Mapbox vector tile holding the routes of all accessible teams, layer 'routes'. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
+  ///
+  /// [x] - Tile column.
+  ///
+  /// [y] - Tile row.
+  ///
+  /// [z] - Zoom level.
+  @GET('/api/routes/tiles/{z}/{x}/{y}.mvt')
+  Future<void> allRoutesTile({
+    @Path('x') required int x,
+    @Path('y') required int y,
+    @Path('z') required int z,
+  });
+
   /// List routes.
   ///
   /// Get paginated list of routes for a team with optional filters and sorting.
@@ -153,6 +169,25 @@ abstract class RoutesClient {
     @Path('teamSlug') required String teamSlug,
     @Part(name: 'route') RouteRequest? route,
     @Part(name: 'gpxFile') MultipartFile? gpxFile,
+  });
+
+  /// Team routes vector tile.
+  ///
+  /// Mapbox vector tile holding the team's routes, layer 'routes'. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
+  ///
+  /// [teamSlug] - Team URL slug.
+  ///
+  /// [x] - Tile column.
+  ///
+  /// [y] - Tile row.
+  ///
+  /// [z] - Zoom level.
+  @GET('/api/teams/{teamSlug}/routes/tiles/{z}/{x}/{y}.mvt')
+  Future<void> routesTile({
+    @Path('teamSlug') required String teamSlug,
+    @Path('x') required int x,
+    @Path('y') required int y,
+    @Path('z') required int z,
   });
 
   /// Update route.
