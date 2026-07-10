@@ -36,6 +36,13 @@ export type BreadcrumbLabel =
   { type: 'static'; i18nKey: string } | { type: 'dynamic'; entity: EntityType }
 
 /**
+ * A shared navigation group whose (runtime-gated) items feed a breadcrumb crumb's dropdown.
+ * - 'home': the top-level sections (feed, teams, calendar, routes)
+ * - 'team': the team sections (publications, calendar, routes, ads, about, dynamic pages)
+ */
+export type NavGroup = 'home' | 'team'
+
+/**
  * Single route configuration entry
  */
 export interface RouteConfig {
@@ -58,7 +65,12 @@ export interface RouteConfig {
    */
   parentId: string | null
 
-  subRouteIds?: string[]
+  /**
+   * Which shared navigation group populates this crumb's dropdown. The dropdown then mirrors the
+   * actual tab bar for that level — honoring auth, team feature flags, membership and dynamic pages
+   * — instead of a static hand-authored list. Omit for crumbs with no sibling-level switcher.
+   */
+  navGroup?: NavGroup
 
   /**
    * Breadcrumb label for this route

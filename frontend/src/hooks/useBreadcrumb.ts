@@ -1,13 +1,10 @@
 import { useMemo } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import {
-  findMatchingRoute,
-  buildBreadcrumbChain,
-  buildRoutePath,
-  getRouteById,
-} from '../config/routeUtils'
+import { findMatchingRoute, buildBreadcrumbChain, buildRoutePath } from '../config/routeUtils'
+import { useGetTeam } from '../api/endpoints/teams/teams'
 import { useBreadcrumbData } from './useBreadcrumbData'
+import { useHomeNavItems, useTeamNavItems } from './useNavItems'
 import type { BreadcrumbItemType, BreadcrumbSubItemType } from '../components/common/Breadcrumb'
 import { BreadcrumbLabel } from '@/config/routes.types'
 import { isSingleTeam } from '@/config/appConfig'
@@ -30,6 +27,13 @@ export function useBreadcrumb(): UseBreadcrumbResult {
 
   // Fetch entity data for dynamic labels
   const entityData = useBreadcrumbData(matchResult?.params ?? {})
+
+  // Shared nav-item groups feed the per-level dropdowns, so they mirror the actual tab bar
+  // (auth/feature/membership gated, including dynamic pages) instead of a static list.
+  const teamSlug = matchResult?.params.teamSlug
+  const { data: team } = useGetTeam(teamSlug!, { query: { enabled: !!teamSlug } })
+  const homeNavItems = useHomeNavItems()
+  const teamNavItems = useTeamNavItems(team)
 
   // Build breadcrumb items
   const items = useMemo<BreadcrumbItemType[]>(() => {
@@ -64,24 +68,20 @@ export function useBreadcrumb(): UseBreadcrumbResult {
       // Build path (undefined for last item = current page)
       const path = isLast ? undefined : buildRoutePath(routeConfig, params)
 
-      // Build subItems from subRouteIds
-      let subItems: BreadcrumbSubItemType[] | undefined
-      if (routeConfig.subRouteIds && routeConfig.subRouteIds.length > 0) {
-        subItems = routeConfig.subRouteIds
-          .map((subRouteId) => {
-            const subRoute = getRouteById(subRouteId)
-            if (!subRoute || !subRoute.breadcrumb) return null
-            if (singleTeam && subRoute.hideWhenSingleTeam) return null
-            const subLabel = resolveLabel(subRoute.breadcrumb)
-            const subPath = buildRoutePath(subRoute, params)
-            return { label: subLabel, path: subPath }
-          })
-          .filter((item) => item !== null)
-      }
+      // Dropdown items mirror the actual tab bar for this level, sourced from the shared nav groups.
+      const navItems =
+        routeConfig.navGroup === 'home'
+          ? homeNavItems
+          : routeConfig.navGroup === 'team'
+            ? teamNavItems
+            : undefined
+      const subItems: BreadcrumbSubItemType[] | undefined = navItems?.length
+        ? navItems.map((item) => ({ label: item.label, path: item.path }))
+        : undefined
 
       return { label, path, subItems }
     })
-  }, [matchResult, entityData, t])
+  }, [matchResult, entityData, homeNavItems, teamNavItems, t])
 
   const showBackLink = matchResult?.route.showBackLink ?? false
 

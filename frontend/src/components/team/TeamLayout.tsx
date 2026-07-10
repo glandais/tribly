@@ -1,16 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { Stack, Group, Title, Button, Box } from '@mantine/core'
-import {
-  IconNews,
-  IconCalendar,
-  IconRoute,
-  IconTags,
-  IconInfoCircle,
-  IconFileText,
-} from '@tabler/icons-react'
 import { getGetTeamQueryKey } from '@/api/endpoints/teams/teams'
 import {
   useLeaveTeam,
@@ -19,8 +11,9 @@ import {
 } from '@/api/endpoints/team-members/team-members'
 import { useAuth } from '../../hooks/useAuth'
 import { useFavicon } from '../../hooks/useFavicon'
+import { useTeamNavItems } from '@/hooks/useNavItems'
 import { ConfirmDialog } from '../common/ConfirmDialog'
-import { NavButtons, type NavButtonItem } from '../common/NavButtons'
+import { NavButtons } from '../common/NavButtons'
 import { VisibilityBadge } from '../card/common'
 import { TeamAvatar } from './TeamAvatar'
 import type { TeamDetailDto } from '@/api/dto'
@@ -77,74 +70,8 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
     )
   }
 
-  // Build tabs list with dynamic pages
-  const tabs = useMemo(() => {
-    const baseTabs: NavButtonItem[] = [
-      {
-        id: 'publications',
-        path: paths.team(team.slug),
-        label: t('teams.publications.list.title'),
-        icon: IconNews,
-      },
-      ...(isMember && (team.enableRides || team.enableTrips)
-        ? [
-            {
-              id: 'calendar',
-              path: paths.teamCalendar(team.slug),
-              label: t('teams.detail.tabs.calendar'),
-              icon: IconCalendar,
-            },
-          ]
-        : []),
-      ...(team.enableRoutes
-        ? [
-            {
-              id: 'routes',
-              path: paths.routes(team.slug),
-              label: t('teams.detail.tabs.routes'),
-              icon: IconRoute,
-            },
-          ]
-        : []),
-      ...(isMember && team.enableAds
-        ? [
-            {
-              id: 'ads',
-              path: paths.ads(team.slug),
-              label: t('ads.title'),
-              icon: IconTags,
-            },
-          ]
-        : []),
-      {
-        id: 'about',
-        path: paths.teamAbout(team.slug),
-        label: t('teams.detail.tabs.about'),
-        icon: IconInfoCircle,
-      },
-    ]
-
-    // Add dynamic pages - filter by visibility (PUBLIC pages or member can see TEAM pages)
-    const visiblePages = (team.pages ?? []).filter((page) => page.visibility !== 'TEAM' || isMember)
-
-    const pageTabs: NavButtonItem[] = visiblePages.map((page) => ({
-      id: page.slug,
-      path: paths.teamPage(team.slug, page.slug),
-      label: page.title,
-      icon: IconFileText,
-    }))
-
-    return [...baseTabs, ...pageTabs]
-  }, [
-    team.slug,
-    team.pages,
-    team.enableAds,
-    team.enableRoutes,
-    team.enableRides,
-    team.enableTrips,
-    isMember,
-    t,
-  ])
+  // Tab list (shared with the breadcrumb dropdown as the single source of truth)
+  const tabs = useTeamNavItems(team)
 
   return (
     <Stack>
