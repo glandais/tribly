@@ -49,9 +49,30 @@ app. Stop it yourself once the logs show `Biketeam migration completed`:
 
 docker compose --profile restore down backend-restore
 
-Config lives in the `backend-restore` service in docker-compose.yml. Re-running it is
-safe: already-migrated rows are matched through the biketeam→tribly id mapping table,
-and a replay repairs rows that a previous run left missing.
+Config lives in the `backend-restore` service in docker-compose.yml.
+
+## Replaying
+
+Re-running is safe and cheap. Already-migrated rows are matched through the biketeam→tribly id
+mapping table, so a replay repairs what a previous run left missing rather than duplicating it.
+Verified on `louise` (165 routes, 5 rides, 19 trips, 124 stages): seven consecutive runs, every row
+count identical from the second onwards — only the Hibernate `version` column moves.
+
+Most of a run is the GPX pipeline: parse, SRTM elevation, Douglas-Peucker, FIT, two thumbnails, five
+S3 uploads — 92% of `louise`'s replay before this was addressed. `biketeam_migration_map` therefore
+records the size and MD5 of the `.gpx` each route was built from, and a replay whose file still
+digests the same skips the pipeline entirely, refreshing only the name, surface and visibility.
+The fingerprint is written *after* the pipeline succeeds, so a run killed mid-upload leaves none and
+the next one redoes the work.
+
+| `louise` | duration |
+|---|---|
+| first import | 476s |
+| replay, cold cache and no fingerprints | 161s |
+| replay | **11s** |
+
+What remains is the ride and trip thumbnails, which `updateRide`/`updateTrip` regenerate
+unconditionally. A route whose `.gpx` changed between two dumps is reprocessed, as it should be.
 
 ## Known failures
 

@@ -410,12 +410,20 @@ public class BiketeamMigrationService {
    * copy escaped the resize.
    */
   private static boolean isPlaceholderLogo(Path logo) {
-    try {
-      byte[] digest = MessageDigest.getInstance("MD5").digest(Files.readAllBytes(logo));
-      return PLACEHOLDER_LOGO_MD5.contains(HexFormat.of().formatHex(digest));
-    } catch (IOException | NoSuchAlgorithmException e) {
-      LOG.warnf(e, "Could not digest %s — importing it as a real logo", logo);
+    String md5 = md5(logo);
+    if (md5 == null) {
+      LOG.warnf("Could not digest %s — importing it as a real logo", logo);
       return false;
+    }
+    return PLACEHOLDER_LOGO_MD5.contains(md5);
+  }
+
+  private static @Nullable String md5(Path file) {
+    try {
+      byte[] md5 = MessageDigest.getInstance("MD5").digest(Files.readAllBytes(file));
+      return HexFormat.of().formatHex(md5);
+    } catch (IOException | NoSuchAlgorithmException e) {
+      return null;
     }
   }
 
@@ -743,7 +751,16 @@ public class BiketeamMigrationService {
     if (mapped != null) {
       route = routeRepository.findByIdOptional(mapped).orElse(null);
     }
-    if (route != null) {
+    String fingerprint = digest(gpx);
+    String stored = mapRepo.findFingerprint(T_ROUTE, bt.id());
+    if (route != null && fingerprint != null && fingerprint.equals(stored)) {
+      // Same bytes as the run that built this route, so its geometry, FIT and thumbnails still
+      // hold. Refresh only what `RouteRequest` carries; the rest of the method does the fields
+      // biketeam keeps outside it.
+      route.setName(req.name());
+      route.setSurfaceType(req.surfaceType());
+      route.setVisibility(req.visibility());
+    } else if (route != null) {
       routeService.updateRoute(team.getSlug(), route.getSlug(), req, gpx);
     } else {
       RouteDto created = routeService.createRoute(team.getSlug(), req, gpx);
@@ -758,9 +775,28 @@ public class BiketeamMigrationService {
       route.setDateTime(bt.postedAt().atStartOfDay(PARIS).toInstant());
     }
     routeRepository.persist(route);
-    mapRepo.upsert(T_ROUTE, bt.id(), route.getId());
+    // Recorded only here, once the pipeline above has run to completion: a run that dies mid-upload
+    // leaves no fingerprint, so the next one redoes the work rather than trusting a half-built row.
+    mapRepo.upsert(T_ROUTE, bt.id(), route.getId(), fingerprint);
     ids.put(bt.id(), route.getId());
     backdate("team_entities", route.getId(), atParis(bt.postedAt(), null));
+  }
+
+  /** Size and MD5 of the file. Null when there is no file, or it cannot be read. */
+  private static @Nullable String digest(@Nullable Path file) {
+    if (file == null) {
+      return null;
+    }
+    String md5 = md5(file);
+    if (md5 == null) {
+      LOG.warnf("Could not digest %s — it will be reprocessed on every replay", file);
+      return null;
+    }
+    try {
+      return Files.size(file) + ":" + md5;
+    } catch (IOException e) {
+      return null;
+    }
   }
 
   private @Nullable Path locateGpx(String sourceTeam, String mapId) {

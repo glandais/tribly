@@ -11,6 +11,7 @@ import java.util.Objects;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Maps a biketeam source row (entityType + biketeamId) to the tribly entity that was created /
@@ -38,6 +39,14 @@ public class BiketeamMigrationMap {
 
   @Column(name = "synced_at", nullable = false)
   private Instant syncedAt = Instant.now();
+
+  /**
+   * Digest of the biketeam file this row was last fully built from, or null when the row has no
+   * source file — or when the work never completed. Lets a replay tell "already done" from "started
+   * and interrupted".
+   */
+  @Column(name = "source_fingerprint", length = 64)
+  private @Nullable String sourceFingerprint;
 
   public BiketeamMigrationMap(String entityType, String biketeamId, long triblyId) {
     this.entityType = entityType;
