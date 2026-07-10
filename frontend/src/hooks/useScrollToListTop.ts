@@ -29,18 +29,52 @@ export function useScrollToListTop() {
   return { listTopRef: targetRef, scrollToListTop }
 }
 
+/** The nearest ancestor that actually scrolls, which `scrollIntoView` is about to move. */
+function scrollableAncestor(element: HTMLElement): HTMLElement | null {
+  for (let node = element.parentElement; node; node = node.parentElement) {
+    const { overflowY } = getComputedStyle(node)
+    if (overflowY === 'auto' || overflowY === 'scroll') return node
+  }
+  return null
+}
+
+/**
+ * Height of the container's own sticky header, which `block: 'start'` would otherwise leave sitting
+ * on top of the first row. Measured rather than hard-coded: `Modal.Header` grows when its title
+ * wraps onto a second line, which it does on a narrow screen.
+ */
+function stickyHeaderHeight(container: HTMLElement): number {
+  let height = 0
+  for (const child of container.children) {
+    const style = getComputedStyle(child)
+    if (style.position === 'sticky' && parseFloat(style.top) === 0) {
+      height = Math.max(height, child.getBoundingClientRect().height)
+    }
+  }
+  return height
+}
+
 /**
  * Same, for a list that lives inside a scroll container rather than the document — Mantine's
  * `Modal.content` carries the `overflow-y`, so `useScrollIntoView` would animate the window and do
  * nothing. The native call walks up to the nearest scrollable ancestor, so no one has to know which
  * element that is.
+ *
+ * `scroll-margin-top` is the only offset the native call honours, and it is what keeps the first row
+ * clear of the sticky `Modal.Header` — the container top and the visible top are not the same line.
  */
 export function useScrollToListTopWithinContainer() {
   const reduceMotion = useReducedMotion()
   const listTopRef = useRef<HTMLDivElement>(null)
 
   const scrollToListTop = useCallback(() => {
-    listTopRef.current?.scrollIntoView({
+    const listTop = listTopRef.current
+    if (!listTop) return
+
+    const container = scrollableAncestor(listTop)
+    listTop.style.scrollMarginTop = container ? `${stickyHeaderHeight(container)}px` : ''
+
+    listTop.scrollIntoView({
       block: 'start',
       behavior: reduceMotion ? 'auto' : 'smooth',
     })
