@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { BrowserRouter } from 'react-router-dom'
+import { BrowserRouter, unstable_HistoryRouter as HistoryRouter } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Center, Loader, Stack, Text } from '@mantine/core'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
@@ -7,6 +7,7 @@ import { AppRoutes } from './config/RouteGenerator'
 import { useAuthStore } from './store/authStore'
 import { useAuth } from './hooks/useAuth'
 import { prefetchCommonRoutes } from './lib/prefetch'
+import { getPinnedHistory } from './config/pinnedHistory'
 
 function App() {
   const isInitialized = useAuthStore((state) => state.isInitialized)
@@ -14,6 +15,11 @@ function App() {
   const { t } = useTranslation()
   // useAuth triggers the /me query and sets isLoading to false when done
   const { isLoading } = useAuth()
+
+  // Resolve the pinned-team history lazily here (not at module load): /api/config is only ready by
+  // the time this renders. Memoized inside getPinnedHistory(), so it's a stable singleton. Null on
+  // normal hosts → plain BrowserRouter.
+  const pinnedHistory = getPinnedHistory()
 
   // Initialize auth on mount
   useEffect(() => {
@@ -41,9 +47,15 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
+      {pinnedHistory ? (
+        <HistoryRouter history={pinnedHistory}>
+          <AppRoutes />
+        </HistoryRouter>
+      ) : (
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      )}
     </ErrorBoundary>
   )
 }

@@ -25,10 +25,18 @@ public class ConfigService {
 
   private @Nullable String pinnedTeamSlug(ResolvedSite site) {
     Long pinnedTeamId = site.pinnedTeamId();
-    if (pinnedTeamId == null) {
-      return null;
+    if (pinnedTeamId != null) {
+      // Pinned alias: guard against a soft-deleted pinned team, fall back to no pinning.
+      return teamRepository.findActiveById(pinnedTeamId).map(t -> t.getSlug()).orElse(null);
     }
-    // Guard against a soft-deleted pinned team: fall back to no pinning.
-    return teamRepository.findActiveById(pinnedTeamId).map(t -> t.getSlug()).orElse(null);
+    if (site.singleTeam()) {
+      // Native single-team domain: no explicit pin, but the site still roots on its one team, so
+      // expose its slug too. The frontend treats both modes identically (clean team-rooted URLs).
+      return teamRepository
+          .findFirstByDomain(site.domain().getId())
+          .map(t -> t.getSlug())
+          .orElse(null);
+    }
+    return null;
   }
 }

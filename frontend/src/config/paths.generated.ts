@@ -293,23 +293,28 @@ export const paths = {
       default: return `/teams/${teamSlug}/classifieds/${adSlug}/edit`
     }
   },
-  admin: () => '/admin',
+  admin: () => {
+    switch (getCurrentLocale()) {
+      case 'fr': return '/plateforme'
+      default: return '/platform'
+    }
+  },
   adminDomains: () => {
     switch (getCurrentLocale()) {
-      case 'fr': return '/admin/domaines'
-      default: return '/admin/domains'
+      case 'fr': return '/plateforme/domaines'
+      default: return '/platform/domains'
     }
   },
   adminTeams: () => {
     switch (getCurrentLocale()) {
-      case 'fr': return '/admin/equipes'
-      default: return '/admin/teams'
+      case 'fr': return '/plateforme/equipes'
+      default: return '/platform/teams'
     }
   },
   adminUsers: () => {
     switch (getCurrentLocale()) {
-      case 'fr': return '/admin/utilisateurs'
-      default: return '/admin/users'
+      case 'fr': return '/plateforme/utilisateurs'
+      default: return '/platform/users'
     }
   },
 } as const
@@ -366,8 +371,8 @@ export const pathVariants = {
   adNew: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/classifieds/new`, fr: `/equipes/${teamSlug}/annonces/nouvelle` }),
   ad: (teamSlug: string, adSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/classifieds/${adSlug}`, fr: `/equipes/${teamSlug}/annonces/${adSlug}` }),
   adEdit: (teamSlug: string, adSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/classifieds/${adSlug}/edit`, fr: `/equipes/${teamSlug}/annonces/${adSlug}/modifier` }),
-  admin: (): Record<Locale, string> => ({ en: '/admin', fr: '/admin' }),
-  adminDomains: (): Record<Locale, string> => ({ en: '/admin/domains', fr: '/admin/domaines' }),
-  adminTeams: (): Record<Locale, string> => ({ en: '/admin/teams', fr: '/admin/equipes' }),
-  adminUsers: (): Record<Locale, string> => ({ en: '/admin/users', fr: '/admin/utilisateurs' }),
+  admin: (): Record<Locale, string> => ({ en: '/platform', fr: '/plateforme' }),
+  adminDomains: (): Record<Locale, string> => ({ en: '/platform/domains', fr: '/plateforme/domaines' }),
+  adminTeams: (): Record<Locale, string> => ({ en: '/platform/teams', fr: '/plateforme/equipes' }),
+  adminUsers: (): Record<Locale, string> => ({ en: '/platform/users', fr: '/plateforme/utilisateurs' }),
 } as const

@@ -444,23 +444,25 @@ routes:
     web: true
 
   # --- Platform admin ---
+  # Kept off "/admin" so that on a pinned single-team host the clean "/admin"
+  # URL maps to that team's admin (see frontend/src/config/pinnedHistory.ts).
   - id: admin
     path:
-      en: /admin
-      fr: /admin
+      en: /platform
+      fr: /plateforme
     web: true
   - id: adminDomains
     path:
-      en: /admin/domains
-      fr: /admin/domaines
+      en: /platform/domains
+      fr: /plateforme/domaines
     web: true
   - id: adminTeams
     path:
-      en: /admin/teams
-      fr: /admin/equipes
+      en: /platform/teams
+      fr: /plateforme/equipes
     web: true
   - id: adminUsers
     path:
-      en: /admin/users
-      fr: /admin/utilisateurs
+      en: /platform/users
+      fr: /plateforme/utilisateurs
     web: true

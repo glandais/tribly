@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 /**
  * Hook that redirects to the canonical path if it differs from the current URL.
@@ -18,6 +18,7 @@ import { useNavigate } from 'react-router-dom'
  */
 export function useCanonicalPath(canonicalPath: string | undefined | null): void {
   const navigate = useNavigate()
+  const location = useLocation()
   const checkedRef = useRef(false)
 
   useEffect(() => {
@@ -26,9 +27,12 @@ export function useCanonicalPath(canonicalPath: string | undefined | null): void
 
     checkedRef.current = true
 
-    if (canonicalPath !== window.location.pathname) {
+    // Compare against the router pathname, not window.location: on a pinned single-team host the
+    // address bar is the stripped path while canonicalPath (from paths.xxx()) is prefixed, so a raw
+    // window.location comparison would always mismatch and force a spurious redirect.
+    if (canonicalPath !== location.pathname) {
       // Keep the query string: it carries the page's filters.
-      navigate(canonicalPath + window.location.search + window.location.hash, { replace: true })
+      navigate(canonicalPath + location.search + location.hash, { replace: true })
     }
-  }, [canonicalPath, navigate])
+  }, [canonicalPath, navigate, location.pathname, location.search, location.hash])
 }

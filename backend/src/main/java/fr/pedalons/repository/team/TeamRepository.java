@@ -39,6 +39,14 @@ public class TeamRepository implements BaseRepository<Team> {
     return count("domain.id = ?1 and deleted = false", domainId) > 0;
   }
 
+  /**
+   * The single active team of a single-team domain (at most one can exist there). Ordered by id for
+   * a deterministic result should stale data leave more than one.
+   */
+  public Optional<Team> findFirstByDomain(Long domainId) {
+    return find("domain.id = ?1 and deleted = false order by id", domainId).firstResultOptional();
+  }
+
   public PedalonsPage<TeamAndRole> find(TeamQuery teamQuery) {
     return find(teamQuery, true);
   }
