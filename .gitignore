@@ -71,6 +71,9 @@ frontend/stats.html
 
 data/storage/*
 !data/storage/.gitkeep
+# gpx2web tile + elevation cache — regenerable, but expensive to refill
+data/cache/*
+!data/cache/.gitkeep
 data/segments4/*
 !data/segments4/.gitkeep
 !data/segments4/*.sh

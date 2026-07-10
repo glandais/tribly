@@ -44,6 +44,9 @@ services:
     volumes:
       - ./data/storage:/mnt/storage
       - ./data/keys:/mnt/keys:ro
+      # gpx2web's tile + elevation cache (DATA_CACHE_PATH). Shared with backend-restore, and kept
+      # outside the container so it outlives `down`.
+      - ./data/cache:/mnt/cache
     labels:
       - "traefik.enable=true"
       - "traefik.stack=${ENV_NAME}"
@@ -85,6 +88,7 @@ services:
     volumes:
       - ./data/storage:/mnt/storage
       - ./data/keys:/mnt/keys:ro
+      - ./data/cache:/mnt/cache
       - ../biketeam-backup:/mnt/biketeam:ro
     labels:
       - "traefik.enable=false"
