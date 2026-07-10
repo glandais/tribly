@@ -94,6 +94,7 @@ export 'models/gps_o_auth_url_response.dart';
 export 'models/gps_service_connection_dto.dart';
 export 'models/gps_service_type.dart';
 export 'models/gpx_preview_dto.dart';
+export 'models/gpx_preview_update_request.dart';
 export 'models/group_request.dart';
 export 'models/hilliness.dart';
 export 'models/instant.dart';

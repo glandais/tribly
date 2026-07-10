@@ -997,6 +997,12 @@
   "gpxTools.preview.delete": "Delete",
   "gpxTools.preview.deleteConfirm": "Really delete this file? The link will stop working.",
   "gpxTools.preview.deleted": "File deleted",
+  "gpxTools.preview.edit": "Edit",
+  "gpxTools.edit.title": "Edit GPX file",
+  "gpxTools.edit.subtitle": "Rename the file and, if needed, redraw its track or replace it with a new GPX.",
+  "gpxTools.edit.updated": "File updated",
+  "gpxTools.edit.gpxFileHint": "Leave empty to keep the current track and only change the name.",
+  "gpxTools.edit.nameTooShort": "The name must be at least 3 characters.",
   "filters.membership.all": "All teams",
   "filters.membership.label": "Teams"
 }

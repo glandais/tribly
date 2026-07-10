@@ -9,6 +9,7 @@ import 'package:retrofit/error_logger.dart';
 
 import '../models/gps_service_type.dart';
 import '../models/gpx_preview_dto.dart';
+import '../models/gpx_preview_update_request.dart';
 import '../models/route_dto.dart';
 import '../models/route_request.dart';
 import '../models/route_upload_response.dart';
@@ -27,6 +28,23 @@ abstract class GpxPreviewsClient {
   @MultiPart()
   @POST('/api/gpx-previews')
   Future<GpxPreviewDto> createPreview({
+    @Part(name: 'gpxFile') MultipartFile? gpxFile,
+  });
+
+  /// Update an analysed GPX file.
+  ///
+  /// Rename the preview and, when a new GPX file or planner points are provided, replay the pipeline to replace its track. Only the creator may edit.
+  ///
+  /// [previewId] - Public preview identifier.
+  ///
+  /// [preview] - Name not received - field will be skipped.
+  ///
+  /// [gpxFile] - Name not received - field will be skipped.
+  @MultiPart()
+  @PUT('/api/gpx-previews/{previewId}')
+  Future<GpxPreviewDto> updatePreview({
+    @Path('previewId') required String previewId,
+    @Part(name: 'preview') GpxPreviewUpdateRequest? preview,
     @Part(name: 'gpxFile') MultipartFile? gpxFile,
   });
 

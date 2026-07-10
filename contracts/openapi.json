@@ -1617,6 +1617,27 @@
           }
         }
       },
+      "GpxPreviewUpdateRequest" : {
+        "description" : "GPX preview update request",
+        "type" : "object",
+        "required" : [ "name" ],
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "description" : "Preview name",
+            "pattern" : "\\S",
+            "minLength" : 3,
+            "maxLength" : 250
+          },
+          "points" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/GeoPoint"
+            },
+            "description" : "Points from frontend routing"
+          }
+        }
+      },
       "GroupRequest" : {
         "description" : "Ride group creation request",
         "type" : "object",
@@ -7069,6 +7090,100 @@
       }
     },
     "/api/gpx-previews/{previewId}" : {
+      "put" : {
+        "summary" : "Update an analysed GPX file",
+        "description" : "Rename the preview and, when a new GPX file or planner points are provided, replay the pipeline to replace its track. Only the creator may edit.",
+        "operationId" : "updatePreview",
+        "tags" : [ "GPX previews" ],
+        "parameters" : [ {
+          "description" : "Public preview identifier",
+          "name" : "previewId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "preview" : {
+                    "$ref" : "#/components/schemas/GpxPreviewUpdateRequest"
+                  },
+                  "gpxFile" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  }
+                }
+              },
+              "encoding" : {
+                "preview" : {
+                  "contentType" : "application/json"
+                }
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Preview updated successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/GpxPreviewDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request or GPX file",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "User is not the creator",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Preview not found or expired",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      },
       "get" : {
         "summary" : "Get an analysed GPX file",
         "description" : "Anyone holding the link may read the preview: the unguessable identifier is what grants access. Creating and deleting require an account.",

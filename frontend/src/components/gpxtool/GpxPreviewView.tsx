@@ -5,6 +5,7 @@ import {
   IconArrowUp,
   IconArrowDown,
   IconDeviceMobile,
+  IconEdit,
   IconRoute,
   IconTrash,
 } from '@tabler/icons-react'
@@ -141,6 +142,17 @@ export function GpxPreviewView({ preview }: GpxPreviewViewProps) {
               ))}
             </Menu.Dropdown>
           </Menu>
+        )}
+
+        {preview.owned && (
+          <Button
+            variant="default"
+            size="sm"
+            leftSection={<IconEdit size={16} />}
+            onClick={() => navigate(paths.gpxToolsEdit(preview.id))}
+          >
+            {t('gpxTools.preview.edit')}
+          </Button>
         )}
 
         {preview.owned && (

@@ -144,6 +144,15 @@ routes:
     web: true
     mobile: false
     deeplink: false
+  - id: gpxToolsEdit
+    path:
+      en: /gpx-tools/{previewId}/edit
+      fr: /outils-gpx/{previewId}/modifier
+    params:
+      - previewId
+    web: true
+    mobile: false
+    deeplink: false
 
   # --- Teams ---
   - id: teams

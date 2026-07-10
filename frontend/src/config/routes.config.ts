@@ -127,6 +127,9 @@ const GpxToolsPage = lazy(() =>
 const GpxPreviewPage = lazy(() =>
   import('../pages/gpxtool/GpxPreviewPage').then((m) => ({ default: m.GpxPreviewPage }))
 )
+const EditGpxPreviewPage = lazy(() =>
+  import('../pages/gpxtool/EditGpxPreviewPage').then((m) => ({ default: m.EditGpxPreviewPage }))
+)
 const RoutesMapPage = lazy(() =>
   import('../pages/route/RoutesMapPage').then((m) => ({ default: m.RoutesMapPage }))
 )
@@ -218,6 +221,15 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: 'gpx-tools',
     breadcrumb: { type: 'static', i18nKey: tRegister('gpxTools.preview.title') },
+  },
+  {
+    id: 'gpx-tools-edit',
+    paths: pathVariants.gpxToolsEdit(':previewId'),
+    component: EditGpxPreviewPage,
+    // Editing is owner-only; the page itself redirects non-owners to the read view.
+    auth: 'authenticated',
+    parentId: 'gpx-tools-view',
+    breadcrumb: { type: 'static', i18nKey: tRegister('gpxTools.edit.title') },
   },
 
   // === Legal Routes ===

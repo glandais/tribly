@@ -22,6 +22,7 @@ import type {
   RouteDto,
   RouteRequest,
   RouteUploadResponse,
+  UpdatePreviewBody,
 } from '../../dto'
 
 import { axiosMutator } from '../../../lib/axiosInstance.ts'
@@ -131,6 +132,98 @@ export const useCreatePreview = <TError = ErrorType<ErrorResponse | void>, TCont
   TContext
 > => {
   return useMutation(getCreatePreviewMutationOptions(options), queryClient)
+}
+/**
+ * Rename the preview and, when a new GPX file or planner points are provided, replay the pipeline to replace its track. Only the creator may edit.
+ * @summary Update an analysed GPX file
+ */
+export const updatePreview = (
+  previewId: string,
+  updatePreviewBody: BodyType<UpdatePreviewBody>,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  const formData = new FormData()
+  if (updatePreviewBody.preview !== undefined) {
+    formData.append(`preview`, JSON.stringify(updatePreviewBody.preview))
+  }
+  if (updatePreviewBody.gpxFile !== undefined) {
+    formData.append(`gpxFile`, updatePreviewBody.gpxFile)
+  }
+
+  return axiosMutator<GpxPreviewDto>(
+    {
+      url: `/api/gpx-previews/${previewId}`,
+      method: 'PUT',
+      headers: { 'Content-Type': 'multipart/form-data' },
+      data: formData,
+      signal,
+    },
+    options
+  )
+}
+
+export const getUpdatePreviewMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updatePreview>>,
+    TError,
+    { previewId: string; data: BodyType<UpdatePreviewBody> },
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updatePreview>>,
+  TError,
+  { previewId: string; data: BodyType<UpdatePreviewBody> },
+  TContext
+> => {
+  const mutationKey = ['updatePreview']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updatePreview>>,
+    { previewId: string; data: BodyType<UpdatePreviewBody> }
+  > = (props) => {
+    const { previewId, data } = props ?? {}
+
+    return updatePreview(previewId, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type UpdatePreviewMutationResult = NonNullable<Awaited<ReturnType<typeof updatePreview>>>
+export type UpdatePreviewMutationBody = BodyType<UpdatePreviewBody>
+export type UpdatePreviewMutationError = ErrorType<ErrorResponse>
+
+/**
+ * @summary Update an analysed GPX file
+ */
+export const useUpdatePreview = <TError = ErrorType<ErrorResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updatePreview>>,
+      TError,
+      { previewId: string; data: BodyType<UpdatePreviewBody> },
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof updatePreview>>,
+  TError,
+  { previewId: string; data: BodyType<UpdatePreviewBody> },
+  TContext
+> => {
+  return useMutation(getUpdatePreviewMutationOptions(options), queryClient)
 }
 /**
  * Anyone holding the link may read the preview: the unguessable identifier is what grants access. Creating and deleting require an account.

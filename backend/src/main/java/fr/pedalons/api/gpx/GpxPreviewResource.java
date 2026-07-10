@@ -4,6 +4,7 @@ import fr.pedalons.common.exception.BusinessException;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.dto.gps.response.RouteUploadResponse;
+import fr.pedalons.dto.gpx.request.GpxPreviewUpdateRequest;
 import fr.pedalons.dto.gpx.response.GpxPreviewDto;
 import fr.pedalons.dto.routes.request.RouteRequest;
 import fr.pedalons.dto.routes.response.RouteDto;
@@ -24,6 +25,7 @@ import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.jboss.resteasy.reactive.PartType;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 import org.jspecify.annotations.Nullable;
@@ -100,6 +102,47 @@ public class GpxPreviewResource {
       @Parameter(description = "Public preview identifier") @PathParam("previewId")
           String previewId) {
     return gpxPreviewService.getPreview(previewId);
+  }
+
+  @PUT
+  @Path("/{previewId}")
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Operation(
+      summary = "Update an analysed GPX file",
+      description =
+          "Rename the preview and, when a new GPX file or planner points are provided, replay the"
+              + " pipeline to replace its track. Only the creator may edit.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Preview updated successfully",
+        content = @Content(schema = @Schema(implementation = GpxPreviewDto.class))),
+    @APIResponse(
+        responseCode = "400",
+        description = "Invalid request or GPX file",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "User is not the creator",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Preview not found or expired",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  @RolesAllowed("user")
+  public GpxPreviewDto updatePreview(
+      @Parameter(description = "Public preview identifier") @PathParam("previewId")
+          String previewId,
+      @RestForm("preview") @PartType(MediaType.APPLICATION_JSON) @Valid @NotNull
+          GpxPreviewUpdateRequest request,
+      @RestForm("gpxFile") @Nullable FileUpload gpxFile) {
+    java.nio.file.Path gpxPath = gpxFile != null ? gpxFile.filePath() : null;
+    return gpxPreviewService.updatePreview(previewId, request.name(), gpxPath, request.points());
   }
 
   @DELETE

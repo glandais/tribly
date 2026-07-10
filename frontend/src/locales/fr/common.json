@@ -997,6 +997,12 @@
   "gpxTools.preview.delete": "Supprimer",
   "gpxTools.preview.deleteConfirm": "Voulez-vous vraiment supprimer ce fichier ? Le lien ne sera plus accessible.",
   "gpxTools.preview.deleted": "Fichier supprimé",
+  "gpxTools.preview.edit": "Modifier",
+  "gpxTools.edit.title": "Modifier le fichier GPX",
+  "gpxTools.edit.subtitle": "Renommez le fichier et, si besoin, redessinez son tracé ou remplacez-le par un nouveau GPX.",
+  "gpxTools.edit.updated": "Fichier mis à jour",
+  "gpxTools.edit.gpxFileHint": "Laissez vide pour conserver le tracé actuel et ne modifier que le nom.",
+  "gpxTools.edit.nameTooShort": "Le nom doit contenir au moins 3 caractères.",
   "filters.membership.all": "Toutes les équipes",
   "filters.membership.label": "Équipes"
 }

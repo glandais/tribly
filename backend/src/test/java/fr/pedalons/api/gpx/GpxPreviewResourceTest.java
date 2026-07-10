@@ -180,6 +180,96 @@ class GpxPreviewResourceTest extends AbstractResourceTest {
         .statusCode(403);
   }
 
+  // ==================== Update ====================
+
+  @Test
+  void updatePreview_asCreator_shouldRename() {
+    String previewId = createPreview(USER1);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .multiPart("preview", "{\"name\":\"Renamed preview\"}", MediaType.APPLICATION_JSON)
+        .when()
+        .put("/api/gpx-previews/" + previewId)
+        .then()
+        .statusCode(200)
+        .body("id", equalTo(previewId))
+        .body("name", equalTo("Renamed preview"))
+        .body("owned", equalTo(true))
+        .body("tracks", not(empty()));
+  }
+
+  @Test
+  void updatePreview_withNewGpx_shouldReplaceTrackAndRecomputeMetrics() {
+    String previewId = createPreview(USER1);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .multiPart("preview", "{\"name\":\"Replaced track\"}", MediaType.APPLICATION_JSON)
+        .multiPart("gpxFile", EXAMPLE_GPX, "application/gpx+xml")
+        .when()
+        .put("/api/gpx-previews/" + previewId)
+        .then()
+        .statusCode(200)
+        .body("name", equalTo("Replaced track"))
+        .body("distance", greaterThan(0.0f))
+        .body("tracks", not(empty()));
+  }
+
+  @Test
+  void updatePreview_asNonCreator_shouldReturn403() {
+    String previewId = createPreview(USER1);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER4))
+        .multiPart("preview", "{\"name\":\"Hijacked\"}", MediaType.APPLICATION_JSON)
+        .when()
+        .put("/api/gpx-previews/" + previewId)
+        .then()
+        .statusCode(403);
+  }
+
+  @Test
+  void updatePreview_withoutAuth_shouldReturn401() {
+    String previewId = createPreview(USER1);
+
+    given()
+        .multiPart("preview", "{\"name\":\"Anonymous\"}", MediaType.APPLICATION_JSON)
+        .when()
+        .put("/api/gpx-previews/" + previewId)
+        .then()
+        .statusCode(401);
+  }
+
+  @Test
+  void updatePreview_withUnknownId_shouldReturn404() {
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .multiPart("preview", "{\"name\":\"Nowhere\"}", MediaType.APPLICATION_JSON)
+        .when()
+        .put("/api/gpx-previews/" + UUID.randomUUID())
+        .then()
+        .statusCode(404);
+  }
+
+  @Test
+  void updatePreview_withTooShortName_shouldReturn400() {
+    String previewId = createPreview(USER1);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .multiPart("preview", "{\"name\":\"ab\"}", MediaType.APPLICATION_JSON)
+        .when()
+        .put("/api/gpx-previews/" + previewId)
+        .then()
+        .statusCode(400);
+  }
+
   // ==================== Save as route ====================
 
   @Test

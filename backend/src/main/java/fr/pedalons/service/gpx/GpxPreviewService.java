@@ -1,5 +1,6 @@
 package fr.pedalons.service.gpx;
 
+import fr.pedalons.common.GeoPoint;
 import fr.pedalons.common.exception.BusinessException;
 import fr.pedalons.common.exception.ForbiddenException;
 import fr.pedalons.common.exception.NotFoundException;
@@ -41,6 +42,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 import org.jboss.logging.Logger;
+import org.jspecify.annotations.Nullable;
 
 /**
  * GPX previews: files uploaded through the GPX tools page, analysed and rendered without ever
@@ -98,27 +100,8 @@ public class GpxPreviewService {
       upload(publicId, ORIGINAL_GPX, computed.originalGpx());
       upload(publicId, FILTERED_GPX, computed.filteredGpx());
 
-      tracks =
-          computed.tracks().stream()
-              .map(
-                  t ->
-                      new PreviewTrack(
-                          t.name(),
-                          t.trackPoints(),
-                          t.climbs(),
-                          t.metadata().distance(),
-                          t.metadata().elevationGain(),
-                          t.metadata().elevationLoss()))
-              .toList();
-      waypoints =
-          computed.waypoints().stream()
-              .map(
-                  w ->
-                      new PreviewWaypoint(
-                          w.name(),
-                          w.location().getPosition().getLat(),
-                          w.location().getPosition().getLon()))
-              .toList();
+      tracks = toPreviewTracks(computed);
+      waypoints = toPreviewWaypoints(computed);
       metadata = computed.aggregated();
     } catch (IOException e) {
       deleteFiles(publicId);
@@ -156,6 +139,69 @@ public class GpxPreviewService {
   @Logged
   public GpxPreviewDto createPreview(Path gpxPath, String fallbackName) {
     return toDto(create(gpxPath, fallbackName));
+  }
+
+  /**
+   * Renames a preview and, when a new GPX file or planner points are supplied, replays the full
+   * pipeline to recompute its track and overwrite the stored files. Only the creator may edit.
+   *
+   * <p>Like {@link #create}, the heavy work (pipeline + S3) runs with no DB connection held; only
+   * the final reload-and-mutate opens a transaction. The DTO is built inside that transaction so the
+   * lazy {@code createdBy} association resolves while the session is open.
+   */
+  @Logged
+  public GpxPreviewDto updatePreview(
+      String publicId, String name, @Nullable Path gpxPath, @Nullable List<GeoPoint> points) {
+    GpxPreview preview = getByPublicId(publicId);
+    if (!preview.getCreatedBy().getId().equals(pedalonsContext.getUserId())) {
+      throw new ForbiddenException();
+    }
+    UUID pid = preview.getPublicId();
+
+    GPX gpx = null;
+    if (gpxPath != null) {
+      gpx = gpxProcessingService.parseGpx(gpxPath);
+    } else if (points != null && !points.isEmpty()) {
+      gpx = gpxProcessingService.fromPoints(name, points);
+    }
+
+    if (gpx == null) {
+      // Rename only: nothing to recompute.
+      return QuarkusTransaction.requiringNew()
+          .call(
+              () -> {
+                GpxPreview managed = getByPublicId(publicId);
+                managed.setName(truncateName(name));
+                return toDto(managed);
+              });
+    }
+
+    List<PreviewTrack> tracks;
+    List<PreviewWaypoint> waypoints;
+    TrackMetadata metadata;
+    try (ComputedGpx computed = gpxProcessingService.computeGpx(gpx)) {
+      upload(pid, ORIGINAL_GPX, computed.originalGpx());
+      upload(pid, FILTERED_GPX, computed.filteredGpx());
+      tracks = toPreviewTracks(computed);
+      waypoints = toPreviewWaypoints(computed);
+      metadata = computed.aggregated();
+    } catch (IOException e) {
+      throw new BusinessException(ErrorCode.GPX_FAILURE, e);
+    }
+
+    return QuarkusTransaction.requiringNew()
+        .call(
+            () -> {
+              GpxPreview managed = getByPublicId(publicId);
+              managed.setName(truncateName(name));
+              managed.setDistance(metadata.distance());
+              managed.setElevationGain(metadata.elevationGain());
+              managed.setElevationLoss(metadata.elevationLoss());
+              managed.setHilliness(metadata.hilliness());
+              managed.setTracks(tracks);
+              managed.setWaypoints(waypoints);
+              return toDto(managed);
+            });
   }
 
   /**
@@ -293,5 +339,30 @@ public class GpxPreviewService {
 
   private static String truncateName(String name) {
     return name.length() <= 250 ? name : name.substring(0, 250);
+  }
+
+  private static List<PreviewTrack> toPreviewTracks(ComputedGpx computed) {
+    return computed.tracks().stream()
+        .map(
+            t ->
+                new PreviewTrack(
+                    t.name(),
+                    t.trackPoints(),
+                    t.climbs(),
+                    t.metadata().distance(),
+                    t.metadata().elevationGain(),
+                    t.metadata().elevationLoss()))
+        .toList();
+  }
+
+  private static List<PreviewWaypoint> toPreviewWaypoints(ComputedGpx computed) {
+    return computed.waypoints().stream()
+        .map(
+            w ->
+                new PreviewWaypoint(
+                    w.name(),
+                    w.location().getPosition().getLat(),
+                    w.location().getPosition().getLon()))
+        .toList();
   }
 }
