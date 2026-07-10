@@ -206,6 +206,13 @@ public class BiketeamReader {
   private static final String TEAM_COLUMNS =
       "id, name, city, country, created_at, visibility, deletion";
 
+  /**
+   * Biketeam breaks ties on the name with {@code String::compareTo}, i.e. code point order. The
+   * dump's {@code en_US.utf8} would instead sort accents and case linguistically, so the collation
+   * is pinned rather than inherited: {@code "C"} compares UTF-8 bytes, which is the same order.
+   */
+  private static final String BY_NAME = "name COLLATE \"C\" ASC";
+
   /** Every live team, oldest id first — the source set when no single team is configured. */
   public List<BtTeam> findAllTeams() {
     return many(
@@ -417,12 +424,13 @@ public class BiketeamReader {
     }
     String placeholders = String.join(",", rideIds.stream().map(x -> "?").toList());
     String sql =
-        // Biketeam has no explicit group order. Sort them the way a rider reads a ride sheet:
-        // earliest departure first, then by name. `id` only breaks ties, to keep replays stable.
+        // Reproduces biketeam's Ride.getSortedGroups(), which is what ride.ftlh displays.
         "SELECT id, ride_id, name, average_speed, meeting_time, map_id"
             + " FROM ride_group WHERE ride_id IN ("
             + placeholders
-            + ") ORDER BY ride_id, meeting_time ASC NULLS LAST, name ASC, id ASC";
+            + ") ORDER BY ride_id, meeting_time ASC NULLS LAST, "
+            + BY_NAME
+            + ", id ASC";
     return many(
         sql,
         ps -> {
@@ -482,10 +490,14 @@ public class BiketeamReader {
     }
     String placeholders = String.join(",", templateIds.stream().map(x -> "?").toList());
     String sql =
+        // Reproduces biketeam's RideTemplate.getSortedGroups(), which — unlike Ride's — orders on
+        // the name alone, ignoring the meeting time.
         "SELECT id, ride_template_id, name, average_speed, meeting_time"
             + " FROM ride_group_template WHERE ride_template_id IN ("
             + placeholders
-            + ")";
+            + ") ORDER BY ride_template_id, "
+            + BY_NAME
+            + ", id ASC";
     return many(
         sql,
         ps -> {
@@ -535,11 +547,14 @@ public class BiketeamReader {
     }
     String placeholders = String.join(",", tripIds.stream().map(x -> "?").toList());
     String sql =
-        // `ORDER BY id` sorted stages by random UUID. Chronological is the only order that means
-        // anything for a trip; `name` then `id` break ties, the latter to keep replays stable.
+        // Reproduces biketeam's Trip.getSortedStages(), which is what trip.ftlh displays. The
+        // `ORDER BY id` this replaces came from the `@OrderBy("id ASC")` on Trip.stages, a random
+        // UUID order that biketeam itself never showed.
         "SELECT id, trip_id, date, name, map_id, alternative FROM trip_stage WHERE trip_id IN ("
             + placeholders
-            + ") ORDER BY trip_id, date ASC NULLS LAST, name ASC, id ASC";
+            + ") ORDER BY trip_id, date ASC NULLS LAST, "
+            + BY_NAME
+            + ", id ASC";
     return many(
         sql,
         ps -> {

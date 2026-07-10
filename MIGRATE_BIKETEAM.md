@@ -72,10 +72,23 @@ signature for FIT, so it falls back to the extension and **accepts** the upload.
 
 ## Ordering of groups and stages
 
-Biketeam stores no order for a ride's groups, and sorted a trip's stages by their (random) UUID.
-Tribly's `sortOrder` is the index in the request list, so the reader sorts both by departure time
-first, then by name, with `id` breaking ties so replays stay stable. Nothing sorts them in
-`RideService`/`TripService`, where `sortOrder` belongs to whoever arranged them in the UI.
+Biketeam stores no order: it sorts in Java, at render time. The reader reproduces those comparators
+so tribly's `sortOrder` — the index in the request list — matches what biketeam displayed.
+
+| Read by the migration | Biketeam's comparator | Shown by |
+|---|---|---|
+| `ride_group` | `Ride.getSortedGroups()` — meeting time, then name | `ride.ftlh` |
+| `trip_stage` | `Trip.getSortedStages()` — date, then name | `trip.ftlh` |
+| `ride_group_template` | `RideTemplate.getSortedGroups()` — **name alone**, no time | admin form |
+
+The name is compared with `COLLATE "C"`, not the dump's `en_US.utf8`: biketeam uses
+`String::compareTo`, which is code point order, and `"C"` is the only collation that reproduces it
+whatever locale the database was created with. Verified against the 2026-07 dump — the two orders
+agree on all 849 rides, 152 trips and 26 templates. `id` breaks exact ties, where biketeam sorts a
+`HashSet` and has no defined order of its own.
+
+Nothing sorts in `RideService`/`TripService`: there, `sortOrder` is the order a human dragged them
+into.
 
 ## Which teams get migrated
 
