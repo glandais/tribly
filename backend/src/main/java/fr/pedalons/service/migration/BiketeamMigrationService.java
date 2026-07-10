@@ -179,8 +179,12 @@ public class BiketeamMigrationService {
   @Inject PostService postService;
   @Inject AssetService assetService;
 
-  /** Entry point — request scope is activated manually so service-side {@code @CheckAccess} works. */
-  public void run() throws Exception {
+  /**
+   * Entry point — request scope is activated manually so service-side {@code @CheckAccess} works.
+   *
+   * @return how many teams failed; 0 when every one of them made it through
+   */
+  public int run() throws Exception {
     reader.verifyConnectivity();
 
     ManagedContext requestContext = Arc.container().requestContext();
@@ -190,7 +194,7 @@ public class BiketeamMigrationService {
       activated = true;
     }
     try {
-      runWithinRequest();
+      return runWithinRequest();
     } finally {
       if (activated) {
         requestContext.terminate();
@@ -198,7 +202,7 @@ public class BiketeamMigrationService {
     }
   }
 
-  private void runWithinRequest() {
+  private int runWithinRequest() {
     // The domain and its PLATFORM_ADMIN belong to the bootstrap; the migration only consumes them.
     BootstrapService.Identity identity = bootstrapService.ensureDomainAndAdmin();
     Domain domain = identity.domain();
@@ -223,6 +227,7 @@ public class BiketeamMigrationService {
     if (failed > 0) {
       LOG.warnf("%d of %d teams failed to migrate", failed, sourceTeams.size());
     }
+    return failed;
   }
 
   /** The configured team, or every live one when {@code team-id} is absent. */

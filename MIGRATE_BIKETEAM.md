@@ -41,15 +41,20 @@ first — the migration code only exists in a locally built image:
 
 ./build.sh
 
+The migration runs once on boot and then stops the application, so the container exits on its own.
+Run it in the foreground to get the logs and the exit code — 0 when every team made it through,
+1 when any of them failed:
+
+docker compose --profile restore run --rm backend-restore
+
+Or detached, if you would rather not hold the terminal for an hour:
+
 docker compose --profile restore up -d backend-restore
 docker compose logs -f backend-restore
 
-The migration runs once on boot; the container then keeps running as an idle Quarkus
-app. Stop it yourself once the logs show `Biketeam migration completed`:
-
-docker compose --profile restore down backend-restore
-
-Config lives in the `backend-restore` service in docker-compose.yml.
+Config lives in the `backend-restore` service in docker-compose.yml. Set
+`PEDALONS_MIGRATION_BIKETEAM_EXIT_WHEN_DONE=false` to keep the application up afterwards; `%dev`
+already does, since there the migration is a step of a server you asked to keep running.
 
 ## Replaying
 

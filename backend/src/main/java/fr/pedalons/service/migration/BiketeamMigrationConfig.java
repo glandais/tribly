@@ -16,6 +16,11 @@ public class BiketeamMigrationConfig {
   @ConfigProperty(name = "pedalons.migration.biketeam.enabled", defaultValue = "false")
   boolean enabled;
 
+  /** Stop the application once the migration is done. Turned off under {@code %dev}, where the
+   * migration is a step of a running dev server rather than a one-shot container. */
+  @ConfigProperty(name = "pedalons.migration.biketeam.exit-when-done", defaultValue = "true")
+  boolean exitWhenDone;
+
   /**
    * The single biketeam team to migrate; every team is migrated when absent. Biketeam team ids are
    * already slugs, so this doubles as the target tribly team slug.
