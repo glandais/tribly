@@ -5,60 +5,63 @@ description: Generate OpenAPI contract from backend and regenerate frontend/mobi
 
 # Contract-First API Workflow
 
-Run this skill after modifying backend REST resources or DTOs to sync the OpenAPI contract and regenerate clients.
+Run this skill after modifying backend REST resources or DTOs to sync the OpenAPI contract and regenerate the frontend/mobile clients.
 
-## Steps
+## One-shot (preferred)
+
+The repo root has `regenerate.sh`, which runs the whole chain end-to-end and fails fast (`set -e`):
+
+```bash
+bash regenerate.sh
+```
+
+It performs, in order:
+1. `cd backend && mvn clean package -DskipTests` — generates `contracts/openapi.{yaml,json}`
+2. `cd frontend && pnpm check` — see below
+3. `cd mobile && bash check.sh` — see below
+
+Prefer this over running the steps by hand so nothing drifts out of sync.
+
+## Steps (what the scripts do)
 
 ### 1. Generate OpenAPI Contract
 
 ```bash
-cd backend && mvn package -DskipTests
+cd backend && mvn clean package -DskipTests
 ```
 
-This generates:
-- `contracts/openapi.yaml`
-- `contracts/openapi.json`
+Generates `contracts/openapi.yaml` and `contracts/openapi.json`.
 
-### 2. Regenerate Frontend Client
+### 2. Regenerate Frontend Client — `pnpm check`
 
 ```bash
-cd frontend && pnpm generate-api
+cd frontend && pnpm check
 ```
 
-This runs Orval to generate:
-- `src/api/dto/` - TypeScript DTOs
-- `src/api/endpoints/` - API functions
-- `src/api/zod/` - Zod validation schemas
+`pnpm check` expands to: `pnpm install && pnpm generate-api && pnpm generate-routes && pnpm format && pnpm typecheck && pnpm lint && pnpm build`.
 
-Then verify no TypeScript errors:
+- `generate-api` runs Orval → `src/api/dto/`, `src/api/endpoints/`, `src/api/zod/`
+- `generate-routes` regenerates the UI routes contract (`paths.generated.*`, AASA, deeplinks) from `contracts/routes.yaml` — **don't skip this**; it's part of the contract surface
+- `typecheck` (`tsgo -b`) is the real type gate — not `build`
+
+### 3. Regenerate Mobile Client — `check.sh`
 
 ```bash
-cd frontend && pnpm build
+cd mobile && bash check.sh
 ```
 
-### 3. Regenerate Mobile Client
+`check.sh` runs: `flutter pub get && dart run openapi_retrofit_generator && dart run build_runner build && flutter analyze`.
 
-```bash
-cd mobile && dart run openapi_retrofit_generator && dart run build_runner build
-```
-
-This generates:
-- `lib/api/generated/clients/` - Retrofit API clients
-- `lib/api/generated/models/` - Freezed DTOs
-
-Then verify no Dart errors:
-
-```bash
-cd mobile && flutter analyze
-```
+- Generates `lib/api/generated/clients/` (Retrofit) and `lib/api/generated/models/` (Freezed)
+- `flutter analyze` verifies no Dart errors
 
 ## After Running
 
-1. Report any errors from the generation or verification steps
-2. If there are TypeScript or Dart errors, help fix them
+1. Report any errors from the generation or verification steps.
+2. If there are TypeScript or Dart errors, help fix them.
 
 ## Common Issues
 
 - **Empty schemas in OpenAPI**: Missing `@Schema(implementation = ...)` in `@APIResponse` annotations
-- **Orval errors**: Usually caused by invalid OpenAPI spec - check backend annotations
+- **Orval errors**: Usually caused by an invalid OpenAPI spec — check backend annotations
 - **Mobile build_runner conflicts**: `build_runner build` deletes conflicting outputs by default (the old `--delete-conflicting-outputs` flag was removed in build_runner 2.5.0)

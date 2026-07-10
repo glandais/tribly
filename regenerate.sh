@@ -1,3 +1,5 @@
+set -e
+
 cd backend
 mvn clean package -DskipTests
 cd ../frontend
