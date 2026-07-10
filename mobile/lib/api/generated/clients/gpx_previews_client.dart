@@ -9,6 +9,8 @@ import 'package:retrofit/error_logger.dart';
 
 import '../models/gps_service_type.dart';
 import '../models/gpx_preview_dto.dart';
+import '../models/gpx_preview_from_points_request.dart';
+import '../models/gpx_preview_list_response.dart';
 import '../models/gpx_preview_update_request.dart';
 import '../models/route_dto.dart';
 import '../models/route_request.dart';
@@ -20,6 +22,19 @@ part 'gpx_previews_client.g.dart';
 abstract class GpxPreviewsClient {
   factory GpxPreviewsClient(Dio dio, {String? baseUrl}) = _GpxPreviewsClient;
 
+  /// List the current user's analysed GPX files.
+  ///
+  /// Returns the current user's previews still within the 30-day retention window, most recent first.
+  ///
+  /// [page] - Zero-based page number.
+  ///
+  /// [size] - Page size.
+  @GET('/api/gpx-previews')
+  Future<GpxPreviewListResponse> listMyPreviews({
+    @Query('page') int? page = 0,
+    @Query('size') int? size = 20,
+  });
+
   /// Analyse a GPX file.
   ///
   /// Uploads a GPX file, runs the elevation and climb pipeline, and stores the result under an unguessable identifier for 30 days.
@@ -29,6 +44,16 @@ abstract class GpxPreviewsClient {
   @POST('/api/gpx-previews')
   Future<GpxPreviewDto> createPreview({
     @Part(name: 'gpxFile') MultipartFile? gpxFile,
+  });
+
+  /// Create an analysed GPX file from planner points.
+  ///
+  /// Builds a preview from a route drawn with the planner (no GPX file), runs the elevation and climb pipeline, and stores the result under an unguessable identifier for 30 days.
+  ///
+  /// [body] - Name not received - field will be skipped.
+  @POST('/api/gpx-previews/from-points')
+  Future<GpxPreviewDto> createPreviewFromPoints({
+    @Body() required GpxPreviewFromPointsRequest body,
   });
 
   /// Update an analysed GPX file.

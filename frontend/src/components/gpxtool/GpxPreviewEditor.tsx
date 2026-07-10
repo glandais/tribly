@@ -10,6 +10,8 @@ interface GpxPreviewEditorProps {
   initialName: string
   /** Existing track ([lng, lat, ele, dist][]); enables the planner when the preview has one track. */
   initialTrack?: number[][]
+  /** Create-from-scratch: planner on an empty map, no GPX upload, no source toggle. */
+  create?: boolean
   onSubmit: (name: string, points?: GeoPoint[], gpxFile?: File) => void | Promise<void>
   onCancel: () => void
   isPending: boolean
@@ -19,10 +21,14 @@ interface GpxPreviewEditorProps {
  * Editor for a GPX preview: rename it and, optionally, redraw its track with the planner or replace
  * it with a fresh GPX upload. A lighter cousin of {@link RouteEditor} — a preview has no team, media,
  * surface type or visibility, so only the name and the track are editable.
+ *
+ * <p>In {@code create} mode there is no existing preview: the planner starts on an empty map and is
+ * the only source (no GPX upload, no toggle), so the caller gets planner points back.
  */
 export function GpxPreviewEditor({
   initialName,
   initialTrack,
+  create = false,
   onSubmit,
   onCancel,
   isPending,
@@ -30,7 +36,7 @@ export function GpxPreviewEditor({
   const { t } = useTranslation()
 
   const [name, setName] = useState(initialName)
-  const canUsePlanner = !!initialTrack
+  const canUsePlanner = create || !!initialTrack
   const [sourceMode, setSourceMode] = useState<SourceMode>(canUsePlanner ? 'planner' : 'gpx')
   const [gpxFile, setGpxFile] = useState<File | null>(null)
   const [plannerPoints, setPlannerPoints] = useState<GeoPoint[]>([])
@@ -53,6 +59,10 @@ export function GpxPreviewEditor({
 
   const handleSubmit = async () => {
     if (!nameValid) return
+    if (create && plannerPoints.length < 2) {
+      setError(t('routes.create.validation.pointsRequired'))
+      return
+    }
     setError(null)
     const points = sourceMode === 'planner' && plannerPoints.length >= 2 ? plannerPoints : undefined
     const file = sourceMode === 'gpx' ? gpxFile || undefined : undefined
@@ -65,8 +75,9 @@ export function GpxPreviewEditor({
     <Stack>
       {error && <Alert color="red">{error}</Alert>}
 
-      {/* Track source selector — only when the preview has a single track to plan from. */}
-      {canUsePlanner && (
+      {/* Track source selector — only when editing a single-track preview; hidden when creating
+          from scratch, where the planner is the only source. */}
+      {canUsePlanner && !create && (
         <Stack gap="xs">
           <Text size="sm" fw={500}>
             {t('routes.create.form.sourceMode')}

@@ -142,6 +142,13 @@ routes:
     web: true
     mobile: false
     deeplink: false
+  - id: gpxToolsNew
+    path:
+      en: /gpx-tools/new
+      fr: /outils-gpx/nouveau
+    web: true
+    mobile: false
+    deeplink: false
   - id: gpxToolsView
     path:
       en: /gpx-tools/{previewId}

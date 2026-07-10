@@ -19,6 +19,7 @@ import type {
   ErrorResponse,
   GpsServiceType,
   GpxPreviewDto,
+  GpxPreviewFromPointsRequest,
   GpxPreviewListResponse,
   ListMyPreviewsParams,
   RouteDto,
@@ -253,6 +254,94 @@ export const useCreatePreview = <TError = ErrorType<ErrorResponse | void>, TCont
   TContext
 > => {
   return useMutation(getCreatePreviewMutationOptions(options), queryClient)
+}
+/**
+ * Builds a preview from a route drawn with the planner (no GPX file), runs the elevation and climb pipeline, and stores the result under an unguessable identifier for 30 days
+ * @summary Create an analysed GPX file from planner points
+ */
+export const createPreviewFromPoints = (
+  gpxPreviewFromPointsRequest: BodyType<GpxPreviewFromPointsRequest>,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<GpxPreviewDto>(
+    {
+      url: `/api/gpx-previews/from-points`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: gpxPreviewFromPointsRequest,
+      signal,
+    },
+    options
+  )
+}
+
+export const getCreatePreviewFromPointsMutationOptions = <
+  TError = ErrorType<ErrorResponse | void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createPreviewFromPoints>>,
+    TError,
+    { data: BodyType<GpxPreviewFromPointsRequest> },
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createPreviewFromPoints>>,
+  TError,
+  { data: BodyType<GpxPreviewFromPointsRequest> },
+  TContext
+> => {
+  const mutationKey = ['createPreviewFromPoints']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createPreviewFromPoints>>,
+    { data: BodyType<GpxPreviewFromPointsRequest> }
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return createPreviewFromPoints(data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type CreatePreviewFromPointsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createPreviewFromPoints>>
+>
+export type CreatePreviewFromPointsMutationBody = BodyType<GpxPreviewFromPointsRequest>
+export type CreatePreviewFromPointsMutationError = ErrorType<ErrorResponse | void>
+
+/**
+ * @summary Create an analysed GPX file from planner points
+ */
+export const useCreatePreviewFromPoints = <
+  TError = ErrorType<ErrorResponse | void>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof createPreviewFromPoints>>,
+      TError,
+      { data: BodyType<GpxPreviewFromPointsRequest> },
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof createPreviewFromPoints>>,
+  TError,
+  { data: BodyType<GpxPreviewFromPointsRequest> },
+  TContext
+> => {
+  return useMutation(getCreatePreviewFromPointsMutationOptions(options), queryClient)
 }
 /**
  * Rename the preview and, when a new GPX file or planner points are provided, replay the pipeline to replace its track. Only the creator may edit.

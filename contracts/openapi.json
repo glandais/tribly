@@ -1617,6 +1617,28 @@
           }
         }
       },
+      "GpxPreviewFromPointsRequest" : {
+        "description" : "GPX preview creation request from planner points",
+        "type" : "object",
+        "required" : [ "name", "points" ],
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "description" : "Preview name",
+            "pattern" : "\\S",
+            "minLength" : 3,
+            "maxLength" : 250
+          },
+          "points" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/GeoPoint"
+            },
+            "description" : "Points from frontend routing",
+            "minItems" : 1
+          }
+        }
+      },
       "GpxPreviewListResponse" : {
         "description" : "Paginated GPX preview list response",
         "type" : "object",
@@ -7184,6 +7206,62 @@
           },
           "400" : {
             "description" : "Missing, oversized or unparseable GPX file",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/gpx-previews/from-points" : {
+      "post" : {
+        "summary" : "Create an analysed GPX file from planner points",
+        "description" : "Builds a preview from a route drawn with the planner (no GPX file), runs the elevation and climb pipeline, and stores the result under an unguessable identifier for 30 days",
+        "operationId" : "createPreviewFromPoints",
+        "tags" : [ "GPX previews" ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/GpxPreviewFromPointsRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Preview created successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/GpxPreviewDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request",
             "content" : {
               "application/json" : {
                 "schema" : {

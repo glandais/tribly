@@ -90,11 +90,18 @@ public class GpxPreviewService {
    * opens a transaction.
    */
   public GpxPreview create(Path gpxPath, String fallbackName) {
+    return create(gpxProcessingService.parseGpx(gpxPath), fallbackName);
+  }
+
+  /**
+   * Shared core: analyses an already-parsed {@link GPX} (from an uploaded file or from planner
+   * points), stores it, and returns the persisted preview. See {@link #create(Path, String)} for
+   * why this is deliberately not {@code @Transactional}.
+   */
+  public GpxPreview create(GPX gpx, String fallbackName) {
     User creator = pedalonsContext.getUser();
     Domain domain = pedalonsContext.getDomain();
     UUID publicId = UUID.randomUUID();
-
-    GPX gpx = gpxProcessingService.parseGpx(gpxPath);
 
     List<PreviewTrack> tracks;
     List<PreviewWaypoint> waypoints;
@@ -142,6 +149,15 @@ public class GpxPreviewService {
   @Logged
   public GpxPreviewDto createPreview(Path gpxPath, String fallbackName) {
     return toDto(create(gpxPath, fallbackName));
+  }
+
+  /**
+   * Builds a preview from scratch from planner points (routing already done on the frontend), then
+   * runs the same elevation/climb pipeline as an uploaded file. Entry point for the API layer.
+   */
+  @Logged
+  public GpxPreviewDto createPreviewFromPoints(String name, List<GeoPoint> points) {
+    return toDto(create(gpxProcessingService.fromPoints(name, points), name));
   }
 
   /**

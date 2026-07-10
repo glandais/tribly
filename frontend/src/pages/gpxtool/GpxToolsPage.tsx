@@ -1,18 +1,20 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { IconListDetails, IconMapSearch } from '@tabler/icons-react'
+import { useQueryClient } from '@tanstack/react-query'
+import { IconListDetails, IconMapSearch, IconRoute } from '@tabler/icons-react'
 import { Button, Card, Group, SimpleGrid, Stack, Text, Title } from '@mantine/core'
-import { createPreview } from '@/api/endpoints/gpx-previews/gpx-previews'
+import { createPreview, getListMyPreviewsQueryKey } from '@/api/endpoints/gpx-previews/gpx-previews'
 import { paths } from '@/config/paths'
 
 /**
- * Hub for the GPX tools. Only "view a file" for now; the grid is where merging, URL import and
- * the empty map will land.
+ * Hub for the GPX tools: view an uploaded file, draw a route from scratch on an empty map, or
+ * browse your own previews. The grid is where further tools (merging, URL import) will land.
  */
 export function GpxToolsPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isUploading, setIsUploading] = useState(false)
 
@@ -25,6 +27,8 @@ export function GpxToolsPage() {
     setIsUploading(true)
     try {
       const preview = await createPreview({ gpxFile: file })
+      // Refresh "my files": the key prefix matches every paginated variant.
+      queryClient.invalidateQueries({ queryKey: getListMyPreviewsQueryKey() })
       navigate(paths.gpxToolsView(preview.id))
     } finally {
       setIsUploading(false)
@@ -60,6 +64,24 @@ export function GpxToolsPage() {
             />
             <Button onClick={() => fileInputRef.current?.click()} loading={isUploading}>
               {t('gpxTools.viewFile.submit')}
+            </Button>
+          </Stack>
+        </Card>
+
+        <Card withBorder padding="lg">
+          <Stack justify="space-between" h="100%">
+            <Stack gap="xs">
+              <Group gap="xs">
+                <IconRoute size={20} />
+                <Text fw={500}>{t('gpxTools.createFromScratch.title')}</Text>
+              </Group>
+              <Text size="sm" c="dimmed">
+                {t('gpxTools.createFromScratch.description')}
+              </Text>
+            </Stack>
+
+            <Button variant="default" onClick={() => navigate(paths.gpxToolsNew())}>
+              {t('gpxTools.createFromScratch.submit')}
             </Button>
           </Stack>
         </Card>

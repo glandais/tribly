@@ -103,6 +103,94 @@ export const CreatePreviewResponse = zod
   .describe('Analysed GPX file, not attached to any team')
 
 /**
+ * Builds a preview from a route drawn with the planner (no GPX file), runs the elevation and climb pipeline, and stores the result under an unguessable identifier for 30 days
+ * @summary Create an analysed GPX file from planner points
+ */
+export const createPreviewFromPointsBodyNameMin = 3
+export const createPreviewFromPointsBodyNameMax = 250
+
+export const createPreviewFromPointsBodyNameRegExp = new RegExp('\\S')
+
+export const CreatePreviewFromPointsBody = zod
+  .object({
+    name: zod
+      .string()
+      .min(createPreviewFromPointsBodyNameMin)
+      .max(createPreviewFromPointsBodyNameMax)
+      .regex(createPreviewFromPointsBodyNameRegExp)
+      .describe('Preview name'),
+    points: zod
+      .array(
+        zod.object({
+          lng: zod.number(),
+          lat: zod.number(),
+        })
+      )
+      .min(1)
+      .describe('Points from frontend routing'),
+  })
+  .describe('GPX preview creation request from planner points')
+
+export const CreatePreviewFromPointsResponse = zod
+  .object({
+    id: zod.string().describe('Public identifier used in URLs'),
+    name: zod.string().describe('Track name'),
+    distance: zod.number().describe('Distance in meters'),
+    elevationGain: zod.number().describe('Total elevation gain in meters'),
+    elevationLoss: zod.number().describe('Total elevation loss in meters'),
+    hilliness: zod.number().describe('Elevation gain per kilometer'),
+    owned: zod.boolean().describe('Whether the current user created this preview'),
+    createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
+    tracks: zod
+      .array(
+        zod
+          .object({
+            line: zod.object({
+              type: zod.enum(['LineString']),
+              coordinates: zod
+                .array(zod.array(zod.number()))
+                .describe('Array of [lon, lat] coordinates'),
+            }),
+            climbs: zod
+              .array(
+                zod
+                  .object({
+                    startDistance: zod
+                      .number()
+                      .describe('Start distance from route start in meters'),
+                    endDistance: zod.number().describe('End distance from route start in meters'),
+                    elevationGain: zod.number().describe('Elevation gain in meters'),
+                    averageGradient: zod.number().describe('Average gradient percentage'),
+                    maxGradient: zod.number().describe('Maximum gradient percentage'),
+                    category: zod
+                      .enum(['HC', 'CAT1', 'CAT2', 'CAT3', 'CAT4'])
+                      .optional()
+                      .describe('Climb category (HC, 1, 2, 3, 4)'),
+                  })
+                  .describe('Climb segment information')
+              )
+              .describe('List of climbs on the route'),
+          })
+          .describe('GPX track with track points')
+      )
+      .describe('Tracks'),
+    waypoints: zod
+      .array(
+        zod.object({
+          geometry: zod
+            .object({
+              type: zod.enum(['Point']),
+              coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+            })
+            .describe('Location coordinates [longitude, latitude]'),
+          name: zod.string().optional(),
+        })
+      )
+      .describe('Waypoints'),
+  })
+  .describe('Analysed GPX file, not attached to any team')
+
+/**
  * Rename the preview and, when a new GPX file or planner points are provided, replay the pipeline to replace its track. Only the creator may edit.
  * @summary Update an analysed GPX file
  */

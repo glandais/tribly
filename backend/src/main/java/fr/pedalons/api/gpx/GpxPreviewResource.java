@@ -4,6 +4,7 @@ import fr.pedalons.common.exception.BusinessException;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.dto.gps.response.RouteUploadResponse;
+import fr.pedalons.dto.gpx.request.GpxPreviewFromPointsRequest;
 import fr.pedalons.dto.gpx.request.GpxPreviewUpdateRequest;
 import fr.pedalons.dto.gpx.response.GpxPreviewDto;
 import fr.pedalons.dto.gpx.response.GpxPreviewListResponse;
@@ -78,6 +79,35 @@ public class GpxPreviewResource {
       throw new BusinessException(ErrorCode.FILE_TOO_LARGE);
     }
     GpxPreviewDto preview = gpxPreviewService.createPreview(gpxFile.filePath(), gpxFile.fileName());
+    return Response.status(Response.Status.CREATED).entity(preview).build();
+  }
+
+  @POST
+  @Path("/from-points")
+  @Operation(
+      summary = "Create an analysed GPX file from planner points",
+      description =
+          "Builds a preview from a route drawn with the planner (no GPX file), runs the elevation"
+              + " and climb pipeline, and stores the result under an unguessable identifier for 30"
+              + " days")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "201",
+        description = "Preview created successfully",
+        content = @Content(schema = @Schema(implementation = GpxPreviewDto.class))),
+    @APIResponse(
+        responseCode = "400",
+        description = "Invalid request",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  @RolesAllowed("user")
+  public Response createPreviewFromPoints(@Valid @NotNull GpxPreviewFromPointsRequest request) {
+    GpxPreviewDto preview =
+        gpxPreviewService.createPreviewFromPoints(request.name(), request.points());
     return Response.status(Response.Status.CREATED).entity(preview).build();
   }
 
