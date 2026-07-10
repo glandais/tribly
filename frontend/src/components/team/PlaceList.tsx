@@ -24,6 +24,7 @@ import {
   useDeletePlace,
   getListPlacesQueryKey,
 } from '../../api/endpoints/places/places'
+import { useScrollToListTop } from '../../hooks/useScrollToListTop'
 import { ConfirmDialog } from '../common/ConfirmDialog'
 import { PlaceForm } from './PlaceForm'
 import type { PlaceDetailDto } from '../../api/dto'
@@ -39,6 +40,7 @@ export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [page, setPage] = useState(1)
+  const { listTopRef, scrollToListTop } = useScrollToListTop()
   const { data: placesData, isLoading } = useListPlaces(teamSlug, {
     page: page - 1,
     size: PAGE_SIZE,
@@ -104,7 +106,7 @@ export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
           {t('places.empty')}
         </Text>
       ) : (
-        <Paper withBorder>
+        <Paper ref={listTopRef} withBorder>
           <Stack gap={0}>
             {places.map((place, index) => (
               <Box
@@ -185,7 +187,16 @@ export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
         </Paper>
       )}
 
-      {totalPages > 1 && <Pagination value={page} onChange={setPage} total={totalPages} />}
+      {totalPages > 1 && (
+        <Pagination
+          value={page}
+          onChange={(nextPage) => {
+            setPage(nextPage)
+            scrollToListTop()
+          }}
+          total={totalPages}
+        />
+      )}
 
       {/* Create Form Modal */}
       {showCreateForm && (
