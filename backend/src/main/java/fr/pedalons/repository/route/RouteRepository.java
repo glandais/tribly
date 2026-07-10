@@ -5,6 +5,7 @@ import static org.geolatte.geom.builder.DSL.point;
 import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 
 import fr.pedalons.domain.route.Route;
+import fr.pedalons.dto.routes.response.BoundsDto;
 import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.NearType;
 import fr.pedalons.enums.SortDirection;
@@ -36,6 +37,18 @@ public class RouteRepository implements TeamEntityRepository<Route, RouteQuery> 
       new QueryShape(
           "route_mvt(gt.geometry, :z, :x, :y, te.slug, te.name, te.team.slug, te.distance,"
               + " te.elevationGain)",
+          "GpxTrack gt join gt.route te",
+          false);
+
+  /**
+   * The extent of the matching routes, as {@code [minLon, minLat, maxLon, maxLat]}. Walks the
+   * tracks like {@link #MVT_SHAPE}, and aggregates over the bounding box PostGIS keeps in each
+   * geometry's header (see {@code PedalonsFunctionContributor}), hence no ordering.
+   */
+  private static final QueryShape BOUNDS_SHAPE =
+      new QueryShape(
+          "min(st_xmin(gt.geometry)), min(st_ymin(gt.geometry)), max(st_xmax(gt.geometry)),"
+              + " max(st_ymax(gt.geometry))",
           "GpxTrack gt join gt.route te",
           false);
 
@@ -72,6 +85,34 @@ public class RouteRepository implements TeamEntityRepository<Route, RouteQuery> 
     List<byte[]> result = typedQuery.getResultList();
     byte[] tile = result.isEmpty() ? null : result.getFirst();
     return tile == null ? EMPTY_TILE : tile;
+  }
+
+  /**
+   * The bounding box enclosing every route matching {@code query}, subject to the same visibility
+   * rules as {@link #mvtTile}.
+   *
+   * @return the extent, or {@code null} when no route matches
+   */
+  public @Nullable BoundsDto bounds(RouteQuery query) {
+    if (query.minRole() != null && query.userId() == null) {
+      // An anonymous visitor belongs to no team, and the anonymous query shape has no UserTeam
+      // join to filter on — as in mvtTile().
+      return null;
+    }
+    PedalonsQuery pedalonsQuery = getPedalonsQuery(query, true, BOUNDS_SHAPE);
+
+    TypedQuery<Object[]> typedQuery =
+        getEntityManager().createQuery(pedalonsQuery.getStringQuery(), Object[].class);
+    pedalonsQuery.getParams().forEach(typedQuery::setParameter);
+
+    // Aggregating over zero rows still yields one row, whose four corners are all null.
+    List<Object[]> result = typedQuery.getResultList();
+    Object[] corners = result.isEmpty() ? null : result.getFirst();
+    if (corners == null || corners[0] == null) {
+      return null;
+    }
+    return new BoundsDto(
+        (Double) corners[0], (Double) corners[1], (Double) corners[2], (Double) corners[3]);
   }
 
   @Override

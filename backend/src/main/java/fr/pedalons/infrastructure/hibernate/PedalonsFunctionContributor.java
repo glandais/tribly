@@ -2,13 +2,16 @@ package fr.pedalons.infrastructure.hibernate;
 
 import org.hibernate.boot.model.FunctionContributions;
 import org.hibernate.boot.model.FunctionContributor;
+import org.hibernate.query.sqm.function.SqmFunctionRegistry;
+import org.hibernate.type.BasicType;
+import org.hibernate.type.BasicTypeRegistry;
 import org.hibernate.type.StandardBasicTypes;
 
 /**
- * Registers PostGIS functions that hibernate-spatial does not ship, so that route vector tiles can
- * be produced by a single HQL query and therefore reuse the visibility clauses built by {@code
- * TeamEntityRepository} verbatim. Writing the tile query in native SQL would mean duplicating those
- * clauses, and a drift between the two copies would silently leak private routes.
+ * Registers PostGIS functions that hibernate-spatial does not ship, so that route vector tiles and
+ * route bounds can be produced by a single HQL query and therefore reuse the visibility clauses
+ * built by {@code TeamEntityRepository} verbatim. Writing those queries in native SQL would mean
+ * duplicating the clauses, and a drift between the copies would silently leak private routes.
  *
  * <p>Registered via {@code META-INF/services/org.hibernate.boot.model.FunctionContributor}.
  */
@@ -29,16 +32,24 @@ public class PedalonsFunctionContributor implements FunctionContributor {
           + "st_asmvtgeom(st_transform(?1, 3857), st_tileenvelope(?2, ?3, ?4), 4096, 64, true),"
           + " ?5, ?6, ?7, ?8, ?9) as route_mvt_row), 'routes')";
 
+  /**
+   * The corners of a geometry's bounding box. PostGIS reads them straight from the header it stores
+   * alongside the geometry, so composing them with the plain HQL {@code min()} / {@code max()}
+   * aggregates yields the extent of a route set without a dedicated composite type.
+   */
+  private static final String[] BBOX_FUNCTIONS = {"st_xmin", "st_ymin", "st_xmax", "st_ymax"};
+
   @Override
   public void contributeFunctions(FunctionContributions functionContributions) {
-    functionContributions
-        .getFunctionRegistry()
-        .registerPattern(
-            "route_mvt",
-            ROUTE_MVT_PATTERN,
-            functionContributions
-                .getTypeConfiguration()
-                .getBasicTypeRegistry()
-                .resolve(StandardBasicTypes.BINARY));
+    SqmFunctionRegistry registry = functionContributions.getFunctionRegistry();
+    BasicTypeRegistry types = functionContributions.getTypeConfiguration().getBasicTypeRegistry();
+
+    registry.registerPattern(
+        "route_mvt", ROUTE_MVT_PATTERN, types.resolve(StandardBasicTypes.BINARY));
+
+    BasicType<Double> doubleType = types.resolve(StandardBasicTypes.DOUBLE);
+    for (String name : BBOX_FUNCTIONS) {
+      registry.registerPattern(name, name + "(?1)", doubleType);
+    }
   }
 }

@@ -63,5 +63,11 @@ export const teamRoutesTilesUrl = (teamSlug: string, filters?: RouteTileFilters)
 /** Metropolitan France, the default view before any route is in sight. */
 export const DEFAULT_MAP_VIEW = { longitude: 2.4, latitude: 46.6, zoom: 4.6 }
 
+/**
+ * Framing of a route set. The zoom is capped because a lone short route has a near-punctual
+ * extent, which `fitBounds` would otherwise answer with the deepest zoom the style allows.
+ */
+export const ROUTES_FIT_OPTIONS = { padding: 40, maxZoom: 13, duration: 0 } as const
+
 export const ROUTE_LINE_COLOR = '#1d32a8'
 export const ROUTE_LINE_HOVER_COLOR = '#c90808'

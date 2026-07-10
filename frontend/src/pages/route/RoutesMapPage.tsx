@@ -1,7 +1,8 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Group, Stack, Title } from '@mantine/core'
+import { useGetRoutesBounds } from '@/api/endpoints/routes/routes'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { paths } from '../../config/paths'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
@@ -30,6 +31,13 @@ export function RoutesMapPage() {
     [team, filters]
   )
 
+  // Frozen at mount, so narrowing the filters reframes nothing and asks the server nothing. The
+  // list/map toggle is a navigation, hence a remount, hence a fresh extent.
+  const [initialFilters] = useState(() => toRouteTileFilters(filters))
+  const { data: routeBounds } = useGetRoutesBounds(teamSlug!, initialFilters, {
+    query: { enabled: !!teamSlug },
+  })
+
   useCanonicalPath(team ? paths.routesMap(team.slug) : undefined)
 
   if (isLoading) {
@@ -56,7 +64,7 @@ export function RoutesMapPage() {
           showSort={false}
         />
 
-        <RoutesTileMap tilesUrl={tilesUrl} />
+        <RoutesTileMap tilesUrl={tilesUrl} bounds={routeBounds?.bounds} />
       </Stack>
     </TeamLayout>
   )

@@ -10,6 +10,7 @@ import 'package:retrofit/error_logger.dart';
 import '../models/hilliness.dart';
 import '../models/min_role.dart';
 import '../models/near_type.dart';
+import '../models/route_bounds_response.dart';
 import '../models/route_detail_dto.dart';
 import '../models/route_dto.dart';
 import '../models/route_list_response.dart';
@@ -80,6 +81,52 @@ abstract class RoutesClient {
     @Query('search') String? search,
     @Query('sortBy') RouteSortBy? sortBy,
     @Query('sortDir') SortDirection? sortDir,
+    @Query('surfaceType') SurfaceType? surfaceType,
+    @Query('windDirection') WindDirection? windDirection,
+  });
+
+  /// All routes bounding box.
+  ///
+  /// Extent enclosing the routes of all accessible teams, so a map can open framed on them. Accepts the same filters as the route list, minus sorting and pagination. Yields a null box when no route matches.
+  ///
+  /// [hilliness] - Hilliness preset (FLAT, HILLY, MOUNTAINOUS).
+  ///
+  /// [maxDistance] - Maximum distance in meters.
+  ///
+  /// [maxElevationGain] - Maximum elevation gain in meters.
+  ///
+  /// [minDistance] - Minimum distance in meters.
+  ///
+  /// [minElevationGain] - Minimum elevation gain in meters.
+  ///
+  /// [minRole] - Only routes from teams where the user has at least this role. Yields a null box for an anonymous visitor.
+  ///
+  /// [nearLat] - Latitude for proximity search.
+  ///
+  /// [nearLon] - Longitude for proximity search.
+  ///
+  /// [nearRadius] - Search radius in meters (default: 25000).
+  ///
+  /// [nearType] - Search near START, END, or START_OR_END (default).
+  ///
+  /// [search] - Search by name/markdown.
+  ///
+  /// [surfaceType] - Filter by surface type.
+  ///
+  /// [windDirection] - Filter by wind direction.
+  @GET('/api/routes/bounds')
+  Future<RouteBoundsResponse> getAllRoutesBounds({
+    @Query('hilliness') Hilliness? hilliness,
+    @Query('maxDistance') double? maxDistance,
+    @Query('maxElevationGain') double? maxElevationGain,
+    @Query('minDistance') double? minDistance,
+    @Query('minElevationGain') double? minElevationGain,
+    @Query('minRole') MinRole? minRole,
+    @Query('nearLat') double? nearLat,
+    @Query('nearLon') double? nearLon,
+    @Query('nearRadius') double? nearRadius,
+    @Query('nearType') NearType? nearType,
+    @Query('search') String? search,
     @Query('surfaceType') SurfaceType? surfaceType,
     @Query('windDirection') WindDirection? windDirection,
   });
@@ -212,6 +259,52 @@ abstract class RoutesClient {
     @Path('teamSlug') required String teamSlug,
     @Part(name: 'route') RouteRequest? route,
     @Part(name: 'gpxFile') MultipartFile? gpxFile,
+  });
+
+  /// Team routes bounding box.
+  ///
+  /// Extent enclosing the team's routes, so a map can open framed on them. Accepts the same filters as the route list, minus sorting and pagination. Yields a null box when no route matches.
+  ///
+  /// [teamSlug] - Team URL slug.
+  ///
+  /// [hilliness] - Hilliness preset (FLAT, HILLY, MOUNTAINOUS).
+  ///
+  /// [maxDistance] - Maximum distance in meters.
+  ///
+  /// [maxElevationGain] - Maximum elevation gain in meters.
+  ///
+  /// [minDistance] - Minimum distance in meters.
+  ///
+  /// [minElevationGain] - Minimum elevation gain in meters.
+  ///
+  /// [nearLat] - Latitude for proximity search.
+  ///
+  /// [nearLon] - Longitude for proximity search.
+  ///
+  /// [nearRadius] - Search radius in meters (default: 25000).
+  ///
+  /// [nearType] - Search near START, END, or START_OR_END (default).
+  ///
+  /// [search] - Search by name/markdown.
+  ///
+  /// [surfaceType] - Filter by surface type.
+  ///
+  /// [windDirection] - Filter by wind direction.
+  @GET('/api/teams/{teamSlug}/routes/bounds')
+  Future<RouteBoundsResponse> getRoutesBounds({
+    @Path('teamSlug') required String teamSlug,
+    @Query('hilliness') Hilliness? hilliness,
+    @Query('maxDistance') double? maxDistance,
+    @Query('maxElevationGain') double? maxElevationGain,
+    @Query('minDistance') double? minDistance,
+    @Query('minElevationGain') double? minElevationGain,
+    @Query('nearLat') double? nearLat,
+    @Query('nearLon') double? nearLon,
+    @Query('nearRadius') double? nearRadius,
+    @Query('nearType') NearType? nearType,
+    @Query('search') String? search,
+    @Query('surfaceType') SurfaceType? surfaceType,
+    @Query('windDirection') WindDirection? windDirection,
   });
 
   /// Team routes vector tile.

@@ -1,5 +1,6 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Box, Group, Stack } from '@mantine/core'
+import { useGetAllRoutesBounds } from '@/api/endpoints/routes/routes'
 import { HomeLayout } from '../../components/home/HomeLayout'
 import { MembershipSelect } from '../../components/common/MembershipSelect'
 import { allRoutesTilesUrl, toRouteTileFilters } from '../../components/map/mapConstants'
@@ -36,6 +37,14 @@ export function AllRoutesMapPage() {
     [filters]
   )
 
+  // Frozen at mount, so narrowing the filters reframes nothing and asks the server nothing. The
+  // list/map toggle is a navigation, hence a remount, hence a fresh extent.
+  const [initialFilters] = useState(() => ({
+    ...toRouteTileFilters(filters),
+    minRole: membershipToMinRole[filters.membership],
+  }))
+  const { data: routeBounds } = useGetAllRoutesBounds(initialFilters)
+
   return (
     <HomeLayout currentTab="routes">
       <Stack my="lg">
@@ -57,7 +66,7 @@ export function AllRoutesMapPage() {
           showSort={false}
         />
 
-        <RoutesTileMap tilesUrl={tilesUrl} />
+        <RoutesTileMap tilesUrl={tilesUrl} bounds={routeBounds?.bounds} />
       </Stack>
     </HomeLayout>
   )

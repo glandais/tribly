@@ -1,12 +1,14 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Layer, Popup, Source } from 'react-map-gl/maplibre'
-import type { MapLayerMouseEvent } from 'react-map-gl/maplibre'
+import type { MapLayerMouseEvent, MapRef } from 'react-map-gl/maplibre'
 import { Anchor, Box, Group, Stack, StyleProp, Text, useComputedColorScheme } from '@mantine/core'
+import type { BoundsDto } from '@/api/dto'
 import { paths } from '@/config/paths'
 import { useUnits } from '@/hooks/useUnits'
 import { PedalonsMap } from '../map/PedalonsMap'
 import {
   DEFAULT_MAP_VIEW,
+  ROUTES_FIT_OPTIONS,
   ROUTES_SOURCE_LAYER,
   ROUTE_LINE_COLOR,
   ROUTE_LINE_HOVER_COLOR,
@@ -41,14 +43,37 @@ const MAP_HEIGHT: StyleProp<number> = { base: 420, sm: 540, md: 660 }
 
 export interface RoutesTileMapProps {
   tilesUrl: string
+  /**
+   * Extent to open on. Applied once per mount: refraiming under the fingers of someone who is
+   * narrowing the filters would be disorienting, so a later change is ignored.
+   */
+  bounds?: BoundsDto
 }
 
-export function RoutesTileMap({ tilesUrl }: RoutesTileMapProps) {
+export function RoutesTileMap({ tilesUrl, bounds }: RoutesTileMapProps) {
   const { distance, elevation } = useUnits()
   const colorScheme = useComputedColorScheme('light')
 
   const [hoveredSlug, setHoveredSlug] = useState<string | null>(null)
   const [selected, setSelected] = useState<SelectedRoute | null>(null)
+
+  const mapRef = useRef<MapRef>(null)
+  const [mapLoaded, setMapLoaded] = useState(false)
+  const fittedRef = useRef(false)
+  const handleLoad = useCallback(() => setMapLoaded(true), [])
+
+  // The extent and the map are loaded by two independent races, either of which may finish first.
+  useEffect(() => {
+    if (!mapLoaded || !bounds || fittedRef.current) return
+    fittedRef.current = true
+    mapRef.current?.fitBounds(
+      [
+        [bounds.minLon, bounds.minLat],
+        [bounds.maxLon, bounds.maxLat],
+      ],
+      ROUTES_FIT_OPTIONS
+    )
+  }, [mapLoaded, bounds])
 
   const tiles = useMemo(() => [tilesUrl], [tilesUrl])
 
@@ -79,9 +104,11 @@ export function RoutesTileMap({ tilesUrl }: RoutesTileMapProps) {
       }}
     >
       <PedalonsMap
+        ref={mapRef}
         initialViewState={DEFAULT_MAP_VIEW}
         cursor={hoveredSlug ? 'pointer' : 'grab'}
         interactiveLayerIds={[HIT_LAYER]}
+        onLoad={handleLoad}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         onClick={handleClick}

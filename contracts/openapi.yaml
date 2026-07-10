@@ -727,6 +727,31 @@ components:
         refreshToken:
           type: string
           description: Refresh token (for mobile clients)
+    BoundsDto:
+      description: "Geographic bounding box, in WGS84 degrees"
+      type: object
+      required:
+      - minLon
+      - minLat
+      - maxLon
+      - maxLat
+      properties:
+        minLon:
+          type: number
+          format: double
+          description: Western edge
+        minLat:
+          type: number
+          format: double
+          description: Southern edge
+        maxLon:
+          type: number
+          format: double
+          description: Eastern edge
+        maxLat:
+          type: number
+          format: double
+          description: Northern edge
     CalendarEventDto:
       description: Calendar event data
       type: object
@@ -2533,6 +2558,14 @@ components:
           items:
             $ref: "#/components/schemas/RideTemplateGroupRequest"
           description: Template groups
+    RouteBoundsResponse:
+      description: Bounding box of the routes matching a filter set
+      type: object
+      properties:
+        bounds:
+          description: "Bounding box, or null when no route matches"
+          type: object
+          $ref: "#/components/schemas/BoundsDto"
     RouteDetailDto:
       description: Detailed route information
       type: object
@@ -6184,6 +6217,96 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RouteListResponse"
+  /api/routes/bounds:
+    get:
+      summary: All routes bounding box
+      description: "Extent enclosing the routes of all accessible teams, so a map\
+        \ can open framed on them. Accepts the same filters as the route list, minus\
+        \ sorting and pagination. Yields a null box when no route matches."
+      operationId: getAllRoutesBounds
+      tags:
+      - Routes
+      parameters:
+      - description: "Hilliness preset (FLAT, HILLY, MOUNTAINOUS)"
+        name: hilliness
+        in: query
+        schema:
+          $ref: "#/components/schemas/Hilliness"
+      - description: Maximum distance in meters
+        name: maxDistance
+        in: query
+        schema:
+          type: number
+          format: float
+      - description: Maximum elevation gain in meters
+        name: maxElevationGain
+        in: query
+        schema:
+          type: number
+          format: float
+      - description: Minimum distance in meters
+        name: minDistance
+        in: query
+        schema:
+          type: number
+          format: float
+      - description: Minimum elevation gain in meters
+        name: minElevationGain
+        in: query
+        schema:
+          type: number
+          format: float
+      - description: Only routes from teams where the user has at least this role.
+          Yields a null box for an anonymous visitor.
+        name: minRole
+        in: query
+        schema:
+          $ref: "#/components/schemas/MinRole"
+      - description: Latitude for proximity search
+        name: nearLat
+        in: query
+        schema:
+          type: number
+          format: double
+      - description: Longitude for proximity search
+        name: nearLon
+        in: query
+        schema:
+          type: number
+          format: double
+      - description: "Search radius in meters (default: 25000)"
+        name: nearRadius
+        in: query
+        schema:
+          type: number
+          format: double
+      - description: "Search near START, END, or START_OR_END (default)"
+        name: nearType
+        in: query
+        schema:
+          $ref: "#/components/schemas/NearType"
+      - description: Search by name/markdown
+        name: search
+        in: query
+        schema:
+          type: string
+      - description: Filter by surface type
+        name: surfaceType
+        in: query
+        schema:
+          $ref: "#/components/schemas/SurfaceType"
+      - description: Filter by wind direction
+        name: windDirection
+        in: query
+        schema:
+          $ref: "#/components/schemas/WindDirection"
+      responses:
+        "200":
+          description: Bounding box retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouteBoundsResponse"
   /api/routes/tiles/{z}/{x}/{y}.mvt:
     get:
       summary: All routes vector tile
@@ -9434,6 +9557,102 @@ paths:
       security:
       - SecurityScheme:
         - user
+  /api/teams/{teamSlug}/routes/bounds:
+    get:
+      summary: Team routes bounding box
+      description: "Extent enclosing the team's routes, so a map can open framed on\
+        \ them. Accepts the same filters as the route list, minus sorting and pagination.\
+        \ Yields a null box when no route matches."
+      operationId: getRoutesBounds
+      tags:
+      - Routes
+      parameters:
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: "Hilliness preset (FLAT, HILLY, MOUNTAINOUS)"
+        name: hilliness
+        in: query
+        schema:
+          $ref: "#/components/schemas/Hilliness"
+      - description: Maximum distance in meters
+        name: maxDistance
+        in: query
+        schema:
+          type: number
+          format: float
+      - description: Maximum elevation gain in meters
+        name: maxElevationGain
+        in: query
+        schema:
+          type: number
+          format: float
+      - description: Minimum distance in meters
+        name: minDistance
+        in: query
+        schema:
+          type: number
+          format: float
+      - description: Minimum elevation gain in meters
+        name: minElevationGain
+        in: query
+        schema:
+          type: number
+          format: float
+      - description: Latitude for proximity search
+        name: nearLat
+        in: query
+        schema:
+          type: number
+          format: double
+      - description: Longitude for proximity search
+        name: nearLon
+        in: query
+        schema:
+          type: number
+          format: double
+      - description: "Search radius in meters (default: 25000)"
+        name: nearRadius
+        in: query
+        schema:
+          type: number
+          format: double
+      - description: "Search near START, END, or START_OR_END (default)"
+        name: nearType
+        in: query
+        schema:
+          $ref: "#/components/schemas/NearType"
+      - description: Search by name/markdown
+        name: search
+        in: query
+        schema:
+          type: string
+      - description: Filter by surface type
+        name: surfaceType
+        in: query
+        schema:
+          $ref: "#/components/schemas/SurfaceType"
+      - description: Filter by wind direction
+        name: windDirection
+        in: query
+        schema:
+          $ref: "#/components/schemas/WindDirection"
+      responses:
+        "200":
+          description: Bounding box retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouteBoundsResponse"
+        "404":
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/teams/{teamSlug}/routes/tiles/{z}/{x}/{y}.mvt:
     get:
       summary: Team routes vector tile

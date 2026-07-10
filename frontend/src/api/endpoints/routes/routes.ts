@@ -18,8 +18,11 @@ import type {
   AllRoutesTileParams,
   CreateRouteBody,
   ErrorResponse,
+  GetAllRoutesBoundsParams,
+  GetRoutesBoundsParams,
   ListAllRoutesParams,
   ListRoutesParams,
+  RouteBoundsResponse,
   RouteDetailDto,
   RouteDto,
   RouteListResponse,
@@ -159,6 +162,129 @@ export function useListAllRoutes<
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getListAllRoutesQueryOptions(params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * Extent enclosing the routes of all accessible teams, so a map can open framed on them. Accepts the same filters as the route list, minus sorting and pagination. Yields a null box when no route matches.
+ * @summary All routes bounding box
+ */
+export const getAllRoutesBounds = (
+  params?: GetAllRoutesBoundsParams,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<RouteBoundsResponse>(
+    { url: `/api/routes/bounds`, method: 'GET', params, signal },
+    options
+  )
+}
+
+export const getGetAllRoutesBoundsQueryKey = (params?: GetAllRoutesBoundsParams) => {
+  return [`/api/routes/bounds`, ...(params ? [params] : [])] as const
+}
+
+export const getGetAllRoutesBoundsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAllRoutesBounds>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: GetAllRoutesBoundsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllRoutesBounds>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getGetAllRoutesBoundsQueryKey(params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllRoutesBounds>>> = ({ signal }) =>
+    getAllRoutesBounds(params, requestOptions, signal)
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAllRoutesBounds>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAllRoutesBoundsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAllRoutesBounds>>
+>
+export type GetAllRoutesBoundsQueryError = ErrorType<unknown>
+
+export function useGetAllRoutesBounds<
+  TData = Awaited<ReturnType<typeof getAllRoutesBounds>>,
+  TError = ErrorType<unknown>,
+>(
+  params: undefined | GetAllRoutesBoundsParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllRoutesBounds>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAllRoutesBounds>>,
+          TError,
+          Awaited<ReturnType<typeof getAllRoutesBounds>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAllRoutesBounds<
+  TData = Awaited<ReturnType<typeof getAllRoutesBounds>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: GetAllRoutesBoundsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getAllRoutesBounds>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAllRoutesBounds>>,
+          TError,
+          Awaited<ReturnType<typeof getAllRoutesBounds>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAllRoutesBounds<
+  TData = Awaited<ReturnType<typeof getAllRoutesBounds>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: GetAllRoutesBoundsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllRoutesBounds>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary All routes bounding box
+ */
+
+export function useGetAllRoutesBounds<
+  TData = Awaited<ReturnType<typeof getAllRoutesBounds>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: GetAllRoutesBoundsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllRoutesBounds>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetAllRoutesBoundsQueryOptions(params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>
@@ -538,6 +664,134 @@ export const useCreateRoute = <TError = ErrorType<ErrorResponse>, TContext = unk
 > => {
   return useMutation(getCreateRouteMutationOptions(options), queryClient)
 }
+/**
+ * Extent enclosing the team's routes, so a map can open framed on them. Accepts the same filters as the route list, minus sorting and pagination. Yields a null box when no route matches.
+ * @summary Team routes bounding box
+ */
+export const getRoutesBounds = (
+  teamSlug: string,
+  params?: GetRoutesBoundsParams,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<RouteBoundsResponse>(
+    { url: `/api/teams/${teamSlug}/routes/bounds`, method: 'GET', params, signal },
+    options
+  )
+}
+
+export const getGetRoutesBoundsQueryKey = (teamSlug: string, params?: GetRoutesBoundsParams) => {
+  return [`/api/teams/${teamSlug}/routes/bounds`, ...(params ? [params] : [])] as const
+}
+
+export const getGetRoutesBoundsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getRoutesBounds>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params?: GetRoutesBoundsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoutesBounds>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getGetRoutesBoundsQueryKey(teamSlug, params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getRoutesBounds>>> = ({ signal }) =>
+    getRoutesBounds(teamSlug, params, requestOptions, signal)
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: teamSlug !== null && teamSlug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getRoutesBounds>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+}
+
+export type GetRoutesBoundsQueryResult = NonNullable<Awaited<ReturnType<typeof getRoutesBounds>>>
+export type GetRoutesBoundsQueryError = ErrorType<ErrorResponse>
+
+export function useGetRoutesBounds<
+  TData = Awaited<ReturnType<typeof getRoutesBounds>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params: undefined | GetRoutesBoundsParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoutesBounds>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRoutesBounds>>,
+          TError,
+          Awaited<ReturnType<typeof getRoutesBounds>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRoutesBounds<
+  TData = Awaited<ReturnType<typeof getRoutesBounds>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params?: GetRoutesBoundsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoutesBounds>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRoutesBounds>>,
+          TError,
+          Awaited<ReturnType<typeof getRoutesBounds>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRoutesBounds<
+  TData = Awaited<ReturnType<typeof getRoutesBounds>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params?: GetRoutesBoundsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoutesBounds>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Team routes bounding box
+ */
+
+export function useGetRoutesBounds<
+  TData = Awaited<ReturnType<typeof getRoutesBounds>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params?: GetRoutesBoundsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoutesBounds>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetRoutesBoundsQueryOptions(teamSlug, params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
 /**
  * Mapbox vector tile holding the team's routes, layer 'routes'. Accepts the same filters as the route list, minus sorting and pagination, which a tile has no use for. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
  * @summary Team routes vector tile

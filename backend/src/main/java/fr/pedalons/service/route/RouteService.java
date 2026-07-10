@@ -12,6 +12,7 @@ import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.dto.routes.request.RouteRequest;
 import fr.pedalons.dto.routes.request.RouteSearchParams;
+import fr.pedalons.dto.routes.response.RouteBoundsResponse;
 import fr.pedalons.dto.routes.response.RouteDetailDto;
 import fr.pedalons.dto.routes.response.RouteDto;
 import fr.pedalons.dto.routes.response.RouteListResponse;
@@ -246,35 +247,55 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
   }
 
   /**
-   * The sort and the pagination of {@code params} are deliberately dropped: the tile projection is
-   * an aggregate, which an {@code ORDER BY} would break, and a tile holds every matching route.
+   * Bounding box of a team's routes, subject to the same access control as {@link #getRoutes}.
    */
+  @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.LIST)
+  public RouteBoundsResponse getRoutesBounds(String teamSlug, RouteSearchParams params) {
+    Team team = teamService.getTeam(teamSlug);
+    return new RouteBoundsResponse(
+        routeRepository.bounds(aggregateQuery(Set.of(team.getId()), params)));
+  }
+
+  /**
+   * Bounding box of the routes of every accessible team, subject to the same access control as
+   * {@link #getAllRoutes}.
+   */
+  @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.LIST_ALL_TEAMS)
+  public RouteBoundsResponse getAllRoutesBounds(RouteSearchParams params) {
+    return new RouteBoundsResponse(routeRepository.bounds(aggregateQuery(null, params)));
+  }
+
   private byte[] tile(@Nullable Set<Long> teamIds, RouteSearchParams params, int z, int x, int y) {
+    return routeRepository.mvtTile(aggregateQuery(teamIds, params), z, x, y);
+  }
+
+  /**
+   * The query behind the tile and the bounds: both fold every matching route into a single row. The
+   * sort and the pagination of {@code params} are therefore deliberately dropped — an {@code ORDER
+   * BY} would break an aggregate projection, and neither answer is paginated.
+   */
+  private RouteQuery aggregateQuery(@Nullable Set<Long> teamIds, RouteSearchParams params) {
     User user = pedalonsContext.getUserNullable();
-    return routeRepository.mvtTile(
-        RouteQuery.builder()
-            .domainId(pedalonsContext.getDomainId())
-            .userId(user == null ? null : user.getId())
-            .teamIds(teamIds)
-            .search(params.search())
-            .minRole(params.minRole())
-            .minDistance(params.minDistance())
-            .maxDistance(params.maxDistance())
-            .minElevationGain(params.minElevationGain())
-            .maxElevationGain(params.maxElevationGain())
-            .hilliness(params.hilliness())
-            .surfaceType(params.surfaceType())
-            .windDirection(params.windDirection())
-            .nearLat(params.nearLat())
-            .nearLon(params.nearLon())
-            .nearRadius(params.nearRadius())
-            .nearType(params.nearType())
-            .includeDeleted(false)
-            .platformAdmin(isPlatformAdmin())
-            .build(),
-        z,
-        x,
-        y);
+    return RouteQuery.builder()
+        .domainId(pedalonsContext.getDomainId())
+        .userId(user == null ? null : user.getId())
+        .teamIds(teamIds)
+        .search(params.search())
+        .minRole(params.minRole())
+        .minDistance(params.minDistance())
+        .maxDistance(params.maxDistance())
+        .minElevationGain(params.minElevationGain())
+        .maxElevationGain(params.maxElevationGain())
+        .hilliness(params.hilliness())
+        .surfaceType(params.surfaceType())
+        .windDirection(params.windDirection())
+        .nearLat(params.nearLat())
+        .nearLon(params.nearLon())
+        .nearRadius(params.nearRadius())
+        .nearType(params.nearType())
+        .includeDeleted(false)
+        .platformAdmin(isPlatformAdmin())
+        .build();
   }
 
   private RouteListResponse getRoutesWithTeamIds(
