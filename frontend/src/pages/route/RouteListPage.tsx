@@ -72,7 +72,6 @@ export function RouteListPage() {
         <Group justify="space-between">
           <Title order={2}>{t('routes.list.title')}</Title>
           <Group gap="sm">
-            <RouteViewToggle current="list" teamSlug={team.slug} />
             {canCreateRoute && (
               <>
                 <UploadGpxFiles team={team} />
@@ -85,6 +84,7 @@ export function RouteListPage() {
                 </Button>
               </>
             )}
+            <RouteViewToggle current="list" teamSlug={team.slug} />
           </Group>
         </Group>
 

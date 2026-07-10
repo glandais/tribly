@@ -53,7 +53,9 @@ export function RoutesMapPage() {
       <Stack py="lg">
         <Group justify="space-between">
           <Title order={2}>{t('routes.list.title')}</Title>
-          <RouteViewToggle current="map" teamSlug={team.slug} />
+          <Group gap="sm">
+            <RouteViewToggle current="map" teamSlug={team.slug} />
+          </Group>
         </Group>
 
         <RouteFilterPanel
