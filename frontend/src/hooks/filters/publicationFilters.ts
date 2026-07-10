@@ -6,12 +6,13 @@ export const PUBLICATION_PAGE_SIZE = 12
 
 export type PublicationFilterValue = 'all' | 'ride' | 'post' | 'trip'
 
-export const publicationFilterToType: Record<PublicationFilterValue, PublicationType | undefined> = {
-  all: undefined,
-  ride: PublicationType.RIDE,
-  post: PublicationType.POST,
-  trip: PublicationType.TRIP,
-}
+export const publicationFilterToType: Record<PublicationFilterValue, PublicationType | undefined> =
+  {
+    all: undefined,
+    ride: PublicationType.RIDE,
+    post: PublicationType.POST,
+    trip: PublicationType.TRIP,
+  }
 
 /** `filter` holds the page's own value, not `PublicationType`, so the URL stays readable. */
 export const publicationFiltersSchema = z.object({

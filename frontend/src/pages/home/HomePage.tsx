@@ -66,11 +66,7 @@ export function HomePage() {
     [filters]
   )
 
-  const {
-    data: publicationsData,
-    isLoading,
-    isError,
-  } = useListAllPublications(apiParams)
+  const { data: publicationsData, isLoading, isError } = useListAllPublications(apiParams)
 
   const prefetchPage = useCallback(
     (prefetchPageNum: number) => ({

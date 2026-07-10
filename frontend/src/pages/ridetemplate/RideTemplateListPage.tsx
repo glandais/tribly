@@ -64,7 +64,10 @@ export function RideTemplateListPage() {
   const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },
   })
-  const { data: templatesData, isLoading: isLoadingTemplates } = useListTemplates(teamSlug!, filters)
+  const { data: templatesData, isLoading: isLoadingTemplates } = useListTemplates(
+    teamSlug!,
+    filters
+  )
   const deleteMutation = useDeleteTemplate()
 
   const prefetchPage = useCallback(
