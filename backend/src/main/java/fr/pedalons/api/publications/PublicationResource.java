@@ -3,6 +3,7 @@ package fr.pedalons.api.publications;
 import fr.pedalons.dto.publications.response.PublicationListResponse;
 import fr.pedalons.dto.publications.response.PublicationType;
 import fr.pedalons.service.common.PublicationService;
+import fr.pedalons.service.team.request.MinRole;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -45,6 +46,12 @@ public class PublicationResource {
           @Nullable String fromStr,
       @Parameter(description = "End date filter (ISO format)") @QueryParam("to")
           @Nullable String toStr,
+      @Parameter(
+              description =
+                  "Only publications from teams where the user has at least this role. Yields"
+                      + " nothing for an anonymous visitor.")
+          @QueryParam("minRole")
+          @Nullable MinRole minRole,
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
@@ -52,7 +59,7 @@ public class PublicationResource {
     Instant to = toStr != null ? Instant.parse(toStr) : null;
 
     PublicationListResponse response =
-        publicationService.listAll(type, search, from, to, page, size);
+        publicationService.listAll(type, search, from, to, minRole, page, size);
 
     return Response.ok(response).build();
   }

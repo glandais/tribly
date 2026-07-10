@@ -988,5 +988,7 @@
   "errors.api.FILE_TOO_LARGE": "Le fichier est trop volumineux",
   "gpxTools.preview.delete": "Supprimer",
   "gpxTools.preview.deleteConfirm": "Voulez-vous vraiment supprimer ce fichier ? Le lien ne sera plus accessible.",
-  "gpxTools.preview.deleted": "Fichier supprimé"
+  "gpxTools.preview.deleted": "Fichier supprimé",
+  "filters.membership.all": "Toutes les équipes",
+  "filters.membership.label": "Équipes"
 }

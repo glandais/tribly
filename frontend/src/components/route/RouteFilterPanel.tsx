@@ -39,13 +39,21 @@ export function RouteFilterPanel({
   )
   const [search, setSearch] = useDebouncedSearch(filters.search ?? '', commitSearch)
 
+  // Resets each clearable key by name rather than omitting it, so filters this panel does not own
+  // — the search, and the membership filter on the cross-team page — survive.
   const clearFilters = () => {
     onFiltersChange({
-      search: filters.search,
-      page: 0,
-      size: filters.size,
+      ...filters,
+      minDistance: undefined,
+      maxDistance: undefined,
+      minElevationGain: undefined,
+      maxElevationGain: undefined,
+      hilliness: undefined,
+      surfaceType: undefined,
+      windDirection: undefined,
       sortBy: DEFAULT_ROUTE_SORT_BY,
       sortDir: DEFAULT_ROUTE_SORT_DIR,
+      page: 0,
     })
   }
 

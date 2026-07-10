@@ -19,6 +19,7 @@ import fr.pedalons.enums.TeamRole;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.service.security.PedalonsQueryContext;
+import fr.pedalons.service.team.request.MinRole;
 import fr.pedalons.util.TestDataCleaner;
 import fr.pedalons.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -217,6 +218,35 @@ class RouteServiceTest extends AbstractBaseTest {
             team.getSlug(), RouteSearchParams.builder().page(0).size(10).build());
 
     assertEquals(2, result.routes().size());
+  }
+
+  @Test
+  void getAllRoutes_minRoleShouldKeepOnlyTheUsersTeams() {
+    dataService.createRoute(team, admin, "My Route", Visibility.PUBLIC);
+    Team otherTeam = dataService.createTeam(user2, "Other Team", "other-team", Visibility.PUBLIC);
+    dataService.createRoute(otherTeam, user2, "Other Route", Visibility.PUBLIC);
+
+    queryContext.setUserForTest(member);
+    assertEquals(
+        2, routeService.getAllRoutes(RouteSearchParams.builder().page(0).size(10).build()).total());
+
+    RouteListResponse filtered =
+        routeService.getAllRoutes(
+            RouteSearchParams.builder().page(0).size(10).minRole(MinRole.MEMBER).build());
+    assertEquals(1, filtered.total());
+    assertEquals("My Route", filtered.routes().getFirst().name());
+  }
+
+  @Test
+  void getAllRoutes_minRoleShouldYieldNothingForAnonymous() {
+    dataService.createRoute(team, admin, "Public Route", Visibility.PUBLIC);
+
+    queryContext.setUserForTest(null);
+    RouteListResponse result =
+        routeService.getAllRoutes(
+            RouteSearchParams.builder().page(0).size(10).minRole(MinRole.MEMBER).build());
+
+    assertEquals(0, result.total());
   }
 
   @Test

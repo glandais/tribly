@@ -988,5 +988,7 @@
   "errors.api.FILE_TOO_LARGE": "The file is too large",
   "gpxTools.preview.delete": "Delete",
   "gpxTools.preview.deleteConfirm": "Really delete this file? The link will stop working.",
-  "gpxTools.preview.deleted": "File deleted"
+  "gpxTools.preview.deleted": "File deleted",
+  "filters.membership.all": "All teams",
+  "filters.membership.label": "Teams"
 }

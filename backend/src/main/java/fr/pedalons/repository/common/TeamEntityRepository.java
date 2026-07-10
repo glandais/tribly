@@ -9,6 +9,7 @@ import fr.pedalons.repository.query.AndClause;
 import fr.pedalons.repository.query.OrClause;
 import fr.pedalons.repository.query.PedalonsQuery;
 import fr.pedalons.repository.query.SimpleClause;
+import fr.pedalons.service.team.request.MinRole;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.time.Instant;
 import java.util.List;
@@ -80,6 +81,11 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
    * Find publications across multiple teams with proper visibility filtering.
    */
   default PedalonsPage<T> find(Q query) {
+    if (query.minRole() != null && query.userId() == null) {
+      // An anonymous visitor belongs to no team, and the anonymous query shape has no UserTeam
+      // join to filter on.
+      return new PedalonsPage<>(List.of(), 0);
+    }
     PedalonsQuery pedalonsQuery = getPedalonsQuery(query, true);
     return getPage(pedalonsQuery, query);
   }
@@ -169,6 +175,13 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
         visibilityFilter.add(draftEntity);
 
         pedalonsQuery.and(visibilityFilter);
+      }
+
+      MinRole minRole = query.minRole();
+      if (minRole != null) {
+        // The left join leaves ut.role NULL for a non-member, so this alone drops the public-team
+        // branch of the visibility filter above: only the user's own teams survive.
+        pedalonsQuery.and("ut.role in (:userRoles)", Map.of("userRoles", minRole.acceptedRoles()));
       }
     }
 

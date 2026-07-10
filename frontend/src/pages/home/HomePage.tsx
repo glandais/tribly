@@ -15,12 +15,18 @@ import { Pagination } from '../../components/common/Pagination'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { useUrlFilters } from '../../hooks/useUrlFilters'
 import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
+import { useMembershipDefault } from '../../hooks/useMembershipDefault'
+import { useAuth } from '../../hooks/useAuth'
 import {
-  publicationFiltersSchema,
-  publicationFiltersAlias,
   publicationFilterToType,
   type PublicationFilterValue,
 } from '../../hooks/filters/publicationFilters'
+import {
+  makeHomeFiltersSchema,
+  homeFiltersAlias,
+  homeFiltersAlwaysSerialize,
+} from '../../hooks/filters/homeFilters'
+import { membershipToMinRole, type MembershipFilterValue } from '../../hooks/filters/membership'
 import { SearchInput } from '../../components/common/SearchInput'
 import { HomeLayout } from '../../components/home/HomeLayout'
 import { useAppName } from '../../hooks/useAppName'
@@ -29,10 +35,15 @@ export function HomePage() {
   const { t } = useTranslation()
   const appName = useAppName()
   const pinnedTeamSlug = getPinnedTeamSlug()
+  const { isAuthenticated } = useAuth()
+
+  const membershipDefault = useMembershipDefault()
+  const schema = useMemo(() => makeHomeFiltersSchema(membershipDefault), [membershipDefault])
 
   const { filters, setFilters } = useUrlFilters({
-    schema: publicationFiltersSchema,
-    alias: publicationFiltersAlias,
+    schema,
+    alias: homeFiltersAlias,
+    alwaysSerialize: homeFiltersAlwaysSerialize,
   })
   const commitSearch = useCallback(
     (value: string) => setFilters({ search: value || undefined }),
@@ -40,13 +51,15 @@ export function HomePage() {
   )
   const [search, setSearch] = useDebouncedSearch(filters.search ?? '', commitSearch)
 
-  // `filter` is the page's own value; the API wants a PublicationType.
+  // `filter` and `membership` are the page's own values; the API wants a PublicationType and a
+  // MinRole.
   const apiParams = useMemo(
     () => ({
       search: filters.search,
       page: filters.page,
       size: filters.size,
       type: publicationFilterToType[filters.filter],
+      minRole: membershipToMinRole[filters.membership],
     }),
     [filters]
   )
@@ -116,6 +129,21 @@ export function HomePage() {
             aria-label={t('teams.publications.list.filter.label')}
             w={{ base: '100%', sm: 160 }}
           />
+          {isAuthenticated && (
+            <Select
+              value={filters.membership}
+              onChange={(value) => setFilters({ membership: value as MembershipFilterValue })}
+              data={[
+                { value: 'all', label: t('filters.membership.all') },
+                { value: 'member', label: t('roles.MEMBER') },
+                { value: 'organizer', label: t('roles.ORGANIZER') },
+                { value: 'admin', label: t('roles.ADMIN') },
+              ]}
+              aria-label={t('filters.membership.label')}
+              allowDeselect={false}
+              w={{ base: '100%', sm: 180 }}
+            />
+          )}
         </Group>
 
         {/* Loading State */}

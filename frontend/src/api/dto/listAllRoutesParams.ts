@@ -1,4 +1,5 @@
 import type { Hilliness } from './hilliness.ts'
+import type { MinRole } from './minRole.ts'
 import type { NearType } from './nearType.ts'
 import type { RouteSortBy } from './routeSortBy.ts'
 import type { SortDirection } from './sortDirection.ts'
@@ -26,6 +27,10 @@ export type ListAllRoutesParams = {
    * Minimum elevation gain in meters
    */
   minElevationGain?: number
+  /**
+   * Only routes from teams where the user has at least this role. Yields nothing for an anonymous visitor.
+   */
+  minRole?: MinRole
   /**
    * Latitude for proximity search
    */

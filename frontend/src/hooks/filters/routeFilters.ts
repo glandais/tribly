@@ -5,6 +5,12 @@ import {
   DEFAULT_ROUTE_SORT_DIR,
 } from '@/components/route/routeFilterDefaults'
 import { COMMON_ALIAS, optionalNumberField, pageField, searchField, sizeField } from './common'
+import {
+  MEMBERSHIP_ALIAS,
+  MEMBERSHIP_ALWAYS_SERIALIZE,
+  membershipField,
+  type MembershipFilterValue,
+} from './membership'
 
 export const ROUTE_PAGE_SIZE = 12
 
@@ -38,3 +44,11 @@ export const routeFiltersAlias = {
   sortBy: 'sort',
   sortDir: 'dir',
 } as const
+
+/** The cross-team route list adds a membership filter; a team's own list has no use for one. */
+export const makeAllRouteFiltersSchema = (defaultMembership: MembershipFilterValue) =>
+  routeFiltersSchema.extend({ membership: membershipField(defaultMembership) })
+
+export const allRouteFiltersAlias = { ...routeFiltersAlias, ...MEMBERSHIP_ALIAS } as const
+
+export const allRouteFiltersAlwaysSerialize = MEMBERSHIP_ALWAYS_SERIALIZE

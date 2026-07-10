@@ -15,6 +15,7 @@ import fr.pedalons.enums.TeamRole;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.service.security.PedalonsQueryContext;
+import fr.pedalons.service.team.request.MinRole;
 import fr.pedalons.util.TestDataCleaner;
 import fr.pedalons.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -75,7 +76,7 @@ class PublicationServiceTest extends AbstractBaseTest {
       queryContext.setUserForTest(null);
       PublicationListResponse result =
           publicationService.list(
-              null, Set.of(team.getId()), null, null, null, 0, 10, false, false);
+              null, Set.of(team.getId()), null, null, null, null, 0, 10, false, false);
 
       assertEquals(2, result.publications().size());
       assertTrue(
@@ -91,7 +92,7 @@ class PublicationServiceTest extends AbstractBaseTest {
       queryContext.setUserForTest(member);
       PublicationListResponse result =
           publicationService.list(
-              null, Set.of(team.getId()), null, null, null, 0, 10, false, false);
+              null, Set.of(team.getId()), null, null, null, null, 0, 10, false, false);
 
       assertEquals(2, result.publications().size());
     }
@@ -105,7 +106,7 @@ class PublicationServiceTest extends AbstractBaseTest {
       queryContext.setUserForTest(null);
       PublicationListResponse result =
           publicationService.list(
-              null, Set.of(team.getId()), null, null, null, 0, 10, false, false);
+              null, Set.of(team.getId()), null, null, null, null, 0, 10, false, false);
 
       assertEquals(1, result.publications().size());
       assertEquals("Team1 Ride", result.publications().getFirst().getName());
@@ -124,7 +125,7 @@ class PublicationServiceTest extends AbstractBaseTest {
       queryContext.setUserForTest(null);
       PublicationListResponse result =
           publicationService.list(
-              null, Set.of(team.getId()), null, yesterday, tomorrow, 0, 10, false, false);
+              null, Set.of(team.getId()), null, yesterday, tomorrow, null, 0, 10, false, false);
 
       assertEquals(1, result.publications().size());
       assertEquals("Recent Ride", result.publications().getFirst().getName());
@@ -139,7 +140,7 @@ class PublicationServiceTest extends AbstractBaseTest {
       queryContext.setUserForTest(null);
       PublicationListResponse result =
           publicationService.list(
-              null, Set.of(team.getId()), "Mountain", null, null, 0, 10, false, false);
+              null, Set.of(team.getId()), "Mountain", null, null, null, 0, 10, false, false);
 
       assertEquals(1, result.publications().size());
       assertEquals("Mountain Ride", result.publications().getFirst().getName());
@@ -155,7 +156,8 @@ class PublicationServiceTest extends AbstractBaseTest {
 
       queryContext.setUserForTest(null);
       PublicationListResponse result =
-          publicationService.list(null, Set.of(team.getId()), null, null, null, 0, 3, false, false);
+          publicationService.list(
+              null, Set.of(team.getId()), null, null, null, null, 0, 3, false, false);
 
       assertEquals(3, result.publications().size());
       assertEquals(5, result.total());
@@ -173,7 +175,8 @@ class PublicationServiceTest extends AbstractBaseTest {
 
       queryContext.setUserForTest(null);
       PublicationListResponse result =
-          publicationService.list(null, Set.of(team.getId()), null, null, null, 1, 3, false, false);
+          publicationService.list(
+              null, Set.of(team.getId()), null, null, null, null, 1, 3, false, false);
 
       assertEquals(2, result.publications().size());
       assertEquals(5, result.total());
@@ -191,7 +194,7 @@ class PublicationServiceTest extends AbstractBaseTest {
       queryContext.setUserForTest(null);
       PublicationListResponse result =
           publicationService.list(
-              null, Set.of(team.getId()), null, null, null, 0, 10, false, false);
+              null, Set.of(team.getId()), null, null, null, null, 0, 10, false, false);
 
       assertEquals(1, result.publications().size());
       assertEquals("Published Ride", result.publications().getFirst().getName());
@@ -208,7 +211,7 @@ class PublicationServiceTest extends AbstractBaseTest {
       queryContext.setUserForTest(null);
       PublicationListResponse result =
           publicationService.list(
-              null, Set.of(team.getId()), null, null, null, 0, 10, false, false);
+              null, Set.of(team.getId()), null, null, null, null, 0, 10, false, false);
 
       assertEquals(1, result.publications().size());
       assertEquals("Active Ride", result.publications().getFirst().getName());
@@ -223,7 +226,7 @@ class PublicationServiceTest extends AbstractBaseTest {
       queryContext.setUserForTest(null);
       PublicationListResponse result =
           publicationService.list(
-              null, Set.of(team.getId()), null, null, null, 0, 10, false, false);
+              null, Set.of(team.getId()), null, null, null, null, 0, 10, false, false);
 
       assertEquals(2, result.publications().size());
       assertTrue(result.publications().stream().anyMatch(p -> p.getName().equals("Test Ride")));
@@ -235,7 +238,7 @@ class PublicationServiceTest extends AbstractBaseTest {
       queryContext.setUserForTest(null);
       PublicationListResponse result =
           publicationService.list(
-              null, Set.of(team.getId()), null, null, null, 0, 10, false, false);
+              null, Set.of(team.getId()), null, null, null, null, 0, 10, false, false);
 
       assertTrue(result.publications().isEmpty());
       assertEquals(0, result.total());
@@ -251,7 +254,16 @@ class PublicationServiceTest extends AbstractBaseTest {
       queryContext.setUserForTest(null);
       PublicationListResponse result =
           publicationService.list(
-              null, Set.of(team.getId(), team2.getId()), null, null, null, 0, 10, false, false);
+              null,
+              Set.of(team.getId(), team2.getId()),
+              null,
+              null,
+              null,
+              null,
+              0,
+              10,
+              false,
+              false);
 
       assertEquals(2, result.publications().size());
     }
@@ -265,9 +277,77 @@ class PublicationServiceTest extends AbstractBaseTest {
 
       queryContext.setUserForTest(null);
       PublicationListResponse result =
-          publicationService.list(null, null, null, null, null, 0, 10, false, false);
+          publicationService.list(null, null, null, null, null, null, 0, 10, false, false);
 
       assertEquals(2, result.publications().size());
+    }
+  }
+
+  @Nested
+  class ListAllByMembership {
+
+    /** A public ride in a public team the member does not belong to. */
+    private Team otherTeam() {
+      Team other = dataService.createTeam(admin, "Other Team", "other-team", Visibility.PUBLIC);
+      dataService.createRide(
+          other, admin, "Other Ride", nextSlug(), Instant.now(), Visibility.PUBLIC);
+      return other;
+    }
+
+    @Test
+    void shouldReturnNothingForAnonymous() {
+      dataService.createRide(team, admin, "Ride", nextSlug(), Instant.now(), Visibility.PUBLIC);
+
+      queryContext.setUserForTest(null);
+      PublicationListResponse result =
+          publicationService.listAll(null, null, null, null, MinRole.MEMBER, 0, 10);
+
+      assertEquals(0, result.publications().size());
+      assertEquals(0, result.total());
+    }
+
+    @Test
+    void shouldExcludePublicTeamsTheUserIsNotAMemberOf() {
+      dataService.createRide(team, admin, "My Ride", nextSlug(), Instant.now(), Visibility.PUBLIC);
+      otherTeam();
+
+      queryContext.setUserForTest(member);
+      PublicationListResponse unfiltered =
+          publicationService.listAll(null, null, null, null, null, 0, 10);
+      assertEquals(2, unfiltered.publications().size());
+
+      PublicationListResponse filtered =
+          publicationService.listAll(null, null, null, null, MinRole.MEMBER, 0, 10);
+      assertEquals(1, filtered.publications().size());
+      assertEquals("My Ride", filtered.publications().getFirst().getName());
+    }
+
+    @Test
+    void shouldHonourTheRoleHierarchy() {
+      dataService.createRide(team, admin, "Ride", nextSlug(), Instant.now(), Visibility.PUBLIC);
+
+      // The member holds MEMBER, so nothing satisfies a minimum of ORGANIZER.
+      queryContext.setUserForTest(member);
+      assertEquals(
+          0, publicationService.listAll(null, null, null, null, MinRole.ORGANIZER, 0, 10).total());
+
+      // The admin holds ADMIN, which satisfies every minimum.
+      queryContext.setUserForTest(admin);
+      assertEquals(
+          1, publicationService.listAll(null, null, null, null, MinRole.ORGANIZER, 0, 10).total());
+      assertEquals(
+          1, publicationService.listAll(null, null, null, null, MinRole.ADMIN, 0, 10).total());
+    }
+
+    @Test
+    void shouldReturnNothingForAUserWithoutAnyTeam() {
+      dataService.createRide(team, admin, "Ride", nextSlug(), Instant.now(), Visibility.PUBLIC);
+
+      queryContext.setUserForTest(nonMember);
+      PublicationListResponse result =
+          publicationService.listAll(null, null, null, null, MinRole.MEMBER, 0, 10);
+
+      assertEquals(0, result.total());
     }
   }
 
@@ -281,7 +361,8 @@ class PublicationServiceTest extends AbstractBaseTest {
       dataService.createPost(team, admin, "Post 1", now, Visibility.PUBLIC);
 
       queryContext.setUserForTest(null);
-      PublicationListResponse result = publicationService.listAll(null, null, null, null, 0, 10);
+      PublicationListResponse result =
+          publicationService.listAll(null, null, null, null, null, 0, 10);
 
       assertEquals(2, result.publications().size());
     }
@@ -293,7 +374,8 @@ class PublicationServiceTest extends AbstractBaseTest {
       dataService.createRide(team, admin, "Team Ride", nextSlug(), now, Visibility.TEAM);
 
       queryContext.setUserForTest(member);
-      PublicationListResponse result = publicationService.listAll(null, null, null, null, 0, 10);
+      PublicationListResponse result =
+          publicationService.listAll(null, null, null, null, null, 0, 10);
 
       assertEquals(2, result.publications().size());
     }
@@ -306,7 +388,7 @@ class PublicationServiceTest extends AbstractBaseTest {
 
       queryContext.setUserForTest(null);
       PublicationListResponse result =
-          publicationService.listAll(PublicationType.RIDE, null, null, null, 0, 10);
+          publicationService.listAll(PublicationType.RIDE, null, null, null, null, 0, 10);
 
       assertEquals(1, result.publications().size());
       assertEquals("Test Ride", result.publications().getFirst().getName());
@@ -320,7 +402,7 @@ class PublicationServiceTest extends AbstractBaseTest {
 
       queryContext.setUserForTest(null);
       PublicationListResponse result =
-          publicationService.listAll(PublicationType.POST, null, null, null, 0, 10);
+          publicationService.listAll(PublicationType.POST, null, null, null, null, 0, 10);
 
       assertEquals(1, result.publications().size());
       assertEquals("Test Post", result.publications().getFirst().getName());
@@ -334,7 +416,7 @@ class PublicationServiceTest extends AbstractBaseTest {
 
       queryContext.setUserForTest(null);
       PublicationListResponse result =
-          publicationService.listAll(null, "Mountain", null, null, 0, 10);
+          publicationService.listAll(null, "Mountain", null, null, null, 0, 10);
 
       assertEquals(1, result.publications().size());
       assertEquals("Mountain Ride", result.publications().getFirst().getName());
@@ -352,7 +434,7 @@ class PublicationServiceTest extends AbstractBaseTest {
 
       queryContext.setUserForTest(null);
       PublicationListResponse result =
-          publicationService.listAll(null, null, yesterday, tomorrow, 0, 10);
+          publicationService.listAll(null, null, yesterday, tomorrow, null, 0, 10);
 
       assertEquals(1, result.publications().size());
       assertEquals("Recent Ride", result.publications().getFirst().getName());
@@ -367,7 +449,8 @@ class PublicationServiceTest extends AbstractBaseTest {
       }
 
       queryContext.setUserForTest(null);
-      PublicationListResponse result = publicationService.listAll(null, null, null, null, 0, 3);
+      PublicationListResponse result =
+          publicationService.listAll(null, null, null, null, null, 0, 3);
 
       assertEquals(3, result.publications().size());
       assertEquals(5, result.total());
@@ -381,7 +464,8 @@ class PublicationServiceTest extends AbstractBaseTest {
       dataService.createRide(team2, admin, "Ride Team 2", nextSlug(), now, Visibility.PUBLIC);
 
       queryContext.setUserForTest(null);
-      PublicationListResponse result = publicationService.listAll(null, null, null, null, 0, 10);
+      PublicationListResponse result =
+          publicationService.listAll(null, null, null, null, null, 0, 10);
 
       assertEquals(2, result.publications().size());
     }

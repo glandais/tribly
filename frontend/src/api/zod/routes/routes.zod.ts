@@ -16,6 +16,12 @@ export const ListAllRoutesQueryParams = zod.object({
   maxElevationGain: zod.number().optional().describe('Maximum elevation gain in meters'),
   minDistance: zod.number().optional().describe('Minimum distance in meters'),
   minElevationGain: zod.number().optional().describe('Minimum elevation gain in meters'),
+  minRole: zod
+    .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
+    .optional()
+    .describe(
+      'Only routes from teams where the user has at least this role. Yields nothing for an anonymous visitor.'
+    ),
   nearLat: zod.number().optional().describe('Latitude for proximity search'),
   nearLon: zod.number().optional().describe('Longitude for proximity search'),
   nearRadius: zod.number().optional().describe('Search radius in meters (default: 25000)'),

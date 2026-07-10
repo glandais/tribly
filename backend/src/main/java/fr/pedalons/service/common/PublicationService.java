@@ -14,6 +14,7 @@ import fr.pedalons.service.asset.AssetService;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.CheckAccess;
 import fr.pedalons.service.team.TeamService;
+import fr.pedalons.service.team.request.MinRole;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.Instant;
@@ -40,9 +41,10 @@ public class PublicationService {
       @Nullable String search,
       @Nullable Instant from,
       @Nullable Instant to,
+      @Nullable MinRole minRole,
       int page,
       int size) {
-    return list(type, null, search, from, to, page, size, false, isPlatformAdmin());
+    return list(type, null, search, from, to, minRole, page, size, false, isPlatformAdmin());
   }
 
   @CheckAccess(entityType = EntityType.PUBLICATION, action = ActionType.LIST)
@@ -58,7 +60,16 @@ public class PublicationService {
     Long teamId = team.getId();
     boolean includeDeleted = includeDeletedService.isTeamEntityIncludeDeleted(team);
     return list(
-        type, Set.of(teamId), search, from, to, page, size, includeDeleted, isPlatformAdmin());
+        type,
+        Set.of(teamId),
+        search,
+        from,
+        to,
+        null,
+        page,
+        size,
+        includeDeleted,
+        isPlatformAdmin());
   }
 
   protected PublicationListResponse list(
@@ -67,6 +78,7 @@ public class PublicationService {
       @Nullable String search,
       @Nullable Instant from,
       @Nullable Instant to,
+      @Nullable MinRole minRole,
       int page,
       int size,
       boolean includeDeleted,
@@ -81,6 +93,7 @@ public class PublicationService {
                 .search(search)
                 .from(from)
                 .to(to)
+                .minRole(minRole)
                 .page(page)
                 .size(size)
                 .includeDeleted(includeDeleted)

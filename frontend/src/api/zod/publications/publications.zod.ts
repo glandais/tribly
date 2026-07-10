@@ -9,6 +9,12 @@ export const listAllPublicationsQuerySizeDefault = 20
 
 export const ListAllPublicationsQueryParams = zod.object({
   from: zod.string().optional().describe('Start date filter (ISO format)'),
+  minRole: zod
+    .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
+    .optional()
+    .describe(
+      'Only publications from teams where the user has at least this role. Yields nothing for an anonymous visitor.'
+    ),
   page: zod.number().default(listAllPublicationsQueryPageDefault).describe('Page number'),
   search: zod.string().optional().describe('Search by name\/markdown'),
   size: zod.number().default(listAllPublicationsQuerySizeDefault).describe('Page size'),

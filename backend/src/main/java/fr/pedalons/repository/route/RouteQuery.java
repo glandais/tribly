@@ -2,6 +2,7 @@ package fr.pedalons.repository.route;
 
 import fr.pedalons.enums.*;
 import fr.pedalons.repository.common.TeamEntityQueryInterface;
+import fr.pedalons.service.team.request.MinRole;
 import java.time.Instant;
 import java.util.Set;
 import lombok.Builder;
@@ -17,6 +18,7 @@ public record RouteQuery(
     @Nullable String search,
     @Nullable Instant from,
     @Nullable Instant to,
+    @Nullable MinRole minRole,
     int page,
     int size,
     // Route-specific filters

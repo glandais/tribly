@@ -5989,6 +5989,12 @@ paths:
         in: query
         schema:
           type: string
+      - description: Only publications from teams where the user has at least this
+          role. Yields nothing for an anonymous visitor.
+        name: minRole
+        in: query
+        schema:
+          $ref: "#/components/schemas/MinRole"
       - description: Page number
         name: page
         in: query
@@ -6102,6 +6108,12 @@ paths:
         schema:
           type: number
           format: float
+      - description: Only routes from teams where the user has at least this role.
+          Yields nothing for an anonymous visitor.
+        name: minRole
+        in: query
+        schema:
+          $ref: "#/components/schemas/MinRole"
       - description: Latitude for proximity search
         name: nearLat
         in: query

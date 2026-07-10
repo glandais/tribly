@@ -5,6 +5,7 @@ import fr.pedalons.dto.routes.response.RouteListResponse;
 import fr.pedalons.enums.*;
 import fr.pedalons.infrastructure.jaxrs.PedalonsMediaType;
 import fr.pedalons.service.route.RouteService;
+import fr.pedalons.service.team.request.MinRole;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -51,6 +52,12 @@ public class AllRouteResource {
       @Parameter(description = "Page number (0-indexed)") @QueryParam("page") @DefaultValue("0")
           int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size,
+      @Parameter(
+              description =
+                  "Only routes from teams where the user has at least this role. Yields nothing"
+                      + " for an anonymous visitor.")
+          @QueryParam("minRole")
+          @Nullable MinRole minRole,
       @Parameter(description = "Minimum distance in meters") @QueryParam("minDistance")
           @Nullable Float minDistance,
       @Parameter(description = "Maximum distance in meters") @QueryParam("maxDistance")
@@ -86,6 +93,7 @@ public class AllRouteResource {
             .search(search)
             .page(page)
             .size(size)
+            .minRole(minRole)
             .minDistance(minDistance)
             .maxDistance(maxDistance)
             .minElevationGain(minElevationGain)

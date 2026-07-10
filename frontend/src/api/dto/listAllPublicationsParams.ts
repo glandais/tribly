@@ -1,3 +1,4 @@
+import type { MinRole } from './minRole.ts'
 import type { PublicationType } from './publicationType.ts'
 
 export type ListAllPublicationsParams = {
@@ -5,6 +6,10 @@ export type ListAllPublicationsParams = {
    * Start date filter (ISO format)
    */
   from?: string
+  /**
+   * Only publications from teams where the user has at least this role. Yields nothing for an anonymous visitor.
+   */
+  minRole?: MinRole
   /**
    * Page number
    */

@@ -9,13 +9,13 @@ import { getAppConfig } from '../../config/appConfig'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { useUrlFilters } from '../../hooks/useUrlFilters'
 import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
+import { useMembershipDefault } from '../../hooks/useMembershipDefault'
 import {
   makeTeamFiltersSchema,
   teamFiltersAlias,
   teamFiltersAlwaysSerialize,
-  teamFilterToMinRole,
-  type TeamFilterValue,
 } from '../../hooks/filters/teamFilters'
+import { membershipToMinRole, type MembershipFilterValue } from '../../hooks/filters/membership'
 import { TeamCard, TeamCardSkeleton } from '../../components/card'
 import { Pagination } from '../../components/common/Pagination'
 import { SearchInput } from '../../components/common/SearchInput'
@@ -39,10 +39,8 @@ export function TeamListPage() {
   const { isAuthenticated } = useAuth()
   const config = getAppConfig()
 
-  const schema = useMemo(
-    () => makeTeamFiltersSchema(isAuthenticated ? 'member' : 'all'),
-    [isAuthenticated]
-  )
+  const membershipDefault = useMembershipDefault()
+  const schema = useMemo(() => makeTeamFiltersSchema(membershipDefault), [membershipDefault])
   const { filters, setFilters } = useUrlFilters({
     schema,
     alias: teamFiltersAlias,
@@ -59,7 +57,7 @@ export function TeamListPage() {
       search: filters.search,
       page: filters.page,
       size: filters.size,
-      minRole: teamFilterToMinRole[filters.filter],
+      minRole: membershipToMinRole[filters.membership],
     }),
     [filters]
   )
@@ -113,8 +111,8 @@ export function TeamListPage() {
           />
           {isAuthenticated && (
             <Select
-              value={filters.filter}
-              onChange={(value) => setFilters({ filter: value as TeamFilterValue })}
+              value={filters.membership}
+              onChange={(value) => setFilters({ membership: value as MembershipFilterValue })}
               data={[
                 { value: 'all', label: t('teams.list.filter.all') },
                 { value: 'member', label: t('roles.MEMBER') },
@@ -122,6 +120,7 @@ export function TeamListPage() {
                 { value: 'admin', label: t('roles.ADMIN') },
               ]}
               aria-label={t('teams.list.filter.label')}
+              allowDeselect={false}
               w={{ base: '100%', sm: 160 }}
             />
           )}

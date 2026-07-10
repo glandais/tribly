@@ -1,6 +1,7 @@
 package fr.pedalons.dto.routes.request;
 
 import fr.pedalons.enums.*;
+import fr.pedalons.service.team.request.MinRole;
 import lombok.Builder;
 import org.jspecify.annotations.Nullable;
 
@@ -9,6 +10,7 @@ public record RouteSearchParams(
     @Nullable String search,
     int page,
     int size,
+    @Nullable MinRole minRole,
     @Nullable Float minDistance,
     @Nullable Float maxDistance,
     @Nullable Float minElevationGain,

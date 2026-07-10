@@ -274,6 +274,7 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
                 .search(params.search())
                 .page(params.page())
                 .size(params.size())
+                .minRole(params.minRole())
                 .minDistance(params.minDistance())
                 .maxDistance(params.maxDistance())
                 .minElevationGain(params.minElevationGain())

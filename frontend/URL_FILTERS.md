@@ -54,6 +54,25 @@ const [search, setSearch] = useDebouncedSearch(filters.search ?? '', commitSearc
 - **Every write is `{ replace: true }`.** Push is reserved for navigating to a detail page. Otherwise eight keystrokes would bury the previous page under eight history entries.
 - **A filter value the page maps to something else stays in its own form in the URL.** `PublicationListPage` keeps `all|ride|post|trip` in the schema and converts to `PublicationType` in the page, so URLs stay readable.
 
+## The membership filter
+
+The home feed, the cross-team route list and the team list can restrict themselves to the teams the
+user belongs to. `hooks/filters/membership.ts` holds the shared value (`all | member | organizer |
+admin`), its mapping to the API's `MinRole`, and the URL alias `role`.
+
+- The schema key is `membership`, mapped to `MinRole` in the page — never store the API enum in the
+  URL, the page's own value reads better.
+- Its default comes from `useMembershipDefault()`: `member` when signed in, but `all` for an
+  anonymous visitor and for a signed-in user who belongs to no team, who would otherwise land on an
+  empty page.
+- Because that default is context-dependent, `membership` is in `alwaysSerialize` — a shared link
+  must spell out the role it was built with.
+- The backend returns nothing when `minRole` is set for an anonymous visitor, so the control is
+  hidden rather than shown and broken.
+
+`RouteFilterPanel`'s "clear filters" resets each clearable key by name instead of omitting it,
+precisely so the membership filter (and the search) survive.
+
 ## Scroll restoration (`useScrollRestoration`)
 
 Mounted once, in `Layout`. It cooperates with the scroll-to-top effect there by keying off mutually exclusive navigation types: **PUSH** scrolls to top, **POP** restores, **REPLACE** (a filter edit) leaves the scroll alone. Do not remove the `navigationType === 'PUSH'` guard on `Layout`'s `window.scrollTo(0, 0)` — without it, going back scrolls to the top before the position can be restored.

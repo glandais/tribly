@@ -11,6 +11,7 @@ import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamLayout } from '../../components/team/TeamLayout'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { useRouteFilters } from '../../hooks/useRouteFilters'
+import { routeFiltersSchema, routeFiltersAlias } from '../../hooks/filters/routeFilters'
 import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
 import { RouteListContent } from '../../components/route/RouteListContent'
 import { RouteViewToggle } from '../../components/route/RouteViewToggle'
@@ -29,7 +30,7 @@ export function RouteListPage() {
     handlePageChange,
     hasFiltersOrSearch,
     pageSize,
-  } = useRouteFilters()
+  } = useRouteFilters({ schema: routeFiltersSchema, alias: routeFiltersAlias })
 
   const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },

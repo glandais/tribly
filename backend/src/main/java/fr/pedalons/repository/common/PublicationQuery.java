@@ -1,6 +1,7 @@
 package fr.pedalons.repository.common;
 
 import fr.pedalons.dto.publications.response.PublicationType;
+import fr.pedalons.service.team.request.MinRole;
 import java.time.Instant;
 import java.util.Set;
 import lombok.Builder;
@@ -17,6 +18,7 @@ public record PublicationQuery(
     @Nullable String search,
     @Nullable Instant from,
     @Nullable Instant to,
+    @Nullable MinRole minRole,
     int page,
     int size,
     boolean includeDeleted,

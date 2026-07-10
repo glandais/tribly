@@ -3,7 +3,6 @@ package fr.pedalons.repository.team;
 import fr.pedalons.domain.common.SearchClause;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.dto.common.PedalonsPage;
-import fr.pedalons.enums.TeamRole;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.repository.common.BaseRepository;
 import fr.pedalons.repository.query.OrClause;
@@ -13,7 +12,6 @@ import fr.pedalons.service.team.response.TeamAndRole;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -79,15 +77,8 @@ public class TeamRepository implements BaseRepository<Team> {
         pedalonsQuery.and(or);
 
       } else {
-        List<TeamRole> roles =
-            switch (teamQuery.minRole()) {
-              case MEMBER -> List.of(TeamRole.MEMBER, TeamRole.ORGANIZER, TeamRole.ADMIN);
-              case ORGANIZER -> List.of(TeamRole.ORGANIZER, TeamRole.ADMIN);
-              case ADMIN -> List.of(TeamRole.ADMIN);
-              default ->
-                  throw new IllegalStateException("Unexpected value: " + teamQuery.minRole());
-            };
-        pedalonsQuery.and("ut.role in (:userRoles)", Map.of("userRoles", roles));
+        pedalonsQuery.and(
+            "ut.role in (:userRoles)", Map.of("userRoles", teamQuery.minRole().acceptedRoles()));
       }
     } else {
       pedalonsQuery.and(visibleTeam(list));
