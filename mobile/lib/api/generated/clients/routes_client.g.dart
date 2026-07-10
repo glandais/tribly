@@ -28,6 +28,7 @@ class _RoutesClient implements RoutesClient {
     double? maxElevationGain,
     double? minDistance,
     double? minElevationGain,
+    MinRole? minRole,
     double? nearLat,
     double? nearLon,
     double? nearRadius,
@@ -47,6 +48,7 @@ class _RoutesClient implements RoutesClient {
       r'maxElevationGain': maxElevationGain,
       r'minDistance': minDistance,
       r'minElevationGain': minElevationGain,
+      r'minRole': minRole?.toJson(),
       r'nearLat': nearLat,
       r'nearLon': nearLon,
       r'nearRadius': nearRadius,
@@ -86,9 +88,37 @@ class _RoutesClient implements RoutesClient {
     required int x,
     required int y,
     required int z,
+    Hilliness? hilliness,
+    double? maxDistance,
+    double? maxElevationGain,
+    double? minDistance,
+    double? minElevationGain,
+    MinRole? minRole,
+    double? nearLat,
+    double? nearLon,
+    double? nearRadius,
+    NearType? nearType,
+    String? search,
+    SurfaceType? surfaceType,
+    WindDirection? windDirection,
   }) async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'hilliness': hilliness?.toJson(),
+      r'maxDistance': maxDistance,
+      r'maxElevationGain': maxElevationGain,
+      r'minDistance': minDistance,
+      r'minElevationGain': minElevationGain,
+      r'minRole': minRole?.toJson(),
+      r'nearLat': nearLat,
+      r'nearLon': nearLon,
+      r'nearRadius': nearRadius,
+      r'nearType': nearType?.toJson(),
+      r'search': search,
+      r'surfaceType': surfaceType?.toJson(),
+      r'windDirection': windDirection?.toJson(),
+    };
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
     final _options = _setStreamType<void>(
@@ -216,9 +246,35 @@ class _RoutesClient implements RoutesClient {
     required int x,
     required int y,
     required int z,
+    Hilliness? hilliness,
+    double? maxDistance,
+    double? maxElevationGain,
+    double? minDistance,
+    double? minElevationGain,
+    double? nearLat,
+    double? nearLon,
+    double? nearRadius,
+    NearType? nearType,
+    String? search,
+    SurfaceType? surfaceType,
+    WindDirection? windDirection,
   }) async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'hilliness': hilliness?.toJson(),
+      r'maxDistance': maxDistance,
+      r'maxElevationGain': maxElevationGain,
+      r'minDistance': minDistance,
+      r'minElevationGain': minElevationGain,
+      r'nearLat': nearLat,
+      r'nearLon': nearLon,
+      r'nearRadius': nearRadius,
+      r'nearType': nearType?.toJson(),
+      r'search': search,
+      r'surfaceType': surfaceType?.toJson(),
+      r'windDirection': windDirection?.toJson(),
+    };
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
     final _options = _setStreamType<void>(

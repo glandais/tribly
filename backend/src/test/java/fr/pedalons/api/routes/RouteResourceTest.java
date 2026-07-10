@@ -704,4 +704,28 @@ class RouteResourceTest extends AbstractResourceTest {
         .statusCode(200)
         .body(emptyString());
   }
+
+  @Test
+  void routesTile_withSearch_shouldOnlyContainMatchingRoute() {
+    Route alpha = dataService.createRoute(team1, user1, "Tile Alpha", Visibility.PUBLIC);
+    Route beta = dataService.createRoute(team1, user1, "Tile Beta", Visibility.PUBLIC);
+
+    String tile = MvtAssert.decode(given().queryParam("search", "alpha").when().get(routesTile()));
+
+    MvtAssert.assertContainsSlugs(tile, alpha.getSlug());
+    MvtAssert.assertMissingSlugs(tile, beta.getSlug());
+  }
+
+  @Test
+  void routesTile_withNonMatchingSurfaceType_shouldBeEmpty() {
+    dataService.createRoute(team1, user1, "Tile Public", Visibility.PUBLIC);
+
+    given()
+        .queryParam("surfaceType", SurfaceType.MTB)
+        .when()
+        .get(routesTile())
+        .then()
+        .statusCode(200)
+        .body(emptyString());
+  }
 }

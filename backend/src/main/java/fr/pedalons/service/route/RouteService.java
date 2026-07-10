@@ -231,9 +231,9 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
    * Vector tile of a team's routes, subject to the same access control as {@link #getRoutes}.
    */
   @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.LIST)
-  public byte[] getRoutesTile(String teamSlug, int z, int x, int y) {
+  public byte[] getRoutesTile(String teamSlug, RouteSearchParams params, int z, int x, int y) {
     Team team = teamService.getTeam(teamSlug);
-    return tile(Set.of(team.getId()), z, x, y);
+    return tile(Set.of(team.getId()), params, z, x, y);
   }
 
   /**
@@ -241,17 +241,34 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
    * {@link #getAllRoutes}.
    */
   @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.LIST_ALL_TEAMS)
-  public byte[] getAllRoutesTile(int z, int x, int y) {
-    return tile(null, z, x, y);
+  public byte[] getAllRoutesTile(RouteSearchParams params, int z, int x, int y) {
+    return tile(null, params, z, x, y);
   }
 
-  private byte[] tile(@Nullable Set<Long> teamIds, int z, int x, int y) {
+  /**
+   * The sort and the pagination of {@code params} are deliberately dropped: the tile projection is
+   * an aggregate, which an {@code ORDER BY} would break, and a tile holds every matching route.
+   */
+  private byte[] tile(@Nullable Set<Long> teamIds, RouteSearchParams params, int z, int x, int y) {
     User user = pedalonsContext.getUserNullable();
     return routeRepository.mvtTile(
         RouteQuery.builder()
             .domainId(pedalonsContext.getDomainId())
             .userId(user == null ? null : user.getId())
             .teamIds(teamIds)
+            .search(params.search())
+            .minRole(params.minRole())
+            .minDistance(params.minDistance())
+            .maxDistance(params.maxDistance())
+            .minElevationGain(params.minElevationGain())
+            .maxElevationGain(params.maxElevationGain())
+            .hilliness(params.hilliness())
+            .surfaceType(params.surfaceType())
+            .windDirection(params.windDirection())
+            .nearLat(params.nearLat())
+            .nearLon(params.nearLon())
+            .nearRadius(params.nearRadius())
+            .nearType(params.nearType())
             .includeDeleted(false)
             .platformAdmin(isPlatformAdmin())
             .build(),

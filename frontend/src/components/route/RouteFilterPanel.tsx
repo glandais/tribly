@@ -18,6 +18,8 @@ interface RouteFilterPanelProps {
   onFiltersChange: (filters: Partial<RouteFilters>) => void
   isOpen: boolean
   onOpenChange: (open: boolean) => void
+  /** The map view orders nothing, so it hides the sort rather than showing an inert control. */
+  showSort?: boolean
 }
 
 export function RouteFilterPanel({
@@ -25,6 +27,7 @@ export function RouteFilterPanel({
   onFiltersChange,
   isOpen,
   onOpenChange,
+  showSort = true,
 }: RouteFilterPanelProps) {
   const { t } = useTranslation()
   const { config, distanceUnit, elevationUnit } = useUnits()
@@ -40,7 +43,8 @@ export function RouteFilterPanel({
   const [search, setSearch] = useDebouncedSearch(filters.search ?? '', commitSearch)
 
   // Resets each clearable key by name rather than omitting it, so filters this panel does not own
-  // — the search, and the membership filter on the cross-team page — survive.
+  // — the search, the membership filter on the cross-team page, and the sort when it is hidden —
+  // survive.
   const clearFilters = () => {
     onFiltersChange({
       ...filters,
@@ -51,15 +55,15 @@ export function RouteFilterPanel({
       hilliness: undefined,
       surfaceType: undefined,
       windDirection: undefined,
-      sortBy: DEFAULT_ROUTE_SORT_BY,
-      sortDir: DEFAULT_ROUTE_SORT_DIR,
+      ...(showSort ? { sortBy: DEFAULT_ROUTE_SORT_BY, sortDir: DEFAULT_ROUTE_SORT_DIR } : {}),
       page: 0,
     })
   }
 
   const hasNonDefaultSort =
-    (filters.sortBy !== undefined && filters.sortBy !== DEFAULT_ROUTE_SORT_BY) ||
-    (filters.sortDir !== undefined && filters.sortDir !== DEFAULT_ROUTE_SORT_DIR)
+    showSort &&
+    ((filters.sortBy !== undefined && filters.sortBy !== DEFAULT_ROUTE_SORT_BY) ||
+      (filters.sortDir !== undefined && filters.sortDir !== DEFAULT_ROUTE_SORT_DIR))
 
   const hasActiveFilters =
     filters.minDistance !== undefined ||
@@ -212,43 +216,47 @@ export function RouteFilterPanel({
             </Stack>
 
             {/* Sort Options */}
-            <Stack gap={4}>
-              <Text size="sm" fw={500}>
-                {t('routes.list.filters.sort.label')}
-              </Text>
-              <Group gap="xs">
-                <Select
-                  value={filters.sortBy ?? RouteSortBy.DATE_TIME}
-                  onChange={(value) => updateFilter('sortBy', value as RouteSortBy)}
-                  style={{ flex: 1 }}
-                  data={Object.values(RouteSortBy).map((sort) => ({
-                    value: sort,
-                    label: t(
-                      `routes.list.filters.sort.${sort satisfies 'DISTANCE' | 'ELEVATION_GAIN' | 'HILLINESS' | 'DATE_TIME'}`
-                    ),
-                  }))}
-                />
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={() =>
-                    updateFilter(
-                      'sortDir',
-                      filters.sortDir === SortDirection.ASC ? SortDirection.DESC : SortDirection.ASC
-                    )
-                  }
-                  title={t(
-                    `routes.list.filters.sort.${filters.sortDir === SortDirection.ASC ? 'ASC' : 'DESC'}`
-                  )}
-                >
-                  {filters.sortDir === SortDirection.ASC ? (
-                    <IconChevronUp size={16} />
-                  ) : (
-                    <IconChevronDown size={16} />
-                  )}
-                </Button>
-              </Group>
-            </Stack>
+            {showSort && (
+              <Stack gap={4}>
+                <Text size="sm" fw={500}>
+                  {t('routes.list.filters.sort.label')}
+                </Text>
+                <Group gap="xs">
+                  <Select
+                    value={filters.sortBy ?? RouteSortBy.DATE_TIME}
+                    onChange={(value) => updateFilter('sortBy', value as RouteSortBy)}
+                    style={{ flex: 1 }}
+                    data={Object.values(RouteSortBy).map((sort) => ({
+                      value: sort,
+                      label: t(
+                        `routes.list.filters.sort.${sort satisfies 'DISTANCE' | 'ELEVATION_GAIN' | 'HILLINESS' | 'DATE_TIME'}`
+                      ),
+                    }))}
+                  />
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() =>
+                      updateFilter(
+                        'sortDir',
+                        filters.sortDir === SortDirection.ASC
+                          ? SortDirection.DESC
+                          : SortDirection.ASC
+                      )
+                    }
+                    title={t(
+                      `routes.list.filters.sort.${filters.sortDir === SortDirection.ASC ? 'ASC' : 'DESC'}`
+                    )}
+                  >
+                    {filters.sortDir === SortDirection.ASC ? (
+                      <IconChevronUp size={16} />
+                    ) : (
+                      <IconChevronDown size={16} />
+                    )}
+                  </Button>
+                </Group>
+              </Stack>
+            )}
           </SimpleGrid>
         </Paper>
       </Collapse>

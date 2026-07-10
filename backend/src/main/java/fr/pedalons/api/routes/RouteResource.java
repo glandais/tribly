@@ -130,9 +130,10 @@ public class RouteResource {
   @Operation(
       summary = "Team routes vector tile",
       description =
-          "Mapbox vector tile holding the team's routes, layer 'routes'. Fetched directly by the "
-              + "map renderer, so it authenticates with the session cookie rather than a bearer "
-              + "token.")
+          "Mapbox vector tile holding the team's routes, layer 'routes'. Accepts the same filters"
+              + " as the route list, minus sorting and pagination, which a tile has no use for."
+              + " Fetched directly by the map renderer, so it authenticates with the session cookie"
+              + " rather than a bearer token.")
   @APIResponses({
     @APIResponse(responseCode = "200", description = "Tile retrieved successfully"),
     @APIResponse(responseCode = "400", description = "Invalid tile coordinates"),
@@ -145,8 +146,51 @@ public class RouteResource {
       @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Zoom level") @PathParam("z") int z,
       @Parameter(description = "Tile column") @PathParam("x") int x,
-      @Parameter(description = "Tile row") @PathParam("y") int y) {
-    return RouteTiles.response(routeService.getRoutesTile(teamSlug, z, x, y));
+      @Parameter(description = "Tile row") @PathParam("y") int y,
+      @Parameter(description = "Search by name/markdown") @QueryParam("search")
+          @Nullable String search,
+      @Parameter(description = "Minimum distance in meters") @QueryParam("minDistance")
+          @Nullable Float minDistance,
+      @Parameter(description = "Maximum distance in meters") @QueryParam("maxDistance")
+          @Nullable Float maxDistance,
+      @Parameter(description = "Minimum elevation gain in meters") @QueryParam("minElevationGain")
+          @Nullable Float minElevationGain,
+      @Parameter(description = "Maximum elevation gain in meters") @QueryParam("maxElevationGain")
+          @Nullable Float maxElevationGain,
+      @Parameter(description = "Hilliness preset (FLAT, HILLY, MOUNTAINOUS)")
+          @QueryParam("hilliness")
+          @Nullable Hilliness hilliness,
+      @Parameter(description = "Filter by surface type") @QueryParam("surfaceType")
+          @Nullable SurfaceType surfaceType,
+      @Parameter(description = "Filter by wind direction") @QueryParam("windDirection")
+          @Nullable WindDirection windDirection,
+      @Parameter(description = "Latitude for proximity search") @QueryParam("nearLat")
+          @Nullable Double nearLat,
+      @Parameter(description = "Longitude for proximity search") @QueryParam("nearLon")
+          @Nullable Double nearLon,
+      @Parameter(description = "Search radius in meters (default: 25000)") @QueryParam("nearRadius")
+          @Nullable Double nearRadius,
+      @Parameter(description = "Search near START, END, or START_OR_END (default)")
+          @QueryParam("nearType")
+          @Nullable NearType nearType) {
+
+    RouteSearchParams params =
+        RouteSearchParams.builder()
+            .search(search)
+            .minDistance(minDistance)
+            .maxDistance(maxDistance)
+            .minElevationGain(minElevationGain)
+            .maxElevationGain(maxElevationGain)
+            .hilliness(hilliness)
+            .surfaceType(surfaceType)
+            .windDirection(windDirection)
+            .nearLat(nearLat)
+            .nearLon(nearLon)
+            .nearRadius(nearRadius)
+            .nearType(nearType)
+            .build();
+
+    return RouteTiles.response(routeService.getRoutesTile(teamSlug, params, z, x, y));
   }
 
   /**

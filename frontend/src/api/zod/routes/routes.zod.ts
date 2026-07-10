@@ -242,13 +242,55 @@ export const ListAllRoutesResponse = zod
   .describe('Paginated route list response')
 
 /**
- * Mapbox vector tile holding the routes of all accessible teams, layer 'routes'. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
+ * Mapbox vector tile holding the routes of all accessible teams, layer 'routes'. Accepts the same filters as the route list, minus sorting and pagination, which a tile has no use for. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
  * @summary All routes vector tile
  */
 export const AllRoutesTileParams = zod.object({
   x: zod.number().describe('Tile column'),
   y: zod.number().describe('Tile row'),
   z: zod.number().describe('Zoom level'),
+})
+
+export const AllRoutesTileQueryParams = zod.object({
+  hilliness: zod
+    .enum(['FLAT', 'HILLY', 'MOUNTAINOUS'])
+    .optional()
+    .describe('Hilliness preset (FLAT, HILLY, MOUNTAINOUS)'),
+  maxDistance: zod.number().optional().describe('Maximum distance in meters'),
+  maxElevationGain: zod.number().optional().describe('Maximum elevation gain in meters'),
+  minDistance: zod.number().optional().describe('Minimum distance in meters'),
+  minElevationGain: zod.number().optional().describe('Minimum elevation gain in meters'),
+  minRole: zod
+    .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
+    .optional()
+    .describe(
+      'Only routes from teams where the user has at least this role. Yields an empty tile for an anonymous visitor.'
+    ),
+  nearLat: zod.number().optional().describe('Latitude for proximity search'),
+  nearLon: zod.number().optional().describe('Longitude for proximity search'),
+  nearRadius: zod.number().optional().describe('Search radius in meters (default: 25000)'),
+  nearType: zod
+    .enum(['START', 'END', 'START_OR_END'])
+    .optional()
+    .describe('Search near START, END, or START_OR_END (default)'),
+  search: zod.string().optional().describe('Search by name\/markdown'),
+  surfaceType: zod
+    .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
+    .optional()
+    .describe('Filter by surface type'),
+  windDirection: zod
+    .enum([
+      'NORTH',
+      'NORTH_EAST',
+      'EAST',
+      'SOUTH_EAST',
+      'SOUTH',
+      'SOUTH_WEST',
+      'WEST',
+      'NORTH_WEST',
+    ])
+    .optional()
+    .describe('Filter by wind direction'),
 })
 
 export const AllRoutesTileResponse = zod.unknown()
@@ -855,7 +897,7 @@ export const CreateRouteResponse = zod
   .describe('Route summary data')
 
 /**
- * Mapbox vector tile holding the team's routes, layer 'routes'. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
+ * Mapbox vector tile holding the team's routes, layer 'routes'. Accepts the same filters as the route list, minus sorting and pagination, which a tile has no use for. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
  * @summary Team routes vector tile
  */
 export const RoutesTileParams = zod.object({
@@ -863,6 +905,42 @@ export const RoutesTileParams = zod.object({
   x: zod.number().describe('Tile column'),
   y: zod.number().describe('Tile row'),
   z: zod.number().describe('Zoom level'),
+})
+
+export const RoutesTileQueryParams = zod.object({
+  hilliness: zod
+    .enum(['FLAT', 'HILLY', 'MOUNTAINOUS'])
+    .optional()
+    .describe('Hilliness preset (FLAT, HILLY, MOUNTAINOUS)'),
+  maxDistance: zod.number().optional().describe('Maximum distance in meters'),
+  maxElevationGain: zod.number().optional().describe('Maximum elevation gain in meters'),
+  minDistance: zod.number().optional().describe('Minimum distance in meters'),
+  minElevationGain: zod.number().optional().describe('Minimum elevation gain in meters'),
+  nearLat: zod.number().optional().describe('Latitude for proximity search'),
+  nearLon: zod.number().optional().describe('Longitude for proximity search'),
+  nearRadius: zod.number().optional().describe('Search radius in meters (default: 25000)'),
+  nearType: zod
+    .enum(['START', 'END', 'START_OR_END'])
+    .optional()
+    .describe('Search near START, END, or START_OR_END (default)'),
+  search: zod.string().optional().describe('Search by name\/markdown'),
+  surfaceType: zod
+    .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
+    .optional()
+    .describe('Filter by surface type'),
+  windDirection: zod
+    .enum([
+      'NORTH',
+      'NORTH_EAST',
+      'EAST',
+      'SOUTH_EAST',
+      'SOUTH',
+      'SOUTH_WEST',
+      'WEST',
+      'NORTH_WEST',
+    ])
+    .optional()
+    .describe('Filter by wind direction'),
 })
 
 export const RoutesTileResponse = zod.unknown()

@@ -6187,8 +6187,10 @@ paths:
     get:
       summary: All routes vector tile
       description: "Mapbox vector tile holding the routes of all accessible teams,\
-        \ layer 'routes'. Fetched directly by the map renderer, so it authenticates\
-        \ with the session cookie rather than a bearer token."
+        \ layer 'routes'. Accepts the same filters as the route list, minus sorting\
+        \ and pagination, which a tile has no use for. Fetched directly by the map\
+        \ renderer, so it authenticates with the session cookie rather than a bearer\
+        \ token."
       operationId: allRoutesTile
       tags:
       - Routes
@@ -6214,6 +6216,79 @@ paths:
         schema:
           type: integer
           format: int32
+      - description: "Hilliness preset (FLAT, HILLY, MOUNTAINOUS)"
+        name: hilliness
+        in: query
+        schema:
+          $ref: "#/components/schemas/Hilliness"
+      - description: Maximum distance in meters
+        name: maxDistance
+        in: query
+        schema:
+          type: number
+          format: float
+      - description: Maximum elevation gain in meters
+        name: maxElevationGain
+        in: query
+        schema:
+          type: number
+          format: float
+      - description: Minimum distance in meters
+        name: minDistance
+        in: query
+        schema:
+          type: number
+          format: float
+      - description: Minimum elevation gain in meters
+        name: minElevationGain
+        in: query
+        schema:
+          type: number
+          format: float
+      - description: Only routes from teams where the user has at least this role.
+          Yields an empty tile for an anonymous visitor.
+        name: minRole
+        in: query
+        schema:
+          $ref: "#/components/schemas/MinRole"
+      - description: Latitude for proximity search
+        name: nearLat
+        in: query
+        schema:
+          type: number
+          format: double
+      - description: Longitude for proximity search
+        name: nearLon
+        in: query
+        schema:
+          type: number
+          format: double
+      - description: "Search radius in meters (default: 25000)"
+        name: nearRadius
+        in: query
+        schema:
+          type: number
+          format: double
+      - description: "Search near START, END, or START_OR_END (default)"
+        name: nearType
+        in: query
+        schema:
+          $ref: "#/components/schemas/NearType"
+      - description: Search by name/markdown
+        name: search
+        in: query
+        schema:
+          type: string
+      - description: Filter by surface type
+        name: surfaceType
+        in: query
+        schema:
+          $ref: "#/components/schemas/SurfaceType"
+      - description: Filter by wind direction
+        name: windDirection
+        in: query
+        schema:
+          $ref: "#/components/schemas/WindDirection"
       responses:
         "200":
           description: Tile retrieved successfully
@@ -9362,8 +9437,9 @@ paths:
     get:
       summary: Team routes vector tile
       description: "Mapbox vector tile holding the team's routes, layer 'routes'.\
-        \ Fetched directly by the map renderer, so it authenticates with the session\
-        \ cookie rather than a bearer token."
+        \ Accepts the same filters as the route list, minus sorting and pagination,\
+        \ which a tile has no use for. Fetched directly by the map renderer, so it\
+        \ authenticates with the session cookie rather than a bearer token."
       operationId: routesTile
       tags:
       - Routes
@@ -9395,6 +9471,73 @@ paths:
         schema:
           type: integer
           format: int32
+      - description: "Hilliness preset (FLAT, HILLY, MOUNTAINOUS)"
+        name: hilliness
+        in: query
+        schema:
+          $ref: "#/components/schemas/Hilliness"
+      - description: Maximum distance in meters
+        name: maxDistance
+        in: query
+        schema:
+          type: number
+          format: float
+      - description: Maximum elevation gain in meters
+        name: maxElevationGain
+        in: query
+        schema:
+          type: number
+          format: float
+      - description: Minimum distance in meters
+        name: minDistance
+        in: query
+        schema:
+          type: number
+          format: float
+      - description: Minimum elevation gain in meters
+        name: minElevationGain
+        in: query
+        schema:
+          type: number
+          format: float
+      - description: Latitude for proximity search
+        name: nearLat
+        in: query
+        schema:
+          type: number
+          format: double
+      - description: Longitude for proximity search
+        name: nearLon
+        in: query
+        schema:
+          type: number
+          format: double
+      - description: "Search radius in meters (default: 25000)"
+        name: nearRadius
+        in: query
+        schema:
+          type: number
+          format: double
+      - description: "Search near START, END, or START_OR_END (default)"
+        name: nearType
+        in: query
+        schema:
+          $ref: "#/components/schemas/NearType"
+      - description: Search by name/markdown
+        name: search
+        in: query
+        schema:
+          type: string
+      - description: Filter by surface type
+        name: surfaceType
+        in: query
+        schema:
+          $ref: "#/components/schemas/SurfaceType"
+      - description: Filter by wind direction
+        name: windDirection
+        in: query
+        schema:
+          $ref: "#/components/schemas/WindDirection"
       responses:
         "200":
           description: Tile retrieved successfully

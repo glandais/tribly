@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.*;
 import fr.pedalons.api.AbstractResourceTest;
 import fr.pedalons.domain.route.Route;
 import fr.pedalons.enums.Visibility;
+import fr.pedalons.service.team.request.MinRole;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -263,5 +264,58 @@ class AllRouteResourceTest extends AbstractResourceTest {
   @Test
   void allRoutesTile_withCoordinatesOutsideZoomLevel_shouldReturnBadRequest() {
     given().when().get("/api/routes/tiles/8/9999/92.mvt").then().statusCode(400);
+  }
+
+  @Test
+  void allRoutesTile_withMinRole_withoutAuth_shouldBeEmpty() {
+    given()
+        .queryParam("minRole", MinRole.MEMBER)
+        .when()
+        .get(ROUTES_TILE)
+        .then()
+        .statusCode(200)
+        .body(emptyString());
+  }
+
+  @Test
+  void allRoutesTile_withMinRole_asMember_shouldContainTeamRoute() {
+    String tile =
+        MvtAssert.decode(
+            given()
+                .auth()
+                .oauth2(getAccessToken(USER3))
+                .queryParam("minRole", MinRole.MEMBER)
+                .when()
+                .get(ROUTES_TILE));
+
+    MvtAssert.assertContainsSlugs(tile, publicRoute.getSlug(), teamRoute.getSlug());
+  }
+
+  @Test
+  void allRoutesTile_withMinRole_asNonMember_shouldBeEmpty() {
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER4))
+        .queryParam("minRole", MinRole.MEMBER)
+        .when()
+        .get(ROUTES_TILE)
+        .then()
+        .statusCode(200)
+        .body(emptyString());
+  }
+
+  @Test
+  void allRoutesTile_withSearch_shouldOnlyContainMatchingRoute() {
+    String tile =
+        MvtAssert.decode(
+            given()
+                .auth()
+                .oauth2(getAccessToken(USER3))
+                .queryParam("search", "team")
+                .when()
+                .get(ROUTES_TILE));
+
+    MvtAssert.assertContainsSlugs(tile, teamRoute.getSlug());
+    MvtAssert.assertMissingSlugs(tile, publicRoute.getSlug());
   }
 }

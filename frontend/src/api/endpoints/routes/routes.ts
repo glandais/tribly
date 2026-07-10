@@ -15,6 +15,7 @@ import type {
 } from '@tanstack/react-query'
 
 import type {
+  AllRoutesTileParams,
   CreateRouteBody,
   ErrorResponse,
   ListAllRoutesParams,
@@ -22,6 +23,7 @@ import type {
   RouteDetailDto,
   RouteDto,
   RouteListResponse,
+  RoutesTileParams,
   SlugChangeRequest,
   UpdateRouteBody,
 } from '../../dto'
@@ -166,24 +168,30 @@ export function useListAllRoutes<
 }
 
 /**
- * Mapbox vector tile holding the routes of all accessible teams, layer 'routes'. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
+ * Mapbox vector tile holding the routes of all accessible teams, layer 'routes'. Accepts the same filters as the route list, minus sorting and pagination, which a tile has no use for. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
  * @summary All routes vector tile
  */
 export const allRoutesTile = (
   z: number,
   x: number,
   y: number,
+  params?: AllRoutesTileParams,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<unknown>(
-    { url: `/api/routes/tiles/${z}/${x}/${y}.mvt`, method: 'GET', signal },
+    { url: `/api/routes/tiles/${z}/${x}/${y}.mvt`, method: 'GET', params, signal },
     options
   )
 }
 
-export const getAllRoutesTileQueryKey = (z: number, x: number, y: number) => {
-  return [`/api/routes/tiles/${z}/${x}/${y}.mvt`] as const
+export const getAllRoutesTileQueryKey = (
+  z: number,
+  x: number,
+  y: number,
+  params?: AllRoutesTileParams
+) => {
+  return [`/api/routes/tiles/${z}/${x}/${y}.mvt`, ...(params ? [params] : [])] as const
 }
 
 export const getAllRoutesTileQueryOptions = <
@@ -193,6 +201,7 @@ export const getAllRoutesTileQueryOptions = <
   z: number,
   x: number,
   y: number,
+  params?: AllRoutesTileParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof allRoutesTile>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
@@ -200,10 +209,10 @@ export const getAllRoutesTileQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getAllRoutesTileQueryKey(z, x, y)
+  const queryKey = queryOptions?.queryKey ?? getAllRoutesTileQueryKey(z, x, y, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof allRoutesTile>>> = ({ signal }) =>
-    allRoutesTile(z, x, y, requestOptions, signal)
+    allRoutesTile(z, x, y, params, requestOptions, signal)
 
   return {
     queryKey,
@@ -231,6 +240,7 @@ export function useAllRoutesTile<
   z: number,
   x: number,
   y: number,
+  params: undefined | AllRoutesTileParams,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof allRoutesTile>>, TError, TData>> &
       Pick<
@@ -252,6 +262,7 @@ export function useAllRoutesTile<
   z: number,
   x: number,
   y: number,
+  params?: AllRoutesTileParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof allRoutesTile>>, TError, TData>> &
       Pick<
@@ -273,6 +284,7 @@ export function useAllRoutesTile<
   z: number,
   x: number,
   y: number,
+  params?: AllRoutesTileParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof allRoutesTile>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
@@ -290,13 +302,14 @@ export function useAllRoutesTile<
   z: number,
   x: number,
   y: number,
+  params?: AllRoutesTileParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof allRoutesTile>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getAllRoutesTileQueryOptions(z, x, y, options)
+  const queryOptions = getAllRoutesTileQueryOptions(z, x, y, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>
@@ -526,7 +539,7 @@ export const useCreateRoute = <TError = ErrorType<ErrorResponse>, TContext = unk
   return useMutation(getCreateRouteMutationOptions(options), queryClient)
 }
 /**
- * Mapbox vector tile holding the team's routes, layer 'routes'. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
+ * Mapbox vector tile holding the team's routes, layer 'routes'. Accepts the same filters as the route list, minus sorting and pagination, which a tile has no use for. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
  * @summary Team routes vector tile
  */
 export const routesTile = (
@@ -534,17 +547,32 @@ export const routesTile = (
   z: number,
   x: number,
   y: number,
+  params?: RoutesTileParams,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<unknown>(
-    { url: `/api/teams/${teamSlug}/routes/tiles/${z}/${x}/${y}.mvt`, method: 'GET', signal },
+    {
+      url: `/api/teams/${teamSlug}/routes/tiles/${z}/${x}/${y}.mvt`,
+      method: 'GET',
+      params,
+      signal,
+    },
     options
   )
 }
 
-export const getRoutesTileQueryKey = (teamSlug: string, z: number, x: number, y: number) => {
-  return [`/api/teams/${teamSlug}/routes/tiles/${z}/${x}/${y}.mvt`] as const
+export const getRoutesTileQueryKey = (
+  teamSlug: string,
+  z: number,
+  x: number,
+  y: number,
+  params?: RoutesTileParams
+) => {
+  return [
+    `/api/teams/${teamSlug}/routes/tiles/${z}/${x}/${y}.mvt`,
+    ...(params ? [params] : []),
+  ] as const
 }
 
 export const getRoutesTileQueryOptions = <
@@ -555,6 +583,7 @@ export const getRoutesTileQueryOptions = <
   z: number,
   x: number,
   y: number,
+  params?: RoutesTileParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof routesTile>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
@@ -562,10 +591,10 @@ export const getRoutesTileQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getRoutesTileQueryKey(teamSlug, z, x, y)
+  const queryKey = queryOptions?.queryKey ?? getRoutesTileQueryKey(teamSlug, z, x, y, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof routesTile>>> = ({ signal }) =>
-    routesTile(teamSlug, z, x, y, requestOptions, signal)
+    routesTile(teamSlug, z, x, y, params, requestOptions, signal)
 
   return {
     queryKey,
@@ -596,6 +625,7 @@ export function useRoutesTile<
   z: number,
   x: number,
   y: number,
+  params: undefined | RoutesTileParams,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof routesTile>>, TError, TData>> &
       Pick<
@@ -618,6 +648,7 @@ export function useRoutesTile<
   z: number,
   x: number,
   y: number,
+  params?: RoutesTileParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof routesTile>>, TError, TData>> &
       Pick<
@@ -640,6 +671,7 @@ export function useRoutesTile<
   z: number,
   x: number,
   y: number,
+  params?: RoutesTileParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof routesTile>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
@@ -658,13 +690,14 @@ export function useRoutesTile<
   z: number,
   x: number,
   y: number,
+  params?: RoutesTileParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof routesTile>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getRoutesTileQueryOptions(teamSlug, z, x, y, options)
+  const queryOptions = getRoutesTileQueryOptions(teamSlug, z, x, y, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>

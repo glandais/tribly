@@ -8,6 +8,7 @@ import 'package:retrofit/retrofit.dart';
 import 'package:retrofit/error_logger.dart';
 
 import '../models/hilliness.dart';
+import '../models/min_role.dart';
 import '../models/near_type.dart';
 import '../models/route_detail_dto.dart';
 import '../models/route_dto.dart';
@@ -39,6 +40,8 @@ abstract class RoutesClient {
   ///
   /// [minElevationGain] - Minimum elevation gain in meters.
   ///
+  /// [minRole] - Only routes from teams where the user has at least this role. Yields nothing for an anonymous visitor.
+  ///
   /// [nearLat] - Latitude for proximity search.
   ///
   /// [nearLon] - Longitude for proximity search.
@@ -69,6 +72,7 @@ abstract class RoutesClient {
     @Query('maxElevationGain') double? maxElevationGain,
     @Query('minDistance') double? minDistance,
     @Query('minElevationGain') double? minElevationGain,
+    @Query('minRole') MinRole? minRole,
     @Query('nearLat') double? nearLat,
     @Query('nearLon') double? nearLon,
     @Query('nearRadius') double? nearRadius,
@@ -82,18 +86,57 @@ abstract class RoutesClient {
 
   /// All routes vector tile.
   ///
-  /// Mapbox vector tile holding the routes of all accessible teams, layer 'routes'. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
+  /// Mapbox vector tile holding the routes of all accessible teams, layer 'routes'. Accepts the same filters as the route list, minus sorting and pagination, which a tile has no use for. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
   ///
   /// [x] - Tile column.
   ///
   /// [y] - Tile row.
   ///
   /// [z] - Zoom level.
+  ///
+  /// [hilliness] - Hilliness preset (FLAT, HILLY, MOUNTAINOUS).
+  ///
+  /// [maxDistance] - Maximum distance in meters.
+  ///
+  /// [maxElevationGain] - Maximum elevation gain in meters.
+  ///
+  /// [minDistance] - Minimum distance in meters.
+  ///
+  /// [minElevationGain] - Minimum elevation gain in meters.
+  ///
+  /// [minRole] - Only routes from teams where the user has at least this role. Yields an empty tile for an anonymous visitor.
+  ///
+  /// [nearLat] - Latitude for proximity search.
+  ///
+  /// [nearLon] - Longitude for proximity search.
+  ///
+  /// [nearRadius] - Search radius in meters (default: 25000).
+  ///
+  /// [nearType] - Search near START, END, or START_OR_END (default).
+  ///
+  /// [search] - Search by name/markdown.
+  ///
+  /// [surfaceType] - Filter by surface type.
+  ///
+  /// [windDirection] - Filter by wind direction.
   @GET('/api/routes/tiles/{z}/{x}/{y}.mvt')
   Future<void> allRoutesTile({
     @Path('x') required int x,
     @Path('y') required int y,
     @Path('z') required int z,
+    @Query('hilliness') Hilliness? hilliness,
+    @Query('maxDistance') double? maxDistance,
+    @Query('maxElevationGain') double? maxElevationGain,
+    @Query('minDistance') double? minDistance,
+    @Query('minElevationGain') double? minElevationGain,
+    @Query('minRole') MinRole? minRole,
+    @Query('nearLat') double? nearLat,
+    @Query('nearLon') double? nearLon,
+    @Query('nearRadius') double? nearRadius,
+    @Query('nearType') NearType? nearType,
+    @Query('search') String? search,
+    @Query('surfaceType') SurfaceType? surfaceType,
+    @Query('windDirection') WindDirection? windDirection,
   });
 
   /// List routes.
@@ -173,7 +216,7 @@ abstract class RoutesClient {
 
   /// Team routes vector tile.
   ///
-  /// Mapbox vector tile holding the team's routes, layer 'routes'. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
+  /// Mapbox vector tile holding the team's routes, layer 'routes'. Accepts the same filters as the route list, minus sorting and pagination, which a tile has no use for. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
   ///
   /// [teamSlug] - Team URL slug.
   ///
@@ -182,12 +225,48 @@ abstract class RoutesClient {
   /// [y] - Tile row.
   ///
   /// [z] - Zoom level.
+  ///
+  /// [hilliness] - Hilliness preset (FLAT, HILLY, MOUNTAINOUS).
+  ///
+  /// [maxDistance] - Maximum distance in meters.
+  ///
+  /// [maxElevationGain] - Maximum elevation gain in meters.
+  ///
+  /// [minDistance] - Minimum distance in meters.
+  ///
+  /// [minElevationGain] - Minimum elevation gain in meters.
+  ///
+  /// [nearLat] - Latitude for proximity search.
+  ///
+  /// [nearLon] - Longitude for proximity search.
+  ///
+  /// [nearRadius] - Search radius in meters (default: 25000).
+  ///
+  /// [nearType] - Search near START, END, or START_OR_END (default).
+  ///
+  /// [search] - Search by name/markdown.
+  ///
+  /// [surfaceType] - Filter by surface type.
+  ///
+  /// [windDirection] - Filter by wind direction.
   @GET('/api/teams/{teamSlug}/routes/tiles/{z}/{x}/{y}.mvt')
   Future<void> routesTile({
     @Path('teamSlug') required String teamSlug,
     @Path('x') required int x,
     @Path('y') required int y,
     @Path('z') required int z,
+    @Query('hilliness') Hilliness? hilliness,
+    @Query('maxDistance') double? maxDistance,
+    @Query('maxElevationGain') double? maxElevationGain,
+    @Query('minDistance') double? minDistance,
+    @Query('minElevationGain') double? minElevationGain,
+    @Query('nearLat') double? nearLat,
+    @Query('nearLon') double? nearLon,
+    @Query('nearRadius') double? nearRadius,
+    @Query('nearType') NearType? nearType,
+    @Query('search') String? search,
+    @Query('surfaceType') SurfaceType? surfaceType,
+    @Query('windDirection') WindDirection? windDirection,
   });
 
   /// Update route.

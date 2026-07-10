@@ -50,6 +50,11 @@ public class RouteRepository implements TeamEntityRepository<Route, RouteQuery> 
    * @return the protobuf layer, or an empty array when no route intersects the tile
    */
   public byte[] mvtTile(RouteQuery query, int z, int x, int y) {
+    if (query.minRole() != null && query.userId() == null) {
+      // An anonymous visitor belongs to no team, and the anonymous query shape has no UserTeam
+      // join to filter on — as in find().
+      return EMPTY_TILE;
+    }
     PedalonsQuery pedalonsQuery = getPedalonsQuery(query, true, MVT_SHAPE);
     pedalonsQuery
         .and(
