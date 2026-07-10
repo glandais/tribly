@@ -49,14 +49,38 @@ export const responsiveSpacing: Record<string, ResponsiveSpacing> = {
 }
 
 /**
- * Responsive map/chart heights.
- * Usage: h={responsiveMapHeight.full}
+ * Map height variants.
+ * - `compact`   — small maps embedded in cards / previews
+ * - `standard`  — maps sitting beside other content (e.g. ride detail, half-width)
+ * - `full`      — the primary map of a detail page (route / GPX preview)
+ * - `fullscreen`— dedicated map pages where the map *is* the content
  */
-export const responsiveMapHeight: Record<string, StyleProp<number>> = {
-  /** Compact map (e.g., in cards) */
-  compact: { base: 200, sm: 280, md: 350 },
-  /** Standard map view */
-  standard: { base: 280, sm: 380, md: 450 },
-  /** Full map (detail pages) */
-  full: { base: 300, sm: 400, md: 500 },
+export type MapHeightVariant = 'compact' | 'standard' | 'full' | 'fullscreen'
+
+/**
+ * Single source of truth for map heights.
+ *
+ * Every value is `clamp(min, N·dvh, max)`:
+ * - `dvh` (dynamic viewport height) scales the map to the *actual* screen and follows the
+ *   mobile address-bar collapse, so a map is never taller than the device — the old fixed
+ *   `700px` was taller than a phone viewport and forced a full-screen scroll just to pan.
+ * - the `min`/`max` bounds keep the map usable on very short screens and stop it from
+ *   ballooning on ultra-tall/desktop windows.
+ */
+const MAP_HEIGHT_CSS: Record<MapHeightVariant, string> = {
+  compact: 'clamp(200px, 34dvh, 360px)',
+  standard: 'clamp(260px, 44dvh, 460px)',
+  full: 'clamp(300px, 52dvh, 560px)',
+  fullscreen: 'clamp(400px, 72dvh, 820px)',
+}
+
+/**
+ * Returns the CSS height for a map container, unified across the app.
+ * Pass the result straight to a Mantine `h` prop: `h={useMapHeight('full')}`.
+ *
+ * It's a hook (not a plain constant) so map sizing has one call site to evolve later —
+ * e.g. honouring a user "big map" preference or a measured header offset.
+ */
+export function useMapHeight(variant: MapHeightVariant = 'full'): string {
+  return MAP_HEIGHT_CSS[variant]
 }

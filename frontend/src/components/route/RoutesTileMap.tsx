@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Layer, Popup, Source } from 'react-map-gl/maplibre'
 import type { MapLayerMouseEvent, MapRef } from 'react-map-gl/maplibre'
-import { Anchor, Box, Group, Stack, StyleProp, Text, useComputedColorScheme } from '@mantine/core'
+import { Anchor, Box, Group, Stack, Text, useComputedColorScheme } from '@mantine/core'
 import type { BoundsDto } from '@/api/dto'
 import { paths } from '@/config/paths'
+import { useMapHeight } from '@/hooks/useResponsive'
 import { useUnits } from '@/hooks/useUnits'
 import { PedalonsMap } from '../map/PedalonsMap'
 import {
@@ -38,9 +39,6 @@ const featureOf = (event: MapLayerMouseEvent): RouteFeature | null => {
   return properties ? (properties as unknown as RouteFeature) : null
 }
 
-/** A dedicated map page can afford more room than the maps embedded in detail pages. */
-const MAP_HEIGHT: StyleProp<number> = { base: 420, sm: 540, md: 660 }
-
 export interface RoutesTileMapProps {
   tilesUrl: string
   /**
@@ -53,6 +51,8 @@ export interface RoutesTileMapProps {
 export function RoutesTileMap({ tilesUrl, bounds }: RoutesTileMapProps) {
   const { distance, elevation } = useUnits()
   const colorScheme = useComputedColorScheme('light')
+  // A dedicated map page can afford more room than the maps embedded in detail pages.
+  const mapHeight = useMapHeight('fullscreen')
 
   const [hoveredSlug, setHoveredSlug] = useState<string | null>(null)
   const [selected, setSelected] = useState<SelectedRoute | null>(null)
@@ -94,7 +94,7 @@ export function RoutesTileMap({ tilesUrl, bounds }: RoutesTileMapProps) {
     <Box
       pos="relative"
       w="100%"
-      h={MAP_HEIGHT}
+      h={mapHeight}
       className={colorScheme === 'dark' ? 'dark' : undefined}
       style={{
         zIndex: 0,

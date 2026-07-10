@@ -40,6 +40,7 @@ import {
 } from '../map/mapUtils'
 import { PedalonsMap } from '../map/PedalonsMap'
 import { useUnits } from '../../hooks/useUnits'
+import { useMapHeight } from '@/hooks/useResponsive'
 import { getOverlayBg } from '@/lib/colors'
 // maplibre-gl CSS is provided by maplibre-theme in index.css
 
@@ -85,6 +86,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
   const { t } = useTranslation()
   const colorScheme = useComputedColorScheme('light')
   const theme = useMantineTheme()
+  const mapHeight = useMapHeight('full')
   const { config, formatDistance, distance: distanceFormat, elevation } = useUnits()
 
   // Chart colors based on color scheme
@@ -339,7 +341,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
   if (trackPoints.length === 0) {
     return (
       <Center
-        h={700}
+        h={mapHeight}
         bg="var(--mantine-color-default-hover)"
         style={{ borderRadius: 'var(--mantine-radius-default)' }}
       >
@@ -356,7 +358,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
       <Box
         pos="relative"
         w="100%"
-        h={700}
+        h={mapHeight}
         className={colorScheme === 'dark' ? 'dark' : undefined}
         style={{ zIndex: 0 }}
       >
@@ -421,7 +423,9 @@ export function RouteMapView({ route }: RouteMapViewProps) {
           bottom={0}
           left={0}
           right={0}
-          h={200}
+          // Proportional to the (now viewport-bounded) map so it never dominates a short map,
+          // while staying readable on tall ones.
+          h="clamp(110px, 38%, 200px)"
           style={{
             zIndex: 1000,
             pointerEvents: 'auto',

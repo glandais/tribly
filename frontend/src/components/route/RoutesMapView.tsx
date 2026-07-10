@@ -16,7 +16,7 @@ import {
 } from 'chart.js'
 import { useTranslation } from 'react-i18next'
 import { Box, Center, Text, Paper, useComputedColorScheme, useMantineTheme } from '@mantine/core'
-import { responsiveMapHeight } from '@/hooks/useResponsive'
+import { useMapHeight } from '@/hooks/useResponsive'
 import { getRoute } from '@/api/endpoints/routes/routes'
 import type { RouteDetailDto } from '@/api/dto'
 import { StartMarker, EndMarker } from '../map/MapMarkers'
@@ -78,7 +78,7 @@ export function RoutesMapView({
   variant = 'full',
 }: RoutesMapViewProps) {
   const { t } = useTranslation()
-  const mapHeight = responsiveMapHeight[variant]
+  const mapHeight = useMapHeight(variant)
   const colorScheme = useComputedColorScheme('light')
   const theme = useMantineTheme()
   const { config, distance, formatDistance, elevation } = useUnits()

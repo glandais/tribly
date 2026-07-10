@@ -190,7 +190,7 @@ export function RouteEditor({
               )}
             </Text>
             <Box
-              h="70vh"
+              h="70dvh"
               style={{
                 borderTop: '1px solid var(--mantine-color-default-border)',
                 borderBottom: '1px solid var(--mantine-color-default-border)',
