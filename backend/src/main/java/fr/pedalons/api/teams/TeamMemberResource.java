@@ -22,6 +22,7 @@ import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.jspecify.annotations.Nullable;
 
 @Path("/api/teams/{teamSlug}/members")
 @Produces(MediaType.APPLICATION_JSON)
@@ -51,9 +52,13 @@ public class TeamMemberResource {
   public Response getMembers(
       @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
-      @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("50") int size) {
+      @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("50") int size,
+      @Parameter(description = "Search by name or email") @QueryParam("search")
+          @Nullable String search,
+      @Parameter(description = "Filter by role") @QueryParam("role") @Nullable TeamRole role) {
 
-    MemberListResponse members = membershipService.getTeamMembers(teamSlug, page, size);
+    MemberListResponse members =
+        membershipService.getTeamMembers(teamSlug, page, size, search, role);
     return Response.ok(members).build();
   }
 

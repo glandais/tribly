@@ -4,7 +4,9 @@ import fr.pedalons.domain.team.UserTeam;
 import fr.pedalons.dto.common.PedalonsPage;
 import fr.pedalons.enums.TeamRole;
 import fr.pedalons.repository.common.BaseRepository;
+import fr.pedalons.repository.query.OrClause;
 import fr.pedalons.repository.query.PedalonsQuery;
+import fr.pedalons.repository.query.SimpleClause;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
 import java.util.Map;
@@ -17,12 +19,25 @@ public class UserTeamRepository implements BaseRepository<UserTeam> {
     return find("user.id = ?1 and user.deleted = false and team.deleted = false", userId).list();
   }
 
-  public PedalonsPage<UserTeam> findByTeam(Long teamId, int page, int size) {
+  public PedalonsPage<UserTeam> findByTeam(
+      Long teamId, int page, int size, String search, TeamRole role) {
     PedalonsQuery pedalonsQuery =
         new PedalonsQuery()
             .and("team.id = :teamId", Map.of("teamId", teamId))
             .and("user.deleted = false", Map.of())
             .and("team.deleted = false", Map.of());
+    if (search != null && !search.isBlank()) {
+      String searchParam = "%" + search.toLowerCase() + "%";
+      OrClause orClause = new OrClause();
+      orClause.add(
+          new SimpleClause("LOWER(user.displayName) LIKE :search", Map.of("search", searchParam)));
+      orClause.add(
+          new SimpleClause("LOWER(user.email) LIKE :search", Map.of("search", searchParam)));
+      pedalonsQuery.and(orClause);
+    }
+    if (role != null) {
+      pedalonsQuery.and("role = :role", Map.of("role", role));
+    }
     return getPage(pedalonsQuery, page, size);
   }
 

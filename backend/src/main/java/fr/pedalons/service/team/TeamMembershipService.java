@@ -36,9 +36,11 @@ public class TeamMembershipService {
   @Inject TeamService teamService;
 
   @CheckAccess(entityType = EntityType.USER_TEAM, action = ActionType.LIST)
-  public MemberListResponse getTeamMembers(String teamSlug, int page, int size) {
+  public MemberListResponse getTeamMembers(
+      String teamSlug, int page, int size, String search, TeamRole role) {
     Team team = teamService.getTeam(teamSlug);
-    PedalonsPage<UserTeam> members = userTeamRepository.findByTeam(team.getId(), page, size);
+    PedalonsPage<UserTeam> members =
+        userTeamRepository.findByTeam(team.getId(), page, size, search, role);
     List<MemberDto> dtos = members.items().stream().map(MemberDto::from).toList();
     return new MemberListResponse(dtos, members.total(), page, size);
   }

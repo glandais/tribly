@@ -8989,6 +8989,20 @@
             "default" : 0
           }
         }, {
+          "description" : "Filter by role",
+          "name" : "role",
+          "in" : "query",
+          "schema" : {
+            "$ref" : "#/components/schemas/TeamRole"
+          }
+        }, {
+          "description" : "Search by name or email",
+          "name" : "search",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
           "description" : "Page size",
           "name" : "size",
           "in" : "query",

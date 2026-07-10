@@ -22,11 +22,13 @@ import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamMemberList, TeamMemberListSkeleton } from '../../components/team/TeamMemberList'
 import { TeamAdminLayout } from '../../components/team/TeamAdminLayout'
 import { UserAutocomplete } from '../../components/common/UserAutocomplete'
+import { SearchInput } from '../../components/common/SearchInput'
 import type { PublicUserDto } from '@/api/dto'
 import { TeamRole } from '@/api/dto'
 import { Pagination } from '../../components/common/Pagination'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { useUrlFilters } from '../../hooks/useUrlFilters'
+import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
 import { useScrollToListTop } from '../../hooks/useScrollToListTop'
 import {
   teamMemberFiltersSchema,
@@ -45,6 +47,11 @@ export function TeamMembersPage() {
     schema: teamMemberFiltersSchema,
     alias: teamMemberFiltersAlias,
   })
+  const commitSearch = useCallback(
+    (value: string) => setFilters({ search: value || undefined }),
+    [setFilters]
+  )
+  const [search, setSearch] = useDebouncedSearch(filters.search ?? '', commitSearch)
   const { listTopRef, scrollToListTop } = useScrollToListTop()
 
   const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
@@ -148,6 +155,29 @@ export function TeamMembersPage() {
           )}
         </Group>
 
+        <Group align="flex-end" mb="lg">
+          <SearchInput
+            id="members-search"
+            value={search}
+            onChange={setSearch}
+            placeholder={t('teams.detail.members.search.placeholder')}
+            label={t('teams.detail.members.search.label')}
+          />
+          <Select
+            label={t('teams.detail.members.filterRole')}
+            value={filters.role ?? null}
+            onChange={(value) => setFilters({ role: (value as TeamRole | null) ?? undefined })}
+            data={[
+              { value: TeamRole.MEMBER, label: t('roles.MEMBER') },
+              { value: TeamRole.ORGANIZER, label: t('roles.ORGANIZER') },
+              { value: TeamRole.ADMIN, label: t('roles.ADMIN') },
+            ]}
+            placeholder={t('teams.detail.members.filterRoleAll')}
+            clearable
+            w={{ base: '100%', sm: 200 }}
+          />
+        </Group>
+
         {isLoadingMembers ? (
           <TeamMemberListSkeleton count={5} />
         ) : membersData?.members && membersData.members.length > 0 ? (
@@ -176,7 +206,11 @@ export function TeamMembersPage() {
             </Box>
           </>
         ) : (
-          <Text c="dimmed">{t('teams.detail.members.empty')}</Text>
+          <Text c="dimmed">
+            {search || filters.role
+              ? t('teams.detail.members.noResults')
+              : t('teams.detail.members.empty')}
+          </Text>
         )}
 
         {/* Add Member Modal */}

@@ -13,6 +13,8 @@ export const getMembersQuerySizeDefault = 50
 
 export const GetMembersQueryParams = zod.object({
   page: zod.number().default(getMembersQueryPageDefault).describe('Page number'),
+  role: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']).optional().describe('Filter by role'),
+  search: zod.string().optional().describe('Search by name or email'),
   size: zod.number().default(getMembersQuerySizeDefault).describe('Page size'),
 })
 

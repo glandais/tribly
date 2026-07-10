@@ -60,7 +60,7 @@ class TeamMembershipServiceTest extends AbstractBaseTest {
     dataService.addUserToTeam(user2, team, TeamRole.ORGANIZER);
 
     queryContext.setUserForTest(admin);
-    MemberListResponse result = membershipService.getTeamMembers(team.getSlug(), 0, 10);
+    MemberListResponse result = membershipService.getTeamMembers(team.getSlug(), 0, 10, null, null);
 
     assertEquals(3, result.members().size()); // admin + user1 + user2
   }
@@ -71,7 +71,8 @@ class TeamMembershipServiceTest extends AbstractBaseTest {
 
     queryContext.setUserForTest(user1);
     assertThrows(
-        PedalonsException.class, () -> membershipService.getTeamMembers(team.getSlug(), 0, 10));
+        PedalonsException.class,
+        () -> membershipService.getTeamMembers(team.getSlug(), 0, 10, null, null));
   }
 
   @Test
@@ -82,7 +83,7 @@ class TeamMembershipServiceTest extends AbstractBaseTest {
     }
 
     queryContext.setUserForTest(admin);
-    MemberListResponse result = membershipService.getTeamMembers(team.getSlug(), 0, 3);
+    MemberListResponse result = membershipService.getTeamMembers(team.getSlug(), 0, 3, null, null);
 
     assertEquals(3, result.members().size());
     assertEquals(6, result.total()); // admin + 5 users

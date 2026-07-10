@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
@@ -25,7 +25,11 @@ import {
   getListPlacesQueryKey,
 } from '../../api/endpoints/places/places'
 import { useScrollToListTop } from '../../hooks/useScrollToListTop'
+import { useUrlFilters } from '../../hooks/useUrlFilters'
+import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
+import { placeFiltersSchema, placeFiltersAlias } from '../../hooks/filters/placeFilters'
 import { ConfirmDialog } from '../common/ConfirmDialog'
+import { SearchInput } from '../common/SearchInput'
 import { PlaceForm } from './PlaceForm'
 import type { PlaceDetailDto } from '../../api/dto'
 
@@ -34,34 +38,29 @@ interface PlaceListProps {
   canManage: boolean
 }
 
-const PAGE_SIZE = 20
-
 export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const [page, setPage] = useState(1)
-  const { listTopRef, scrollToListTop } = useScrollToListTop()
-  const { data: placesData, isLoading } = useListPlaces(teamSlug, {
-    page: page - 1,
-    size: PAGE_SIZE,
+  const { filters, setFilters } = useUrlFilters({
+    schema: placeFiltersSchema,
+    alias: placeFiltersAlias,
   })
+  const commitSearch = useCallback(
+    (value: string) => setFilters({ search: value || undefined }),
+    [setFilters]
+  )
+  const [search, setSearch] = useDebouncedSearch(filters.search ?? '', commitSearch)
+  const { listTopRef, scrollToListTop } = useScrollToListTop()
+  const { data: placesData, isLoading } = useListPlaces(teamSlug, filters)
   const deleteMutation = useDeletePlace()
 
   const [editingPlace, setEditingPlace] = useState<PlaceDetailDto | null>(null)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
-  if (isLoading) {
-    return (
-      <Center py="xl">
-        <Loader />
-      </Center>
-    )
-  }
-
   const places = placesData?.places ?? []
 
-  const totalPages = placesData ? Math.ceil(placesData.total / PAGE_SIZE) : 0
+  const totalPages = placesData ? Math.ceil(placesData.total / filters.size) : 0
 
   const handleDelete = (placeId: string) => {
     deleteMutation.mutate(
@@ -101,9 +100,21 @@ export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
         )}
       </Group>
 
-      {places.length === 0 ? (
+      <SearchInput
+        id="places-search"
+        value={search}
+        onChange={setSearch}
+        placeholder={t('places.search.placeholder')}
+        label={t('places.search.label')}
+      />
+
+      {isLoading ? (
+        <Center py="xl">
+          <Loader />
+        </Center>
+      ) : places.length === 0 ? (
         <Text size="sm" c="dimmed" py="md">
-          {t('places.empty')}
+          {search ? t('places.noResults') : t('places.empty')}
         </Text>
       ) : (
         <Paper ref={listTopRef} withBorder>
@@ -189,9 +200,9 @@ export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
 
       {totalPages > 1 && (
         <Pagination
-          value={page}
+          value={filters.page + 1}
           onChange={(nextPage) => {
-            setPage(nextPage)
+            setFilters({ page: nextPage - 1 })
             scrollToListTop()
           }}
           total={totalPages}
