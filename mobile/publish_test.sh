@@ -16,9 +16,11 @@ NEW_VERSION=$(grep -E '^version:' pubspec.yaml | awk '{print $2}')
 echo ">>> Building $NEW_VERSION"
 
 flutter build ios --release --no-codesign
+(cd ios && bundle check || bundle install)
 (cd ios && bundle exec fastlane beta --verbose)
 
 export JAVA_HOME="$(/usr/libexec/java_home -v 21)"
 export PATH="$JAVA_HOME/bin:$PATH"
 flutter build appbundle --release
+(cd android && bundle check || bundle install)
 (cd android && bundle exec fastlane internal --verbose)
