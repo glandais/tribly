@@ -26,10 +26,21 @@ public class PedalonsFunctionContributor implements FunctionContributor {
    * whose column names become the MVT feature properties. Hibernate is unaware this is an
    * aggregate, so it renders it in the SELECT clause and Postgres folds every matching row into a
    * single tile — which also means no {@code GROUP BY}: one feature per GpxTrack, not per Route.
+   *
+   * <p>The geometry is run through {@code ST_Simplify} before {@code ST_AsMVTGeom} so that a tile
+   * carries no detail finer than one of its own pixels: the full-resolution GPX track (a point
+   * every 10&nbsp;m) is emitted verbatim only once a pixel is smaller than that, and at low zoom the
+   * far sparser simplified line keeps the tile light. The tolerance is one tile pixel in Web
+   * Mercator metres — {@code earthCircumference / (2^z * extent)} — so it tracks {@code ST_TileEnvelope}'s
+   * own resolution: ~38&nbsp;m at z8, below the 10&nbsp;m GPX step from ~z13 on (no visible loss when
+   * zoomed in). {@code preserveCollapsed = true} keeps a minimal line for a track shorter than the
+   * tolerance rather than dropping the feature, so no route ever vanishes from a tile.
    */
   private static final String ROUTE_MVT_PATTERN =
       "st_asmvt(cast(row("
-          + "st_asmvtgeom(st_transform(?1, 3857), st_tileenvelope(?2, ?3, ?4), 4096, 64, true),"
+          + "st_asmvtgeom(st_simplify(st_transform(?1, 3857),"
+          + " 40075016.6855785 / (power(2, ?2) * 4096), true),"
+          + " st_tileenvelope(?2, ?3, ?4), 4096, 64, true),"
           + " ?5, ?6, ?7, ?8, ?9) as route_mvt_row), 'routes')";
 
   /**
