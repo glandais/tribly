@@ -233,9 +233,13 @@ class GpsServiceTest extends AbstractBaseTest {
     void shouldThrowForNonConnectedService() {
       pedalonsContext.setUserForTest(user);
 
+      // The not-connected guard lives in uploadGpx, which uploadRoute delegates to once it has
+      // resolved the route and its GPX bytes. Exercise it directly: driving it through uploadRoute
+      // would need a persisted route carrying a GPX asset, and the missing-route lookup would throw
+      // first, masking the guard under test.
       assertThrows(
           BusinessException.class,
-          () -> gpsService.uploadRoute(GpsServiceType.HAMMERHEAD, "team-slug", "route-slug"));
+          () -> gpsService.uploadGpx(GpsServiceType.HAMMERHEAD, new byte[0], "route-name"));
     }
   }
 
