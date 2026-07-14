@@ -93,7 +93,7 @@ public class StravaClient {
           httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
       if (response.statusCode() != 200) {
-        LOG.errorf("Strava token exchange failed: %d %s", response.statusCode(), response.body());
+        LOG.errorf("Strava token exchange failed: %d", response.statusCode());
         throw new InternalException(
             ErrorCode.GPS_TOKEN_EXCHANGE_FAILED,
             new IOException("Strava token exchange failed: " + response.statusCode()));

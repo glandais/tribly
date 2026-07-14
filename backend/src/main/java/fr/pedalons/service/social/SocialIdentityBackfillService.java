@@ -5,7 +5,7 @@ import fr.pedalons.domain.user.User;
 import fr.pedalons.enums.SocialProvider;
 import fr.pedalons.repository.social.UserSocialIdentityRepository;
 import fr.pedalons.repository.user.UserRepository;
-import fr.pedalons.service.security.annotation.Public;
+import fr.pedalons.service.security.annotation.Admin;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -31,7 +31,7 @@ public class SocialIdentityBackfillService {
   String placeholderEmailDomain;
 
   /** Backfill Strava identities for all placeholder accounts in a domain. Returns rows created. */
-  @Public
+  @Admin
   @Transactional
   public int backfillStravaIdentities(Long domainId) {
     List<User> users = userRepository.findPlaceholderStravaUsers(domainId, placeholderEmailDomain);

@@ -197,12 +197,16 @@ public class StravaAuthService {
               .orElseThrow(() -> new BusinessException(ErrorCode.SOCIAL_NO_ACCOUNT));
       identity.get().recordLogin();
     } else {
-      // Case (b): a migrated placeholder account for this athlete.
+      // Case (b): a migrated placeholder account for this athlete. Only bind if the matched
+      // account is genuinely an unverified placeholder — never take over a real, verified account
+      // that happens to hold this address (defense-in-depth, independent of placeholder-domain
+      // config).
       String placeholderEmail =
           ("strava_" + athleteId + "@" + placeholderEmailDomain).toLowerCase(Locale.ROOT);
       user =
           userRepository
               .findByEmailAndDomain(domainId, placeholderEmail)
+              .filter(this::isPlaceholderEmail)
               .orElseThrow(() -> new BusinessException(ErrorCode.SOCIAL_NO_ACCOUNT));
       identityRepository.persist(
           new UserSocialIdentity(user, domainId, SocialProvider.STRAVA, athleteId));
