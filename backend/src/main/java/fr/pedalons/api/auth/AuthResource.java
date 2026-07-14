@@ -11,6 +11,7 @@ import fr.pedalons.dto.auth.response.AuthResponse;
 import fr.pedalons.dto.auth.response.AuthResult;
 import fr.pedalons.dto.auth.response.MessageResponse;
 import fr.pedalons.dto.error.ErrorResponse;
+import fr.pedalons.dto.social.request.EmailChangeRequest;
 import fr.pedalons.service.auth.AuthService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
@@ -258,6 +259,33 @@ public class AuthResource {
 
     AuthResponse authResponse = authService.refreshToken(refreshToken);
     return Response.ok(authResponse).build();
+  }
+
+  @POST
+  @Path("/email/change-request")
+  @RolesAllowed("user")
+  @Operation(
+      summary = "Request email change",
+      description =
+          "Set/change the account's real email (e.g. recover a migrated Strava account). Sends a"
+              + " verification link to the new address.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Verification email sent to the new address",
+        content = @Content(schema = @Schema(implementation = MessageResponse.class))),
+    @APIResponse(
+        responseCode = "409",
+        description = "Email already used by another account",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response requestEmailChange(@Valid EmailChangeRequest request) {
+    authService.requestEmailChange(request.email());
+    return Response.ok(new MessageResponse("Verification email sent")).build();
   }
 
   @POST

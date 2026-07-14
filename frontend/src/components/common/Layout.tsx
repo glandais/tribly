@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Outlet, Link, useLocation, useNavigationType } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -14,10 +14,11 @@ import {
   Stack,
   Divider,
   Box,
+  Alert,
   UnstyledButton,
 } from '@mantine/core'
 import { useDisclosure, useHeadroom } from '@mantine/hooks'
-import { IconUser, IconLogout, IconShield, IconMapSearch } from '@tabler/icons-react'
+import { IconUser, IconLogout, IconShield, IconMapSearch, IconMail } from '@tabler/icons-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useAppName } from '../../hooks/useAppName'
 import { useAuthStore, selectIsPlatformAdmin } from '@/store/authStore'
@@ -35,8 +36,15 @@ export function Layout() {
   const isPlatformAdmin = useAuthStore(selectIsPlatformAdmin)
   const { items: breadcrumbItems, showBackLink } = useBreadcrumb()
   const [opened, { toggle, close }] = useDisclosure(false)
+  const [emailBannerDismissed, setEmailBannerDismissed] = useState(false)
   const { pathname } = useLocation()
   const navigationType = useNavigationType()
+
+  const showEmailBanner =
+    isAuthenticated &&
+    user?.requiresEmail === true &&
+    !emailBannerDismissed &&
+    pathname !== paths.completeAccount()
 
   // Mounted before the effect below so its cleanup records the scroll position
   // while the outgoing route is still on screen.
@@ -219,6 +227,24 @@ export function Layout() {
 
       <AppShell.Main>
         <Container size="lg" px={0}>
+          {showEmailBanner && (
+            <Alert
+              variant="light"
+              color="orange"
+              icon={<IconMail size={18} />}
+              title={t('auth.completeAccount.banner.title')}
+              withCloseButton
+              onClose={() => setEmailBannerDismissed(true)}
+              mb="md"
+            >
+              <Group justify="space-between" align="center" wrap="wrap">
+                <Text size="sm">{t('auth.completeAccount.banner.message')}</Text>
+                <Button size="xs" color="orange" component={Link} to={paths.completeAccount()}>
+                  {t('auth.completeAccount.banner.action')}
+                </Button>
+              </Group>
+            </Alert>
+          )}
           <Breadcrumb items={breadcrumbItems} showBackLink={showBackLink} />
           <Outlet />
         </Container>

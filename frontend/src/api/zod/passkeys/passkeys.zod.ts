@@ -49,6 +49,12 @@ export const AuthenticateResponse = zod
           .enum(['PLATFORM_ADMIN'])
           .optional()
           .describe('Platform role (null if regular user)'),
+        emailVerified: zod.boolean().describe("Whether the account's email has been verified"),
+        requiresEmail: zod
+          .boolean()
+          .describe(
+            'True when the account still needs a real, verified email (e.g. a migrated Strava account with a placeholder address)'
+          ),
         connectedServices: zod
           .array(
             zod
@@ -63,6 +69,20 @@ export const AuthenticateResponse = zod
           )
           .optional()
           .describe('Connected GPS services'),
+        socialIdentities: zod
+          .array(
+            zod
+              .object({
+                provider: zod.enum(['STRAVA']).describe('Provider identifier'),
+                displayName: zod.string().describe('Display name of the provider'),
+                linkedAt: zod.iso
+                  .datetime({ offset: true })
+                  .describe('When the identity was linked'),
+              })
+              .describe('A linked external identity (e.g. Strava)')
+          )
+          .optional()
+          .describe('Linked external identities (e.g. Strava)'),
       })
       .optional()
       .describe('Authenticated user'),

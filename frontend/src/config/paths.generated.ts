@@ -33,6 +33,13 @@ export const paths = {
       default: return '/reset-password'
     }
   },
+  stravaCallback: () => '/strava/callback',
+  completeAccount: () => {
+    switch (getCurrentLocale()) {
+      case 'fr': return '/completer-le-compte'
+      default: return '/complete-account'
+    }
+  },
   deviceVerifyGarmin: () => '/garmin',
   deviceVerifyKaroo: () => '/karoo',
   privacy: () => {
@@ -344,6 +351,8 @@ export const pathVariants = {
   verifyEmail: (): Record<Locale, string> => ({ en: '/verify-email', fr: '/verifier-email' }),
   forgotPassword: (): Record<Locale, string> => ({ en: '/forgot-password', fr: '/mot-de-passe-oublie' }),
   resetPassword: (): Record<Locale, string> => ({ en: '/reset-password', fr: '/nouveau-mot-de-passe' }),
+  stravaCallback: (): Record<Locale, string> => ({ en: '/strava/callback', fr: '/strava/callback' }),
+  completeAccount: (): Record<Locale, string> => ({ en: '/complete-account', fr: '/completer-le-compte' }),
   deviceVerifyGarmin: (): Record<Locale, string> => ({ en: '/garmin', fr: '/garmin' }),
   deviceVerifyKaroo: (): Record<Locale, string> => ({ en: '/karoo', fr: '/karoo' }),
   privacy: (): Record<Locale, string> => ({ en: '/privacy', fr: '/confidentialite' }),

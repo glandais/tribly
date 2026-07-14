@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation, Trans } from 'react-i18next'
 import { useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
-import { IconFingerprint, IconUserPlus, IconLock } from '@tabler/icons-react'
+import { IconFingerprint, IconUserPlus, IconLock, IconBrandStrava } from '@tabler/icons-react'
 import {
   Center,
   Paper,
@@ -25,6 +25,7 @@ import {
   loginWithPassword,
   register as registerUser,
 } from '@/api/endpoints/authentication/authentication'
+import { getStravaLoginUrl } from '@/api/endpoints/strava-authentication/strava-authentication'
 
 type Mode = 'login' | 'register'
 
@@ -119,6 +120,17 @@ export function LoginPage() {
     }
   }
 
+  const handleStravaLogin = async () => {
+    setIsLoading(true)
+    try {
+      const data = await getStravaLoginUrl()
+      window.location.href = data.authorizationUrl
+    } catch {
+      notifications.show({ message: t('auth.strava.errors.startFailed'), color: 'red' })
+      setIsLoading(false)
+    }
+  }
+
   const handleLogin = async (values: { email: string; password: string }) => {
     setIsLoading(true)
     try {
@@ -208,19 +220,28 @@ export function LoginPage() {
               </Stack>
             </form>
 
+            <Divider label={t('common.or')} labelPosition="center" />
+
+            <Button
+              fullWidth
+              color="orange"
+              leftSection={<IconBrandStrava size={20} />}
+              onClick={handleStravaLogin}
+              loading={isLoading}
+            >
+              {t('auth.strava.loginButton')}
+            </Button>
+
             {passkeySupported && (
-              <>
-                <Divider label={t('common.or')} labelPosition="center" />
-                <Button
-                  variant="default"
-                  fullWidth
-                  leftSection={<IconFingerprint size={20} />}
-                  onClick={handlePasskeyLogin}
-                  loading={isLoading}
-                >
-                  {t('auth.login.methods.passkey')}
-                </Button>
-              </>
+              <Button
+                variant="default"
+                fullWidth
+                leftSection={<IconFingerprint size={20} />}
+                onClick={handlePasskeyLogin}
+                loading={isLoading}
+              >
+                {t('auth.login.methods.passkey')}
+              </Button>
             )}
 
             <Text size="sm" ta="center">

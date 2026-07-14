@@ -64,6 +64,16 @@ routes:
     web: true
     mobile: true
     deeplink: true
+  - id: stravaCallback
+    path:
+      en: /strava/callback
+      fr: /strava/callback
+    web: true
+  - id: completeAccount
+    path:
+      en: /complete-account
+      fr: /completer-le-compte
+    web: true
 
   # --- Device verification (brand names kept as-is) ---
   - id: deviceVerifyGarmin

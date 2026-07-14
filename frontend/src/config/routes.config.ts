@@ -20,6 +20,12 @@ const ForgotPasswordPage = lazy(() =>
 const ResetPasswordPage = lazy(() =>
   import('../pages/auth/ResetPasswordPage').then((m) => ({ default: m.ResetPasswordPage }))
 )
+const StravaCallbackPage = lazy(() =>
+  import('../pages/auth/StravaCallbackPage').then((m) => ({ default: m.StravaCallbackPage }))
+)
+const CompleteAccountPage = lazy(() =>
+  import('../pages/auth/CompleteAccountPage').then((m) => ({ default: m.CompleteAccountPage }))
+)
 const UserProfilePage = lazy(() =>
   import('../pages/auth/UserProfilePage').then((m) => ({ default: m.UserProfilePage }))
 )
@@ -320,6 +326,22 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('auth.resetPassword.title') },
+  },
+  {
+    id: 'strava-callback',
+    paths: pathVariants.stravaCallback(),
+    component: StravaCallbackPage,
+    auth: 'public',
+    parentId: null,
+    breadcrumb: { type: 'static', i18nKey: tRegister('auth.strava.title') },
+  },
+  {
+    id: 'complete-account',
+    paths: pathVariants.completeAccount(),
+    component: CompleteAccountPage,
+    auth: 'authenticated',
+    parentId: null,
+    breadcrumb: { type: 'static', i18nKey: tRegister('auth.completeAccount.title') },
   },
   {
     id: 'profile',
