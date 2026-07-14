@@ -7,7 +7,7 @@
 CSV_FILE="target/jacoco-report/jacoco.csv"
 
 if [ ! -f "$CSV_FILE" ]; then
-    echo "Error: $CSV_FILE not found. Run 'mvn test' first."
+    echo "Error: $CSV_FILE not found. Run 'mvn test -Dcoverage=true' first."
     exit 1
 fi
 

@@ -15,6 +15,9 @@
         <quarkus.platform.version>3.37.2</quarkus.platform.version>
         <compiler-plugin.version>3.15.0</compiler-plugin.version>
         <surefire-plugin.version>3.5.6</surefire-plugin.version>
+        <!-- Keep at 1: with forkCount>1 Surefire dispatches classes one at a time and
+             Quarkus restarts (~13s) per class, which costs more than the parallelism buys -->
+        <surefire.forkCount>1</surefire.forkCount>
         <checkstyle-plugin.version>3.6.0</checkstyle-plugin.version>
         <spotless-plugin.version>3.8.0</spotless-plugin.version>
         <hypersistence-utils-hibernate.version>3.15.4</hypersistence-utils-hibernate.version>
@@ -308,9 +311,15 @@
                 <version>${surefire-plugin.version}</version>
                 <configuration>
                     <argLine>@{argLine}</argLine>
+                    <!-- Each fork boots its own Quarkus + dev services; coverage runs need -Dsurefire.forkCount=1 -->
+                    <forkCount>${surefire.forkCount}</forkCount>
+                    <reuseForks>true</reuseForks>
                     <systemPropertyVariables>
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                         <maven.home>${maven.home}</maven.home>
+                        <pedalons.data.cache>/tmp/pedalons-data-cache-test-${surefire.forkNumber}</pedalons.data.cache>
+                        <quarkus.http.body.uploads-directory>/tmp/pedalons-uploads-test-${surefire.forkNumber}</quarkus.http.body.uploads-directory>
+                        <quarkus.hibernate-orm.scripts.generation.create-target>target/fresh-${surefire.forkNumber}.sql</quarkus.hibernate-orm.scripts.generation.create-target>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

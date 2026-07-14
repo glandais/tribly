@@ -83,6 +83,44 @@ public class TestDataService {
   @Inject DomainRepository domainRepository;
   @Inject DomainAliasRepository domainAliasRepository;
 
+  /** Standard fixture shared by all resource tests, created in a single transaction. */
+  public record StandardFixture(
+      Domain domain,
+      User user1,
+      User user2,
+      User user3,
+      User user4,
+      User user5,
+      Team team1,
+      Team team2) {}
+
+  /**
+   * Creates the standard resource-test fixture (5 users, public team1, private team2) in ONE
+   * transaction: the nested @Transactional calls join this one, avoiding ~13 commits per test.
+   */
+  @Transactional
+  public StandardFixture createStandardFixture() {
+    Domain domain = getOrCreateDefaultDomain();
+
+    User user1 = createUser(domain, "user1@example.com", "Test User 1");
+    User user2 = createUser(domain, "user2@example.com", "Test User 2");
+    User user3 = createUser(domain, "user3@example.com", "Test User 3");
+    User user4 = createUser(domain, "user4@example.com", "Test User 4");
+    User user5 = createUser(domain, "user5@example.com", "Test User 5");
+
+    Team team1 = createTeam(domain, user1, "Team 1", "team-1", Visibility.PUBLIC);
+    team1.setJoinable(true);
+    team1.setAddMemberAllowed(true);
+    addUserToTeam(user2, team1, TeamRole.ORGANIZER);
+    addUserToTeam(user3, team1, TeamRole.MEMBER);
+
+    Team team2 = createTeam(domain, user1, "Team 2", "team-2", Visibility.TEAM);
+    addUserToTeam(user2, team2, TeamRole.ORGANIZER);
+    addUserToTeam(user3, team2, TeamRole.MEMBER);
+
+    return new StandardFixture(domain, user1, user2, user3, user4, user5, team1, team2);
+  }
+
   @Transactional
   public Domain getOrCreateDefaultDomain() {
     return domainRepository
@@ -336,8 +374,9 @@ public class TestDataService {
 
   @Transactional
   public void deleteRide(Ride ride) {
-    ride.setDeleted(true);
-    rideRepository.getEntityManager().merge(ride);
+    // findById instead of merge: the caller's instance may be stale (e.g. after setRideRoute)
+    Ride managed = rideRepository.findById(ride.getId());
+    managed.setDeleted(true);
   }
 
   @Transactional
@@ -744,8 +783,9 @@ public class TestDataService {
 
   @Transactional
   public void deleteTripStage(TripStage stage) {
-    stage.setDeleted(true);
-    tripStageRepository.getEntityManager().merge(stage);
+    // findById instead of merge: the caller's instance may be stale (e.g. after setTripStageRoute)
+    TripStage managed = tripStageRepository.findById(stage.getId());
+    managed.setDeleted(true);
   }
 
   @Transactional

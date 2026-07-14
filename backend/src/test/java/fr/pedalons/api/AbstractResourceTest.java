@@ -4,8 +4,6 @@ import fr.pedalons.AbstractBaseTest;
 import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.user.User;
-import fr.pedalons.enums.TeamRole;
-import fr.pedalons.enums.Visibility;
 import fr.pedalons.service.auth.JwtService;
 import fr.pedalons.util.TestDataCleaner;
 import fr.pedalons.util.TestDataService;
@@ -57,26 +55,17 @@ public abstract class AbstractResourceTest extends AbstractBaseTest {
 
   protected void setUp() {
     dataCleaner.cleanAll();
-    // Create domain first - DomainResolver will find it from HTTP request Host header
-    domain = dataService.getOrCreateDefaultDomain();
-
-    user1 = dataService.createUser(EMAIL1, "Test User 1");
-    user2 = dataService.createUser(EMAIL2, "Test User 2");
-    user3 = dataService.createUser(EMAIL3, "Test User 3");
-    user4 = dataService.createUser(EMAIL4, "Test User 4");
-    user5 = dataService.createUser(EMAIL5, "Test User 5");
-
-    // Create test team with organizer
-    team1 = dataService.createTeam(user1, "Team 1", "team-1", Visibility.PUBLIC);
-    dataService.setTeamJoinable(team1, true);
-    dataService.setTeamAddMemberAllowed(team1, true);
-    dataService.addUserToTeam(user2, team1, TeamRole.ORGANIZER);
-    dataService.addUserToTeam(user3, team1, TeamRole.MEMBER);
+    // Domain is created first - DomainResolver will find it from HTTP request Host header
+    TestDataService.StandardFixture fixture = dataService.createStandardFixture();
+    domain = fixture.domain();
+    user1 = fixture.user1();
+    user2 = fixture.user2();
+    user3 = fixture.user3();
+    user4 = fixture.user4();
+    user5 = fixture.user5();
+    team1 = fixture.team1();
     team1Slug = team1.getSlug();
-
-    team2 = dataService.createTeam(user1, "Team 2", "team-2", Visibility.TEAM);
-    dataService.addUserToTeam(user2, team2, TeamRole.ORGANIZER);
-    dataService.addUserToTeam(user3, team2, TeamRole.MEMBER);
+    team2 = fixture.team2();
     team2Slug = team2.getSlug();
   }
 }

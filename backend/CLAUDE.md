@@ -18,7 +18,8 @@ mvn package -DskipTests            # Build + generate contracts/openapi.yaml
 
 ## Code Coverage
 
-`mvn test` writes reports to `target/jacoco-report/` (csv, xml, html).
+Coverage instrumentation is opt-in (it slows every run by ~10-15%):
+`mvn test -Dcoverage=true` writes reports to `target/jacoco-report/` (csv, xml, html).
 
 ```bash
 ./scripts/coverage-report.sh                                  # All classes, sorted by coverage
