@@ -380,8 +380,8 @@ export function TripDetailPage() {
         </Group>
       </Paper>
 
-      {/* Stage tabs + Overview content */}
-      <TripLayout trip={trip} teamSlug={teamSlug!} currentTab="overview">
+      {/* Overview content — no stage-nav sidebar: the stage cards below are the single list */}
+      <TripLayout trip={trip} teamSlug={teamSlug!} currentTab="overview" showStageNav={false}>
         <Stack>
           {/* Map + stages, side-by-side on desktop with the map kept sticky while stages scroll */}
           <SimpleGrid
