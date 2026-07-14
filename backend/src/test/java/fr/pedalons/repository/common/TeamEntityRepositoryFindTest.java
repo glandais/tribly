@@ -134,6 +134,127 @@ class TeamEntityRepositoryFindTest extends AbstractBaseTest {
   }
 
   @Nested
+  @DisplayName("Unlisted Team (PUBLIC_UNLISTED) Visibility")
+  class UnlistedTeamVisibility {
+
+    private Team unlistedTeam;
+
+    @BeforeEach
+    void setUpUnlistedTeam() {
+      unlistedTeam =
+          dataService.createTeam(
+              publicTeamOwner, "Unlisted Team", "unlisted-team", Visibility.PUBLIC_UNLISTED);
+    }
+
+    @Test
+    @DisplayName("Global listing should hide public entities of an unlisted team from anonymous")
+    void find_anonymousUser_globalListing_shouldHideUnlistedTeamEntities() {
+      dataService.createRoute(unlistedTeam, publicTeamOwner, "Unlisted Route", Visibility.PUBLIC);
+
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).build();
+      PedalonsPage<Route> result = routeRepository.find(query);
+
+      assertEquals(0, result.items().size());
+    }
+
+    @Test
+    @DisplayName("Team-scoped listing (teamIds) should expose public entities to anonymous")
+    void find_anonymousUser_teamScopedByTeamIds_shouldReturnPublicEntities() {
+      dataService.createRoute(unlistedTeam, publicTeamOwner, "Unlisted Route", Visibility.PUBLIC);
+
+      RouteQuery query =
+          RouteQuery.builder()
+              .domainId(domain.getId())
+              .teamIds(Set.of(unlistedTeam.getId()))
+              .build();
+      PedalonsPage<Route> result = routeRepository.find(query);
+
+      assertEquals(1, result.items().size());
+      assertEquals("Unlisted Route", result.items().getFirst().getName());
+    }
+
+    @Test
+    @DisplayName("Team-scoped listing (pinnedTeamId) should expose public entities to anonymous")
+    void find_anonymousUser_teamScopedByPinnedTeam_shouldReturnPublicEntities() {
+      dataService.createRoute(unlistedTeam, publicTeamOwner, "Unlisted Route", Visibility.PUBLIC);
+
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).pinnedTeamId(unlistedTeam.getId()).build();
+      PedalonsPage<Route> result = routeRepository.find(query);
+
+      assertEquals(1, result.items().size());
+      assertEquals("Unlisted Route", result.items().getFirst().getName());
+    }
+
+    @Test
+    @DisplayName("Team-scoped listing should still hide TEAM-visibility entities from anonymous")
+    void find_anonymousUser_teamScoped_shouldNotReturnTeamVisibilityEntities() {
+      dataService.createRoute(unlistedTeam, publicTeamOwner, "Team Route", Visibility.TEAM);
+
+      RouteQuery query =
+          RouteQuery.builder()
+              .domainId(domain.getId())
+              .teamIds(Set.of(unlistedTeam.getId()))
+              .build();
+      PedalonsPage<Route> result = routeRepository.find(query);
+
+      assertEquals(0, result.items().size());
+    }
+
+    @Test
+    @DisplayName("Team-scoped listing should hide PUBLIC_UNLISTED entities from the list")
+    void find_anonymousUser_teamScoped_shouldNotReturnUnlistedEntities() {
+      dataService.createRoute(unlistedTeam, publicTeamOwner, "Unlisted Route", Visibility.PUBLIC);
+      dataService.createRoute(
+          unlistedTeam, publicTeamOwner, "Hidden Route", Visibility.PUBLIC_UNLISTED);
+
+      RouteQuery query =
+          RouteQuery.builder()
+              .domainId(domain.getId())
+              .teamIds(Set.of(unlistedTeam.getId()))
+              .build();
+      PedalonsPage<Route> result = routeRepository.find(query);
+
+      assertEquals(1, result.items().size());
+      assertEquals("Unlisted Route", result.items().getFirst().getName());
+    }
+
+    @Test
+    @DisplayName("Team-scoped listing should expose public entities to authenticated non-member")
+    void find_authenticatedNonMember_teamScoped_shouldReturnPublicEntities() {
+      dataService.createRoute(unlistedTeam, publicTeamOwner, "Unlisted Route", Visibility.PUBLIC);
+
+      RouteQuery query =
+          RouteQuery.builder()
+              .domainId(domain.getId())
+              .userId(regularUser.getId())
+              .teamIds(Set.of(unlistedTeam.getId()))
+              .build();
+      PedalonsPage<Route> result = routeRepository.find(query);
+
+      assertEquals(1, result.items().size());
+      assertEquals("Unlisted Route", result.items().getFirst().getName());
+    }
+
+    @Test
+    @DisplayName("Multi-team listing including an unlisted team stays strict (not team-scoped)")
+    void find_anonymousUser_multiTeam_shouldHideUnlistedTeamEntities() {
+      dataService.createRoute(publicTeam, publicTeamOwner, "Public Route", Visibility.PUBLIC);
+      dataService.createRoute(unlistedTeam, publicTeamOwner, "Unlisted Route", Visibility.PUBLIC);
+
+      RouteQuery query =
+          RouteQuery.builder()
+              .domainId(domain.getId())
+              .teamIds(Set.of(publicTeam.getId(), unlistedTeam.getId()))
+              .build();
+      PedalonsPage<Route> result = routeRepository.find(query);
+
+      assertEquals(1, result.items().size());
+      assertEquals("Public Route", result.items().getFirst().getName());
+    }
+  }
+
+  @Nested
   @DisplayName("Authenticated User - Team Member Visibility")
   class AuthenticatedMemberVisibility {
 

@@ -109,7 +109,14 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
     // Build base query
     PedalonsQuery pedalonsQuery;
 
-    AndClause publicEntity = getPublicEntity(list);
+    // When the request targets a single team (domain alias pin, or an explicit single-team filter),
+    // the caller navigated straight to that team's page. A PUBLIC_UNLISTED ("non répertorié") team
+    // is reachable by URL and must expose its public content there — the strict PUBLIC-only team
+    // filter is only meant to keep unlisted teams out of cross-team/global directory listings.
+    Set<Long> queryTeamIds = query.teamIds();
+    boolean teamScoped =
+        query.pinnedTeamId() != null || (queryTeamIds != null && queryTeamIds.size() == 1);
+    AndClause publicEntity = getPublicEntity(list, teamScoped);
 
     if (query.userId() == null) {
       pedalonsQuery =
@@ -253,10 +260,17 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
     return pedalonsQuery;
   }
 
-  private static AndClause getPublicEntity(boolean list) {
+  private static AndClause getPublicEntity(boolean list, boolean teamScoped) {
     AndClause publicEntity = new AndClause();
     if (list) {
-      publicEntity.add(new SimpleClause("te.team.visibility = 'PUBLIC'", Map.of()));
+      // Global/cross-team listings hide unlisted teams entirely; a team-scoped listing (the visitor
+      // is already on that specific team's page) still allows the PUBLIC_UNLISTED team through, but
+      // keeps the entity-level PUBLIC filter so unlisted entities stay out of the list.
+      if (teamScoped) {
+        publicEntity.add(new SimpleClause("te.team.visibility <> 'TEAM'", Map.of()));
+      } else {
+        publicEntity.add(new SimpleClause("te.team.visibility = 'PUBLIC'", Map.of()));
+      }
       publicEntity.add(new SimpleClause("te.visibility = 'PUBLIC'", Map.of()));
     } else {
       publicEntity.add(new SimpleClause("te.team.visibility <> 'TEAM'", Map.of()));
