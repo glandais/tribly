@@ -28,19 +28,19 @@ body {
   }
 }
 
-/* RideDetailPage: keep the map in view while the (potentially long) groups list scrolls.
-   Only once the layout is side-by-side (md+, 64em); stacked mobile keeps the normal flow. */
+/* Ride/Trip detail: keep the map in view while the (potentially long) groups/stages list
+   scrolls. Only once the layout is side-by-side (md+, 64em); stacked mobile keeps normal flow. */
 @media (min-width: 64em) {
-  .ride-detail-map {
+  .detail-map {
     position: sticky;
     top: calc(var(--app-shell-header-height, 60px) + var(--mantine-spacing-md));
     align-self: start;
   }
 }
 
-/* RideDetailPage: map spans 2 cols on xl (90em = 1440px) */
+/* Ride/Trip detail: map spans 2 cols on xl (90em = 1440px) */
 @media (min-width: 90em) {
-  .ride-detail-map {
+  .detail-map {
     grid-column: span 2;
   }
 }

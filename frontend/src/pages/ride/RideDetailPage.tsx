@@ -412,7 +412,7 @@ export function RideDetailPage() {
         mb={{ base: 'md', sm: 'lg' }}
       >
         {/* Map - shown first on mobile, spans 2 cols on xl */}
-        <Box className="ride-detail-map" style={{ order: 1 }}>
+        <Box className="detail-map" style={{ order: 1 }}>
           {mapItems.length > 0 && (
             <Suspense fallback={<Skeleton height={500} radius="md" />}>
               <RoutesMapView

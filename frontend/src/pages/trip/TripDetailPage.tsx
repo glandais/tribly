@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from 'react'
+import { useState, useMemo, lazy, Suspense } from 'react'
 import { Link, useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
@@ -18,6 +18,7 @@ import {
   Container,
   Paper,
   Group,
+  SimpleGrid,
   Stack,
   Title,
   Text,
@@ -49,6 +50,7 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 const RoutesMapView = lazy(() =>
   import('../../components/route/RoutesMapView').then((m) => ({ default: m.RoutesMapView }))
 )
+import type { MapRouteItem } from '../../components/route/RoutesMapView'
 import { useFormattedDate } from '../../utils/dateFormat'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
@@ -92,6 +94,20 @@ export function TripDetailPage() {
   const leaveMutation = useLeaveTrip()
 
   useCanonicalPath(team && trip ? paths.trip(team.slug, trip.slug) : undefined)
+
+  // Stable reference so hovering a stage (which re-renders this page) doesn't re-trigger the
+  // map's route-loading effect — that would refetch every route and refit the map on each hover.
+  const mapItems: MapRouteItem[] = useMemo(() => {
+    if (!trip) return []
+    if (trip.routeSlug) {
+      return [{ id: trip.id, name: trip.name, routeSlug: trip.routeSlug }]
+    }
+    return (trip.stages ?? []).map((stage) => ({
+      id: stage.id,
+      name: stage.name,
+      routeSlug: stage.route?.slug,
+    }))
+  }, [trip])
 
   if (isLoadingTeam || isLoadingTrip) {
     return <LoadingPage message={t('loading')} />
@@ -367,52 +383,50 @@ export function TripDetailPage() {
       {/* Stage tabs + Overview content */}
       <TripLayout trip={trip} teamSlug={teamSlug!} currentTab="overview">
         <Stack>
-          {/* Map: global route if defined, otherwise all stage routes */}
-          {(trip.routeSlug || (trip.stages && trip.stages.length > 0)) && (
-            <Suspense fallback={<Skeleton height={500} radius="md" />}>
-              {trip.routeSlug ? (
-                <RoutesMapView
-                  items={[{ id: trip.id, name: trip.name, routeSlug: trip.routeSlug }]}
-                  teamSlug={teamSlug!}
-                />
-              ) : (
-                <RoutesMapView
-                  items={trip.stages.map((stage) => ({
-                    id: stage.id,
-                    name: stage.name,
-                    routeSlug: stage.route?.slug,
-                  }))}
-                  teamSlug={teamSlug!}
-                  highlightedItemId={highlightedStageId}
-                  onItemHover={setHighlightedStageId}
-                />
-              )}
-            </Suspense>
-          )}
-
-          {/* Stages list */}
-          <Box>
-            <Title order={3} mb="md">
-              {t('trips.detail.stages.title')}
-            </Title>
-            {trip.stages && trip.stages.length > 0 ? (
-              <Stack gap="sm">
-                {trip.stages.map((stage, index) => (
-                  <TripStageCard
-                    key={stage.id}
-                    stage={stage}
-                    index={index}
+          {/* Map + stages, side-by-side on desktop with the map kept sticky while stages scroll */}
+          <SimpleGrid
+            cols={{ base: 1, md: 2, xl: 3 }}
+            spacing={{ base: 'md', sm: 'lg' }}
+          >
+            {/* Map: global route if defined, otherwise all stage routes. Shown first on mobile,
+                spans 2 cols on xl, sticky on md+ (via .detail-map). */}
+            <Box className="detail-map" style={{ order: 1 }}>
+              {mapItems.length > 0 && (
+                <Suspense fallback={<Skeleton height={500} radius="md" />}>
+                  <RoutesMapView
+                    items={mapItems}
                     teamSlug={teamSlug!}
-                    tripSlug={trip.slug}
-                    onHover={setHighlightedStageId}
-                    isHighlighted={highlightedStageId === stage.id}
+                    highlightedItemId={highlightedStageId}
+                    onItemHover={setHighlightedStageId}
                   />
-                ))}
-              </Stack>
-            ) : (
-              <Text c="dimmed">{t('trips.detail.stages.empty')}</Text>
-            )}
-          </Box>
+                </Suspense>
+              )}
+            </Box>
+
+            {/* Stages list */}
+            <Box style={{ order: 2 }}>
+              <Title order={3} mb="md">
+                {t('trips.detail.stages.title')}
+              </Title>
+              {trip.stages && trip.stages.length > 0 ? (
+                <Stack gap="sm">
+                  {trip.stages.map((stage, index) => (
+                    <TripStageCard
+                      key={stage.id}
+                      stage={stage}
+                      index={index}
+                      teamSlug={teamSlug!}
+                      tripSlug={trip.slug}
+                      onHover={setHighlightedStageId}
+                      isHighlighted={highlightedStageId === stage.id}
+                    />
+                  ))}
+                </Stack>
+              ) : (
+                <Text c="dimmed">{t('trips.detail.stages.empty')}</Text>
+              )}
+            </Box>
+          </SimpleGrid>
 
           {/* Participants section */}
           {trip.participants && trip.participants.length > 0 && (
