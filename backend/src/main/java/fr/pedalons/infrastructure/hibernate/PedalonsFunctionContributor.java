@@ -17,6 +17,22 @@ import org.hibernate.type.StandardBasicTypes;
  */
 public class PedalonsFunctionContributor implements FunctionContributor {
 
+  /** Web Mercator (EPSG:3857) circumference in metres — the width of the world at z0. */
+  private static final double WEB_MERCATOR_CIRCUMFERENCE_M = 40075016.6855785;
+
+  /** Tile resolution passed to {@code ST_AsMVTGeom}; also the divisor turning it into pixels. */
+  private static final int MVT_EXTENT = 4096;
+
+  /**
+   * Simplification tolerance in tile pixels. 1 removes only sub-pixel detail (invisible); raise to
+   * 2–4 for lighter, blockier tiles.
+   */
+  private static final double SIMPLIFY_FACTOR = 1.0;
+
+  /** Tolerance numerator as a plain decimal, so no scientific notation leaks into the SQL. */
+  private static final String SIMPLIFY_NUMERATOR =
+      java.math.BigDecimal.valueOf(SIMPLIFY_FACTOR * WEB_MERCATOR_CIRCUMFERENCE_M).toPlainString();
+
   /**
    * {@code route_mvt(geometry, z, x, y, slug, name, teamSlug, distance, elevationGain)} → the MVT
    * layer as a protobuf blob.
@@ -40,22 +56,6 @@ public class PedalonsFunctionContributor implements FunctionContributor {
    * keeps a minimal line for a track shorter than the tolerance rather than dropping the feature,
    * so no route ever vanishes from a tile.
    */
-  /** Web Mercator (EPSG:3857) circumference in metres — the width of the world at z0. */
-  private static final double WEB_MERCATOR_CIRCUMFERENCE_M = 40075016.6855785;
-
-  /** Tile resolution passed to {@code ST_AsMVTGeom}; also the divisor turning it into pixels. */
-  private static final int MVT_EXTENT = 4096;
-
-  /**
-   * Simplification tolerance in tile pixels. 1 removes only sub-pixel detail (invisible); raise to
-   * 2–4 for lighter, blockier tiles.
-   */
-  private static final double SIMPLIFY_FACTOR = 1.0;
-
-  /** Tolerance numerator as a plain decimal, so no scientific notation leaks into the SQL. */
-  private static final String SIMPLIFY_NUMERATOR =
-      java.math.BigDecimal.valueOf(SIMPLIFY_FACTOR * WEB_MERCATOR_CIRCUMFERENCE_M).toPlainString();
-
   private static final String ROUTE_MVT_PATTERN =
       "st_asmvt(cast(row("
           + "st_asmvtgeom(st_simplify(st_transform(?1, 3857), "
