@@ -5,10 +5,12 @@
 import 'package:dio/dio.dart' hide Headers;
 
 import 'clients/admin_domains_client.dart';
+import 'clients/admin_social_client.dart';
 import 'clients/admin_teams_client.dart';
 import 'clients/admin_users_client.dart';
 import 'clients/authentication_client.dart';
 import 'clients/passkeys_client.dart';
+import 'clients/strava_authentication_client.dart';
 import 'clients/calendar_client.dart';
 import 'clients/configuration_client.dart';
 import 'clients/device_user_client.dart';
@@ -51,10 +53,12 @@ class PedalonsApiClient {
   static String get version => '1.0.0';
 
   AdminDomainsClient? _adminDomains;
+  AdminSocialClient? _adminSocial;
   AdminTeamsClient? _adminTeams;
   AdminUsersClient? _adminUsers;
   AuthenticationClient? _authentication;
   PasskeysClient? _passkeys;
+  StravaAuthenticationClient? _stravaAuthentication;
   CalendarClient? _calendar;
   ConfigurationClient? _configuration;
   DeviceUserClient? _deviceUser;
@@ -84,6 +88,9 @@ class PedalonsApiClient {
   AdminDomainsClient get adminDomains =>
       _adminDomains ??= AdminDomainsClient(_dio, baseUrl: _baseUrl);
 
+  AdminSocialClient get adminSocial =>
+      _adminSocial ??= AdminSocialClient(_dio, baseUrl: _baseUrl);
+
   AdminTeamsClient get adminTeams =>
       _adminTeams ??= AdminTeamsClient(_dio, baseUrl: _baseUrl);
 
@@ -95,6 +102,12 @@ class PedalonsApiClient {
 
   PasskeysClient get passkeys =>
       _passkeys ??= PasskeysClient(_dio, baseUrl: _baseUrl);
+
+  StravaAuthenticationClient get stravaAuthentication =>
+      _stravaAuthentication ??= StravaAuthenticationClient(
+        _dio,
+        baseUrl: _baseUrl,
+      );
 
   CalendarClient get calendar =>
       _calendar ??= CalendarClient(_dio, baseUrl: _baseUrl);

@@ -7,6 +7,7 @@ import 'package:retrofit/retrofit.dart';
 import 'package:retrofit/error_logger.dart';
 
 import '../models/auth_response.dart';
+import '../models/email_change_request.dart';
 import '../models/forgot_password_request.dart';
 import '../models/login_request.dart';
 import '../models/message_response.dart';
@@ -22,6 +23,16 @@ part 'authentication_client.g.dart';
 abstract class AuthenticationClient {
   factory AuthenticationClient(Dio dio, {String? baseUrl}) =
       _AuthenticationClient;
+
+  /// Request email change.
+  ///
+  /// Set/change the account's real email (e.g. recover a migrated Strava account). Sends a verification link to the new address.
+  ///
+  /// [body] - Name not received - field will be skipped.
+  @POST('/api/auth/email/change-request')
+  Future<MessageResponse> requestEmailChange({
+    @Body() required EmailChangeRequest body,
+  });
 
   /// Request password reset.
   ///

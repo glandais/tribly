@@ -4,10 +4,12 @@
 
 // Clients
 export 'clients/admin_domains_client.dart';
+export 'clients/admin_social_client.dart';
 export 'clients/admin_teams_client.dart';
 export 'clients/admin_users_client.dart';
 export 'clients/authentication_client.dart';
 export 'clients/passkeys_client.dart';
+export 'clients/strava_authentication_client.dart';
 export 'clients/calendar_client.dart';
 export 'clients/configuration_client.dart';
 export 'clients/device_user_client.dart';
@@ -80,6 +82,7 @@ export 'models/device_routes_response.dart';
 export 'models/device_token_request.dart';
 export 'models/device_token_response.dart';
 export 'models/device_user_status_response.dart';
+export 'models/email_change_request.dart';
 export 'models/entity_type.dart';
 export 'models/error_code.dart';
 export 'models/error_details.dart';
@@ -151,9 +154,14 @@ export 'models/router_request.dart';
 export 'models/router_response.dart';
 export 'models/searched_by.dart';
 export 'models/slug_change_request.dart';
+export 'models/social_backfill_response.dart';
+export 'models/social_identity_dto.dart';
+export 'models/social_provider.dart';
 export 'models/sort_direction.dart';
 export 'models/stage_request.dart';
 export 'models/status.dart';
+export 'models/strava_auth_url_response.dart';
+export 'models/strava_session_request.dart';
 export 'models/surface_type.dart';
 export 'models/team_detail_dto.dart';
 export 'models/team_list_response.dart';
