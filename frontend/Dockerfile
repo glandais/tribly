@@ -11,7 +11,7 @@ RUN npm install --global --force corepack@latest && \
     pnpm config set store-dir .pnpm-store
 
 # Copy package files
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 # Install dependencies
 RUN pnpm install
