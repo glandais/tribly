@@ -23,6 +23,19 @@ public class UserRepository implements BaseRepository<User> {
     return find("id = ?1 and deleted = false", id).firstResultOptional();
   }
 
+  /**
+   * Migrated Strava accounts carry a synthesized {@code strava_<athleteId>@<placeholderDomain>}
+   * email. Used by the social-identity backfill. The {@code _} in {@code strava_} is escaped so it
+   * is matched literally rather than as a LIKE wildcard.
+   */
+  public List<User> findPlaceholderStravaUsers(Long domainId, String placeholderDomain) {
+    return find(
+            "domain.id = ?1 and email like ?2 escape '!' and deleted = false",
+            domainId,
+            "strava!_%@" + placeholderDomain.toLowerCase())
+        .list();
+  }
+
   public List<User> searchByDisplayNameAndDomain(Long domainId, String query, int limit) {
     return find(
             "domain.id = ?1 and LOWER(displayName) LIKE LOWER(?2) and deleted = false",

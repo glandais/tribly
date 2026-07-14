@@ -25,6 +25,7 @@ import { UserAvatar } from '../../components/common/UserAvatar'
 import { UnitSystemSwitcher } from '../../components/common/UnitSystemSwitcher'
 import { PasskeyManager } from '../../components/auth/PasskeyManager'
 import { GpsConnectionsManager } from '../../components/profile/GpsConnectionsManager'
+import { SocialConnectionsManager } from '../../components/profile/SocialConnectionsManager'
 import { UpdateMeBody } from '@/api/zod/users/users.zod'
 import { UpdateUserRequest } from '@/api/dto'
 
@@ -223,6 +224,10 @@ export function UserProfilePage() {
           <Divider />
 
           <GpsConnectionsManager />
+
+          <Divider />
+
+          <SocialConnectionsManager />
 
           <Divider />
 

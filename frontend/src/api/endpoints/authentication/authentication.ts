@@ -8,6 +8,7 @@ import type {
 
 import type {
   AuthResponse,
+  EmailChangeRequest,
   ErrorResponse,
   ForgotPasswordRequest,
   LoginRequest,
@@ -24,6 +25,91 @@ import type { ErrorType, BodyType } from '../../../lib/axiosInstance.ts'
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
+/**
+ * Set/change the account's real email (e.g. recover a migrated Strava account). Sends a verification link to the new address.
+ * @summary Request email change
+ */
+export const requestEmailChange = (
+  emailChangeRequest: BodyType<EmailChangeRequest>,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<MessageResponse>(
+    {
+      url: `/api/auth/email/change-request`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: emailChangeRequest,
+      signal,
+    },
+    options
+  )
+}
+
+export const getRequestEmailChangeMutationOptions = <
+  TError = ErrorType<void | ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof requestEmailChange>>,
+    TError,
+    { data: BodyType<EmailChangeRequest> },
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof requestEmailChange>>,
+  TError,
+  { data: BodyType<EmailChangeRequest> },
+  TContext
+> => {
+  const mutationKey = ['requestEmailChange']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof requestEmailChange>>,
+    { data: BodyType<EmailChangeRequest> }
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return requestEmailChange(data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type RequestEmailChangeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof requestEmailChange>>
+>
+export type RequestEmailChangeMutationBody = BodyType<EmailChangeRequest>
+export type RequestEmailChangeMutationError = ErrorType<void | ErrorResponse>
+
+/**
+ * @summary Request email change
+ */
+export const useRequestEmailChange = <TError = ErrorType<void | ErrorResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof requestEmailChange>>,
+      TError,
+      { data: BodyType<EmailChangeRequest> },
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof requestEmailChange>>,
+  TError,
+  { data: BodyType<EmailChangeRequest> },
+  TContext
+> => {
+  return useMutation(getRequestEmailChangeMutationOptions(options), queryClient)
+}
 /**
  * Send a 6-digit code to the user's email to reset their password
  * @summary Request password reset

@@ -159,6 +159,7 @@ public class BiketeamMigrationService {
 
   @Inject TeamRepository teamRepository;
   @Inject UserRepository userRepository;
+  @Inject fr.pedalons.repository.social.UserSocialIdentityRepository socialIdentityRepository;
   @Inject UserTeamRepository userTeamRepository;
   @Inject PlaceRepository placeRepository;
   @Inject RouteRepository routeRepository;
@@ -558,6 +559,7 @@ public class BiketeamMigrationService {
             .run(
                 () -> {
                   User user = upsertUserByEmail(domain, bt, email, deliverable);
+                  upsertStravaIdentity(domain, user, bt);
                   mapRepo.upsert(T_USER, bt.id(), user.getId());
                   idMap.put(bt.id(), user.getId());
                 });
@@ -596,6 +598,28 @@ public class BiketeamMigrationService {
       localPart = "google_" + bt.googleId().trim();
     }
     return localPart == null ? null : (localPart + "@" + domain).toLowerCase(Locale.ROOT);
+  }
+
+  /**
+   * Records the Strava athlete id as a first-class {@code UserSocialIdentity} so migrated users can
+   * later log in with Strava (and be matched by identity, not by placeholder-email parsing). The
+   * athlete id from the biketeam dump is authoritative. Idempotent via the unique constraint.
+   */
+  private void upsertStravaIdentity(Domain domain, User user, BiketeamReader.BtUser bt) {
+    if (bt.stravaId() == null) {
+      return;
+    }
+    String athleteId = String.valueOf(bt.stravaId());
+    boolean exists =
+        socialIdentityRepository
+            .findByProviderAndExternalId(
+                domain.getId(), fr.pedalons.enums.SocialProvider.STRAVA, athleteId)
+            .isPresent();
+    if (!exists) {
+      socialIdentityRepository.persist(
+          new fr.pedalons.domain.social.UserSocialIdentity(
+              user, domain.getId(), fr.pedalons.enums.SocialProvider.STRAVA, athleteId));
+    }
   }
 
   private User upsertUserByEmail(

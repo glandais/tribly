@@ -114,6 +114,11 @@ public class AuthService {
             .findValidByTokenHash(tokenHash)
             .orElseThrow(() -> new BadRequestException(ErrorCode.TOKEN_INVALID));
 
+    // Email-change (account recovery): verifies a new real email on an existing user.
+    if (authToken.getTokenType() == AuthTokenType.EMAIL_CHANGE) {
+      return verifyEmailChange(authToken, userAgent, ipAddress);
+    }
+
     if (authToken.getTokenType() != AuthTokenType.EMAIL_VERIFICATION) {
       throw new BadRequestException(ErrorCode.TOKEN_INVALID);
     }
@@ -135,6 +140,84 @@ public class AuthService {
             authToken.getPendingDisplayName(), "Pending display name should not be null");
     User user = new User(domain, authToken.getEmail(), displayName);
     user.setPasswordHash(authToken.getPendingPasswordHash());
+    user.markEmailVerified();
+    user.recordLogin();
+    userRepository.persist(user);
+
+    return createAuthResult(user, userAgent, ipAddress);
+  }
+
+  /**
+   * Starts collecting a real email for the current user (e.g. a migrated Strava account with a
+   * placeholder address). Sends a verification link to the new address; the change is only applied
+   * once that link is followed. Rejects an address already used by another account in the domain.
+   */
+  @Transactional
+  @Logged
+  public void requestEmailChange(String newEmail) {
+    User user = queryContext.getUser();
+    Long domainId = user.getDomain().getId();
+    String normalized = newEmail.toLowerCase(java.util.Locale.ROOT).trim();
+
+    // Collision: reject if the address belongs to a different account (decision: no auto-merge).
+    userRepository
+        .findByEmailAndDomain(domainId, normalized)
+        .ifPresent(
+            existing -> {
+              if (!existing.getId().equals(user.getId())) {
+                throw new fr.pedalons.common.exception.ConflictException(
+                    ErrorCode.EMAIL_ALREADY_EXISTS);
+              }
+            });
+
+    // Rate limit (mirrors OTP/password-reset). Silent to avoid probing which emails are taken.
+    long recentCount =
+        authTokenRepository.countRecentByEmailAndType(
+            normalized, AuthTokenType.EMAIL_CHANGE, otpRateLimitWindowMinutes, domainId);
+    if (recentCount >= otpMaxAttempts) {
+      Log.warnf("Email-change rate limit exceeded for user=%d domain=%d", user.getId(), domainId);
+      return;
+    }
+
+    authTokenRepository.invalidateByEmailAndType(normalized, AuthTokenType.EMAIL_CHANGE, domainId);
+
+    String token = generateSecureToken();
+    AuthToken authToken =
+        new AuthToken(
+            user,
+            normalized,
+            hashToken(token),
+            AuthTokenType.EMAIL_CHANGE,
+            Instant.now().plus(Duration.ofHours(emailVerificationExpiryHours)),
+            domainId);
+    authTokenRepository.persist(authToken);
+
+    authEmailService.sendVerificationEmail(normalized, user.getDisplayName(), token);
+  }
+
+  private AuthResult verifyEmailChange(AuthToken authToken, String userAgent, String ipAddress) {
+    authToken.markUsed();
+
+    User user = authToken.getUser();
+    if (user == null) {
+      throw new BadRequestException(ErrorCode.USER_NOT_FOUND);
+    }
+
+    Long domainId = user.getDomain().getId();
+    String newEmail = authToken.getEmail();
+
+    // Re-check collision at verify time (another account may have claimed it meanwhile).
+    userRepository
+        .findByEmailAndDomain(domainId, newEmail)
+        .ifPresent(
+            existing -> {
+              if (!existing.getId().equals(user.getId())) {
+                throw new fr.pedalons.common.exception.ConflictException(
+                    ErrorCode.EMAIL_ALREADY_EXISTS);
+              }
+            });
+
+    user.setEmail(newEmail);
     user.markEmailVerified();
     user.recordLogin();
     userRepository.persist(user);

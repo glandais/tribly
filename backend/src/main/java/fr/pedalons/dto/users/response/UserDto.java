@@ -3,6 +3,7 @@ package fr.pedalons.dto.users.response;
 import fr.pedalons.common.TsidUtils;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.gps.response.GpsServiceConnectionDto;
+import fr.pedalons.dto.social.response.SocialIdentityDto;
 import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.enums.PlatformRole;
 import fr.pedalons.enums.UnitSystem;
@@ -23,14 +24,30 @@ public record UserDto(
         UnitSystem unitSystem,
     @Nullable @Schema(description = "Platform role (null if regular user)")
         PlatformRole platformRole,
-    @Schema(description = "Connected GPS services")
-        List<GpsServiceConnectionDto> connectedServices) {
+    @Schema(description = "Whether the account's email has been verified", required = true)
+        boolean emailVerified,
+    @Schema(
+            description =
+                "True when the account still needs a real, verified email (e.g. a migrated Strava"
+                    + " account with a placeholder address)",
+            required = true)
+        boolean requiresEmail,
+    @Schema(description = "Connected GPS services") List<GpsServiceConnectionDto> connectedServices,
+    @Schema(description = "Linked external identities (e.g. Strava)")
+        List<SocialIdentityDto> socialIdentities) {
 
   public static UserDto from(User user) {
-    return from(user, List.of());
+    return from(user, List.of(), List.of());
   }
 
   public static UserDto from(User user, List<GpsServiceConnectionDto> connectedServices) {
+    return from(user, connectedServices, List.of());
+  }
+
+  public static UserDto from(
+      User user,
+      List<GpsServiceConnectionDto> connectedServices,
+      List<SocialIdentityDto> socialIdentities) {
     return new UserDto(
         TsidUtils.toString(user.getId()),
         user.getEmail(),
@@ -39,6 +56,9 @@ public record UserDto(
         user.getCreatedAt(),
         user.getUnitSystem(),
         user.getPlatformRole(),
-        connectedServices);
+        user.isEmailVerified(),
+        !user.isEmailVerified(),
+        connectedServices,
+        socialIdentities);
   }
 }

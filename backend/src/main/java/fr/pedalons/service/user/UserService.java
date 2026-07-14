@@ -2,11 +2,13 @@ package fr.pedalons.service.user;
 
 import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.gps.response.GpsServiceConnectionDto;
+import fr.pedalons.dto.social.response.SocialIdentityDto;
 import fr.pedalons.dto.users.request.UpdateUserRequest;
 import fr.pedalons.dto.users.response.PublicUserDto;
 import fr.pedalons.dto.users.response.UserDto;
 import fr.pedalons.enums.UnitSystem;
 import fr.pedalons.repository.gps.GpsServiceConnectionRepository;
+import fr.pedalons.repository.social.UserSocialIdentityRepository;
 import fr.pedalons.repository.user.UserRepository;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.Logged;
@@ -26,6 +28,8 @@ public class UserService {
 
   @Inject GpsServiceConnectionRepository gpsConnectionRepository;
 
+  @Inject UserSocialIdentityRepository socialIdentityRepository;
+
   @Logged
   public UserDto getUserDto() {
     User user = pedalonsContext.getUser();
@@ -33,7 +37,11 @@ public class UserService {
         gpsConnectionRepository.findByUser(user.getId()).stream()
             .map(GpsServiceConnectionDto::from)
             .toList();
-    return UserDto.from(user, connections);
+    List<SocialIdentityDto> socialIdentities =
+        socialIdentityRepository.findByUser(user.getId()).stream()
+            .map(SocialIdentityDto::from)
+            .toList();
+    return UserDto.from(user, connections, socialIdentities);
   }
 
   @Public
