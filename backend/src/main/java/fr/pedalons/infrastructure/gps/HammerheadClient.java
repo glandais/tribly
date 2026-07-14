@@ -1,5 +1,8 @@
 package fr.pedalons.infrastructure.gps;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.pedalons.common.exception.BusinessException;
 import fr.pedalons.common.exception.InternalException;
 import fr.pedalons.domain.gps.DomainGpsCredential;
@@ -35,6 +38,8 @@ public class HammerheadClient implements GpsServiceClient {
   @Inject DomainGpsCredentialService credentialService;
 
   @Inject HttpClient httpClient;
+
+  @Inject ObjectMapper objectMapper;
 
   private DomainGpsCredential getCredential() {
     return credentialService
@@ -131,13 +136,17 @@ public class HammerheadClient implements GpsServiceClient {
   }
 
   private TokenResponse parseTokenResponse(String json) {
-    // Simple JSON parsing for token response
-    String accessToken = extractJsonString(json, "access_token");
-    String refreshToken = extractJsonString(json, "refresh_token");
-    Long expiresIn = extractJsonLong(json, "expires_in");
-    String userId = extractJsonString(json, "user_id");
+    try {
+      JsonNode root = objectMapper.readTree(json);
+      String accessToken = jsonString(root, "access_token");
+      String refreshToken = jsonString(root, "refresh_token");
+      Long expiresIn = jsonLong(root, "expires_in");
+      String userId = jsonString(root, "user_id");
 
-    return new TokenResponse(accessToken, refreshToken, expiresIn, userId);
+      return new TokenResponse(accessToken, refreshToken, expiresIn, userId);
+    } catch (JsonProcessingException e) {
+      throw new InternalException(ErrorCode.GPS_TOKEN_EXCHANGE_FAILED, e);
+    }
   }
 
   @Override
@@ -159,7 +168,7 @@ public class HammerheadClient implements GpsServiceClient {
           httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
       if (response.statusCode() >= 200 && response.statusCode() < 300) {
-        String routeId = extractJsonString(response.body(), "id");
+        String routeId = jsonString(objectMapper.readTree(response.body()), "id");
         LOG.infof("Successfully uploaded route to Hammerhead: %s", routeId);
         return RouteUploadResult.success(routeId);
       } else {
@@ -197,23 +206,24 @@ public class HammerheadClient implements GpsServiceClient {
     return URLEncoder.encode(value, StandardCharsets.UTF_8);
   }
 
-  private String extractJsonString(String json, String key) {
-    String pattern = "\"" + key + "\"\\s*:\\s*\"([^\"]+)\"";
-    java.util.regex.Pattern p = java.util.regex.Pattern.compile(pattern);
-    java.util.regex.Matcher m = p.matcher(json);
-    if (m.find()) {
-      return m.group(1);
-    }
-    return null;
+  private static String jsonString(JsonNode root, String key) {
+    JsonNode node = root.path(key);
+    return node.isMissingNode() || node.isNull() ? null : node.asText();
   }
 
-  private Long extractJsonLong(String json, String key) {
-    String pattern = "\"" + key + "\"\\s*:\\s*(\\d+)";
-    java.util.regex.Pattern p = java.util.regex.Pattern.compile(pattern);
-    java.util.regex.Matcher m = p.matcher(json);
-    if (m.find()) {
-      return Long.parseLong(m.group(1));
+  private static Long jsonLong(JsonNode root, String key) {
+    JsonNode node = root.path(key);
+    if (node.isMissingNode() || node.isNull()) {
+      return null;
     }
-    return null;
+    if (node.canConvertToLong()) {
+      return node.asLong();
+    }
+    // Some providers return numeric fields as JSON strings (e.g. "3600").
+    try {
+      return Long.parseLong(node.asText().trim());
+    } catch (NumberFormatException e) {
+      return null;
+    }
   }
 }
