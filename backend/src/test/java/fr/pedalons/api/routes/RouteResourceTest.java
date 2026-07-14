@@ -5,15 +5,21 @@ import static org.hamcrest.Matchers.*;
 
 import fr.pedalons.api.AbstractResourceTest;
 import fr.pedalons.common.TsidUtils;
+import fr.pedalons.domain.ride.Ride;
+import fr.pedalons.domain.ride.RideGroup;
 import fr.pedalons.domain.route.Route;
+import fr.pedalons.domain.trip.Trip;
+import fr.pedalons.domain.trip.TripStage;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.common.request.SlugChangeRequest;
 import fr.pedalons.dto.routes.request.RouteRequest;
+import fr.pedalons.enums.Status;
 import fr.pedalons.enums.SurfaceType;
 import fr.pedalons.enums.Visibility;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.ws.rs.core.MediaType;
 import java.io.File;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -727,5 +733,168 @@ class RouteResourceTest extends AbstractResourceTest {
         .then()
         .statusCode(200)
         .body(emptyString());
+  }
+
+  // ==================== Route Usages Tests ====================
+
+  private static final Instant USAGE_TIME = Instant.parse("2026-08-01T09:00:00Z");
+
+  private String usagesUrl(Route route) {
+    return "/api/teams/" + team1Slug + "/routes/" + route.getSlug() + "/usages";
+  }
+
+  @Test
+  void getRouteUsages_withNoUsages_shouldReturnEmptyList() {
+    Route route = dataService.createRoute(team1, user1, "Unused Route", Visibility.PUBLIC);
+
+    given().when().get(usagesUrl(route)).then().statusCode(200).body("usages", hasSize(0));
+  }
+
+  @Test
+  void getRouteUsages_referencedDirectlyByRide_shouldListRideOnce() {
+    Route route = dataService.createRoute(team1, user1, "Ride Route", Visibility.PUBLIC);
+    Ride ride = dataService.createRide(team1, user1, "Sunday Ride", "sunday-ride", USAGE_TIME);
+    dataService.setRideRoute(ride, route);
+
+    given()
+        .when()
+        .get(usagesUrl(route))
+        .then()
+        .statusCode(200)
+        .body("usages", hasSize(1))
+        .body("usages[0].type", equalTo("RIDE"))
+        .body("usages[0].slug", equalTo(ride.getSlug()))
+        .body("usages[0].name", equalTo("Sunday Ride"))
+        .body("usages[0].teamSlug", equalTo(team1Slug))
+        .body("usages[0].referencedDirectly", equalTo(true))
+        .body("usages[0].viaChildNames", hasSize(0));
+  }
+
+  @Test
+  void getRouteUsages_referencedViaRideGroup_shouldListRideWithGroupName() {
+    Route route = dataService.createRoute(team1, user1, "Group Route", Visibility.PUBLIC);
+    Ride ride = dataService.createRide(team1, user1, "Group Ride", "group-ride", USAGE_TIME);
+    RideGroup group = dataService.createRideGroup(user1, ride, "Fast Group");
+    dataService.setRideGroupRoute(group, route);
+
+    given()
+        .when()
+        .get(usagesUrl(route))
+        .then()
+        .statusCode(200)
+        .body("usages", hasSize(1))
+        .body("usages[0].type", equalTo("RIDE"))
+        .body("usages[0].slug", equalTo(ride.getSlug()))
+        .body("usages[0].referencedDirectly", equalTo(false))
+        .body("usages[0].viaChildNames", contains("Fast Group"));
+  }
+
+  @Test
+  void getRouteUsages_referencedByTripDirectlyAndViaStage_shouldListTripOnce() {
+    Route route = dataService.createRoute(team1, user1, "Trip Route", Visibility.PUBLIC);
+    Trip trip = dataService.createTrip(team1, user1, "Alps Trip", USAGE_TIME);
+    dataService.setTripRoute(trip, route);
+    TripStage stage = dataService.createTripStage(user1, trip, "Stage 1");
+    dataService.setTripStageRoute(stage, route);
+
+    given()
+        .when()
+        .get(usagesUrl(route))
+        .then()
+        .statusCode(200)
+        .body("usages", hasSize(1))
+        .body("usages[0].type", equalTo("TRIP"))
+        .body("usages[0].slug", equalTo(trip.getSlug()))
+        .body("usages[0].referencedDirectly", equalTo(true))
+        .body("usages[0].viaChildNames", contains("Stage 1"));
+  }
+
+  @Test
+  void getRouteUsages_softDeletedRide_shouldBeExcluded() {
+    Route route = dataService.createRoute(team1, user1, "Deleted Ride Route", Visibility.PUBLIC);
+    Ride ride = dataService.createRide(team1, user1, "Doomed Ride", "doomed-ride", USAGE_TIME);
+    dataService.setRideRoute(ride, route);
+    dataService.deleteRide(ride);
+
+    given().when().get(usagesUrl(route)).then().statusCode(200).body("usages", hasSize(0));
+  }
+
+  @Test
+  void getRouteUsages_referencedOnlyViaDeletedStage_shouldExcludeTrip() {
+    Route route = dataService.createRoute(team1, user1, "Deleted Stage Route", Visibility.PUBLIC);
+    Trip trip = dataService.createTrip(team1, user1, "Stage Only Trip", USAGE_TIME);
+    TripStage stage = dataService.createTripStage(user1, trip, "Ghost Stage");
+    dataService.setTripStageRoute(stage, route);
+    dataService.deleteTripStage(stage);
+
+    given().when().get(usagesUrl(route)).then().statusCode(200).body("usages", hasSize(0));
+  }
+
+  @Test
+  void getRouteUsages_draftRide_shouldBeHiddenFromAnonymousButVisibleToOrganizer() {
+    Route route = dataService.createRoute(team1, user1, "Draft Ride Route", Visibility.PUBLIC);
+    Ride ride =
+        dataService.createRide(team1, user1, "Draft Ride", "draft-ride", USAGE_TIME, Status.DRAFT);
+    dataService.setRideRoute(ride, route);
+
+    // Anonymous: a draft usage is not visible
+    given().when().get(usagesUrl(route)).then().statusCode(200).body("usages", hasSize(0));
+
+    // Organizer: the draft usage is visible
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER2))
+        .when()
+        .get(usagesUrl(route))
+        .then()
+        .statusCode(200)
+        .body("usages", hasSize(1))
+        .body("usages[0].slug", equalTo(ride.getSlug()));
+  }
+
+  @Test
+  void getRouteUsages_teamVisibilityRide_shouldBeHiddenFromNonMemberButVisibleToMember() {
+    Route route = dataService.createRoute(team1, user1, "Team Ride Route", Visibility.PUBLIC);
+    Ride ride =
+        dataService.createRide(team1, user1, "Team Ride", "team-ride", USAGE_TIME, Visibility.TEAM);
+    dataService.setRideRoute(ride, route);
+
+    // Non-member: a TEAM-visibility usage is hidden
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER4))
+        .when()
+        .get(usagesUrl(route))
+        .then()
+        .statusCode(200)
+        .body("usages", hasSize(0));
+
+    // Member: the usage is visible
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER3))
+        .when()
+        .get(usagesUrl(route))
+        .then()
+        .statusCode(200)
+        .body("usages", hasSize(1));
+  }
+
+  @Test
+  void getRouteUsages_nonexistentRoute_shouldReturn404() {
+    given()
+        .when()
+        .get("/api/teams/" + team1Slug + "/routes/nonexistent-route/usages")
+        .then()
+        .statusCode(404);
+  }
+
+  @Test
+  void getRouteUsages_toNonexistentTeam_shouldReturn404() {
+    given()
+        .when()
+        .get("/api/teams/nonexistent-team/routes/some-route/usages")
+        .then()
+        .statusCode(404);
   }
 }

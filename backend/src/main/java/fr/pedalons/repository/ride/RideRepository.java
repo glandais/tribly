@@ -5,7 +5,10 @@ import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.TeamEntityType;
 import fr.pedalons.repository.common.TeamEntityQueryBasic;
 import fr.pedalons.repository.common.TeamEntityRepository;
+import fr.pedalons.repository.query.PedalonsQuery;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.jspecify.annotations.Nullable;
 
@@ -55,5 +58,21 @@ public class RideRepository implements TeamEntityRepository<Ride, TeamEntityQuer
         .includeDeleted(includeDeleted)
         .platformAdmin(platformAdmin)
         .build();
+  }
+
+  /**
+   * Find the rides that reference a route, either directly ({@code ride.route}) or through one of
+   * their groups ({@code group.route}). The {@code query} carries the domain/visibility filters, so
+   * only rides the caller may see are returned. Each ride yields at most one row, so the result is
+   * already deduplicated.
+   */
+  public List<Ride> findByRouteId(TeamEntityQueryBasic query, Long routeId) {
+    QueryShape shape = new QueryShape("te", getEntityType().getTypeName() + " te", true);
+    PedalonsQuery pedalonsQuery = getPedalonsQuery(query, true, shape);
+    pedalonsQuery.and(
+        "(te.route.id = :routeId OR EXISTS "
+            + "(select 1 from RideGroup g where g.ride = te and g.route.id = :routeId))",
+        Map.of("routeId", routeId));
+    return findAll(pedalonsQuery);
   }
 }

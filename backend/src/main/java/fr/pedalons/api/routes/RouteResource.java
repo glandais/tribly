@@ -338,6 +338,36 @@ public class RouteResource {
   }
 
   /**
+   * List the rides and trips that use this route.
+   */
+  @GET
+  @Path("/{routeSlug}/usages")
+  @PermitAll
+  @Operation(
+      operationId = "getRouteUsages",
+      summary = "List route usages",
+      description =
+          "Rides and trips that reference this route, directly or via a group/stage. Results are"
+              + " visibility filtered for the caller.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Usages retrieved successfully",
+        content = @Content(schema = @Schema(implementation = RouteUsagesResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team or route not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+  })
+  public Response getRouteUsages(
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
+      @Parameter(description = "Route slug") @PathParam("routeSlug") String routeSlug) {
+
+    RouteUsagesResponse usages = routeService.getUsages(teamSlug, routeSlug);
+    return Response.ok(usages).build();
+  }
+
+  /**
    * Update route metadata and optionally GPX file.
    */
   @PUT

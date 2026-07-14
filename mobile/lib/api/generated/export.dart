@@ -149,6 +149,8 @@ export 'models/route_list_response.dart';
 export 'models/route_request.dart';
 export 'models/route_sort_by.dart';
 export 'models/route_upload_response.dart';
+export 'models/route_usage_dto.dart';
+export 'models/route_usages_response.dart';
 export 'models/router_profile.dart';
 export 'models/router_request.dart';
 export 'models/router_response.dart';

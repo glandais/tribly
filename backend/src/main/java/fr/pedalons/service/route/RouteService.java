@@ -16,12 +16,17 @@ import fr.pedalons.dto.routes.response.RouteBoundsResponse;
 import fr.pedalons.dto.routes.response.RouteDetailDto;
 import fr.pedalons.dto.routes.response.RouteDto;
 import fr.pedalons.dto.routes.response.RouteListResponse;
+import fr.pedalons.dto.routes.response.RouteUsageDto;
+import fr.pedalons.dto.routes.response.RouteUsagesResponse;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.WindDirection;
 import fr.pedalons.repository.asset.AssetRepository;
+import fr.pedalons.repository.common.TeamEntityQueryBasic;
+import fr.pedalons.repository.ride.RideRepository;
 import fr.pedalons.repository.route.RouteQuery;
 import fr.pedalons.repository.route.RouteRepository;
+import fr.pedalons.repository.trip.TripRepository;
 import fr.pedalons.service.common.TeamEntityService;
 import fr.pedalons.service.route.response.TrackMetadata;
 import fr.pedalons.service.security.annotation.CheckAccess;
@@ -32,6 +37,8 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import org.jspecify.annotations.Nullable;
@@ -48,6 +55,10 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
   @Inject GpxProcessingService gpxProcessingService;
 
   @Inject AssetRepository assetRepository;
+
+  @Inject RideRepository rideRepository;
+
+  @Inject TripRepository tripRepository;
 
   @Override
   protected RouteRepository getRepository() {
@@ -73,6 +84,40 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
   public RouteDetailDto getDto(String teamSlug, String entitySlug) {
     Team team = teamService.getTeam(teamSlug);
     return super.getDto(team, entitySlug);
+  }
+
+  /**
+   * List the rides and trips that reference a route — directly, or through a ride group or trip
+   * stage. Each referencing ride/trip appears once, most recent first. The listing is visibility
+   * filtered per the caller, so an anonymous visitor only sees public published usages.
+   */
+  @Transactional
+  @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.READ)
+  public RouteUsagesResponse getUsages(String teamSlug, String routeSlug) {
+    Team team = teamService.getTeam(teamSlug);
+    Route route = findBySlug(team, routeSlug);
+    Long routeId = route.getId();
+    User user = pedalonsContext.getUserNullable();
+
+    TeamEntityQueryBasic base =
+        TeamEntityQueryBasic.builder()
+            .domainId(pedalonsContext.getDomainId())
+            .pinnedTeamId(pedalonsContext.getPinnedTeamIdNullable())
+            .userId(user == null ? null : user.getId())
+            .teamIds(Set.of(team.getId()))
+            .includeDeleted(false)
+            .platformAdmin(isPlatformAdmin())
+            .build();
+
+    List<RouteUsageDto> usages = new ArrayList<>();
+    rideRepository
+        .findByRouteId(base, routeId)
+        .forEach(ride -> usages.add(RouteUsageDto.fromRide(ride, routeId)));
+    tripRepository
+        .findByRouteId(base, routeId)
+        .forEach(trip -> usages.add(RouteUsageDto.fromTrip(trip, routeId)));
+    usages.sort(Comparator.comparing(RouteUsageDto::dateTime).reversed());
+    return new RouteUsagesResponse(usages);
   }
 
   /**

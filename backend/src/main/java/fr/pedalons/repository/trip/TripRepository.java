@@ -5,7 +5,10 @@ import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.TeamEntityType;
 import fr.pedalons.repository.common.TeamEntityQueryBasic;
 import fr.pedalons.repository.common.TeamEntityRepository;
+import fr.pedalons.repository.query.PedalonsQuery;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.jspecify.annotations.Nullable;
 
@@ -55,5 +58,22 @@ public class TripRepository implements TeamEntityRepository<Trip, TeamEntityQuer
         .includeDeleted(includeDeleted)
         .platformAdmin(platformAdmin)
         .build();
+  }
+
+  /**
+   * Find the trips that reference a route, either directly ({@code trip.route}) or through one of
+   * their stages ({@code stage.route}). The {@code query} carries the domain/visibility filters, so
+   * only trips the caller may see are returned. Each trip yields at most one row, so the result is
+   * already deduplicated.
+   */
+  public List<Trip> findByRouteId(TeamEntityQueryBasic query, Long routeId) {
+    QueryShape shape = new QueryShape("te", getEntityType().getTypeName() + " te", true);
+    PedalonsQuery pedalonsQuery = getPedalonsQuery(query, true, shape);
+    pedalonsQuery.and(
+        "(te.route.id = :routeId OR EXISTS "
+            + "(select 1 from TripStage s "
+            + "where s.trip = te and s.deleted = false and s.route.id = :routeId))",
+        Map.of("routeId", routeId));
+    return findAll(pedalonsQuery);
   }
 }

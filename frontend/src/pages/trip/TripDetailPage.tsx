@@ -384,10 +384,7 @@ export function TripDetailPage() {
       <TripLayout trip={trip} teamSlug={teamSlug!} currentTab="overview" showStageNav={false}>
         <Stack>
           {/* Map + stages, side-by-side on desktop with the map kept sticky while stages scroll */}
-          <SimpleGrid
-            cols={{ base: 1, md: 2, xl: 3 }}
-            spacing={{ base: 'md', sm: 'lg' }}
-          >
+          <SimpleGrid cols={{ base: 1, md: 2, xl: 3 }} spacing={{ base: 'md', sm: 'lg' }}>
             {/* Map: global route if defined, otherwise all stage routes. Shown first on mobile,
                 spans 2 cols on xl, sticky on md+ (via .detail-map). */}
             <Box className="detail-map" style={{ order: 1 }}>

@@ -26,6 +26,7 @@ import type {
   RouteDetailDto,
   RouteDto,
   RouteListResponse,
+  RouteUsagesResponse,
   RoutesTileParams,
   SlugChangeRequest,
   UpdateRouteBody,
@@ -1422,4 +1423,132 @@ export const useUndeleteRoute = <TError = ErrorType<ErrorResponse>, TContext = u
   TContext
 > => {
   return useMutation(getUndeleteRouteMutationOptions(options), queryClient)
+}
+/**
+ * Rides and trips that reference this route, directly or via a group/stage. Results are visibility filtered for the caller.
+ * @summary List route usages
+ */
+export const getRouteUsages = (
+  teamSlug: string,
+  routeSlug: string,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<RouteUsagesResponse>(
+    { url: `/api/teams/${teamSlug}/routes/${routeSlug}/usages`, method: 'GET', signal },
+    options
+  )
+}
+
+export const getGetRouteUsagesQueryKey = (teamSlug: string, routeSlug: string) => {
+  return [`/api/teams/${teamSlug}/routes/${routeSlug}/usages`] as const
+}
+
+export const getGetRouteUsagesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getRouteUsages>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  routeSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRouteUsages>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getGetRouteUsagesQueryKey(teamSlug, routeSlug)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getRouteUsages>>> = ({ signal }) =>
+    getRouteUsages(teamSlug, routeSlug, requestOptions, signal)
+
+  return {
+    queryKey,
+    queryFn,
+    enabled:
+      teamSlug !== null && teamSlug !== undefined && routeSlug !== null && routeSlug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getRouteUsages>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+}
+
+export type GetRouteUsagesQueryResult = NonNullable<Awaited<ReturnType<typeof getRouteUsages>>>
+export type GetRouteUsagesQueryError = ErrorType<ErrorResponse>
+
+export function useGetRouteUsages<
+  TData = Awaited<ReturnType<typeof getRouteUsages>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  routeSlug: string,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRouteUsages>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRouteUsages>>,
+          TError,
+          Awaited<ReturnType<typeof getRouteUsages>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRouteUsages<
+  TData = Awaited<ReturnType<typeof getRouteUsages>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  routeSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRouteUsages>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRouteUsages>>,
+          TError,
+          Awaited<ReturnType<typeof getRouteUsages>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRouteUsages<
+  TData = Awaited<ReturnType<typeof getRouteUsages>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  routeSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRouteUsages>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List route usages
+ */
+
+export function useGetRouteUsages<
+  TData = Awaited<ReturnType<typeof getRouteUsages>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  routeSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRouteUsages>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetRouteUsagesQueryOptions(teamSlug, routeSlug, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
 }

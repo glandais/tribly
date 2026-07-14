@@ -2203,3 +2203,38 @@ export const UndeleteRouteResponse = zod
     deleted: zod.boolean().describe('Whether the route is soft-deleted'),
   })
   .describe('Detailed route information')
+
+/**
+ * Rides and trips that reference this route, directly or via a group/stage. Results are visibility filtered for the caller.
+ * @summary List route usages
+ */
+export const GetRouteUsagesParams = zod.object({
+  routeSlug: zod.string().describe('Route slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
+})
+
+export const GetRouteUsagesResponse = zod
+  .object({
+    usages: zod
+      .array(
+        zod
+          .object({
+            type: zod.enum(['RIDE', 'POST', 'TRIP']).describe('Publication type (RIDE or TRIP)'),
+            slug: zod.string().describe('Publication URL slug'),
+            name: zod.string().describe('Publication name'),
+            dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
+            teamSlug: zod.string().describe('Slug of the team owning the publication'),
+            referencedDirectly: zod
+              .boolean()
+              .describe(
+                'Whether the publication references the route directly (not only via a child)'
+              ),
+            viaChildNames: zod
+              .array(zod.string())
+              .describe('Names of the ride groups or trip stages that reference the route, if any'),
+          })
+          .describe('A ride or trip that uses a route')
+      )
+      .describe('Usages of the route, most recent first'),
+  })
+  .describe('Rides and trips that use a route')

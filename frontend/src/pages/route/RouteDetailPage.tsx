@@ -15,6 +15,7 @@ import {
 } from '@/api/endpoints/routes/routes'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { RouteDetailView } from '../../components/route/RouteDetailView'
+import { RouteUsages } from '../../components/route/RouteUsages'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
@@ -155,6 +156,9 @@ export function RouteDetailPage() {
       <Box>
         <RouteDetailView route={route} teamSlug={teamSlug} />
       </Box>
+
+      {/* Where this route is used (rides & trips) — visible to all, results already access-filtered */}
+      <RouteUsages teamSlug={teamSlug!} routeSlug={routeSlug!} />
 
       {/* Comments Section - only visible to team members */}
       {isMember && (

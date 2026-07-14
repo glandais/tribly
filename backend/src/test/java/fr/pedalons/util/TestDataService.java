@@ -356,6 +356,30 @@ public class TestDataService {
   }
 
   @Transactional
+  public void setRideRoute(Ride ride, Route route) {
+    ride.setRoute(route);
+    rideRepository.getEntityManager().merge(ride);
+  }
+
+  @Transactional
+  public void setRideGroupRoute(RideGroup group, Route route) {
+    group.setRoute(route);
+    rideGroupRepository.getEntityManager().merge(group);
+  }
+
+  @Transactional
+  public void setTripRoute(Trip trip, Route route) {
+    trip.setRoute(route);
+    tripRepository.getEntityManager().merge(trip);
+  }
+
+  @Transactional
+  public void setTripStageRoute(TripStage stage, Route route) {
+    stage.setRoute(route);
+    tripStageRepository.getEntityManager().merge(stage);
+  }
+
+  @Transactional
   public Route createRoute(Team team, User createdBy, String name) {
     return createRoute(team, createdBy, name, Visibility.PUBLIC);
   }

@@ -16,6 +16,7 @@ import '../models/route_dto.dart';
 import '../models/route_list_response.dart';
 import '../models/route_request.dart';
 import '../models/route_sort_by.dart';
+import '../models/route_usages_response.dart';
 import '../models/slug_change_request.dart';
 import '../models/sort_direction.dart';
 import '../models/surface_type.dart';
@@ -433,6 +434,19 @@ abstract class RoutesClient {
   /// [teamSlug] - Team URL slug.
   @POST('/api/teams/{teamSlug}/routes/{routeSlug}/undelete')
   Future<RouteDetailDto> undeleteRoute({
+    @Path('routeSlug') required String routeSlug,
+    @Path('teamSlug') required String teamSlug,
+  });
+
+  /// List route usages.
+  ///
+  /// Rides and trips that reference this route, directly or via a group/stage. Results are visibility filtered for the caller.
+  ///
+  /// [routeSlug] - Route slug.
+  ///
+  /// [teamSlug] - Team URL slug.
+  @GET('/api/teams/{teamSlug}/routes/{routeSlug}/usages')
+  Future<RouteUsagesResponse> getRouteUsages({
     @Path('routeSlug') required String routeSlug,
     @Path('teamSlug') required String teamSlug,
   });
