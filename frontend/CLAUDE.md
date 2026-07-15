@@ -7,8 +7,9 @@ See also the root `../CLAUDE.md` for full-stack context (backend, mobile, karoo,
 ## Commands
 
 ```bash
-pnpm dev                           # Dev server (localhost:5173, proxies /api to :8080)
-pnpm build                         # Vite build (no type checking)
+pnpm dev                           # SPA dev server (localhost:5173, proxies /api to :8080)
+pnpm dev:ssr                       # SSR dev server (node server.js, localhost:3000, Vite middleware mode)
+pnpm build                         # Dual build: dist/client (browser) + dist/server (entry-server.js), no type checking
 pnpm typecheck                     # Type checking via tsgo (typescript-go)
 pnpm generate-api                  # Regenerate API client from ../contracts/openapi.json
 pnpm generate-routes               # Regenerate path builders + deeplinks from ../contracts/routes.yaml
@@ -98,6 +99,17 @@ Custom axios mutator in `lib/axiosInstance.ts` handles: JWT bearer tokens from a
 - Path alias: `@/` → `src/`
 - Manual chunk splitting in `vite.config.ts` (map-vendor, editor-vendor, mantine-vendor, etc.)
 - Dev proxy: `/api` → `http://localhost:8080` with `X-Forwarded-Host` for multi-tenancy
+- **Dual build output**: `pnpm build` runs Vite twice — client bundle → `dist/client/` (with `index.html` containing `<!--ssr-outlet-->` / `<!--ssr-state-->` placeholders), SSR bundle → `dist/server/entry-server.js`. The Docker runtime image runs `node server.js` (Express) and serves both. There is no separate nginx step.
+
+### SSR (server-side rendering)
+
+`server.js` (Express) renders public pages on the server via `renderToString` and hydrates on the client. Entry points: `src/entry-server.tsx` (`render(url, headers)`) and `src/entry-client.tsx` (hydrate). React Router runs in **library mode** (`createStaticHandler`/`createStaticRouter`, not framework mode); Vite uses `ssrLoadModule` in dev (no Environment API).
+
+Hard invariants — keep these when touching SSR-reachable code:
+
+- **Anonymous & stateless SSR**: the server never forwards cookies or `Authorization` to the backend — only `X-Forwarded-Host`, `X-Forwarded-Proto`, `Accept-Language`. Authenticated content client-renders after hydration.
+- **Per-request isolation**: per-request `QueryClient`, per-request i18next instance (`createServerI18n`), request data threaded via `AsyncLocalStorage` (`lib/requestContext`). No module-level mutable per-request state reachable during SSR.
+- **No module-top-level browser globals** in code eagerly imported by `entry-server` (config/, lib/, i18n/, stores, Layout). Guard any `window`/`document`/`localStorage`/`navigator` at module scope with `typeof window === 'undefined'`. Inside functions/hooks/effects is fine (runs client-side only). Lazy chunks (maps/GPX) are only a concern if a public prefetched route imports them.
 
 ## Key Rules
 
