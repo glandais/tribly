@@ -81,7 +81,11 @@ Custom axios mutator in `lib/axiosInstance.ts` handles: JWT bearer tokens from a
 
 - i18next with browser language detection. **French is the default/fallback language.**
 - Single `common` namespace per language: `locales/fr/common.json`, `locales/en/common.json`
-- `tRegister(key)` used in route config for static key tracking
+- **Keys are stored FLAT with dots** — `"map.tooltip.climb": "…"`, *not* nested `{ "map": { "tooltip": … } }` objects. Add new keys as flat entries next to their siblings; they still resolve via `t('map.tooltip.climb')` (i18next's `ignoreJSONStructure`). Adding a nested object instead is a silent trap — it "works" but breaks the file's convention.
+- Add every key to **both** locale files. `pnpm i18n:extract` scaffolds missing keys from `t()`/`tRegister()` calls; `pnpm i18n:lint` validates them (run both after touching translations).
+- **Interpolation**: `{{var}}` placeholders passed as `t('key', { var })`. Pluralize with `_one`/`_other` key suffixes + a `{{count}}` param (e.g. `form.charCount_one` / `form.charCount_other`).
+- `tRegister(key)` used in route config for static key tracking.
+- ESLint's `i18next/no-literal-string` (a **warning**, not an error) flags hardcoded user-facing strings — prefer `t()` even where lint wouldn't block.
 
 ### Forms
 
