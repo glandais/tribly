@@ -1,29 +1,42 @@
 ####
-# Build stage
+# Base: node + pnpm via corepack (shared by all stages)
 ####
-FROM node:26.5.0-alpine AS build
+FROM node:26.5.0-alpine AS base
 
 WORKDIR /app
 
 RUN npm install --global --force corepack@latest && \
     corepack enable && \
     corepack prepare pnpm@latest-10 --activate && \
-    pnpm config set store-dir .pnpm-store
+    pnpm config set store-dir /pnpm-store
 
-# Copy package files
+# Manifests only — this layer (and the installs below) stay cached until a
+# dependency actually changes, independent of any source edit.
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
-# Install dependencies
-RUN pnpm install
+####
+# Production dependencies only — keyed solely on the manifests above, so the
+# runtime node_modules layer is reused across source-only rebuilds.
+####
+FROM base AS prod-deps
 
-# Copy source code (legal markdown files pre-copied by build.sh)
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm-store \
+    pnpm install --prod --frozen-lockfile
+
+####
+# Build: full dependency tree, then compile the client + server bundles.
+####
+FROM base AS build
+
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm-store \
+    pnpm install --frozen-lockfile
+
+# Copy source last (legal markdown files pre-copied by build.sh). Everything
+# above is dependency-only, so editing source never busts the install layers.
 COPY . .
 
 # Build client + server bundles (dist/client + dist/server)
 RUN pnpm build
-
-# Prune to production dependencies only (drops vite, typescript, etc.)
-RUN pnpm prune --prod
 
 ####
 # Runtime stage with Node.js for SSR
@@ -33,11 +46,12 @@ FROM node:26.5.0-alpine
 WORKDIR /app
 ENV NODE_ENV=production
 
-# Copy built bundles, server entry, and production node_modules
-COPY --from=build /app/dist/ ./dist/
-COPY --from=build /app/server.js ./
-COPY --from=build /app/node_modules/ ./node_modules/
+# Copy layers least- to most-frequently-changing so registry pulls reuse the
+# heavy node_modules layer whenever only source (dist/server.js) changed.
+COPY --from=prod-deps /app/node_modules/ ./node_modules/
 COPY --from=build /app/package.json ./
+COPY --from=build /app/server.js ./
+COPY --from=build /app/dist/ ./dist/
 
 EXPOSE 3000
 
