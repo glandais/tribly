@@ -171,6 +171,28 @@ export function useListTemplates<
 }
 
 /**
+ * @summary List ride templates
+ */
+export const prefetchListTemplatesQuery = async <
+  TData = Awaited<ReturnType<typeof listTemplates>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  params?: ListTemplatesParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listTemplates>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getListTemplatesQueryOptions(teamSlug, params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Create a new ride template. Requires organizer permissions.
  * @summary Create ride template
  */
@@ -469,6 +491,28 @@ export function useGetTemplate<
   }
 
   return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Get ride template
+ */
+export const prefetchGetTemplateQuery = async <
+  TData = Awaited<ReturnType<typeof getTemplate>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  templateSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTemplate>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetTemplateQueryOptions(teamSlug, templateSlug, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
 }
 
 /**

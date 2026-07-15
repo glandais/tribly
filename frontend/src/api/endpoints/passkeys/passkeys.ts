@@ -153,6 +153,26 @@ export function useListPasskeys<
 }
 
 /**
+ * @summary List passkeys
+ */
+export const prefetchListPasskeysQuery = async <
+  TData = Awaited<ReturnType<typeof listPasskeys>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  queryClient: QueryClient,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPasskeys>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getListPasskeysQueryOptions(options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Authenticate using a passkey
  * @summary Authenticate with passkey
  */
@@ -526,6 +546,28 @@ export function useGetRegistrationOptions<
   }
 
   return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Get registration options
+ */
+export const prefetchGetRegistrationOptionsQuery = async <
+  TData = Awaited<ReturnType<typeof getRegistrationOptions>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  queryClient: QueryClient,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getRegistrationOptions>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetRegistrationOptionsQueryOptions(options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
 }
 
 /**

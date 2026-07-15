@@ -1,4 +1,5 @@
 import { ConfigDto } from '@/api/dto'
+import { getSSRConfig } from '@/lib/ssrContext'
 
 let cachedConfig: ConfigDto | null = null
 let configPromise: Promise<ConfigDto> | null = null
@@ -24,8 +25,21 @@ export async function fetchAppConfig(): Promise<ConfigDto> {
   return configPromise
 }
 
+/**
+ * Synchronous config reader. During SSR the per-request config (from ssrContext) wins, so
+ * concurrent requests on different domains never share state. Off-server it falls back to the
+ * module cache populated by fetchAppConfig()/seedAppConfig().
+ */
 export function getAppConfig(): ConfigDto | null {
-  return cachedConfig
+  return getSSRConfig() ?? cachedConfig
+}
+
+/**
+ * Seed the module cache from dehydrated state (used by entry-client to avoid an extra /api/config
+ * fetch on hydration). No-op protection is unnecessary — the latest config always wins.
+ */
+export function seedAppConfig(config: ConfigDto): void {
+  cachedConfig = config
 }
 
 /**
@@ -34,7 +48,7 @@ export function getAppConfig(): ConfigDto | null {
  * Returns null on a regular multi-team domain.
  */
 export function getPinnedTeamSlug(): string | null {
-  return cachedConfig?.pinnedTeamSlug ?? null
+  return getAppConfig()?.pinnedTeamSlug ?? null
 }
 
 /**
@@ -42,5 +56,5 @@ export function getPinnedTeamSlug(): string | null {
  * came in on a hostname pinned to one team. Team browsing and team creation are then irrelevant.
  */
 export function isSingleTeam(): boolean {
-  return cachedConfig?.singleTeam ?? false
+  return getAppConfig()?.singleTeam ?? false
 }

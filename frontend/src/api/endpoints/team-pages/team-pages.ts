@@ -166,6 +166,27 @@ export function useListPages<
 }
 
 /**
+ * @summary List team pages
+ */
+export const prefetchListPagesQuery = async <
+  TData = Awaited<ReturnType<typeof listPages>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPages>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getListPagesQueryOptions(teamSlug, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Create a new team page. Requires admin permissions. Maximum 3 additional pages per team.
  * @summary Create page
  */
@@ -545,6 +566,28 @@ export function useGetPage<
   }
 
   return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Get page details
+ */
+export const prefetchGetPageQuery = async <
+  TData = Awaited<ReturnType<typeof getPage>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  pageSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPage>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetPageQueryOptions(teamSlug, pageSlug, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
 }
 
 /**

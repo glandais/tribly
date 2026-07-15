@@ -19,20 +19,28 @@ RUN pnpm install
 # Copy source code (legal markdown files pre-copied by build.sh)
 COPY . .
 
-# Build the application
+# Build client + server bundles (dist/client + dist/server)
 RUN pnpm build
 
+# Prune to production dependencies only (drops vite, typescript, etc.)
+RUN pnpm prune --prod
+
 ####
-# Runtime stage with Nginx
+# Runtime stage with Node.js for SSR
 ####
-FROM steebchen/nginx-spa:stable
+FROM node:26.5.0-alpine
 
-# Copy the built application
-COPY --from=build /app/dist/ /app
+WORKDIR /app
+ENV NODE_ENV=production
 
-# Override default Nginx config to serve apple-app-site-association as JSON
-COPY nginx-spa.conf /etc/nginx/conf.d/default.conf
+# Copy built bundles, server entry, and production node_modules
+COPY --from=build /app/dist/ ./dist/
+COPY --from=build /app/server.js ./
+COPY --from=build /app/node_modules/ ./node_modules/
+COPY --from=build /app/package.json ./
 
-EXPOSE 80
+EXPOSE 3000
 
-CMD ["nginx"]
+USER node
+
+CMD ["node", "server.js"]

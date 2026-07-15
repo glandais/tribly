@@ -168,6 +168,28 @@ export function useListTripComments<
 }
 
 /**
+ * @summary List trip comments
+ */
+export const prefetchListTripCommentsQuery = async <
+  TData = Awaited<ReturnType<typeof listTripComments>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  entitySlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listTripComments>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getListTripCommentsQueryOptions(teamSlug, entitySlug, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * @summary Create trip comment
  */
 export const createTripComment = (

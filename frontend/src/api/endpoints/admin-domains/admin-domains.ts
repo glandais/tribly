@@ -170,6 +170,27 @@ export function useListDomains<
 }
 
 /**
+ * @summary List all domains
+ */
+export const prefetchListDomainsQuery = async <
+  TData = Awaited<ReturnType<typeof listDomains>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  params?: ListDomainsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listDomains>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getListDomainsQueryOptions(params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Create a new domain
  * @summary Create domain
  */
@@ -358,6 +379,26 @@ export function useGetStats<
   }
 
   return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Get platform statistics
+ */
+export const prefetchGetStatsQuery = async <
+  TData = Awaited<ReturnType<typeof getStats>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStats>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetStatsQueryOptions(options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
 }
 
 /**
@@ -567,6 +608,27 @@ export function useGetDomain<
 }
 
 /**
+ * @summary Get domain details
+ */
+export const prefetchGetDomainQuery = async <
+  TData = Awaited<ReturnType<typeof getDomain>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  domainId: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getDomain>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetDomainQueryOptions(domainId, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Get all dedicated hostnames (aliases) pinned to teams of a domain
  * @summary List domain aliases
  */
@@ -688,6 +750,27 @@ export function useListDomainAliases<
   }
 
   return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary List domain aliases
+ */
+export const prefetchListDomainAliasesQuery = async <
+  TData = Awaited<ReturnType<typeof listDomainAliases>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  domainId: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listDomainAliases>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getListDomainAliasesQueryOptions(domainId, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
 }
 
 /**
@@ -1163,6 +1246,29 @@ export function useListDomainGpsCredentials<
   }
 
   return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary List GPS credentials
+ */
+export const prefetchListDomainGpsCredentialsQuery = async <
+  TData = Awaited<ReturnType<typeof listDomainGpsCredentials>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  domainId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listDomainGpsCredentials>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getListDomainGpsCredentialsQueryOptions(domainId, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
 }
 
 /**

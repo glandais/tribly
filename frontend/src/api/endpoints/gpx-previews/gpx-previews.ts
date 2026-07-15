@@ -168,6 +168,27 @@ export function useListMyPreviews<
 }
 
 /**
+ * @summary List the current user's analysed GPX files
+ */
+export const prefetchListMyPreviewsQuery = async <
+  TData = Awaited<ReturnType<typeof listMyPreviews>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  queryClient: QueryClient,
+  params?: ListMyPreviewsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyPreviews>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getListMyPreviewsQueryOptions(params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Uploads a GPX file, runs the elevation and climb pipeline, and stores the result under an unguessable identifier for 30 days
  * @summary Analyse a GPX file
  */
@@ -555,6 +576,27 @@ export function useGetPreview<
   }
 
   return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Get an analysed GPX file
+ */
+export const prefetchGetPreviewQuery = async <
+  TData = Awaited<ReturnType<typeof getPreview>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  previewId: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPreview>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetPreviewQueryOptions(previewId, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
 }
 
 /**

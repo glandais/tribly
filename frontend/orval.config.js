@@ -14,6 +14,9 @@ export default defineConfig({
       formatter: 'prettier',
       override: {
         header: false,
+        query: {
+          usePrefetch: true,
+        },
         mutator: {
           path: './src/lib/axiosInstance.ts',
           name: 'axiosMutator',

@@ -164,6 +164,27 @@ export function useGetEvents<
 }
 
 /**
+ * @summary Get calendar events
+ */
+export const prefetchGetEventsQuery = async <
+  TData = Awaited<ReturnType<typeof getEvents>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  queryClient: QueryClient,
+  params?: GetEventsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getEvents>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetEventsQueryOptions(params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Get ICS calendar feed for all user's teams (requires token)
  * @summary Get global ICS feed
  */
@@ -280,6 +301,27 @@ export function useGetGlobalIcsFeed<
 }
 
 /**
+ * @summary Get global ICS feed
+ */
+export const prefetchGetGlobalIcsFeedQuery = async <
+  TData = Awaited<ReturnType<typeof getGlobalIcsFeed>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  params?: GetGlobalIcsFeedParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getGlobalIcsFeed>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetGlobalIcsFeedQueryOptions(params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Get or create the user's calendar token for ICS feed access
  * @summary Get calendar token
  */
@@ -385,6 +427,26 @@ export function useGetToken<
   }
 
   return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Get calendar token
+ */
+export const prefetchGetTokenQuery = async <
+  TData = Awaited<ReturnType<typeof getToken>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  queryClient: QueryClient,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getToken>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetTokenQueryOptions(options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
 }
 
 /**
@@ -572,6 +634,28 @@ export function useGetTeamEvents<
 }
 
 /**
+ * @summary Get team calendar events
+ */
+export const prefetchGetTeamEventsQuery = async <
+  TData = Awaited<ReturnType<typeof getTeamEvents>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  params?: GetTeamEventsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeamEvents>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetTeamEventsQueryOptions(teamSlug, params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Get ICS calendar feed for a specific team (requires token)
  * @summary Get team ICS feed
  */
@@ -697,4 +781,26 @@ export function useGetTeamIcsFeed<
   }
 
   return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Get team ICS feed
+ */
+export const prefetchGetTeamIcsFeedQuery = async <
+  TData = Awaited<ReturnType<typeof getTeamIcsFeed>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  params?: GetTeamIcsFeedParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeamIcsFeed>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetTeamIcsFeedQueryOptions(teamSlug, params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
 }

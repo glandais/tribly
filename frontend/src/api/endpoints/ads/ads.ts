@@ -173,6 +173,28 @@ export function useListAds<
 }
 
 /**
+ * @summary List ads
+ */
+export const prefetchListAdsQuery = async <
+  TData = Awaited<ReturnType<typeof listAds>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  params?: ListAdsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listAds>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getListAdsQueryOptions(teamSlug, params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Create a new ad. Any team member can create ads.
  * @summary Create ad
  */
@@ -470,6 +492,28 @@ export function useGetAd<
 }
 
 /**
+ * @summary Get ad details
+ */
+export const prefetchGetAdQuery = async <
+  TData = Awaited<ReturnType<typeof getAd>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  slug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAd>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetAdQueryOptions(teamSlug, slug, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Soft delete an ad. Only the creator or an admin can delete.
  * @summary Delete ad
  */
@@ -673,6 +717,28 @@ export function useGetAdEdit<
   }
 
   return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Get ad details for edit
+ */
+export const prefetchGetAdEditQuery = async <
+  TData = Awaited<ReturnType<typeof getAdEdit>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  slug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdEdit>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetAdEditQueryOptions(teamSlug, slug, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
 }
 
 /**

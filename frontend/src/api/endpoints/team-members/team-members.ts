@@ -172,6 +172,28 @@ export function useGetMembers<
 }
 
 /**
+ * @summary Get team members
+ */
+export const prefetchGetMembersQuery = async <
+  TData = Awaited<ReturnType<typeof getMembers>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  params?: GetMembersParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMembers>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetMembersQueryOptions(teamSlug, params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Add a member to the team. Requires ADMIN role on team.
  * @summary Add team member
  */

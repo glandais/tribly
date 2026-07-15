@@ -163,6 +163,27 @@ export function useListTeams<
 }
 
 /**
+ * @summary List public teams
+ */
+export const prefetchListTeamsQuery = async <
+  TData = Awaited<ReturnType<typeof listTeams>>,
+  TError = ErrorType<unknown>,
+>(
+  queryClient: QueryClient,
+  params?: ListTeamsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listTeams>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getListTeamsQueryOptions(params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Create a new team. The current user will be set as the team owner.
  * @summary Create team
  */
@@ -449,6 +470,27 @@ export function useGetTeam<
   }
 
   return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Get team by slug
+ */
+export const prefetchGetTeamQuery = async <
+  TData = Awaited<ReturnType<typeof getTeam>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeam>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetTeamQueryOptions(teamSlug, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
 }
 
 /**

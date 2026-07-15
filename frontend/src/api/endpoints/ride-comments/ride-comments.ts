@@ -168,6 +168,28 @@ export function useListRideComments<
 }
 
 /**
+ * @summary List ride comments
+ */
+export const prefetchListRideCommentsQuery = async <
+  TData = Awaited<ReturnType<typeof listRideComments>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  entitySlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listRideComments>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getListRideCommentsQueryOptions(teamSlug, entitySlug, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * @summary Create ride comment
  */
 export const createRideComment = (
