@@ -1,20 +1,21 @@
 import { StrictMode } from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
-import { QueryClientProvider, hydrate, type DehydratedState } from '@tanstack/react-query'
-import { MantineProvider } from '@mantine/core'
-import { Notifications } from '@mantine/notifications'
+import { hydrate, type DehydratedState } from '@tanstack/react-query'
+import type { HydrationState } from 'react-router-dom'
 import App from './App'
+import { AppProviders } from './AppProviders'
 import { makeQueryClient } from './lib/queryClient'
-import { theme } from './lib/theme'
 import { fetchAppConfig, seedAppConfig } from './config/appConfig'
 import { getGetConfigQueryKey } from './api/endpoints/configuration/configuration'
-import { i18nReady } from './i18n'
+import i18n, { i18nReady } from './i18n'
 import type { ConfigDto } from './api/dto'
 import './index.css'
 
 declare global {
   interface Window {
     __REACT_QUERY_STATE__?: DehydratedState
+    /** Injected by StaticRouterProvider in the SSR markup. */
+    __staticRouterHydrationData?: HydrationState
   }
 }
 
@@ -51,12 +52,9 @@ async function bootstrap() {
 
   const app = (
     <StrictMode>
-      <MantineProvider theme={theme} defaultColorScheme="auto">
-        <Notifications position="top-right" />
-        <QueryClientProvider client={queryClient}>
-          <App queryClient={queryClient} />
-        </QueryClientProvider>
-      </MantineProvider>
+      <AppProviders i18n={i18n} queryClient={queryClient}>
+        <App queryClient={queryClient} />
+      </AppProviders>
     </StrictMode>
   )
 

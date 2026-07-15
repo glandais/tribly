@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import { RouterProvider, createBrowserRouter, UNSAFE_createRouter } from 'react-router-dom'
 import type { QueryClient } from '@tanstack/react-query'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
@@ -30,11 +30,27 @@ function getRouter(queryClient: QueryClient): AppRouter {
   if (!router) {
     const routes = buildRoutes(queryClient)
     const pinned = getPinnedHistory()
+    // hydrationData (injected by StaticRouterProvider) marks the router as initialized so the
+    // very first render shows the routes instead of waiting for loaders — required for hydration.
+    const hydrationData = window.__staticRouterHydrationData
     router = pinned
-      ? UNSAFE_createRouter({ routes, history: pinned }).initialize()
-      : createBrowserRouter(routes)
+      ? UNSAFE_createRouter({ routes, history: pinned, hydrationData }).initialize()
+      : createBrowserRouter(routes, { hydrationData })
   }
   return router
+}
+
+/**
+ * Structure shared by both entries between the providers and the router. Server and client must
+ * render the same component tree for useId-based hydration to line up — see AppProviders.
+ */
+export function AppFrame({ children }: { children: ReactNode }) {
+  return (
+    <ErrorBoundary>
+      <AuthEffects />
+      {children}
+    </ErrorBoundary>
+  )
 }
 
 /**
@@ -63,9 +79,8 @@ function AuthEffects() {
 
 export default function App({ queryClient }: { queryClient: QueryClient }) {
   return (
-    <ErrorBoundary>
-      <AuthEffects />
+    <AppFrame>
       <RouterProvider router={getRouter(queryClient)} />
-    </ErrorBoundary>
+    </AppFrame>
   )
 }

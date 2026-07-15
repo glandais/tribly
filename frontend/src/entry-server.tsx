@@ -8,12 +8,11 @@ import {
   createPath,
   type Location,
 } from 'react-router-dom'
-import { QueryClientProvider, dehydrate } from '@tanstack/react-query'
-import { I18nextProvider } from 'react-i18next'
-import { MantineProvider } from '@mantine/core'
+import { dehydrate } from '@tanstack/react-query'
+import { AppProviders } from './AppProviders'
+import { AppFrame } from './App'
 import { buildRoutes } from './config/RouteGenerator'
 import { makeQueryClient } from './lib/queryClient'
-import { theme } from './lib/theme'
 import { createServerI18n, supportedLanguages } from './i18n'
 import { requestContext, type SsrRequestStore } from './lib/requestContext'
 import { setStoreGetter } from './lib/ssrContext'
@@ -103,13 +102,11 @@ export async function render(url: string, headers: Record<string, string> = {}) 
 
       const html = await renderAppToString(
         <React.StrictMode>
-          <I18nextProvider i18n={i18nInstance}>
-            <MantineProvider theme={theme} defaultColorScheme="auto">
-              <QueryClientProvider client={queryClient}>
-                <StaticRouterProvider router={router} context={context} />
-              </QueryClientProvider>
-            </MantineProvider>
-          </I18nextProvider>
+          <AppProviders i18n={i18nInstance} queryClient={queryClient}>
+            <AppFrame>
+              <StaticRouterProvider router={router} context={context} />
+            </AppFrame>
+          </AppProviders>
         </React.StrictMode>
       )
 
