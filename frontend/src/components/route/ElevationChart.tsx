@@ -19,6 +19,7 @@ import {
   ScriptableLineSegmentContext,
 } from 'chart.js'
 import zoomPlugin from 'chartjs-plugin-zoom'
+import { useTranslation } from 'react-i18next'
 import { useComputedColorScheme, useMantineTheme } from '@mantine/core'
 import { NEUTRAL_COLOR, getColorFromGradient, getPointClimbGradient } from '../map/mapUtils'
 import { useUnits } from '../../hooks/useUnits'
@@ -79,6 +80,7 @@ export interface ElevationChartProps {
 
 export const ElevationChart = forwardRef<ElevationChartHandle, ElevationChartProps>(
   function ElevationChart({ route, hoveredPointIndex, onHoverPoint, filled = true, zoom }, ref) {
+    const { t } = useTranslation()
     const colorScheme = useComputedColorScheme('light')
     const theme = useMantineTheme()
     const { config, distance: distanceFormat, elevation, formatDistance } = useUnits()
@@ -194,29 +196,54 @@ export const ElevationChart = forwardRef<ElevationChartHandle, ElevationChartPro
               label: (item: TooltipItem<'line'>) => {
                 const index = item.dataIndex
                 const point = trackPoints[index]
+                // Grade of the climb part the point falls in (matching prendslaroue's precision).
                 const gradient = getPointClimbGradient(point, climbs)
 
                 let label = `${elevation(item.parsed.y ?? 0)}`
-                if (gradient > 0) {
+                if (gradient !== 0) {
                   label += ` (${gradient.toFixed(1)}%)`
                 }
                 return label
               },
+              // Climb index + per-part breakdown, à la prendslaroue:
+              //   Montée (i/n) : <gain> / <length> (<avg>%)
+              //   Partie (j/m) : <length> (<grade>%)
               afterLabel: (item: TooltipItem<'line'>) => {
-                const index = item.dataIndex
-                const point = trackPoints[index]
+                const dist = trackPoints[item.dataIndex][3]
+                const lines: string[] = []
 
-                // Find if point is in a climb
-                for (const climb of climbs) {
-                  if (point[3] >= climb.startDistance && point[3] <= climb.endDistance) {
-                    return [
-                      '',
-                      `${elevation(climb.elevationGain)} / ${distanceFormat(climb.endDistance - climb.startDistance)}`,
-                      `Avg: ${climb.averageGradient.toFixed(1)}% | Max: ${climb.maxGradient.toFixed(1)}%`,
-                    ]
+                for (let ci = 0; ci < climbs.length; ci++) {
+                  const climb = climbs[ci]
+                  if (dist < climb.startDistance || dist > climb.endDistance) continue
+
+                  lines.push(
+                    t('map.tooltip.climb', {
+                      index: ci + 1,
+                      total: climbs.length,
+                      gain: elevation(climb.elevationGain),
+                      distance: distanceFormat(climb.endDistance - climb.startDistance),
+                      gradient: climb.averageGradient.toFixed(1),
+                    })
+                  )
+
+                  if (climb.parts.length > 1) {
+                    for (let pi = 0; pi < climb.parts.length; pi++) {
+                      const part = climb.parts[pi]
+                      if (dist < part.startDistance || dist > part.endDistance) continue
+                      lines.push(
+                        t('map.tooltip.part', {
+                          index: pi + 1,
+                          total: climb.parts.length,
+                          distance: distanceFormat(part.endDistance - part.startDistance),
+                          gradient: part.grade.toFixed(1),
+                        })
+                      )
+                      break
+                    }
                   }
+                  break
                 }
-                return ''
+                return lines
               },
             },
           },
@@ -317,6 +344,7 @@ export const ElevationChart = forwardRef<ElevationChartHandle, ElevationChartPro
         zoomEnabled,
         route.distance,
         xRange,
+        t,
       ]
     )
 

@@ -17,10 +17,15 @@ public record ClimbPartDto(
         Integer endDistance,
     @Schema(description = "Elevation gain in meters", required = true) Integer elevationGain,
     @Schema(description = "Gradient percentage", required = true) BigDecimal grade) {
-  public static ClimbPartDto from(ClimbPart part) {
+  /**
+   * Part distances from the climb library are relative to the climb start; {@code climbStartDist}
+   * (the climb's own start distance from the route start) shifts them into route-absolute meters so
+   * they share the same frame as track points and {@link ClimbDto} distances.
+   */
+  public static ClimbPartDto from(ClimbPart part, double climbStartDist) {
     return new ClimbPartDto(
-        (int) Math.round(part.startDist()),
-        (int) Math.round(part.endDist()),
+        (int) Math.round(climbStartDist + part.startDist()),
+        (int) Math.round(climbStartDist + part.endDist()),
         (int) Math.round(part.ele()),
         BigDecimal.valueOf(part.grade()));
   }

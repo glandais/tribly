@@ -1,10 +1,13 @@
 import type { LngLatBoundsLike } from 'maplibre-gl'
 import type { ClimbDto, RouteDetailDto, TrackDto } from '@/api/dto'
 
-// Color calculation (matching biketeam single-map.js)
+// Color calculation (matching biketeam single-map.js `getColor`)
 const NEUTRAL_HUE = 210
-const MIN_HUE = 85 // Green for low gradients
-const MAX_HUE = 255 - 105 // Red for high gradients (360 - 105 = 255)
+// Hue ramp: 0% grade → 85 (green), 18% grade → -105 (which wraps to 255 = red/magenta), passing
+// through yellow/orange/red for the usual 3–10% range. MAX_HUE stays negative on purpose; the
+// `+ 360` below wraps it back into a valid CSS hue only after the linear interpolation.
+const MIN_HUE = 85
+const MAX_HUE = -105
 const SATURATION = '86%'
 const LIGHTNESS = '62%'
 export const NEUTRAL_COLOR = `hsl(${NEUTRAL_HUE},${SATURATION},${LIGHTNESS})`
@@ -17,7 +20,7 @@ export function getColorFromGradient(gradient: number): string {
   const normalizedGradient = Math.min(18, Math.max(0, gradient))
   let hue = Math.round(MIN_HUE + (normalizedGradient / 18.0) * (MAX_HUE - MIN_HUE))
 
-  // Ensure hue is in valid range
+  // Clamp into [MAX_HUE, MIN_HUE] before wrapping negatives back into [0, 360).
   hue = Math.min(MIN_HUE, Math.max(MAX_HUE, hue))
 
   if (hue < 0) {

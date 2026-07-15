@@ -35,7 +35,7 @@ public record ClimbDto(
         BigDecimal.valueOf(climb.grade()),
         BigDecimal.valueOf(getMaxGrade(climb)),
         categorizeClimb(climb),
-        climb.parts().stream().map(ClimbPartDto::from).toList());
+        climb.parts().stream().map(part -> ClimbPartDto.from(part, climb.startDist())).toList());
   }
 
   /**

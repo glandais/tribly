@@ -395,6 +395,8 @@
   "map.styles.title": "Map Style",
   "map.terrain3d.label": "3D Terrain",
   "map.hillshade.label": "Hillshade",
+  "map.tooltip.climb": "Climb ({{index}}/{{total}}): {{gain}} / {{distance}} ({{gradient}}%)",
+  "map.tooltip.part": "Part ({{index}}/{{total}}): {{distance}} ({{gradient}}%)",
   "memberCount_one": "{{count}} member",
   "memberCount_many": "{{count}} members",
   "memberCount_other": "{{count}} members",
