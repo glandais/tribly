@@ -20,6 +20,8 @@ import { getConfig, getGetConfigQueryKey } from './api/endpoints/configuration/c
 import { getPinnedTeamSlug } from './config/appConfig'
 import { toRouter, toBrowser } from './config/pinnedHistory'
 import type { Locale } from './config/paths'
+import { buildMetaTags, type RouteMeta, type RouteMetaContext, type RouteMetaFn } from './lib/seo'
+import type { RouteParams } from './config/routes.types'
 
 // Bridge the SSR per-request store (AsyncLocalStorage) to the client-safe getter used by
 // axiosInstance / appConfig / locale-context. Called once at module load.
@@ -100,6 +102,27 @@ export async function render(url: string, headers: Record<string, string> = {}) 
       const leafMatch = context.matches[context.matches.length - 1]
       const statusCode = leafMatch?.route.path === '*' ? 404 : context.statusCode || 200
 
+      // Build the server-rendered link-preview <head> block. meta() reads the per-request cache the
+      // loaders just populated; `pathname` is the browser-space (clean) canonical URL base, so
+      // pinned single-team hosts get unprefixed og:url. The block is injected at <!--ssr-head-->.
+      const metaCtx: RouteMetaContext = {
+        queryClient,
+        params: (leafMatch?.params ?? {}) as RouteParams,
+        origin,
+        path: pathname,
+        locale,
+        config: store.config,
+        t: i18nInstance.t,
+      }
+      let routeMeta: RouteMeta | undefined
+      try {
+        const metaFn = (leafMatch?.route.handle as { meta?: RouteMetaFn } | undefined)?.meta
+        routeMeta = metaFn?.(metaCtx)
+      } catch (metaErr) {
+        console.error(`[SSR] meta() failed for ${url}:`, metaErr)
+      }
+      const head = buildMetaTags(routeMeta, metaCtx)
+
       const html = await renderAppToString(
         <React.StrictMode>
           <AppProviders i18n={i18nInstance} queryClient={queryClient}>
@@ -112,7 +135,7 @@ export async function render(url: string, headers: Record<string, string> = {}) 
 
       const dehydratedState = dehydrate(queryClient)
 
-      return { html, dehydratedState, statusCode, lang: locale }
+      return { html, dehydratedState, statusCode, lang: locale, head }
     } catch (err) {
       console.error(`[SSR] render failed for ${url}:`, err)
       throw err

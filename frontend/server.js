@@ -123,7 +123,7 @@ async function createServer() {
         return
       }
 
-      const { html: appHtml, dehydratedState, lang } = result
+      const { html: appHtml, dehydratedState, lang, head } = result
 
       // Escape '<' to prevent XSS via </script> injection in inline JSON
       let stateScript = ''
@@ -139,6 +139,14 @@ async function createServer() {
       let finalHtml = currentTemplate
         .replace('<!--ssr-outlet-->', appHtml)
         .replace('<!--ssr-state-->', stateScript)
+        .replace('<!--ssr-head-->', head || '')
+
+      // The SSR-built link-preview block (injected above) owns the dynamic <title>. index.html also
+      // ships a static fallback <title> for the JS-less dev SPA tab; once the block is present there
+      // are two, so drop the LAST one (the static fallback) — leaving exactly one, dynamic title.
+      if (head) {
+        finalHtml = finalHtml.replace(/\n?\s*<title>[^<]*<\/title>(?![\s\S]*<title>)/, '')
+      }
 
       // Reflect the request-resolved language on the root <html> element.
       if (lang) {

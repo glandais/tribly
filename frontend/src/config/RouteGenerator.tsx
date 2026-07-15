@@ -79,12 +79,17 @@ function buildRoutesForConfig(config: RouteConfig, queryClient: QueryClient): Ro
   // Gated redirects carry no prefetch: the component never renders here.
   const loader = config.prefetch && !gated ? makeLoader(config, queryClient) : undefined
 
+  // Expose the route's SSR meta() (link previews) on `handle` so the static handler's matched leaf
+  // carries it — entry-server reads leafMatch.route.handle.meta after the loaders have run. Gated
+  // redirects render no page, so they carry no meta.
+  const handle = !gated && config.meta ? { meta: config.meta } : undefined
+
   if (config.index) {
-    return [{ index: true, element, loader }]
+    return [{ index: true, element, loader, handle }]
   }
 
   const uniquePaths = [...new Set(Object.values(config.paths))]
-  return uniquePaths.map((path) => ({ path, element, loader }))
+  return uniquePaths.map((path) => ({ path, element, loader, handle }))
 }
 
 export function buildRoutes(queryClient: QueryClient): RouteObject[] {

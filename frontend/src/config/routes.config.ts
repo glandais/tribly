@@ -13,6 +13,21 @@ import { prefetchGetPostQuery } from '@/api/endpoints/posts/posts'
 import { prefetchGetRouteQuery } from '@/api/endpoints/routes/routes'
 import { prefetchGetPageQuery } from '@/api/endpoints/team-pages/team-pages'
 import { prefetchGetAdQuery } from '@/api/endpoints/ads/ads'
+import { prefetchGetPreviewQuery } from '@/api/endpoints/gpx-previews/gpx-previews'
+import {
+  homeMeta,
+  teamsMeta,
+  teamDetailMeta,
+  teamAboutMeta,
+  teamPageMeta,
+  rideMeta,
+  tripMeta,
+  stageMeta,
+  postMeta,
+  routeMeta,
+  adMeta,
+  gpxPreviewMeta,
+} from './routeMeta'
 import { PUBLICATION_PAGE_SIZE } from '@/hooks/filters/publicationFilters'
 import { TEAM_PAGE_SIZE } from '@/hooks/filters/teamFilters'
 
@@ -230,6 +245,7 @@ export const routesConfig: RoutesConfig = [
     prefetch: async (queryClient) => {
       await prefetchListAllPublicationsQuery(queryClient, { page: 0, size: PUBLICATION_PAGE_SIZE })
     },
+    meta: homeMeta,
   },
   {
     id: 'all-routes',
@@ -283,6 +299,11 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: 'gpx-tools',
     breadcrumb: { type: 'static', i18nKey: tRegister('gpxTools.preview.title') },
+    // Public/anonymous endpoint — prefetches fine under stateless SSR, and feeds gpxPreviewMeta.
+    prefetch: async (queryClient, params) => {
+      await prefetchGetPreviewQuery(queryClient, params.previewId!)
+    },
+    meta: gpxPreviewMeta,
   },
   {
     id: 'gpx-tools-map',
@@ -420,6 +441,7 @@ export const routesConfig: RoutesConfig = [
     prefetch: async (queryClient) => {
       await prefetchListTeamsQuery(queryClient, { page: 0, size: TEAM_PAGE_SIZE })
     },
+    meta: teamsMeta,
   },
   {
     id: 'teams-new',
@@ -449,6 +471,7 @@ export const routesConfig: RoutesConfig = [
         }),
       ])
     },
+    meta: teamDetailMeta,
   },
   {
     id: 'team-about',
@@ -460,6 +483,7 @@ export const routesConfig: RoutesConfig = [
     prefetch: async (queryClient, params) => {
       await prefetchGetTeamQuery(queryClient, params.teamSlug!)
     },
+    meta: teamAboutMeta,
   },
   {
     id: 'team-calendar',
@@ -482,6 +506,7 @@ export const routesConfig: RoutesConfig = [
         prefetchGetPageQuery(queryClient, params.teamSlug!, params.pageSlug!),
       ])
     },
+    meta: teamPageMeta,
   },
   // === Team Admin Routes ===
   {
@@ -567,6 +592,7 @@ export const routesConfig: RoutesConfig = [
         prefetchGetRideQuery(queryClient, params.teamSlug!, params.rideSlug!),
       ])
     },
+    meta: rideMeta,
   },
   {
     id: 'ride-edit',
@@ -630,6 +656,7 @@ export const routesConfig: RoutesConfig = [
         prefetchGetTripQuery(queryClient, params.teamSlug!, params.tripSlug!),
       ])
     },
+    meta: tripMeta,
   },
   {
     id: 'trip-edit',
@@ -655,6 +682,7 @@ export const routesConfig: RoutesConfig = [
         prefetchGetTripQuery(queryClient, params.teamSlug!, params.tripSlug!),
       ])
     },
+    meta: stageMeta,
   },
   {
     id: 'stage-map',
@@ -690,6 +718,7 @@ export const routesConfig: RoutesConfig = [
         prefetchGetPostQuery(queryClient, params.teamSlug!, params.postSlug!),
       ])
     },
+    meta: postMeta,
   },
   {
     id: 'post-edit',
@@ -741,6 +770,7 @@ export const routesConfig: RoutesConfig = [
         prefetchGetRouteQuery(queryClient, params.teamSlug!, params.routeSlug!),
       ])
     },
+    meta: routeMeta,
   },
   {
     id: 'route-map',
@@ -792,6 +822,7 @@ export const routesConfig: RoutesConfig = [
         prefetchGetAdQuery(queryClient, params.teamSlug!, params.adSlug!),
       ])
     },
+    meta: adMeta,
   },
   {
     id: 'ad-edit',

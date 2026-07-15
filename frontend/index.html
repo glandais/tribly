@@ -6,27 +6,19 @@
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-    <title>Pédalons - Cycling Team Management</title>
-
-    <!-- Primary Meta Tags -->
-    <meta name="title" content="Pédalons - Cycling Team Management" />
-    <meta name="description" content="Organize your cycling team with Pédalons. Plan rides, share routes with GPX support, and keep your club connected." />
     <meta name="keywords" content="cycling, team, club, rides, routes, GPX, bike" />
     <meta name="author" content="Pédalons" />
     <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#228be6" />
 
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="Pédalons - Cycling Team Management" />
-    <meta property="og:description" content="Organize your cycling team with Pédalons. Plan rides, share routes with GPX support, and keep your club connected." />
-    <meta property="og:image" content="/og-image.png" />
-
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Pédalons - Cycling Team Management" />
-    <meta name="twitter:description" content="Organize your cycling team with Pédalons. Plan rides, share routes with GPX support, and keep your club connected." />
-    <meta name="twitter:image" content="/og-image.png" />
+    <!--
+      Per-route page title and Open Graph / Twitter tags are emitted server-side (early in HEAD,
+      within Slack's ~32KB / WhatsApp's ~300KB budgets) at the placeholder below. server.js injects
+      the block built by src/lib/seo.ts and strips the static fallback title so exactly one, dynamic
+      title survives. The static one below is a fallback for the JS-less dev SPA tab only (no SSR).
+    -->
+    <!--ssr-head-->
+    <title>Pédalons</title>
     <script>document.documentElement.setAttribute('data-mantine-color-scheme', localStorage.getItem('mantine-color-scheme-value') || 'auto');</script>
   </head>
   <body>

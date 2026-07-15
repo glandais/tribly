@@ -1,6 +1,7 @@
 import type { ComponentType, LazyExoticComponent } from 'react'
 import type { QueryClient } from '@tanstack/react-query'
 import type { Locale } from './paths'
+import type { RouteMetaFn } from '@/lib/seo'
 
 /**
  * Authentication requirement for a route
@@ -20,6 +21,7 @@ export interface RouteParams {
   templateSlug?: string
   adSlug?: string
   pageSlug?: string
+  previewId?: string
 }
 
 /**
@@ -114,6 +116,14 @@ export interface RouteConfig {
    * never blocks the render; components fall back to their own loading/error states.
    */
   prefetch?: (queryClient: QueryClient, params: RouteParams) => Promise<void>
+
+  /**
+   * Optional server-side link-preview (Open Graph / Twitter) descriptor. Invoked in entry-server
+   * AFTER `prefetch` has populated the per-request QueryClient, so it only READS the cache (zero
+   * extra fetches). Returns undefined to fall back to site-wide default tags. Attached to each
+   * emitted RouteObject's `handle` by RouteGenerator so the matched leaf exposes it during SSR.
+   */
+  meta?: RouteMetaFn
 }
 
 /**

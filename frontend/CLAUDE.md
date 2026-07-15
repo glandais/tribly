@@ -113,12 +113,23 @@ Hard invariants — keep these when touching SSR-reachable code:
 - **Per-request isolation**: per-request `QueryClient`, per-request i18next instance (`createServerI18n`), request data threaded via `AsyncLocalStorage` (`lib/requestContext`). No module-level mutable per-request state reachable during SSR.
 - **No module-top-level browser globals** in code eagerly imported by `entry-server` (config/, lib/, i18n/, stores, Layout). Guard any `window`/`document`/`localStorage`/`navigator` at module scope with `typeof window === 'undefined'`. Inside functions/hooks/effects is fine (runs client-side only). Lazy chunks (maps/GPX) are only a concern if a public prefetched route imports them.
 
+### Link previews (Open Graph / Twitter)
+
+Public pages unfurl into rich social/messaging cards via server-rendered OG/Twitter tags. A route declares an optional `meta(ctx)` in `routes.config.ts`; `entry-server` runs it after `prefetch`, `src/lib/seo.ts` (`buildMetaTags`) serialises the result, and `server.js` injects it at the `<!--ssr-head-->` placeholder. Because no unfurl crawler runs JavaScript, the tags **must** be in the initial HTML — this rides on SSR, not client injection.
+
+**Before adding or changing link previews, read [LINK_PREVIEW.md](LINK_PREVIEW.md)** — architecture, per-page coverage, the 2026 platform findings, invariants, and the curl check that verifies tags render server-side.
+
+- **`meta()` builders only READ the per-request cache and never throw** — data must be `prefetch`ed on the same route; a missing entity returns `undefined` and falls back to site-wide defaults.
+- **Never add a `<meta>`/`<title>` React component** — React 19 hoisting shifts `useId` and duplicates the title. Tags are string-built in `seo.ts`, outside the React tree.
+- `og:image` is 1200×630 PNG/JPEG, absolute per-domain HTTPS, < ~300 KB; the default is `public/og-image.png` (rebuilt from `assets/icon.svg`).
+
 ## Key Rules
 
 - **Never hold list filters, search or pagination in `useState`** — they belong in the query string via `useUrlFilters`, so they survive back-navigation and are shareable. See [URL_FILTERS.md](URL_FILTERS.md).
 - **Never edit `src/api/`** — it's generated. Run `pnpm generate-api` after backend OpenAPI changes.
 - **Never edit `paths.generated.ts`** — edit `../contracts/routes.yaml` and run `pnpm generate-routes`. See [../APP_LINKS.md](../APP_LINKS.md).
 - **Never hard-code links** — use `paths.xxx()` from `config/paths.ts` (locale-aware).
+- **Never set link-preview tags via a React component** — add a `meta()` to `routes.config.ts` instead. See [LINK_PREVIEW.md](LINK_PREVIEW.md).
 - **Never use `confirm()` or custom modals for confirmations** — use `ConfirmDialog`.
 - **Never use SVG for icons** — use `@tabler/icons-react`.
 - **Mantine UI exclusively** — check https://mantine.dev/llms.txt for docs.
