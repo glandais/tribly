@@ -16,6 +16,7 @@ import {
   createGradientLineFeatures,
 } from '../map/mapUtils'
 import { PedalonsMap } from '../map/PedalonsMap'
+import { useHideTrackKey } from '@/hooks/useHideTrackKey'
 import type { MappableRoute } from './RouteMapView'
 // maplibre-gl CSS is provided by maplibre-theme in index.css
 
@@ -48,6 +49,9 @@ export function RouteTrackMap({
   children,
 }: RouteTrackMapProps) {
   const colorScheme = useComputedColorScheme('light')
+
+  // Press "h" to hide the trace and its markers, revealing the basemap underneath
+  const trackHidden = useHideTrackKey()
 
   // Flatten all track points from multiple tracks
   const trackPoints = useMemo(
@@ -131,47 +135,51 @@ export function RouteTrackMap({
         onMoveStart={onMoveStart}
         onMoveEnd={onMoveEnd}
       >
-        {/* Gradient-colored route line */}
-        <Source id="route-segments" type="geojson" data={lineFeatures}>
-          <Layer
-            id="route-line"
-            type="line"
-            paint={{
-              'line-color': ['get', 'color'],
-              'line-width': 8,
-              'line-opacity': 0.8,
-            }}
-          />
-        </Source>
-
-        {/* Start marker */}
-        <StartMarker longitude={trackPoints[0][0]} latitude={trackPoints[0][1]} />
-
-        {/* End marker */}
-        <EndMarker
-          longitude={trackPoints[trackPoints.length - 1][0]}
-          latitude={trackPoints[trackPoints.length - 1][1]}
-        />
-
-        {/* Waypoints */}
-        {waypoints.map(
-          (waypoint, index) =>
-            waypoint.geometry.coordinates[0] &&
-            waypoint.geometry.coordinates[1] && (
-              <WaypointMarker
-                key={`waypoint-${index}`}
-                longitude={waypoint.geometry.coordinates[0]}
-                latitude={waypoint.geometry.coordinates[1]}
-                name={waypoint.name}
+        {!trackHidden && (
+          <>
+            {/* Gradient-colored route line */}
+            <Source id="route-segments" type="geojson" data={lineFeatures}>
+              <Layer
+                id="route-line"
+                type="line"
+                paint={{
+                  'line-color': ['get', 'color'],
+                  'line-width': 8,
+                  'line-opacity': 0.8,
+                }}
               />
-            )
+            </Source>
+
+            {/* Start marker */}
+            <StartMarker longitude={trackPoints[0][0]} latitude={trackPoints[0][1]} />
+
+            {/* End marker */}
+            <EndMarker
+              longitude={trackPoints[trackPoints.length - 1][0]}
+              latitude={trackPoints[trackPoints.length - 1][1]}
+            />
+
+            {/* Waypoints */}
+            {waypoints.map(
+              (waypoint, index) =>
+                waypoint.geometry.coordinates[0] &&
+                waypoint.geometry.coordinates[1] && (
+                  <WaypointMarker
+                    key={`waypoint-${index}`}
+                    longitude={waypoint.geometry.coordinates[0]}
+                    latitude={waypoint.geometry.coordinates[1]}
+                    name={waypoint.name}
+                  />
+                )
+            )}
+
+            {/* Km markers */}
+            <KmMarkersLayer coords={trackPoints} totalDistanceM={route.distance} />
+
+            {/* Hover marker */}
+            {hoveredPoint && <HoverMarker longitude={hoveredPoint[0]} latitude={hoveredPoint[1]} />}
+          </>
         )}
-
-        {/* Km markers */}
-        <KmMarkersLayer coords={trackPoints} totalDistanceM={route.distance} />
-
-        {/* Hover marker */}
-        {hoveredPoint && <HoverMarker longitude={hoveredPoint[0]} latitude={hoveredPoint[1]} />}
       </PedalonsMap>
 
       {children}

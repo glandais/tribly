@@ -16,6 +16,7 @@ import { UndoRedoControl } from './UndoRedoControl'
 import { RouterProfileSelector } from './RouterProfileSelector'
 import { RoutePlannerMiniMap } from './RoutePlannerMiniMap'
 import { useUnits } from '../../hooks/useUnits'
+import { useHideTrackKey } from '../../hooks/useHideTrackKey'
 import {
   useRoutePlanner,
   findAnchorStartPoint,
@@ -64,6 +65,9 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
   } = useRoutePlanner({ initialTrack })
 
   const getMapZoom = useCallback(() => mapRef.current?.getZoom() ?? DEFAULT_ZOOM, [])
+
+  // Press "h" to hide the trace and its markers, revealing the basemap underneath
+  const trackHidden = useHideTrackKey()
 
   // Calculate initial view state from track bounds or team location
   const initialViewState = useMemo(() => {
@@ -564,180 +568,184 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
             onProfileChange={setRouterProfile}
           />
 
-          {/* Route line */}
-          {routeGeoJson && (
-            <Source id="route" type="geojson" data={routeGeoJson}>
-              <Layer
-                id="route-line"
-                type="line"
-                paint={{
-                  'line-color': '#4F46E5',
-                  'line-width': 5,
-                  'line-opacity': 0.8,
-                }}
-              />
-            </Source>
-          )}
+          {!trackHidden && (
+            <>
+              {/* Route line */}
+              {routeGeoJson && (
+                <Source id="route" type="geojson" data={routeGeoJson}>
+                  <Layer
+                    id="route-line"
+                    type="line"
+                    paint={{
+                      'line-color': '#4F46E5',
+                      'line-width': 5,
+                      'line-opacity': 0.8,
+                    }}
+                  />
+                </Source>
+              )}
 
-          {/* Anchor points: visible at their computed min zoom level */}
-          {anchorGeoJson && (
-            <Source id="anchors" type="geojson" data={anchorGeoJson}>
-              <Layer
-                id="anchor-points"
-                type="circle"
-                filter={['>=', ['zoom'], ['get', 'zoom']]}
-                paint={{
-                  'circle-radius': 5,
-                  'circle-color': 'white',
-                  'circle-stroke-width': 2,
-                  'circle-stroke-color': '#4F46E5',
-                  'circle-opacity': 0.9,
-                }}
-              />
-            </Source>
-          )}
+              {/* Anchor points: visible at their computed min zoom level */}
+              {anchorGeoJson && (
+                <Source id="anchors" type="geojson" data={anchorGeoJson}>
+                  <Layer
+                    id="anchor-points"
+                    type="circle"
+                    filter={['>=', ['zoom'], ['get', 'zoom']]}
+                    paint={{
+                      'circle-radius': 5,
+                      'circle-color': 'white',
+                      'circle-stroke-width': 2,
+                      'circle-stroke-color': '#4F46E5',
+                      'circle-opacity': 0.9,
+                    }}
+                  />
+                </Source>
+              )}
 
-          {/* Km markers */}
-          {routeGeoJson && route.dist > 0 && (
-            <KmMarkersLayer coords={routeGeoJson.coordinates} totalDistanceM={route.dist} />
-          )}
+              {/* Km markers */}
+              {routeGeoJson && route.dist > 0 && (
+                <KmMarkersLayer coords={routeGeoJson.coordinates} totalDistanceM={route.dist} />
+              )}
 
-          {/* Drag connection lines */}
-          {dragConnectionLines && (
-            <Source id="drag-connections" type="geojson" data={dragConnectionLines}>
-              <Layer
-                id="drag-connection-line"
-                type="line"
-                paint={{
-                  'line-color': '#10B981',
-                  'line-width': 3,
-                  'line-dasharray': [4, 4],
-                  'line-opacity': 1,
-                }}
-              />
-            </Source>
-          )}
+              {/* Drag connection lines */}
+              {dragConnectionLines && (
+                <Source id="drag-connections" type="geojson" data={dragConnectionLines}>
+                  <Layer
+                    id="drag-connection-line"
+                    type="line"
+                    paint={{
+                      'line-color': '#10B981',
+                      'line-width': 3,
+                      'line-dasharray': [4, 4],
+                      'line-opacity': 1,
+                    }}
+                  />
+                </Source>
+              )}
 
-          {/* Control point markers */}
-          {controlPoints.map((point, index) => {
-            const isFirst = index === 0
-            const isLast = index === controlPoints.length - 1 && controlPoints.length > 1
+              {/* Control point markers */}
+              {controlPoints.map((point, index) => {
+                const isFirst = index === 0
+                const isLast = index === controlPoints.length - 1 && controlPoints.length > 1
 
-            let markerColor = 'var(--mantine-color-blue-filled)'
-            if (isFirst) markerColor = 'var(--mantine-color-green-filled)'
-            else if (isLast) markerColor = 'var(--mantine-color-red-filled)'
+                let markerColor = 'var(--mantine-color-blue-filled)'
+                if (isFirst) markerColor = 'var(--mantine-color-green-filled)'
+                else if (isLast) markerColor = 'var(--mantine-color-red-filled)'
 
-            // Use dragging position if this marker is being dragged
-            const isDragging = draggingMarker?.idx === point.idx
-            const lng = isDragging ? draggingMarker.lng : point.lng
-            const lat = isDragging ? draggingMarker.lat : point.lat
+                // Use dragging position if this marker is being dragged
+                const isDragging = draggingMarker?.idx === point.idx
+                const lng = isDragging ? draggingMarker.lng : point.lng
+                const lat = isDragging ? draggingMarker.lat : point.lat
 
-            return (
-              <Marker
-                key={point.id}
-                longitude={lng}
-                latitude={lat}
-                anchor="center"
-                draggable
-                onDragStart={handleMarkerDragStart(point.idx)}
-                onDrag={handleMarkerDrag(point.idx)}
-                onDragEnd={handleMarkerDragEnd()}
-              >
-                <Box
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'grab',
-                    width: 44,
-                    height: 44,
-                    pointerEvents: 'auto',
-                  }}
-                  onContextMenu={handleMarkerRightClick(point.idx)}
-                  onTouchStart={handleMarkerTouchStart(point.idx)}
-                  onTouchMove={handleMarkerTouchMove}
-                  onTouchEnd={handleMarkerTouchEnd}
+                return (
+                  <Marker
+                    key={point.id}
+                    longitude={lng}
+                    latitude={lat}
+                    anchor="center"
+                    draggable
+                    onDragStart={handleMarkerDragStart(point.idx)}
+                    onDrag={handleMarkerDrag(point.idx)}
+                    onDragEnd={handleMarkerDragEnd()}
+                  >
+                    <Box
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'grab',
+                        width: 44,
+                        height: 44,
+                        pointerEvents: 'auto',
+                      }}
+                      onContextMenu={handleMarkerRightClick(point.idx)}
+                      onTouchStart={handleMarkerTouchStart(point.idx)}
+                      onTouchMove={handleMarkerTouchMove}
+                      onTouchEnd={handleMarkerTouchEnd}
+                    >
+                      <Box
+                        w={24}
+                        h={24}
+                        style={{
+                          backgroundColor: markerColor,
+                          border: '2px solid white',
+                          borderRadius: '50%',
+                          boxShadow: 'var(--mantine-shadow-lg)',
+                        }}
+                      />
+                    </Box>
+                  </Marker>
+                )
+              })}
+
+              {/* Ghost marker for inserting new points on route */}
+              {(hoverPoint || draggingGhost) && (
+                <Marker
+                  longitude={(draggingGhost || hoverPoint)!.lng}
+                  latitude={(draggingGhost || hoverPoint)!.lat}
+                  anchor="center"
                 >
                   <Box
-                    w={24}
-                    h={24}
+                    w={20}
+                    h={20}
                     style={{
-                      backgroundColor: markerColor,
+                      backgroundColor: draggingGhost
+                        ? 'var(--mantine-primary-color-filled)'
+                        : 'var(--mantine-primary-color-light-color)',
                       border: '2px solid white',
                       borderRadius: '50%',
                       boxShadow: 'var(--mantine-shadow-lg)',
+                      opacity: draggingGhost ? 1 : 0.7,
+                      pointerEvents: 'none',
+                      transition: 'opacity 150ms',
                     }}
                   />
-                </Box>
-              </Marker>
-            )
-          })}
+                </Marker>
+              )}
 
-          {/* Ghost marker for inserting new points on route */}
-          {(hoverPoint || draggingGhost) && (
-            <Marker
-              longitude={(draggingGhost || hoverPoint)!.lng}
-              latitude={(draggingGhost || hoverPoint)!.lat}
-              anchor="center"
-            >
-              <Box
-                w={20}
-                h={20}
-                style={{
-                  backgroundColor: draggingGhost
-                    ? 'var(--mantine-primary-color-filled)'
-                    : 'var(--mantine-primary-color-light-color)',
-                  border: '2px solid white',
-                  borderRadius: '50%',
-                  boxShadow: 'var(--mantine-shadow-lg)',
-                  opacity: draggingGhost ? 1 : 0.7,
-                  pointerEvents: 'none',
-                  transition: 'opacity 150ms',
-                }}
-              />
-            </Marker>
-          )}
-
-          {/* Bbox boundary markers showing effective start/end during drag */}
-          {startDragPoint && (
-            <Marker
-              key={`bbox-boundary-start`}
-              longitude={startDragPoint.lng}
-              latitude={startDragPoint.lat}
-              anchor="center"
-            >
-              <Box
-                w={14}
-                h={14}
-                style={{
-                  backgroundColor: '#10B981',
-                  border: '2px solid white',
-                  borderRadius: '50%',
-                  boxShadow: 'var(--mantine-shadow-sm)',
-                  pointerEvents: 'none',
-                }}
-              />
-            </Marker>
-          )}
-          {endDragPoint && (
-            <Marker
-              key={`bbox-boundary-end`}
-              longitude={endDragPoint.lng}
-              latitude={endDragPoint.lat}
-              anchor="center"
-            >
-              <Box
-                w={14}
-                h={14}
-                style={{
-                  backgroundColor: '#10B981',
-                  border: '2px solid white',
-                  borderRadius: '50%',
-                  boxShadow: 'var(--mantine-shadow-sm)',
-                  pointerEvents: 'none',
-                }}
-              />
-            </Marker>
+              {/* Bbox boundary markers showing effective start/end during drag */}
+              {startDragPoint && (
+                <Marker
+                  key={`bbox-boundary-start`}
+                  longitude={startDragPoint.lng}
+                  latitude={startDragPoint.lat}
+                  anchor="center"
+                >
+                  <Box
+                    w={14}
+                    h={14}
+                    style={{
+                      backgroundColor: '#10B981',
+                      border: '2px solid white',
+                      borderRadius: '50%',
+                      boxShadow: 'var(--mantine-shadow-sm)',
+                      pointerEvents: 'none',
+                    }}
+                  />
+                </Marker>
+              )}
+              {endDragPoint && (
+                <Marker
+                  key={`bbox-boundary-end`}
+                  longitude={endDragPoint.lng}
+                  latitude={endDragPoint.lat}
+                  anchor="center"
+                >
+                  <Box
+                    w={14}
+                    h={14}
+                    style={{
+                      backgroundColor: '#10B981',
+                      border: '2px solid white',
+                      borderRadius: '50%',
+                      boxShadow: 'var(--mantine-shadow-sm)',
+                      pointerEvents: 'none',
+                    }}
+                  />
+                </Marker>
+              )}
+            </>
           )}
         </PedalonsMap>
 

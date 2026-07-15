@@ -19,7 +19,14 @@
     -->
     <!--ssr-head-->
     <title>Pédalons</title>
-    <script>document.documentElement.setAttribute('data-mantine-color-scheme', localStorage.getItem('mantine-color-scheme-value') || 'auto');</script>
+    <!--
+      Set data-mantine-color-scheme before first paint so SSR-shipped markup styles correctly.
+      Mantine only defines CSS variables for the concrete "light"/"dark" values, so "auto" must be
+      resolved to the OS preference here (mirroring @mantine/core's ColorSchemeScript). Writing the
+      literal "auto" leaves every --mantine-color-* variable undefined → a flash of light styling
+      until MantineProvider re-resolves it on hydration.
+    -->
+    <script>(function(){try{var s=localStorage.getItem('mantine-color-scheme-value')||'auto';if(s==='auto'){s=('matchMedia'in window&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-mantine-color-scheme',s);}catch(e){document.documentElement.setAttribute('data-mantine-color-scheme','light');}})();</script>
   </head>
   <body>
     <div id="root"><!--ssr-outlet--></div>

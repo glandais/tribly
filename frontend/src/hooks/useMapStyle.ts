@@ -4,7 +4,7 @@ import type { StyleSpecification } from 'react-map-gl/maplibre'
 import { MAP_STYLES, type MapStyleId, type MapStyle } from '../components/map/mapStyles'
 import { useMapStyleStore } from '@/store/mapStyleStore'
 
-const DEFAULT_LIGHT_STYLE: MapStyleId = 'graybeard'
+const DEFAULT_LIGHT_STYLE: MapStyleId = 'colorful'
 const DEFAULT_DARK_STYLE: MapStyleId = 'eclipse'
 
 export function useMapStyle() {
