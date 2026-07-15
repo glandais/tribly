@@ -22,6 +22,7 @@ _GpxPreviewDto _$GpxPreviewDtoFromJson(Map<String, dynamic> json) =>
       waypoints: (json['waypoints'] as List<dynamic>)
           .map((e) => WaypointDto.fromJson(e as Map<String, dynamic>))
           .toList(),
+      thumbnailUrl: json['thumbnailUrl'] as String?,
     );
 
 Map<String, dynamic> _$GpxPreviewDtoToJson(_GpxPreviewDto instance) =>
@@ -36,4 +37,5 @@ Map<String, dynamic> _$GpxPreviewDtoToJson(_GpxPreviewDto instance) =>
       'createdAt': instance.createdAt,
       'tracks': instance.tracks.map((e) => e.toJson()).toList(),
       'waypoints': instance.waypoints.map((e) => e.toJson()).toList(),
+      'thumbnailUrl': instance.thumbnailUrl,
     };
