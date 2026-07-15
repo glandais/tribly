@@ -1648,6 +1648,10 @@
             "type" : "string",
             "$ref" : "#/components/schemas/Instant"
           },
+          "thumbnailUrl" : {
+            "type" : "string",
+            "description" : "Rendered map thumbnail template URL (with a {size} placeholder), used for link previews; null when no thumbnail was generated"
+          },
           "tracks" : {
             "type" : "array",
             "items" : {

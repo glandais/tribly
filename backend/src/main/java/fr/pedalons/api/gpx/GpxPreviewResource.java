@@ -159,6 +159,25 @@ public class GpxPreviewResource {
     return gpxPreviewService.getPreview(previewId);
   }
 
+  @GET
+  @Path("/{previewId}/thumbnail/{size}")
+  @Operation(hidden = true)
+  @APIResponses({
+    @APIResponse(responseCode = "200", description = "Thumbnail image"),
+    @APIResponse(
+        responseCode = "404",
+        description = "Preview not found, expired, or has no thumbnail",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  @PermitAll
+  public Response getThumbnail(
+      @HeaderParam("Accept") String accept,
+      @Parameter(description = "Public preview identifier") @PathParam("previewId")
+          String previewId,
+      @Parameter(description = "Requested square size in pixels") @PathParam("size") int size) {
+    return gpxPreviewService.getThumbnail(previewId, size, accept);
+  }
+
   @PUT
   @Path("/{previewId}")
   @Consumes(MediaType.MULTIPART_FORM_DATA)

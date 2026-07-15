@@ -77,6 +77,13 @@ public class GpxPreview {
   @Column(name = "waypoints", columnDefinition = "jsonb", nullable = false)
   private List<PreviewWaypoint> waypoints;
 
+  /**
+   * Whether a rendered map thumbnail (gpx-previews/{publicId}/thumbnail-light.png) was produced and
+   * stored. Drives the Open Graph {@code og:image}: false previews fall back to the site default.
+   */
+  @Column(name = "has_thumbnail", nullable = false)
+  private boolean hasThumbnail;
+
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)
   private Instant createdAt;

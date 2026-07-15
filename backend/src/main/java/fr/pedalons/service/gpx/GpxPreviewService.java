@@ -18,6 +18,7 @@ import fr.pedalons.dto.gpx.response.GpxPreviewSummaryDto;
 import fr.pedalons.dto.routes.request.RouteRequest;
 import fr.pedalons.dto.routes.response.RouteDto;
 import fr.pedalons.enums.GpsServiceType;
+import fr.pedalons.infrastructure.imgproxy.ImgProxyService;
 import fr.pedalons.infrastructure.storage.StorageService;
 import fr.pedalons.repository.gpx.GpxPreviewRepository;
 import fr.pedalons.service.gps.GpsService;
@@ -28,11 +29,13 @@ import fr.pedalons.service.route.response.TrackMetadata;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.Logged;
 import fr.pedalons.service.security.annotation.Public;
+import fr.pedalons.service.thumbnail.ThumbnailService;
 import io.github.glandais.gpx.data.GPX;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.core.Response;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -65,7 +68,9 @@ public class GpxPreviewService {
   private static final String KEY_PREFIX = "gpx-previews/";
   private static final String ORIGINAL_GPX = "original.gpx";
   private static final String FILTERED_GPX = "filtered.gpx";
+  private static final String THUMBNAIL_LIGHT = "thumbnail-light.png";
   private static final String GPX_CONTENT_TYPE = "application/gpx+xml";
+  private static final String PNG_CONTENT_TYPE = "image/png";
 
   /** Previews are throwaway artifacts; keep them for a month, like biketeam's /gpxtool. */
   public static final int RETENTION_DAYS = 30;
@@ -79,6 +84,10 @@ public class GpxPreviewService {
   @Inject GpsService gpsService;
 
   @Inject RouteService routeService;
+
+  @Inject ThumbnailService thumbnailService;
+
+  @Inject ImgProxyService imgProxyService;
 
   @Inject PedalonsQueryContext pedalonsContext;
 
@@ -134,6 +143,7 @@ public class GpxPreviewService {
             metadata.hilliness(),
             tracks,
             waypoints);
+    preview.setHasThumbnail(renderAndUploadThumbnail(publicId, tracks));
 
     try {
       QuarkusTransaction.requiringNew().run(() -> gpxPreviewRepository.persist(preview));
@@ -208,6 +218,8 @@ public class GpxPreviewService {
       throw new BusinessException(ErrorCode.GPX_FAILURE, e);
     }
 
+    boolean hasThumbnail = renderAndUploadThumbnail(pid, tracks);
+
     return QuarkusTransaction.requiringNew()
         .call(
             () -> {
@@ -219,6 +231,7 @@ public class GpxPreviewService {
               managed.setHilliness(metadata.hilliness());
               managed.setTracks(tracks);
               managed.setWaypoints(waypoints);
+              managed.setHasThumbnail(hasThumbnail);
               return toDto(managed);
             });
   }
@@ -343,14 +356,68 @@ public class GpxPreviewService {
     return expired.size();
   }
 
+  /**
+   * Serves the preview's rendered map thumbnail through imgproxy (used as the Open Graph image).
+   * Public: like {@link #getPreview}, the unguessable link is what grants access, and the lookup is
+   * domain-filtered. A preview without a stored thumbnail 404s rather than reaching imgproxy.
+   */
+  @Public
+  public Response getThumbnail(String publicId, int size, String accept) {
+    GpxPreview preview = getByPublicId(publicId);
+    if (!preview.isHasThumbnail()) {
+      throw new NotFoundException(ErrorCode.GPX_NOT_FOUND);
+    }
+    return Response.fromResponse(
+            imgProxyService.getPhoto(
+                accept, key(preview.getPublicId(), THUMBNAIL_LIGHT), size, size))
+        .build();
+  }
+
+  /**
+   * Renders a map thumbnail for the preview's tracks and stores it alongside the GPX files. Purely
+   * best-effort: any failure logs and returns {@code false} so it never blocks preview creation —
+   * the preview simply falls back to the default Open Graph image.
+   */
+  private boolean renderAndUploadThumbnail(UUID publicId, List<PreviewTrack> tracks) {
+    List<ThumbnailService.ThumbnailTrack> thumbnailTracks =
+        tracks.stream()
+            .map(t -> new ThumbnailService.ThumbnailTrack(t.name(), t.trackPoints()))
+            .toList();
+    Path temp = null;
+    try {
+      temp = Files.createTempFile("gpx-preview-thumb-", ".png");
+      if (!thumbnailService.renderLightThumbnail(temp.toFile(), thumbnailTracks)) {
+        return false;
+      }
+      upload(publicId, THUMBNAIL_LIGHT, temp.toFile(), PNG_CONTENT_TYPE);
+      return true;
+    } catch (Exception e) {
+      LOG.warnf(e, "Thumbnail render/upload failed for GPX preview %s", publicId);
+      return false;
+    } finally {
+      if (temp != null) {
+        try {
+          Files.deleteIfExists(temp);
+        } catch (IOException e) {
+          LOG.warnf(e, "Failed to delete temp thumbnail %s", temp);
+        }
+      }
+    }
+  }
+
   private void upload(UUID publicId, String fileName, File file) throws IOException {
+    upload(publicId, fileName, file, GPX_CONTENT_TYPE);
+  }
+
+  private void upload(UUID publicId, String fileName, File file, String contentType)
+      throws IOException {
     try (InputStream is = new FileInputStream(file)) {
-      storageService.store(key(publicId, fileName), is, GPX_CONTENT_TYPE, file.length());
+      storageService.store(key(publicId, fileName), is, contentType, file.length());
     }
   }
 
   private void deleteFiles(UUID publicId) {
-    for (String fileName : List.of(ORIGINAL_GPX, FILTERED_GPX)) {
+    for (String fileName : List.of(ORIGINAL_GPX, FILTERED_GPX, THUMBNAIL_LIGHT)) {
       try {
         storageService.delete(key(publicId, fileName));
       } catch (Exception e) {

@@ -44,6 +44,9 @@ abstract class GpxPreviewDto with _$GpxPreviewDto {
 
     /// Waypoints
     required List<WaypointDto> waypoints,
+
+    /// Rendered map thumbnail template URL (with a {size} placeholder), used for link previews; null when no thumbnail was generated
+    String? thumbnailUrl,
   }) = _GpxPreviewDto;
 
   factory GpxPreviewDto.fromJson(Map<String, Object?> json) =>
