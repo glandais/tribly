@@ -314,6 +314,11 @@ export const routesConfig: RoutesConfig = [
     layout: 'bare',
     parentId: 'gpx-tools-view',
     breadcrumb: { type: 'static', i18nKey: tRegister('map.fullscreen.title') },
+    // Public/anonymous endpoint — prefetches fine under stateless SSR, and feeds gpxPreviewMeta.
+    prefetch: async (queryClient, params) => {
+      await prefetchGetPreviewQuery(queryClient, params.previewId!)
+    },
+    meta: gpxPreviewMeta,
   },
   {
     id: 'gpx-tools-edit',
