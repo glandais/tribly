@@ -103,7 +103,9 @@ Custom axios mutator in `lib/axiosInstance.ts` handles: JWT bearer tokens from a
 
 ### SSR (server-side rendering)
 
-`server.js` (Express) renders public pages on the server via `renderToString` and hydrates on the client. Entry points: `src/entry-server.tsx` (`render(url, headers)`) and `src/entry-client.tsx` (hydrate). React Router runs in **library mode** (`createStaticHandler`/`createStaticRouter`, not framework mode); Vite uses `ssrLoadModule` in dev (no Environment API).
+`server.js` (Express) renders public pages on the server via the static prerender API (`react-dom/static`, NOT `renderToString` — lazy route pages would render as their Suspense fallback) and hydrates on the client. Entry points: `src/entry-server.tsx` (`render(url, headers)`) and `src/entry-client.tsx` (hydrate). React Router runs in **library mode** (`createStaticHandler`/`createStaticRouter`, not framework mode); Vite uses `ssrLoadModule` in dev (no Environment API).
+
+**Before changing SSR-reachable code, read [SSR.md](SSR.md)** — it documents the architecture and the non-obvious failure modes (lazy pages vs renderToString, silent Suspense-swallowed crashes, useId tree parity via `AppProviders`/`AppFrame`, localStorage-derived render state, and the curl checks that actually catch regressions).
 
 Hard invariants — keep these when touching SSR-reachable code:
 
