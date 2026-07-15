@@ -31,6 +31,7 @@ import fr.pedalons.service.security.annotation.Logged;
 import fr.pedalons.service.security.annotation.Public;
 import fr.pedalons.service.thumbnail.ThumbnailService;
 import io.github.glandais.gpx.data.GPX;
+import io.github.glandais.gpx.io.write.FitFileWriter;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -68,14 +69,18 @@ public class GpxPreviewService {
   private static final String KEY_PREFIX = "gpx-previews/";
   private static final String ORIGINAL_GPX = "original.gpx";
   private static final String FILTERED_GPX = "filtered.gpx";
+  private static final String FIT = "route.fit";
   private static final String THUMBNAIL_LIGHT = "thumbnail-light.png";
   private static final String GPX_CONTENT_TYPE = "application/gpx+xml";
+  private static final String FIT_CONTENT_TYPE = "application/vnd.ant.fit";
   private static final String PNG_CONTENT_TYPE = "image/png";
 
   /** Previews are throwaway artifacts; keep them for a month, like biketeam's /gpxtool. */
   public static final int RETENTION_DAYS = 30;
 
   @Inject GpxProcessingService gpxProcessingService;
+
+  @Inject FitFileWriter fitFileWriter;
 
   @Inject GpxPreviewRepository gpxPreviewRepository;
 
@@ -118,6 +123,7 @@ public class GpxPreviewService {
     try (ComputedGpx computed = gpxProcessingService.computeGpx(gpx)) {
       upload(publicId, ORIGINAL_GPX, computed.originalGpx());
       upload(publicId, FILTERED_GPX, computed.filteredGpx());
+      uploadFit(publicId, gpx);
 
       tracks = toPreviewTracks(computed);
       waypoints = toPreviewWaypoints(computed);
@@ -211,6 +217,7 @@ public class GpxPreviewService {
     try (ComputedGpx computed = gpxProcessingService.computeGpx(gpx)) {
       upload(pid, ORIGINAL_GPX, computed.originalGpx());
       upload(pid, FILTERED_GPX, computed.filteredGpx());
+      uploadFit(pid, gpx);
       tracks = toPreviewTracks(computed);
       waypoints = toPreviewWaypoints(computed);
       metadata = computed.aggregated();
@@ -319,11 +326,54 @@ public class GpxPreviewService {
 
   /** The filtered GPX, as sent to GPS services. */
   public byte[] getFilteredGpxContent(GpxPreview preview) {
-    try (InputStream is = storageService.retrieve(key(preview.getPublicId(), FILTERED_GPX))) {
+    return retrieveBytes(preview.getPublicId(), FILTERED_GPX);
+  }
+
+  /** The FIT export, generated at upload time and stored alongside the GPX files. */
+  public byte[] getFitContent(GpxPreview preview) {
+    return retrieveBytes(preview.getPublicId(), FIT);
+  }
+
+  private byte[] retrieveBytes(UUID publicId, String fileName) {
+    try (InputStream is = storageService.retrieve(key(publicId, fileName))) {
       return is.readAllBytes();
     } catch (IOException e) {
       throw new BusinessException(ErrorCode.GPX_FAILURE, e);
     }
+  }
+
+  /**
+   * Streams the preview's filtered GPX as an attachment download. Public, like {@link #getPreview}:
+   * anyone holding the link may download it.
+   */
+  @Public
+  public Response downloadGpx(String publicId) {
+    GpxPreview preview = getByPublicId(publicId);
+    return fileDownload(
+        getFilteredGpxContent(preview), GPX_CONTENT_TYPE, preview.getName(), ".gpx");
+  }
+
+  /** Streams the preview's FIT export as an attachment download. Public, like {@link #downloadGpx}. */
+  @Public
+  public Response downloadFit(String publicId) {
+    GpxPreview preview = getByPublicId(publicId);
+    return fileDownload(getFitContent(preview), FIT_CONTENT_TYPE, preview.getName(), ".fit");
+  }
+
+  private static Response fileDownload(
+      byte[] content, String contentType, String name, String extension) {
+    return Response.ok(content)
+        .type(contentType)
+        .header(
+            "Content-Disposition",
+            "attachment; filename=\"" + downloadFileName(name, extension) + "\"")
+        .build();
+  }
+
+  /** A safe download filename derived from the preview name, e.g. {@code "Col du Galibier.gpx"}. */
+  private static String downloadFileName(String name, String extension) {
+    String base = name.replaceAll("[^a-zA-Z0-9-_. ]", "_").strip();
+    return (base.isEmpty() ? "track" : base) + extension;
   }
 
   /**
@@ -405,6 +455,25 @@ public class GpxPreviewService {
     }
   }
 
+  /**
+   * Generates the FIT export from the (already filtered) GPX and stores it beside the GPX files,
+   * mirroring how a route's FIT is produced. Mandatory: a failure aborts the upload rather than
+   * leaving a preview whose advertised FIT download would 404.
+   */
+  private void uploadFit(UUID publicId, GPX gpx) throws IOException {
+    Path temp = Files.createTempFile("gpx-preview-fit-", ".fit");
+    try {
+      fitFileWriter.writeGPX(gpx, temp.toFile());
+      upload(publicId, FIT, temp.toFile(), FIT_CONTENT_TYPE);
+    } catch (IOException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new IOException(e);
+    } finally {
+      Files.deleteIfExists(temp);
+    }
+  }
+
   private void upload(UUID publicId, String fileName, File file) throws IOException {
     upload(publicId, fileName, file, GPX_CONTENT_TYPE);
   }
@@ -417,7 +486,7 @@ public class GpxPreviewService {
   }
 
   private void deleteFiles(UUID publicId) {
-    for (String fileName : List.of(ORIGINAL_GPX, FILTERED_GPX, THUMBNAIL_LIGHT)) {
+    for (String fileName : List.of(ORIGINAL_GPX, FILTERED_GPX, FIT, THUMBNAIL_LIGHT)) {
       try {
         storageService.delete(key(publicId, fileName));
       } catch (Exception e) {

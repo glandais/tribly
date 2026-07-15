@@ -178,6 +178,42 @@ public class GpxPreviewResource {
     return gpxPreviewService.getThumbnail(previewId, size, accept);
   }
 
+  @GET
+  @Path("/{previewId}/gpx")
+  @Produces("application/gpx+xml")
+  @Operation(hidden = true)
+  @APIResponses({
+    @APIResponse(responseCode = "200", description = "GPX file"),
+    @APIResponse(
+        responseCode = "404",
+        description = "Preview not found or expired",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  @PermitAll
+  public Response downloadGpx(
+      @Parameter(description = "Public preview identifier") @PathParam("previewId")
+          String previewId) {
+    return gpxPreviewService.downloadGpx(previewId);
+  }
+
+  @GET
+  @Path("/{previewId}/fit")
+  @Produces("application/vnd.ant.fit")
+  @Operation(hidden = true)
+  @APIResponses({
+    @APIResponse(responseCode = "200", description = "FIT file"),
+    @APIResponse(
+        responseCode = "404",
+        description = "Preview not found or expired",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  @PermitAll
+  public Response downloadFit(
+      @Parameter(description = "Public preview identifier") @PathParam("previewId")
+          String previewId) {
+    return gpxPreviewService.downloadFit(previewId);
+  }
+
   @PUT
   @Path("/{previewId}")
   @Consumes(MediaType.MULTIPART_FORM_DATA)

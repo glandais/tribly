@@ -59,6 +59,8 @@ export const CreatePreviewResponse = zod
       .describe(
         'Rendered map thumbnail template URL (with a {size} placeholder), used for link previews; null when no thumbnail was generated'
       ),
+    gpxUrl: zod.string().describe('URL to download the analysed GPX file'),
+    fitUrl: zod.string().describe('URL to download the analysed track as a FIT file'),
     tracks: zod
       .array(
         zod
@@ -169,6 +171,8 @@ export const CreatePreviewFromPointsResponse = zod
       .describe(
         'Rendered map thumbnail template URL (with a {size} placeholder), used for link previews; null when no thumbnail was generated'
       ),
+    gpxUrl: zod.string().describe('URL to download the analysed GPX file'),
+    fitUrl: zod.string().describe('URL to download the analysed track as a FIT file'),
     tracks: zod
       .array(
         zod
@@ -287,6 +291,8 @@ export const UpdatePreviewResponse = zod
       .describe(
         'Rendered map thumbnail template URL (with a {size} placeholder), used for link previews; null when no thumbnail was generated'
       ),
+    gpxUrl: zod.string().describe('URL to download the analysed GPX file'),
+    fitUrl: zod.string().describe('URL to download the analysed track as a FIT file'),
     tracks: zod
       .array(
         zod
@@ -376,6 +382,8 @@ export const GetPreviewResponse = zod
       .describe(
         'Rendered map thumbnail template URL (with a {size} placeholder), used for link previews; null when no thumbnail was generated'
       ),
+    gpxUrl: zod.string().describe('URL to download the analysed GPX file'),
+    fitUrl: zod.string().describe('URL to download the analysed track as a FIT file'),
     tracks: zod
       .array(
         zod

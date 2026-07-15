@@ -39,6 +39,12 @@ abstract class GpxPreviewDto with _$GpxPreviewDto {
     /// Creation timestamp
     required String createdAt,
 
+    /// URL to download the analysed GPX file
+    required String gpxUrl,
+
+    /// URL to download the analysed track as a FIT file
+    required String fitUrl,
+
     /// Tracks
     required List<TrackDto> tracks,
 

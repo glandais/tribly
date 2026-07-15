@@ -5,6 +5,7 @@ import {
   IconArrowUp,
   IconArrowDown,
   IconDeviceMobile,
+  IconDownload,
   IconEdit,
   IconRoute,
   IconTrash,
@@ -104,8 +105,27 @@ export function GpxPreviewView({ preview }: GpxPreviewViewProps) {
         </Group>
       </Group>
 
-      {/* Anonymous visitors get the map and the stats; the rest needs an account. */}
+      {/* Downloads are open to anyone with the link; the actions below need an account. */}
       <Group gap="sm" wrap="wrap">
+        <Button
+          variant="default"
+          size="sm"
+          component="a"
+          href={preview.gpxUrl}
+          leftSection={<IconDownload size={16} />}
+        >
+          {t('routes.detail.download.gpx')}
+        </Button>
+        <Button
+          variant="default"
+          size="sm"
+          component="a"
+          href={preview.fitUrl}
+          leftSection={<IconDownload size={16} />}
+        >
+          {t('routes.detail.download.fit')}
+        </Button>
+
         {isAuthenticated && (
           <Button
             variant="default"

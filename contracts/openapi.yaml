@@ -1551,6 +1551,8 @@ components:
       - hilliness
       - owned
       - createdAt
+      - gpxUrl
+      - fitUrl
       - tracks
       - waypoints
       properties:
@@ -1587,6 +1589,12 @@ components:
           type: string
           description: "Rendered map thumbnail template URL (with a {size} placeholder),\
             \ used for link previews; null when no thumbnail was generated"
+        gpxUrl:
+          type: string
+          description: URL to download the analysed GPX file
+        fitUrl:
+          type: string
+          description: URL to download the analysed track as a FIT file
         tracks:
           type: array
           items:

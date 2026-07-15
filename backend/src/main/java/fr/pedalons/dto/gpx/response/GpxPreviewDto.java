@@ -34,6 +34,9 @@ public record GpxPreviewDto(
                 "Rendered map thumbnail template URL (with a {size} placeholder), used for link"
                     + " previews; null when no thumbnail was generated")
         @Nullable String thumbnailUrl,
+    @Schema(description = "URL to download the analysed GPX file", required = true) String gpxUrl,
+    @Schema(description = "URL to download the analysed track as a FIT file", required = true)
+        String fitUrl,
     @Schema(description = "Tracks", required = true) List<TrackDto> tracks,
     @Schema(description = "Waypoints", required = true) List<WaypointDto> waypoints) {
 
@@ -49,6 +52,8 @@ public record GpxPreviewDto(
         owned,
         preview.getCreatedAt(),
         preview.isHasThumbnail() ? "/api/gpx-previews/" + publicId + "/thumbnail/{size}" : null,
+        "/api/gpx-previews/" + publicId + "/gpx",
+        "/api/gpx-previews/" + publicId + "/fit",
         preview.getTracks().stream().map(t -> TrackDto.of(t.trackPoints(), t.climbs())).toList(),
         preview.getWaypoints().stream()
             .map(w -> new WaypointDto(point(WGS84, g(w.lng(), w.lat())), w.name()))

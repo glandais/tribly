@@ -24,6 +24,10 @@ export interface GpxPreviewDto {
   createdAt: Instant
   /** Rendered map thumbnail template URL (with a {size} placeholder), used for link previews; null when no thumbnail was generated */
   thumbnailUrl?: string
+  /** URL to download the analysed GPX file */
+  gpxUrl: string
+  /** URL to download the analysed track as a FIT file */
+  fitUrl: string
   /** Tracks */
   tracks: TrackDto[]
   /** Waypoints */
