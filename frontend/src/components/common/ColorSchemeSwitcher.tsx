@@ -1,17 +1,23 @@
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ActionIcon, useMantineColorScheme, useComputedColorScheme } from '@mantine/core'
 import { IconSun, IconMoon } from '@tabler/icons-react'
+
+const emptySubscribe = () => () => {}
 
 export function ColorSchemeSwitcher() {
   const { t } = useTranslation()
   const { setColorScheme } = useMantineColorScheme()
   const computedColorScheme = useComputedColorScheme('light')
   // The server doesn't know the user's scheme (localStorage), so it always renders the moon
-  // icon. Mirror that on the first client render and swap to the real icon after mount —
-  // otherwise hydration mismatches for every user with a stored dark scheme.
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+  // icon. During hydration React uses the server snapshot (false), so the first client render
+  // matches the markup; right after, it re-renders with the real scheme — no hydration mismatch
+  // for users with a stored dark scheme.
+  const hydrated = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  )
 
   const toggleColorScheme = () => {
     const colorScheme = computedColorScheme === 'dark' ? 'light' : 'dark'
@@ -26,7 +32,7 @@ export function ColorSchemeSwitcher() {
       size="md"
       aria-label={t('nav.colorScheme')}
     >
-      {mounted && computedColorScheme === 'dark' ? <IconSun size={18} /> : <IconMoon size={18} />}
+      {hydrated && computedColorScheme === 'dark' ? <IconSun size={18} /> : <IconMoon size={18} />}
     </ActionIcon>
   )
 }
