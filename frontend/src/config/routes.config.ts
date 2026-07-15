@@ -780,6 +780,13 @@ export const routesConfig: RoutesConfig = [
     layout: 'bare',
     parentId: 'route-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('map.fullscreen.title') },
+    prefetch: async (queryClient, params) => {
+      await Promise.all([
+        prefetchGetTeamQuery(queryClient, params.teamSlug!),
+        prefetchGetRouteQuery(queryClient, params.teamSlug!, params.routeSlug!),
+      ])
+    },
+    meta: routeMeta,
   },
   {
     id: 'route-edit',
