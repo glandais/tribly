@@ -1,342 +1,39 @@
-import { useEffect, useState, useRef, useMemo, useCallback } from 'react'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Source, Layer, MapRef, MapMouseEvent } from 'react-map-gl/maplibre'
-import { Line } from 'react-chartjs-2'
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Filler,
-  ChartOptions,
-  ChartData,
-  ChartEvent,
-  ActiveElement,
-  TooltipItem,
-  Plugin,
-  ScriptableContext,
-  ScriptableLineSegmentContext,
-} from 'chart.js'
-import { Box, Center, Paper, Text, useComputedColorScheme, useMantineTheme } from '@mantine/core'
+import { Link } from 'react-router-dom'
+import type { MapRef } from 'react-map-gl/maplibre'
+import { IconArrowsMaximize } from '@tabler/icons-react'
+import { ActionIcon, Box, Center, Paper, Text, useComputedColorScheme } from '@mantine/core'
 import type { RouteDetailDto } from '@/api/dto'
-import {
-  StartMarker,
-  EndMarker,
-  HoverMarker,
-  WaypointMarker,
-  KmMarkersLayer,
-} from '../map/MapMarkers'
-import {
-  NEUTRAL_COLOR,
-  getColorFromGradient,
-  getPointClimbGradient,
-  calculateBounds,
-  distance,
-  findNearestPoint,
-  createGradientLineFeatures,
-} from '../map/mapUtils'
-import { PedalonsMap } from '../map/PedalonsMap'
-import { useUnits } from '../../hooks/useUnits'
 import { useMapHeight } from '@/hooks/useResponsive'
 import { getOverlayBg } from '@/lib/colors'
-// maplibre-gl CSS is provided by maplibre-theme in index.css
-
-// Register Chart.js components
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler)
-
-// Extended chart type with crosshair property
-type ChartWithCrosshair = ChartJS<'line'> & { crosshair?: { x: number; color?: string } | null }
-
-// Crosshair plugin for Chart.js - color is set dynamically via chart.crosshair.color
-const crosshairPlugin: Plugin<'line'> = {
-  id: 'crosshair',
-  afterDraw: (chart) => {
-    const chartWithCrosshair = chart as ChartWithCrosshair
-    if (chartWithCrosshair.crosshair?.x) {
-      const ctx = chart.ctx
-      const x = chartWithCrosshair.crosshair.x
-      const yAxis = chart.scales.y
-
-      ctx.save()
-      ctx.beginPath()
-      ctx.moveTo(x, yAxis.top)
-      ctx.lineTo(x, yAxis.bottom)
-      ctx.lineWidth = 1
-      ctx.strokeStyle = chartWithCrosshair.crosshair.color || 'rgba(0, 0, 0, 0.3)'
-      ctx.stroke()
-      ctx.restore()
-    }
-  },
-}
+import { RouteTrackMap } from './RouteTrackMap'
+import { ElevationChart } from './ElevationChart'
 
 /**
- * The subset of a route this view actually renders. Satisfied by both `RouteDetailDto` and
+ * The subset of a route these views actually render. Satisfied by both `RouteDetailDto` and
  * `GpxPreviewDto`, which is what lets the GPX tools reuse the map and elevation chart as-is.
  */
 export type MappableRoute = Pick<RouteDetailDto, 'tracks' | 'waypoints' | 'distance'>
 
+// Stable padding for the embedded layout: leave room at the bottom for the chart overlay so the
+// whole track stays visible. Kept module-level so re-renders don't retrigger fit-to-bounds.
+const EMBEDDED_FIT_PADDING = { top: 50, bottom: 220, left: 50, right: 50 }
+
 interface RouteMapViewProps {
   route: MappableRoute
+  /** When set, shows a fullscreen action linking to this path (built by the caller via paths.xxx). */
+  fullscreenPath?: string
 }
 
-export function RouteMapView({ route }: RouteMapViewProps) {
+export function RouteMapView({ route, fullscreenPath }: RouteMapViewProps) {
   const { t } = useTranslation()
   const colorScheme = useComputedColorScheme('light')
-  const theme = useMantineTheme()
   const mapHeight = useMapHeight('full')
-  const { config, formatDistance, distance: distanceFormat, elevation } = useUnits()
-
-  // Chart colors based on color scheme
-  const chartColors = useMemo(
-    () => ({
-      text: colorScheme === 'dark' ? theme.colors.dark[0] : theme.colors.dark[7],
-      grid: colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[3],
-      background: getOverlayBg(colorScheme, true),
-      crosshair: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
-    }),
-    [colorScheme, theme.colors.dark, theme.colors.gray]
-  )
   const [hoveredPointIndex, setHoveredPointIndex] = useState<number>(-1)
   const mapRef = useRef<MapRef>(null)
-  const chartRef = useRef<ChartJS<'line'>>(null)
 
-  // Flatten all track points and climbs from multiple tracks
-  const trackPoints = useMemo(
-    () => route.tracks.flatMap((track) => track.line.coordinates) || [],
-    [route.tracks]
-  )
-  const climbs = useMemo(() => route.tracks.flatMap((track) => track.climbs), [route.tracks])
-  const waypoints = route.waypoints || []
-
-  // Create gradient line GeoJSON
-  const lineFeatures = useMemo(() => createGradientLineFeatures(route.tracks), [route.tracks])
-
-  const fitToBounds = useCallback(() => {
-    if (mapRef.current && trackPoints.length > 0) {
-      const bounds = calculateBounds(trackPoints)
-      // Chart overlay is 200px at bottom, add padding to keep route visible
-      mapRef.current.fitBounds(bounds, {
-        padding: { top: 50, bottom: 220, left: 50, right: 50 },
-        duration: 300,
-      })
-    }
-  }, [trackPoints])
-
-  // Fit bounds when map is first loaded
-  const handleMapLoad = useCallback(() => {
-    fitToBounds()
-  }, [fitToBounds])
-
-  // Re-center when route changes (e.g. switching trip stages)
-  useEffect(() => {
-    fitToBounds()
-  }, [fitToBounds])
-
-  // Handle mouse move for nearest point detection
-  const handleMouseMove = useCallback(
-    (event: MapMouseEvent) => {
-      if (!mapRef.current || trackPoints.length === 0) return
-
-      const bounds = mapRef.current.getBounds()
-      const sw = bounds.getSouthWest()
-      const ne = bounds.getNorthEast()
-      const mapViewSize = distance(sw.lng, sw.lat, ne.lng, ne.lat)
-
-      const nearestIndex = findNearestPoint(
-        trackPoints,
-        event.lngLat.lat,
-        event.lngLat.lng,
-        mapViewSize / 20.0
-      )
-
-      if (nearestIndex >= 0) {
-        setHoveredPointIndex(nearestIndex)
-      }
-    },
-    [trackPoints]
-  )
-
-  const handleMouseLeave = useCallback(() => {
-    setHoveredPointIndex(-1)
-  }, [])
-
-  // Prepare chart data with climb coloring
-  const chartData: ChartData<'line'> = useMemo(
-    () => ({
-      labels: trackPoints.map((p) => formatDistance(p[3])),
-      datasets: [
-        {
-          label: 'Elevation',
-          data: trackPoints.map((p) => p[2]),
-          fill: true,
-          // backgroundColor: (context: ScriptableContext<'line'>) => {
-          //   const index = context.dataIndex
-          //   if (index === undefined) return NEUTRAL_COLOR
-          //   const gradient = getPointClimbGradient(trackPoints[index], climbs)
-          //   return getColorFromGradient(gradient) + '33'
-          // },
-          borderColor: (context: ScriptableContext<'line'>) => {
-            const index = context.dataIndex
-            if (index === undefined) return NEUTRAL_COLOR
-            const gradient = getPointClimbGradient(trackPoints[index], climbs)
-            return getColorFromGradient(gradient)
-          },
-          borderWidth: 2,
-          pointRadius: 0,
-          segment: {
-            // backgroundColor: (ctx: ScriptableLineSegmentContext) => {
-            //   const gradient = getPointClimbGradient(trackPoints[ctx.p0DataIndex], climbs)
-            //   return getColorFromGradient(gradient) + '33'
-            // },
-            borderColor: (ctx: ScriptableLineSegmentContext) => {
-              const gradient = getPointClimbGradient(trackPoints[ctx.p0DataIndex], climbs)
-              return getColorFromGradient(gradient)
-            },
-          },
-        },
-      ],
-    }),
-    [trackPoints, climbs, formatDistance]
-  )
-
-  const chartOptions: ChartOptions<'line'> = useMemo(
-    () => ({
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: {
-        mode: 'index',
-        intersect: false,
-      },
-      plugins: {
-        legend: {
-          display: false,
-        },
-        tooltip: {
-          enabled: true,
-          backgroundColor: chartColors.background,
-          titleColor: chartColors.text,
-          bodyColor: chartColors.text,
-          borderColor: chartColors.grid,
-          borderWidth: 1,
-          callbacks: {
-            title: (items: TooltipItem<'line'>[]) => {
-              if (items.length > 0) {
-                const index = items[0].dataIndex
-                const point = trackPoints[index]
-                return `${distanceFormat(point[3])}`
-              }
-              return ''
-            },
-            label: (item: TooltipItem<'line'>) => {
-              const index = item.dataIndex
-              const point = trackPoints[index]
-              const gradient = getPointClimbGradient(point, climbs)
-
-              let label = `${elevation(item.parsed.y ?? 0)}`
-              if (gradient > 0) {
-                label += ` (${gradient.toFixed(1)}%)`
-              }
-              return label
-            },
-            afterLabel: (item: TooltipItem<'line'>) => {
-              const index = item.dataIndex
-              const point = trackPoints[index]
-
-              // Find if point is in a climb
-              for (const climb of climbs) {
-                if (point[3] >= climb.startDistance && point[3] <= climb.endDistance) {
-                  return [
-                    '',
-                    `${elevation(climb.elevationGain)} / ${distanceFormat(climb.endDistance - climb.startDistance)}`,
-                    `Avg: ${climb.averageGradient.toFixed(1)}% | Max: ${climb.maxGradient.toFixed(1)}%`,
-                  ]
-                }
-              }
-              return ''
-            },
-          },
-        },
-      },
-      scales: {
-        x: {
-          display: true,
-          title: {
-            display: true,
-            text: `Distance (${config.distanceUnit})`,
-            color: chartColors.text,
-          },
-          ticks: {
-            maxTicksLimit: 10,
-            color: chartColors.text,
-          },
-          grid: {
-            color: chartColors.grid,
-          },
-        },
-        y: {
-          display: true,
-          title: {
-            display: true,
-            text: `Elevation (${config.elevationUnit})`,
-            color: chartColors.text,
-          },
-          ticks: {
-            color: chartColors.text,
-          },
-          grid: {
-            color: chartColors.grid,
-          },
-        },
-      },
-      onHover: (_event: ChartEvent, activeElements: ActiveElement[]) => {
-        if (activeElements.length > 0) {
-          const index = activeElements[0].index
-          setHoveredPointIndex(index)
-
-          // Update crosshair position
-          if (chartRef.current) {
-            const chart = chartRef.current as ChartWithCrosshair
-            const meta = chart.getDatasetMeta(0)
-            const point = meta.data[index]
-            if (point) {
-              chart.crosshair = { x: point.x, color: chartColors.crosshair }
-              chart.draw()
-            }
-          }
-        }
-      },
-      animation: { duration: 0 },
-    }),
-    [trackPoints, climbs, chartColors, config, distanceFormat, elevation]
-  )
-
-  // Update chart crosshair when hovering over map
-  useEffect(() => {
-    if (chartRef.current && hoveredPointIndex >= 0) {
-      const chart = chartRef.current as ChartWithCrosshair
-      const meta = chart.getDatasetMeta(0)
-      const point = meta.data[hoveredPointIndex]
-      if (point) {
-        chart.crosshair = { x: point.x, color: chartColors.crosshair }
-        chart.draw()
-
-        // Show tooltip
-        chart.tooltip?.setActiveElements([{ datasetIndex: 0, index: hoveredPointIndex }], {
-          x: point.x,
-          y: point.y,
-        })
-        chart.update()
-      }
-    } else if (chartRef.current) {
-      const chart = chartRef.current as ChartWithCrosshair
-      chart.crosshair = null
-      chart.tooltip?.setActiveElements([], { x: 0, y: 0 })
-      chart.update()
-    }
-  }, [hoveredPointIndex, chartColors.crosshair])
+  const trackPoints = route.tracks.flatMap((track) => track.line.coordinates)
 
   if (trackPoints.length === 0) {
     return (
@@ -350,96 +47,59 @@ export function RouteMapView({ route }: RouteMapViewProps) {
     )
   }
 
-  const hoveredPoint = hoveredPointIndex >= 0 ? trackPoints[hoveredPointIndex] : null
+  const overlayBg = getOverlayBg(colorScheme, true)
 
   return (
     <Paper withBorder style={{ overflow: 'hidden' }}>
-      {/* Map container */}
-      <Box
-        pos="relative"
-        w="100%"
-        h={mapHeight}
-        className={colorScheme === 'dark' ? 'dark' : undefined}
-        style={{ zIndex: 0 }}
-      >
-        <PedalonsMap
-          ref={mapRef}
-          mapStyleSwitcherPosition="top-right"
-          initialViewState={{
-            longitude: trackPoints[0][0],
-            latitude: trackPoints[0][1],
-            zoom: 11,
-          }}
-          onLoad={handleMapLoad}
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
+      <Box w="100%" h={mapHeight}>
+        <RouteTrackMap
+          route={route}
+          mapRef={mapRef}
+          hoveredPointIndex={hoveredPointIndex}
+          onHoverPoint={setHoveredPointIndex}
+          fitPadding={EMBEDDED_FIT_PADDING}
         >
-          {/* Gradient-colored route line */}
-          <Source id="route-segments" type="geojson" data={lineFeatures}>
-            <Layer
-              id="route-line"
-              type="line"
-              paint={{
-                'line-color': ['get', 'color'],
-                'line-width': 8,
-                'line-opacity': 0.8,
-              }}
-            />
-          </Source>
-
-          {/* Start marker */}
-          <StartMarker longitude={trackPoints[0][0]} latitude={trackPoints[0][1]} />
-
-          {/* End marker */}
-          <EndMarker
-            longitude={trackPoints[trackPoints.length - 1][0]}
-            latitude={trackPoints[trackPoints.length - 1][1]}
-          />
-
-          {/* Waypoints */}
-          {waypoints.map(
-            (waypoint, index) =>
-              waypoint.geometry.coordinates[0] &&
-              waypoint.geometry.coordinates[1] && (
-                <WaypointMarker
-                  key={`waypoint-${index}`}
-                  longitude={waypoint.geometry.coordinates[0]}
-                  latitude={waypoint.geometry.coordinates[1]}
-                  name={waypoint.name}
-                />
-              )
+          {/* Fullscreen action, following the MapStyleSwitcher absolute-position pattern */}
+          {fullscreenPath && (
+            <Box pos="absolute" top={8} right={56} style={{ zIndex: 10 }}>
+              <ActionIcon
+                component={Link}
+                to={fullscreenPath}
+                variant="default"
+                size="lg"
+                radius="md"
+                aria-label={t('map.fullscreen.open')}
+                title={t('map.fullscreen.open')}
+                style={{ boxShadow: 'var(--mantine-shadow-lg)' }}
+              >
+                <IconArrowsMaximize size={20} />
+              </ActionIcon>
+            </Box>
           )}
 
-          {/* Km markers */}
-          <KmMarkersLayer coords={trackPoints} totalDistanceM={route.distance} />
-
-          {/* Hover marker */}
-          {hoveredPoint && <HoverMarker longitude={hoveredPoint[0]} latitude={hoveredPoint[1]} />}
-        </PedalonsMap>
-
-        {/* Elevation chart overlay */}
-        <Box
-          pos="absolute"
-          bottom={0}
-          left={0}
-          right={0}
-          // Proportional to the (now viewport-bounded) map so it never dominates a short map,
-          // while staying readable on tall ones.
-          h="clamp(110px, 38%, 200px)"
-          style={{
-            zIndex: 1000,
-            pointerEvents: 'auto',
-            boxShadow: 'var(--mantine-shadow-lg)',
-            backgroundColor: chartColors.background,
-          }}
-        >
-          <Line
-            ref={chartRef}
-            data={chartData}
-            options={chartOptions}
-            plugins={[crosshairPlugin]}
-          />
-        </Box>
+          {/* Elevation chart overlay */}
+          <Box
+            pos="absolute"
+            bottom={0}
+            left={0}
+            right={0}
+            // Proportional to the (viewport-bounded) map so it never dominates a short map,
+            // while staying readable on tall ones.
+            h="clamp(110px, 38%, 200px)"
+            style={{
+              zIndex: 1000,
+              pointerEvents: 'auto',
+              boxShadow: 'var(--mantine-shadow-lg)',
+              backgroundColor: overlayBg,
+            }}
+          >
+            <ElevationChart
+              route={route}
+              hoveredPointIndex={hoveredPointIndex}
+              onHoverPoint={setHoveredPointIndex}
+            />
+          </Box>
+        </RouteTrackMap>
       </Box>
     </Paper>
   )

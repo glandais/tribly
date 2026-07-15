@@ -233,7 +233,12 @@ export function StageDetailPage() {
                   {t('trips.stage.viewRouteDetails')}
                 </Button>
               </Group>
-              <RouteDetailView route={route} teamSlug={teamSlug} showInfo={false} />
+              <RouteDetailView
+                route={route}
+                teamSlug={teamSlug}
+                showInfo={false}
+                fullscreenPath={paths.stageMap(teamSlug!, tripSlug!, stageSlug!)}
+              />
             </Box>
           )}
         </Stack>

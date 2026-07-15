@@ -21,6 +21,8 @@ interface RouteDetailViewProps {
   showDownload?: boolean
   /** Show route info section with visibility and surface type (default: true) */
   showInfo?: boolean
+  /** When set, the map shows a fullscreen action linking to this path (built via paths.xxx). */
+  fullscreenPath?: string
 }
 
 const getClimbCategoryColor = (category: string): string => {
@@ -49,6 +51,7 @@ export function RouteDetailView({
   teamSlug,
   showDownload = true,
   showInfo = true,
+  fullscreenPath,
 }: RouteDetailViewProps) {
   const { t } = useTranslation()
   const { distance, elevation, formatDistance, config } = useUnits()
@@ -65,7 +68,7 @@ export function RouteDetailView({
     <Stack>
       {/* Interactive Map with Elevation Chart */}
       <Box>
-        <RouteMapView route={route} />
+        <RouteMapView route={route} fullscreenPath={fullscreenPath} />
       </Box>
 
       {/* Download Buttons - inline without wrapper */}

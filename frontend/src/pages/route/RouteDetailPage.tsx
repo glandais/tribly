@@ -154,7 +154,11 @@ export function RouteDetailPage() {
 
       {/* Route Details */}
       <Box>
-        <RouteDetailView route={route} teamSlug={teamSlug} />
+        <RouteDetailView
+          route={route}
+          teamSlug={teamSlug}
+          fullscreenPath={paths.routeMap(team.slug, route.slug)}
+        />
       </Box>
 
       {/* Where this route is used (rides & trips) — visible to all, results already access-filtered */}

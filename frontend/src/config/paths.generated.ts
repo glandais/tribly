@@ -102,6 +102,12 @@ export const paths = {
       default: return `/gpx-tools/${previewId}`
     }
   },
+  gpxToolsMap: (previewId: string) => {
+    switch (getCurrentLocale()) {
+      case 'fr': return `/outils-gpx/${previewId}/carte`
+      default: return `/gpx-tools/${previewId}/map`
+    }
+  },
   gpxToolsEdit: (previewId: string) => {
     switch (getCurrentLocale()) {
       case 'fr': return `/outils-gpx/${previewId}/modifier`
@@ -246,6 +252,12 @@ export const paths = {
       default: return `/teams/${teamSlug}/trips/${tripSlug}/stages/${stageSlug}`
     }
   },
+  stageMap: (teamSlug: string, tripSlug: string, stageSlug: string) => {
+    switch (getCurrentLocale()) {
+      case 'fr': return `/equipes/${teamSlug}/voyages/${tripSlug}/etapes/${stageSlug}/carte`
+      default: return `/teams/${teamSlug}/trips/${tripSlug}/stages/${stageSlug}/map`
+    }
+  },
   postNew: (teamSlug: string) => {
     switch (getCurrentLocale()) {
       case 'fr': return `/equipes/${teamSlug}/articles/nouveau`
@@ -286,6 +298,12 @@ export const paths = {
     switch (getCurrentLocale()) {
       case 'fr': return `/equipes/${teamSlug}/parcours/${routeSlug}`
       default: return `/teams/${teamSlug}/routes/${routeSlug}`
+    }
+  },
+  routeMap: (teamSlug: string, routeSlug: string) => {
+    switch (getCurrentLocale()) {
+      case 'fr': return `/equipes/${teamSlug}/parcours/${routeSlug}/carte`
+      default: return `/teams/${teamSlug}/routes/${routeSlug}/map`
     }
   },
   routeEdit: (teamSlug: string, routeSlug: string) => {
@@ -365,6 +383,7 @@ export const pathVariants = {
   gpxToolsList: (): Record<Locale, string> => ({ en: '/gpx-tools/my-files', fr: '/outils-gpx/mes-fichiers' }),
   gpxToolsNew: (): Record<Locale, string> => ({ en: '/gpx-tools/new', fr: '/outils-gpx/nouveau' }),
   gpxToolsView: (previewId: string): Record<Locale, string> => ({ en: `/gpx-tools/${previewId}`, fr: `/outils-gpx/${previewId}` }),
+  gpxToolsMap: (previewId: string): Record<Locale, string> => ({ en: `/gpx-tools/${previewId}/map`, fr: `/outils-gpx/${previewId}/carte` }),
   gpxToolsEdit: (previewId: string): Record<Locale, string> => ({ en: `/gpx-tools/${previewId}/edit`, fr: `/outils-gpx/${previewId}/modifier` }),
   teams: (): Record<Locale, string> => ({ en: '/teams', fr: '/equipes' }),
   teamsNew: (): Record<Locale, string> => ({ en: '/teams/new', fr: '/equipes/nouvelle' }),
@@ -389,6 +408,7 @@ export const pathVariants = {
   trip: (teamSlug: string, tripSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/trips/${tripSlug}`, fr: `/equipes/${teamSlug}/voyages/${tripSlug}` }),
   tripEdit: (teamSlug: string, tripSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/trips/${tripSlug}/edit`, fr: `/equipes/${teamSlug}/voyages/${tripSlug}/modifier` }),
   stage: (teamSlug: string, tripSlug: string, stageSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/trips/${tripSlug}/stages/${stageSlug}`, fr: `/equipes/${teamSlug}/voyages/${tripSlug}/etapes/${stageSlug}` }),
+  stageMap: (teamSlug: string, tripSlug: string, stageSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/trips/${tripSlug}/stages/${stageSlug}/map`, fr: `/equipes/${teamSlug}/voyages/${tripSlug}/etapes/${stageSlug}/carte` }),
   postNew: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/posts/new`, fr: `/equipes/${teamSlug}/articles/nouveau` }),
   post: (teamSlug: string, postSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/posts/${postSlug}`, fr: `/equipes/${teamSlug}/articles/${postSlug}` }),
   postEdit: (teamSlug: string, postSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/posts/${postSlug}/edit`, fr: `/equipes/${teamSlug}/articles/${postSlug}/modifier` }),
@@ -396,6 +416,7 @@ export const pathVariants = {
   routesMap: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/routes/map`, fr: `/equipes/${teamSlug}/parcours/carte` }),
   routeNew: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/routes/new`, fr: `/equipes/${teamSlug}/parcours/nouveau` }),
   route: (teamSlug: string, routeSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/routes/${routeSlug}`, fr: `/equipes/${teamSlug}/parcours/${routeSlug}` }),
+  routeMap: (teamSlug: string, routeSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/routes/${routeSlug}/map`, fr: `/equipes/${teamSlug}/parcours/${routeSlug}/carte` }),
   routeEdit: (teamSlug: string, routeSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/routes/${routeSlug}/edit`, fr: `/equipes/${teamSlug}/parcours/${routeSlug}/modifier` }),
   ads: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/classifieds`, fr: `/equipes/${teamSlug}/annonces` }),
   adNew: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/classifieds/new`, fr: `/equipes/${teamSlug}/annonces/nouvelle` }),

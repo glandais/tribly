@@ -103,6 +103,11 @@ const EditTripPage = lazy(() =>
 const StageDetailPage = lazy(() =>
   import('../pages/trip/StageDetailPage').then((m) => ({ default: m.StageDetailPage }))
 )
+const StageFullscreenMapPage = lazy(() =>
+  import('../pages/trip/StageFullscreenMapPage').then((m) => ({
+    default: m.StageFullscreenMapPage,
+  }))
+)
 const PostDetailPage = lazy(() =>
   import('../pages/post/PostDetailPage').then((m) => ({ default: m.PostDetailPage }))
 )
@@ -117,6 +122,11 @@ const RouteListPage = lazy(() =>
 )
 const RouteDetailPage = lazy(() =>
   import('../pages/route/RouteDetailPage').then((m) => ({ default: m.RouteDetailPage }))
+)
+const RouteFullscreenMapPage = lazy(() =>
+  import('../pages/route/RouteFullscreenMapPage').then((m) => ({
+    default: m.RouteFullscreenMapPage,
+  }))
 )
 const CreateRoutePage = lazy(() =>
   import('../pages/route/CreateRoutePage').then((m) => ({ default: m.CreateRoutePage }))
@@ -138,6 +148,11 @@ const MyGpxPreviewsPage = lazy(() =>
 )
 const GpxPreviewPage = lazy(() =>
   import('../pages/gpxtool/GpxPreviewPage').then((m) => ({ default: m.GpxPreviewPage }))
+)
+const GpxPreviewFullscreenMapPage = lazy(() =>
+  import('../pages/gpxtool/GpxPreviewFullscreenMapPage').then((m) => ({
+    default: m.GpxPreviewFullscreenMapPage,
+  }))
 )
 const EditGpxPreviewPage = lazy(() =>
   import('../pages/gpxtool/EditGpxPreviewPage').then((m) => ({ default: m.EditGpxPreviewPage }))
@@ -249,6 +264,16 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: 'gpx-tools',
     breadcrumb: { type: 'static', i18nKey: tRegister('gpxTools.preview.title') },
+  },
+  {
+    id: 'gpx-tools-map',
+    paths: pathVariants.gpxToolsMap(':previewId'),
+    component: GpxPreviewFullscreenMapPage,
+    // The link is shareable: holding the unguessable id is enough to view it.
+    auth: 'public',
+    layout: 'bare',
+    parentId: 'gpx-tools-view',
+    breadcrumb: { type: 'static', i18nKey: tRegister('map.fullscreen.title') },
   },
   {
     id: 'gpx-tools-edit',
@@ -568,6 +593,15 @@ export const routesConfig: RoutesConfig = [
     parentId: 'trip-detail',
     breadcrumb: { type: 'dynamic', entity: 'stage' },
   },
+  {
+    id: 'stage-map',
+    paths: pathVariants.stageMap(':teamSlug', ':tripSlug', ':stageSlug'),
+    component: StageFullscreenMapPage,
+    auth: 'public',
+    layout: 'bare',
+    parentId: 'stage-detail',
+    breadcrumb: { type: 'static', i18nKey: tRegister('map.fullscreen.title') },
+  },
 
   // === Post Routes ===
   // Note: posts have parent team-detail (no posts list page)
@@ -632,6 +666,15 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: 'routes',
     breadcrumb: { type: 'dynamic', entity: 'route' },
+  },
+  {
+    id: 'route-map',
+    paths: pathVariants.routeMap(':teamSlug', ':routeSlug'),
+    component: RouteFullscreenMapPage,
+    auth: 'public',
+    layout: 'bare',
+    parentId: 'route-detail',
+    breadcrumb: { type: 'static', i18nKey: tRegister('map.fullscreen.title') },
   },
   {
     id: 'route-edit',

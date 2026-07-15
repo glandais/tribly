@@ -59,6 +59,14 @@ export interface RouteConfig {
   auth: AuthRequirement
 
   /**
+   * Which shell wraps this route.
+   * - 'app' (default): rendered inside the shared `<Layout>` AppShell (header, footer, breadcrumbs).
+   * - 'bare': rendered outside `<Layout>` — no header/footer/breadcrumbs. Auth guards still apply.
+   *   Bare pages own their `document.title` (Layout won't set it). Used for fullscreen experiences.
+   */
+  layout?: 'app' | 'bare'
+
+  /**
    * Parent route ID for breadcrumb hierarchy
    * Explicit parent allows custom breadcrumb chains that don't follow URL structure
    * null = no parent (root level)

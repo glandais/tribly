@@ -89,7 +89,7 @@ export function GpxPreviewView({ preview }: GpxPreviewViewProps) {
       <Title order={1}>{preview.name}</Title>
 
       <Box>
-        <RouteMapView route={preview} />
+        <RouteMapView route={preview} fullscreenPath={paths.gpxToolsMap(preview.id)} />
       </Box>
 
       <Group gap="lg">

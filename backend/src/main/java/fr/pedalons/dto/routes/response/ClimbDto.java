@@ -5,6 +5,7 @@ import fr.pedalons.enums.ClimbCategory;
 import io.github.glandais.gpx.climb.Climb;
 import io.github.glandais.gpx.climb.ClimbPart;
 import java.math.BigDecimal;
+import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
@@ -22,7 +23,9 @@ public record ClimbDto(
     @Schema(description = "Average gradient percentage", required = true)
         BigDecimal averageGradient,
     @Schema(description = "Maximum gradient percentage", required = true) BigDecimal maxGradient,
-    @Nullable @Schema(description = "Climb category (HC, 1, 2, 3, 4)") ClimbCategory category) {
+    @Nullable @Schema(description = "Climb category (HC, 1, 2, 3, 4)") ClimbCategory category,
+    @Schema(description = "Gradient segments making up the climb", required = true)
+        List<ClimbPartDto> parts) {
   public static ClimbDto from(Climb climb) {
 
     return new ClimbDto(
@@ -31,7 +34,8 @@ public record ClimbDto(
         (int) Math.round(climb.positiveElevation()),
         BigDecimal.valueOf(climb.grade()),
         BigDecimal.valueOf(getMaxGrade(climb)),
-        categorizeClimb(climb));
+        categorizeClimb(climb),
+        climb.parts().stream().map(ClimbPartDto::from).toList());
   }
 
   /**

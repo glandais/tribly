@@ -78,6 +78,22 @@ export const CreatePreviewResponse = zod
                       .enum(['HC', 'CAT1', 'CAT2', 'CAT3', 'CAT4'])
                       .optional()
                       .describe('Climb category (HC, 1, 2, 3, 4)'),
+                    parts: zod
+                      .array(
+                        zod
+                          .object({
+                            startDistance: zod
+                              .number()
+                              .describe('Start distance from route start in meters'),
+                            endDistance: zod
+                              .number()
+                              .describe('End distance from route start in meters'),
+                            elevationGain: zod.number().describe('Elevation gain in meters'),
+                            grade: zod.number().describe('Gradient percentage'),
+                          })
+                          .describe('Climb part information')
+                      )
+                      .describe('Gradient segments making up the climb'),
                   })
                   .describe('Climb segment information')
               )
@@ -166,6 +182,22 @@ export const CreatePreviewFromPointsResponse = zod
                       .enum(['HC', 'CAT1', 'CAT2', 'CAT3', 'CAT4'])
                       .optional()
                       .describe('Climb category (HC, 1, 2, 3, 4)'),
+                    parts: zod
+                      .array(
+                        zod
+                          .object({
+                            startDistance: zod
+                              .number()
+                              .describe('Start distance from route start in meters'),
+                            endDistance: zod
+                              .number()
+                              .describe('End distance from route start in meters'),
+                            elevationGain: zod.number().describe('Elevation gain in meters'),
+                            grade: zod.number().describe('Gradient percentage'),
+                          })
+                          .describe('Climb part information')
+                      )
+                      .describe('Gradient segments making up the climb'),
                   })
                   .describe('Climb segment information')
               )
@@ -262,6 +294,22 @@ export const UpdatePreviewResponse = zod
                       .enum(['HC', 'CAT1', 'CAT2', 'CAT3', 'CAT4'])
                       .optional()
                       .describe('Climb category (HC, 1, 2, 3, 4)'),
+                    parts: zod
+                      .array(
+                        zod
+                          .object({
+                            startDistance: zod
+                              .number()
+                              .describe('Start distance from route start in meters'),
+                            endDistance: zod
+                              .number()
+                              .describe('End distance from route start in meters'),
+                            elevationGain: zod.number().describe('Elevation gain in meters'),
+                            grade: zod.number().describe('Gradient percentage'),
+                          })
+                          .describe('Climb part information')
+                      )
+                      .describe('Gradient segments making up the climb'),
                   })
                   .describe('Climb segment information')
               )
@@ -329,6 +377,22 @@ export const GetPreviewResponse = zod
                       .enum(['HC', 'CAT1', 'CAT2', 'CAT3', 'CAT4'])
                       .optional()
                       .describe('Climb category (HC, 1, 2, 3, 4)'),
+                    parts: zod
+                      .array(
+                        zod
+                          .object({
+                            startDistance: zod
+                              .number()
+                              .describe('Start distance from route start in meters'),
+                            endDistance: zod
+                              .number()
+                              .describe('End distance from route start in meters'),
+                            elevationGain: zod.number().describe('Elevation gain in meters'),
+                            grade: zod.number().describe('Gradient percentage'),
+                          })
+                          .describe('Climb part information')
+                      )
+                      .describe('Gradient segments making up the climb'),
                   })
                   .describe('Climb segment information')
               )

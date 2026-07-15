@@ -387,6 +387,8 @@
   "logo.remove": "Remove",
   "logo.title": "Logo",
   "logo.upload": "Add logo",
+  "map.fullscreen.open": "Fullscreen map",
+  "map.fullscreen.title": "Map",
   "map.noRoutes": "No routes available",
   "map.noTrackData": "No track data available for this route",
   "map.styles.switch": "Change map style",

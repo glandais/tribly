@@ -5,6 +5,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'climb_category.dart';
+import 'climb_part_dto.dart';
 
 part 'climb_dto.freezed.dart';
 part 'climb_dto.g.dart';
@@ -27,6 +28,9 @@ abstract class ClimbDto with _$ClimbDto {
 
     /// Maximum gradient percentage
     required num maxGradient,
+
+    /// Gradient segments making up the climb
+    required List<ClimbPartDto> parts,
 
     /// Climb category (HC, 1, 2, 3, 4)
     String? category,

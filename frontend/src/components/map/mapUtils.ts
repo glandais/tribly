@@ -27,10 +27,20 @@ export function getColorFromGradient(gradient: number): string {
   return `hsl(${hue},${SATURATION},${LIGHTNESS})`
 }
 
-// Determine if a point is in a climb and get its gradient
+// Determine if a point is in a climb and get its gradient.
+// When the containing climb exposes parts, return the grade of the specific part the point falls
+// in (matching prendslaroue's per-part coloring); otherwise fall back to the climb's average.
 export function getPointClimbGradient(point: number[], climbs: ClimbDto[]): number {
+  const cumulativeDistance = point[3]
   for (const climb of climbs) {
-    if (point[3] >= climb.startDistance && point[3] <= climb.endDistance) {
+    if (cumulativeDistance >= climb.startDistance && cumulativeDistance <= climb.endDistance) {
+      if (climb.parts && climb.parts.length > 0) {
+        for (const part of climb.parts) {
+          if (cumulativeDistance >= part.startDistance && cumulativeDistance <= part.endDistance) {
+            return part.grade
+          }
+        }
+      }
       return climb.averageGradient
     }
   }

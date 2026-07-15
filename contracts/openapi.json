@@ -907,7 +907,7 @@
       "ClimbDto" : {
         "type" : "object",
         "description" : "Climb segment information",
-        "required" : [ "startDistance", "endDistance", "elevationGain", "averageGradient", "maxGradient" ],
+        "required" : [ "startDistance", "endDistance", "elevationGain", "averageGradient", "maxGradient", "parts" ],
         "properties" : {
           "startDistance" : {
             "type" : "integer",
@@ -936,6 +936,39 @@
             "description" : "Climb category (HC, 1, 2, 3, 4)",
             "type" : "string",
             "$ref" : "#/components/schemas/ClimbCategory"
+          },
+          "parts" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ClimbPartDto"
+            },
+            "description" : "Gradient segments making up the climb"
+          }
+        }
+      },
+      "ClimbPartDto" : {
+        "type" : "object",
+        "description" : "Climb part information",
+        "required" : [ "startDistance", "endDistance", "elevationGain", "grade" ],
+        "properties" : {
+          "startDistance" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Start distance from route start in meters"
+          },
+          "endDistance" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "End distance from route start in meters"
+          },
+          "elevationGain" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Elevation gain in meters"
+          },
+          "grade" : {
+            "type" : "number",
+            "description" : "Gradient percentage"
           }
         }
       },

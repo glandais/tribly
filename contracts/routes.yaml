@@ -168,6 +168,15 @@ routes:
     web: true
     mobile: false
     deeplink: false
+  - id: gpxToolsMap
+    path:
+      en: /gpx-tools/{previewId}/map
+      fr: /outils-gpx/{previewId}/carte
+    params:
+      - previewId
+    web: true
+    mobile: false
+    deeplink: false
   - id: gpxToolsEdit
     path:
       en: /gpx-tools/{previewId}/edit
@@ -369,6 +378,15 @@ routes:
     web: true
     mobile: true
     deeplink: true
+  - id: stageMap
+    path:
+      en: /teams/{teamSlug}/trips/{tripSlug}/stages/{stageSlug}/map
+      fr: /equipes/{teamSlug}/voyages/{tripSlug}/etapes/{stageSlug}/carte
+    params:
+      - teamSlug
+      - tripSlug
+      - stageSlug
+    web: true
 
   # --- Posts ---
   - id: postNew
@@ -431,6 +449,14 @@ routes:
     web: true
     mobile: true
     deeplink: true
+  - id: routeMap
+    path:
+      en: /teams/{teamSlug}/routes/{routeSlug}/map
+      fr: /equipes/{teamSlug}/parcours/{routeSlug}/carte
+    params:
+      - teamSlug
+      - routeSlug
+    web: true
   - id: routeEdit
     path:
       en: /teams/{teamSlug}/routes/{routeSlug}/edit

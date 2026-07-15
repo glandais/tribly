@@ -123,7 +123,9 @@ export default defineConfig(({ mode }) => {
           // === CHARTS (check before react - react-chartjs-2 must not fall to react) ===
           if (
             id.includes('node_modules/chart.js/') ||
-            id.includes('node_modules/react-chartjs-2/')
+            id.includes('node_modules/react-chartjs-2/') ||
+            id.includes('node_modules/chartjs-plugin-zoom/') ||
+            id.includes('node_modules/hammerjs/')
           ) {
             return 'chart-vendor';
           }

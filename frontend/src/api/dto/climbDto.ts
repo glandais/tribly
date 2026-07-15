@@ -1,4 +1,5 @@
 import type { ClimbCategory } from './climbCategory.ts'
+import type { ClimbPartDto } from './climbPartDto.ts'
 
 /**
  * Climb segment information
@@ -16,4 +17,6 @@ export interface ClimbDto {
   maxGradient: number
   /** Climb category (HC, 1, 2, 3, 4) */
   category?: ClimbCategory
+  /** Gradient segments making up the climb */
+  parts: ClimbPartDto[]
 }

@@ -51,10 +51,16 @@ function generateRoutes(config: RouteConfig): React.ReactNode[] {
 }
 
 export function AppRoutes() {
+  // `layout: 'bare'` routes render outside the shared <Layout> AppShell (no header/footer/
+  // breadcrumbs), as siblings of the "/" branch. Auth wrapping still applies via generateRoutes.
+  const bareRoutes = routesConfig.filter((config) => config.layout === 'bare')
+  const appRoutes = routesConfig.filter((config) => config.layout !== 'bare')
+
   return (
     <Routes>
+      {bareRoutes.flatMap(generateRoutes)}
       <Route path="/" element={<Layout />}>
-        {routesConfig.flatMap(generateRoutes)}
+        {appRoutes.flatMap(generateRoutes)}
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

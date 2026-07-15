@@ -65,6 +65,7 @@ export 'models/calendar_events_response.dart';
 export 'models/calendar_token_dto.dart';
 export 'models/climb_category.dart';
 export 'models/climb_dto.dart';
+export 'models/climb_part_dto.dart';
 export 'models/comment_dto.dart';
 export 'models/comment_list_response.dart';
 export 'models/comment_request.dart';

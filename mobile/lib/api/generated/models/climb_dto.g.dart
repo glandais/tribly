@@ -12,6 +12,9 @@ _ClimbDto _$ClimbDtoFromJson(Map<String, dynamic> json) => _ClimbDto(
   elevationGain: (json['elevationGain'] as num).toInt(),
   averageGradient: json['averageGradient'] as num,
   maxGradient: json['maxGradient'] as num,
+  parts: (json['parts'] as List<dynamic>)
+      .map((e) => ClimbPartDto.fromJson(e as Map<String, dynamic>))
+      .toList(),
   category: json['category'] as String?,
 );
 
@@ -21,5 +24,6 @@ Map<String, dynamic> _$ClimbDtoToJson(_ClimbDto instance) => <String, dynamic>{
   'elevationGain': instance.elevationGain,
   'averageGradient': instance.averageGradient,
   'maxGradient': instance.maxGradient,
+  'parts': instance.parts.map((e) => e.toJson()).toList(),
   'category': instance.category,
 };
