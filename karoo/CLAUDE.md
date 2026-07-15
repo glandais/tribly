@@ -62,14 +62,25 @@ app/src/main/kotlin/fr/pedalons/karoo/
 - **Java 11 target**: Build targets Java 11 for Karoo compatibility.
 - **No wildcard imports**: Follow Hammerhead SDK guidelines.
 
+## Build Toolchain
+
+Aligned with the `karoo-rain-radar` project. Versions live in `gradle/libs.versions.toml`
+and `gradle/wrapper/gradle-wrapper.properties`:
+- Gradle `9.6.1`, Android Gradle Plugin `9.2.1`, Kotlin `2.4.0`
+- `compileSdk 37`, `minSdk 26`, `targetSdk 32` (Karoo runs Android 12), Java 11 bytecode
+- Kotlin is compiled via **AGP 9 built-in Kotlin** — there is no standalone
+  `org.jetbrains.kotlin.android` plugin, and `gradle.properties` does not opt out of the
+  new DSL. The Kotlin JVM target is derived from `compileOptions` (Java 11); do not re-add
+  an explicit `kotlin { jvmTarget }` block.
+
 ## Dependencies
 
 Key dependencies from `gradle/libs.versions.toml`:
-- `karoo-ext` (1.1.8): Hammerhead Karoo Extension SDK
-- `ktor-client-karoo` (1.0.1): Routes HTTP through Karoo System Service
-- `compose-bom`: Jetpack Compose for UI
-- `datastore`: Token persistence
-- `zxing`: QR code generation
+- `karoo-ext` (1.1.9): Hammerhead Karoo Extension SDK
+- `ktor` (3.5.1) + `ktor-client-karoo` (1.0.1): Routes HTTP through Karoo System Service
+- `compose-bom` (2026.06.01): Jetpack Compose for UI
+- `datastore` (1.2.1): Token persistence
+- `zxing` (4.3.0): QR code generation
 
 ## GitHub Packages Authentication
 
