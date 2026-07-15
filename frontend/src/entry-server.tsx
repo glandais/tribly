@@ -1,5 +1,5 @@
 import React from 'react'
-import ReactDOMServer from 'react-dom/server'
+import { prerenderToNodeStream } from 'react-dom/static'
 import {
   createStaticHandler,
   createStaticRouter,
@@ -96,9 +96,12 @@ export async function render(url: string, headers: Record<string, string> = {}) 
         router.createHref = (to: Location | URL) => mapPathname(originalCreateHref(to), toBrowser)
       }
 
-      const statusCode = context.statusCode || 200
+      // The '*' catch-all matches unknown URLs, so the handler reports 200 for them; crawlers
+      // must see a real 404 for the NotFound page.
+      const leafMatch = context.matches[context.matches.length - 1]
+      const statusCode = leafMatch?.route.path === '*' ? 404 : context.statusCode || 200
 
-      const html = ReactDOMServer.renderToString(
+      const html = await renderAppToString(
         <React.StrictMode>
           <I18nextProvider i18n={i18nInstance}>
             <MantineProvider theme={theme} defaultColorScheme="auto">
@@ -120,6 +123,45 @@ export async function render(url: string, headers: Record<string, string> = {}) 
       queryClient.clear()
     }
   })
+}
+
+/**
+ * Render to a complete HTML string, waiting for lazy route chunks and suspended data.
+ *
+ * renderToString flushes synchronously: React.lazy pages (all our routes are lazy) are still
+ * pending at flush time, so every page would emit its Suspense fallback instead of content.
+ * The static prerender API waits for the whole tree and inlines all Suspense content — no
+ * streaming placeholders or relocation scripts — which is what crawlers should see; the
+ * output hydrates with hydrateRoot like any server render. On timeout the render is aborted
+ * and still-pending boundaries degrade to their fallbacks (client renders them after hydration).
+ */
+async function renderAppToString(app: React.ReactElement, timeoutMs = 10_000): Promise<string> {
+  const controller = new AbortController()
+  const timer = setTimeout(
+    () => controller.abort(new Error('[SSR] render timed out')),
+    timeoutMs
+  )
+  try {
+    const { prelude } = await prerenderToNodeStream(app, {
+      signal: controller.signal,
+      // Fizz outlines completed Suspense boundaries larger than this (placeholder + hidden
+      // segment + relocation script) so streaming can paint the shell early. We flush once,
+      // so outlining only hurts: raise the threshold so all content is emitted inline.
+      progressiveChunkSize: Number.MAX_SAFE_INTEGER,
+      onError(err) {
+        // Boundary-level errors are recoverable (the boundary falls back and hydrates
+        // client-side); log and let the render finish.
+        console.error('[SSR] render error:', err)
+      },
+    })
+    let html = ''
+    for await (const chunk of prelude) {
+      html += chunk
+    }
+    return html
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 /** Map only the pathname portion of a href string, preserving search/hash. */

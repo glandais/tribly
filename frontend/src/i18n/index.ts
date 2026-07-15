@@ -103,9 +103,19 @@ async function initClientI18n() {
   i18n.on('languageChanged', applyLanguage)
 }
 
+// Server-side, the global instance is initialized once with the bundled resources so that
+// module-level t() call sites (date patterns, validation messages…) work during SSR. Its
+// language is pinned to the fallback and NEVER mutated — per-request language lives in the
+// createServerI18n instances; call sites that need the request language must pass { lng }
+// explicitly (as useFormattedDate does). initAsync: false makes init synchronous, so the
+// instance is ready before the first render.
+if (isServer) {
+  void i18n.use(initReactI18next).init({ ...i18nBaseConfig, lng: 'fr', initAsync: false })
+}
+
 // Resolves once client i18n init completes. entry-client awaits this before hydrating so the
-// initial client render matches the server markup. On the server it resolves immediately and
-// importing this module has no side effects.
+// initial client render matches the server markup. On the server it resolves immediately
+// (the synchronous init above has already run by module-load end).
 export const i18nReady: Promise<void> = isServer
   ? Promise.resolve()
   : initClientI18n().catch((err) => {
