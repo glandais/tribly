@@ -2,6 +2,19 @@ import { lazy } from 'react'
 import type { RoutesConfig } from './routes.types'
 import { pathVariants } from './paths'
 import { tRegister } from '@/lib/i18nUtils'
+import {
+  prefetchListAllPublicationsQuery,
+  prefetchListPublicationsQuery,
+} from '@/api/endpoints/publications/publications'
+import { prefetchListTeamsQuery, prefetchGetTeamQuery } from '@/api/endpoints/teams/teams'
+import { prefetchGetRideQuery } from '@/api/endpoints/rides/rides'
+import { prefetchGetTripQuery } from '@/api/endpoints/trips/trips'
+import { prefetchGetPostQuery } from '@/api/endpoints/posts/posts'
+import { prefetchGetRouteQuery } from '@/api/endpoints/routes/routes'
+import { prefetchGetPageQuery } from '@/api/endpoints/team-pages/team-pages'
+import { prefetchGetAdQuery } from '@/api/endpoints/ads/ads'
+import { PUBLICATION_PAGE_SIZE } from '@/hooks/filters/publicationFilters'
+import { TEAM_PAGE_SIZE } from '@/hooks/filters/teamFilters'
 
 // Lazy load page components for code splitting
 const HomePage = lazy(() => import('../pages/home/HomePage').then((m) => ({ default: m.HomePage })))
@@ -211,6 +224,12 @@ export const routesConfig: RoutesConfig = [
     index: true,
     navGroup: 'home',
     breadcrumb: { type: 'static', i18nKey: tRegister('home.tabs.feed') },
+    // Anonymous first page. Matches HomePage's initial useListAllPublications key when no URL
+    // filters are set (search/type/minRole all undefined, page 0). Undefined values are dropped by
+    // the query-key hash, so { page, size } byte-matches the component's params object.
+    prefetch: async (queryClient) => {
+      await prefetchListAllPublicationsQuery(queryClient, { page: 0, size: PUBLICATION_PAGE_SIZE })
+    },
   },
   {
     id: 'all-routes',
@@ -396,6 +415,11 @@ export const routesConfig: RoutesConfig = [
     navGroup: 'home',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.title') },
     hideWhenSingleTeam: true,
+    // Anonymous first page. Matches TeamListPage's initial useListTeams key when no URL filters are
+    // set (search/minRole undefined, page 0).
+    prefetch: async (queryClient) => {
+      await prefetchListTeamsQuery(queryClient, { page: 0, size: TEAM_PAGE_SIZE })
+    },
   },
   {
     id: 'teams-new',
@@ -415,6 +439,16 @@ export const routesConfig: RoutesConfig = [
     parentId: 'teams',
     navGroup: 'team',
     breadcrumb: { type: 'dynamic', entity: 'team' },
+    // PublicationListPage reads the team plus its first, unfiltered publications page.
+    prefetch: async (queryClient, params) => {
+      await Promise.all([
+        prefetchGetTeamQuery(queryClient, params.teamSlug!),
+        prefetchListPublicationsQuery(queryClient, params.teamSlug!, {
+          page: 0,
+          size: PUBLICATION_PAGE_SIZE,
+        }),
+      ])
+    },
   },
   {
     id: 'team-about',
@@ -423,6 +457,9 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: 'team-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.detail.tabs.about') },
+    prefetch: async (queryClient, params) => {
+      await prefetchGetTeamQuery(queryClient, params.teamSlug!)
+    },
   },
   {
     id: 'team-calendar',
@@ -439,6 +476,12 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: 'team-detail',
     breadcrumb: { type: 'dynamic', entity: 'teamPage' },
+    prefetch: async (queryClient, params) => {
+      await Promise.all([
+        prefetchGetTeamQuery(queryClient, params.teamSlug!),
+        prefetchGetPageQuery(queryClient, params.teamSlug!, params.pageSlug!),
+      ])
+    },
   },
   // === Team Admin Routes ===
   {
@@ -518,6 +561,12 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: 'team-detail',
     breadcrumb: { type: 'dynamic', entity: 'ride' },
+    prefetch: async (queryClient, params) => {
+      await Promise.all([
+        prefetchGetTeamQuery(queryClient, params.teamSlug!),
+        prefetchGetRideQuery(queryClient, params.teamSlug!, params.rideSlug!),
+      ])
+    },
   },
   {
     id: 'ride-edit',
@@ -575,6 +624,12 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: 'team-detail',
     breadcrumb: { type: 'dynamic', entity: 'trip' },
+    prefetch: async (queryClient, params) => {
+      await Promise.all([
+        prefetchGetTeamQuery(queryClient, params.teamSlug!),
+        prefetchGetTripQuery(queryClient, params.teamSlug!, params.tripSlug!),
+      ])
+    },
   },
   {
     id: 'trip-edit',
@@ -592,6 +647,14 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: 'trip-detail',
     breadcrumb: { type: 'dynamic', entity: 'stage' },
+    // StageDetailPage reads the team and the parent trip; the stage's route is derived from trip
+    // data (unknown slug at prefetch time), so it is left to client-side fetching.
+    prefetch: async (queryClient, params) => {
+      await Promise.all([
+        prefetchGetTeamQuery(queryClient, params.teamSlug!),
+        prefetchGetTripQuery(queryClient, params.teamSlug!, params.tripSlug!),
+      ])
+    },
   },
   {
     id: 'stage-map',
@@ -621,6 +684,12 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: 'team-detail',
     breadcrumb: { type: 'dynamic', entity: 'post' },
+    prefetch: async (queryClient, params) => {
+      await Promise.all([
+        prefetchGetTeamQuery(queryClient, params.teamSlug!),
+        prefetchGetPostQuery(queryClient, params.teamSlug!, params.postSlug!),
+      ])
+    },
   },
   {
     id: 'post-edit',
@@ -666,6 +735,12 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: 'routes',
     breadcrumb: { type: 'dynamic', entity: 'route' },
+    prefetch: async (queryClient, params) => {
+      await Promise.all([
+        prefetchGetTeamQuery(queryClient, params.teamSlug!),
+        prefetchGetRouteQuery(queryClient, params.teamSlug!, params.routeSlug!),
+      ])
+    },
   },
   {
     id: 'route-map',
@@ -711,6 +786,12 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: 'ads',
     breadcrumb: { type: 'dynamic', entity: 'ad' },
+    prefetch: async (queryClient, params) => {
+      await Promise.all([
+        prefetchGetTeamQuery(queryClient, params.teamSlug!),
+        prefetchGetAdQuery(queryClient, params.teamSlug!, params.adSlug!),
+      ])
+    },
   },
   {
     id: 'ad-edit',
