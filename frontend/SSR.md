@@ -130,6 +130,11 @@ same deal for a stored language vs `Accept-Language`.)
   `requestContext`.
 - **i18next option rename**: synchronous init is `initAsync: false`, not
   `initImmediate: false` (typecheck catches it).
+- **Third-party libs that read `window` at module load crash the route's boundary**: first
+  real case was `chartjs-plugin-zoom` → `hammerjs` (hit when develop's fullscreen map pages
+  landed). Fix pattern: dynamic-`import()` the library client-side when the feature is
+  actually used (see `useZoomPlugin` in `ElevationChart.tsx`). Any new dependency reachable
+  from a public route's chunk can reintroduce this — the curl sweep below catches it.
 
 ## Verifying SSR end-to-end
 
