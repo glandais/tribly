@@ -68,13 +68,27 @@ async function initClientI18n() {
       .init({
         ...i18nBaseConfig,
         detection: {
-          // Order of language detection
-          order: ['localStorage', 'navigator'],
+          // htmlTag is highest priority so the initial (hydration) client render matches
+          // the server-emitted <html lang>, which the server resolves from Accept-Language.
+          // The persisted preference is re-applied below, after init, to avoid a mismatch.
+          order: ['htmlTag', 'localStorage', 'navigator'],
           // Cache user language preference
           caches: ['localStorage'],
           lookupLocalStorage: 'i18nextLng',
         },
       })
+
+    // Honor a persisted language preference only AFTER the hydration render. The server
+    // only sees Accept-Language, so a saved preference that differs from <html lang> must
+    // be applied post-hydration — this is a normal client re-render, not a mismatch.
+    const saved = localStorage.getItem('i18nextLng')
+    if (
+      saved &&
+      saved !== i18n.language &&
+      supportedLanguages.includes(saved as SupportedLanguage)
+    ) {
+      await i18n.changeLanguage(saved)
+    }
   } catch (err) {
     console.error('[i18n] Client initialization failed:', err)
   }
