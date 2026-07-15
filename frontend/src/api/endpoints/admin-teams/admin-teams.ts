@@ -162,6 +162,27 @@ export function useAdminListTeams<
 }
 
 /**
+ * @summary List all teams
+ */
+export const prefetchAdminListTeamsQuery = async <
+  TData = Awaited<ReturnType<typeof adminListTeams>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  params?: AdminListTeamsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminListTeams>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getAdminListTeamsQueryOptions(params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Get detailed team information
  * @summary Get team details
  */
@@ -281,6 +302,27 @@ export function useAdminGetTeam<
   }
 
   return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Get team details
+ */
+export const prefetchAdminGetTeamQuery = async <
+  TData = Awaited<ReturnType<typeof adminGetTeam>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamId: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminGetTeam>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getAdminGetTeamQueryOptions(teamId, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
 }
 
 /**

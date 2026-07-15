@@ -335,6 +335,28 @@ export function useGetPost<
 }
 
 /**
+ * @summary Get post details
+ */
+export const prefetchGetPostQuery = async <
+  TData = Awaited<ReturnType<typeof getPost>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  postSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPost>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetPostQueryOptions(teamSlug, postSlug, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Soft delete a post. Requires organizer permissions.
  * @summary Delete post
  */

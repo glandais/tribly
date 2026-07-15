@@ -137,3 +137,23 @@ export function useGetConfig<
 
   return withQueryKey(query, queryOptions.queryKey)
 }
+
+/**
+ * @summary Get application configuration
+ */
+export const prefetchGetConfigQuery = async <
+  TData = Awaited<ReturnType<typeof getConfig>>,
+  TError = ErrorType<unknown>,
+>(
+  queryClient: QueryClient,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getConfig>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetConfigQueryOptions(options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}

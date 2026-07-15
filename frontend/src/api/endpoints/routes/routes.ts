@@ -172,6 +172,27 @@ export function useListAllRoutes<
 }
 
 /**
+ * @summary List all routes
+ */
+export const prefetchListAllRoutesQuery = async <
+  TData = Awaited<ReturnType<typeof listAllRoutes>>,
+  TError = ErrorType<unknown>,
+>(
+  queryClient: QueryClient,
+  params?: ListAllRoutesParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllRoutes>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getListAllRoutesQueryOptions(params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Extent enclosing the routes of all accessible teams, so a map can open framed on them. Accepts the same filters as the route list, minus sorting and pagination. Yields a null box when no route matches.
  * @summary All routes bounding box
  */
@@ -292,6 +313,27 @@ export function useGetAllRoutesBounds<
   }
 
   return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary All routes bounding box
+ */
+export const prefetchGetAllRoutesBoundsQuery = async <
+  TData = Awaited<ReturnType<typeof getAllRoutesBounds>>,
+  TError = ErrorType<unknown>,
+>(
+  queryClient: QueryClient,
+  params?: GetAllRoutesBoundsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllRoutesBounds>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetAllRoutesBoundsQueryOptions(params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
 }
 
 /**
@@ -446,6 +488,30 @@ export function useAllRoutesTile<
 }
 
 /**
+ * @summary All routes vector tile
+ */
+export const prefetchAllRoutesTileQuery = async <
+  TData = Awaited<ReturnType<typeof allRoutesTile>>,
+  TError = ErrorType<void>,
+>(
+  queryClient: QueryClient,
+  z: number,
+  x: number,
+  y: number,
+  params?: AllRoutesTileParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof allRoutesTile>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getAllRoutesTileQueryOptions(z, x, y, params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Get paginated list of routes for a team with optional filters and sorting
  * @summary List routes
  */
@@ -571,6 +637,28 @@ export function useListRoutes<
   }
 
   return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary List routes
+ */
+export const prefetchListRoutesQuery = async <
+  TData = Awaited<ReturnType<typeof listRoutes>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  params?: ListRoutesParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutes>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getListRoutesQueryOptions(teamSlug, params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
 }
 
 /**
@@ -794,6 +882,28 @@ export function useGetRoutesBounds<
 }
 
 /**
+ * @summary Team routes bounding box
+ */
+export const prefetchGetRoutesBoundsQuery = async <
+  TData = Awaited<ReturnType<typeof getRoutesBounds>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  params?: GetRoutesBoundsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoutesBounds>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetRoutesBoundsQueryOptions(teamSlug, params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Mapbox vector tile holding the team's routes, layer 'routes'. Accepts the same filters as the route list, minus sorting and pagination, which a tile has no use for. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
  * @summary Team routes vector tile
  */
@@ -959,6 +1069,31 @@ export function useRoutesTile<
   }
 
   return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Team routes vector tile
+ */
+export const prefetchRoutesTileQuery = async <
+  TData = Awaited<ReturnType<typeof routesTile>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  z: number,
+  x: number,
+  y: number,
+  params?: RoutesTileParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof routesTile>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getRoutesTileQueryOptions(teamSlug, z, x, y, params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
 }
 
 /**
@@ -1181,6 +1316,28 @@ export function useGetRoute<
   }
 
   return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Get route details
+ */
+export const prefetchGetRouteQuery = async <
+  TData = Awaited<ReturnType<typeof getRoute>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  routeSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoute>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetRouteQueryOptions(teamSlug, routeSlug, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
 }
 
 /**
@@ -1551,4 +1708,26 @@ export function useGetRouteUsages<
   }
 
   return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary List route usages
+ */
+export const prefetchGetRouteUsagesQuery = async <
+  TData = Awaited<ReturnType<typeof getRouteUsages>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  routeSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRouteUsages>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetRouteUsagesQueryOptions(teamSlug, routeSlug, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
 }

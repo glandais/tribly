@@ -162,6 +162,27 @@ export function useDeviceListRoutes<
 }
 
 /**
+ * @summary List routes for user
+ */
+export const prefetchDeviceListRoutesQuery = async <
+  TData = Awaited<ReturnType<typeof deviceListRoutes>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  params?: DeviceListRoutesParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof deviceListRoutes>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getDeviceListRoutesQueryOptions(params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Download route as FIT file for GPS devices
  * @summary Download FIT file
  */
@@ -293,6 +314,28 @@ export function useDeviceDownloadFit<
 }
 
 /**
+ * @summary Download FIT file
+ */
+export const prefetchDeviceDownloadFitQuery = async <
+  TData = Awaited<ReturnType<typeof deviceDownloadFit>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  routeSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof deviceDownloadFit>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getDeviceDownloadFitQueryOptions(teamSlug, routeSlug, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Download route as GPX file for GPS devices
  * @summary Download GPX file
  */
@@ -421,6 +464,28 @@ export function useDeviceDownloadGpx<
   }
 
   return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Download GPX file
+ */
+export const prefetchDeviceDownloadGpxQuery = async <
+  TData = Awaited<ReturnType<typeof deviceDownloadGpx>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  routeSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof deviceDownloadGpx>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getDeviceDownloadGpxQueryOptions(teamSlug, routeSlug, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
 }
 
 /**

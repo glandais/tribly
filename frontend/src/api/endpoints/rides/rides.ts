@@ -341,6 +341,28 @@ export function useGetRide<
 }
 
 /**
+ * @summary Get ride details
+ */
+export const prefetchGetRideQuery = async <
+  TData = Awaited<ReturnType<typeof getRide>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  rideSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRide>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetRideQueryOptions(teamSlug, rideSlug, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Soft delete a ride. Requires organizer permissions.
  * @summary Delete ride
  */

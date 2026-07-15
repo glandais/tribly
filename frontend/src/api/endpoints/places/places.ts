@@ -171,6 +171,28 @@ export function useListPlaces<
 }
 
 /**
+ * @summary List places
+ */
+export const prefetchListPlacesQuery = async <
+  TData = Awaited<ReturnType<typeof listPlaces>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  params?: ListPlacesParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPlaces>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getListPlacesQueryOptions(teamSlug, params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Create a new place for the team
  * @summary Create place
  */
@@ -466,6 +488,28 @@ export function useGetPlace<
   }
 
   return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Get place details
+ */
+export const prefetchGetPlaceQuery = async <
+  TData = Awaited<ReturnType<typeof getPlace>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  placeId: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlace>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetPlaceQueryOptions(teamSlug, placeId, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
 }
 
 /**

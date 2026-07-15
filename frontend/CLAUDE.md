@@ -7,8 +7,9 @@ See also the root `../CLAUDE.md` for full-stack context (backend, mobile, karoo,
 ## Commands
 
 ```bash
-pnpm dev                           # Dev server (localhost:5173, proxies /api to :8080)
-pnpm build                         # Vite build (no type checking)
+pnpm dev                           # SPA dev server (localhost:5173, proxies /api to :8080)
+pnpm dev:ssr                       # SSR dev server (node server.js, localhost:3000, Vite middleware mode)
+pnpm build                         # Dual build: dist/client (browser) + dist/server (entry-server.js), no type checking
 pnpm typecheck                     # Type checking via tsgo (typescript-go)
 pnpm generate-api                  # Regenerate API client from ../contracts/openapi.json
 pnpm generate-routes               # Regenerate path builders + deeplinks from ../contracts/routes.yaml
@@ -98,6 +99,29 @@ Custom axios mutator in `lib/axiosInstance.ts` handles: JWT bearer tokens from a
 - Path alias: `@/` → `src/`
 - Manual chunk splitting in `vite.config.ts` (map-vendor, editor-vendor, mantine-vendor, etc.)
 - Dev proxy: `/api` → `http://localhost:8080` with `X-Forwarded-Host` for multi-tenancy
+- **Dual build output**: `pnpm build` runs Vite twice — client bundle → `dist/client/` (with `index.html` containing `<!--ssr-outlet-->` / `<!--ssr-state-->` placeholders), SSR bundle → `dist/server/entry-server.js`. The Docker runtime image runs `node server.js` (Express) and serves both. There is no separate nginx step.
+
+### SSR (server-side rendering)
+
+`server.js` (Express) renders public pages on the server via the static prerender API (`react-dom/static`, NOT `renderToString` — lazy route pages would render as their Suspense fallback) and hydrates on the client. Entry points: `src/entry-server.tsx` (`render(url, headers)`) and `src/entry-client.tsx` (hydrate). React Router runs in **library mode** (`createStaticHandler`/`createStaticRouter`, not framework mode); Vite uses `ssrLoadModule` in dev (no Environment API).
+
+**Before changing SSR-reachable code, read [SSR.md](SSR.md)** — it documents the architecture and the non-obvious failure modes (lazy pages vs renderToString, silent Suspense-swallowed crashes, useId tree parity via `AppProviders`/`AppFrame`, localStorage-derived render state, and the curl checks that actually catch regressions).
+
+Hard invariants — keep these when touching SSR-reachable code:
+
+- **Anonymous & stateless SSR**: the server never forwards cookies or `Authorization` to the backend — only `X-Forwarded-Host`, `X-Forwarded-Proto`, `Accept-Language`. Authenticated content client-renders after hydration.
+- **Per-request isolation**: per-request `QueryClient`, per-request i18next instance (`createServerI18n`), request data threaded via `AsyncLocalStorage` (`lib/requestContext`). No module-level mutable per-request state reachable during SSR.
+- **No module-top-level browser globals** in code eagerly imported by `entry-server` (config/, lib/, i18n/, stores, Layout). Guard any `window`/`document`/`localStorage`/`navigator` at module scope with `typeof window === 'undefined'`. Inside functions/hooks/effects is fine (runs client-side only). Lazy chunks (maps/GPX) are only a concern if a public prefetched route imports them.
+
+### Link previews (Open Graph / Twitter)
+
+Public pages unfurl into rich social/messaging cards via server-rendered OG/Twitter tags. A route declares an optional `meta(ctx)` in `routes.config.ts`; `entry-server` runs it after `prefetch`, `src/lib/seo.ts` (`buildMetaTags`) serialises the result, and `server.js` injects it at the `<!--ssr-head-->` placeholder. Because no unfurl crawler runs JavaScript, the tags **must** be in the initial HTML — this rides on SSR, not client injection.
+
+**Before adding or changing link previews, read [LINK_PREVIEW.md](LINK_PREVIEW.md)** — architecture, per-page coverage, the 2026 platform findings, invariants, and the curl check that verifies tags render server-side.
+
+- **`meta()` builders only READ the per-request cache and never throw** — data must be `prefetch`ed on the same route; a missing entity returns `undefined` and falls back to site-wide defaults.
+- **Never add a `<meta>`/`<title>` React component** — React 19 hoisting shifts `useId` and duplicates the title. Tags are string-built in `seo.ts`, outside the React tree.
+- `og:image` is 1200×630 PNG/JPEG, absolute per-domain HTTPS, < ~300 KB; the default is `public/og-image.png` (rebuilt from `assets/icon.svg`).
 
 ## Key Rules
 
@@ -105,6 +129,7 @@ Custom axios mutator in `lib/axiosInstance.ts` handles: JWT bearer tokens from a
 - **Never edit `src/api/`** — it's generated. Run `pnpm generate-api` after backend OpenAPI changes.
 - **Never edit `paths.generated.ts`** — edit `../contracts/routes.yaml` and run `pnpm generate-routes`. See [../APP_LINKS.md](../APP_LINKS.md).
 - **Never hard-code links** — use `paths.xxx()` from `config/paths.ts` (locale-aware).
+- **Never set link-preview tags via a React component** — add a `meta()` to `routes.config.ts` instead. See [LINK_PREVIEW.md](LINK_PREVIEW.md).
 - **Never use `confirm()` or custom modals for confirmations** — use `ConfirmDialog`.
 - **Never use SVG for icons** — use `@tabler/icons-react`.
 - **Mantine UI exclusively** — check https://mantine.dev/llms.txt for docs.

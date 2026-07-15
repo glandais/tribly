@@ -164,6 +164,28 @@ export function useGetAvailableServices<
 }
 
 /**
+ * @summary Get available GPS services
+ */
+export const prefetchGetAvailableServicesQuery = async <
+  TData = Awaited<ReturnType<typeof getAvailableServices>>,
+  TError = ErrorType<void>,
+>(
+  queryClient: QueryClient,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getAvailableServices>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetAvailableServicesQueryOptions(options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Handles OAuth callback from GPS service and redirects to frontend
  * @summary OAuth callback
  */
@@ -295,6 +317,28 @@ export function useHandleCallback<
 }
 
 /**
+ * @summary OAuth callback
+ */
+export const prefetchHandleCallbackQuery = async <
+  TData = Awaited<ReturnType<typeof handleCallback>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  serviceType: GpsServiceType,
+  params?: HandleCallbackParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof handleCallback>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getHandleCallbackQueryOptions(serviceType, params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Get the OAuth authorization URL to connect a GPS service
  * @summary Get OAuth authorization URL
  */
@@ -414,6 +458,27 @@ export function useGetConnectUrl<
   }
 
   return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Get OAuth authorization URL
+ */
+export const prefetchGetConnectUrlQuery = async <
+  TData = Awaited<ReturnType<typeof getConnectUrl>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  queryClient: QueryClient,
+  serviceType: GpsServiceType,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getConnectUrl>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetConnectUrlQueryOptions(serviceType, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
 }
 
 /**

@@ -143,3 +143,23 @@ export function useDeviceGetMe<
 
   return withQueryKey(query, queryOptions.queryKey)
 }
+
+/**
+ * @summary Get current user status
+ */
+export const prefetchDeviceGetMeQuery = async <
+  TData = Awaited<ReturnType<typeof deviceGetMe>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof deviceGetMe>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getDeviceGetMeQueryOptions(options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}

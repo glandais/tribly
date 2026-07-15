@@ -168,6 +168,28 @@ export function useListPostComments<
 }
 
 /**
+ * @summary List post comments
+ */
+export const prefetchListPostCommentsQuery = async <
+  TData = Awaited<ReturnType<typeof listPostComments>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  entitySlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPostComments>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getListPostCommentsQueryOptions(teamSlug, entitySlug, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * @summary Create post comment
  */
 export const createPostComment = (

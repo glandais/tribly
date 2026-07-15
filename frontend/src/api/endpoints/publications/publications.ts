@@ -164,6 +164,27 @@ export function useListAllPublications<
 }
 
 /**
+ * @summary List all publications
+ */
+export const prefetchListAllPublicationsQuery = async <
+  TData = Awaited<ReturnType<typeof listAllPublications>>,
+  TError = ErrorType<unknown>,
+>(
+  queryClient: QueryClient,
+  params?: ListAllPublicationsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllPublications>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getListAllPublicationsQueryOptions(params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Get paginated list of publications for a team with optional filtering
  * @summary List publications
  */
@@ -289,4 +310,26 @@ export function useListPublications<
   }
 
   return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary List publications
+ */
+export const prefetchListPublicationsQuery = async <
+  TData = Awaited<ReturnType<typeof listPublications>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  params?: ListPublicationsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPublications>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getListPublicationsQueryOptions(teamSlug, params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
 }

@@ -341,6 +341,28 @@ export function useGetTrip<
 }
 
 /**
+ * @summary Get trip details
+ */
+export const prefetchGetTripQuery = async <
+  TData = Awaited<ReturnType<typeof getTrip>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  tripSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTrip>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetTripQueryOptions(teamSlug, tripSlug, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Soft delete a trip. Requires organizer permissions.
  * @summary Delete trip
  */

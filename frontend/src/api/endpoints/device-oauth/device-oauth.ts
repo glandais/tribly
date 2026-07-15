@@ -412,3 +412,24 @@ export function useVerify<
 
   return withQueryKey(query, queryOptions.queryKey)
 }
+
+/**
+ * @summary Check user code validity
+ */
+export const prefetchVerifyQuery = async <
+  TData = Awaited<ReturnType<typeof verify>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  params?: VerifyParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof verify>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getVerifyQueryOptions(params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}

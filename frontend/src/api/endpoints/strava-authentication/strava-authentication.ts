@@ -162,6 +162,27 @@ export function useStravaCallback<
 }
 
 /**
+ * @summary Strava OAuth callback
+ */
+export const prefetchStravaCallbackQuery = async <
+  TData = Awaited<ReturnType<typeof stravaCallback>>,
+  TError = ErrorType<void>,
+>(
+  queryClient: QueryClient,
+  params?: StravaCallbackParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof stravaCallback>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getStravaCallbackQueryOptions(params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Get the Strava OAuth authorization URL to link Strava to the current account
  * @summary Get Strava link URL
  */
@@ -276,6 +297,26 @@ export function useGetStravaConnectUrl<
   }
 
   return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Get Strava link URL
+ */
+export const prefetchGetStravaConnectUrlQuery = async <
+  TData = Awaited<ReturnType<typeof getStravaConnectUrl>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  queryClient: QueryClient,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStravaConnectUrl>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetStravaConnectUrlQueryOptions(options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
 }
 
 /**
@@ -437,6 +478,26 @@ export function useGetStravaLoginUrl<
   }
 
   return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Get Strava login URL
+ */
+export const prefetchGetStravaLoginUrlQuery = async <
+  TData = Awaited<ReturnType<typeof getStravaLoginUrl>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStravaLoginUrl>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetStravaLoginUrlQueryOptions(options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
 }
 
 /**

@@ -18,7 +18,6 @@ import {
   ScriptableContext,
   ScriptableLineSegmentContext,
 } from 'chart.js'
-import zoomPlugin from 'chartjs-plugin-zoom'
 import { useTranslation } from 'react-i18next'
 import { useComputedColorScheme, useMantineTheme } from '@mantine/core'
 import { NEUTRAL_COLOR, getColorFromGradient, getPointClimbGradient } from '../map/mapUtils'
@@ -30,6 +29,26 @@ import type { MappableRoute } from './RouteMapView'
 // chartjs-plugin-zoom is registered PER-INSTANCE (via the <Line plugins> prop) only when a
 // consumer opts into zoom, so the embedded chart never pays for the zoom machinery.
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler)
+
+/**
+ * chartjs-plugin-zoom transitively imports hammerjs, which reads `window` at module load and
+ * crashes SSR (the route's Suspense boundary falls back). Load it dynamically, client-side,
+ * only when a chart opts into zoom; the plugin attaches on the re-render after it resolves.
+ */
+function useZoomPlugin(enabled: boolean): Plugin<'line'> | null {
+  const [plugin, setPlugin] = useState<Plugin<'line'> | null>(null)
+  useEffect(() => {
+    if (!enabled || plugin) return
+    let cancelled = false
+    void import('chartjs-plugin-zoom').then((module) => {
+      if (!cancelled) setPlugin(() => module.default as Plugin<'line'>)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [enabled, plugin])
+  return plugin
+}
 
 // Extended chart type with crosshair property
 type ChartWithCrosshair = ChartJS<'line'> & { crosshair?: { x: number; color?: string } | null }
@@ -373,9 +392,10 @@ export const ElevationChart = forwardRef<ElevationChartHandle, ElevationChartPro
       }
     }, [hoveredPointIndex, chartColors.crosshair])
 
+    const zoomPlugin = useZoomPlugin(zoomEnabled)
     const plugins = useMemo(
-      () => (zoomEnabled ? [crosshairPlugin, zoomPlugin] : [crosshairPlugin]),
-      [zoomEnabled]
+      () => (zoomEnabled && zoomPlugin ? [crosshairPlugin, zoomPlugin] : [crosshairPlugin]),
+      [zoomEnabled, zoomPlugin]
     )
 
     // The empty-track guard lives in the parent; rendering with 0 points is harmless.
