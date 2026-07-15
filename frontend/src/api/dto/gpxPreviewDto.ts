@@ -22,6 +22,8 @@ export interface GpxPreviewDto {
   owned: boolean
   /** Creation timestamp */
   createdAt: Instant
+  /** Rendered map thumbnail template URL (with a {size} placeholder), used for link previews; null when no thumbnail was generated */
+  thumbnailUrl?: string
   /** Tracks */
   tracks: TrackDto[]
   /** Waypoints */

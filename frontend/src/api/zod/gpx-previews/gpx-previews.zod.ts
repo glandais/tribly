@@ -53,6 +53,12 @@ export const CreatePreviewResponse = zod
     hilliness: zod.number().describe('Elevation gain per kilometer'),
     owned: zod.boolean().describe('Whether the current user created this preview'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
+    thumbnailUrl: zod
+      .string()
+      .optional()
+      .describe(
+        'Rendered map thumbnail template URL (with a {size} placeholder), used for link previews; null when no thumbnail was generated'
+      ),
     tracks: zod
       .array(
         zod
@@ -157,6 +163,12 @@ export const CreatePreviewFromPointsResponse = zod
     hilliness: zod.number().describe('Elevation gain per kilometer'),
     owned: zod.boolean().describe('Whether the current user created this preview'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
+    thumbnailUrl: zod
+      .string()
+      .optional()
+      .describe(
+        'Rendered map thumbnail template URL (with a {size} placeholder), used for link previews; null when no thumbnail was generated'
+      ),
     tracks: zod
       .array(
         zod
@@ -269,6 +281,12 @@ export const UpdatePreviewResponse = zod
     hilliness: zod.number().describe('Elevation gain per kilometer'),
     owned: zod.boolean().describe('Whether the current user created this preview'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
+    thumbnailUrl: zod
+      .string()
+      .optional()
+      .describe(
+        'Rendered map thumbnail template URL (with a {size} placeholder), used for link previews; null when no thumbnail was generated'
+      ),
     tracks: zod
       .array(
         zod
@@ -352,6 +370,12 @@ export const GetPreviewResponse = zod
     hilliness: zod.number().describe('Elevation gain per kilometer'),
     owned: zod.boolean().describe('Whether the current user created this preview'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
+    thumbnailUrl: zod
+      .string()
+      .optional()
+      .describe(
+        'Rendered map thumbnail template URL (with a {size} placeholder), used for link previews; null when no thumbnail was generated'
+      ),
     tracks: zod
       .array(
         zod

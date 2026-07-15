@@ -11,6 +11,7 @@ import fr.pedalons.dto.validation.ValidateSchema;
 import java.time.Instant;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An analysed GPX file, shaped like the route detail payload so the frontend map and elevation
@@ -28,12 +29,18 @@ public record GpxPreviewDto(
     @Schema(description = "Whether the current user created this preview", required = true)
         boolean owned,
     @Schema(description = "Creation timestamp", required = true) Instant createdAt,
+    @Schema(
+            description =
+                "Rendered map thumbnail template URL (with a {size} placeholder), used for link"
+                    + " previews; null when no thumbnail was generated")
+        @Nullable String thumbnailUrl,
     @Schema(description = "Tracks", required = true) List<TrackDto> tracks,
     @Schema(description = "Waypoints", required = true) List<WaypointDto> waypoints) {
 
   public static GpxPreviewDto from(GpxPreview preview, boolean owned) {
+    String publicId = preview.getPublicId().toString();
     return new GpxPreviewDto(
-        preview.getPublicId().toString(),
+        publicId,
         preview.getName(),
         preview.getDistance(),
         preview.getElevationGain(),
@@ -41,6 +48,7 @@ public record GpxPreviewDto(
         preview.getHilliness(),
         owned,
         preview.getCreatedAt(),
+        preview.isHasThumbnail() ? "/api/gpx-previews/" + publicId + "/thumbnail/{size}" : null,
         preview.getTracks().stream().map(t -> TrackDto.of(t.trackPoints(), t.climbs())).toList(),
         preview.getWaypoints().stream()
             .map(w -> new WaypointDto(point(WGS84, g(w.lng(), w.lat())), w.name()))

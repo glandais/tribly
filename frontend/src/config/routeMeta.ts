@@ -373,10 +373,7 @@ export const adMeta: RouteMetaFn = (ctx) => {
       imgFromAssets(ctx.origin, ad.media?.assets, alt) ??
       imgFromAsset(ctx.origin, team?.about?.assets?.logo, alt) ??
       defaultImage(ctx.origin, appNameOf(ctx)),
-    product:
-      ad.price != null
-        ? { priceAmount: String(ad.price), priceCurrency: 'EUR' }
-        : undefined,
+    product: ad.price != null ? { priceAmount: String(ad.price), priceCurrency: 'EUR' } : undefined,
   }
 }
 
@@ -389,6 +386,7 @@ export const gpxPreviewMeta: RouteMetaFn = (ctx) => {
   const appName = appNameOf(ctx)
   const km = formatKm(preview.distance)
   const name = preview.name?.trim() || ctx.t('gpxTools.preview.title')
+  const alt = ctx.t('seo.gpx.imageAlt', { name, km, appName })
 
   return {
     type: 'website',
@@ -398,9 +396,9 @@ export const gpxPreviewMeta: RouteMetaFn = (ctx) => {
       gain: Math.round(preview.elevationGain),
       loss: Math.round(preview.elevationLoss),
     })} · ${Math.round(preview.hilliness)} m/km — ${ctx.t('seo.gpx.sharedVia', { appName })}`,
-    image: {
+    image: imgFromTemplate(ctx.origin, preview.thumbnailUrl, alt) ?? {
       ...defaultImage(ctx.origin, appName),
-      alt: ctx.t('seo.gpx.imageAlt', { name, km, appName }),
+      alt,
     },
   }
 }

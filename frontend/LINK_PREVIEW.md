@@ -62,7 +62,7 @@ admin, edit, and transient utility routes carry no `meta` and unfurl with site-w
 | stage | `article` | stage route thumbnail → stage image → trip thumbnail → default |
 | route / route map (carte) | `website` | route map thumbnail → team logo → default |
 | ad | `product` | ad image → team logo → default |
-| gpx tools preview | `website` | default (dynamic stats in title/description) |
+| gpx tools preview | `website` | rendered map thumbnail → default (dynamic stats in title/description) |
 
 ## Findings that shaped the design (2026)
 

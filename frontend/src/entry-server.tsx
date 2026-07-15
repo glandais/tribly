@@ -157,10 +157,7 @@ export async function render(url: string, headers: Record<string, string> = {}) 
  */
 async function renderAppToString(app: React.ReactElement, timeoutMs = 10_000): Promise<string> {
   const controller = new AbortController()
-  const timer = setTimeout(
-    () => controller.abort(new Error('[SSR] render timed out')),
-    timeoutMs
-  )
+  const timer = setTimeout(() => controller.abort(new Error('[SSR] render timed out')), timeoutMs)
   try {
     const { prelude } = await prerenderToNodeStream(app, {
       signal: controller.signal,

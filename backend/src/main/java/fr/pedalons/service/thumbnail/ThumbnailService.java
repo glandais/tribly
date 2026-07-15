@@ -108,24 +108,15 @@ public class ThumbnailService {
     // Remove old thumbnails
     removeExistingThumbnails(entity, lightType, darkType);
 
-    // Build combined GPX with one path per route
-    List<GPXPath> paths = new ArrayList<>();
+    // Build combined GPX with one path per route track
+    List<ThumbnailTrack> tracks = new ArrayList<>();
     for (Route route : routes) {
       for (GpxTrack track : route.getTracks()) {
-        GPXPath gpxPath = new GPXPath(track.getName(), GPXPathType.TRACK);
-        for (GpxTrack.TrackPoint tp : track.getTrackPoints()) {
-          Point p = new Point();
-          p.setLon(Math.toRadians(tp.lng()));
-          p.setLat(Math.toRadians(tp.lat()));
-          p.setEle(tp.ele());
-          p.setInstant(null, Instant.EPOCH);
-          gpxPath.addPoint(p);
-        }
-        gpxPath.computeArrays();
-        paths.add(gpxPath);
+        tracks.add(new ThumbnailTrack(track.getName(), track.getTrackPoints()));
       }
     }
 
+    List<GPXPath> paths = buildPaths(tracks);
     if (paths.isEmpty()) {
       return;
     }
@@ -134,6 +125,50 @@ public class ThumbnailService {
 
     generateThumbnail(entity, gpx, "colorful", lightType, "thumbnail-light.png");
     generateThumbnail(entity, gpx, "eclipse", darkType, "thumbnail-dark.png");
+  }
+
+  /** Track geometry reduced to what the map renderer needs — decoupled from {@code Asset}/team. */
+  public record ThumbnailTrack(String name, List<GpxTrack.TrackPoint> points) {}
+
+  /**
+   * Renders track geometry to a light-style map PNG at {@code output}, the same way ride/route
+   * thumbnails are drawn, but to a plain file instead of an {@code Asset}. GPX previews have no team
+   * and therefore no asset to hang a thumbnail on, so they render straight to storage. Returns
+   * {@code false} (leaving no usable file) when there is nothing to draw or rendering fails —
+   * callers treat a thumbnail as best-effort.
+   */
+  public boolean renderLightThumbnail(File output, List<ThumbnailTrack> tracks) {
+    List<GPXPath> paths = buildPaths(tracks);
+    if (paths.isEmpty()) {
+      return false;
+    }
+    GPX gpx = new GPX("thumbnail", paths, List.of());
+    try {
+      String tileUrl = tileserverUrl + "/styles/colorful/256/{z}/{x}/{y}.png";
+      tileMapProducer.createTileMap(output, gpx, tileUrl, 0.1, 512, 512, ROUTE_COLORS);
+      return true;
+    } catch (Exception e) {
+      LOG.warnv("Preview thumbnail generation failed: {0}", e.getMessage());
+      return false;
+    }
+  }
+
+  private static List<GPXPath> buildPaths(List<ThumbnailTrack> tracks) {
+    List<GPXPath> paths = new ArrayList<>();
+    for (ThumbnailTrack track : tracks) {
+      GPXPath gpxPath = new GPXPath(track.name(), GPXPathType.TRACK);
+      for (GpxTrack.TrackPoint tp : track.points()) {
+        Point p = new Point();
+        p.setLon(Math.toRadians(tp.lng()));
+        p.setLat(Math.toRadians(tp.lat()));
+        p.setEle(tp.ele());
+        p.setInstant(null, Instant.EPOCH);
+        gpxPath.addPoint(p);
+      }
+      gpxPath.computeArrays();
+      paths.add(gpxPath);
+    }
+    return paths;
   }
 
   private void generateThumbnail(

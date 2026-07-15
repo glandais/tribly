@@ -211,10 +211,7 @@ export function buildMetaTags(meta: RouteMeta | undefined, ctx: RouteMetaContext
   const appName = config?.appName || 'Pédalons'
 
   const title = truncate(meta?.title?.trim() || appName, 70)
-  const description = truncate(
-    meta?.description?.trim() || t('home.subtitle'),
-    200
-  )
+  const description = truncate(meta?.description?.trim() || t('home.subtitle'), 200)
   const type: OgType = meta?.type || 'website'
   const url = meta?.url || `${origin}${path}`
   const image = meta?.image || defaultImage(origin, appName)
