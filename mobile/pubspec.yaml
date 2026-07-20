@@ -28,7 +28,7 @@ dependencies:
 
 
   # WebAuthn/Passkeys
-  passkeys: ^2.21.1
+  passkeys: ^2.22.0
   passkeys_platform_interface: ^2.6.0
 
   # Secure storage
