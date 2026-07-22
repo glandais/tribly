@@ -5,6 +5,7 @@ import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.service.auth.JwtService;
+import fr.pedalons.util.QueryStats;
 import fr.pedalons.util.TestDataCleaner;
 import fr.pedalons.util.TestDataService;
 import jakarta.inject.Inject;
@@ -25,6 +26,7 @@ public abstract class AbstractResourceTest extends AbstractBaseTest {
   @Inject protected TestDataService dataService;
   @Inject protected TestDataCleaner dataCleaner;
   @Inject protected JwtService jwtService;
+  @Inject protected QueryStats queryStats;
 
   protected Domain domain;
   protected User user1;
