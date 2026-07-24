@@ -38,6 +38,19 @@ class AuthNotifier extends StateNotifier<AuthState> {
     _ref.read(accessTokenHolderProvider.notifier).state = token;
   }
 
+  /// Drop every user-scoped cached response so a change of identity never serves
+  /// the previous user's content (e.g. an organizer's drafts still cached after
+  /// logging back in as a regular member).
+  ///
+  /// Data providers are keyed only by their content params (page, type, slug…),
+  /// not by the current user, and are not autoDispose — so their cache survives
+  /// a logout. Every authenticated data provider ultimately `watch`es
+  /// [apiClientProvider], so invalidating it cascades a refetch through the whole
+  /// authenticated tree in one shot, without having to enumerate each provider.
+  void _resetUserScopedData() {
+    _ref.invalidate(apiClientProvider);
+  }
+
   /// Initialize auth state by attempting to refresh from stored token
   Future<void> initialize() async {
     if (state.isInitialized || state.isInitializing) return;
@@ -112,6 +125,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
       isLoading: false,
       error: null,
     );
+
+    // Identity changed: drop any content cached for a previous user.
+    _resetUserScopedData();
   }
 
   /// Register a new user
@@ -249,6 +265,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       await _storage.deleteRefreshToken();
       _syncTokenToHolder(null);
       state = const AuthState(isInitialized: true);
+      // Drop the logged-out user's cached content before anyone logs back in.
+      _resetUserScopedData();
     }
   }
 
@@ -262,6 +280,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       await _storage.deleteRefreshToken();
       _syncTokenToHolder(null);
       state = const AuthState(isInitialized: true);
+      // Drop the logged-out user's cached content before anyone logs back in.
+      _resetUserScopedData();
     }
   }
 
