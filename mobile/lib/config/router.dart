@@ -39,13 +39,13 @@ final initialDeepLinkProvider = Provider<String?>((ref) => null);
 typedef _AncestorBuilder = String Function(
     Map<String, String> params, String locale);
 
-/// Hierarchies for deep-linked detail pages. Each entry pairs a detail route's
-/// locale variants with the list of ancestor URL builders (root → parent),
-/// used by [ancestorsForDeepLink] to reconstruct a back stack on cold start.
-class _DetailHierarchy {
+/// Hierarchies for deep-linked pages. Each entry pairs a route's locale
+/// variants with the list of ancestor URL builders (root → parent), used by
+/// [ancestorsForDeepLink] to reconstruct a back stack on cold start.
+class _DeepLinkHierarchy {
   final Map<String, String> patterns;
   final List<_AncestorBuilder> ancestors;
-  const _DetailHierarchy({required this.patterns, required this.ancestors});
+  const _DeepLinkHierarchy({required this.patterns, required this.ancestors});
 }
 
 String _homeAncestor(Map<String, String> p, String locale) =>
@@ -61,45 +61,76 @@ String _teamAdsAncestor(Map<String, String> p, String locale) =>
 String _teamRoutesAncestor(Map<String, String> p, String locale) =>
     PathVariants.routes(p['teamSlug']!)[locale]!;
 
-final List<_DetailHierarchy> _detailHierarchies = [
-  _DetailHierarchy(
+final List<_DeepLinkHierarchy> _deepLinkHierarchies = [
+  // Standalone pages outside any shell: without an ancestor they would be the
+  // only entry in the stack, leaving no way back into the app.
+  _DeepLinkHierarchy(
+    patterns: PathVariants.privacy(),
+    ancestors: [_homeAncestor],
+  ),
+  _DeepLinkHierarchy(
+    patterns: PathVariants.terms(),
+    ancestors: [_homeAncestor],
+  ),
+  _DeepLinkHierarchy(
+    patterns: PathVariants.deviceVerifyGarmin(),
+    ancestors: [_homeAncestor],
+  ),
+  _DeepLinkHierarchy(
+    patterns: PathVariants.deviceVerifyKaroo(),
+    ancestors: [_homeAncestor],
+  ),
+
+  // Team shell pages: the team bottom navigation only moves between team tabs.
+  // The chain starts at the teams tab rather than home — pushing one main shell
+  // tab over another merges them into a single shell match whose state stays on
+  // the first one, which would light up the wrong tab. The teams tab still has
+  // the bottom navigation to reach home.
+  _DeepLinkHierarchy(
+    patterns: PathVariants.team(':teamSlug'),
+    ancestors: [_teamsAncestor],
+  ),
+  _DeepLinkHierarchy(
+    patterns: PathVariants.teamAbout(':teamSlug'),
+    ancestors: [_teamsAncestor],
+  ),
+  _DeepLinkHierarchy(
+    patterns: PathVariants.teamCalendar(':teamSlug'),
+    ancestors: [_teamsAncestor],
+  ),
+  _DeepLinkHierarchy(
+    patterns: PathVariants.routes(':teamSlug'),
+    ancestors: [_teamsAncestor],
+  ),
+  _DeepLinkHierarchy(
+    patterns: PathVariants.teamAds(':teamSlug'),
+    ancestors: [_teamsAncestor],
+  ),
+
+  // Detail pages.
+  _DeepLinkHierarchy(
     patterns: PathVariants.ride(':teamSlug', ':rideSlug'),
-    ancestors: [_homeAncestor, _teamsAncestor, _teamAncestor],
+    ancestors: [_teamsAncestor, _teamAncestor],
   ),
-  _DetailHierarchy(
+  _DeepLinkHierarchy(
     patterns: PathVariants.post(':teamSlug', ':postSlug'),
-    ancestors: [_homeAncestor, _teamsAncestor, _teamAncestor],
+    ancestors: [_teamsAncestor, _teamAncestor],
   ),
-  _DetailHierarchy(
+  _DeepLinkHierarchy(
     patterns: PathVariants.trip(':teamSlug', ':tripSlug'),
-    ancestors: [_homeAncestor, _teamsAncestor, _teamAncestor],
+    ancestors: [_teamsAncestor, _teamAncestor],
   ),
-  _DetailHierarchy(
+  _DeepLinkHierarchy(
     patterns: PathVariants.stage(':teamSlug', ':tripSlug', ':stageSlug'),
-    ancestors: [
-      _homeAncestor,
-      _teamsAncestor,
-      _teamAncestor,
-      _tripAncestor,
-    ],
+    ancestors: [_teamsAncestor, _teamAncestor, _tripAncestor],
   ),
-  _DetailHierarchy(
+  _DeepLinkHierarchy(
     patterns: PathVariants.ad(':teamSlug', ':adSlug'),
-    ancestors: [
-      _homeAncestor,
-      _teamsAncestor,
-      _teamAncestor,
-      _teamAdsAncestor,
-    ],
+    ancestors: [_teamsAncestor, _teamAncestor, _teamAdsAncestor],
   ),
-  _DetailHierarchy(
+  _DeepLinkHierarchy(
     patterns: PathVariants.route(':teamSlug', ':routeSlug'),
-    ancestors: [
-      _homeAncestor,
-      _teamsAncestor,
-      _teamAncestor,
-      _teamRoutesAncestor,
-    ],
+    ancestors: [_teamsAncestor, _teamAncestor, _teamRoutesAncestor],
   ),
 ];
 
@@ -119,15 +150,16 @@ Map<String, String>? _matchPattern(String pattern, String actualPath) {
 }
 
 /// Returns the ancestor URLs (root → immediate parent) for a deep-linked path,
-/// in the same locale the path was authored in. Empty if [path] is not a
-/// known detail page (in which case the deep link handler just [GoRouter.go]s).
+/// in the same locale the path was authored in. Empty when the target already
+/// carries its own navigation (home, main shell tabs, auth pages) — the deep
+/// link handler then just [GoRouter.go]es to it.
 List<String> ancestorsForDeepLink(String path) {
   final barePath = path.split('?').first;
-  for (final detail in _detailHierarchies) {
-    for (final entry in detail.patterns.entries) {
+  for (final hierarchy in _deepLinkHierarchies) {
+    for (final entry in hierarchy.patterns.entries) {
       final params = _matchPattern(entry.value, barePath);
       if (params != null) {
-        return detail.ancestors.map((fn) => fn(params, entry.key)).toList();
+        return hierarchy.ancestors.map((fn) => fn(params, entry.key)).toList();
       }
     }
   }
@@ -336,33 +368,40 @@ List<GoRoute> _buildTeamShellTrees() {
   return trees;
 }
 
-/// Provider for the app router
+/// Provider for the app router.
+///
+/// The [GoRouter] is built **once**: watching auth state here would recreate it
+/// on every auth change and restart the navigator from [GoRouter.initialLocation],
+/// wiping the back stack the deep link handler builds at startup (see main.dart).
+/// Auth changes only re-run [GoRouter.redirect], through [refreshListenable].
 final routerProvider = Provider<GoRouter>((ref) {
-  final isAuthenticated = ref.watch(authProvider.select((s) => s.isAuthenticated));
-  final isInitialized = ref.watch(authProvider.select((s) => s.isInitialized));
-  final initialDeepLink = ref.read(initialDeepLinkProvider);
-  // Deep links that match a detail page start at home so the hierarchy handler
-  // (see main.dart) can build the back stack post-frame. Others can be used
-  // directly as initial location — no flash, no hierarchy to restore.
-  final initialLocation = initialDeepLink != null &&
-          ancestorsForDeepLink(initialDeepLink).isEmpty
-      ? initialDeepLink
-      : Paths.home();
+  final authRefresh = ValueNotifier<int>(0);
+  ref.listen(
+    authProvider.select((s) => (s.isInitialized, s.isAuthenticated)),
+    (_, _) => authRefresh.value++,
+  );
+  ref.onDispose(authRefresh.dispose);
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: initialLocation,
+    // Deep links are always replayed by the handler in main.dart, which also
+    // rebuilds the ancestor stack. Overriding the platform default keeps that
+    // the single entry point, whatever the OS passes as initial route.
+    initialLocation: Paths.home(),
+    overridePlatformDefaultLocation: true,
+    refreshListenable: authRefresh,
     debugLogDiagnostics: true,
     redirect: (context, state) {
-      if (!isInitialized) return null;
+      final auth = ref.read(authProvider);
+      if (!auth.isInitialized) return null;
 
       final location = state.matchedLocation;
 
-      if (!isAuthenticated && !_isAuthAdjacent(location)) {
+      if (!auth.isAuthenticated && !_isAuthAdjacent(location)) {
         return Paths.login();
       }
 
-      if (isAuthenticated && _loginPaths.contains(location)) {
+      if (auth.isAuthenticated && _loginPaths.contains(location)) {
         return Paths.home();
       }
 

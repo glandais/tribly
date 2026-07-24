@@ -43,7 +43,10 @@ class _LegalPageState extends State<LegalPage> {
         : 'profile.terms'.tr();
 
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(
+        title: Text(title),
+        leading: const BackOrHomeButton(),
+      ),
       // The page owns the scroll view so it attaches to the route's
       // PrimaryScrollController — that is what makes the iOS status bar tap
       // scroll back to the top.

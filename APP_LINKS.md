@@ -31,7 +31,7 @@ Fichiers **non** générés mais nécessaires :
 | `mobile/lib/config/paths.dart` | Re-export de `paths.generated.dart` |
 | `mobile/lib/config/locale_context.dart` | Variable globale de locale, synchronisée depuis `context.locale.languageCode` dans `app.dart` |
 | `frontend/src/config/routes.config.ts` | Déclaration des routes web avec `pathVariants.xxx()` |
-| `mobile/lib/config/router.dart` | GoRouter — enregistre toutes les variantes via `_perLocale(...)` et `_teamShellTrees()` |
+| `mobile/lib/config/router.dart` | GoRouter — enregistre toutes les variantes via `_perLocale(...)` et `_buildTeamShellTrees()`, et déclare les hiérarchies de deep link (`_deepLinkHierarchies`) |
 | `frontend/public/.well-known/assetlinks.json` | Associe le domaine au package Android (SHA256 fingerprint) |
 | `mobile/ios/Runner/Runner.entitlements` | Domaines associés iOS |
 | `mobile/lib/main.dart` | Deep link handler (package `app_links`) |
@@ -127,9 +127,36 @@ Donc un user FR partage `/equipes/mon-club/sorties/balade-dimanche` ; un user EN
 
 `mobile/lib/main.dart` utilise le package `app_links` :
 - Au lancement : `appLinks.getInitialLink()` remplit `initialDeepLinkProvider`.
-- En cours d'exécution : `appLinks.uriLinkStream` passe le path à `GoRouter.go()`.
+- En cours d'exécution : `appLinks.uriLinkStream` émet chaque lien reçu — **y compris le lien de
+  lancement**, rejoué au démarrage.
 
-Aucune modification nécessaire sauf traitement spécial de query params.
+Les deux sources convergent vers `_requestOpen()`, qui ne garde que la dernière cible et attend que
+l'app soit navigable avant d'ouvrir :
+
+1. **auth initialisée** — `app.dart` affiche son écran de chargement tant que ce n'est pas le cas,
+   donc `MaterialApp.router` n'est pas monté (sans timeout : restaurer une session peut demander un
+   aller-retour réseau) ;
+2. **router monté** — `GoRouter.push` empile sur `routerDelegate.currentConfiguration`, vide tant
+   que le `Router` n'a pas parsé sa première route. Pousser avant écrase silencieusement les
+   ancêtres et laisse une pile à une seule entrée, sans retour possible.
+
+Ensuite `ancestorsForDeepLink()` (dans `router.dart`) fournit les ancêtres à empiler sous la cible :
+`go(premier ancêtre)` puis `push(...)` jusqu'à la page visée. Une page légale ouverte depuis la fiche
+Play Store obtient ainsi Accueil → Confidentialité ; une sortie obtient Équipes → équipe → sortie.
+Les routes qui portent déjà leur navigation (accueil, onglets du shell principal, pages d'auth) n'ont
+pas d'ancêtre et sont ouvertes par un simple `go()`.
+
+Deux règles à ne pas casser :
+
+- **Le `GoRouter` est construit une seule fois** — `routerProvider` n'observe pas l'état d'auth, les
+  changements passent par `refreshListenable`. Le recréer réinitialise la pile depuis
+  `initialLocation` et efface la hiérarchie reconstruite.
+- **Une chaîne d'ancêtres n'empile pas deux onglets du shell principal** — go_router les fusionne en
+  un seul shell dont l'état reste sur le premier, et le mauvais onglet resterait surligné. Les
+  chaînes d'équipe partent donc de l'onglet Équipes, pas de l'accueil.
+
+Une nouvelle route deeplinkable hors shell doit déclarer sa hiérarchie dans `_deepLinkHierarchies`
+(couvert par `mobile/test/deep_link_hierarchy_test.dart`).
 
 ## Références
 

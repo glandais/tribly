@@ -128,7 +128,7 @@ Flutter, Dart 3.10+, Riverpod 3, GoRouter 17. 8 features (auth, home, teams, rid
 | # | Probleme | Severite | Effort | Fichiers | Statut |
 |---|----------|----------|--------|----------|--------|
 | M1 | 0 tests — pas meme de repertoire `test/` | Critique | M | Nouveau `mobile/test/` | |
-| M2 | Memory leak — stream subscription non dispose dans `_DeepLinkHandler` | Critique | S | `main.dart:60` | |
+| M2 | Memory leak — stream subscription non dispose dans `_DeepLinkHandler` | Critique | S | `main.dart:60` | ✅ |
 | M3 | `rules.md` recommande ValueNotifier mais le code utilise Riverpod — contradiction | Important | S | `rules.md` | ⚠️ |
 | M4 | Dependances inutilisees : `hooks_riverpod` (flutter_hooks retire, riverpod_generator reste en dev dep) | Important | S | `pubspec.yaml` | ⚠️ |
 | M5 | Labels de navigation hardcodes en francais | Important | S | `navigation_destination.dart` | ✅ |

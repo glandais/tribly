@@ -8,6 +8,7 @@ import '../../../../api/generated/export.dart';
 import '../../../../api/pedalons_api_client.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/utils/api_error_handler.dart';
+import '../../../../core/widgets/widgets.dart';
 
 /// Device verification page for Karoo/Garmin device code flow.
 /// The user enters or receives a 6-character code from their GPS device
@@ -117,6 +118,7 @@ class _DeviceVerifyPageState extends ConsumerState<DeviceVerifyPage> {
       appBar: AppBar(
         title: Text('device.title'.tr()),
         centerTitle: true,
+        leading: const BackOrHomeButton(),
       ),
       body: SafeArea(
         child: Center(

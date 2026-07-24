@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:app_links/app_links.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app.dart';
 import 'config/router.dart';
+import 'features/auth/providers/auth_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -63,20 +65,89 @@ class _DeepLinkHandler extends ConsumerStatefulWidget {
   ConsumerState<_DeepLinkHandler> createState() => _DeepLinkHandlerState();
 }
 
+/// Give up waiting for the router to mount after this many rendered frames.
+const int _maxRouterMountFrames = 120;
+
 class _DeepLinkHandlerState extends ConsumerState<_DeepLinkHandler> {
+  StreamSubscription<Uri>? _linkSubscription;
+  ProviderSubscription<bool>? _authSubscription;
+  Completer<void>? _authInitialized;
+  String? _pendingPath;
+  bool _opening = false;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final initialPath = ref.read(initialDeepLinkProvider);
-      if (initialPath != null) _openWithHierarchy(initialPath);
-    });
 
-    widget.appLinks.uriLinkStream.listen((Uri uri) {
+    // `uriLinkStream` also replays the launch link, so both sources funnel into
+    // [_requestOpen], which keeps only the latest target.
+    final initialPath = ref.read(initialDeepLinkProvider);
+    if (initialPath != null) _requestOpen(initialPath);
+
+    _linkSubscription = widget.appLinks.uriLinkStream.listen((Uri uri) {
       log('Deep link received: $uri', name: 'main');
       final path = uri.path + (uri.query.isNotEmpty ? '?${uri.query}' : '');
-      _openWithHierarchy(path);
+      _requestOpen(path);
     });
+  }
+
+  @override
+  void dispose() {
+    _linkSubscription?.cancel();
+    _authSubscription?.close();
+    super.dispose();
+  }
+
+  void _requestOpen(String path) {
+    _pendingPath = path;
+    if (_opening) return;
+    _opening = true;
+    _openWhenReady();
+  }
+
+  /// Waits until the app is ready to be navigated, then opens the pending link.
+  ///
+  /// Two conditions must hold. Auth must be initialized, since `app.dart` shows
+  /// its loading scaffold until then — with no timeout, as restoring a session
+  /// can take a network round trip. And the router must have parsed its first
+  /// route: [GoRouter.push] stacks onto `routerDelegate.currentConfiguration`,
+  /// which stays empty until then — pushing before that silently collapses the
+  /// ancestors into a single-entry stack, leaving the page with no way back.
+  Future<void> _openWhenReady() async {
+    await _whenAuthInitialized();
+    if (!mounted) return;
+
+    var mountedRouter = false;
+    for (var i = 0; i < _maxRouterMountFrames && !mountedRouter; i++) {
+      await WidgetsBinding.instance.endOfFrame;
+      if (!mounted) return;
+      mountedRouter = ref
+          .read(routerProvider)
+          .routerDelegate
+          .currentConfiguration
+          .isNotEmpty;
+    }
+    if (!mountedRouter) {
+      log('Router did not mount in time, opening deep link anyway',
+          name: 'main');
+    }
+
+    final path = _pendingPath;
+    _pendingPath = null;
+    _opening = false;
+    if (path != null) _openWithHierarchy(path);
+  }
+
+  Future<void> _whenAuthInitialized() {
+    if (ref.read(authProvider).isInitialized) return Future<void>.value();
+    final completer = _authInitialized ??= Completer<void>();
+    _authSubscription ??= ref.listenManual(
+      authProvider.select((s) => s.isInitialized),
+      (_, isInitialized) {
+        if (isInitialized && !completer.isCompleted) completer.complete();
+      },
+    );
+    return completer.future;
   }
 
   void _openWithHierarchy(String path) {

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
+import '../../../../config/paths.dart';
 import '../../../../core/adaptive/adaptive.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../pages/team_detail_page.dart';
@@ -163,7 +164,7 @@ class _TeamShellContentState extends State<_TeamShellContent> {
             backgroundColor: theme.colorScheme.surface,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back),
-              onPressed: () => context.go('/teams'),
+              onPressed: () => context.go(Paths.teams()),
             ),
             destinations: _destinations
                 .map((dest) => NavigationRailDestination(

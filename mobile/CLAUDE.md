@@ -92,7 +92,9 @@ context.go(Paths.ride(teamSlug, rideSlug));
 
 Path declarations live in `../contracts/routes.yaml` (single source of truth shared with the frontend). After editing the YAML, run `pnpm generate-routes` from `frontend/` — it regenerates `lib/config/paths.generated.dart` and the Android deeplink section. See [../APP_LINKS.md](../APP_LINKS.md).
 
-`router.dart` registers every locale variant so deep links in any supported language match. Flat routes use `_perLocale(PathVariants.xxx(), ...)`; the team shell uses `_teamShellTrees()` which derives segments from `PathVariants` via `_relativeTo`.
+`router.dart` registers every locale variant so deep links in any supported language match. Flat routes use `_perLocale(PathVariants.xxx(), ...)`; the team shell uses `_buildTeamShellTrees()` which derives segments from `PathVariants` via `_underTeam`.
+
+A route opened straight from a link starts with an empty back stack, so `_deepLinkHierarchies` declares the ancestors to push underneath it (`ancestorsForDeepLink`). Add an entry for any new deep-linkable route that lives outside a shell — see [../APP_LINKS.md](../APP_LINKS.md) and `test/deep_link_hierarchy_test.dart`.
 
 **API Clients**: Provider-based dependency injection
 
@@ -121,6 +123,8 @@ final teamsClientProvider = Provider<TeamsClient>((ref) => ref.watch(apiClientPr
 - **Two Dio instances**: `baseDioProvider` (no auth) for login/register, `dioProvider` (with auth interceptor) for protected endpoints
 - **Token sync**: Auth state updates must call `_syncTokenToHolder()` for interceptor to see new token
 - **Deep links**: Handled by `app_links` package, GoRouter processes the path. Manifest intent-filters are generated from `../contracts/routes.yaml` — see [../APP_LINKS.md](../APP_LINKS.md)
+- **The router is built once**: `routerProvider` must never `ref.watch` auth state — recreating the `GoRouter` restarts the navigator from `initialLocation` and wipes the back stack rebuilt for a deep link. Auth changes flow through `refreshListenable` and re-run `redirect`
+- **Deep links wait for the app to be navigable**: `main.dart` opens the pending link only once auth is initialized *and* the router has parsed its first route — `GoRouter.push` stacks onto `routerDelegate.currentConfiguration`, which is empty before that
 - **Locale**: `app.dart` propagates `context.locale.languageCode` into `locale_context.dart` so `Paths.xxx()` returns the right variant
 - Config via `--dart-define`: `flutter run --dart-define=API_BASE_URL=http://localhost:8080`
 
