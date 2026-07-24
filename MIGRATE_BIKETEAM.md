@@ -36,6 +36,10 @@ The `restore` profile starts a second backend that migrates `biketeam_import` in
 main database at startup. It reads the GPX/images from `../biketeam-backup`, mounted
 read-only at `/mnt/biketeam`. It is not routed through traefik.
 
+Like `backend`, it joins the `pedalons-shared` network to render thumbnails and elevation
+profiles, so the shared stack must already be running (see Deployment in README.md) —
+otherwise compose refuses to start it, `pedalons-shared` being declared external.
+
 It runs the same `pedalons-backend:${ENV_NAME}` image as the `backend` service, so build it
 first — the migration code only exists in a locally built image:
 

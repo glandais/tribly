@@ -28,6 +28,10 @@ docker compose up -d               # PostgreSQL + imgproxy + valhalla
 docker compose --profile tools up  # + pgAdmin + Mailhog
 ```
 
+Deployed hosts are laid out differently: one shared stack (`docker-compose.shared.yml` — valhalla and
+tileserver, on the `pedalons-shared` network) plus one `docker-compose.yml` stack per environment.
+See [Deployment](README.md#deployment) before touching networks or the compose files.
+
 ## Multi-Tenancy
 
 - **Domain-based isolation**: Each HTTP domain has its own teams/users. Same email can exist on different domains.

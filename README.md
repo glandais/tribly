@@ -171,7 +171,9 @@ pedalons/
 ## Deployment
 
 A host runs **one shared stack** plus **one stack per environment**, each from its own checkout
-(`~/shared`, `~/prod`, `~/staging`) with its own `.env`.
+(`~/shared`, `~/prod`, `~/staging`) with its own `.env`. Caddy terminates TLS on the host and
+reverse-proxies each hostname to that environment's traefik, published on loopback only
+(`HTTP_PORT`: 8090 for prod, 8089 for staging).
 
 `docker-compose.shared.yml` holds the services that carry no application data and are read-only:
 `valhalla` (17 GB of OSM routing tiles) and `tileserver` (server-side raster rendering, ~1.8 GB
@@ -199,7 +201,44 @@ Two services stay per-environment on purpose, even though they look shareable:
   cannot serve two MinIO backends. They become shareable if and when MinIO is shared.
 - **the gpx2web cache** (`DATA_CACHE_PATH`) — gpx2web downloads tiles straight into their final path
   with no write-then-rename, guarded only by an in-JVM lock. Two backends sharing the directory can
-  read a truncated file and cache it permanently.
+  read a truncated file and cache it permanently. Keep it at `/mnt/cache`: pointed at `/tmp` it lives
+  inside the container and is re-downloaded in full on every restart.
+
+### Seeding the shared Valhalla data
+
+`~/shared/data/valhalla` is ~17 GB and takes hours to build from the `.osm.pbf`. On first start the
+container hashes the directory and skips the build if it matches — the log then says *"Jumping
+directly to the tile loading!"*, and anything mentioning a rebuild means the check failed. When an
+environment already holds a built copy, move it rather than rebuild: keep `france-latest.osm.pbf`,
+`valhalla_tiles.tar` and `file_hashes.txt` together, and note that `mv` cannot rename the
+root-owned subdirectories (`elevation_data`, `valhalla_tiles`) out of a user-owned parent — do that
+part from a root context:
+
+```bash
+docker run --rm -v /home/pedalons:/h alpine \
+  mv /h/staging/data/valhalla/elevation_data /h/shared/data/valhalla/
+```
+
+### Changing an environment's network topology
+
+Renaming or re-declaring a network makes compose (v5.3.1) drop the old one and create the new one
+*during* the run, then fail on `network X was found but has incorrect label
+com.docker.compose.network` — it labels the network with the map key but validates against the
+resolved name. The run aborts halfway and can leave a container attached to **no network**, which
+then fails with a misleading DNS error rather than an obvious one. So for any such change, do not
+rely on a single `up -d`:
+
+```bash
+docker compose down --remove-orphans   # never -v: it drops the postgres and minio volumes
+docker compose up -d
+```
+
+After an aborted run, check what a container is actually attached to before believing its logs:
+
+```bash
+docker inspect <container> --format '{{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{end}}'
+docker compose up -d --force-recreate <service>
+```
 
 ## Features
 
