@@ -2,18 +2,14 @@
 set -e
 
 flutter clean
-dart run openapi_retrofit_generator
-dart run build_runner build
 
-rm -rf build
-
-# iOS
-rm -rf ios/Pods ios/Podfile.lock ios/.symlinks
+# iOS — plugins ship as Swift Packages, resolved at build time (no CocoaPods)
+rm -rf ios/.symlinks ios/Flutter/ephemeral
 
 # Android
 rm -rf android/.gradle android/app/build android/build
-cd android && ./gradlew clean 2>/dev/null || true && cd ..
 
-# Reinstall
+# Reinstall + regenerate
 flutter pub get
-cd ios && pod install --repo-update && cd ..
+dart run openapi_retrofit_generator
+dart run build_runner build

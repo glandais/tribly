@@ -26,9 +26,9 @@ platform :android do
     upload_to_play_store(
       track: "internal",
       aab: "../build/app/outputs/bundle/release/app-release.aab",
-      # Required while the app is still in draft state (no production release yet).
-      # After the first production release you can drop this or set to "completed".
-      release_status: "draft",
+      # "draft" was needed while the app had never been published; it left every
+      # upload sitting as an undeployed draft. The app is published, so roll out.
+      release_status: "completed",
       skip_upload_apk: true,
       skip_upload_metadata: true,
       skip_upload_changelogs: true,
