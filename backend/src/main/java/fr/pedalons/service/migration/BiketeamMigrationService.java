@@ -1084,9 +1084,9 @@ public class BiketeamMigrationService {
       mapRepo.upsert(T_RIDE_GROUP, groups.get(i).id(), tribGroups.get(i).getId());
     }
 
-    // updateRide only detached the groups it dropped; their DELETE runs at the next flush. Force it
-    // now, so the groups below are rows the database really has — a participation persisted against
-    // a group whose orphan removal flushes in between fails as a transient reference.
+    // Settle the groups the ride just gained and lost before hanging participations off them: a
+    // participation persisted against a group Hibernate has already condemned is refused as a
+    // transient reference, and the failure would take the whole ride down with it.
     rideRepository.flush();
 
     for (int i = 0; i < paired; i++) {

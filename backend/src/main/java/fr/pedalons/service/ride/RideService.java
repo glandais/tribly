@@ -188,25 +188,28 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
     }
     updateMedia(ride, request.media());
 
-    Map<Long, RideGroup> existingGroups =
+    // Never empty a collection with orphanRemoval to refill it right after: setProperties looks a
+    // route up, and any query makes Hibernate run its flush-time cascades — which would see the
+    // emptied collection, declare every group an orphan and delete it. Putting them back afterwards
+    // does not bring them back. So the groups stay in place and only the unclaimed ones leave,
+    // once.
+    Map<Long, RideGroup> orphanedGroups =
         ride.getGroups().stream().collect(Collectors.toMap(RideGroup::getId, Function.identity()));
-    ride.getGroups().clear();
     int sortOrder = 0;
     for (GroupRequest groupRequest : request.groups()) {
       Long groupId = TsidUtils.toLongNullable(groupRequest.id());
       if (groupId == null) {
         createRideGroup(teamSlug, user, ride, groupRequest, sortOrder);
       } else {
-        RideGroup existingRideGroup = existingGroups.remove(groupId);
-        if (existingRideGroup != null) {
-          setProperties(teamSlug, ride, existingRideGroup, groupRequest, sortOrder, user);
-          ride.getGroups().add(existingRideGroup);
-        } else {
+        RideGroup existingRideGroup = orphanedGroups.remove(groupId);
+        if (existingRideGroup == null) {
           throw new NotFoundException(EntityType.RIDE_GROUP, groupRequest.id());
         }
+        setProperties(teamSlug, ride, existingRideGroup, groupRequest, sortOrder, user);
       }
       sortOrder++;
     }
+    ride.getGroups().removeAll(orphanedGroups.values());
 
     rideRepository.persist(ride);
 
