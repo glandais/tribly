@@ -165,6 +165,10 @@ services:
     restart: unless-stopped
     networks:
       - pedalons
+    # varnishd resolves the VCL's backend host at compile time: started before imgproxy, it dies on
+    # "could not be resolved to an IP address" and only recovers through the restart policy.
+    depends_on:
+      - imgproxy
     volumes:
       - "./services/varnish/varnish.vcl:/etc/varnish/default.vcl"
     tmpfs:
