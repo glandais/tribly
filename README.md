@@ -313,11 +313,28 @@ Reading the minio volume needs root, so the backup runs from root's crontab:
 15 3 * * * cd /home/pedalons/prod && ./scripts/backup.sh >> /var/log/backup/pedalons-backup.log 2>&1
 ```
 
-and on the backup host, after it:
+and on the backup host, after it — the checkout is refreshed in the same line, so the repository
+stays the single source of truth instead of a copy that quietly drifts:
 
 ```
-30 4 * * * /root/pedalons-backup-prune.sh /home/backup-pedalons 30 >> /var/log/backup/pedalons-backup-prune.log 2>&1
+30 4 * * * cd /opt/pedalons-scripts && { git fetch -q --depth 1 origin develop && git reset -q --hard FETCH_HEAD ; } ; ./scripts/backup-prune.sh /home/backup-pedalons 30 >> /var/log/backup/pedalons-backup-prune.log 2>&1
 ```
+
+`;` rather than `&&` between the two: a failed fetch must not skip the night's pruning, it just runs
+the last version that landed. The checkout is read-only, shallow and sparse (5 MB, `scripts/` only):
+
+```bash
+git clone --depth 1 --single-branch --branch develop --no-checkout \
+  https://github.com/glandais/tribly.git /opt/pedalons-scripts
+cd /opt/pedalons-scripts && git sparse-checkout set --no-cone scripts && git checkout develop
+```
+
+The obvious shortcut — having `backup.sh` push the prune script along with the snapshot, the way
+`backup.ns3085825` copies itself into its own backup — is a trap **here**: root's crontab on the
+backup host would then execute a file the production host can overwrite, so a compromised production
+host would get root execution on the backup host at 04:30. That is exactly what the `rrsync`
+confinement exists to prevent. Pulling from the repository keeps the trust in git, where the
+deployment already places it.
 
 Both write into `/var/log/backup/`, which `scripts/pedalons-backup.logrotate` rotates daily and keeps
 for 30 days — the same directory, glob and settings the backup host already uses for its other
