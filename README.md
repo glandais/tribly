@@ -239,6 +239,203 @@ After an aborted run, check what a container is actually attached to before beli
 docker inspect <container> --format '{{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{end}}'
 docker compose up -d --force-recreate <service>
 ```
+## Backup and restore
+
+`scripts/backup.sh` pushes one dated snapshot per run from a deployed environment to the backup
+host; `scripts/restore.sh` brings an environment back from one, on the same machine or a new one;
+`scripts/backup-prune.sh` expires old snapshots and runs **on the backup host**.
+
+Production is backed up nightly to `optiplex` over the WireGuard tunnel (`10.10.0.1` → `10.10.0.2`).
+
+### rsync is the only channel
+
+The receiving account's key is restricted to `command="rrsync <root>",restrict,from="10.10.0.1"`:
+it accepts an `rsync --server` invocation and refuses everything else, confined to one directory.
+A compromise of the production host therefore stops at its own backup tree — it cannot read the
+other backups on the host, and it cannot delete its own history. Three consequences run through the
+scripts, and none of them are incidental:
+
+- **the dumps are staged locally** (`/var/backups/pedalons/<env>`) before being pushed — there is no
+  remote `cat >`; the staging directory is removed at the end of the run;
+- **the previous snapshot is named explicitly** in `--link-dest`, because `rrsync` rejects any path
+  containing `..`;
+- **retention lives on the backup host** (`backup-prune.sh`, root's crontab there), not in the
+  backup script.
+
+### What a snapshot holds
+
+`<root>/<UTC timestamp>/`:
+
+| File | Contents | Why it matters |
+|------|----------|----------------|
+| `postgres.dump` | `pg_dump -Fc` of `$POSTGRES_DB` | Accounts, teams, rides, routes, posts |
+| `minio/` | The object store, verbatim | Photos, GPX files, avatars, previews |
+| `secrets.tar.gz` | `.env`, `data/keys/*.pem`, `data/storage` | The JWT keys sign every session and passkey; `ENCRYPTION_KEY` decrypts the stored Karoo/Garmin tokens |
+| `MANIFEST` | Timestamp, env, git commit, image tags | Says which commit to rebuild before restoring |
+| `SHA256SUMS` | Checksums of the two archives | Verified by `restore.sh` before it destroys anything |
+| `COMPLETE` | Written last, after everything else landed | A dated directory without it is a failed run, not a backup — and the restricted key cannot delete it, so it has to be recognisable |
+
+Postgres is dumped **before** MinIO on purpose: `AssetService` uploads to S3 and only then persists
+the row, so a file landing mid-backup leaves an orphan object rather than a row pointing at a
+missing one. `pg_dump -Fc` is transactional, and MinIO renames objects into place, so neither needs
+the stack stopped.
+
+Unchanged MinIO objects are hard-linked to the previous snapshot (`rsync --link-dest`): each dated
+directory reads as a full copy but only costs its delta. Measured on production: a first snapshot
+takes ~60 s and 1.7 GB; the next takes ~18 s and near-zero disk.
+
+`.minio.sys/tmp/` is excluded: MinIO stages every write there, so rsync catches files mid-flight and
+fails the run with exit 23. The rest of `.minio.sys` is *not* excluded — without `format.json` MinIO
+does not recognise its own data. A run that still trips 23/24 (an upload landing during the backup)
+gets one more rsync pass before it is called failed.
+
+**Not** in a snapshot, and to be rebuilt by hand: the Docker images (`./build.sh` at the MANIFEST's
+commit), `data/cache` (regenerable, just slow), and the shared valhalla/tileserver data (below).
+
+### Configuration
+
+`BACKUP_*` lives in **`/root/pedalons-backup.env`**, not in `.env`: compose hands the whole `.env`
+to the backend container (`env_file`), so the destination, the key path and the Healthchecks URL
+would end up inside the application — and inside the backup of it. Override the location with
+`BACKUP_ENV_FILE`.
+
+```bash
+BACKUP_REMOTE=pedalonsbackup@10.10.0.2
+BACKUP_REMOTE_PATH=/                     # relative to the rrsync root
+BACKUP_SSH_KEY=/root/.ssh/id_pedalons_backup
+BACKUP_KEEP=30
+BACKUP_PING_URL=https://hc-ping.com/<uuid>
+```
+
+Reading the minio volume needs root, so the backup runs from root's crontab:
+
+```
+15 3 * * * cd /home/pedalons/prod && ./scripts/backup.sh >> /var/log/backup/pedalons-backup.log 2>&1
+```
+
+and on the backup host, after it:
+
+```
+30 4 * * * /root/pedalons-backup-prune.sh /home/backup-pedalons 30 >> /var/log/backup/pedalons-backup-prune.log 2>&1
+```
+
+Both write into `/var/log/backup/`, which `scripts/pedalons-backup.logrotate` rotates daily and keeps
+for 30 days — the same directory, glob and settings the backup host already uses for its other
+backup logs, so one rule covers every machine:
+
+```bash
+mkdir -p /var/log/backup
+install -m 644 scripts/pedalons-backup.logrotate /etc/logrotate.d/backup
+logrotate -d /etc/logrotate.d/backup     # dry run
+```
+
+The scripts run with `BatchMode=yes` and never prompt, so an untrusted host key fails the run with a
+bare `Host key verification failed`. Trust it once, as the user cron runs as.
+
+`BACKUP_PING_URL` gets `/start` before the run and `/fail` (with the run log as the body) on error:
+a backup nobody watches stops existing the day it starts failing.
+
+### Setting up a new receiving account
+
+On the backup host, as root — the model is `nsbackup` in `backup.ns3085825`:
+
+```bash
+adduser --system --group --home /home/pedalonsbackup --shell /bin/bash pedalonsbackup
+mkdir -p /home/pedalonsbackup/.ssh /home/backup-pedalons
+echo 'from="10.10.0.1",restrict,command="rrsync /home/backup-pedalons" ssh-ed25519 AAAA... backup-pedalons-prod' \
+  > /home/pedalonsbackup/.ssh/authorized_keys
+chown -R pedalonsbackup:pedalonsbackup /home/pedalonsbackup /home/backup-pedalons
+chmod 700 /home/pedalonsbackup/.ssh && chmod 600 /home/pedalonsbackup/.ssh/authorized_keys
+chmod 750 /home/backup-pedalons
+```
+
+Check the restriction actually bites — this must fail:
+
+```bash
+ssh -i /root/.ssh/id_pedalons_backup pedalonsbackup@10.10.0.2 'ls /'
+# /usr/bin/rrsync error: SSH_ORIGINAL_COMMAND does not run rsync
+```
+
+### Restoring
+
+```bash
+scripts/restore.sh --list                    # complete snapshots, and failed runs marked as such
+scripts/restore.sh                           # restore the newest complete one (asks to confirm)
+scripts/restore.sh --snapshot 2026-07-24T031500Z
+```
+
+The restore pulls the snapshot to a local directory and verifies its checksums **before** touching
+anything, then runs `docker compose down -v` — it drops the current postgres and minio volumes and
+repopulates them. It refuses a snapshot with no `COMPLETE` marker, and refuses one from another
+`ENV_NAME` unless `--force`.
+
+It needs only `rsync` and `docker`, no root: objects go back through `docker cp`, which also hands
+them to the container as `root:root` — the user MinIO runs as. Writing into
+`/var/lib/docker/volumes` directly would stamp them with the restoring account's uid.
+
+On a **new host**, the order matters — you need `.env` before anything else can read its own config:
+
+```bash
+git clone <repo> ~/prod && cd ~/prod
+
+# 1. secrets first: no .env yet, so pass the coordinates in the environment
+BACKUP_REMOTE=pedalonsbackup@10.10.0.2 BACKUP_REMOTE_PATH=/ \
+BACKUP_SSH_KEY=/root/.ssh/id_pedalons_backup \
+  scripts/restore.sh --secrets-only
+
+# 2. the shared stack (see Deployment), then the images
+cd ~/shared && docker compose -f docker-compose.shared.yml up -d
+cd ~/prod && ./build.sh            # at the commit recorded in MANIFEST
+
+# 3. the data
+scripts/restore.sh
+```
+
+The script ends by printing row counts, the object count and the status of `GET /api/config`. The
+last check is manual and the one that matters: open the site and confirm an existing photo renders —
+that path goes MinIO → imgproxy → varnish, so it proves the objects came back, not just the rows.
+
+Flyway replays any migration newer than the dump on the next boot, so restoring an old snapshot
+under a recent image works; the reverse does not, which is why the MANIFEST records the commit. An
+image older than the snapshot fails at boot, in a crash loop, with:
+
+```
+FlywayValidateException: Detected applied migration not resolved locally: 26.
+```
+
+The restore itself succeeded in that case — the data is in place and the script correctly refuses to
+report success, since `/api/config` never answers 200. Rebuild at the MANIFEST's commit
+(`./build.sh`) and `docker compose up -d`; nothing needs to be restored again.
+
+#### Restore drill from another machine
+
+The restricted key only allows the production host in (`from=`), so a drill elsewhere reads the same
+store through an ordinary SSH account on the backup host — `BACKUP_REMOTE_PATH` is then the real
+path instead of `/`. `--force` is what lets a `pedalons-prod` snapshot land in a differently-named
+local environment:
+
+```bash
+cat > /tmp/drill.env <<'EOF'
+BACKUP_REMOTE=root@192.168.50.95
+BACKUP_REMOTE_PATH=/home/backup-pedalons
+EOF
+BACKUP_ENV_FILE=/tmp/drill.env scripts/restore.sh --force
+```
+
+### Cold backup of the shared stack
+
+`~/shared/data/valhalla` is ~17 GB and takes hours to rebuild from the `.osm.pbf`. It carries no
+application data, so it stays out of the nightly backup — but copying it **once** (and again
+whenever the OSM extract changes) turns a multi-hour restore into an `rsync`:
+
+```bash
+rsync -a ~/shared/data/valhalla/{france-latest.osm.pbf,valhalla_tiles.tar,file_hashes.txt} \
+      ~/shared/data/valhalla/elevation_data \
+      backup-host:/path/to/pedalons-shared/
+```
+
+See [Seeding the shared Valhalla data](#seeding-the-shared-valhalla-data) for the permission trap
+when moving those directories back.
 
 ## Features
 
