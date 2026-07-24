@@ -18,6 +18,10 @@ final _serverVersionProvider = FutureProvider<VersionDto>((ref) async {
   return ref.watch(serverVersionClientProvider).getVersion();
 });
 
+final _packageInfoProvider = FutureProvider<PackageInfo>(
+  (ref) => PackageInfo.fromPlatform(),
+);
+
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
@@ -181,13 +185,17 @@ class ProfilePage extends ConsumerWidget {
                     color: theme.colorScheme.outline,
                   ),
                   title: Text('profile.version'.tr()),
-                  trailing: FutureBuilder<PackageInfo>(
-                    future: PackageInfo.fromPlatform(),
-                    builder: (context, snapshot) => Text(
-                      snapshot.data?.version ?? '',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.outline,
-                      ),
+                  trailing: Text(
+                    ref.watch(_packageInfoProvider).maybeWhen(
+                          // The build number is the only part pubspec bumps on
+                          // each release, so the version alone never changes.
+                          data: (info) => info.buildNumber.isEmpty
+                              ? info.version
+                              : '${info.version} (${info.buildNumber})',
+                          orElse: () => '',
+                        ),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.outline,
                     ),
                   ),
                 ),
