@@ -487,6 +487,7 @@ class _AdaptiveRouteCards extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: StaggeredGridView(
         shrinkWrap: true,
+        primary: false,
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: columns,

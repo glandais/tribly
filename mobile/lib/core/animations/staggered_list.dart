@@ -257,6 +257,13 @@ class StaggeredGridView extends StatefulWidget {
   /// Whether the grid should shrink-wrap its content.
   final bool shrinkWrap;
 
+  /// Whether this grid is the primary scroll view of its route.
+  ///
+  /// Pass false when nesting the grid inside another scrollable: otherwise it
+  /// attaches a second position to the route's [PrimaryScrollController], which
+  /// the iOS status bar tap would then animate alongside the real one.
+  final bool? primary;
+
   const StaggeredGridView({
     super.key,
     required this.itemCount,
@@ -267,6 +274,7 @@ class StaggeredGridView extends StatefulWidget {
     this.animationDuration = const Duration(milliseconds: 250),
     this.physics,
     this.shrinkWrap = false,
+    this.primary,
   });
 
   @override
@@ -284,6 +292,7 @@ class _StaggeredGridViewState extends State<StaggeredGridView> {
       itemCount: widget.itemCount,
       physics: widget.physics,
       shrinkWrap: widget.shrinkWrap,
+      primary: widget.primary,
       itemBuilder: (context, index) {
         final shouldAnimate = !_animatedIndices.contains(index);
         if (shouldAnimate) {

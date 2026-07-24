@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../core/adaptive/adaptive.dart';
 import '../../../../core/widgets/widgets.dart';
 
 enum LegalPageType { privacy, terms }
@@ -43,9 +44,17 @@ class _LegalPageState extends State<LegalPage> {
 
     return Scaffold(
       appBar: AppBar(title: Text(title)),
+      // The page owns the scroll view so it attaches to the route's
+      // PrimaryScrollController — that is what makes the iOS status bar tap
+      // scroll back to the top.
       body: _markdown == null
           ? const Center(child: CircularProgressIndicator())
-          : MarkdownContent(data: _markdown!, shrinkWrap: false),
+          : SingleChildScrollView(
+              child: ContentWidthConstraint(
+                padding: const EdgeInsets.all(16),
+                child: MarkdownContent(data: _markdown!),
+              ),
+            ),
     );
   }
 }

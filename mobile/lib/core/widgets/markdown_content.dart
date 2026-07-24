@@ -56,26 +56,22 @@ AssetDto? _findAsset(List<AssetDto> images, String id) {
 
 /// A widget that renders markdown content styled to match the app theme.
 ///
-/// Uses [MarkdownWidget] with colors derived from the current [Theme].
+/// Uses [MarkdownBlock] with colors derived from the current [Theme]. It always
+/// sizes itself to its content and never scrolls: the parent owns the scroll
+/// view. That keeps the page's own scrollable attached to the route's
+/// [PrimaryScrollController], which iOS needs for the status bar tap-to-top
+/// gesture (handled by [Scaffold.handleStatusBarTap]).
 ///
 /// Pass [images] to support `::asset{id="..." size="..." alt="..."}` directives
 /// and authenticated image rendering (via [AuthenticatedImage]).
-///
-/// Set [shrinkWrap] to true when used inside a scrollable parent (e.g. Column,
-/// ListView) — this disables MarkdownWidget's own scroll and sizes to content.
 class MarkdownContent extends StatelessWidget {
   final String data;
   final List<AssetDto> images;
-
-  /// When true, the widget sizes itself to its content (no internal scroll).
-  /// Use false (default) when MarkdownContent is the primary scrollable.
-  final bool shrinkWrap;
 
   const MarkdownContent({
     super.key,
     required this.data,
     this.images = const [],
-    this.shrinkWrap = true,
   });
 
   @override
@@ -140,9 +136,8 @@ class MarkdownContent extends StatelessWidget {
       ),
     ]);
 
-    return MarkdownWidget(
+    return MarkdownBlock(
       data: processedData,
-      shrinkWrap: shrinkWrap,
       config: styledConfig,
     );
   }

@@ -443,6 +443,13 @@ final routerProvider = Provider<GoRouter>((ref) {
   );
 });
 
+/// Wraps every team tab, which all render a bare scrollable.
+///
+/// The [Scaffold] is what makes the iOS status bar tap scroll back to the top:
+/// it looks up the [PrimaryScrollController] of its own route. [TeamShell]'s
+/// Scaffold lives in the root navigator's route, while the tabs live in the
+/// shell navigator's route — two different controllers — so each tab needs a
+/// Scaffold on its own side of that boundary.
 class _TeamTabPageWrapper extends ConsumerWidget {
   final String teamSlug;
   final Widget Function(TeamDetailDto team) builder;
@@ -456,10 +463,12 @@ class _TeamTabPageWrapper extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final teamAsync = ref.watch(teamDetailProvider(teamSlug));
 
-    return teamAsync.when(
-      data: (team) => builder(team),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, _) => const SizedBox.shrink(),
+    return Scaffold(
+      body: teamAsync.when(
+        data: (team) => builder(team),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (_, _) => const SizedBox.shrink(),
+      ),
     );
   }
 }
