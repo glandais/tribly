@@ -48,7 +48,6 @@ import fr.pedalons.repository.comment.CommentRepository;
 import fr.pedalons.repository.migration.BiketeamMigrationMapRepository;
 import fr.pedalons.repository.place.PlaceRepository;
 import fr.pedalons.repository.post.PostRepository;
-import fr.pedalons.repository.ride.RideGroupRepository;
 import fr.pedalons.repository.ride.RideParticipationRepository;
 import fr.pedalons.repository.ride.RideRepository;
 import fr.pedalons.repository.ridetemplate.RideTemplateGroupRepository;
@@ -167,7 +166,6 @@ public class BiketeamMigrationService {
   @Inject TripRepository tripRepository;
   @Inject PostRepository postRepository;
   @Inject CommentRepository commentRepository;
-  @Inject RideGroupRepository rideGroupRepository;
   @Inject RideParticipationRepository rideParticipationRepository;
   @Inject TripParticipationRepository tripParticipationRepository;
   @Inject RideTemplateRepository rideTemplateRepository;
@@ -1072,17 +1070,28 @@ public class BiketeamMigrationService {
     ids.put(bt.id(), ride.getId());
     mapRepo.upsert(T_RIDE, bt.id(), ride.getId());
 
+    // updateRide writes the groups in request order and numbers sortOrder with it, so position i
+    // here is the group built from groups.get(i).
     List<RideGroup> tribGroups = new ArrayList<>(ride.getGroups());
     tribGroups.sort(Comparator.comparingInt(RideGroup::getSortOrder));
-    for (int i = 0; i < Math.min(tribGroups.size(), groups.size()); i++) {
+    int paired = Math.min(tribGroups.size(), groups.size());
+    if (tribGroups.size() != groups.size()) {
+      LOG.warnf(
+          "Ride biketeam.id=%s: %d source group(s) but %d tribly group(s), pairing the first %d",
+          bt.id(), groups.size(), tribGroups.size(), paired);
+    }
+    for (int i = 0; i < paired; i++) {
       mapRepo.upsert(T_RIDE_GROUP, groups.get(i).id(), tribGroups.get(i).getId());
     }
 
-    for (BiketeamReader.BtRideGroup g : groups) {
-      Long triblyGroupId = mapRepo.findTriblyId(T_RIDE_GROUP, g.id());
-      if (triblyGroupId == null) continue;
-      RideGroup tribGroup = rideGroupRepository.findByIdOptional(triblyGroupId).orElse(null);
-      if (tribGroup == null) continue;
+    // updateRide only detached the groups it dropped; their DELETE runs at the next flush. Force it
+    // now, so the groups below are rows the database really has — a participation persisted against
+    // a group whose orphan removal flushes in between fails as a transient reference.
+    rideRepository.flush();
+
+    for (int i = 0; i < paired; i++) {
+      BiketeamReader.BtRideGroup g = groups.get(i);
+      RideGroup tribGroup = tribGroups.get(i);
       for (BiketeamReader.BtRideGroupParticipant p : partsByGroup.getOrDefault(g.id(), List.of())) {
         Long triblyUserId = userIds.get(p.userId());
         if (triblyUserId == null) continue;
