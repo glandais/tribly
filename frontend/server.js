@@ -52,14 +52,25 @@ async function createServer() {
 
   // Serve apple-app-site-association as JSON (parity with nginx-spa.conf). Must be
   // registered before the static/Vite middleware so it wins the content type.
+  // `dotfiles: 'allow'` is required: send (express 5) 404s any path with a segment
+  // starting with a dot, so /.well-known/* is invisible to sendFile without it.
   app.get('/.well-known/apple-app-site-association', (_req, res) => {
     res.type('application/json')
-    res.sendFile(path.join(wellKnownDir, 'apple-app-site-association'), (err) => {
-      if (err && !res.headersSent) {
-        res.status(404).end()
+    res.sendFile(
+      path.join(wellKnownDir, 'apple-app-site-association'),
+      { dotfiles: 'allow' },
+      (err) => {
+        if (err && !res.headersSent) {
+          res.status(404).end()
+        }
       }
-    })
+    )
   })
+
+  // Everything else under /.well-known (assetlinks.json for Android App Links and
+  // passkey origins). Mounted on its own path so the dot segment is stripped before
+  // send sees it; extensions still drive the content type.
+  app.use('/.well-known', express.static(wellKnownDir, { index: false }))
 
   let vite
   let template
