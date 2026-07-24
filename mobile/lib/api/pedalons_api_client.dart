@@ -123,6 +123,10 @@ final configurationClientProvider = Provider<ConfigurationClient>((ref) {
   return ref.watch(apiClientProvider).configuration;
 });
 
+final serverVersionClientProvider = Provider<ServerVersionClient>((ref) {
+  return ref.watch(apiClientProvider).serverVersion;
+});
+
 final publicationsClientProvider = Provider<PublicationsClient>((ref) {
   return ref.watch(apiClientProvider).publications;
 });

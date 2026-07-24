@@ -7,6 +7,19 @@ description: Generate OpenAPI contract from backend and regenerate frontend/mobi
 
 Run this skill after modifying backend REST resources or DTOs to sync the OpenAPI contract and regenerate the frontend/mobile clients.
 
+## Step 0 — Bump the API contract version (always, before generating)
+
+`pedalons.api.version` in `backend/src/main/resources/application.properties` is the single source of
+truth for the contract version. It feeds both `info.version` in `contracts/openapi.yaml` and
+`GET /api/version` (which also reports the git commit the server was built from), so deployments can
+be identified. **Bump it whenever the contract changes** — semver on the contract itself:
+
+- **MAJOR** — breaking change: endpoint or field removed/renamed, type changed, optional field became required
+- **MINOR** — backwards-compatible addition: new endpoint, new optional field
+- **PATCH** — descriptions/docs only
+
+If the generated `contracts/openapi.yaml` diff turns out to be empty, revert the bump.
+
 ## One-shot (preferred)
 
 The repo root has `regenerate.sh`, which runs the whole chain end-to-end and fails fast (`set -e`):
@@ -65,3 +78,5 @@ cd mobile && bash check.sh
 - **Empty schemas in OpenAPI**: Missing `@Schema(implementation = ...)` in `@APIResponse` annotations
 - **Orval errors**: Usually caused by an invalid OpenAPI spec — check backend annotations
 - **Mobile build_runner conflicts**: `build_runner build` deletes conflicting outputs by default (the old `--delete-conflicting-outputs` flag was removed in build_runner 2.5.0)
+- **`@Tag` name collides in the mobile client**: the tag becomes a getter on the generated `PedalonsApiClient`, which already carries `static String get version`. A tag named `Version` therefore produces a Dart compile error, and `flutter analyze` **won't** catch it (`analysis_options.yaml` excludes `lib/api/generated/**`) — run `dart analyze lib/api/generated/` after renaming a tag.
+- **Renaming a `@Tag` leaves stale generated files**: the mobile generator writes the new `*_client.dart` but doesn't delete the old one; remove it by hand.

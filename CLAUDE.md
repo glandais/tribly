@@ -42,7 +42,7 @@ See [Deployment](README.md#deployment) before touching networks or the compose f
 
 ## Contract-First Workflow
 
-**API contract**: use the `contract-first-api` skill after modifying backend REST resources or DTOs.
+**API contract**: use the `contract-first-api` skill after modifying backend REST resources or DTOs. Bump `pedalons.api.version` in `backend/src/main/resources/application.properties` with every contract change — it drives both `info.version` in the contract and `GET /api/version`.
 
 **UI routes contract**: `contracts/routes.yaml` is the single source of truth (multi-locale path templates, deeplink/mobile flags). Edit it, then run `pnpm generate-routes` in frontend/ to regenerate `paths.generated.ts`, `paths.generated.dart`, the apple-app-site-association file, and the deeplink section of `AndroidManifest.xml`. Never hand-edit those. See [APP_LINKS.md](APP_LINKS.md).
 

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../../../api/generated/export.dart';
 import '../../../../api/pedalons_api_client.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/utils/api_error_handler.dart';
@@ -12,6 +13,10 @@ import '../../../../core/widgets/authenticated_image.dart';
 import '../../../auth/data/auth_repository.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../auth/services/passkey_service.dart';
+
+final _serverVersionProvider = FutureProvider<VersionDto>((ref) async {
+  return ref.watch(serverVersionClientProvider).getVersion();
+});
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
@@ -183,6 +188,27 @@ class ProfilePage extends ConsumerWidget {
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.outline,
                       ),
+                    ),
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: Icon(
+                    Icons.dns_outlined,
+                    color: theme.colorScheme.outline,
+                  ),
+                  title: Text('profile.serverVersion'.tr()),
+                  trailing: Text(
+                    ref.watch(_serverVersionProvider).maybeWhen(
+                          data: (version) => version.commit == null
+                              ? version.apiVersion
+                              : '${version.apiVersion} (${version.commit})',
+                          // Nothing to show while loading, and a profile page is no
+                          // place to surface a version-lookup failure.
+                          orElse: () => '',
+                        ),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.outline,
                     ),
                   ),
                 ),

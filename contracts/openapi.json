@@ -4216,6 +4216,25 @@
           }
         }
       },
+      "VersionDto" : {
+        "description" : "Server API contract version and build information",
+        "type" : "object",
+        "required" : [ "apiVersion" ],
+        "properties" : {
+          "apiVersion" : {
+            "type" : "string",
+            "description" : "API contract version (semver). Bumped whenever the OpenAPI contract changes, and also exposed as info.version in the contract itself."
+          },
+          "commit" : {
+            "type" : "string",
+            "description" : "Short git commit the server was built from, null when unavailable"
+          },
+          "buildTime" : {
+            "type" : "string",
+            "description" : "Build timestamp (ISO-8601, UTC), null when unavailable"
+          }
+        }
+      },
       "Visibility" : {
         "type" : "string",
         "enum" : [ "TEAM", "PUBLIC_UNLISTED", "PUBLIC" ]
@@ -4322,6 +4341,9 @@
   }, {
     "name" : "Routes",
     "description" : "GPX route management operations"
+  }, {
+    "name" : "Server Version",
+    "description" : "Server version and build information"
   }, {
     "name" : "Strava Authentication",
     "description" : "Login with Strava and account recovery/binding"
@@ -15241,11 +15263,31 @@
           "SecurityScheme" : [ "user" ]
         } ]
       }
+    },
+    "/api/version" : {
+      "get" : {
+        "summary" : "Get server version",
+        "description" : "Get the API contract version the server implements, plus the git commit and build time it was built from",
+        "operationId" : "getVersion",
+        "tags" : [ "Server Version" ],
+        "responses" : {
+          "200" : {
+            "description" : "Version retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/VersionDto"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "1.0.0",
+    "version" : "1.1.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

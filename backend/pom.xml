@@ -20,6 +20,7 @@
         <surefire.forkCount>1</surefire.forkCount>
         <checkstyle-plugin.version>3.6.0</checkstyle-plugin.version>
         <spotless-plugin.version>3.8.0</spotless-plugin.version>
+        <git-commit-id-plugin.version>9.0.2</git-commit-id-plugin.version>
         <hypersistence-utils-hibernate.version>3.15.4</hypersistence-utils-hibernate.version>
         <gpx.version>1.4.4</gpx.version>
         <lombok.version>1.18.46</lombok.version>
@@ -290,6 +291,37 @@
                 <artifactId>quarkus-maven-plugin</artifactId>
                 <version>${quarkus.platform.version}</version>
                 <extensions>true</extensions>
+            </plugin>
+            <plugin>
+                <groupId>io.github.git-commit-id</groupId>
+                <artifactId>git-commit-id-maven-plugin</artifactId>
+                <version>${git-commit-id-plugin.version}</version>
+                <configuration>
+                    <!-- backend/ is a subdirectory of the repo: the .git lives one level up -->
+                    <dotGitDirectory>${project.basedir}/../.git</dotGitDirectory>
+                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                    <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+                    <!-- Building outside a git checkout (tarball, broken shallow clone) degrades to
+                         a missing file instead of failing the build -->
+                    <failOnNoGitDirectory>false</failOnNoGitDirectory>
+                    <dateFormat>yyyy-MM-dd'T'HH:mm:ss'Z'</dateFormat>
+                    <dateFormatTimeZone>UTC</dateFormatTimeZone>
+                    <includeOnlyProperties>
+                        <property>^git.commit.id.abbrev$</property>
+                        <property>^git.branch$</property>
+                        <property>^git.build.time$</property>
+                        <property>^git.dirty$</property>
+                    </includeOnlyProperties>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>get-the-git-infos</id>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                        <phase>initialize</phase>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>

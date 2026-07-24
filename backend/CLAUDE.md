@@ -104,6 +104,10 @@ Repository methods follow: `findByTeamAndSlug(domainId, teamId, userId, slug)`, 
 
 - Empty schemas = missing `@Schema(implementation = ...)` in `@APIResponse`
 - See `RideResource.java` for a complete annotation example
+- **`pedalons.api.version`** (application.properties) is the single source of truth for the contract
+  version: it feeds `info.version` in `contracts/openapi.yaml` and `GET /api/version` (which also
+  reports the git commit, injected at build time into `git.properties` by git-commit-id-maven-plugin).
+  Bump it with every contract change — see the `contract-first-api` skill for the semver rules.
 
 ## Error Handling
 

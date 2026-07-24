@@ -305,6 +305,8 @@
   "footer.copyright": "© {{year}} {{appName}}. Tous droits réservés.",
   "footer.privacy": "Politique de confidentialité",
   "footer.terms": "Conditions d'utilisation",
+  "footer.version": "v{{version}} ({{commit}})",
+  "footer.versionShort": "v{{version}}",
   "geocoder.clear": "Supprimer la localisation",
   "geocoder.label": "Localisation",
   "geocoder.noResults": "Aucune adresse trouvée",

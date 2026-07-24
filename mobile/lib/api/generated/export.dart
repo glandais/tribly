@@ -35,6 +35,7 @@ export 'clients/route_comments_client.dart';
 export 'clients/trips_client.dart';
 export 'clients/trip_comments_client.dart';
 export 'clients/users_client.dart';
+export 'clients/server_version_client.dart';
 // Data classes
 export 'models/ad_dto.dart';
 export 'models/ad_edit_dto.dart';
@@ -190,6 +191,7 @@ export 'models/user_dto.dart';
 export 'models/verify_otp_request.dart';
 export 'models/verify_response.dart';
 export 'models/verify_token_request.dart';
+export 'models/version_dto.dart';
 export 'models/visibility.dart';
 export 'models/waypoint_dto.dart';
 export 'models/wind_direction.dart';

@@ -19,6 +19,7 @@ import {
 } from '@mantine/core'
 import { useDisclosure, useHeadroom } from '@mantine/hooks'
 import { IconUser, IconLogout, IconShield, IconMapSearch, IconMail } from '@tabler/icons-react'
+import { useGetVersion } from '@/api/endpoints/server-version/server-version'
 import { useAuth } from '../../hooks/useAuth'
 import { useAppName } from '../../hooks/useAppName'
 import { useAuthStore, selectIsPlatformAdmin } from '@/store/authStore'
@@ -39,6 +40,8 @@ export function Layout() {
   const [emailBannerDismissed, setEmailBannerDismissed] = useState(false)
   const { pathname } = useLocation()
   const navigationType = useNavigationType()
+  // Fixed for the lifetime of the running server, so fetch it once and never revalidate.
+  const { data: version } = useGetVersion({ query: { staleTime: Infinity } })
 
   const showEmailBanner =
     isAuthenticated &&
@@ -272,6 +275,21 @@ export function Layout() {
             <Anchor component={Link} to={paths.terms()} c="dimmed" size="sm">
               {t('footer.terms')}
             </Anchor>
+            {version && (
+              <>
+                <Text c="dimmed" size="sm">
+                  ·
+                </Text>
+                <Text c="dimmed" size="sm">
+                  {version.commit
+                    ? t('footer.version', {
+                        version: version.apiVersion,
+                        commit: version.commit,
+                      })
+                    : t('footer.versionShort', { version: version.apiVersion })}
+                </Text>
+              </>
+            )}
           </Group>
         </Container>
       </Box>

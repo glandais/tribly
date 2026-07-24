@@ -249,6 +249,7 @@
     },
     "language": "Langue",
     "version": "Version",
+    "serverVersion": "Version du serveur",
     "privacy": "Politique de confidentialité",
     "terms": "Conditions d'utilisation"
   },
