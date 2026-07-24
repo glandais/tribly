@@ -47,6 +47,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// a logout. Every authenticated data provider ultimately `watch`es
   /// [apiClientProvider], so invalidating it cascades a refetch through the whole
   /// authenticated tree in one shot, without having to enumerate each provider.
+  ///
+  /// Invariant: nothing [authProvider] watches may depend on [apiClientProvider],
+  /// or this invalidation tears down the notifier itself and resets
+  /// `isInitialized` — leaving the app spinning forever on the loading screen.
+  /// `test/auth_provider_test.dart` guards it.
   void _resetUserScopedData() {
     _ref.invalidate(apiClientProvider);
   }

@@ -70,13 +70,18 @@ final authenticationClientProvider = Provider<AuthenticationClient>((ref) {
   return ref.watch(baseApiClientProvider).authentication;
 });
 
+/// Only `authenticate` goes through this client, and that endpoint is public —
+/// the authenticated passkey calls pass their bearer token explicitly through
+/// [AuthRepository]. Keeping it on the base client is what keeps the auth tree
+/// independent from [apiClientProvider], which gets invalidated on every
+/// identity change.
+final passkeysClientProvider = Provider<PasskeysClient>((ref) {
+  return ref.watch(baseApiClientProvider).passkeys;
+});
+
 // ============================================================================
 // Individual Client Providers (Authenticated)
 // ============================================================================
-
-final passkeysClientProvider = Provider<PasskeysClient>((ref) {
-  return ref.watch(apiClientProvider).passkeys;
-});
 
 final usersClientProvider = Provider<UsersClient>((ref) {
   return ref.watch(apiClientProvider).users;
