@@ -1,0 +1,49 @@
+# Services partages par tous les environnements deployes sur une meme machine.
+#
+# valhalla et tileserver ne portent aucune donnee applicative : jeux de donnees statiques, acces en
+# lecture seule, sollicites uniquement par le backend. Les instancier une seule fois evite de payer
+# deux fois 17 Go de tuiles Valhalla et ~1,8 Go de RSS pour le tileserver.
+#
+# Cette stack est prealable aux stacks d'environnement : elle cree le reseau `pedalons-shared`, que
+# docker-compose.yml declare en `external`. Demarrage :
+#
+#   docker compose -f docker-compose.shared.yml up -d
+#
+# Les noms de services `valhalla` et `tileserver` sont les alias DNS sur ce reseau : VALHALLA_URL et
+# TILESERVER_URL des .env d'environnement restent inchanges.
+#
+# NE PAS y ajouter imgproxy/varnish tant que MinIO n'est pas mutualise : imgproxy n'expose qu'un
+# IMGPROXY_S3_ENDPOINT global et ne sait pas servir deux backends S3 distincts.
+name: pedalons-shared
+
+services:
+  valhalla:
+    image: ghcr.io/valhalla/valhalla-scripted:latest
+    container_name: pedalons-shared-valhalla
+    restart: unless-stopped
+    networks:
+      - shared
+    volumes:
+      - ./data/valhalla:/custom_files
+    environment:
+      # Un changement de valeur ici declenche un rebuild de plusieurs heures : le conteneur compare
+      # les hashes de /custom_files (file_hashes.txt) au demarrage.
+      tile_urls: ${VALHALLA_TILE_URLS:-http://download.geofabrik.de/europe/france-latest.osm.pbf}
+      build_elevation: "True"
+      build_admins: "True"
+      build_time_zones: "True"
+      server_threads: "4"
+      serve_tiles: "True"
+
+  tileserver:
+    image: maptiler/tileserver-gl:v5.6.0
+    container_name: pedalons-shared-tileserver
+    restart: unless-stopped
+    networks:
+      - shared
+    volumes:
+      - ./data/tileserver:/data
+
+networks:
+  shared:
+    name: pedalons-shared

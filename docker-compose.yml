@@ -19,6 +19,10 @@ services:
       - "--accesslog=true"
       - "--accesslog.filepath=/var/log/traefik/access.log"
       - "--providers.docker.constraints=Label(`traefik.stack`,`${ENV_NAME}`)"
+      # backend est attache a deux reseaux : sans ce reglage le provider Docker choisit une IP au
+      # hasard entre les deux, et une IP `pedalons-shared` -- que traefik ne joint pas -- donne des
+      # 502 sur /api.
+      - "--providers.docker.network=${ENV_NAME}-net"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     labels:
@@ -31,6 +35,8 @@ services:
     user: "${PUID:-1000}:${PGID:-1000}"
     networks:
       - pedalons
+      # valhalla + tileserver vivent dans la stack pedalons-shared (docker-compose.shared.yml).
+      - shared
     env_file:
       - .env
     environment:
@@ -63,6 +69,7 @@ services:
     user: "${PUID:-1000}:${PGID:-1000}"
     networks:
       - pedalons
+      - shared
     depends_on:
       postgres:
         condition: service_healthy
@@ -167,22 +174,6 @@ services:
       - VARNISH_SIZE=20G
     command: "-p default_ttl=86400"
 
-  valhalla:
-    image: ghcr.io/valhalla/valhalla-scripted:latest
-    container_name: ${ENV_NAME}-valhalla
-    restart: unless-stopped
-    networks:
-      - pedalons
-    volumes:
-      - ./data/valhalla:/custom_files
-    environment:
-      tile_urls: ${VALHALLA_TILE_URLS:-http://download.geofabrik.de/europe/france-latest.osm.pbf}
-      build_elevation: "True"
-      build_admins: "True"
-      build_time_zones: "True"
-      server_threads: "4"
-      serve_tiles: "True"
-
   minio:
     image: minio/minio:RELEASE.2025-01-20T14-49-07Z
     container_name: ${ENV_NAME}-minio
@@ -196,18 +187,17 @@ services:
     volumes:
       - minio_data:/data
 
-  tileserver:
-    image: maptiler/tileserver-gl:v5.6.0
-    container_name: ${ENV_NAME}-tileserver
-    restart: unless-stopped
-    networks:
-      - pedalons
-    volumes:
-      - ./data/tileserver:/data
-
 volumes:
   postgres_data:
   minio_data:
 
 networks:
+  # Nom explicite : traefik en a besoin pour --providers.docker.network, qui ne peut pas deviner le
+  # nom derive du projet compose.
   pedalons:
+    name: ${ENV_NAME}-net
+  # Fourni par docker-compose.shared.yml (valhalla, tileserver). `up` echoue tant que la stack
+  # partagee n'a pas ete demarree, plutot que de creer un reseau vide.
+  shared:
+    name: pedalons-shared
+    external: true

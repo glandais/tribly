@@ -164,8 +164,42 @@ pedalons/
 ├── services/         # Docker service configs (valhalla, Varnish)
 ├── scripts/          # Utility scripts
 ├── data/             # Runtime data (segments, tileserver, keys)
-└── docker-compose.yml  # Production deployment
+├── docker-compose.yml         # One deployed environment (prod, staging, ...)
+└── docker-compose.shared.yml  # Services shared by every environment on the host
 ```
+
+## Deployment
+
+A host runs **one shared stack** plus **one stack per environment**, each from its own checkout
+(`~/shared`, `~/prod`, `~/staging`) with its own `.env`.
+
+`docker-compose.shared.yml` holds the services that carry no application data and are read-only:
+`valhalla` (17 GB of OSM routing tiles) and `tileserver` (server-side raster rendering, ~1.8 GB
+resident). One instance serves every environment. It owns the `pedalons-shared` Docker network.
+
+`docker-compose.yml` holds everything that must stay isolated per environment: traefik, backend,
+frontend, postgres, minio, imgproxy and varnish. Its `backend` also joins `pedalons-shared` to reach
+the two shared services — under the same hostnames as before, since `valhalla` and `tileserver` are
+their compose service names.
+
+Start the shared stack **first**: `pedalons-shared` is declared `external` in `docker-compose.yml`, so
+an environment fails to come up until it exists.
+
+```bash
+# once per host
+cd ~/shared && docker compose -f docker-compose.shared.yml up -d
+
+# then each environment
+cd ~/prod && ./build.sh && docker compose up -d --remove-orphans
+```
+
+Two services stay per-environment on purpose, even though they look shareable:
+
+- **imgproxy/varnish** — imgproxy only takes a single global `IMGPROXY_S3_ENDPOINT`, so one instance
+  cannot serve two MinIO backends. They become shareable if and when MinIO is shared.
+- **the gpx2web cache** (`DATA_CACHE_PATH`) — gpx2web downloads tiles straight into their final path
+  with no write-then-rename, guarded only by an in-JVM lock. Two backends sharing the directory can
+  read a truncated file and cache it permanently.
 
 ## Features
 
