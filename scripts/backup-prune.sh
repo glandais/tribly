@@ -51,4 +51,4 @@ if ((${#complete[@]} > KEEP)); then
   done
 fi
 
-log "done — $(find . -maxdepth 1 -mindepth 1 -type d -name '20*' | wc -l) snapshots, $(du -sh "$ROOT" | cut -f1) on disk"
+log "done - $(find . -maxdepth 1 -mindepth 1 -type d -name '20*' | wc -l) snapshots, $(du -sh "$ROOT" | cut -f1) on disk"
