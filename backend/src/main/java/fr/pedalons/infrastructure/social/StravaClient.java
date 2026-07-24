@@ -22,14 +22,17 @@ import org.jboss.logging.Logger;
  * exchange returns the {@code athlete} object inline, so we read the athlete id and discard the
  * tokens — nothing is persisted. Unlike the GPS clients, the Strava response nests {@code
  * athlete.id}, so it is parsed with Jackson rather than regex.
+ *
+ * <p>The host is configuration-driven ({@code pedalons.social.strava.base-url}): the same paths are
+ * served by Strava itself and by a drop-in proxy such as strava-auth-proxy.
  */
 @ApplicationScoped
 public class StravaClient {
 
   private static final Logger LOG = Logger.getLogger(StravaClient.class);
 
-  private static final String AUTHORIZE_URL = "https://www.strava.com/oauth/authorize";
-  private static final String TOKEN_URL = "https://www.strava.com/oauth/token";
+  private static final String AUTHORIZE_PATH = "/oauth/authorize";
+  private static final String TOKEN_PATH = "/oauth/token";
   private static final String SCOPE = "read";
 
   @Inject SocialCredentialService credentialService;
@@ -51,7 +54,8 @@ public class StravaClient {
   }
 
   public String getAuthorizationUrl(String state, String redirectUri) {
-    return AUTHORIZE_URL
+    return credentialService.getStravaBaseUrl()
+        + AUTHORIZE_PATH
         + "?client_id="
         + urlEncode(getClientId())
         + "&response_type=code"
@@ -83,7 +87,7 @@ public class StravaClient {
     try {
       HttpRequest request =
           HttpRequest.newBuilder()
-              .uri(URI.create(TOKEN_URL))
+              .uri(URI.create(credentialService.getStravaBaseUrl() + TOKEN_PATH))
               .header("Content-Type", "application/x-www-form-urlencoded")
               .header("Accept", "application/json")
               .POST(HttpRequest.BodyPublishers.ofString(body))
