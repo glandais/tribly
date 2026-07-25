@@ -100,9 +100,26 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
     return findAll(pedalonsQuery);
   }
 
+  /**
+   * The default shape, which fetch-joins the owning team.
+   *
+   * <p>Every row of every listing renders its team (name, slug, visibility), and the query already
+   * filters on {@code te.team.*}, so the join is happening regardless — {@code fetch} just keeps the
+   * columns instead of throwing them away and re-selecting the teams afterwards. On a cross-team
+   * listing that removes a whole round-trip; on a team-scoped one it costs nothing, because the team
+   * was already resolved by {@code TeamService.getTeam} and is in the persistence context.
+   *
+   * <p><b>This is safe only because {@code team} is a to-one.</b> A fetch join on a <em>collection</em>
+   * multiplies the result rows, and Hibernate then cannot apply {@code LIMIT} in SQL — it pages in
+   * memory instead (HHH000104), reading the entire table to return 20 rows. Do not extend this shape
+   * to {@code te.assets} or any other collection; those are handled by {@code
+   * quarkus.hibernate-orm.fetch.batch-size}, which costs one extra query and no row multiplication.
+   */
   private PedalonsQuery getPedalonsQuery(Q query, boolean list) {
     return getPedalonsQuery(
-        query, list, new QueryShape("te", getEntityType().getTypeName() + " te", true));
+        query,
+        list,
+        new QueryShape("te", getEntityType().getTypeName() + " te left join fetch te.team", true));
   }
 
   default PedalonsQuery getPedalonsQuery(Q query, boolean list, QueryShape shape) {

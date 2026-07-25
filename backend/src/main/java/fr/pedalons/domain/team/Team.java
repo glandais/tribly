@@ -46,7 +46,12 @@ public class Team extends BaseEntity {
   @Column(name = "visibility", nullable = false, length = 20)
   private Visibility visibility = Visibility.TEAM;
 
-  @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+  /**
+   * LAZY on purpose: only {@code TeamDetailDto} renders the about page, but a Team is loaded by
+   * every publication and route list row for its name and slug. EAGER made all of those pay for a
+   * TeamPage — with its markdown and assets — that they never look at.
+   */
+  @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
   @JoinColumn(name = "description_id")
   @NotNullableDbValue
   private TeamPage aboutPage;
