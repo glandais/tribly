@@ -1,7 +1,6 @@
 package fr.pedalons.karoo
 
 import android.content.Context
-import androidx.compose.ui.focus.focusProperties
 import android.content.Intent
 import android.os.Bundle
 import android.text.format.DateFormat
@@ -30,8 +29,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,23 +44,18 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Refresh
-
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -74,12 +73,12 @@ import fr.pedalons.karoo.auth.GpsConnectActivity
 import fr.pedalons.karoo.ui.theme.PedalonsKarooTheme
 import io.hammerhead.karooext.KarooSystemService
 import io.hammerhead.karooext.models.UserProfile
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 // Conversion constants
 private const val METERS_PER_MILE = 1609.344
@@ -87,26 +86,33 @@ private const val METERS_PER_FOOT = 0.3048
 private const val METERS_PER_KM = 1000.0
 
 // Sync feedback state
-enum class SyncState { IDLE, SYNCING, SUCCESS, ERROR }
+enum class SyncState {
+    IDLE,
+    SYNCING,
+    SUCCESS,
+    ERROR,
+}
 
 // Navigation state machine
 sealed class NavState {
     object Home : NavState()
+
     data class RideList(val rides: List<DeviceRide>) : NavState()
+
     data class RideEntries(val ride: DeviceRide) : NavState()
+
     data class RouteList(val routes: List<DeviceRoute>) : NavState()
+
     data class RouteDetail(
         val teamSlug: String,
         val routeSlug: String,
         val routeName: String,
         val distance: Float,
-        val elevationGain: Float
+        val elevationGain: Float,
     ) : NavState()
 }
 
-/**
- * Main activity for browsing and syncing routes.
- */
+/** Main activity for browsing and syncing routes. */
 class MainActivity : ComponentActivity() {
 
     companion object {
@@ -147,7 +153,7 @@ class MainActivity : ComponentActivity() {
             var userProfile by remember { mutableStateOf<UserProfile?>(null) }
 
             LaunchedEffect(Unit) {
-                karooSystem.connect { }
+                karooSystem.connect {}
                 // Poll for connection status
                 while (!karooSystem.connected) {
                     delay(100)
@@ -155,9 +161,10 @@ class MainActivity : ComponentActivity() {
                 apiClient = PedalonsApiClient(BASE_URL, karooSystem)
 
                 // Listen for user profile updates to get preferred units
-                userProfileConsumerId = karooSystem.addConsumer<UserProfile> { profile ->
-                    userProfile = profile
-                }
+                userProfileConsumerId =
+                    karooSystem.addConsumer<UserProfile> { profile ->
+                        userProfile = profile
+                    }
 
                 isConnected = true
             }
@@ -169,7 +176,7 @@ class MainActivity : ComponentActivity() {
                         authManager = authManager,
                         userProfile = userProfile,
                         activity = this@MainActivity,
-                        onConnect = { startAuthFlow() }
+                        onConnect = { startAuthFlow() },
                     )
                 } else {
                     // Show skeleton screen while connecting to Karoo System Service
@@ -189,16 +196,18 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun startAuthFlow() {
-        val intent = Intent(this, AuthActivity::class.java).apply {
-            putExtra(AuthActivity.EXTRA_BASE_URL, BASE_URL)
-        }
+        val intent =
+            Intent(this, AuthActivity::class.java).apply {
+                putExtra(AuthActivity.EXTRA_BASE_URL, BASE_URL)
+            }
         authLauncher.launch(intent)
     }
 
     internal fun startGpsConnectFlow() {
-        val intent = Intent(this, GpsConnectActivity::class.java).apply {
-            putExtra(GpsConnectActivity.EXTRA_BASE_URL, BASE_URL)
-        }
+        val intent =
+            Intent(this, GpsConnectActivity::class.java).apply {
+                putExtra(GpsConnectActivity.EXTRA_BASE_URL, BASE_URL)
+            }
         gpsConnectLauncher.launch(intent)
     }
 
@@ -235,7 +244,7 @@ private fun MainScreen(
     authManager: AuthManager,
     userProfile: UserProfile?,
     activity: MainActivity,
-    onConnect: () -> Unit
+    onConnect: () -> Unit,
 ) {
     // Collect auth state
     val isAuthenticated by authManager.isAuthenticated.collectAsState(initial = null)
@@ -272,13 +281,14 @@ private fun MainScreen(
     }
 
     // Compute item count for current nav state
-    val itemCount = when (val state = navState) {
-        is NavState.Home -> 2
-        is NavState.RideList -> state.rides.size
-        is NavState.RideEntries -> state.ride.entries.size
-        is NavState.RouteList -> state.routes.size
-        is NavState.RouteDetail -> 0
-    }
+    val itemCount =
+        when (val state = navState) {
+            is NavState.Home -> 2
+            is NavState.RideList -> state.rides.size
+            is NavState.RideEntries -> state.ride.entries.size
+            is NavState.RouteList -> state.routes.size
+            is NavState.RouteDetail -> 0
+        }
 
     // Register navigation callbacks with Activity
     LaunchedEffect(Unit) {
@@ -303,13 +313,15 @@ private fun MainScreen(
                         if (ride.entries.size == 1) {
                             // Bonus: skip entries screen if single entry
                             val entry = ride.entries[0]
-                            navigateTo(NavState.RouteDetail(
-                                teamSlug = ride.teamSlug,
-                                routeSlug = entry.routeSlug,
-                                routeName = entry.routeName,
-                                distance = entry.distance,
-                                elevationGain = entry.elevationGain
-                            ))
+                            navigateTo(
+                                NavState.RouteDetail(
+                                    teamSlug = ride.teamSlug,
+                                    routeSlug = entry.routeSlug,
+                                    routeName = entry.routeName,
+                                    distance = entry.distance,
+                                    elevationGain = entry.elevationGain,
+                                )
+                            )
                         } else {
                             navigateTo(NavState.RideEntries(ride))
                         }
@@ -318,32 +330,37 @@ private fun MainScreen(
                 is NavState.RideEntries -> {
                     if (selectedIndex in state.ride.entries.indices) {
                         val entry = state.ride.entries[selectedIndex]
-                        navigateTo(NavState.RouteDetail(
-                            teamSlug = state.ride.teamSlug,
-                            routeSlug = entry.routeSlug,
-                            routeName = entry.routeName,
-                            distance = entry.distance,
-                            elevationGain = entry.elevationGain
-                        ))
+                        navigateTo(
+                            NavState.RouteDetail(
+                                teamSlug = state.ride.teamSlug,
+                                routeSlug = entry.routeSlug,
+                                routeName = entry.routeName,
+                                distance = entry.distance,
+                                elevationGain = entry.elevationGain,
+                            )
+                        )
                     }
                 }
                 is NavState.RouteList -> {
                     if (selectedIndex in state.routes.indices) {
                         val route = state.routes[selectedIndex]
-                        navigateTo(NavState.RouteDetail(
-                            teamSlug = route.teamSlug,
-                            routeSlug = route.routeSlug,
-                            routeName = route.routeName,
-                            distance = route.distance,
-                            elevationGain = route.elevationGain
-                        ))
+                        navigateTo(
+                            NavState.RouteDetail(
+                                teamSlug = route.teamSlug,
+                                routeSlug = route.routeSlug,
+                                routeName = route.routeName,
+                                distance = route.distance,
+                                elevationGain = route.elevationGain,
+                            )
+                        )
                     }
                 }
                 is NavState.RouteDetail -> {
                     if (syncState != SyncState.SYNCING) {
                         scope.launch {
                             syncState = SyncState.SYNCING
-                            syncState = syncRoute(apiClient, authManager, state.teamSlug, state.routeSlug)
+                            syncState =
+                                syncRoute(apiClient, authManager, state.teamSlug, state.routeSlug)
                         }
                     }
                 }
@@ -400,18 +417,20 @@ private fun MainScreen(
                         gpsCheckDone = true
                         scope.launch {
                             loadRoutesResponse(apiClient, authManager) { result ->
-                                result.onSuccess {
-                                    routesResponse = it
-                                    isLoading = false
-                                    error = null
-                                }.onFailure { e ->
-                                    if (e is UnauthorizedException) {
-                                        scope.launch { authManager.clearTokens() }
-                                    } else {
-                                        error = e.message
+                                result
+                                    .onSuccess {
+                                        routesResponse = it
+                                        isLoading = false
+                                        error = null
                                     }
-                                    isLoading = false
-                                }
+                                    .onFailure { e ->
+                                        if (e is UnauthorizedException) {
+                                            scope.launch { authManager.clearTokens() }
+                                        } else {
+                                            error = e.message
+                                        }
+                                        isLoading = false
+                                    }
                             }
                         }
                     }
@@ -421,18 +440,20 @@ private fun MainScreen(
 
             isLoading = true
             loadRoutesResponse(apiClient, authManager) { result ->
-                result.onSuccess {
-                    routesResponse = it
-                    isLoading = false
-                    error = null
-                }.onFailure { e ->
-                    if (e is UnauthorizedException) {
-                        scope.launch { authManager.clearTokens() }
-                    } else {
-                        error = e.message
+                result
+                    .onSuccess {
+                        routesResponse = it
+                        isLoading = false
+                        error = null
                     }
-                    isLoading = false
-                }
+                    .onFailure { e ->
+                        if (e is UnauthorizedException) {
+                            scope.launch { authManager.clearTokens() }
+                        } else {
+                            error = e.message
+                        }
+                        isLoading = false
+                    }
             }
         } else {
             isLoading = false
@@ -444,7 +465,7 @@ private fun MainScreen(
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
+        color = MaterialTheme.colorScheme.background,
     ) {
         when {
             isAuthenticated == false -> {
@@ -457,17 +478,19 @@ private fun MainScreen(
                         error = null
                         scope.launch {
                             loadRoutesResponse(apiClient, authManager) { result ->
-                                result.onSuccess {
-                                    routesResponse = it
-                                    isLoading = false
-                                }.onFailure { e ->
-                                    error = e.message
-                                    isLoading = false
-                                }
+                                result
+                                    .onSuccess {
+                                        routesResponse = it
+                                        isLoading = false
+                                    }
+                                    .onFailure { e ->
+                                        error = e.message
+                                        isLoading = false
+                                    }
                             }
                         }
                     },
-                    onBack = { activity.finish() }
+                    onBack = { activity.finish() },
                 )
             }
             isLoading || isAuthenticated == null -> {
@@ -491,7 +514,8 @@ private fun MainScreen(
                             if (syncState != SyncState.SYNCING) {
                                 scope.launch {
                                     syncState = SyncState.SYNCING
-                                    syncState = syncRoute(apiClient, authManager, teamSlug, routeSlug)
+                                    syncState =
+                                        syncRoute(apiClient, authManager, teamSlug, routeSlug)
                                 }
                             }
                         },
@@ -499,16 +523,18 @@ private fun MainScreen(
                             isLoading = true
                             scope.launch {
                                 loadRoutesResponse(apiClient, authManager) { result ->
-                                    result.onSuccess {
-                                        routesResponse = it
-                                        navState = NavState.Home
-                                        navStack.clear()
-                                        isLoading = false
-                                        error = null
-                                    }.onFailure { e ->
-                                        error = e.message
-                                        isLoading = false
-                                    }
+                                    result
+                                        .onSuccess {
+                                            routesResponse = it
+                                            navState = NavState.Home
+                                            navStack.clear()
+                                            isLoading = false
+                                            error = null
+                                        }
+                                        .onFailure { e ->
+                                            error = e.message
+                                            isLoading = false
+                                        }
                                 }
                             }
                         },
@@ -519,7 +545,7 @@ private fun MainScreen(
                                 navState = NavState.Home
                                 navStack.clear()
                             }
-                        }
+                        },
                     )
                 }
             }
@@ -539,7 +565,7 @@ private fun NavigationContent(
     onBack: () -> Unit,
     onSync: (String, String) -> Unit,
     onRefresh: () -> Unit,
-    onDisconnect: () -> Unit
+    onDisconnect: () -> Unit,
 ) {
     when (navState) {
         is NavState.Home -> {
@@ -552,7 +578,7 @@ private fun NavigationContent(
                 onSelectRoutes = { onNavigateTo(NavState.RouteList(response.routes)) },
                 onBack = onBack,
                 onRefresh = onRefresh,
-                onDisconnect = onDisconnect
+                onDisconnect = onDisconnect,
             )
         }
         is NavState.RideList -> {
@@ -563,18 +589,20 @@ private fun NavigationContent(
                 onSelectRide = { ride ->
                     if (ride.entries.size == 1) {
                         val entry = ride.entries[0]
-                        onNavigateTo(NavState.RouteDetail(
-                            teamSlug = ride.teamSlug,
-                            routeSlug = entry.routeSlug,
-                            routeName = entry.routeName,
-                            distance = entry.distance,
-                            elevationGain = entry.elevationGain
-                        ))
+                        onNavigateTo(
+                            NavState.RouteDetail(
+                                teamSlug = ride.teamSlug,
+                                routeSlug = entry.routeSlug,
+                                routeName = entry.routeName,
+                                distance = entry.distance,
+                                elevationGain = entry.elevationGain,
+                            )
+                        )
                     } else {
                         onNavigateTo(NavState.RideEntries(ride))
                     }
                 },
-                onBack = onBack
+                onBack = onBack,
             )
         }
         is NavState.RideEntries -> {
@@ -584,15 +612,17 @@ private fun NavigationContent(
                 selectedIndex = selectedIndex,
                 listState = listState,
                 onSelectEntry = { entry ->
-                    onNavigateTo(NavState.RouteDetail(
-                        teamSlug = navState.ride.teamSlug,
-                        routeSlug = entry.routeSlug,
-                        routeName = entry.routeName,
-                        distance = entry.distance,
-                        elevationGain = entry.elevationGain
-                    ))
+                    onNavigateTo(
+                        NavState.RouteDetail(
+                            teamSlug = navState.ride.teamSlug,
+                            routeSlug = entry.routeSlug,
+                            routeName = entry.routeName,
+                            distance = entry.distance,
+                            elevationGain = entry.elevationGain,
+                        )
+                    )
                 },
-                onBack = onBack
+                onBack = onBack,
             )
         }
         is NavState.RouteList -> {
@@ -602,15 +632,17 @@ private fun NavigationContent(
                 selectedIndex = selectedIndex,
                 listState = listState,
                 onSelectRoute = { route ->
-                    onNavigateTo(NavState.RouteDetail(
-                        teamSlug = route.teamSlug,
-                        routeSlug = route.routeSlug,
-                        routeName = route.routeName,
-                        distance = route.distance,
-                        elevationGain = route.elevationGain
-                    ))
+                    onNavigateTo(
+                        NavState.RouteDetail(
+                            teamSlug = route.teamSlug,
+                            routeSlug = route.routeSlug,
+                            routeName = route.routeName,
+                            distance = route.distance,
+                            elevationGain = route.elevationGain,
+                        )
+                    )
                 },
-                onBack = onBack
+                onBack = onBack,
             )
         }
         is NavState.RouteDetail -> {
@@ -619,7 +651,7 @@ private fun NavigationContent(
                 userProfile = userProfile,
                 syncState = syncState,
                 onSync = { onSync(navState.teamSlug, navState.routeSlug) },
-                onBack = onBack
+                onBack = onBack,
             )
         }
     }
@@ -638,7 +670,7 @@ private fun HomeScreen(
     onSelectRoutes: () -> Unit,
     onBack: () -> Unit,
     onRefresh: () -> Unit,
-    onDisconnect: () -> Unit
+    onDisconnect: () -> Unit,
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
@@ -648,46 +680,47 @@ private fun HomeScreen(
                 title = {
                     Text(
                         text = stringResource(R.string.app_name),
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
                 },
                 actions = {
                     IconButton(onClick = onRefresh) {
                         Icon(
                             imageVector = Icons.Filled.Refresh,
-                            contentDescription = stringResource(R.string.loading)
+                            contentDescription = stringResource(R.string.loading),
                         )
                     }
                     Box {
                         IconButton(onClick = { showMenu = true }) {
                             Icon(
                                 imageVector = Icons.Filled.MoreVert,
-                                contentDescription = stringResource(R.string.settings)
+                                contentDescription = stringResource(R.string.settings),
                             )
                         }
                         DropdownMenu(
                             expanded = showMenu,
-                            onDismissRequest = { showMenu = false }
+                            onDismissRequest = { showMenu = false },
                         ) {
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.disconnect)) },
                                 onClick = {
                                     showMenu = false
                                     onDisconnect()
-                                }
+                                },
                             )
                         }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                colors =
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
             )
 
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(vertical = 8.dp)
+                contentPadding = PaddingValues(vertical = 8.dp),
             ) {
                 // Rides entry
                 item {
@@ -697,7 +730,7 @@ private fun HomeScreen(
                         isSelected = selectedIndex == 0,
                         isEmpty = ridesCount == 0,
                         emptyText = stringResource(R.string.no_rides),
-                        onClick = onSelectRides
+                        onClick = onSelectRides,
                     )
                 }
                 // Routes entry
@@ -708,7 +741,7 @@ private fun HomeScreen(
                         isSelected = selectedIndex == 1,
                         isEmpty = routesCount == 0,
                         emptyText = stringResource(R.string.no_routes),
-                        onClick = onSelectRoutes
+                        onClick = onSelectRoutes,
                     )
                 }
             }
@@ -723,50 +756,53 @@ private fun HomeMenuItem(
     isSelected: Boolean,
     isEmpty: Boolean,
     emptyText: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
-    val borderModifier = if (isSelected) {
-        Modifier.border(
-            width = 2.dp,
-            color = MaterialTheme.colorScheme.primary,
-            shape = MaterialTheme.shapes.medium
-        )
-    } else {
-        Modifier
-    }
+    val borderModifier =
+        if (isSelected) {
+            Modifier.border(
+                width = 2.dp,
+                color = MaterialTheme.colorScheme.primary,
+                shape = MaterialTheme.shapes.medium,
+            )
+        } else {
+            Modifier
+        }
 
     Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-            .then(borderModifier)
-            .focusProperties { canFocus = false }
-            .clickable(onClick = onClick),
-        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-        shape = MaterialTheme.shapes.medium
+        modifier =
+            Modifier.fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+                .then(borderModifier)
+                .focusProperties { canFocus = false }
+                .clickable(onClick = onClick),
+        color =
+            if (isSelected) MaterialTheme.colorScheme.primaryContainer
+            else MaterialTheme.colorScheme.surfaceVariant,
+        shape = MaterialTheme.shapes.medium,
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 )
                 Text(
                     text = if (isEmpty) emptyText else subtitle,
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (isEmpty) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary
+                    color =
+                        if (isEmpty) MaterialTheme.colorScheme.onSurfaceVariant
+                        else MaterialTheme.colorScheme.primary,
                 )
             }
             Text(
                 text = stringResource(R.string.nav_arrow),
                 style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
             )
         }
     }
@@ -781,7 +817,7 @@ private fun RideListScreen(
     selectedIndex: Int,
     listState: LazyListState,
     onSelectRide: (DeviceRide) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -791,58 +827,62 @@ private fun RideListScreen(
                 title = {
                     Text(
                         text = stringResource(R.string.nav_rides),
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                colors =
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
             )
 
             if (rides.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         text = stringResource(R.string.no_rides),
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             } else {
                 LazyColumn(
                     state = listState,
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(vertical = 8.dp)
+                    contentPadding = PaddingValues(vertical = 8.dp),
                 ) {
-                    itemsIndexed(rides, key = { _, ride -> "${ride.teamSlug}/${ride.rideSlug}" }) { index, ride ->
+                    itemsIndexed(rides, key = { _, ride -> "${ride.teamSlug}/${ride.rideSlug}" }) {
+                        index,
+                        ride ->
                         val isSelected = index == selectedIndex
-                        val borderModifier = if (isSelected) {
-                            Modifier.border(
-                                width = 2.dp,
-                                color = MaterialTheme.colorScheme.primary,
-                                shape = MaterialTheme.shapes.medium
-                            )
-                        } else {
-                            Modifier
-                        }
+                        val borderModifier =
+                            if (isSelected) {
+                                Modifier.border(
+                                    width = 2.dp,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    shape = MaterialTheme.shapes.medium,
+                                )
+                            } else {
+                                Modifier
+                            }
 
                         Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                                .then(borderModifier)
-                                .focusProperties { canFocus = false }
-                                .clickable { onSelectRide(ride) },
-                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                            shape = MaterialTheme.shapes.medium
+                            modifier =
+                                Modifier.fillMaxWidth()
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    .then(borderModifier)
+                                    .focusProperties { canFocus = false }
+                                    .clickable { onSelectRide(ride) },
+                            color =
+                                if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                                else MaterialTheme.colorScheme.surfaceVariant,
+                            shape = MaterialTheme.shapes.medium,
                         ) {
                             Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(10.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                                modifier = Modifier.fillMaxWidth().padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
@@ -850,26 +890,30 @@ private fun RideListScreen(
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.Medium,
                                         maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
+                                        overflow = TextOverflow.Ellipsis,
                                     )
                                     val dateStr = formatDateTime(context, ride.startDateTime)
                                     if (dateStr != null) {
                                         Text(
                                             text = dateStr,
                                             style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         )
                                     }
                                     Text(
-                                        text = stringResource(R.string.routes_count, ride.entries.size),
+                                        text =
+                                            stringResource(
+                                                R.string.routes_count,
+                                                ride.entries.size,
+                                            ),
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.primary
+                                        color = MaterialTheme.colorScheme.primary,
                                     )
                                 }
                                 Text(
                                     text = stringResource(R.string.nav_arrow),
                                     style = MaterialTheme.typography.headlineMedium,
-                                    color = MaterialTheme.colorScheme.primary
+                                    color = MaterialTheme.colorScheme.primary,
                                 )
                             }
                         }
@@ -890,7 +934,7 @@ private fun RideEntriesScreen(
     selectedIndex: Int,
     listState: LazyListState,
     onSelectEntry: (DeviceRideEntry) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -902,46 +946,48 @@ private fun RideEntriesScreen(
                         text = ride.rideName,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
                     )
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                colors =
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
             )
 
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(vertical = 8.dp)
+                contentPadding = PaddingValues(vertical = 8.dp),
             ) {
                 itemsIndexed(ride.entries, key = { _, entry -> entry.routeSlug }) { index, entry ->
                     val isSelected = index == selectedIndex
-                    val borderModifier = if (isSelected) {
-                        Modifier.border(
-                            width = 2.dp,
-                            color = MaterialTheme.colorScheme.primary,
-                            shape = MaterialTheme.shapes.medium
-                        )
-                    } else {
-                        Modifier
-                    }
+                    val borderModifier =
+                        if (isSelected) {
+                            Modifier.border(
+                                width = 2.dp,
+                                color = MaterialTheme.colorScheme.primary,
+                                shape = MaterialTheme.shapes.medium,
+                            )
+                        } else {
+                            Modifier
+                        }
 
                     Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                            .then(borderModifier)
-                            .focusProperties { canFocus = false }
-                            .clickable { onSelectEntry(entry) },
-                        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                        shape = MaterialTheme.shapes.medium
+                        modifier =
+                            Modifier.fillMaxWidth()
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                .then(borderModifier)
+                                .focusProperties { canFocus = false }
+                                .clickable { onSelectEntry(entry) },
+                        color =
+                            if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                            else MaterialTheme.colorScheme.surfaceVariant,
+                        shape = MaterialTheme.shapes.medium,
                     ) {
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(10.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            modifier = Modifier.fillMaxWidth().padding(10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
@@ -949,25 +995,30 @@ private fun RideEntriesScreen(
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.Medium,
                                     maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
+                                    overflow = TextOverflow.Ellipsis,
                                 )
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     Text(
                                         text = formatDistance(context, entry.distance, userProfile),
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.primary
+                                        color = MaterialTheme.colorScheme.primary,
                                     )
                                     Text(
-                                        text = formatElevation(context, entry.elevationGain, userProfile),
+                                        text =
+                                            formatElevation(
+                                                context,
+                                                entry.elevationGain,
+                                                userProfile,
+                                            ),
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.secondary
+                                        color = MaterialTheme.colorScheme.secondary,
                                     )
                                 }
                             }
                             Text(
                                 text = stringResource(R.string.nav_arrow),
                                 style = MaterialTheme.typography.headlineMedium,
-                                color = MaterialTheme.colorScheme.primary
+                                color = MaterialTheme.colorScheme.primary,
                             )
                         }
                     }
@@ -987,7 +1038,7 @@ private fun StandaloneRouteListScreen(
     selectedIndex: Int,
     listState: LazyListState,
     onSelectRoute: (DeviceRoute) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -997,58 +1048,63 @@ private fun StandaloneRouteListScreen(
                 title = {
                     Text(
                         text = stringResource(R.string.nav_routes),
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                colors =
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
             )
 
             if (routes.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         text = stringResource(R.string.no_routes),
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             } else {
                 LazyColumn(
                     state = listState,
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(vertical = 8.dp)
+                    contentPadding = PaddingValues(vertical = 8.dp),
                 ) {
-                    itemsIndexed(routes, key = { _, route -> "${route.teamSlug}/${route.routeSlug}" }) { index, route ->
+                    itemsIndexed(
+                        routes,
+                        key = { _, route -> "${route.teamSlug}/${route.routeSlug}" },
+                    ) { index, route ->
                         val isSelected = index == selectedIndex
-                        val borderModifier = if (isSelected) {
-                            Modifier.border(
-                                width = 2.dp,
-                                color = MaterialTheme.colorScheme.primary,
-                                shape = MaterialTheme.shapes.medium
-                            )
-                        } else {
-                            Modifier
-                        }
+                        val borderModifier =
+                            if (isSelected) {
+                                Modifier.border(
+                                    width = 2.dp,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    shape = MaterialTheme.shapes.medium,
+                                )
+                            } else {
+                                Modifier
+                            }
 
                         Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                                .then(borderModifier)
-                                .focusProperties { canFocus = false }
-                                .clickable { onSelectRoute(route) },
-                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                            shape = MaterialTheme.shapes.medium
+                            modifier =
+                                Modifier.fillMaxWidth()
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    .then(borderModifier)
+                                    .focusProperties { canFocus = false }
+                                    .clickable { onSelectRoute(route) },
+                            color =
+                                if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                                else MaterialTheme.colorScheme.surfaceVariant,
+                            shape = MaterialTheme.shapes.medium,
                         ) {
                             Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(10.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                                modifier = Modifier.fillMaxWidth().padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
@@ -1056,25 +1112,35 @@ private fun StandaloneRouteListScreen(
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.Medium,
                                         maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
+                                        overflow = TextOverflow.Ellipsis,
                                     )
                                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                         Text(
-                                            text = formatDistance(context, route.distance, userProfile),
+                                            text =
+                                                formatDistance(
+                                                    context,
+                                                    route.distance,
+                                                    userProfile,
+                                                ),
                                             style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.primary
+                                            color = MaterialTheme.colorScheme.primary,
                                         )
                                         Text(
-                                            text = formatElevation(context, route.elevationGain, userProfile),
+                                            text =
+                                                formatElevation(
+                                                    context,
+                                                    route.elevationGain,
+                                                    userProfile,
+                                                ),
                                             style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.secondary
+                                            color = MaterialTheme.colorScheme.secondary,
                                         )
                                     }
                                 }
                                 Text(
                                     text = stringResource(R.string.nav_arrow),
                                     style = MaterialTheme.typography.headlineMedium,
-                                    color = MaterialTheme.colorScheme.primary
+                                    color = MaterialTheme.colorScheme.primary,
                                 )
                             }
                         }
@@ -1094,14 +1160,14 @@ private fun RouteDetailScreen(
     userProfile: UserProfile?,
     syncState: SyncState,
     onSync: () -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
 ) {
     val context = LocalContext.current
 
     ScreenWithOverlay(
         onBack = onBack,
         showSync = true,
-        onSync = onSync
+        onSync = onSync,
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             TopAppBar(
@@ -1110,40 +1176,41 @@ private fun RouteDetailScreen(
                         text = detail.routeName,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
                     )
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                colors =
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
             )
 
             Box(
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(24.dp)
+                    modifier = Modifier.padding(24.dp),
                 ) {
                     Text(
                         text = detail.routeName,
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         Text(
                             text = formatDistance(context, detail.distance, userProfile),
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.primary,
                         )
                         Text(
                             text = formatElevation(context, detail.elevationGain, userProfile),
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.secondary
+                            color = MaterialTheme.colorScheme.secondary,
                         )
                     }
                     Spacer(modifier = Modifier.height(24.dp))
@@ -1152,7 +1219,7 @@ private fun RouteDetailScreen(
                             CircularProgressIndicator(
                                 modifier = Modifier.size(32.dp),
                                 strokeWidth = 3.dp,
-                                color = MaterialTheme.colorScheme.primary
+                                color = MaterialTheme.colorScheme.primary,
                             )
                         }
                         SyncState.SUCCESS -> {
@@ -1160,21 +1227,21 @@ private fun RouteDetailScreen(
                                 text = stringResource(R.string.route_synced),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
                             )
                         }
                         SyncState.ERROR -> {
                             Text(
                                 text = stringResource(R.string.route_sync_error),
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.error
+                                color = MaterialTheme.colorScheme.error,
                             )
                         }
                         SyncState.IDLE -> {
                             Text(
                                 text = stringResource(R.string.route_detail_sync),
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     }
@@ -1191,31 +1258,31 @@ private fun ConnectScreen(onConnect: () -> Unit, onBack: () -> Unit) {
     ScreenWithOverlay(onBack = onBack) {
         Box(
             modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(24.dp)
+                modifier = Modifier.padding(24.dp),
             ) {
                 Text(
                     text = stringResource(R.string.app_name),
                     style = MaterialTheme.typography.displaySmall,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = stringResource(R.string.auth_connect_subtitle),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(modifier = Modifier.height(32.dp))
                 Button(
                     onClick = onConnect,
-                    modifier = Modifier.fillMaxWidth(0.7f)
+                    modifier = Modifier.fillMaxWidth(0.7f),
                 ) {
                     Text(
                         text = stringResource(R.string.auth_connect_button),
-                        style = MaterialTheme.typography.labelLarge
+                        style = MaterialTheme.typography.labelLarge,
                     )
                 }
             }
@@ -1228,16 +1295,16 @@ private fun ErrorScreen(onRetry: () -> Unit, onBack: () -> Unit) {
     ScreenWithOverlay(onBack = onBack) {
         Box(
             modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(24.dp)
+                modifier = Modifier.padding(24.dp),
             ) {
                 Text(
                     text = stringResource(R.string.error_unknown),
                     style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(onClick = onRetry) {
@@ -1253,12 +1320,12 @@ private fun EmptyScreen(onBack: () -> Unit) {
     ScreenWithOverlay(onBack = onBack) {
         Box(
             modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Text(
                 text = stringResource(R.string.routes_empty),
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -1267,30 +1334,26 @@ private fun EmptyScreen(onBack: () -> Unit) {
 @Composable
 private fun BackButton(
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Image(
         painter = painterResource(id = R.drawable.back),
         contentDescription = stringResource(R.string.back),
-        modifier = modifier
-            .size(54.dp)
-            .focusProperties { canFocus = false }
-            .clickable(onClick = onClick)
+        modifier =
+            modifier.size(54.dp).focusProperties { canFocus = false }.clickable(onClick = onClick),
     )
 }
 
 @Composable
 private fun SyncButton(
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Image(
         painter = painterResource(id = R.drawable.sync),
         contentDescription = stringResource(R.string.sync),
-        modifier = modifier
-            .size(54.dp)
-            .focusProperties { canFocus = false }
-            .clickable(onClick = onClick)
+        modifier =
+            modifier.size(54.dp).focusProperties { canFocus = false }.clickable(onClick = onClick),
     )
 }
 
@@ -1299,24 +1362,20 @@ private fun ScreenWithOverlay(
     onBack: () -> Unit,
     showSync: Boolean = false,
     onSync: (() -> Unit)? = null,
-    content: @Composable BoxScope.() -> Unit
+    content: @Composable BoxScope.() -> Unit,
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         content()
 
         BackButton(
             onClick = onBack,
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(bottom = 10.dp)
+            modifier = Modifier.align(Alignment.BottomStart).padding(bottom = 10.dp),
         )
 
         if (showSync && onSync != null) {
             SyncButton(
                 onClick = onSync,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(bottom = 10.dp)
+                modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = 10.dp),
             )
         }
     }
@@ -1331,26 +1390,25 @@ private fun SkeletonScreen(onBack: () -> Unit) {
                 title = {
                     Text(
                         text = stringResource(R.string.app_name),
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
                 },
                 actions = {
                     CircularProgressIndicator(
-                        modifier = Modifier
-                            .size(24.dp)
-                            .padding(end = 12.dp),
+                        modifier = Modifier.size(24.dp).padding(end = 12.dp),
                         strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                colors =
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
             )
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(vertical = 8.dp)
+                contentPadding = PaddingValues(vertical = 8.dp),
             ) {
                 items(3) {
                     ItemSkeleton()
@@ -1363,37 +1421,33 @@ private fun SkeletonScreen(onBack: () -> Unit) {
 @Composable
 private fun ItemSkeleton() {
     Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
         color = MaterialTheme.colorScheme.surfaceVariant,
-        shape = MaterialTheme.shapes.medium
+        shape = MaterialTheme.shapes.medium,
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.fillMaxWidth().padding(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.7f)
-                        .height(16.dp)
-                        .background(
-                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f),
-                            MaterialTheme.shapes.small
-                        )
+                    modifier =
+                        Modifier.fillMaxWidth(0.7f)
+                            .height(16.dp)
+                            .background(
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f),
+                                MaterialTheme.shapes.small,
+                            )
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.5f)
-                        .height(12.dp)
-                        .background(
-                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f),
-                            MaterialTheme.shapes.small
-                        )
+                    modifier =
+                        Modifier.fillMaxWidth(0.5f)
+                            .height(12.dp)
+                            .background(
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f),
+                                MaterialTheme.shapes.small,
+                            )
                 )
             }
         }
@@ -1410,11 +1464,12 @@ private fun formatDateTime(context: Context, isoDateTime: String?): String? {
         val localDateTime = instant.atZone(ZoneId.systemDefault()).toLocalDateTime()
 
         val dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)
-        val timeFormatter = if (DateFormat.is24HourFormat(context)) {
-            DateTimeFormatter.ofPattern("HH:mm")
-        } else {
-            DateTimeFormatter.ofPattern("h:mm a")
-        }
+        val timeFormatter =
+            if (DateFormat.is24HourFormat(context)) {
+                DateTimeFormatter.ofPattern("HH:mm")
+            } else {
+                DateTimeFormatter.ofPattern("h:mm a")
+            }
 
         "${localDateTime.format(dateFormatter)} ${localDateTime.format(timeFormatter)}"
     } catch (_: Exception) {
@@ -1422,8 +1477,13 @@ private fun formatDateTime(context: Context, isoDateTime: String?): String? {
     }
 }
 
-private fun formatDistance(context: Context, distanceMeters: Float, userProfile: UserProfile?): String {
-    val isImperial = userProfile?.preferredUnit?.distance == UserProfile.PreferredUnit.UnitType.IMPERIAL
+private fun formatDistance(
+    context: Context,
+    distanceMeters: Float,
+    userProfile: UserProfile?,
+): String {
+    val isImperial =
+        userProfile?.preferredUnit?.distance == UserProfile.PreferredUnit.UnitType.IMPERIAL
     return if (isImperial) {
         val miles = distanceMeters / METERS_PER_MILE
         context.getString(R.string.distance_format_mi, miles)
@@ -1433,8 +1493,13 @@ private fun formatDistance(context: Context, distanceMeters: Float, userProfile:
     }
 }
 
-private fun formatElevation(context: Context, elevationMeters: Float, userProfile: UserProfile?): String {
-    val isImperial = userProfile?.preferredUnit?.elevation == UserProfile.PreferredUnit.UnitType.IMPERIAL
+private fun formatElevation(
+    context: Context,
+    elevationMeters: Float,
+    userProfile: UserProfile?,
+): String {
+    val isImperial =
+        userProfile?.preferredUnit?.elevation == UserProfile.PreferredUnit.UnitType.IMPERIAL
     return if (isImperial) {
         val feet = (elevationMeters / METERS_PER_FOOT).toInt()
         context.getString(R.string.elevation_format_ft, feet)
@@ -1448,15 +1513,19 @@ private fun formatElevation(context: Context, elevationMeters: Float, userProfil
 private suspend fun loadRoutesResponse(
     apiClient: PedalonsApiClient,
     authManager: AuthManager,
-    onResult: (Result<RoutesResponse>) -> Unit
+    onResult: (Result<RoutesResponse>) -> Unit,
 ) {
     var accessToken = authManager.getValidAccessToken()
     if (accessToken == null && authManager.needsRefresh()) {
         val refreshToken = authManager.getRefreshToken()
         if (refreshToken != null) {
-            apiClient.refreshToken(refreshToken)
+            apiClient
+                .refreshToken(refreshToken)
                 .onSuccess { tokenResponse ->
-                    authManager.updateAccessToken(tokenResponse.accessToken, tokenResponse.expiresIn)
+                    authManager.updateAccessToken(
+                        tokenResponse.accessToken,
+                        tokenResponse.expiresIn,
+                    )
                     accessToken = tokenResponse.accessToken
                 }
                 .onFailure {
@@ -1471,23 +1540,22 @@ private suspend fun loadRoutesResponse(
         return
     }
 
-    apiClient.getRoutes(accessToken)
-        .let { onResult(it) }
+    apiClient.getRoutes(accessToken).let { onResult(it) }
 }
 
 private suspend fun syncRoute(
     apiClient: PedalonsApiClient,
     authManager: AuthManager,
     teamSlug: String,
-    routeSlug: String
+    routeSlug: String,
 ): SyncState {
-    val accessToken = authManager.getValidAccessToken()
-        ?: return SyncState.ERROR
+    val accessToken = authManager.getValidAccessToken() ?: return SyncState.ERROR
 
-    return apiClient.syncRoute(accessToken, teamSlug, routeSlug)
+    return apiClient
+        .syncRoute(accessToken, teamSlug, routeSlug)
         .fold(
             onSuccess = { SyncState.SUCCESS },
-            onFailure = { SyncState.ERROR }
+            onFailure = { SyncState.ERROR },
         )
 }
 
@@ -1495,15 +1563,19 @@ private suspend fun checkAndPromptGpsConnection(
     apiClient: PedalonsApiClient,
     authManager: AuthManager,
     activity: MainActivity,
-    onResult: (Boolean) -> Unit
+    onResult: (Boolean) -> Unit,
 ) {
     var accessToken = authManager.getValidAccessToken()
     if (accessToken == null && authManager.needsRefresh()) {
         val refreshToken = authManager.getRefreshToken()
         if (refreshToken != null) {
-            apiClient.refreshToken(refreshToken)
+            apiClient
+                .refreshToken(refreshToken)
                 .onSuccess { tokenResponse ->
-                    authManager.updateAccessToken(tokenResponse.accessToken, tokenResponse.expiresIn)
+                    authManager.updateAccessToken(
+                        tokenResponse.accessToken,
+                        tokenResponse.expiresIn,
+                    )
                     accessToken = tokenResponse.accessToken
                 }
                 .onFailure {
@@ -1518,7 +1590,8 @@ private suspend fun checkAndPromptGpsConnection(
         return
     }
 
-    apiClient.getUserStatus(accessToken)
+    apiClient
+        .getUserStatus(accessToken)
         .onSuccess { status ->
             if (status.isHammerheadConnected()) {
                 onResult(true)

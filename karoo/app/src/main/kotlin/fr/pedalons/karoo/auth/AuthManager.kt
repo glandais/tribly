@@ -12,11 +12,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
-private val Context.authDataStore: DataStore<Preferences> by preferencesDataStore(name = "pedalons_auth")
+private val Context.authDataStore: DataStore<Preferences> by
+    preferencesDataStore(name = "pedalons_auth")
 
 /**
- * Manages authentication tokens using DataStore.
- * Tokens are stored locally and refreshed automatically when needed.
+ * Manages authentication tokens using DataStore. Tokens are stored locally and refreshed
+ * automatically when needed.
  */
 class AuthManager(private val context: Context) {
 
@@ -26,9 +27,7 @@ class AuthManager(private val context: Context) {
         val EXPIRES_AT = longPreferencesKey("expires_at")
     }
 
-    /**
-     * Stores tokens from a successful authentication.
-     */
+    /** Stores tokens from a successful authentication. */
     suspend fun saveTokens(tokenResponse: TokenResponse) {
         val expiresAt = System.currentTimeMillis() + (tokenResponse.expiresIn * 1000L)
         context.authDataStore.edit { prefs ->
@@ -38,9 +37,7 @@ class AuthManager(private val context: Context) {
         }
     }
 
-    /**
-     * Updates only the access token (used after refresh).
-     */
+    /** Updates only the access token (used after refresh). */
     suspend fun updateAccessToken(accessToken: String, expiresIn: Int) {
         val expiresAt = System.currentTimeMillis() + (expiresIn * 1000L)
         context.authDataStore.edit { prefs ->
@@ -49,9 +46,7 @@ class AuthManager(private val context: Context) {
         }
     }
 
-    /**
-     * Clears all stored tokens.
-     */
+    /** Clears all stored tokens. */
     suspend fun clearTokens() {
         context.authDataStore.edit { prefs ->
             prefs.remove(Keys.ACCESS_TOKEN)
@@ -60,9 +55,7 @@ class AuthManager(private val context: Context) {
         }
     }
 
-    /**
-     * Gets the current access token if not expired.
-     */
+    /** Gets the current access token if not expired. */
     suspend fun getValidAccessToken(): String? {
         val prefs = context.authDataStore.data.first()
         val accessToken = prefs[Keys.ACCESS_TOKEN] ?: return null
@@ -76,25 +69,20 @@ class AuthManager(private val context: Context) {
         }
     }
 
-    /**
-     * Gets the refresh token if available.
-     */
+    /** Gets the refresh token if available. */
     suspend fun getRefreshToken(): String? {
         return context.authDataStore.data.first()[Keys.REFRESH_TOKEN]
     }
 
-    /**
-     * Flow indicating whether the user is authenticated.
-     */
-    val isAuthenticated: Flow<Boolean> = context.authDataStore.data.map { prefs ->
-        val hasAccessToken = prefs[Keys.ACCESS_TOKEN] != null
-        val hasRefreshToken = prefs[Keys.REFRESH_TOKEN] != null
-        hasAccessToken && hasRefreshToken
-    }
+    /** Flow indicating whether the user is authenticated. */
+    val isAuthenticated: Flow<Boolean> =
+        context.authDataStore.data.map { prefs ->
+            val hasAccessToken = prefs[Keys.ACCESS_TOKEN] != null
+            val hasRefreshToken = prefs[Keys.REFRESH_TOKEN] != null
+            hasAccessToken && hasRefreshToken
+        }
 
-    /**
-     * Checks if token needs refresh (expired or expiring soon).
-     */
+    /** Checks if token needs refresh (expired or expiring soon). */
     suspend fun needsRefresh(): Boolean {
         val prefs = context.authDataStore.data.first()
         val expiresAt = prefs[Keys.EXPIRES_AT] ?: return true

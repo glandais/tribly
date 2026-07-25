@@ -19,48 +19,52 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
 /**
- * HTTP client for Pédalons API using Ktor with Karoo engine.
- * The Karoo engine routes HTTP requests through the Karoo System Service,
- * which handles network connectivity on Karoo devices.
+ * HTTP client for Pédalons API using Ktor with Karoo engine. The Karoo engine routes HTTP requests
+ * through the Karoo System Service, which handles network connectivity on Karoo devices.
  */
 class PedalonsApiClient(
     private val baseUrl: String,
-    karooSystemService: KarooSystemService
+    karooSystemService: KarooSystemService,
 ) {
     private val json = Json {
         ignoreUnknownKeys = true
         isLenient = true
     }
 
-    private val client = HttpClient(Karoo(karooSystemService)) {
-        install(ContentNegotiation) {
-            json(json)
+    private val client =
+        HttpClient(Karoo(karooSystemService)) {
+            install(ContentNegotiation) {
+                json(json)
+            }
+            defaultRequest {
+                contentType(ContentType.Application.Json)
+            }
         }
-        defaultRequest {
-            contentType(ContentType.Application.Json)
-        }
-    }
 
     // === Device Code Flow ===
 
     suspend fun requestDeviceCode(): Result<DeviceCodeResponse> = runCatching {
-        val response = client.post("$baseUrl/api/device/oauth/device") {
-            setBody(DeviceCodeRequest(clientId = "karoo"))
-        }
+        val response =
+            client.post("$baseUrl/api/device/oauth/device") {
+                setBody(DeviceCodeRequest(clientId = "karoo"))
+            }
         if (response.status.isSuccess()) {
             response.body<DeviceCodeResponse>()
         } else {
-            throw ApiException( response.bodyAsText())
+            throw ApiException(response.bodyAsText())
         }
     }
 
     suspend fun pollForToken(deviceCode: String): Result<TokenResponse> = runCatching {
-        val response = client.post("$baseUrl/api/device/oauth/token") {
-            setBody(TokenRequest(
-                grantType = TokenRequest.GRANT_TYPE_DEVICE_CODE,
-                deviceCode = deviceCode
-            ))
-        }
+        val response =
+            client.post("$baseUrl/api/device/oauth/token") {
+                setBody(
+                    TokenRequest(
+                        grantType = TokenRequest.GRANT_TYPE_DEVICE_CODE,
+                        deviceCode = deviceCode,
+                    )
+                )
+            }
         when (response.status.value) {
             200 -> response.body<TokenResponse>()
             400 -> {
@@ -76,12 +80,15 @@ class PedalonsApiClient(
     }
 
     suspend fun refreshToken(refreshToken: String): Result<TokenResponse> = runCatching {
-        val response = client.post("$baseUrl/api/device/oauth/token") {
-            setBody(TokenRequest(
-                grantType = TokenRequest.GRANT_TYPE_REFRESH,
-                refreshToken = refreshToken
-            ))
-        }
+        val response =
+            client.post("$baseUrl/api/device/oauth/token") {
+                setBody(
+                    TokenRequest(
+                        grantType = TokenRequest.GRANT_TYPE_REFRESH,
+                        refreshToken = refreshToken,
+                    )
+                )
+            }
         if (response.status.isSuccess()) {
             response.body<TokenResponse>()
         } else {
@@ -92,9 +99,10 @@ class PedalonsApiClient(
     // === User Status ===
 
     suspend fun getUserStatus(accessToken: String): Result<UserStatusResponse> = runCatching {
-        val response = client.get("$baseUrl/api/device/me") {
-            bearerAuth(accessToken)
-        }
+        val response =
+            client.get("$baseUrl/api/device/me") {
+                bearerAuth(accessToken)
+            }
         if (response.status.isSuccess()) {
             response.body<UserStatusResponse>()
         } else if (response.status.value == 401) {
@@ -109,15 +117,16 @@ class PedalonsApiClient(
     suspend fun getRoutes(
         accessToken: String,
         lat: Double? = null,
-        lon: Double? = null
+        lon: Double? = null,
     ): Result<RoutesResponse> = runCatching {
-        val response = client.get("$baseUrl/api/device/routes") {
-            bearerAuth(accessToken)
-            if (lat != null && lon != null) {
-                parameter("lat", lat)
-                parameter("lon", lon)
+        val response =
+            client.get("$baseUrl/api/device/routes") {
+                bearerAuth(accessToken)
+                if (lat != null && lon != null) {
+                    parameter("lat", lat)
+                    parameter("lon", lon)
+                }
             }
-        }
         if (response.status.isSuccess()) {
             response.body<RoutesResponse>()
         } else if (response.status.value == 401) {
@@ -130,11 +139,12 @@ class PedalonsApiClient(
     suspend fun syncRoute(
         accessToken: String,
         teamSlug: String,
-        routeSlug: String
+        routeSlug: String,
     ): Result<SyncResponse> = runCatching {
-        val response = client.post("$baseUrl/api/device/routes/$teamSlug/$routeSlug/sync?type=hammerhead") {
-            bearerAuth(accessToken)
-        }
+        val response =
+            client.post("$baseUrl/api/device/routes/$teamSlug/$routeSlug/sync?type=hammerhead") {
+                bearerAuth(accessToken)
+            }
         if (response.status.isSuccess()) {
             response.body<SyncResponse>()
         } else if (response.status.value == 401) {
@@ -151,6 +161,9 @@ class PedalonsApiClient(
 
 // Exceptions
 class ApiException(message: String) : Exception(message)
+
 class AuthorizationPendingException : Exception("Authorization pending")
+
 class TokenExpiredException : Exception("Token expired")
+
 class UnauthorizedException : Exception("Unauthorized")

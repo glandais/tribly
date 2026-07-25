@@ -28,31 +28,31 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.set
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
 import fr.pedalons.karoo.R
 import fr.pedalons.karoo.api.AuthorizationPendingException
 import fr.pedalons.karoo.api.DeviceCodeResponse
-import fr.pedalons.karoo.api.TokenExpiredException
 import fr.pedalons.karoo.api.PedalonsApiClient
+import fr.pedalons.karoo.api.TokenExpiredException
 import fr.pedalons.karoo.ui.theme.PedalonsKarooTheme
 import io.hammerhead.karooext.KarooSystemService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import androidx.core.graphics.createBitmap
-import androidx.core.graphics.set
 
 /**
- * Activity for device code authentication flow.
- * Displays QR code and user code, polls for authentication completion.
+ * Activity for device code authentication flow. Displays QR code and user code, polls for
+ * authentication completion.
  */
 class AuthActivity : ComponentActivity() {
 
@@ -71,11 +71,13 @@ class AuthActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        baseUrl = intent.getStringExtra(EXTRA_BASE_URL) ?: run {
-            setResult(RESULT_ERROR)
-            finish()
-            return
-        }
+        baseUrl =
+            intent.getStringExtra(EXTRA_BASE_URL)
+                ?: run {
+                    setResult(RESULT_ERROR)
+                    finish()
+                    return
+                }
 
         authManager = AuthManager(this)
         karooSystem = KarooSystemService(applicationContext)
@@ -84,7 +86,7 @@ class AuthActivity : ComponentActivity() {
             var isConnected by remember { mutableStateOf(false) }
 
             LaunchedEffect(Unit) {
-                karooSystem.connect { }
+                karooSystem.connect {}
                 // Poll for connection status
                 while (!karooSystem.connected) {
                     delay(100)
@@ -105,17 +107,17 @@ class AuthActivity : ComponentActivity() {
                         onCancel = {
                             setResult(RESULT_CANCELLED)
                             finish()
-                        }
+                        },
                     )
                 } else {
                     // Show loading while connecting to Karoo System Service
                     Surface(
                         modifier = Modifier.fillMaxSize(),
-                        color = MaterialTheme.colorScheme.background
+                        color = MaterialTheme.colorScheme.background,
                     ) {
                         Box(
                             modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
+                            contentAlignment = Alignment.Center,
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 CircularProgressIndicator()
@@ -143,14 +145,15 @@ private fun AuthScreen(
     apiClient: PedalonsApiClient,
     authManager: AuthManager,
     onSuccess: () -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
 ) {
     var state by remember { mutableStateOf<AuthState>(AuthState.Loading) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         // Request device code
-        apiClient.requestDeviceCode()
+        apiClient
+            .requestDeviceCode()
             .onSuccess { response ->
                 state = AuthState.ShowingCode(response)
                 // Start polling
@@ -167,7 +170,7 @@ private fun AuthScreen(
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
+        color = MaterialTheme.colorScheme.background,
     ) {
         when (val currentState = state) {
             is AuthState.Loading -> LoadingContent()
@@ -184,14 +187,14 @@ private fun AuthScreen(
 private fun LoadingContent() {
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = stringResource(R.string.loading),
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
             )
         }
     }
@@ -199,22 +202,21 @@ private fun LoadingContent() {
 
 @Composable
 private fun CodeContent(deviceCode: DeviceCodeResponse) {
-    val qrBitmap = remember(deviceCode.verificationUriComplete) {
-        generateQrCode(deviceCode.verificationUriComplete)
-    }
+    val qrBitmap =
+        remember(deviceCode.verificationUriComplete) {
+            generateQrCode(deviceCode.verificationUriComplete)
+        }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(12.dp),
+        modifier = Modifier.fillMaxSize().padding(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceEvenly
+        verticalArrangement = Arrangement.SpaceEvenly,
     ) {
         Text(
             text = stringResource(R.string.auth_connect_title),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
 
         // QR Code
@@ -222,7 +224,7 @@ private fun CodeContent(deviceCode: DeviceCodeResponse) {
             Image(
                 bitmap = bitmap.asImageBitmap(),
                 contentDescription = "QR Code",
-                modifier = Modifier.size(140.dp)
+                modifier = Modifier.size(140.dp),
             )
         }
 
@@ -230,7 +232,7 @@ private fun CodeContent(deviceCode: DeviceCodeResponse) {
         Text(
             text = stringResource(R.string.auth_url_label),
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         // User code section
@@ -238,33 +240,34 @@ private fun CodeContent(deviceCode: DeviceCodeResponse) {
             Text(
                 text = stringResource(R.string.auth_code_label),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
                 text = deviceCode.userCode,
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    letterSpacing = 4.sp,
-                    fontWeight = FontWeight.Bold
-                ),
-                color = Color.White
+                style =
+                    MaterialTheme.typography.headlineMedium.copy(
+                        letterSpacing = 4.sp,
+                        fontWeight = FontWeight.Bold,
+                    ),
+                color = Color.White,
             )
         }
 
         // Polling indicator
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.Center,
         ) {
             CircularProgressIndicator(
                 modifier = Modifier.size(14.dp),
                 strokeWidth = 2.dp,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
             )
             Spacer(modifier = Modifier.width(6.dp))
             Text(
                 text = stringResource(R.string.auth_waiting),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -274,23 +277,24 @@ private fun CodeContent(deviceCode: DeviceCodeResponse) {
 private fun PollingContent(userCode: String) {
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = userCode,
-                style = MaterialTheme.typography.displaySmall.copy(
-                    letterSpacing = 4.sp,
-                    fontWeight = FontWeight.Bold
-                ),
-                color = MaterialTheme.colorScheme.primary
+                style =
+                    MaterialTheme.typography.displaySmall.copy(
+                        letterSpacing = 4.sp,
+                        fontWeight = FontWeight.Bold,
+                    ),
+                color = MaterialTheme.colorScheme.primary,
             )
             Spacer(modifier = Modifier.height(16.dp))
             CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = stringResource(R.string.auth_waiting),
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
             )
         }
     }
@@ -300,19 +304,19 @@ private fun PollingContent(userCode: String) {
 private fun SuccessContent() {
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = stringResource(R.string.success_checkmark),
                 style = MaterialTheme.typography.displayLarge,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = stringResource(R.string.auth_success),
                 style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             )
         }
     }
@@ -322,20 +326,20 @@ private fun SuccessContent() {
 private fun ErrorContent(message: String, onRetry: () -> Unit) {
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = stringResource(R.string.auth_error),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.error
+                color = MaterialTheme.colorScheme.error,
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = message,
                 style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
             Spacer(modifier = Modifier.height(24.dp))
             Button(onClick = onRetry) {
@@ -349,13 +353,13 @@ private fun ErrorContent(message: String, onRetry: () -> Unit) {
 private fun ExpiredContent(onClose: () -> Unit) {
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = stringResource(R.string.auth_expired),
                 style = MaterialTheme.typography.headlineSmall,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
             Spacer(modifier = Modifier.height(24.dp))
             Button(onClick = onClose) {
@@ -367,10 +371,15 @@ private fun ExpiredContent(onClose: () -> Unit) {
 
 private sealed class AuthState {
     data object Loading : AuthState()
+
     data class ShowingCode(val deviceCodeResponse: DeviceCodeResponse) : AuthState()
+
     data class Polling(val userCode: String) : AuthState()
+
     data object Success : AuthState()
+
     data class Error(val message: String) : AuthState()
+
     data object Expired : AuthState()
 }
 
@@ -379,7 +388,7 @@ private suspend fun pollForToken(
     authManager: AuthManager,
     deviceCode: DeviceCodeResponse,
     onSuccess: () -> Unit,
-    updateState: (AuthState) -> Unit
+    updateState: (AuthState) -> Unit,
 ) {
     val intervalMs = (deviceCode.interval * 1000).toLong()
     val expiresAt = System.currentTimeMillis() + (deviceCode.expiresIn * 1000)
@@ -387,7 +396,8 @@ private suspend fun pollForToken(
     while (System.currentTimeMillis() < expiresAt) {
         delay(intervalMs)
 
-        apiClient.pollForToken(deviceCode.deviceCode)
+        apiClient
+            .pollForToken(deviceCode.deviceCode)
             .onSuccess { tokenResponse ->
                 authManager.saveTokens(tokenResponse)
                 updateState(AuthState.Success)

@@ -1,6 +1,5 @@
 package fr.pedalons.karoo.auth
 
-import android.graphics.Bitmap
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -48,8 +47,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
- * Activity for connecting Hammerhead GPS service.
- * Displays QR code to profile page where user can connect Hammerhead OAuth.
+ * Activity for connecting Hammerhead GPS service. Displays QR code to profile page where user can
+ * connect Hammerhead OAuth.
  */
 class GpsConnectActivity : ComponentActivity() {
 
@@ -68,11 +67,13 @@ class GpsConnectActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        baseUrl = intent.getStringExtra(EXTRA_BASE_URL) ?: run {
-            setResult(RESULT_ERROR)
-            finish()
-            return
-        }
+        baseUrl =
+            intent.getStringExtra(EXTRA_BASE_URL)
+                ?: run {
+                    setResult(RESULT_ERROR)
+                    finish()
+                    return
+                }
 
         authManager = AuthManager(this)
         karooSystem = KarooSystemService(applicationContext)
@@ -81,7 +82,7 @@ class GpsConnectActivity : ComponentActivity() {
             var isConnected by remember { mutableStateOf(false) }
 
             LaunchedEffect(Unit) {
-                karooSystem.connect { }
+                karooSystem.connect {}
                 // Poll for connection status
                 while (!karooSystem.connected) {
                     delay(100)
@@ -103,17 +104,17 @@ class GpsConnectActivity : ComponentActivity() {
                         onSkip = {
                             setResult(RESULT_SKIPPED)
                             finish()
-                        }
+                        },
                     )
                 } else {
                     // Show loading while connecting to Karoo System Service
                     Surface(
                         modifier = Modifier.fillMaxSize(),
-                        color = MaterialTheme.colorScheme.background
+                        color = MaterialTheme.colorScheme.background,
                     ) {
                         Box(
                             modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
+                            contentAlignment = Alignment.Center,
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 CircularProgressIndicator()
@@ -142,26 +143,25 @@ private fun GpsConnectScreen(
     authManager: AuthManager,
     profileUrl: String,
     onSuccess: () -> Unit,
-    onSkip: () -> Unit
+    onSkip: () -> Unit,
 ) {
     var isChecking by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    val qrBitmap = remember(profileUrl) {
-        generateQrCode(profileUrl)
-    }
+    val qrBitmap =
+        remember(profileUrl) {
+            generateQrCode(profileUrl)
+        }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
+        color = MaterialTheme.colorScheme.background,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxSize().padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceEvenly
+            verticalArrangement = Arrangement.SpaceEvenly,
         ) {
             // Title section
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -169,14 +169,14 @@ private fun GpsConnectScreen(
                     text = stringResource(R.string.gps_connect_title),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = stringResource(R.string.gps_connect_subtitle),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
             }
 
@@ -186,21 +186,21 @@ private fun GpsConnectScreen(
                     Image(
                         bitmap = bitmap.asImageBitmap(),
                         contentDescription = "QR Code",
-                        modifier = Modifier.size(140.dp)
+                        modifier = Modifier.size(140.dp),
                     )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = stringResource(R.string.gps_connect_scan),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
             // Buttons section
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Button(
                     onClick = {
@@ -211,43 +211,46 @@ private fun GpsConnectScreen(
                                 authManager = authManager,
                                 onSuccess = {
                                     Toast.makeText(
-                                        context,
-                                        R.string.gps_connect_success,
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                            context,
+                                            R.string.gps_connect_success,
+                                            Toast.LENGTH_SHORT,
+                                        )
+                                        .show()
                                     onSuccess()
                                 },
                                 onNotConnected = {
                                     Toast.makeText(
-                                        context,
-                                        R.string.gps_connect_not_detected,
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                            context,
+                                            R.string.gps_connect_not_detected,
+                                            Toast.LENGTH_SHORT,
+                                        )
+                                        .show()
                                     isChecking = false
                                 },
                                 onError = {
                                     Toast.makeText(
-                                        context,
-                                        R.string.error_unknown,
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                            context,
+                                            R.string.error_unknown,
+                                            Toast.LENGTH_SHORT,
+                                        )
+                                        .show()
                                     isChecking = false
-                                }
+                                },
                             )
                         }
                     },
                     enabled = !isChecking,
-                    modifier = Modifier.fillMaxWidth(0.8f)
+                    modifier = Modifier.fillMaxWidth(0.8f),
                 ) {
                     if (isChecking) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
+                            horizontalArrangement = Arrangement.Center,
                         ) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(16.dp),
                                 strokeWidth = 2.dp,
-                                color = MaterialTheme.colorScheme.onPrimary
+                                color = MaterialTheme.colorScheme.onPrimary,
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(stringResource(R.string.gps_connect_checking))
@@ -263,9 +266,10 @@ private fun GpsConnectScreen(
                     onClick = onSkip,
                     enabled = !isChecking,
                     modifier = Modifier.fillMaxWidth(0.8f),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    colors =
+                        ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        ),
                 ) {
                     Text(stringResource(R.string.gps_connect_skip))
                 }
@@ -279,16 +283,20 @@ private suspend fun checkHammerheadConnection(
     authManager: AuthManager,
     onSuccess: () -> Unit,
     onNotConnected: () -> Unit,
-    onError: () -> Unit
+    onError: () -> Unit,
 ) {
     // Get access token, refresh if needed
     var accessToken = authManager.getValidAccessToken()
     if (accessToken == null && authManager.needsRefresh()) {
         val refreshToken = authManager.getRefreshToken()
         if (refreshToken != null) {
-            apiClient.refreshToken(refreshToken)
+            apiClient
+                .refreshToken(refreshToken)
                 .onSuccess { tokenResponse ->
-                    authManager.updateAccessToken(tokenResponse.accessToken, tokenResponse.expiresIn)
+                    authManager.updateAccessToken(
+                        tokenResponse.accessToken,
+                        tokenResponse.expiresIn,
+                    )
                     accessToken = tokenResponse.accessToken
                 }
                 .onFailure {
@@ -303,7 +311,8 @@ private suspend fun checkHammerheadConnection(
         return
     }
 
-    apiClient.getUserStatus(accessToken)
+    apiClient
+        .getUserStatus(accessToken)
         .onSuccess { status ->
             if (status.isHammerheadConnected()) {
                 onSuccess()
