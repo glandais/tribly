@@ -18,8 +18,8 @@ class FormatUtils {
 
     function initialize() {
         var settings = System.getDeviceSettings();
-        _isMetricDistance = (settings.distanceUnits == System.UNIT_METRIC);
-        _isMetricElevation = (settings.elevationUnits == System.UNIT_METRIC);
+        _isMetricDistance = settings.distanceUnits == System.UNIT_METRIC;
+        _isMetricElevation = settings.elevationUnits == System.UNIT_METRIC;
         _is24Hour = settings.is24Hour;
     }
 
@@ -68,7 +68,8 @@ class FormatUtils {
         var distStr = formatDistance(distance);
         var elevStr = "";
         if (elevation != null) {
-            elevStr = formatElevation(elevation) + " " + WatchUi.loadResource(Rez.Strings.UnitDPlus);
+            elevStr =
+                formatElevation(elevation) + " " + WatchUi.loadResource(Rez.Strings.UnitDPlus);
         }
         if (distStr.length() > 0 && elevStr.length() > 0) {
             return distStr + " / " + elevStr;
@@ -100,9 +101,9 @@ class FormatUtils {
         } else {
             var hour = info.hour % 12;
             if (hour == 0) {
-                hour = 12;  // 0:xx and 12:xx both display as 12
+                hour = 12; // 0:xx and 12:xx both display as 12
             }
-            var suffix = (info.hour >= 12) ? "PM" : "AM";
+            var suffix = info.hour >= 12 ? "PM" : "AM";
             timeStr = hour.format("%02d") + ":" + info.min.format("%02d") + " " + suffix;
         }
         // Date format: DD/MM for 24h (Europe/Asia), MM/DD for 12h (USA)
@@ -133,8 +134,14 @@ class FormatUtils {
         var min = isoString.substring(14, 16).toNumber();
         var sec = isoString.substring(17, 19).toNumber();
 
-        if (year == null || month == null || day == null ||
-            hour == null || min == null || sec == null) {
+        if (
+            year == null ||
+            month == null ||
+            day == null ||
+            hour == null ||
+            min == null ||
+            sec == null
+        ) {
             return null;
         }
 
@@ -145,9 +152,8 @@ class FormatUtils {
             :day => day,
             :hour => hour,
             :minute => min,
-            :second => sec
+            :second => sec,
         };
         return Gregorian.moment(options);
     }
-
 }

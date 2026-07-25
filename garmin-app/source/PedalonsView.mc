@@ -38,8 +38,12 @@ class PedalonsView extends WatchUi.View {
             var rides = result.get("rides");
             var routes = result.get("routes");
 
-            if (rides == null) { rides = []; }
-            if (routes == null) { routes = []; }
+            if (rides == null) {
+                rides = [];
+            }
+            if (routes == null) {
+                routes = [];
+            }
 
             if (rides.size() == 0 && routes.size() == 0) {
                 _error = WatchUi.loadResource(Rez.Strings.NoRoutes);
@@ -49,15 +53,15 @@ class PedalonsView extends WatchUi.View {
 
             // Build Home Menu with 2 entries: Rides and Routes
             var menu = new WatchUi.Menu2({
-                :title => WatchUi.loadResource(Rez.Strings.RoutesTitle)
+                :title => WatchUi.loadResource(Rez.Strings.RoutesTitle),
             });
 
             if (menu has :setActionMenuIndicator) {
-                menu.setActionMenuIndicator({:enabled => false});
+                menu.setActionMenuIndicator({ :enabled => false });
             }
             if (menu has :setControlBar) {
                 menu.setControlBar({
-                    :leftButton => WatchUi.CONTROL_BAR_LEFT_BUTTON_BACK
+                    :leftButton => WatchUi.CONTROL_BAR_LEFT_BUTTON_BACK,
                 });
             }
 
@@ -77,7 +81,11 @@ class PedalonsView extends WatchUi.View {
             }
             menu.addItem(new WatchUi.MenuItem(routesLabel, routesSublabel, "routes", {}));
 
-            WatchUi.switchToView(menu, new HomeMenuDelegate(rides, routes, _apiClient, _formatUtils), WatchUi.SLIDE_IMMEDIATE);
+            WatchUi.switchToView(
+                menu,
+                new HomeMenuDelegate(rides, routes, _apiClient, _formatUtils),
+                WatchUi.SLIDE_IMMEDIATE
+            );
         } else {
             _error = WatchUi.loadResource(Rez.Strings.ConnectionError);
             WatchUi.requestUpdate();
@@ -88,8 +96,7 @@ class PedalonsView extends WatchUi.View {
         return _apiClient;
     }
 
-    function onLayout(dc) {
-    }
+    function onLayout(dc) {}
 
     function onUpdate(dc) {
         // Clear screen

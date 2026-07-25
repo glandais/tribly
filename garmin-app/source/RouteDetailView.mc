@@ -13,13 +13,13 @@ class RouteDetailView extends WatchUi.View {
     function initialize(route) {
         View.initialize();
         if (View has :setActionMenuIndicator) {
-            setActionMenuIndicator({:enabled => false});
+            setActionMenuIndicator({ :enabled => false });
         }
         if (View has :setControlBar) {
             setControlBar({
                 :leftButton => WatchUi.CONTROL_BAR_LEFT_BUTTON_BACK,
                 :rightButton => WatchUi.CONTROL_BAR_RIGHT_BUTTON_ACCEPT,
-                :title => WatchUi.loadResource(Rez.Strings.Download)
+                :title => WatchUi.loadResource(Rez.Strings.Download),
             });
         }
         _route = route;
@@ -45,8 +45,7 @@ class RouteDetailView extends WatchUi.View {
         WatchUi.requestUpdate();
     }
 
-    function onLayout(dc) {
-    }
+    function onLayout(dc) {}
 
     function onUpdate(dc) {
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
@@ -75,10 +74,18 @@ class RouteDetailView extends WatchUi.View {
         }
 
         // 1. Route name (always shown)
-        var displayRouteName = (routeName != null && routeName.length() > 0)
-            ? routeName
-            : WatchUi.loadResource(Rez.Strings.Unknown);
-        layout.draw(dc, centerX, Graphics.FONT_SMALL, displayRouteName, null, Graphics.COLOR_LT_GRAY);
+        var displayRouteName =
+            routeName != null && routeName.length() > 0
+                ? routeName
+                : WatchUi.loadResource(Rez.Strings.Unknown);
+        layout.draw(
+            dc,
+            centerX,
+            Graphics.FONT_SMALL,
+            displayRouteName,
+            null,
+            Graphics.COLOR_LT_GRAY
+        );
 
         // 4. Date/time (if Ride exists)
         if (startDateTime != null && startDateTime.length() > 0) {
@@ -90,14 +97,28 @@ class RouteDetailView extends WatchUi.View {
 
         // 5. Distance & Elevation
         if (distance != null) {
-            layout.draw(dc, centerX, Graphics.FONT_TINY,
-                WatchUi.loadResource(Rez.Strings.Distance) + ": " + _formatUtils.formatDistance(distance),
-                null, Graphics.COLOR_WHITE);
+            layout.draw(
+                dc,
+                centerX,
+                Graphics.FONT_TINY,
+                WatchUi.loadResource(Rez.Strings.Distance) +
+                    ": " +
+                    _formatUtils.formatDistance(distance),
+                null,
+                Graphics.COLOR_WHITE
+            );
         }
         if (elevationGain != null) {
-            layout.draw(dc, centerX, Graphics.FONT_TINY,
-                WatchUi.loadResource(Rez.Strings.Elevation) + ": " + _formatUtils.formatElevation(elevationGain),
-                null, Graphics.COLOR_WHITE);
+            layout.draw(
+                dc,
+                centerX,
+                Graphics.FONT_TINY,
+                WatchUi.loadResource(Rez.Strings.Elevation) +
+                    ": " +
+                    _formatUtils.formatElevation(elevationGain),
+                null,
+                Graphics.COLOR_WHITE
+            );
         }
 
         // Download status at bottom
@@ -107,21 +128,42 @@ class RouteDetailView extends WatchUi.View {
     private function drawDownloadStatus(dc, centerX, y) {
         if (_isDownloading) {
             dc.setColor(Graphics.COLOR_YELLOW, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(centerX, y, Graphics.FONT_SMALL,
+            dc.drawText(
+                centerX,
+                y,
+                Graphics.FONT_SMALL,
                 _downloadStatus != null ? _downloadStatus : "...",
-                Graphics.TEXT_JUSTIFY_CENTER);
+                Graphics.TEXT_JUSTIFY_CENTER
+            );
         } else if (_downloadStatus != null) {
             var color = _downloadStatus.equals(WatchUi.loadResource(Rez.Strings.DownloadComplete))
-                ? Graphics.COLOR_GREEN : Graphics.COLOR_RED;
+                ? Graphics.COLOR_GREEN
+                : Graphics.COLOR_RED;
             dc.setColor(color, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(centerX, y, Graphics.FONT_SMALL, _downloadStatus, Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(
+                centerX,
+                y,
+                Graphics.FONT_SMALL,
+                _downloadStatus,
+                Graphics.TEXT_JUSTIFY_CENTER
+            );
         } else {
             dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(centerX, y, Graphics.FONT_SMALL,
-                WatchUi.loadResource(Rez.Strings.Download), Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(
+                centerX,
+                y,
+                Graphics.FONT_SMALL,
+                WatchUi.loadResource(Rez.Strings.Download),
+                Graphics.TEXT_JUSTIFY_CENTER
+            );
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(centerX, y + 25, Graphics.FONT_TINY,
-                WatchUi.loadResource(Rez.Strings.PressSelect), Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(
+                centerX,
+                y + 25,
+                Graphics.FONT_TINY,
+                WatchUi.loadResource(Rez.Strings.PressSelect),
+                Graphics.TEXT_JUSTIFY_CENTER
+            );
         }
     }
 }

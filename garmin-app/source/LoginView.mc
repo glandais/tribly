@@ -56,15 +56,50 @@ class LoginView extends WatchUi.View {
 
         if (_userCode != null) {
             var layout = new VerticalLayout(centerY - 70, 4);
-            layout.draw(dc, centerX, Graphics.FONT_TINY, WatchUi.loadResource(Rez.Strings.GoTo), null, Graphics.COLOR_LT_GRAY);
-            layout.draw(dc, centerX, Graphics.FONT_SMALL, WatchUi.loadResource(Rez.Strings.VerificationUrl), null, Graphics.COLOR_WHITE);
+            layout.draw(
+                dc,
+                centerX,
+                Graphics.FONT_TINY,
+                WatchUi.loadResource(Rez.Strings.GoTo),
+                null,
+                Graphics.COLOR_LT_GRAY
+            );
+            layout.draw(
+                dc,
+                centerX,
+                Graphics.FONT_SMALL,
+                WatchUi.loadResource(Rez.Strings.VerificationUrl),
+                null,
+                Graphics.COLOR_WHITE
+            );
             layout.skip(10);
-            layout.draw(dc, centerX, Graphics.FONT_NUMBER_HOT, _userCode, null, Graphics.COLOR_WHITE);
+            layout.draw(
+                dc,
+                centerX,
+                Graphics.FONT_NUMBER_HOT,
+                _userCode,
+                null,
+                Graphics.COLOR_WHITE
+            );
             layout.draw(dc, centerX, Graphics.FONT_TINY, _statusText, null, Graphics.COLOR_BLUE);
         } else {
             var layout = new VerticalLayout(centerY - 30, 60);
-            layout.draw(dc, centerX, Graphics.FONT_MEDIUM, WatchUi.loadResource(Rez.Strings.LoginRequired), null, Graphics.COLOR_BLUE);
-            layout.draw(dc, centerX, Graphics.FONT_TINY, WatchUi.loadResource(Rez.Strings.PressSelectToLogin), null, Graphics.COLOR_LT_GRAY);
+            layout.draw(
+                dc,
+                centerX,
+                Graphics.FONT_MEDIUM,
+                WatchUi.loadResource(Rez.Strings.LoginRequired),
+                null,
+                Graphics.COLOR_BLUE
+            );
+            layout.draw(
+                dc,
+                centerX,
+                Graphics.FONT_TINY,
+                WatchUi.loadResource(Rez.Strings.PressSelectToLogin),
+                null,
+                Graphics.COLOR_LT_GRAY
+            );
         }
     }
 }

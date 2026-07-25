@@ -30,7 +30,7 @@ class RideEntryMenuDelegate extends WatchUi.Menu2InputDelegate {
                 "distance" => entry.get("distance"),
                 "elevationGain" => entry.get("elevationGain"),
                 "startLat" => entry.get("startLat"),
-                "startLon" => entry.get("startLon")
+                "startLon" => entry.get("startLon"),
             };
 
             var detailView = new RouteDetailView(routeDict);

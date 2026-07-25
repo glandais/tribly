@@ -15,8 +15,7 @@ class AuthManager {
     private const USER_CODE_KEY = "user_code";
     private const CODE_EXPIRY_KEY = "code_expiry";
 
-    function initialize() {
-    }
+    function initialize() {}
 
     /**
      * Check if we have a valid (non-expired) access token.
@@ -34,7 +33,7 @@ class AuthManager {
 
         // Check if token is expired (with 5 minute buffer)
         var now = Time.now().value();
-        return expiry > (now + 300);
+        return expiry > now + 300;
     }
 
     /**
@@ -97,7 +96,7 @@ class AuthManager {
 
         var now = Time.now().value();
         // Refresh if less than 10 minutes remaining
-        return expiry < (now + 600);
+        return expiry < now + 600;
     }
 
     // === Device Code Flow State ===

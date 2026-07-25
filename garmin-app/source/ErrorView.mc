@@ -13,8 +13,7 @@ class ErrorView extends WatchUi.View {
         _message = message;
     }
 
-    function onLayout(dc) {
-    }
+    function onLayout(dc) {}
 
     function onUpdate(dc) {
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
@@ -25,9 +24,14 @@ class ErrorView extends WatchUi.View {
         var layout = new VerticalLayout(centerY - 30, 8);
 
         layout.draw(dc, centerX, Graphics.FONT_SMALL, _message, null, Graphics.COLOR_RED);
-        layout.draw(dc, centerX, Graphics.FONT_TINY,
+        layout.draw(
+            dc,
+            centerX,
+            Graphics.FONT_TINY,
             WatchUi.loadResource(Rez.Strings.Retry) + WatchUi.loadResource(Rez.Strings.SelectHint),
-            null, Graphics.COLOR_LT_GRAY);
+            null,
+            Graphics.COLOR_LT_GRAY
+        );
     }
 }
 

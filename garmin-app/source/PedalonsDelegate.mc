@@ -21,13 +21,15 @@ class PedalonsDelegate extends WatchUi.BehaviorDelegate {
 
     function onMenu() {
         // Show menu with refresh option
-        var menu = new WatchUi.Menu2({:title => WatchUi.loadResource(Rez.Strings.MenuTitle)});
-        menu.addItem(new WatchUi.MenuItem(
-            WatchUi.loadResource(Rez.Strings.RefreshRoutes),
-            null,
-            "refresh",
-            {}
-        ));
+        var menu = new WatchUi.Menu2({ :title => WatchUi.loadResource(Rez.Strings.MenuTitle) });
+        menu.addItem(
+            new WatchUi.MenuItem(
+                WatchUi.loadResource(Rez.Strings.RefreshRoutes),
+                null,
+                "refresh",
+                {}
+            )
+        );
         WatchUi.pushView(menu, new LoadingMenuDelegate(_view), WatchUi.SLIDE_UP);
         return true;
     }

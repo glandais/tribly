@@ -36,7 +36,7 @@ class ApiClient {
 
         var url = API_BASE_URL + "/device/oauth/device";
         var params = {
-            "clientId" => "garmin"
+            "clientId" => "garmin",
         };
 
         Communications.makeWebRequest(
@@ -45,9 +45,9 @@ class ApiClient {
             {
                 :method => Communications.HTTP_REQUEST_METHOD_POST,
                 :headers => {
-                    "Content-Type" => Communications.REQUEST_CONTENT_TYPE_JSON
+                    "Content-Type" => Communications.REQUEST_CONTENT_TYPE_JSON,
                 },
-                :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+                :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON,
             },
             method(:onDeviceCodeResponse)
         );
@@ -56,7 +56,10 @@ class ApiClient {
     /**
      * Handle device code API response.
      */
-    function onDeviceCodeResponse(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or Null) as Void {
+    function onDeviceCodeResponse(
+        responseCode as Lang.Number,
+        data as Lang.Dictionary or Lang.String or Null
+    ) as Void {
         var callback = _deviceCodeCallback;
         _deviceCodeCallback = null;
 
@@ -76,7 +79,7 @@ class ApiClient {
                         "userCode" => userCode,
                         "verificationUri" => verificationUri,
                         "expiresIn" => expiresIn,
-                        "interval" => interval
+                        "interval" => interval,
                     });
                 }
                 return;
@@ -86,7 +89,7 @@ class ApiClient {
         // System.println("Device code response failed: " + responseCode);
         if (callback != null) {
             callback.invoke({
-                "success" => false
+                "success" => false,
             });
         }
     }
@@ -100,7 +103,7 @@ class ApiClient {
         var url = API_BASE_URL + "/device/oauth/token";
         var params = {
             "grantType" => "urn:ietf:params:oauth:grant-type:device_code",
-            "deviceCode" => deviceCode
+            "deviceCode" => deviceCode,
         };
 
         Communications.makeWebRequest(
@@ -109,9 +112,9 @@ class ApiClient {
             {
                 :method => Communications.HTTP_REQUEST_METHOD_POST,
                 :headers => {
-                    "Content-Type" => Communications.REQUEST_CONTENT_TYPE_JSON
+                    "Content-Type" => Communications.REQUEST_CONTENT_TYPE_JSON,
                 },
-                :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+                :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON,
             },
             method(:onPollTokenResponse)
         );
@@ -120,7 +123,10 @@ class ApiClient {
     /**
      * Handle polling token response.
      */
-    function onPollTokenResponse(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or Null) as Void {
+    function onPollTokenResponse(
+        responseCode as Lang.Number,
+        data as Lang.Dictionary or Lang.String or Null
+    ) as Void {
         var callback = _tokenCallback;
         _tokenCallback = null;
 
@@ -134,7 +140,7 @@ class ApiClient {
                 _authManager.saveTokens(accessToken, refreshToken, expiresIn);
                 if (callback != null) {
                     callback.invoke({
-                        "success" => true
+                        "success" => true,
                     });
                 }
                 return;
@@ -151,7 +157,7 @@ class ApiClient {
                 if (callback != null) {
                     callback.invoke({
                         "success" => false,
-                        "pending" => true
+                        "pending" => true,
                     });
                 }
                 return;
@@ -162,7 +168,7 @@ class ApiClient {
                 if (callback != null) {
                     callback.invoke({
                         "success" => false,
-                        "expired" => true
+                        "expired" => true,
                     });
                 }
                 return;
@@ -172,7 +178,7 @@ class ApiClient {
         // System.println("Token poll failed: " + responseCode);
         if (callback != null) {
             callback.invoke({
-                "success" => false
+                "success" => false,
             });
         }
     }
@@ -194,7 +200,7 @@ class ApiClient {
         var url = API_BASE_URL + "/device/oauth/token";
         var params = {
             "grantType" => "refresh_token",
-            "refreshToken" => refreshToken
+            "refreshToken" => refreshToken,
         };
 
         Communications.makeWebRequest(
@@ -203,9 +209,9 @@ class ApiClient {
             {
                 :method => Communications.HTTP_REQUEST_METHOD_POST,
                 :headers => {
-                    "Content-Type" => Communications.REQUEST_CONTENT_TYPE_JSON
+                    "Content-Type" => Communications.REQUEST_CONTENT_TYPE_JSON,
                 },
-                :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+                :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON,
             },
             method(:onTokenResponse)
         );
@@ -214,7 +220,10 @@ class ApiClient {
     /**
      * Handle token API response (for refresh).
      */
-    function onTokenResponse(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or Null) as Void {
+    function onTokenResponse(
+        responseCode as Lang.Number,
+        data as Lang.Dictionary or Lang.String or Null
+    ) as Void {
         var callback = _tokenCallback;
         _tokenCallback = null;
 
@@ -290,9 +299,9 @@ class ApiClient {
                 :method => Communications.HTTP_REQUEST_METHOD_GET,
                 :headers => {
                     "Authorization" => "Bearer " + accessToken,
-                    "Accept" => "application/json"
+                    "Accept" => "application/json",
                 },
-                :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+                :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON,
             },
             method(:onRoutesResponse)
         );
@@ -302,7 +311,10 @@ class ApiClient {
      * Handle routes API response.
      * Parses the new structured response with rides and routes.
      */
-    function onRoutesResponse(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or Null) as Void {
+    function onRoutesResponse(
+        responseCode as Lang.Number,
+        data as Lang.Dictionary or Lang.String or Null
+    ) as Void {
         var callback = _routesCallback;
         _routesCallback = null;
 
@@ -310,7 +322,7 @@ class ApiClient {
             var dict = data as Lang.Dictionary;
             var result = {
                 "rides" => [],
-                "routes" => []
+                "routes" => [],
             };
 
             // Parse rides
@@ -373,7 +385,7 @@ class ApiClient {
                         "distance" => entryDict.get("distance"),
                         "elevationGain" => entryDict.get("elevationGain"),
                         "startLat" => entryDict.get("startLat"),
-                        "startLon" => entryDict.get("startLon")
+                        "startLon" => entryDict.get("startLon"),
                     });
                 }
             }
@@ -383,7 +395,7 @@ class ApiClient {
             "rideSlug" => raw.get("rideSlug"),
             "rideName" => raw.get("rideName"),
             "startDateTime" => raw.get("startDateTime"),
-            "entries" => entries
+            "entries" => entries,
         };
     }
 
@@ -398,7 +410,7 @@ class ApiClient {
             "distance" => raw.get("distance"),
             "elevationGain" => raw.get("elevationGain"),
             "startLat" => raw.get("startLat"),
-            "startLon" => raw.get("startLon")
+            "startLon" => raw.get("startLon"),
         };
     }
 
@@ -448,23 +460,21 @@ class ApiClient {
         var options = {
             :method => Communications.HTTP_REQUEST_METHOD_GET,
             :headers => {
-                "Authorization" => "Bearer " + accessToken
+                "Authorization" => "Bearer " + accessToken,
             },
-            :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_FIT
+            :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_FIT,
         };
 
-        Communications.makeWebRequest(
-            url,
-            null,
-            options,
-            method(:onDownloadResponse)
-        );
+        Communications.makeWebRequest(url, null, options, method(:onDownloadResponse));
     }
 
     /**
      * Handle FIT download response.
      */
-    function onDownloadResponse(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or Null) as Void {
+    function onDownloadResponse(
+        responseCode as Lang.Number,
+        data as Lang.Dictionary or Lang.String or Null
+    ) as Void {
         var callback = _downloadCallback;
         _downloadCallback = null;
 

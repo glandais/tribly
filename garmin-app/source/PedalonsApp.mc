@@ -26,8 +26,7 @@ class PedalonsApp extends Application.AppBase {
         _deviceCode = null;
     }
 
-    function onStart(state) {
-    }
+    function onStart(state) {}
 
     function onStop(state) {
         // Stop polling if active

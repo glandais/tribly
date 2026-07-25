@@ -29,11 +29,11 @@ class HomeMenuDelegate extends WatchUi.Menu2InputDelegate {
 
             // Build ride list menu
             var menu = new WatchUi.Menu2({
-                :title => WatchUi.loadResource(Rez.Strings.Rides)
+                :title => WatchUi.loadResource(Rez.Strings.Rides),
             });
             if (menu has :setControlBar) {
                 menu.setControlBar({
-                    :leftButton => WatchUi.CONTROL_BAR_LEFT_BUTTON_BACK
+                    :leftButton => WatchUi.CONTROL_BAR_LEFT_BUTTON_BACK,
                 });
             }
 
@@ -46,7 +46,7 @@ class HomeMenuDelegate extends WatchUi.Menu2InputDelegate {
                     sublabel = _formatUtils.formatDateTime(startDateTime);
                 }
                 var entries = ride.get("entries");
-                var entryCount = (entries != null) ? entries.size() : 0;
+                var entryCount = entries != null ? entries.size() : 0;
                 if (sublabel.length() > 0) {
                     sublabel = sublabel + " (" + entryCount + ")";
                 } else {
@@ -55,7 +55,11 @@ class HomeMenuDelegate extends WatchUi.Menu2InputDelegate {
                 menu.addItem(new WatchUi.MenuItem(rideName, sublabel, i, {}));
             }
 
-            WatchUi.pushView(menu, new RideListMenuDelegate(_rides, _apiClient, _formatUtils), WatchUi.SLIDE_LEFT);
+            WatchUi.pushView(
+                menu,
+                new RideListMenuDelegate(_rides, _apiClient, _formatUtils),
+                WatchUi.SLIDE_LEFT
+            );
         } else if (id.equals("routes")) {
             if (_routes.size() == 0) {
                 return; // Nothing to show
@@ -63,11 +67,11 @@ class HomeMenuDelegate extends WatchUi.Menu2InputDelegate {
 
             // Build standalone route list menu
             var menu = new WatchUi.Menu2({
-                :title => WatchUi.loadResource(Rez.Strings.Routes)
+                :title => WatchUi.loadResource(Rez.Strings.Routes),
             });
             if (menu has :setControlBar) {
                 menu.setControlBar({
-                    :leftButton => WatchUi.CONTROL_BAR_LEFT_BUTTON_BACK
+                    :leftButton => WatchUi.CONTROL_BAR_LEFT_BUTTON_BACK,
                 });
             }
 
@@ -80,7 +84,11 @@ class HomeMenuDelegate extends WatchUi.Menu2InputDelegate {
                 menu.addItem(new WatchUi.MenuItem(routeName, sublabel, i, {}));
             }
 
-            WatchUi.pushView(menu, new StandaloneRouteMenuDelegate(_routes, _apiClient), WatchUi.SLIDE_LEFT);
+            WatchUi.pushView(
+                menu,
+                new StandaloneRouteMenuDelegate(_routes, _apiClient),
+                WatchUi.SLIDE_LEFT
+            );
         }
     }
 
