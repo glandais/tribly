@@ -7,6 +7,7 @@ import fr.pedalons.repository.query.OrClause;
 import fr.pedalons.repository.query.PedalonsQuery;
 import fr.pedalons.repository.query.SimpleClause;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -35,5 +36,10 @@ public class PlaceRepository implements BaseRepository<Place> {
       pedalonsQuery.and("endPlace = true", Map.of());
     }
     return getPage(pedalonsQuery, page, size);
+  }
+
+  /** Places a user created, for the GDPR data export. */
+  public List<Place> findByCreator(Long domainId, Long userId) {
+    return list("createdBy.id = ?2 and team.domain.id = ?1 order by createdAt", domainId, userId);
   }
 }

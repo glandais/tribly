@@ -242,4 +242,9 @@ public class RouteRepository implements TeamEntityRepository<Route, RouteQuery> 
         .platformAdmin(platformAdmin)
         .build();
   }
+
+  /** Routes a user created, for the GDPR data export. */
+  public List<Route> findByCreator(Long domainId, Long userId) {
+    return list("createdBy.id = ?2 and team.domain.id = ?1 order by createdAt", domainId, userId);
+  }
 }

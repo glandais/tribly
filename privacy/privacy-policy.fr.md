@@ -161,7 +161,17 @@ Conformément au Règlement Général sur la Protection des Données (RGPD), vou
 - **Droit d'opposition** : vous opposer au traitement fondé sur l'intérêt légitime.
 - **Droit de retirer votre consentement** : à tout moment, sans affecter la licéité du traitement antérieur.
 
-Pour exercer vos droits, contactez-nous à : **privacy@pedalons.fr**
+### Exporter vos données vous-même
+
+Les droits d'accès et de portabilité s'exercent vous-même, sans nous écrire : depuis le site web, dans **Profil → Vos données**, choisissez « Télécharger mes données ». Nous préparons une archive ZIP et vous envoyons un lien de téléchargement par email. Cette fonction n'est pas encore proposée dans l'application mobile ; le lien reçu par email fonctionne en revanche sur tous vos appareils.
+
+L'archive contient votre profil, vos équipes, vos inscriptions, tout ce que vous avez publié, ainsi que vos fichiers (photo de profil, images envoyées, fichiers GPX et FIT de vos parcours). Les données sont au format JSON, structuré et lisible par machine.
+
+Pour des raisons de sécurité, les éléments d'identification en sont exclus : hachage de votre mot de passe, jetons de session, matériel cryptographique de vos clés d'accès, jeton de votre calendrier et jetons d'accès à vos services GPS connectés. Leurs métadonnées (dates, appareils, services concernés) sont bien présentes. Le lien de téléchargement expire au bout de **7 jours**, après quoi l'archive est supprimée de nos serveurs. Un export par heure et par compte.
+
+### Nous contacter
+
+Pour les autres droits, ou si vous préférez passer par nous, contactez-nous à : **privacy@pedalons.fr**
 
 Nous répondrons à votre demande dans un délai de **30 jours**. Si nous ne pouvons pas donner suite, nous vous expliquerons pourquoi.
 

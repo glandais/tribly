@@ -24,6 +24,14 @@ public class UserSocialIdentityRepository implements PanacheRepository<UserSocia
     return find("user.id = ?1", userId).list();
   }
 
+  /**
+   * Same as {@link #findByUser(Long)} but tenant-scoped, for the GDPR data export — an export must
+   * never reach past the domain it was requested from.
+   */
+  public List<UserSocialIdentity> findByUserAndDomain(Long domainId, Long userId) {
+    return list("user.id = ?2 and domainId = ?1 order by createdAt", domainId, userId);
+  }
+
   public Optional<UserSocialIdentity> findByUserAndProvider(Long userId, SocialProvider provider) {
     return find("user.id = ?1 and provider = ?2", userId, provider).firstResultOptional();
   }

@@ -161,7 +161,17 @@ Under the General Data Protection Regulation (GDPR), you have the following righ
 - **Right to object**: object to processing based on legitimate interest.
 - **Right to withdraw consent**: at any time, without affecting the lawfulness of prior processing.
 
-To exercise your rights, contact us at: **privacy@pedalons.fr**
+### Export your data yourself
+
+You can exercise the rights of access and portability yourself, without writing to us: on the website, under **Profile → Your data**, choose "Download my data". We prepare a ZIP archive and email you a download link. This feature is not available in the mobile app yet; the emailed link, however, works on any of your devices.
+
+The archive contains your profile, your teams, your sign-ups, everything you have published, and your files (profile picture, uploaded images, and the GPX and FIT files of your routes). The data is in JSON, a structured and machine-readable format.
+
+For security reasons, credential material is excluded: your password hash, session tokens, the cryptographic material of your passkeys, your calendar token, and the access tokens of your connected GPS services. Their metadata (dates, devices, services involved) is included. The download link expires after **7 days**, after which the archive is deleted from our servers. One export per hour per account.
+
+### Contact us
+
+For the other rights, or if you would rather go through us, contact us at: **privacy@pedalons.fr**
 
 We will respond to your request within **30 days**. If we cannot comply, we will explain why.
 

@@ -41,6 +41,16 @@ public class GpxPreviewRepository implements PanacheRepository<GpxPreview> {
     return find("domain.id = ?1 and publicId = ?2", domainId, publicId).firstResultOptional();
   }
 
+  /**
+   * Every preview a user created, for the GDPR data export.
+   *
+   * <p>Distinct from {@link #findByCreator} — that one is paginated and hides anything past the
+   * retention window, which is right for a listing page and wrong for an export.
+   */
+  public List<GpxPreview> findAllByCreator(Long domainId, Long userId) {
+    return list("domain.id = ?1 and createdBy.id = ?2 order by createdAt", domainId, userId);
+  }
+
   /** Previews created before the cutoff, for the retention job. */
   public List<GpxPreview> findExpired(Instant cutoff) {
     return list("createdAt < ?1", cutoff);

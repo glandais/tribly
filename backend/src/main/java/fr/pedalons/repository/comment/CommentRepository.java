@@ -23,6 +23,14 @@ public class CommentRepository implements BaseRepository<Comment> {
     return find("parent.id = ?1", parentId).list();
   }
 
+  /** Comments a user wrote, for the GDPR data export. */
+  public List<Comment> findByCreator(Long domainId, Long userId) {
+    return list(
+        "createdBy.id = ?2 and teamEntity.team.domain.id = ?1 order by createdAt",
+        domainId,
+        userId);
+  }
+
   public long countByTeamEntityId(Long teamEntityId) {
     return count("teamEntity.id = ?1", teamEntityId);
   }

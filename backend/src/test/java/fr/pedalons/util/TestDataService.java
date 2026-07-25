@@ -1160,4 +1160,61 @@ public class TestDataService {
     gpsOAuthStateRepository.persistAndFlush(oauthState);
     return oauthState;
   }
+
+  // ===== GDPR data export =====
+
+  @Inject fr.pedalons.repository.user.UserExportRepository userExportRepository;
+
+  @Transactional
+  public fr.pedalons.domain.user.UserExport createUserExport(Domain domain, User user) {
+    var export =
+        new fr.pedalons.domain.user.UserExport(
+            domain, user, domain.getBaseUrl(), domain.getName(), "fr");
+    userExportRepository.persistAndFlush(export);
+    return export;
+  }
+
+  @Transactional
+  public fr.pedalons.domain.user.UserExport createUserExport(
+      Domain domain, User user, fr.pedalons.enums.UserExportStatus status) {
+    var export = createUserExport(domain, user);
+    var managed = userExportRepository.findById(export.getId());
+    managed.setStatus(status);
+    return managed;
+  }
+
+  /** Ages an export so the cooldown check or the stuck-job sweep picks it up. */
+  @Transactional
+  public void backdateUserExport(fr.pedalons.domain.user.UserExport export, int minutes) {
+    userExportRepository
+        .getEntityManager()
+        .createNativeQuery(
+            "UPDATE user_exports SET requested_at = requested_at - CAST(:offset AS interval),"
+                + " started_at = started_at - CAST(:offset AS interval) WHERE id = :id")
+        .setParameter("offset", minutes + " minutes")
+        .setParameter("id", export.getId())
+        .executeUpdate();
+  }
+
+  @Transactional
+  public fr.pedalons.domain.user.UserExport reloadUserExport(Long id) {
+    return userExportRepository.findById(id);
+  }
+
+  @Transactional
+  public fr.pedalons.domain.user.UserExport findLatestUserExport(User user) {
+    return userExportRepository.findLatestByUser(user.getId()).orElseThrow();
+  }
+
+  /** Plants a recognisable password hash, so redaction tests can assert it never leaves the DB. */
+  @Transactional
+  public void setUserPasswordHash(User user, String passwordHash) {
+    User managed = userRepository.findById(user.getId());
+    managed.setPasswordHash(passwordHash);
+  }
+
+  @Transactional
+  public void updateUserExport(fr.pedalons.domain.user.UserExport export) {
+    userExportRepository.getEntityManager().merge(export);
+  }
 }

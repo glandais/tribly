@@ -10,12 +10,23 @@ import 'package:retrofit/error_logger.dart';
 import '../models/public_user_dto.dart';
 import '../models/update_user_request.dart';
 import '../models/user_dto.dart';
+import '../models/user_export_dto.dart';
 
 part 'users_client.g.dart';
 
 @RestApi()
 abstract class UsersClient {
   factory UsersClient(Dio dio, {String? baseUrl}) = _UsersClient;
+
+  /// Download a personal data export.
+  ///
+  /// Download a prepared data export archive using the token from the notification email.
+  ///
+  /// [token] - Download token from the notification email.
+  @GET('/api/export/download/{token}')
+  Future<void> downloadDataExport({
+    @Path('token') required String token,
+  });
 
   /// Update current user.
   ///
@@ -55,6 +66,28 @@ abstract class UsersClient {
   /// Remove the current user's avatar.
   @DELETE('/api/users/me/avatar')
   Future<UserDto> deleteAvatar();
+
+  /// Request a personal data export.
+  ///
+  /// Queue a GDPR export of the current user's data. The archive is built in the background and a download link is emailed when it is ready. Limited to one export per hour.
+  @POST('/api/users/me/export')
+  Future<UserExportDto> requestExport();
+
+  /// Get the latest data export.
+  ///
+  /// Status of the current user's most recent export request, if any.
+  @GET('/api/users/me/export')
+  Future<UserExportDto> getLatestExport();
+
+  /// Get a data export.
+  ///
+  /// Status of one of the current user's export requests.
+  ///
+  /// [exportId] - Export job identifier.
+  @GET('/api/users/me/export/{exportId}')
+  Future<UserExportDto> getExport({
+    @Path('exportId') required String exportId,
+  });
 
   /// Search users.
   ///

@@ -1383,6 +1383,8 @@ components:
       - SOCIAL_LOGIN_CODE_INVALID
       - SOCIAL_NO_ACCOUNT
       - SOCIAL_LAST_LOGIN_METHOD
+      - EXPORT_IN_PROGRESS
+      - EXPORT_RATE_LIMITED
     ErrorDetails:
       oneOf:
       - $ref: "#/components/schemas/ErrorValidationDetails"
@@ -3891,6 +3893,45 @@ components:
           items:
             $ref: "#/components/schemas/SocialIdentityDto"
           description: Linked external identities (e.g. Strava)
+    UserExportDto:
+      description: Status of a personal data export request
+      type: object
+      required:
+      - id
+      - status
+      - requestedAt
+      properties:
+        id:
+          type: string
+          description: Export job identifier
+        status:
+          description: Current status
+          type: string
+          $ref: "#/components/schemas/UserExportStatus"
+        requestedAt:
+          description: When the export was requested
+          type: string
+          $ref: "#/components/schemas/Instant"
+        completedAt:
+          description: When the export finished building
+          type: string
+          $ref: "#/components/schemas/Instant"
+        expiresAt:
+          description: When the download link stops working
+          type: string
+          $ref: "#/components/schemas/Instant"
+        fileSize:
+          type: integer
+          format: int64
+          description: Size of the archive in bytes
+    UserExportStatus:
+      type: string
+      enum:
+      - PENDING
+      - PROCESSING
+      - READY
+      - FAILED
+      - EXPIRED
     VerifyOtpRequest:
       description: OTP verification request
       type: object
@@ -6115,6 +6156,32 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
       security:
       - bearerAuth: []
+  /api/export/download/{token}:
+    get:
+      summary: Download a personal data export
+      description: Download a prepared data export archive using the token from the
+        notification email.
+      operationId: downloadDataExport
+      tags:
+      - Users
+      parameters:
+      - description: Download token from the notification email
+        required: true
+        name: token
+        in: path
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The export archive
+          content:
+            application/zip: {}
+        "404":
+          description: "Unknown, expired or already-purged export"
+          content:
+            application/zip:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/gps/available:
     get:
       summary: Get available GPS services
@@ -11568,6 +11635,103 @@ paths:
       security:
       - SecurityScheme:
         - user
+  /api/users/me/export:
+    post:
+      summary: Request a personal data export
+      description: Queue a GDPR export of the current user's data. The archive is
+        built in the background and a download link is emailed when it is ready. Limited
+        to one export per hour.
+      operationId: requestExport
+      tags:
+      - Users
+      responses:
+        "202":
+          description: Export queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserExportDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: "An export is already running, or the last one was too recent"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+    get:
+      summary: Get the latest data export
+      description: "Status of the current user's most recent export request, if any."
+      operationId: getLatestExport
+      tags:
+      - Users
+      responses:
+        "200":
+          description: Latest export status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserExportDto"
+        "204":
+          description: The user has never requested an export
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/users/me/export/{exportId}:
+    get:
+      summary: Get a data export
+      description: Status of one of the current user's export requests.
+      operationId: getExport
+      tags:
+      - Users
+      parameters:
+      - description: Export job identifier
+        required: true
+        name: exportId
+        in: path
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Export status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserExportDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No such export for this user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
   /api/users/search:
     get:
       summary: Search users
@@ -11625,7 +11789,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 1.1.0
+  version: 1.2.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

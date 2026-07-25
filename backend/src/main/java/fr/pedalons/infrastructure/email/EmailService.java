@@ -16,6 +16,7 @@ public class EmailService {
   public static final String EMAIL_VERIFICATION = "email-verification";
   public static final String OTP = "otp";
   public static final String PASSWORD_RESET = "password-reset";
+  public static final String DATA_EXPORT = "data-export";
 
   @ConfigProperty(name = "pedalons.email.brevo.enabled", defaultValue = "false")
   boolean brevoEnabled;
@@ -40,6 +41,12 @@ public class EmailService {
 
   @ConfigProperty(name = "pedalons.email.brevo.templates.password-reset.en")
   Optional<Long> templatePasswordResetEn;
+
+  @ConfigProperty(name = "pedalons.email.brevo.templates.data-export.fr")
+  Optional<Long> templateDataExportFr;
+
+  @ConfigProperty(name = "pedalons.email.brevo.templates.data-export.en")
+  Optional<Long> templateDataExportEn;
 
   @Inject @RestClient BrevoRestClient brevoRestClient;
 
@@ -93,6 +100,14 @@ public class EmailService {
               () ->
                   new IllegalStateException(
                       "Brevo template ID not configured for password-reset.en"));
+      case DATA_EXPORT + ".fr" ->
+          templateDataExportFr.orElseThrow(
+              () ->
+                  new IllegalStateException("Brevo template ID not configured for data-export.fr"));
+      case DATA_EXPORT + ".en" ->
+          templateDataExportEn.orElseThrow(
+              () ->
+                  new IllegalStateException("Brevo template ID not configured for data-export.en"));
       default ->
           throw new IllegalArgumentException(
               "Unknown template: " + templateName + " / " + language);
@@ -167,6 +182,31 @@ public class EmailService {
             L'équipe %s
             """
                 .formatted(appName, resetUrl, appName);
+      }
+      case DATA_EXPORT -> {
+        String appName = (String) params.get("appName");
+        String displayName = (String) params.get("displayName");
+        String downloadUrl = (String) params.get("downloadUrl");
+        String expiresAt = (String) params.get("expiresAt");
+        String fileSize = (String) params.get("fileSize");
+        subject = "Votre export de données est prêt - " + appName;
+        body =
+            """
+            Bonjour %s,
+
+            L'export de vos données personnelles %s est prêt (%s). \
+            Vous pouvez le télécharger via le lien ci-dessous :
+
+            %s
+
+            Ce lien est personnel : toute personne qui l'obtient peut télécharger vos données. \
+            Il expire le %s, après quoi le fichier est supprimé de nos serveurs et vous devrez \
+            demander un nouvel export.
+
+            Cordialement,
+            L'équipe %s
+            """
+                .formatted(displayName, appName, fileSize, downloadUrl, expiresAt, appName);
       }
       default -> throw new IllegalArgumentException("Unknown template: " + templateName);
     }

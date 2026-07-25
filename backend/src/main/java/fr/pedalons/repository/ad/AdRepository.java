@@ -7,6 +7,7 @@ import fr.pedalons.enums.TeamEntityType;
 import fr.pedalons.repository.common.TeamEntityRepository;
 import fr.pedalons.repository.query.PedalonsQuery;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.jspecify.annotations.Nullable;
@@ -67,5 +68,10 @@ public class AdRepository implements TeamEntityRepository<Ad, AdQuery> {
       pedalonsQuery = pedalonsQuery.and("te.adType = :adType", Map.of("adType", adType));
     }
     return pedalonsQuery;
+  }
+
+  /** Ads a user posted, for the GDPR data export. */
+  public List<Ad> findByCreator(Long domainId, Long userId) {
+    return list("createdBy.id = ?2 and team.domain.id = ?1 order by createdAt", domainId, userId);
   }
 }

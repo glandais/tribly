@@ -21,6 +21,7 @@ import type {
   UpdateUserRequest,
   UploadAvatarBody,
   UserDto,
+  UserExportDto,
 } from '../../dto'
 
 import { axiosMutator } from '../../../lib/axiosInstance.ts'
@@ -41,6 +42,153 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
     })
   }
   return result
+}
+
+/**
+ * Download a prepared data export archive using the token from the notification email.
+ * @summary Download a personal data export
+ */
+export const downloadDataExport = (
+  token: string,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<Blob>(
+    { url: `/api/export/download/${token}`, method: 'GET', responseType: 'blob', signal },
+    options
+  )
+}
+
+export const getDownloadDataExportQueryKey = (token: string) => {
+  return [`/api/export/download/${token}`] as const
+}
+
+export const getDownloadDataExportQueryOptions = <
+  TData = Awaited<ReturnType<typeof downloadDataExport>>,
+  TError = ErrorType<Blob>,
+>(
+  token: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadDataExport>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getDownloadDataExportQueryKey(token)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadDataExport>>> = ({ signal }) =>
+    downloadDataExport(token, requestOptions, signal)
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: token !== null && token !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof downloadDataExport>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+}
+
+export type DownloadDataExportQueryResult = NonNullable<
+  Awaited<ReturnType<typeof downloadDataExport>>
+>
+export type DownloadDataExportQueryError = ErrorType<Blob>
+
+export function useDownloadDataExport<
+  TData = Awaited<ReturnType<typeof downloadDataExport>>,
+  TError = ErrorType<Blob>,
+>(
+  token: string,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadDataExport>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadDataExport>>,
+          TError,
+          Awaited<ReturnType<typeof downloadDataExport>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadDataExport<
+  TData = Awaited<ReturnType<typeof downloadDataExport>>,
+  TError = ErrorType<Blob>,
+>(
+  token: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof downloadDataExport>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadDataExport>>,
+          TError,
+          Awaited<ReturnType<typeof downloadDataExport>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadDataExport<
+  TData = Awaited<ReturnType<typeof downloadDataExport>>,
+  TError = ErrorType<Blob>,
+>(
+  token: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadDataExport>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Download a personal data export
+ */
+
+export function useDownloadDataExport<
+  TData = Awaited<ReturnType<typeof downloadDataExport>>,
+  TError = ErrorType<Blob>,
+>(
+  token: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadDataExport>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getDownloadDataExportQueryOptions(token, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Download a personal data export
+ */
+export const prefetchDownloadDataExportQuery = async <
+  TData = Awaited<ReturnType<typeof downloadDataExport>>,
+  TError = ErrorType<Blob>,
+>(
+  queryClient: QueryClient,
+  token: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadDataExport>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getDownloadDataExportQueryOptions(token, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
 }
 
 /**
@@ -447,6 +595,331 @@ export const useDeleteAvatar = <TError = ErrorType<ErrorResponse | void>, TConte
 ): UseMutationResult<Awaited<ReturnType<typeof deleteAvatar>>, TError, void, TContext> => {
   return useMutation(getDeleteAvatarMutationOptions(options), queryClient)
 }
+/**
+ * Queue a GDPR export of the current user's data. The archive is built in the background and a download link is emailed when it is ready. Limited to one export per hour.
+ * @summary Request a personal data export
+ */
+export const requestExport = (
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<UserExportDto>(
+    { url: `/api/users/me/export`, method: 'POST', signal },
+    options
+  )
+}
+
+export const getRequestExportMutationOptions = <
+  TError = ErrorType<ErrorResponse | void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof requestExport>>, TError, void, TContext>
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<Awaited<ReturnType<typeof requestExport>>, TError, void, TContext> => {
+  const mutationKey = ['requestExport']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof requestExport>>, void> = () => {
+    return requestExport(requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type RequestExportMutationResult = NonNullable<Awaited<ReturnType<typeof requestExport>>>
+
+export type RequestExportMutationError = ErrorType<ErrorResponse | void>
+
+/**
+ * @summary Request a personal data export
+ */
+export const useRequestExport = <TError = ErrorType<ErrorResponse | void>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<Awaited<ReturnType<typeof requestExport>>, TError, void, TContext>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<Awaited<ReturnType<typeof requestExport>>, TError, void, TContext> => {
+  return useMutation(getRequestExportMutationOptions(options), queryClient)
+}
+/**
+ * Status of the current user's most recent export request, if any.
+ * @summary Get the latest data export
+ */
+export const getLatestExport = (
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<UserExportDto | void>(
+    { url: `/api/users/me/export`, method: 'GET', signal },
+    options
+  )
+}
+
+export const getGetLatestExportQueryKey = () => {
+  return [`/api/users/me/export`] as const
+}
+
+export const getGetLatestExportQueryOptions = <
+  TData = Awaited<ReturnType<typeof getLatestExport>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(options?: {
+  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestExport>>, TError, TData>>
+  request?: SecondParameter<typeof axiosMutator>
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getGetLatestExportQueryKey()
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getLatestExport>>> = ({ signal }) =>
+    getLatestExport(requestOptions, signal)
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getLatestExport>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetLatestExportQueryResult = NonNullable<Awaited<ReturnType<typeof getLatestExport>>>
+export type GetLatestExportQueryError = ErrorType<ErrorResponse | void>
+
+export function useGetLatestExport<
+  TData = Awaited<ReturnType<typeof getLatestExport>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestExport>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLatestExport>>,
+          TError,
+          Awaited<ReturnType<typeof getLatestExport>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLatestExport<
+  TData = Awaited<ReturnType<typeof getLatestExport>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestExport>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLatestExport>>,
+          TError,
+          Awaited<ReturnType<typeof getLatestExport>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLatestExport<
+  TData = Awaited<ReturnType<typeof getLatestExport>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestExport>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get the latest data export
+ */
+
+export function useGetLatestExport<
+  TData = Awaited<ReturnType<typeof getLatestExport>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestExport>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetLatestExportQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Get the latest data export
+ */
+export const prefetchGetLatestExportQuery = async <
+  TData = Awaited<ReturnType<typeof getLatestExport>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  queryClient: QueryClient,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestExport>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetLatestExportQueryOptions(options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
+ * Status of one of the current user's export requests.
+ * @summary Get a data export
+ */
+export const getExport = (
+  exportId: string,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<UserExportDto>(
+    { url: `/api/users/me/export/${exportId}`, method: 'GET', signal },
+    options
+  )
+}
+
+export const getGetExportQueryKey = (exportId: string) => {
+  return [`/api/users/me/export/${exportId}`] as const
+}
+
+export const getGetExportQueryOptions = <
+  TData = Awaited<ReturnType<typeof getExport>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  exportId: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getExport>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getGetExportQueryKey(exportId)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getExport>>> = ({ signal }) =>
+    getExport(exportId, requestOptions, signal)
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: exportId !== null && exportId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getExport>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+}
+
+export type GetExportQueryResult = NonNullable<Awaited<ReturnType<typeof getExport>>>
+export type GetExportQueryError = ErrorType<ErrorResponse | void>
+
+export function useGetExport<
+  TData = Awaited<ReturnType<typeof getExport>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  exportId: string,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getExport>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getExport>>,
+          TError,
+          Awaited<ReturnType<typeof getExport>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetExport<
+  TData = Awaited<ReturnType<typeof getExport>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  exportId: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getExport>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getExport>>,
+          TError,
+          Awaited<ReturnType<typeof getExport>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetExport<
+  TData = Awaited<ReturnType<typeof getExport>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  exportId: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getExport>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get a data export
+ */
+
+export function useGetExport<
+  TData = Awaited<ReturnType<typeof getExport>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  exportId: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getExport>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetExportQueryOptions(exportId, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Get a data export
+ */
+export const prefetchGetExportQuery = async <
+  TData = Awaited<ReturnType<typeof getExport>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  queryClient: QueryClient,
+  exportId: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getExport>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetExportQueryOptions(exportId, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
 /**
  * Search users by display name
  * @summary Search users

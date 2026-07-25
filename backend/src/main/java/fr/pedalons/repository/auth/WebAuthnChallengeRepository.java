@@ -4,6 +4,7 @@ import fr.pedalons.domain.auth.WebAuthnChallenge;
 import fr.pedalons.enums.WebAuthnChallengeType;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped
@@ -30,6 +31,11 @@ public class WebAuthnChallengeRepository implements PanacheRepository<WebAuthnCh
             email,
             challengeType)
         .firstResultOptional();
+  }
+
+  /** Challenges issued to a user — for the GDPR data export. */
+  public List<WebAuthnChallenge> findByUserId(Long userId) {
+    return list("user.id = ?1 order by createdAt", userId);
   }
 
   public long deleteExpiredChallenges() {

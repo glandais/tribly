@@ -12,6 +12,7 @@ import fr.pedalons.service.team.response.TeamAndRole;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -127,5 +128,10 @@ public class TeamRepository implements BaseRepository<Team> {
     } else {
       return Optional.of(page.items().getFirst());
     }
+  }
+
+  /** Teams a user created, for the GDPR data export. */
+  public List<Team> findByCreator(Long domainId, Long userId) {
+    return list("domain.id = ?1 and createdBy.id = ?2 order by createdAt", domainId, userId);
   }
 }

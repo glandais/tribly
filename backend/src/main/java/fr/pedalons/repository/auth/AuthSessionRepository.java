@@ -24,6 +24,11 @@ public class AuthSessionRepository implements PanacheRepository<AuthSession> {
         userId);
   }
 
+  /** Every session ever recorded for a user, revoked ones included — for the GDPR data export. */
+  public List<AuthSession> findAllByUserId(Long userId) {
+    return list("user.id = ?1 order by createdAt", userId);
+  }
+
   public long deleteExpiredSessions() {
     return delete("expiresAt < CURRENT_TIMESTAMP or revoked = true");
   }

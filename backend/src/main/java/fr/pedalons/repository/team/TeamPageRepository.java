@@ -6,6 +6,7 @@ import fr.pedalons.enums.TeamEntityType;
 import fr.pedalons.repository.common.TeamEntityRepository;
 import fr.pedalons.repository.query.PedalonsQuery;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.jspecify.annotations.Nullable;
@@ -82,5 +83,10 @@ public class TeamPageRepository implements TeamEntityRepository<TeamPage, TeamPa
         .includeDeleted(includeDeleted)
         .platformAdmin(platformAdmin)
         .build();
+  }
+
+  /** Team pages a user wrote, for the GDPR data export. */
+  public List<TeamPage> findByCreator(Long domainId, Long userId) {
+    return list("createdBy.id = ?2 and team.domain.id = ?1 order by createdAt", domainId, userId);
   }
 }

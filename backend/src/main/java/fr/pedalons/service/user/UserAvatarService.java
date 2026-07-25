@@ -168,23 +168,40 @@ public class UserAvatarService {
     return AVATARS_PREFIX + "/" + subPath + "/" + idString;
   }
 
-  private void deleteAvatarFromUrl(@Nullable String avatarUrl) {
+  /**
+   * The storage key behind a stored {@code avatarUrl}, or null if the URL is malformed.
+   *
+   * <p>{@code User} keeps only the public URL, so anything that needs the actual bytes — the GDPR
+   * data export, for one — has to come back through this class, which owns the key layout.
+   */
+  public @Nullable String getAvatarKeyFromUrl(@Nullable String avatarUrl) {
     if (avatarUrl == null) {
-      return;
+      return null;
     }
     // Extract fileId from URL: /api/download/public/avatars/{fileId}/{size}
     String[] parts = avatarUrl.split("/");
-    if (parts.length >= 6) {
-      try {
-        long fileId = TsidUtils.toLong(parts[5]);
-        String key = getAvatarKey(fileId);
-        storageService.delete(key);
-      } catch (Exception e) {
-        LOG.warnf(
-            e, "Failed to delete old avatar from S3 (orphaned object) avatarUrl=%s", avatarUrl);
-      }
-    } else {
+    if (parts.length < 6) {
+      LOG.warnf("Malformed avatar URL %s", avatarUrl);
+      return null;
+    }
+    try {
+      return getAvatarKey(TsidUtils.toLong(parts[5]));
+    } catch (Exception e) {
+      LOG.warnf(e, "Malformed avatar URL %s", avatarUrl);
+      return null;
+    }
+  }
+
+  private void deleteAvatarFromUrl(@Nullable String avatarUrl) {
+    String key = getAvatarKeyFromUrl(avatarUrl);
+    if (key == null) {
       LOG.warnf("Skipping avatar deletion: malformed avatar URL %s", avatarUrl);
+      return;
+    }
+    try {
+      storageService.delete(key);
+    } catch (Exception e) {
+      LOG.warnf(e, "Failed to delete old avatar from S3 (orphaned object) avatarUrl=%s", avatarUrl);
     }
   }
 }

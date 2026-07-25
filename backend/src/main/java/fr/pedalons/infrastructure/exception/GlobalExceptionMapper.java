@@ -1,6 +1,7 @@
 package fr.pedalons.infrastructure.exception;
 
 import fr.pedalons.common.exception.PedalonsException;
+import fr.pedalons.common.exception.TooManyRequestsException;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.dto.error.FieldError;
@@ -135,9 +136,13 @@ public class GlobalExceptionMapper implements ExceptionMapper<Throwable> {
 
   private Response pedalonsError(PedalonsException be) {
     Response.Status status = be.getStatus();
-    return Response.status(status)
-        .entity(new ErrorResponse(be.getErrorCode(), be.getErrorDetails()))
-        .build();
+    Response.ResponseBuilder builder =
+        Response.status(status).entity(new ErrorResponse(be.getErrorCode(), be.getErrorDetails()));
+    // Rate limits tell the caller when to come back, instead of leaving them to guess.
+    if (be instanceof TooManyRequestsException tmr) {
+      builder.header("Retry-After", tmr.getRetryAfterSeconds());
+    }
+    return builder.build();
   }
 
   private Response internal() {

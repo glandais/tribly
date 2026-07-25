@@ -47,6 +47,7 @@ import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
@@ -493,6 +494,21 @@ public class GpxPreviewService {
         LOG.warnf(e, "S3 cleanup failed for GPX preview %s/%s", publicId, fileName);
       }
     }
+  }
+
+  /**
+   * The stored files of a preview, as {@code fileName -> storage key}.
+   *
+   * <p>For the GDPR data export, which has to reach these objects without duplicating the key
+   * layout. The thumbnail is left out: it is a rendering the server produced, not something the
+   * user supplied or would recognise.
+   */
+  public Map<String, String> exportKeys(GpxPreview preview) {
+    UUID publicId = preview.getPublicId();
+    return Map.of(
+        ORIGINAL_GPX, key(publicId, ORIGINAL_GPX),
+        FILTERED_GPX, key(publicId, FILTERED_GPX),
+        FIT, key(publicId, FIT));
   }
 
   private static String key(UUID publicId, String fileName) {

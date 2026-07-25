@@ -6,7 +6,9 @@ import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.dto.users.request.UpdateUserRequest;
 import fr.pedalons.dto.users.response.PublicUserDto;
 import fr.pedalons.dto.users.response.UserDto;
+import fr.pedalons.dto.users.response.UserExportDto;
 import fr.pedalons.service.user.UserAvatarService;
+import fr.pedalons.service.user.UserExportService;
 import fr.pedalons.service.user.UserService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -37,6 +39,8 @@ public class UserResource {
   @Inject UserService userService;
 
   @Inject UserAvatarService userAvatarService;
+
+  @Inject UserExportService userExportService;
 
   @GET
   @Path("/me")
@@ -155,6 +159,83 @@ public class UserResource {
 
     List<PublicUserDto> users = userService.searchByDisplayName(query.trim(), Math.min(limit, 20));
     return Response.ok(users).build();
+  }
+
+  @POST
+  @Path("/me/export")
+  // The request carries no body, so no Content-Type is sent either — without this the class-level
+  // @Consumes(APPLICATION_JSON) makes RESTEasy answer 415.
+  @Consumes(MediaType.WILDCARD)
+  @Operation(
+      summary = "Request a personal data export",
+      description =
+          "Queue a GDPR export of the current user's data. The archive is built in the background"
+              + " and a download link is emailed when it is ready. Limited to one export per hour.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "202",
+        description = "Export queued",
+        content = @Content(schema = @Schema(implementation = UserExportDto.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "429",
+        description = "An export is already running, or the last one was too recent",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response requestExport() {
+    UserExportDto export = userExportService.requestExport();
+    return Response.accepted(export).build();
+  }
+
+  @GET
+  @Path("/me/export")
+  @Operation(
+      summary = "Get the latest data export",
+      description = "Status of the current user's most recent export request, if any.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Latest export status",
+        content = @Content(schema = @Schema(implementation = UserExportDto.class))),
+    @APIResponse(responseCode = "204", description = "The user has never requested an export"),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response getLatestExport() {
+    return userExportService
+        .getLatestExport()
+        .map(export -> Response.ok(export).build())
+        .orElseGet(() -> Response.noContent().build());
+  }
+
+  @GET
+  @Path("/me/export/{exportId}")
+  @Operation(
+      summary = "Get a data export",
+      description = "Status of one of the current user's export requests.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Export status",
+        content = @Content(schema = @Schema(implementation = UserExportDto.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "No such export for this user",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response getExport(
+      @Parameter(description = "Export job identifier", required = true) @PathParam("exportId")
+          String exportId) {
+    return Response.ok(userExportService.getExport(exportId)).build();
   }
 
   @DELETE

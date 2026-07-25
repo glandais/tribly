@@ -82,4 +82,12 @@ public class AllPublicationRepository
         .platformAdmin(platformAdmin)
         .build();
   }
+
+  /**
+   * Rides, posts and trips a user authored, for the GDPR data export. Single-table inheritance means
+   * one query covers all three.
+   */
+  public List<Publication> findByCreator(Long domainId, Long userId) {
+    return list("createdBy.id = ?2 and team.domain.id = ?1 order by createdAt", domainId, userId);
+  }
 }

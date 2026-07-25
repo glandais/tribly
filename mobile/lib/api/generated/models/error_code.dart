@@ -132,6 +132,10 @@ enum ErrorCode {
   socialNoAccount('SOCIAL_NO_ACCOUNT'),
   @JsonValue('SOCIAL_LAST_LOGIN_METHOD')
   socialLastLoginMethod('SOCIAL_LAST_LOGIN_METHOD'),
+  @JsonValue('EXPORT_IN_PROGRESS')
+  exportInProgress('EXPORT_IN_PROGRESS'),
+  @JsonValue('EXPORT_RATE_LIMITED')
+  exportRateLimited('EXPORT_RATE_LIMITED'),
 
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
   $unknown(null);

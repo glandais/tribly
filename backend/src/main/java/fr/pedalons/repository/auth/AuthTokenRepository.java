@@ -6,6 +6,7 @@ import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped
@@ -34,6 +35,11 @@ public class AuthTokenRepository implements PanacheRepository<AuthToken> {
         email,
         tokenType,
         domainId);
+  }
+
+  /** Tokens issued to a user on a domain — for the GDPR data export. */
+  public List<AuthToken> findByUser(Long domainId, Long userId) {
+    return list("user.id = ?2 and domainId = ?1 order by createdAt", domainId, userId);
   }
 
   public long deleteExpiredTokens() {
