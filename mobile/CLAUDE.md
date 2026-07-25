@@ -128,6 +128,7 @@ final teamsClientProvider = Provider<TeamsClient>((ref) => ref.watch(apiClientPr
 - **Deep links wait for the app to be navigable**: `main.dart` opens the pending link only once auth is initialized *and* the router has parsed its first route — `GoRouter.push` stacks onto `routerDelegate.currentConfiguration`, which is empty before that
 - **Locale**: `app.dart` propagates `context.locale.languageCode` into `locale_context.dart` so `Paths.xxx()` returns the right variant
 - Config via `--dart-define`: `flutter run --dart-define=API_BASE_URL=http://localhost:8080`
+- **Adding a capability that touches personal data** (image picker, location, file import, any analytics SDK) means updating `ios/Runner/PrivacyInfo.xcprivacy` and both store privacy forms. [store-metadata/data-safety.md](store-metadata/data-safety.md) is the source of truth and lists which feature triggers which declaration — App Review rejects an app whose manifest under-declares
 
 ## Detailed Guidelines
 

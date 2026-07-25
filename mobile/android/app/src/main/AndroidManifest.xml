@@ -1,4 +1,18 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- MapLibre (org.maplibre.gl:android-sdk-opengl, pulled in by the `maplibre` plugin)
+         declares ACCESS_FINE_LOCATION and ACCESS_COARSE_LOCATION in its own manifest, and the
+         merger injects them into ours. They are only needed for MapLibre's LocationComponent
+         (the "user location" puck), which this app never enables — `route_map.dart` renders
+         server-supplied route geometry only, and no location plugin is in pubspec.yaml.
+
+         Left in, they would appear on the Play listing and contradict our Data safety
+         declaration, which states that no location is collected. Strip them so the shipped
+         permission set matches what we declare.
+         See ../../../../store-metadata/data-safety.md §5. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" tools:node="remove"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" tools:node="remove"/>
+
     <application
         android:label="Pédalons"
         android:name="${applicationName}"
