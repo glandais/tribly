@@ -14,6 +14,7 @@ import '../../../../core/utils/safe_string.dart';
 import '../../../rides/data/ride_repository.dart';
 import '../../../rides/presentation/widgets/ride_card.dart';
 import '../../../routes/data/route_repository.dart';
+import '../../../routes/domain/route_filters.dart';
 import '../../data/team_repository.dart';
 
 final teamDetailProvider = FutureProvider.family<TeamDetailDto, String>((
@@ -37,7 +38,11 @@ final teamRoutesProvider = FutureProvider.family<List<RouteDto>, String>((
   teamSlug,
 ) async {
   final repository = ref.watch(routeRepositoryProvider);
-  return repository.getTeamRoutes(teamSlug);
+  final page = await repository.fetchRoutes(
+    teamSlug: teamSlug,
+    filters: const RouteFilters(),
+  );
+  return page.items;
 });
 
 class TeamDetailPage extends ConsumerWidget {

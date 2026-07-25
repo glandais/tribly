@@ -1,0 +1,89 @@
+import 'package:flutter/material.dart';
+
+import '../../../../api/generated/export.dart';
+import '../../domain/route_filters.dart';
+import 'route_filter_labels.dart';
+import 'route_filter_sheet.dart';
+
+/// The filter state made visible above the list, one chip per constraint.
+///
+/// On mobile this replaces the web's stack of selects: what is applied is
+/// readable at a glance and removable in one tap. Sort is a chip like the
+/// others, in first position.
+class RouteFilterChipsBar extends StatelessWidget {
+  final RouteFilters filters;
+  final ValueChanged<RouteFilters> onChanged;
+
+  /// Opens the full filter sheet — used by the chips for fields that are not
+  /// set yet.
+  final VoidCallback onOpenFilters;
+
+  const RouteFilterChipsBar({
+    super.key,
+    required this.filters,
+    required this.onChanged,
+    required this.onOpenFilters,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final active = filters.activeFields;
+    final inactive = RouteFilterField.values
+        .where((f) => f != RouteFilterField.search && !active.contains(f))
+        .toList();
+
+    return SizedBox(
+      height: 40,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        children: [
+          ActionChip(
+            avatar: Icon(
+              filters.sortDir == SortDirection.asc
+                  ? Icons.arrow_upward
+                  : Icons.arrow_downward,
+              size: 16,
+            ),
+            label: Text(RouteFilterLabels.sortBy(filters.sortBy)),
+            onPressed: () => _pickSort(context),
+          ),
+          for (final field in active) ...[
+            const SizedBox(width: 8),
+            InputChip(
+              label: Text(RouteFilterLabels.chip(filters, field) ?? ''),
+              selected: true,
+              showCheckmark: false,
+              onDeleted: () => onChanged(filters.without(field)),
+              onPressed: onOpenFilters,
+            ),
+          ],
+          for (final field in inactive) ...[
+            const SizedBox(width: 8),
+            ActionChip(
+              label: Text(RouteFilterLabels.field(field)),
+              labelStyle: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.outline,
+              ),
+              backgroundColor: Colors.transparent,
+              side: BorderSide(color: theme.colorScheme.outlineVariant),
+              onPressed: onOpenFilters,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickSort(BuildContext context) async {
+    final result = await showRouteSortSheet(
+      context,
+      sortBy: filters.sortBy,
+      sortDir: filters.sortDir,
+    );
+    if (result != null) {
+      onChanged(filters.copyWith(sortBy: result.by, sortDir: result.dir));
+    }
+  }
+}

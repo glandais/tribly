@@ -229,7 +229,77 @@
     "uploadSuccess": "Parcours envoyé avec succès!",
     "uploadError": "Erreur lors de l'envoi: {error}",
     "noDownload": "Aucun fichier disponible",
-    "route": "Parcours"
+    "route": "Parcours",
+    "list": {
+      "count": {
+        "zero": "Aucun parcours",
+        "one": "{} parcours",
+        "other": "{} parcours"
+      },
+      "empty": {
+        "title": "Aucun parcours pour ces filtres",
+        "description": "Aucun parcours ne correspond à cette combinaison de filtres.",
+        "descriptionSearch": "Aucun parcours ne correspond à « {search} » avec ces filtres.",
+        "removeFilter": "Retirer le filtre {filter}",
+        "resetAll": "Tout réinitialiser",
+        "withoutFilter": "Sans le filtre {filter}"
+      }
+    },
+    "filters": {
+      "title": "Filtres",
+      "reset": "Réinitialiser",
+      "apply": {
+        "zero": "Aucun résultat",
+        "one": "Voir {} parcours",
+        "other": "Voir {} parcours"
+      },
+      "applyUnknown": "Voir les résultats",
+      "any": "Tous",
+      "anyFeminine": "Toutes",
+      "search": "Recherche",
+      "searchPlaceholder": "Rechercher un parcours…",
+      "distance": "Distance",
+      "elevationGain": "Dénivelé positif",
+      "elevationSuffix": "D+",
+      "surfaceType": "Revêtement",
+      "hilliness": "Relief",
+      "windDirection": "Direction du vent",
+      "sort": "Trier par",
+      "kmValue": "{value} km",
+      "mValue": "{value} m",
+      "rangeBetween": "{min} – {max}",
+      "rangeFrom": "> {value}",
+      "rangeTo": "< {value}"
+    },
+    "hilliness": {
+      "flat": "Plat",
+      "hilly": "Vallonné",
+      "mountainous": "Montagneux"
+    },
+    "surfaceType": {
+      "road": "Route",
+      "gravel": "Gravel",
+      "mtb": "VTT",
+      "mixed": "Mixte"
+    },
+    "windDirection": {
+      "north": "Nord",
+      "north_east": "Nord-Est",
+      "east": "Est",
+      "south_east": "Sud-Est",
+      "south": "Sud",
+      "south_west": "Sud-Ouest",
+      "west": "Ouest",
+      "north_west": "Nord-Ouest"
+    },
+    "sort": {
+      "distance": "Distance",
+      "elevation_gain": "Dénivelé",
+      "hilliness": "Relief",
+      "date_time": "Date",
+      "asc": "Croissant",
+      "desc": "Décroissant"
+    }
   },
   "calendar": {
     "title": "Calendrier",
@@ -338,5 +408,10 @@
       "USER_NOT_SYNCED": "Le compte utilisateur n'est pas synchronisé",
       "VALIDATION": "Les données fournies sont invalides"
     }
+  },
+  "pagination": {
+    "loadingMore": "Chargement…",
+    "nextPageError": "Impossible de charger la suite.\nVérifiez votre connexion.",
+    "endOfList": "Vous avez tout vu"
   }
 }

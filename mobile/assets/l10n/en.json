@@ -229,7 +229,77 @@
     "uploadSuccess": "Route uploaded successfully!",
     "uploadError": "Upload error: {error}",
     "noDownload": "No files available",
-    "route": "Route"
+    "route": "Route",
+    "list": {
+      "count": {
+        "zero": "No routes",
+        "one": "{} route",
+        "other": "{} routes"
+      },
+      "empty": {
+        "title": "No routes for these filters",
+        "description": "No route matches this combination of filters.",
+        "descriptionSearch": "No route matches “{search}” with these filters.",
+        "removeFilter": "Remove the {filter} filter",
+        "resetAll": "Reset everything",
+        "withoutFilter": "Without the {filter} filter"
+      }
+    },
+    "filters": {
+      "title": "Filters",
+      "reset": "Reset",
+      "apply": {
+        "zero": "No results",
+        "one": "Show {} route",
+        "other": "Show {} routes"
+      },
+      "applyUnknown": "Show results",
+      "any": "All",
+      "anyFeminine": "All",
+      "search": "Search",
+      "searchPlaceholder": "Search for a route…",
+      "distance": "Distance",
+      "elevationGain": "Elevation gain",
+      "elevationSuffix": "elev.",
+      "surfaceType": "Surface",
+      "hilliness": "Hilliness",
+      "windDirection": "Wind direction",
+      "sort": "Sort by",
+      "kmValue": "{value} km",
+      "mValue": "{value} m",
+      "rangeBetween": "{min} – {max}",
+      "rangeFrom": "> {value}",
+      "rangeTo": "< {value}"
+    },
+    "hilliness": {
+      "flat": "Flat",
+      "hilly": "Hilly",
+      "mountainous": "Mountainous"
+    },
+    "surfaceType": {
+      "road": "Road",
+      "gravel": "Gravel",
+      "mtb": "MTB",
+      "mixed": "Mixed"
+    },
+    "windDirection": {
+      "north": "North",
+      "north_east": "North-East",
+      "east": "East",
+      "south_east": "South-East",
+      "south": "South",
+      "south_west": "South-West",
+      "west": "West",
+      "north_west": "North-West"
+    },
+    "sort": {
+      "distance": "Distance",
+      "elevation_gain": "Elevation",
+      "hilliness": "Hilliness",
+      "date_time": "Date",
+      "asc": "Ascending",
+      "desc": "Descending"
+    }
   },
   "calendar": {
     "title": "Calendar",
@@ -338,5 +408,10 @@
       "USER_NOT_SYNCED": "The user account is not synchronized",
       "VALIDATION": "The provided data is invalid"
     }
+  },
+  "pagination": {
+    "loadingMore": "Loading…",
+    "nextPageError": "Could not load more.\nCheck your connection.",
+    "endOfList": "You have seen everything"
   }
 }
