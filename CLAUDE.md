@@ -46,6 +46,20 @@ See [Deployment](README.md#deployment) before touching networks or the compose f
 
 **UI routes contract**: `contracts/routes.yaml` is the single source of truth (multi-locale path templates, deeplink/mobile flags). Edit it, then run `pnpm generate-routes` in frontend/ to regenerate `paths.generated.ts`, `paths.generated.dart`, the apple-app-site-association file, and the deeplink section of `AndroidManifest.xml`. Never hand-edit those. See [APP_LINKS.md](APP_LINKS.md).
 
+## Formatting
+
+```bash
+./format.sh                        # format every module
+./format.sh mobile                 # or one module: backend|frontend|mobile|karoo|garmin-app
+```
+
+Every module has an auto-formatter (Spotless/google-java-format, Prettier, `dart format`, Spotless/ktfmt,
+prettier-plugin-monkeyc). `format.sh` fails loudly if a toolchain is missing rather than skipping a module.
+
+- **Don't spend effort on formatting** — never hand-align code, reflow lines, or reorder imports for style, and
+  don't raise formatting nits in reviews. Write code naturally and let the formatters decide.
+- **Always run `./format.sh` before any commit**, and include its output in that commit.
+
 ## Critical Prohibitions
 
 - **Never run backend tests yourself** — give instructions to the user instead. You're bad at fixing tests from test outcomes.

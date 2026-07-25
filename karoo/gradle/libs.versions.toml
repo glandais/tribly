@@ -13,6 +13,7 @@ datastore = "1.2.1"
 zxing = "4.3.0"
 kotlinx-serialization = "1.11.0"
 ben-manes-versions = "0.54.0"
+spotless = "8.8.0"
 
 [libraries]
 karoo-ext = { module = "io.hammerhead:karoo-ext", version.ref = "karoo-ext" }
@@ -41,3 +42,4 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ben-manes-versions = { id = "com.github.ben-manes.versions", version.ref = "ben-manes-versions" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

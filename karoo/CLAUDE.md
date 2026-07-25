@@ -19,6 +19,9 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk  # Manual install
 
 # Clean
 ./gradlew clean
+
+# Format (Spotless + ktfmt, kotlinlang style)
+../format.sh karoo                 # or: ./gradlew spotlessApply — run before every commit
 ```
 
 ## Architecture

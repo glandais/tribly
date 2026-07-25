@@ -11,6 +11,7 @@ flutter pub get                    # Install dependencies
 flutter run                        # Run on connected device/emulator
 flutter test                       # Run tests
 flutter analyze                    # Static analysis
+../format.sh mobile                # dart format (skips generated code) — run before every commit
 
 # Code generation (after modifying models or API)
 dart run build_runner build
