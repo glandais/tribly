@@ -127,6 +127,20 @@ public class TripDto implements PublicationDto {
     this.deleted = deleted;
   }
 
+  /**
+   * Builds a list row without touching {@code trip.getStages()} or {@code trip.getParticipations()}.
+   *
+   * <p>A list row renders neither stages nor participants — only their counts — and {@link
+   * TripListSummary} carries those, loaded in bulk for the whole page. Going through {@link
+   * #from(Trip, boolean, AssetService)} here would load both collections of every trip on the page
+   * just to call {@code size()} on them.
+   */
+  public static TripDto fromListItem(
+      Trip trip, TripListSummary summary, AssetService assetService) {
+    return build(
+        trip, List.of(), List.of(), summary.stageCount(), summary.participantCount(), assetService);
+  }
+
   public static TripDto from(Trip trip, boolean stageDetails, AssetService assetService) {
     List<TripStageDto> stageDtos =
         stageDetails
@@ -144,6 +158,22 @@ public class TripDto implements PublicationDto {
                 .toList()
             : List.of();
 
+    return build(
+        trip,
+        stageDtos,
+        participantDtos,
+        trip.getStageCount(),
+        trip.getParticipantCount(),
+        assetService);
+  }
+
+  private static TripDto build(
+      Trip trip,
+      List<TripStageDto> stageDtos,
+      List<PublicUserDto> participantDtos,
+      int stageCount,
+      int participantCount,
+      AssetService assetService) {
     // Get thumbnail URLs from trip's own assets
     String thumbnailLightUrl = null;
     String thumbnailDarkUrl = null;
@@ -177,8 +207,8 @@ public class TripDto implements PublicationDto {
         trip.getPublishAt(),
         trip.getCreatedAt(),
         trip.getRoute() != null ? trip.getRoute().getSlug() : null,
-        trip.getParticipantCount(),
-        trip.getStageCount(),
+        participantCount,
+        stageCount,
         stageDtos,
         participantDtos,
         thumbnailLightUrl,

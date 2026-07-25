@@ -3,16 +3,18 @@ package fr.pedalons.service.common;
 import fr.pedalons.domain.common.Publication;
 import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.domain.team.Team;
+import fr.pedalons.domain.trip.Trip;
 import fr.pedalons.dto.common.PedalonsPage;
 import fr.pedalons.dto.publications.response.PublicationDto;
 import fr.pedalons.dto.publications.response.PublicationListResponse;
+import fr.pedalons.dto.publications.response.PublicationListSummaries;
 import fr.pedalons.dto.publications.response.PublicationType;
-import fr.pedalons.dto.rides.response.RideListSummary;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
 import fr.pedalons.repository.common.AllPublicationRepository;
 import fr.pedalons.repository.common.PublicationQuery;
 import fr.pedalons.repository.ride.RideSummaryRepository;
+import fr.pedalons.repository.trip.TripSummaryRepository;
 import fr.pedalons.service.asset.AssetService;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.CheckAccess;
@@ -22,7 +24,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.jspecify.annotations.Nullable;
 
@@ -40,6 +41,8 @@ public class PublicationService {
   @Inject IncludeDeletedService includeDeletedService;
 
   @Inject RideSummaryRepository rideSummaryRepository;
+
+  @Inject TripSummaryRepository tripSummaryRepository;
 
   @CheckAccess(entityType = EntityType.PUBLICATION, action = ActionType.LIST_ALL_TEAMS)
   public PublicationListResponse listAll(
@@ -106,19 +109,33 @@ public class PublicationService {
                 .includeDeleted(includeDeleted)
                 .platformAdmin(platformAdmin)
                 .build());
-    // One bulk load for the whole page, instead of every ride row walking its own groups ->
-    // participations -> users to produce a count and five avatars.
-    Map<Long, RideListSummary> rideSummaries =
-        rideSummaryRepository.loadListSummaries(
-            publications.items().stream()
-                .filter(Ride.class::isInstance)
-                .map(Publication::getId)
-                .toList());
+    PublicationListSummaries summaries = loadSummaries(publications.items());
     List<PublicationDto> dtos =
         publications.items().stream()
-            .map(publication -> PublicationDto.from(publication, assetService, rideSummaries))
+            .map(publication -> PublicationDto.from(publication, assetService, summaries))
             .toList();
     return new PublicationListResponse(dtos, publications.total(), page, size);
+  }
+
+  /**
+   * Loads the association aggregates for a whole page in bulk.
+   *
+   * <p>Without this, every ride row would walk {@code groups -> participations -> user} and every
+   * trip row would load its {@code stages} and {@code participations} in full, just to produce a
+   * handful of counts. Batch fetching keeps the query count flat while doing it, which is exactly
+   * what makes the cost easy to miss: the queries stay constant, the rows hydrated do not.
+   *
+   * <p>Only the ids actually present on the page are queried, and a type absent from the page costs
+   * nothing — the repositories short-circuit on an empty id list.
+   */
+  private PublicationListSummaries loadSummaries(List<Publication> items) {
+    return new PublicationListSummaries(
+        rideSummaryRepository.loadListSummaries(idsOfType(items, Ride.class)),
+        tripSummaryRepository.loadListSummaries(idsOfType(items, Trip.class)));
+  }
+
+  private static List<Long> idsOfType(List<Publication> items, Class<? extends Publication> type) {
+    return items.stream().filter(type::isInstance).map(Publication::getId).toList();
   }
 
   protected boolean isPlatformAdmin() {

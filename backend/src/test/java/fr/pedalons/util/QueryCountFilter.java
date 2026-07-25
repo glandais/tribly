@@ -46,12 +46,19 @@ public class QueryCountFilter {
     return emf.unwrap(SessionFactory.class).getStatistics();
   }
 
-  private record Snapshot(long statements, long entityLoads, long queries) {}
+  private record Snapshot(long statements, long entityLoads, long queries, long writes) {}
 
   private Snapshot snapshot() {
     Statistics s = stats();
+    long writes =
+        s.getEntityInsertCount()
+            + s.getEntityUpdateCount()
+            + s.getEntityDeleteCount()
+            + s.getCollectionRecreateCount()
+            + s.getCollectionRemoveCount()
+            + s.getCollectionUpdateCount();
     return new Snapshot(
-        s.getPrepareStatementCount(), s.getEntityLoadCount(), s.getQueryExecutionCount());
+        s.getPrepareStatementCount(), s.getEntityLoadCount(), s.getQueryExecutionCount(), writes);
   }
 
   @ServerRequestFilter
@@ -81,7 +88,8 @@ public class QueryCountFilter {
         LABELS.computeIfAbsent(method, QueryCountFilter::label),
         statements,
         after.entityLoads() - before.entityLoads(),
-        after.queries() - before.queries());
+        after.queries() - before.queries(),
+        after.writes() - before.writes());
   }
 
   /** Builds {@code GET /api/teams/{teamSlug}/publications} from the resource method's annotations. */

@@ -3,9 +3,10 @@ package fr.pedalons.api.publications;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import fr.pedalons.api.AbstractResourceTest;
+import fr.pedalons.api.AbstractQueryCountTest;
 import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.domain.ride.RideGroup;
+import fr.pedalons.domain.trip.Trip;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.Visibility;
@@ -17,34 +18,9 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/**
- * Read-query budget for the publication list endpoints.
- *
- * <p>The assertion that matters here is a <b>shape</b> assertion, not a magic number: the same
- * endpoint is measured over a small page and a large page, and the SELECT count must stay flat. A
- * fixed "must be under N queries" bound rots — it passes for the wrong reason once the fixture
- * changes, and it says nothing about whether the count grows per row. Comparing two page sizes says
- * exactly the thing we care about: <i>does serving 10x the rows cost 10x the queries?</i>
- *
- * <p>Absolute worst-case numbers for every endpoint in the suite are collected automatically by
- * {@link fr.pedalons.util.QueryCountFilter} and printed by {@link
- * fr.pedalons.util.QueryCountReport} at the end of the run (also written to {@code
- * target/query-count-report.txt}).
- *
- * <p>Run locally with: {@code mvn test -Dtest=PublicationQueryCountTest}.
- */
+/** Database-cost budget for the publication list endpoints. See {@link AbstractQueryCountTest}. */
 @QuarkusTest
-class PublicationQueryCountTest extends AbstractResourceTest {
-
-  private static final int SMALL_PAGE = 3;
-  private static final int LARGE_PAGE = 30;
-
-  /**
-   * Headroom between the small-page and large-page measurements. Lazy associations are batch-loaded
-   * ({@code quarkus.hibernate-orm.fetch.batch-size}), so going from 3 to 30 rows may add at most one
-   * extra batch round-trip per batched association — a handful of queries, never 27 of them.
-   */
-  private static final long MAX_GROWTH = 8;
+class PublicationQueryCountTest extends AbstractQueryCountTest {
 
   @Override
   @BeforeEach
@@ -55,7 +31,8 @@ class PublicationQueryCountTest extends AbstractResourceTest {
   /**
    * Seeds rides that exercise the full {@code RideDto} mapping: every ride has groups, every group
    * has participations, every participation has a distinct user. A ride with no participants would
-   * never touch the association walk that the DTO actually performs in production.
+   * never touch the association walk the DTO actually performs in production, so the test would
+   * pass while the endpoint stayed quadratic.
    */
   private void seedRides(int count) {
     Instant base = Instant.now().plus(7, ChronoUnit.DAYS);
@@ -79,65 +56,52 @@ class PublicationQueryCountTest extends AbstractResourceTest {
     }
   }
 
-  private QueryStats.Counters measurePage(String label, String path, int size) {
-    return queryStats.measureAll(
-        label,
-        () ->
-            given()
-                .auth()
-                .oauth2(getAccessToken(USER1))
-                .when()
-                .get(path + (path.contains("?") ? "&" : "?") + "size=" + size)
-                .then()
-                .statusCode(200));
-  }
-
-  /**
-   * Measures {@code path} at {@link #SMALL_PAGE} and {@link #LARGE_PAGE} rows and fails if the
-   * statement count grew more than {@link #MAX_GROWTH}.
-   */
-  private void assertFlatQueryCount(String name, String path) {
-    seedRides(LARGE_PAGE);
-
-    QueryStats.Counters small = measurePage(name + " [" + SMALL_PAGE + " rows]", path, SMALL_PAGE);
-    QueryStats.Counters large = measurePage(name + " [" + LARGE_PAGE + " rows]", path, LARGE_PAGE);
-
-    long growth = large.statements() - small.statements();
-    assertTrue(
-        growth <= MAX_GROWTH,
-        () ->
-            "N+1 on "
-                + name
-                + ": serving "
-                + LARGE_PAGE
-                + " rows cost "
-                + large.statements()
-                + " SQL statements vs "
-                + small.statements()
-                + " for "
-                + SMALL_PAGE
-                + " rows (+"
-                + growth
-                + ", budget +"
-                + MAX_GROWTH
-                + "). The query count must not grow with the number of rows —"
-                + " batch-fetch or join-fetch the association being walked per row."
-                + " Entities hydrated: "
-                + small.entityLoads()
-                + " -> "
-                + large.entityLoads());
+  /** Trips carry stages and participations, the {@code TripDto} equivalent of groups/participants. */
+  private void seedTrips(int count) {
+    Instant base = Instant.now().plus(7, ChronoUnit.DAYS);
+    List<User> participants = List.of(user1, user2, user3, user4, user5);
+    for (int i = 0; i < count; i++) {
+      Trip trip =
+          dataService.createTrip(
+              team1, user1, "Budget Trip " + i, base.plusSeconds(i), Visibility.PUBLIC);
+      for (int s = 0; s < 3; s++) {
+        dataService.createTripStage(user1, trip, "Trip " + i + " Stage " + s, s);
+      }
+      for (User participant : participants) {
+        dataService.createTripParticipation(trip, participant);
+      }
+    }
   }
 
   @Test
-  void listTeamRides_queryCountDoesNotScaleWithRowCount() {
+  void listTeamRides_costDoesNotScaleWithRowCount() {
+    seedRides(LARGE_PAGE);
     assertFlatQueryCount(
         "GET /api/teams/{teamSlug}/publications?type=RIDE",
+        asUser1(),
         "/api/teams/" + team1Slug + "/publications?type=RIDE");
   }
 
   @Test
-  void listAllPublications_queryCountDoesNotScaleWithRowCount() {
-    assertFlatQueryCount("GET /api/publications", "/api/publications");
+  void listAllPublications_costDoesNotScaleWithRowCount() {
+    seedRides(LARGE_PAGE);
+    assertFlatQueryCount("GET /api/publications", asUser1(), "/api/publications");
+  }
+
+  /** The same list seen by an anonymous visitor — a different query shape (no UserTeam join). */
+  @Test
+  void listAllPublicationsAnonymous_costDoesNotScaleWithRowCount() {
+    seedRides(LARGE_PAGE);
+    assertFlatQueryCount("GET /api/publications anonymous", anonymous(), "/api/publications");
+  }
+
+  @Test
+  void listTeamTrips_costDoesNotScaleWithRowCount() {
+    seedTrips(LARGE_PAGE);
+    assertFlatQueryCount(
+        "GET /api/teams/{teamSlug}/publications?type=TRIP",
+        asUser1(),
+        "/api/teams/" + team1Slug + "/publications?type=TRIP");
   }
 
   /**
@@ -168,7 +132,7 @@ class PublicationQueryCountTest extends AbstractResourceTest {
 
     long growth = largeCounters.statements() - smallCounters.statements();
     assertTrue(
-        growth <= MAX_GROWTH,
+        growth <= MAX_STATEMENT_GROWTH,
         () ->
             "N+1 on the ride detail endpoint: 1 participant cost "
                 + smallCounters.statements()
@@ -177,7 +141,7 @@ class PublicationQueryCountTest extends AbstractResourceTest {
                 + " (+"
                 + growth
                 + ", budget +"
-                + MAX_GROWTH
+                + MAX_STATEMENT_GROWTH
                 + ")");
   }
 
@@ -192,36 +156,5 @@ class PublicationQueryCountTest extends AbstractResourceTest {
                 .get("/api/teams/" + team1Slug + "/rides/" + rideSlug)
                 .then()
                 .statusCode(200));
-  }
-
-  /** The same list seen by an anonymous visitor — a different query shape (no UserTeam join). */
-  @Test
-  void listAllPublicationsAnonymous_queryCountDoesNotScaleWithRowCount() {
-    seedRides(LARGE_PAGE);
-
-    QueryStats.Counters small =
-        queryStats.measureAll(
-            "GET /api/publications anonymous [" + SMALL_PAGE + " rows]",
-            () ->
-                given().when().get("/api/publications?size=" + SMALL_PAGE).then().statusCode(200));
-    QueryStats.Counters large =
-        queryStats.measureAll(
-            "GET /api/publications anonymous [" + LARGE_PAGE + " rows]",
-            () ->
-                given().when().get("/api/publications?size=" + LARGE_PAGE).then().statusCode(200));
-
-    long growth = large.statements() - small.statements();
-    assertTrue(
-        growth <= MAX_GROWTH,
-        () ->
-            "N+1 on the anonymous publication feed: "
-                + small.statements()
-                + " -> "
-                + large.statements()
-                + " statements (+"
-                + growth
-                + ", budget +"
-                + MAX_GROWTH
-                + ")");
   }
 }

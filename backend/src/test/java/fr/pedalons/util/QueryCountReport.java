@@ -49,7 +49,8 @@ public final class QueryCountReport {
   private static final int TOTAL_STATEMENTS = 2;
   private static final int MAX_ENTITY_LOADS = 3;
   private static final int MAX_QUERIES = 4;
-  private static final int SLOTS = 5;
+  private static final int MAX_WRITES = 5;
+  private static final int SLOTS = 6;
 
   private QueryCountReport() {}
 
@@ -60,8 +61,17 @@ public final class QueryCountReport {
             .computeIfAbsent(ROWS_KEY, k -> new ConcurrentHashMap<String, long[]>());
   }
 
-  /** Records one measurement under {@code label}. Thread-safe. */
-  public static void record(String label, long statements, long entityLoads, long queries) {
+  /**
+   * Records one measurement under {@code label}. Thread-safe.
+   *
+   * <p>{@code writes} is reported separately because a high statement count means two completely
+   * different things depending on it. {@code PUT /routes} issues ~27 statements, but most are the
+   * inserts and deletes of a GPX track's points — real work, not waste. A read endpoint at the same
+   * count with zero writes is a fetch-strategy problem. Lumping them together makes the table sort
+   * the busiest writer to the top and bury the actual N+1.
+   */
+  public static void record(
+      String label, long statements, long entityLoads, long queries, long writes) {
     rows()
         .compute(
             label,
@@ -72,8 +82,18 @@ public final class QueryCountReport {
               updated[MAX_STATEMENTS] = Math.max(updated[MAX_STATEMENTS], statements);
               updated[MAX_ENTITY_LOADS] = Math.max(updated[MAX_ENTITY_LOADS], entityLoads);
               updated[MAX_QUERIES] = Math.max(updated[MAX_QUERIES], queries);
+              updated[MAX_WRITES] = Math.max(updated[MAX_WRITES], writes);
               return updated;
             });
+  }
+
+  /**
+   * Read statements = total statements minus the entity/collection write statements. Both maxima are
+   * over different calls in principle, so this is an estimate; in practice a label is one endpoint
+   * doing one thing, and it is the number worth ranking on.
+   */
+  private static long reads(long[] row) {
+    return Math.max(0, row[MAX_STATEMENTS] - row[MAX_WRITES]);
   }
 
   /** Clears everything. Only meant for the report's own unit test. */
@@ -83,8 +103,11 @@ public final class QueryCountReport {
   }
 
   /**
-   * Renders the table. Rows are sorted by worst-case statement count descending, so the endpoint
-   * most in need of a fetch-strategy fix is the first line you read.
+   * Renders the table, sorted by worst-case READ count descending — statements minus writes.
+   *
+   * <p>Sorting on total statements would put the busiest write endpoint on top, which is the one
+   * line in the table that is least likely to be a problem. Reads are what a fetch strategy
+   * controls, so reads are what the first line you look at should be.
    */
   static String render() {
     Map<String, long[]> rows = rows();
@@ -93,7 +116,7 @@ public final class QueryCountReport {
     }
     List<Map.Entry<String, long[]>> entries = new ArrayList<>(rows.entrySet());
     entries.sort(
-        Comparator.<Map.Entry<String, long[]>>comparingLong(e -> e.getValue()[MAX_STATEMENTS])
+        Comparator.<Map.Entry<String, long[]>>comparingLong(e -> reads(e.getValue()))
             .reversed()
             .thenComparing(Map.Entry::getKey));
 
@@ -101,21 +124,28 @@ public final class QueryCountReport {
     for (String label : rows.keySet()) {
       labelWidth = Math.max(labelWidth, label.length());
     }
-    String rowFormat = "| %-" + labelWidth + "s | %7s | %9s | %9s | %11s | %10s |";
+    String rowFormat = "| %-" + labelWidth + "s | %7s | %9s | %9s | %9s | %11s | %10s |";
     String border =
         "+"
             + "-".repeat(labelWidth + 2)
-            + "+---------+-----------+-----------+-------------+------------+";
+            + "+---------+-----------+-----------+-----------+-------------+------------+";
 
     StringBuilder sb = new StringBuilder();
     sb.append(System.lineSeparator());
     sb.append(border).append(System.lineSeparator());
-    sb.append(String.format(rowFormat, "SQL QUERY COUNT REPORT", "", "", "", "", ""))
+    sb.append(String.format(rowFormat, "SQL QUERY COUNT REPORT", "", "", "", "", "", ""))
         .append(System.lineSeparator());
     sb.append(border).append(System.lineSeparator());
     sb.append(
             String.format(
-                rowFormat, "Endpoint", "calls", "maxSQL", "avgSQL", "maxEntities", "maxHqlQry"))
+                rowFormat,
+                "Endpoint",
+                "calls",
+                "maxReads",
+                "maxWrites",
+                "avgSQL",
+                "maxEntities",
+                "maxHqlQry"))
         .append(System.lineSeparator());
     sb.append(border).append(System.lineSeparator());
     for (Map.Entry<String, long[]> e : entries) {
@@ -125,7 +155,8 @@ public final class QueryCountReport {
                   rowFormat,
                   e.getKey(),
                   r[CALLS],
-                  r[MAX_STATEMENTS],
+                  reads(r),
+                  r[MAX_WRITES],
                   r[CALLS] == 0 ? 0 : r[TOTAL_STATEMENTS] / r[CALLS],
                   r[MAX_ENTITY_LOADS],
                   r[MAX_QUERIES]))

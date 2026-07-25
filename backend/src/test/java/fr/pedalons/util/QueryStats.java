@@ -88,7 +88,8 @@ public class QueryStats {
     Counters before = counters();
     block.run();
     Counters delta = counters().minus(before);
-    QueryCountReport.record(label, delta.statements(), delta.entityLoads(), delta.queries());
+    QueryCountReport.record(
+        label, delta.statements(), delta.entityLoads(), delta.queries(), delta.writes());
     return delta;
   }
 
