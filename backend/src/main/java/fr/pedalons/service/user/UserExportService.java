@@ -10,6 +10,7 @@ import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.dto.users.response.DownloadableExport;
 import fr.pedalons.dto.users.response.UserExportDto;
 import fr.pedalons.enums.UserExportStatus;
+import fr.pedalons.infrastructure.i18n.LanguageResolver;
 import fr.pedalons.infrastructure.storage.StorageService;
 import fr.pedalons.repository.user.UserExportRepository;
 import fr.pedalons.service.security.DomainResolver;
@@ -55,13 +56,13 @@ public class UserExportService {
   private static final Logger LOG = Logger.getLogger(UserExportService.class);
 
   private static final String KEY_PREFIX = "exports/";
-  private static final String DEFAULT_LANGUAGE = "fr";
   private static final DateTimeFormatter FILE_DATE =
       DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneOffset.UTC);
 
   @Inject UserExportRepository userExportRepository;
   @Inject PedalonsQueryContext pedalonsContext;
   @Inject DomainResolver domainResolver;
+  @Inject LanguageResolver languageResolver;
   @Inject UserExportBuilder exportBuilder;
   @Inject UserExportEmailService exportEmailService;
   @Inject StorageService storageService;
@@ -107,9 +108,15 @@ public class UserExportService {
     }
 
     ResolvedSite site = domainResolver.getResolvedSite();
+    // Snapshotted here, with the request still around: the scheduler that sends the "ready" email
+    // runs with no HTTP request, so it cannot resolve the language itself.
     UserExport export =
         new UserExport(
-            site.domain(), user, site.effectiveBaseUrl(), site.effectiveName(), DEFAULT_LANGUAGE);
+            site.domain(),
+            user,
+            site.effectiveBaseUrl(),
+            site.effectiveName(),
+            languageResolver.getLanguage());
     try {
       // Flush here rather than at commit: uk_user_exports_active is what catches two concurrent
       // POSTs slipping through the read above, and we want that as a 429, not a 500 from the
