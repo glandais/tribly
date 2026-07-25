@@ -76,6 +76,8 @@ public class UserService {
     User user = pedalonsContext.getUser();
     user.setDeleted(true);
     userRepository.persist(user);
+    // The request context memoizes the active user; it is no longer active.
+    pedalonsContext.invalidateUser();
   }
 
   /**

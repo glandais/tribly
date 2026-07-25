@@ -144,6 +144,25 @@ public class RideDto implements PublicationDto {
     this.deleted = deleted;
   }
 
+  /**
+   * Builds a list row without touching {@code ride.getGroups()}.
+   *
+   * <p>The group/participant numbers come from {@link RideListSummary}, which the caller loaded in
+   * bulk for the whole page. Going through {@link #from(Ride, boolean, AssetService)} here would
+   * hydrate every participation and every participant of every ride on the page just to count them
+   * and keep five.
+   */
+  public static RideDto fromListItem(
+      Ride ride, RideListSummary summary, AssetService assetService) {
+    return build(
+        ride,
+        List.of(),
+        summary.groupCount(),
+        summary.participantCount(),
+        summary.topParticipants(),
+        assetService);
+  }
+
   public static RideDto from(Ride ride, boolean groupDetails, AssetService assetService) {
     List<RideGroupDto> groupDtos =
         groupDetails
@@ -152,8 +171,6 @@ public class RideDto implements PublicationDto {
                 .map(RideGroupDto::from)
                 .toList()
             : List.of();
-    Place startPlace = ride.getStart();
-    Place endPlace = ride.getEnd();
 
     // Extract top 5 unique participants across all groups
     Set<Long> seenUserIds = new HashSet<>();
@@ -166,6 +183,25 @@ public class RideDto implements PublicationDto {
             .limit(5)
             .map(PublicUserDto::from)
             .toList();
+
+    return build(
+        ride,
+        groupDtos,
+        ride.getGroupCount(),
+        ride.getParticipantCount(),
+        topParticipants,
+        assetService);
+  }
+
+  private static RideDto build(
+      Ride ride,
+      List<RideGroupDto> groupDtos,
+      int groupCount,
+      int participantCount,
+      List<PublicUserDto> topParticipants,
+      AssetService assetService) {
+    Place startPlace = ride.getStart();
+    Place endPlace = ride.getEnd();
 
     // Get thumbnail URLs from ride's own assets
     String thumbnailLightUrl = null;
@@ -200,8 +236,8 @@ public class RideDto implements PublicationDto {
         ride.getPublishAt(),
         ride.getCreatedAt(),
         ride.getRoute() != null ? ride.getRoute().getSlug() : null,
-        ride.getParticipantCount(),
-        ride.getGroupCount(),
+        participantCount,
+        groupCount,
         groupDtos,
         startPlace != null ? PlaceDetailDto.from(startPlace) : null,
         endPlace != null ? PlaceDetailDto.from(endPlace) : null,

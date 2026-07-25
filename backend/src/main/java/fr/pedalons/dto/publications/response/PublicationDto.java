@@ -8,10 +8,12 @@ import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.domain.trip.Trip;
 import fr.pedalons.dto.posts.response.PostDto;
 import fr.pedalons.dto.rides.response.RideDto;
+import fr.pedalons.dto.rides.response.RideListSummary;
 import fr.pedalons.dto.trips.response.TripDto;
 import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.service.asset.AssetService;
+import java.util.Map;
 import org.eclipse.microprofile.openapi.annotations.media.DiscriminatorMapping;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
@@ -45,9 +47,24 @@ public interface PublicationDto {
   String getName();
 
   static PublicationDto from(Publication publication, AssetService assetService) {
+    return from(publication, assetService, Map.of());
+  }
+
+  /**
+   * Builds one row of a publication list.
+   *
+   * @param rideSummaries group/participant counts for every ride on the page, loaded in bulk by
+   *     {@code RideSummaryRepository}. A ride missing from the map has no groups.
+   */
+  static PublicationDto from(
+      Publication publication,
+      AssetService assetService,
+      Map<Long, RideListSummary> rideSummaries) {
     return switch (publication) {
       case Post post -> PostDto.from(post, assetService);
-      case Ride ride -> RideDto.from(ride, false, assetService);
+      case Ride ride ->
+          RideDto.fromListItem(
+              ride, rideSummaries.getOrDefault(ride.getId(), RideListSummary.EMPTY), assetService);
       case Trip trip -> TripDto.from(trip, false, assetService);
       default -> throw new IllegalStateException("Invalid Publication object");
     };

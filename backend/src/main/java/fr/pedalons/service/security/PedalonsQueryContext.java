@@ -42,6 +42,11 @@ public class PedalonsQueryContext {
 
   boolean initialized = false;
 
+  /** Memoized result of {@link #getUserNullable()} — see the javadoc there. */
+  @Nullable User activeUser;
+
+  boolean activeUserResolved = false;
+
   @Inject UserService userService;
 
   @Inject TeamService teamService;
@@ -54,6 +59,7 @@ public class PedalonsQueryContext {
   public void setUserForTest(@Nullable User user) {
     this.initialized = true;
     this.user = user;
+    invalidateUser();
   }
 
   public Domain getDomain() {
@@ -94,9 +100,37 @@ public class PedalonsQueryContext {
     return user.getId();
   }
 
+  /**
+   * The authenticated user of this request, or {@code null}.
+   *
+   * <p>Resolved at most once per request. The interceptors ({@code @Logged}, {@code @Admin}, {@code
+   * @CheckAccess}), the security verifier and the services each ask for the current user
+   * independently — half a dozen calls on a single endpoint is normal — and every one of them used
+   * to issue its own {@code User WHERE id = ? AND deleted = false} SELECT. The lookup is a pure
+   * re-validation of what {@link #doInit()} already resolved (its query filters {@code deleted =
+   * false} too), so the answer cannot change mid-request unless this request itself soft-deletes the
+   * user — which is what {@link #invalidateUser()} is for.
+   */
   public @Nullable User getUserNullable() {
     init();
-    return user != null ? userRepository.findActiveById(user.getId()).orElse(null) : null;
+    if (user == null) {
+      return null;
+    }
+    if (!activeUserResolved) {
+      activeUser = userRepository.findActiveById(user.getId()).orElse(null);
+      activeUserResolved = true;
+    }
+    return activeUser;
+  }
+
+  /**
+   * Drops the memoized current user so the next {@link #getUserNullable()} hits the database again.
+   * Call this after changing whether the current user still counts as active — soft-deleting them,
+   * for instance.
+   */
+  public void invalidateUser() {
+    activeUser = null;
+    activeUserResolved = false;
   }
 
   /**

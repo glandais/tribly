@@ -1,15 +1,18 @@
 package fr.pedalons.service.common;
 
 import fr.pedalons.domain.common.Publication;
+import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.dto.common.PedalonsPage;
 import fr.pedalons.dto.publications.response.PublicationDto;
 import fr.pedalons.dto.publications.response.PublicationListResponse;
 import fr.pedalons.dto.publications.response.PublicationType;
+import fr.pedalons.dto.rides.response.RideListSummary;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
 import fr.pedalons.repository.common.AllPublicationRepository;
 import fr.pedalons.repository.common.PublicationQuery;
+import fr.pedalons.repository.ride.RideSummaryRepository;
 import fr.pedalons.service.asset.AssetService;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.CheckAccess;
@@ -19,6 +22,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.jspecify.annotations.Nullable;
 
@@ -34,6 +38,8 @@ public class PublicationService {
   @Inject TeamService teamService;
 
   @Inject IncludeDeletedService includeDeletedService;
+
+  @Inject RideSummaryRepository rideSummaryRepository;
 
   @CheckAccess(entityType = EntityType.PUBLICATION, action = ActionType.LIST_ALL_TEAMS)
   public PublicationListResponse listAll(
@@ -100,9 +106,17 @@ public class PublicationService {
                 .includeDeleted(includeDeleted)
                 .platformAdmin(platformAdmin)
                 .build());
+    // One bulk load for the whole page, instead of every ride row walking its own groups ->
+    // participations -> users to produce a count and five avatars.
+    Map<Long, RideListSummary> rideSummaries =
+        rideSummaryRepository.loadListSummaries(
+            publications.items().stream()
+                .filter(Ride.class::isInstance)
+                .map(Publication::getId)
+                .toList());
     List<PublicationDto> dtos =
         publications.items().stream()
-            .map(publication -> PublicationDto.from(publication, assetService))
+            .map(publication -> PublicationDto.from(publication, assetService, rideSummaries))
             .toList();
     return new PublicationListResponse(dtos, publications.total(), page, size);
   }

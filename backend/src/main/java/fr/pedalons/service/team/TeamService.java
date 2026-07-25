@@ -49,6 +49,16 @@ public class TeamService {
 
   @Inject PedalonsQueryContext pedalonsContext;
 
+  /**
+   * Resolves a team by slug.
+   *
+   * <p>Deliberately NOT memoized per request, even though a team-scoped endpoint resolves the same
+   * slug two or three times (the {@code @CheckAccess} interceptor, then the service method). Caching
+   * it broke two invariants the tests pin down: {@link #requirePinnedTeam} is an authorization guard
+   * that must run on every resolution, not just the first, and a team mutated through a different
+   * transaction mid-request (see {@code TripServiceTest.shouldThrowOnLeaveWhenTripsDisabled}) must
+   * be re-read rather than served stale. One extra indexed SELECT is the cheaper trade.
+   */
   public Team getTeam(String teamSlug) {
     Long domainId = pedalonsContext.getDomainId();
     Team team =
