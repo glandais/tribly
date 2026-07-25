@@ -71,180 +71,184 @@ class ProfilePage extends ConsumerWidget {
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-          // User avatar and info
-          Center(
-            child: Column(
-              children: [
-                AuthenticatedCircleAvatar(
-                  imageUrl: user?.avatarUrl,
-                  fallbackText: (user?.displayName).safeFirstUpper(),
-                  radius: 50,
-                  fontSize: 32,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  user?.displayName ?? 'common.user'.tr(),
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  user?.email ?? '',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.outline,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 32),
-
-          // Security section
-          Text(
-            'profile.security'.tr(),
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: Icon(
-                    Icons.fingerprint,
-                    color: authState.hasPasskeys
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.outline,
-                  ),
-                  title: Text('profile.passkeys.title'.tr()),
-                  subtitle: Text(
-                    authState.hasPasskeys
-                        ? 'profile.passkeys.enabled'.tr()
-                        : 'profile.passkeys.notConfigured'.tr(),
-                  ),
-                  trailing: FilledButton.tonal(
-                    onPressed: () => _registerPasskey(context, ref),
-                    child: Text(
-                      authState.hasPasskeys
-                          ? 'profile.passkeys.replace'.tr()
-                          : 'profile.passkeys.add'.tr(),
+              // User avatar and info
+              Center(
+                child: Column(
+                  children: [
+                    AuthenticatedCircleAvatar(
+                      imageUrl: user?.avatarUrl,
+                      fallbackText: (user?.displayName).safeFirstUpper(),
+                      radius: 50,
+                      fontSize: 32,
                     ),
-                  ),
+                    const SizedBox(height: 16),
+                    Text(
+                      user?.displayName ?? 'common.user'.tr(),
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      user?.email ?? '',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.outline,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
+              ),
+              const SizedBox(height: 32),
 
-          // Preferences section
-          Text(
-            'profile.preferences'.tr(),
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: Icon(
-                    Icons.language,
-                    color: theme.colorScheme.outline,
-                  ),
-                  title: Text('profile.language'.tr()),
-                  subtitle: Text(
-                    context.locale.languageCode == 'fr'
-                        ? 'languages.fr'.tr()
-                        : 'languages.en'.tr(),
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showLanguagePicker(context),
+              // Security section
+              Text(
+                'profile.security'.tr(),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // About section
-          Text(
-            'profile.about'.tr(),
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: Icon(
-                    Icons.info_outline,
-                    color: theme.colorScheme.outline,
-                  ),
-                  title: Text('profile.version'.tr()),
-                  trailing: Text(
-                    ref.watch(_packageInfoProvider).maybeWhen(
-                          // The build number is the only part pubspec bumps on
-                          // each release, so the version alone never changes.
-                          data: (info) => info.buildNumber.isEmpty
-                              ? info.version
-                              : '${info.version} (${info.buildNumber})',
-                          orElse: () => '',
+              ),
+              const SizedBox(height: 8),
+              Card(
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: Icon(
+                        Icons.fingerprint,
+                        color: authState.hasPasskeys
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.outline,
+                      ),
+                      title: Text('profile.passkeys.title'.tr()),
+                      subtitle: Text(
+                        authState.hasPasskeys
+                            ? 'profile.passkeys.enabled'.tr()
+                            : 'profile.passkeys.notConfigured'.tr(),
+                      ),
+                      trailing: FilledButton.tonal(
+                        onPressed: () => _registerPasskey(context, ref),
+                        child: Text(
+                          authState.hasPasskeys
+                              ? 'profile.passkeys.replace'.tr()
+                              : 'profile.passkeys.add'.tr(),
                         ),
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.outline,
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: Icon(
-                    Icons.dns_outlined,
-                    color: theme.colorScheme.outline,
-                  ),
-                  title: Text('profile.serverVersion'.tr()),
-                  trailing: Text(
-                    ref.watch(_serverVersionProvider).maybeWhen(
-                          data: (version) => version.commit == null
-                              ? version.apiVersion
-                              : '${version.apiVersion} (${version.commit})',
-                          // Nothing to show while loading, and a profile page is no
-                          // place to surface a version-lookup failure.
-                          orElse: () => '',
+              ),
+              const SizedBox(height: 24),
+
+              // Preferences section
+              Text(
+                'profile.preferences'.tr(),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Card(
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: Icon(
+                        Icons.language,
+                        color: theme.colorScheme.outline,
+                      ),
+                      title: Text('profile.language'.tr()),
+                      subtitle: Text(
+                        context.locale.languageCode == 'fr'
+                            ? 'languages.fr'.tr()
+                            : 'languages.en'.tr(),
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _showLanguagePicker(context),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // About section
+              Text(
+                'profile.about'.tr(),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Card(
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: Icon(
+                        Icons.info_outline,
+                        color: theme.colorScheme.outline,
+                      ),
+                      title: Text('profile.version'.tr()),
+                      trailing: Text(
+                        ref
+                            .watch(_packageInfoProvider)
+                            .maybeWhen(
+                              // The build number is the only part pubspec bumps on
+                              // each release, so the version alone never changes.
+                              data: (info) => info.buildNumber.isEmpty
+                                  ? info.version
+                                  : '${info.version} (${info.buildNumber})',
+                              orElse: () => '',
+                            ),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.outline,
                         ),
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.outline,
+                      ),
                     ),
-                  ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: Icon(
+                        Icons.dns_outlined,
+                        color: theme.colorScheme.outline,
+                      ),
+                      title: Text('profile.serverVersion'.tr()),
+                      trailing: Text(
+                        ref
+                            .watch(_serverVersionProvider)
+                            .maybeWhen(
+                              data: (version) => version.commit == null
+                                  ? version.apiVersion
+                                  : '${version.apiVersion} (${version.commit})',
+                              // Nothing to show while loading, and a profile page is no
+                              // place to surface a version-lookup failure.
+                              orElse: () => '',
+                            ),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.outline,
+                        ),
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: Icon(
+                        Icons.policy_outlined,
+                        color: theme.colorScheme.outline,
+                      ),
+                      title: Text('profile.privacy'.tr()),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => context.push(Paths.privacy()),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: Icon(
+                        Icons.description_outlined,
+                        color: theme.colorScheme.outline,
+                      ),
+                      title: Text('profile.terms'.tr()),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => context.push(Paths.terms()),
+                    ),
+                  ],
                 ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: Icon(
-                    Icons.policy_outlined,
-                    color: theme.colorScheme.outline,
-                  ),
-                  title: Text('profile.privacy'.tr()),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push(Paths.privacy()),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: Icon(
-                    Icons.description_outlined,
-                    color: theme.colorScheme.outline,
-                  ),
-                  title: Text('profile.terms'.tr()),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push(Paths.terms()),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
         ),
       ),
     );
@@ -305,15 +309,15 @@ class ProfilePage extends ConsumerWidget {
 
       ref.read(authProvider.notifier).setHasPasskeys(true);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('auth.passkey.success'.tr())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('auth.passkey.success'.tr())));
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(getErrorMessage(e))),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(getErrorMessage(e))));
       }
     }
   }

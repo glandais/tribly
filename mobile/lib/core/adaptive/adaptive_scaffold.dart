@@ -65,8 +65,9 @@ class AdaptiveScaffold extends StatelessWidget {
             selectedIndex: selectedIndex,
             onDestinationSelected: onDestinationSelected,
             extended: extended,
-            labelType:
-                extended ? NavigationRailLabelType.none : NavigationRailLabelType.all,
+            labelType: extended
+                ? NavigationRailLabelType.none
+                : NavigationRailLabelType.all,
             backgroundColor: theme.colorScheme.surface,
             destinations: kAppDestinations
                 .map(

@@ -25,10 +25,7 @@ class TeamSliverAppBar extends StatelessWidget {
         onPressed: () => context.go(Paths.teams()),
       ),
       flexibleSpace: FlexibleSpaceBar(
-        title: Text(
-          team.name,
-          style: const TextStyle(fontSize: 16),
-        ),
+        title: Text(team.name, style: const TextStyle(fontSize: 16)),
         background: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(

@@ -55,14 +55,18 @@ class _RidePublicationCard extends StatelessWidget {
                 image: thumbnailUrl != null
                     ? DecorationImage(
                         image: AuthenticatedDecorationImage.fromUrl(
-                            thumbnailUrl, token)!,
+                          thumbnailUrl,
+                          token,
+                        )!,
                         fit: BoxFit.cover,
                       )
                     : null,
               ),
               child: thumbnailUrl == null
-                  ? Icon(Icons.directions_bike,
-                      color: theme.colorScheme.onPrimaryContainer)
+                  ? Icon(
+                      Icons.directions_bike,
+                      color: theme.colorScheme.onPrimaryContainer,
+                    )
                   : null,
             ),
             const SizedBox(width: 12),
@@ -72,19 +76,26 @@ class _RidePublicationCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.directions_bike,
-                          size: 14, color: theme.colorScheme.primary),
+                      Icon(
+                        Icons.directions_bike,
+                        size: 14,
+                        color: theme.colorScheme.primary,
+                      ),
                       const SizedBox(width: 4),
-                      Text('rides.title'.tr(),
-                          style: theme.textTheme.labelSmall
-                              ?.copyWith(color: theme.colorScheme.primary)),
+                      Text(
+                        'rides.title'.tr(),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 2),
                   Text(
                     ride.name,
-                    style: theme.textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -126,8 +137,10 @@ class _PostPublicationCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 color: theme.colorScheme.tertiaryContainer,
               ),
-              child: Icon(Icons.article,
-                  color: theme.colorScheme.onTertiaryContainer),
+              child: Icon(
+                Icons.article,
+                color: theme.colorScheme.onTertiaryContainer,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -136,26 +149,32 @@ class _PostPublicationCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.article,
-                          size: 14, color: theme.colorScheme.tertiary),
+                      Icon(
+                        Icons.article,
+                        size: 14,
+                        color: theme.colorScheme.tertiary,
+                      ),
                       const SizedBox(width: 4),
-                      Text('posts.title'.tr(),
-                          style: theme.textTheme.labelSmall
-                              ?.copyWith(color: theme.colorScheme.tertiary)),
+                      Text(
+                        'posts.title'.tr(),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.tertiary,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 2),
                   Text(
                     post.name,
-                    style: theme.textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    AppFormatters.formatRideDate(
-                        DateTime.parse(post.dateTime)),
+                    AppFormatters.formatRideDate(DateTime.parse(post.dateTime)),
                     style: theme.textTheme.bodySmall,
                   ),
                 ],
@@ -198,14 +217,18 @@ class _TripPublicationCard extends StatelessWidget {
                 image: thumbnailUrl != null
                     ? DecorationImage(
                         image: AuthenticatedDecorationImage.fromUrl(
-                            thumbnailUrl, token)!,
+                          thumbnailUrl,
+                          token,
+                        )!,
                         fit: BoxFit.cover,
                       )
                     : null,
               ),
               child: thumbnailUrl == null
-                  ? Icon(Icons.hiking,
-                      color: theme.colorScheme.onSecondaryContainer)
+                  ? Icon(
+                      Icons.hiking,
+                      color: theme.colorScheme.onSecondaryContainer,
+                    )
                   : null,
             ),
             const SizedBox(width: 12),
@@ -215,19 +238,26 @@ class _TripPublicationCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.hiking,
-                          size: 14, color: theme.colorScheme.secondary),
+                      Icon(
+                        Icons.hiking,
+                        size: 14,
+                        color: theme.colorScheme.secondary,
+                      ),
                       const SizedBox(width: 4),
-                      Text('trips.title'.tr(),
-                          style: theme.textTheme.labelSmall
-                              ?.copyWith(color: theme.colorScheme.secondary)),
+                      Text(
+                        'trips.title'.tr(),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.secondary,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 2),
                   Text(
                     trip.name,
-                    style: theme.textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

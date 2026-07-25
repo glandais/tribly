@@ -11,11 +11,7 @@ class ContentWidthConstraint extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
 
-  const ContentWidthConstraint({
-    super.key,
-    required this.child,
-    this.padding,
-  });
+  const ContentWidthConstraint({super.key, required this.child, this.padding});
 
   @override
   Widget build(BuildContext context) {
@@ -46,10 +42,7 @@ class ContentWidthConstraint extends StatelessWidget {
 class SliverContentWidthConstraint extends StatelessWidget {
   final Widget sliver;
 
-  const SliverContentWidthConstraint({
-    super.key,
-    required this.sliver,
-  });
+  const SliverContentWidthConstraint({super.key, required this.sliver});
 
   @override
   Widget build(BuildContext context) {

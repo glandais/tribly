@@ -52,10 +52,7 @@ class SafeCircleAvatar extends StatelessWidget {
       return CircleAvatar(
         radius: radius,
         backgroundColor: backgroundColor,
-        child: Text(
-          fallbackText,
-          style: TextStyle(fontSize: fontSize),
-        ),
+        child: Text(fallbackText, style: TextStyle(fontSize: fontSize)),
       );
     }
 
@@ -72,10 +69,7 @@ class SafeCircleAvatar extends StatelessWidget {
           height: radius * 2,
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) => Center(
-            child: Text(
-              fallbackText,
-              style: TextStyle(fontSize: fontSize),
-            ),
+            child: Text(fallbackText, style: TextStyle(fontSize: fontSize)),
           ),
         ),
       ),
@@ -89,10 +83,7 @@ class SafeDecorationImage {
   ///
   /// If the image fails to load, the DecorationImage will show nothing,
   /// allowing any underlying widget to be visible.
-  static DecorationImage? fromUrl(
-    String? url, {
-    BoxFit fit = BoxFit.cover,
-  }) {
+  static DecorationImage? fromUrl(String? url, {BoxFit fit = BoxFit.cover}) {
     if (url == null) return null;
     return DecorationImage(
       image: NetworkImage(_resolveImageUrl(url)),

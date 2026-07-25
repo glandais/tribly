@@ -31,9 +31,7 @@ class StageDetailPage extends ConsumerWidget {
 
     return tripAsync.when(
       data: (trip) {
-        final stage = trip.stages
-            .where((s) => s.slug == stageSlug)
-            .firstOrNull;
+        final stage = trip.stages.where((s) => s.slug == stageSlug).firstOrNull;
         if (stage == null) {
           return Scaffold(
             appBar: AppBar(),
@@ -46,8 +44,7 @@ class StageDetailPage extends ConsumerWidget {
                   Text('trips.stage.notFound'.tr()),
                   const SizedBox(height: 16),
                   FilledButton(
-                    onPressed: () =>
-                        context.go(Paths.trip(teamSlug, tripSlug)),
+                    onPressed: () => context.go(Paths.trip(teamSlug, tripSlug)),
                     child: Text('trips.stage.backToTrip'.tr()),
                   ),
                 ],
@@ -55,8 +52,7 @@ class StageDetailPage extends ConsumerWidget {
             ),
           );
         }
-        final stageIndex =
-            trip.stages.indexWhere((s) => s.slug == stageSlug);
+        final stageIndex = trip.stages.indexWhere((s) => s.slug == stageSlug);
         return _StageDetailContent(
           trip: trip,
           stage: stage,
@@ -73,8 +69,11 @@ class StageDetailPage extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline,
-                  size: 48, color: Theme.of(context).colorScheme.error),
+              Icon(
+                Icons.error_outline,
+                size: 48,
+                color: Theme.of(context).colorScheme.error,
+              ),
               const SizedBox(height: 16),
               Text(getErrorMessage(error)),
               const SizedBox(height: 16),
@@ -106,10 +105,7 @@ class _StageDetailContent extends StatelessWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(
-            pinned: true,
-            title: Text(stage.name),
-          ),
+          SliverAppBar(pinned: true, title: Text(stage.name)),
 
           // Team
           SliverToBoxAdapter(
@@ -129,10 +125,10 @@ class _StageDetailContent extends StatelessWidget {
                   child: Row(
                     children: [
                       CircleAvatar(
-                        backgroundColor:
-                            Theme.of(context).colorScheme.primary,
-                        foregroundColor:
-                            Theme.of(context).colorScheme.onPrimary,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Theme.of(
+                          context,
+                        ).colorScheme.onPrimary,
                         child: Text(
                           '$stageNumber',
                           style: const TextStyle(fontWeight: FontWeight.bold),
@@ -144,15 +140,15 @@ class _StageDetailContent extends StatelessWidget {
                         children: [
                           Text(
                             AppFormatters.formatFullDate(
-                                DateTime.parse(stage.dateTime)),
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
+                              DateTime.parse(stage.dateTime),
+                            ),
+                            style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           Text(
                             AppFormatters.formatTime(
-                                DateTime.parse(stage.dateTime)),
+                              DateTime.parse(stage.dateTime),
+                            ),
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         ],
@@ -168,7 +164,10 @@ class _StageDetailContent extends StatelessWidget {
           if (stage.startPlace != null)
             SliverToBoxAdapter(
               child: ContentWidthConstraint(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
                 child: Card(
                   child: ListTile(
                     leading: Icon(
@@ -186,7 +185,10 @@ class _StageDetailContent extends StatelessWidget {
           if (stage.endPlace != null)
             SliverToBoxAdapter(
               child: ContentWidthConstraint(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
                 child: Card(
                   child: ListTile(
                     leading: Icon(
@@ -204,8 +206,10 @@ class _StageDetailContent extends StatelessWidget {
           if (stage.route != null)
             SliverToBoxAdapter(
               child: ContentWidthConstraint(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
                 child: Card(
                   child: ListTile(
                     leading: Icon(

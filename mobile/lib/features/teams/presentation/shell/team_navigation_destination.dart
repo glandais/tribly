@@ -59,7 +59,9 @@ List<AppDestination> buildTeamDestinations(TeamDetailDto team) {
 /// Matches all locale variants so cross-locale deep links still land on the
 /// right tab.
 int getTeamDestinationIndex(
-    String location, List<AppDestination> destinations) {
+  String location,
+  List<AppDestination> destinations,
+) {
   for (int i = 1; i < destinations.length; i++) {
     for (final path in destinations[i].paths.values) {
       if (location == path || location.startsWith('$path/')) {

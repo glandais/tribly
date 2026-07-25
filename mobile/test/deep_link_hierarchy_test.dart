@@ -12,10 +12,13 @@ void main() {
       expect(ancestorsForDeepLink('/terms'), ['/']);
     });
 
-    test('device verification pages keep their query string out of the match', () {
-      expect(ancestorsForDeepLink('/garmin?code=ABC123'), ['/']);
-      expect(ancestorsForDeepLink('/karoo'), ['/']);
-    });
+    test(
+      'device verification pages keep their query string out of the match',
+      () {
+        expect(ancestorsForDeepLink('/garmin?code=ABC123'), ['/']);
+        expect(ancestorsForDeepLink('/karoo'), ['/']);
+      },
+    );
 
     // Team-scoped chains start at the teams tab, not at home: stacking two main
     // shell tabs would leave the shell state — and so the highlighted tab — on

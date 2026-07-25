@@ -16,6 +16,7 @@ class Paths {
         return '/login';
     }
   }
+
   static String register() {
     switch (getCurrentLocale()) {
       case 'fr':
@@ -24,6 +25,7 @@ class Paths {
         return '/register';
     }
   }
+
   static String verifyEmail() {
     switch (getCurrentLocale()) {
       case 'fr':
@@ -32,6 +34,7 @@ class Paths {
         return '/verify-email';
     }
   }
+
   static String forgotPassword() {
     switch (getCurrentLocale()) {
       case 'fr':
@@ -40,6 +43,7 @@ class Paths {
         return '/forgot-password';
     }
   }
+
   static String resetPassword() {
     switch (getCurrentLocale()) {
       case 'fr':
@@ -48,6 +52,7 @@ class Paths {
         return '/reset-password';
     }
   }
+
   static String deviceVerifyGarmin() => '/garmin';
   static String deviceVerifyKaroo() => '/karoo';
   static String privacy() {
@@ -58,6 +63,7 @@ class Paths {
         return '/privacy';
     }
   }
+
   static String terms() {
     switch (getCurrentLocale()) {
       case 'fr':
@@ -66,6 +72,7 @@ class Paths {
         return '/terms';
     }
   }
+
   static String profile() {
     switch (getCurrentLocale()) {
       case 'fr':
@@ -74,6 +81,7 @@ class Paths {
         return '/profile';
     }
   }
+
   static String calendar() {
     switch (getCurrentLocale()) {
       case 'fr':
@@ -82,6 +90,7 @@ class Paths {
         return '/calendar';
     }
   }
+
   static String teams() {
     switch (getCurrentLocale()) {
       case 'fr':
@@ -90,6 +99,7 @@ class Paths {
         return '/teams';
     }
   }
+
   static String team(String teamSlug) {
     switch (getCurrentLocale()) {
       case 'fr':
@@ -98,6 +108,7 @@ class Paths {
         return '/teams/$teamSlug';
     }
   }
+
   static String teamAbout(String teamSlug) {
     switch (getCurrentLocale()) {
       case 'fr':
@@ -106,6 +117,7 @@ class Paths {
         return '/teams/$teamSlug/about';
     }
   }
+
   static String teamCalendar(String teamSlug) {
     switch (getCurrentLocale()) {
       case 'fr':
@@ -114,6 +126,7 @@ class Paths {
         return '/teams/$teamSlug/calendar';
     }
   }
+
   static String ride(String teamSlug, String rideSlug) {
     switch (getCurrentLocale()) {
       case 'fr':
@@ -122,6 +135,7 @@ class Paths {
         return '/teams/$teamSlug/rides/$rideSlug';
     }
   }
+
   static String trip(String teamSlug, String tripSlug) {
     switch (getCurrentLocale()) {
       case 'fr':
@@ -130,6 +144,7 @@ class Paths {
         return '/teams/$teamSlug/trips/$tripSlug';
     }
   }
+
   static String stage(String teamSlug, String tripSlug, String stageSlug) {
     switch (getCurrentLocale()) {
       case 'fr':
@@ -138,6 +153,7 @@ class Paths {
         return '/teams/$teamSlug/trips/$tripSlug/stages/$stageSlug';
     }
   }
+
   static String post(String teamSlug, String postSlug) {
     switch (getCurrentLocale()) {
       case 'fr':
@@ -146,6 +162,7 @@ class Paths {
         return '/teams/$teamSlug/posts/$postSlug';
     }
   }
+
   static String routes(String teamSlug) {
     switch (getCurrentLocale()) {
       case 'fr':
@@ -154,6 +171,7 @@ class Paths {
         return '/teams/$teamSlug/routes';
     }
   }
+
   static String route(String teamSlug, String routeSlug) {
     switch (getCurrentLocale()) {
       case 'fr':
@@ -162,6 +180,7 @@ class Paths {
         return '/teams/$teamSlug/routes/$routeSlug';
     }
   }
+
   static String teamAds(String teamSlug) {
     switch (getCurrentLocale()) {
       case 'fr':
@@ -170,6 +189,7 @@ class Paths {
         return '/teams/$teamSlug/classifieds';
     }
   }
+
   static String ad(String teamSlug, String adSlug) {
     switch (getCurrentLocale()) {
       case 'fr':
@@ -186,26 +206,87 @@ class PathVariants {
 
   static Map<String, String> home() => {'en': '/', 'fr': '/'};
   static Map<String, String> login() => {'en': '/login', 'fr': '/connexion'};
-  static Map<String, String> register() => {'en': '/register', 'fr': '/inscription'};
-  static Map<String, String> verifyEmail() => {'en': '/verify-email', 'fr': '/verifier-email'};
-  static Map<String, String> forgotPassword() => {'en': '/forgot-password', 'fr': '/mot-de-passe-oublie'};
-  static Map<String, String> resetPassword() => {'en': '/reset-password', 'fr': '/nouveau-mot-de-passe'};
-  static Map<String, String> deviceVerifyGarmin() => {'en': '/garmin', 'fr': '/garmin'};
-  static Map<String, String> deviceVerifyKaroo() => {'en': '/karoo', 'fr': '/karoo'};
-  static Map<String, String> privacy() => {'en': '/privacy', 'fr': '/confidentialite'};
+  static Map<String, String> register() => {
+    'en': '/register',
+    'fr': '/inscription',
+  };
+  static Map<String, String> verifyEmail() => {
+    'en': '/verify-email',
+    'fr': '/verifier-email',
+  };
+  static Map<String, String> forgotPassword() => {
+    'en': '/forgot-password',
+    'fr': '/mot-de-passe-oublie',
+  };
+  static Map<String, String> resetPassword() => {
+    'en': '/reset-password',
+    'fr': '/nouveau-mot-de-passe',
+  };
+  static Map<String, String> deviceVerifyGarmin() => {
+    'en': '/garmin',
+    'fr': '/garmin',
+  };
+  static Map<String, String> deviceVerifyKaroo() => {
+    'en': '/karoo',
+    'fr': '/karoo',
+  };
+  static Map<String, String> privacy() => {
+    'en': '/privacy',
+    'fr': '/confidentialite',
+  };
   static Map<String, String> terms() => {'en': '/terms', 'fr': '/cgu'};
   static Map<String, String> profile() => {'en': '/profile', 'fr': '/profil'};
-  static Map<String, String> calendar() => {'en': '/calendar', 'fr': '/calendrier'};
+  static Map<String, String> calendar() => {
+    'en': '/calendar',
+    'fr': '/calendrier',
+  };
   static Map<String, String> teams() => {'en': '/teams', 'fr': '/equipes'};
-  static Map<String, String> team(String teamSlug) => {'en': '/teams/$teamSlug', 'fr': '/equipes/$teamSlug'};
-  static Map<String, String> teamAbout(String teamSlug) => {'en': '/teams/$teamSlug/about', 'fr': '/equipes/$teamSlug/a-propos'};
-  static Map<String, String> teamCalendar(String teamSlug) => {'en': '/teams/$teamSlug/calendar', 'fr': '/equipes/$teamSlug/calendrier'};
-  static Map<String, String> ride(String teamSlug, String rideSlug) => {'en': '/teams/$teamSlug/rides/$rideSlug', 'fr': '/equipes/$teamSlug/sorties/$rideSlug'};
-  static Map<String, String> trip(String teamSlug, String tripSlug) => {'en': '/teams/$teamSlug/trips/$tripSlug', 'fr': '/equipes/$teamSlug/voyages/$tripSlug'};
-  static Map<String, String> stage(String teamSlug, String tripSlug, String stageSlug) => {'en': '/teams/$teamSlug/trips/$tripSlug/stages/$stageSlug', 'fr': '/equipes/$teamSlug/voyages/$tripSlug/etapes/$stageSlug'};
-  static Map<String, String> post(String teamSlug, String postSlug) => {'en': '/teams/$teamSlug/posts/$postSlug', 'fr': '/equipes/$teamSlug/articles/$postSlug'};
-  static Map<String, String> routes(String teamSlug) => {'en': '/teams/$teamSlug/routes', 'fr': '/equipes/$teamSlug/parcours'};
-  static Map<String, String> route(String teamSlug, String routeSlug) => {'en': '/teams/$teamSlug/routes/$routeSlug', 'fr': '/equipes/$teamSlug/parcours/$routeSlug'};
-  static Map<String, String> teamAds(String teamSlug) => {'en': '/teams/$teamSlug/classifieds', 'fr': '/equipes/$teamSlug/annonces'};
-  static Map<String, String> ad(String teamSlug, String adSlug) => {'en': '/teams/$teamSlug/classifieds/$adSlug', 'fr': '/equipes/$teamSlug/annonces/$adSlug'};
+  static Map<String, String> team(String teamSlug) => {
+    'en': '/teams/$teamSlug',
+    'fr': '/equipes/$teamSlug',
+  };
+  static Map<String, String> teamAbout(String teamSlug) => {
+    'en': '/teams/$teamSlug/about',
+    'fr': '/equipes/$teamSlug/a-propos',
+  };
+  static Map<String, String> teamCalendar(String teamSlug) => {
+    'en': '/teams/$teamSlug/calendar',
+    'fr': '/equipes/$teamSlug/calendrier',
+  };
+  static Map<String, String> ride(String teamSlug, String rideSlug) => {
+    'en': '/teams/$teamSlug/rides/$rideSlug',
+    'fr': '/equipes/$teamSlug/sorties/$rideSlug',
+  };
+  static Map<String, String> trip(String teamSlug, String tripSlug) => {
+    'en': '/teams/$teamSlug/trips/$tripSlug',
+    'fr': '/equipes/$teamSlug/voyages/$tripSlug',
+  };
+  static Map<String, String> stage(
+    String teamSlug,
+    String tripSlug,
+    String stageSlug,
+  ) => {
+    'en': '/teams/$teamSlug/trips/$tripSlug/stages/$stageSlug',
+    'fr': '/equipes/$teamSlug/voyages/$tripSlug/etapes/$stageSlug',
+  };
+  static Map<String, String> post(String teamSlug, String postSlug) => {
+    'en': '/teams/$teamSlug/posts/$postSlug',
+    'fr': '/equipes/$teamSlug/articles/$postSlug',
+  };
+  static Map<String, String> routes(String teamSlug) => {
+    'en': '/teams/$teamSlug/routes',
+    'fr': '/equipes/$teamSlug/parcours',
+  };
+  static Map<String, String> route(String teamSlug, String routeSlug) => {
+    'en': '/teams/$teamSlug/routes/$routeSlug',
+    'fr': '/equipes/$teamSlug/parcours/$routeSlug',
+  };
+  static Map<String, String> teamAds(String teamSlug) => {
+    'en': '/teams/$teamSlug/classifieds',
+    'fr': '/equipes/$teamSlug/annonces',
+  };
+  static Map<String, String> ad(String teamSlug, String adSlug) => {
+    'en': '/teams/$teamSlug/classifieds/$adSlug',
+    'fr': '/equipes/$teamSlug/annonces/$adSlug',
+  };
 }

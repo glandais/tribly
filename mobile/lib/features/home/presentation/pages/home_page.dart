@@ -12,17 +12,18 @@ import '../../../auth/services/passkey_service.dart';
 import '../../../teams/presentation/widgets/publication_card.dart';
 
 /// Provider for home publications feed
-final _homePublicationsProvider = FutureProvider.family<
-    PublicationListResponse, ({int page, PublicationType? type})>(
-  (ref, params) async {
-    final client = ref.watch(publicationsClientProvider);
-    return client.listAllPublications(
-      page: params.page,
-      size: 20,
-      type: params.type,
-    );
-  },
-);
+final _homePublicationsProvider =
+    FutureProvider.family<
+      PublicationListResponse,
+      ({int page, PublicationType? type})
+    >((ref, params) async {
+      final client = ref.watch(publicationsClientProvider);
+      return client.listAllPublications(
+        page: params.page,
+        size: 20,
+        type: params.type,
+      );
+    });
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -41,7 +42,8 @@ class _HomePageState extends ConsumerState<HomePage> {
     final params = (page: 0, type: _selectedType);
     final publicationsAsync = ref.watch(_homePublicationsProvider(params));
 
-    final userName = authState.user?.displayName.split(' ').firstOrNull ??
+    final userName =
+        authState.user?.displayName.split(' ').firstOrNull ??
         'home.defaultGreeting'.tr();
 
     return Scaffold(
@@ -139,24 +141,27 @@ class _HomePageState extends ConsumerState<HomePage> {
                         label: 'rides.title'.tr(),
                         icon: Icons.directions_bike,
                         selected: _selectedType == PublicationType.ride,
-                        onSelected: () =>
-                            setState(() => _selectedType = PublicationType.ride),
+                        onSelected: () => setState(
+                          () => _selectedType = PublicationType.ride,
+                        ),
                       ),
                       const SizedBox(width: 8),
                       _FilterChip(
                         label: 'posts.title'.tr(),
                         icon: Icons.article,
                         selected: _selectedType == PublicationType.post,
-                        onSelected: () =>
-                            setState(() => _selectedType = PublicationType.post),
+                        onSelected: () => setState(
+                          () => _selectedType = PublicationType.post,
+                        ),
                       ),
                       const SizedBox(width: 8),
                       _FilterChip(
                         label: 'trips.title'.tr(),
                         icon: Icons.hiking,
                         selected: _selectedType == PublicationType.trip,
-                        onSelected: () =>
-                            setState(() => _selectedType = PublicationType.trip),
+                        onSelected: () => setState(
+                          () => _selectedType = PublicationType.trip,
+                        ),
                       ),
                     ],
                   ),
@@ -201,7 +206,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                     itemBuilder: (context, index) {
                       return ContentWidthConstraint(
                         child: PublicationCard(
-                            publication: publications[index]),
+                          publication: publications[index],
+                        ),
                       );
                     },
                   ),
@@ -223,13 +229,16 @@ class _HomePageState extends ConsumerState<HomePage> {
                       padding: const EdgeInsets.all(16),
                       child: Row(
                         children: [
-                          Icon(Icons.error_outline,
-                              color: theme.colorScheme.error),
+                          Icon(
+                            Icons.error_outline,
+                            color: theme.colorScheme.error,
+                          ),
                           const SizedBox(width: 12),
                           Expanded(child: Text(getErrorMessage(error))),
                           TextButton(
-                            onPressed: () => ref
-                                .invalidate(_homePublicationsProvider(params)),
+                            onPressed: () => ref.invalidate(
+                              _homePublicationsProvider(params),
+                            ),
                             child: Text('common.retry'.tr()),
                           ),
                         ],
@@ -253,15 +262,15 @@ class _HomePageState extends ConsumerState<HomePage> {
       await passkeyService.register(deviceName: 'Mobile');
       ref.read(authProvider.notifier).setHasPasskeys(true);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('auth.passkey.success'.tr())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('auth.passkey.success'.tr())));
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(getErrorMessage(e))),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(getErrorMessage(e))));
       }
     }
   }
@@ -286,10 +295,7 @@ class _FilterChip extends StatelessWidget {
       label: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (icon != null) ...[
-            Icon(icon, size: 16),
-            const SizedBox(width: 4),
-          ],
+          if (icon != null) ...[Icon(icon, size: 16), const SizedBox(width: 4)],
           Text(label),
         ],
       ),

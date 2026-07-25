@@ -11,8 +11,10 @@ import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../teams/presentation/widgets/team_sliver_app_bar.dart';
 
-final _teamAdsProvider =
-    FutureProvider.family<List<AdDto>, String>((ref, teamSlug) async {
+final _teamAdsProvider = FutureProvider.family<List<AdDto>, String>((
+  ref,
+  teamSlug,
+) async {
   final client = ref.watch(adsClientProvider);
   final response = await client.listAds(teamSlug: teamSlug);
   return response.ads;
@@ -22,11 +24,7 @@ class AdsPage extends ConsumerWidget {
   final String teamSlug;
   final TeamDetailDto team;
 
-  const AdsPage({
-    super.key,
-    required this.teamSlug,
-    required this.team,
-  });
+  const AdsPage({super.key, required this.teamSlug, required this.team});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -90,9 +88,11 @@ class AdsPage extends ConsumerWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.error_outline,
-                        size: 48,
-                        color: Theme.of(context).colorScheme.error),
+                    Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
                     const SizedBox(height: 16),
                     Text(getErrorMessage(error)),
                     const SizedBox(height: 16),
@@ -147,21 +147,26 @@ class _AdCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(_adTypeIcon(ad.adType),
-                          size: 14, color: theme.colorScheme.secondary),
+                      Icon(
+                        _adTypeIcon(ad.adType),
+                        size: 14,
+                        color: theme.colorScheme.secondary,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         'ads.adType.${ad.adType}'.tr(),
-                        style: theme.textTheme.labelSmall
-                            ?.copyWith(color: theme.colorScheme.secondary),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.secondary,
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 2),
                   Text(
                     ad.name,
-                    style: theme.textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

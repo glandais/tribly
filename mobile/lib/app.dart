@@ -39,11 +39,7 @@ class _PedalonsAppState extends ConsumerState<PedalonsApp> {
         localizationsDelegates: context.localizationDelegates,
         supportedLocales: context.supportedLocales,
         locale: context.locale,
-        home: const Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(),
-          ),
-        ),
+        home: const Scaffold(body: Center(child: CircularProgressIndicator())),
       );
     }
 
@@ -58,5 +54,4 @@ class _PedalonsAppState extends ConsumerState<PedalonsApp> {
       debugShowCheckedModeBanner: false,
     );
   }
-
 }

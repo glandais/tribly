@@ -37,20 +37,12 @@ class _AnimatedEmptyStateState extends State<AnimatedEmptyState>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: widget.duration,
-      vsync: this,
-    );
+    _controller = AnimationController(duration: widget.duration, vsync: this);
 
     _animation = Tween<double>(
       begin: 0,
       end: widget.floatOffset,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeInOut,
-      ),
-    );
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
     if (widget.animate) {
       _controller.repeat(reverse: true);

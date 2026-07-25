@@ -32,29 +32,31 @@ class RideRepository {
     );
     return response.publications
         .whereType<PublicationDtoRide>()
-        .map((p) => RideDto(
-              type: 'RIDE',
-              team: p.team,
-              id: p.id,
-              slug: p.slug,
-              name: p.name,
-              media: p.media,
-              dateTime: p.dateTime,
-              status: p.status,
-              visibility: p.visibility,
-              participantCount: p.participantCount,
-              groupCount: p.groupCount,
-              groups: p.groups,
-              topParticipants: p.topParticipants,
-              publishAt: p.publishAt,
-              createdAt: p.createdAt,
-              routeSlug: p.routeSlug,
-              startPlace: p.startPlace,
-              endPlace: p.endPlace,
-              thumbnailLightUrl: p.thumbnailLightUrl,
-              thumbnailDarkUrl: p.thumbnailDarkUrl,
-              deleted: p.deleted,
-            ))
+        .map(
+          (p) => RideDto(
+            type: 'RIDE',
+            team: p.team,
+            id: p.id,
+            slug: p.slug,
+            name: p.name,
+            media: p.media,
+            dateTime: p.dateTime,
+            status: p.status,
+            visibility: p.visibility,
+            participantCount: p.participantCount,
+            groupCount: p.groupCount,
+            groups: p.groups,
+            topParticipants: p.topParticipants,
+            publishAt: p.publishAt,
+            createdAt: p.createdAt,
+            routeSlug: p.routeSlug,
+            startPlace: p.startPlace,
+            endPlace: p.endPlace,
+            thumbnailLightUrl: p.thumbnailLightUrl,
+            thumbnailDarkUrl: p.thumbnailDarkUrl,
+            deleted: p.deleted,
+          ),
+        )
         .toList();
   }
 

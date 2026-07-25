@@ -91,7 +91,9 @@ class ResponsiveSliverGrid extends StatelessWidget {
       return SliverList(
         delegate: SliverChildBuilderDelegate(
           (context, index) => Padding(
-            padding: EdgeInsets.only(bottom: index < itemCount - 1 ? spacing : 0),
+            padding: EdgeInsets.only(
+              bottom: index < itemCount - 1 ? spacing : 0,
+            ),
             child: itemBuilder(context, index),
           ),
           childCount: itemCount,
@@ -106,10 +108,7 @@ class ResponsiveSliverGrid extends StatelessWidget {
         mainAxisSpacing: spacing,
         childAspectRatio: childAspectRatio,
       ),
-      delegate: SliverChildBuilderDelegate(
-        itemBuilder,
-        childCount: itemCount,
-      ),
+      delegate: SliverChildBuilderDelegate(itemBuilder, childCount: itemCount),
     );
   }
 }

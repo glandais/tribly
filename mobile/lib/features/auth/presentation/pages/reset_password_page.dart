@@ -43,10 +43,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
 
     try {
       final authNotifier = ref.read(authProvider.notifier);
-      await authNotifier.resetPassword(
-        widget.token,
-        _passwordController.text,
-      );
+      await authNotifier.resetPassword(widget.token, _passwordController.text);
       if (mounted) {
         context.go(Paths.home());
       }

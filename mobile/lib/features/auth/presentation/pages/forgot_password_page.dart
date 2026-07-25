@@ -41,9 +41,9 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(getErrorMessage(e))),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(getErrorMessage(e))));
       }
     } finally {
       if (mounted) {

@@ -127,26 +127,24 @@ class _AnimatedResponsiveSliverGridState
 
     if (columns == 1) {
       return SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            final shouldAnimate = !_animatedIndices.contains(index);
-            if (shouldAnimate) {
-              _animatedIndices.add(index);
-            }
-            return Padding(
-              padding: EdgeInsets.only(
-                  bottom: index < widget.itemCount - 1 ? widget.spacing : 0),
-              child: StaggeredListItem(
-                index: index,
-                staggerDelay: widget.staggerDelay,
-                duration: widget.animationDuration,
-                animate: shouldAnimate,
-                child: widget.itemBuilder(context, index),
-              ),
-            );
-          },
-          childCount: widget.itemCount,
-        ),
+        delegate: SliverChildBuilderDelegate((context, index) {
+          final shouldAnimate = !_animatedIndices.contains(index);
+          if (shouldAnimate) {
+            _animatedIndices.add(index);
+          }
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: index < widget.itemCount - 1 ? widget.spacing : 0,
+            ),
+            child: StaggeredListItem(
+              index: index,
+              staggerDelay: widget.staggerDelay,
+              duration: widget.animationDuration,
+              animate: shouldAnimate,
+              child: widget.itemBuilder(context, index),
+            ),
+          );
+        }, childCount: widget.itemCount),
       );
     }
 
@@ -157,22 +155,19 @@ class _AnimatedResponsiveSliverGridState
         mainAxisSpacing: widget.spacing,
         childAspectRatio: widget.childAspectRatio,
       ),
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          final shouldAnimate = !_animatedIndices.contains(index);
-          if (shouldAnimate) {
-            _animatedIndices.add(index);
-          }
-          return StaggeredListItem(
-            index: index,
-            staggerDelay: widget.staggerDelay,
-            duration: widget.animationDuration,
-            animate: shouldAnimate,
-            child: widget.itemBuilder(context, index),
-          );
-        },
-        childCount: widget.itemCount,
-      ),
+      delegate: SliverChildBuilderDelegate((context, index) {
+        final shouldAnimate = !_animatedIndices.contains(index);
+        if (shouldAnimate) {
+          _animatedIndices.add(index);
+        }
+        return StaggeredListItem(
+          index: index,
+          staggerDelay: widget.staggerDelay,
+          duration: widget.animationDuration,
+          animate: shouldAnimate,
+          child: widget.itemBuilder(context, index),
+        );
+      }, childCount: widget.itemCount),
     );
   }
 }

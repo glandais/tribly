@@ -16,11 +16,13 @@ import '../../../auth/providers/auth_provider.dart';
 import '../../data/trip_repository.dart';
 
 final tripDetailProvider =
-    FutureProvider.family<TripDto, ({String teamSlug, String tripSlug})>(
-        (ref, params) async {
-  final repository = ref.watch(tripRepositoryProvider);
-  return repository.getTrip(params.teamSlug, params.tripSlug);
-});
+    FutureProvider.family<TripDto, ({String teamSlug, String tripSlug})>((
+      ref,
+      params,
+    ) async {
+      final repository = ref.watch(tripRepositoryProvider);
+      return repository.getTrip(params.teamSlug, params.tripSlug);
+    });
 
 class TripDetailPage extends ConsumerStatefulWidget {
   final String teamSlug;
@@ -61,8 +63,11 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline,
-                  size: 48, color: Theme.of(context).colorScheme.error),
+              Icon(
+                Icons.error_outline,
+                size: 48,
+                color: Theme.of(context).colorScheme.error,
+              ),
               const SizedBox(height: 16),
               Text(getErrorMessage(error)),
               const SizedBox(height: 16),
@@ -82,18 +87,22 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
     try {
       final repository = ref.read(tripRepositoryProvider);
       await repository.joinTrip(trip.team.slug, trip.slug);
-      ref.invalidate(tripDetailProvider(
-          (teamSlug: widget.teamSlug, tripSlug: widget.tripSlug)));
+      ref.invalidate(
+        tripDetailProvider((
+          teamSlug: widget.teamSlug,
+          tripSlug: widget.tripSlug,
+        )),
+      );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('trips.joinSuccess'.tr())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('trips.joinSuccess'.tr())));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(getErrorMessage(e))),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(getErrorMessage(e))));
       }
     } finally {
       setState(() => _isJoining = false);
@@ -105,18 +114,22 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
     try {
       final repository = ref.read(tripRepositoryProvider);
       await repository.leaveTrip(trip.team.slug, trip.slug);
-      ref.invalidate(tripDetailProvider(
-          (teamSlug: widget.teamSlug, tripSlug: widget.tripSlug)));
+      ref.invalidate(
+        tripDetailProvider((
+          teamSlug: widget.teamSlug,
+          tripSlug: widget.tripSlug,
+        )),
+      );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('trips.leaveSuccess'.tr())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('trips.leaveSuccess'.tr())));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(getErrorMessage(e))),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(getErrorMessage(e))));
       }
     } finally {
       setState(() => _isJoining = false);
@@ -191,15 +204,15 @@ class _TripDetailContent extends ConsumerWidget {
                         children: [
                           Text(
                             AppFormatters.formatFullDate(
-                                DateTime.parse(trip.dateTime)),
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
+                              DateTime.parse(trip.dateTime),
+                            ),
+                            style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           Text(
                             AppFormatters.formatTime(
-                                DateTime.parse(trip.dateTime)),
+                              DateTime.parse(trip.dateTime),
+                            ),
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         ],
@@ -223,13 +236,15 @@ class _TripDetailContent extends ConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'trips.participants'.tr(namedArgs: {
-                      'count': trip.participantCount.toString()
-                    }),
+                    'trips.participants'.tr(
+                      namedArgs: {'count': trip.participantCount.toString()},
+                    ),
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   const Spacer(),
-                  ...trip.participants.take(5).map(
+                  ...trip.participants
+                      .take(5)
+                      .map(
                         (p) => Padding(
                           padding: const EdgeInsets.only(left: 4),
                           child: AuthenticatedCircleAvatar(
@@ -257,42 +272,43 @@ class _TripDetailContent extends ConsumerWidget {
               ),
             ),
             SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final stage = trip.stages[index];
-                  return ContentWidthConstraint(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    child: Card(
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor:
-                              Theme.of(context).colorScheme.primary,
-                          foregroundColor:
-                              Theme.of(context).colorScheme.onPrimary,
-                          radius: 16,
-                          child: Text(
-                            '${index + 1}',
-                            style: const TextStyle(
-                                fontSize: 12, fontWeight: FontWeight.bold),
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final stage = trip.stages[index];
+                return ContentWidthConstraint(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  child: Card(
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Theme.of(
+                          context,
+                        ).colorScheme.onPrimary,
+                        radius: 16,
+                        child: Text(
+                          '${index + 1}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                        title: Text(stage.name),
-                        subtitle: Text(
-                          AppFormatters.formatFullDate(
-                              DateTime.parse(stage.dateTime)),
-                        ),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () => context.push(
-                          Paths.stage(
-                              trip.team.slug, trip.slug, stage.slug),
+                      ),
+                      title: Text(stage.name),
+                      subtitle: Text(
+                        AppFormatters.formatFullDate(
+                          DateTime.parse(stage.dateTime),
                         ),
                       ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => context.push(
+                        Paths.stage(trip.team.slug, trip.slug, stage.slug),
+                      ),
                     ),
-                  );
-                },
-                childCount: trip.stages.length,
-              ),
+                  ),
+                );
+              }, childCount: trip.stages.length),
             ),
           ],
 
@@ -303,8 +319,8 @@ class _TripDetailContent extends ConsumerWidget {
                 child: Text(
                   'trips.stages.empty'.tr(),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
                 ),
               ),
             ),
@@ -313,8 +329,10 @@ class _TripDetailContent extends ConsumerWidget {
           if (trip.routeSlug != null)
             SliverToBoxAdapter(
               child: ContentWidthConstraint(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
                 child: Card(
                   child: ListTile(
                     leading: Icon(

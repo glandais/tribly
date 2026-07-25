@@ -30,18 +30,18 @@ class ShimmerPlaceholder extends StatefulWidget {
     super.key,
     required double radius,
     this.child,
-  })  : width = radius * 2,
-        height = radius * 2,
-        borderRadius = const BorderRadius.all(Radius.circular(1000));
+  }) : width = radius * 2,
+       height = radius * 2,
+       borderRadius = const BorderRadius.all(Radius.circular(1000));
 
   /// Creates a text-line shimmer placeholder.
   const ShimmerPlaceholder.text({
     super.key,
     required this.width,
     double? height,
-  })  : height = height ?? 14,
-        borderRadius = const BorderRadius.all(Radius.circular(4)),
-        child = null;
+  }) : height = height ?? 14,
+       borderRadius = const BorderRadius.all(Radius.circular(4)),
+       child = null;
 
   @override
   State<ShimmerPlaceholder> createState() => _ShimmerPlaceholderState();
@@ -60,9 +60,10 @@ class _ShimmerPlaceholderState extends State<ShimmerPlaceholder>
       vsync: this,
     );
 
-    _animation = Tween<double>(begin: -1.0, end: 2.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _animation = Tween<double>(
+      begin: -1.0,
+      end: 2.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
     _controller.repeat();
   }
@@ -114,11 +115,7 @@ class _ShimmerPlaceholderState extends State<ShimmerPlaceholder>
                 _animation.value.clamp(0.0, 1.0),
                 (_animation.value + 0.3).clamp(0.0, 1.0),
               ],
-              colors: [
-                baseColor,
-                highlightColor,
-                baseColor,
-              ],
+              colors: [baseColor, highlightColor, baseColor],
             ),
           ),
           child: widget.child,

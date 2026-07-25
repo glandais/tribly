@@ -40,10 +40,7 @@ void main() async {
           if (initialPath != null)
             initialDeepLinkProvider.overrideWithValue(initialPath),
         ],
-        child: _DeepLinkHandler(
-          appLinks: appLinks,
-          child: const PedalonsApp(),
-        ),
+        child: _DeepLinkHandler(appLinks: appLinks, child: const PedalonsApp()),
       ),
     ),
   );
@@ -56,10 +53,7 @@ class _DeepLinkHandler extends ConsumerStatefulWidget {
   final AppLinks appLinks;
   final Widget child;
 
-  const _DeepLinkHandler({
-    required this.appLinks,
-    required this.child,
-  });
+  const _DeepLinkHandler({required this.appLinks, required this.child});
 
   @override
   ConsumerState<_DeepLinkHandler> createState() => _DeepLinkHandlerState();
@@ -128,8 +122,10 @@ class _DeepLinkHandlerState extends ConsumerState<_DeepLinkHandler> {
           .isNotEmpty;
     }
     if (!mountedRouter) {
-      log('Router did not mount in time, opening deep link anyway',
-          name: 'main');
+      log(
+        'Router did not mount in time, opening deep link anyway',
+        name: 'main',
+      );
     }
 
     final path = _pendingPath;

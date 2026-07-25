@@ -11,8 +11,10 @@ import '../../../../core/widgets/authenticated_image.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../data/route_repository.dart';
 
-final teamRoutesPageProvider =
-    FutureProvider.family<List<RouteDto>, String>((ref, teamSlug) async {
+final teamRoutesPageProvider = FutureProvider.family<List<RouteDto>, String>((
+  ref,
+  teamSlug,
+) async {
   final repository = ref.watch(routeRepositoryProvider);
   return repository.getTeamRoutes(teamSlug);
 });
@@ -78,13 +80,16 @@ class RoutesPage extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: Theme.of(context).colorScheme.error,
+            ),
             const SizedBox(height: 16),
             Text(getErrorMessage(error)),
             const SizedBox(height: 16),
             FilledButton(
-              onPressed: () =>
-                  ref.invalidate(teamRoutesPageProvider(teamSlug)),
+              onPressed: () => ref.invalidate(teamRoutesPageProvider(teamSlug)),
               child: Text('common.retry'.tr()),
             ),
           ],
@@ -97,9 +102,7 @@ class RoutesPage extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('routes.title'.tr()),
-      ),
+      appBar: AppBar(title: Text('routes.title'.tr())),
       body: body,
     );
   }
@@ -151,7 +154,9 @@ class _RouteGridItem extends ConsumerWidget {
                           child: Icon(
                             Icons.route,
                             size: 48,
-                            color: Theme.of(context).colorScheme.onPrimaryContainer,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer,
                           ),
                         )
                       : null,
@@ -166,8 +171,8 @@ class _RouteGridItem extends ConsumerWidget {
                   Text(
                     route.name,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -177,7 +182,8 @@ class _RouteGridItem extends ConsumerWidget {
                     children: [
                       _StatChip(
                         icon: Icons.straighten,
-                        value: '${(route.distance / 1000).toStringAsFixed(1)} km',
+                        value:
+                            '${(route.distance / 1000).toStringAsFixed(1)} km',
                       ),
                       _StatChip(
                         icon: Icons.trending_up,
@@ -199,26 +205,16 @@ class _StatChip extends StatelessWidget {
   final IconData icon;
   final String value;
 
-  const _StatChip({
-    required this.icon,
-    required this.value,
-  });
+  const _StatChip({required this.icon, required this.value});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          icon,
-          size: 16,
-          color: Theme.of(context).colorScheme.outline,
-        ),
+        Icon(icon, size: 16, color: Theme.of(context).colorScheme.outline),
         const SizedBox(width: 4),
-        Text(
-          value,
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
+        Text(value, style: Theme.of(context).textTheme.bodySmall),
       ],
     );
   }

@@ -19,22 +19,23 @@ void main() {
   /// [PrimaryScrollController] inheritance key off the platform, which
   /// [MaterialScrollBehavior] reads from the theme.
   Widget iosApp(Widget home) => MaterialApp(
-        theme: ThemeData(platform: TargetPlatform.iOS),
-        home: MediaQuery(
-          // The status bar hit-test region is sized from the top padding: with
-          // no padding the Scaffold ignores the tap.
-          data: const MediaQueryData(padding: EdgeInsets.only(top: 47)),
-          child: home,
-        ),
-      );
+    theme: ThemeData(platform: TargetPlatform.iOS),
+    home: MediaQuery(
+      // The status bar hit-test region is sized from the top padding: with
+      // no padding the Scaffold ignores the tap.
+      data: const MediaQueryData(padding: EdgeInsets.only(top: 47)),
+      child: home,
+    ),
+  );
 
   /// Simulates the `handleScrollToTop` message the iOS embedder sends when the
   /// status bar is tapped.
   Future<void> tapStatusBar(WidgetTester tester) async {
     await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
       SystemChannels.statusBar.name,
-      SystemChannels.statusBar.codec
-          .encodeMethodCall(const MethodCall('handleScrollToTop')),
+      SystemChannels.statusBar.codec.encodeMethodCall(
+        const MethodCall('handleScrollToTop'),
+      ),
       (_) {},
     );
     await tester.pumpAndSettle();
@@ -52,19 +53,23 @@ void main() {
     expect(
       find.byType(Scrollable),
       findsOneWidget,
-      reason: 'MarkdownContent must not introduce a scroll view of its own, so '
+      reason:
+          'MarkdownContent must not introduce a scroll view of its own, so '
           'that the page scrollable stays the primary one of its route',
     );
     expect(
       tester.widget<Scrollable>(find.byType(Scrollable)).controller,
-      same(PrimaryScrollController.of(
-        tester.element(find.byType(SingleChildScrollView)),
-      )),
+      same(
+        PrimaryScrollController.of(
+          tester.element(find.byType(SingleChildScrollView)),
+        ),
+      ),
     );
   });
 
-  testWidgets('status bar tap scrolls a markdown page back to top',
-      (tester) async {
+  testWidgets('status bar tap scrolls a markdown page back to top', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       iosApp(
         Scaffold(
@@ -73,10 +78,14 @@ void main() {
       ),
     );
 
-    await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -600));
+    await tester.drag(
+      find.byType(SingleChildScrollView),
+      const Offset(0, -600),
+    );
     await tester.pumpAndSettle();
-    final position =
-        tester.state<ScrollableState>(find.byType(Scrollable)).position;
+    final position = tester
+        .state<ScrollableState>(find.byType(Scrollable))
+        .position;
     expect(position.pixels, greaterThan(0));
 
     await tapStatusBar(tester);

@@ -16,11 +16,13 @@ import '../../../auth/providers/auth_provider.dart';
 import '../../data/ride_repository.dart';
 
 final rideDetailProvider =
-    FutureProvider.family<RideDto, ({String teamSlug, String rideSlug})>(
-        (ref, params) async {
-  final repository = ref.watch(rideRepositoryProvider);
-  return repository.getRide(params.teamSlug, params.rideSlug);
-});
+    FutureProvider.family<RideDto, ({String teamSlug, String rideSlug})>((
+      ref,
+      params,
+    ) async {
+      final repository = ref.watch(rideRepositoryProvider);
+      return repository.getRide(params.teamSlug, params.rideSlug);
+    });
 
 class RideDetailPage extends ConsumerStatefulWidget {
   final String teamSlug;
@@ -61,7 +63,11 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
+              Icon(
+                Icons.error_outline,
+                size: 48,
+                color: Theme.of(context).colorScheme.error,
+              ),
               const SizedBox(height: 16),
               Text(getErrorMessage(error)),
               const SizedBox(height: 16),
@@ -80,9 +86,9 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
     // Need to select a group to join
     if (ride.groups.isEmpty) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('rides.noGroupAvailable'.tr())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('rides.noGroupAvailable'.tr())));
       }
       return;
     }
@@ -102,18 +108,22 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
     try {
       final repository = ref.read(rideRepositoryProvider);
       await repository.joinRideGroup(ride.team.slug, ride.slug, groupId);
-      ref.invalidate(rideDetailProvider(
-          (teamSlug: widget.teamSlug, rideSlug: widget.rideSlug)));
+      ref.invalidate(
+        rideDetailProvider((
+          teamSlug: widget.teamSlug,
+          rideSlug: widget.rideSlug,
+        )),
+      );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('rides.joinSuccess'.tr())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('rides.joinSuccess'.tr())));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(getErrorMessage(e))),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(getErrorMessage(e))));
       }
     } finally {
       setState(() => _isJoining = false);
@@ -133,7 +143,12 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
                 title: Text(group.name),
                 subtitle: Text(
                   [
-                    if (group.time != null) 'dates.departure'.tr(namedArgs: {'time': AppFormatters.formatLocalTime(group.time!)}),
+                    if (group.time != null)
+                      'dates.departure'.tr(
+                        namedArgs: {
+                          'time': AppFormatters.formatLocalTime(group.time!),
+                        },
+                      ),
                     if (group.averageSpeed != null)
                       '${group.averageSpeed!.toStringAsFixed(0)} km/h',
                   ].join(' • '),
@@ -171,18 +186,22 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
           // Not in this group, try the next one
         }
       }
-      ref.invalidate(rideDetailProvider(
-          (teamSlug: widget.teamSlug, rideSlug: widget.rideSlug)));
+      ref.invalidate(
+        rideDetailProvider((
+          teamSlug: widget.teamSlug,
+          rideSlug: widget.rideSlug,
+        )),
+      );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('rides.leaveSuccess'.tr())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('rides.leaveSuccess'.tr())));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(getErrorMessage(e))),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(getErrorMessage(e))));
       }
     } finally {
       setState(() => _isJoining = false);
@@ -259,14 +278,16 @@ class _RideDetailContent extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            AppFormatters.formatFullDate(DateTime.parse(ride.dateTime)),
-                            style:
-                                Theme.of(context).textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                            AppFormatters.formatFullDate(
+                              DateTime.parse(ride.dateTime),
+                            ),
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           Text(
-                            AppFormatters.formatTime(DateTime.parse(ride.dateTime)),
+                            AppFormatters.formatTime(
+                              DateTime.parse(ride.dateTime),
+                            ),
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         ],
@@ -302,7 +323,10 @@ class _RideDetailContent extends ConsumerWidget {
           if (ride.routeSlug != null)
             SliverToBoxAdapter(
               child: ContentWidthConstraint(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
                 child: Card(
                   child: ListTile(
                     leading: Icon(
@@ -331,12 +355,16 @@ class _RideDetailContent extends ConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'rides.participants'.tr(namedArgs: {'count': ride.participantCount.toString()}),
+                    'rides.participants'.tr(
+                      namedArgs: {'count': ride.participantCount.toString()},
+                    ),
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   const Spacer(),
                   // Avatar stack for top participants
-                  ...ride.topParticipants.take(5).map(
+                  ...ride.topParticipants
+                      .take(5)
+                      .map(
                         (p) => Padding(
                           padding: const EdgeInsets.only(left: 4),
                           child: AuthenticatedCircleAvatar(
@@ -364,46 +392,56 @@ class _RideDetailContent extends ConsumerWidget {
               ),
             ),
             SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final group = ride.groups[index];
-                  return ContentWidthConstraint(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    child: Card(
-                      child: ListTile(
-                        title: Text(group.name),
-                        subtitle: Text(
-                          [
-                            if (group.time != null) 'dates.departure'.tr(namedArgs: {'time': AppFormatters.formatLocalTime(group.time!)}),
-                            if (group.averageSpeed != null)
-                              '${group.averageSpeed!.toStringAsFixed(0)} km/h',
-                          ].join(' • '),
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('${group.countParticipants}'),
-                            if ((group.routeSlug ?? ride.routeSlug) != null) ...[
-                              const SizedBox(width: 8),
-                              Icon(
-                                Icons.route,
-                                size: 20,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ],
-                          ],
-                        ),
-                        onTap: (group.routeSlug ?? ride.routeSlug) != null
-                            ? () => context.push(
-                                  Paths.route(ride.team.slug, (group.routeSlug ?? ride.routeSlug)!),
-                                )
-                            : null,
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final group = ride.groups[index];
+                return ContentWidthConstraint(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  child: Card(
+                    child: ListTile(
+                      title: Text(group.name),
+                      subtitle: Text(
+                        [
+                          if (group.time != null)
+                            'dates.departure'.tr(
+                              namedArgs: {
+                                'time': AppFormatters.formatLocalTime(
+                                  group.time!,
+                                ),
+                              },
+                            ),
+                          if (group.averageSpeed != null)
+                            '${group.averageSpeed!.toStringAsFixed(0)} km/h',
+                        ].join(' • '),
                       ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('${group.countParticipants}'),
+                          if ((group.routeSlug ?? ride.routeSlug) != null) ...[
+                            const SizedBox(width: 8),
+                            Icon(
+                              Icons.route,
+                              size: 20,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ],
+                        ],
+                      ),
+                      onTap: (group.routeSlug ?? ride.routeSlug) != null
+                          ? () => context.push(
+                              Paths.route(
+                                ride.team.slug,
+                                (group.routeSlug ?? ride.routeSlug)!,
+                              ),
+                            )
+                          : null,
                     ),
-                  );
-                },
-                childCount: ride.groups.length,
-              ),
+                  ),
+                );
+              }, childCount: ride.groups.length),
             ),
           ],
 

@@ -11,18 +11,24 @@ import '../../../../core/widgets/widgets.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../data/calendar_repository.dart';
 
-final calendarEventsProvider = FutureProvider.family<List<CalendarEventDto>,
-    ({DateTime start, DateTime end, String? teamSlug})>((ref, params) async {
-  final repository = ref.watch(calendarRepositoryProvider);
-  if (params.teamSlug != null) {
-    return repository.getTeamCalendarEvents(
-      params.teamSlug!,
-      start: params.start,
-      end: params.end,
-    );
-  }
-  return repository.getMyCalendarEvents(start: params.start, end: params.end);
-});
+final calendarEventsProvider =
+    FutureProvider.family<
+      List<CalendarEventDto>,
+      ({DateTime start, DateTime end, String? teamSlug})
+    >((ref, params) async {
+      final repository = ref.watch(calendarRepositoryProvider);
+      if (params.teamSlug != null) {
+        return repository.getTeamCalendarEvents(
+          params.teamSlug!,
+          start: params.start,
+          end: params.end,
+        );
+      }
+      return repository.getMyCalendarEvents(
+        start: params.start,
+        end: params.end,
+      );
+    });
 
 class CalendarPage extends ConsumerStatefulWidget {
   final String? teamSlug;
@@ -67,10 +73,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
             end: end,
           );
         } else {
-          events = await repository.getMyCalendarEvents(
-            start: start,
-            end: end,
-          );
+          events = await repository.getMyCalendarEvents(start: start, end: end);
         }
         if (events.isNotEmpty) {
           if (mounted && !_initialMonthResolved) {
@@ -92,7 +95,11 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
 
   @override
   Widget build(BuildContext context) {
-    final params = (start: _monthStart, end: _monthEnd, teamSlug: widget.teamSlug);
+    final params = (
+      start: _monthStart,
+      end: _monthEnd,
+      teamSlug: widget.teamSlug,
+    );
     final eventsAsync = ref.watch(calendarEventsProvider(params));
 
     final body = Column(
@@ -103,14 +110,20 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
             selectedMonth: _selectedMonth,
             onPreviousMonth: () {
               setState(() {
-                _selectedMonth =
-                    DateTime(_selectedMonth.year, _selectedMonth.month - 1, 1);
+                _selectedMonth = DateTime(
+                  _selectedMonth.year,
+                  _selectedMonth.month - 1,
+                  1,
+                );
               });
             },
             onNextMonth: () {
               setState(() {
-                _selectedMonth =
-                    DateTime(_selectedMonth.year, _selectedMonth.month + 1, 1);
+                _selectedMonth = DateTime(
+                  _selectedMonth.year,
+                  _selectedMonth.month + 1,
+                  1,
+                );
               });
             },
           ),
@@ -119,116 +132,119 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
         // Events list
         Expanded(
           child: eventsAsync.when(
-              data: (events) {
-                if (events.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        AnimatedEmptyState(
-                          child: Icon(
-                            Icons.event_busy,
-                            size: 64,
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
+            data: (events) {
+              if (events.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      AnimatedEmptyState(
+                        child: Icon(
+                          Icons.event_busy,
+                          size: 64,
+                          color: Theme.of(context).colorScheme.outline,
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'calendar.noEvents'.tr(),
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                // Group events by date
-                final groupedEvents = <DateTime, List<CalendarEventDto>>{};
-                for (final event in events) {
-                  final startDate = DateTime.parse(event.start);
-                  final date = DateTime(
-                    startDate.year,
-                    startDate.month,
-                    startDate.day,
-                  );
-                  groupedEvents.putIfAbsent(date, () => []).add(event);
-                }
-
-                final sortedDates = groupedEvents.keys.toList()..sort();
-
-                return RefreshIndicator(
-                  onRefresh: () => ref.refresh(calendarEventsProvider(params).future),
-                  child: StaggeredListView(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: sortedDates.length,
-                    itemBuilder: (context, index) {
-                      final date = sortedDates[index];
-                      final dayEvents = groupedEvents[date]!;
-                      return ContentWidthConstraint(
-                        child: _DaySection(date: date, events: dayEvents),
-                      );
-                    },
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'calendar.noEvents'.tr(),
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ],
                   ),
                 );
-              },
-              loading: () => Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Day header placeholder
-                    Row(
-                      children: [
-                        ShimmerPlaceholder(
-                          width: 48,
-                          height: 48,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        const SizedBox(width: 12),
-                        ShimmerPlaceholder.text(width: 100, height: 16),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    // Event card placeholders
-                    ...List.generate(
-                      3,
-                      (index) => const Padding(
-                        padding: EdgeInsets.only(left: 60, bottom: 8),
-                        child: ShimmerEventCard(),
+              }
+
+              // Group events by date
+              final groupedEvents = <DateTime, List<CalendarEventDto>>{};
+              for (final event in events) {
+                final startDate = DateTime.parse(event.start);
+                final date = DateTime(
+                  startDate.year,
+                  startDate.month,
+                  startDate.day,
+                );
+                groupedEvents.putIfAbsent(date, () => []).add(event);
+              }
+
+              final sortedDates = groupedEvents.keys.toList()..sort();
+
+              return RefreshIndicator(
+                onRefresh: () =>
+                    ref.refresh(calendarEventsProvider(params).future),
+                child: StaggeredListView(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: sortedDates.length,
+                  itemBuilder: (context, index) {
+                    final date = sortedDates[index];
+                    final dayEvents = groupedEvents[date]!;
+                    return ContentWidthConstraint(
+                      child: _DaySection(date: date, events: dayEvents),
+                    );
+                  },
+                ),
+              );
+            },
+            loading: () => Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Day header placeholder
+                  Row(
+                    children: [
+                      ShimmerPlaceholder(
+                        width: 48,
+                        height: 48,
+                        borderRadius: BorderRadius.circular(8),
                       ),
+                      const SizedBox(width: 12),
+                      ShimmerPlaceholder.text(width: 100, height: 16),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Event card placeholders
+                  ...List.generate(
+                    3,
+                    (index) => const Padding(
+                      padding: EdgeInsets.only(left: 60, bottom: 8),
+                      child: ShimmerEventCard(),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              error: (error, stack) => Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
-                    const SizedBox(height: 16),
-                    Text(getErrorMessage(error)),
-                    const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: () =>
-                          ref.invalidate(calendarEventsProvider(params)),
-                      child: Text('common.retry'.tr()),
-                    ),
-                  ],
-                ),
+            ),
+            error: (error, stack) => Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 48,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(getErrorMessage(error)),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: () =>
+                        ref.invalidate(calendarEventsProvider(params)),
+                    child: Text('common.retry'.tr()),
+                  ),
+                ],
               ),
             ),
           ),
-        ],
-      );
+        ),
+      ],
+    );
 
     if (widget.embedded) {
       return body;
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('calendar.title'.tr()),
-      ),
+      appBar: AppBar(title: Text('calendar.title'.tr())),
       body: body,
     );
   }
@@ -323,13 +339,17 @@ class _DaySection extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Text(
-                isToday ? AppFormatters.today : AppFormatters.formatDayMonth(date),
+                isToday
+                    ? AppFormatters.today
+                    : AppFormatters.formatDayMonth(date),
                 style: Theme.of(context).textTheme.titleSmall,
               ),
             ],
           ),
         ),
-        ...events.map((event) => _EventCard(key: ValueKey(event.entitySlug), event: event)),
+        ...events.map(
+          (event) => _EventCard(key: ValueKey(event.entitySlug), event: event),
+        ),
         const SizedBox(height: 8),
       ],
     );
@@ -357,7 +377,8 @@ class _EventCard extends StatelessWidget {
       case 'TRIP_STAGE':
         if (event.tripSlug != null) {
           return () => context.push(
-              Paths.stage(event.teamSlug, event.tripSlug!, event.entitySlug));
+            Paths.stage(event.teamSlug, event.tripSlug!, event.entitySlug),
+          );
         }
         return null;
       default:
@@ -408,10 +429,7 @@ class _EventCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              Icon(
-                _icon,
-                color: color,
-              ),
+              Icon(_icon, color: color),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -420,8 +438,8 @@ class _EventCard extends StatelessWidget {
                     Text(
                       event.title,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(

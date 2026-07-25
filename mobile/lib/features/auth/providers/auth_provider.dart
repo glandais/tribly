@@ -28,7 +28,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   final Ref _ref;
 
   AuthNotifier(this._repository, this._storage, this._ref)
-      : super(const AuthState());
+    : super(const AuthState());
 
   /// Get the current access token
   String? get accessToken => state.accessToken;
@@ -71,7 +71,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (e) {
       // Only clear stored token if the server explicitly rejected it (401/403).
       // On network errors, keep the token so we can retry next launch.
-      final isAuthError = e is DioException &&
+      final isAuthError =
+          e is DioException &&
           e.response != null &&
           (e.response!.statusCode == 401 || e.response!.statusCode == 403);
       if (isAuthError) {
@@ -79,10 +80,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       }
       _syncTokenToHolder(null);
     } finally {
-      state = state.copyWith(
-        isInitialized: true,
-        isInitializing: false,
-      );
+      state = state.copyWith(isInitialized: true, isInitializing: false);
     }
   }
 
@@ -102,10 +100,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
       try {
         user = await _ref.read(usersClientProvider).getMe();
       } on DioException catch (e) {
-        log('[AuthNotifier] getMe failed after auth: ${e.message}', name: 'AuthNotifier');
+        log(
+          '[AuthNotifier] getMe failed after auth: ${e.message}',
+          name: 'AuthNotifier',
+        );
         // Intentional fallback to JWT user on network/server error
       } catch (e) {
-        log('[AuthNotifier] Unexpected error in getMe: $e', name: 'AuthNotifier');
+        log(
+          '[AuthNotifier] Unexpected error in getMe: $e',
+          name: 'AuthNotifier',
+        );
       }
     }
 
@@ -116,10 +120,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
         final passkeys = await _repository.listPasskeys(response.accessToken!);
         hasPasskeys = passkeys.isNotEmpty;
       } on DioException catch (e) {
-        log('[AuthNotifier] listPasskeys failed after auth: ${e.message}', name: 'AuthNotifier');
+        log(
+          '[AuthNotifier] listPasskeys failed after auth: ${e.message}',
+          name: 'AuthNotifier',
+        );
         // Non-fatal: user can still log in without passkey info
       } catch (e) {
-        log('[AuthNotifier] Unexpected error in listPasskeys: $e', name: 'AuthNotifier');
+        log(
+          '[AuthNotifier] Unexpected error in listPasskeys: $e',
+          name: 'AuthNotifier',
+        );
       }
     }
 
@@ -144,7 +154,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final response = await _repository.register(
-        RegisterRequest(email: email, displayName: displayName, password: password),
+        RegisterRequest(
+          email: email,
+          displayName: displayName,
+          password: password,
+        ),
       );
       state = state.copyWith(isLoading: false);
       return response;
@@ -180,10 +194,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   /// Reset password with token from email link
-  Future<void> resetPassword(
-    String token,
-    String newPassword,
-  ) async {
+  Future<void> resetPassword(String token, String newPassword) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final response = await _repository.resetPassword(token, newPassword);

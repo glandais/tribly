@@ -10,25 +10,24 @@ import '../../../../core/widgets/widgets.dart';
 import '../widgets/publication_card.dart';
 import '../widgets/team_sliver_app_bar.dart';
 
-final _teamPublicationsProvider = FutureProvider.family<
-    PublicationListResponse, ({String teamSlug, int page})>((ref, params) async {
-  final client = ref.watch(publicationsClientProvider);
-  return client.listPublications(
-    teamSlug: params.teamSlug,
-    page: params.page,
-    size: 20,
-  );
-});
+final _teamPublicationsProvider =
+    FutureProvider.family<
+      PublicationListResponse,
+      ({String teamSlug, int page})
+    >((ref, params) async {
+      final client = ref.watch(publicationsClientProvider);
+      return client.listPublications(
+        teamSlug: params.teamSlug,
+        page: params.page,
+        size: 20,
+      );
+    });
 
 class TeamFeedPage extends ConsumerStatefulWidget {
   final String teamSlug;
   final TeamDetailDto team;
 
-  const TeamFeedPage({
-    super.key,
-    required this.teamSlug,
-    required this.team,
-  });
+  const TeamFeedPage({super.key, required this.teamSlug, required this.team});
 
   @override
   ConsumerState<TeamFeedPage> createState() => _TeamFeedPageState();
@@ -101,9 +100,11 @@ class _TeamFeedPageState extends ConsumerState<TeamFeedPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.error_outline,
-                        size: 48,
-                        color: Theme.of(context).colorScheme.error),
+                    Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
                     const SizedBox(height: 16),
                     Text(getErrorMessage(error)),
                     const SizedBox(height: 16),

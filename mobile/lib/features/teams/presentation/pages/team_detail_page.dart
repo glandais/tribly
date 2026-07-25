@@ -16,20 +16,26 @@ import '../../../rides/presentation/widgets/ride_card.dart';
 import '../../../routes/data/route_repository.dart';
 import '../../data/team_repository.dart';
 
-final teamDetailProvider =
-    FutureProvider.family<TeamDetailDto, String>((ref, slug) async {
+final teamDetailProvider = FutureProvider.family<TeamDetailDto, String>((
+  ref,
+  slug,
+) async {
   final repository = ref.watch(teamRepositoryProvider);
   return repository.getTeam(slug);
 });
 
-final teamRidesProvider =
-    FutureProvider.family<List<RideDto>, String>((ref, teamSlug) async {
+final teamRidesProvider = FutureProvider.family<List<RideDto>, String>((
+  ref,
+  teamSlug,
+) async {
   final repository = ref.watch(rideRepositoryProvider);
   return repository.getTeamRides(teamSlug, upcoming: true);
 });
 
-final teamRoutesProvider =
-    FutureProvider.family<List<RouteDto>, String>((ref, teamSlug) async {
+final teamRoutesProvider = FutureProvider.family<List<RouteDto>, String>((
+  ref,
+  teamSlug,
+) async {
   final repository = ref.watch(routeRepositoryProvider);
   return repository.getTeamRoutes(teamSlug);
 });
@@ -55,7 +61,11 @@ class TeamDetailPage extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
+              Icon(
+                Icons.error_outline,
+                size: 48,
+                color: Theme.of(context).colorScheme.error,
+              ),
               const SizedBox(height: 16),
               Text(getErrorMessage(error)),
               const SizedBox(height: 16),
@@ -213,7 +223,8 @@ class _TeamDetailContent extends ConsumerWidget {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     TextButton(
-                      onPressed: () => context.push(Paths.teamCalendar(team.slug)),
+                      onPressed: () =>
+                          context.push(Paths.teamCalendar(team.slug)),
                       child: Text('common.viewAll'.tr()),
                     ),
                   ],
@@ -230,9 +241,7 @@ class _TeamDetailContent extends ConsumerWidget {
                       child: Card(
                         child: Padding(
                           padding: const EdgeInsets.all(24),
-                          child: Center(
-                            child: Text('rides.noUpcoming'.tr()),
-                          ),
+                          child: Center(child: Text('rides.noUpcoming'.tr())),
                         ),
                       ),
                     ),
@@ -295,9 +304,7 @@ class _TeamDetailContent extends ConsumerWidget {
                       child: Card(
                         child: Padding(
                           padding: const EdgeInsets.all(24),
-                          child: Center(
-                            child: Text('routes.empty'.tr()),
-                          ),
+                          child: Center(child: Text('routes.empty'.tr())),
                         ),
                       ),
                     ),
@@ -359,14 +366,11 @@ class _StatItem extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           value,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
+        Text(label, style: Theme.of(context).textTheme.bodySmall),
       ],
     );
   }
@@ -418,8 +422,9 @@ class _RouteCard extends ConsumerWidget {
                             child: Icon(
                               Icons.route,
                               size: 32,
-                              color:
-                                  Theme.of(context).colorScheme.onPrimaryContainer,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onPrimaryContainer,
                             ),
                           )
                         : null,
@@ -496,7 +501,8 @@ class _AdaptiveRouteCards extends StatelessWidget {
           childAspectRatio: 1.3,
         ),
         itemCount: displayRoutes.length,
-        itemBuilder: (context, index) => _RouteCard(route: displayRoutes[index]),
+        itemBuilder: (context, index) =>
+            _RouteCard(route: displayRoutes[index]),
       ),
     );
   }

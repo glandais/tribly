@@ -12,7 +12,11 @@ class _KmMarkerData {
   final double lat;
   final String label;
 
-  const _KmMarkerData({required this.lng, required this.lat, required this.label});
+  const _KmMarkerData({
+    required this.lng,
+    required this.lat,
+    required this.label,
+  });
 }
 
 class RouteMap extends StatefulWidget {
@@ -30,8 +34,7 @@ class _RouteMapState extends State<RouteMap> {
 
   String _mapStyle(BuildContext context) {
     final brightness = MediaQuery.platformBrightnessOf(context);
-    final styleName =
-        brightness == Brightness.dark ? 'eclipse' : 'colorful';
+    final styleName = brightness == Brightness.dark ? 'eclipse' : 'colorful';
     return 'https://tiles.versatiles.org/assets/styles/$styleName/style.json';
   }
 
@@ -56,33 +59,38 @@ class _RouteMapState extends State<RouteMap> {
         if (_kmMarkers.isNotEmpty)
           WidgetLayer(
             markers: _kmMarkers
-                .map((m) => Marker(
-                      point: Geographic(lon: m.lng, lat: m.lat),
-                      size: const Size(28, 28),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.grey, width: 1.5),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          m.label,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
+                .map(
+                  (m) => Marker(
+                    point: Geographic(lon: m.lng, lat: m.lat),
+                    size: const Size(28, 28),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.grey, width: 1.5),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        m.label,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
                         ),
                       ),
-                    ))
+                    ),
+                  ),
+                )
                 .toList(),
           ),
       ],
     );
   }
 
-  Future<void> _addRouteLayers(StyleController style, Brightness brightness) async {
+  Future<void> _addRouteLayers(
+    StyleController style,
+    Brightness brightness,
+  ) async {
     final coordinates = widget.route.tracks
         .expand((track) => track.line.coordinates)
         .toList();
@@ -92,10 +100,7 @@ class _RouteMapState extends State<RouteMap> {
     // Route line source + layer
     final lineGeoJson = jsonEncode({
       'type': 'Feature',
-      'geometry': {
-        'type': 'LineString',
-        'coordinates': coordinates,
-      },
+      'geometry': {'type': 'LineString', 'coordinates': coordinates},
     });
 
     await style.addSource(GeoJsonSource(id: 'route-line', data: lineGeoJson));
@@ -117,14 +122,10 @@ class _RouteMapState extends State<RouteMap> {
     final start = coordinates.first;
     final startGeoJson = jsonEncode({
       'type': 'Feature',
-      'geometry': {
-        'type': 'Point',
-        'coordinates': start,
-      },
+      'geometry': {'type': 'Point', 'coordinates': start},
     });
 
-    await style.addSource(
-        GeoJsonSource(id: 'route-start', data: startGeoJson));
+    await style.addSource(GeoJsonSource(id: 'route-start', data: startGeoJson));
     await style.addLayer(
       const CircleStyleLayer(
         id: 'route-start-layer',
@@ -142,10 +143,7 @@ class _RouteMapState extends State<RouteMap> {
     final end = coordinates.last;
     final endGeoJson = jsonEncode({
       'type': 'Feature',
-      'geometry': {
-        'type': 'Point',
-        'coordinates': end,
-      },
+      'geometry': {'type': 'Point', 'coordinates': end},
     });
 
     await style.addSource(GeoJsonSource(id: 'route-end', data: endGeoJson));
@@ -184,8 +182,12 @@ class _RouteMapState extends State<RouteMap> {
     const r = 6371000.0;
     final dLat = (lat2 - lat1) * pi / 180;
     final dLon = (lng2 - lng1) * pi / 180;
-    final a = sin(dLat / 2) * sin(dLat / 2) +
-        cos(lat1 * pi / 180) * cos(lat2 * pi / 180) * sin(dLon / 2) * sin(dLon / 2);
+    final a =
+        sin(dLat / 2) * sin(dLat / 2) +
+        cos(lat1 * pi / 180) *
+            cos(lat2 * pi / 180) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
     return r * 2 * atan2(sqrt(a), sqrt(1 - a));
   }
 
@@ -205,7 +207,12 @@ class _RouteMapState extends State<RouteMap> {
     } else {
       double acc = 0;
       for (int i = 1; i < coords.length; i++) {
-        acc += _haversineM(coords[i - 1][0], coords[i - 1][1], coords[i][0], coords[i][1]);
+        acc += _haversineM(
+          coords[i - 1][0],
+          coords[i - 1][1],
+          coords[i][0],
+          coords[i][1],
+        );
         cumDists[i] = acc;
       }
     }
@@ -220,11 +227,13 @@ class _RouteMapState extends State<RouteMap> {
         final p1 = coords[idx];
         final span = cumDists[idx] - cumDists[idx - 1];
         final t = span == 0 ? 0.0 : (targetDist - cumDists[idx - 1]) / span;
-        markers.add(_KmMarkerData(
-          lng: p0[0] + t * (p1[0] - p0[0]),
-          lat: p0[1] + t * (p1[1] - p0[1]),
-          label: '${(targetDist / 1000).round()}',
-        ));
+        markers.add(
+          _KmMarkerData(
+            lng: p0[0] + t * (p1[0] - p0[0]),
+            lat: p0[1] + t * (p1[1] - p0[1]),
+            label: '${(targetDist / 1000).round()}',
+          ),
+        );
       }
       targetDist += intervalM;
     }

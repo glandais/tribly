@@ -58,10 +58,6 @@ abstract final class BrandColors {
   static const mapEndMarkerHex = '#fa5252';
 
   /// Picks the light or dark shade based on [brightness].
-  static Color resolve(
-    Color light,
-    Color dark,
-    Brightness brightness,
-  ) =>
+  static Color resolve(Color light, Color dark, Brightness brightness) =>
       brightness == Brightness.light ? light : dark;
 }

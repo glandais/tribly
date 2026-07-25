@@ -38,7 +38,9 @@ class AuthRepository {
 
   /// Verify OTP code
   Future<AuthResponse> verifyOtp(String email, String code) {
-    return _authClient.verifyOtp(body: VerifyOtpRequest(email: email, code: code));
+    return _authClient.verifyOtp(
+      body: VerifyOtpRequest(email: email, code: code),
+    );
   }
 
   /// Login with email and password
@@ -56,15 +58,9 @@ class AuthRepository {
   }
 
   /// Reset password with token from email link
-  Future<AuthResponse> resetPassword(
-    String token,
-    String newPassword,
-  ) {
+  Future<AuthResponse> resetPassword(String token, String newPassword) {
     return _authClient.resetPassword(
-      body: ResetPasswordRequest(
-        token: token,
-        newPassword: newPassword,
-      ),
+      body: ResetPasswordRequest(token: token, newPassword: newPassword),
     );
   }
 
@@ -73,9 +69,7 @@ class AuthRepository {
   Future<AuthResponse> refreshToken(String refreshToken) async {
     final response = await _dio.post(
       '/api/auth/refresh',
-      options: Options(
-        headers: {'X-Refresh-Token': refreshToken},
-      ),
+      options: Options(headers: {'X-Refresh-Token': refreshToken}),
     );
     return AuthResponse.fromJson(response.data as Map<String, Object?>);
   }
@@ -101,7 +95,8 @@ class AuthRepository {
   /// Get passkey registration options (requires auth - use token)
   /// Note: Uses Dio directly because the generated client returns void
   Future<Map<String, dynamic>> getPasskeyRegistrationOptions(
-      String accessToken) async {
+    String accessToken,
+  ) async {
     final response = await _dio.get(
       '/api/auth/passkeys/registration-options',
       options: Options(headers: {'Authorization': 'Bearer $accessToken'}),

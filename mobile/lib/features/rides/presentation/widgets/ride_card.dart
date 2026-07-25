@@ -28,10 +28,12 @@ class RideCard extends ConsumerWidget {
         ? ride.thumbnailDarkUrl
         : ride.thumbnailLightUrl;
 
-    final participantText = 'rides.participants'
-        .tr(namedArgs: {'count': ride.participantCount.toString()});
-    final subtitleText =
-        showTeamName ? '${ride.team.name} • $participantText' : participantText;
+    final participantText = 'rides.participants'.tr(
+      namedArgs: {'count': ride.participantCount.toString()},
+    );
+    final subtitleText = showTeamName
+        ? '${ride.team.name} • $participantText'
+        : participantText;
 
     return AnimatedCard(
       onTap: () => context.push(Paths.ride(ride.team.slug, ride.slug)),
@@ -81,12 +83,16 @@ class RideCard extends ConsumerWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(Icons.calendar_today,
-                          size: 14, color: theme.colorScheme.outline),
+                      Icon(
+                        Icons.calendar_today,
+                        size: 14,
+                        color: theme.colorScheme.outline,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         AppFormatters.formatRideDate(
-                            DateTime.parse(ride.dateTime)),
+                          DateTime.parse(ride.dateTime),
+                        ),
                         style: theme.textTheme.bodySmall,
                       ),
                     ],
@@ -94,8 +100,11 @@ class RideCard extends ConsumerWidget {
                   const SizedBox(height: 2),
                   Row(
                     children: [
-                      Icon(Icons.people,
-                          size: 14, color: theme.colorScheme.outline),
+                      Icon(
+                        Icons.people,
+                        size: 14,
+                        color: theme.colorScheme.outline,
+                      ),
                       const SizedBox(width: 4),
                       Text(subtitleText, style: theme.textTheme.bodySmall),
                     ],

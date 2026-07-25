@@ -13,11 +13,7 @@ class MainShell extends ConsumerStatefulWidget {
   final Widget child;
   final GoRouterState state;
 
-  const MainShell({
-    super.key,
-    required this.child,
-    required this.state,
-  });
+  const MainShell({super.key, required this.child, required this.state});
 
   @override
   ConsumerState<MainShell> createState() => _MainShellState();

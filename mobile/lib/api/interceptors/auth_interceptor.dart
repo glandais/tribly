@@ -30,7 +30,8 @@ class AuthInterceptor extends Interceptor {
     }
 
     // Add language header
-    options.headers['Accept-Language'] = 'fr'; // Default to French like frontend
+    options.headers['Accept-Language'] =
+        'fr'; // Default to French like frontend
 
     handler.next(options);
   }
@@ -58,10 +59,9 @@ class AuthInterceptor extends Interceptor {
     // If already refreshing, queue this request
     if (_isRefreshing) {
       final completer = Completer<Response>();
-      _failedQueue.add(_QueuedRequest(
-        requestOptions: requestOptions,
-        completer: completer,
-      ));
+      _failedQueue.add(
+        _QueuedRequest(requestOptions: requestOptions, completer: completer),
+      );
       try {
         final queuedResponse = await completer.future;
         return handler.resolve(queuedResponse);
@@ -85,16 +85,16 @@ class AuthInterceptor extends Interceptor {
       }
 
       // Create a fresh Dio instance for refresh to avoid interceptor loops
-      final refreshDio = Dio(BaseOptions(
-        baseUrl: requestOptions.baseUrl,
-        headers: {'Content-Type': 'application/json'},
-      ));
+      final refreshDio = Dio(
+        BaseOptions(
+          baseUrl: requestOptions.baseUrl,
+          headers: {'Content-Type': 'application/json'},
+        ),
+      );
 
       final refreshResponse = await refreshDio.post(
         '/api/auth/refresh',
-        options: Options(
-          headers: {'X-Refresh-Token': refreshToken},
-        ),
+        options: Options(headers: {'X-Refresh-Token': refreshToken}),
       );
 
       final authResponse = AuthResponse.fromJson(refreshResponse.data);
@@ -133,7 +133,9 @@ class AuthInterceptor extends Interceptor {
         request.completer.completeError(error);
       } else if (token != null) {
         request.requestOptions.headers['Authorization'] = 'Bearer $token';
-        _dio.fetch(request.requestOptions).then(
+        _dio
+            .fetch(request.requestOptions)
+            .then(
               request.completer.complete,
               onError: request.completer.completeError,
             );
@@ -153,8 +155,5 @@ class _QueuedRequest {
   final RequestOptions requestOptions;
   final Completer<Response> completer;
 
-  _QueuedRequest({
-    required this.requestOptions,
-    required this.completer,
-  });
+  _QueuedRequest({required this.requestOptions, required this.completer});
 }

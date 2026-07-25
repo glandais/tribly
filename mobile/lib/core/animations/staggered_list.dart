@@ -46,21 +46,17 @@ class _StaggeredListItemState extends State<StaggeredListItem>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: widget.duration,
-      vsync: this,
-    );
+    _controller = AnimationController(duration: widget.duration, vsync: this);
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     _slideAnimation = Tween<Offset>(
       begin: Offset(0, widget.slideOffset),
       end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
 
     if (widget.animate) {
       // Start animation after staggered delay
@@ -96,10 +92,7 @@ class _StaggeredListItemState extends State<StaggeredListItem>
       builder: (context, child) {
         return Transform.translate(
           offset: _slideAnimation.value,
-          child: Opacity(
-            opacity: _fadeAnimation.value,
-            child: child,
-          ),
+          child: Opacity(opacity: _fadeAnimation.value, child: child),
         );
       },
       child: widget.child,
@@ -210,23 +203,20 @@ class _StaggeredSliverListState extends State<StaggeredSliverList> {
   @override
   Widget build(BuildContext context) {
     return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          if (index >= widget.itemCount) return null;
-          final shouldAnimate = !_animatedIndices.contains(index);
-          if (shouldAnimate) {
-            _animatedIndices.add(index);
-          }
-          return StaggeredListItem(
-            index: index,
-            staggerDelay: widget.staggerDelay,
-            duration: widget.animationDuration,
-            animate: shouldAnimate,
-            child: widget.itemBuilder(context, index),
-          );
-        },
-        childCount: widget.itemCount,
-      ),
+      delegate: SliverChildBuilderDelegate((context, index) {
+        if (index >= widget.itemCount) return null;
+        final shouldAnimate = !_animatedIndices.contains(index);
+        if (shouldAnimate) {
+          _animatedIndices.add(index);
+        }
+        return StaggeredListItem(
+          index: index,
+          staggerDelay: widget.staggerDelay,
+          duration: widget.animationDuration,
+          animate: shouldAnimate,
+          child: widget.itemBuilder(context, index),
+        );
+      }, childCount: widget.itemCount),
     );
   }
 }

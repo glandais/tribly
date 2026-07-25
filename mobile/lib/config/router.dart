@@ -36,8 +36,8 @@ final _teamShellNavigatorKey = GlobalKey<NavigatorState>();
 /// Provider for the initial deep link path (set in main.dart)
 final initialDeepLinkProvider = Provider<String?>((ref) => null);
 
-typedef _AncestorBuilder = String Function(
-    Map<String, String> params, String locale);
+typedef _AncestorBuilder =
+    String Function(Map<String, String> params, String locale);
 
 /// Hierarchies for deep-linked pages. Each entry pairs a route's locale
 /// variants with the list of ancestor URL builders (root → parent), used by
@@ -182,7 +182,9 @@ final Set<String> _loginPaths = PathVariants.login().values.toSet();
 
 bool _isAuthAdjacent(String location) {
   for (final p in _authAdjacentPaths) {
-    if (location == p || location.startsWith('$p?') || location.startsWith('$p/')) {
+    if (location == p ||
+        location.startsWith('$p?') ||
+        location.startsWith('$p/')) {
       return true;
     }
   }
@@ -214,7 +216,11 @@ List<GoRoute> _perLocale(
   return routes;
 }
 
-String _underTeam(Map<String, String> variants, String locale, String teamBase) {
+String _underTeam(
+  Map<String, String> variants,
+  String locale,
+  String teamBase,
+) {
   final full = variants[locale]!;
   assert(
     full.startsWith('$teamBase/'),
@@ -241,13 +247,18 @@ GoRoute _teamShellTree(String locale) {
     },
     routes: [
       GoRoute(
-        path: _underTeam(PathVariants.teamCalendar(':teamSlug'), locale, teamBase),
+        path: _underTeam(
+          PathVariants.teamCalendar(':teamSlug'),
+          locale,
+          teamBase,
+        ),
         pageBuilder: (context, state) {
           final teamSlug = state.pathParameters['teamSlug']!;
           return NoTransitionPage(
             child: _TeamTabPageWrapper(
               teamSlug: teamSlug,
-              builder: (team) => _TeamCalendarTab(teamSlug: teamSlug, team: team),
+              builder: (team) =>
+                  _TeamCalendarTab(teamSlug: teamSlug, team: team),
             ),
           );
         },
@@ -289,7 +300,11 @@ GoRoute _teamShellTree(String locale) {
         },
       ),
       GoRoute(
-        path: _underTeam(PathVariants.route(':teamSlug', ':routeSlug'), locale, teamBase),
+        path: _underTeam(
+          PathVariants.route(':teamSlug', ':routeSlug'),
+          locale,
+          teamBase,
+        ),
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => RouteDetailPage(
           teamSlug: state.pathParameters['teamSlug']!,
@@ -297,7 +312,11 @@ GoRoute _teamShellTree(String locale) {
         ),
       ),
       GoRoute(
-        path: _underTeam(PathVariants.ride(':teamSlug', ':rideSlug'), locale, teamBase),
+        path: _underTeam(
+          PathVariants.ride(':teamSlug', ':rideSlug'),
+          locale,
+          teamBase,
+        ),
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => RideDetailPage(
           teamSlug: state.pathParameters['teamSlug']!,
@@ -305,7 +324,11 @@ GoRoute _teamShellTree(String locale) {
         ),
       ),
       GoRoute(
-        path: _underTeam(PathVariants.post(':teamSlug', ':postSlug'), locale, teamBase),
+        path: _underTeam(
+          PathVariants.post(':teamSlug', ':postSlug'),
+          locale,
+          teamBase,
+        ),
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => PostDetailPage(
           teamSlug: state.pathParameters['teamSlug']!,
@@ -313,7 +336,11 @@ GoRoute _teamShellTree(String locale) {
         ),
       ),
       GoRoute(
-        path: _underTeam(PathVariants.ad(':teamSlug', ':adSlug'), locale, teamBase),
+        path: _underTeam(
+          PathVariants.ad(':teamSlug', ':adSlug'),
+          locale,
+          teamBase,
+        ),
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => AdDetailPage(
           teamSlug: state.pathParameters['teamSlug']!,
@@ -328,7 +355,11 @@ GoRoute _teamShellTree(String locale) {
 GoRoute _tripShellRoute(String locale, String teamBase) {
   final tripBase = PathVariants.trip(':teamSlug', ':tripSlug')[locale]!;
   return GoRoute(
-    path: _underTeam(PathVariants.trip(':teamSlug', ':tripSlug'), locale, teamBase),
+    path: _underTeam(
+      PathVariants.trip(':teamSlug', ':tripSlug'),
+      locale,
+      teamBase,
+    ),
     parentNavigatorKey: _rootNavigatorKey,
     builder: (context, state) => TripDetailPage(
       teamSlug: state.pathParameters['teamSlug']!,
@@ -410,15 +441,22 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       // Auth routes (outside shell)
       ..._perLocale(PathVariants.login(), (ctx, st) => const LoginPage()),
-      ..._perLocale(PathVariants.register(), (ctx, st) => const LoginPage(initialRegister: true)),
+      ..._perLocale(
+        PathVariants.register(),
+        (ctx, st) => const LoginPage(initialRegister: true),
+      ),
       ..._perLocale(
         PathVariants.verifyEmail(),
         (ctx, st) => VerifyEmailPage(token: st.uri.queryParameters['token']),
       ),
-      ..._perLocale(PathVariants.forgotPassword(), (ctx, st) => const ForgotPasswordPage()),
+      ..._perLocale(
+        PathVariants.forgotPassword(),
+        (ctx, st) => const ForgotPasswordPage(),
+      ),
       ..._perLocale(
         PathVariants.resetPassword(),
-        (ctx, st) => ResetPasswordPage(token: st.uri.queryParameters['token'] ?? ''),
+        (ctx, st) =>
+            ResetPasswordPage(token: st.uri.queryParameters['token'] ?? ''),
       ),
 
       // Device verification routes (brand names, no fr variants)
@@ -434,19 +472,37 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Main shell with bottom navigation
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
-        builder: (context, state, child) => MainShell(state: state, child: child),
+        builder: (context, state, child) =>
+            MainShell(state: state, child: child),
         routes: [
-          ..._perLocale(PathVariants.home(), (ctx, st) => const HomePage(), asPage: true),
-          ..._perLocale(PathVariants.teams(), (ctx, st) => const TeamsPage(), asPage: true),
-          ..._perLocale(PathVariants.calendar(), (ctx, st) => const CalendarPage(), asPage: true),
-          ..._perLocale(PathVariants.profile(), (ctx, st) => const ProfilePage(), asPage: true),
+          ..._perLocale(
+            PathVariants.home(),
+            (ctx, st) => const HomePage(),
+            asPage: true,
+          ),
+          ..._perLocale(
+            PathVariants.teams(),
+            (ctx, st) => const TeamsPage(),
+            asPage: true,
+          ),
+          ..._perLocale(
+            PathVariants.calendar(),
+            (ctx, st) => const CalendarPage(),
+            asPage: true,
+          ),
+          ..._perLocale(
+            PathVariants.profile(),
+            (ctx, st) => const ProfilePage(),
+            asPage: true,
+          ),
         ],
       ),
 
       // Team shell with bottom navigation — one subtree per locale.
       ShellRoute(
         navigatorKey: _teamShellNavigatorKey,
-        builder: (context, state, child) => TeamShell(state: state, child: child),
+        builder: (context, state, child) =>
+            TeamShell(state: state, child: child),
         routes: _teamShellTreesCache,
       ),
 
@@ -459,7 +515,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         PathVariants.terms(),
         (ctx, st) => const LegalPage(type: LegalPageType.terms),
       ),
-
     ],
     errorBuilder: (context, state) => Scaffold(
       appBar: AppBar(title: const Text('Erreur')),
@@ -493,10 +548,7 @@ class _TeamTabPageWrapper extends ConsumerWidget {
   final String teamSlug;
   final Widget Function(TeamDetailDto team) builder;
 
-  const _TeamTabPageWrapper({
-    required this.teamSlug,
-    required this.builder,
-  });
+  const _TeamTabPageWrapper({required this.teamSlug, required this.builder});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -529,9 +581,7 @@ class _TeamCalendarTab extends StatelessWidget {
             onPressed: () => context.go(Paths.teams()),
           ),
         ),
-        Expanded(
-          child: CalendarPage(teamSlug: teamSlug, embedded: true),
-        ),
+        Expanded(child: CalendarPage(teamSlug: teamSlug, embedded: true)),
       ],
     );
   }
@@ -554,9 +604,7 @@ class _TeamRoutesTab extends StatelessWidget {
             onPressed: () => context.go(Paths.teams()),
           ),
         ),
-        Expanded(
-          child: RoutesPage(teamSlug: teamSlug, embedded: true),
-        ),
+        Expanded(child: RoutesPage(teamSlug: teamSlug, embedded: true)),
       ],
     );
   }

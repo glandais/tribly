@@ -25,10 +25,10 @@ class Breakpoints {
 
   /// Returns the number of grid columns for the given size class.
   static int gridColumns(WindowSizeClass sizeClass) => switch (sizeClass) {
-        WindowSizeClass.compact => 1,
-        WindowSizeClass.medium => 2,
-        WindowSizeClass.expanded => 3,
-      };
+    WindowSizeClass.compact => 1,
+    WindowSizeClass.medium => 2,
+    WindowSizeClass.expanded => 3,
+  };
 
   /// Returns the maximum content width for the given size class.
   /// Returns null for compact (full width).

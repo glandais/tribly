@@ -18,11 +18,7 @@ class TeamShell extends ConsumerStatefulWidget {
   final Widget child;
   final GoRouterState state;
 
-  const TeamShell({
-    super.key,
-    required this.child,
-    required this.state,
-  });
+  const TeamShell({super.key, required this.child, required this.state});
 
   @override
   ConsumerState<TeamShell> createState() => _TeamShellState();
@@ -51,14 +47,16 @@ class _TeamShellState extends ConsumerState<TeamShell> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline,
-                  size: 48, color: Theme.of(context).colorScheme.error),
+              Icon(
+                Icons.error_outline,
+                size: 48,
+                color: Theme.of(context).colorScheme.error,
+              ),
               const SizedBox(height: 16),
               Text(getErrorMessage(error)),
               const SizedBox(height: 16),
               FilledButton(
-                onPressed: () =>
-                    ref.invalidate(teamDetailProvider(_teamSlug)),
+                onPressed: () => ref.invalidate(teamDetailProvider(_teamSlug)),
                 child: Text('common.retry'.tr()),
               ),
             ],
@@ -138,11 +136,13 @@ class _TeamShellContentState extends State<_TeamShellContent> {
         selectedIndex: _currentIndex,
         onDestinationSelected: _onDestinationSelected,
         destinations: _destinations
-            .map((dest) => NavigationDestination(
-                  icon: Icon(dest.icon),
-                  selectedIcon: Icon(dest.selectedIcon),
-                  label: dest.label.tr(),
-                ))
+            .map(
+              (dest) => NavigationDestination(
+                icon: Icon(dest.icon),
+                selectedIcon: Icon(dest.selectedIcon),
+                label: dest.label.tr(),
+              ),
+            )
             .toList(),
       ),
     );
@@ -167,11 +167,13 @@ class _TeamShellContentState extends State<_TeamShellContent> {
               onPressed: () => context.go(Paths.teams()),
             ),
             destinations: _destinations
-                .map((dest) => NavigationRailDestination(
-                      icon: Icon(dest.icon),
-                      selectedIcon: Icon(dest.selectedIcon),
-                      label: Text(dest.label.tr()),
-                    ))
+                .map(
+                  (dest) => NavigationRailDestination(
+                    icon: Icon(dest.icon),
+                    selectedIcon: Icon(dest.selectedIcon),
+                    label: Text(dest.label.tr()),
+                  ),
+                )
                 .toList(),
           ),
           const VerticalDivider(thickness: 1, width: 1),

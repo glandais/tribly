@@ -10,10 +10,7 @@ import '../providers/auth_provider.dart';
 
 /// Provider for passkey service
 final passkeyServiceProvider = Provider<PasskeyService>((ref) {
-  return PasskeyService(
-    ref.watch(authRepositoryProvider),
-    ref,
-  );
+  return PasskeyService(ref.watch(authRepositoryProvider), ref);
 });
 
 /// Service for WebAuthn/Passkey operations
@@ -84,8 +81,9 @@ class PasskeyService {
     }
 
     // Get registration options from server
-    final options =
-        await _repository.getPasskeyRegistrationOptions(accessToken);
+    final options = await _repository.getPasskeyRegistrationOptions(
+      accessToken,
+    );
 
     final user = options['user'] as Map<String, dynamic>;
     final rp = options['rp'] as Map<String, dynamic>?;
@@ -117,15 +115,17 @@ class PasskeyService {
       authSelectionType: authenticatorSelection != null
           ? AuthenticatorSelectionType(
               authenticatorAttachment:
-                  authenticatorSelection['authenticatorAttachment'] as String? ??
-                      'platform',
+                  authenticatorSelection['authenticatorAttachment']
+                      as String? ??
+                  'platform',
               residentKey:
-                  authenticatorSelection['residentKey'] as String? ?? 'required',
+                  authenticatorSelection['residentKey'] as String? ??
+                  'required',
               requireResidentKey:
                   authenticatorSelection['requireResidentKey'] as bool? ?? true,
               userVerification:
                   authenticatorSelection['userVerification'] as String? ??
-                      'preferred',
+                  'preferred',
             )
           : AuthenticatorSelectionType(
               authenticatorAttachment: 'platform',
@@ -176,7 +176,8 @@ class PasskeyService {
       return CredentialType(
         type: cred['type'] as String? ?? 'public-key',
         id: cred['id'] as String,
-        transports: (cred['transports'] as List<dynamic>?)
+        transports:
+            (cred['transports'] as List<dynamic>?)
                 ?.map((t) => t as String)
                 .toList() ??
             [],
@@ -193,7 +194,8 @@ class PasskeyService {
       return CredentialType(
         type: cred['type'] as String? ?? 'public-key',
         id: cred['id'] as String,
-        transports: (cred['transports'] as List<dynamic>?)
+        transports:
+            (cred['transports'] as List<dynamic>?)
                 ?.map((t) => t as String)
                 .toList() ??
             [],

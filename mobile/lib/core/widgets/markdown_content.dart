@@ -17,26 +17,22 @@ const _defaultSizeWidth = 448; // medium
 /// Pre-processes markdown by resolving `::asset{id="..." size="..." alt="..."}`
 /// directives into standard `![alt](url)` markdown image syntax.
 String _resolveAssetDirectives(String data, List<AssetDto> images) {
-  return data.replaceAllMapped(
-    RegExp(r'::asset\{([^}]+)\}'),
-    (match) {
-      final attrs = _parseAttrs(match.group(1) ?? '');
-      final id = attrs['id'];
-      if (id == null || id.isEmpty) return '';
+  return data.replaceAllMapped(RegExp(r'::asset\{([^}]+)\}'), (match) {
+    final attrs = _parseAttrs(match.group(1) ?? '');
+    final id = attrs['id'];
+    if (id == null || id.isEmpty) return '';
 
-      final sizeWidth =
-          _imageSizeWidths[attrs['size'] ?? 'medium'] ?? _defaultSizeWidth;
-      final alt = attrs['alt'] ?? '';
+    final sizeWidth =
+        _imageSizeWidths[attrs['size'] ?? 'medium'] ?? _defaultSizeWidth;
+    final alt = attrs['alt'] ?? '';
 
-      final asset = _findAsset(images, id);
-      if (asset == null) return alt;
+    final asset = _findAsset(images, id);
+    if (asset == null) return alt;
 
-      final url =
-          asset.imageUrl?.replaceAll('{size}', sizeWidth.toString()) ??
-              asset.url;
-      return '![$alt]($url)';
-    },
-  );
+    final url =
+        asset.imageUrl?.replaceAll('{size}', sizeWidth.toString()) ?? asset.url;
+    return '![$alt]($url)';
+  });
 }
 
 Map<String, String> _parseAttrs(String input) {
@@ -88,57 +84,52 @@ class MarkdownContent extends StatelessWidget {
         ? MarkdownConfig.darkConfig
         : MarkdownConfig.defaultConfig;
 
-    final styledConfig = config.copy(configs: [
-      PConfig(textStyle: textTheme.bodyMedium!),
-      H1Config(
-        style: textTheme.headlineSmall!.copyWith(
-          color: colorScheme.onSurface,
-        ),
-      ),
-      H2Config(
-        style: textTheme.titleLarge!.copyWith(
-          color: colorScheme.onSurface,
-        ),
-      ),
-      H3Config(
-        style: textTheme.titleMedium!.copyWith(
-          color: colorScheme.onSurface,
-        ),
-      ),
-      LinkConfig(
-        style: textTheme.bodyMedium!.copyWith(
-          color: colorScheme.primary,
-          decoration: TextDecoration.underline,
-          decorationColor: colorScheme.primary,
-        ),
-      ),
-      CodeConfig(
-        style: textTheme.bodySmall!.copyWith(
-          fontFamily: 'monospace',
-          backgroundColor: colorScheme.surfaceContainerHighest,
-          color: colorScheme.onSurfaceVariant,
-        ),
-      ),
-      BlockquoteConfig(
-        sideColor: colorScheme.primary,
-        textColor: colorScheme.onSurfaceVariant,
-      ),
-      HrConfig(color: colorScheme.outlineVariant),
-      ImgConfig(
-        builder: (url, attributes) => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: AuthenticatedImage(
-            imageUrl: url,
-            fit: BoxFit.contain,
-            width: double.maxFinite,
+    final styledConfig = config.copy(
+      configs: [
+        PConfig(textStyle: textTheme.bodyMedium!),
+        H1Config(
+          style: textTheme.headlineSmall!.copyWith(
+            color: colorScheme.onSurface,
           ),
         ),
-      ),
-    ]);
-
-    return MarkdownBlock(
-      data: processedData,
-      config: styledConfig,
+        H2Config(
+          style: textTheme.titleLarge!.copyWith(color: colorScheme.onSurface),
+        ),
+        H3Config(
+          style: textTheme.titleMedium!.copyWith(color: colorScheme.onSurface),
+        ),
+        LinkConfig(
+          style: textTheme.bodyMedium!.copyWith(
+            color: colorScheme.primary,
+            decoration: TextDecoration.underline,
+            decorationColor: colorScheme.primary,
+          ),
+        ),
+        CodeConfig(
+          style: textTheme.bodySmall!.copyWith(
+            fontFamily: 'monospace',
+            backgroundColor: colorScheme.surfaceContainerHighest,
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+        BlockquoteConfig(
+          sideColor: colorScheme.primary,
+          textColor: colorScheme.onSurfaceVariant,
+        ),
+        HrConfig(color: colorScheme.outlineVariant),
+        ImgConfig(
+          builder: (url, attributes) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: AuthenticatedImage(
+              imageUrl: url,
+              fit: BoxFit.contain,
+              width: double.maxFinite,
+            ),
+          ),
+        ),
+      ],
     );
+
+    return MarkdownBlock(data: processedData, config: styledConfig);
   }
 }

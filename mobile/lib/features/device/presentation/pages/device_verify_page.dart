@@ -84,9 +84,7 @@ class _DeviceVerifyPageState extends ConsumerState<DeviceVerifyPage> {
         ref.read(dioProvider),
         baseUrl: ref.read(dioProvider).options.baseUrl,
       );
-      await client.deviceComplete(
-        body: CompleteRequest(userCode: code),
-      );
+      await client.deviceComplete(body: CompleteRequest(userCode: code));
       if (mounted) {
         setState(() {
           _isCompleting = false;
@@ -139,9 +137,7 @@ class _DeviceVerifyPageState extends ConsumerState<DeviceVerifyPage> {
           const CircularProgressIndicator(),
           const SizedBox(height: 24),
           Text(
-            _isCompleting
-                ? 'device.completing'.tr()
-                : 'device.verifying'.tr(),
+            _isCompleting ? 'device.completing'.tr() : 'device.verifying'.tr(),
           ),
         ],
       );
@@ -158,10 +154,7 @@ class _DeviceVerifyPageState extends ConsumerState<DeviceVerifyPage> {
             style: theme.textTheme.headlineSmall,
           ),
           const SizedBox(height: 16),
-          Text(
-            'device.success.message'.tr(),
-            textAlign: TextAlign.center,
-          ),
+          Text('device.success.message'.tr(), textAlign: TextAlign.center),
           const SizedBox(height: 16),
           Card(
             child: Padding(

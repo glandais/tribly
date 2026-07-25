@@ -11,21 +11,19 @@ import '../../../../core/widgets/widgets.dart';
 import '../../data/ad_repository.dart';
 
 final adDetailProvider =
-    FutureProvider.family<AdDto, ({String teamSlug, String adSlug})>(
-        (ref, params) async {
-  final repository = ref.watch(adRepositoryProvider);
-  return repository.getAd(params.teamSlug, params.adSlug);
-});
+    FutureProvider.family<AdDto, ({String teamSlug, String adSlug})>((
+      ref,
+      params,
+    ) async {
+      final repository = ref.watch(adRepositoryProvider);
+      return repository.getAd(params.teamSlug, params.adSlug);
+    });
 
 class AdDetailPage extends ConsumerWidget {
   final String teamSlug;
   final String adSlug;
 
-  const AdDetailPage({
-    super.key,
-    required this.teamSlug,
-    required this.adSlug,
-  });
+  const AdDetailPage({super.key, required this.teamSlug, required this.adSlug});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -44,8 +42,11 @@ class AdDetailPage extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline,
-                  size: 48, color: Theme.of(context).colorScheme.error),
+              Icon(
+                Icons.error_outline,
+                size: 48,
+                color: Theme.of(context).colorScheme.error,
+              ),
               const SizedBox(height: 16),
               Text(getErrorMessage(error)),
               const SizedBox(height: 16),
@@ -73,10 +74,7 @@ class _AdDetailContent extends StatelessWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(
-            pinned: true,
-            title: Text(ad.name),
-          ),
+          SliverAppBar(pinned: true, title: Text(ad.name)),
 
           // Team
           SliverToBoxAdapter(
@@ -94,10 +92,10 @@ class _AdDetailContent extends StatelessWidget {
                 children: [
                   Chip(
                     label: Text('ads.adType.${ad.adType}'.tr()),
-                    backgroundColor:
-                        theme.colorScheme.primaryContainer,
+                    backgroundColor: theme.colorScheme.primaryContainer,
                     labelStyle: TextStyle(
-                        color: theme.colorScheme.onPrimaryContainer),
+                      color: theme.colorScheme.onPrimaryContainer,
+                    ),
                   ),
                   const Spacer(),
                   if (ad.price != null)
@@ -128,8 +126,10 @@ class _AdDetailContent extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Card(
                   child: ListTile(
-                    leading: Icon(Icons.location_on,
-                        color: theme.colorScheme.primary),
+                    leading: Icon(
+                      Icons.location_on,
+                      color: theme.colorScheme.primary,
+                    ),
                     title: Text(ad.locationDescription!),
                   ),
                 ),
@@ -142,12 +142,14 @@ class _AdDetailContent extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  Icon(Icons.calendar_today,
-                      size: 16, color: theme.colorScheme.outline),
+                  Icon(
+                    Icons.calendar_today,
+                    size: 16,
+                    color: theme.colorScheme.outline,
+                  ),
                   const SizedBox(width: 8),
                   Text(
-                    AppFormatters.formatFullDate(
-                        DateTime.parse(ad.createdAt)),
+                    AppFormatters.formatFullDate(DateTime.parse(ad.createdAt)),
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.outline,
                     ),

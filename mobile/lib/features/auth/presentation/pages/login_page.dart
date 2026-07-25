@@ -111,7 +111,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         // Don't show an error when the user cancels the biometric prompt
         final msg = e.toString().toLowerCase();
         final isCancelled =
-            msg.contains('cancelled') || msg.contains('canceled') || msg.contains('user canceled');
+            msg.contains('cancelled') ||
+            msg.contains('canceled') ||
+            msg.contains('user canceled');
         if (!isCancelled) {
           setState(() => _errorMessage = 'auth.errors.authFailed'.tr());
         }
@@ -144,8 +146,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'auth.verifyEmail.verificationSent'
-                  .tr(namedArgs: {'email': _regEmailController.text.trim()}),
+              'auth.verifyEmail.verificationSent'.tr(
+                namedArgs: {'email': _regEmailController.text.trim()},
+              ),
             ),
           ),
         );
@@ -167,10 +170,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('auth.login'.tr()),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: Text('auth.login'.tr()), centerTitle: true),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -181,11 +181,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 32),
-                  Image.asset(
-                    'assets/icon.png',
-                    width: 80,
-                    height: 80,
-                  ),
+                  Image.asset('assets/icon.png', width: 80, height: 80),
                   const SizedBox(height: 16),
                   Text(
                     'app.name'.tr(),
@@ -225,7 +221,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   Expanded(
                     child: Text(
                       _errorMessage!,
-                      style: TextStyle(color: theme.colorScheme.onErrorContainer),
+                      style: TextStyle(
+                        color: theme.colorScheme.onErrorContainer,
+                      ),
                     ),
                   ),
                   IconButton(
@@ -368,7 +366,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 TextFormField(
                   controller: _regEmailController,
                   keyboardType: TextInputType.emailAddress,
-                  autofillHints: const [AutofillHints.newUsername, AutofillHints.email],
+                  autofillHints: const [
+                    AutofillHints.newUsername,
+                    AutofillHints.email,
+                  ],
                   decoration: InputDecoration(
                     labelText: 'auth.email'.tr(),
                     prefixIcon: const Icon(Icons.email),

@@ -68,9 +68,8 @@ class AuthenticatedImage extends ConsumerWidget {
       height: height,
       placeholder: placeholder != null
           ? (context, url) => placeholder!
-          : (context, url) => const Center(
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
+          : (context, url) =>
+                const Center(child: CircularProgressIndicator(strokeWidth: 2)),
       errorWidget: errorWidget != null
           ? (context, url, error) => errorWidget!
           : (context, url, error) => const Icon(Icons.broken_image_outlined),

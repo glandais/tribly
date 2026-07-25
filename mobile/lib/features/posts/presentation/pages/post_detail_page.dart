@@ -11,11 +11,13 @@ import '../../../../core/widgets/widgets.dart';
 import '../../data/post_repository.dart';
 
 final postDetailProvider =
-    FutureProvider.family<PostDto, ({String teamSlug, String postSlug})>(
-        (ref, params) async {
-  final repository = ref.watch(postRepositoryProvider);
-  return repository.getPost(params.teamSlug, params.postSlug);
-});
+    FutureProvider.family<PostDto, ({String teamSlug, String postSlug})>((
+      ref,
+      params,
+    ) async {
+      final repository = ref.watch(postRepositoryProvider);
+      return repository.getPost(params.teamSlug, params.postSlug);
+    });
 
 class PostDetailPage extends ConsumerWidget {
   final String teamSlug;
@@ -44,8 +46,11 @@ class PostDetailPage extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline,
-                  size: 48, color: Theme.of(context).colorScheme.error),
+              Icon(
+                Icons.error_outline,
+                size: 48,
+                color: Theme.of(context).colorScheme.error,
+              ),
               const SizedBox(height: 16),
               Text(getErrorMessage(error)),
               const SizedBox(height: 16),
@@ -71,10 +76,7 @@ class _PostDetailContent extends StatelessWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(
-            pinned: true,
-            title: Text(post.name),
-          ),
+          SliverAppBar(pinned: true, title: Text(post.name)),
 
           // Team
           SliverToBoxAdapter(
@@ -90,16 +92,17 @@ class _PostDetailContent extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  Icon(Icons.calendar_today,
-                      size: 16,
-                      color: Theme.of(context).colorScheme.outline),
+                  Icon(
+                    Icons.calendar_today,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
                   const SizedBox(width: 8),
                   Text(
-                    AppFormatters.formatFullDate(
-                        DateTime.parse(post.dateTime)),
+                    AppFormatters.formatFullDate(DateTime.parse(post.dateTime)),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
                   ),
                 ],
               ),

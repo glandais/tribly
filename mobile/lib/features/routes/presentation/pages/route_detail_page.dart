@@ -14,11 +14,14 @@ import '../../data/route_repository.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../widgets/route_map.dart';
 
-final routeDetailProvider = FutureProvider.family<RouteDetailDto,
-    ({String teamSlug, String routeSlug})>((ref, params) async {
-  final repository = ref.watch(routeRepositoryProvider);
-  return repository.getRoute(params.teamSlug, params.routeSlug);
-});
+final routeDetailProvider =
+    FutureProvider.family<
+      RouteDetailDto,
+      ({String teamSlug, String routeSlug})
+    >((ref, params) async {
+      final repository = ref.watch(routeRepositoryProvider);
+      return repository.getRoute(params.teamSlug, params.routeSlug);
+    });
 
 class RouteDetailPage extends ConsumerWidget {
   final String teamSlug;
@@ -47,7 +50,11 @@ class RouteDetailPage extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
+              Icon(
+                Icons.error_outline,
+                size: 48,
+                color: Theme.of(context).colorScheme.error,
+              ),
               const SizedBox(height: 16),
               Text(getErrorMessage(error)),
               const SizedBox(height: 16),
@@ -88,10 +95,9 @@ class _RouteDetailContent extends ConsumerWidget {
                 child: Row(
                   children: [
                     Material(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .surface
-                          .withValues(alpha: 0.8),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surface.withValues(alpha: 0.8),
                       shape: const CircleBorder(),
                       child: IconButton(
                         icon: const Icon(Icons.arrow_back),
@@ -101,14 +107,15 @@ class _RouteDetailContent extends ConsumerWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Material(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .surface
-                            .withValues(alpha: 0.8),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surface.withValues(alpha: 0.8),
                         borderRadius: BorderRadius.circular(20),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                           child: Text(
                             route.name,
                             style: Theme.of(context).textTheme.titleMedium,
@@ -134,11 +141,14 @@ class _RouteDetailContent extends ConsumerWidget {
               return Container(
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(16)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16),
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Theme.of(context).shadowColor.withValues(alpha: 0.2),
+                      color: Theme.of(
+                        context,
+                      ).shadowColor.withValues(alpha: 0.2),
                       blurRadius: 10,
                       offset: const Offset(0, -2),
                     ),
@@ -203,7 +213,8 @@ class _RouteDetailContent extends ConsumerWidget {
                             ),
                             title: Text('routes.surface'.tr()),
                             subtitle: Text(
-                                AppFormatters.surfaceName(route.surfaceType)),
+                              AppFormatters.surfaceName(route.surfaceType),
+                            ),
                           ),
                         ),
                       ),
@@ -220,8 +231,9 @@ class _RouteDetailContent extends ConsumerWidget {
                                 children: [
                                   Text(
                                     'routes.description'.tr(),
-                                    style:
-                                        Theme.of(context).textTheme.titleMedium,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleMedium,
                                   ),
                                   const SizedBox(height: 8),
                                   MarkdownContent(
@@ -248,7 +260,6 @@ class _RouteDetailContent extends ConsumerWidget {
       ),
     );
   }
-
 }
 
 class _DownloadButton extends ConsumerWidget {
@@ -306,8 +317,10 @@ class _DownloadButton extends ConsumerWidget {
               if (connectedServices.isNotEmpty) ...[
                 const Divider(),
                 Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
@@ -378,22 +391,15 @@ class _FileDownloadTileState extends State<_FileDownloadTile> {
             : Rect.zero;
         Navigator.pop(context);
         await SharePlus.instance.share(
-          ShareParams(
-            files: [XFile(filePath)],
-            sharePositionOrigin: origin,
-          ),
+          ShareParams(files: [XFile(filePath)], sharePositionOrigin: origin),
         );
       }
     } catch (e) {
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              getErrorMessage(e),
-            ),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(getErrorMessage(e))));
       }
     } finally {
       if (mounted) {
@@ -447,20 +453,16 @@ class _DeviceUploadTileState extends ConsumerState<_DeviceUploadTile> {
       );
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('routes.uploadSuccess'.tr())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('routes.uploadSuccess'.tr())));
       }
     } catch (e) {
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              getErrorMessage(e),
-            ),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(getErrorMessage(e))));
       }
     } finally {
       if (mounted) {
@@ -489,14 +491,11 @@ class _StatItem extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           value,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
+        Text(label, style: Theme.of(context).textTheme.bodySmall),
       ],
     );
   }

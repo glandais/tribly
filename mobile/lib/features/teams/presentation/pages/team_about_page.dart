@@ -10,29 +10,27 @@ import '../widgets/team_sliver_app_bar.dart';
 
 /// Provider for a single team page's full content
 final _teamPageProvider =
-    FutureProvider.family<TeamPageDto, ({String teamSlug, String pageSlug})>(
-  (ref, params) async {
-    final client = ref.watch(teamPagesClientProvider);
-    return client.getPage(teamSlug: params.teamSlug, pageSlug: params.pageSlug);
-  },
-);
+    FutureProvider.family<TeamPageDto, ({String teamSlug, String pageSlug})>((
+      ref,
+      params,
+    ) async {
+      final client = ref.watch(teamPagesClientProvider);
+      return client.getPage(
+        teamSlug: params.teamSlug,
+        pageSlug: params.pageSlug,
+      );
+    });
 
 class TeamAboutPage extends ConsumerWidget {
   final String teamSlug;
   final TeamDetailDto team;
 
-  const TeamAboutPage({
-    super.key,
-    required this.teamSlug,
-    required this.team,
-  });
+  const TeamAboutPage({super.key, required this.teamSlug, required this.team});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final visiblePages = team.pages
-            ?.where((p) => !p.deleted)
-            .toList()
-          ?..sort((a, b) => a.order.compareTo(b.order));
+    final visiblePages = team.pages?.where((p) => !p.deleted).toList()
+      ?..sort((a, b) => a.order.compareTo(b.order));
 
     return CustomScrollView(
       slivers: [
@@ -89,16 +87,20 @@ class TeamAboutPage extends ConsumerWidget {
 
         // Team pages — each displayed inline with its content
         if (visiblePages != null && visiblePages.isNotEmpty)
-          ...visiblePages.map((pageSummary) => SliverToBoxAdapter(
-                child: ContentWidthConstraint(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: _TeamPageCard(
-                    teamSlug: teamSlug,
-                    pageSummary: pageSummary,
-                  ),
+          ...visiblePages.map(
+            (pageSummary) => SliverToBoxAdapter(
+              child: ContentWidthConstraint(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
                 ),
-              )),
+                child: _TeamPageCard(
+                  teamSlug: teamSlug,
+                  pageSummary: pageSummary,
+                ),
+              ),
+            ),
+          ),
 
         const SliverPadding(padding: EdgeInsets.only(bottom: 32)),
       ],
@@ -111,10 +113,7 @@ class _TeamPageCard extends ConsumerWidget {
   final String teamSlug;
   final TeamPageSummaryDto pageSummary;
 
-  const _TeamPageCard({
-    required this.teamSlug,
-    required this.pageSummary,
-  });
+  const _TeamPageCard({required this.teamSlug, required this.pageSummary});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -143,8 +142,7 @@ class _TeamPageCard extends ConsumerWidget {
               ),
               error: (error, _) => Text(
                 'common.loadError'.tr(),
-                style: TextStyle(
-                    color: Theme.of(context).colorScheme.error),
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ),
           ],
@@ -173,14 +171,11 @@ class _StatItem extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           value,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
+        Text(label, style: Theme.of(context).textTheme.bodySmall),
       ],
     );
   }
