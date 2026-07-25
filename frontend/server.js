@@ -124,9 +124,10 @@ async function createServer() {
       }
 
       // Filter to single-value headers — render() types headers as Record<string, string>, but Express req.headers can contain string[] values (e.g. set-cookie)
-      const result = await currentRender(url, Object.fromEntries(
-        Object.entries(req.headers).filter(([, v]) => typeof v === 'string')
-      ))
+      const result = await currentRender(
+        url,
+        Object.fromEntries(Object.entries(req.headers).filter(([, v]) => typeof v === 'string'))
+      )
 
       // Handle redirects
       if (result.redirect) {
@@ -176,7 +177,13 @@ async function createServer() {
       res
         .status(500)
         .set({ 'Content-Type': 'text/html' })
-        .send(isProduction ? '<h1>Internal Server Error</h1>' : `<pre>${String(e.stack || e.message || e).replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`)
+        .send(
+          isProduction
+            ? '<h1>Internal Server Error</h1>'
+            : `<pre>${String(e.stack || e.message || e)
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')}</pre>`
+        )
     }
   })
 

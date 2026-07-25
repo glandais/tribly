@@ -1,4 +1,4 @@
-import { defineConfig } from 'orval';
+import { defineConfig } from 'orval'
 
 export default defineConfig({
   pedalons: {
@@ -36,7 +36,7 @@ export default defineConfig({
       formatter: 'prettier',
       override: {
         header: false,
-      }
+      },
     },
   },
-});
+})
