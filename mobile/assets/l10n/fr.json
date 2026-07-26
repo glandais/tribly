@@ -473,6 +473,10 @@
       "USER_NOT_FOUND": "Utilisateur introuvable",
       "USER_NOT_SYNCED": "Le compte utilisateur n'est pas synchronisé",
       "VALIDATION": "Les données fournies sont invalides"
+    },
+    "outdated": {
+      "title": "Mise à jour requise",
+      "message": "Cette version de Pédalons est plus ancienne que ce que le serveur accepte. Mettez-la à jour pour éviter les erreurs."
     }
   },
   "links": {
@@ -497,7 +501,8 @@
     "deniedForever": "L'accès à votre position est refusé pour Pédalons. Vous pouvez le rétablir dans les réglages.",
     "unavailable": "Votre position n'a pas pu être déterminée. Réessayez dans un instant.",
     "openSettings": "Ouvrir les réglages",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "title": "Position indisponible"
   },
   "units": {
     "metric": "Métrique",

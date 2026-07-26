@@ -473,6 +473,10 @@
       "USER_NOT_FOUND": "User not found",
       "USER_NOT_SYNCED": "The user account is not synchronized",
       "VALIDATION": "The provided data is invalid"
+    },
+    "outdated": {
+      "title": "Update required",
+      "message": "This version of Pédalons is older than the server accepts. Update it to avoid errors."
     }
   },
   "links": {
@@ -497,7 +501,8 @@
     "deniedForever": "Pédalons is denied access to your location. You can restore it in Settings.",
     "unavailable": "Your location couldn't be determined. Try again in a moment.",
     "openSettings": "Open Settings",
-    "retry": "Try again"
+    "retry": "Try again",
+    "title": "Location unavailable"
   },
   "units": {
     "metric": "Metric",
