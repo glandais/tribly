@@ -6,6 +6,7 @@ import '../../../../api/generated/export.dart';
 import '../../../../core/adaptive/adaptive.dart';
 import '../../../../core/pagination/pagination.dart';
 import '../../../../core/pdl/pdl.dart';
+import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../teams/presentation/widgets/publication_card.dart';
 import '../../providers/publication_feed_provider.dart';
@@ -22,14 +23,26 @@ class PublicationFeedView extends ConsumerStatefulWidget {
   /// Slivers rendered above the pinned toolbar (app bar, prompts…).
   final List<Widget> leadingSlivers;
 
+  /// Ce que le pull-to-refresh rafraîchit **en plus** du fil.
+  ///
+  /// L'accueil y met « Ma prochaine sortie » et « À venir » : tirer sur la
+  /// liste doit rafraîchir tout l'écran, pas seulement sa moitié basse.
+  final Future<void> Function()? onRefreshExtras;
+
   /// Message shown when the feed has nothing at all.
   final String emptyMessage;
+
+  /// En-tête de section posé juste au-dessus des cartes — « Dernières
+  /// publications · 1 248 publications » sur l'accueil.
+  final bool showSectionHeader;
 
   const PublicationFeedView({
     super.key,
     required this.teamSlug,
     required this.emptyMessage,
     this.leadingSlivers = const [],
+    this.showSectionHeader = false,
+    this.onRefreshExtras,
   });
 
   @override
@@ -58,6 +71,11 @@ class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
         value;
   }
 
+  void _setScope(MinRole? value) {
+    ref.read(publicationFeedScopeProvider(widget.teamSlug).notifier).state =
+        value;
+  }
+
   @override
   Widget build(BuildContext context) {
     // Switching filter is a new result set: back to the top of the list.
@@ -70,15 +88,33 @@ class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
     ) {
       if (previous != next) _scrollToTop();
     });
+    ref.listen(publicationFeedScopeProvider(widget.teamSlug), (previous, next) {
+      if (previous != next) _scrollToTop();
+    });
 
     final type = ref.watch(publicationFeedTypeProvider(widget.teamSlug));
     final search = ref.watch(publicationFeedSearchProvider(widget.teamSlug));
-    final key = (teamSlug: widget.teamSlug, type: type, search: search);
+    // La portée n'existe que sur le fil d'accueil : un fil d'équipe *est* déjà
+    // une portée.
+    final minRole = widget.teamSlug == null
+        ? ref.watch(publicationFeedScopeProvider(widget.teamSlug))
+        : null;
+    final key = (
+      teamSlug: widget.teamSlug,
+      type: type,
+      search: search,
+      minRole: minRole,
+    );
     final state = ref.watch(publicationFeedProvider(key));
     final notifier = ref.read(publicationFeedProvider(key).notifier);
 
     return RefreshIndicator(
-      onRefresh: notifier.refresh,
+      onRefresh: () async {
+        await Future.wait<void>(<Future<void>>[
+          notifier.refresh(),
+          if (widget.onRefreshExtras != null) widget.onRefreshExtras!(),
+        ]);
+      },
       child: CustomScrollView(
         // Explicitly the route's primary scrollable, with no controller of its
         // own: an iOS status-bar tap scrolls it back to the top, and pull-to-
@@ -94,13 +130,33 @@ class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
           // manquait au fil — y monte avec elle.
           PdlPinnedToolbar(
             padding: EdgeInsets.zero,
-            child: _FeedToolbar(
+            child: FeedToolbar(
               search: search,
               selectedType: type,
+              selectedScope: minRole,
+              showScope: widget.teamSlug == null,
               onSearchChanged: _setSearch,
               onTypeSelected: _setType,
+              onScopeSelected: _setScope,
             ),
           ),
+          if (widget.showSectionHeader)
+            SliverToBoxAdapter(
+              child: ContentWidthConstraint(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: PdlSectionHeader(
+                  title: 'home.latestPublications'.tr(),
+                  count: ref
+                      .watch(publicationFeedCountProvider(key))
+                      .maybeWhen(
+                        data: (int total) =>
+                            'home.publicationCount'.plural(total),
+                        orElse: () => null,
+                      ),
+                  padding: EdgeInsets.zero,
+                ),
+              ),
+            ),
           ..._buildContentSlivers(context, state, notifier, search),
           const SliverPadding(padding: EdgeInsets.only(bottom: 32)),
         ],
@@ -225,17 +281,27 @@ class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
 /// Aucune hauteur n'y est écrite. C'est la contrepartie de F-DE-3 côté barre :
 /// [PdlPinnedToolbar] mesure ce qu'on lui donne, à condition qu'on ne lui
 /// donne rien de figé.
-class _FeedToolbar extends StatelessWidget {
+class FeedToolbar extends StatelessWidget {
   final String? search;
   final PublicationType? selectedType;
+
+  /// Portée courante ; ignorée quand [showScope] est faux.
+  final MinRole? selectedScope;
+  final bool showScope;
+
   final ValueChanged<String?> onSearchChanged;
   final ValueChanged<PublicationType?> onTypeSelected;
+  final ValueChanged<MinRole?> onScopeSelected;
 
-  const _FeedToolbar({
+  const FeedToolbar({
+    super.key,
     required this.search,
     required this.selectedType,
     required this.onSearchChanged,
     required this.onTypeSelected,
+    required this.onScopeSelected,
+    this.selectedScope,
+    this.showScope = false,
   });
 
   @override
@@ -252,9 +318,12 @@ class _FeedToolbar extends StatelessWidget {
             onChanged: onSearchChanged,
           ),
         ),
-        _PublicationTypeChips(
-          selected: selectedType,
-          onSelected: onTypeSelected,
+        _FilterChips(
+          selectedType: selectedType,
+          selectedScope: selectedScope,
+          showScope: showScope,
+          onTypeSelected: onTypeSelected,
+          onScopeSelected: onScopeSelected,
         ),
         const SizedBox(height: 10),
       ],
@@ -262,14 +331,23 @@ class _FeedToolbar extends StatelessWidget {
   }
 }
 
-class _PublicationTypeChips extends StatelessWidget {
-  final PublicationType? selected;
-  final ValueChanged<PublicationType?> onSelected;
+class _FilterChips extends StatelessWidget {
+  final PublicationType? selectedType;
+  final MinRole? selectedScope;
+  final bool showScope;
+  final ValueChanged<PublicationType?> onTypeSelected;
+  final ValueChanged<MinRole?> onScopeSelected;
 
-  const _PublicationTypeChips({
-    required this.selected,
-    required this.onSelected,
+  const _FilterChips({
+    required this.selectedType,
+    required this.selectedScope,
+    required this.showScope,
+    required this.onTypeSelected,
+    required this.onScopeSelected,
   });
+
+  PublicationType? get selected => selectedType;
+  ValueChanged<PublicationType?> get onSelected => onTypeSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -279,6 +357,16 @@ class _PublicationTypeChips extends StatelessWidget {
     // et mesure sa hauteur au lieu de la figer.
     return PdlChipRow(
       children: [
+        // La portée d'abord, en chip de tri : elle décide de *quoi* on parle
+        // avant que le type ne décide *de quel type*.
+        if (showScope)
+          PdlChip(
+            label: _scopeLabel(selectedScope),
+            icon: Icons.tune,
+            sortStyle: true,
+            selected: selectedScope != null,
+            onTap: () => _openScopeSheet(context),
+          ),
         _chip(label: 'home.feed.all'.tr(), value: null),
         _chip(
           label: 'rides.title'.tr(),
@@ -297,6 +385,46 @@ class _PublicationTypeChips extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  /// Le libellé de la chip de portée : « Toutes les équipes » par défaut, le
+  /// rôle minimum sinon.
+  String _scopeLabel(MinRole? scope) => switch (scope) {
+    MinRole.member => 'roles.member'.tr(),
+    MinRole.organizer => 'roles.organizer'.tr(),
+    MinRole.admin => 'roles.admin'.tr(),
+    _ => 'home.scopeAllTeams'.tr(),
+  };
+
+  /// La portée s'ouvre en feuille plutôt qu'en quatre chips : elle est
+  /// exclusive, et quatre chips de plus repousseraient les types hors écran.
+  Future<void> _openScopeSheet(BuildContext context) async {
+    const List<MinRole?> options = <MinRole?>[
+      null,
+      MinRole.member,
+      MinRole.organizer,
+      MinRole.admin,
+    ];
+    final int? picked = await PdlSheet.show<int>(
+      context: context,
+      builder: (BuildContext sheetContext) => PdlSheet(
+        title: 'home.scope'.tr(),
+        children: <Widget>[
+          for (int i = 0; i < options.length; i++)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: PdlSettingRow(
+                title: _scopeLabel(options[i]),
+                trailing: options[i] == selectedScope
+                    ? Icon(Icons.check, color: context.pdl.primary)
+                    : null,
+                onTap: () => Navigator.of(sheetContext).pop(i),
+              ),
+            ),
+        ],
+      ),
+    );
+    if (picked != null) onScopeSelected(options[picked]);
   }
 
   Widget _chip({

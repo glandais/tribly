@@ -196,6 +196,23 @@
         "title": "Aucun résultat",
         "message": "Aucune publication ne correspond à « {search} »."
       }
+    },
+    "nextRide": "Ma prochaine sortie",
+    "viewRide": "Voir la sortie",
+    "explore": "Explorer",
+    "groupDeparture": "{group} — départ {time}",
+    "upcoming": "À venir",
+    "upcomingScope": "30 prochains jours · toutes les équipes",
+    "latestPublications": "Dernières publications",
+    "searchPlaceholder": "Rechercher par titre ou description...",
+    "scopeAllTeams": "Toutes les équipes",
+    "typeAll": "Tout",
+    "chooseGroup": "Choisir un groupe",
+    "scope": "Portée",
+    "publicationCount": {
+      "zero": "Aucune publication",
+      "one": "{} publication",
+      "other": "{} publications"
     }
   },
   "teams": {
@@ -328,6 +345,11 @@
       "startPlace": "Lieu de départ",
       "endPlace": "Lieu d'arrivée",
       "viewRoute": "Voir le parcours"
+    },
+    "stageCount": {
+      "zero": "Aucune étape",
+      "one": "{} étape",
+      "other": "{} étapes"
     }
   },
   "routes": {

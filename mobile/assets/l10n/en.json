@@ -196,6 +196,23 @@
         "title": "No results",
         "message": "No publication matches “{search}”."
       }
+    },
+    "nextRide": "My next ride",
+    "viewRide": "View ride",
+    "explore": "Explore",
+    "groupDeparture": "{group} — departure {time}",
+    "upcoming": "Upcoming",
+    "upcomingScope": "next 30 days · all teams",
+    "latestPublications": "Latest publications",
+    "searchPlaceholder": "Search by title or description...",
+    "scopeAllTeams": "All teams",
+    "typeAll": "All",
+    "chooseGroup": "Choose a group",
+    "scope": "Scope",
+    "publicationCount": {
+      "zero": "No publication",
+      "one": "{} publication",
+      "other": "{} publications"
     }
   },
   "teams": {
@@ -328,6 +345,11 @@
       "startPlace": "Start place",
       "endPlace": "End place",
       "viewRoute": "View route"
+    },
+    "stageCount": {
+      "zero": "No stage",
+      "one": "{} stage",
+      "other": "{} stages"
     }
   },
   "routes": {
