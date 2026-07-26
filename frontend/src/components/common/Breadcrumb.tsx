@@ -30,18 +30,62 @@ export function Breadcrumb({ items, showBackLink = false }: BreadcrumbProps) {
   // For back link: show link to previous item
   const previousItem = items.length > 1 ? items[items.length - 2] : null
 
+  // Below `sm` the trail used to collapse to a single back link, which cost the mobile user
+  // every sibling tab of the level — the very silo this port is meant to break. Keep the last
+  // two levels instead, with their overflow menu.
+  const compactItems = items.slice(-2)
+
+  const renderItem = (item: BreadcrumbItemType, isLast: boolean, key: string) => (
+    <Fragment key={key}>
+      <Group gap={4}>
+        {item.path && !isLast ? (
+          <Anchor component={Link} to={item.path} size="sm">
+            {item.label}
+          </Anchor>
+        ) : (
+          <Text size="sm" c="dimmed">
+            {item.label}
+          </Text>
+        )}
+
+        {item.subItems && item.subItems.length > 0 && (
+          <Menu shadow="md" width={200}>
+            <Menu.Target>
+              <ActionIcon variant="subtle" size="xs" aria-label={t('aria.more')}>
+                <IconDots size={14} />
+              </ActionIcon>
+            </Menu.Target>
+            <Menu.Dropdown>
+              {item.subItems.map((subItem, bIndex) =>
+                subItem.path ? (
+                  <Menu.Item key={bIndex} component={Link} to={subItem.path}>
+                    {subItem.label}
+                  </Menu.Item>
+                ) : (
+                  <Menu.Item key={bIndex} disabled>
+                    {subItem.label}
+                  </Menu.Item>
+                )
+              )}
+            </Menu.Dropdown>
+          </Menu>
+        )}
+      </Group>
+    </Fragment>
+  )
+
   return (
     <Box mb="lg">
       <nav aria-label={t('aria.breadcrumb')}>
-        {/* Back link - shown on mobile always, on desktop only when showBackLink is true */}
+        {/* Explicit back link — replaces the trail entirely when a page asks for it */}
         {previousItem && previousItem.path && (
           <Anchor
             component={Link}
             to={previousItem.path}
             c="dimmed"
             size="sm"
-            mb={showBackLink ? 'xs' : undefined}
-            display={showBackLink ? 'inline-flex' : { base: 'inline-flex', sm: 'none' }}
+            mb="xs"
+            display={showBackLink ? 'inline-flex' : 'none'}
             style={{ alignItems: 'center' }}
           >
             <IconChevronLeft size={16} style={{ marginRight: 4 }} />
@@ -49,51 +93,20 @@ export function Breadcrumb({ items, showBackLink = false }: BreadcrumbProps) {
           </Anchor>
         )}
 
-        {/* Desktop: Full breadcrumb path (hidden when showBackLink is true to avoid redundancy) */}
+        {/* Full path from `sm`; last two levels below it. */}
         {!showBackLink && (
-          <Breadcrumbs visibleFrom="sm">
-            {items.map((item, index) => {
-              const isLast = index === items.length - 1
-              return (
-                <Fragment key={`bc-${index}`}>
-                  <Group gap={4}>
-                    {item.path && !isLast ? (
-                      <Anchor component={Link} to={item.path} size="sm">
-                        {item.label}
-                      </Anchor>
-                    ) : (
-                      <Text size="sm" c="dimmed">
-                        {item.label}
-                      </Text>
-                    )}
-
-                    {item.subItems && item.subItems.length > 0 && (
-                      <Menu shadow="md" width={200}>
-                        <Menu.Target>
-                          <ActionIcon variant="subtle" size="xs" aria-label={t('aria.more')}>
-                            <IconDots size={14} />
-                          </ActionIcon>
-                        </Menu.Target>
-                        <Menu.Dropdown>
-                          {item.subItems.map((subItem, bIndex) =>
-                            subItem.path ? (
-                              <Menu.Item key={bIndex} component={Link} to={subItem.path}>
-                                {subItem.label}
-                              </Menu.Item>
-                            ) : (
-                              <Menu.Item key={bIndex} disabled>
-                                {subItem.label}
-                              </Menu.Item>
-                            )
-                          )}
-                        </Menu.Dropdown>
-                      </Menu>
-                    )}
-                  </Group>
-                </Fragment>
-              )
-            })}
-          </Breadcrumbs>
+          <>
+            <Breadcrumbs visibleFrom="sm">
+              {items.map((item, index) =>
+                renderItem(item, index === items.length - 1, `bc-${index}`)
+              )}
+            </Breadcrumbs>
+            <Breadcrumbs hiddenFrom="sm">
+              {compactItems.map((item, index) =>
+                renderItem(item, index === compactItems.length - 1, `bc-compact-${index}`)
+              )}
+            </Breadcrumbs>
+          </>
         )}
       </nav>
     </Box>

@@ -825,7 +825,7 @@ le nombre de commentaires.
 
 ---
 
-**T5.1 ☐ — Fil d'Ariane et raccourcis d'onglets en mobile**
+**T5.1 ☑ — Fil d'Ariane et raccourcis d'onglets en mobile**
 *Fichiers modifiés* : `frontend/src/components/common/Breadcrumb.tsx`.
 *Détail* : remplacer le `visibleFrom="sm"` par un rendu compact en dessous de `sm` : `Breadcrumbs`
 Mantine avec les deux derniers niveaux et un `Menu` (`IconDots`) reprenant les `subRouteIds` du
@@ -851,7 +851,7 @@ clic.
 
 ---
 
-**T5.3 ☐ — `StageTabs` horizontal en mobile**
+**T5.3 ☑ — `StageTabs` horizontal en mobile**
 *Fichiers modifiés* : `frontend/src/components/trip/StageTabs.tsx`,
 `frontend/src/components/trip/TripLayout.tsx`, `frontend/src/index.css` (si une règle
 `.trip-layout-content` doit accompagner le changement).
