@@ -415,7 +415,9 @@
       "asc": "Croissant",
       "desc": "Décroissant"
     },
-    "exportFit": "FIT"
+    "exportFit": "FIT",
+    "profileLoading": "Chargement du profil altimétrique...",
+    "profileUnavailable": "Profil indisponible"
   },
   "calendar": {
     "title": "Calendrier",

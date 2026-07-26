@@ -79,4 +79,25 @@ class RouteRepository {
   Future<RouteDetailDto> getRoute(String teamSlug, String routeSlug) {
     return _routesClient.getRoute(teamSlug: teamSlug, routeSlug: routeSlug);
   }
+
+  /// Le détail d'un parcours, géométrie **bornée**.
+  ///
+  /// `simplify` (tolérance de Douglas-Peucker en mètres) et `points` (plafond
+  /// de sommets) existent au contrat et n'étaient pas envoyés : un parcours de
+  /// 150 km descendait plusieurs mégaoctets de coordonnées pour dessiner un
+  /// tracé de 300 px de large. L'appelant choisit sa finesse — 15 m / 1 500
+  /// points pour un aperçu multi-tracés, 5 m / 3 000 pour la fiche.
+  Future<RouteDetailDto> getRouteDetail(
+    String teamSlug,
+    String routeSlug, {
+    double? simplify,
+    int? points,
+  }) {
+    return _routesClient.getRoute(
+      teamSlug: teamSlug,
+      routeSlug: routeSlug,
+      simplify: simplify,
+      points: points,
+    );
+  }
 }

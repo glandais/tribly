@@ -106,12 +106,18 @@ class PdlMapPill extends StatelessWidget {
     super.key,
     required this.label,
     this.icon,
+    this.leading,
     this.onPressed,
     this.semanticLabel,
   });
 
   final String label;
   final IconData? icon;
+
+  /// Élément de tête quand une icône ne suffit pas — le trait de rappel de
+  /// couleur du tracé sélectionné, sur la carte d'une sortie. Prime sur [icon].
+  final Widget? leading;
+
   final VoidCallback? onPressed;
   final String? semanticLabel;
 
@@ -124,7 +130,10 @@ class PdlMapPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          if (icon != null) ...<Widget>[
+          if (leading != null) ...<Widget>[
+            leading!,
+            const SizedBox(width: 6),
+          ] else if (icon != null) ...<Widget>[
             Icon(icon, size: 16, color: c.text),
             const SizedBox(width: 6),
           ],

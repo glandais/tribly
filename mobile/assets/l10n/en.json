@@ -415,7 +415,9 @@
       "asc": "Ascending",
       "desc": "Descending"
     },
-    "exportFit": "FIT"
+    "exportFit": "FIT",
+    "profileLoading": "Loading elevation profile...",
+    "profileUnavailable": "Profile unavailable"
   },
   "calendar": {
     "title": "Calendar",
