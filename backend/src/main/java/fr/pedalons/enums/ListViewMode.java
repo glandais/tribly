@@ -11,10 +11,17 @@ import org.jspecify.annotations.Nullable;
  * two-line summaries. {@link #COMPACT} lets a client say it will not render them.
  *
  * <p>The distinction is deliberately <b>not</b> a different schema: the same DTO comes back either
- * way, with {@code media.markdown} empty and {@code media.assets} empty rather than absent. Making
+ * way, with {@code media.markdown} empty and {@code media.assets} trimmed rather than absent. Making
  * those two fields optional in the contract would have made them nullable in every generated client,
  * including the ones that send {@code MediaDto} back in a request body, for no gain a client can
  * actually use — {@code excerpt} and {@code thumbnailUrl} are what a compact row reads.
+ *
+ * <p>Trimmed, not emptied: a compact row keeps the logo, the first image and the themed thumbnails,
+ * because no list DTO hoists them. {@code thumbnailUrl} is the map preview on a ride or a trip, not
+ * the header photo; {@code RouteDto} collapses its themed thumbnails into one light-else-dark URL,
+ * so a card that themes its picture cannot rebuild the dark one; and no {@code logoUrl} exists
+ * outside {@code TeamDetailDto}. An inventory emptied wholesale left a card unable to draw its own
+ * logo, which made the mode unusable for the lists it was built for.
  */
 public enum ListViewMode {
 
@@ -22,8 +29,10 @@ public enum ListViewMode {
   FULL,
 
   /**
-   * Row summaries only: {@code media.markdown} comes back empty and {@code media.assets} empty.
-   * Read {@code excerpt} and {@code thumbnailUrl} instead.
+   * Row summaries only: {@code media.markdown} comes back empty and {@code media.assets} trimmed to
+   * the logo, the first image and the themed thumbnails. The markdown body, the attachments, the GPX
+   * and FIT files and every image past the first are dropped. Read {@code excerpt} and {@code
+   * thumbnailUrl} instead.
    */
   COMPACT;
 

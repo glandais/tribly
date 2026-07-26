@@ -35,8 +35,10 @@ public class PublicationResource {
   /** Shared by every list endpoint that accepts {@code view}, so they cannot describe it apart. */
   static final String VIEW_PARAM_DESCRIPTION =
       "How much of each row to send. COMPACT (case-insensitive) returns media.markdown empty and"
-          + " media.assets empty — read 'excerpt' and 'thumbnailUrl' instead, both of which are"
-          + " present either way. Omitted, or FULL, is the previous behaviour, byte for byte.";
+          + " media.assets trimmed to the logo, the first image and the themed thumbnails — read"
+          + " 'excerpt' and 'thumbnailUrl' instead, both of which are present either way. The"
+          + " markdown body, the attachments, the GPX and FIT files and every image past the first"
+          + " are dropped. Omitted, or FULL, is the previous behaviour, byte for byte.";
 
   @Inject PublicationService publicationService;
 

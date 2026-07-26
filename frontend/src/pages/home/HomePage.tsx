@@ -71,6 +71,9 @@ export function HomePage() {
       type: publicationFilterToType[filters.filter],
       minRole: membershipToMinRole[filters.membership],
       ...publicationScopeToParams(filters.scope, nowIso),
+      // The feed card draws a title, an excerpt and a picture — it has no use for the full
+      // markdown body nor for the attachments, GPX and FIT of twelve publications.
+      view: ListViewMode.COMPACT,
     }),
     [filters, nowIso]
   )

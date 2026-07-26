@@ -1,4 +1,5 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
+import { ListViewMode } from '@/api/dto'
 import { Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { keepPreviousData } from '@tanstack/react-query'
@@ -36,16 +37,18 @@ export function RouteListPage() {
   const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },
   })
-  const { data: routesData, isLoading: isLoadingRoutes } = useListRoutes(teamSlug!, filters, {
+  const apiParams = useMemo(() => ({ ...filters, view: ListViewMode.COMPACT }), [filters])
+
+  const { data: routesData, isLoading: isLoadingRoutes } = useListRoutes(teamSlug!, apiParams, {
     query: { enabled: !!teamSlug, placeholderData: keepPreviousData },
   })
 
   const prefetchPage = useCallback(
     (prefetchPageNum: number) => ({
-      queryKey: getListRoutesQueryKey(teamSlug!, { ...filters, page: prefetchPageNum }),
-      queryFn: () => listRoutes(teamSlug!, { ...filters, page: prefetchPageNum }),
+      queryKey: getListRoutesQueryKey(teamSlug!, { ...apiParams, page: prefetchPageNum }),
+      queryFn: () => listRoutes(teamSlug!, { ...apiParams, page: prefetchPageNum }),
     }),
-    [teamSlug, filters]
+    [teamSlug, apiParams]
   )
 
   const { totalPages } = usePaginatedQuery({

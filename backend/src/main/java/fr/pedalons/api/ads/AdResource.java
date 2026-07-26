@@ -90,9 +90,11 @@ public class AdResource {
       @Parameter(
               description =
                   "How much of each row to send. COMPACT (case-insensitive) returns media.markdown"
-                      + " empty and media.assets empty — read 'excerpt', 'thumbnailUrl' and"
-                      + " 'images' instead, all of which are present either way. Omitted, or FULL,"
-                      + " is the previous behaviour, byte for byte.")
+                      + " empty and media.assets trimmed to the logo, the first image and the"
+                      + " themed thumbnails — read 'excerpt', 'thumbnailUrl' and 'images' instead,"
+                      + " all of which are present either way. The markdown body, the attachments,"
+                      + " the GPX and FIT files and every image past the first are dropped."
+                      + " Omitted, or FULL, is the previous behaviour, byte for byte.")
           @QueryParam("view")
           @Nullable ListViewMode view,
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,

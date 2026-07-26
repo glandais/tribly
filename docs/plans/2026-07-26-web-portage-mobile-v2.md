@@ -697,7 +697,7 @@ bloc d'erreur à la place de la carte.
 
 ---
 
-**T3.1 ▶ — Passer les listes en `view=COMPACT`** *(première moitié livrée, seconde bloquée)*
+**T3.1 ☑ — Passer les listes en `view=COMPACT`**
 *Fichiers modifiés* : `frontend/src/pages/home/HomePage.tsx`,
 `frontend/src/pages/publication/PublicationListPage.tsx`,
 `frontend/src/components/route/RouteListContent.tsx` (et ses deux pages appelantes),
@@ -713,22 +713,17 @@ bloc d'erreur à la place de la carte.
 (onglet réseau) et aucune carte ne perd son extrait ni sa vignette ; le détail (`getRide`,
 `getPost`, `getTrip`) reste en `FULL`.
 
-*État réel.* La première moitié est livrée : `CardDescription` lit `excerpt` (repli markdown),
-`CardImage` accepte `thumbnailUrl`, `RouteCard` retombe dessus quand l'asset thémé manque. La
-bascule des listes en `COMPACT` est **bloquée par le contrat**, et le §2.4 avait manqué le cas :
-`MediaDto.compact()` (backend) renvoie `AssetsDto.builder().build()`, un inventaire **entièrement
-vide** — `logo` compris. Or `PublicationCard` et `RouteCard` rendent un `EntityLogo` tiré de
-`media.assets.logo`, et **aucun** DTO de liste ne hisse de `logoUrl` : le seul du contrat est sur
-`TeamDetailDto`. Passer en `COMPACT` aujourd'hui effacerait donc silencieusement le logo de chaque
-carte. Second manque, indépendant : `RideDto.thumbnailUrl` / `TripDto.thumbnailUrl` valent l'aperçu
-**cartographique** (`thumbnailLightUrl` sinon `thumbnailDarkUrl`), déjà rendu à part par
-`RouteThumbnail` — ils ne peuvent pas servir de photo d'en-tête, contrairement à
-`PostDto.thumbnailUrl` qui est bien la première image du billet.
+*Blocage levé côté contrat (1.5.1).* Le §2.4 avait manqué un cas : `MediaDto.compact()` renvoyait un
+inventaire d'assets **entièrement vide**, logo compris, alors qu'aucun DTO de liste ne hisse de
+`logoUrl` — le seul du contrat est sur `TeamDetailDto`. Basculer en `COMPACT` aurait effacé
+l'`EntityLogo` de chaque carte. Deux autres champs manquaient de même : `RideDto.thumbnailUrl` et
+`TripDto.thumbnailUrl` valent l'aperçu **cartographique**, pas la photo d'en-tête, et `RouteDto`
+réduit ses deux vignettes thémées à une seule URL clair-sinon-sombre, ce qui privait la carte de
+parcours de sa vignette sombre en thème sombre.
 
-Débloquer suppose une évolution du contrat — un `logoUrl` hissé sur `RideDto` / `PostDto` /
-`TripDto` / `RouteDto` (et `AdDto`, même défaut hors périmètre), plus un champ d'image d'en-tête
-distinct de l'aperçu cartographique sur `RideDto` / `TripDto`. C'est un lot backend à instruire
-séparément ; tant qu'il n'est pas livré, les listes restent en `FULL`.
+Plutôt que de hisser cinq champs redondants, `compact()` ne vide plus l'inventaire : il le **rogne**
+à ce qu'une ligne de liste dessine — logo, première image, vignettes claire et sombre — et continue
+de laisser tomber tout le volume : corps markdown, pièces jointes, GPX, FIT, images suivantes.
 
 ---
 

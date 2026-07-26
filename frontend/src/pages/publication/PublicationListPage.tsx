@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react'
+import { ListViewMode } from '@/api/dto'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { IconPlus, IconNews, IconChevronDown } from '@tabler/icons-react'
@@ -68,6 +69,7 @@ export function PublicationListPage() {
       size: filters.size,
       type: publicationFilterToType[filters.filter],
       ...publicationScopeToParams(filters.scope, nowIso),
+      view: ListViewMode.COMPACT,
     }),
     [filters, nowIso]
   )

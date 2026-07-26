@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react'
+import { ListViewMode } from '@/api/dto'
 import { keepPreviousData } from '@tanstack/react-query'
 import { Box, Group, Stack } from '@mantine/core'
 import {
@@ -45,7 +46,11 @@ export function AllRoutesPage() {
   // `membership` is the page's own value; the API wants a MinRole.
   const apiParams = useMemo(() => {
     const { membership, ...rest } = filters
-    return { ...rest, minRole: membershipToMinRole[membership] }
+    return {
+      ...rest,
+      minRole: membershipToMinRole[membership],
+      view: ListViewMode.COMPACT,
+    }
   }, [filters])
 
   const {

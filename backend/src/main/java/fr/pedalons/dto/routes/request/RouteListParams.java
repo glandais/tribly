@@ -38,9 +38,11 @@ public class RouteListParams extends RouteFilterParams {
   @Parameter(
       description =
           "How much of each row to send. COMPACT (case-insensitive) returns media.markdown empty"
-              + " and media.assets empty — read 'excerpt' and 'thumbnailUrl' instead, both of which"
-              + " are present either way. Omitted, or FULL, is the previous behaviour, byte for"
-              + " byte.")
+              + " and media.assets trimmed to the logo, the first image and the themed"
+              + " thumbnails — read 'excerpt' and 'thumbnailUrl' instead, both of which are present"
+              + " either way. The markdown body, the attachments, the GPX and FIT files and every"
+              + " image past the first are dropped. Omitted, or FULL, is"
+              + " the previous behaviour, byte for byte.")
   @QueryParam("view")
   public @Nullable ListViewMode view;
 
