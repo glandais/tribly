@@ -1,7 +1,7 @@
-import { Navigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { IconUsers, IconCalendar } from '@tabler/icons-react'
-import { Box, Group, Paper, SimpleGrid, Stack, Text, Title } from '@mantine/core'
+import { IconUsers, IconCalendar, IconBike, IconMap } from '@tabler/icons-react'
+import { Box, Group, Paper, SimpleGrid, Stack, Text, Title, UnstyledButton } from '@mantine/core'
 import { paths } from '../../config/paths'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
@@ -47,7 +47,8 @@ export function TeamAboutPage() {
 
           {/* Stats */}
           <Box pt="md" style={{ borderTop: '1px solid var(--mantine-color-default-border)' }}>
-            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+            <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="md">
+              {/* Not a link: listing members is admin-only server-side (USER_TEAM/LIST). */}
               <Group gap="sm">
                 <Box style={{ flexShrink: 0 }}>
                   <IconUsers size={20} color="var(--mantine-color-dimmed)" />
@@ -61,6 +62,38 @@ export function TeamAboutPage() {
                   </Text>
                 </Stack>
               </Group>
+
+              <UnstyledButton component={Link} to={paths.team(team.slug)}>
+                <Group gap="sm">
+                  <Box style={{ flexShrink: 0 }}>
+                    <IconBike size={20} color="var(--mantine-color-dimmed)" />
+                  </Box>
+                  <Stack gap={0}>
+                    <Text size="sm" c="dimmed">
+                      {t('teams.detail.about.upcomingRides')}
+                    </Text>
+                    <Text size="lg" fw={500}>
+                      {team.upcomingRideCount}
+                    </Text>
+                  </Stack>
+                </Group>
+              </UnstyledButton>
+
+              <UnstyledButton component={Link} to={paths.routes(team.slug)}>
+                <Group gap="sm">
+                  <Box style={{ flexShrink: 0 }}>
+                    <IconMap size={20} color="var(--mantine-color-dimmed)" />
+                  </Box>
+                  <Stack gap={0}>
+                    <Text size="sm" c="dimmed">
+                      {t('teams.detail.about.routes')}
+                    </Text>
+                    <Text size="lg" fw={500}>
+                      {team.routeCount}
+                    </Text>
+                  </Stack>
+                </Group>
+              </UnstyledButton>
 
               {team.createdAt && (
                 <Group gap="sm">

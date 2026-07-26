@@ -891,7 +891,7 @@ premier tiers de l'écran.
 
 ---
 
-**T5.4 ☐ — Compléments d'équipe et de voyage**
+**T5.4 ▶ — Compléments d'équipe et de voyage** *(trombinoscope public bloqué)*
 *Fichiers* : `frontend/src/pages/team/TeamAboutPage.tsx` (modifié — rangée de trois statistiques
 cliquables : `N membres`, `N sorties à venir` via `TeamDetailDto.upcomingRideCount`, `N parcours`
 via `TeamDetailDto.routeCount`), `contracts/routes.yaml` + `frontend/src/config/routes.config.ts`
@@ -905,6 +905,23 @@ via `TeamDetailDto.routeCount`), `contracts/routes.yaml` + `frontend/src/config/
 *Critère de fin* : « N membres » de la page À propos est cliquable et mène à une liste paginée
 accessible à un membre non-admin ; le détail d'un voyage affiche distance totale, D+ cumulé et date
 de fin.
+
+*État réel.* Livré : la rangée de statistiques (membres, sorties à venir, parcours) avec les deux
+dernières cliquables, et les compléments de voyage — distance totale, D+ cumulé, date de fin,
+participants en avatars ouvrant la feuille.
+
+**Trombinoscope public : bloqué, et l'angle mort du §5 est confirmé.**
+`UserTeamAccessChecker` (backend) réserve `USER_TEAM`/`LIST` aux **administrateurs**
+(`case READ, LIST, … -> teamRole != null && teamRole.isAdmin()`). `GET /api/teams/{teamSlug}/members`
+n'est donc pas lisible par un membre ordinaire, et la dégradation prévue s'applique : « N membres »
+reste non cliquable.
+
+L'ouvrir suppose une décision de sécurité, pas un portage : `MemberDto` ne porte que
+`PublicUserDto` (id, nom affiché, avatar) — aucune adresse — mais le paramètre `search` de
+l'endpoint filtre **par nom ou par e-mail**. L'ouvrir tel quel donnerait à tout membre un oracle
+d'énumération : saisir une adresse et voir si un coéquipier revient. Il faudrait donc, au minimum,
+restreindre `search` au nom pour les non-administrateurs avant d'élargir l'autorisation. À
+instruire séparément.
 
 ---
 

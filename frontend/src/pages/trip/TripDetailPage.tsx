@@ -5,11 +5,17 @@ import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import { paths } from '../../config/paths'
 import { ErrorBoundary } from '../../components/common/ErrorBoundary'
+import { UserAvatarGroup } from '../../components/common/UserAvatar'
+import { ParticipantListModal } from '../../components/ride/ParticipantListModal'
+import { useUnits } from '../../hooks/useUnits'
 import {
   IconCalendar,
   IconUsers,
   IconPencil,
   IconStack2,
+  IconArrowsMaximize,
+  IconArrowUp,
+  IconCalendarCheck,
   IconChevronDown,
 } from '@tabler/icons-react'
 import {
@@ -24,6 +30,7 @@ import {
   Title,
   Text,
   Badge,
+  UnstyledButton,
   Alert,
   Anchor,
   Skeleton,
@@ -76,6 +83,8 @@ export function TripDetailPage() {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [showUncancelConfirm, setShowUncancelConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showParticipants, setShowParticipants] = useState(false)
+  const { distance, elevation } = useUnits()
 
   const queryClient = useQueryClient()
   const navigate = useNavigate()
@@ -385,6 +394,30 @@ export function TripDetailPage() {
               {t('trips.card.stageCount', { count: trip.stageCount })}
             </Text>
           </Group>
+          {trip.totalDistance !== undefined && (
+            <Group gap="xs">
+              <IconArrowsMaximize size={16} />
+              <Text size="sm" c="dimmed">
+                {distance(trip.totalDistance)}
+              </Text>
+            </Group>
+          )}
+          {trip.totalElevationGain !== undefined && (
+            <Group gap="xs">
+              <IconArrowUp size={16} />
+              <Text size="sm" c="dimmed">
+                {elevation(trip.totalElevationGain)}
+              </Text>
+            </Group>
+          )}
+          {trip.endDate && (
+            <Group gap="xs">
+              <IconCalendarCheck size={16} />
+              <Text size="sm" c="dimmed">
+                {t('trips.detail.endDate', { date: formatDateTime(trip.endDate) })}
+              </Text>
+            </Group>
+          )}
         </Group>
       </Paper>
 
@@ -441,13 +474,17 @@ export function TripDetailPage() {
               <Title order={3} mb="md">
                 {t('trips.detail.participants.title')}
               </Title>
-              <Group gap="xs">
-                {trip.participants.map((participant) => (
-                  <Badge key={participant.id} variant="light" color="gray" size="lg">
-                    {participant.displayName}
-                  </Badge>
-                ))}
-              </Group>
+              <UnstyledButton
+                onClick={() => setShowParticipants(true)}
+                aria-label={t('trips.detail.participants.viewAll')}
+              >
+                <Group gap="sm">
+                  <UserAvatarGroup users={trip.participants} max={8} size="md" />
+                  <Text size="sm" c="dimmed">
+                    {t('participantCount', { count: trip.participantCount })}
+                  </Text>
+                </Group>
+              </UnstyledButton>
             </Paper>
           )}
 
@@ -489,6 +526,13 @@ export function TripDetailPage() {
       </TripLayout>
 
       {/* Confirmation Dialogs */}
+      <ParticipantListModal
+        isOpen={showParticipants}
+        onClose={() => setShowParticipants(false)}
+        participants={trip.participants ?? []}
+        groupName={trip.name}
+      />
+
       <ConfirmDialog
         isOpen={showUnpublishConfirm}
         onClose={() => setShowUnpublishConfirm(false)}
