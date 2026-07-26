@@ -1,0 +1,290 @@
+import 'package:flutter/material.dart';
+
+import '../../theme/pdl_colors.dart';
+import '../../theme/pdl_icons.dart';
+import '../../theme/pdl_tokens.dart';
+import '../../theme/pdl_typography.dart';
+import '../pdl_button.dart';
+import '../pdl_skeleton.dart';
+import 'elevation_bars_painter.dart';
+import 'elevation_cursor_painter.dart';
+import 'elevation_samples.dart';
+
+/// Le libellé d'une graduation de l'axe.
+///
+/// [isLast] marque la dernière, **seule suffixée de l'unité** :
+/// « 0,0 · 11,6 · 23,2 · 34,7 · 46,3 km ».
+typedef ElevationAxisLabel =
+    String Function(double meters, {required bool isLast});
+
+/// Le libellé de l'info-bulle : « 28,7 km · 74 m · 4,1 % ».
+typedef ElevationTipLabel = String Function(ElevationReading reading);
+
+/// Le profil altimétrique : un histogramme colorisé par pente, un réticule et
+/// une info-bulle.
+///
+/// **Peinture maison, deux couches** (§1.3.1 du plan). Le painter du bas ne
+/// dépend que des données et n'est jamais rappelé pendant un glissement ; le
+/// painter du haut écoute un `ValueListenable<double?>` et ne dessine que le
+/// trait et la bulle. Chacun est isolé dans son `RepaintBoundary`, sans quoi
+/// la peinture du réticule remonterait jusqu'à la première frontière commune
+/// et redescendrait repeindre les barres.
+///
+/// **`cursorDistance` n'est pas un provider.** C'est un `ValueNotifier` qui vit
+/// dans le `State` de l'écran, partagé tel quel avec la carte : on ne
+/// reconstruit pas un arbre Riverpod à 60 fps. Le laisser nul fait vivre le
+/// réticule en interne, ce qui suffit à un profil qui n'est synchronisé avec
+/// rien.
+///
+/// `core/pdl` ne formate ni ne traduit : [axisLabel] et [tipLabel] rendent les
+/// valeurs dans l'unité choisie, et les libellés d'état sont des `String`.
+class PdlElevationProfile extends StatefulWidget {
+  /// Le profil chargé.
+  const PdlElevationProfile({
+    super.key,
+    required ElevationSamples this.samples,
+    required ElevationAxisLabel this.axisLabel,
+    required ElevationTipLabel this.tipLabel,
+    this.height = PdlMetrics.elevationMedium,
+    this.cursorDistance,
+    this.onCursorChanged,
+  }) : _mode = _ElevationMode.data,
+       label = null,
+       actionLabel = null,
+       onRetry = null;
+
+  /// En cours de chargement : un squelette de la hauteur cible et un libellé.
+  ///
+  /// **Le titre et les trois statistiques de l'écran s'affichent avant** : le
+  /// profil est un enrichissement, il ne retient pas le reste de la page.
+  const PdlElevationProfile.loading({
+    super.key,
+    required String this.label,
+    this.height = PdlMetrics.elevationMedium,
+  }) : _mode = _ElevationMode.loading,
+       samples = null,
+       axisLabel = null,
+       tipLabel = null,
+       cursorDistance = null,
+       onCursorChanged = null,
+       actionLabel = null,
+       onRetry = null;
+
+  /// Échec du **seul** profil : une ligne discrète et un « Réessayer ».
+  ///
+  /// Jamais un écran d'erreur global — la fiche du parcours reste lisible sans
+  /// son histogramme.
+  const PdlElevationProfile.failed({
+    super.key,
+    required String this.label,
+    required String this.actionLabel,
+    this.onRetry,
+    this.height = PdlMetrics.elevationMedium,
+  }) : _mode = _ElevationMode.failed,
+       samples = null,
+       axisLabel = null,
+       tipLabel = null,
+       cursorDistance = null,
+       onCursorChanged = null;
+
+  final _ElevationMode _mode;
+
+  final ElevationSamples? samples;
+
+  /// [PdlMetrics.elevationCompact] · [PdlMetrics.elevationMedium] ·
+  /// [PdlMetrics.elevationLarge].
+  final double height;
+
+  final ElevationAxisLabel? axisLabel;
+  final ElevationTipLabel? tipLabel;
+
+  /// Distance survolée, en mètres — **le seul état partagé avec la carte**.
+  final ValueNotifier<double?>? cursorDistance;
+
+  /// Notifié à chaque déplacement du réticule, y compris son effacement.
+  final ValueChanged<double?>? onCursorChanged;
+
+  /// Libellé de chargement ou d'échec.
+  final String? label;
+
+  /// Libellé de l'action de reprise.
+  final String? actionLabel;
+
+  final VoidCallback? onRetry;
+
+  @override
+  State<PdlElevationProfile> createState() => _PdlElevationProfileState();
+}
+
+enum _ElevationMode { data, loading, failed }
+
+class _PdlElevationProfileState extends State<PdlElevationProfile> {
+  /// Réticule interne, créé **paresseusement** : quand l'écran fournit le sien,
+  /// il n'y a pas de second notifieur à tenir à jour.
+  ValueNotifier<double?>? _own;
+
+  ValueNotifier<double?> get _cursor =>
+      widget.cursorDistance ?? (_own ??= ValueNotifier<double?>(null));
+
+  @override
+  void dispose() {
+    _own?.dispose();
+    super.dispose();
+  }
+
+  void _setCursor(double? distance) {
+    if (_cursor.value == distance) return;
+    _cursor.value = distance;
+    widget.onCursorChanged?.call(distance);
+  }
+
+  /// La boîte de l'histogramme, dont la géométrie sert à convertir un pointeur
+  /// en distance.
+  ///
+  /// Le repère vient de la boîte elle-même et non d'un `LayoutBuilder` : un
+  /// `LayoutBuilder` prend la **plus grande** taille autorisée, et le profil
+  /// occuperait alors toute la hauteur disponible.
+  final GlobalKey _chartKey = GlobalKey();
+
+  /// Traduit une position en distance cumulée.
+  ///
+  /// Hors de la boîte — sur l'axe, dans la marge — le réticule s'efface :
+  /// c'est « effacement au tap hors profil ».
+  void _handlePointer(Offset globalPosition) {
+    final RenderObject? object = _chartKey.currentContext?.findRenderObject();
+    if (object is! RenderBox || !object.hasSize) return;
+
+    final Offset local = object.globalToLocal(globalPosition);
+    final Size size = object.size;
+    if (local.dy < 0 || local.dy > size.height) {
+      _setCursor(null);
+      return;
+    }
+
+    final ElevationSamples samples = widget.samples!;
+    if (size.width <= 0 || samples.isEmpty) return;
+    final double t = (local.dx / size.width).clamp(0.0, 1.0);
+    _setCursor(t * samples.totalDistance);
+  }
+
+  @override
+  Widget build(BuildContext context) => switch (widget._mode) {
+    _ElevationMode.loading => _buildLoading(context),
+    _ElevationMode.failed => _buildFailed(context),
+    _ElevationMode.data => _buildData(context),
+  };
+
+  Widget _buildLoading(BuildContext context) => Column(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: <Widget>[
+      PdlSkeleton(height: widget.height, borderRadius: PdlRadii.mdAll),
+      const SizedBox(height: 6),
+      Text(widget.label!, style: context.pdlText.xs),
+    ],
+  );
+
+  Widget _buildFailed(BuildContext context) {
+    final PdlColors c = context.pdl;
+    return Row(
+      children: <Widget>[
+        Icon(PdlIcons.warning, size: 16, color: c.textDimmed),
+        const SizedBox(width: 6),
+        Flexible(child: Text(widget.label!, style: context.pdlText.xs)),
+        const SizedBox(width: 4),
+        PdlButton(
+          label: widget.actionLabel!,
+          variant: PdlButtonVariant.text,
+          size: PdlButtonSize.sm,
+          icon: PdlIcons.refresh,
+          onPressed: widget.onRetry,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildData(BuildContext context) {
+    final PdlColors c = context.pdl;
+    final PdlTypography t = context.pdlText;
+    final ElevationSamples samples = widget.samples!;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (TapDownDetails d) => _handlePointer(d.globalPosition),
+      onHorizontalDragStart: (DragStartDetails d) =>
+          _handlePointer(d.globalPosition),
+      onHorizontalDragUpdate: (DragUpdateDetails d) =>
+          _handlePointer(d.globalPosition),
+      // `onHorizontalDragEnd` n'efface rien : le réticule est **persistant
+      // après le relâchement**, c'est lui qui garde le marqueur de la carte
+      // en place.
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          ClipRRect(
+            borderRadius: PdlRadii.mdAll,
+            child: SizedBox(
+              key: _chartKey,
+              height: widget.height,
+              child: ColoredBox(
+                color: c.surfaceAlt,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: <Widget>[
+                    RepaintBoundary(
+                      child: CustomPaint(
+                        isComplex: true,
+                        willChange: false,
+                        painter: ElevationBarsPainter(
+                          samples: samples,
+                          neutralColor: slopeNeutral,
+                          slopeColorOf: slopeColor,
+                        ),
+                      ),
+                    ),
+                    RepaintBoundary(
+                      child: CustomPaint(
+                        willChange: true,
+                        painter: ElevationCursorPainter(
+                          samples: samples,
+                          distance: _cursor,
+                          repaint: _cursor,
+                          lineColor: c.text.withValues(alpha: 0.7),
+                          tipBackground: c.overlaySolid,
+                          tipBorder: c.borderSubtle,
+                          tipTextStyle: t.monoAxis.copyWith(color: c.text),
+                          textScaler: MediaQuery.textScalerOf(context),
+                          label: widget.tipLabel!,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                for (int i = 0; i < _axisTicks; i++)
+                  Text(
+                    widget.axisLabel!(
+                      samples.totalDistance * i / (_axisTicks - 1),
+                      isLast: i == _axisTicks - 1,
+                    ),
+                    style: t.monoAxis,
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Cinq graduations, aux quarts de la distance.
+  static const int _axisTicks = 5;
+}
