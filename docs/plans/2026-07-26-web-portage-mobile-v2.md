@@ -727,7 +727,7 @@ de laisser tomber tout le volume : corps markdown, pièces jointes, GPX, FIT, im
 
 ---
 
-**T3.2 ☐ — Commutateur de densité sur les listes de parcours**
+**T3.2 ☑ — Commutateur de densité sur les listes de parcours**
 *Fichiers* : `frontend/src/components/route/RouteRow.tsx` (créé — la ligne compacte),
 `frontend/src/components/route/RouteDensityToggle.tsx` (créé),
 `frontend/src/components/route/RouteListContent.tsx` (modifié),

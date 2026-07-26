@@ -4,6 +4,8 @@ import { IconMap } from '@tabler/icons-react'
 import { Box, Center, Paper, SimpleGrid, Stack, Text, Title } from '@mantine/core'
 import type { RouteDto } from '@/api/dto'
 import { RouteCard, RouteCardSkeleton } from '../card'
+import { RouteRow } from './RouteRow'
+import type { RouteDensity } from '@/hooks/filters/routeFilters'
 import { Pagination } from '../common/Pagination'
 import { useScrollToListTop } from '@/hooks/useScrollToListTop'
 
@@ -17,6 +19,7 @@ interface RouteListContentProps {
   totalPages: number
   onPageChange: (page: number) => void
   emptyAction?: ReactNode
+  density?: RouteDensity
 }
 
 export function RouteListContent({
@@ -29,6 +32,7 @@ export function RouteListContent({
   totalPages,
   onPageChange,
   emptyAction,
+  density = 'card',
 }: RouteListContentProps) {
   const { t } = useTranslation()
   const { listTopRef, scrollToListTop } = useScrollToListTop()
@@ -62,11 +66,19 @@ export function RouteListContent({
   if (routes && routes.length > 0) {
     return (
       <>
-        <SimpleGrid ref={listTopRef} cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
-          {routes.map((route) => (
-            <RouteCard key={route.id} route={route} showTeam={showTeam} />
-          ))}
-        </SimpleGrid>
+        {density === 'row' ? (
+          <Stack ref={listTopRef} gap="xs">
+            {routes.map((route) => (
+              <RouteRow key={route.id} route={route} />
+            ))}
+          </Stack>
+        ) : (
+          <SimpleGrid ref={listTopRef} cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
+            {routes.map((route) => (
+              <RouteCard key={route.id} route={route} showTeam={showTeam} />
+            ))}
+          </SimpleGrid>
+        )}
 
         <Box mt="xl">
           <Pagination

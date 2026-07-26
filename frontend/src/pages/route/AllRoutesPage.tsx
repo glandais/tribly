@@ -12,6 +12,7 @@ import { useRouteFilters } from '../../hooks/useRouteFilters'
 import { useMembershipDefault } from '../../hooks/useMembershipDefault'
 import {
   makeAllRouteFiltersSchema,
+  resolveRouteDensity,
   allRouteFiltersAlias,
   allRouteFiltersAlwaysSerialize,
 } from '../../hooks/filters/routeFilters'
@@ -22,6 +23,7 @@ import { HomeLayout } from '../../components/home/HomeLayout'
 import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
 import { RouteListContent } from '../../components/route/RouteListContent'
 import { ResultCount } from '@/components/common/ResultCount'
+import { RouteDensityToggle } from '@/components/route/RouteDensityToggle'
 import { RouteViewToggle } from '../../components/route/RouteViewToggle'
 
 export function AllRoutesPage() {
@@ -46,11 +48,13 @@ export function AllRoutesPage() {
   // `membership` is the page's own value; the API wants a MinRole.
   const apiParams = useMemo(() => {
     const { membership, ...rest } = filters
-    return {
+    const params = {
       ...rest,
       minRole: membershipToMinRole[membership],
       view: ListViewMode.COMPACT,
     }
+    delete params.density
+    return params
   }, [filters])
 
   const {
@@ -60,6 +64,8 @@ export function AllRoutesPage() {
   } = useListAllRoutes(apiParams, {
     query: { placeholderData: keepPreviousData },
   })
+
+  const density = resolveRouteDensity(filters.density, routesData?.total)
 
   const prefetchPage = useCallback(
     (prefetchPageNum: number) => ({
@@ -96,9 +102,16 @@ export function AllRoutesPage() {
           onOpenChange={setFiltersOpen}
         />
 
-        <ResultCount total={routesData?.total} resource="routes" />
+        <Group justify="space-between" align="center">
+          <ResultCount total={routesData?.total} resource="routes" />
+          <RouteDensityToggle
+            value={density}
+            onChange={(value) => setFilters({ density: value })}
+          />
+        </Group>
 
         <RouteListContent
+          density={density}
           routes={routesData?.routes}
           isLoading={isLoading}
           isError={isError}

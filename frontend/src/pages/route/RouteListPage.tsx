@@ -12,10 +12,15 @@ import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamLayout } from '../../components/team/TeamLayout'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { useRouteFilters } from '../../hooks/useRouteFilters'
-import { routeFiltersSchema, routeFiltersAlias } from '../../hooks/filters/routeFilters'
+import {
+  resolveRouteDensity,
+  routeFiltersSchema,
+  routeFiltersAlias,
+} from '../../hooks/filters/routeFilters'
 import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
 import { RouteListContent } from '../../components/route/RouteListContent'
 import { ResultCount } from '@/components/common/ResultCount'
+import { RouteDensityToggle } from '@/components/route/RouteDensityToggle'
 import { RouteViewToggle } from '../../components/route/RouteViewToggle'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { UploadGpxFiles } from '../../components/route/UploadGpxFiles'
@@ -26,6 +31,7 @@ export function RouteListPage() {
 
   const {
     filters,
+    setFilters,
     filtersOpen,
     setFiltersOpen,
     handleFiltersChange,
@@ -37,11 +43,18 @@ export function RouteListPage() {
   const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },
   })
-  const apiParams = useMemo(() => ({ ...filters, view: ListViewMode.COMPACT }), [filters])
+  // `density` is presentation: it must never reach the API.
+  const apiParams = useMemo(() => {
+    const params = { ...filters, view: ListViewMode.COMPACT }
+    delete params.density
+    return params
+  }, [filters])
 
   const { data: routesData, isLoading: isLoadingRoutes } = useListRoutes(teamSlug!, apiParams, {
     query: { enabled: !!teamSlug, placeholderData: keepPreviousData },
   })
+
+  const density = resolveRouteDensity(filters.density, routesData?.total)
 
   const prefetchPage = useCallback(
     (prefetchPageNum: number) => ({
@@ -99,9 +112,16 @@ export function RouteListPage() {
           onOpenChange={setFiltersOpen}
         />
 
-        <ResultCount total={routesData?.total} resource="routes" />
+        <Group justify="space-between" align="center">
+          <ResultCount total={routesData?.total} resource="routes" />
+          <RouteDensityToggle
+            value={density}
+            onChange={(value) => setFilters({ density: value })}
+          />
+        </Group>
 
         <RouteListContent
+          density={density}
           routes={routesData?.routes}
           isLoading={isLoadingRoutes}
           showTeam={false}

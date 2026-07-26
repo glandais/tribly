@@ -6,10 +6,13 @@ import { useTranslation } from 'react-i18next'
 interface RouteThumbnailProps {
   thumbnailLightUrl?: string
   thumbnailDarkUrl?: string
-  size?: 'sm' | 'md' | 'lg'
+  /** `RouteDto.thumbnailUrl` — light-else-dark, used when no themed variant is available. */
+  fallbackUrl?: string
+  size?: 'xs' | 'sm' | 'md' | 'lg'
 }
 
 const sizes = {
+  xs: 56,
   sm: 80,
   md: 120,
   lg: 160,
@@ -18,13 +21,14 @@ const sizes = {
 export function RouteThumbnail({
   thumbnailLightUrl,
   thumbnailDarkUrl,
+  fallbackUrl,
   size = 'sm',
 }: RouteThumbnailProps) {
   const { t } = useTranslation()
   const colorScheme = useComputedColorScheme('light')
 
   // Pick the right thumbnail based on color scheme, with fallback to legacy
-  const selectedUrl = colorScheme === 'dark' ? thumbnailDarkUrl : thumbnailLightUrl
+  const selectedUrl = (colorScheme === 'dark' ? thumbnailDarkUrl : thumbnailLightUrl) ?? fallbackUrl
 
   if (!selectedUrl) {
     return null
@@ -59,7 +63,7 @@ export function RouteThumbnail({
 }
 
 // Placeholder component for when route data is being loaded
-export function RouteThumbnailPlaceholder({ size = 'sm' }: { size?: 'sm' | 'md' | 'lg' }) {
+export function RouteThumbnailPlaceholder({ size = 'sm' }: { size?: 'xs' | 'sm' | 'md' | 'lg' }) {
   const pixelSize = sizes[size]
 
   return (

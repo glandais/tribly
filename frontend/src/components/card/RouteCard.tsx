@@ -17,8 +17,8 @@ export function RouteCard({ route, showTeam }: RouteCardProps) {
   const { t } = useTranslation()
   const { distance, elevation } = useUnits()
   const colorScheme = useComputedColorScheme('light')
-  // The themed variants live in the asset inventory, which a compact row does not carry; the
-  // server-computed `thumbnailUrl` (light if there is one, else dark) is the compact-safe fallback.
+  // A compact row carries the themed variants (contract 1.5.1); `thumbnailUrl` stays the
+  // fallback for a route that only ever had the collapsed one.
   const themedThumbnail =
     colorScheme === 'dark' ? route.media.assets.thumbnailDark : route.media.assets.thumbnailLight
   const thumbnailUrl = themedThumbnail?.imageUrl ?? route.thumbnailUrl
