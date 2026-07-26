@@ -322,7 +322,13 @@
       "WANTED": "Recherche"
     },
     "detail": {
-      "priceNegotiable": "Prix à négocier"
+      "priceNegotiable": "Prix à négocier",
+      "description": "Description",
+      "location": "Localisation",
+      "locationApproximate": "Localisation approximative — le point exact est communiqué par l'annonceur.",
+      "seller": "Annonceur",
+      "gallery": "Photos de l'annonce",
+      "openImage": "Ouvrir la photo {index} sur {count}"
     },
     "rentalPeriod": {
       "DAY": "Jour",
@@ -354,6 +360,30 @@
       "priceDesc": "Prix décroissant",
       "nameAsc": "Nom A → Z",
       "nameDesc": "Nom Z → A"
+    },
+    "contact": {
+      "cta": "Contacter le vendeur",
+      "title": "Contacter le vendeur",
+      "intro": "Votre message part par e-mail à {seller}.",
+      "placeholder": "Bonjour, votre annonce m'intéresse…",
+      "replyToNotice": "Le vendeur répondra directement à votre adresse e-mail : elle lui sera donc visible.",
+      "tooShort": "Au moins {min} caractères.",
+      "send": "Envoyer",
+      "sending": "Envoi…",
+      "sent": "Message envoyé, le vendeur vous répondra directement.",
+      "optedOut": "Ce vendeur ne souhaite pas être contacté.",
+      "deliveryFailed": "Le message n'est pas parti. Rien n'a été envoyé au vendeur.",
+      "rateLimited": "Vous avez envoyé trop de messages. Réessayez plus tard.",
+      "rateLimitedIn": "Vous avez envoyé trop de messages. Réessayez dans {delay}.",
+      "delayUnderMinute": "moins d'une minute",
+      "delayMinutes": {
+        "one": "{} minute",
+        "other": "{} minutes"
+      },
+      "delayHours": {
+        "one": "{} heure",
+        "other": "{} heures"
+      }
     }
   },
   "trips": {

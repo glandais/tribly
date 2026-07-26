@@ -322,7 +322,13 @@
       "WANTED": "Wanted"
     },
     "detail": {
-      "priceNegotiable": "Price negotiable"
+      "priceNegotiable": "Price negotiable",
+      "description": "Description",
+      "location": "Location",
+      "locationApproximate": "Approximate location — the exact spot is given by the seller.",
+      "seller": "Seller",
+      "gallery": "Classified photos",
+      "openImage": "Open photo {index} of {count}"
     },
     "rentalPeriod": {
       "DAY": "Day",
@@ -354,6 +360,30 @@
       "priceDesc": "Price, high to low",
       "nameAsc": "Name A → Z",
       "nameDesc": "Name Z → A"
+    },
+    "contact": {
+      "cta": "Contact the seller",
+      "title": "Contact the seller",
+      "intro": "Your message is emailed to {seller}.",
+      "placeholder": "Hello, I am interested in your classified…",
+      "replyToNotice": "The seller replies straight to your email address: they will therefore see it.",
+      "tooShort": "At least {min} characters.",
+      "send": "Send",
+      "sending": "Sending…",
+      "sent": "Message sent, the seller will answer you directly.",
+      "optedOut": "This seller does not wish to be contacted.",
+      "deliveryFailed": "The message did not go out. Nothing reached the seller.",
+      "rateLimited": "You have sent too many messages. Try again later.",
+      "rateLimitedIn": "You have sent too many messages. Try again in {delay}.",
+      "delayUnderMinute": "under a minute",
+      "delayMinutes": {
+        "one": "{} minute",
+        "other": "{} minutes"
+      },
+      "delayHours": {
+        "one": "{} hour",
+        "other": "{} hours"
+      }
     }
   },
   "trips": {
