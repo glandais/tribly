@@ -15,8 +15,12 @@ import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../calendar/presentation/widgets/calendar_subscription_card.dart';
+import '../../../comments/data/comment_repository.dart';
+import '../../../comments/presentation/widgets/comment_thread.dart';
+import '../../../participants/presentation/widgets/participants_sheet.dart';
 import '../../../teams/providers/team_providers.dart';
 import '../../providers/trip_detail_provider.dart';
+import '../../providers/trip_participation_controller.dart';
 import '../../providers/trip_stage_selection_provider.dart';
 import '../widgets/stage_card.dart';
 import '../widgets/trip_summary_card.dart';
@@ -43,15 +47,18 @@ class TripDetailPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final TripKey key = TripKey(teamSlug: teamSlug, tripSlug: tripSlug);
+    // Le voyage se lit sur le contrôleur, pas sur le détail : c'est lui qui
+    // porte la bascule optimiste.
+    final TripParticipationState participation = ref.watch(
+      tripParticipationProvider(key),
+    );
 
-    return ref
-        .watch(tripDetailProvider(key))
-        .when(
-          data: (TripDto trip) => _TripDetailContent(tripKey: key, trip: trip),
-          loading: () => const _TripDetailSkeleton(),
-          error: (Object error, StackTrace stack) =>
-              _TripDetailError(tripKey: key, error: error),
-        );
+    return participation.trip.when(
+      data: (TripDto trip) => _TripDetailContent(tripKey: key, trip: trip),
+      loading: () => const _TripDetailSkeleton(),
+      error: (Object error, StackTrace stack) =>
+          _TripDetailError(tripKey: key, error: error),
+    );
   }
 }
 
@@ -72,24 +79,152 @@ class _TripDetailContent extends ConsumerWidget {
     void select(String id) =>
         ref.read(selectedStageProvider(tripKey).notifier).state = id;
 
+    final TripParticipationState participation = ref.watch(
+      tripParticipationProvider(tripKey),
+    );
+
     return PdlScreenScaffold(
       slivers: <Widget>[
         SliverToBoxAdapter(child: _hero(context, isMember)),
         SliverToBoxAdapter(child: _identity(context)),
+        if (trip.isCancelled)
+          SliverToBoxAdapter(
+            child: PdlBanner(
+              tone: PdlBannerTone.danger,
+              icon: PdlIcons.cancelled,
+              title: 'trips.cancelledTitle'.tr(),
+              message: 'trips.cancelledMessage'.tr(),
+              fullBleed: true,
+            ),
+          ),
+        if (isMember == false)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: PdlBanner(
+                tone: PdlBannerTone.warn,
+                message: 'trips.notMemberBanner'.tr(),
+                action: PdlButton(
+                  label: 'teams.viewTeam'.tr(),
+                  variant: PdlButtonVariant.outline,
+                  size: PdlButtonSize.sm,
+                  onPressed: () => context.push(Paths.team(trip.team.slug)),
+                ),
+              ),
+            ),
+          ),
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: TripSummaryCard(
               trip: trip,
-              onShowParticipants: () => _showParticipants(context),
+              onShowParticipants: () =>
+                  ParticipantsSheet.openTrip(context, trip),
             ),
           ),
         ),
         SliverToBoxAdapter(child: _stages(context, stages, selected, select)),
         if (trip.media.markdown.trim().isNotEmpty)
           SliverToBoxAdapter(child: _description(context)),
+        if (trip.participants.isNotEmpty)
+          SliverToBoxAdapter(child: _participants(context)),
+        if (participation.failure != null)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: _failureBanner(context, ref, participation.failure!),
+            ),
+          ),
+        // `commentCount` absent signifie « vous n'avez pas le droit de lire les
+        // commentaires » : le fil n'est pas monté du tout.
+        if (trip.commentCount != null)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(PdlSpacing.section),
+              child: CommentThread(
+                target: CommentTarget(
+                  entity: CommentEntity.trip,
+                  teamSlug: trip.team.slug,
+                  slug: trip.slug,
+                ),
+                canComment: isMember ?? false,
+              ),
+            ),
+          ),
         const SliverToBoxAdapter(child: SizedBox(height: PdlSpacing.section)),
       ],
+      actionBar: _actionBar(context, ref, participation, isMember),
+    );
+  }
+
+  // ── Barre d'action ──────────────────────────────────────────────────────
+  /// **Une seule action pleine et colorée par écran** (§1.0.4) : « Participer »
+  /// est en plein, « Ne plus participer » en contour. Un voyage annulé ou passé
+  /// n'en propose aucune — s'inscrire à ce qui a eu lieu n'a pas de sens, et un
+  /// bouton qui échouerait serait pire qu'un bouton absent.
+  Widget? _actionBar(
+    BuildContext context,
+    WidgetRef ref,
+    TripParticipationState participation,
+    bool? isMember,
+  ) {
+    if (trip.isCancelled || trip.isPast || isMember == false) return null;
+
+    final TripParticipationController controller = ref.read(
+      tripParticipationProvider(tripKey).notifier,
+    );
+
+    return PdlActionBar(
+      children: <Widget>[
+        if (trip.registered)
+          PdlButton(
+            label: 'trips.leave'.tr(),
+            variant: PdlButtonVariant.outline,
+            fullWidth: true,
+            loading: participation.pending,
+            loadingLabel: 'trips.leaving'.tr(),
+            onPressed: controller.leave,
+          )
+        else
+          PdlButton(
+            label: 'trips.join'.tr(),
+            fullWidth: true,
+            loading: participation.pending,
+            loadingLabel: 'trips.joining'.tr(),
+            onPressed: controller.join,
+          ),
+      ],
+    );
+  }
+
+  Widget _failureBanner(
+    BuildContext context,
+    WidgetRef ref,
+    TripParticipationFailure failure,
+  ) {
+    final TripParticipationController controller = ref.read(
+      tripParticipationProvider(tripKey).notifier,
+    );
+
+    return PdlBanner(
+      tone: PdlBannerTone.danger,
+      title: 'trips.participationFailedTitle'.tr(),
+      message: failure.message,
+      onDismiss: controller.dismissFailure,
+      dismissSemanticLabel: 'common.close'.tr(),
+      action: failure.reason == TripParticipationFailureReason.notMember
+          ? PdlButton(
+              label: 'teams.viewTeam'.tr(),
+              variant: PdlButtonVariant.outline,
+              size: PdlButtonSize.sm,
+              onPressed: () => context.push(Paths.team(trip.team.slug)),
+            )
+          : PdlButton(
+              label: 'common.retry'.tr(),
+              variant: PdlButtonVariant.outline,
+              size: PdlButtonSize.sm,
+              onPressed: trip.registered ? controller.leave : controller.join,
+            ),
     );
   }
 
@@ -181,10 +316,42 @@ class _TripDetailContent extends ConsumerWidget {
     );
   }
 
-  void _showParticipants(BuildContext context) {
-    // À venir avec la barre d'action (S24-6) : la feuille Participants du
-    // lot 2 est généralisée aux voyages, dont les participants sont eux aussi
-    // embarqués et non paginés.
+  // ── Participants en pastilles ───────────────────────────────────────────
+  /// Les noms, pas seulement des avatars : sur un voyage à trois inscrits, la
+  /// question « qui vient ? » se lit sans ouvrir de feuille.
+  Widget _participants(BuildContext context) {
+    final PdlColors c = context.pdl;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          PdlSectionHeader(
+            title: 'participants.title'.tr(),
+            count: '${trip.participantCount}',
+            action: PdlButton(
+              label: 'common.viewAll'.tr(),
+              variant: PdlButtonVariant.text,
+              size: PdlButtonSize.sm,
+              onPressed: () => ParticipantsSheet.openTrip(context, trip),
+            ),
+          ),
+          Wrap(
+            spacing: PdlSpacing.badgeGap,
+            runSpacing: PdlSpacing.badgeGap,
+            children: <Widget>[
+              for (final PublicUserDto person in trip.participants)
+                PdlBadge(
+                  label: person.displayName,
+                  tone: PdlDerivedTones.registered(c),
+                  size: PdlBadgeSize.lg,
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   // ── 2 · Identité ────────────────────────────────────────────────────────

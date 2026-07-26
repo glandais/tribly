@@ -1125,7 +1125,7 @@ largeur) et voyage passé. Voyage sans étape ou sans tracé → état vide, car
 | S24-3 | ☐ | Construire la carte multi-étapes colorisée | `[C] features/trips/presentation/widgets/trip_map.dart` | F-TE-8, S24-1 | L | Une couleur par rang d'étape (modulo 10) ; **une couche par étape** ; sélection croisée carte ↔ liste ↔ légende **sans reconstruire la carte** ; plafond de 12 étapes signalé ; concurrence plafonnée à 4 requêtes |
 | S24-4 | ☐ | Assembler le profil altimétrique global | `[C] features/trips/presentation/widgets/trip_elevation.dart` | F-TE-6, S24-3 | M | Concaténation de N profils avec décalage de distance, axe en quarts de `totalDistance`, trou signalé si une étape échoue |
 | S24-5 | ☑ | Construire la carte d'étape | `[C] features/trips/presentation/widgets/stage_card.dart` | F-TE-2 | M | `PdlNumberPill` + nom + trait de couleur + date + « départ → arrivée » + statistiques + `PdlThumb 80` + chevron ; état sélectionné |
-| S24-6 | ☐ | Brancher la barre d'action et la participation | `[M] trip_detail_page.dart` | S24-2, S12-6 | M | Bascule optimiste, état « Inscription... », non-membre → bandeau, **`registered` fait foi** (plus de déduction sur `participants[]`) ; annulé et passé rendus |
+| S24-6 | ☑ | Brancher la barre d'action et la participation | `[M] trip_detail_page.dart` | S24-2, S12-6 | M | Bascule optimiste, état « Inscription... », non-membre → bandeau, **`registered` fait foi** (plus de déduction sur `participants[]`) ; annulé et passé rendus |
 
 ### 4.2 Écran 25 — Étape
 

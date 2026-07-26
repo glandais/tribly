@@ -10,17 +10,37 @@ import '../../../../core/theme/pdl_typography.dart';
 import '../../../auth/domain/auth_state.dart';
 import '../../../auth/providers/auth_provider.dart';
 
-/// La feuille « Participants » d'un groupe de sortie.
+/// La feuille « Participants » d'un groupe de sortie ou d'un voyage.
 ///
-/// **Recherche côté client** : les participants d'un groupe sont embarqués dans
-/// le détail de la sortie, non paginés (§5.2-12). Filtrer localement une liste
-/// déjà en mémoire est la bonne réponse ; un pied « N sur M » serait un
-/// mensonge puisqu'il n'y a pas de seconde page — le titre porte donc le total
-/// simple.
+/// **Recherche côté client** : les participants sont embarqués dans le détail
+/// de la sortie comme dans celui du voyage, non paginés (§5.2-12). Filtrer
+/// localement une liste déjà en mémoire est la bonne réponse ; un pied
+/// « N sur M » serait un mensonge puisqu'il n'y a pas de seconde page — le
+/// titre porte donc le total simple.
 class ParticipantsSheet extends ConsumerStatefulWidget {
-  const ParticipantsSheet({super.key, required this.group});
+  const ParticipantsSheet({
+    super.key,
+    required this.subtitle,
+    required this.people,
+    required this.count,
+    this.organizerId,
+    this.emptyMessageKey = 'participants.emptyMessage',
+  });
 
-  final RideGroupDto group;
+  /// Ce à quoi ces gens participent : le nom du groupe, ou celui du voyage.
+  final String subtitle;
+
+  final List<PublicUserDto> people;
+
+  /// Le total affiché en pastille — celui du serveur, pas `people.length`, qui
+  /// vaut zéro sans droit de lecture.
+  final int count;
+
+  /// Le meneur **désigné**, quand il y en a un. `null` est le cas courant, et
+  /// il n'y a jamais de repli sur `createdBy`.
+  final String? organizerId;
+
+  final String emptyMessageKey;
 
   /// Ouvre la feuille au-dessus de la barre d'onglets.
   ///
@@ -30,7 +50,25 @@ class ParticipantsSheet extends ConsumerStatefulWidget {
   static Future<void> open(BuildContext context, RideGroupDto group) {
     return PdlSheet.show<void>(
       context: context,
-      builder: (BuildContext _) => ParticipantsSheet(group: group),
+      builder: (BuildContext _) => ParticipantsSheet(
+        subtitle: group.name,
+        people: group.participants,
+        count: group.countParticipants,
+        organizerId: group.leader?.id,
+      ),
+    );
+  }
+
+  /// La même feuille pour un voyage : pas de meneur, pas de groupe.
+  static Future<void> openTrip(BuildContext context, TripDto trip) {
+    return PdlSheet.show<void>(
+      context: context,
+      builder: (BuildContext _) => ParticipantsSheet(
+        subtitle: trip.name,
+        people: trip.participants,
+        count: trip.participantCount,
+        emptyMessageKey: 'participants.emptyTripMessage',
+      ),
     );
   }
 
@@ -49,7 +87,7 @@ class _ParticipantsSheetState extends ConsumerState<ParticipantsSheet> {
       authProvider.select((AuthState s) => s.user?.id),
     );
 
-    final List<PublicUserDto> all = widget.group.participants;
+    final List<PublicUserDto> all = widget.people;
     final String needle = _search.trim().toLowerCase();
     final List<PublicUserDto> shown = needle.isEmpty
         ? all
@@ -63,7 +101,7 @@ class _ParticipantsSheetState extends ConsumerState<ParticipantsSheet> {
     // `leader` nul est le **cas courant** : la plupart des groupes n'en
     // désignent pas. Rien n'est alors rendu — et surtout jamais un repli sur
     // `createdBy`, qui vaut le créateur de la sortie sur tous ses groupes.
-    final String? leaderId = widget.group.leader?.id;
+    final String? leaderId = widget.organizerId;
 
     return PdlSheet(
       header: Row(
@@ -74,7 +112,7 @@ class _ParticipantsSheetState extends ConsumerState<ParticipantsSheet> {
               children: <Widget>[
                 Text('participants.title'.tr(), style: t.sectionTitle),
                 Text(
-                  widget.group.name,
+                  widget.subtitle,
                   style: t.xs,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -83,7 +121,7 @@ class _ParticipantsSheetState extends ConsumerState<ParticipantsSheet> {
             ),
           ),
           PdlBadge(
-            label: '${widget.group.countParticipants}',
+            label: '${widget.count}',
             tone: PdlDerivedTones.registered(c),
             size: PdlBadgeSize.lg,
           ),
@@ -104,7 +142,7 @@ class _ParticipantsSheetState extends ConsumerState<ParticipantsSheet> {
           PdlEmptyState(
             variant: PdlEmptyVariant.empty,
             title: 'participants.emptyTitle'.tr(),
-            message: 'participants.emptyMessage'.tr(),
+            message: widget.emptyMessageKey.tr(),
           )
         else if (shown.isEmpty)
           PdlEmptyState(

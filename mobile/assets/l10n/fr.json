@@ -369,7 +369,13 @@
       },
       "totalDistance": "Distance totale",
       "totalElevation": "Dénivelé cumulé"
-    }
+    },
+    "cancelledTitle": "Voyage annulé.",
+    "cancelledMessage": "Ce voyage n'aura pas lieu. Aucune inscription n'est possible.",
+    "notMemberBanner": "Rejoignez cette équipe pour participer aux voyages.",
+    "joining": "Inscription...",
+    "leaving": "Désinscription...",
+    "participationFailedTitle": "Participation impossible"
   },
   "routes": {
     "title": "Parcours",
@@ -766,7 +772,8 @@
     "emptyMessage": "Personne n'est encore inscrit dans ce groupe.",
     "noMatchTitle": "Aucun participant trouvé",
     "noMatchMessage": "Aucun nom ne correspond à « {search} ».",
-    "groupOrganizer": "Organisateur du groupe"
+    "groupOrganizer": "Organisateur du groupe",
+    "emptyTripMessage": "Personne n'est encore inscrit à ce voyage."
   },
   "status": {
     "draft": "Brouillon",

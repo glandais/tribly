@@ -41,7 +41,14 @@ void main() {
       ProviderScope(
         child: MaterialApp(
           theme: PedalonsTheme.build(Brightness.light),
-          home: Scaffold(body: ParticipantsSheet(group: group)),
+          home: Scaffold(
+            body: ParticipantsSheet(
+              subtitle: group.name,
+              people: group.participants,
+              count: group.countParticipants,
+              organizerId: group.leader?.id,
+            ),
+          ),
         ),
       ),
     );

@@ -369,7 +369,13 @@
       },
       "totalDistance": "Total distance",
       "totalElevation": "Total elevation gain"
-    }
+    },
+    "cancelledTitle": "Trip cancelled.",
+    "cancelledMessage": "This trip will not take place. No registration is possible.",
+    "notMemberBanner": "Join this team to take part in trips.",
+    "joining": "Joining...",
+    "leaving": "Leaving...",
+    "participationFailedTitle": "Could not update your participation"
   },
   "routes": {
     "title": "Routes",
@@ -766,7 +772,8 @@
     "emptyMessage": "Nobody has joined this group yet.",
     "noMatchTitle": "No participant found",
     "noMatchMessage": "No name matches “{search}”.",
-    "groupOrganizer": "Group organizer"
+    "groupOrganizer": "Group organizer",
+    "emptyTripMessage": "Nobody has joined this trip yet."
   },
   "status": {
     "draft": "Draft",
