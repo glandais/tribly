@@ -1,8 +1,7 @@
 package fr.pedalons.service.user;
 
-import fr.pedalons.common.exception.BusinessException;
+import fr.pedalons.common.exception.ForbiddenException;
 import fr.pedalons.domain.user.User;
-import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.dto.gps.response.GpsServiceConnectionDto;
 import fr.pedalons.dto.social.response.SocialIdentityDto;
 import fr.pedalons.dto.users.request.UpdateUserRequest;
@@ -78,7 +77,7 @@ public class UserService {
 
     Context context = pedalonsContext.getContext(teamSlug);
     if (context.teamRole() == null || context.team() == null) {
-      throw new BusinessException(ErrorCode.FORBIDDEN);
+      throw new ForbiddenException();
     }
     List<User> users =
         userRepository.searchByDisplayNameAndTeam(domainId, context.team().getId(), query, limit);
