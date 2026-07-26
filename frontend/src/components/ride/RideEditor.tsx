@@ -26,7 +26,9 @@ import { RoutePreview } from '../route/RoutePreview'
 import { RoutePreviewCompact } from '../route/RoutePreviewCompact'
 import { MediaEditor } from '../common/MediaEditor'
 import { PlaceAutocomplete } from '../common/PlaceAutocomplete'
-import type { RouteDto, TeamDetailDto, RideRequest } from '@/api/dto'
+import type { RouteDto, TeamDetailDto, RideRequest, PublicUserDto } from '@/api/dto'
+import { UserAutocomplete } from '../common/UserAutocomplete'
+import { UserAvatar } from '../common/UserAvatar'
 import { Status } from '@/api/dto'
 import { CreateRideBody } from '@/api/zod/rides/rides.zod'
 
@@ -44,6 +46,8 @@ interface RideEditorProps {
   currentSlug?: string
   onSlugChange?: (newSlug: string) => Promise<void>
   canEditSlug?: boolean
+  /** Display names of the leaders already designated, keyed by user id, for the edit form. */
+  initialLeaders?: Record<string, PublicUserDto>
 }
 
 export function RideEditor({
@@ -58,6 +62,7 @@ export function RideEditor({
   currentSlug,
   onSlugChange,
   canEditSlug = false,
+  initialLeaders,
 }: RideEditorProps) {
   const { t } = useTranslation()
   const { config, speedToDisplay, speedFromDisplay } = useUnits()
@@ -90,6 +95,12 @@ export function RideEditor({
 
   const status = form.values.status
   const groups = form.values.groups
+
+  // The picker yields a whole user but the request only carries an id, so names are kept here
+  // to render a chosen leader without a round trip. Seeded from the ride being edited.
+  const [leaderNames, setLeaderNames] = useState<Record<string, PublicUserDto>>(
+    () => initialLeaders ?? {}
+  )
   const routeSlug = form.values.routeSlug
 
   useEffect(() => {
@@ -360,6 +371,46 @@ export function RideEditor({
                     }
                   />
                 </SimpleGrid>
+
+                <Box
+                  mt="sm"
+                  pt="sm"
+                  style={{ borderTop: '1px solid var(--mantine-color-default-border)' }}
+                >
+                  <Text size="xs" c="dimmed" mb={4}>
+                    {t('rides.create.form.groups.leader.label')}
+                  </Text>
+                  {group.leaderId ? (
+                    <Group gap="xs" wrap="nowrap">
+                      {/* The name is cached on pick and seeded on edit; guard anyway, since
+                          UserAvatar dereferences displayName and an id alone would crash it. */}
+                      {leaderNames[group.leaderId] && (
+                        <UserAvatar user={leaderNames[group.leaderId]} size="sm" />
+                      )}
+                      <Text size="sm" style={{ flex: 1, minWidth: 0 }} truncate>
+                        {leaderNames[group.leaderId]?.displayName ??
+                          t('rides.create.form.groups.leader.unknown')}
+                      </Text>
+                      <Button
+                        variant="subtle"
+                        size="xs"
+                        color="danger"
+                        onClick={() => form.setFieldValue(`groups.${index}.leaderId`, undefined)}
+                      >
+                        {t('rides.create.form.groups.leader.clear')}
+                      </Button>
+                    </Group>
+                  ) : (
+                    <UserAutocomplete
+                      teamSlug={teamSlug}
+                      placeholder={t('rides.create.form.groups.leader.placeholder')}
+                      onSelect={(user) => {
+                        setLeaderNames((previous) => ({ ...previous, [user.id]: user }))
+                        form.setFieldValue(`groups.${index}.leaderId`, user.id)
+                      }}
+                    />
+                  )}
+                </Box>
 
                 <Box
                   mt="sm"

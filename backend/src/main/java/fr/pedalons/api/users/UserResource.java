@@ -177,7 +177,13 @@ public class UserResource {
 
   @GET
   @Path("/search")
-  @Operation(summary = "Search users", description = "Search users by display name")
+  @Operation(
+      summary = "Search users",
+      description =
+          "Search users by display name. Pass 'teamSlug' to keep only the members of that team —"
+              + " useful for a picker that must yield a member, such as a ride group's leader. The"
+              + " parameter only ever removes results, and requires the caller to belong to the"
+              + " team.")
   @APIResponses({
     @APIResponse(
         responseCode = "200",
@@ -186,17 +192,24 @@ public class UserResource {
     @APIResponse(
         responseCode = "401",
         description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "Not a member of the requested team",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response searchUsers(
       @Parameter(description = "Search query") @QueryParam("q") @Nullable String query,
       @Parameter(description = "Maximum results (max 20)") @QueryParam("limit") @DefaultValue("10")
-          int limit) {
+          int limit,
+      @Parameter(description = "Keep only members of this team") @QueryParam("teamSlug")
+          @Nullable String teamSlug) {
     if (query == null || query.trim().isEmpty()) {
       return Response.ok(List.of()).build();
     }
 
-    List<PublicUserDto> users = userService.searchByDisplayName(query.trim(), Math.min(limit, 20));
+    List<PublicUserDto> users =
+        userService.searchByDisplayName(query.trim(), Math.min(limit, 20), teamSlug);
     return Response.ok(users).build();
   }
 

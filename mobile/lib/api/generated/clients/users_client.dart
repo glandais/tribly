@@ -130,14 +130,17 @@ abstract class UsersClient {
 
   /// Search users.
   ///
-  /// Search users by display name.
+  /// Search users by display name. Pass 'teamSlug' to keep only the members of that team — useful for a picker that must yield a member, such as a ride group's leader. The parameter only ever removes results, and requires the caller to belong to the team.
   ///
   /// [limit] - Maximum results (max 20).
   ///
   /// [q] - Search query.
+  ///
+  /// [teamSlug] - Keep only members of this team.
   @GET('/api/users/search')
   Future<List<PublicUserDto>> searchUsers({
     @Query('q') String? q,
+    @Query('teamSlug') String? teamSlug,
     @Query('limit') int? limit = 10,
   });
 }

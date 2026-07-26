@@ -16846,7 +16846,7 @@
     "/api/users/search" : {
       "get" : {
         "summary" : "Search users",
-        "description" : "Search users by display name",
+        "description" : "Search users by display name. Pass 'teamSlug' to keep only the members of that team — useful for a picker that must yield a member, such as a ride group's leader. The parameter only ever removes results, and requires the caller to belong to the team.",
         "operationId" : "searchUsers",
         "tags" : [ "Users" ],
         "parameters" : [ {
@@ -16861,6 +16861,13 @@
         }, {
           "description" : "Search query",
           "name" : "q",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Keep only members of this team",
+          "name" : "teamSlug",
           "in" : "query",
           "schema" : {
             "type" : "string"
@@ -16891,7 +16898,14 @@
             }
           },
           "403" : {
-            "description" : "Not Allowed"
+            "description" : "Not a member of the requested team",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         },
         "security" : [ {
@@ -16922,7 +16936,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "1.5.1",
+    "version" : "1.6.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

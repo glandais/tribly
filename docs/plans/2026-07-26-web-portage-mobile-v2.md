@@ -1118,8 +1118,11 @@ apparaît : `leader` nul ⇒ **rien** (T1.7). Ne pas non plus étendre la pastil
 calendrier : le meneur est une propriété du **groupe**, et ni `PublicationCard` ni
 `CalendarEventDto` n'en portent.
 
-**Le sélecteur de meneur dans le formulaire de sortie.** L'affichage du meneur est à porter (T1.7),
-son **attribution** non. `GroupRequest.leaderId` (TSID en chaîne, optionnel) est acceptée depuis le
+**Le sélecteur de meneur dans le formulaire de sortie.** ~~Hors périmètre~~ — **livré depuis**,
+hors plan, sur demande. Voir la note en fin de §4. Le paragraphe ci-dessous reste la description
+de ce que la tâche supposait.
+
+L'affichage du meneur est à porter (T1.7), son **attribution** non. `GroupRequest.leaderId` (TSID en chaîne, optionnel) est acceptée depuis le
 contrat `1.5.0` et `RideEditor.tsx` édite bien les groupes d'une sortie, mais ce document porte sur
 la consultation et la participation : il ne décrit aucune autre tâche de formulaire, et n'ouvre pas
 celle-ci. Un `Select` de meneur suppose la liste des membres de l'équipe dans l'éditeur, la gestion
@@ -1127,6 +1130,18 @@ du `null` explicite (envoyer `null` **efface** la désignation — c'est une op�
 omission) et le rendu du `400 RIDE_GROUP_LEADER_NOT_MEMBER`, renvoyé quand la personne désignée
 n'appartient pas à l'équipe propriétaire de la sortie. C'est un lot d'édition à instruire
 séparément, avec les autres champs de `RideEditor`.
+
+> **Livré hors plan.** L'attribution est en place, et a révélé deux choses que ce document
+> n'avait pas vues. D'abord un **bug d'effacement** : `EditRidePage` passait `{...ride}` en valeurs
+> initiales, donc les groupes arrivaient en `RideGroupDto` (qui porte `leader`, un objet) castés en
+> `RideRequest` (qui attend `leaderId`) — le champ était toujours absent à l'envoi et
+> `RideService` applique `setLeader(resolveLeader(…))` **sans condition**, si bien que modifier une
+> sortie effaçait le meneur de chacun de ses groupes. Ensuite un **blocage d'autorisation** : les
+> organisateurs créent les sorties mais `USER_TEAM`/`LIST` est réservé aux administrateurs, donc
+> aucune liste de membres ne leur est accessible. Plutôt que d'élargir cet endpoint — dont le
+> paramètre `search` filtre par nom *ou e-mail* — `GET /api/users/search` gagne un `teamSlug`
+> optionnel (contrat `1.6.0`) qui ne fait que **retirer** des résultats d'une recherche déjà
+> ouverte à tout connecté, et exige que l'appelant soit membre de l'équipe interrogée.
 
 **Le meneur sur les gabarits de sortie.** Décision produit : les gabarits n'en ont pas.
 `RideTemplateGroupRequest` est un type de requête distinct de `GroupRequest` et ne gagne aucun champ

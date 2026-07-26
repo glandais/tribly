@@ -329,9 +329,17 @@ class _UsersClient implements UsersClient {
   }
 
   @override
-  Future<List<PublicUserDto>> searchUsers({String? q, int? limit = 10}) async {
+  Future<List<PublicUserDto>> searchUsers({
+    String? q,
+    String? teamSlug,
+    int? limit = 10,
+  }) async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{r'q': q, r'limit': limit};
+    final queryParameters = <String, dynamic>{
+      r'q': q,
+      r'teamSlug': teamSlug,
+      r'limit': limit,
+    };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;

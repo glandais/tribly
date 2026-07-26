@@ -8,16 +8,21 @@ import type { PublicUserDto } from '@/api/dto'
 interface UserAutocompleteProps {
   onSelect: (user: PublicUserDto) => void
   placeholder?: string
+  /**
+   * Restrict results to members of this team. Only ever removes results, and lets a picker
+   * that must yield a member avoid offering someone the server would reject.
+   */
+  teamSlug?: string
 }
 
-export function UserAutocomplete({ onSelect, placeholder }: UserAutocompleteProps) {
+export function UserAutocomplete({ onSelect, placeholder, teamSlug }: UserAutocompleteProps) {
   const { t } = useTranslation()
   const [query, setQuery] = useState('')
 
   const shouldSearch = query.trim().length >= 2
 
   const { data: users = [], isLoading } = useSearchUsers(
-    { q: query },
+    { q: query, teamSlug },
     { query: { enabled: shouldSearch } }
   )
 

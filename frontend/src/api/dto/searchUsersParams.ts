@@ -7,4 +7,8 @@ export type SearchUsersParams = {
    * Search query
    */
   q?: string
+  /**
+   * Keep only members of this team
+   */
+  teamSlug?: string
 }

@@ -1166,7 +1166,7 @@ export const useUpdateMyPreferences = <
   return useMutation(getUpdateMyPreferencesMutationOptions(options), queryClient)
 }
 /**
- * Search users by display name
+ * Search users by display name. Pass 'teamSlug' to keep only the members of that team — useful for a picker that must yield a member, such as a ride group's leader. The parameter only ever removes results, and requires the caller to belong to the team.
  * @summary Search users
  */
 export const searchUsers = (
@@ -1186,7 +1186,7 @@ export const getSearchUsersQueryKey = (params?: SearchUsersParams) => {
 
 export const getSearchUsersQueryOptions = <
   TData = Awaited<ReturnType<typeof searchUsers>>,
-  TError = ErrorType<ErrorResponse | void>,
+  TError = ErrorType<ErrorResponse>,
 >(
   params?: SearchUsersParams,
   options?: {
@@ -1209,11 +1209,11 @@ export const getSearchUsersQueryOptions = <
 }
 
 export type SearchUsersQueryResult = NonNullable<Awaited<ReturnType<typeof searchUsers>>>
-export type SearchUsersQueryError = ErrorType<ErrorResponse | void>
+export type SearchUsersQueryError = ErrorType<ErrorResponse>
 
 export function useSearchUsers<
   TData = Awaited<ReturnType<typeof searchUsers>>,
-  TError = ErrorType<ErrorResponse | void>,
+  TError = ErrorType<ErrorResponse>,
 >(
   params: undefined | SearchUsersParams,
   options: {
@@ -1232,7 +1232,7 @@ export function useSearchUsers<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useSearchUsers<
   TData = Awaited<ReturnType<typeof searchUsers>>,
-  TError = ErrorType<ErrorResponse | void>,
+  TError = ErrorType<ErrorResponse>,
 >(
   params?: SearchUsersParams,
   options?: {
@@ -1251,7 +1251,7 @@ export function useSearchUsers<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useSearchUsers<
   TData = Awaited<ReturnType<typeof searchUsers>>,
-  TError = ErrorType<ErrorResponse | void>,
+  TError = ErrorType<ErrorResponse>,
 >(
   params?: SearchUsersParams,
   options?: {
@@ -1266,7 +1266,7 @@ export function useSearchUsers<
 
 export function useSearchUsers<
   TData = Awaited<ReturnType<typeof searchUsers>>,
-  TError = ErrorType<ErrorResponse | void>,
+  TError = ErrorType<ErrorResponse>,
 >(
   params?: SearchUsersParams,
   options?: {
@@ -1289,7 +1289,7 @@ export function useSearchUsers<
  */
 export const prefetchSearchUsersQuery = async <
   TData = Awaited<ReturnType<typeof searchUsers>>,
-  TError = ErrorType<ErrorResponse | void>,
+  TError = ErrorType<ErrorResponse>,
 >(
   queryClient: QueryClient,
   params?: SearchUsersParams,

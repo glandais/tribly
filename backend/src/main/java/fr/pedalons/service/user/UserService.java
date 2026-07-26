@@ -1,6 +1,8 @@
 package fr.pedalons.service.user;
 
+import fr.pedalons.common.exception.BusinessException;
 import fr.pedalons.domain.user.User;
+import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.dto.gps.response.GpsServiceConnectionDto;
 import fr.pedalons.dto.social.response.SocialIdentityDto;
 import fr.pedalons.dto.users.request.UpdateUserRequest;
@@ -12,6 +14,7 @@ import fr.pedalons.enums.UnitSystem;
 import fr.pedalons.repository.gps.GpsServiceConnectionRepository;
 import fr.pedalons.repository.social.UserSocialIdentityRepository;
 import fr.pedalons.repository.user.UserRepository;
+import fr.pedalons.service.security.Context;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.Logged;
 import fr.pedalons.service.security.annotation.Public;
@@ -20,6 +23,7 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
 public class UserService {
@@ -48,8 +52,36 @@ public class UserService {
 
   @Public
   public List<PublicUserDto> searchByDisplayName(String query, int limit) {
+    return searchByDisplayName(query, limit, null);
+  }
+
+  /**
+   * Search users by display name, optionally narrowed to the members of one team.
+   *
+   * <p>{@code teamSlug} only ever <b>removes</b> results: the unscoped search is already open to
+   * every signed-in user of the domain, so scoping it discloses nothing new. It is there so a
+   * picker that must yield a team member — designating a ride group's leader — cannot offer
+   * someone the write path will reject with {@code RIDE_GROUP_LEADER_NOT_MEMBER}.
+   *
+   * <p>The caller must belong to the team it asks about. Not because the result would leak
+   * anything the unscoped search does not already give, but because "is this person on that team"
+   * is itself an answer, and it should be one teammates get rather than anyone in the domain.
+   */
+  public List<PublicUserDto> searchByDisplayName(
+      String query, int limit, @Nullable String teamSlug) {
     Long domainId = pedalonsContext.getDomainId();
-    List<User> users = userRepository.searchByDisplayNameAndDomain(domainId, query, limit);
+
+    if (teamSlug == null) {
+      List<User> users = userRepository.searchByDisplayNameAndDomain(domainId, query, limit);
+      return users.stream().map(PublicUserDto::from).toList();
+    }
+
+    Context context = pedalonsContext.getContext(teamSlug);
+    if (context.teamRole() == null || context.team() == null) {
+      throw new BusinessException(ErrorCode.FORBIDDEN);
+    }
+    List<User> users =
+        userRepository.searchByDisplayNameAndTeam(domainId, context.team().getId(), query, limit);
     return users.stream().map(PublicUserDto::from).toList();
   }
 
