@@ -1,201 +1,239 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
-import '../../../../api/pedalons_api_client.dart';
-import '../../../../config/paths.dart';
-import '../../../../core/adaptive/adaptive.dart';
+import '../../../../core/pagination/pagination.dart';
 import '../../../../core/pdl/pdl.dart';
-import '../../../../core/utils/api_error_handler.dart';
-import '../../../../core/widgets/widgets.dart';
-import '../../../teams/presentation/widgets/team_sliver_app_bar.dart';
+import '../../../../core/theme/pdl_tokens.dart';
+import '../../../../core/theme/pdl_typography.dart';
+import '../../domain/ad_filters.dart';
+import '../../providers/ad_list_provider.dart';
+import '../widgets/ad_card.dart';
+import '../widgets/ads_toolbar.dart';
 
-final _teamAdsProvider = FutureProvider.family<List<AdDto>, String>((
-  ref,
-  teamSlug,
-) async {
-  final client = ref.watch(adsClientProvider);
-  final response = await client.listAds(teamSlug: teamSlug);
-  return response.ads;
-});
-
-class AdsPage extends ConsumerWidget {
+/// La rubrique Annonces d'une équipe.
+///
+/// **Le défaut central que cet écran corrige est une troncature silencieuse** :
+/// l'appel précédent omettait `page` et `size` et s'arrêtait à la première page
+/// du serveur sans jamais le dire. La liste est désormais paginée, son pied
+/// annonce « N sur M » depuis `AdListResponse.total`, et il n'existe aucun
+/// endpoint `count` à interroger pour cela.
+///
+/// C'est un **corps de section**, pas un écran : l'en-tête d'équipe, la rangée
+/// de sections et l'état de chargement de l'équipe appartiennent à
+/// `TeamHomePage`.
+class AdsPage extends ConsumerStatefulWidget {
   final String teamSlug;
   final TeamDetailDto team;
 
   const AdsPage({super.key, required this.teamSlug, required this.team});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final adsAsync = ref.watch(_teamAdsProvider(teamSlug));
+  ConsumerState<AdsPage> createState() => _AdsPageState();
+}
+
+class _AdsPageState extends ConsumerState<AdsPage> {
+  void _setFilters(AdFilters next) {
+    ref.read(adFiltersProvider(widget.teamSlug).notifier).state = next;
+  }
+
+  /// Un changement de filtre est un jeu de résultats neuf : la liste repart en
+  /// haut plutôt que de laisser l'utilisateur au milieu de résultats qu'il n'a
+  /// jamais vus.
+  void _scrollToTop() {
+    final ScrollController? controller = PrimaryScrollController.maybeOf(
+      context,
+    );
+    if (controller != null && controller.hasClients) controller.jumpTo(0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen(adFiltersProvider(widget.teamSlug), (
+      AdFilters? previous,
+      AdFilters next,
+    ) {
+      if (previous != next) _scrollToTop();
+    });
+
+    final AdFilters filters = ref.watch(adFiltersProvider(widget.teamSlug));
+    final PagedListState<AdDto> state = ref.watch(adListProvider(filters));
+    final AdListNotifier notifier = ref.read(adListProvider(filters).notifier);
 
     return RefreshIndicator(
-      onRefresh: () => ref.refresh(_teamAdsProvider(teamSlug).future),
+      onRefresh: notifier.refresh,
       child: CustomScrollView(
-        slivers: [
-          TeamSliverAppBar(team: team),
-          adsAsync.when(
-            data: (ads) {
-              if (ads.isEmpty) {
-                // F-DE-9 : titre nominal et une phrase qui explique, au lieu
-                // d'un « Aucune annonce » sec.
-                //
-                // Cette page n'a **ni recherche ni filtre** : son vide est
-                // toujours absolu, et lui inventer un « Effacer la recherche »
-                // serait proposer une sortie vers une porte qui n'existe pas.
-                // Le vide filtré arrivera avec la pagination et les filtres
-                // d'annonces (F-DE-11, lot 5).
-                return SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Center(
-                    child: PdlEmptyState(
-                      variant: PdlEmptyVariant.empty,
-                      icon: Icons.sell,
-                      title: 'ads.empty'.tr(),
-                      message: 'ads.emptyHint'.tr(),
-                    ),
-                  ),
-                );
-              }
-
-              return SliverPadding(
-                padding: const EdgeInsets.all(16),
-                sliver: SliverList.separated(
-                  itemCount: ads.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: 8),
-                  itemBuilder: (context, index) {
-                    return ContentWidthConstraint(
-                      child: _AdCard(ad: ads[index]),
-                    );
-                  },
-                ),
-              );
-            },
-            loading: () => SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: SliverToBoxAdapter(
-                child: ContentWidthConstraint(
-                  // Cinq squelettes, pas quatre : l'arbitrage §1.0.4 vaut
-                  // partout où une liste charge.
-                  child: const PdlSkeletonCardList(
-                    variant: PdlSkeletonCardVariant.compact,
-                  ),
-                ),
-              ),
-            ),
-            error: (error, stack) => SliverFillRemaining(
-              hasScrollBody: false,
-              child: Center(
-                child: PdlEmptyState(
-                  variant: PdlEmptyVariant.error,
-                  title: 'common.loadError'.tr(),
-                  message: getErrorMessage(error),
-                  actions: [
-                    PdlButton(
-                      label: 'common.retry'.tr(),
-                      variant: PdlButtonVariant.outline,
-                      size: PdlButtonSize.sm,
-                      onPressed: () =>
-                          ref.invalidate(_teamAdsProvider(teamSlug)),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+        key: PageStorageKey<String>('ads-list-${widget.teamSlug}'),
+        primary: true,
+        slivers: <Widget>[
+          PdlPinnedToolbar(
+            child: AdsToolbar(filters: filters, onChanged: _setFilters),
           ),
+          ..._contentSlivers(state, notifier, filters),
           const SliverPadding(padding: EdgeInsets.only(bottom: 32)),
         ],
       ),
     );
   }
+
+  List<Widget> _contentSlivers(
+    PagedListState<AdDto> state,
+    AdListNotifier notifier,
+    AdFilters filters,
+  ) {
+    const EdgeInsets padding = EdgeInsets.fromLTRB(
+      PdlSpacing.section,
+      PdlSpacing.chipGap,
+      PdlSpacing.section,
+      0,
+    );
+
+    if (state.showsSkeletons) {
+      return <Widget>[
+        const SliverPadding(
+          padding: padding,
+          sliver: SliverToBoxAdapter(
+            child: PdlSkeletonCardList(
+              variant: PdlSkeletonCardVariant.media,
+              count: 5,
+            ),
+          ),
+        ),
+      ];
+    }
+
+    if (state.initialError != null) {
+      return <Widget>[
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Center(
+            child: PdlEmptyState(
+              variant: PdlEmptyVariant.error,
+              title: 'common.loadError'.tr(),
+              // L'échec a **deux** causes plausibles et l'API ne les distingue
+              // pas : la rubrique désactivée sur l'équipe rend le même 404
+              // qu'un réseau absent rend un échec. Les nommer toutes les deux
+              // vaut mieux qu'en choisir une au hasard.
+              message: 'ads.list.loadError'.tr(),
+              actions: <Widget>[
+                PdlButton(
+                  label: 'common.retry'.tr(),
+                  variant: PdlButtonVariant.outline,
+                  size: PdlButtonSize.sm,
+                  onPressed: notifier.loadFirstPage,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ];
+    }
+
+    if (state.isEmpty) {
+      return <Widget>[
+        SliverToBoxAdapter(
+          child: filters.isFiltered
+              ? _AdsDeadEnd(filters: filters, onChanged: _setFilters)
+              : Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 40),
+                  child: PdlEmptyState(
+                    variant: PdlEmptyVariant.empty,
+                    icon: Icons.sell,
+                    title: 'ads.empty'.tr(),
+                    message: 'ads.emptyHint'.tr(),
+                  ),
+                ),
+        ),
+      ];
+    }
+
+    final int total = state.total ?? state.items.length;
+
+    return <Widget>[
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            PdlSpacing.section,
+            PdlSpacing.chipGap,
+            PdlSpacing.section,
+            4,
+          ),
+          child: Text(
+            'ads.list.count'.plural(total),
+            style: context.pdlText.count,
+          ),
+        ),
+      ),
+      SliverPadding(
+        padding: padding,
+        sliver: SliverList.separated(
+          itemCount: state.items.length,
+          separatorBuilder: (_, _) =>
+              const SizedBox(height: PdlSpacing.feedGap),
+          itemBuilder: (BuildContext context, int index) {
+            notifier.onItemBuilt(index);
+            final AdDto ad = state.items[index];
+            return AdCard(key: ValueKey<String>(ad.id), ad: ad);
+          },
+        ),
+      ),
+      SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: PdlSpacing.section),
+        sliver: SliverToBoxAdapter(
+          child: PdlPagedListFooter(
+            isLoadingNext: state.isLoadingNext,
+            hasMore: state.hasMore,
+            isEmpty: state.items.isEmpty,
+            hasError: state.nextError != null,
+            onRetry: notifier.retryNextPage,
+            // « N sur M » : le seul endroit qui dise ce que la liste cache
+            // encore, et il ne coûte aucun appel supplémentaire.
+            progressLabel: 'pagination.progress'.tr(
+              namedArgs: <String, String>{
+                'loaded': '${state.items.length}',
+                'total': '$total',
+              },
+            ),
+            loadingLabel: 'pagination.loadingMore'.tr(),
+            endLabel: 'pagination.endOfList'.tr(),
+            errorLabel: 'pagination.nextPageError'.tr(),
+            retryLabel: 'common.retry'.tr(),
+          ),
+        ),
+      ),
+    ];
+  }
 }
 
-class _AdCard extends StatelessWidget {
-  final AdDto ad;
+/// Cul-de-sac : les filtres ne laissent rien passer.
+///
+/// [PdlDeadEndEmpty] est réutilisé **tel quel**, avec `suggestedFilter: null`
+/// — c'est-à-dire sans « Retirer le filtre X » ni aperçu. La règle de S21-8
+/// veut qu'un filtre proposé soit celui qui, une fois levé, maximise le compte
+/// serveur ; or `GET …/classifieds/count` **n'existe pas**, et le simuler par
+/// N appels `?size=1&view=compact` coûterait jusqu'à cinq requêtes à chaque
+/// frappe pour une suggestion secondaire. « Tout réinitialiser » suffit à
+/// sortir du cul-de-sac.
+class _AdsDeadEnd extends StatelessWidget {
+  const _AdsDeadEnd({required this.filters, required this.onChanged});
 
-  const _AdCard({required this.ad});
+  final AdFilters filters;
+  final ValueChanged<AdFilters> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final String? search = filters.search?.trim();
 
-    return AnimatedCard(
-      onTap: () => context.push(Paths.ad(ad.team.slug, ad.slug)),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                color: theme.colorScheme.secondaryContainer,
-              ),
-              child: Icon(
-                _adTypeIcon(ad.adType),
-                color: theme.colorScheme.onSecondaryContainer,
-              ),
+    return PdlDeadEndEmpty(
+      title: 'ads.list.empty.title'.tr(),
+      message: search == null || search.isEmpty
+          ? 'ads.list.empty.description'.tr()
+          : 'ads.list.empty.descriptionSearch'.tr(
+              namedArgs: <String, String>{'search': search},
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        _adTypeIcon(ad.adType),
-                        size: 14,
-                        color: theme.colorScheme.secondary,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'ads.adType.${ad.adType}'.tr(),
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.secondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    ad.name,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (ad.price != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      '${ad.price!.toStringAsFixed(0)} €',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const Icon(Icons.chevron_right),
-          ],
-        ),
-      ),
+      resetAllLabel: 'ads.list.empty.resetAll'.tr(),
+      onResetAll: () => onChanged(filters.cleared),
     );
-  }
-
-  IconData _adTypeIcon(String adType) {
-    return switch (adType) {
-      'SALE' => Icons.sell,
-      'RENTAL' => Icons.key,
-      'WANTED' => Icons.search,
-      _ => Icons.sell,
-    };
   }
 }

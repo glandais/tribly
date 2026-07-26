@@ -329,7 +329,32 @@
       "WEEK": "Semaine",
       "MONTH": "Mois"
     },
-    "emptyHint": "Les annonces de vente, de location et de recherche de votre équipe apparaîtront ici."
+    "emptyHint": "Les annonces de vente, de location et de recherche de votre équipe apparaîtront ici.",
+    "list": {
+      "searchPlaceholder": "Rechercher une annonce",
+      "allTypes": "Tous",
+      "count": {
+        "zero": "Aucune annonce",
+        "one": "{} annonce",
+        "other": "{} annonces"
+      },
+      "loadError": "La rubrique Annonces n'est pas activée sur cette équipe, ou le réseau est indisponible.",
+      "empty": {
+        "title": "Aucune annonce pour ces filtres",
+        "description": "Aucune annonce ne correspond à cette combinaison de filtres.",
+        "descriptionSearch": "Aucune annonce ne correspond à « {search} » avec ces filtres.",
+        "resetAll": "Tout réinitialiser"
+      }
+    },
+    "sort": {
+      "title": "Trier par",
+      "newest": "Plus récentes d'abord",
+      "oldest": "Plus anciennes d'abord",
+      "priceAsc": "Prix croissant",
+      "priceDesc": "Prix décroissant",
+      "nameAsc": "Nom A → Z",
+      "nameDesc": "Nom Z → A"
+    }
   },
   "trips": {
     "title": "Voyages",

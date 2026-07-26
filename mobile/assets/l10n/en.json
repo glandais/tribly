@@ -329,7 +329,32 @@
       "WEEK": "Week",
       "MONTH": "Month"
     },
-    "emptyHint": "Your team's items for sale, for rent and wanted will appear here."
+    "emptyHint": "Your team's items for sale, for rent and wanted will appear here.",
+    "list": {
+      "searchPlaceholder": "Search classifieds",
+      "allTypes": "All",
+      "count": {
+        "zero": "No classified",
+        "one": "{} classified",
+        "other": "{} classifieds"
+      },
+      "loadError": "Classifieds are not enabled on this team, or the network is unavailable.",
+      "empty": {
+        "title": "No classified for these filters",
+        "description": "No classified matches this combination of filters.",
+        "descriptionSearch": "No classified matches “{search}” with these filters.",
+        "resetAll": "Reset everything"
+      }
+    },
+    "sort": {
+      "title": "Sort by",
+      "newest": "Newest first",
+      "oldest": "Oldest first",
+      "priceAsc": "Price, low to high",
+      "priceDesc": "Price, high to low",
+      "nameAsc": "Name A → Z",
+      "nameDesc": "Name Z → A"
+    }
   },
   "trips": {
     "title": "Trips",
