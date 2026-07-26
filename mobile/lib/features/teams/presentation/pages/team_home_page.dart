@@ -11,8 +11,12 @@ import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../ads/presentation/pages/ads_page.dart';
 import '../../../calendar/presentation/pages/calendar_page.dart';
+import '../../../routes/domain/route_filters.dart';
 import '../../../routes/presentation/pages/routes_page.dart';
+import '../../../routes/providers/route_list_provider.dart';
+import '../../providers/team_membership_controller.dart';
 import '../../providers/team_providers.dart';
+import '../widgets/team_header.dart';
 import '../widgets/team_sections.dart';
 import '../widgets/team_sections_bar.dart';
 import 'team_about_page.dart';
@@ -44,22 +48,27 @@ class TeamHomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Le contrôleur d'adhésion **fait autorité** sur le détail rendu : c'est
+    // lui qui porte la bascule optimiste. Il adopte `teamDetailProvider` et
+    // le rend inchangé le reste du temps.
     final AsyncValue<TeamDetailDto> teamAsync = ref.watch(
-      teamDetailProvider(teamSlug),
+      teamMembershipControllerProvider(
+        teamSlug,
+      ).select((TeamMembershipState s) => s.team),
     );
 
     return teamAsync.when(
       data: (TeamDetailDto team) =>
           _TeamSectionScaffold(team: team, section: section),
       loading: () => _TeamChrome(
-        title: null,
+        header: null,
         body: const Padding(
           padding: EdgeInsets.all(PdlSpacing.section),
           child: PdlSkeletonCardList(count: 3),
         ),
       ),
       error: (Object error, _) => _TeamChrome(
-        title: null,
+        header: null,
         body: Center(
           child: SingleChildScrollView(
             child: PdlEmptyState(
@@ -85,28 +94,39 @@ class TeamHomePage extends ConsumerWidget {
   }
 }
 
-/// The team header and the frame every section hangs from.
+/// The frame every section hangs from.
 ///
 /// The [Scaffold] is also what makes an iOS status-bar tap scroll a section
 /// back to the top: it animates the [PrimaryScrollController] of **its own**
 /// route, and `MainShell`'s Scaffold lives in the root navigator's route while
 /// a team lives in the Teams branch — two different controllers.
 class _TeamChrome extends StatelessWidget {
-  const _TeamChrome({required this.title, required this.body});
+  const _TeamChrome({required this.header, required this.body});
 
-  final String? title;
+  /// L'en-tête déjà rétracté, ou `null` tant que l'équipe n'est pas là — on
+  /// ne rend alors que la barre de retour, sans identité inventée.
+  final Widget? header;
+
   final Widget body;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.pdl.bg,
-      appBar: PdlAppBar(
-        title: title,
-        onBack: () => context.go(Paths.teams()),
-        backSemanticLabel: 'teams.title'.tr(),
-      ),
-      body: body,
+      appBar: header == null
+          ? PdlAppBar(
+              onBack: () => context.go(Paths.teams()),
+              backSemanticLabel: 'teams.title'.tr(),
+            )
+          : null,
+      body: header == null
+          ? body
+          : Column(
+              children: <Widget>[
+                SafeArea(bottom: false, child: header!),
+                Expanded(child: body),
+              ],
+            ),
     );
   }
 }
@@ -122,44 +142,174 @@ class _TeamSectionScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     final List<TeamSection> sections = buildTeamSections(team);
 
-    return _TeamChrome(
-      title: team.name,
-      body: switch (section) {
-        // Sections whose body is a list of slivers take the row as a pinned
-        // sliver of that same list.
-        TeamSectionKind.feed => TeamFeedPage(
+    // Les deux sections qui sont **une liste de slivers** portent l'en-tête
+    // interpolé : il se rétracte de 112 à 56 px sous le doigt. Les quatre
+    // autres possèdent leur propre défileur et reçoivent l'en-tête déjà
+    // rétracté — voir [TeamHeaderSliver].
+    return switch (section) {
+      TeamSectionKind.feed => _TeamChrome(
+        header: null,
+        body: TeamFeedPage(
           teamSlug: team.slug,
           team: team,
+          leadingSlivers: <Widget>[
+            TeamHeaderSliver(team: team),
+            SliverToBoxAdapter(
+              child: _TeamStats(team: team, section: section),
+            ),
+            SliverToBoxAdapter(child: _MembershipBanner(team: team)),
+          ],
           toolbar: TeamSectionsToolbar(sections: sections, current: section),
         ),
-        TeamSectionKind.about => TeamAboutPage(
+      ),
+      TeamSectionKind.about => _TeamChrome(
+        header: null,
+        body: TeamAboutPage(
           teamSlug: team.slug,
           team: team,
+          leadingSlivers: <Widget>[
+            TeamHeaderSliver(team: team),
+            SliverToBoxAdapter(
+              child: _TeamStats(team: team, section: section),
+            ),
+            SliverToBoxAdapter(child: _MembershipBanner(team: team)),
+          ],
           toolbar: TeamSectionsToolbar(sections: sections, current: section),
         ),
-        // Sections that are pages of their own take the fixed form of the same
-        // row, above them.
-        TeamSectionKind.calendar => _WithSectionsBar(
+      ),
+      TeamSectionKind.calendar => _TeamChrome(
+        header: TeamHeaderBar(team: team),
+        body: _WithSectionsBar(
           sections: sections,
           current: section,
           child: CalendarPage(teamSlug: team.slug, embedded: true),
         ),
-        TeamSectionKind.routes => _WithSectionsBar(
+      ),
+      TeamSectionKind.routes => _TeamChrome(
+        header: TeamHeaderBar(team: team),
+        body: _WithSectionsBar(
           sections: sections,
           current: section,
           child: RoutesPage(teamSlug: team.slug, embedded: true),
         ),
-        TeamSectionKind.ads => _WithSectionsBar(
+      ),
+      TeamSectionKind.ads => _TeamChrome(
+        header: TeamHeaderBar(team: team),
+        body: _WithSectionsBar(
           sections: sections,
           current: section,
           child: AdsPage(teamSlug: team.slug, team: team),
         ),
-        TeamSectionKind.members => _WithSectionsBar(
+      ),
+      TeamSectionKind.members => _TeamChrome(
+        header: TeamHeaderBar(team: team),
+        body: _WithSectionsBar(
           sections: sections,
           current: section,
           child: TeamMembersPage(teamSlug: team.slug),
         ),
-      },
+      ),
+    };
+  }
+}
+
+/// Les trois cellules chiffrées — et c'est ici que le silo se casse.
+///
+/// Elles ne mènent pas à des écrans dupliqués par équipe mais à des **surfaces
+/// racine pré-filtrées** : le trombinoscope de l'équipe, le calendrier de
+/// portée équipe, et l'onglet Parcours global dont la portée est réglée sur
+/// cette équipe. Une application qui recopie ses écrans par équipe finit avec
+/// deux parcothèques qui divergent.
+///
+/// Sur « À propos », deux cellules seulement : membres et année de création.
+/// Il n'y a pas de `foundedYear` au contrat — c'est `createdAt`, et le dire
+/// autrement serait inventer une histoire à l'équipe.
+class _TeamStats extends ConsumerWidget {
+  const _TeamStats({required this.team, required this.section});
+
+  final TeamDetailDto team;
+  final TeamSectionKind section;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bool about = section == TeamSectionKind.about;
+    final DateTime? created = DateTime.tryParse(team.createdAt);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        PdlSpacing.section,
+        PdlSpacing.chipGap,
+        PdlSpacing.section,
+        0,
+      ),
+      child: PdlStatCellRow(
+        cells: <PdlStatCell>[
+          PdlStatCell(
+            value: '${team.memberCount}',
+            label: 'teams.membersLabel'.tr(),
+            semanticLabel: 'teams.membersList.count'.plural(team.memberCount),
+            onTap: () => context.go(Paths.teamMembers(team.slug)),
+          ),
+          if (about)
+            PdlStatCell(
+              value: created == null ? '—' : '${created.year}',
+              label: 'teams.aboutPage.createdYear'.tr(),
+            )
+          else ...<PdlStatCell>[
+            PdlStatCell(
+              value: '${team.upcomingRideCount}',
+              label: 'teams.stats.upcomingRides'.tr(),
+              onTap: () => context.go(Paths.teamCalendar(team.slug)),
+            ),
+            PdlStatCell(
+              value: '${team.routeCount}',
+              label: 'teams.tabs.routes'.tr(),
+              // **L'onglet Parcours global**, portée pré-réglée sur l'équipe :
+              // c'est la même parcothèque, filtrée, et non une seconde.
+              onTap: () {
+                ref.read(routeFiltersProvider(null).notifier).state =
+                    const RouteFilters().copyWith(teamSlug: team.slug);
+                context.go(Paths.allRoutes());
+              },
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Le bandeau d'échec d'adhésion, nommant sa cause.
+class _MembershipBanner extends ConsumerWidget {
+  const _MembershipBanner({required this.team});
+
+  final TeamDetailDto team;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final String? failure = ref.watch(
+      teamMembershipControllerProvider(
+        team.slug,
+      ).select((TeamMembershipState s) => s.failure),
+    );
+    if (failure == null) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        PdlSpacing.section,
+        PdlSpacing.chipGap,
+        PdlSpacing.section,
+        0,
+      ),
+      child: PdlBanner(
+        tone: PdlBannerTone.danger,
+        title: 'teams.membership.failed'.tr(),
+        message: failure,
+        onDismiss: () => ref
+            .read(teamMembershipControllerProvider(team.slug).notifier)
+            .dismissFailure(),
+        dismissSemanticLabel: 'common.close'.tr(),
+      ),
     );
   }
 }

@@ -229,8 +229,11 @@
       "empty": "No publications"
     },
     "aboutPage": {
-      "createdYear": "Created",
-      "pages": "Pages"
+      "createdYear": "founded",
+      "pages": "Team pages",
+      "pagesHint": "Each page opens its own shareable screen.",
+      "empty": "Nothing to show yet",
+      "emptyHint": "This team has not written its presentation yet."
     },
     "loadError": {
       "title": "Team unavailable"
@@ -290,6 +293,18 @@
         "description": "No team matches this search or this scope.",
         "resetAll": "Reset everything"
       }
+    },
+    "membership": {
+      "join": "Join",
+      "joining": "Joining…",
+      "leave": "Leave",
+      "leaving": "Leaving…",
+      "leaveTitle": "Leave this team?",
+      "leaveMessage": "You will lose access to members-only content: the calendar, the classifieds and the member list.",
+      "failed": "Action failed."
+    },
+    "stats": {
+      "upcomingRides": "upcoming rides"
     }
   },
   "rides": {

@@ -229,8 +229,11 @@
       "empty": "Aucune publication"
     },
     "aboutPage": {
-      "createdYear": "Création",
-      "pages": "Pages"
+      "createdYear": "année de création",
+      "pages": "Pages de l'équipe",
+      "pagesHint": "Chaque page ouvre un écran propre et partageable.",
+      "empty": "Rien à présenter pour l'instant",
+      "emptyHint": "Cette équipe n'a pas encore écrit sa présentation."
     },
     "loadError": {
       "title": "Équipe indisponible"
@@ -290,6 +293,18 @@
         "description": "Aucune équipe ne correspond à cette recherche ni à cette portée.",
         "resetAll": "Tout réinitialiser"
       }
+    },
+    "membership": {
+      "join": "Rejoindre",
+      "joining": "Adhésion…",
+      "leave": "Quitter",
+      "leaving": "Départ…",
+      "leaveTitle": "Quitter cette équipe ?",
+      "leaveMessage": "Vous perdrez l'accès aux contenus réservés aux membres : le calendrier, les annonces et le trombinoscope.",
+      "failed": "Action impossible."
+    },
+    "stats": {
+      "upcomingRides": "sorties à venir"
     }
   },
   "rides": {

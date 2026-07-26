@@ -18,11 +18,16 @@ class TeamFeedPage extends ConsumerWidget {
   /// The pinned section row, above the feed's own filters.
   final Widget? toolbar;
 
+  /// Slivers rendus au-dessus de la rangée de sections — l'en-tête d'équipe
+  /// interpolé et les cellules chiffrées.
+  final List<Widget> leadingSlivers;
+
   const TeamFeedPage({
     super.key,
     required this.teamSlug,
     required this.team,
     this.toolbar,
+    this.leadingSlivers = const <Widget>[],
   });
 
   @override
@@ -30,7 +35,7 @@ class TeamFeedPage extends ConsumerWidget {
     return PublicationFeedView(
       teamSlug: teamSlug,
       emptyMessage: 'teams.feed.empty'.tr(),
-      leadingSlivers: <Widget>[?toolbar],
+      leadingSlivers: <Widget>[...leadingSlivers, ?toolbar],
     );
   }
 }

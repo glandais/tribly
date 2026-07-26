@@ -1350,12 +1350,30 @@ requêtes simultanées aujourd'hui).
 
 | # | État | Tâche | Fichiers | Dépend de | Taille | Fin |
 |---|---|---|---|---|---|---|
-| S23-1 | ☐ | Construire l'en-tête d'équipe interpolé | `[C] features/teams/presentation/widgets/team_header.dart` · `[S à terme] team_sliver_app_bar.dart` | F-NA-4 | L | Avatar 56 → 26, titre 20 → 17, badges en fondu, action toujours visible ; **déployé ≤ 120 px** ; `logoUrl` (nouveau) enfin affiché |
-| S23-2 | ☐ | Brancher l'adhésion et le départ | `[M] features/teams/data/team_repository.dart` · `[C] features/teams/providers/team_membership_provider.dart` | S23-1 | M | État résolu **avant le premier paint** ; « Adhésion... » pendant l'appel ; échec → `PdlBanner(danger)` nommant la cause ; départ confirmé par une feuille en question fermée |
-| S23-3 | ☐ | Livrer la rangée de statistiques cliquables | `[M] core/pdl/pdl_stat_cell_row.dart` · `[M] TeamHomePage` | S23-1, S21-1, S34-1 | M | Les 3 cellules naviguent vers le trombinoscope, le calendrier de portée équipe et `/parcours` **pré-filtré** ; version à 2 cellules sur À propos |
-| S23-4 | ☐ | Livrer la rangée de sections d'équipe | `[M] config/router.dart` (`buildTeamSections`), `TeamHomePage` | F-NA-4, S32-1 | M | 2 à 5 sections selon `enableRides/Trips/Routes/Ads/Posts` et le rôle, **Annonces comprise** ; la section active suit l'URL ; une seule `NavigationBar` dans l'arbre |
-| S23-5 | ☐ | Livrer À propos et les pages libres | `[M] features/teams/.../team_about_page.dart` · `[C] .../team_page_screen.dart` · `[M] contracts/routes.yaml` + génération | S23-1, F-NA-3 | M | **Une seule requête** à l'ouverture de l'onglet ; chaque page libre ouvre un écran deeplinkable avec son entrée de hiérarchie |
-| S23-6 | ☐ | Retirer la page morte | `[S] features/teams/presentation/pages/team_detail_page.dart` · providers déplacés vers `features/teams/providers/` | S23-1, S23-3 | S | Aucune référence résiduelle ; `flutter analyze` propre |
+| S23-1 | ☑ | Construire l'en-tête d'équipe interpolé | `[C] features/teams/presentation/widgets/team_header.dart` · `[S à terme] team_sliver_app_bar.dart` | F-NA-4 | L | Avatar 56 → 26, titre 20 → 17, badges en fondu, action toujours visible ; **déployé ≤ 120 px** ; `logoUrl` (nouveau) enfin affiché |
+| S23-2 | ☑ | Brancher l'adhésion et le départ | `[M] features/teams/data/team_repository.dart` · `[C] features/teams/providers/team_membership_provider.dart` | S23-1 | M | État résolu **avant le premier paint** ; « Adhésion... » pendant l'appel ; échec → `PdlBanner(danger)` nommant la cause ; départ confirmé par une feuille en question fermée |
+| S23-3 | ☑ | Livrer la rangée de statistiques cliquables | `[M] core/pdl/pdl_stat_cell_row.dart` · `[M] TeamHomePage` | S23-1, S21-1, S34-1 | M | Les 3 cellules naviguent vers le trombinoscope, le calendrier de portée équipe et `/parcours` **pré-filtré** ; version à 2 cellules sur À propos |
+| S23-4 | ☑ | Livrer la rangée de sections d'équipe | `[M] config/router.dart` (`buildTeamSections`), `TeamHomePage` | F-NA-4, S32-1 | M | 2 à 5 sections selon `enableRides/Trips/Routes/Ads/Posts` et le rôle, **Annonces comprise** ; la section active suit l'URL ; une seule `NavigationBar` dans l'arbre |
+| S23-5 | ☑ | Livrer À propos et les pages libres | `[M] features/teams/.../team_about_page.dart` · `[C] .../team_page_screen.dart` · `[M] contracts/routes.yaml` + génération | S23-1, F-NA-3 | M | **Une seule requête** à l'ouverture de l'onglet ; chaque page libre ouvre un écran deeplinkable avec son entrée de hiérarchie |
+| S23-6 | ☑ | Retirer la page morte | `[S] features/teams/presentation/pages/team_detail_page.dart` · providers déplacés vers `features/teams/providers/` | S23-1, S23-3 | S | Aucune référence résiduelle ; `flutter analyze` propre |
+
+**Notes de livraison de l'écran 23.**
+
+* **`S23-4` était déjà soldée** par F-NA-4 : `buildTeamSections` rend de 2 à 5 sections
+  selon les drapeaux et le rôle, Annonces comprise, et la section active suit l'URL parce
+  que le routeur la nomme. Vérifiée, pas réécrite.
+* **`S23-6` aussi** : `team_detail_page.dart` avait disparu avec F-NA-4 et ses providers
+  vivent dans `features/teams/providers/`. Ce lot y ajoute la suppression de
+  `team_sliver_app_bar.dart`, dont le dernier appelant (`AdsPage`) est parti au lot 5.
+* **L'en-tête n'est interpolé que sur les deux sections qui sont une liste de slivers**
+  (Fil, À propos). Les quatre autres — calendrier, parcours, annonces, membres —
+  possèdent leur propre défileur et reçoivent l'en-tête **déjà rétracté**, en boîte fixe :
+  y greffer l'interpolation demanderait un `NestedScrollView`, qui leur retirerait le
+  statut de défileur primaire dont dépend le retour en haut par la barre d'état (lot 3).
+* **Le bloc « Contact » de la maquette n'est pas livré** : `TeamDetailDto` ne porte ni
+  adresse, ni nom de lieu, ni compte Facebook, Instagram ou Twitter — seulement
+  `geometry`. C'est un **écart nouveau**, non listé par le plan, et il est signalé plutôt
+  que comblé par une invention.
 
 ### 6.2 Écran 33 — Profil et préférences
 
