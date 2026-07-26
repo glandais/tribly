@@ -792,6 +792,20 @@ plein écran a besoin de la géométrie complète de toute façon.
 sur les vues d'aperçu ; la colorisation est visuellement identique à l'existant ; l'import dynamique
 de `chartjs-plugin-zoom` reste en place (invariant SSR).
 
+**Abandonnée — la prémisse ne tient pas.** Le critère de fin suppose une vue d'aperçu qui rende un
+profil *sans* rendre de carte. Il n'en existe aucune : `RouteMapView.tsx:36` aplatit
+`route.tracks` pour tracer la ligne **et** passe le même `route` à `ElevationChart` ; l'overlay de
+`RoutesMapView` lit les `trackPoints` déjà chargés pour les tracés. Partout où un profil s'affiche,
+la géométrie est de toute façon nécessaire à la carte : appeler `elevation-profile` ajouterait une
+requête par parcours au lieu d'en retirer une.
+
+Le gain visé — « réduire la charge utile d'un ordre de grandeur » — est par ailleurs déjà obtenu par
+T3.3, qui demande la géométrie d'aperçu en `?simplify=25`. La tâche resterait pertinente le jour où
+une vue affichera un profil seul (une ligne de liste, une carte de sortie sans carte) ; elle n'a pas
+de bénéfice aujourd'hui, et `ElevationChart` est par ailleurs adhérent aux `climbs` et à l'indexation
+des points que la synchronisation carte↔graphique exige — précisément ce que la tâche interdit de
+toucher.
+
 ---
 
 **T3.6 ☑ — Réduire le chrome d'équipe**
