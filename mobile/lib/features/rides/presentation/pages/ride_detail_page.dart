@@ -234,26 +234,11 @@ class _RideDetailContent extends ConsumerWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(
-            expandedHeight: thumbnailUrl != null ? 200 : null,
-            pinned: true,
-            flexibleSpace: thumbnailUrl != null
-                ? FlexibleSpaceBar(
-                    title: Text(
-                      ride.name,
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    background: Hero(
-                      tag: 'ride-thumbnail-${ride.slug}',
-                      child: AuthenticatedImage(
-                        imageUrl: thumbnailUrl,
-                        fit: BoxFit.cover,
-                        errorWidget: const SizedBox.shrink(),
-                      ),
-                    ),
-                  )
-                : null,
-            title: thumbnailUrl == null ? Text(ride.name) : null,
+          MediaSliverAppBar(
+            title: ride.name,
+            imageUrl: thumbnailUrl,
+            heroTag: 'ride-thumbnail-${ride.slug}',
+            backSemanticLabel: 'common.back'.tr(),
           ),
 
           // Team

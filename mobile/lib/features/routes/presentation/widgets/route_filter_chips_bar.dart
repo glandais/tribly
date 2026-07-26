@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../api/generated/export.dart';
+import '../../../../core/pdl/pdl.dart';
 import '../../../../core/preferences/user_preferences_provider.dart';
 import '../../domain/route_filters.dart';
 import 'route_filter_sheet.dart';
@@ -29,55 +30,40 @@ class RouteFilterChipsBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final units = ref.watch(unitSystemProvider);
     final active = filters.activeFields;
     final inactive = RouteFilterField.values
         .where((f) => f != RouteFilterField.search && !active.contains(f))
         .toList();
 
-    return SizedBox(
-      height: 40,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        children: [
-          ActionChip(
-            avatar: Icon(
-              filters.sortDir == SortDirection.asc
-                  ? Icons.arrow_upward
-                  : Icons.arrow_downward,
-              size: 16,
-            ),
-            label: Text(RouteFilterLabels.routeSortByName(filters.sortBy)),
-            onPressed: () => _pickSort(context),
+    // F-DE-3 : la rangée figeait sa hauteur à 40 px et la 4ᵉ chip se faisait
+    // couper net par le bord droit, sans rien qui dise qu'il en restait.
+    // `PdlChipRow` mesure sa hauteur — elle suit donc l'agrandissement
+    // typographique — et fond les 28 derniers pixels, ce qui annonce le
+    // débordement au lieu de le subir.
+    return PdlChipRow(
+      children: [
+        PdlChip(
+          sortStyle: true,
+          icon: filters.sortDir == SortDirection.asc
+              ? Icons.arrow_upward
+              : Icons.arrow_downward,
+          label: RouteFilterLabels.routeSortByName(filters.sortBy),
+          onTap: () => _pickSort(context),
+        ),
+        for (final field in active)
+          PdlChip(
+            label: RouteFilterLabels.filterChip(filters, field, units) ?? '',
+            selected: true,
+            onTap: onOpenFilters,
+            onRemoved: () => onChanged(filters.without(field)),
           ),
-          for (final field in active) ...[
-            const SizedBox(width: 8),
-            InputChip(
-              label: Text(
-                RouteFilterLabels.filterChip(filters, field, units) ?? '',
-              ),
-              selected: true,
-              showCheckmark: false,
-              onDeleted: () => onChanged(filters.without(field)),
-              onPressed: onOpenFilters,
-            ),
-          ],
-          for (final field in inactive) ...[
-            const SizedBox(width: 8),
-            ActionChip(
-              label: Text(RouteFilterLabels.filterFieldName(field)),
-              labelStyle: theme.textTheme.labelLarge?.copyWith(
-                color: theme.colorScheme.outline,
-              ),
-              backgroundColor: Colors.transparent,
-              side: BorderSide(color: theme.colorScheme.outlineVariant),
-              onPressed: onOpenFilters,
-            ),
-          ],
-        ],
-      ),
+        for (final field in inactive)
+          PdlChip(
+            label: RouteFilterLabels.filterFieldName(field),
+            onTap: onOpenFilters,
+          ),
+      ],
     );
   }
 

@@ -7,6 +7,7 @@ import '../../../../api/generated/export.dart';
 import '../../../../api/pedalons_api_client.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/adaptive/adaptive.dart';
+import '../../../../core/pdl/pdl.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../teams/presentation/widgets/team_sliver_app_bar.dart';
@@ -38,24 +39,22 @@ class AdsPage extends ConsumerWidget {
           adsAsync.when(
             data: (ads) {
               if (ads.isEmpty) {
+                // F-DE-9 : titre nominal et une phrase qui explique, au lieu
+                // d'un « Aucune annonce » sec.
+                //
+                // Cette page n'a **ni recherche ni filtre** : son vide est
+                // toujours absolu, et lui inventer un « Effacer la recherche »
+                // serait proposer une sortie vers une porte qui n'existe pas.
+                // Le vide filtré arrivera avec la pagination et les filtres
+                // d'annonces (F-DE-11, lot 5).
                 return SliverFillRemaining(
+                  hasScrollBody: false,
                   child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        AnimatedEmptyState(
-                          child: Icon(
-                            Icons.sell,
-                            size: 64,
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'ads.empty'.tr(),
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                      ],
+                    child: PdlEmptyState(
+                      variant: PdlEmptyVariant.empty,
+                      icon: Icons.sell,
+                      title: 'ads.empty'.tr(),
+                      message: 'ads.emptyHint'.tr(),
                     ),
                   ),
                 );
@@ -79,27 +78,28 @@ class AdsPage extends ConsumerWidget {
               padding: const EdgeInsets.all(16),
               sliver: SliverToBoxAdapter(
                 child: ContentWidthConstraint(
-                  child: const ShimmerCardList(itemCount: 4),
+                  // Cinq squelettes, pas quatre : l'arbitrage §1.0.4 vaut
+                  // partout où une liste charge.
+                  child: const PdlSkeletonCardList(
+                    variant: PdlSkeletonCardVariant.compact,
+                  ),
                 ),
               ),
             ),
             error: (error, stack) => SliverFillRemaining(
+              hasScrollBody: false,
               child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 48,
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(getErrorMessage(error)),
-                    const SizedBox(height: 16),
-                    FilledButton(
+                child: PdlEmptyState(
+                  variant: PdlEmptyVariant.error,
+                  title: 'common.loadError'.tr(),
+                  message: getErrorMessage(error),
+                  actions: [
+                    PdlButton(
+                      label: 'common.retry'.tr(),
+                      variant: PdlButtonVariant.outline,
+                      size: PdlButtonSize.sm,
                       onPressed: () =>
                           ref.invalidate(_teamAdsProvider(teamSlug)),
-                      child: Text('common.retry'.tr()),
                     ),
                   ],
                 ),

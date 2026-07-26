@@ -158,23 +158,10 @@ class _TripDetailContent extends ConsumerWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(
-            expandedHeight: thumbnailUrl != null ? 200 : null,
-            pinned: true,
-            flexibleSpace: thumbnailUrl != null
-                ? FlexibleSpaceBar(
-                    title: Text(
-                      trip.name,
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    background: AuthenticatedImage(
-                      imageUrl: thumbnailUrl,
-                      fit: BoxFit.cover,
-                      errorWidget: const SizedBox.shrink(),
-                    ),
-                  )
-                : null,
-            title: thumbnailUrl == null ? Text(trip.name) : null,
+          MediaSliverAppBar(
+            title: trip.name,
+            imageUrl: thumbnailUrl,
+            backSemanticLabel: 'common.back'.tr(),
           ),
 
           // Team

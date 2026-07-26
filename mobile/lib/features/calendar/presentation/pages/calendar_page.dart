@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/adaptive/adaptive.dart';
+import '../../../../core/pdl/pdl.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../../core/utils/formatters.dart';
@@ -134,24 +135,50 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
           child: eventsAsync.when(
             data: (events) {
               if (events.isEmpty) {
+                // F-DE-9 : l'agenda n'a pas de recherche, il a un **mois**.
+                // C'est son filtre, et c'est lui qui sépare les deux vides :
+                // « rien ce mois-ci » n'appelle rien, mais « rien en mars
+                // 2027 » appelle un retour au mois courant — l'équivalent
+                // exact du « Effacer la recherche » des listes.
+                final now = DateTime.now();
+                final onCurrentMonth =
+                    _selectedMonth.year == now.year &&
+                    _selectedMonth.month == now.month;
+
                 return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      AnimatedEmptyState(
-                        child: Icon(
-                          Icons.event_busy,
-                          size: 64,
-                          color: Theme.of(context).colorScheme.outline,
+                  child: onCurrentMonth
+                      ? PdlEmptyState(
+                          variant: PdlEmptyVariant.empty,
+                          icon: Icons.event_busy,
+                          title: 'calendar.noEvents'.tr(),
+                          message: 'calendar.noEventsHint'.tr(),
+                        )
+                      : PdlEmptyState(
+                          variant: PdlEmptyVariant.filtered,
+                          icon: Icons.event_busy,
+                          title: 'calendar.noEventsThisMonth.title'.tr(
+                            namedArgs: {
+                              'month': AppFormatters.formatMonthYear(
+                                _selectedMonth,
+                              ),
+                            },
+                          ),
+                          message: 'calendar.noEventsThisMonth.message'.tr(),
+                          actions: [
+                            PdlButton(
+                              label: 'calendar.backToCurrentMonth'.tr(),
+                              variant: PdlButtonVariant.outline,
+                              size: PdlButtonSize.sm,
+                              onPressed: () => setState(
+                                () => _selectedMonth = DateTime(
+                                  now.year,
+                                  now.month,
+                                  1,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'calendar.noEvents'.tr(),
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    ],
-                  ),
                 );
               }
 
@@ -204,8 +231,9 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
                   ),
                   const SizedBox(height: 16),
                   // Event card placeholders
+                  // Cinq squelettes, pas deux ni trois (§1.0.4).
                   ...List.generate(
-                    3,
+                    5,
                     (index) => const Padding(
                       padding: EdgeInsets.only(left: 60, bottom: 8),
                       child: ShimmerEventCard(),
@@ -215,21 +243,17 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
               ),
             ),
             error: (error, stack) => Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 48,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(getErrorMessage(error)),
-                  const SizedBox(height: 16),
-                  FilledButton(
+              child: PdlEmptyState(
+                variant: PdlEmptyVariant.error,
+                title: 'common.loadError'.tr(),
+                message: getErrorMessage(error),
+                actions: [
+                  PdlButton(
+                    label: 'common.retry'.tr(),
+                    variant: PdlButtonVariant.outline,
+                    size: PdlButtonSize.sm,
                     onPressed: () =>
                         ref.invalidate(calendarEventsProvider(params)),
-                    child: Text('common.retry'.tr()),
                   ),
                 ],
               ),

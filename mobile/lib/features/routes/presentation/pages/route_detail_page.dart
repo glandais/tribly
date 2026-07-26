@@ -7,7 +7,9 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../api/pedalons_api_client.dart';
+import '../../../../core/pdl/pdl.dart';
 import '../../../../core/preferences/user_preferences_provider.dart';
+import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../auth/providers/auth_provider.dart';
@@ -86,6 +88,12 @@ class _RouteDetailContent extends ConsumerWidget {
           RouteMap(route: route),
 
           // Top bar overlay
+          //
+          // F-DE-2 : `surface.withValues(alpha: 0.8)` laissait passer la tuile.
+          // Sur du satellite, ou simplement sur une zone urbaine dense, le nom
+          // du parcours devenait illisible. `PdlMapButton` et `PdlMapPill`
+          // portent `overlaySolid` — 95 % — plus un flou : c'est le seul
+          // rendu de la charte autorisé au-dessus d'une carte.
           Positioned(
             top: 0,
             left: 0,
@@ -96,34 +104,16 @@ class _RouteDetailContent extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 child: Row(
                   children: [
-                    Material(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surface.withValues(alpha: 0.8),
-                      shape: const CircleBorder(),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back),
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
+                    PdlMapButton(
+                      icon: PdlIcons.back,
+                      semanticLabel: 'common.back'.tr(),
+                      onPressed: () => Navigator.of(context).pop(),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Material(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.surface.withValues(alpha: 0.8),
-                        borderRadius: BorderRadius.circular(20),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          child: Text(
-                            route.name,
-                            style: Theme.of(context).textTheme.titleMedium,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: PdlMapPill(label: route.name),
                       ),
                     ),
                   ],
@@ -304,52 +294,47 @@ class _DownloadButton extends ConsumerWidget {
     final connectedServices =
         ref.read(authProvider).user?.connectedServices ?? [];
 
-    showModalBottomSheet(
+    // F-DE-8 : sans `useRootNavigator: true`, la feuille s'ouvrait *dans* la
+    // branche de la coquille et la barre d'onglets lui passait devant.
+    // `PdlSheet.show` force le drapeau, il n'est pas paramétrable.
+    PdlSheet.show(
       context: context,
-      builder: (sheetContext) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (route.media.assets.gpx != null)
-                _FileDownloadTile(
-                  asset: route.media.assets.gpx!,
-                  label: 'routes.downloadGpx'.tr(),
-                  dio: ref.read(dioProvider),
+      builder: (sheetContext) => PdlSheet(
+        title: 'routes.download'.tr(),
+        children: [
+          if (route.media.assets.gpx != null)
+            _FileDownloadTile(
+              asset: route.media.assets.gpx!,
+              label: 'routes.downloadGpx'.tr(),
+              dio: ref.read(dioProvider),
+            ),
+          if (route.media.assets.fit != null)
+            _FileDownloadTile(
+              asset: route.media.assets.fit!,
+              label: 'routes.downloadFit'.tr(),
+              dio: ref.read(dioProvider),
+            ),
+          if (connectedServices.isNotEmpty) ...[
+            const Divider(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'routes.sendToDevice'.tr(),
+                  style: Theme.of(sheetContext).textTheme.titleSmall,
                 ),
-              if (route.media.assets.fit != null)
-                _FileDownloadTile(
-                  asset: route.media.assets.fit!,
-                  label: 'routes.downloadFit'.tr(),
-                  dio: ref.read(dioProvider),
-                ),
-              if (connectedServices.isNotEmpty) ...[
-                const Divider(),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 4,
-                  ),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'routes.sendToDevice'.tr(),
-                      style: Theme.of(sheetContext).textTheme.titleSmall,
-                    ),
-                  ),
-                ),
-                ...connectedServices.map(
-                  (service) => _DeviceUploadTile(
-                    service: service,
-                    teamSlug: route.team.slug,
-                    routeSlug: route.slug,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
+              ),
+            ),
+            ...connectedServices.map(
+              (service) => _DeviceUploadTile(
+                service: service,
+                teamSlug: route.team.slug,
+                routeSlug: route.slug,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

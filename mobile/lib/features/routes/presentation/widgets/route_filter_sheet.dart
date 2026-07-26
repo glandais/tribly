@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../api/generated/export.dart';
+import '../../../../core/pdl/pdl.dart';
 import '../../../../core/preferences/user_preferences_provider.dart';
+import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../domain/route_filters.dart';
 import '../../providers/route_list_provider.dart';
@@ -14,16 +16,17 @@ import '../../domain/route_filter_labels.dart';
 ///
 /// The sheet edits a draft copy: nothing reaches the list until
 /// "Voir N parcours" is tapped.
+/// F-DE-8 : l'ouverture passe par [PdlSheet.show], qui force
+/// `useRootNavigator: true`. Sans lui la feuille naissait dans le navigateur
+/// de la branche courante — c'est-à-dire *sous* la barre d'onglets, qui lui
+/// passait devant et mangeait son bouton de validation.
 Future<RouteFilters?> showRouteFilterSheet(
   BuildContext context, {
   required String? teamSlug,
   required RouteFilters filters,
 }) {
-  return showModalBottomSheet<RouteFilters>(
+  return PdlSheet.show<RouteFilters>(
     context: context,
-    isScrollControlled: true,
-    showDragHandle: true,
-    useSafeArea: true,
     builder: (context) =>
         _RouteFilterSheet(teamSlug: teamSlug, initial: filters),
   );
@@ -35,10 +38,8 @@ Future<({RouteSortBy by, SortDirection dir})?> showRouteSortSheet(
   required RouteSortBy sortBy,
   required SortDirection sortDir,
 }) {
-  return showModalBottomSheet<({RouteSortBy by, SortDirection dir})>(
+  return PdlSheet.show<({RouteSortBy by, SortDirection dir})>(
     context: context,
-    showDragHandle: true,
-    useSafeArea: true,
     builder: (context) => _SortSheet(sortBy: sortBy, sortDir: sortDir),
   );
 }
@@ -64,7 +65,6 @@ class _RouteFilterSheetState extends ConsumerState<_RouteFilterSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final countProvider = routeCountProvider((
       teamSlug: widget.teamSlug,
       filters: _draft,
@@ -76,124 +76,114 @@ class _RouteFilterSheetState extends ConsumerState<_RouteFilterSheet> {
     final count = ref.watch(countProvider).value ?? _lastCount;
     final units = ref.watch(unitSystemProvider);
 
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'routes.filters.title'.tr(),
-                    style: theme.textTheme.titleLarge,
-                  ),
-                ),
-                if (_draft.activeFields.isNotEmpty)
-                  TextButton(
-                    onPressed: () => _update(_draft.filtersCleared),
-                    child: Text('routes.filters.reset'.tr()),
-                  ),
-              ],
+    // F-DE-5 : le corps était un `Column` dans un `SingleChildScrollView`
+    // dans un `Flexible`, sous un parent `MainAxisSize.min`, avec le CTA hors
+    // du défilement. La dernière ligne — « Trier par » — se retrouvait écrasée
+    // à 1 pt : elle existait, elle était même tapable, mais elle n'était plus
+    // lisible ni atteignable. Le gabarit `PdlSheet` est le seul qui ne puisse
+    // pas s'effondrer : en-tête fixe, corps *borné et défilant*, pied fixe.
+    return PdlSheet(
+      header: Text(
+        'routes.filters.title'.tr(),
+        style: context.pdlText.sectionTitle,
+      ),
+      headerAction: _draft.activeFields.isEmpty
+          ? null
+          : PdlButton(
+              label: 'routes.filters.reset'.tr(),
+              variant: PdlButtonVariant.text,
+              size: PdlButtonSize.sm,
+              onPressed: () => _update(_draft.filtersCleared),
             ),
-            const SizedBox(height: 8),
-            Flexible(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _RangeSection(
-                      label: 'routes.filters.distance'.tr(),
-                      summary: RouteFilterLabels.filterRange(
-                        _draft.minDistance,
-                        _draft.maxDistance,
-                        (meters) =>
-                            AppFormatters.formatDistanceRounded(meters, units),
-                      ),
-                      min: _draft.minDistance,
-                      max: _draft.maxDistance,
-                      upperBound: kRouteDistanceMaxMeters,
-                      step: kRouteDistanceStepMeters,
-                      onChanged: (min, max) => _update(
-                        _draft.copyWith(minDistance: min, maxDistance: max),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    _RangeSection(
-                      label: 'routes.filters.elevationGain'.tr(),
-                      summary: RouteFilterLabels.filterRange(
-                        _draft.minElevationGain,
-                        _draft.maxElevationGain,
-                        (meters) =>
-                            AppFormatters.formatElevation(meters, units),
-                      ),
-                      min: _draft.minElevationGain,
-                      max: _draft.maxElevationGain,
-                      upperBound: kRouteElevationMaxMeters,
-                      step: kRouteElevationStepMeters,
-                      onChanged: (min, max) => _update(
-                        _draft.copyWith(
-                          minElevationGain: min,
-                          maxElevationGain: max,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    _ChoiceSection<SurfaceType>(
-                      label: 'routes.filters.surfaceType'.tr(),
-                      values: SurfaceType.$valuesDefined,
-                      selected: _draft.surfaceType,
-                      labelOf: RouteFilterLabels.surfaceTypeName,
-                      onSelected: (value) =>
-                          _update(_draft.copyWith(surfaceType: value)),
-                    ),
-                    const SizedBox(height: 20),
-                    _ChoiceSection<Hilliness>(
-                      label: 'routes.filters.hilliness'.tr(),
-                      values: Hilliness.$valuesDefined,
-                      selected: _draft.hilliness,
-                      labelOf: RouteFilterLabels.hillinessName,
-                      onSelected: (value) =>
-                          _update(_draft.copyWith(hilliness: value)),
-                    ),
-                    const SizedBox(height: 12),
-                    // Wind and sort are one level down: the two filters that
-                    // actually decide the list stay above the fold.
-                    _NavigationRow(
-                      label: 'routes.filters.windDirection'.tr(),
-                      value: _draft.windDirection == null
-                          ? 'routes.filters.anyFeminine'.tr()
-                          : RouteFilterLabels.windDirectionName(
-                              _draft.windDirection!,
-                            ),
-                      onTap: _pickWindDirection,
-                    ),
-                    _NavigationRow(
-                      label: 'routes.filters.sort'.tr(),
-                      value: _sortSummary(),
-                      onTap: _pickSort,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(_draft),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(52),
-              ),
-              child: Text(
-                count == null
-                    ? 'routes.filters.applyUnknown'.tr()
-                    : 'routes.filters.apply'.plural(count),
-              ),
-            ),
-          ],
+      footer: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+          child: PdlButton(
+            fullWidth: true,
+            label: count == null
+                ? 'routes.filters.applyUnknown'.tr()
+                : 'routes.filters.apply'.plural(count),
+            onPressed: () => Navigator.of(context).pop(_draft),
+          ),
         ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _RangeSection(
+                label: 'routes.filters.distance'.tr(),
+                summary: RouteFilterLabels.filterRange(
+                  _draft.minDistance,
+                  _draft.maxDistance,
+                  (meters) =>
+                      AppFormatters.formatDistanceRounded(meters, units),
+                ),
+                min: _draft.minDistance,
+                max: _draft.maxDistance,
+                upperBound: kRouteDistanceMaxMeters,
+                step: kRouteDistanceStepMeters,
+                onChanged: (min, max) => _update(
+                  _draft.copyWith(minDistance: min, maxDistance: max),
+                ),
+              ),
+              const SizedBox(height: 20),
+              _RangeSection(
+                label: 'routes.filters.elevationGain'.tr(),
+                summary: RouteFilterLabels.filterRange(
+                  _draft.minElevationGain,
+                  _draft.maxElevationGain,
+                  (meters) => AppFormatters.formatElevation(meters, units),
+                ),
+                min: _draft.minElevationGain,
+                max: _draft.maxElevationGain,
+                upperBound: kRouteElevationMaxMeters,
+                step: kRouteElevationStepMeters,
+                onChanged: (min, max) => _update(
+                  _draft.copyWith(minElevationGain: min, maxElevationGain: max),
+                ),
+              ),
+              const SizedBox(height: 20),
+              _ChoiceSection<SurfaceType>(
+                label: 'routes.filters.surfaceType'.tr(),
+                values: SurfaceType.$valuesDefined,
+                selected: _draft.surfaceType,
+                labelOf: RouteFilterLabels.surfaceTypeName,
+                onSelected: (value) =>
+                    _update(_draft.copyWith(surfaceType: value)),
+              ),
+              const SizedBox(height: 20),
+              _ChoiceSection<Hilliness>(
+                label: 'routes.filters.hilliness'.tr(),
+                values: Hilliness.$valuesDefined,
+                selected: _draft.hilliness,
+                labelOf: RouteFilterLabels.hillinessName,
+                onSelected: (value) =>
+                    _update(_draft.copyWith(hilliness: value)),
+              ),
+              const SizedBox(height: 12),
+              // Wind and sort are one level down: the two filters that
+              // actually decide the list stay above the fold.
+              _NavigationRow(
+                label: 'routes.filters.windDirection'.tr(),
+                value: _draft.windDirection == null
+                    ? 'routes.filters.anyFeminine'.tr()
+                    : RouteFilterLabels.windDirectionName(
+                        _draft.windDirection!,
+                      ),
+                onTap: _pickWindDirection,
+              ),
+              _NavigationRow(
+                label: 'routes.filters.sort'.tr(),
+                value: _sortSummary(),
+                onTap: _pickSort,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -204,10 +194,8 @@ class _RouteFilterSheetState extends ConsumerState<_RouteFilterSheet> {
   }
 
   Future<void> _pickWindDirection() async {
-    final result = await showModalBottomSheet<_Optional<WindDirection>>(
+    final result = await PdlSheet.show<_Optional<WindDirection>>(
       context: context,
-      showDragHandle: true,
-      useSafeArea: true,
       builder: (context) => _OptionSheet<WindDirection>(
         title: 'routes.filters.windDirection'.tr(),
         anyLabel: 'routes.filters.anyFeminine'.tr(),
@@ -335,6 +323,13 @@ class _ChoiceSection<T> extends StatelessWidget {
   }
 }
 
+/// Hauteur plancher des deux lignes de navigation de la feuille de filtres.
+///
+/// Elle est publique parce qu'elle est **la** garantie de F-DE-5 : le test de
+/// régression mesure « Direction du vent » et « Trier par » contre cette
+/// valeur, à `textScaleFactor` 1 comme à 1,3.
+const double kFilterNavigationRowHeight = 52;
+
 class _NavigationRow extends StatelessWidget {
   final String label;
   final String value;
@@ -351,6 +346,10 @@ class _NavigationRow extends StatelessWidget {
     final theme = Theme.of(context);
     return ListTile(
       contentPadding: EdgeInsets.zero,
+      // 52 px : la hauteur de ligne de la charte, imposée et non déduite.
+      // C'est exactement ce que F-DE-5 avait perdu — cette ligne mesurait
+      // 1 pt. `minTileHeight` la rend vérifiable par un test.
+      minTileHeight: kFilterNavigationRowHeight,
       shape: Border(top: BorderSide(color: theme.dividerColor)),
       title: Text(label, style: theme.textTheme.titleSmall),
       trailing: Row(
@@ -427,31 +426,23 @@ class _OptionSheet<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-              child: Text(title, style: Theme.of(context).textTheme.titleLarge),
-            ),
-            _OptionRow(
-              label: anyLabel,
-              isSelected: selected == null,
-              onTap: () => Navigator.of(context).pop(_Optional<T>(null)),
-            ),
-            for (final value in values)
-              _OptionRow(
-                label: labelOf(value),
-                isSelected: selected == value,
-                onTap: () => Navigator.of(context).pop(_Optional<T>(value)),
-              ),
-          ],
+    return PdlSheet(
+      title: title,
+      bodyPadding: EdgeInsets.zero,
+      footer: const SafeArea(top: false, child: SizedBox(height: 8)),
+      children: [
+        _OptionRow(
+          label: anyLabel,
+          isSelected: selected == null,
+          onTap: () => Navigator.of(context).pop(_Optional<T>(null)),
         ),
-      ),
+        for (final value in values)
+          _OptionRow(
+            label: labelOf(value),
+            isSelected: selected == value,
+            onTap: () => Navigator.of(context).pop(_Optional<T>(value)),
+          ),
+      ],
     );
   }
 }
@@ -472,59 +463,47 @@ class _SortSheetState extends State<_SortSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-              child: Text(
-                'routes.filters.sort'.tr(),
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-            ),
-            for (final value in RouteSortBy.$valuesDefined)
-              _OptionRow(
-                label: RouteFilterLabels.routeSortByName(value),
-                isSelected: _by == value,
-                onTap: () => setState(() => _by = value),
-              ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-              child: SegmentedButton<SortDirection>(
-                segments: [
-                  ButtonSegment(
-                    value: SortDirection.asc,
-                    icon: const Icon(Icons.arrow_upward, size: 16),
-                    label: Text('routes.sort.asc'.tr()),
-                  ),
-                  ButtonSegment(
-                    value: SortDirection.desc,
-                    icon: const Icon(Icons.arrow_downward, size: 16),
-                    label: Text('routes.sort.desc'.tr()),
-                  ),
-                ],
-                selected: {_dir},
-                onSelectionChanged: (next) => setState(() => _dir = next.first),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-              child: FilledButton(
-                onPressed: () =>
-                    Navigator.of(context).pop((by: _by, dir: _dir)),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size.fromHeight(48),
-                ),
-                child: Text('common.continue'.tr()),
-              ),
-            ),
-          ],
+    return PdlSheet(
+      title: 'routes.filters.sort'.tr(),
+      bodyPadding: EdgeInsets.zero,
+      footer: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+          child: PdlButton(
+            fullWidth: true,
+            label: 'common.continue'.tr(),
+            onPressed: () => Navigator.of(context).pop((by: _by, dir: _dir)),
+          ),
         ),
       ),
+      children: [
+        for (final value in RouteSortBy.$valuesDefined)
+          _OptionRow(
+            label: RouteFilterLabels.routeSortByName(value),
+            isSelected: _by == value,
+            onTap: () => setState(() => _by = value),
+          ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+          child: SegmentedButton<SortDirection>(
+            segments: [
+              ButtonSegment(
+                value: SortDirection.asc,
+                icon: const Icon(Icons.arrow_upward, size: 16),
+                label: Text('routes.sort.asc'.tr()),
+              ),
+              ButtonSegment(
+                value: SortDirection.desc,
+                icon: const Icon(Icons.arrow_downward, size: 16),
+                label: Text('routes.sort.desc'.tr()),
+              ),
+            ],
+            selected: {_dir},
+            onSelectionChanged: (next) => setState(() => _dir = next.first),
+          ),
+        ),
+      ],
     );
   }
 }

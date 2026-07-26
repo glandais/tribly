@@ -6,10 +6,16 @@ import '../../../../config/paths.dart';
 import '../../../../core/utils/safe_string.dart';
 import '../../../../core/widgets/authenticated_image.dart';
 
-/// Reusable collapsible SliverAppBar for team pages.
+/// Bandeau d'équipe rétractable.
 ///
-/// Shows team name, logo, and a back button. Collapses on scroll
-/// to a pinned title bar.
+/// Il ne reste qu'un seul appelant, `AdsPage`, et il disparaîtra avec la
+/// refonte de cet écran au lot 5 : l'équipe porte désormais son propre en-tête
+/// dans `TeamHomePage`.
+///
+/// F-DE-1 : la hauteur déployée passe de 160 à 120 px. Le titre est ici posé
+/// sur un dégradé de marque et non sur une photo — le contraste est donc
+/// maîtrisé, il n'y a pas de voile à poser —, mais 160 px de bandeau sous
+/// l'en-tête de section rendaient la première annonce invisible à l'ouverture.
 class TeamSliverAppBar extends StatelessWidget {
   final TeamDetailDto team;
 
@@ -18,7 +24,7 @@ class TeamSliverAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverAppBar(
-      expandedHeight: 160,
+      expandedHeight: 120,
       pinned: true,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),

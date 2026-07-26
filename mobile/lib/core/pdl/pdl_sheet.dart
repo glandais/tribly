@@ -120,13 +120,22 @@ class PdlSheet extends StatelessWidget {
         ),
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: c.surfaceRaised,
             borderRadius: PdlRadii.sheetTop,
             border: Border(top: BorderSide(color: c.borderSubtle)),
             boxShadow: PdlShadows.sheet,
           ),
-          child: ClipRRect(
+          // La surface est un `Material` et non une simple couleur de
+          // décoration : `ListTile`, `InkWell` et compagnie peignent leur
+          // fond et leur onde d'appui sur le `Material` le plus proche. Avec
+          // un `DecoratedBox` coloré au-dessus, l'onde était peinte puis
+          // recouverte — un appui sans le moindre retour visuel.
+          child: Material(
+            type: MaterialType.card,
+            color: c.surfaceRaised,
+            surfaceTintColor: Colors.transparent,
+            elevation: 0,
             borderRadius: PdlRadii.sheetTop,
+            clipBehavior: Clip.antiAlias,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,

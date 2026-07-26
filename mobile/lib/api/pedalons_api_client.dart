@@ -5,14 +5,18 @@ import 'package:flutter_riverpod/legacy.dart';
 import '../config/app_config.dart';
 import 'generated/export.dart';
 import 'interceptors/auth_interceptor.dart';
+import 'interceptors/locale_interceptor.dart';
 
 /// Simple token holder to avoid circular dependency
 /// This provider doesn't depend on any other provider that uses Dio
 final accessTokenHolderProvider = StateProvider<String?>((ref) => null);
 
 /// Provider for a basic Dio client without auth interceptor (for auth endpoints)
+///
+/// `Accept-Language` n'est **pas** dans les `BaseOptions` : il suit la locale
+/// courante, requête par requête, via [LocaleInterceptor].
 final baseDioProvider = Provider<Dio>((ref) {
-  return Dio(
+  final dio = Dio(
     BaseOptions(
       baseUrl: AppConfig.apiBaseUrl,
       connectTimeout: const Duration(seconds: 30),
@@ -20,10 +24,13 @@ final baseDioProvider = Provider<Dio>((ref) {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'Accept-Language': 'fr',
       },
     ),
   );
+
+  dio.interceptors.add(const LocaleInterceptor());
+
+  return dio;
 });
 
 /// Provider for the Dio HTTP client with auth interceptor (for protected endpoints)
@@ -39,6 +46,9 @@ final dioProvider = Provider<Dio>((ref) {
       },
     ),
   );
+
+  // Même règle que le client nu : la langue se lit à la requête.
+  dio.interceptors.add(const LocaleInterceptor());
 
   // Add auth interceptor that reads token from the simple holder
   dio.interceptors.add(AuthInterceptor(ref, dio));

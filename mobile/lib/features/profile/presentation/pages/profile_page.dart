@@ -7,6 +7,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../../../../api/generated/export.dart';
 import '../../../../api/pedalons_api_client.dart';
 import '../../../../config/paths.dart';
+import '../../../../core/pdl/pdl.dart';
 import '../../../../core/preferences/user_preferences_provider.dart';
 import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/utils/api_error_handler.dart';
@@ -278,16 +279,16 @@ class ProfilePage extends ConsumerWidget {
       },
     );
 
-    showModalBottomSheet(
+    // F-DE-8 : `PdlSheet.show` force `useRootNavigator: true`, seul moyen de
+    // passer au-dessus de la barre d'onglets — le sélecteur de langue
+    // s'ouvrait sous elle et sa seconde option était inatteignable.
+    PdlSheet.show(
       context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            option('fr', 'languages.fr'),
-            option('en', 'languages.en'),
-          ],
-        ),
+      builder: (context) => PdlSheet(
+        title: 'profile.language'.tr(),
+        bodyPadding: EdgeInsets.zero,
+        footer: const SafeArea(top: false, child: SizedBox(height: 8)),
+        children: [option('fr', 'languages.fr'), option('en', 'languages.en')],
       ),
     );
   }
