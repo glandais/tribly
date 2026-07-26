@@ -111,14 +111,6 @@
     "open": "Open"
   },
   "placeholders": {
-    "teamsDiscover": {
-      "title": "Discover teams",
-      "message": "Searching public teams and requesting to join will live here."
-    },
-    "teamMembers": {
-      "title": "Members",
-      "message": "The team member list and their profiles will live here."
-    },
     "teamPage": {
       "title": "Team page",
       "message": "Free-form pages published by the team will be shown here."
@@ -168,7 +160,8 @@
   "roles": {
     "owner": "Owner",
     "admin": "Admin",
-    "member": "Member"
+    "member": "Member",
+    "organizer": "Organiser"
   },
   "surfaces": {
     "road": "Road",
@@ -252,7 +245,52 @@
       "title": "No team for this search",
       "message": "None of your teams contains “{search}”."
     },
-    "viewTeam": "View team"
+    "viewTeam": "View team",
+    "membersList": {
+      "noun": "members",
+      "count": {
+        "zero": "No member",
+        "one": "{} member",
+        "other": "{} members"
+      },
+      "searchPlaceholder": "Search a member",
+      "allRoles": "All",
+      "since": "Member since {date}",
+      "none": "No member",
+      "noneHint": "This team's members will show up here.",
+      "empty": {
+        "title": "No member for these filters",
+        "description": "No member matches this search or this role.",
+        "resetAll": "Reset everything"
+      }
+    },
+    "discovery": {
+      "title": "Discover teams",
+      "noun": "teams",
+      "count": {
+        "zero": "No team",
+        "one": "{} team",
+        "other": "{} teams"
+      },
+      "searchPlaceholder": "Search a team",
+      "scope": {
+        "all": "All",
+        "joinable": "Open to join",
+        "mine": "My teams"
+      },
+      "join": "Join the team",
+      "joining": "Joining…",
+      "memberBadge": "Member",
+      "inviteOnly": "Invitation only",
+      "joinFailed": "Could not join {team}.",
+      "none": "No team to discover",
+      "noneHint": "The public teams of this domain will show up here.",
+      "empty": {
+        "title": "No team for these filters",
+        "description": "No team matches this search or this scope.",
+        "resetAll": "Reset everything"
+      }
+    }
   },
   "rides": {
     "title": "Rides",

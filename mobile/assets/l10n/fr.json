@@ -111,14 +111,6 @@
     "open": "Ouvrir"
   },
   "placeholders": {
-    "teamsDiscover": {
-      "title": "Découvrir des équipes",
-      "message": "La recherche d'équipes publiques et la demande d'adhésion arriveront ici."
-    },
-    "teamMembers": {
-      "title": "Membres",
-      "message": "La liste des membres de l'équipe et leurs profils arriveront ici."
-    },
     "teamPage": {
       "title": "Page d'équipe",
       "message": "Les pages libres publiées par l'équipe s'afficheront ici."
@@ -168,7 +160,8 @@
   "roles": {
     "owner": "Propriétaire",
     "admin": "Admin",
-    "member": "Membre"
+    "member": "Membre",
+    "organizer": "Organisateur"
   },
   "surfaces": {
     "road": "Route",
@@ -252,7 +245,52 @@
       "title": "Aucune équipe pour cette recherche",
       "message": "Aucune de vos équipes ne contient « {search} »."
     },
-    "viewTeam": "Voir l'équipe"
+    "viewTeam": "Voir l'équipe",
+    "membersList": {
+      "noun": "membres",
+      "count": {
+        "zero": "Aucun membre",
+        "one": "{} membre",
+        "other": "{} membres"
+      },
+      "searchPlaceholder": "Rechercher un membre",
+      "allRoles": "Tous",
+      "since": "Membre depuis {date}",
+      "none": "Aucun membre",
+      "noneHint": "Les membres de cette équipe apparaîtront ici.",
+      "empty": {
+        "title": "Aucun membre pour ces filtres",
+        "description": "Aucun membre ne correspond à cette recherche ni à ce rôle.",
+        "resetAll": "Tout réinitialiser"
+      }
+    },
+    "discovery": {
+      "title": "Découvrir des équipes",
+      "noun": "équipes",
+      "count": {
+        "zero": "Aucune équipe",
+        "one": "{} équipe",
+        "other": "{} équipes"
+      },
+      "searchPlaceholder": "Rechercher une équipe",
+      "scope": {
+        "all": "Toutes",
+        "joinable": "Ouvertes à l'adhésion",
+        "mine": "Mes équipes"
+      },
+      "join": "Rejoindre l'équipe",
+      "joining": "Adhésion…",
+      "memberBadge": "Membre",
+      "inviteOnly": "Sur invitation",
+      "joinFailed": "Impossible de rejoindre {team}.",
+      "none": "Aucune équipe à découvrir",
+      "noneHint": "Les équipes publiques de ce domaine apparaîtront ici.",
+      "empty": {
+        "title": "Aucune équipe pour ces filtres",
+        "description": "Aucune équipe ne correspond à cette recherche ni à cette portée.",
+        "resetAll": "Tout réinitialiser"
+      }
+    }
   },
   "rides": {
     "title": "Sorties",

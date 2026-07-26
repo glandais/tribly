@@ -1287,9 +1287,15 @@ membres » de la maquette est **retirée** ; annoncer un tri qu'on ne contrôle 
 
 | # | État | Tâche | Fichiers | Dépend de | Taille | Fin |
 |---|---|---|---|---|---|---|
-| S34-1 | ☐ | Livrer le trombinoscope paginé | `[C] features/teams/presentation/pages/team_members_page.dart`, `providers/team_members_provider.dart` · `[M] contracts/routes.yaml` + génération | F-CO-3, F-NA-3 | L | `role`, `search`, `page`, `size` transmis ; pied « N membres sur M » **exact** à chaque page ; chips de rôle exclusives ; plus jamais 20 membres silencieux sur 1 999 |
-| S34-2 | ☐ | Construire la carte d'équipe de découverte | `[C] features/teams/presentation/widgets/team_discovery_card.dart` | F-CO-3 | M | Logo débordant **sans clip parasite** ; les 4 états d'action ; extrait 2 lignes depuis `excerpt` |
-| S34-3 | ☐ | Livrer l'écran de découverte et tuer les deux `// TODO` | `[C] features/teams/presentation/pages/team_discovery_page.dart` · `[M] features/teams/presentation/pages/teams_page.dart` (l. 34 et 63) · `[M] contracts/routes.yaml`, `config/router.dart` | S34-2, F-NA-3 | L | La loupe (qui reçoit enfin un `tooltip`) et le CTA d'état vide mènent quelque part ; chip `joinable=true` fonctionnelle ; adhésion optimiste avec bandeau d'échec nommant la cause ; **aucune mention de tri** ; « Mes équipes » vide propose « Découvrir des équipes » comme **seul CTA plein de tous les états vides** ; `grep TODO` ne renvoie rien |
+| S34-1 | ☑ | Livrer le trombinoscope paginé | `[C] features/teams/presentation/pages/team_members_page.dart`, `providers/team_members_provider.dart` · `[M] contracts/routes.yaml` + génération | F-CO-3, F-NA-3 | L | `role`, `search`, `page`, `size` transmis ; pied « N membres sur M » **exact** à chaque page ; chips de rôle exclusives ; plus jamais 20 membres silencieux sur 1 999 |
+| S34-2 | ☑ | Construire la carte d'équipe de découverte | `[C] features/teams/presentation/widgets/team_discovery_card.dart` | F-CO-3 | M | Logo débordant **sans clip parasite** ; les 4 états d'action ; extrait 2 lignes depuis `excerpt` |
+| S34-3 | ☑ | Livrer l'écran de découverte et tuer les deux `// TODO` | `[C] features/teams/presentation/pages/team_discovery_page.dart` · `[M] features/teams/presentation/pages/teams_page.dart` (l. 34 et 63) · `[M] contracts/routes.yaml`, `config/router.dart` | S34-2, F-NA-3 | L | La loupe (qui reçoit enfin un `tooltip`) et le CTA d'état vide mènent quelque part ; chip `joinable=true` fonctionnelle ; adhésion optimiste avec bandeau d'échec nommant la cause ; **aucune mention de tri** ; « Mes équipes » vide propose « Découvrir des équipes » comme **seul CTA plein de tous les états vides** ; `grep TODO` ne renvoie rien |
+
+**Note de livraison — l'écran de découverte s'appelle `teams_discover_page.dart`.** Le
+plan le nommait `team_discovery_page.dart` ; la coquille livrée au lot 1 portait déjà
+l'autre nom **et sa route**, et la réécrire sur place évitait de toucher au routeur pour
+un renommage. Les deux `// TODO` de `teams_page.dart`, eux, étaient déjà soldés par
+F-DE-10 : la loupe a son `tooltip` et le CTA d'état vide mène ici.
 
 **État livrable en fin de lot 5** — plus aucune fonctionnalité n'est inaccessible ; les listes
 disent toujours combien d'éléments elles cachent ; il ne reste que l'équipe et le profil.

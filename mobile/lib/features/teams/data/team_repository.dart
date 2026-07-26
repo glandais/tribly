@@ -2,6 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../api/generated/export.dart';
 import '../../../api/pedalons_api_client.dart';
+import '../../../core/pagination/pagination.dart';
+import '../domain/member_filters.dart';
+import '../domain/team_discovery_filters.dart';
 
 final teamRepositoryProvider = Provider<TeamRepository>((ref) {
   return TeamRepository(
@@ -55,5 +58,53 @@ class TeamRepository {
   Future<List<MemberDto>> getTeamMembers(String slug) async {
     final response = await _teamMembersClient.getMembers(teamSlug: slug);
     return response.members;
+  }
+
+  /// One page of team members, filtered by role and search.
+  ///
+  /// C'est ce que [getTeamMembers] ne faisait pas : sans `page` ni `size`, le
+  /// mobile montrait la page du serveur — vingt membres sur mille neuf cent
+  /// quatre-vingt-dix-neuf — **sans le dire**. `total` est la seule chose qui
+  /// permette de l'annoncer, et il est déjà dans la réponse.
+  Future<PageResult<MemberDto>> fetchMembers({
+    required MemberFilters filters,
+    int page = 0,
+    int size = kDefaultPageSize,
+  }) async {
+    final String? search = filters.search?.trim();
+    final MemberListResponse response = await _teamMembersClient.getMembers(
+      teamSlug: filters.teamSlug,
+      role: filters.role,
+      search: search == null || search.isEmpty ? null : search,
+      page: page,
+      size: size,
+    );
+    return PageResult<MemberDto>(
+      items: response.members,
+      total: response.total,
+    );
+  }
+
+  /// One page of the team directory.
+  ///
+  /// `GET /api/teams` n'a **aucun paramètre de tri** : l'ordre est celui du
+  /// serveur, et l'écran de découverte n'annonce donc aucun tri (§5.3).
+  Future<PageResult<TeamDetailDto>> fetchTeams({
+    required TeamDiscoveryFilters filters,
+    int page = 0,
+    int size = kDefaultPageSize,
+  }) async {
+    final String? search = filters.search?.trim();
+    final TeamListResponse response = await _teamsClient.listTeams(
+      page: page,
+      size: size,
+      joinable: filters.scope == TeamDiscoveryScope.joinable ? true : null,
+      minRole: filters.scope == TeamDiscoveryScope.mine ? MinRole.member : null,
+      search: search == null || search.isEmpty ? null : search,
+    );
+    return PageResult<TeamDetailDto>(
+      items: response.teams,
+      total: response.total,
+    );
   }
 }
