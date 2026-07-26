@@ -400,11 +400,11 @@ quelle annonce et quand, **jamais le corps du message**.
 la forme d'un champ de message et d'un accusé de remise. La feuille de préférences de `33 Profil`
 gagne l'interrupteur « joignable par les membres ».
 
-**Reste à faire, côté exploitation.** Les templates Brevo `ad-contact.fr` / `ad-contact.en` sont
-déclarés en profil `%prod` sous les identifiants 10 et 11, mais **les templates correspondants
-doivent encore être créés dans le compte Brevo**. Tant qu'un identifiant manque, `EmailService`
-lève `IllegalStateException: Brevo template ID not configured for ad-contact.fr` et l'endpoint
-répond 500 — l'erreur nomme le template absent. C'est une tâche d'exploitation, pas de code. En
+**Côté exploitation : fait.** Les templates Brevo `ad-contact.fr` / `ad-contact.en` existent sous
+les identifiants 10 et 11, déclarés en profil `%prod`, et l'envoi a été validé par un message réel
+— la seule recette qui vaille ici, l'API de prévisualisation de Brevo n'étant pas exploitable. Si
+un identifiant venait à manquer, `EmailService` lèverait `IllegalStateException: Brevo template ID
+not configured for ad-contact.fr` et l'endpoint répondrait 500 en nommant le template absent. En
 dev, l'envoi passe par Mailhog et ne dépend d'aucun template.
 
 ---

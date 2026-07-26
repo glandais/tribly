@@ -27,6 +27,19 @@ pour les icônes, filtres et pagination dans la query string via `useUrlFilters`
 de `src/api/`, clés i18n **plates** ajoutées dans `fr` **et** `en`, `ConfirmDialog` pour les
 confirmations, invariants SSR (pas de global navigateur au niveau module, isolation par requête).
 
+## Suivi d'avancement
+
+Chaque tâche du §3 porte son état dans son titre, juste après son identifiant :
+**☐** à faire · **▶** en cours · **☑** terminée.
+
+Ces marqueurs sont la seule source de vérité sur l'avancement. Ce plan est fait pour être exécuté
+sur plusieurs sessions repartant chacune d'un contexte vierge ; sans eux, une session reconstitue
+l'état à partir des commits, ce qui échoue dès qu'une tâche est à moitié faite.
+
+**Cocher dans le même commit que le code**, et seulement quand le critère de fin de la tâche est
+vérifié — pas quand le code est écrit. Un état mis à jour plus tard est faux pendant l'intervalle
+où la session suivante démarre.
+
 ## Sommaire
 
 1. [Tableau de tri des idées de la v2 mobile](#1-tableau-de-tri-des-idées-de-la-v2-mobile)
@@ -371,7 +384,7 @@ pure.
 
 ---
 
-**T0.1 — Corriger l'override `Button` du thème**
+**T0.1 ☐ — Corriger l'override `Button` du thème**
 *Fichiers* : `frontend/src/lib/theme.ts` (modifié), `frontend/src/index.css` (modifié).
 *Détail* : retirer la media query de l'objet `styles` (inopérante) et poser la variable dans
 `index.css` : `:root { --button-min-height: 44px }` puis `@media (min-width: 48em) { :root {
@@ -384,7 +397,7 @@ Aucune dépendance sur un global navigateur : compatible SSR.
 
 ---
 
-**T0.2 — `EmptyState`, le composant d'état vide unique**
+**T0.2 ☐ — `EmptyState`, le composant d'état vide unique**
 *Fichiers* : `frontend/src/components/common/EmptyState.tsx` (créé),
 `frontend/src/locales/{fr,en}/common.json` (modifiés).
 *Détail* : reprendre littéralement le bon pattern de `PublicationListPage.tsx:216-249`, généralisé.
@@ -398,7 +411,7 @@ dur (uniquement `c="dimmed"` et `var(--mantine-color-dimmed)`), donc lisible en 
 
 ---
 
-**T0.3 — `QueryStateBoundary` : chargement, erreur récupérable, vide**
+**T0.3 ☐ — `QueryStateBoundary` : chargement, erreur récupérable, vide**
 *Fichiers* : `frontend/src/components/common/QueryStateBoundary.tsx` (créé),
 `frontend/src/components/common/DetailPageSkeleton.tsx` (créé),
 `frontend/src/components/common/ErrorBoundary.tsx` (modifié — exporter `ErrorMessage` proprement).
@@ -416,7 +429,7 @@ lien vers le fil d'équipe.
 
 ---
 
-**T0.4 — `ResultCount` : le total en tête de liste**
+**T0.4 ☐ — `ResultCount` : le total en tête de liste**
 *Fichiers* : `frontend/src/components/common/ResultCount.tsx` (créé),
 `frontend/src/locales/{fr,en}/common.json` (modifiés : clés plates `list.count_one` /
 `list.count_other` déclinées par domaine, avec `{{count}}`).
@@ -432,7 +445,7 @@ de milliers de la locale.
 
 ---
 
-**T0.5 — Lot d'accessibilité et de thème sombre**
+**T0.5 ☐ — Lot d'accessibilité et de thème sombre**
 *Fichiers modifiés* : `frontend/src/components/route/RouteThumbnail.tsx` (alt traduit via `t()`,
 `gray-3` → `var(--mantine-color-default-border)`, `gray-1` → `var(--mantine-color-default-hover)`,
 `gray-5` → `var(--mantine-color-dimmed)`), `frontend/src/pages/publication/PublicationListPage.tsx`
@@ -460,7 +473,7 @@ de `Card`, `Badge`, `Stat`, `UserAvatarGroup`, `Progress` et `RouteThumbnail` ex
 
 ---
 
-**T1.1 — Hook et bloc « Ma prochaine sortie »**
+**T1.1 ☐ — Hook et bloc « Ma prochaine sortie »**
 *Fichiers* : `frontend/src/hooks/useMyParticipations.ts` (créé — mince façade sur
 `useListMyParticipations`, pas de refetch manuel), `frontend/src/components/home/NextRideCard.tsx`
 (créé), `frontend/src/pages/home/HomePage.tsx` (modifié), `frontend/src/locales/{fr,en}/common.json`.
@@ -483,7 +496,7 @@ pas le bloc et n'échoue pas.
 
 ---
 
-**T1.2 — Badge « Inscrit » et places dans le fil**
+**T1.2 ☐ — Badge « Inscrit » et places dans le fil**
 *Fichiers modifiés* : `frontend/src/components/card/PublicationCard.tsx`,
 `frontend/src/components/card/PublicationCardProgress.tsx`, `frontend/src/locales/{fr,en}/common.json`.
 *Détail* : ajouter le badge `Inscrit` dans la pile de badges existante (elle porte déjà type /
@@ -497,7 +510,7 @@ sorties et voyages où l'utilisateur est inscrit, et jamais en anonyme (`registe
 
 ---
 
-**T1.3 — Calendrier : inscription, lieu, distance et groupe**
+**T1.3 ☐ — Calendrier : inscription, lieu, distance et groupe**
 *Fichiers modifiés* : `frontend/src/components/calendar/CalendarView.tsx`.
 *Détail* : la projection `CalendarEventDto → Schedule` (`CalendarView.tsx:88-92`) ne retient
 aujourd'hui que cinq champs. Ajouter `startPlaceName`, `distance`, `elevationGain`, `groupName`,
@@ -513,7 +526,7 @@ supplémentaire par événement (pas de N+1 `getRide`).
 
 ---
 
-**T1.4 — Section « Mes participations » au profil**
+**T1.4 ☐ — Section « Mes participations » au profil**
 *Fichiers* : `frontend/src/components/profile/MyParticipations.tsx` (créé),
 `frontend/src/pages/auth/UserProfilePage.tsx` (modifié), `frontend/src/locales/{fr,en}/common.json`.
 *Détail* : deux lignes cliquables — « Mes sorties à venir » (`from = maintenant`, badge indigo) et
@@ -530,7 +543,7 @@ retenue.
 
 ---
 
-**T1.5 — Filtre « je participe » et « à venir » sur les fils**
+**T1.5 ☐ — Filtre « je participe » et « à venir » sur les fils**
 *Fichiers modifiés* : `frontend/src/hooks/filters/publicationFilters.ts` (ajouter
 `participating: z.coerce.boolean().default(false)` et `scope: z.enum(['all','upcoming'])`),
 `frontend/src/hooks/filters/homeFilters.ts` (alias courts, p. ex. `participating` → `me`),
@@ -546,7 +559,7 @@ restaure l'état exact ; « Je participe » est masqué pour un visiteur anonyme
 
 ---
 
-**T1.6 — Sortie passée et sortie complète**
+**T1.6 ☐ — Sortie passée et sortie complète**
 *Fichiers modifiés* : `frontend/src/pages/ride/RideDetailPage.tsx`,
 `frontend/src/components/ride/RideGroupCard.tsx`, `frontend/src/locales/{fr,en}/common.json`.
 *Détail* : `canJoinRide` devient
@@ -562,7 +575,7 @@ dans la pile de badges quand `isPast`. `RideGroupCard` utilise `group.full` au l
 
 ---
 
-**T1.7 — Meneur de groupe : avatar, nom et pastille**
+**T1.7 ☐ — Meneur de groupe : avatar, nom et pastille**
 *Fichiers modifiés* : `frontend/src/components/ride/RideGroupCard.tsx`,
 `frontend/src/components/ride/ParticipantListModal.tsx`,
 `frontend/src/locales/{fr,en}/common.json`.
@@ -595,7 +608,7 @@ sans meneur, la carte est strictement identique à l'existant ; aucune requête 
 
 ---
 
-**T2.1 — Généraliser `EmptyState`**
+**T2.1 ☐ — Généraliser `EmptyState`**
 *Fichiers modifiés* : `frontend/src/pages/home/HomePage.tsx`,
 `frontend/src/components/route/RouteListContent.tsx`,
 `frontend/src/pages/publication/PublicationListPage.tsx` (remplacer le pattern local par le
@@ -611,7 +624,7 @@ moins un bouton de sortie (« Effacer la recherche » ou « Effacer les filtres 
 
 ---
 
-**T2.2 — État vide « cul-de-sac » sur les parcours**
+**T2.2 ☐ — État vide « cul-de-sac » sur les parcours**
 *Fichiers* : `frontend/src/components/route/RouteDeadEnd.tsx` (créé),
 `frontend/src/components/route/RouteListContent.tsx` (modifié),
 `frontend/src/locales/{fr,en}/common.json`.
@@ -639,7 +652,7 @@ retirer le filtre dont la levée ramène le plus de parcours, et affiche trois e
 
 ---
 
-**T2.3 — Distinguer 404 et erreur sur les pages de détail**
+**T2.3 ☐ — Distinguer 404 et erreur sur les pages de détail**
 *Fichiers modifiés* : `frontend/src/pages/ride/RideDetailPage.tsx`,
 `frontend/src/pages/post/PostDetailPage.tsx`, `frontend/src/pages/trip/TripDetailPage.tsx`,
 `frontend/src/pages/trip/StageDetailPage.tsx`, `frontend/src/pages/route/RouteDetailPage.tsx`,
@@ -653,7 +666,7 @@ n'affichent plus de spinner plein écran.
 
 ---
 
-**T2.4 — Retour d'erreur contextuel et bascule optimiste sur l'inscription**
+**T2.4 ☐ — Retour d'erreur contextuel et bascule optimiste sur l'inscription**
 *Fichiers modifiés* : `frontend/src/pages/ride/RideDetailPage.tsx`,
 `frontend/src/components/ride/RideGroupCard.tsx`, `frontend/src/locales/{fr,en}/common.json`.
 *Détail* : ajouter `onMutate` (bascule optimiste de `group.registered` / `ride.registered` dans le
@@ -669,7 +682,7 @@ tentative ; le clic sur « Rejoindre » bascule visuellement avant la réponse s
 
 ---
 
-**T2.5 — `ErrorBoundary` par section**
+**T2.5 ☐ — `ErrorBoundary` par section**
 *Fichiers modifiés* : `frontend/src/components/common/ErrorBoundary.tsx` (variante `inline` sans
 `mih="100vh"`), `frontend/src/config/RouteGenerator.tsx` (enveloppe par route),
 `frontend/src/pages/ride/RideDetailPage.tsx` et `frontend/src/pages/trip/TripDetailPage.tsx`
@@ -684,7 +697,7 @@ bloc d'erreur à la place de la carte.
 
 ---
 
-**T3.1 — Passer les listes en `view=COMPACT`**
+**T3.1 ☐ — Passer les listes en `view=COMPACT`**
 *Fichiers modifiés* : `frontend/src/pages/home/HomePage.tsx`,
 `frontend/src/pages/publication/PublicationListPage.tsx`,
 `frontend/src/components/route/RouteListContent.tsx` (et ses deux pages appelantes),
@@ -702,7 +715,7 @@ bloc d'erreur à la place de la carte.
 
 ---
 
-**T3.2 — Commutateur de densité sur les listes de parcours**
+**T3.2 ☐ — Commutateur de densité sur les listes de parcours**
 *Fichiers* : `frontend/src/components/route/RouteRow.tsx` (créé — la ligne compacte),
 `frontend/src/components/route/RouteDensityToggle.tsx` (créé),
 `frontend/src/components/route/RouteListContent.tsx` (modifié),
@@ -722,7 +735,7 @@ tiennent dans un viewport de 900 px de haut.
 
 ---
 
-**T3.3 — `RoutesMapView` : sortir la boucle `await` de React**
+**T3.3 ☐ — `RoutesMapView` : sortir la boucle `await` de React**
 *Fichiers modifiés* : `frontend/src/components/route/RoutesMapView.tsx`.
 *Détail* : remplacer le `useEffect` + `for … await getRoute()` + `useState` (lignes 96-130) par
 `useQueries({ queries: items.filter(i => i.routeSlug).map(i => getGetRouteQueryOptions(teamSlug,
@@ -737,7 +750,7 @@ le tracé reste visuellement fidèle.
 
 ---
 
-**T3.4 — `RideGroupCard` : supprimer le second téléchargement de parcours**
+**T3.4 ☐ — `RideGroupCard` : supprimer le second téléchargement de parcours**
 *Fichiers modifiés* : `frontend/src/components/ride/RideGroupCard.tsx`.
 *Détail* : distance et D+ se lisent désormais sur `group.distance` / `group.elevationGain`
 (`RideGroupDto`). Le `useGetRoute` (`RideGroupCard.tsx:69-72`), qui ne sert plus qu'à construire les
@@ -752,7 +765,7 @@ téléchargements fonctionnent toujours.
 
 ---
 
-**T3.5 — Profil altimétrique alimenté par `elevation-profile`**
+**T3.5 ☐ — Profil altimétrique alimenté par `elevation-profile`**
 *Fichiers modifiés* : `frontend/src/components/route/ElevationChart.tsx` (accepter une source
 `ElevationProfileDto` en plus des `tracks`), `frontend/src/components/route/RoutesMapView.tsx`
 (overlay de profil), `frontend/src/components/route/RouteMapView.tsx`.
@@ -769,7 +782,7 @@ de `chartjs-plugin-zoom` reste en place (invariant SSR).
 
 ---
 
-**T3.6 — Réduire le chrome d'équipe**
+**T3.6 ☐ — Réduire le chrome d'équipe**
 *Fichiers modifiés* : `frontend/src/components/team/TeamLayout.tsx`,
 `frontend/src/components/common/NavButtons.tsx`.
 *Détail* : `TeamAvatar size="xl"` → `size="lg"`, `Title order={1}` conservé mais avec un
@@ -789,7 +802,7 @@ onglets est visuellement signalé.
 
 ---
 
-**T4.1 — Pagination et compteur de commentaires**
+**T4.1 ☐ — Pagination et compteur de commentaires**
 *Fichiers modifiés* : `frontend/src/hooks/useComments.ts` (passer `page`, `size`, `sort` et
 `parentId` aux quatre fonctions générées), `frontend/src/components/comment/CommentSection.tsx`,
 `frontend/src/components/comment/CommentItem.tsx` (bouton « Voir les N réponses » alimenté par
@@ -812,7 +825,7 @@ le nombre de commentaires.
 
 ---
 
-**T5.1 — Fil d'Ariane et raccourcis d'onglets en mobile**
+**T5.1 ☐ — Fil d'Ariane et raccourcis d'onglets en mobile**
 *Fichiers modifiés* : `frontend/src/components/common/Breadcrumb.tsx`.
 *Détail* : remplacer le `visibleFrom="sm"` par un rendu compact en dessous de `sm` : `Breadcrumbs`
 Mantine avec les deux derniers niveaux et un `Menu` (`IconDots`) reprenant les `subRouteIds` du
@@ -823,7 +836,7 @@ moins l'équipe et la section, et le menu d'onglets est atteignable.
 
 ---
 
-**T5.2 — Rattacher les pages de détail au contexte d'équipe**
+**T5.2 ☐ — Rattacher les pages de détail au contexte d'équipe**
 *Fichiers modifiés* : `frontend/src/pages/ride/RideDetailPage.tsx`,
 `frontend/src/pages/post/PostDetailPage.tsx`, `frontend/src/pages/trip/TripDetailPage.tsx`,
 `frontend/src/pages/ad/AdDetailPage.tsx`, `frontend/src/components/team/TeamLayout.tsx`
@@ -838,7 +851,7 @@ clic.
 
 ---
 
-**T5.3 — `StageTabs` horizontal en mobile**
+**T5.3 ☐ — `StageTabs` horizontal en mobile**
 *Fichiers modifiés* : `frontend/src/components/trip/StageTabs.tsx`,
 `frontend/src/components/trip/TripLayout.tsx`, `frontend/src/index.css` (si une règle
 `.trip-layout-content` doit accompagner le changement).
@@ -852,7 +865,7 @@ premier tiers de l'écran.
 
 ---
 
-**T5.4 — Compléments d'équipe et de voyage**
+**T5.4 ☐ — Compléments d'équipe et de voyage**
 *Fichiers* : `frontend/src/pages/team/TeamAboutPage.tsx` (modifié — rangée de trois statistiques
 cliquables : `N membres`, `N sorties à venir` via `TeamDetailDto.upcomingRideCount`, `N parcours`
 via `TeamDetailDto.routeCount`), `contracts/routes.yaml` + `frontend/src/config/routes.config.ts`
@@ -869,7 +882,7 @@ de fin.
 
 ---
 
-**T5.5 — Compléments d'annonces (optionnel)**
+**T5.5 ☐ — Compléments d'annonces (optionnel)**
 *Fichiers* : `frontend/src/hooks/filters/adFilters.ts` (modifié : `minPrice`, `maxPrice`, `sortBy`
 (`AdSortBy`), `sortDir`, avec alias courts), `frontend/src/pages/ad/AdListPage.tsx` (modifié —
 `RangeInput` de prix + `Select` de tri), `frontend/src/pages/ad/AdDetailPage.tsx` (modifié —
@@ -890,7 +903,7 @@ ponctuel, dans les deux thèmes.
 
 ---
 
-**T5.6 — Préférences persistées côté serveur** (la partie thème/langue/unités reste optionnelle ;
+**T5.6 ☐ — Préférences persistées côté serveur** (la partie thème/langue/unités reste optionnelle ;
 l'interrupteur `contactableByMembers` ne l'est pas, il conditionne T5.7)
 *Fichiers modifiés* : `frontend/src/store/preferencesStore.ts`,
 `frontend/src/components/common/{ColorSchemeSwitcher,LanguageSwitcher,UnitSystemSwitcher}.tsx`,
@@ -914,7 +927,7 @@ membre depuis un autre compte renvoie `AD_CONTACT_OPTED_OUT`.
 
 ---
 
-**T5.7 — « Contacter le vendeur » sur le détail d'annonce**
+**T5.7 ☐ — « Contacter le vendeur » sur le détail d'annonce**
 *Fichiers* : `frontend/src/components/ad/AdContactModal.tsx` (créé),
 `frontend/src/components/ad/index.ts` (modifié), `frontend/src/pages/ad/AdDetailPage.tsx` (modifié),
 `frontend/src/lib/apiError.ts` et `frontend/src/lib/axiosInstance.ts` (modifiés — voir plus bas),
@@ -980,8 +993,8 @@ pas une dépendance — T5.7 se livre seule si T5.5 glisse.
 reçoit l'e-mail et son « Répondre » vise l'expéditeur ; le bouton n'apparaît pas sur sa propre
 annonce ; les trois cas d'erreur affichent un message distinct **dans la modale** sans perdre le
 brouillon ; aucune adresse e-mail n'apparaît dans une réponse d'API ni dans le DOM.
-*Exploitation* : les gabarits Brevo du message (`ad-contact.fr` / `ad-contact.en`) ne sont pas encore
-renseignés ; tant qu'ils manquent, l'endpoint échoue en nommant le gabarit absent. C'est une tâche
+*Exploitation* : les gabarits Brevo du message (`ad-contact.fr` / `ad-contact.en`) sont créés et
+l'envoi a été validé par un message réel — rien ne bloque la recette de bout en bout.
 d'exploitation à faire avant la mise en service, pas une tâche de code — mais elle bloque la recette
 de bout en bout, et un `AD_CONTACT_DELIVERY_FAILED` systématique en recette ne signifie donc pas
 forcément un défaut du front.
@@ -1096,7 +1109,7 @@ au-dessus d'hypothèses.
 | Métriques de **groupe** dans « Ma prochaine sortie » quand `registeredGroupId` est nul | rien côté API | retomber sur les métriques de la sortie |
 | Trombinoscope public | route à créer dans `contracts/routes.yaml` ; vérifier que `GET /api/teams/{teamSlug}/members` est autorisé à un membre non-admin | si l'autorisation est réservée aux admins, le lien « N membres » reste non cliquable pour les autres — à confirmer côté backend avant T5.4 |
 | Préférence de thème / langue synchronisée | livré (`PATCH /api/users/me/preferences`, `UserDto.language`, `UserDto.theme`) | — |
-| Contact du vendeur d'une annonce | livré en `1.4.0` (`POST …/classifieds/{slug}/contact`, `contactableByMembers`) ; côté exploitation, les gabarits Brevo `ad-contact.{fr,en}` restent à renseigner | aucune : T5.7 se câble dès maintenant, la recette de bout en bout attend les gabarits |
+| Contact du vendeur d'une annonce | livré en `1.4.0` (`POST …/classifieds/{slug}/contact`, `contactableByMembers`) ; gabarits Brevo créés et envoi validé par un message réel | aucune |
 | Délai exact du quota de contact (429) | `Retry-After` est posé par le backend mais **non déclaré dans le contrat**, et `ApiClientError` ne conserve pas les en-têtes | lire l'en-tête défensivement (T5.7) ; à défaut, message de quota sans délai chiffré |
 | Pastille de meneur d'un groupe | livré en `1.5.0` (`RideGroupDto.leader`, `PublicUserDto` nullable ; `GroupRequest.leaderId` en écriture) ; les gabarits n'en auront pas (`RideTemplateGroupRequest` inchangé) | aucune pour l'affichage (T1.7) : `leader` nul ⇒ rien, et c'est le cas courant, pas le cas dégradé ; jamais de repli sur `createdBy` (§4) |
 | Position exacte d'une annonce | volontaire : `AdDto.locationGeometry` est floutée à ~1 km, le point exact ne sort que sur `AdEditDto` | rendre un secteur (cercle) et non une punaise (§1.8, T5.5) |
