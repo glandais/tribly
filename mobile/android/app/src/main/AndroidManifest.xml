@@ -1,17 +1,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    <!-- MapLibre (org.maplibre.gl:android-sdk-opengl, pulled in by the `maplibre` plugin)
-         declares ACCESS_FINE_LOCATION and ACCESS_COARSE_LOCATION in its own manifest, and the
-         merger injects them into ours. They are only needed for MapLibre's LocationComponent
-         (the "user location" puck), which this app never enables — `route_map.dart` renders
-         server-supplied route geometry only, and no location plugin is in pubspec.yaml.
+    <!-- Coarse location only, for the "around me" proximity filter (geolocator,
+         LocationAccuracy.low → nearLat/nearLon/nearRadius). Declared in Play Data safety as
+         approximate location, not retained, not linked to the account.
 
-         Left in, they would appear on the Play listing and contradict our Data safety
-         declaration, which states that no location is collected. Strip them so the shipped
-         permission set matches what we declare.
+         ACCESS_FINE_LOCATION is deliberately NOT requested. MapLibre
+         (org.maplibre.gl:android-sdk-opengl, pulled in by the `maplibre` plugin) declares it in
+         its own manifest for its LocationComponent (the "user location" puck), which this app
+         never enables, and the merger would inject it into ours. Left in, it would appear on the
+         Play listing and over-declare against our Data safety answers, so it is stripped.
          See ../../../../store-metadata/data-safety.md §5. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" tools:node="remove"/>
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" tools:node="remove"/>
 
     <application
         android:label="Pédalons"
@@ -107,6 +107,22 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+
+        <!-- url_launcher: without these, canLaunchUrl() returns false on API 30+ and every
+             external link would silently look unlaunchable.
+             See https://pub.dev/packages/url_launcher#configuration -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="mailto"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.DIAL"/>
+            <data android:scheme="tel"/>
         </intent>
     </queries>
 </manifest>

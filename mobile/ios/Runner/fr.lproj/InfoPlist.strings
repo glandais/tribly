@@ -1,0 +1,6 @@
+/* Descriptions d'usage localisées de l'Info.plist — français.
+   Reprend les valeurs de repli de Runner/Info.plist.
+   Référence de ce que font ces capacités : store-metadata/data-safety.md */
+
+"NSPhotoLibraryUsageDescription" = "Pédalons a besoin d'accéder à vos photos pour que vous puissiez choisir une photo de profil.";
+"NSLocationWhenInUseUsageDescription" = "Pédalons utilise votre position approximative uniquement pour trier les sorties et les parcours par distance. Elle n'est ni conservée ni partagée.";

@@ -361,6 +361,10 @@
     }
   },
   "errors": {
+    "offline": {
+      "title": "No connection",
+      "message": "Check your internet connection and try again."
+    },
     "api": {
       "ALREADY_REGISTERED": "You are already registered for this ride",
       "AUTHORIZATION_PENDING": "Authorization pending, please wait",

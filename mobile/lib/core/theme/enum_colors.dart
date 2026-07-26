@@ -1,4 +1,6 @@
-import 'dart:ui';
+// `Visibility` est à la fois un widget Flutter et un enum du contrat : ici
+// c'est l'enum qui compte.
+import 'package:flutter/widgets.dart' hide Visibility;
 
 import '../../api/generated/models/ad_type.dart';
 import '../../api/generated/models/climb_category.dart';
@@ -7,208 +9,163 @@ import '../../api/generated/models/status.dart';
 import '../../api/generated/models/surface_type.dart';
 import '../../api/generated/models/team_role.dart';
 import '../../api/generated/models/visibility.dart';
-import 'pedalons_colors.dart';
+import 'pdl_colors.dart';
 
-// ── Status ──────────────────────────────────────────────────────────────────
+/// La teinte d'un badge : un aplat, une paire douce, et la façon de la rendre.
+///
+/// Les badges de la charte sont **doux** par défaut — fond pâle, texte foncé
+/// de la même famille. Une seule série fait exception, les catégories de col,
+/// qui se rendent en **aplat** : d'où [filledStyle] et [onFill].
+///
+/// [onFill] n'est pas décoratif : `CAT3` est jaune et porte du `#212529`, là
+/// où les quatre autres portent du blanc. Sans ce champ, une catégorie sur
+/// cinq serait illisible.
+@immutable
+class PdlTone {
+  const PdlTone({
+    required this.fill,
+    required this.soft,
+    required this.onSoft,
+    this.onFill = const Color(0xFFFFFFFF),
+    this.filledStyle = false,
+  });
 
-extension StatusColors on Status {
-  Color color(Brightness brightness) => switch (this) {
-    Status.draft => BrandColors.resolve(
-      BrandColors.grayLight,
-      BrandColors.grayDark,
-      brightness,
+  /// L'aplat de la famille — trait de rappel, point, icône pleine.
+  final Color fill;
+
+  /// Le fond doux du badge.
+  final Color soft;
+
+  /// Le texte posé sur [soft].
+  final Color onSoft;
+
+  /// Le texte posé sur [fill], quand le badge est rendu en aplat.
+  final Color onFill;
+
+  /// Vrai quand le badge de cette famille se rend en aplat et non en doux.
+  final bool filledStyle;
+
+  /// Raccourci pour une famille rendue en doux : la paire vient du jeton, et
+  /// [fill] est l'aplat correspondant.
+  PdlTone._pair(PdlSoftPair pair, this.fill)
+    : soft = pair.background,
+      onSoft = pair.foreground,
+      onFill = const Color(0xFFFFFFFF),
+      filledStyle = false;
+}
+
+// ── Statut de publication ───────────────────────────────────────────────────
+
+extension StatusTone on Status {
+  PdlTone tone(PdlColors c) => switch (this) {
+    Status.draft => PdlTone._pair(c.softGray, c.neutral),
+    Status.published => PdlTone._pair(c.softGreen, c.success),
+    Status.cancelled => PdlTone._pair(c.softRed, c.danger),
+    Status.$unknown => PdlTone._pair(c.softGray, c.neutral),
+  };
+}
+
+// ── Rôle dans l'équipe ──────────────────────────────────────────────────────
+
+extension TeamRoleTone on TeamRole {
+  PdlTone tone(PdlColors c) => switch (this) {
+    TeamRole.admin => PdlTone._pair(c.softGrape, c.accentGrape),
+    TeamRole.organizer => PdlTone._pair(c.softBlue, c.accentBlue),
+    TeamRole.member => PdlTone._pair(c.softGray, c.neutral),
+    TeamRole.$unknown => PdlTone._pair(c.softGray, c.neutral),
+  };
+}
+
+// ── Revêtement ──────────────────────────────────────────────────────────────
+
+extension SurfaceTypeTone on SurfaceType {
+  /// `road` est le seul cas où l'aplat n'appartient pas à la famille du fond
+  /// doux : la charte lui donne le near-black `#2e2e2e` en trait de rappel de
+  /// tracé, tout en le badgeant en gris.
+  PdlTone tone(PdlColors c) => switch (this) {
+    SurfaceType.road => PdlTone._pair(c.softGray, c.accentDark),
+    SurfaceType.gravel => PdlTone._pair(c.softOrange, c.accentOrange),
+    SurfaceType.mtb => PdlTone._pair(c.softGreen, c.success),
+    SurfaceType.mixed => PdlTone._pair(c.softTeal, c.accentTeal),
+    SurfaceType.$unknown => PdlTone._pair(c.softGray, c.neutral),
+  };
+}
+
+// ── Catégorie de col ────────────────────────────────────────────────────────
+
+extension ClimbCategoryTone on ClimbCategory {
+  /// La **seule** famille rendue en aplat (`filledStyle`). `cat3` porte du
+  /// texte foncé, les autres du blanc.
+  PdlTone tone(PdlColors c) => switch (this) {
+    ClimbCategory.hc => PdlTone(
+      fill: c.accentGrape,
+      soft: c.softGrape.background,
+      onSoft: c.softGrape.foreground,
+      filledStyle: true,
     ),
-    Status.published => BrandColors.resolve(
-      BrandColors.greenLight,
-      BrandColors.greenDark,
-      brightness,
+    ClimbCategory.cat1 => PdlTone(
+      fill: c.danger,
+      soft: c.softRed.background,
+      onSoft: c.softRed.foreground,
+      filledStyle: true,
     ),
-    Status.cancelled => BrandColors.resolve(
-      BrandColors.redLight,
-      BrandColors.redDark,
-      brightness,
+    ClimbCategory.cat2 => PdlTone(
+      fill: c.accentOrange,
+      soft: c.softOrange.background,
+      onSoft: c.softOrange.foreground,
+      filledStyle: true,
     ),
-    Status.$unknown => BrandColors.resolve(
-      BrandColors.grayLight,
-      BrandColors.grayDark,
-      brightness,
+    ClimbCategory.cat3 => PdlTone(
+      fill: c.warning,
+      soft: c.warningSoft,
+      onSoft: c.warningOnSoft,
+      onFill: c.neutralOnSoft,
+      filledStyle: true,
+    ),
+    ClimbCategory.cat4 => PdlTone(
+      fill: c.success,
+      soft: c.softGreen.background,
+      onSoft: c.softGreen.foreground,
+      filledStyle: true,
+    ),
+    ClimbCategory.$unknown => PdlTone(
+      fill: c.neutral,
+      soft: c.softGray.background,
+      onSoft: c.softGray.foreground,
+      filledStyle: true,
     ),
   };
 }
 
-// ── Team Role ───────────────────────────────────────────────────────────────
+// ── Type d'annonce ──────────────────────────────────────────────────────────
 
-extension TeamRoleColors on TeamRole {
-  Color color(Brightness brightness) => switch (this) {
-    TeamRole.admin => BrandColors.resolve(
-      BrandColors.grapeLight,
-      BrandColors.grapeDark,
-      brightness,
-    ),
-    TeamRole.organizer => BrandColors.resolve(
-      BrandColors.blueLight,
-      BrandColors.blueDark,
-      brightness,
-    ),
-    TeamRole.member => BrandColors.resolve(
-      BrandColors.grayLight,
-      BrandColors.grayDark,
-      brightness,
-    ),
-    TeamRole.$unknown => BrandColors.resolve(
-      BrandColors.grayLight,
-      BrandColors.grayDark,
-      brightness,
-    ),
+extension AdTypeTone on AdType {
+  PdlTone tone(PdlColors c) => switch (this) {
+    AdType.sale => PdlTone._pair(c.softGreen, c.success),
+    AdType.rental => PdlTone._pair(c.softIndigo, c.primary),
+    AdType.wanted => PdlTone._pair(c.softOrange, c.accentOrange),
+    AdType.$unknown => PdlTone._pair(c.softGray, c.neutral),
   };
 }
 
-// ── Surface Type ────────────────────────────────────────────────────────────
+// ── Visibilité ──────────────────────────────────────────────────────────────
 
-extension SurfaceTypeColors on SurfaceType {
-  Color color(Brightness brightness) => switch (this) {
-    SurfaceType.road => BrandColors.resolve(
-      BrandColors.darkLight,
-      BrandColors.darkDark,
-      brightness,
-    ),
-    SurfaceType.gravel => BrandColors.resolve(
-      BrandColors.orangeLight,
-      BrandColors.orangeDark,
-      brightness,
-    ),
-    SurfaceType.mtb => BrandColors.resolve(
-      BrandColors.greenLight,
-      BrandColors.greenDark,
-      brightness,
-    ),
-    SurfaceType.mixed => BrandColors.resolve(
-      BrandColors.tealLight,
-      BrandColors.tealDark,
-      brightness,
-    ),
-    SurfaceType.$unknown => BrandColors.resolve(
-      BrandColors.grayLight,
-      BrandColors.grayDark,
-      brightness,
-    ),
+extension VisibilityTone on Visibility {
+  PdlTone tone(PdlColors c) => switch (this) {
+    Visibility.public => PdlTone._pair(c.softBlue, c.accentBlue),
+    Visibility.publicUnlisted => PdlTone._pair(c.softOrange, c.accentOrange),
+    Visibility.team => PdlTone._pair(c.softGray, c.neutral),
+    Visibility.$unknown => PdlTone._pair(c.softGray, c.neutral),
   };
 }
 
-// ── Climb Category ──────────────────────────────────────────────────────────
+// ── Type de publication ─────────────────────────────────────────────────────
 
-extension ClimbCategoryColors on ClimbCategory {
-  Color color(Brightness brightness) => switch (this) {
-    ClimbCategory.hc => BrandColors.resolve(
-      BrandColors.grapeLight,
-      BrandColors.grapeDark,
-      brightness,
-    ),
-    ClimbCategory.cat1 => BrandColors.resolve(
-      BrandColors.redLight,
-      BrandColors.redDark,
-      brightness,
-    ),
-    ClimbCategory.cat2 => BrandColors.resolve(
-      BrandColors.orangeLight,
-      BrandColors.orangeDark,
-      brightness,
-    ),
-    ClimbCategory.cat3 => BrandColors.resolve(
-      BrandColors.yellowLight,
-      BrandColors.yellowDark,
-      brightness,
-    ),
-    ClimbCategory.cat4 => BrandColors.resolve(
-      BrandColors.greenLight,
-      BrandColors.greenDark,
-      brightness,
-    ),
-    ClimbCategory.$unknown => BrandColors.resolve(
-      BrandColors.grayLight,
-      BrandColors.grayDark,
-      brightness,
-    ),
-  };
-}
-
-// ── Ad Type ─────────────────────────────────────────────────────────────────
-
-extension AdTypeColors on AdType {
-  Color color(Brightness brightness) => switch (this) {
-    AdType.sale => BrandColors.resolve(
-      BrandColors.greenLight,
-      BrandColors.greenDark,
-      brightness,
-    ),
-    AdType.rental => BrandColors.resolve(
-      BrandColors.indigoLight,
-      BrandColors.indigoDark,
-      brightness,
-    ),
-    AdType.wanted => BrandColors.resolve(
-      BrandColors.orangeLight,
-      BrandColors.orangeDark,
-      brightness,
-    ),
-    AdType.$unknown => BrandColors.resolve(
-      BrandColors.grayLight,
-      BrandColors.grayDark,
-      brightness,
-    ),
-  };
-}
-
-// ── Visibility ──────────────────────────────────────────────────────────────
-
-extension VisibilityColors on Visibility {
-  Color color(Brightness brightness) => switch (this) {
-    Visibility.public => BrandColors.resolve(
-      BrandColors.blueLight,
-      BrandColors.blueDark,
-      brightness,
-    ),
-    Visibility.publicUnlisted => BrandColors.resolve(
-      BrandColors.orangeLight,
-      BrandColors.orangeDark,
-      brightness,
-    ),
-    Visibility.team => BrandColors.resolve(
-      BrandColors.grayLight,
-      BrandColors.grayDark,
-      brightness,
-    ),
-    Visibility.$unknown => BrandColors.resolve(
-      BrandColors.grayLight,
-      BrandColors.grayDark,
-      brightness,
-    ),
-  };
-}
-
-// ── Publication Type ────────────────────────────────────────────────────────
-
-extension PublicationTypeColors on PublicationType {
-  Color color(Brightness brightness) => switch (this) {
-    PublicationType.ride => BrandColors.resolve(
-      BrandColors.blueLight,
-      BrandColors.blueDark,
-      brightness,
-    ),
-    PublicationType.post => BrandColors.resolve(
-      BrandColors.grapeLight,
-      BrandColors.grapeDark,
-      brightness,
-    ),
-    PublicationType.trip => BrandColors.resolve(
-      BrandColors.tealLight,
-      BrandColors.tealDark,
-      brightness,
-    ),
-    PublicationType.$unknown => BrandColors.resolve(
-      BrandColors.grayLight,
-      BrandColors.grayDark,
-      brightness,
-    ),
+extension PublicationTypeTone on PublicationType {
+  PdlTone tone(PdlColors c) => switch (this) {
+    PublicationType.ride => PdlTone._pair(c.softBlue, c.accentBlue),
+    PublicationType.post => PdlTone._pair(c.softGrape, c.accentGrape),
+    PublicationType.trip => PdlTone._pair(c.softTeal, c.accentTeal),
+    PublicationType.$unknown => PdlTone._pair(c.softGray, c.neutral),
   };
 }

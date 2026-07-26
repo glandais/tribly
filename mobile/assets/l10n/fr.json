@@ -361,6 +361,10 @@
     }
   },
   "errors": {
+    "offline": {
+      "title": "Pas de connexion",
+      "message": "Vérifiez votre connexion internet, puis réessayez."
+    },
     "api": {
       "ALREADY_REGISTERED": "Vous participez déjà à cette sortie",
       "AUTHORIZATION_PENDING": "Autorisation en attente, veuillez patienter",

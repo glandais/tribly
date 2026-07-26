@@ -46,6 +46,9 @@ abstract final class BrandColors {
   static const pinkLight = Color(0xFFe64980);
   static const pinkDark = Color(0xFFc2255c);
 
+  static const limeLight = Color(0xFF82c91e);
+  static const limeDark = Color(0xFF66a80f);
+
   // "dark" in Mantine is a near-black scale used for ROAD surface type.
   // In dark mode, use dark-2 (#828282) for visibility on dark backgrounds.
   static const darkLight = Color(0xFF2e2e2e);

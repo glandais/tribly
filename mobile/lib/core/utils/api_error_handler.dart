@@ -1,13 +1,71 @@
+import 'dart:developer';
+
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 
-/// Extracts a user-friendly, localized error message from an exception.
+/// Why a call failed, at the granularity the UI needs to react.
+enum ApiErrorKind {
+  /// The request never reached the server, or the server never answered in
+  /// time: no connectivity, DNS failure, connect/send/receive timeout.
+  offline,
+
+  /// The server answered with an error payload carrying a business code.
+  api,
+
+  /// Anything else: an HTTP failure without a usable code, or an exception
+  /// that is not a [DioException] at all (deserialization, cast, bug).
+  unknown,
+}
+
+/// A resolved, user-presentable error.
 ///
-/// If the exception is a [DioException] with an error response body,
-/// maps the error code to an i18n key `errors.api.<CODE>`.
-/// Falls back to `common.error` if no translation exists.
-String getErrorMessage(Object error) {
+/// [message] is always localized and safe to display as-is. [title] is only
+/// set when the reason deserves its own heading (offline). [code] carries the
+/// backend business code when there was one, so callers can special-case
+/// e.g. `GROUP_FULL` without re-parsing the exception.
+class ApiError {
+  const ApiError({
+    required this.kind,
+    required this.message,
+    this.title,
+    this.code,
+  });
+
+  final ApiErrorKind kind;
+  final String message;
+  final String? title;
+  final String? code;
+
+  bool get isOffline => kind == ApiErrorKind.offline;
+
+  @override
+  String toString() => 'ApiError(kind: $kind, code: $code, message: $message)';
+}
+
+const Set<DioExceptionType> _offlineTypes = {
+  DioExceptionType.connectionError,
+  DioExceptionType.connectionTimeout,
+  DioExceptionType.sendTimeout,
+  DioExceptionType.receiveTimeout,
+};
+
+/// Resolves any thrown object into a localized [ApiError].
+///
+/// Connection and timeout failures produce [ApiErrorKind.offline] with their
+/// own copy, distinct from the generic `common.error`. Anything that is not a
+/// [DioException] is logged with its real runtime type and stack trace instead
+/// of being silently folded into the generic message — a bare "Erreur" with no
+/// trace is exactly what makes deserialization failures impossible to diagnose.
+ApiError resolveApiError(Object error, [StackTrace? stackTrace]) {
   if (error is DioException) {
+    if (_offlineTypes.contains(error.type)) {
+      return ApiError(
+        kind: ApiErrorKind.offline,
+        title: 'errors.offline.title'.tr(),
+        message: 'errors.offline.message'.tr(),
+      );
+    }
+
     final responseData = error.response?.data;
     if (responseData is Map<String, dynamic>) {
       final code = responseData['code'];
@@ -15,10 +73,35 @@ String getErrorMessage(Object error) {
         final key = 'errors.api.$code';
         final translated = key.tr();
         if (translated != key) {
-          return translated;
+          return ApiError(
+            kind: ApiErrorKind.api,
+            message: translated,
+            code: code,
+          );
         }
+        return ApiError(
+          kind: ApiErrorKind.unknown,
+          message: 'common.error'.tr(),
+          code: code,
+        );
       }
     }
+
+    return ApiError(kind: ApiErrorKind.unknown, message: 'common.error'.tr());
   }
-  return 'common.error'.tr();
+
+  log(
+    'Non-Dio error surfaced to the UI: ${error.runtimeType}: $error',
+    name: 'ApiErrorHandler',
+    error: error,
+    stackTrace: stackTrace ?? StackTrace.current,
+  );
+  return ApiError(kind: ApiErrorKind.unknown, message: 'common.error'.tr());
 }
+
+/// Extracts a user-friendly, localized error message from an exception.
+///
+/// Convenience wrapper over [resolveApiError] for callers that only render a
+/// single line of text.
+String getErrorMessage(Object error, [StackTrace? stackTrace]) =>
+    resolveApiError(error, stackTrace).message;
