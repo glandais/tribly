@@ -67,9 +67,13 @@ export function RideGroupCard({
   // Determine effective route slug (group route or ride route as fallback)
   const effectiveRouteSlug = group.routeSlug || rideRouteSlug
 
-  // Fetch route details for download links
+  // Distance and elevation now come from the group itself (RideGroupDto). The route is
+  // only needed to build the GPX/FIT links and the device upload, so it is fetched on
+  // first interaction with the card — not on page load, where a ride with ten groups
+  // meant ten full geometry downloads before anything was even clicked.
+  const [routeActionsOpened, setRouteActionsOpened] = useState(false)
   const { data: route } = useGetRoute(teamSlug, effectiveRouteSlug!, undefined, {
-    query: { enabled: !!effectiveRouteSlug },
+    query: { enabled: !!effectiveRouteSlug && routeActionsOpened },
   })
 
   const handleSendToDevice = (serviceType: GpsServiceType) => {
@@ -93,8 +97,14 @@ export function RideGroupCard({
         boxShadow: isJoined ? '0 0 0 1px var(--mantine-primary-color-filled)' : undefined,
         transition: 'all 150ms ease',
       }}
-      onMouseEnter={() => onHover?.(group.id)}
+      onMouseEnter={() => {
+        onHover?.(group.id)
+        setRouteActionsOpened(true)
+      }}
       onMouseLeave={() => onHover?.(null)}
+      // Touch and keyboard have no hover: arm the route fetch on first contact with the card.
+      onPointerDown={() => setRouteActionsOpened(true)}
+      onFocusCapture={() => setRouteActionsOpened(true)}
     >
       {/* Header row: title + badge + button */}
       <Group justify="space-between" wrap="nowrap">
@@ -164,20 +174,22 @@ export function RideGroupCard({
             </Text>
           </Group>
         )}
-        {route && (
+        {group.distance !== undefined && (
           <Group gap="md" wrap="nowrap">
             <Group gap={4}>
               <IconArrowsMaximize size={16} />
               <Text size="sm" c="dimmed">
-                {distance(route.distance)}
+                {distance(group.distance)}
               </Text>
             </Group>
-            <Group gap={4}>
-              <IconArrowUp size={16} />
-              <Text size="sm" c="dimmed">
-                {elevation(route.elevationGain)}
-              </Text>
-            </Group>
+            {group.elevationGain !== undefined && (
+              <Group gap={4}>
+                <IconArrowUp size={16} />
+                <Text size="sm" c="dimmed">
+                  {elevation(group.elevationGain)}
+                </Text>
+              </Group>
+            )}
           </Group>
         )}
         <UnstyledButton

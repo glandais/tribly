@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
+import { useQueries } from '@tanstack/react-query'
 import { Source, Layer, MapRef, MapMouseEvent } from 'react-map-gl/maplibre'
 import { Line } from 'react-chartjs-2'
 import {
@@ -17,7 +18,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { Box, Center, Text, Paper, useComputedColorScheme, useMantineTheme } from '@mantine/core'
 import { useMapHeight } from '@/hooks/useResponsive'
-import { getRoute } from '@/api/endpoints/routes/routes'
+import { getGetRouteQueryOptions } from '@/api/endpoints/routes/routes'
 import type { RouteDetailDto } from '@/api/dto'
 import { StartMarker, EndMarker } from '../map/MapMarkers'
 import { calculateBounds, routeToGeoJSON } from '../map/mapUtils'
@@ -28,6 +29,10 @@ import { getOverlayBg } from '@/lib/colors'
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler)
+
+// Douglas-Peucker tolerance for the preview geometry, in metres. The contract caps it at 1000;
+// 25 m keeps every corner visible at map-preview zoom for a fraction of the payload.
+const MAP_SIMPLIFY_TOLERANCE_M = 25
 
 // Route colors (matching biketeam)
 const ROUTE_COLORS = [
@@ -93,51 +98,51 @@ export function RoutesMapView({
     }),
     [colorScheme, theme.colors.dark, theme.colors.gray]
   )
-  const [routesData, setRoutesData] = useState<RouteData[]>([])
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
   const [cursor, setCursor] = useState<string>('grab')
   const [isMapLoaded, setIsMapLoaded] = useState(false)
 
-  // Load route data for all items with routes
-  useEffect(() => {
-    const loadRoutes = async () => {
-      setIsLoading(true)
-      const routes: RouteData[] = []
+  // One query per route, run in parallel and shared with every other consumer of
+  // `getRoute` (RideGroupCard, RouteDetailPage). This used to be a `for … await`
+  // loop calling the raw `getRoute()` outside React Query: sequential, uncached,
+  // undeduplicated, and with no exploitable error state.
+  const itemsWithRoutes = useMemo(() => items.filter((item) => item.routeSlug), [items])
+  const routeQueries = useQueries({
+    queries: itemsWithRoutes.map((item) =>
+      getGetRouteQueryOptions(teamSlug, item.routeSlug!, { simplify: MAP_SIMPLIFY_TOLERANCE_M })
+    ),
+  })
 
-      // Filter items that have routes
-      const itemsWithRoutes = items.filter((item) => item.routeSlug)
+  const isLoading = routeQueries.some((q) => q.isLoading)
 
-      for (let i = 0; i < itemsWithRoutes.length; i++) {
-        const item = itemsWithRoutes[i]
-        if (!item.routeSlug) continue
+  // `useQueries` returns a fresh array on every render, so memoising on it directly would
+  // recompute each time — and `routesData` feeds `fitBoundsToRoutes`, which would then
+  // refit the map on every render. Key the memo on when the data last changed instead.
+  const routesFetchedAt = routeQueries.map((q) => q.dataUpdatedAt).join(',')
+  const routeData = routeQueries.map((q) => q.data)
 
-        try {
-          // Fetch route details from API using the generated API client
-          const routeDetail = await getRoute(teamSlug, item.routeSlug)
-          const trackPoints = routeDetail.tracks?.flatMap((track) => track.line.coordinates) || []
-          if (trackPoints.length > 0) {
-            routes.push({
-              itemId: item.id,
-              itemName: item.name,
-              color: ROUTE_COLORS[i % ROUTE_COLORS.length],
-              route: routeDetail,
-              trackPoints,
-              distance: routeDetail.distance,
-              elevationGain: routeDetail.elevationGain,
-            })
-          }
-        } catch (error) {
-          console.error(`Failed to load route for item ${item.id}:`, error)
-        }
-      }
-
-      setRoutesData(routes)
-      setIsLoading(false)
-    }
-
-    loadRoutes()
-  }, [items, teamSlug])
+  const routesData = useMemo<RouteData[]>(
+    () =>
+      itemsWithRoutes.flatMap((item, i) => {
+        const routeDetail = routeData[i]
+        if (!routeDetail) return []
+        const trackPoints = routeDetail.tracks?.flatMap((track) => track.line.coordinates) || []
+        if (trackPoints.length === 0) return []
+        return [
+          {
+            itemId: item.id,
+            itemName: item.name,
+            color: ROUTE_COLORS[i % ROUTE_COLORS.length],
+            route: routeDetail,
+            trackPoints,
+            distance: routeDetail.distance,
+            elevationGain: routeDetail.elevationGain,
+          },
+        ]
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [itemsWithRoutes, routesFetchedAt]
+  )
 
   // Fit bounds when map is loaded AND routes are available
   const fitBoundsToRoutes = useCallback(() => {

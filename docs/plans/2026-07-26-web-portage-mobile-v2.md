@@ -735,7 +735,7 @@ tiennent dans un viewport de 900 px de haut.
 
 ---
 
-**T3.3 ☐ — `RoutesMapView` : sortir la boucle `await` de React**
+**T3.3 ☑ — `RoutesMapView` : sortir la boucle `await` de React**
 *Fichiers modifiés* : `frontend/src/components/route/RoutesMapView.tsx`.
 *Détail* : remplacer le `useEffect` + `for … await getRoute()` + `useState` (lignes 96-130) par
 `useQueries({ queries: items.filter(i => i.routeSlug).map(i => getGetRouteQueryOptions(teamSlug,
@@ -750,7 +750,7 @@ le tracé reste visuellement fidèle.
 
 ---
 
-**T3.4 ☐ — `RideGroupCard` : supprimer le second téléchargement de parcours**
+**T3.4 ☑ — `RideGroupCard` : supprimer le second téléchargement de parcours**
 *Fichiers modifiés* : `frontend/src/components/ride/RideGroupCard.tsx`.
 *Détail* : distance et D+ se lisent désormais sur `group.distance` / `group.elevationGain`
 (`RideGroupDto`). Le `useGetRoute` (`RideGroupCard.tsx:69-72`), qui ne sert plus qu'à construire les
