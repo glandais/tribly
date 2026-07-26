@@ -354,16 +354,21 @@ class _RideDetailContent extends ConsumerWidget {
         'rides.participants'.tr(
           namedArgs: <String, String>{'count': '${ride.participantCount}'},
         ),
+        // Un `PdlButton(text)` et non un `Text` tappable : il porte la cible
+        // de 44 px et la sémantique de bouton, que la maquette (un simple
+        // lien bleu) ne donne pas.
         extra: ride.groups.isEmpty
             ? null
-            : GestureDetector(
-                onTap: () => ParticipantsSheet.open(
-                  context,
-                  ride.registeredGroup ?? ride.groups.first,
-                ),
-                child: Text(
-                  'rides.viewParticipants'.tr(),
-                  style: t.xs.copyWith(color: context.pdl.link),
+            : Align(
+                alignment: Alignment.centerLeft,
+                child: PdlButton(
+                  label: 'rides.viewParticipants'.tr(),
+                  variant: PdlButtonVariant.text,
+                  size: PdlButtonSize.sm,
+                  onPressed: () => ParticipantsSheet.open(
+                    context,
+                    ride.registeredGroup ?? ride.groups.first,
+                  ),
                 ),
               ),
       ),

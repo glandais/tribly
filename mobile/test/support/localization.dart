@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart' show Intl;
 import 'package:easy_localization/src/localization.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:easy_localization/src/translations.dart';
 import 'package:flutter/widgets.dart';
 
@@ -24,6 +26,13 @@ Future<void> loadTestTranslations({String languageCode = 'fr'}) async {
   final File file = File('assets/l10n/$languageCode.json');
   final Map<String, dynamic> data =
       json.decode(await file.readAsString()) as Map<String, dynamic>;
+  // `AppFormatters` lit `Intl.getCurrentLocale()` : sans cette ligne, les
+  // séparateurs décimaux restent anglais et « 66,5 km » se lit « 66.5 km ».
+  // Poser la locale **oblige** à charger ses données de date, sans quoi le
+  // premier `DateFormat` lève un `LocaleDataException` — et l'écran entier
+  // disparaît sans autre signe.
+  await initializeDateFormatting(languageCode);
+  Intl.defaultLocale = languageCode;
   Localization.load(
     Locale(languageCode),
     translations: Translations(data),

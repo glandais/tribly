@@ -54,15 +54,22 @@ class UpcomingCarousel extends ConsumerWidget {
           // Le masque de bord dit qu'il y a une suite sans occuper de place :
           // c'est le même motif que `PdlChipRow`, à 24 px au lieu de 28.
           child: ShaderMask(
+            // Un pochoir d'opacité, pas une couleur : `dstIn` ne lit que le
+            // canal alpha. D'où l'opaque et le transparent de `Colors` plutôt
+            // qu'un jeton de la charte — un littéral hexadécimal ici serait un
+            // faux positif de la règle « aucune couleur en dur dans features ».
             shaderCallback: (Rect bounds) => LinearGradient(
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
-              stops: <double>[0, 0, 1 - _kEdgeFade / bounds.width, 1],
+              stops: <double>[
+                0,
+                bounds.width <= _kEdgeFade ? 0 : 1 - _kEdgeFade / bounds.width,
+                1,
+              ],
               colors: const <Color>[
-                Color(0xFFFFFFFF),
-                Color(0xFFFFFFFF),
-                Color(0xFFFFFFFF),
-                Color(0x00FFFFFF),
+                Colors.black,
+                Colors.black,
+                Colors.transparent,
               ],
             ).createShader(bounds),
             blendMode: BlendMode.dstIn,
