@@ -65,7 +65,13 @@ public class UserService {
    * <p>The caller must belong to the team it asks about. Not because the result would leak
    * anything the unscoped search does not already give, but because "is this person on that team"
    * is itself an answer, and it should be one teammates get rather than anyone in the domain.
+   *
+   * <p>Marked {@code @Public} like the overload it backs, because the unscoped branch is genuinely
+   * unguarded and must stay so. That is not a claim that the whole method is: the scoped branch
+   * guards itself below, and {@code @Logged} would have wrongly imposed a session on the unscoped
+   * one.
    */
+  @Public
   public List<PublicUserDto> searchByDisplayName(
       String query, int limit, @Nullable String teamSlug) {
     Long domainId = pedalonsContext.getDomainId();
