@@ -45,6 +45,18 @@ export const AuthenticateResponse = zod
           .enum(['METRIC', 'IMPERIAL'])
           .optional()
           .describe('Preferred unit system (metric or imperial)'),
+        theme: zod
+          .enum(['SYSTEM', 'LIGHT', 'DARK'])
+          .optional()
+          .describe(
+            'Preferred colour scheme. Null means the user never chose one — distinct from SYSTEM, which they did choose — so a client is free to follow the device.'
+          ),
+        language: zod
+          .string()
+          .optional()
+          .describe(
+            'Preferred language as a BCP-47 tag. Null means the user never chose one; the client then follows the device or the domain.'
+          ),
         platformRole: zod
           .enum(['PLATFORM_ADMIN'])
           .optional()

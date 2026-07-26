@@ -26,6 +26,8 @@ import fr.pedalons.repository.place.PlaceRepository;
 import fr.pedalons.repository.ride.RideGroupRepository;
 import fr.pedalons.repository.ride.RideParticipationRepository;
 import fr.pedalons.repository.ride.RideRepository;
+import fr.pedalons.service.comment.CommentCountLookup;
+import fr.pedalons.service.common.ParticipationLookup;
 import fr.pedalons.service.common.TeamEntityService;
 import fr.pedalons.service.route.RouteService;
 import fr.pedalons.service.security.annotation.CheckAccess;
@@ -53,6 +55,10 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
 
   @Inject ThumbnailService thumbnailService;
 
+  @Inject ParticipationLookup participationLookup;
+
+  @Inject CommentCountLookup commentCountLookup;
+
   @Override
   protected RideRepository getRepository() {
     return rideRepository;
@@ -60,7 +66,13 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
 
   @Override
   protected RideDto toDto(Ride entity) {
-    return RideDto.from(entity, true, assetService);
+    // One indexed lookup resolves registered/registeredGroupId for the ride and all of its groups.
+    return RideDto.from(
+        entity,
+        true,
+        assetService,
+        participationLookup.forRide(entity.getId()),
+        commentCountLookup.forEntity(entity));
   }
 
   @Override
@@ -112,7 +124,7 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
 
     thumbnailService.generateRideThumbnails(ride);
 
-    return RideDto.from(ride, true, assetService);
+    return toDto(ride);
   }
 
   private void createRideGroup(
@@ -215,7 +227,7 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
 
     thumbnailService.generateRideThumbnails(ride);
 
-    return RideDto.from(ride, true, assetService);
+    return toDto(ride);
   }
 
   @Transactional
@@ -242,7 +254,7 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
     Ride ride = findBySlugIncludeDeleted(team, rideSlug);
     ride.setDeleted(false);
     rideRepository.persist(ride);
-    return RideDto.from(ride, true, assetService);
+    return toDto(ride);
   }
 
   @Transactional

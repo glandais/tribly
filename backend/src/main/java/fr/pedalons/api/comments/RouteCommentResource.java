@@ -1,6 +1,7 @@
 package fr.pedalons.api.comments;
 
 import fr.pedalons.common.TsidUtils;
+import fr.pedalons.dto.comments.request.CommentListParams;
 import fr.pedalons.dto.comments.request.CommentRequest;
 import fr.pedalons.dto.comments.response.CommentDto;
 import fr.pedalons.dto.comments.response.CommentListResponse;
@@ -12,6 +13,7 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -33,7 +35,14 @@ public class RouteCommentResource {
   @Inject CommentService commentService;
 
   @GET
-  @Operation(operationId = "listRouteComments", summary = "List route comments")
+  @Operation(
+      operationId = "listRouteComments",
+      summary = "List route comments",
+      description =
+          "Top-level comments with their replies. Passing neither page nor size returns the whole"
+              + " tree, as before this endpoint took parameters; passing either paginates the"
+              + " top-level comments. parentId switches to listing the replies of a single"
+              + " comment.")
   @APIResponses({
     @APIResponse(
         responseCode = "200",
@@ -46,10 +55,12 @@ public class RouteCommentResource {
   })
   public Response listRouteComments(
       @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
-      @Parameter(description = "Route URL slug") @PathParam("entitySlug") String entitySlug) {
+      @Parameter(description = "Route URL slug") @PathParam("entitySlug") String entitySlug,
+      @BeanParam CommentListParams params) {
     CommentListResponse response =
-        commentService.listComments(teamSlug, entitySlug, EntityType.ROUTE);
-    return Response.ok(response).build();
+        commentService.listComments(teamSlug, entitySlug, EntityType.ROUTE, params.toQuery());
+    // Members-only content, and the caller is always identified: never a shared cache entry.
+    return Response.ok(response).header(HttpHeaders.CACHE_CONTROL, "private, no-store").build();
   }
 
   @POST

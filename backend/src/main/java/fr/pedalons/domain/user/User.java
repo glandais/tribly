@@ -3,6 +3,7 @@ package fr.pedalons.domain.user;
 import fr.pedalons.domain.common.BaseEntity;
 import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.enums.PlatformRole;
+import fr.pedalons.enums.ThemePreference;
 import fr.pedalons.enums.UnitSystem;
 import jakarta.persistence.*;
 import java.time.Instant;
@@ -44,6 +45,15 @@ public class User extends BaseEntity {
   @Enumerated(EnumType.STRING)
   @Column(name = "unit_system", length = 10)
   private @Nullable UnitSystem unitSystem;
+
+  /** Null means "never chosen" — distinct from {@link ThemePreference#SYSTEM}, which was chosen. */
+  @Enumerated(EnumType.STRING)
+  @Column(name = "theme", length = 10)
+  private @Nullable ThemePreference theme;
+
+  /** BCP-47 language tag ("fr", "en", "fr-CA"). Null means "follow the client / the domain". */
+  @Column(name = "language", length = 10)
+  private @Nullable String language;
 
   @Column(name = "email_verified", nullable = false)
   private boolean emailVerified = false;

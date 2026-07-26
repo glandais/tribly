@@ -4,6 +4,9 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'map_center_dto.dart';
+import 'map_style_dto.dart';
+
 part 'config_dto.freezed.dart';
 part 'config_dto.g.dart';
 
@@ -20,8 +23,20 @@ abstract class ConfigDto with _$ConfigDto {
     /// Single team mode - team creation disabled
     required bool singleTeam,
 
+    /// Basemaps the clients may offer, in switcher order. Served rather than compiled in, so a tile provider can change without a client release.
+    required List<MapStyleDto> mapStyles,
+
+    /// Public base URL of the tile host, for a client that builds its own style, sprite or glyph URLs.
+    required String tileServerBaseUrl,
+
+    /// Where a map opens before it knows what it is showing. On a site rooted on one team this is that team's location; otherwise the deployment default.
+    required MapCenterDto defaultCenter,
+
     /// Slug of the team the site is pinned to (dedicated hostname / alias). Null on a regular multi-team domain. When set, the app roots on this team.
     String? pinnedTeamSlug,
+
+    /// Oldest mobile build this server still serves, as a semver string. Null when no floor is enforced; a client older than this should tell the user to update.
+    String? minSupportedAppVersion,
   }) = _ConfigDto;
 
   factory ConfigDto.fromJson(Map<String, Object?> json) =>

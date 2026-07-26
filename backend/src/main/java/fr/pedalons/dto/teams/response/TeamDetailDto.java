@@ -1,8 +1,10 @@
 package fr.pedalons.dto.teams.response;
 
+import fr.pedalons.common.MarkdownExcerpt;
 import fr.pedalons.common.TsidUtils;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.dto.common.GeoJsonPoint;
+import fr.pedalons.dto.common.asset.AssetDto;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.pages.response.TeamPageSummaryDto;
 import fr.pedalons.dto.validation.ValidateSchema;
@@ -10,6 +12,7 @@ import fr.pedalons.enums.TeamRole;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.service.asset.AssetService;
 import fr.pedalons.service.team.response.TeamAndRole;
+import fr.pedalons.service.team.response.TeamStats;
 import java.time.Instant;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -24,6 +27,20 @@ public record TeamDetailDto(
     @Schema(description = "Team name", required = true) String name,
     @Schema(description = "Team URL slug", required = true) String slug,
     @Schema(description = "About page content", required = true) MediaDto about,
+    @Nullable
+        @Schema(
+            description =
+                "Plain-text opening of the about page, flattened and cut on a word boundary at"
+                    + " about 200 characters. Null when the about page holds no text. Lets a team"
+                    + " card render its two lines without parsing the markdown client-side.")
+        String excerpt,
+    @Nullable
+        @Schema(
+            description =
+                "URL template of the team's logo, when it has one. Same picture as"
+                    + " about.assets.logo, hoisted so a card does not have to walk the asset"
+                    + " inventory to find it.")
+        String logoUrl,
     @Schema(description = "Additional team pages") List<TeamPageSummaryDto> pages,
     @Schema(description = "Whether the team is public", required = true) Visibility visibility,
     @Schema(description = "Trips enabled", required = true) boolean enableTrips,
@@ -38,6 +55,19 @@ public record TeamDetailDto(
     @Schema(description = "Whether team admins can add members", required = true)
         boolean addMemberAllowed,
     @Schema(description = "Number of team members", required = true) long memberCount,
+    @Schema(
+            description =
+                "Rides of this team dated in the future that the caller may open. Follows the same"
+                    + " visibility rules as the ride listing, so it never announces more than the"
+                    + " caller can actually see.",
+            required = true)
+        long upcomingRideCount,
+    @Schema(
+            description =
+                "Routes of this team the caller may open, under the same visibility rules as the"
+                    + " route listing.",
+            required = true)
+        long routeCount,
     @Nullable @Schema(description = "Current user's role (null if not a member)") TeamRole role,
     @Schema(description = "Team creation timestamp", required = true) Instant createdAt,
     @Nullable
@@ -47,14 +77,29 @@ public record TeamDetailDto(
         Point<G2D> geometry) {
   public static TeamDetailDto from(
       TeamAndRole teamAndRole, AssetService assetService, boolean platformAdmin) {
+    return from(teamAndRole, assetService, platformAdmin, TeamStats.EMPTY);
+  }
+
+  /**
+   * @param stats the content counters, bulk-loaded for the whole page by {@code TeamStatsRepository}
+   *     — never fetched here, or a directory of thirty teams would run sixty queries
+   */
+  public static TeamDetailDto from(
+      TeamAndRole teamAndRole, AssetService assetService, boolean platformAdmin, TeamStats stats) {
     Team team = teamAndRole.team();
     List<TeamPageSummaryDto> pages =
         team.getAdditionalPages().stream().map(TeamPageSummaryDto::from).toList();
+    // Built once: the excerpt and the logo are read back out of it rather than re-walking the
+    // about page and its assets.
+    MediaDto about = MediaDto.from(team.getAboutPage(), assetService);
+    AssetDto logo = about.assets().logo();
     return new TeamDetailDto(
         TsidUtils.toString(team.getId()),
         team.getName(),
         team.getSlug(),
-        MediaDto.from(team.getAboutPage(), assetService),
+        about,
+        MarkdownExcerpt.of(about.markdown()),
+        logo != null ? logo.imageUrl() : null,
         pages,
         team.getVisibility(),
         team.isEnableTrips(),
@@ -66,6 +111,8 @@ public record TeamDetailDto(
         team.isJoinable(),
         team.isAddMemberAllowed(),
         teamAndRole.memberCount(),
+        stats.upcomingRideCount(),
+        stats.routeCount(),
         platformAdmin ? TeamRole.ADMIN : teamAndRole.teamRole(),
         team.getCreatedAt(),
         team.getGeometry());

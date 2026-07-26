@@ -45,30 +45,51 @@ public class RideSummaryRepository {
     }
     Map<Long, List<PublicUserDto>> topParticipants = loadTopParticipants(rideIds);
 
-    Map<Long, RideListSummary> summaries = new HashMap<>();
-    for (Object[] row : loadCounts(rideIds)) {
+    Map<Long, int[]> counts = new HashMap<>();
+    Map<Long, Boolean> full = new HashMap<>();
+    for (Object[] row : loadGroupCounts(rideIds)) {
       Long rideId = (Long) row[0];
-      summaries.put(
-          rideId,
-          new RideListSummary(
-              ((Number) row[1]).intValue(),
-              ((Number) row[2]).intValue(),
-              topParticipants.getOrDefault(rideId, List.of())));
+      Integer maxParticipants = (Integer) row[2];
+      int participants = ((Number) row[3]).intValue();
+
+      int[] rideCounts = counts.computeIfAbsent(rideId, k -> new int[2]);
+      rideCounts[0]++;
+      rideCounts[1] += participants;
+      // A ride is full only when none of its groups can take anyone else. One uncapped group is
+      // enough to keep the whole ride open.
+      boolean groupFull = maxParticipants != null && participants >= maxParticipants;
+      full.merge(rideId, groupFull, Boolean::logicalAnd);
     }
+
+    Map<Long, RideListSummary> summaries = new HashMap<>();
+    counts.forEach(
+        (rideId, rideCounts) ->
+            summaries.put(
+                rideId,
+                new RideListSummary(
+                    rideCounts[0],
+                    rideCounts[1],
+                    full.getOrDefault(rideId, false),
+                    topParticipants.getOrDefault(rideId, List.of()))));
     return summaries;
   }
 
   /**
-   * {@code (rideId, groupCount, participantCount)}. The left join keeps groups with no participants,
-   * and {@code count(distinct g.id)} counts each group once even when it has many participations.
+   * One row per group: {@code (rideId, groupId, maxParticipants, participantCount)}. The left join
+   * keeps groups with no participants.
+   *
+   * <p>Grouping by group rather than by ride is what makes {@code full} computable: capacity is a
+   * per-group property, so a per-ride aggregate cannot express "every group is at capacity" without
+   * a second pass. Rides have a handful of groups, so the extra rows are free — and it is still one
+   * query for the whole page.
    */
-  private List<Object[]> loadCounts(Collection<Long> rideIds) {
+  private List<Object[]> loadGroupCounts(Collection<Long> rideIds) {
     return entityManager
         .createQuery(
-            "select g.ride.id, count(distinct g.id), count(p.id) "
+            "select g.ride.id, g.id, g.maxParticipants, count(p.id) "
                 + "from RideGroup g left join g.participations p "
                 + "where g.ride.id in (:rideIds) "
-                + "group by g.ride.id",
+                + "group by g.ride.id, g.id, g.maxParticipants",
             Object[].class)
         .setParameter("rideIds", rideIds)
         .getResultList();

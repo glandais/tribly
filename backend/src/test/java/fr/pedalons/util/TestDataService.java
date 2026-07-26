@@ -62,6 +62,7 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.MediaType;
 import java.io.ByteArrayInputStream;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
@@ -668,6 +669,58 @@ public class TestDataService {
 
   private static final String ASSETS_PREFIX = "assets";
 
+  /**
+   * An asset owned by a team entity, which is what the thumbnail lookups query on — {@link
+   * #createAsset} leaves {@code teamEntity} null and is therefore invisible to them.
+   */
+  @Transactional
+  public Asset attachAsset(TeamEntity entity, User createdBy, AssetType type, String fileName) {
+    Asset asset = createAsset(entity.getTeam(), createdBy, type, fileName);
+    Asset managed = assetRepository.findById(asset.getId());
+    managed.setTeamEntity(
+        assetRepository.getEntityManager().find(TeamEntity.class, entity.getId()));
+    assetRepository.flush();
+    return managed;
+  }
+
+  @Transactional
+  public void setRidePlaces(Ride ride, @Nullable Place start, @Nullable Place end) {
+    Ride managed = rideRepository.findById(ride.getId());
+    managed.setStart(start);
+    managed.setEnd(end);
+  }
+
+  @Transactional
+  public void setTripStagePlaces(TripStage stage, @Nullable Place start, @Nullable Place end) {
+    TripStage managed = tripStageRepository.findById(stage.getId());
+    managed.setStartPlace(start);
+    managed.setEndPlace(end);
+  }
+
+  @Transactional
+  public void setRouteMetrics(Route route, float distance, float elevationGain) {
+    Route managed = routeRepository.findById(route.getId());
+    managed.setDistance(distance);
+    managed.setElevationGain(elevationGain);
+  }
+
+  /**
+   * Gives a team's about page a body. Goes through the managed team because {@code Team.aboutPage}
+   * is lazy: reading it off a detached fixture would throw.
+   */
+  @Transactional
+  public void setTeamAboutMarkdown(Team team, String markdown) {
+    Team managed = teamRepository.findById(team.getId());
+    managed.getAboutPage().setMarkdown(markdown);
+  }
+
+  /** Gives any team entity a markdown body — what {@code excerpt} and {@code view} are about. */
+  @Transactional
+  public void setMarkdown(TeamEntity entity, String markdown) {
+    TeamEntity managed = assetRepository.getEntityManager().find(TeamEntity.class, entity.getId());
+    managed.setMarkdown(markdown);
+  }
+
   @Transactional
   public Asset createAsset(Team team, User createdBy, AssetType type, String fileName) {
     String contentType = guessContentType(fileName);
@@ -781,6 +834,17 @@ public class TestDataService {
     return stage;
   }
 
+  /** A stage with both a rank and a date — what a multi-day trip actually looks like. */
+  @Transactional
+  public TripStage createTripStage(
+      User createdBy, Trip trip, String name, int sortOrder, Instant dateTime) {
+    TripStage stage = new TripStage(createdBy, trip, name, SlugService.slugify(name));
+    stage.setSortOrder(sortOrder);
+    stage.setDateTime(dateTime);
+    tripStageRepository.persistAndFlush(stage);
+    return stage;
+  }
+
   @Transactional
   public void deleteTripStage(TripStage stage) {
     // findById instead of merge: the caller's instance may be stale (e.g. after setTripStageRoute)
@@ -866,6 +930,24 @@ public class TestDataService {
   public void deleteAd(Ad ad) {
     ad.setDeleted(true);
     adRepository.getEntityManager().merge(ad);
+  }
+
+  /** Price, rental period and exact location — what the classifieds filters and the map read. */
+  @Transactional
+  public void setAdDetails(
+      Ad ad,
+      @Nullable BigDecimal price,
+      @Nullable RentalPeriod rentalPeriod,
+      @Nullable Double lat,
+      @Nullable Double lon) {
+    Ad managed = adRepository.findById(ad.getId());
+    managed.setPrice(price);
+    managed.setRentalPeriod(rentalPeriod);
+    managed.setLocationGeometry(
+        lat == null || lon == null
+            ? null
+            : org.geolatte.geom.builder.DSL.point(
+                WGS84, org.geolatte.geom.builder.DSL.g(lon, lat)));
   }
 
   @Inject CommentRepository commentRepository;

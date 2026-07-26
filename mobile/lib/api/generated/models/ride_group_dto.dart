@@ -28,6 +28,12 @@ abstract class RideGroupDto with _$RideGroupDto {
 
     /// Sort order
     required int sortOrder,
+
+    /// Whether the current user is registered in THIS group. False if anonymous.
+    required bool registered,
+
+    /// Whether the group has reached maxParticipants. False when maxParticipants is not set.
+    required bool full,
     LocalTime? time,
 
     /// Route slug
@@ -38,6 +44,12 @@ abstract class RideGroupDto with _$RideGroupDto {
 
     /// Maximum participants
     int? maxParticipants,
+
+    /// Distance in meters of the group route, if it has one
+    double? distance,
+
+    /// Total elevation gain in meters of the group route, if it has one
+    double? elevationGain,
   }) = _RideGroupDto;
 
   factory RideGroupDto.fromJson(Map<String, Object?> json) =>

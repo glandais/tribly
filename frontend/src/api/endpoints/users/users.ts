@@ -16,12 +16,15 @@ import type {
 
 import type {
   ErrorResponse,
+  ListMyParticipationsParams,
   PublicUserDto,
+  PublicationListResponse,
   SearchUsersParams,
   UpdateUserRequest,
   UploadAvatarBody,
   UserDto,
   UserExportDto,
+  UserPreferencesRequest,
 } from '../../dto'
 
 import { axiosMutator } from '../../../lib/axiosInstance.ts'
@@ -920,6 +923,248 @@ export const prefetchGetExportQuery = async <
   return queryClient
 }
 
+/**
+ * The rides and trips the current user is registered to, soonest first. Only publications the user may still see are returned: leaving a team removes its outings from this list.
+ * @summary List my participations
+ */
+export const listMyParticipations = (
+  params?: ListMyParticipationsParams,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<PublicationListResponse>(
+    { url: `/api/users/me/participations`, method: 'GET', params, signal },
+    options
+  )
+}
+
+export const getListMyParticipationsQueryKey = (params?: ListMyParticipationsParams) => {
+  return [`/api/users/me/participations`, ...(params ? [params] : [])] as const
+}
+
+export const getListMyParticipationsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listMyParticipations>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  params?: ListMyParticipationsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listMyParticipations>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getListMyParticipationsQueryKey(params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listMyParticipations>>> = ({ signal }) =>
+    listMyParticipations(params, requestOptions, signal)
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listMyParticipations>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListMyParticipationsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listMyParticipations>>
+>
+export type ListMyParticipationsQueryError = ErrorType<ErrorResponse | void>
+
+export function useListMyParticipations<
+  TData = Awaited<ReturnType<typeof listMyParticipations>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  params: undefined | ListMyParticipationsParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listMyParticipations>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMyParticipations>>,
+          TError,
+          Awaited<ReturnType<typeof listMyParticipations>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListMyParticipations<
+  TData = Awaited<ReturnType<typeof listMyParticipations>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  params?: ListMyParticipationsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listMyParticipations>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMyParticipations>>,
+          TError,
+          Awaited<ReturnType<typeof listMyParticipations>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListMyParticipations<
+  TData = Awaited<ReturnType<typeof listMyParticipations>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  params?: ListMyParticipationsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listMyParticipations>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List my participations
+ */
+
+export function useListMyParticipations<
+  TData = Awaited<ReturnType<typeof listMyParticipations>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  params?: ListMyParticipationsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listMyParticipations>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getListMyParticipationsQueryOptions(params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary List my participations
+ */
+export const prefetchListMyParticipationsQuery = async <
+  TData = Awaited<ReturnType<typeof listMyParticipations>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  queryClient: QueryClient,
+  params?: ListMyParticipationsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listMyParticipations>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getListMyParticipationsQueryOptions(params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
+ * Set the current user's unit system, colour scheme and language. A partial update: fields omitted (or sent null) are left unchanged. These live on the server so that a member who picks imperial units on their phone sees them on the web too, and so that reinstalling the app does not lose them.
+ * @summary Update display preferences
+ */
+export const updateMyPreferences = (
+  userPreferencesRequest: BodyType<UserPreferencesRequest>,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<UserDto>(
+    {
+      url: `/api/users/me/preferences`,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      data: userPreferencesRequest,
+      signal,
+    },
+    options
+  )
+}
+
+export const getUpdateMyPreferencesMutationOptions = <
+  TError = ErrorType<ErrorResponse | void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateMyPreferences>>,
+    TError,
+    { data: BodyType<UserPreferencesRequest> },
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateMyPreferences>>,
+  TError,
+  { data: BodyType<UserPreferencesRequest> },
+  TContext
+> => {
+  const mutationKey = ['updateMyPreferences']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateMyPreferences>>,
+    { data: BodyType<UserPreferencesRequest> }
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return updateMyPreferences(data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type UpdateMyPreferencesMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateMyPreferences>>
+>
+export type UpdateMyPreferencesMutationBody = BodyType<UserPreferencesRequest>
+export type UpdateMyPreferencesMutationError = ErrorType<ErrorResponse | void>
+
+/**
+ * @summary Update display preferences
+ */
+export const useUpdateMyPreferences = <
+  TError = ErrorType<ErrorResponse | void>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateMyPreferences>>,
+      TError,
+      { data: BodyType<UserPreferencesRequest> },
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof updateMyPreferences>>,
+  TError,
+  { data: BodyType<UserPreferencesRequest> },
+  TContext
+> => {
+  return useMutation(getUpdateMyPreferencesMutationOptions(options), queryClient)
+}
 /**
  * Search users by display name
  * @summary Search users

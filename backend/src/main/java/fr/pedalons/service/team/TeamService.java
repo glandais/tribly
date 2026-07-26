@@ -20,6 +20,7 @@ import fr.pedalons.enums.Visibility;
 import fr.pedalons.infrastructure.exception.*;
 import fr.pedalons.repository.team.TeamQuery;
 import fr.pedalons.repository.team.TeamRepository;
+import fr.pedalons.repository.team.TeamStatsRepository;
 import fr.pedalons.repository.team.UserTeamRepository;
 import fr.pedalons.service.asset.AssetService;
 import fr.pedalons.service.common.SlugService;
@@ -27,10 +28,12 @@ import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.CheckAccess;
 import fr.pedalons.service.team.request.MinRole;
 import fr.pedalons.service.team.response.TeamAndRole;
+import fr.pedalons.service.team.response.TeamStats;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 import org.jspecify.annotations.Nullable;
 
@@ -42,6 +45,8 @@ public class TeamService {
   @Inject UserTeamRepository userTeamRepository;
 
   @Inject protected TeamRepository teamRepository;
+
+  @Inject TeamStatsRepository teamStatsRepository;
 
   @Inject protected AssetService assetService;
 
@@ -140,6 +145,21 @@ public class TeamService {
   @CheckAccess(entityType = EntityType.TEAM, action = ActionType.LIST)
   public TeamListResponse listTeams(
       @Nullable MinRole minRole, @Nullable String search, int page, int size) {
+    return listTeams(minRole, search, null, page, size);
+  }
+
+  /**
+   * @param joinable restricts to teams that do (or do not) accept join requests — the "discover a
+   *     team" screen. Null keeps both.
+   */
+  @Transactional
+  @CheckAccess(entityType = EntityType.TEAM, action = ActionType.LIST)
+  public TeamListResponse listTeams(
+      @Nullable MinRole minRole,
+      @Nullable String search,
+      @Nullable Boolean joinable,
+      int page,
+      int size) {
     boolean platformAdmin = isPlatformAdmin();
     PedalonsPage<TeamAndRole> teams =
         teamRepository.find(
@@ -149,13 +169,22 @@ public class TeamService {
                 .userId(pedalonsContext.getUserIdNullable())
                 .minRole(minRole)
                 .search(search)
+                .joinable(joinable)
                 .page(page)
                 .size(size)
                 .platformAdmin(platformAdmin)
                 .build());
+    Map<Long, TeamStats> stats =
+        loadStats(teams.items().stream().map(t -> t.team().getId()).toList());
     List<TeamDetailDto> dtos =
         teams.items().stream()
-            .map(teamAndRole -> TeamDetailDto.from(teamAndRole, assetService, platformAdmin))
+            .map(
+                teamAndRole ->
+                    TeamDetailDto.from(
+                        teamAndRole,
+                        assetService,
+                        platformAdmin,
+                        stats.getOrDefault(teamAndRole.team().getId(), TeamStats.EMPTY)))
             .toList();
     return new TeamListResponse(dtos, teams.total(), page, size);
   }
@@ -164,7 +193,23 @@ public class TeamService {
   public TeamDetailDto getTeamDetailDto(String teamSlug) {
     Team team = getTeam(teamSlug);
     TeamAndRole teamAndRole = getTeamAndRole(team.getId());
-    return TeamDetailDto.from(teamAndRole, assetService, isPlatformAdmin());
+    TeamStats stats = loadStats(List.of(team.getId())).getOrDefault(team.getId(), TeamStats.EMPTY);
+    return TeamDetailDto.from(teamAndRole, assetService, isPlatformAdmin(), stats);
+  }
+
+  /**
+   * Content counters for a whole page of teams: two queries, whatever the page size.
+   *
+   * <p>The obvious implementation — ask each team for its rides and its routes — is two queries per
+   * row, and it is the reason this indirection exists at all.
+   */
+  private Map<Long, TeamStats> loadStats(List<Long> teamIds) {
+    return teamStatsRepository.load(
+        teamIds,
+        pedalonsContext.getDomainId(),
+        pedalonsContext.getUserIdNullable(),
+        pedalonsContext.getPinnedTeamIdNullable(),
+        isPlatformAdmin());
   }
 
   @Transactional

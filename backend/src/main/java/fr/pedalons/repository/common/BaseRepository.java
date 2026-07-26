@@ -11,6 +11,23 @@ import java.util.Optional;
 
 public interface BaseRepository<T> extends PanacheRepository<T> {
 
+  /** Default page size, applied when a caller asks for zero. */
+  int DEFAULT_PAGE_SIZE = 20;
+
+  /**
+   * Server-side ceiling on page size, enforced here rather than in each resource.
+   *
+   * <p>Fourteen endpoints expose {@code ?size=} and none of them bounded it, so {@code size=100000}
+   * was a supported request. That mattered little while a list row was a handful of columns; it
+   * matters now that a row carries a generated excerpt, a thumbnail lookup and per-row "am I
+   * registered" state. Clamping at the single point where pagination is actually applied covers the
+   * endpoints that exist today and the ones nobody remembers to bound tomorrow.
+   *
+   * <p>A caller asking for more gets the ceiling, not an error: {@code total} still reports the real
+   * count, so a client that wanted everything can page through it.
+   */
+  int MAX_PAGE_SIZE = 200;
+
   default PedalonsPage<T> getPage(PedalonsQuery pedalonsQuery, int page, int size) {
     String stringQuery = pedalonsQuery.getStringQuery();
     Log.debugf("Query: %s", stringQuery);
@@ -20,8 +37,9 @@ public interface BaseRepository<T> extends PanacheRepository<T> {
 
   default <X> PedalonsPage<X> getPage(PanacheQuery<X> panacheQuery, int page, int size) {
     if (size == 0) {
-      size = 20;
+      size = DEFAULT_PAGE_SIZE;
     }
+    size = Math.clamp(size, 1, MAX_PAGE_SIZE);
     return new PedalonsPage<>(panacheQuery.page(page, size).list(), panacheQuery.count());
   }
 

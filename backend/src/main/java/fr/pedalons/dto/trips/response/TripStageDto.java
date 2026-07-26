@@ -22,9 +22,35 @@ public record TripStageDto(
     @Nullable @Schema(description = "Start place") PlaceDetailDto startPlace,
     @Nullable @Schema(description = "End place") PlaceDetailDto endPlace,
     @Schema(description = "Stage media", required = true) MediaDto media,
-    @Schema(description = "Sort order", required = true) int sortOrder) {
+    @Schema(description = "Sort order", required = true) int sortOrder,
+    @Schema(
+            description =
+                "Position of this stage among the trip's live stages, 1-based — the 'Day 2' of a"
+                    + " stage header. Unlike sortOrder, which is a persisted rank that may have"
+                    + " gaps, this is a rank a client can print.",
+            required = true)
+        int stageIndex,
+    @Schema(
+            description = "How many live stages the trip has — the '/ 5' of 'Day 2 / 5'.",
+            required = true)
+        int stageCount) {
 
+  /**
+   * A stage read on its own, with no trip around it to number it.
+   *
+   * <p>{@code stageIndex} and {@code stageCount} both come back as 1: a lone stage is the first of
+   * one.
+   */
   public static TripStageDto from(TripStage stage, AssetService assetService) {
+    return from(stage, assetService, 1, 1);
+  }
+
+  /**
+   * @param stageIndex 1-based position among the trip's live stages
+   * @param stageCount how many live stages the trip has
+   */
+  public static TripStageDto from(
+      TripStage stage, AssetService assetService, int stageIndex, int stageCount) {
     return new TripStageDto(
         TsidUtils.toString(stage.getId()),
         stage.getSlug(),
@@ -34,6 +60,8 @@ public record TripStageDto(
         stage.getStartPlace() != null ? PlaceDetailDto.from(stage.getStartPlace()) : null,
         stage.getEndPlace() != null ? PlaceDetailDto.from(stage.getEndPlace()) : null,
         MediaDto.from(stage, assetService),
-        stage.getSortOrder());
+        stage.getSortOrder(),
+        stageIndex,
+        stageCount);
   }
 }

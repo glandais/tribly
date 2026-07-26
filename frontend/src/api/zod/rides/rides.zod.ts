@@ -377,6 +377,12 @@ export const CreateRideResponse = zod
           .describe('Assets'),
       })
       .describe('Publication media'),
+    excerpt: zod
+      .string()
+      .optional()
+      .describe(
+        "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+      ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
@@ -408,6 +414,24 @@ export const CreateRideResponse = zod
               )
               .describe('Participants, empty if not access'),
             sortOrder: zod.number().describe('Sort order'),
+            registered: zod
+              .boolean()
+              .describe(
+                'Whether the current user is registered in THIS group. False if anonymous.'
+              ),
+            full: zod
+              .boolean()
+              .describe(
+                'Whether the group has reached maxParticipants. False when maxParticipants is not set.'
+              ),
+            distance: zod
+              .number()
+              .optional()
+              .describe('Distance in meters of the group route, if it has one'),
+            elevationGain: zod
+              .number()
+              .optional()
+              .describe('Total elevation gain in meters of the group route, if it has one'),
           })
           .describe('Ride group information')
       )
@@ -461,7 +485,33 @@ export const CreateRideResponse = zod
       .describe('Preview of first participants (max 5)'),
     thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
     thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
+    thumbnailUrl: zod
+      .string()
+      .optional()
+      .describe(
+        'The one thumbnail to show when the client does not theme its cards: the light variant if there is one, else the dark one. Saves a compact row from carrying media.assets just to find a picture.'
+      ),
     deleted: zod.boolean().describe('Whether the ride is soft-deleted'),
+    registered: zod
+      .boolean()
+      .describe(
+        "Whether the current user is registered in one of this ride's groups. False if anonymous."
+      ),
+    registeredGroupId: zod
+      .string()
+      .optional()
+      .describe('ID (TSID) of the group the current user joined, null if not registered'),
+    full: zod
+      .boolean()
+      .describe(
+        'Whether every group of the ride has reached its capacity. False when the ride has no group, or when at least one group has no maxParticipants.'
+      ),
+    commentCount: zod
+      .number()
+      .optional()
+      .describe(
+        'Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
   })
   .describe('Ride summary data')
 
@@ -843,6 +893,12 @@ export const UpdateRideResponse = zod
           .describe('Assets'),
       })
       .describe('Publication media'),
+    excerpt: zod
+      .string()
+      .optional()
+      .describe(
+        "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+      ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
@@ -874,6 +930,24 @@ export const UpdateRideResponse = zod
               )
               .describe('Participants, empty if not access'),
             sortOrder: zod.number().describe('Sort order'),
+            registered: zod
+              .boolean()
+              .describe(
+                'Whether the current user is registered in THIS group. False if anonymous.'
+              ),
+            full: zod
+              .boolean()
+              .describe(
+                'Whether the group has reached maxParticipants. False when maxParticipants is not set.'
+              ),
+            distance: zod
+              .number()
+              .optional()
+              .describe('Distance in meters of the group route, if it has one'),
+            elevationGain: zod
+              .number()
+              .optional()
+              .describe('Total elevation gain in meters of the group route, if it has one'),
           })
           .describe('Ride group information')
       )
@@ -927,7 +1001,33 @@ export const UpdateRideResponse = zod
       .describe('Preview of first participants (max 5)'),
     thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
     thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
+    thumbnailUrl: zod
+      .string()
+      .optional()
+      .describe(
+        'The one thumbnail to show when the client does not theme its cards: the light variant if there is one, else the dark one. Saves a compact row from carrying media.assets just to find a picture.'
+      ),
     deleted: zod.boolean().describe('Whether the ride is soft-deleted'),
+    registered: zod
+      .boolean()
+      .describe(
+        "Whether the current user is registered in one of this ride's groups. False if anonymous."
+      ),
+    registeredGroupId: zod
+      .string()
+      .optional()
+      .describe('ID (TSID) of the group the current user joined, null if not registered'),
+    full: zod
+      .boolean()
+      .describe(
+        'Whether every group of the ride has reached its capacity. False when the ride has no group, or when at least one group has no maxParticipants.'
+      ),
+    commentCount: zod
+      .number()
+      .optional()
+      .describe(
+        'Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
   })
   .describe('Ride summary data')
 
@@ -1103,6 +1203,12 @@ export const GetRideResponse = zod
           .describe('Assets'),
       })
       .describe('Publication media'),
+    excerpt: zod
+      .string()
+      .optional()
+      .describe(
+        "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+      ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
@@ -1134,6 +1240,24 @@ export const GetRideResponse = zod
               )
               .describe('Participants, empty if not access'),
             sortOrder: zod.number().describe('Sort order'),
+            registered: zod
+              .boolean()
+              .describe(
+                'Whether the current user is registered in THIS group. False if anonymous.'
+              ),
+            full: zod
+              .boolean()
+              .describe(
+                'Whether the group has reached maxParticipants. False when maxParticipants is not set.'
+              ),
+            distance: zod
+              .number()
+              .optional()
+              .describe('Distance in meters of the group route, if it has one'),
+            elevationGain: zod
+              .number()
+              .optional()
+              .describe('Total elevation gain in meters of the group route, if it has one'),
           })
           .describe('Ride group information')
       )
@@ -1187,7 +1311,33 @@ export const GetRideResponse = zod
       .describe('Preview of first participants (max 5)'),
     thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
     thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
+    thumbnailUrl: zod
+      .string()
+      .optional()
+      .describe(
+        'The one thumbnail to show when the client does not theme its cards: the light variant if there is one, else the dark one. Saves a compact row from carrying media.assets just to find a picture.'
+      ),
     deleted: zod.boolean().describe('Whether the ride is soft-deleted'),
+    registered: zod
+      .boolean()
+      .describe(
+        "Whether the current user is registered in one of this ride's groups. False if anonymous."
+      ),
+    registeredGroupId: zod
+      .string()
+      .optional()
+      .describe('ID (TSID) of the group the current user joined, null if not registered'),
+    full: zod
+      .boolean()
+      .describe(
+        'Whether every group of the ride has reached its capacity. False when the ride has no group, or when at least one group has no maxParticipants.'
+      ),
+    commentCount: zod
+      .number()
+      .optional()
+      .describe(
+        'Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
   })
   .describe('Ride summary data')
 
@@ -1418,6 +1568,12 @@ export const ChangeRideSlugResponse = zod
           .describe('Assets'),
       })
       .describe('Publication media'),
+    excerpt: zod
+      .string()
+      .optional()
+      .describe(
+        "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+      ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
@@ -1449,6 +1605,24 @@ export const ChangeRideSlugResponse = zod
               )
               .describe('Participants, empty if not access'),
             sortOrder: zod.number().describe('Sort order'),
+            registered: zod
+              .boolean()
+              .describe(
+                'Whether the current user is registered in THIS group. False if anonymous.'
+              ),
+            full: zod
+              .boolean()
+              .describe(
+                'Whether the group has reached maxParticipants. False when maxParticipants is not set.'
+              ),
+            distance: zod
+              .number()
+              .optional()
+              .describe('Distance in meters of the group route, if it has one'),
+            elevationGain: zod
+              .number()
+              .optional()
+              .describe('Total elevation gain in meters of the group route, if it has one'),
           })
           .describe('Ride group information')
       )
@@ -1502,7 +1676,33 @@ export const ChangeRideSlugResponse = zod
       .describe('Preview of first participants (max 5)'),
     thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
     thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
+    thumbnailUrl: zod
+      .string()
+      .optional()
+      .describe(
+        'The one thumbnail to show when the client does not theme its cards: the light variant if there is one, else the dark one. Saves a compact row from carrying media.assets just to find a picture.'
+      ),
     deleted: zod.boolean().describe('Whether the ride is soft-deleted'),
+    registered: zod
+      .boolean()
+      .describe(
+        "Whether the current user is registered in one of this ride's groups. False if anonymous."
+      ),
+    registeredGroupId: zod
+      .string()
+      .optional()
+      .describe('ID (TSID) of the group the current user joined, null if not registered'),
+    full: zod
+      .boolean()
+      .describe(
+        'Whether every group of the ride has reached its capacity. False when the ride has no group, or when at least one group has no maxParticipants.'
+      ),
+    commentCount: zod
+      .number()
+      .optional()
+      .describe(
+        'Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
   })
   .describe('Ride summary data')
 
@@ -1678,6 +1878,12 @@ export const UndeleteRideResponse = zod
           .describe('Assets'),
       })
       .describe('Publication media'),
+    excerpt: zod
+      .string()
+      .optional()
+      .describe(
+        "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+      ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
@@ -1709,6 +1915,24 @@ export const UndeleteRideResponse = zod
               )
               .describe('Participants, empty if not access'),
             sortOrder: zod.number().describe('Sort order'),
+            registered: zod
+              .boolean()
+              .describe(
+                'Whether the current user is registered in THIS group. False if anonymous.'
+              ),
+            full: zod
+              .boolean()
+              .describe(
+                'Whether the group has reached maxParticipants. False when maxParticipants is not set.'
+              ),
+            distance: zod
+              .number()
+              .optional()
+              .describe('Distance in meters of the group route, if it has one'),
+            elevationGain: zod
+              .number()
+              .optional()
+              .describe('Total elevation gain in meters of the group route, if it has one'),
           })
           .describe('Ride group information')
       )
@@ -1762,6 +1986,32 @@ export const UndeleteRideResponse = zod
       .describe('Preview of first participants (max 5)'),
     thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
     thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
+    thumbnailUrl: zod
+      .string()
+      .optional()
+      .describe(
+        'The one thumbnail to show when the client does not theme its cards: the light variant if there is one, else the dark one. Saves a compact row from carrying media.assets just to find a picture.'
+      ),
     deleted: zod.boolean().describe('Whether the ride is soft-deleted'),
+    registered: zod
+      .boolean()
+      .describe(
+        "Whether the current user is registered in one of this ride's groups. False if anonymous."
+      ),
+    registeredGroupId: zod
+      .string()
+      .optional()
+      .describe('ID (TSID) of the group the current user joined, null if not registered'),
+    full: zod
+      .boolean()
+      .describe(
+        'Whether every group of the ride has reached its capacity. False when the ride has no group, or when at least one group has no maxParticipants.'
+      ),
+    commentCount: zod
+      .number()
+      .optional()
+      .describe(
+        'Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
   })
   .describe('Ride summary data')

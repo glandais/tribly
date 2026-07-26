@@ -7,11 +7,15 @@ import fr.pedalons.domain.common.TeamEntity;
 import fr.pedalons.domain.route.Route;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.user.User;
+import fr.pedalons.dto.comments.response.CommentCounts;
+import fr.pedalons.dto.common.CountResponse;
 import fr.pedalons.dto.common.PedalonsPage;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.error.ErrorCode;
+import fr.pedalons.dto.routes.request.GeometryOptions;
 import fr.pedalons.dto.routes.request.RouteRequest;
 import fr.pedalons.dto.routes.request.RouteSearchParams;
+import fr.pedalons.dto.routes.response.ElevationProfileDto;
 import fr.pedalons.dto.routes.response.RouteBoundsResponse;
 import fr.pedalons.dto.routes.response.RouteDetailDto;
 import fr.pedalons.dto.routes.response.RouteDto;
@@ -27,6 +31,7 @@ import fr.pedalons.repository.ride.RideRepository;
 import fr.pedalons.repository.route.RouteQuery;
 import fr.pedalons.repository.route.RouteRepository;
 import fr.pedalons.repository.trip.TripRepository;
+import fr.pedalons.service.comment.CommentCountLookup;
 import fr.pedalons.service.common.TeamEntityService;
 import fr.pedalons.service.route.response.TrackMetadata;
 import fr.pedalons.service.security.annotation.CheckAccess;
@@ -50,7 +55,25 @@ import org.jspecify.annotations.Nullable;
 @ApplicationScoped
 public class RouteService extends TeamEntityService<Route, RouteRepository, RouteDetailDto> {
 
+  /** A profile below two points is not a curve. */
+  public static final int MIN_PROFILE_SAMPLES = 2;
+
+  /**
+   * Past a thousand points a profile chart is drawing several samples per pixel; the ceiling exists
+   * so no request can ask the server to build an arbitrarily large answer.
+   */
+  public static final int MAX_PROFILE_SAMPLES = 1_000;
+
+  /**
+   * What a client gets when it asks for a profile without saying how detailed. A string because it
+   * feeds a JAX-RS {@code @DefaultValue}, which is where the default belongs — the resource and the
+   * service must not disagree about it.
+   */
+  public static final String DEFAULT_PROFILE_SAMPLES = "300";
+
   @Inject RouteRepository routeRepository;
+
+  @Inject CommentCountLookup commentCountLookup;
 
   @Inject GpxProcessingService gpxProcessingService;
 
@@ -67,7 +90,8 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
 
   @Override
   protected RouteDetailDto toDto(Route entity) {
-    return RouteDetailDto.from(entity, assetService);
+    return RouteDetailDto.from(
+        entity, assetService, GeometryOptions.FULL, commentCountLookup.forEntity(entity));
   }
 
   @Override
@@ -84,6 +108,37 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
   public RouteDetailDto getDto(String teamSlug, String entitySlug) {
     Team team = teamService.getTeam(teamSlug);
     return super.getDto(team, entitySlug);
+  }
+
+  /**
+   * The route detail, with its tracks decimated as {@code geometry} asks.
+   *
+   * <p>{@link GeometryOptions#FULL} yields byte for byte what {@link #getDto(String, String)}
+   * returns — the decimation is opt-in, and a caller that asks for nothing keeps the stored track.
+   */
+  @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.READ)
+  public RouteDetailDto getDto(String teamSlug, String entitySlug, GeometryOptions geometry) {
+    Team team = teamService.getTeam(teamSlug);
+    Route route = findBySlug(team, entitySlug);
+    return RouteDetailDto.from(route, assetService, geometry, commentCountLookup.forEntity(route));
+  }
+
+  /**
+   * The route's elevation profile, resampled to {@code samples} points.
+   *
+   * <p>One route is loaded and resampled in memory — the sampling deliberately happens after the
+   * read, never across a listing: a profile is a detail view, and the jsonb track points it needs
+   * are the heaviest column of the whole schema.
+   *
+   * @param samples the requested resolution, clamped into {@link #MIN_PROFILE_SAMPLES}..{@link
+   *     #MAX_PROFILE_SAMPLES} here rather than trusted
+   */
+  @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.READ)
+  public ElevationProfileDto getElevationProfile(String teamSlug, String entitySlug, int samples) {
+    Team team = teamService.getTeam(teamSlug);
+    Route route = findBySlug(team, entitySlug);
+    return ElevationProfileDto.from(
+        route, Math.clamp(samples, MIN_PROFILE_SAMPLES, MAX_PROFILE_SAMPLES));
   }
 
   /**
@@ -172,7 +227,7 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
 
       updateMedia(route, request.media());
       routeRepository.persist(route);
-      return RouteDto.from(route, assetService);
+      return RouteDto.from(route, assetService, commentCountLookup.forEntity(route));
     } catch (Exception e) {
       gpxProcessingService.deleteRouteFiles(route);
       throw e;
@@ -245,7 +300,7 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
 
     updateMedia(route, request.media());
     routeRepository.persist(route);
-    return RouteDto.from(route, assetService);
+    return RouteDto.from(route, assetService, commentCountLookup.forEntity(route));
   }
 
   @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.UPDATE)
@@ -271,6 +326,32 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
   @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.LIST_ALL_TEAMS)
   public RouteListResponse getAllRoutes(RouteSearchParams params) {
     return getRoutesWithTeamIds(null, pedalonsContext.getUserNullable(), params, false);
+  }
+
+  /**
+   * How many routes {@link #getRoutes} would list, without listing them.
+   *
+   * <p>Built from the same {@link RouteQuery} as the listing, so the two can never disagree: a
+   * filter added to one is a filter the other gets for free.
+   */
+  @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.LIST)
+  public CountResponse countRoutes(String teamSlug, RouteSearchParams params) {
+    Team team = teamService.getTeam(teamSlug);
+    return new CountResponse(
+        routeRepository.countMatching(
+            listQuery(
+                Set.of(team.getId()),
+                pedalonsContext.getUserNullable(),
+                params,
+                isIncludeDeleted(team))));
+  }
+
+  /** How many routes {@link #getAllRoutes} would list, without listing them. */
+  @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.LIST_ALL_TEAMS)
+  public CountResponse countAllRoutes(RouteSearchParams params) {
+    return new CountResponse(
+        routeRepository.countMatching(
+            listQuery(null, pedalonsContext.getUserNullable(), params, false)));
   }
 
   /**
@@ -344,40 +425,56 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
         .build();
   }
 
+  /**
+   * The query behind the paginated listing and behind the count — one builder, so the "Voir N
+   * parcours" figure and the list it opens are answering the same question.
+   */
+  private RouteQuery listQuery(
+      @Nullable Set<Long> teamIds,
+      @Nullable User user,
+      RouteSearchParams params,
+      boolean includeDeleted) {
+    return RouteQuery.builder()
+        .domainId(pedalonsContext.getDomainId())
+        .pinnedTeamId(pedalonsContext.getPinnedTeamIdNullable())
+        .userId(user == null ? null : user.getId())
+        .teamIds(teamIds)
+        .search(params.search())
+        .page(params.page())
+        .size(params.size())
+        .minRole(params.minRole())
+        .minDistance(params.minDistance())
+        .maxDistance(params.maxDistance())
+        .minElevationGain(params.minElevationGain())
+        .maxElevationGain(params.maxElevationGain())
+        .hilliness(params.hilliness())
+        .surfaceType(params.surfaceType())
+        .windDirection(params.windDirection())
+        .nearLat(params.nearLat())
+        .nearLon(params.nearLon())
+        .nearRadius(params.nearRadius())
+        .nearType(params.nearType())
+        .sortBy(params.sortBy())
+        .sortDir(params.sortDir())
+        .includeDeleted(includeDeleted)
+        .platformAdmin(isPlatformAdmin())
+        .build();
+  }
+
   private RouteListResponse getRoutesWithTeamIds(
       @Nullable Set<Long> teamIds,
       @Nullable User user,
       RouteSearchParams params,
       boolean includeDeleted) {
     PedalonsPage<Route> routes =
-        routeRepository.find(
-            RouteQuery.builder()
-                .domainId(pedalonsContext.getDomainId())
-                .pinnedTeamId(pedalonsContext.getPinnedTeamIdNullable())
-                .userId(user == null ? null : user.getId())
-                .teamIds(teamIds)
-                .search(params.search())
-                .page(params.page())
-                .size(params.size())
-                .minRole(params.minRole())
-                .minDistance(params.minDistance())
-                .maxDistance(params.maxDistance())
-                .minElevationGain(params.minElevationGain())
-                .maxElevationGain(params.maxElevationGain())
-                .hilliness(params.hilliness())
-                .surfaceType(params.surfaceType())
-                .windDirection(params.windDirection())
-                .nearLat(params.nearLat())
-                .nearLon(params.nearLon())
-                .nearRadius(params.nearRadius())
-                .nearType(params.nearType())
-                .sortBy(params.sortBy())
-                .sortDir(params.sortDir())
-                .includeDeleted(includeDeleted)
-                .platformAdmin(isPlatformAdmin())
-                .build());
+        routeRepository.find(listQuery(teamIds, user, params, includeDeleted));
+    // Two queries for the whole page — the comment count of a list row must not cost a round-trip
+    // per row, and it is only filled in for teams this caller belongs to.
+    CommentCounts commentCounts = commentCountLookup.forEntities(routes.items());
     List<RouteDto> dtos =
-        routes.items().stream().map(route -> RouteDto.from(route, assetService)).toList();
+        routes.items().stream()
+            .map(route -> RouteDto.from(route, assetService, commentCounts, params.view()))
+            .toList();
     return new RouteListResponse(dtos, routes.total(), params.page(), params.size());
   }
 
@@ -401,7 +498,7 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
     Route route = findBySlugIncludeDeleted(team, slug);
     route.setDeleted(false);
     routeRepository.persist(route);
-    return RouteDetailDto.from(route, assetService);
+    return toDto(route);
   }
 
   @Override

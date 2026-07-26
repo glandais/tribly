@@ -14,7 +14,13 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query'
 
-import type { CommentDto, CommentListResponse, CommentRequest, ErrorResponse } from '../../dto'
+import type {
+  CommentDto,
+  CommentListResponse,
+  CommentRequest,
+  ErrorResponse,
+  ListTripCommentsParams,
+} from '../../dto'
 
 import { axiosMutator } from '../../../lib/axiosInstance.ts'
 import type { ErrorType, BodyType } from '../../../lib/axiosInstance.ts'
@@ -37,22 +43,31 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
 }
 
 /**
+ * Top-level comments with their replies. Passing neither page nor size returns the whole tree, as before this endpoint took parameters; passing either paginates the top-level comments. parentId switches to listing the replies of a single comment.
  * @summary List trip comments
  */
 export const listTripComments = (
   teamSlug: string,
   entitySlug: string,
+  params?: ListTripCommentsParams,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<CommentListResponse>(
-    { url: `/api/teams/${teamSlug}/trips/${entitySlug}/comments`, method: 'GET', signal },
+    { url: `/api/teams/${teamSlug}/trips/${entitySlug}/comments`, method: 'GET', params, signal },
     options
   )
 }
 
-export const getListTripCommentsQueryKey = (teamSlug: string, entitySlug: string) => {
-  return [`/api/teams/${teamSlug}/trips/${entitySlug}/comments`] as const
+export const getListTripCommentsQueryKey = (
+  teamSlug: string,
+  entitySlug: string,
+  params?: ListTripCommentsParams
+) => {
+  return [
+    `/api/teams/${teamSlug}/trips/${entitySlug}/comments`,
+    ...(params ? [params] : []),
+  ] as const
 }
 
 export const getListTripCommentsQueryOptions = <
@@ -61,6 +76,7 @@ export const getListTripCommentsQueryOptions = <
 >(
   teamSlug: string,
   entitySlug: string,
+  params?: ListTripCommentsParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listTripComments>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
@@ -68,10 +84,11 @@ export const getListTripCommentsQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getListTripCommentsQueryKey(teamSlug, entitySlug)
+  const queryKey =
+    queryOptions?.queryKey ?? getListTripCommentsQueryKey(teamSlug, entitySlug, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof listTripComments>>> = ({ signal }) =>
-    listTripComments(teamSlug, entitySlug, requestOptions, signal)
+    listTripComments(teamSlug, entitySlug, params, requestOptions, signal)
 
   return {
     queryKey,
@@ -96,6 +113,7 @@ export function useListTripComments<
 >(
   teamSlug: string,
   entitySlug: string,
+  params: undefined | ListTripCommentsParams,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof listTripComments>>, TError, TData>> &
       Pick<
@@ -116,6 +134,7 @@ export function useListTripComments<
 >(
   teamSlug: string,
   entitySlug: string,
+  params?: ListTripCommentsParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listTripComments>>, TError, TData>> &
       Pick<
@@ -136,6 +155,7 @@ export function useListTripComments<
 >(
   teamSlug: string,
   entitySlug: string,
+  params?: ListTripCommentsParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listTripComments>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
@@ -152,13 +172,14 @@ export function useListTripComments<
 >(
   teamSlug: string,
   entitySlug: string,
+  params?: ListTripCommentsParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listTripComments>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getListTripCommentsQueryOptions(teamSlug, entitySlug, options)
+  const queryOptions = getListTripCommentsQueryOptions(teamSlug, entitySlug, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>
@@ -177,12 +198,13 @@ export const prefetchListTripCommentsQuery = async <
   queryClient: QueryClient,
   teamSlug: string,
   entitySlug: string,
+  params?: ListTripCommentsParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listTripComments>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
   }
 ): Promise<QueryClient> => {
-  const queryOptions = getListTripCommentsQueryOptions(teamSlug, entitySlug, options)
+  const queryOptions = getListTripCommentsQueryOptions(teamSlug, entitySlug, params, options)
 
   await queryClient.prefetchQuery(queryOptions)
 

@@ -10,6 +10,7 @@ public class PedalonsQuery {
   private final AndClause clause = new AndClause();
   private final Map<String, @Nullable Object> params = new HashMap<>();
   private @Nullable String order = null;
+  private @Nullable String groupBy = null;
 
   public PedalonsQuery() {
     this("");
@@ -39,8 +40,36 @@ public class PedalonsQuery {
     return this;
   }
 
+  /**
+   * Drops any ordering already installed. An aggregate projection must not carry an {@code ORDER BY}
+   * on a column it does not select, and a repository hook (a sort filter, an ascending flag) has no
+   * way to know it is being asked for a count rather than for a page.
+   */
+  public PedalonsQuery noOrder() {
+    this.order = null;
+    return this;
+  }
+
+  /**
+   * Groups the result, for a projection that aggregates per key rather than counting the whole
+   * match — one row per team, say, instead of one query per team.
+   *
+   * <p>Only meaningful with a {@code QueryShape} whose projection selects the same key; the
+   * visibility clauses are untouched either way, which is the point of going through here rather
+   * than writing the aggregate by hand.
+   */
+  public PedalonsQuery groupBy(String groupBy) {
+    this.groupBy = groupBy;
+    return this;
+  }
+
   public String getStringQuery() {
-    return String.join(" ", baseQuery, clause.clause(), order != null ? " order by " + order : "");
+    return String.join(
+        " ",
+        baseQuery,
+        clause.clause(),
+        groupBy != null ? " group by " + groupBy : "",
+        order != null ? " order by " + order : "");
   }
 
   public Map<String, @Nullable Object> getParams() {

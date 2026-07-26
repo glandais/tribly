@@ -257,6 +257,78 @@ class _UsersClient implements UsersClient {
   }
 
   @override
+  Future<PublicationListResponse> listMyParticipations({
+    int? page = 0,
+    int? size = 20,
+    String? from,
+    Status? status,
+    String? to,
+    ListViewMode? view,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'page': page,
+      r'size': size,
+      r'from': from,
+      r'status': status?.toJson(),
+      r'to': to,
+      r'view': view?.toJson(),
+    };
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<PublicationListResponse>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/api/users/me/participations',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, Object?>>(_options);
+    late PublicationListResponse _value;
+    try {
+      _value = PublicationListResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<UserDto> updateMyPreferences({
+    required UserPreferencesRequest body,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(body.toJson());
+    final _options = _setStreamType<UserDto>(
+      Options(method: 'PATCH', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/api/users/me/preferences',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, Object?>>(_options);
+    late UserDto _value;
+    try {
+      _value = UserDto.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
   Future<List<PublicUserDto>> searchUsers({String? q, int? limit = 10}) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{r'q': q, r'limit': limit};

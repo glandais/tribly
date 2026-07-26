@@ -6,6 +6,7 @@ import fr.pedalons.dto.gps.response.GpsServiceConnectionDto;
 import fr.pedalons.dto.social.response.SocialIdentityDto;
 import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.enums.PlatformRole;
+import fr.pedalons.enums.ThemePreference;
 import fr.pedalons.enums.UnitSystem;
 import java.time.Instant;
 import java.util.List;
@@ -22,6 +23,18 @@ public record UserDto(
     @Nullable @Schema(description = "Account creation timestamp") Instant createdAt,
     @Nullable @Schema(description = "Preferred unit system (metric or imperial)")
         UnitSystem unitSystem,
+    @Nullable
+        @Schema(
+            description =
+                "Preferred colour scheme. Null means the user never chose one — distinct from"
+                    + " SYSTEM, which they did choose — so a client is free to follow the device.")
+        ThemePreference theme,
+    @Nullable
+        @Schema(
+            description =
+                "Preferred language as a BCP-47 tag. Null means the user never chose one; the"
+                    + " client then follows the device or the domain.")
+        String language,
     @Nullable @Schema(description = "Platform role (null if regular user)")
         PlatformRole platformRole,
     @Schema(description = "Whether the account's email has been verified", required = true)
@@ -55,6 +68,8 @@ public record UserDto(
         user.getAvatarUrl(),
         user.getCreatedAt(),
         user.getUnitSystem(),
+        user.getTheme(),
+        user.getLanguage(),
         user.getPlatformRole(),
         user.isEmailVerified(),
         !user.isEmailVerified(),

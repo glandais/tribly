@@ -6,6 +6,7 @@ import fr.pedalons.domain.comment.Comment;
 import fr.pedalons.domain.common.TeamEntity;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.user.User;
+import fr.pedalons.dto.comments.request.CommentListQuery;
 import fr.pedalons.dto.comments.request.CommentRequest;
 import fr.pedalons.dto.comments.response.CommentDto;
 import fr.pedalons.dto.comments.response.CommentListResponse;
@@ -53,33 +54,108 @@ public class CommentService {
     throw new NotFoundException(entityType, slug);
   }
 
+  /** The whole comment tree, as this endpoint has always answered. */
   @Transactional
   @CheckAccess(entityType = EntityType.COMMENT, action = ActionType.LIST)
   public CommentListResponse listComments(String teamSlug, String slug, EntityType entityType) {
+    return listComments(teamSlug, slug, entityType, CommentListQuery.ALL);
+  }
+
+  /**
+   * Lists the comments of one entity, in one of three modes.
+   *
+   * <ul>
+   *   <li><b>Unparameterized</b> ({@link CommentListQuery#ALL}): the whole tree in a single query,
+   *       byte for byte what the endpoint returned before it took parameters. The web client still
+   *       calls it that way, so this path must not change.
+   *   <li><b>Paginated roots</b>: a page of top-level comments with their replies attached. The
+   *       pagination is on the <em>roots</em> — paginating the flat comment list would cut threads in
+   *       half and give "page 2" no meaning. Four queries, whatever the page size.
+   *   <li><b>One thread</b> ({@code parentId}): a page of the replies of a single comment, for a
+   *       client that renders a collapsed thread and expands it on demand.
+   * </ul>
+   *
+   * <p>The {@code parentId} of the thread mode is matched against the resolved entity, so a comment
+   * id belonging to another entity — hence another team, hence possibly another domain — yields an
+   * empty page rather than someone else's thread.
+   */
+  @Transactional
+  @CheckAccess(entityType = EntityType.COMMENT, action = ActionType.LIST)
+  public CommentListResponse listComments(
+      String teamSlug, String slug, EntityType entityType, CommentListQuery query) {
     Team team = teamService.getTeam(teamSlug);
     TeamEntity teamEntity = getTeamEntity(team, slug, entityType);
-    List<Comment> allComments = commentRepository.findByTeamEntityId(teamEntity.getId());
+    Long teamEntityId = teamEntity.getId();
 
-    // Organize into parent comments and replies
+    if (!query.paginated()) {
+      return wholeTree(teamEntityId);
+    }
+    Long parentId = query.parentId();
+    if (parentId != null) {
+      return threadPage(teamEntityId, parentId, query);
+    }
+    return rootPage(teamEntityId, query);
+  }
+
+  /** One query, the tree built in memory — the shape every existing caller depends on. */
+  private CommentListResponse wholeTree(Long teamEntityId) {
+    List<Comment> allComments = commentRepository.findByTeamEntityId(teamEntityId);
+
+    Map<Long, List<Comment>> repliesByParentId = groupByParent(allComments);
+
+    List<Comment> roots = allComments.stream().filter(c -> c.getParent() == null).toList();
+    List<CommentDto> dtos = roots.stream().map(root -> toDto(root, repliesByParentId)).toList();
+
+    return new CommentListResponse(dtos, allComments.size(), roots.size(), 0, roots.size());
+  }
+
+  private CommentListResponse rootPage(Long teamEntityId, CommentListQuery query) {
+    List<Comment> roots =
+        commentRepository.pageRoots(teamEntityId, query.page(), query.size(), query.sort());
+    // Bounded by the page size, so the replies of a whole page cost one query — not one per root.
     Map<Long, List<Comment>> repliesByParentId =
-        allComments.stream()
-            .filter(c -> c.getParent() != null)
-            .collect(Collectors.groupingBy(c -> c.getParent().getId()));
+        groupByParent(
+            commentRepository.findRepliesByParentIds(
+                roots.stream().map(Comment::getId).toList(), query.sort()));
 
+    List<CommentDto> dtos = roots.stream().map(root -> toDto(root, repliesByParentId)).toList();
+
+    return new CommentListResponse(
+        dtos,
+        (int) commentRepository.countByTeamEntityId(teamEntityId),
+        (int) commentRepository.countRoots(teamEntityId),
+        query.page(),
+        query.size());
+  }
+
+  private CommentListResponse threadPage(Long teamEntityId, Long parentId, CommentListQuery query) {
     List<CommentDto> dtos =
-        allComments.stream()
-            .filter(c -> c.getParent() == null)
-            .map(
-                parent -> {
-                  List<CommentDto> replies =
-                      repliesByParentId.getOrDefault(parent.getId(), List.of()).stream()
-                          .map(reply -> CommentDto.from(reply, List.of()))
-                          .toList();
-                  return CommentDto.from(parent, replies);
-                })
+        commentRepository
+            .pageReplies(teamEntityId, parentId, query.page(), query.size(), query.sort())
+            .stream()
+            .map(reply -> CommentDto.from(reply, List.of()))
             .toList();
 
-    return new CommentListResponse(dtos, allComments.size());
+    return new CommentListResponse(
+        dtos,
+        (int) commentRepository.countByTeamEntityId(teamEntityId),
+        (int) commentRepository.countReplies(teamEntityId, parentId),
+        query.page(),
+        query.size());
+  }
+
+  private static Map<Long, List<Comment>> groupByParent(List<Comment> comments) {
+    return comments.stream()
+        .filter(c -> c.getParent() != null)
+        .collect(Collectors.groupingBy(c -> c.getParent().getId()));
+  }
+
+  private static CommentDto toDto(Comment root, Map<Long, List<Comment>> repliesByParentId) {
+    List<CommentDto> replies =
+        repliesByParentId.getOrDefault(root.getId(), List.of()).stream()
+            .map(reply -> CommentDto.from(reply, List.of()))
+            .toList();
+    return CommentDto.from(root, replies);
   }
 
   @Transactional

@@ -510,7 +510,19 @@ export const CreateTripResponse = zod
           .describe('Assets'),
       })
       .describe('Publication media'),
+    excerpt: zod
+      .string()
+      .optional()
+      .describe(
+        "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+      ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date\/time'),
+    endDate: zod.iso
+      .datetime({ offset: true })
+      .optional()
+      .describe(
+        'Date of the last stage — the day the trip ends. Null when the trip has no stage, in which case it lasts a day and dateTime is both ends.'
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
@@ -518,6 +530,18 @@ export const CreateTripResponse = zod
     routeSlug: zod.string().optional().describe('Route slug'),
     participantCount: zod.number().describe('Number of participants'),
     stageCount: zod.number().describe('Number of stages'),
+    totalDistance: zod
+      .number()
+      .optional()
+      .describe(
+        'Distance in metres over every stage that has a route. Null when no stage has one — an unrouted trip has no distance, which is not the same as a distance of zero.'
+      ),
+    totalElevationGain: zod
+      .number()
+      .optional()
+      .describe(
+        'Elevation gain in metres over every stage that has a route. Null when no stage has one.'
+      ),
     stages: zod
       .array(
         zod
@@ -688,6 +712,18 @@ export const CreateTripResponse = zod
                       .describe('Assets'),
                   })
                   .describe('Route description'),
+                excerpt: zod
+                  .string()
+                  .optional()
+                  .describe(
+                    "Plain-text opening of the description, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the description holds no text. Lets a list row render its two lines without the description being sent at all — see the 'view' parameter."
+                  ),
+                thumbnailUrl: zod
+                  .string()
+                  .optional()
+                  .describe(
+                    "URL template of the route's thumbnail, light variant if there is one, else dark. Saves a compact row from carrying media.assets just to find the map preview."
+                  ),
                 distance: zod.number().describe('Distance in meters'),
                 elevationGain: zod.number().describe('Total elevation gain in meters'),
                 elevationLoss: zod.number().describe('Total elevation loss in meters'),
@@ -697,6 +733,12 @@ export const CreateTripResponse = zod
                   .describe('Whether the route is public'),
                 createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
                 deleted: zod.boolean().describe('Whether the route is soft-deleted'),
+                commentCount: zod
+                  .number()
+                  .optional()
+                  .describe(
+                    'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
+                  ),
               })
               .optional()
               .describe('Route'),
@@ -888,6 +930,14 @@ export const CreateTripResponse = zod
               })
               .describe('Stage media'),
             sortOrder: zod.number().describe('Sort order'),
+            stageIndex: zod
+              .number()
+              .describe(
+                "Position of this stage among the trip's live stages, 1-based — the 'Day 2' of a stage header. Unlike sortOrder, which is a persisted rank that may have gaps, this is a rank a client can print."
+              ),
+            stageCount: zod
+              .number()
+              .describe("How many live stages the trip has — the '\/ 5' of 'Day 2 \/ 5'."),
           })
           .describe('Trip stage information')
       )
@@ -905,7 +955,22 @@ export const CreateTripResponse = zod
       .describe('Trip participants'),
     thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
     thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
+    thumbnailUrl: zod
+      .string()
+      .optional()
+      .describe(
+        'The one thumbnail to show when the client does not theme its cards: the light variant if there is one, else the dark one. Saves a compact row from carrying media.assets just to find a picture.'
+      ),
     deleted: zod.boolean().describe('Whether the trip is soft-deleted'),
+    registered: zod
+      .boolean()
+      .describe('Whether the current user is registered for this trip. False if anonymous.'),
+    commentCount: zod
+      .number()
+      .optional()
+      .describe(
+        'Number of comments, replies included. Absent when the caller may not read the comments of this trip — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
   })
   .describe('Trip data')
 
@@ -1420,7 +1485,19 @@ export const UpdateTripResponse = zod
           .describe('Assets'),
       })
       .describe('Publication media'),
+    excerpt: zod
+      .string()
+      .optional()
+      .describe(
+        "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+      ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date\/time'),
+    endDate: zod.iso
+      .datetime({ offset: true })
+      .optional()
+      .describe(
+        'Date of the last stage — the day the trip ends. Null when the trip has no stage, in which case it lasts a day and dateTime is both ends.'
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
@@ -1428,6 +1505,18 @@ export const UpdateTripResponse = zod
     routeSlug: zod.string().optional().describe('Route slug'),
     participantCount: zod.number().describe('Number of participants'),
     stageCount: zod.number().describe('Number of stages'),
+    totalDistance: zod
+      .number()
+      .optional()
+      .describe(
+        'Distance in metres over every stage that has a route. Null when no stage has one — an unrouted trip has no distance, which is not the same as a distance of zero.'
+      ),
+    totalElevationGain: zod
+      .number()
+      .optional()
+      .describe(
+        'Elevation gain in metres over every stage that has a route. Null when no stage has one.'
+      ),
     stages: zod
       .array(
         zod
@@ -1598,6 +1687,18 @@ export const UpdateTripResponse = zod
                       .describe('Assets'),
                   })
                   .describe('Route description'),
+                excerpt: zod
+                  .string()
+                  .optional()
+                  .describe(
+                    "Plain-text opening of the description, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the description holds no text. Lets a list row render its two lines without the description being sent at all — see the 'view' parameter."
+                  ),
+                thumbnailUrl: zod
+                  .string()
+                  .optional()
+                  .describe(
+                    "URL template of the route's thumbnail, light variant if there is one, else dark. Saves a compact row from carrying media.assets just to find the map preview."
+                  ),
                 distance: zod.number().describe('Distance in meters'),
                 elevationGain: zod.number().describe('Total elevation gain in meters'),
                 elevationLoss: zod.number().describe('Total elevation loss in meters'),
@@ -1607,6 +1708,12 @@ export const UpdateTripResponse = zod
                   .describe('Whether the route is public'),
                 createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
                 deleted: zod.boolean().describe('Whether the route is soft-deleted'),
+                commentCount: zod
+                  .number()
+                  .optional()
+                  .describe(
+                    'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
+                  ),
               })
               .optional()
               .describe('Route'),
@@ -1798,6 +1905,14 @@ export const UpdateTripResponse = zod
               })
               .describe('Stage media'),
             sortOrder: zod.number().describe('Sort order'),
+            stageIndex: zod
+              .number()
+              .describe(
+                "Position of this stage among the trip's live stages, 1-based — the 'Day 2' of a stage header. Unlike sortOrder, which is a persisted rank that may have gaps, this is a rank a client can print."
+              ),
+            stageCount: zod
+              .number()
+              .describe("How many live stages the trip has — the '\/ 5' of 'Day 2 \/ 5'."),
           })
           .describe('Trip stage information')
       )
@@ -1815,7 +1930,22 @@ export const UpdateTripResponse = zod
       .describe('Trip participants'),
     thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
     thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
+    thumbnailUrl: zod
+      .string()
+      .optional()
+      .describe(
+        'The one thumbnail to show when the client does not theme its cards: the light variant if there is one, else the dark one. Saves a compact row from carrying media.assets just to find a picture.'
+      ),
     deleted: zod.boolean().describe('Whether the trip is soft-deleted'),
+    registered: zod
+      .boolean()
+      .describe('Whether the current user is registered for this trip. False if anonymous.'),
+    commentCount: zod
+      .number()
+      .optional()
+      .describe(
+        'Number of comments, replies included. Absent when the caller may not read the comments of this trip — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
   })
   .describe('Trip data')
 
@@ -1991,7 +2121,19 @@ export const GetTripResponse = zod
           .describe('Assets'),
       })
       .describe('Publication media'),
+    excerpt: zod
+      .string()
+      .optional()
+      .describe(
+        "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+      ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date\/time'),
+    endDate: zod.iso
+      .datetime({ offset: true })
+      .optional()
+      .describe(
+        'Date of the last stage — the day the trip ends. Null when the trip has no stage, in which case it lasts a day and dateTime is both ends.'
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
@@ -1999,6 +2141,18 @@ export const GetTripResponse = zod
     routeSlug: zod.string().optional().describe('Route slug'),
     participantCount: zod.number().describe('Number of participants'),
     stageCount: zod.number().describe('Number of stages'),
+    totalDistance: zod
+      .number()
+      .optional()
+      .describe(
+        'Distance in metres over every stage that has a route. Null when no stage has one — an unrouted trip has no distance, which is not the same as a distance of zero.'
+      ),
+    totalElevationGain: zod
+      .number()
+      .optional()
+      .describe(
+        'Elevation gain in metres over every stage that has a route. Null when no stage has one.'
+      ),
     stages: zod
       .array(
         zod
@@ -2169,6 +2323,18 @@ export const GetTripResponse = zod
                       .describe('Assets'),
                   })
                   .describe('Route description'),
+                excerpt: zod
+                  .string()
+                  .optional()
+                  .describe(
+                    "Plain-text opening of the description, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the description holds no text. Lets a list row render its two lines without the description being sent at all — see the 'view' parameter."
+                  ),
+                thumbnailUrl: zod
+                  .string()
+                  .optional()
+                  .describe(
+                    "URL template of the route's thumbnail, light variant if there is one, else dark. Saves a compact row from carrying media.assets just to find the map preview."
+                  ),
                 distance: zod.number().describe('Distance in meters'),
                 elevationGain: zod.number().describe('Total elevation gain in meters'),
                 elevationLoss: zod.number().describe('Total elevation loss in meters'),
@@ -2178,6 +2344,12 @@ export const GetTripResponse = zod
                   .describe('Whether the route is public'),
                 createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
                 deleted: zod.boolean().describe('Whether the route is soft-deleted'),
+                commentCount: zod
+                  .number()
+                  .optional()
+                  .describe(
+                    'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
+                  ),
               })
               .optional()
               .describe('Route'),
@@ -2369,6 +2541,14 @@ export const GetTripResponse = zod
               })
               .describe('Stage media'),
             sortOrder: zod.number().describe('Sort order'),
+            stageIndex: zod
+              .number()
+              .describe(
+                "Position of this stage among the trip's live stages, 1-based — the 'Day 2' of a stage header. Unlike sortOrder, which is a persisted rank that may have gaps, this is a rank a client can print."
+              ),
+            stageCount: zod
+              .number()
+              .describe("How many live stages the trip has — the '\/ 5' of 'Day 2 \/ 5'."),
           })
           .describe('Trip stage information')
       )
@@ -2386,7 +2566,22 @@ export const GetTripResponse = zod
       .describe('Trip participants'),
     thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
     thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
+    thumbnailUrl: zod
+      .string()
+      .optional()
+      .describe(
+        'The one thumbnail to show when the client does not theme its cards: the light variant if there is one, else the dark one. Saves a compact row from carrying media.assets just to find a picture.'
+      ),
     deleted: zod.boolean().describe('Whether the trip is soft-deleted'),
+    registered: zod
+      .boolean()
+      .describe('Whether the current user is registered for this trip. False if anonymous.'),
+    commentCount: zod
+      .number()
+      .optional()
+      .describe(
+        'Number of comments, replies included. Absent when the caller may not read the comments of this trip — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
   })
   .describe('Trip data')
 
@@ -2615,7 +2810,19 @@ export const ChangeTripSlugResponse = zod
           .describe('Assets'),
       })
       .describe('Publication media'),
+    excerpt: zod
+      .string()
+      .optional()
+      .describe(
+        "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+      ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date\/time'),
+    endDate: zod.iso
+      .datetime({ offset: true })
+      .optional()
+      .describe(
+        'Date of the last stage — the day the trip ends. Null when the trip has no stage, in which case it lasts a day and dateTime is both ends.'
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
@@ -2623,6 +2830,18 @@ export const ChangeTripSlugResponse = zod
     routeSlug: zod.string().optional().describe('Route slug'),
     participantCount: zod.number().describe('Number of participants'),
     stageCount: zod.number().describe('Number of stages'),
+    totalDistance: zod
+      .number()
+      .optional()
+      .describe(
+        'Distance in metres over every stage that has a route. Null when no stage has one — an unrouted trip has no distance, which is not the same as a distance of zero.'
+      ),
+    totalElevationGain: zod
+      .number()
+      .optional()
+      .describe(
+        'Elevation gain in metres over every stage that has a route. Null when no stage has one.'
+      ),
     stages: zod
       .array(
         zod
@@ -2793,6 +3012,18 @@ export const ChangeTripSlugResponse = zod
                       .describe('Assets'),
                   })
                   .describe('Route description'),
+                excerpt: zod
+                  .string()
+                  .optional()
+                  .describe(
+                    "Plain-text opening of the description, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the description holds no text. Lets a list row render its two lines without the description being sent at all — see the 'view' parameter."
+                  ),
+                thumbnailUrl: zod
+                  .string()
+                  .optional()
+                  .describe(
+                    "URL template of the route's thumbnail, light variant if there is one, else dark. Saves a compact row from carrying media.assets just to find the map preview."
+                  ),
                 distance: zod.number().describe('Distance in meters'),
                 elevationGain: zod.number().describe('Total elevation gain in meters'),
                 elevationLoss: zod.number().describe('Total elevation loss in meters'),
@@ -2802,6 +3033,12 @@ export const ChangeTripSlugResponse = zod
                   .describe('Whether the route is public'),
                 createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
                 deleted: zod.boolean().describe('Whether the route is soft-deleted'),
+                commentCount: zod
+                  .number()
+                  .optional()
+                  .describe(
+                    'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
+                  ),
               })
               .optional()
               .describe('Route'),
@@ -2993,6 +3230,14 @@ export const ChangeTripSlugResponse = zod
               })
               .describe('Stage media'),
             sortOrder: zod.number().describe('Sort order'),
+            stageIndex: zod
+              .number()
+              .describe(
+                "Position of this stage among the trip's live stages, 1-based — the 'Day 2' of a stage header. Unlike sortOrder, which is a persisted rank that may have gaps, this is a rank a client can print."
+              ),
+            stageCount: zod
+              .number()
+              .describe("How many live stages the trip has — the '\/ 5' of 'Day 2 \/ 5'."),
           })
           .describe('Trip stage information')
       )
@@ -3010,7 +3255,22 @@ export const ChangeTripSlugResponse = zod
       .describe('Trip participants'),
     thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
     thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
+    thumbnailUrl: zod
+      .string()
+      .optional()
+      .describe(
+        'The one thumbnail to show when the client does not theme its cards: the light variant if there is one, else the dark one. Saves a compact row from carrying media.assets just to find a picture.'
+      ),
     deleted: zod.boolean().describe('Whether the trip is soft-deleted'),
+    registered: zod
+      .boolean()
+      .describe('Whether the current user is registered for this trip. False if anonymous.'),
+    commentCount: zod
+      .number()
+      .optional()
+      .describe(
+        'Number of comments, replies included. Absent when the caller may not read the comments of this trip — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
   })
   .describe('Trip data')
 
@@ -3186,7 +3446,19 @@ export const UndeleteTripResponse = zod
           .describe('Assets'),
       })
       .describe('Publication media'),
+    excerpt: zod
+      .string()
+      .optional()
+      .describe(
+        "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+      ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date\/time'),
+    endDate: zod.iso
+      .datetime({ offset: true })
+      .optional()
+      .describe(
+        'Date of the last stage — the day the trip ends. Null when the trip has no stage, in which case it lasts a day and dateTime is both ends.'
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
@@ -3194,6 +3466,18 @@ export const UndeleteTripResponse = zod
     routeSlug: zod.string().optional().describe('Route slug'),
     participantCount: zod.number().describe('Number of participants'),
     stageCount: zod.number().describe('Number of stages'),
+    totalDistance: zod
+      .number()
+      .optional()
+      .describe(
+        'Distance in metres over every stage that has a route. Null when no stage has one — an unrouted trip has no distance, which is not the same as a distance of zero.'
+      ),
+    totalElevationGain: zod
+      .number()
+      .optional()
+      .describe(
+        'Elevation gain in metres over every stage that has a route. Null when no stage has one.'
+      ),
     stages: zod
       .array(
         zod
@@ -3364,6 +3648,18 @@ export const UndeleteTripResponse = zod
                       .describe('Assets'),
                   })
                   .describe('Route description'),
+                excerpt: zod
+                  .string()
+                  .optional()
+                  .describe(
+                    "Plain-text opening of the description, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the description holds no text. Lets a list row render its two lines without the description being sent at all — see the 'view' parameter."
+                  ),
+                thumbnailUrl: zod
+                  .string()
+                  .optional()
+                  .describe(
+                    "URL template of the route's thumbnail, light variant if there is one, else dark. Saves a compact row from carrying media.assets just to find the map preview."
+                  ),
                 distance: zod.number().describe('Distance in meters'),
                 elevationGain: zod.number().describe('Total elevation gain in meters'),
                 elevationLoss: zod.number().describe('Total elevation loss in meters'),
@@ -3373,6 +3669,12 @@ export const UndeleteTripResponse = zod
                   .describe('Whether the route is public'),
                 createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
                 deleted: zod.boolean().describe('Whether the route is soft-deleted'),
+                commentCount: zod
+                  .number()
+                  .optional()
+                  .describe(
+                    'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
+                  ),
               })
               .optional()
               .describe('Route'),
@@ -3564,6 +3866,14 @@ export const UndeleteTripResponse = zod
               })
               .describe('Stage media'),
             sortOrder: zod.number().describe('Sort order'),
+            stageIndex: zod
+              .number()
+              .describe(
+                "Position of this stage among the trip's live stages, 1-based — the 'Day 2' of a stage header. Unlike sortOrder, which is a persisted rank that may have gaps, this is a rank a client can print."
+              ),
+            stageCount: zod
+              .number()
+              .describe("How many live stages the trip has — the '\/ 5' of 'Day 2 \/ 5'."),
           })
           .describe('Trip stage information')
       )
@@ -3581,6 +3891,21 @@ export const UndeleteTripResponse = zod
       .describe('Trip participants'),
     thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
     thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
+    thumbnailUrl: zod
+      .string()
+      .optional()
+      .describe(
+        'The one thumbnail to show when the client does not theme its cards: the light variant if there is one, else the dark one. Saves a compact row from carrying media.assets just to find a picture.'
+      ),
     deleted: zod.boolean().describe('Whether the trip is soft-deleted'),
+    registered: zod
+      .boolean()
+      .describe('Whether the current user is registered for this trip. False if anonymous.'),
+    commentCount: zod
+      .number()
+      .optional()
+      .describe(
+        'Number of comments, replies included. Absent when the caller may not read the comments of this trip — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
   })
   .describe('Trip data')

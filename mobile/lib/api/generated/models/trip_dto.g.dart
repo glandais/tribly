@@ -25,11 +25,18 @@ _TripDto _$TripDtoFromJson(Map<String, dynamic> json) => _TripDto(
       .map((e) => PublicUserDto.fromJson(e as Map<String, dynamic>))
       .toList(),
   deleted: json['deleted'] as bool,
+  registered: json['registered'] as bool,
+  excerpt: json['excerpt'] as String?,
+  endDate: json['endDate'] as String?,
   publishAt: json['publishAt'] as String?,
   createdAt: json['createdAt'] as String?,
   routeSlug: json['routeSlug'] as String?,
+  totalDistance: (json['totalDistance'] as num?)?.toDouble(),
+  totalElevationGain: (json['totalElevationGain'] as num?)?.toDouble(),
   thumbnailLightUrl: json['thumbnailLightUrl'] as String?,
   thumbnailDarkUrl: json['thumbnailDarkUrl'] as String?,
+  thumbnailUrl: json['thumbnailUrl'] as String?,
+  commentCount: (json['commentCount'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$TripDtoToJson(_TripDto instance) => <String, dynamic>{
@@ -47,9 +54,16 @@ Map<String, dynamic> _$TripDtoToJson(_TripDto instance) => <String, dynamic>{
   'stages': instance.stages.map((e) => e.toJson()).toList(),
   'participants': instance.participants.map((e) => e.toJson()).toList(),
   'deleted': instance.deleted,
+  'registered': instance.registered,
+  'excerpt': instance.excerpt,
+  'endDate': instance.endDate,
   'publishAt': instance.publishAt,
   'createdAt': instance.createdAt,
   'routeSlug': instance.routeSlug,
+  'totalDistance': instance.totalDistance,
+  'totalElevationGain': instance.totalElevationGain,
   'thumbnailLightUrl': instance.thumbnailLightUrl,
   'thumbnailDarkUrl': instance.thumbnailDarkUrl,
+  'thumbnailUrl': instance.thumbnailUrl,
+  'commentCount': instance.commentCount,
 };

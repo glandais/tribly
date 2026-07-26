@@ -25,6 +25,8 @@ import fr.pedalons.repository.place.PlaceRepository;
 import fr.pedalons.repository.trip.TripParticipationRepository;
 import fr.pedalons.repository.trip.TripRepository;
 import fr.pedalons.repository.trip.TripStageRepository;
+import fr.pedalons.service.comment.CommentCountLookup;
+import fr.pedalons.service.common.ParticipationLookup;
 import fr.pedalons.service.common.TeamEntityService;
 import fr.pedalons.service.route.RouteService;
 import fr.pedalons.service.security.annotation.CheckAccess;
@@ -53,6 +55,10 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
 
   @Inject ThumbnailService thumbnailService;
 
+  @Inject ParticipationLookup participationLookup;
+
+  @Inject CommentCountLookup commentCountLookup;
+
   @Override
   protected TripRepository getRepository() {
     return tripRepository;
@@ -60,7 +66,13 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
 
   @Override
   protected TripDto toDto(Trip entity) {
-    return TripDto.from(entity, true, assetService);
+    // One indexed lookup resolves the "registered" flag; anonymous callers cost nothing.
+    return TripDto.from(
+        entity,
+        true,
+        assetService,
+        participationLookup.forTrip(entity.getId()),
+        commentCountLookup.forEntity(entity));
   }
 
   @Override
@@ -110,7 +122,7 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
 
     thumbnailService.generateTripThumbnails(trip);
 
-    return TripDto.from(trip, true, assetService);
+    return toDto(trip);
   }
 
   private void createTripStage(
@@ -237,7 +249,7 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
 
     thumbnailService.generateTripThumbnails(trip);
 
-    return TripDto.from(trip, true, assetService);
+    return toDto(trip);
   }
 
   @Transactional
@@ -264,7 +276,7 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
     Trip trip = findBySlugIncludeDeleted(team, tripSlug);
     trip.setDeleted(false);
     tripRepository.persist(trip);
-    return TripDto.from(trip, true, assetService);
+    return toDto(trip);
   }
 
   @Transactional

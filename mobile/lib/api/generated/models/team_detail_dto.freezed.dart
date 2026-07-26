@@ -29,8 +29,12 @@ mixin _$TeamDetailDto {
  bool get visibilityEditable;/// Whether any domain user can join this team
  bool get joinable;/// Whether team admins can add members
  bool get addMemberAllowed;/// Number of team members
- int get memberCount;/// Team creation timestamp
- String get createdAt;/// Additional team pages
+ int get memberCount;/// Rides of this team dated in the future that the caller may open. Follows the same visibility rules as the ride listing, so it never announces more than the caller can actually see.
+ int get upcomingRideCount;/// Routes of this team the caller may open, under the same visibility rules as the route listing.
+ int get routeCount;/// Team creation timestamp
+ String get createdAt;/// Plain-text opening of the about page, flattened and cut on a word boundary at about 200 characters. Null when the about page holds no text. Lets a team card render its two lines without parsing the markdown client-side.
+ String? get excerpt;/// URL template of the team's logo, when it has one. Same picture as about.assets.logo, hoisted so a card does not have to walk the asset inventory to find it.
+ String? get logoUrl;/// Additional team pages
  List<TeamPageSummaryDto>? get pages;/// Current user's role (null if not a member)
  String? get role;/// Team location coordinates [longitude, latitude]
  TeamDetailDtoGeometry? get geometry;
@@ -46,16 +50,16 @@ $TeamDetailDtoCopyWith<TeamDetailDto> get copyWith => _$TeamDetailDtoCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeamDetailDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.about, about) || other.about == about)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.enableTrips, enableTrips) || other.enableTrips == enableTrips)&&(identical(other.enableAds, enableAds) || other.enableAds == enableAds)&&(identical(other.enablePosts, enablePosts) || other.enablePosts == enablePosts)&&(identical(other.enableRides, enableRides) || other.enableRides == enableRides)&&(identical(other.enableRoutes, enableRoutes) || other.enableRoutes == enableRoutes)&&(identical(other.visibilityEditable, visibilityEditable) || other.visibilityEditable == visibilityEditable)&&(identical(other.joinable, joinable) || other.joinable == joinable)&&(identical(other.addMemberAllowed, addMemberAllowed) || other.addMemberAllowed == addMemberAllowed)&&(identical(other.memberCount, memberCount) || other.memberCount == memberCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other.pages, pages)&&(identical(other.role, role) || other.role == role)&&(identical(other.geometry, geometry) || other.geometry == geometry));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeamDetailDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.about, about) || other.about == about)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.enableTrips, enableTrips) || other.enableTrips == enableTrips)&&(identical(other.enableAds, enableAds) || other.enableAds == enableAds)&&(identical(other.enablePosts, enablePosts) || other.enablePosts == enablePosts)&&(identical(other.enableRides, enableRides) || other.enableRides == enableRides)&&(identical(other.enableRoutes, enableRoutes) || other.enableRoutes == enableRoutes)&&(identical(other.visibilityEditable, visibilityEditable) || other.visibilityEditable == visibilityEditable)&&(identical(other.joinable, joinable) || other.joinable == joinable)&&(identical(other.addMemberAllowed, addMemberAllowed) || other.addMemberAllowed == addMemberAllowed)&&(identical(other.memberCount, memberCount) || other.memberCount == memberCount)&&(identical(other.upcomingRideCount, upcomingRideCount) || other.upcomingRideCount == upcomingRideCount)&&(identical(other.routeCount, routeCount) || other.routeCount == routeCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.excerpt, excerpt) || other.excerpt == excerpt)&&(identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl)&&const DeepCollectionEquality().equals(other.pages, pages)&&(identical(other.role, role) || other.role == role)&&(identical(other.geometry, geometry) || other.geometry == geometry));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,slug,about,visibility,enableTrips,enableAds,enablePosts,enableRides,enableRoutes,visibilityEditable,joinable,addMemberAllowed,memberCount,createdAt,const DeepCollectionEquality().hash(pages),role,geometry);
+int get hashCode => Object.hashAll([runtimeType,id,name,slug,about,visibility,enableTrips,enableAds,enablePosts,enableRides,enableRoutes,visibilityEditable,joinable,addMemberAllowed,memberCount,upcomingRideCount,routeCount,createdAt,excerpt,logoUrl,const DeepCollectionEquality().hash(pages),role,geometry]);
 
 @override
 String toString() {
-  return 'TeamDetailDto(id: $id, name: $name, slug: $slug, about: $about, visibility: $visibility, enableTrips: $enableTrips, enableAds: $enableAds, enablePosts: $enablePosts, enableRides: $enableRides, enableRoutes: $enableRoutes, visibilityEditable: $visibilityEditable, joinable: $joinable, addMemberAllowed: $addMemberAllowed, memberCount: $memberCount, createdAt: $createdAt, pages: $pages, role: $role, geometry: $geometry)';
+  return 'TeamDetailDto(id: $id, name: $name, slug: $slug, about: $about, visibility: $visibility, enableTrips: $enableTrips, enableAds: $enableAds, enablePosts: $enablePosts, enableRides: $enableRides, enableRoutes: $enableRoutes, visibilityEditable: $visibilityEditable, joinable: $joinable, addMemberAllowed: $addMemberAllowed, memberCount: $memberCount, upcomingRideCount: $upcomingRideCount, routeCount: $routeCount, createdAt: $createdAt, excerpt: $excerpt, logoUrl: $logoUrl, pages: $pages, role: $role, geometry: $geometry)';
 }
 
 
@@ -66,7 +70,7 @@ abstract mixin class $TeamDetailDtoCopyWith<$Res>  {
   factory $TeamDetailDtoCopyWith(TeamDetailDto value, $Res Function(TeamDetailDto) _then) = _$TeamDetailDtoCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String slug, MediaDto about, String visibility, bool enableTrips, bool enableAds, bool enablePosts, bool enableRides, bool enableRoutes, bool visibilityEditable, bool joinable, bool addMemberAllowed, int memberCount, String createdAt, List<TeamPageSummaryDto>? pages, String? role, TeamDetailDtoGeometry? geometry
+ String id, String name, String slug, MediaDto about, String visibility, bool enableTrips, bool enableAds, bool enablePosts, bool enableRides, bool enableRoutes, bool visibilityEditable, bool joinable, bool addMemberAllowed, int memberCount, int upcomingRideCount, int routeCount, String createdAt, String? excerpt, String? logoUrl, List<TeamPageSummaryDto>? pages, String? role, TeamDetailDtoGeometry? geometry
 });
 
 
@@ -83,7 +87,7 @@ class _$TeamDetailDtoCopyWithImpl<$Res>
 
 /// Create a copy of TeamDetailDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? slug = null,Object? about = null,Object? visibility = null,Object? enableTrips = null,Object? enableAds = null,Object? enablePosts = null,Object? enableRides = null,Object? enableRoutes = null,Object? visibilityEditable = null,Object? joinable = null,Object? addMemberAllowed = null,Object? memberCount = null,Object? createdAt = null,Object? pages = freezed,Object? role = freezed,Object? geometry = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? slug = null,Object? about = null,Object? visibility = null,Object? enableTrips = null,Object? enableAds = null,Object? enablePosts = null,Object? enableRides = null,Object? enableRoutes = null,Object? visibilityEditable = null,Object? joinable = null,Object? addMemberAllowed = null,Object? memberCount = null,Object? upcomingRideCount = null,Object? routeCount = null,Object? createdAt = null,Object? excerpt = freezed,Object? logoUrl = freezed,Object? pages = freezed,Object? role = freezed,Object? geometry = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -99,8 +103,12 @@ as bool,visibilityEditable: null == visibilityEditable ? _self.visibilityEditabl
 as bool,joinable: null == joinable ? _self.joinable : joinable // ignore: cast_nullable_to_non_nullable
 as bool,addMemberAllowed: null == addMemberAllowed ? _self.addMemberAllowed : addMemberAllowed // ignore: cast_nullable_to_non_nullable
 as bool,memberCount: null == memberCount ? _self.memberCount : memberCount // ignore: cast_nullable_to_non_nullable
+as int,upcomingRideCount: null == upcomingRideCount ? _self.upcomingRideCount : upcomingRideCount // ignore: cast_nullable_to_non_nullable
+as int,routeCount: null == routeCount ? _self.routeCount : routeCount // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as String,pages: freezed == pages ? _self.pages : pages // ignore: cast_nullable_to_non_nullable
+as String,excerpt: freezed == excerpt ? _self.excerpt : excerpt // ignore: cast_nullable_to_non_nullable
+as String?,logoUrl: freezed == logoUrl ? _self.logoUrl : logoUrl // ignore: cast_nullable_to_non_nullable
+as String?,pages: freezed == pages ? _self.pages : pages // ignore: cast_nullable_to_non_nullable
 as List<TeamPageSummaryDto>?,role: freezed == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
 as String?,geometry: freezed == geometry ? _self.geometry : geometry // ignore: cast_nullable_to_non_nullable
 as TeamDetailDtoGeometry?,
@@ -209,10 +217,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String slug,  MediaDto about,  String visibility,  bool enableTrips,  bool enableAds,  bool enablePosts,  bool enableRides,  bool enableRoutes,  bool visibilityEditable,  bool joinable,  bool addMemberAllowed,  int memberCount,  String createdAt,  List<TeamPageSummaryDto>? pages,  String? role,  TeamDetailDtoGeometry? geometry)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String slug,  MediaDto about,  String visibility,  bool enableTrips,  bool enableAds,  bool enablePosts,  bool enableRides,  bool enableRoutes,  bool visibilityEditable,  bool joinable,  bool addMemberAllowed,  int memberCount,  int upcomingRideCount,  int routeCount,  String createdAt,  String? excerpt,  String? logoUrl,  List<TeamPageSummaryDto>? pages,  String? role,  TeamDetailDtoGeometry? geometry)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TeamDetailDto() when $default != null:
-return $default(_that.id,_that.name,_that.slug,_that.about,_that.visibility,_that.enableTrips,_that.enableAds,_that.enablePosts,_that.enableRides,_that.enableRoutes,_that.visibilityEditable,_that.joinable,_that.addMemberAllowed,_that.memberCount,_that.createdAt,_that.pages,_that.role,_that.geometry);case _:
+return $default(_that.id,_that.name,_that.slug,_that.about,_that.visibility,_that.enableTrips,_that.enableAds,_that.enablePosts,_that.enableRides,_that.enableRoutes,_that.visibilityEditable,_that.joinable,_that.addMemberAllowed,_that.memberCount,_that.upcomingRideCount,_that.routeCount,_that.createdAt,_that.excerpt,_that.logoUrl,_that.pages,_that.role,_that.geometry);case _:
   return orElse();
 
 }
@@ -230,10 +238,10 @@ return $default(_that.id,_that.name,_that.slug,_that.about,_that.visibility,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String slug,  MediaDto about,  String visibility,  bool enableTrips,  bool enableAds,  bool enablePosts,  bool enableRides,  bool enableRoutes,  bool visibilityEditable,  bool joinable,  bool addMemberAllowed,  int memberCount,  String createdAt,  List<TeamPageSummaryDto>? pages,  String? role,  TeamDetailDtoGeometry? geometry)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String slug,  MediaDto about,  String visibility,  bool enableTrips,  bool enableAds,  bool enablePosts,  bool enableRides,  bool enableRoutes,  bool visibilityEditable,  bool joinable,  bool addMemberAllowed,  int memberCount,  int upcomingRideCount,  int routeCount,  String createdAt,  String? excerpt,  String? logoUrl,  List<TeamPageSummaryDto>? pages,  String? role,  TeamDetailDtoGeometry? geometry)  $default,) {final _that = this;
 switch (_that) {
 case _TeamDetailDto():
-return $default(_that.id,_that.name,_that.slug,_that.about,_that.visibility,_that.enableTrips,_that.enableAds,_that.enablePosts,_that.enableRides,_that.enableRoutes,_that.visibilityEditable,_that.joinable,_that.addMemberAllowed,_that.memberCount,_that.createdAt,_that.pages,_that.role,_that.geometry);case _:
+return $default(_that.id,_that.name,_that.slug,_that.about,_that.visibility,_that.enableTrips,_that.enableAds,_that.enablePosts,_that.enableRides,_that.enableRoutes,_that.visibilityEditable,_that.joinable,_that.addMemberAllowed,_that.memberCount,_that.upcomingRideCount,_that.routeCount,_that.createdAt,_that.excerpt,_that.logoUrl,_that.pages,_that.role,_that.geometry);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -250,10 +258,10 @@ return $default(_that.id,_that.name,_that.slug,_that.about,_that.visibility,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String slug,  MediaDto about,  String visibility,  bool enableTrips,  bool enableAds,  bool enablePosts,  bool enableRides,  bool enableRoutes,  bool visibilityEditable,  bool joinable,  bool addMemberAllowed,  int memberCount,  String createdAt,  List<TeamPageSummaryDto>? pages,  String? role,  TeamDetailDtoGeometry? geometry)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String slug,  MediaDto about,  String visibility,  bool enableTrips,  bool enableAds,  bool enablePosts,  bool enableRides,  bool enableRoutes,  bool visibilityEditable,  bool joinable,  bool addMemberAllowed,  int memberCount,  int upcomingRideCount,  int routeCount,  String createdAt,  String? excerpt,  String? logoUrl,  List<TeamPageSummaryDto>? pages,  String? role,  TeamDetailDtoGeometry? geometry)?  $default,) {final _that = this;
 switch (_that) {
 case _TeamDetailDto() when $default != null:
-return $default(_that.id,_that.name,_that.slug,_that.about,_that.visibility,_that.enableTrips,_that.enableAds,_that.enablePosts,_that.enableRides,_that.enableRoutes,_that.visibilityEditable,_that.joinable,_that.addMemberAllowed,_that.memberCount,_that.createdAt,_that.pages,_that.role,_that.geometry);case _:
+return $default(_that.id,_that.name,_that.slug,_that.about,_that.visibility,_that.enableTrips,_that.enableAds,_that.enablePosts,_that.enableRides,_that.enableRoutes,_that.visibilityEditable,_that.joinable,_that.addMemberAllowed,_that.memberCount,_that.upcomingRideCount,_that.routeCount,_that.createdAt,_that.excerpt,_that.logoUrl,_that.pages,_that.role,_that.geometry);case _:
   return null;
 
 }
@@ -265,7 +273,7 @@ return $default(_that.id,_that.name,_that.slug,_that.about,_that.visibility,_tha
 @JsonSerializable()
 
 class _TeamDetailDto implements TeamDetailDto {
-  const _TeamDetailDto({required this.id, required this.name, required this.slug, required this.about, required this.visibility, required this.enableTrips, required this.enableAds, required this.enablePosts, required this.enableRides, required this.enableRoutes, required this.visibilityEditable, required this.joinable, required this.addMemberAllowed, required this.memberCount, required this.createdAt, final  List<TeamPageSummaryDto>? pages, this.role, this.geometry}): _pages = pages;
+  const _TeamDetailDto({required this.id, required this.name, required this.slug, required this.about, required this.visibility, required this.enableTrips, required this.enableAds, required this.enablePosts, required this.enableRides, required this.enableRoutes, required this.visibilityEditable, required this.joinable, required this.addMemberAllowed, required this.memberCount, required this.upcomingRideCount, required this.routeCount, required this.createdAt, this.excerpt, this.logoUrl, final  List<TeamPageSummaryDto>? pages, this.role, this.geometry}): _pages = pages;
   factory _TeamDetailDto.fromJson(Map<String, dynamic> json) => _$TeamDetailDtoFromJson(json);
 
 /// Team ID (TSID)
@@ -296,8 +304,16 @@ class _TeamDetailDto implements TeamDetailDto {
 @override final  bool addMemberAllowed;
 /// Number of team members
 @override final  int memberCount;
+/// Rides of this team dated in the future that the caller may open. Follows the same visibility rules as the ride listing, so it never announces more than the caller can actually see.
+@override final  int upcomingRideCount;
+/// Routes of this team the caller may open, under the same visibility rules as the route listing.
+@override final  int routeCount;
 /// Team creation timestamp
 @override final  String createdAt;
+/// Plain-text opening of the about page, flattened and cut on a word boundary at about 200 characters. Null when the about page holds no text. Lets a team card render its two lines without parsing the markdown client-side.
+@override final  String? excerpt;
+/// URL template of the team's logo, when it has one. Same picture as about.assets.logo, hoisted so a card does not have to walk the asset inventory to find it.
+@override final  String? logoUrl;
 /// Additional team pages
  final  List<TeamPageSummaryDto>? _pages;
 /// Additional team pages
@@ -327,16 +343,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeamDetailDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.about, about) || other.about == about)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.enableTrips, enableTrips) || other.enableTrips == enableTrips)&&(identical(other.enableAds, enableAds) || other.enableAds == enableAds)&&(identical(other.enablePosts, enablePosts) || other.enablePosts == enablePosts)&&(identical(other.enableRides, enableRides) || other.enableRides == enableRides)&&(identical(other.enableRoutes, enableRoutes) || other.enableRoutes == enableRoutes)&&(identical(other.visibilityEditable, visibilityEditable) || other.visibilityEditable == visibilityEditable)&&(identical(other.joinable, joinable) || other.joinable == joinable)&&(identical(other.addMemberAllowed, addMemberAllowed) || other.addMemberAllowed == addMemberAllowed)&&(identical(other.memberCount, memberCount) || other.memberCount == memberCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other._pages, _pages)&&(identical(other.role, role) || other.role == role)&&(identical(other.geometry, geometry) || other.geometry == geometry));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeamDetailDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.about, about) || other.about == about)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.enableTrips, enableTrips) || other.enableTrips == enableTrips)&&(identical(other.enableAds, enableAds) || other.enableAds == enableAds)&&(identical(other.enablePosts, enablePosts) || other.enablePosts == enablePosts)&&(identical(other.enableRides, enableRides) || other.enableRides == enableRides)&&(identical(other.enableRoutes, enableRoutes) || other.enableRoutes == enableRoutes)&&(identical(other.visibilityEditable, visibilityEditable) || other.visibilityEditable == visibilityEditable)&&(identical(other.joinable, joinable) || other.joinable == joinable)&&(identical(other.addMemberAllowed, addMemberAllowed) || other.addMemberAllowed == addMemberAllowed)&&(identical(other.memberCount, memberCount) || other.memberCount == memberCount)&&(identical(other.upcomingRideCount, upcomingRideCount) || other.upcomingRideCount == upcomingRideCount)&&(identical(other.routeCount, routeCount) || other.routeCount == routeCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.excerpt, excerpt) || other.excerpt == excerpt)&&(identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl)&&const DeepCollectionEquality().equals(other._pages, _pages)&&(identical(other.role, role) || other.role == role)&&(identical(other.geometry, geometry) || other.geometry == geometry));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,slug,about,visibility,enableTrips,enableAds,enablePosts,enableRides,enableRoutes,visibilityEditable,joinable,addMemberAllowed,memberCount,createdAt,const DeepCollectionEquality().hash(_pages),role,geometry);
+int get hashCode => Object.hashAll([runtimeType,id,name,slug,about,visibility,enableTrips,enableAds,enablePosts,enableRides,enableRoutes,visibilityEditable,joinable,addMemberAllowed,memberCount,upcomingRideCount,routeCount,createdAt,excerpt,logoUrl,const DeepCollectionEquality().hash(_pages),role,geometry]);
 
 @override
 String toString() {
-  return 'TeamDetailDto(id: $id, name: $name, slug: $slug, about: $about, visibility: $visibility, enableTrips: $enableTrips, enableAds: $enableAds, enablePosts: $enablePosts, enableRides: $enableRides, enableRoutes: $enableRoutes, visibilityEditable: $visibilityEditable, joinable: $joinable, addMemberAllowed: $addMemberAllowed, memberCount: $memberCount, createdAt: $createdAt, pages: $pages, role: $role, geometry: $geometry)';
+  return 'TeamDetailDto(id: $id, name: $name, slug: $slug, about: $about, visibility: $visibility, enableTrips: $enableTrips, enableAds: $enableAds, enablePosts: $enablePosts, enableRides: $enableRides, enableRoutes: $enableRoutes, visibilityEditable: $visibilityEditable, joinable: $joinable, addMemberAllowed: $addMemberAllowed, memberCount: $memberCount, upcomingRideCount: $upcomingRideCount, routeCount: $routeCount, createdAt: $createdAt, excerpt: $excerpt, logoUrl: $logoUrl, pages: $pages, role: $role, geometry: $geometry)';
 }
 
 
@@ -347,7 +363,7 @@ abstract mixin class _$TeamDetailDtoCopyWith<$Res> implements $TeamDetailDtoCopy
   factory _$TeamDetailDtoCopyWith(_TeamDetailDto value, $Res Function(_TeamDetailDto) _then) = __$TeamDetailDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String slug, MediaDto about, String visibility, bool enableTrips, bool enableAds, bool enablePosts, bool enableRides, bool enableRoutes, bool visibilityEditable, bool joinable, bool addMemberAllowed, int memberCount, String createdAt, List<TeamPageSummaryDto>? pages, String? role, TeamDetailDtoGeometry? geometry
+ String id, String name, String slug, MediaDto about, String visibility, bool enableTrips, bool enableAds, bool enablePosts, bool enableRides, bool enableRoutes, bool visibilityEditable, bool joinable, bool addMemberAllowed, int memberCount, int upcomingRideCount, int routeCount, String createdAt, String? excerpt, String? logoUrl, List<TeamPageSummaryDto>? pages, String? role, TeamDetailDtoGeometry? geometry
 });
 
 
@@ -364,7 +380,7 @@ class __$TeamDetailDtoCopyWithImpl<$Res>
 
 /// Create a copy of TeamDetailDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? slug = null,Object? about = null,Object? visibility = null,Object? enableTrips = null,Object? enableAds = null,Object? enablePosts = null,Object? enableRides = null,Object? enableRoutes = null,Object? visibilityEditable = null,Object? joinable = null,Object? addMemberAllowed = null,Object? memberCount = null,Object? createdAt = null,Object? pages = freezed,Object? role = freezed,Object? geometry = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? slug = null,Object? about = null,Object? visibility = null,Object? enableTrips = null,Object? enableAds = null,Object? enablePosts = null,Object? enableRides = null,Object? enableRoutes = null,Object? visibilityEditable = null,Object? joinable = null,Object? addMemberAllowed = null,Object? memberCount = null,Object? upcomingRideCount = null,Object? routeCount = null,Object? createdAt = null,Object? excerpt = freezed,Object? logoUrl = freezed,Object? pages = freezed,Object? role = freezed,Object? geometry = freezed,}) {
   return _then(_TeamDetailDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -380,8 +396,12 @@ as bool,visibilityEditable: null == visibilityEditable ? _self.visibilityEditabl
 as bool,joinable: null == joinable ? _self.joinable : joinable // ignore: cast_nullable_to_non_nullable
 as bool,addMemberAllowed: null == addMemberAllowed ? _self.addMemberAllowed : addMemberAllowed // ignore: cast_nullable_to_non_nullable
 as bool,memberCount: null == memberCount ? _self.memberCount : memberCount // ignore: cast_nullable_to_non_nullable
+as int,upcomingRideCount: null == upcomingRideCount ? _self.upcomingRideCount : upcomingRideCount // ignore: cast_nullable_to_non_nullable
+as int,routeCount: null == routeCount ? _self.routeCount : routeCount // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as String,pages: freezed == pages ? _self._pages : pages // ignore: cast_nullable_to_non_nullable
+as String,excerpt: freezed == excerpt ? _self.excerpt : excerpt // ignore: cast_nullable_to_non_nullable
+as String?,logoUrl: freezed == logoUrl ? _self.logoUrl : logoUrl // ignore: cast_nullable_to_non_nullable
+as String?,pages: freezed == pages ? _self._pages : pages // ignore: cast_nullable_to_non_nullable
 as List<TeamPageSummaryDto>?,role: freezed == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
 as String?,geometry: freezed == geometry ? _self.geometry : geometry // ignore: cast_nullable_to_non_nullable
 as TeamDetailDtoGeometry?,

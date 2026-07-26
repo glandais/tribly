@@ -8,9 +8,12 @@ import fr.pedalons.repository.query.OrClause;
 import fr.pedalons.repository.query.PedalonsQuery;
 import fr.pedalons.repository.query.SimpleClause;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 @ApplicationScoped
 public class UserTeamRepository implements BaseRepository<UserTeam> {
@@ -82,5 +85,36 @@ public class UserTeamRepository implements BaseRepository<UserTeam> {
         .setParameter("teamId", teamId)
         .getResultStream()
         .findFirst();
+  }
+
+  /**
+   * Which of these teams the user is a member of — one query for a whole page.
+   *
+   * <p>Same rule as {@link #findByUserAndTeam} (any role counts, neither side soft-deleted), asked
+   * for many teams at once. A page of publications spans a handful of teams at most, so a per-row
+   * {@code findByUserAndTeam} would be a per-row round-trip for an answer that repeats.
+   *
+   * @param domainId re-stated rather than inferred from the ids: this is the clause that keeps a
+   *     membership in one domain from vouching for a team in another
+   */
+  public Set<Long> findMemberTeamIds(Long userId, Long domainId, Collection<Long> teamIds) {
+    if (teamIds.isEmpty()) {
+      return Set.of();
+    }
+    return new HashSet<>(
+        getEntityManager()
+            .createQuery(
+                "SELECT t.id FROM UserTeam ut "
+                    + "JOIN ut.team t "
+                    + "JOIN ut.user u "
+                    + "WHERE ut.user.id = :userId AND t.id IN (:teamIds) "
+                    + "AND t.domain.id = :domainId "
+                    + "AND t.deleted = false "
+                    + "AND u.deleted = false",
+                Long.class)
+            .setParameter("userId", userId)
+            .setParameter("teamIds", teamIds)
+            .setParameter("domainId", domainId)
+            .getResultList());
   }
 }

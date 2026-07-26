@@ -23,6 +23,7 @@ class _TeamsClient implements TeamsClient {
   Future<TeamListResponse> listTeams({
     int? page = 0,
     int? size = 20,
+    bool? joinable,
     MinRole? minRole,
     String? search,
   }) async {
@@ -30,6 +31,7 @@ class _TeamsClient implements TeamsClient {
     final queryParameters = <String, dynamic>{
       r'page': page,
       r'size': size,
+      r'joinable': joinable,
       r'minRole': minRole?.toJson(),
       r'search': search,
     };

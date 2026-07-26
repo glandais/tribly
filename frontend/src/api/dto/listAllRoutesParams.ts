@@ -1,4 +1,5 @@
 import type { Hilliness } from './hilliness.ts'
+import type { ListViewMode } from './listViewMode.ts'
 import type { MinRole } from './minRole.ts'
 import type { NearType } from './nearType.ts'
 import type { RouteSortBy } from './routeSortBy.ts'
@@ -71,6 +72,10 @@ export type ListAllRoutesParams = {
    * Filter by surface type
    */
   surfaceType?: SurfaceType
+  /**
+   * How much of each row to send. COMPACT (case-insensitive) returns media.markdown empty and media.assets empty — read 'excerpt' and 'thumbnailUrl' instead, both of which are present either way. Omitted, or FULL, is the previous behaviour, byte for byte.
+   */
+  view?: ListViewMode
   /**
    * Filter by wind direction
    */

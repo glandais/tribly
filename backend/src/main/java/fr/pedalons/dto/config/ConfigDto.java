@@ -1,6 +1,7 @@
 package fr.pedalons.dto.config;
 
 import fr.pedalons.dto.validation.ValidateSchema;
+import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
@@ -16,4 +17,29 @@ public record ConfigDto(
             description =
                 "Slug of the team the site is pinned to (dedicated hostname / alias). Null on a"
                     + " regular multi-team domain. When set, the app roots on this team.")
-        @Nullable String pinnedTeamSlug) {}
+        @Nullable String pinnedTeamSlug,
+    @Schema(
+            description =
+                "Basemaps the clients may offer, in switcher order. Served rather than compiled in,"
+                    + " so a tile provider can change without a client release.",
+            required = true)
+        List<MapStyleDto> mapStyles,
+    @Schema(
+            description =
+                "Public base URL of the tile host, for a client that builds its own style, sprite"
+                    + " or glyph URLs.",
+            required = true)
+        String tileServerBaseUrl,
+    @Schema(
+            description =
+                "Where a map opens before it knows what it is showing. On a site rooted on one team"
+                    + " this is that team's location; otherwise the deployment default.",
+            required = true)
+        MapCenterDto defaultCenter,
+    @Nullable
+        @Schema(
+            description =
+                "Oldest mobile build this server still serves, as a semver string. Null when no"
+                    + " floor is enforced; a client older than this should tell the user to"
+                    + " update.")
+        String minSupportedAppVersion) {}

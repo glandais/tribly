@@ -8,6 +8,7 @@ import 'gps_service_connection_dto.dart';
 import 'instant.dart';
 import 'platform_role.dart';
 import 'social_identity_dto.dart';
+import 'theme_preference.dart';
 import 'unit_system.dart';
 
 part 'user_dto.freezed.dart';
@@ -40,6 +41,12 @@ abstract class UserDto with _$UserDto {
 
     /// Preferred unit system (metric or imperial)
     String? unitSystem,
+
+    /// Preferred colour scheme. Null means the user never chose one — distinct from SYSTEM, which they did choose — so a client is free to follow the device.
+    String? theme,
+
+    /// Preferred language as a BCP-47 tag. Null means the user never chose one; the client then follows the device or the domain.
+    String? language,
 
     /// Platform role (null if regular user)
     String? platformRole,

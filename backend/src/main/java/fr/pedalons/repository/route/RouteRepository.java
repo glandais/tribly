@@ -26,6 +26,12 @@ import org.jspecify.annotations.Nullable;
 public class RouteRepository implements TeamEntityRepository<Route, RouteQuery> {
   private static final int DEFAULT_NEAR_RADIUS = 25000;
 
+  /**
+   * Beyond this the filter selects everything anyway, so an unbounded radius only buys a full-table
+   * {@code st_distancesphere}, which is not indexable as written. Same cap as {@code AdRepository}.
+   */
+  private static final double MAX_NEAR_RADIUS = 500_000;
+
   private static final byte[] EMPTY_TILE = new byte[0];
 
   /**
@@ -183,6 +189,7 @@ public class RouteRepository implements TeamEntityRepository<Route, RouteQuery> 
     if (query.nearLat() != null && query.nearLon() != null) {
       Point<G2D> nearPoint = point(WGS84, g(query.nearLon(), query.nearLat()));
       double radius = query.nearRadius() != null ? query.nearRadius() : DEFAULT_NEAR_RADIUS;
+      radius = Math.min(radius, MAX_NEAR_RADIUS);
       NearType nearType = query.nearType() != null ? query.nearType() : NearType.START_OR_END;
 
       String geoClause =

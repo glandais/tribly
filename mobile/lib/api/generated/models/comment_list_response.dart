@@ -18,6 +18,15 @@ abstract class CommentListResponse with _$CommentListResponse {
 
     /// Total count including replies
     required int total,
+
+    /// How many items exist in the mode that was asked for: top-level comments normally, or replies of the requested parentId. This is what page/size iterate over.
+    required int itemTotal,
+
+    /// Page number of items (0-indexed)
+    required int page,
+
+    /// Page size applied to items. Equals itemTotal when the caller passed no pagination parameter, since the whole tree is then returned.
+    required int size,
   }) = _CommentListResponse;
 
   factory CommentListResponse.fromJson(Map<String, Object?> json) =>

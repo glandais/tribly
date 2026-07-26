@@ -27,7 +27,7 @@ export function EditRoutePage() {
   const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },
   })
-  const { data: route, isLoading } = useGetRoute(teamSlug!, routeSlug!, {
+  const { data: route, isLoading } = useGetRoute(teamSlug!, routeSlug!, undefined, {
     query: { enabled: !!teamSlug && !!routeSlug },
   })
   const updateRouteMutation = useUpdateRoute()

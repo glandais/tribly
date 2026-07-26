@@ -4,6 +4,7 @@ import fr.pedalons.common.exception.BusinessException;
 import fr.pedalons.domain.ad.Ad;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.dto.ads.request.AdRequest;
+import fr.pedalons.dto.ads.request.AdSearchParams;
 import fr.pedalons.dto.ads.response.AdDto;
 import fr.pedalons.dto.ads.response.AdEditDto;
 import fr.pedalons.dto.ads.response.AdListResponse;
@@ -64,6 +65,41 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
       @Nullable Instant to,
       int page,
       int size) {
+    return listAds(teamSlug, search, adType, from, to, ListViewMode.FULL, page, size);
+  }
+
+  /**
+   * @param view {@link ListViewMode#COMPACT} strips the description and the asset inventory from every
+   *     row; the rows are otherwise identical, and the query is exactly the same
+   */
+  @CheckAccess(entityType = EntityType.AD, action = ActionType.LIST)
+  public AdListResponse listAds(
+      String teamSlug,
+      @Nullable String search,
+      @Nullable AdType adType,
+      @Nullable Instant from,
+      @Nullable Instant to,
+      @Nullable ListViewMode view,
+      int page,
+      int size) {
+    return listAds(
+        teamSlug,
+        AdSearchParams.builder().search(search).adType(adType).from(from).to(to).build(),
+        view,
+        page,
+        size);
+  }
+
+  /**
+   * The classifieds of a team, filtered and sorted.
+   *
+   * <p>The filters live in {@link AdSearchParams} rather than in the signature so that adding one
+   * does not ripple through every caller — the route search learnt the same lesson at fifteen
+   * parameters.
+   */
+  @CheckAccess(entityType = EntityType.AD, action = ActionType.LIST)
+  public AdListResponse listAds(
+      String teamSlug, AdSearchParams params, @Nullable ListViewMode view, int page, int size) {
     Team team = teamService.getTeam(teamSlug);
     PedalonsPage<Ad> ads =
         adRepository.find(
@@ -71,15 +107,22 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
                 .domainId(pedalonsContext.getDomainId())
                 .userId(pedalonsContext.getUserIdNullable())
                 .teamIds(Set.of(team.getId()))
-                .search(search)
-                .adType(adType)
-                .from(from)
-                .to(to)
+                .search(params.search())
+                .adType(params.adType())
+                .from(params.from())
+                .to(params.to())
+                .minPrice(params.minPrice())
+                .maxPrice(params.maxPrice())
+                .nearLat(params.nearLat())
+                .nearLon(params.nearLon())
+                .nearRadius(params.nearRadius())
+                .sortBy(params.sortBy())
+                .sortDir(params.sortDir())
                 .page(page)
                 .size(size)
                 .platformAdmin(isPlatformAdmin())
                 .build());
-    List<AdDto> dtos = ads.items().stream().map(ad -> AdDto.from(ad, assetService)).toList();
+    List<AdDto> dtos = ads.items().stream().map(ad -> AdDto.from(ad, assetService, view)).toList();
     return new AdListResponse(dtos, ads.total(), page, size);
   }
 

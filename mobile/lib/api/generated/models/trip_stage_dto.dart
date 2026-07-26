@@ -34,6 +34,12 @@ abstract class TripStageDto with _$TripStageDto {
     /// Sort order
     required int sortOrder,
 
+    /// Position of this stage among the trip's live stages, 1-based — the 'Day 2' of a stage header. Unlike sortOrder, which is a persisted rank that may have gaps, this is a rank a client can print.
+    required int stageIndex,
+
+    /// How many live stages the trip has — the '/ 5' of 'Day 2 / 5'.
+    required int stageCount,
+
     /// Route
     RouteDto? route,
 

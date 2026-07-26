@@ -45,7 +45,7 @@ export function useBreadcrumbData(params: RouteParams): Record<EntityType, Entit
   const { data: trip, isLoading: isLoadingTrip } = useGetTrip(teamSlug!, tripSlug!, {
     query: { enabled: !!teamSlug && !!tripSlug },
   })
-  const { data: route, isLoading: isLoadingRoute } = useGetRoute(teamSlug!, routeSlug!, {
+  const { data: route, isLoading: isLoadingRoute } = useGetRoute(teamSlug!, routeSlug!, undefined, {
     query: { enabled: !!teamSlug && !!routeSlug },
   })
   const { data: rideTemplate, isLoading: isLoadingTemplate } = useGetTemplate(

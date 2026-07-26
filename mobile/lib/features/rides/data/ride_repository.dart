@@ -55,6 +55,9 @@ class RideRepository {
             thumbnailLightUrl: p.thumbnailLightUrl,
             thumbnailDarkUrl: p.thumbnailDarkUrl,
             deleted: p.deleted,
+            registered: p.registered,
+            registeredGroupId: p.registeredGroupId,
+            full: p.full,
           ),
         )
         .toList();

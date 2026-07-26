@@ -36,6 +36,7 @@ _RouteDetailDto _$RouteDetailDtoFromJson(Map<String, dynamic> json) =>
       end: json['end'] == null
           ? null
           : GeoJsonPoint.fromJson(json['end'] as Map<String, dynamic>),
+      commentCount: (json['commentCount'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$RouteDetailDtoToJson(_RouteDetailDto instance) =>
@@ -58,4 +59,5 @@ Map<String, dynamic> _$RouteDetailDtoToJson(_RouteDetailDto instance) =>
       'deleted': instance.deleted,
       'start': instance.start?.toJson(),
       'end': instance.end?.toJson(),
+      'commentCount': instance.commentCount,
     };

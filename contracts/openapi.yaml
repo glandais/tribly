@@ -11,12 +11,14 @@ components:
       - slug
       - name
       - media
+      - images
       - status
       - visibility
       - adType
       - createdAt
       - updatedAt
       - createdById
+      - createdByDisplayName
       - deleted
       properties:
         team:
@@ -36,6 +38,24 @@ components:
           description: Ad media
           type: object
           $ref: "#/components/schemas/MediaDto"
+        excerpt:
+          type: string
+          description: "Plain-text opening of the description, flattened (links become\
+            \ their label) and cut on a word boundary at about 200 characters. Null\
+            \ when the description holds no text. Lets a list row render its two lines\
+            \ without the description being sent at all — see the 'view' parameter."
+        thumbnailUrl:
+          type: string
+          description: "URL template of the ad's first picture, the one a card shows.\
+            \ Saves a compact row from carrying media.assets just to find it."
+        images:
+          type: array
+          items:
+            type: string
+          description: "URL templates of every picture on the ad, in editor order\
+            \ — the gallery. Present whatever the 'view', so a compact row can show\
+            \ a carousel without pulling media.assets. The first entry is the same\
+            \ picture as 'thumbnailUrl'."
         status:
           description: Ad status
           type: string
@@ -52,12 +72,41 @@ components:
           type: number
           description: Price
         rentalPeriod:
-          description: Rental period
+          description: "Period the price applies to, for a rental — render as 'price\
+            \ / period'. Null for a sale, and for a rental whose period has not been\
+            \ set."
           type: string
           $ref: "#/components/schemas/RentalPeriod"
         locationDescription:
           type: string
           description: Location description
+        locationGeometry:
+          description: "Approximate location of the ad, deliberately blurred: the\
+            \ point is the centre of a fixed cell about 1 km across, not the seller's\
+            \ address. Enough to tell a nearby ad from a distant one, and the same\
+            \ value on every read so repeated calls cannot be averaged back to the\
+            \ exact position. Null when the ad has no location. The exact point stays\
+            \ on AdEditDto, which only the owner reads."
+          type: object
+          required:
+          - type
+          - coordinates
+          properties:
+            type:
+              type: string
+              examples:
+              - Point
+              enum:
+              - Point
+            coordinates:
+              type: array
+              items:
+                type: number
+                format: double
+              description: "Coordinates [longitude, latitude]"
+              examples:
+              - - 2.3522
+                - 48.8566
         createdAt:
           description: Creation timestamp
           type: string
@@ -69,6 +118,12 @@ components:
         createdById:
           type: string
           description: Creator ID (TSID)
+        createdByDisplayName:
+          type: string
+          description: "Display name of the member who posted the ad. The only thing\
+            \ about them this DTO carries: there is no contact channel on an Ad, and\
+            \ inventing one (an email, a phone number) is a product decision, not\
+            \ a serialisation one."
         deleted:
           type: boolean
           description: Whether the ad is soft-deleted
@@ -250,6 +305,12 @@ components:
               examples:
               - - 2.3522
                 - 48.8566
+    AdSortBy:
+      type: string
+      enum:
+      - DATE_TIME
+      - PRICE
+      - NAME
     AdType:
       type: string
       enum:
@@ -764,6 +825,8 @@ components:
       - teamSlug
       - teamName
       - entitySlug
+      - registered
+      - status
       properties:
         id:
           type: string
@@ -798,6 +861,37 @@ components:
         tripSlug:
           type: string
           description: Parent trip slug (for stages only)
+        startPlaceName:
+          type: string
+          description: "Name of the meeting place, null when the ride or stage has\
+            \ no start place"
+        distance:
+          type: number
+          format: float
+          description: "Distance in meters of the attached route, null when there\
+            \ is no route"
+        elevationGain:
+          type: number
+          format: float
+          description: "Total elevation gain in meters of the attached route, null\
+            \ when there is no route"
+        thumbnailUrl:
+          type: string
+          description: "Thumbnail image URL template (contains a {size} placeholder).\
+            \ Falls back to the route's thumbnail when the ride or stage has none\
+            \ of its own."
+        registered:
+          type: boolean
+          description: "Whether the current user is registered to this ride, or to\
+            \ the trip this stage belongs to. False for an anonymous caller."
+        groupName:
+          type: string
+          description: "Name of the ride group the current user joined. Null when\
+            \ not registered, and always null for trip stages, which have no groups."
+        status:
+          description: Publication status of the ride or stage
+          type: string
+          $ref: "#/components/schemas/Status"
     CalendarEventType:
       type: string
       enum:
@@ -910,6 +1004,7 @@ components:
       - author
       - createdAt
       - replies
+      - replyCount
       properties:
         id:
           type: string
@@ -933,12 +1028,22 @@ components:
           items:
             $ref: "#/components/schemas/CommentDto"
           description: Replies to this comment
+        replyCount:
+          type: integer
+          format: int32
+          description: How many replies this comment has. Equal to replies.size()
+            when the whole thread is embedded; a client that loads threads on demand
+            uses it to decide whether ?parentId= is worth a call. Always 0 on a reply
+            — threading is one level deep.
     CommentListResponse:
       description: List of comments response
       type: object
       required:
       - items
       - total
+      - itemTotal
+      - page
+      - size
       properties:
         items:
           type: array
@@ -949,6 +1054,21 @@ components:
           type: integer
           format: int32
           description: Total count including replies
+        itemTotal:
+          type: integer
+          format: int32
+          description: "How many items exist in the mode that was asked for: top-level\
+            \ comments normally, or replies of the requested parentId. This is what\
+            \ page/size iterate over."
+        page:
+          type: integer
+          format: int32
+          description: Page number of items (0-indexed)
+        size:
+          type: integer
+          format: int32
+          description: "Page size applied to items. Equals itemTotal when the caller\
+            \ passed no pagination parameter, since the whole tree is then returned."
     CommentRequest:
       description: Comment creation request
       type: object
@@ -979,6 +1099,9 @@ components:
       - webAuthnRpId
       - appName
       - singleTeam
+      - mapStyles
+      - tileServerBaseUrl
+      - defaultCenter
       properties:
         webAuthnRpId:
           type: string
@@ -994,6 +1117,38 @@ components:
           description: "Slug of the team the site is pinned to (dedicated hostname\
             \ / alias). Null on a regular multi-team domain. When set, the app roots\
             \ on this team."
+        mapStyles:
+          type: array
+          items:
+            $ref: "#/components/schemas/MapStyleDto"
+          description: "Basemaps the clients may offer, in switcher order. Served\
+            \ rather than compiled in, so a tile provider can change without a client\
+            \ release."
+        tileServerBaseUrl:
+          type: string
+          description: "Public base URL of the tile host, for a client that builds\
+            \ its own style, sprite or glyph URLs."
+        defaultCenter:
+          description: Where a map opens before it knows what it is showing. On a
+            site rooted on one team this is that team's location; otherwise the deployment
+            default.
+          type: object
+          $ref: "#/components/schemas/MapCenterDto"
+        minSupportedAppVersion:
+          type: string
+          description: "Oldest mobile build this server still serves, as a semver\
+            \ string. Null when no floor is enforced; a client older than this should\
+            \ tell the user to update."
+    CountResponse:
+      description: Number of items matching a filter set
+      type: object
+      required:
+      - total
+      properties:
+        total:
+          type: integer
+          format: int64
+          description: Total number of matching items
     CreateDomainAliasRequest:
       description: Request to create a domain alias (dedicated hostname pinned to
         a team)
@@ -1282,6 +1437,68 @@ components:
           items:
             $ref: "#/components/schemas/GpsServiceType"
           description: List of connected GPS services
+    ElevationPointDto:
+      description: One point of an elevation profile
+      type: object
+      required:
+      - distance
+      - elevation
+      - grade
+      properties:
+        distance:
+          type: number
+          format: double
+          description: "Cumulative distance from the start of the route, in meters"
+        elevation:
+          type: number
+          format: double
+          description: "Elevation above sea level, in meters"
+        grade:
+          type: number
+          format: double
+          description: "Grade of the segment ending at this point, in percent. Zero\
+            \ on the first point, which ends no segment."
+    ElevationProfileDto:
+      description: "Sampled elevation profile of a route, ready to draw"
+      type: object
+      required:
+      - routeId
+      - slug
+      - distance
+      - minElevation
+      - maxElevation
+      - samples
+      - points
+      properties:
+        routeId:
+          type: string
+          description: Route ID (TSID)
+        slug:
+          type: string
+          description: Route slug
+        distance:
+          type: number
+          format: double
+          description: "Distance covered by the profile, in meters"
+        minElevation:
+          type: number
+          format: double
+          description: "Lowest elevation of the profile, in meters"
+        maxElevation:
+          type: number
+          format: double
+          description: "Highest elevation of the profile, in meters"
+        samples:
+          type: integer
+          format: int32
+          description: "Number of points actually returned. Never more than the number\
+            \ of points stored for the route, so a short track is not artificially\
+            \ upsampled."
+        points:
+          type: array
+          items:
+            $ref: "#/components/schemas/ElevationPointDto"
+          description: "Profile points, by increasing distance"
     EmailChangeRequest:
       description: Request to set/change the account's real email address
       type: object
@@ -1754,6 +1971,11 @@ components:
       format: date-time
       examples:
       - 2022-03-10T16:15:50Z
+    ListViewMode:
+      type: string
+      enum:
+      - FULL
+      - COMPACT
     LocalTime:
       type: string
       format: local-time
@@ -1781,6 +2003,55 @@ components:
           description: Password
           pattern: \S
           maxLength: 100
+    MapCenterDto:
+      type: object
+      description: Initial map camera
+      required:
+      - lat
+      - lon
+      - zoom
+      properties:
+        lat:
+          type: number
+          format: double
+          description: Latitude in WGS84 degrees
+          examples:
+          - 46.6
+        lon:
+          type: number
+          format: double
+          description: Longitude in WGS84 degrees
+          examples:
+          - 2.3
+        zoom:
+          type: number
+          format: double
+          description: Initial zoom level
+          examples:
+          - 5
+    MapStyleDto:
+      type: object
+      description: A basemap style the clients may offer
+      required:
+      - id
+      - label
+      - url
+      properties:
+        id:
+          type: string
+          description: "Stable style identifier, e.g. 'colorful'"
+        label:
+          type: string
+          description: Human-readable label for the style switcher
+        url:
+          type: string
+          description: URL of the MapLibre style document to load in light mode (or
+            at all times when darkVariant is null)
+        darkVariant:
+          type: string
+          description: URL of the style document to load instead of 'url' when the
+            client renders in dark mode. Null when the style has no dark counterpart
+            — the client then keeps using 'url'.
     MediaDto:
       type: object
       required:
@@ -2094,6 +2365,16 @@ components:
           description: Publication media
           type: object
           $ref: "#/components/schemas/MediaDto"
+        excerpt:
+          type: string
+          description: "Plain-text opening of the markdown body, flattened (links\
+            \ become their label) and cut on a word boundary at about 200 characters.\
+            \ Null when the body holds no text. Lets a list row render its two lines\
+            \ without the body being sent at all — see the 'view' parameter."
+        thumbnailUrl:
+          type: string
+          description: "URL template of the post's first image, the one a card shows.\
+            \ Saves a compact row from carrying media.assets just to find a picture."
         dateTime:
           description: Publication date/time
           type: string
@@ -2117,6 +2398,12 @@ components:
         deleted:
           type: boolean
           description: Whether the post is soft-deleted
+        commentCount:
+          type: integer
+          format: int32
+          description: "Number of comments, replies included. Absent when the caller\
+            \ may not read the comments of this post — comments are members-only,\
+            \ so an outsider is told nothing, not even zero."
     PostListResponse:
       description: Paginated post list response
       type: object
@@ -2331,6 +2618,8 @@ components:
       - groups
       - topParticipants
       - deleted
+      - registered
+      - full
       properties:
         type:
           description: Type
@@ -2353,6 +2642,12 @@ components:
           description: Publication media
           type: object
           $ref: "#/components/schemas/MediaDto"
+        excerpt:
+          type: string
+          description: "Plain-text opening of the markdown body, flattened (links\
+            \ become their label) and cut on a word boundary at about 200 characters.\
+            \ Null when the body holds no text. Lets a list row render its two lines\
+            \ without the body being sent at all — see the 'view' parameter."
         dateTime:
           description: Publication date/time
           type: string
@@ -2408,9 +2703,33 @@ components:
         thumbnailDarkUrl:
           type: string
           description: Thumbnail URL (dark)
+        thumbnailUrl:
+          type: string
+          description: "The one thumbnail to show when the client does not theme its\
+            \ cards: the light variant if there is one, else the dark one. Saves a\
+            \ compact row from carrying media.assets just to find a picture."
         deleted:
           type: boolean
           description: Whether the ride is soft-deleted
+        registered:
+          type: boolean
+          description: Whether the current user is registered in one of this ride's
+            groups. False if anonymous.
+        registeredGroupId:
+          type: string
+          description: "ID (TSID) of the group the current user joined, null if not\
+            \ registered"
+        full:
+          type: boolean
+          description: "Whether every group of the ride has reached its capacity.\
+            \ False when the ride has no group, or when at least one group has no\
+            \ maxParticipants."
+        commentCount:
+          type: integer
+          format: int32
+          description: "Number of comments, replies included. Absent when the caller\
+            \ may not read the comments of this ride — comments are members-only,\
+            \ so an outsider is told nothing, not even zero."
     RideGroupDto:
       type: object
       description: Ride group information
@@ -2420,6 +2739,8 @@ components:
       - countParticipants
       - participants
       - sortOrder
+      - registered
+      - full
       properties:
         id:
           type: string
@@ -2453,6 +2774,23 @@ components:
           type: integer
           format: int32
           description: Sort order
+        registered:
+          type: boolean
+          description: Whether the current user is registered in THIS group. False
+            if anonymous.
+        full:
+          type: boolean
+          description: Whether the group has reached maxParticipants. False when maxParticipants
+            is not set.
+        distance:
+          type: number
+          format: float
+          description: "Distance in meters of the group route, if it has one"
+        elevationGain:
+          type: number
+          format: float
+          description: "Total elevation gain in meters of the group route, if it has\
+            \ one"
     RideListResponse:
       description: Paginated ride list response
       type: object
@@ -2818,6 +3156,12 @@ components:
         deleted:
           type: boolean
           description: Whether the route is soft-deleted
+        commentCount:
+          type: integer
+          format: int32
+          description: "Number of comments, replies included. Absent when the caller\
+            \ may not read the comments of this route — comments are members-only,\
+            \ so an outsider is told nothing, not even zero."
     RouteDto:
       type: object
       description: Route summary data
@@ -2852,6 +3196,17 @@ components:
           description: Route description
           type: object
           $ref: "#/components/schemas/MediaDto"
+        excerpt:
+          type: string
+          description: "Plain-text opening of the description, flattened (links become\
+            \ their label) and cut on a word boundary at about 200 characters. Null\
+            \ when the description holds no text. Lets a list row render its two lines\
+            \ without the description being sent at all — see the 'view' parameter."
+        thumbnailUrl:
+          type: string
+          description: "URL template of the route's thumbnail, light variant if there\
+            \ is one, else dark. Saves a compact row from carrying media.assets just\
+            \ to find the map preview."
         distance:
           type: number
           format: float
@@ -2879,6 +3234,12 @@ components:
         deleted:
           type: boolean
           description: Whether the route is soft-deleted
+        commentCount:
+          type: integer
+          format: int32
+          description: "Number of comments, replies included. Absent when the caller\
+            \ may not read the comments of this route — comments are members-only,\
+            \ so an outsider is told nothing, not even zero."
     RouteListResponse:
       description: Paginated route list response
       type: object
@@ -3187,6 +3548,8 @@ components:
       - joinable
       - addMemberAllowed
       - memberCount
+      - upcomingRideCount
+      - routeCount
       - createdAt
       properties:
         id:
@@ -3204,6 +3567,17 @@ components:
           description: About page content
           type: object
           $ref: "#/components/schemas/MediaDto"
+        excerpt:
+          type: string
+          description: "Plain-text opening of the about page, flattened and cut on\
+            \ a word boundary at about 200 characters. Null when the about page holds\
+            \ no text. Lets a team card render its two lines without parsing the markdown\
+            \ client-side."
+        logoUrl:
+          type: string
+          description: "URL template of the team's logo, when it has one. Same picture\
+            \ as about.assets.logo, hoisted so a card does not have to walk the asset\
+            \ inventory to find it."
         pages:
           type: array
           items:
@@ -3241,6 +3615,17 @@ components:
           type: integer
           format: int64
           description: Number of team members
+        upcomingRideCount:
+          type: integer
+          format: int64
+          description: "Rides of this team dated in the future that the caller may\
+            \ open. Follows the same visibility rules as the ride listing, so it never\
+            \ announces more than the caller can actually see."
+        routeCount:
+          type: integer
+          format: int64
+          description: "Routes of this team the caller may open, under the same visibility\
+            \ rules as the route listing."
         role:
           description: Current user's role (null if not a member)
           type: string
@@ -3499,6 +3884,12 @@ components:
       - MEMBER
       - ORGANIZER
       - ADMIN
+    ThemePreference:
+      type: string
+      enum:
+      - SYSTEM
+      - LIGHT
+      - DARK
     TrackDto:
       type: object
       description: GPX track with track points
@@ -3532,6 +3923,7 @@ components:
       - stages
       - participants
       - deleted
+      - registered
       properties:
         type:
           description: Type
@@ -3554,8 +3946,20 @@ components:
           description: Publication media
           type: object
           $ref: "#/components/schemas/MediaDto"
+        excerpt:
+          type: string
+          description: "Plain-text opening of the markdown body, flattened (links\
+            \ become their label) and cut on a word boundary at about 200 characters.\
+            \ Null when the body holds no text. Lets a list row render its two lines\
+            \ without the body being sent at all — see the 'view' parameter."
         dateTime:
           description: Trip start date/time
+          type: string
+          $ref: "#/components/schemas/Instant"
+        endDate:
+          description: "Date of the last stage — the day the trip ends. Null when\
+            \ the trip has no stage, in which case it lasts a day and dateTime is\
+            \ both ends."
           type: string
           $ref: "#/components/schemas/Instant"
         status:
@@ -3585,6 +3989,17 @@ components:
           type: integer
           format: int32
           description: Number of stages
+        totalDistance:
+          type: number
+          format: float
+          description: "Distance in metres over every stage that has a route. Null\
+            \ when no stage has one — an unrouted trip has no distance, which is not\
+            \ the same as a distance of zero."
+        totalElevationGain:
+          type: number
+          format: float
+          description: Elevation gain in metres over every stage that has a route.
+            Null when no stage has one.
         stages:
           type: array
           items:
@@ -3601,9 +4016,24 @@ components:
         thumbnailDarkUrl:
           type: string
           description: Thumbnail URL (dark)
+        thumbnailUrl:
+          type: string
+          description: "The one thumbnail to show when the client does not theme its\
+            \ cards: the light variant if there is one, else the dark one. Saves a\
+            \ compact row from carrying media.assets just to find a picture."
         deleted:
           type: boolean
           description: Whether the trip is soft-deleted
+        registered:
+          type: boolean
+          description: Whether the current user is registered for this trip. False
+            if anonymous.
+        commentCount:
+          type: integer
+          format: int32
+          description: "Number of comments, replies included. Absent when the caller\
+            \ may not read the comments of this trip — comments are members-only,\
+            \ so an outsider is told nothing, not even zero."
     TripListResponse:
       description: Paginated trip list response
       type: object
@@ -3704,6 +4134,8 @@ components:
       - dateTime
       - media
       - sortOrder
+      - stageIndex
+      - stageCount
       properties:
         id:
           type: string
@@ -3738,6 +4170,16 @@ components:
           type: integer
           format: int32
           description: Sort order
+        stageIndex:
+          type: integer
+          format: int32
+          description: "Position of this stage among the trip's live stages, 1-based\
+            \ — the 'Day 2' of a stage header. Unlike sortOrder, which is a persisted\
+            \ rank that may have gaps, this is a rank a client can print."
+        stageCount:
+          type: integer
+          format: int32
+          description: How many live stages the trip has — the '/ 5' of 'Day 2 / 5'.
     UnitSystem:
       type: string
       enum:
@@ -3872,6 +4314,16 @@ components:
           description: Preferred unit system (metric or imperial)
           type: string
           $ref: "#/components/schemas/UnitSystem"
+        theme:
+          description: "Preferred colour scheme. Null means the user never chose one\
+            \ — distinct from SYSTEM, which they did choose — so a client is free\
+            \ to follow the device."
+          type: string
+          $ref: "#/components/schemas/ThemePreference"
+        language:
+          type: string
+          description: Preferred language as a BCP-47 tag. Null means the user never
+            chose one; the client then follows the device or the domain.
         platformRole:
           description: Platform role (null if regular user)
           type: string
@@ -3932,6 +4384,34 @@ components:
       - READY
       - FAILED
       - EXPIRED
+    UserPreferencesRequest:
+      description: Partial update of the current user's display preferences
+      type: object
+      properties:
+        unitSystem:
+          description: Preferred unit system. Omit or send null to leave it unchanged.
+          type: string
+          examples:
+          - METRIC
+          $ref: "#/components/schemas/UnitSystem"
+        theme:
+          description: Preferred colour scheme. Omit or send null to leave it unchanged.
+          type: string
+          examples:
+          - SYSTEM
+          $ref: "#/components/schemas/ThemePreference"
+        language:
+          type: string
+          description: "Preferred language as a BCP-47 tag ('fr', 'en', 'fr-CA').\
+            \ Omit or send null to leave it unchanged. Not validated against the set\
+            \ of translations the app ships: a client asking for a language nobody\
+            \ has translated yet falls back on its own, which is better than a 400\
+            \ the day a translation lands."
+          examples:
+          - fr
+          pattern: "^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$"
+          minLength: 2
+          maxLength: 10
     VerifyOtpRequest:
       description: OTP verification request
       type: object
@@ -6755,6 +7235,13 @@ paths:
           type: integer
           format: int32
           default: 0
+      - description: Only publications the current user is registered to (rides and
+          trips). Yields nothing for an anonymous visitor.
+        name: participating
+        in: query
+        schema:
+          type: boolean
+          default: false
       - description: Search by name/markdown
         name: search
         in: query
@@ -6767,6 +7254,76 @@ paths:
           type: integer
           format: int32
           default: 20
+      - description: "Only publications with this status. Narrows the visibility rules,\
+          \ never widens them."
+        name: status
+        in: query
+        schema:
+          $ref: "#/components/schemas/Status"
+      - description: End date filter (ISO format)
+        name: to
+        in: query
+        schema:
+          type: string
+      - description: Types
+        name: type
+        in: query
+        schema:
+          $ref: "#/components/schemas/PublicationType"
+      - description: "How much of each row to send. COMPACT (case-insensitive) returns\
+          \ media.markdown empty and media.assets empty — read 'excerpt' and 'thumbnailUrl'\
+          \ instead, both of which are present either way. Omitted, or FULL, is the\
+          \ previous behaviour, byte for byte."
+        name: view
+        in: query
+        schema:
+          $ref: "#/components/schemas/ListViewMode"
+      responses:
+        "200":
+          description: Publications retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicationListResponse"
+  /api/publications/count:
+    get:
+      summary: Count all publications
+      description: "How many publications match the filters, with none of them read.\
+        \ Accepts exactly the same filters as the listing, minus pagination, so a\
+        \ count and the list it opens can never disagree."
+      operationId: countAllPublications
+      tags:
+      - Publications
+      parameters:
+      - description: Start date filter (ISO format)
+        name: from
+        in: query
+        schema:
+          type: string
+      - description: Only publications from teams where the user has at least this
+          role. Yields zero for an anonymous visitor.
+        name: minRole
+        in: query
+        schema:
+          $ref: "#/components/schemas/MinRole"
+      - description: Only publications the current user is registered to (rides and
+          trips). Yields zero for an anonymous visitor.
+        name: participating
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - description: Search by name/markdown
+        name: search
+        in: query
+        schema:
+          type: string
+      - description: "Only publications with this status. Narrows the visibility rules,\
+          \ never widens them."
+        name: status
+        in: query
+        schema:
+          $ref: "#/components/schemas/Status"
       - description: End date filter (ISO format)
         name: to
         in: query
@@ -6779,11 +7336,11 @@ paths:
           $ref: "#/components/schemas/PublicationType"
       responses:
         "200":
-          description: Publications retrieved successfully
+          description: Count computed successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PublicationListResponse"
+                $ref: "#/components/schemas/CountResponse"
   /api/router:
     post:
       summary: Calculate route
@@ -6924,6 +7481,14 @@ paths:
         in: query
         schema:
           $ref: "#/components/schemas/SurfaceType"
+      - description: "How much of each row to send. COMPACT (case-insensitive) returns\
+          \ media.markdown empty and media.assets empty — read 'excerpt' and 'thumbnailUrl'\
+          \ instead, both of which are present either way. Omitted, or FULL, is the\
+          \ previous behaviour, byte for byte."
+        name: view
+        in: query
+        schema:
+          $ref: "#/components/schemas/ListViewMode"
       - description: Filter by wind direction
         name: windDirection
         in: query
@@ -7026,6 +7591,98 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RouteBoundsResponse"
+  /api/routes/count:
+    get:
+      summary: Count all routes
+      description: "How many routes of all accessible teams match the filters, with\
+        \ none of them read. Accepts exactly the same filters as the route list, minus\
+        \ sorting and pagination, so the figure and the list it opens can never disagree.\
+        \ Meant for a filter sheet that wants to announce its result count before\
+        \ the user commits to it."
+      operationId: countAllRoutes
+      tags:
+      - Routes
+      parameters:
+      - description: "Hilliness preset (FLAT, HILLY, MOUNTAINOUS)"
+        name: hilliness
+        in: query
+        schema:
+          $ref: "#/components/schemas/Hilliness"
+      - description: Maximum distance in meters
+        name: maxDistance
+        in: query
+        schema:
+          type: number
+          format: float
+      - description: Maximum elevation gain in meters
+        name: maxElevationGain
+        in: query
+        schema:
+          type: number
+          format: float
+      - description: Minimum distance in meters
+        name: minDistance
+        in: query
+        schema:
+          type: number
+          format: float
+      - description: Minimum elevation gain in meters
+        name: minElevationGain
+        in: query
+        schema:
+          type: number
+          format: float
+      - description: Only routes from teams where the user has at least this role.
+          Yields zero for an anonymous visitor.
+        name: minRole
+        in: query
+        schema:
+          $ref: "#/components/schemas/MinRole"
+      - description: Latitude for proximity search
+        name: nearLat
+        in: query
+        schema:
+          type: number
+          format: double
+      - description: Longitude for proximity search
+        name: nearLon
+        in: query
+        schema:
+          type: number
+          format: double
+      - description: "Search radius in meters (default: 25000)"
+        name: nearRadius
+        in: query
+        schema:
+          type: number
+          format: double
+      - description: "Search near START, END, or START_OR_END (default)"
+        name: nearType
+        in: query
+        schema:
+          $ref: "#/components/schemas/NearType"
+      - description: Search by name/markdown
+        name: search
+        in: query
+        schema:
+          type: string
+      - description: Filter by surface type
+        name: surfaceType
+        in: query
+        schema:
+          $ref: "#/components/schemas/SurfaceType"
+      - description: Filter by wind direction
+        name: windDirection
+        in: query
+        schema:
+          $ref: "#/components/schemas/WindDirection"
+      responses:
+        "200":
+          description: Count computed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CountResponse"
   /api/routes/tiles/{z}/{x}/{y}.mvt:
     get:
       summary: All routes vector tile
@@ -7147,6 +7804,13 @@ paths:
       tags:
       - Teams
       parameters:
+      - description: "Keep only teams that accept a join request from any domain user\
+          \ (true), or only those that do not (false). Omitted keeps both. A filter\
+          \ on top of the visibility rules, never instead of them."
+        name: joinable
+        in: query
+        schema:
+          type: boolean
       - description: Minimum role in team
         name: minRole
         in: query
@@ -7497,6 +8161,37 @@ paths:
         in: query
         schema:
           type: string
+      - description: Highest asking price to include
+        name: maxPrice
+        in: query
+        schema:
+          type: number
+      - description: Lowest asking price to include. Ads with no price ('à négocier')
+          are excluded by either price bound.
+        name: minPrice
+        in: query
+        schema:
+          type: number
+      - description: Latitude for proximity search
+        name: nearLat
+        in: query
+        schema:
+          type: number
+          format: double
+      - description: Longitude for proximity search
+        name: nearLon
+        in: query
+        schema:
+          type: number
+          format: double
+      - description: "Search radius in metres around nearLat/nearLon (default 25000,\
+          \ capped at 500000). Ads with no location are excluded when a centre is\
+          \ given."
+        name: nearRadius
+        in: query
+        schema:
+          type: number
+          format: double
       - description: Page number
         name: page
         in: query
@@ -7516,11 +8211,29 @@ paths:
           type: integer
           format: int32
           default: 20
+      - description: "Sort column (default: publication date)"
+        name: sortBy
+        in: query
+        schema:
+          $ref: "#/components/schemas/AdSortBy"
+      - description: "Sort direction (default: DESC)"
+        name: sortDir
+        in: query
+        schema:
+          $ref: "#/components/schemas/SortDirection"
       - description: End date filter (ISO format)
         name: to
         in: query
         schema:
           type: string
+      - description: "How much of each row to send. COMPACT (case-insensitive) returns\
+          \ media.markdown empty and media.assets empty — read 'excerpt', 'thumbnailUrl'\
+          \ and 'images' instead, all of which are present either way. Omitted, or\
+          \ FULL, is the previous behaviour, byte for byte."
+        name: view
+        in: query
+        schema:
+          $ref: "#/components/schemas/ListViewMode"
       responses:
         "200":
           description: Ads retrieved successfully
@@ -8903,6 +9616,10 @@ paths:
   /api/teams/{teamSlug}/posts/{entitySlug}/comments:
     get:
       summary: List post comments
+      description: "Top-level comments with their replies. Passing neither page nor\
+        \ size returns the whole tree, as before this endpoint took parameters; passing\
+        \ either paginates the top-level comments. parentId switches to listing the\
+        \ replies of a single comment."
       operationId: listPostComments
       tags:
       - Post Comments
@@ -8919,6 +9636,30 @@ paths:
         required: true
         schema:
           type: string
+      - description: "Page number (0-indexed). Omit both page and size to get the\
+          \ whole comment tree, as before this endpoint took parameters."
+        name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - description: Load only the replies of this comment (TSID) instead of the top-level
+          comments. Use it to expand one thread without re-reading the others.
+        name: parentId
+        in: query
+        schema:
+          type: string
+      - description: "Page size, capped at 100 (default 20)"
+        name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - description: "Sort by creation date: ASC (oldest first, default) or DESC"
+        name: sort
+        in: query
+        schema:
+          $ref: "#/components/schemas/SortDirection"
       responses:
         "200":
           description: Comments retrieved
@@ -9281,6 +10022,13 @@ paths:
           type: integer
           format: int32
           default: 0
+      - description: Only publications the current user is registered to (rides and
+          trips). Yields nothing for an anonymous visitor.
+        name: participating
+        in: query
+        schema:
+          type: boolean
+          default: false
       - description: Search by name/markdown
         name: search
         in: query
@@ -9293,6 +10041,82 @@ paths:
           type: integer
           format: int32
           default: 20
+      - description: "Only publications with this status. Narrows the visibility rules,\
+          \ never widens them."
+        name: status
+        in: query
+        schema:
+          $ref: "#/components/schemas/Status"
+      - description: End date filter (ISO format)
+        name: to
+        in: query
+        schema:
+          type: string
+      - description: Type
+        name: type
+        in: query
+        schema:
+          $ref: "#/components/schemas/PublicationType"
+      - description: "How much of each row to send. COMPACT (case-insensitive) returns\
+          \ media.markdown empty and media.assets empty — read 'excerpt' and 'thumbnailUrl'\
+          \ instead, both of which are present either way. Omitted, or FULL, is the\
+          \ previous behaviour, byte for byte."
+        name: view
+        in: query
+        schema:
+          $ref: "#/components/schemas/ListViewMode"
+      responses:
+        "200":
+          description: Publications retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicationListResponse"
+        "404":
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/teams/{teamSlug}/publications/count:
+    get:
+      summary: Count publications
+      description: "How many of the team's publications match the filters, with none\
+        \ of them read. Accepts exactly the same filters as the listing, minus pagination,\
+        \ so a count and the list it opens can never disagree."
+      operationId: countPublications
+      tags:
+      - Publications
+      parameters:
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Start date filter (ISO format)
+        name: from
+        in: query
+        schema:
+          type: string
+      - description: Only publications the current user is registered to (rides and
+          trips). Yields zero for an anonymous visitor.
+        name: participating
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - description: Search by name/markdown
+        name: search
+        in: query
+        schema:
+          type: string
+      - description: "Only publications with this status. Narrows the visibility rules,\
+          \ never widens them."
+        name: status
+        in: query
+        schema:
+          $ref: "#/components/schemas/Status"
       - description: End date filter (ISO format)
         name: to
         in: query
@@ -9305,11 +10129,11 @@ paths:
           $ref: "#/components/schemas/PublicationType"
       responses:
         "200":
-          description: Publications retrieved successfully
+          description: Count computed successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PublicationListResponse"
+                $ref: "#/components/schemas/CountResponse"
         "404":
           description: Team not found
           content:
@@ -9637,6 +10461,10 @@ paths:
   /api/teams/{teamSlug}/rides/{entitySlug}/comments:
     get:
       summary: List ride comments
+      description: "Top-level comments with their replies. Passing neither page nor\
+        \ size returns the whole tree, as before this endpoint took parameters; passing\
+        \ either paginates the top-level comments. parentId switches to listing the\
+        \ replies of a single comment."
       operationId: listRideComments
       tags:
       - Ride Comments
@@ -9653,6 +10481,30 @@ paths:
         required: true
         schema:
           type: string
+      - description: "Page number (0-indexed). Omit both page and size to get the\
+          \ whole comment tree, as before this endpoint took parameters."
+        name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - description: Load only the replies of this comment (TSID) instead of the top-level
+          comments. Use it to expand one thread without re-reading the others.
+        name: parentId
+        in: query
+        schema:
+          type: string
+      - description: "Page size, capped at 100 (default 20)"
+        name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - description: "Sort by creation date: ASC (oldest first, default) or DESC"
+        name: sort
+        in: query
+        schema:
+          $ref: "#/components/schemas/SortDirection"
       responses:
         "200":
           description: Comments retrieved
@@ -10206,6 +11058,14 @@ paths:
         in: query
         schema:
           $ref: "#/components/schemas/SurfaceType"
+      - description: "How much of each row to send. COMPACT (case-insensitive) returns\
+          \ media.markdown empty and media.assets empty — read 'excerpt' and 'thumbnailUrl'\
+          \ instead, both of which are present either way. Omitted, or FULL, is the\
+          \ previous behaviour, byte for byte."
+        name: view
+        in: query
+        schema:
+          $ref: "#/components/schemas/ListViewMode"
       - description: Filter by wind direction
         name: windDirection
         in: query
@@ -10382,6 +11242,104 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/teams/{teamSlug}/routes/count:
+    get:
+      summary: Count routes
+      description: "How many of the team's routes match the filters, with none of\
+        \ them read. Accepts exactly the same filters as the route list, minus sorting\
+        \ and pagination, so the figure and the list it opens can never disagree.\
+        \ Meant for a filter sheet that wants to announce its result count before\
+        \ the user commits to it."
+      operationId: countRoutes
+      tags:
+      - Routes
+      parameters:
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: "Hilliness preset (FLAT, HILLY, MOUNTAINOUS)"
+        name: hilliness
+        in: query
+        schema:
+          $ref: "#/components/schemas/Hilliness"
+      - description: Maximum distance in meters
+        name: maxDistance
+        in: query
+        schema:
+          type: number
+          format: float
+      - description: Maximum elevation gain in meters
+        name: maxElevationGain
+        in: query
+        schema:
+          type: number
+          format: float
+      - description: Minimum distance in meters
+        name: minDistance
+        in: query
+        schema:
+          type: number
+          format: float
+      - description: Minimum elevation gain in meters
+        name: minElevationGain
+        in: query
+        schema:
+          type: number
+          format: float
+      - description: Latitude for proximity search
+        name: nearLat
+        in: query
+        schema:
+          type: number
+          format: double
+      - description: Longitude for proximity search
+        name: nearLon
+        in: query
+        schema:
+          type: number
+          format: double
+      - description: "Search radius in meters (default: 25000)"
+        name: nearRadius
+        in: query
+        schema:
+          type: number
+          format: double
+      - description: "Search near START, END, or START_OR_END (default)"
+        name: nearType
+        in: query
+        schema:
+          $ref: "#/components/schemas/NearType"
+      - description: Search by name/markdown
+        name: search
+        in: query
+        schema:
+          type: string
+      - description: Filter by surface type
+        name: surfaceType
+        in: query
+        schema:
+          $ref: "#/components/schemas/SurfaceType"
+      - description: Filter by wind direction
+        name: windDirection
+        in: query
+        schema:
+          $ref: "#/components/schemas/WindDirection"
+      responses:
+        "200":
+          description: Count computed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CountResponse"
+        "404":
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/teams/{teamSlug}/routes/tiles/{z}/{x}/{y}.mvt:
     get:
       summary: Team routes vector tile
@@ -10503,6 +11461,10 @@ paths:
   /api/teams/{teamSlug}/routes/{entitySlug}/comments:
     get:
       summary: List route comments
+      description: "Top-level comments with their replies. Passing neither page nor\
+        \ size returns the whole tree, as before this endpoint took parameters; passing\
+        \ either paginates the top-level comments. parentId switches to listing the\
+        \ replies of a single comment."
       operationId: listRouteComments
       tags:
       - Route Comments
@@ -10519,6 +11481,30 @@ paths:
         required: true
         schema:
           type: string
+      - description: "Page number (0-indexed). Omit both page and size to get the\
+          \ whole comment tree, as before this endpoint took parameters."
+        name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - description: Load only the replies of this comment (TSID) instead of the top-level
+          comments. Use it to expand one thread without re-reading the others.
+        name: parentId
+        in: query
+        schema:
+          type: string
+      - description: "Page size, capped at 100 (default 20)"
+        name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - description: "Sort by creation date: ASC (oldest first, default) or DESC"
+        name: sort
+        in: query
+        schema:
+          $ref: "#/components/schemas/SortDirection"
       responses:
         "200":
           description: Comments retrieved
@@ -10693,7 +11679,10 @@ paths:
         - user
     get:
       summary: Get route details
-      description: Get detailed route information including GPS coordinates and statistics
+      description: "Get detailed route information including GPS coordinates and statistics.\
+        \ The stored track holds one point every ten meters, which is megabytes of\
+        \ JSON on a long route: 'simplify' and 'points' let a client trade fidelity\
+        \ for weight. Passing neither returns the stored track unchanged."
       operationId: getRoute
       tags:
       - Routes
@@ -10710,6 +11699,26 @@ paths:
         required: true
         schema:
           type: string
+      - description: "Maximum number of track points to return. The points kept are\
+          \ those deviating most from the simplified line — corners and elevation\
+          \ extrema survive, straight flat stretches are dropped — and the first and\
+          \ last points are always kept. Applied after 'simplify' when both are given.\
+          \ Absent, zero or a value larger than the stored track means no decimation."
+        name: points
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - description: "Douglas-Peucker tolerance in meters: drop every track point\
+          \ lying closer than this to the line joining the points kept around it.\
+          \ The returned line stays within that many meters of the stored one, and\
+          \ its first and last points are always kept. Capped at 1000; absent or zero\
+          \ means no simplification."
+        name: simplify
+        in: query
+        schema:
+          type: number
+          format: double
       responses:
         "200":
           description: Route retrieved successfully
@@ -10766,6 +11775,52 @@ paths:
       security:
       - SecurityScheme:
         - user
+  /api/teams/{teamSlug}/routes/{routeSlug}/elevation-profile:
+    get:
+      summary: Get route elevation profile
+      description: "The route's elevation profile resampled to 'samples' evenly spaced\
+        \ distances, each point carrying its cumulative distance, its elevation and\
+        \ the grade in percent of the segment ending on it — everything needed to\
+        \ draw a profile coloured by gradient without downloading the full track.\
+        \ Multi-track routes are concatenated into one continuous profile. The answer\
+        \ never holds more points than the stored track."
+      operationId: getRouteElevationProfile
+      tags:
+      - Routes
+      parameters:
+      - description: Route slug
+        name: routeSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: "Number of profile points wanted. Clamped server-side to 2..1000,\
+          \ and further reduced to the number of points actually stored for the route."
+        name: samples
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 300
+      responses:
+        "200":
+          description: Elevation profile computed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ElevationProfileDto"
+        "404":
+          description: Team or route not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/teams/{teamSlug}/routes/{routeSlug}/slug:
     patch:
       summary: Change route slug
@@ -11032,6 +12087,10 @@ paths:
   /api/teams/{teamSlug}/trips/{entitySlug}/comments:
     get:
       summary: List trip comments
+      description: "Top-level comments with their replies. Passing neither page nor\
+        \ size returns the whole tree, as before this endpoint took parameters; passing\
+        \ either paginates the top-level comments. parentId switches to listing the\
+        \ replies of a single comment."
       operationId: listTripComments
       tags:
       - Trip Comments
@@ -11048,6 +12107,30 @@ paths:
         required: true
         schema:
           type: string
+      - description: "Page number (0-indexed). Omit both page and size to get the\
+          \ whole comment tree, as before this endpoint took parameters."
+        name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - description: Load only the replies of this comment (TSID) instead of the top-level
+          comments. Use it to expand one thread without re-reading the others.
+        name: parentId
+        in: query
+        schema:
+          type: string
+      - description: "Page size, capped at 100 (default 20)"
+        name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - description: "Sort by creation date: ASC (oldest first, default) or DESC"
+        name: sort
+        in: query
+        schema:
+          $ref: "#/components/schemas/SortDirection"
       responses:
         "200":
           description: Comments retrieved
@@ -11732,6 +12815,112 @@ paths:
       security:
       - SecurityScheme:
         - user
+  /api/users/me/participations:
+    get:
+      summary: List my participations
+      description: "The rides and trips the current user is registered to, soonest\
+        \ first. Only publications the user may still see are returned: leaving a\
+        \ team removes its outings from this list."
+      operationId: listMyParticipations
+      tags:
+      - Users
+      parameters:
+      - description: Start date filter (ISO format)
+        name: from
+        in: query
+        schema:
+          type: string
+      - description: Page number
+        name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - description: Page size
+        name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 20
+      - description: Only publications with this status
+        name: status
+        in: query
+        schema:
+          $ref: "#/components/schemas/Status"
+      - description: End date filter (ISO format)
+        name: to
+        in: query
+        schema:
+          type: string
+      - description: "How much of each row to send. COMPACT (case-insensitive) returns\
+          \ media.markdown empty and media.assets empty — read 'excerpt' and 'thumbnailUrl'\
+          \ instead, both of which are present either way. Omitted, or FULL, is the\
+          \ previous behaviour, byte for byte."
+        name: view
+        in: query
+        schema:
+          $ref: "#/components/schemas/ListViewMode"
+      responses:
+        "200":
+          description: Participations retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicationListResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/users/me/preferences:
+    patch:
+      summary: Update display preferences
+      description: "Set the current user's unit system, colour scheme and language.\
+        \ A partial update: fields omitted (or sent null) are left unchanged. These\
+        \ live on the server so that a member who picks imperial units on their phone\
+        \ sees them on the web too, and so that reinstalling the app does not lose\
+        \ them."
+      operationId: updateMyPreferences
+      tags:
+      - Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserPreferencesRequest"
+        required: true
+      responses:
+        "200":
+          description: "Preferences updated; the full, refreshed profile is returned"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDto"
+        "400":
+          description: Invalid request (e.g. a language that is not a BCP-47 tag)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
   /api/users/search:
     get:
       summary: Search users
@@ -11789,7 +12978,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 1.2.0
+  version: 1.3.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

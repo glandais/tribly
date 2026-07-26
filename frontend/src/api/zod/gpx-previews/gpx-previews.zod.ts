@@ -823,6 +823,18 @@ export const CreateRouteFromPreviewResponse = zod
           .describe('Assets'),
       })
       .describe('Route description'),
+    excerpt: zod
+      .string()
+      .optional()
+      .describe(
+        "Plain-text opening of the description, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the description holds no text. Lets a list row render its two lines without the description being sent at all — see the 'view' parameter."
+      ),
+    thumbnailUrl: zod
+      .string()
+      .optional()
+      .describe(
+        "URL template of the route's thumbnail, light variant if there is one, else dark. Saves a compact row from carrying media.assets just to find the map preview."
+      ),
     distance: zod.number().describe('Distance in meters'),
     elevationGain: zod.number().describe('Total elevation gain in meters'),
     elevationLoss: zod.number().describe('Total elevation loss in meters'),
@@ -832,5 +844,11 @@ export const CreateRouteFromPreviewResponse = zod
       .describe('Whether the route is public'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     deleted: zod.boolean().describe('Whether the route is soft-deleted'),
+    commentCount: zod
+      .number()
+      .optional()
+      .describe(
+        'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
   })
   .describe('Route summary data')

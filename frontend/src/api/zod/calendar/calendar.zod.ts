@@ -25,6 +25,42 @@ export const GetEventsResponse = zod
             teamName: zod.string().describe('Team name'),
             entitySlug: zod.string().describe('Entity slug (ride or stage)'),
             tripSlug: zod.string().optional().describe('Parent trip slug (for stages only)'),
+            startPlaceName: zod
+              .string()
+              .optional()
+              .describe(
+                'Name of the meeting place, null when the ride or stage has no start place'
+              ),
+            distance: zod
+              .number()
+              .optional()
+              .describe('Distance in meters of the attached route, null when there is no route'),
+            elevationGain: zod
+              .number()
+              .optional()
+              .describe(
+                'Total elevation gain in meters of the attached route, null when there is no route'
+              ),
+            thumbnailUrl: zod
+              .string()
+              .optional()
+              .describe(
+                "Thumbnail image URL template (contains a {size} placeholder). Falls back to the route's thumbnail when the ride or stage has none of its own."
+              ),
+            registered: zod
+              .boolean()
+              .describe(
+                'Whether the current user is registered to this ride, or to the trip this stage belongs to. False for an anonymous caller.'
+              ),
+            groupName: zod
+              .string()
+              .optional()
+              .describe(
+                'Name of the ride group the current user joined. Null when not registered, and always null for trip stages, which have no groups.'
+              ),
+            status: zod
+              .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
+              .describe('Publication status of the ride or stage'),
           })
           .describe('Calendar event data')
       )
@@ -95,6 +131,42 @@ export const GetTeamEventsResponse = zod
             teamName: zod.string().describe('Team name'),
             entitySlug: zod.string().describe('Entity slug (ride or stage)'),
             tripSlug: zod.string().optional().describe('Parent trip slug (for stages only)'),
+            startPlaceName: zod
+              .string()
+              .optional()
+              .describe(
+                'Name of the meeting place, null when the ride or stage has no start place'
+              ),
+            distance: zod
+              .number()
+              .optional()
+              .describe('Distance in meters of the attached route, null when there is no route'),
+            elevationGain: zod
+              .number()
+              .optional()
+              .describe(
+                'Total elevation gain in meters of the attached route, null when there is no route'
+              ),
+            thumbnailUrl: zod
+              .string()
+              .optional()
+              .describe(
+                "Thumbnail image URL template (contains a {size} placeholder). Falls back to the route's thumbnail when the ride or stage has none of its own."
+              ),
+            registered: zod
+              .boolean()
+              .describe(
+                'Whether the current user is registered to this ride, or to the trip this stage belongs to. False for an anonymous caller.'
+              ),
+            groupName: zod
+              .string()
+              .optional()
+              .describe(
+                'Name of the ride group the current user joined. Null when not registered, and always null for trip stages, which have no groups.'
+              ),
+            status: zod
+              .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
+              .describe('Publication status of the ride or stage'),
           })
           .describe('Calendar event data')
       )

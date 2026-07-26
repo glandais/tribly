@@ -7,7 +7,10 @@ import 'package:dio/dio.dart' hide Headers;
 import 'package:retrofit/retrofit.dart';
 import 'package:retrofit/error_logger.dart';
 
+import '../models/count_response.dart';
+import '../models/elevation_profile_dto.dart';
 import '../models/hilliness.dart';
+import '../models/list_view_mode.dart';
 import '../models/min_role.dart';
 import '../models/near_type.dart';
 import '../models/route_bounds_response.dart';
@@ -64,6 +67,8 @@ abstract class RoutesClient {
   ///
   /// [surfaceType] - Filter by surface type.
   ///
+  /// [view] - How much of each row to send. COMPACT (case-insensitive) returns media.markdown empty and media.assets empty — read 'excerpt' and 'thumbnailUrl' instead, both of which are present either way. Omitted, or FULL, is the previous behaviour, byte for byte.
+  ///
   /// [windDirection] - Filter by wind direction.
   @GET('/api/routes')
   Future<RouteListResponse> listAllRoutes({
@@ -83,6 +88,7 @@ abstract class RoutesClient {
     @Query('sortBy') RouteSortBy? sortBy,
     @Query('sortDir') SortDirection? sortDir,
     @Query('surfaceType') SurfaceType? surfaceType,
+    @Query('view') ListViewMode? view,
     @Query('windDirection') WindDirection? windDirection,
   });
 
@@ -117,6 +123,52 @@ abstract class RoutesClient {
   /// [windDirection] - Filter by wind direction.
   @GET('/api/routes/bounds')
   Future<RouteBoundsResponse> getAllRoutesBounds({
+    @Query('hilliness') Hilliness? hilliness,
+    @Query('maxDistance') double? maxDistance,
+    @Query('maxElevationGain') double? maxElevationGain,
+    @Query('minDistance') double? minDistance,
+    @Query('minElevationGain') double? minElevationGain,
+    @Query('minRole') MinRole? minRole,
+    @Query('nearLat') double? nearLat,
+    @Query('nearLon') double? nearLon,
+    @Query('nearRadius') double? nearRadius,
+    @Query('nearType') NearType? nearType,
+    @Query('search') String? search,
+    @Query('surfaceType') SurfaceType? surfaceType,
+    @Query('windDirection') WindDirection? windDirection,
+  });
+
+  /// Count all routes.
+  ///
+  /// How many routes of all accessible teams match the filters, with none of them read. Accepts exactly the same filters as the route list, minus sorting and pagination, so the figure and the list it opens can never disagree. Meant for a filter sheet that wants to announce its result count before the user commits to it.
+  ///
+  /// [hilliness] - Hilliness preset (FLAT, HILLY, MOUNTAINOUS).
+  ///
+  /// [maxDistance] - Maximum distance in meters.
+  ///
+  /// [maxElevationGain] - Maximum elevation gain in meters.
+  ///
+  /// [minDistance] - Minimum distance in meters.
+  ///
+  /// [minElevationGain] - Minimum elevation gain in meters.
+  ///
+  /// [minRole] - Only routes from teams where the user has at least this role. Yields zero for an anonymous visitor.
+  ///
+  /// [nearLat] - Latitude for proximity search.
+  ///
+  /// [nearLon] - Longitude for proximity search.
+  ///
+  /// [nearRadius] - Search radius in meters (default: 25000).
+  ///
+  /// [nearType] - Search near START, END, or START_OR_END (default).
+  ///
+  /// [search] - Search by name/markdown.
+  ///
+  /// [surfaceType] - Filter by surface type.
+  ///
+  /// [windDirection] - Filter by wind direction.
+  @GET('/api/routes/count')
+  Future<CountResponse> countAllRoutes({
     @Query('hilliness') Hilliness? hilliness,
     @Query('maxDistance') double? maxDistance,
     @Query('maxElevationGain') double? maxElevationGain,
@@ -223,6 +275,8 @@ abstract class RoutesClient {
   ///
   /// [surfaceType] - Filter by surface type.
   ///
+  /// [view] - How much of each row to send. COMPACT (case-insensitive) returns media.markdown empty and media.assets empty — read 'excerpt' and 'thumbnailUrl' instead, both of which are present either way. Omitted, or FULL, is the previous behaviour, byte for byte.
+  ///
   /// [windDirection] - Filter by wind direction.
   @GET('/api/teams/{teamSlug}/routes')
   Future<RouteListResponse> listRoutes({
@@ -242,6 +296,7 @@ abstract class RoutesClient {
     @Query('sortBy') RouteSortBy? sortBy,
     @Query('sortDir') SortDirection? sortDir,
     @Query('surfaceType') SurfaceType? surfaceType,
+    @Query('view') ListViewMode? view,
     @Query('windDirection') WindDirection? windDirection,
   });
 
@@ -293,6 +348,52 @@ abstract class RoutesClient {
   /// [windDirection] - Filter by wind direction.
   @GET('/api/teams/{teamSlug}/routes/bounds')
   Future<RouteBoundsResponse> getRoutesBounds({
+    @Path('teamSlug') required String teamSlug,
+    @Query('hilliness') Hilliness? hilliness,
+    @Query('maxDistance') double? maxDistance,
+    @Query('maxElevationGain') double? maxElevationGain,
+    @Query('minDistance') double? minDistance,
+    @Query('minElevationGain') double? minElevationGain,
+    @Query('nearLat') double? nearLat,
+    @Query('nearLon') double? nearLon,
+    @Query('nearRadius') double? nearRadius,
+    @Query('nearType') NearType? nearType,
+    @Query('search') String? search,
+    @Query('surfaceType') SurfaceType? surfaceType,
+    @Query('windDirection') WindDirection? windDirection,
+  });
+
+  /// Count routes.
+  ///
+  /// How many of the team's routes match the filters, with none of them read. Accepts exactly the same filters as the route list, minus sorting and pagination, so the figure and the list it opens can never disagree. Meant for a filter sheet that wants to announce its result count before the user commits to it.
+  ///
+  /// [teamSlug] - Team URL slug.
+  ///
+  /// [hilliness] - Hilliness preset (FLAT, HILLY, MOUNTAINOUS).
+  ///
+  /// [maxDistance] - Maximum distance in meters.
+  ///
+  /// [maxElevationGain] - Maximum elevation gain in meters.
+  ///
+  /// [minDistance] - Minimum distance in meters.
+  ///
+  /// [minElevationGain] - Minimum elevation gain in meters.
+  ///
+  /// [nearLat] - Latitude for proximity search.
+  ///
+  /// [nearLon] - Longitude for proximity search.
+  ///
+  /// [nearRadius] - Search radius in meters (default: 25000).
+  ///
+  /// [nearType] - Search near START, END, or START_OR_END (default).
+  ///
+  /// [search] - Search by name/markdown.
+  ///
+  /// [surfaceType] - Filter by surface type.
+  ///
+  /// [windDirection] - Filter by wind direction.
+  @GET('/api/teams/{teamSlug}/routes/count')
+  Future<CountResponse> countRoutes({
     @Path('teamSlug') required String teamSlug,
     @Query('hilliness') Hilliness? hilliness,
     @Query('maxDistance') double? maxDistance,
@@ -385,15 +486,21 @@ abstract class RoutesClient {
 
   /// Get route details.
   ///
-  /// Get detailed route information including GPS coordinates and statistics.
+  /// Get detailed route information including GPS coordinates and statistics. The stored track holds one point every ten meters, which is megabytes of JSON on a long route: 'simplify' and 'points' let a client trade fidelity for weight. Passing neither returns the stored track unchanged.
   ///
   /// [routeSlug] - Route slug.
   ///
   /// [teamSlug] - Team URL slug.
+  ///
+  /// [points] - Maximum number of track points to return. The points kept are those deviating most from the simplified line — corners and elevation extrema survive, straight flat stretches are dropped — and the first and last points are always kept. Applied after 'simplify' when both are given. Absent, zero or a value larger than the stored track means no decimation.
+  ///
+  /// [simplify] - Douglas-Peucker tolerance in meters: drop every track point lying closer than this to the line joining the points kept around it. The returned line stays within that many meters of the stored one, and its first and last points are always kept. Capped at 1000; absent or zero means no simplification.
   @GET('/api/teams/{teamSlug}/routes/{routeSlug}')
   Future<RouteDetailDto> getRoute({
     @Path('routeSlug') required String routeSlug,
     @Path('teamSlug') required String teamSlug,
+    @Query('points') int? points,
+    @Query('simplify') double? simplify,
   });
 
   /// Delete route.
@@ -407,6 +514,22 @@ abstract class RoutesClient {
   Future<void> deleteRoute({
     @Path('routeSlug') required String routeSlug,
     @Path('teamSlug') required String teamSlug,
+  });
+
+  /// Get route elevation profile.
+  ///
+  /// The route's elevation profile resampled to 'samples' evenly spaced distances, each point carrying its cumulative distance, its elevation and the grade in percent of the segment ending on it — everything needed to draw a profile coloured by gradient without downloading the full track. Multi-track routes are concatenated into one continuous profile. The answer never holds more points than the stored track.
+  ///
+  /// [routeSlug] - Route slug.
+  ///
+  /// [teamSlug] - Team URL slug.
+  ///
+  /// [samples] - Number of profile points wanted. Clamped server-side to 2..1000, and further reduced to the number of points actually stored for the route.
+  @GET('/api/teams/{teamSlug}/routes/{routeSlug}/elevation-profile')
+  Future<ElevationProfileDto> getRouteElevationProfile({
+    @Path('routeSlug') required String routeSlug,
+    @Path('teamSlug') required String teamSlug,
+    @Query('samples') int? samples = 300,
   });
 
   /// Change route slug.

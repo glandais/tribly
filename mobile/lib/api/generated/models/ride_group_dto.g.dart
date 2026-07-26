@@ -15,10 +15,14 @@ _RideGroupDto _$RideGroupDtoFromJson(Map<String, dynamic> json) =>
           .map((e) => PublicUserDto.fromJson(e as Map<String, dynamic>))
           .toList(),
       sortOrder: (json['sortOrder'] as num).toInt(),
+      registered: json['registered'] as bool,
+      full: json['full'] as bool,
       time: json['time'] as String?,
       routeSlug: json['routeSlug'] as String?,
       averageSpeed: (json['averageSpeed'] as num?)?.toDouble(),
       maxParticipants: (json['maxParticipants'] as num?)?.toInt(),
+      distance: (json['distance'] as num?)?.toDouble(),
+      elevationGain: (json['elevationGain'] as num?)?.toDouble(),
     );
 
 Map<String, dynamic> _$RideGroupDtoToJson(_RideGroupDto instance) =>
@@ -28,8 +32,12 @@ Map<String, dynamic> _$RideGroupDtoToJson(_RideGroupDto instance) =>
       'countParticipants': instance.countParticipants,
       'participants': instance.participants.map((e) => e.toJson()).toList(),
       'sortOrder': instance.sortOrder,
+      'registered': instance.registered,
+      'full': instance.full,
       'time': instance.time,
       'routeSlug': instance.routeSlug,
       'averageSpeed': instance.averageSpeed,
       'maxParticipants': instance.maxParticipants,
+      'distance': instance.distance,
+      'elevationGain': instance.elevationGain,
     };

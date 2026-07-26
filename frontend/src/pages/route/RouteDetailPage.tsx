@@ -31,7 +31,7 @@ export function RouteDetailPage() {
   const { data: team } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },
   })
-  const { data: route, isLoading: routeLoading } = useGetRoute(teamSlug!, routeSlug!, {
+  const { data: route, isLoading: routeLoading } = useGetRoute(teamSlug!, routeSlug!, undefined, {
     query: { enabled: !!teamSlug && !!routeSlug },
   })
   const deleteRouteMutation = useDeleteRoute()

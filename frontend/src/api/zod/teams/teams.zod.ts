@@ -8,6 +8,12 @@ export const listTeamsQueryPageDefault = 0
 export const listTeamsQuerySizeDefault = 20
 
 export const ListTeamsQueryParams = zod.object({
+  joinable: zod
+    .boolean()
+    .optional()
+    .describe(
+      'Keep only teams that accept a join request from any domain user (true), or only those that do not (false). Omitted keeps both. A filter on top of the visibility rules, never instead of them.'
+    ),
   minRole: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']).optional().describe('Minimum role in team'),
   page: zod.number().default(listTeamsQueryPageDefault).describe('Page number (0-indexed)'),
   search: zod.string().optional().describe('Search query to filter teams by name'),
@@ -170,6 +176,18 @@ export const ListTeamsResponse = zod
                   .describe('Assets'),
               })
               .describe('About page content'),
+            excerpt: zod
+              .string()
+              .optional()
+              .describe(
+                'Plain-text opening of the about page, flattened and cut on a word boundary at about 200 characters. Null when the about page holds no text. Lets a team card render its two lines without parsing the markdown client-side.'
+              ),
+            logoUrl: zod
+              .string()
+              .optional()
+              .describe(
+                "URL template of the team's logo, when it has one. Same picture as about.assets.logo, hoisted so a card does not have to walk the asset inventory to find it."
+              ),
             pages: zod
               .array(
                 zod
@@ -201,6 +219,16 @@ export const ListTeamsResponse = zod
             joinable: zod.boolean().describe('Whether any domain user can join this team'),
             addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
             memberCount: zod.number().describe('Number of team members'),
+            upcomingRideCount: zod
+              .number()
+              .describe(
+                'Rides of this team dated in the future that the caller may open. Follows the same visibility rules as the ride listing, so it never announces more than the caller can actually see.'
+              ),
+            routeCount: zod
+              .number()
+              .describe(
+                'Routes of this team the caller may open, under the same visibility rules as the route listing.'
+              ),
             role: zod
               .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
               .optional()
@@ -554,6 +582,18 @@ export const CreateTeamResponse = zod
           .describe('Assets'),
       })
       .describe('About page content'),
+    excerpt: zod
+      .string()
+      .optional()
+      .describe(
+        'Plain-text opening of the about page, flattened and cut on a word boundary at about 200 characters. Null when the about page holds no text. Lets a team card render its two lines without parsing the markdown client-side.'
+      ),
+    logoUrl: zod
+      .string()
+      .optional()
+      .describe(
+        "URL template of the team's logo, when it has one. Same picture as about.assets.logo, hoisted so a card does not have to walk the asset inventory to find it."
+      ),
     pages: zod
       .array(
         zod
@@ -583,6 +623,16 @@ export const CreateTeamResponse = zod
     joinable: zod.boolean().describe('Whether any domain user can join this team'),
     addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
     memberCount: zod.number().describe('Number of team members'),
+    upcomingRideCount: zod
+      .number()
+      .describe(
+        'Rides of this team dated in the future that the caller may open. Follows the same visibility rules as the ride listing, so it never announces more than the caller can actually see.'
+      ),
+    routeCount: zod
+      .number()
+      .describe(
+        'Routes of this team the caller may open, under the same visibility rules as the route listing.'
+      ),
     role: zod
       .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
       .optional()
@@ -933,6 +983,18 @@ export const UpdateTeamResponse = zod
           .describe('Assets'),
       })
       .describe('About page content'),
+    excerpt: zod
+      .string()
+      .optional()
+      .describe(
+        'Plain-text opening of the about page, flattened and cut on a word boundary at about 200 characters. Null when the about page holds no text. Lets a team card render its two lines without parsing the markdown client-side.'
+      ),
+    logoUrl: zod
+      .string()
+      .optional()
+      .describe(
+        "URL template of the team's logo, when it has one. Same picture as about.assets.logo, hoisted so a card does not have to walk the asset inventory to find it."
+      ),
     pages: zod
       .array(
         zod
@@ -962,6 +1024,16 @@ export const UpdateTeamResponse = zod
     joinable: zod.boolean().describe('Whether any domain user can join this team'),
     addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
     memberCount: zod.number().describe('Number of team members'),
+    upcomingRideCount: zod
+      .number()
+      .describe(
+        'Rides of this team dated in the future that the caller may open. Follows the same visibility rules as the ride listing, so it never announces more than the caller can actually see.'
+      ),
+    routeCount: zod
+      .number()
+      .describe(
+        'Routes of this team the caller may open, under the same visibility rules as the route listing.'
+      ),
     role: zod
       .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
       .optional()
@@ -1137,6 +1209,18 @@ export const GetTeamResponse = zod
           .describe('Assets'),
       })
       .describe('About page content'),
+    excerpt: zod
+      .string()
+      .optional()
+      .describe(
+        'Plain-text opening of the about page, flattened and cut on a word boundary at about 200 characters. Null when the about page holds no text. Lets a team card render its two lines without parsing the markdown client-side.'
+      ),
+    logoUrl: zod
+      .string()
+      .optional()
+      .describe(
+        "URL template of the team's logo, when it has one. Same picture as about.assets.logo, hoisted so a card does not have to walk the asset inventory to find it."
+      ),
     pages: zod
       .array(
         zod
@@ -1166,6 +1250,16 @@ export const GetTeamResponse = zod
     joinable: zod.boolean().describe('Whether any domain user can join this team'),
     addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
     memberCount: zod.number().describe('Number of team members'),
+    upcomingRideCount: zod
+      .number()
+      .describe(
+        'Rides of this team dated in the future that the caller may open. Follows the same visibility rules as the ride listing, so it never announces more than the caller can actually see.'
+      ),
+    routeCount: zod
+      .number()
+      .describe(
+        'Routes of this team the caller may open, under the same visibility rules as the route listing.'
+      ),
     role: zod
       .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
       .optional()
@@ -1365,6 +1459,18 @@ export const ChangeTeamSlugResponse = zod
           .describe('Assets'),
       })
       .describe('About page content'),
+    excerpt: zod
+      .string()
+      .optional()
+      .describe(
+        'Plain-text opening of the about page, flattened and cut on a word boundary at about 200 characters. Null when the about page holds no text. Lets a team card render its two lines without parsing the markdown client-side.'
+      ),
+    logoUrl: zod
+      .string()
+      .optional()
+      .describe(
+        "URL template of the team's logo, when it has one. Same picture as about.assets.logo, hoisted so a card does not have to walk the asset inventory to find it."
+      ),
     pages: zod
       .array(
         zod
@@ -1394,6 +1500,16 @@ export const ChangeTeamSlugResponse = zod
     joinable: zod.boolean().describe('Whether any domain user can join this team'),
     addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
     memberCount: zod.number().describe('Number of team members'),
+    upcomingRideCount: zod
+      .number()
+      .describe(
+        'Rides of this team dated in the future that the caller may open. Follows the same visibility rules as the ride listing, so it never announces more than the caller can actually see.'
+      ),
+    routeCount: zod
+      .number()
+      .describe(
+        'Routes of this team the caller may open, under the same visibility rules as the route listing.'
+      ),
     role: zod
       .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
       .optional()

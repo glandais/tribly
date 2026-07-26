@@ -23,9 +23,19 @@ class _TripCommentsClient implements TripCommentsClient {
   Future<CommentListResponse> listTripComments({
     required String entitySlug,
     required String teamSlug,
+    int? page,
+    String? parentId,
+    int? size,
+    SortDirection? sort,
   }) async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'page': page,
+      r'parentId': parentId,
+      r'size': size,
+      r'sort': sort?.toJson(),
+    };
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
     final _options = _setStreamType<CommentListResponse>(

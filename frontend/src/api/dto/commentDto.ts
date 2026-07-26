@@ -17,4 +17,6 @@ export interface CommentDto {
   parentId?: string
   /** Replies to this comment */
   replies: CommentDto[]
+  /** How many replies this comment has. Equal to replies.size() when the whole thread is embedded; a client that loads threads on demand uses it to decide whether ?parentId= is worth a call. Always 0 on a reply — threading is one level deep. */
+  replyCount: number
 }

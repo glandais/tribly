@@ -16,9 +16,15 @@ import type {
 
 import type {
   AllRoutesTileParams,
+  CountAllRoutesParams,
+  CountResponse,
+  CountRoutesParams,
   CreateRouteBody,
+  ElevationProfileDto,
   ErrorResponse,
   GetAllRoutesBoundsParams,
+  GetRouteElevationProfileParams,
+  GetRouteParams,
   GetRoutesBoundsParams,
   ListAllRoutesParams,
   ListRoutesParams,
@@ -330,6 +336,146 @@ export const prefetchGetAllRoutesBoundsQuery = async <
   }
 ): Promise<QueryClient> => {
   const queryOptions = getGetAllRoutesBoundsQueryOptions(params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
+ * How many routes of all accessible teams match the filters, with none of them read. Accepts exactly the same filters as the route list, minus sorting and pagination, so the figure and the list it opens can never disagree. Meant for a filter sheet that wants to announce its result count before the user commits to it.
+ * @summary Count all routes
+ */
+export const countAllRoutes = (
+  params?: CountAllRoutesParams,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<CountResponse>(
+    { url: `/api/routes/count`, method: 'GET', params, signal },
+    options
+  )
+}
+
+export const getCountAllRoutesQueryKey = (params?: CountAllRoutesParams) => {
+  return [`/api/routes/count`, ...(params ? [params] : [])] as const
+}
+
+export const getCountAllRoutesQueryOptions = <
+  TData = Awaited<ReturnType<typeof countAllRoutes>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: CountAllRoutesParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof countAllRoutes>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getCountAllRoutesQueryKey(params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof countAllRoutes>>> = ({ signal }) =>
+    countAllRoutes(params, requestOptions, signal)
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof countAllRoutes>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type CountAllRoutesQueryResult = NonNullable<Awaited<ReturnType<typeof countAllRoutes>>>
+export type CountAllRoutesQueryError = ErrorType<unknown>
+
+export function useCountAllRoutes<
+  TData = Awaited<ReturnType<typeof countAllRoutes>>,
+  TError = ErrorType<unknown>,
+>(
+  params: undefined | CountAllRoutesParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof countAllRoutes>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof countAllRoutes>>,
+          TError,
+          Awaited<ReturnType<typeof countAllRoutes>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCountAllRoutes<
+  TData = Awaited<ReturnType<typeof countAllRoutes>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: CountAllRoutesParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof countAllRoutes>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof countAllRoutes>>,
+          TError,
+          Awaited<ReturnType<typeof countAllRoutes>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCountAllRoutes<
+  TData = Awaited<ReturnType<typeof countAllRoutes>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: CountAllRoutesParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof countAllRoutes>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Count all routes
+ */
+
+export function useCountAllRoutes<
+  TData = Awaited<ReturnType<typeof countAllRoutes>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: CountAllRoutesParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof countAllRoutes>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getCountAllRoutesQueryOptions(params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Count all routes
+ */
+export const prefetchCountAllRoutesQuery = async <
+  TData = Awaited<ReturnType<typeof countAllRoutes>>,
+  TError = ErrorType<unknown>,
+>(
+  queryClient: QueryClient,
+  params?: CountAllRoutesParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof countAllRoutes>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getCountAllRoutesQueryOptions(params, options)
 
   await queryClient.prefetchQuery(queryOptions)
 
@@ -904,6 +1050,156 @@ export const prefetchGetRoutesBoundsQuery = async <
 }
 
 /**
+ * How many of the team's routes match the filters, with none of them read. Accepts exactly the same filters as the route list, minus sorting and pagination, so the figure and the list it opens can never disagree. Meant for a filter sheet that wants to announce its result count before the user commits to it.
+ * @summary Count routes
+ */
+export const countRoutes = (
+  teamSlug: string,
+  params?: CountRoutesParams,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<CountResponse>(
+    { url: `/api/teams/${teamSlug}/routes/count`, method: 'GET', params, signal },
+    options
+  )
+}
+
+export const getCountRoutesQueryKey = (teamSlug: string, params?: CountRoutesParams) => {
+  return [`/api/teams/${teamSlug}/routes/count`, ...(params ? [params] : [])] as const
+}
+
+export const getCountRoutesQueryOptions = <
+  TData = Awaited<ReturnType<typeof countRoutes>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params?: CountRoutesParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof countRoutes>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getCountRoutesQueryKey(teamSlug, params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof countRoutes>>> = ({ signal }) =>
+    countRoutes(teamSlug, params, requestOptions, signal)
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: teamSlug !== null && teamSlug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof countRoutes>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+}
+
+export type CountRoutesQueryResult = NonNullable<Awaited<ReturnType<typeof countRoutes>>>
+export type CountRoutesQueryError = ErrorType<ErrorResponse>
+
+export function useCountRoutes<
+  TData = Awaited<ReturnType<typeof countRoutes>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params: undefined | CountRoutesParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof countRoutes>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof countRoutes>>,
+          TError,
+          Awaited<ReturnType<typeof countRoutes>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCountRoutes<
+  TData = Awaited<ReturnType<typeof countRoutes>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params?: CountRoutesParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof countRoutes>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof countRoutes>>,
+          TError,
+          Awaited<ReturnType<typeof countRoutes>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCountRoutes<
+  TData = Awaited<ReturnType<typeof countRoutes>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params?: CountRoutesParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof countRoutes>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Count routes
+ */
+
+export function useCountRoutes<
+  TData = Awaited<ReturnType<typeof countRoutes>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params?: CountRoutesParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof countRoutes>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getCountRoutesQueryOptions(teamSlug, params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Count routes
+ */
+export const prefetchCountRoutesQuery = async <
+  TData = Awaited<ReturnType<typeof countRoutes>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  params?: CountRoutesParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof countRoutes>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getCountRoutesQueryOptions(teamSlug, params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Mapbox vector tile holding the team's routes, layer 'routes'. Accepts the same filters as the route list, minus sorting and pagination, which a tile has no use for. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
  * @summary Team routes vector tile
  */
@@ -1190,23 +1486,28 @@ export const useUpdateRoute = <TError = ErrorType<ErrorResponse>, TContext = unk
   return useMutation(getUpdateRouteMutationOptions(options), queryClient)
 }
 /**
- * Get detailed route information including GPS coordinates and statistics
+ * Get detailed route information including GPS coordinates and statistics. The stored track holds one point every ten meters, which is megabytes of JSON on a long route: 'simplify' and 'points' let a client trade fidelity for weight. Passing neither returns the stored track unchanged.
  * @summary Get route details
  */
 export const getRoute = (
   teamSlug: string,
   routeSlug: string,
+  params?: GetRouteParams,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<RouteDetailDto>(
-    { url: `/api/teams/${teamSlug}/routes/${routeSlug}`, method: 'GET', signal },
+    { url: `/api/teams/${teamSlug}/routes/${routeSlug}`, method: 'GET', params, signal },
     options
   )
 }
 
-export const getGetRouteQueryKey = (teamSlug: string, routeSlug: string) => {
-  return [`/api/teams/${teamSlug}/routes/${routeSlug}`] as const
+export const getGetRouteQueryKey = (
+  teamSlug: string,
+  routeSlug: string,
+  params?: GetRouteParams
+) => {
+  return [`/api/teams/${teamSlug}/routes/${routeSlug}`, ...(params ? [params] : [])] as const
 }
 
 export const getGetRouteQueryOptions = <
@@ -1215,6 +1516,7 @@ export const getGetRouteQueryOptions = <
 >(
   teamSlug: string,
   routeSlug: string,
+  params?: GetRouteParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoute>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
@@ -1222,10 +1524,10 @@ export const getGetRouteQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getGetRouteQueryKey(teamSlug, routeSlug)
+  const queryKey = queryOptions?.queryKey ?? getGetRouteQueryKey(teamSlug, routeSlug, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getRoute>>> = ({ signal }) =>
-    getRoute(teamSlug, routeSlug, requestOptions, signal)
+    getRoute(teamSlug, routeSlug, params, requestOptions, signal)
 
   return {
     queryKey,
@@ -1247,6 +1549,7 @@ export function useGetRoute<
 >(
   teamSlug: string,
   routeSlug: string,
+  params: undefined | GetRouteParams,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoute>>, TError, TData>> &
       Pick<
@@ -1267,6 +1570,7 @@ export function useGetRoute<
 >(
   teamSlug: string,
   routeSlug: string,
+  params?: GetRouteParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoute>>, TError, TData>> &
       Pick<
@@ -1287,6 +1591,7 @@ export function useGetRoute<
 >(
   teamSlug: string,
   routeSlug: string,
+  params?: GetRouteParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoute>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
@@ -1303,13 +1608,14 @@ export function useGetRoute<
 >(
   teamSlug: string,
   routeSlug: string,
+  params?: GetRouteParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoute>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetRouteQueryOptions(teamSlug, routeSlug, options)
+  const queryOptions = getGetRouteQueryOptions(teamSlug, routeSlug, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>
@@ -1328,12 +1634,13 @@ export const prefetchGetRouteQuery = async <
   queryClient: QueryClient,
   teamSlug: string,
   routeSlug: string,
+  params?: GetRouteParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoute>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
   }
 ): Promise<QueryClient> => {
-  const queryOptions = getGetRouteQueryOptions(teamSlug, routeSlug, options)
+  const queryOptions = getGetRouteQueryOptions(teamSlug, routeSlug, params, options)
 
   await queryClient.prefetchQuery(queryOptions)
 
@@ -1418,6 +1725,192 @@ export const useDeleteRoute = <TError = ErrorType<ErrorResponse>, TContext = unk
 > => {
   return useMutation(getDeleteRouteMutationOptions(options), queryClient)
 }
+/**
+ * The route's elevation profile resampled to 'samples' evenly spaced distances, each point carrying its cumulative distance, its elevation and the grade in percent of the segment ending on it — everything needed to draw a profile coloured by gradient without downloading the full track. Multi-track routes are concatenated into one continuous profile. The answer never holds more points than the stored track.
+ * @summary Get route elevation profile
+ */
+export const getRouteElevationProfile = (
+  teamSlug: string,
+  routeSlug: string,
+  params?: GetRouteElevationProfileParams,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<ElevationProfileDto>(
+    {
+      url: `/api/teams/${teamSlug}/routes/${routeSlug}/elevation-profile`,
+      method: 'GET',
+      params,
+      signal,
+    },
+    options
+  )
+}
+
+export const getGetRouteElevationProfileQueryKey = (
+  teamSlug: string,
+  routeSlug: string,
+  params?: GetRouteElevationProfileParams
+) => {
+  return [
+    `/api/teams/${teamSlug}/routes/${routeSlug}/elevation-profile`,
+    ...(params ? [params] : []),
+  ] as const
+}
+
+export const getGetRouteElevationProfileQueryOptions = <
+  TData = Awaited<ReturnType<typeof getRouteElevationProfile>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  routeSlug: string,
+  params?: GetRouteElevationProfileParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getRouteElevationProfile>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetRouteElevationProfileQueryKey(teamSlug, routeSlug, params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getRouteElevationProfile>>> = ({
+    signal,
+  }) => getRouteElevationProfile(teamSlug, routeSlug, params, requestOptions, signal)
+
+  return {
+    queryKey,
+    queryFn,
+    enabled:
+      teamSlug !== null && teamSlug !== undefined && routeSlug !== null && routeSlug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getRouteElevationProfile>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+}
+
+export type GetRouteElevationProfileQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getRouteElevationProfile>>
+>
+export type GetRouteElevationProfileQueryError = ErrorType<ErrorResponse>
+
+export function useGetRouteElevationProfile<
+  TData = Awaited<ReturnType<typeof getRouteElevationProfile>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  routeSlug: string,
+  params: undefined | GetRouteElevationProfileParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getRouteElevationProfile>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRouteElevationProfile>>,
+          TError,
+          Awaited<ReturnType<typeof getRouteElevationProfile>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRouteElevationProfile<
+  TData = Awaited<ReturnType<typeof getRouteElevationProfile>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  routeSlug: string,
+  params?: GetRouteElevationProfileParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getRouteElevationProfile>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRouteElevationProfile>>,
+          TError,
+          Awaited<ReturnType<typeof getRouteElevationProfile>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRouteElevationProfile<
+  TData = Awaited<ReturnType<typeof getRouteElevationProfile>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  routeSlug: string,
+  params?: GetRouteElevationProfileParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getRouteElevationProfile>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get route elevation profile
+ */
+
+export function useGetRouteElevationProfile<
+  TData = Awaited<ReturnType<typeof getRouteElevationProfile>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  routeSlug: string,
+  params?: GetRouteElevationProfileParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getRouteElevationProfile>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetRouteElevationProfileQueryOptions(teamSlug, routeSlug, params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Get route elevation profile
+ */
+export const prefetchGetRouteElevationProfileQuery = async <
+  TData = Awaited<ReturnType<typeof getRouteElevationProfile>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  routeSlug: string,
+  params?: GetRouteElevationProfileParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getRouteElevationProfile>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetRouteElevationProfileQueryOptions(teamSlug, routeSlug, params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
 /**
  * Change route URL slug. Requires organizer permissions.
  * @summary Change route slug

@@ -67,7 +67,7 @@ export function RideGroupCard({
   const effectiveRouteSlug = group.routeSlug || rideRouteSlug
 
   // Fetch route details for download links
-  const { data: route } = useGetRoute(teamSlug, effectiveRouteSlug!, {
+  const { data: route } = useGetRoute(teamSlug, effectiveRouteSlug!, undefined, {
     query: { enabled: !!effectiveRouteSlug },
   })
 

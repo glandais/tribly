@@ -27,7 +27,10 @@ mixin _$RouteDto {
  String get surfaceType;/// Whether the route is public
  String get visibility;/// Creation timestamp
  String get createdAt;/// Whether the route is soft-deleted
- bool get deleted;
+ bool get deleted;/// Plain-text opening of the description, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the description holds no text. Lets a list row render its two lines without the description being sent at all — see the 'view' parameter.
+ String? get excerpt;/// URL template of the route's thumbnail, light variant if there is one, else dark. Saves a compact row from carrying media.assets just to find the map preview.
+ String? get thumbnailUrl;/// Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.
+ int? get commentCount;
 /// Create a copy of RouteDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -40,16 +43,16 @@ $RouteDtoCopyWith<RouteDto> get copyWith => _$RouteDtoCopyWithImpl<RouteDto>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RouteDto&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.team, team) || other.team == team)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.elevationLoss, elevationLoss) || other.elevationLoss == elevationLoss)&&(identical(other.surfaceType, surfaceType) || other.surfaceType == surfaceType)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.deleted, deleted) || other.deleted == deleted));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RouteDto&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.team, team) || other.team == team)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.elevationLoss, elevationLoss) || other.elevationLoss == elevationLoss)&&(identical(other.surfaceType, surfaceType) || other.surfaceType == surfaceType)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.excerpt, excerpt) || other.excerpt == excerpt)&&(identical(other.thumbnailUrl, thumbnailUrl) || other.thumbnailUrl == thumbnailUrl)&&(identical(other.commentCount, commentCount) || other.commentCount == commentCount));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,slug,team,name,media,distance,elevationGain,elevationLoss,surfaceType,visibility,createdAt,deleted);
+int get hashCode => Object.hash(runtimeType,id,slug,team,name,media,distance,elevationGain,elevationLoss,surfaceType,visibility,createdAt,deleted,excerpt,thumbnailUrl,commentCount);
 
 @override
 String toString() {
-  return 'RouteDto(id: $id, slug: $slug, team: $team, name: $name, media: $media, distance: $distance, elevationGain: $elevationGain, elevationLoss: $elevationLoss, surfaceType: $surfaceType, visibility: $visibility, createdAt: $createdAt, deleted: $deleted)';
+  return 'RouteDto(id: $id, slug: $slug, team: $team, name: $name, media: $media, distance: $distance, elevationGain: $elevationGain, elevationLoss: $elevationLoss, surfaceType: $surfaceType, visibility: $visibility, createdAt: $createdAt, deleted: $deleted, excerpt: $excerpt, thumbnailUrl: $thumbnailUrl, commentCount: $commentCount)';
 }
 
 
@@ -60,7 +63,7 @@ abstract mixin class $RouteDtoCopyWith<$Res>  {
   factory $RouteDtoCopyWith(RouteDto value, $Res Function(RouteDto) _then) = _$RouteDtoCopyWithImpl;
 @useResult
 $Res call({
- String id, String slug, TeamPublicationDto team, String name, MediaDto media, double distance, double elevationGain, double elevationLoss, String surfaceType, String visibility, String createdAt, bool deleted
+ String id, String slug, TeamPublicationDto team, String name, MediaDto media, double distance, double elevationGain, double elevationLoss, String surfaceType, String visibility, String createdAt, bool deleted, String? excerpt, String? thumbnailUrl, int? commentCount
 });
 
 
@@ -77,7 +80,7 @@ class _$RouteDtoCopyWithImpl<$Res>
 
 /// Create a copy of RouteDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? team = null,Object? name = null,Object? media = null,Object? distance = null,Object? elevationGain = null,Object? elevationLoss = null,Object? surfaceType = null,Object? visibility = null,Object? createdAt = null,Object? deleted = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? team = null,Object? name = null,Object? media = null,Object? distance = null,Object? elevationGain = null,Object? elevationLoss = null,Object? surfaceType = null,Object? visibility = null,Object? createdAt = null,Object? deleted = null,Object? excerpt = freezed,Object? thumbnailUrl = freezed,Object? commentCount = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
@@ -91,7 +94,10 @@ as double,surfaceType: null == surfaceType ? _self.surfaceType : surfaceType // 
 as String,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String,deleted: null == deleted ? _self.deleted : deleted // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,excerpt: freezed == excerpt ? _self.excerpt : excerpt // ignore: cast_nullable_to_non_nullable
+as String?,thumbnailUrl: freezed == thumbnailUrl ? _self.thumbnailUrl : thumbnailUrl // ignore: cast_nullable_to_non_nullable
+as String?,commentCount: freezed == commentCount ? _self.commentCount : commentCount // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 /// Create a copy of RouteDto
@@ -194,10 +200,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  TeamPublicationDto team,  String name,  MediaDto media,  double distance,  double elevationGain,  double elevationLoss,  String surfaceType,  String visibility,  String createdAt,  bool deleted)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  TeamPublicationDto team,  String name,  MediaDto media,  double distance,  double elevationGain,  double elevationLoss,  String surfaceType,  String visibility,  String createdAt,  bool deleted,  String? excerpt,  String? thumbnailUrl,  int? commentCount)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _RouteDto() when $default != null:
-return $default(_that.id,_that.slug,_that.team,_that.name,_that.media,_that.distance,_that.elevationGain,_that.elevationLoss,_that.surfaceType,_that.visibility,_that.createdAt,_that.deleted);case _:
+return $default(_that.id,_that.slug,_that.team,_that.name,_that.media,_that.distance,_that.elevationGain,_that.elevationLoss,_that.surfaceType,_that.visibility,_that.createdAt,_that.deleted,_that.excerpt,_that.thumbnailUrl,_that.commentCount);case _:
   return orElse();
 
 }
@@ -215,10 +221,10 @@ return $default(_that.id,_that.slug,_that.team,_that.name,_that.media,_that.dist
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  TeamPublicationDto team,  String name,  MediaDto media,  double distance,  double elevationGain,  double elevationLoss,  String surfaceType,  String visibility,  String createdAt,  bool deleted)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  TeamPublicationDto team,  String name,  MediaDto media,  double distance,  double elevationGain,  double elevationLoss,  String surfaceType,  String visibility,  String createdAt,  bool deleted,  String? excerpt,  String? thumbnailUrl,  int? commentCount)  $default,) {final _that = this;
 switch (_that) {
 case _RouteDto():
-return $default(_that.id,_that.slug,_that.team,_that.name,_that.media,_that.distance,_that.elevationGain,_that.elevationLoss,_that.surfaceType,_that.visibility,_that.createdAt,_that.deleted);case _:
+return $default(_that.id,_that.slug,_that.team,_that.name,_that.media,_that.distance,_that.elevationGain,_that.elevationLoss,_that.surfaceType,_that.visibility,_that.createdAt,_that.deleted,_that.excerpt,_that.thumbnailUrl,_that.commentCount);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -235,10 +241,10 @@ return $default(_that.id,_that.slug,_that.team,_that.name,_that.media,_that.dist
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  TeamPublicationDto team,  String name,  MediaDto media,  double distance,  double elevationGain,  double elevationLoss,  String surfaceType,  String visibility,  String createdAt,  bool deleted)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  TeamPublicationDto team,  String name,  MediaDto media,  double distance,  double elevationGain,  double elevationLoss,  String surfaceType,  String visibility,  String createdAt,  bool deleted,  String? excerpt,  String? thumbnailUrl,  int? commentCount)?  $default,) {final _that = this;
 switch (_that) {
 case _RouteDto() when $default != null:
-return $default(_that.id,_that.slug,_that.team,_that.name,_that.media,_that.distance,_that.elevationGain,_that.elevationLoss,_that.surfaceType,_that.visibility,_that.createdAt,_that.deleted);case _:
+return $default(_that.id,_that.slug,_that.team,_that.name,_that.media,_that.distance,_that.elevationGain,_that.elevationLoss,_that.surfaceType,_that.visibility,_that.createdAt,_that.deleted,_that.excerpt,_that.thumbnailUrl,_that.commentCount);case _:
   return null;
 
 }
@@ -250,7 +256,7 @@ return $default(_that.id,_that.slug,_that.team,_that.name,_that.media,_that.dist
 @JsonSerializable()
 
 class _RouteDto implements RouteDto {
-  const _RouteDto({required this.id, required this.slug, required this.team, required this.name, required this.media, required this.distance, required this.elevationGain, required this.elevationLoss, required this.surfaceType, required this.visibility, required this.createdAt, required this.deleted});
+  const _RouteDto({required this.id, required this.slug, required this.team, required this.name, required this.media, required this.distance, required this.elevationGain, required this.elevationLoss, required this.surfaceType, required this.visibility, required this.createdAt, required this.deleted, this.excerpt, this.thumbnailUrl, this.commentCount});
   factory _RouteDto.fromJson(Map<String, dynamic> json) => _$RouteDtoFromJson(json);
 
 /// Route ID (TSID)
@@ -277,6 +283,12 @@ class _RouteDto implements RouteDto {
 @override final  String createdAt;
 /// Whether the route is soft-deleted
 @override final  bool deleted;
+/// Plain-text opening of the description, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the description holds no text. Lets a list row render its two lines without the description being sent at all — see the 'view' parameter.
+@override final  String? excerpt;
+/// URL template of the route's thumbnail, light variant if there is one, else dark. Saves a compact row from carrying media.assets just to find the map preview.
+@override final  String? thumbnailUrl;
+/// Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.
+@override final  int? commentCount;
 
 /// Create a copy of RouteDto
 /// with the given fields replaced by the non-null parameter values.
@@ -291,16 +303,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RouteDto&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.team, team) || other.team == team)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.elevationLoss, elevationLoss) || other.elevationLoss == elevationLoss)&&(identical(other.surfaceType, surfaceType) || other.surfaceType == surfaceType)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.deleted, deleted) || other.deleted == deleted));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RouteDto&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.team, team) || other.team == team)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.elevationLoss, elevationLoss) || other.elevationLoss == elevationLoss)&&(identical(other.surfaceType, surfaceType) || other.surfaceType == surfaceType)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.excerpt, excerpt) || other.excerpt == excerpt)&&(identical(other.thumbnailUrl, thumbnailUrl) || other.thumbnailUrl == thumbnailUrl)&&(identical(other.commentCount, commentCount) || other.commentCount == commentCount));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,slug,team,name,media,distance,elevationGain,elevationLoss,surfaceType,visibility,createdAt,deleted);
+int get hashCode => Object.hash(runtimeType,id,slug,team,name,media,distance,elevationGain,elevationLoss,surfaceType,visibility,createdAt,deleted,excerpt,thumbnailUrl,commentCount);
 
 @override
 String toString() {
-  return 'RouteDto(id: $id, slug: $slug, team: $team, name: $name, media: $media, distance: $distance, elevationGain: $elevationGain, elevationLoss: $elevationLoss, surfaceType: $surfaceType, visibility: $visibility, createdAt: $createdAt, deleted: $deleted)';
+  return 'RouteDto(id: $id, slug: $slug, team: $team, name: $name, media: $media, distance: $distance, elevationGain: $elevationGain, elevationLoss: $elevationLoss, surfaceType: $surfaceType, visibility: $visibility, createdAt: $createdAt, deleted: $deleted, excerpt: $excerpt, thumbnailUrl: $thumbnailUrl, commentCount: $commentCount)';
 }
 
 
@@ -311,7 +323,7 @@ abstract mixin class _$RouteDtoCopyWith<$Res> implements $RouteDtoCopyWith<$Res>
   factory _$RouteDtoCopyWith(_RouteDto value, $Res Function(_RouteDto) _then) = __$RouteDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String slug, TeamPublicationDto team, String name, MediaDto media, double distance, double elevationGain, double elevationLoss, String surfaceType, String visibility, String createdAt, bool deleted
+ String id, String slug, TeamPublicationDto team, String name, MediaDto media, double distance, double elevationGain, double elevationLoss, String surfaceType, String visibility, String createdAt, bool deleted, String? excerpt, String? thumbnailUrl, int? commentCount
 });
 
 
@@ -328,7 +340,7 @@ class __$RouteDtoCopyWithImpl<$Res>
 
 /// Create a copy of RouteDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? slug = null,Object? team = null,Object? name = null,Object? media = null,Object? distance = null,Object? elevationGain = null,Object? elevationLoss = null,Object? surfaceType = null,Object? visibility = null,Object? createdAt = null,Object? deleted = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? slug = null,Object? team = null,Object? name = null,Object? media = null,Object? distance = null,Object? elevationGain = null,Object? elevationLoss = null,Object? surfaceType = null,Object? visibility = null,Object? createdAt = null,Object? deleted = null,Object? excerpt = freezed,Object? thumbnailUrl = freezed,Object? commentCount = freezed,}) {
   return _then(_RouteDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
@@ -342,7 +354,10 @@ as double,surfaceType: null == surfaceType ? _self.surfaceType : surfaceType // 
 as String,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String,deleted: null == deleted ? _self.deleted : deleted // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,excerpt: freezed == excerpt ? _self.excerpt : excerpt // ignore: cast_nullable_to_non_nullable
+as String?,thumbnailUrl: freezed == thumbnailUrl ? _self.thumbnailUrl : thumbnailUrl // ignore: cast_nullable_to_non_nullable
+as String?,commentCount: freezed == commentCount ? _self.commentCount : commentCount // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 

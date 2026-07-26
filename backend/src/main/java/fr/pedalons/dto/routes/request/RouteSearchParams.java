@@ -5,6 +5,11 @@ import fr.pedalons.service.team.request.MinRole;
 import lombok.Builder;
 import org.jspecify.annotations.Nullable;
 
+/**
+ * @param view how much of each row to render. Not a filter — it changes nothing about which routes
+ *     match, only how much of each one is written out, so the tile, the bounding box and the count
+ *     leave it null.
+ */
 @Builder
 public record RouteSearchParams(
     @Nullable String search,
@@ -23,4 +28,5 @@ public record RouteSearchParams(
     @Nullable Double nearRadius,
     @Nullable NearType nearType,
     @Nullable RouteSortBy sortBy,
-    @Nullable SortDirection sortDir) {}
+    @Nullable SortDirection sortDir,
+    @Nullable ListViewMode view) {}

@@ -15,5 +15,48 @@ export const GetConfigResponse = zod
       .describe(
         'Slug of the team the site is pinned to (dedicated hostname \/ alias). Null on a regular multi-team domain. When set, the app roots on this team.'
       ),
+    mapStyles: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe("Stable style identifier, e.g. 'colorful'"),
+            label: zod.string().describe('Human-readable label for the style switcher'),
+            url: zod
+              .string()
+              .describe(
+                'URL of the MapLibre style document to load in light mode (or at all times when darkVariant is null)'
+              ),
+            darkVariant: zod
+              .string()
+              .optional()
+              .describe(
+                "URL of the style document to load instead of 'url' when the client renders in dark mode. Null when the style has no dark counterpart — the client then keeps using 'url'."
+              ),
+          })
+          .describe('A basemap style the clients may offer')
+      )
+      .describe(
+        'Basemaps the clients may offer, in switcher order. Served rather than compiled in, so a tile provider can change without a client release.'
+      ),
+    tileServerBaseUrl: zod
+      .string()
+      .describe(
+        'Public base URL of the tile host, for a client that builds its own style, sprite or glyph URLs.'
+      ),
+    defaultCenter: zod
+      .object({
+        lat: zod.number().describe('Latitude in WGS84 degrees'),
+        lon: zod.number().describe('Longitude in WGS84 degrees'),
+        zoom: zod.number().describe('Initial zoom level'),
+      })
+      .describe(
+        "Where a map opens before it knows what it is showing. On a site rooted on one team this is that team's location; otherwise the deployment default."
+      ),
+    minSupportedAppVersion: zod
+      .string()
+      .optional()
+      .describe(
+        'Oldest mobile build this server still serves, as a semver string. Null when no floor is enforced; a client older than this should tell the user to update.'
+      ),
   })
   .describe('Application configuration')

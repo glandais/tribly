@@ -14,6 +14,8 @@ _TripStageDto _$TripStageDtoFromJson(Map<String, dynamic> json) =>
       dateTime: json['dateTime'] as String,
       media: MediaDto.fromJson(json['media'] as Map<String, dynamic>),
       sortOrder: (json['sortOrder'] as num).toInt(),
+      stageIndex: (json['stageIndex'] as num).toInt(),
+      stageCount: (json['stageCount'] as num).toInt(),
       route: json['route'] == null
           ? null
           : RouteDto.fromJson(json['route'] as Map<String, dynamic>),
@@ -33,6 +35,8 @@ Map<String, dynamic> _$TripStageDtoToJson(_TripStageDto instance) =>
       'dateTime': instance.dateTime,
       'media': instance.media.toJson(),
       'sortOrder': instance.sortOrder,
+      'stageIndex': instance.stageIndex,
+      'stageCount': instance.stageCount,
       'route': instance.route?.toJson(),
       'startPlace': instance.startPlace?.toJson(),
       'endPlace': instance.endPlace?.toJson(),

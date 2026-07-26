@@ -14,10 +14,36 @@ export const listAdsQuerySizeDefault = 20
 export const ListAdsQueryParams = zod.object({
   adType: zod.enum(['SALE', 'RENTAL', 'WANTED']).optional().describe('Filter by ad type'),
   from: zod.string().optional().describe('Start date filter (ISO format)'),
+  maxPrice: zod.number().optional().describe('Highest asking price to include'),
+  minPrice: zod
+    .number()
+    .optional()
+    .describe(
+      "Lowest asking price to include. Ads with no price ('à négocier') are excluded by either price bound."
+    ),
+  nearLat: zod.number().optional().describe('Latitude for proximity search'),
+  nearLon: zod.number().optional().describe('Longitude for proximity search'),
+  nearRadius: zod
+    .number()
+    .optional()
+    .describe(
+      'Search radius in metres around nearLat\/nearLon (default 25000, capped at 500000). Ads with no location are excluded when a centre is given.'
+    ),
   page: zod.number().default(listAdsQueryPageDefault).describe('Page number'),
   search: zod.string().optional().describe('Search by name\/description'),
   size: zod.number().default(listAdsQuerySizeDefault).describe('Page size'),
+  sortBy: zod
+    .enum(['DATE_TIME', 'PRICE', 'NAME'])
+    .optional()
+    .describe('Sort column (default: publication date)'),
+  sortDir: zod.enum(['ASC', 'DESC']).optional().describe('Sort direction (default: DESC)'),
   to: zod.string().optional().describe('End date filter (ISO format)'),
+  view: zod
+    .enum(['FULL', 'COMPACT'])
+    .optional()
+    .describe(
+      "How much of each row to send. COMPACT (case-insensitive) returns media.markdown empty and media.assets empty — read 'excerpt', 'thumbnailUrl' and 'images' instead, all of which are present either way. Omitted, or FULL, is the previous behaviour, byte for byte."
+    ),
 })
 
 export const ListAdsResponse = zod
@@ -186,17 +212,53 @@ export const ListAdsResponse = zod
                   .describe('Assets'),
               })
               .describe('Ad media'),
+            excerpt: zod
+              .string()
+              .optional()
+              .describe(
+                "Plain-text opening of the description, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the description holds no text. Lets a list row render its two lines without the description being sent at all — see the 'view' parameter."
+              ),
+            thumbnailUrl: zod
+              .string()
+              .optional()
+              .describe(
+                "URL template of the ad's first picture, the one a card shows. Saves a compact row from carrying media.assets just to find it."
+              ),
+            images: zod
+              .array(zod.string())
+              .describe(
+                "URL templates of every picture on the ad, in editor order — the gallery. Present whatever the 'view', so a compact row can show a carousel without pulling media.assets. The first entry is the same picture as 'thumbnailUrl'."
+              ),
             status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Ad status'),
             visibility: zod
               .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
               .describe('Visibility level'),
             adType: zod.enum(['SALE', 'RENTAL', 'WANTED']).describe('Ad type'),
             price: zod.number().optional().describe('Price'),
-            rentalPeriod: zod.enum(['DAY', 'WEEK', 'MONTH']).optional().describe('Rental period'),
+            rentalPeriod: zod
+              .enum(['DAY', 'WEEK', 'MONTH'])
+              .optional()
+              .describe(
+                "Period the price applies to, for a rental — render as 'price \/ period'. Null for a sale, and for a rental whose period has not been set."
+              ),
             locationDescription: zod.string().optional().describe('Location description'),
+            locationGeometry: zod
+              .object({
+                type: zod.enum(['Point']),
+                coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+              })
+              .optional()
+              .describe(
+                "Approximate location of the ad, deliberately blurred: the point is the centre of a fixed cell about 1 km across, not the seller's address. Enough to tell a nearby ad from a distant one, and the same value on every read so repeated calls cannot be averaged back to the exact position. Null when the ad has no location. The exact point stays on AdEditDto, which only the owner reads."
+              ),
             createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
             updatedAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
             createdById: zod.string().describe('Creator ID (TSID)'),
+            createdByDisplayName: zod
+              .string()
+              .describe(
+                'Display name of the member who posted the ad. The only thing about them this DTO carries: there is no contact channel on an Ad, and inventing one (an email, a phone number) is a product decision, not a serialisation one.'
+              ),
             deleted: zod.boolean().describe('Whether the ad is soft-deleted'),
           })
           .describe('Ad data')
@@ -560,15 +622,51 @@ export const CreateAdResponse = zod
           .describe('Assets'),
       })
       .describe('Ad media'),
+    excerpt: zod
+      .string()
+      .optional()
+      .describe(
+        "Plain-text opening of the description, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the description holds no text. Lets a list row render its two lines without the description being sent at all — see the 'view' parameter."
+      ),
+    thumbnailUrl: zod
+      .string()
+      .optional()
+      .describe(
+        "URL template of the ad's first picture, the one a card shows. Saves a compact row from carrying media.assets just to find it."
+      ),
+    images: zod
+      .array(zod.string())
+      .describe(
+        "URL templates of every picture on the ad, in editor order — the gallery. Present whatever the 'view', so a compact row can show a carousel without pulling media.assets. The first entry is the same picture as 'thumbnailUrl'."
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Ad status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     adType: zod.enum(['SALE', 'RENTAL', 'WANTED']).describe('Ad type'),
     price: zod.number().optional().describe('Price'),
-    rentalPeriod: zod.enum(['DAY', 'WEEK', 'MONTH']).optional().describe('Rental period'),
+    rentalPeriod: zod
+      .enum(['DAY', 'WEEK', 'MONTH'])
+      .optional()
+      .describe(
+        "Period the price applies to, for a rental — render as 'price \/ period'. Null for a sale, and for a rental whose period has not been set."
+      ),
     locationDescription: zod.string().optional().describe('Location description'),
+    locationGeometry: zod
+      .object({
+        type: zod.enum(['Point']),
+        coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+      })
+      .optional()
+      .describe(
+        "Approximate location of the ad, deliberately blurred: the point is the centre of a fixed cell about 1 km across, not the seller's address. Enough to tell a nearby ad from a distant one, and the same value on every read so repeated calls cannot be averaged back to the exact position. Null when the ad has no location. The exact point stays on AdEditDto, which only the owner reads."
+      ),
     createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     updatedAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     createdById: zod.string().describe('Creator ID (TSID)'),
+    createdByDisplayName: zod
+      .string()
+      .describe(
+        'Display name of the member who posted the ad. The only thing about them this DTO carries: there is no contact channel on an Ad, and inventing one (an email, a phone number) is a product decision, not a serialisation one.'
+      ),
     deleted: zod.boolean().describe('Whether the ad is soft-deleted'),
   })
   .describe('Ad data')
@@ -926,15 +1024,51 @@ export const UpdateAdResponse = zod
           .describe('Assets'),
       })
       .describe('Ad media'),
+    excerpt: zod
+      .string()
+      .optional()
+      .describe(
+        "Plain-text opening of the description, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the description holds no text. Lets a list row render its two lines without the description being sent at all — see the 'view' parameter."
+      ),
+    thumbnailUrl: zod
+      .string()
+      .optional()
+      .describe(
+        "URL template of the ad's first picture, the one a card shows. Saves a compact row from carrying media.assets just to find it."
+      ),
+    images: zod
+      .array(zod.string())
+      .describe(
+        "URL templates of every picture on the ad, in editor order — the gallery. Present whatever the 'view', so a compact row can show a carousel without pulling media.assets. The first entry is the same picture as 'thumbnailUrl'."
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Ad status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     adType: zod.enum(['SALE', 'RENTAL', 'WANTED']).describe('Ad type'),
     price: zod.number().optional().describe('Price'),
-    rentalPeriod: zod.enum(['DAY', 'WEEK', 'MONTH']).optional().describe('Rental period'),
+    rentalPeriod: zod
+      .enum(['DAY', 'WEEK', 'MONTH'])
+      .optional()
+      .describe(
+        "Period the price applies to, for a rental — render as 'price \/ period'. Null for a sale, and for a rental whose period has not been set."
+      ),
     locationDescription: zod.string().optional().describe('Location description'),
+    locationGeometry: zod
+      .object({
+        type: zod.enum(['Point']),
+        coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+      })
+      .optional()
+      .describe(
+        "Approximate location of the ad, deliberately blurred: the point is the centre of a fixed cell about 1 km across, not the seller's address. Enough to tell a nearby ad from a distant one, and the same value on every read so repeated calls cannot be averaged back to the exact position. Null when the ad has no location. The exact point stays on AdEditDto, which only the owner reads."
+      ),
     createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     updatedAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     createdById: zod.string().describe('Creator ID (TSID)'),
+    createdByDisplayName: zod
+      .string()
+      .describe(
+        'Display name of the member who posted the ad. The only thing about them this DTO carries: there is no contact channel on an Ad, and inventing one (an email, a phone number) is a product decision, not a serialisation one.'
+      ),
     deleted: zod.boolean().describe('Whether the ad is soft-deleted'),
   })
   .describe('Ad data')
@@ -1110,15 +1244,51 @@ export const GetAdResponse = zod
           .describe('Assets'),
       })
       .describe('Ad media'),
+    excerpt: zod
+      .string()
+      .optional()
+      .describe(
+        "Plain-text opening of the description, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the description holds no text. Lets a list row render its two lines without the description being sent at all — see the 'view' parameter."
+      ),
+    thumbnailUrl: zod
+      .string()
+      .optional()
+      .describe(
+        "URL template of the ad's first picture, the one a card shows. Saves a compact row from carrying media.assets just to find it."
+      ),
+    images: zod
+      .array(zod.string())
+      .describe(
+        "URL templates of every picture on the ad, in editor order — the gallery. Present whatever the 'view', so a compact row can show a carousel without pulling media.assets. The first entry is the same picture as 'thumbnailUrl'."
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Ad status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     adType: zod.enum(['SALE', 'RENTAL', 'WANTED']).describe('Ad type'),
     price: zod.number().optional().describe('Price'),
-    rentalPeriod: zod.enum(['DAY', 'WEEK', 'MONTH']).optional().describe('Rental period'),
+    rentalPeriod: zod
+      .enum(['DAY', 'WEEK', 'MONTH'])
+      .optional()
+      .describe(
+        "Period the price applies to, for a rental — render as 'price \/ period'. Null for a sale, and for a rental whose period has not been set."
+      ),
     locationDescription: zod.string().optional().describe('Location description'),
+    locationGeometry: zod
+      .object({
+        type: zod.enum(['Point']),
+        coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+      })
+      .optional()
+      .describe(
+        "Approximate location of the ad, deliberately blurred: the point is the centre of a fixed cell about 1 km across, not the seller's address. Enough to tell a nearby ad from a distant one, and the same value on every read so repeated calls cannot be averaged back to the exact position. Null when the ad has no location. The exact point stays on AdEditDto, which only the owner reads."
+      ),
     createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     updatedAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     createdById: zod.string().describe('Creator ID (TSID)'),
+    createdByDisplayName: zod
+      .string()
+      .describe(
+        'Display name of the member who posted the ad. The only thing about them this DTO carries: there is no contact channel on an Ad, and inventing one (an email, a phone number) is a product decision, not a serialisation one.'
+      ),
     deleted: zod.boolean().describe('Whether the ad is soft-deleted'),
   })
   .describe('Ad data')
@@ -1510,15 +1680,51 @@ export const ChangeAdSlugResponse = zod
           .describe('Assets'),
       })
       .describe('Ad media'),
+    excerpt: zod
+      .string()
+      .optional()
+      .describe(
+        "Plain-text opening of the description, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the description holds no text. Lets a list row render its two lines without the description being sent at all — see the 'view' parameter."
+      ),
+    thumbnailUrl: zod
+      .string()
+      .optional()
+      .describe(
+        "URL template of the ad's first picture, the one a card shows. Saves a compact row from carrying media.assets just to find it."
+      ),
+    images: zod
+      .array(zod.string())
+      .describe(
+        "URL templates of every picture on the ad, in editor order — the gallery. Present whatever the 'view', so a compact row can show a carousel without pulling media.assets. The first entry is the same picture as 'thumbnailUrl'."
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Ad status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     adType: zod.enum(['SALE', 'RENTAL', 'WANTED']).describe('Ad type'),
     price: zod.number().optional().describe('Price'),
-    rentalPeriod: zod.enum(['DAY', 'WEEK', 'MONTH']).optional().describe('Rental period'),
+    rentalPeriod: zod
+      .enum(['DAY', 'WEEK', 'MONTH'])
+      .optional()
+      .describe(
+        "Period the price applies to, for a rental — render as 'price \/ period'. Null for a sale, and for a rental whose period has not been set."
+      ),
     locationDescription: zod.string().optional().describe('Location description'),
+    locationGeometry: zod
+      .object({
+        type: zod.enum(['Point']),
+        coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+      })
+      .optional()
+      .describe(
+        "Approximate location of the ad, deliberately blurred: the point is the centre of a fixed cell about 1 km across, not the seller's address. Enough to tell a nearby ad from a distant one, and the same value on every read so repeated calls cannot be averaged back to the exact position. Null when the ad has no location. The exact point stays on AdEditDto, which only the owner reads."
+      ),
     createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     updatedAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     createdById: zod.string().describe('Creator ID (TSID)'),
+    createdByDisplayName: zod
+      .string()
+      .describe(
+        'Display name of the member who posted the ad. The only thing about them this DTO carries: there is no contact channel on an Ad, and inventing one (an email, a phone number) is a product decision, not a serialisation one.'
+      ),
     deleted: zod.boolean().describe('Whether the ad is soft-deleted'),
   })
   .describe('Ad data')

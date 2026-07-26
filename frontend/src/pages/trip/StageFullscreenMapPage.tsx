@@ -35,9 +35,14 @@ export function StageFullscreenMapPage() {
   const stage = trip?.stages?.find((s) => s.slug === stageSlug)
   const routeSlug = stage?.route?.slug
 
-  const { data: route, isLoading: isLoadingRoute } = useGetRoute(teamSlug!, routeSlug ?? '', {
-    query: { enabled: !!teamSlug && !!routeSlug },
-  })
+  const { data: route, isLoading: isLoadingRoute } = useGetRoute(
+    teamSlug!,
+    routeSlug ?? '',
+    undefined,
+    {
+      query: { enabled: !!teamSlug && !!routeSlug },
+    }
+  )
 
   useCanonicalPath(
     team && trip && stageSlug ? paths.stageMap(team.slug, trip.slug, stageSlug) : undefined

@@ -340,12 +340,30 @@ export const CreatePostResponse = zod
           .describe('Assets'),
       })
       .describe('Publication media'),
+    excerpt: zod
+      .string()
+      .optional()
+      .describe(
+        "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+      ),
+    thumbnailUrl: zod
+      .string()
+      .optional()
+      .describe(
+        "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
+      ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
     createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
     deleted: zod.boolean().describe('Whether the post is soft-deleted'),
+    commentCount: zod
+      .number()
+      .optional()
+      .describe(
+        'Number of comments, replies included. Absent when the caller may not read the comments of this post — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
   })
   .describe('Post summary data')
 
@@ -690,12 +708,30 @@ export const UpdatePostResponse = zod
           .describe('Assets'),
       })
       .describe('Publication media'),
+    excerpt: zod
+      .string()
+      .optional()
+      .describe(
+        "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+      ),
+    thumbnailUrl: zod
+      .string()
+      .optional()
+      .describe(
+        "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
+      ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
     createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
     deleted: zod.boolean().describe('Whether the post is soft-deleted'),
+    commentCount: zod
+      .number()
+      .optional()
+      .describe(
+        'Number of comments, replies included. Absent when the caller may not read the comments of this post — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
   })
   .describe('Post summary data')
 
@@ -871,12 +907,30 @@ export const GetPostResponse = zod
           .describe('Assets'),
       })
       .describe('Publication media'),
+    excerpt: zod
+      .string()
+      .optional()
+      .describe(
+        "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+      ),
+    thumbnailUrl: zod
+      .string()
+      .optional()
+      .describe(
+        "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
+      ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
     createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
     deleted: zod.boolean().describe('Whether the post is soft-deleted'),
+    commentCount: zod
+      .number()
+      .optional()
+      .describe(
+        'Number of comments, replies included. Absent when the caller may not read the comments of this post — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
   })
   .describe('Post summary data')
 
@@ -1077,12 +1131,30 @@ export const ChangePostSlugResponse = zod
           .describe('Assets'),
       })
       .describe('Publication media'),
+    excerpt: zod
+      .string()
+      .optional()
+      .describe(
+        "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+      ),
+    thumbnailUrl: zod
+      .string()
+      .optional()
+      .describe(
+        "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
+      ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
     createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
     deleted: zod.boolean().describe('Whether the post is soft-deleted'),
+    commentCount: zod
+      .number()
+      .optional()
+      .describe(
+        'Number of comments, replies included. Absent when the caller may not read the comments of this post — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
   })
   .describe('Post summary data')
 
@@ -1258,11 +1330,29 @@ export const UndeletePostResponse = zod
           .describe('Assets'),
       })
       .describe('Publication media'),
+    excerpt: zod
+      .string()
+      .optional()
+      .describe(
+        "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+      ),
+    thumbnailUrl: zod
+      .string()
+      .optional()
+      .describe(
+        "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
+      ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
     createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
     deleted: zod.boolean().describe('Whether the post is soft-deleted'),
+    commentCount: zod
+      .number()
+      .optional()
+      .describe(
+        'Number of comments, replies included. Absent when the caller may not read the comments of this post — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
   })
   .describe('Post summary data')

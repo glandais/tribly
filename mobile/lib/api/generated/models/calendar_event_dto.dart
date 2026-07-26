@@ -6,6 +6,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'calendar_event_type.dart';
 import 'instant.dart';
+import 'status.dart';
 
 part 'calendar_event_dto.freezed.dart';
 part 'calendar_event_dto.g.dart';
@@ -38,11 +39,32 @@ abstract class CalendarEventDto with _$CalendarEventDto {
     /// Entity slug (ride or stage)
     required String entitySlug,
 
+    /// Whether the current user is registered to this ride, or to the trip this stage belongs to. False for an anonymous caller.
+    required bool registered,
+
+    /// Publication status of the ride or stage
+    required String status,
+
     /// Event end date/time
     String? end,
 
     /// Parent trip slug (for stages only)
     String? tripSlug,
+
+    /// Name of the meeting place, null when the ride or stage has no start place
+    String? startPlaceName,
+
+    /// Distance in meters of the attached route, null when there is no route
+    double? distance,
+
+    /// Total elevation gain in meters of the attached route, null when there is no route
+    double? elevationGain,
+
+    /// Thumbnail image URL template (contains a {size} placeholder). Falls back to the route's thumbnail when the ride or stage has none of its own.
+    String? thumbnailUrl,
+
+    /// Name of the ride group the current user joined. Null when not registered, and always null for trip stages, which have no groups.
+    String? groupName,
   }) = _CalendarEventDto;
 
   factory CalendarEventDto.fromJson(Map<String, Object?> json) =>

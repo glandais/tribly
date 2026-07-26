@@ -10,8 +10,11 @@ import '../models/ad_dto.dart';
 import '../models/ad_edit_dto.dart';
 import '../models/ad_list_response.dart';
 import '../models/ad_request.dart';
+import '../models/ad_sort_by.dart';
 import '../models/ad_type.dart';
+import '../models/list_view_mode.dart';
 import '../models/slug_change_request.dart';
+import '../models/sort_direction.dart';
 
 part 'ads_client.g.dart';
 
@@ -29,13 +32,29 @@ abstract class AdsClient {
   ///
   /// [from] - Start date filter (ISO format).
   ///
+  /// [maxPrice] - Highest asking price to include.
+  ///
+  /// [minPrice] - Lowest asking price to include. Ads with no price ('à négocier') are excluded by either price bound.
+  ///
+  /// [nearLat] - Latitude for proximity search.
+  ///
+  /// [nearLon] - Longitude for proximity search.
+  ///
+  /// [nearRadius] - Search radius in metres around nearLat/nearLon (default 25000, capped at 500000). Ads with no location are excluded when a centre is given.
+  ///
   /// [page] - Page number.
   ///
   /// [search] - Search by name/description.
   ///
   /// [size] - Page size.
   ///
+  /// [sortBy] - Sort column (default: publication date).
+  ///
+  /// [sortDir] - Sort direction (default: DESC).
+  ///
   /// [to] - End date filter (ISO format).
+  ///
+  /// [view] - How much of each row to send. COMPACT (case-insensitive) returns media.markdown empty and media.assets empty — read 'excerpt', 'thumbnailUrl' and 'images' instead, all of which are present either way. Omitted, or FULL, is the previous behaviour, byte for byte.
   @GET('/api/teams/{teamSlug}/classifieds')
   Future<AdListResponse> listAds({
     @Path('teamSlug') required String teamSlug,
@@ -43,8 +62,16 @@ abstract class AdsClient {
     @Query('size') int? size = 20,
     @Query('adType') AdType? adType,
     @Query('from') String? from,
+    @Query('maxPrice') num? maxPrice,
+    @Query('minPrice') num? minPrice,
+    @Query('nearLat') double? nearLat,
+    @Query('nearLon') double? nearLon,
+    @Query('nearRadius') double? nearRadius,
     @Query('search') String? search,
+    @Query('sortBy') AdSortBy? sortBy,
+    @Query('sortDir') SortDirection? sortDir,
     @Query('to') String? to,
+    @Query('view') ListViewMode? view,
   });
 
   /// Create ad.

@@ -14,6 +14,7 @@ _CommentDto _$CommentDtoFromJson(Map<String, dynamic> json) => _CommentDto(
   replies: (json['replies'] as List<dynamic>)
       .map((e) => CommentDto.fromJson(e as Map<String, dynamic>))
       .toList(),
+  replyCount: (json['replyCount'] as num).toInt(),
   parentId: json['parentId'] as String?,
 );
 
@@ -24,5 +25,6 @@ Map<String, dynamic> _$CommentDtoToJson(_CommentDto instance) =>
       'author': instance.author.toJson(),
       'createdAt': instance.createdAt,
       'replies': instance.replies.map((e) => e.toJson()).toList(),
+      'replyCount': instance.replyCount,
       'parentId': instance.parentId,
     };

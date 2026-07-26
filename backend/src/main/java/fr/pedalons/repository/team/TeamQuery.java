@@ -15,5 +15,10 @@ public record TeamQuery(
     @Nullable Long userId,
     @Nullable MinRole minRole,
     @Nullable String search,
+    /**
+     * Restricts to teams that do, or do not, accept a join request from any domain user. Null keeps
+     * both. A filter only — it never widens what the visibility rules already allow.
+     */
+    @Nullable Boolean joinable,
     boolean platformAdmin)
     implements PageInterface {}

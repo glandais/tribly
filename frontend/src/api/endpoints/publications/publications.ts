@@ -12,6 +12,9 @@ import type {
 } from '@tanstack/react-query'
 
 import type {
+  CountAllPublicationsParams,
+  CountPublicationsParams,
+  CountResponse,
   ErrorResponse,
   ListAllPublicationsParams,
   ListPublicationsParams,
@@ -185,6 +188,160 @@ export const prefetchListAllPublicationsQuery = async <
 }
 
 /**
+ * How many publications match the filters, with none of them read. Accepts exactly the same filters as the listing, minus pagination, so a count and the list it opens can never disagree.
+ * @summary Count all publications
+ */
+export const countAllPublications = (
+  params?: CountAllPublicationsParams,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<CountResponse>(
+    { url: `/api/publications/count`, method: 'GET', params, signal },
+    options
+  )
+}
+
+export const getCountAllPublicationsQueryKey = (params?: CountAllPublicationsParams) => {
+  return [`/api/publications/count`, ...(params ? [params] : [])] as const
+}
+
+export const getCountAllPublicationsQueryOptions = <
+  TData = Awaited<ReturnType<typeof countAllPublications>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: CountAllPublicationsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof countAllPublications>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getCountAllPublicationsQueryKey(params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof countAllPublications>>> = ({ signal }) =>
+    countAllPublications(params, requestOptions, signal)
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof countAllPublications>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type CountAllPublicationsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof countAllPublications>>
+>
+export type CountAllPublicationsQueryError = ErrorType<unknown>
+
+export function useCountAllPublications<
+  TData = Awaited<ReturnType<typeof countAllPublications>>,
+  TError = ErrorType<unknown>,
+>(
+  params: undefined | CountAllPublicationsParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof countAllPublications>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof countAllPublications>>,
+          TError,
+          Awaited<ReturnType<typeof countAllPublications>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCountAllPublications<
+  TData = Awaited<ReturnType<typeof countAllPublications>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: CountAllPublicationsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof countAllPublications>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof countAllPublications>>,
+          TError,
+          Awaited<ReturnType<typeof countAllPublications>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCountAllPublications<
+  TData = Awaited<ReturnType<typeof countAllPublications>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: CountAllPublicationsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof countAllPublications>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Count all publications
+ */
+
+export function useCountAllPublications<
+  TData = Awaited<ReturnType<typeof countAllPublications>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: CountAllPublicationsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof countAllPublications>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getCountAllPublicationsQueryOptions(params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Count all publications
+ */
+export const prefetchCountAllPublicationsQuery = async <
+  TData = Awaited<ReturnType<typeof countAllPublications>>,
+  TError = ErrorType<unknown>,
+>(
+  queryClient: QueryClient,
+  params?: CountAllPublicationsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof countAllPublications>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getCountAllPublicationsQueryOptions(params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Get paginated list of publications for a team with optional filtering
  * @summary List publications
  */
@@ -328,6 +485,161 @@ export const prefetchListPublicationsQuery = async <
   }
 ): Promise<QueryClient> => {
   const queryOptions = getListPublicationsQueryOptions(teamSlug, params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
+ * How many of the team's publications match the filters, with none of them read. Accepts exactly the same filters as the listing, minus pagination, so a count and the list it opens can never disagree.
+ * @summary Count publications
+ */
+export const countPublications = (
+  teamSlug: string,
+  params?: CountPublicationsParams,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<CountResponse>(
+    { url: `/api/teams/${teamSlug}/publications/count`, method: 'GET', params, signal },
+    options
+  )
+}
+
+export const getCountPublicationsQueryKey = (
+  teamSlug: string,
+  params?: CountPublicationsParams
+) => {
+  return [`/api/teams/${teamSlug}/publications/count`, ...(params ? [params] : [])] as const
+}
+
+export const getCountPublicationsQueryOptions = <
+  TData = Awaited<ReturnType<typeof countPublications>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params?: CountPublicationsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof countPublications>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getCountPublicationsQueryKey(teamSlug, params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof countPublications>>> = ({ signal }) =>
+    countPublications(teamSlug, params, requestOptions, signal)
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: teamSlug !== null && teamSlug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof countPublications>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+}
+
+export type CountPublicationsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof countPublications>>
+>
+export type CountPublicationsQueryError = ErrorType<ErrorResponse>
+
+export function useCountPublications<
+  TData = Awaited<ReturnType<typeof countPublications>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params: undefined | CountPublicationsParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof countPublications>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof countPublications>>,
+          TError,
+          Awaited<ReturnType<typeof countPublications>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCountPublications<
+  TData = Awaited<ReturnType<typeof countPublications>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params?: CountPublicationsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof countPublications>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof countPublications>>,
+          TError,
+          Awaited<ReturnType<typeof countPublications>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCountPublications<
+  TData = Awaited<ReturnType<typeof countPublications>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params?: CountPublicationsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof countPublications>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Count publications
+ */
+
+export function useCountPublications<
+  TData = Awaited<ReturnType<typeof countPublications>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params?: CountPublicationsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof countPublications>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getCountPublicationsQueryOptions(teamSlug, params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Count publications
+ */
+export const prefetchCountPublicationsQuery = async <
+  TData = Awaited<ReturnType<typeof countPublications>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  params?: CountPublicationsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof countPublications>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getCountPublicationsQueryOptions(teamSlug, params, options)
 
   await queryClient.prefetchQuery(queryOptions)
 

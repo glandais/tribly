@@ -7,6 +7,7 @@ import fr.pedalons.service.calendar.CalendarService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
@@ -54,7 +55,9 @@ public class TeamCalendarResource {
 
     CalendarEventsResponse events =
         calendarService.getEventsForTeam(AuthMode.WEB, teamSlug, from, to);
-    return Response.ok(events).build();
+    // Each event carries "registered" and "groupName": the answer is specific to the caller and
+    // must never be served to another one from a shared cache.
+    return Response.ok(events).header(HttpHeaders.CACHE_CONTROL, "private, no-store").build();
   }
 
   @GET

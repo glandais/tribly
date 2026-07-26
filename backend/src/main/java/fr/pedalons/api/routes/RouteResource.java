@@ -1,11 +1,13 @@
 package fr.pedalons.api.routes;
 
+import fr.pedalons.dto.common.CountResponse;
 import fr.pedalons.dto.common.request.SlugChangeRequest;
 import fr.pedalons.dto.error.ErrorResponse;
+import fr.pedalons.dto.routes.request.GeometryOptions;
+import fr.pedalons.dto.routes.request.RouteFilterParams;
+import fr.pedalons.dto.routes.request.RouteListParams;
 import fr.pedalons.dto.routes.request.RouteRequest;
-import fr.pedalons.dto.routes.request.RouteSearchParams;
 import fr.pedalons.dto.routes.response.*;
-import fr.pedalons.enums.*;
 import fr.pedalons.infrastructure.jaxrs.PedalonsMediaType;
 import fr.pedalons.service.route.RouteService;
 import jakarta.annotation.security.PermitAll;
@@ -14,6 +16,7 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -38,6 +41,9 @@ import org.jspecify.annotations.Nullable;
 @Tag(name = "Routes", description = "GPX route management operations")
 public class RouteResource {
 
+  /** Route payloads carry commentCount, which depends on who is asking. */
+  static final String PRIVATE_NO_STORE = "private, no-store";
+
   @Inject RouteService routeService;
 
   /**
@@ -60,64 +66,44 @@ public class RouteResource {
   })
   public Response listRoutes(
       @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
-      @Parameter(description = "Search by name/markdown") @QueryParam("search")
-          @Nullable String search,
-      @Parameter(description = "Page number (0-indexed)") @QueryParam("page") @DefaultValue("0")
-          int page,
-      @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size,
-      @Parameter(description = "Minimum distance in meters") @QueryParam("minDistance")
-          @Nullable Float minDistance,
-      @Parameter(description = "Maximum distance in meters") @QueryParam("maxDistance")
-          @Nullable Float maxDistance,
-      @Parameter(description = "Minimum elevation gain in meters") @QueryParam("minElevationGain")
-          @Nullable Float minElevationGain,
-      @Parameter(description = "Maximum elevation gain in meters") @QueryParam("maxElevationGain")
-          @Nullable Float maxElevationGain,
-      @Parameter(description = "Hilliness preset (FLAT, HILLY, MOUNTAINOUS)")
-          @QueryParam("hilliness")
-          @Nullable Hilliness hilliness,
-      @Parameter(description = "Filter by surface type") @QueryParam("surfaceType")
-          @Nullable SurfaceType surfaceType,
-      @Parameter(description = "Filter by wind direction") @QueryParam("windDirection")
-          @Nullable WindDirection windDirection,
-      @Parameter(description = "Latitude for proximity search") @QueryParam("nearLat")
-          @Nullable Double nearLat,
-      @Parameter(description = "Longitude for proximity search") @QueryParam("nearLon")
-          @Nullable Double nearLon,
-      @Parameter(description = "Search radius in meters (default: 25000)") @QueryParam("nearRadius")
-          @Nullable Double nearRadius,
-      @Parameter(description = "Search near START, END, or START_OR_END (default)")
-          @QueryParam("nearType")
-          @Nullable NearType nearType,
-      @Parameter(description = "Sort by field (DISTANCE, ELEVATION_GAIN, HILLINESS, DATE_TIME)")
-          @QueryParam("sortBy")
-          @Nullable RouteSortBy sortBy,
-      @Parameter(description = "Sort direction (ASC, DESC)") @QueryParam("sortDir")
-          @Nullable SortDirection sortDir) {
+      @BeanParam RouteListParams params) {
 
-    RouteSearchParams params =
-        RouteSearchParams.builder()
-            .search(search)
-            .page(page)
-            .size(size)
-            .minDistance(minDistance)
-            .maxDistance(maxDistance)
-            .minElevationGain(minElevationGain)
-            .maxElevationGain(maxElevationGain)
-            .hilliness(hilliness)
-            .surfaceType(surfaceType)
-            .windDirection(windDirection)
-            .nearLat(nearLat)
-            .nearLon(nearLon)
-            .nearRadius(nearRadius)
-            .nearType(nearType)
-            .sortBy(sortBy)
-            .sortDir(sortDir)
-            .build();
+    RouteListResponse routes = routeService.getRoutes(teamSlug, params.toSearchParams());
 
-    RouteListResponse routes = routeService.getRoutes(teamSlug, params);
+    // Rows carry a per-user field (commentCount, which follows the caller's team
+    // membership): never let a shared cache keep one user's answer for the next one.
+    return Response.ok(routes).header(HttpHeaders.CACHE_CONTROL, PRIVATE_NO_STORE).build();
+  }
 
-    return Response.ok(routes).build();
+  /**
+   * How many routes the same filters match, without listing any.
+   */
+  @GET
+  @PermitAll
+  @Path("/count")
+  @Operation(
+      operationId = "countRoutes",
+      summary = "Count routes",
+      description =
+          "How many of the team's routes match the filters, with none of them read. Accepts exactly"
+              + " the same filters as the route list, minus sorting and pagination, so the figure"
+              + " and the list it opens can never disagree. Meant for a filter sheet that wants to"
+              + " announce its result count before the user commits to it.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Count computed successfully",
+        content = @Content(schema = @Schema(implementation = CountResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+  })
+  public Response countRoutes(
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
+      @BeanParam RouteFilterParams params) {
+
+    return Response.ok(routeService.countRoutes(teamSlug, params.toSearchParams())).build();
   }
 
   /**
@@ -147,50 +133,10 @@ public class RouteResource {
       @Parameter(description = "Zoom level") @PathParam("z") int z,
       @Parameter(description = "Tile column") @PathParam("x") int x,
       @Parameter(description = "Tile row") @PathParam("y") int y,
-      @Parameter(description = "Search by name/markdown") @QueryParam("search")
-          @Nullable String search,
-      @Parameter(description = "Minimum distance in meters") @QueryParam("minDistance")
-          @Nullable Float minDistance,
-      @Parameter(description = "Maximum distance in meters") @QueryParam("maxDistance")
-          @Nullable Float maxDistance,
-      @Parameter(description = "Minimum elevation gain in meters") @QueryParam("minElevationGain")
-          @Nullable Float minElevationGain,
-      @Parameter(description = "Maximum elevation gain in meters") @QueryParam("maxElevationGain")
-          @Nullable Float maxElevationGain,
-      @Parameter(description = "Hilliness preset (FLAT, HILLY, MOUNTAINOUS)")
-          @QueryParam("hilliness")
-          @Nullable Hilliness hilliness,
-      @Parameter(description = "Filter by surface type") @QueryParam("surfaceType")
-          @Nullable SurfaceType surfaceType,
-      @Parameter(description = "Filter by wind direction") @QueryParam("windDirection")
-          @Nullable WindDirection windDirection,
-      @Parameter(description = "Latitude for proximity search") @QueryParam("nearLat")
-          @Nullable Double nearLat,
-      @Parameter(description = "Longitude for proximity search") @QueryParam("nearLon")
-          @Nullable Double nearLon,
-      @Parameter(description = "Search radius in meters (default: 25000)") @QueryParam("nearRadius")
-          @Nullable Double nearRadius,
-      @Parameter(description = "Search near START, END, or START_OR_END (default)")
-          @QueryParam("nearType")
-          @Nullable NearType nearType) {
+      @BeanParam RouteFilterParams params) {
 
-    RouteSearchParams params =
-        RouteSearchParams.builder()
-            .search(search)
-            .minDistance(minDistance)
-            .maxDistance(maxDistance)
-            .minElevationGain(minElevationGain)
-            .maxElevationGain(maxElevationGain)
-            .hilliness(hilliness)
-            .surfaceType(surfaceType)
-            .windDirection(windDirection)
-            .nearLat(nearLat)
-            .nearLon(nearLon)
-            .nearRadius(nearRadius)
-            .nearType(nearType)
-            .build();
-
-    return RouteTiles.response(routeService.getRoutesTile(teamSlug, params, z, x, y));
+    return RouteTiles.response(
+        routeService.getRoutesTile(teamSlug, params.toSearchParams(), z, x, y));
   }
 
   /**
@@ -217,50 +163,9 @@ public class RouteResource {
   })
   public Response getRoutesBounds(
       @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
-      @Parameter(description = "Search by name/markdown") @QueryParam("search")
-          @Nullable String search,
-      @Parameter(description = "Minimum distance in meters") @QueryParam("minDistance")
-          @Nullable Float minDistance,
-      @Parameter(description = "Maximum distance in meters") @QueryParam("maxDistance")
-          @Nullable Float maxDistance,
-      @Parameter(description = "Minimum elevation gain in meters") @QueryParam("minElevationGain")
-          @Nullable Float minElevationGain,
-      @Parameter(description = "Maximum elevation gain in meters") @QueryParam("maxElevationGain")
-          @Nullable Float maxElevationGain,
-      @Parameter(description = "Hilliness preset (FLAT, HILLY, MOUNTAINOUS)")
-          @QueryParam("hilliness")
-          @Nullable Hilliness hilliness,
-      @Parameter(description = "Filter by surface type") @QueryParam("surfaceType")
-          @Nullable SurfaceType surfaceType,
-      @Parameter(description = "Filter by wind direction") @QueryParam("windDirection")
-          @Nullable WindDirection windDirection,
-      @Parameter(description = "Latitude for proximity search") @QueryParam("nearLat")
-          @Nullable Double nearLat,
-      @Parameter(description = "Longitude for proximity search") @QueryParam("nearLon")
-          @Nullable Double nearLon,
-      @Parameter(description = "Search radius in meters (default: 25000)") @QueryParam("nearRadius")
-          @Nullable Double nearRadius,
-      @Parameter(description = "Search near START, END, or START_OR_END (default)")
-          @QueryParam("nearType")
-          @Nullable NearType nearType) {
+      @BeanParam RouteFilterParams params) {
 
-    RouteSearchParams params =
-        RouteSearchParams.builder()
-            .search(search)
-            .minDistance(minDistance)
-            .maxDistance(maxDistance)
-            .minElevationGain(minElevationGain)
-            .maxElevationGain(maxElevationGain)
-            .hilliness(hilliness)
-            .surfaceType(surfaceType)
-            .windDirection(windDirection)
-            .nearLat(nearLat)
-            .nearLon(nearLon)
-            .nearRadius(nearRadius)
-            .nearType(nearType)
-            .build();
-
-    return Response.ok(routeService.getRoutesBounds(teamSlug, params)).build();
+    return Response.ok(routeService.getRoutesBounds(teamSlug, params.toSearchParams())).build();
   }
 
   /**
@@ -318,7 +223,11 @@ public class RouteResource {
   @PermitAll
   @Operation(
       summary = "Get route details",
-      description = "Get detailed route information including GPS coordinates and statistics")
+      description =
+          "Get detailed route information including GPS coordinates and statistics. The stored"
+              + " track holds one point every ten meters, which is megabytes of JSON on a long"
+              + " route: 'simplify' and 'points' let a client trade fidelity for weight. Passing"
+              + " neither returns the stored track unchanged.")
   @APIResponses({
     @APIResponse(
         responseCode = "200",
@@ -331,10 +240,71 @@ public class RouteResource {
   })
   public Response getRoute(
       @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
-      @Parameter(description = "Route slug") @PathParam("routeSlug") String routeSlug) {
+      @Parameter(description = "Route slug") @PathParam("routeSlug") String routeSlug,
+      @Parameter(
+              description =
+                  "Douglas-Peucker tolerance in meters: drop every track point lying closer than"
+                      + " this to the line joining the points kept around it. The returned line"
+                      + " stays within that many meters of the stored one, and its first and last"
+                      + " points are always kept. Capped at 1000; absent or zero means no"
+                      + " simplification.")
+          @QueryParam("simplify")
+          @Nullable Double simplify,
+      @Parameter(
+              description =
+                  "Maximum number of track points to return. The points kept are those deviating"
+                      + " most from the simplified line — corners and elevation extrema survive,"
+                      + " straight flat stretches are dropped — and the first and last points are"
+                      + " always kept. Applied after 'simplify' when both are given. Absent, zero"
+                      + " or a value larger than the stored track means no decimation.")
+          @QueryParam("points")
+          @Nullable Integer points) {
 
-    RouteDetailDto route = routeService.getDto(teamSlug, routeSlug);
-    return Response.ok(route).build();
+    RouteDetailDto route =
+        routeService.getDto(teamSlug, routeSlug, GeometryOptions.of(simplify, points));
+    // Rows carry a per-user field (commentCount, which follows the caller's team
+    // membership): never let a shared cache keep one user's answer for the next one.
+    return Response.ok(route).header(HttpHeaders.CACHE_CONTROL, PRIVATE_NO_STORE).build();
+  }
+
+  /**
+   * Sampled elevation profile of a route.
+   */
+  @GET
+  @Path("/{routeSlug}/elevation-profile")
+  @PermitAll
+  @Operation(
+      operationId = "getRouteElevationProfile",
+      summary = "Get route elevation profile",
+      description =
+          "The route's elevation profile resampled to 'samples' evenly spaced distances, each point"
+              + " carrying its cumulative distance, its elevation and the grade in percent of the"
+              + " segment ending on it — everything needed to draw a profile coloured by gradient"
+              + " without downloading the full track. Multi-track routes are concatenated into one"
+              + " continuous profile. The answer never holds more points than the stored track.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Elevation profile computed successfully",
+        content = @Content(schema = @Schema(implementation = ElevationProfileDto.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team or route not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+  })
+  public Response getElevationProfile(
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
+      @Parameter(description = "Route slug") @PathParam("routeSlug") String routeSlug,
+      @Parameter(
+              description =
+                  "Number of profile points wanted. Clamped server-side to 2..1000, and further"
+                      + " reduced to the number of points actually stored for the route.")
+          @QueryParam("samples")
+          @DefaultValue(RouteService.DEFAULT_PROFILE_SAMPLES)
+          int samples) {
+
+    ElevationProfileDto profile = routeService.getElevationProfile(teamSlug, routeSlug, samples);
+    return Response.ok(profile).build();
   }
 
   /**

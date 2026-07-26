@@ -72,6 +72,12 @@ public class TeamRepository implements BaseRepository<Team> {
     if (!teamQuery.platformAdmin()) {
       pedalonsQuery.and("t.deleted = false", Map.of());
     }
+    if (teamQuery.joinable() != null) {
+      // Team discovery: "which teams can I ask to join?". ANDed with the visibility clauses below,
+      // never in place of them — a team that is invisible to the caller stays invisible whatever
+      // its joinable flag says.
+      pedalonsQuery.and("t.joinable = :joinable", Map.of("joinable", teamQuery.joinable()));
+    }
     pedalonsQuery.addParam("userId", teamQuery.userId());
     if (teamQuery.id() != null) {
       pedalonsQuery.and("t.id = :id", Map.of("id", teamQuery.id()));

@@ -46,4 +46,6 @@ export interface RouteDetailDto {
   waypoints: WaypointDto[]
   /** Whether the route is soft-deleted */
   deleted: boolean
+  /** Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero. */
+  commentCount?: number
 }

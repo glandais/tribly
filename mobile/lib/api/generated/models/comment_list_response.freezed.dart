@@ -17,7 +17,10 @@ mixin _$CommentListResponse {
 
 /// List of comments (top-level only, with nested replies)
  List<CommentDto> get items;/// Total count including replies
- int get total;
+ int get total;/// How many items exist in the mode that was asked for: top-level comments normally, or replies of the requested parentId. This is what page/size iterate over.
+ int get itemTotal;/// Page number of items (0-indexed)
+ int get page;/// Page size applied to items. Equals itemTotal when the caller passed no pagination parameter, since the whole tree is then returned.
+ int get size;
 /// Create a copy of CommentListResponse
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,16 +33,16 @@ $CommentListResponseCopyWith<CommentListResponse> get copyWith => _$CommentListR
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CommentListResponse&&const DeepCollectionEquality().equals(other.items, items)&&(identical(other.total, total) || other.total == total));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CommentListResponse&&const DeepCollectionEquality().equals(other.items, items)&&(identical(other.total, total) || other.total == total)&&(identical(other.itemTotal, itemTotal) || other.itemTotal == itemTotal)&&(identical(other.page, page) || other.page == page)&&(identical(other.size, size) || other.size == size));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(items),total);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(items),total,itemTotal,page,size);
 
 @override
 String toString() {
-  return 'CommentListResponse(items: $items, total: $total)';
+  return 'CommentListResponse(items: $items, total: $total, itemTotal: $itemTotal, page: $page, size: $size)';
 }
 
 
@@ -50,7 +53,7 @@ abstract mixin class $CommentListResponseCopyWith<$Res>  {
   factory $CommentListResponseCopyWith(CommentListResponse value, $Res Function(CommentListResponse) _then) = _$CommentListResponseCopyWithImpl;
 @useResult
 $Res call({
- List<CommentDto> items, int total
+ List<CommentDto> items, int total, int itemTotal, int page, int size
 });
 
 
@@ -67,10 +70,13 @@ class _$CommentListResponseCopyWithImpl<$Res>
 
 /// Create a copy of CommentListResponse
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? items = null,Object? total = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? items = null,Object? total = null,Object? itemTotal = null,Object? page = null,Object? size = null,}) {
   return _then(_self.copyWith(
 items: null == items ? _self.items : items // ignore: cast_nullable_to_non_nullable
 as List<CommentDto>,total: null == total ? _self.total : total // ignore: cast_nullable_to_non_nullable
+as int,itemTotal: null == itemTotal ? _self.itemTotal : itemTotal // ignore: cast_nullable_to_non_nullable
+as int,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
+as int,size: null == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
 as int,
   ));
 }
@@ -156,10 +162,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<CommentDto> items,  int total)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<CommentDto> items,  int total,  int itemTotal,  int page,  int size)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CommentListResponse() when $default != null:
-return $default(_that.items,_that.total);case _:
+return $default(_that.items,_that.total,_that.itemTotal,_that.page,_that.size);case _:
   return orElse();
 
 }
@@ -177,10 +183,10 @@ return $default(_that.items,_that.total);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<CommentDto> items,  int total)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<CommentDto> items,  int total,  int itemTotal,  int page,  int size)  $default,) {final _that = this;
 switch (_that) {
 case _CommentListResponse():
-return $default(_that.items,_that.total);case _:
+return $default(_that.items,_that.total,_that.itemTotal,_that.page,_that.size);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -197,10 +203,10 @@ return $default(_that.items,_that.total);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<CommentDto> items,  int total)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<CommentDto> items,  int total,  int itemTotal,  int page,  int size)?  $default,) {final _that = this;
 switch (_that) {
 case _CommentListResponse() when $default != null:
-return $default(_that.items,_that.total);case _:
+return $default(_that.items,_that.total,_that.itemTotal,_that.page,_that.size);case _:
   return null;
 
 }
@@ -212,7 +218,7 @@ return $default(_that.items,_that.total);case _:
 @JsonSerializable()
 
 class _CommentListResponse implements CommentListResponse {
-  const _CommentListResponse({required final  List<CommentDto> items, required this.total}): _items = items;
+  const _CommentListResponse({required final  List<CommentDto> items, required this.total, required this.itemTotal, required this.page, required this.size}): _items = items;
   factory _CommentListResponse.fromJson(Map<String, dynamic> json) => _$CommentListResponseFromJson(json);
 
 /// List of comments (top-level only, with nested replies)
@@ -226,6 +232,12 @@ class _CommentListResponse implements CommentListResponse {
 
 /// Total count including replies
 @override final  int total;
+/// How many items exist in the mode that was asked for: top-level comments normally, or replies of the requested parentId. This is what page/size iterate over.
+@override final  int itemTotal;
+/// Page number of items (0-indexed)
+@override final  int page;
+/// Page size applied to items. Equals itemTotal when the caller passed no pagination parameter, since the whole tree is then returned.
+@override final  int size;
 
 /// Create a copy of CommentListResponse
 /// with the given fields replaced by the non-null parameter values.
@@ -240,16 +252,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CommentListResponse&&const DeepCollectionEquality().equals(other._items, _items)&&(identical(other.total, total) || other.total == total));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CommentListResponse&&const DeepCollectionEquality().equals(other._items, _items)&&(identical(other.total, total) || other.total == total)&&(identical(other.itemTotal, itemTotal) || other.itemTotal == itemTotal)&&(identical(other.page, page) || other.page == page)&&(identical(other.size, size) || other.size == size));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_items),total);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_items),total,itemTotal,page,size);
 
 @override
 String toString() {
-  return 'CommentListResponse(items: $items, total: $total)';
+  return 'CommentListResponse(items: $items, total: $total, itemTotal: $itemTotal, page: $page, size: $size)';
 }
 
 
@@ -260,7 +272,7 @@ abstract mixin class _$CommentListResponseCopyWith<$Res> implements $CommentList
   factory _$CommentListResponseCopyWith(_CommentListResponse value, $Res Function(_CommentListResponse) _then) = __$CommentListResponseCopyWithImpl;
 @override @useResult
 $Res call({
- List<CommentDto> items, int total
+ List<CommentDto> items, int total, int itemTotal, int page, int size
 });
 
 
@@ -277,10 +289,13 @@ class __$CommentListResponseCopyWithImpl<$Res>
 
 /// Create a copy of CommentListResponse
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? items = null,Object? total = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? items = null,Object? total = null,Object? itemTotal = null,Object? page = null,Object? size = null,}) {
   return _then(_CommentListResponse(
 items: null == items ? _self._items : items // ignore: cast_nullable_to_non_nullable
 as List<CommentDto>,total: null == total ? _self.total : total // ignore: cast_nullable_to_non_nullable
+as int,itemTotal: null == itemTotal ? _self.itemTotal : itemTotal // ignore: cast_nullable_to_non_nullable
+as int,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
+as int,size: null == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
 as int,
   ));
 }

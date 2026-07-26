@@ -25,6 +25,9 @@ _RideDto _$RideDtoFromJson(Map<String, dynamic> json) => _RideDto(
       .map((e) => PublicUserDto.fromJson(e as Map<String, dynamic>))
       .toList(),
   deleted: json['deleted'] as bool,
+  registered: json['registered'] as bool,
+  full: json['full'] as bool,
+  excerpt: json['excerpt'] as String?,
   publishAt: json['publishAt'] as String?,
   createdAt: json['createdAt'] as String?,
   routeSlug: json['routeSlug'] as String?,
@@ -36,6 +39,9 @@ _RideDto _$RideDtoFromJson(Map<String, dynamic> json) => _RideDto(
       : PlaceDetailDto.fromJson(json['endPlace'] as Map<String, dynamic>),
   thumbnailLightUrl: json['thumbnailLightUrl'] as String?,
   thumbnailDarkUrl: json['thumbnailDarkUrl'] as String?,
+  thumbnailUrl: json['thumbnailUrl'] as String?,
+  registeredGroupId: json['registeredGroupId'] as String?,
+  commentCount: (json['commentCount'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$RideDtoToJson(_RideDto instance) => <String, dynamic>{
@@ -53,6 +59,9 @@ Map<String, dynamic> _$RideDtoToJson(_RideDto instance) => <String, dynamic>{
   'groups': instance.groups.map((e) => e.toJson()).toList(),
   'topParticipants': instance.topParticipants.map((e) => e.toJson()).toList(),
   'deleted': instance.deleted,
+  'registered': instance.registered,
+  'full': instance.full,
+  'excerpt': instance.excerpt,
   'publishAt': instance.publishAt,
   'createdAt': instance.createdAt,
   'routeSlug': instance.routeSlug,
@@ -60,4 +69,7 @@ Map<String, dynamic> _$RideDtoToJson(_RideDto instance) => <String, dynamic>{
   'endPlace': instance.endPlace?.toJson(),
   'thumbnailLightUrl': instance.thumbnailLightUrl,
   'thumbnailDarkUrl': instance.thumbnailDarkUrl,
+  'thumbnailUrl': instance.thumbnailUrl,
+  'registeredGroupId': instance.registeredGroupId,
+  'commentCount': instance.commentCount,
 };

@@ -1,15 +1,17 @@
 package fr.pedalons.api.routes;
 
-import fr.pedalons.dto.routes.request.RouteSearchParams;
+import fr.pedalons.dto.common.CountResponse;
+import fr.pedalons.dto.routes.request.RouteFilterParams;
+import fr.pedalons.dto.routes.request.RouteListParams;
 import fr.pedalons.dto.routes.response.RouteBoundsResponse;
 import fr.pedalons.dto.routes.response.RouteListResponse;
-import fr.pedalons.enums.*;
 import fr.pedalons.infrastructure.jaxrs.PedalonsMediaType;
 import fr.pedalons.service.route.RouteService;
 import fr.pedalons.service.team.request.MinRole;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -30,6 +32,9 @@ import org.jspecify.annotations.Nullable;
 @Tag(name = "Routes", description = "GPX route management operations")
 public class AllRouteResource {
 
+  /** Route payloads carry commentCount, which depends on who is asking. */
+  static final String PRIVATE_NO_STORE = "private, no-store";
+
   @Inject RouteService routeService;
 
   /**
@@ -48,71 +53,53 @@ public class AllRouteResource {
         content = @Content(schema = @Schema(implementation = RouteListResponse.class)))
   })
   public Response listAllRoutes(
-      @Parameter(description = "Search by name/markdown") @QueryParam("search")
-          @Nullable String search,
-      @Parameter(description = "Page number (0-indexed)") @QueryParam("page") @DefaultValue("0")
-          int page,
-      @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size,
       @Parameter(
               description =
                   "Only routes from teams where the user has at least this role. Yields nothing"
                       + " for an anonymous visitor.")
           @QueryParam("minRole")
           @Nullable MinRole minRole,
-      @Parameter(description = "Minimum distance in meters") @QueryParam("minDistance")
-          @Nullable Float minDistance,
-      @Parameter(description = "Maximum distance in meters") @QueryParam("maxDistance")
-          @Nullable Float maxDistance,
-      @Parameter(description = "Minimum elevation gain in meters") @QueryParam("minElevationGain")
-          @Nullable Float minElevationGain,
-      @Parameter(description = "Maximum elevation gain in meters") @QueryParam("maxElevationGain")
-          @Nullable Float maxElevationGain,
-      @Parameter(description = "Hilliness preset (FLAT, HILLY, MOUNTAINOUS)")
-          @QueryParam("hilliness")
-          @Nullable Hilliness hilliness,
-      @Parameter(description = "Filter by surface type") @QueryParam("surfaceType")
-          @Nullable SurfaceType surfaceType,
-      @Parameter(description = "Filter by wind direction") @QueryParam("windDirection")
-          @Nullable WindDirection windDirection,
-      @Parameter(description = "Latitude for proximity search") @QueryParam("nearLat")
-          @Nullable Double nearLat,
-      @Parameter(description = "Longitude for proximity search") @QueryParam("nearLon")
-          @Nullable Double nearLon,
-      @Parameter(description = "Search radius in meters (default: 25000)") @QueryParam("nearRadius")
-          @Nullable Double nearRadius,
-      @Parameter(description = "Search near START, END, or START_OR_END (default)")
-          @QueryParam("nearType")
-          @Nullable NearType nearType,
-      @Parameter(description = "Sort by field (DISTANCE, ELEVATION_GAIN, HILLINESS, DATE_TIME)")
-          @QueryParam("sortBy")
-          @Nullable RouteSortBy sortBy,
-      @Parameter(description = "Sort direction (ASC, DESC)") @QueryParam("sortDir")
-          @Nullable SortDirection sortDir) {
+      @BeanParam RouteListParams params) {
 
-    RouteSearchParams params =
-        RouteSearchParams.builder()
-            .search(search)
-            .page(page)
-            .size(size)
-            .minRole(minRole)
-            .minDistance(minDistance)
-            .maxDistance(maxDistance)
-            .minElevationGain(minElevationGain)
-            .maxElevationGain(maxElevationGain)
-            .hilliness(hilliness)
-            .surfaceType(surfaceType)
-            .windDirection(windDirection)
-            .nearLat(nearLat)
-            .nearLon(nearLon)
-            .nearRadius(nearRadius)
-            .nearType(nearType)
-            .sortBy(sortBy)
-            .sortDir(sortDir)
-            .build();
+    RouteListResponse routes =
+        routeService.getAllRoutes(params.toBuilder().minRole(minRole).build());
 
-    RouteListResponse routes = routeService.getAllRoutes(params);
+    // Rows carry a per-user field (commentCount, which follows the caller's team
+    // membership): never let a shared cache keep one user's answer for the next one.
+    return Response.ok(routes).header(HttpHeaders.CACHE_CONTROL, PRIVATE_NO_STORE).build();
+  }
 
-    return Response.ok(routes).build();
+  /**
+   * How many routes the same filters match, across every accessible team.
+   */
+  @GET
+  @PermitAll
+  @Path("/count")
+  @Operation(
+      operationId = "countAllRoutes",
+      summary = "Count all routes",
+      description =
+          "How many routes of all accessible teams match the filters, with none of them read."
+              + " Accepts exactly the same filters as the route list, minus sorting and pagination,"
+              + " so the figure and the list it opens can never disagree. Meant for a filter sheet"
+              + " that wants to announce its result count before the user commits to it.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Count computed successfully",
+        content = @Content(schema = @Schema(implementation = CountResponse.class)))
+  })
+  public Response countAllRoutes(
+      @Parameter(
+              description =
+                  "Only routes from teams where the user has at least this role. Yields zero for an"
+                      + " anonymous visitor.")
+          @QueryParam("minRole")
+          @Nullable MinRole minRole,
+      @BeanParam RouteFilterParams params) {
+
+    return Response.ok(routeService.countAllRoutes(params.toBuilder().minRole(minRole).build()))
+        .build();
   }
 
   /**
@@ -137,57 +124,16 @@ public class AllRouteResource {
       @Parameter(description = "Zoom level") @PathParam("z") int z,
       @Parameter(description = "Tile column") @PathParam("x") int x,
       @Parameter(description = "Tile row") @PathParam("y") int y,
-      @Parameter(description = "Search by name/markdown") @QueryParam("search")
-          @Nullable String search,
       @Parameter(
               description =
                   "Only routes from teams where the user has at least this role. Yields an empty"
                       + " tile for an anonymous visitor.")
           @QueryParam("minRole")
           @Nullable MinRole minRole,
-      @Parameter(description = "Minimum distance in meters") @QueryParam("minDistance")
-          @Nullable Float minDistance,
-      @Parameter(description = "Maximum distance in meters") @QueryParam("maxDistance")
-          @Nullable Float maxDistance,
-      @Parameter(description = "Minimum elevation gain in meters") @QueryParam("minElevationGain")
-          @Nullable Float minElevationGain,
-      @Parameter(description = "Maximum elevation gain in meters") @QueryParam("maxElevationGain")
-          @Nullable Float maxElevationGain,
-      @Parameter(description = "Hilliness preset (FLAT, HILLY, MOUNTAINOUS)")
-          @QueryParam("hilliness")
-          @Nullable Hilliness hilliness,
-      @Parameter(description = "Filter by surface type") @QueryParam("surfaceType")
-          @Nullable SurfaceType surfaceType,
-      @Parameter(description = "Filter by wind direction") @QueryParam("windDirection")
-          @Nullable WindDirection windDirection,
-      @Parameter(description = "Latitude for proximity search") @QueryParam("nearLat")
-          @Nullable Double nearLat,
-      @Parameter(description = "Longitude for proximity search") @QueryParam("nearLon")
-          @Nullable Double nearLon,
-      @Parameter(description = "Search radius in meters (default: 25000)") @QueryParam("nearRadius")
-          @Nullable Double nearRadius,
-      @Parameter(description = "Search near START, END, or START_OR_END (default)")
-          @QueryParam("nearType")
-          @Nullable NearType nearType) {
+      @BeanParam RouteFilterParams params) {
 
-    RouteSearchParams params =
-        RouteSearchParams.builder()
-            .search(search)
-            .minRole(minRole)
-            .minDistance(minDistance)
-            .maxDistance(maxDistance)
-            .minElevationGain(minElevationGain)
-            .maxElevationGain(maxElevationGain)
-            .hilliness(hilliness)
-            .surfaceType(surfaceType)
-            .windDirection(windDirection)
-            .nearLat(nearLat)
-            .nearLon(nearLon)
-            .nearRadius(nearRadius)
-            .nearType(nearType)
-            .build();
-
-    return RouteTiles.response(routeService.getAllRoutesTile(params, z, x, y));
+    return RouteTiles.response(
+        routeService.getAllRoutesTile(params.toBuilder().minRole(minRole).build(), z, x, y));
   }
 
   /**
@@ -209,56 +155,15 @@ public class AllRouteResource {
         content = @Content(schema = @Schema(implementation = RouteBoundsResponse.class)))
   })
   public Response getAllRoutesBounds(
-      @Parameter(description = "Search by name/markdown") @QueryParam("search")
-          @Nullable String search,
       @Parameter(
               description =
                   "Only routes from teams where the user has at least this role. Yields a null box"
                       + " for an anonymous visitor.")
           @QueryParam("minRole")
           @Nullable MinRole minRole,
-      @Parameter(description = "Minimum distance in meters") @QueryParam("minDistance")
-          @Nullable Float minDistance,
-      @Parameter(description = "Maximum distance in meters") @QueryParam("maxDistance")
-          @Nullable Float maxDistance,
-      @Parameter(description = "Minimum elevation gain in meters") @QueryParam("minElevationGain")
-          @Nullable Float minElevationGain,
-      @Parameter(description = "Maximum elevation gain in meters") @QueryParam("maxElevationGain")
-          @Nullable Float maxElevationGain,
-      @Parameter(description = "Hilliness preset (FLAT, HILLY, MOUNTAINOUS)")
-          @QueryParam("hilliness")
-          @Nullable Hilliness hilliness,
-      @Parameter(description = "Filter by surface type") @QueryParam("surfaceType")
-          @Nullable SurfaceType surfaceType,
-      @Parameter(description = "Filter by wind direction") @QueryParam("windDirection")
-          @Nullable WindDirection windDirection,
-      @Parameter(description = "Latitude for proximity search") @QueryParam("nearLat")
-          @Nullable Double nearLat,
-      @Parameter(description = "Longitude for proximity search") @QueryParam("nearLon")
-          @Nullable Double nearLon,
-      @Parameter(description = "Search radius in meters (default: 25000)") @QueryParam("nearRadius")
-          @Nullable Double nearRadius,
-      @Parameter(description = "Search near START, END, or START_OR_END (default)")
-          @QueryParam("nearType")
-          @Nullable NearType nearType) {
+      @BeanParam RouteFilterParams params) {
 
-    RouteSearchParams params =
-        RouteSearchParams.builder()
-            .search(search)
-            .minRole(minRole)
-            .minDistance(minDistance)
-            .maxDistance(maxDistance)
-            .minElevationGain(minElevationGain)
-            .maxElevationGain(maxElevationGain)
-            .hilliness(hilliness)
-            .surfaceType(surfaceType)
-            .windDirection(windDirection)
-            .nearLat(nearLat)
-            .nearLon(nearLon)
-            .nearRadius(nearRadius)
-            .nearType(nearType)
-            .build();
-
-    return Response.ok(routeService.getAllRoutesBounds(params)).build();
+    return Response.ok(routeService.getAllRoutesBounds(params.toBuilder().minRole(minRole).build()))
+        .build();
   }
 }

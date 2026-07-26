@@ -25,4 +25,8 @@ export interface TripStageDto {
   media: MediaDto
   /** Sort order */
   sortOrder: number
+  /** Position of this stage among the trip's live stages, 1-based — the 'Day 2' of a stage header. Unlike sortOrder, which is a persisted rank that may have gaps, this is a rank a client can print. */
+  stageIndex: number
+  /** How many live stages the trip has — the '/ 5' of 'Day 2 / 5'. */
+  stageCount: number
 }

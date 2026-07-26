@@ -12,6 +12,7 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -85,7 +86,8 @@ public class RideResource {
       @Parameter(description = "Ride URL slug") @PathParam("rideSlug") String rideSlug) {
 
     RideDto ride = rideService.getDto(teamSlug, rideSlug);
-    return Response.ok(ride).build();
+    // registered / registeredGroupId make this answer specific to the caller.
+    return Response.ok(ride).header(HttpHeaders.CACHE_CONTROL, "private, no-store").build();
   }
 
   @PUT

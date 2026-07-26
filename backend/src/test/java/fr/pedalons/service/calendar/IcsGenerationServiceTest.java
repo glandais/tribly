@@ -6,6 +6,7 @@ import fr.pedalons.AbstractBaseTest;
 import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.dto.calendar.response.CalendarEventDto;
 import fr.pedalons.dto.calendar.response.CalendarEventType;
+import fr.pedalons.enums.Status;
 import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.util.TestDataCleaner;
 import fr.pedalons.util.TestDataService;
@@ -46,7 +47,14 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
             "cycling-team",
             "Cycling Team",
             "morning-ride",
-            null);
+            null,
+            null,
+            null,
+            null,
+            null,
+            false,
+            null,
+            Status.PUBLISHED);
 
     String ics = icsGenerationService.generateIcs(List.of(event), "My Calendar");
 
@@ -70,7 +78,14 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
             "team-slug",
             "Team Name",
             "test-ride",
-            null);
+            null,
+            null,
+            null,
+            null,
+            null,
+            false,
+            null,
+            Status.PUBLISHED);
 
     String ics = icsGenerationService.generateIcs(List.of(event), "Calendar");
 
@@ -95,7 +110,14 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
             "team-slug",
             "Team Name",
             "stage-1",
-            "trip-slug");
+            "trip-slug",
+            null,
+            null,
+            null,
+            null,
+            false,
+            null,
+            Status.PUBLISHED);
 
     String ics = icsGenerationService.generateIcs(List.of(event), "Calendar");
 
@@ -117,7 +139,14 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
             "team-slug",
             "Team Name",
             "timed-ride",
-            null);
+            null,
+            null,
+            null,
+            null,
+            null,
+            false,
+            null,
+            Status.PUBLISHED);
 
     String ics = icsGenerationService.generateIcs(List.of(event), "Calendar");
 
@@ -138,7 +167,14 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
             "cycling-club",
             "Cycling Club",
             "sunday-ride",
-            null);
+            null,
+            null,
+            null,
+            null,
+            null,
+            false,
+            null,
+            Status.PUBLISHED);
 
     String ics = icsGenerationService.generateIcs(List.of(event), "Calendar");
 
@@ -159,7 +195,14 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
             "cycling-club",
             "Cycling Club",
             "stage-1",
-            "summer-trip");
+            "summer-trip",
+            null,
+            null,
+            null,
+            null,
+            false,
+            null,
+            Status.PUBLISHED);
 
     String ics = icsGenerationService.generateIcs(List.of(event), "Calendar");
 
@@ -180,7 +223,14 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
             "team",
             "Team, Name; Test",
             "ride",
-            null);
+            null,
+            null,
+            null,
+            null,
+            null,
+            false,
+            null,
+            Status.PUBLISHED);
 
     String ics = icsGenerationService.generateIcs(List.of(event), "Calendar; Test, Name");
 
@@ -202,7 +252,14 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
             "team",
             "Team",
             "first",
-            null);
+            null,
+            null,
+            null,
+            null,
+            null,
+            false,
+            null,
+            Status.PUBLISHED);
 
     CalendarEventDto event2 =
         new CalendarEventDto(
@@ -215,7 +272,14 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
             "team",
             "Team",
             "second",
-            null);
+            null,
+            null,
+            null,
+            null,
+            null,
+            false,
+            null,
+            Status.PUBLISHED);
 
     String ics = icsGenerationService.generateIcs(List.of(event1, event2), "Calendar");
 
@@ -252,7 +316,14 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
                     "team",
                     "Team",
                     "event",
-                    null)),
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    false,
+                    null,
+                    Status.PUBLISHED)),
             "Calendar");
 
     assertTrue(ics.contains("REFRESH-INTERVAL;VALUE=DURATION:PT1H"));

@@ -11,6 +11,7 @@ import fr.pedalons.repository.query.PedalonsQuery;
 import fr.pedalons.repository.query.SimpleClause;
 import fr.pedalons.service.team.request.MinRole;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.persistence.TypedQuery;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -88,6 +89,34 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
     }
     PedalonsQuery pedalonsQuery = getPedalonsQuery(query, true);
     return getPage(pedalonsQuery, query);
+  }
+
+  /**
+   * How many rows {@link #find} would match, without reading any of them.
+   *
+   * <p>Same query, same visibility clauses, same {@code andSpecific} hook — only the projection
+   * changes, so a count can never disagree with the listing it announces. The default listing shape
+   * is deliberately not reused: its {@code fetch join} would be illegal under an aggregate, and the
+   * team columns it keeps are exactly what a count has no use for.
+   */
+  default long countMatching(Q query) {
+    if (query.minRole() != null && query.userId() == null) {
+      // Same short circuit as find(): an anonymous visitor belongs to no team, and the anonymous
+      // query shape has no UserTeam join to filter on.
+      return 0;
+    }
+    PedalonsQuery pedalonsQuery =
+        getPedalonsQuery(
+            query,
+            true,
+            new QueryShape("count(te.id)", getEntityType().getTypeName() + " te", false));
+    // andSpecific may have installed an ordering (a sort filter, an ascending flag); an aggregate
+    // projection must not carry one.
+    pedalonsQuery.noOrder();
+    TypedQuery<Long> typedQuery =
+        getEntityManager().createQuery(pedalonsQuery.getStringQuery(), Long.class);
+    pedalonsQuery.getParams().forEach(typedQuery::setParameter);
+    return typedQuery.getSingleResult();
   }
 
   default Optional<T> findOne(Q query) {

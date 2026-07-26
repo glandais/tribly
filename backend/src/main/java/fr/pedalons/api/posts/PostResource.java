@@ -11,6 +11,7 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -84,7 +85,8 @@ public class PostResource {
       @Parameter(description = "Post URL slug") @PathParam("postSlug") String postSlug) {
 
     PostDto post = postService.getDto(teamSlug, postSlug);
-    return Response.ok(post).build();
+    // Carries commentCount, which depends on the caller's team membership: not a shared answer.
+    return Response.ok(post).header(HttpHeaders.CACHE_CONTROL, "private, no-store").build();
   }
 
   @PUT

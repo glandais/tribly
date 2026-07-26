@@ -22,22 +22,28 @@ class _PublicationsClient implements PublicationsClient {
   @override
   Future<PublicationListResponse> listAllPublications({
     int? page = 0,
+    bool? participating = false,
     int? size = 20,
     String? from,
     MinRole? minRole,
     String? search,
+    Status? status,
     String? to,
     PublicationType? type,
+    ListViewMode? view,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
       r'page': page,
+      r'participating': participating,
       r'size': size,
       r'from': from,
       r'minRole': minRole?.toJson(),
       r'search': search,
+      r'status': status?.toJson(),
       r'to': to,
       r'type': type?.toJson(),
+      r'view': view?.toJson(),
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
@@ -64,23 +70,73 @@ class _PublicationsClient implements PublicationsClient {
   }
 
   @override
-  Future<PublicationListResponse> listPublications({
-    required String teamSlug,
-    int? page = 0,
-    int? size = 20,
+  Future<CountResponse> countAllPublications({
+    bool? participating = false,
     String? from,
+    MinRole? minRole,
     String? search,
+    Status? status,
     String? to,
     PublicationType? type,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
+      r'participating': participating,
+      r'from': from,
+      r'minRole': minRole?.toJson(),
+      r'search': search,
+      r'status': status?.toJson(),
+      r'to': to,
+      r'type': type?.toJson(),
+    };
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<CountResponse>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/api/publications/count',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, Object?>>(_options);
+    late CountResponse _value;
+    try {
+      _value = CountResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<PublicationListResponse> listPublications({
+    required String teamSlug,
+    int? page = 0,
+    bool? participating = false,
+    int? size = 20,
+    String? from,
+    String? search,
+    Status? status,
+    String? to,
+    PublicationType? type,
+    ListViewMode? view,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
       r'page': page,
+      r'participating': participating,
       r'size': size,
       r'from': from,
       r'search': search,
+      r'status': status?.toJson(),
       r'to': to,
       r'type': type?.toJson(),
+      r'view': view?.toJson(),
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
@@ -99,6 +155,49 @@ class _PublicationsClient implements PublicationsClient {
     late PublicationListResponse _value;
     try {
       _value = PublicationListResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<CountResponse> countPublications({
+    required String teamSlug,
+    bool? participating = false,
+    String? from,
+    String? search,
+    Status? status,
+    String? to,
+    PublicationType? type,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'participating': participating,
+      r'from': from,
+      r'search': search,
+      r'status': status?.toJson(),
+      r'to': to,
+      r'type': type?.toJson(),
+    };
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<CountResponse>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/api/teams/${teamSlug}/publications/count',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, Object?>>(_options);
+    late CountResponse _value;
+    try {
+      _value = CountResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options, response: _result);
       rethrow;

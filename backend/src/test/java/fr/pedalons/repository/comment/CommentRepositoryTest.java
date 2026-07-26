@@ -4,9 +4,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import fr.pedalons.AbstractBaseTest;
 import fr.pedalons.domain.comment.Comment;
+import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.domain.post.Post;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.user.User;
+import fr.pedalons.enums.SortDirection;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.util.TestDataCleaner;
 import fr.pedalons.util.TestDataService;
@@ -14,6 +16,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -255,6 +258,117 @@ class CommentRepositoryTest extends AbstractBaseTest {
       long count = commentRepository.countByTeamEntityId(post.getId());
 
       assertEquals(3, count);
+    }
+  }
+
+  @Nested
+  @DisplayName("countByTeamEntityIds")
+  class CountByTeamEntityIds {
+
+    @Test
+    void shouldCountEveryEntityOfThePageInOneQuery() {
+      Post otherPost = dataService.createPost(team, user, "Other Post", Instant.now());
+      Comment parent = dataService.createComment(user, post, "Parent");
+      dataService.createReply(user, post, parent, "Reply");
+      dataService.createComment(user, otherPost, "Alone");
+
+      Map<Long, Integer> counts =
+          commentRepository.countByTeamEntityIds(
+              dataService.getOrCreateDefaultDomain().getId(),
+              List.of(post.getId(), otherPost.getId()));
+
+      assertEquals(2, counts.get(post.getId()));
+      assertEquals(1, counts.get(otherPost.getId()));
+    }
+
+    @Test
+    void shouldLeaveEntitiesWithoutCommentsOutOfTheMap() {
+      Map<Long, Integer> counts =
+          commentRepository.countByTeamEntityIds(
+              dataService.getOrCreateDefaultDomain().getId(), List.of(post.getId()));
+
+      assertTrue(counts.isEmpty());
+    }
+
+    /**
+     * The tenancy guard. This method takes a set of ids rather than one already-resolved id, so it
+     * carries its own domain clause: handed the id of another tenant's entity, it must answer
+     * nothing rather than that tenant's activity.
+     */
+    @Test
+    void shouldNotCountAcrossDomains() {
+      Domain other = dataService.createDomain("other-count.localhost", "Other", "http://other");
+      User otherUser = dataService.createUser(other, "test@example.com", "Same email elsewhere");
+      Team otherTeam =
+          dataService.createTeam(other, otherUser, "Other Team", "other-team", Visibility.PUBLIC);
+      Post otherPost = dataService.createPost(otherTeam, otherUser, "Other Post", Instant.now());
+      dataService.createComment(otherUser, otherPost, "Other domain comment");
+      dataService.createComment(user, post, "Home domain comment");
+
+      Map<Long, Integer> counts =
+          commentRepository.countByTeamEntityIds(
+              dataService.getOrCreateDefaultDomain().getId(),
+              List.of(post.getId(), otherPost.getId()));
+
+      assertEquals(1, counts.get(post.getId()));
+      assertNull(counts.get(otherPost.getId()));
+    }
+  }
+
+  @Nested
+  @DisplayName("pagination")
+  class Pagination {
+
+    @Test
+    void pageRootsShouldIgnoreReplies() {
+      Comment root1 = dataService.createComment(user, post, "Root 1");
+      dataService.createReply(user, post, root1, "Reply");
+      dataService.createComment(user, post, "Root 2");
+
+      List<Comment> firstPage = commentRepository.pageRoots(post.getId(), 0, 1, SortDirection.ASC);
+
+      assertEquals(1, firstPage.size());
+      assertEquals("Root 1", firstPage.getFirst().getContent());
+      assertEquals(2, commentRepository.countRoots(post.getId()));
+      assertEquals(3, commentRepository.countByTeamEntityId(post.getId()));
+    }
+
+    @Test
+    void pageRootsDescShouldStartFromTheNewest() {
+      dataService.createComment(user, post, "Root 1");
+      Comment root2 = dataService.createComment(user, post, "Root 2");
+
+      List<Comment> page = commentRepository.pageRoots(post.getId(), 0, 1, SortDirection.DESC);
+
+      assertEquals(root2.getId(), page.getFirst().getId());
+    }
+
+    @Test
+    void findRepliesByParentIdsShouldLoadAWholePageOfThreadsAtOnce() {
+      Comment root1 = dataService.createComment(user, post, "Root 1");
+      Comment root2 = dataService.createComment(user, post, "Root 2");
+      dataService.createReply(user, post, root1, "Reply to 1");
+      dataService.createReply(user, post, root2, "Reply to 2");
+
+      List<Comment> replies =
+          commentRepository.findRepliesByParentIds(
+              List.of(root1.getId(), root2.getId()), SortDirection.ASC);
+
+      assertEquals(2, replies.size());
+    }
+
+    @Test
+    void pageRepliesShouldRefuseAParentFromAnotherEntity() {
+      Post otherPost = dataService.createPost(team, user, "Other Post", Instant.now());
+      Comment foreignRoot = dataService.createComment(user, otherPost, "Elsewhere");
+      dataService.createReply(user, otherPost, foreignRoot, "Elsewhere reply");
+
+      List<Comment> replies =
+          commentRepository.pageReplies(
+              post.getId(), foreignRoot.getId(), 0, 20, SortDirection.ASC);
+
+      assertTrue(replies.isEmpty());
+      assertEquals(0, commentRepository.countReplies(post.getId(), foreignRoot.getId()));
     }
   }
 }

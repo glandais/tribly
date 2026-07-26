@@ -15,6 +15,8 @@ _UserDto _$UserDtoFromJson(Map<String, dynamic> json) => _UserDto(
   avatarUrl: json['avatarUrl'] as String?,
   createdAt: json['createdAt'] as String?,
   unitSystem: json['unitSystem'] as String?,
+  theme: json['theme'] as String?,
+  language: json['language'] as String?,
   platformRole: json['platformRole'] as String?,
   connectedServices: (json['connectedServices'] as List<dynamic>?)
       ?.map((e) => GpsServiceConnectionDto.fromJson(e as Map<String, dynamic>))
@@ -33,6 +35,8 @@ Map<String, dynamic> _$UserDtoToJson(_UserDto instance) => <String, dynamic>{
   'avatarUrl': instance.avatarUrl,
   'createdAt': instance.createdAt,
   'unitSystem': instance.unitSystem,
+  'theme': instance.theme,
+  'language': instance.language,
   'platformRole': instance.platformRole,
   'connectedServices': instance.connectedServices
       ?.map((e) => e.toJson())

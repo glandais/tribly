@@ -41,6 +41,12 @@ export const ListAllRoutesQueryParams = zod.object({
     .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
     .optional()
     .describe('Filter by surface type'),
+  view: zod
+    .enum(['FULL', 'COMPACT'])
+    .optional()
+    .describe(
+      "How much of each row to send. COMPACT (case-insensitive) returns media.markdown empty and media.assets empty — read 'excerpt' and 'thumbnailUrl' instead, both of which are present either way. Omitted, or FULL, is the previous behaviour, byte for byte."
+    ),
   windDirection: zod
     .enum([
       'NORTH',
@@ -222,6 +228,18 @@ export const ListAllRoutesResponse = zod
                   .describe('Assets'),
               })
               .describe('Route description'),
+            excerpt: zod
+              .string()
+              .optional()
+              .describe(
+                "Plain-text opening of the description, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the description holds no text. Lets a list row render its two lines without the description being sent at all — see the 'view' parameter."
+              ),
+            thumbnailUrl: zod
+              .string()
+              .optional()
+              .describe(
+                "URL template of the route's thumbnail, light variant if there is one, else dark. Saves a compact row from carrying media.assets just to find the map preview."
+              ),
             distance: zod.number().describe('Distance in meters'),
             elevationGain: zod.number().describe('Total elevation gain in meters'),
             elevationLoss: zod.number().describe('Total elevation loss in meters'),
@@ -231,6 +249,12 @@ export const ListAllRoutesResponse = zod
               .describe('Whether the route is public'),
             createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
             deleted: zod.boolean().describe('Whether the route is soft-deleted'),
+            commentCount: zod
+              .number()
+              .optional()
+              .describe(
+                'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
+              ),
           })
           .describe('Route summary data')
       )
@@ -300,6 +324,58 @@ export const GetAllRoutesBoundsResponse = zod
       .describe('Bounding box, or null when no route matches'),
   })
   .describe('Bounding box of the routes matching a filter set')
+
+/**
+ * How many routes of all accessible teams match the filters, with none of them read. Accepts exactly the same filters as the route list, minus sorting and pagination, so the figure and the list it opens can never disagree. Meant for a filter sheet that wants to announce its result count before the user commits to it.
+ * @summary Count all routes
+ */
+export const CountAllRoutesQueryParams = zod.object({
+  hilliness: zod
+    .enum(['FLAT', 'HILLY', 'MOUNTAINOUS'])
+    .optional()
+    .describe('Hilliness preset (FLAT, HILLY, MOUNTAINOUS)'),
+  maxDistance: zod.number().optional().describe('Maximum distance in meters'),
+  maxElevationGain: zod.number().optional().describe('Maximum elevation gain in meters'),
+  minDistance: zod.number().optional().describe('Minimum distance in meters'),
+  minElevationGain: zod.number().optional().describe('Minimum elevation gain in meters'),
+  minRole: zod
+    .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
+    .optional()
+    .describe(
+      'Only routes from teams where the user has at least this role. Yields zero for an anonymous visitor.'
+    ),
+  nearLat: zod.number().optional().describe('Latitude for proximity search'),
+  nearLon: zod.number().optional().describe('Longitude for proximity search'),
+  nearRadius: zod.number().optional().describe('Search radius in meters (default: 25000)'),
+  nearType: zod
+    .enum(['START', 'END', 'START_OR_END'])
+    .optional()
+    .describe('Search near START, END, or START_OR_END (default)'),
+  search: zod.string().optional().describe('Search by name\/markdown'),
+  surfaceType: zod
+    .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
+    .optional()
+    .describe('Filter by surface type'),
+  windDirection: zod
+    .enum([
+      'NORTH',
+      'NORTH_EAST',
+      'EAST',
+      'SOUTH_EAST',
+      'SOUTH',
+      'SOUTH_WEST',
+      'WEST',
+      'NORTH_WEST',
+    ])
+    .optional()
+    .describe('Filter by wind direction'),
+})
+
+export const CountAllRoutesResponse = zod
+  .object({
+    total: zod.number().describe('Total number of matching items'),
+  })
+  .describe('Number of items matching a filter set')
 
 /**
  * Mapbox vector tile holding the routes of all accessible teams, layer 'routes'. Accepts the same filters as the route list, minus sorting and pagination, which a tile has no use for. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
@@ -394,6 +470,12 @@ export const ListRoutesQueryParams = zod.object({
     .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
     .optional()
     .describe('Filter by surface type'),
+  view: zod
+    .enum(['FULL', 'COMPACT'])
+    .optional()
+    .describe(
+      "How much of each row to send. COMPACT (case-insensitive) returns media.markdown empty and media.assets empty — read 'excerpt' and 'thumbnailUrl' instead, both of which are present either way. Omitted, or FULL, is the previous behaviour, byte for byte."
+    ),
   windDirection: zod
     .enum([
       'NORTH',
@@ -575,6 +657,18 @@ export const ListRoutesResponse = zod
                   .describe('Assets'),
               })
               .describe('Route description'),
+            excerpt: zod
+              .string()
+              .optional()
+              .describe(
+                "Plain-text opening of the description, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the description holds no text. Lets a list row render its two lines without the description being sent at all — see the 'view' parameter."
+              ),
+            thumbnailUrl: zod
+              .string()
+              .optional()
+              .describe(
+                "URL template of the route's thumbnail, light variant if there is one, else dark. Saves a compact row from carrying media.assets just to find the map preview."
+              ),
             distance: zod.number().describe('Distance in meters'),
             elevationGain: zod.number().describe('Total elevation gain in meters'),
             elevationLoss: zod.number().describe('Total elevation loss in meters'),
@@ -584,6 +678,12 @@ export const ListRoutesResponse = zod
               .describe('Whether the route is public'),
             createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
             deleted: zod.boolean().describe('Whether the route is soft-deleted'),
+            commentCount: zod
+              .number()
+              .optional()
+              .describe(
+                'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
+              ),
           })
           .describe('Route summary data')
       )
@@ -944,6 +1044,18 @@ export const CreateRouteResponse = zod
           .describe('Assets'),
       })
       .describe('Route description'),
+    excerpt: zod
+      .string()
+      .optional()
+      .describe(
+        "Plain-text opening of the description, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the description holds no text. Lets a list row render its two lines without the description being sent at all — see the 'view' parameter."
+      ),
+    thumbnailUrl: zod
+      .string()
+      .optional()
+      .describe(
+        "URL template of the route's thumbnail, light variant if there is one, else dark. Saves a compact row from carrying media.assets just to find the map preview."
+      ),
     distance: zod.number().describe('Distance in meters'),
     elevationGain: zod.number().describe('Total elevation gain in meters'),
     elevationLoss: zod.number().describe('Total elevation loss in meters'),
@@ -953,6 +1065,12 @@ export const CreateRouteResponse = zod
       .describe('Whether the route is public'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     deleted: zod.boolean().describe('Whether the route is soft-deleted'),
+    commentCount: zod
+      .number()
+      .optional()
+      .describe(
+        'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
   })
   .describe('Route summary data')
 
@@ -1013,6 +1131,56 @@ export const GetRoutesBoundsResponse = zod
       .describe('Bounding box, or null when no route matches'),
   })
   .describe('Bounding box of the routes matching a filter set')
+
+/**
+ * How many of the team's routes match the filters, with none of them read. Accepts exactly the same filters as the route list, minus sorting and pagination, so the figure and the list it opens can never disagree. Meant for a filter sheet that wants to announce its result count before the user commits to it.
+ * @summary Count routes
+ */
+export const CountRoutesParams = zod.object({
+  teamSlug: zod.string().describe('Team URL slug'),
+})
+
+export const CountRoutesQueryParams = zod.object({
+  hilliness: zod
+    .enum(['FLAT', 'HILLY', 'MOUNTAINOUS'])
+    .optional()
+    .describe('Hilliness preset (FLAT, HILLY, MOUNTAINOUS)'),
+  maxDistance: zod.number().optional().describe('Maximum distance in meters'),
+  maxElevationGain: zod.number().optional().describe('Maximum elevation gain in meters'),
+  minDistance: zod.number().optional().describe('Minimum distance in meters'),
+  minElevationGain: zod.number().optional().describe('Minimum elevation gain in meters'),
+  nearLat: zod.number().optional().describe('Latitude for proximity search'),
+  nearLon: zod.number().optional().describe('Longitude for proximity search'),
+  nearRadius: zod.number().optional().describe('Search radius in meters (default: 25000)'),
+  nearType: zod
+    .enum(['START', 'END', 'START_OR_END'])
+    .optional()
+    .describe('Search near START, END, or START_OR_END (default)'),
+  search: zod.string().optional().describe('Search by name\/markdown'),
+  surfaceType: zod
+    .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
+    .optional()
+    .describe('Filter by surface type'),
+  windDirection: zod
+    .enum([
+      'NORTH',
+      'NORTH_EAST',
+      'EAST',
+      'SOUTH_EAST',
+      'SOUTH',
+      'SOUTH_WEST',
+      'WEST',
+      'NORTH_WEST',
+    ])
+    .optional()
+    .describe('Filter by wind direction'),
+})
+
+export const CountRoutesResponse = zod
+  .object({
+    total: zod.number().describe('Total number of matching items'),
+  })
+  .describe('Number of items matching a filter set')
 
 /**
  * Mapbox vector tile holding the team's routes, layer 'routes'. Accepts the same filters as the route list, minus sorting and pagination, which a tile has no use for. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
@@ -1414,6 +1582,18 @@ export const UpdateRouteResponse = zod
           .describe('Assets'),
       })
       .describe('Route description'),
+    excerpt: zod
+      .string()
+      .optional()
+      .describe(
+        "Plain-text opening of the description, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the description holds no text. Lets a list row render its two lines without the description being sent at all — see the 'view' parameter."
+      ),
+    thumbnailUrl: zod
+      .string()
+      .optional()
+      .describe(
+        "URL template of the route's thumbnail, light variant if there is one, else dark. Saves a compact row from carrying media.assets just to find the map preview."
+      ),
     distance: zod.number().describe('Distance in meters'),
     elevationGain: zod.number().describe('Total elevation gain in meters'),
     elevationLoss: zod.number().describe('Total elevation loss in meters'),
@@ -1423,16 +1603,37 @@ export const UpdateRouteResponse = zod
       .describe('Whether the route is public'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     deleted: zod.boolean().describe('Whether the route is soft-deleted'),
+    commentCount: zod
+      .number()
+      .optional()
+      .describe(
+        'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
   })
   .describe('Route summary data')
 
 /**
- * Get detailed route information including GPS coordinates and statistics
+ * Get detailed route information including GPS coordinates and statistics. The stored track holds one point every ten meters, which is megabytes of JSON on a long route: 'simplify' and 'points' let a client trade fidelity for weight. Passing neither returns the stored track unchanged.
  * @summary Get route details
  */
 export const GetRouteParams = zod.object({
   routeSlug: zod.string().describe('Route slug'),
   teamSlug: zod.string().describe('Team URL slug'),
+})
+
+export const GetRouteQueryParams = zod.object({
+  points: zod
+    .number()
+    .optional()
+    .describe(
+      "Maximum number of track points to return. The points kept are those deviating most from the simplified line — corners and elevation extrema survive, straight flat stretches are dropped — and the first and last points are always kept. Applied after 'simplify' when both are given. Absent, zero or a value larger than the stored track means no decimation."
+    ),
+  simplify: zod
+    .number()
+    .optional()
+    .describe(
+      'Douglas-Peucker tolerance in meters: drop every track point lying closer than this to the line joining the points kept around it. The returned line stays within that many meters of the stored one, and its first and last points are always kept. Capped at 1000; absent or zero means no simplification.'
+    ),
 })
 
 export const GetRouteResponse = zod
@@ -1690,6 +1891,12 @@ export const GetRouteResponse = zod
       )
       .describe('Waypoints'),
     deleted: zod.boolean().describe('Whether the route is soft-deleted'),
+    commentCount: zod
+      .number()
+      .optional()
+      .describe(
+        'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
   })
   .describe('Detailed route information')
 
@@ -1703,6 +1910,58 @@ export const DeleteRouteParams = zod.object({
 })
 
 export const DeleteRouteResponse = zod.void()
+
+/**
+ * The route's elevation profile resampled to 'samples' evenly spaced distances, each point carrying its cumulative distance, its elevation and the grade in percent of the segment ending on it — everything needed to draw a profile coloured by gradient without downloading the full track. Multi-track routes are concatenated into one continuous profile. The answer never holds more points than the stored track.
+ * @summary Get route elevation profile
+ */
+export const GetRouteElevationProfileParams = zod.object({
+  routeSlug: zod.string().describe('Route slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
+})
+
+export const getRouteElevationProfileQuerySamplesDefault = 300
+
+export const GetRouteElevationProfileQueryParams = zod.object({
+  samples: zod
+    .number()
+    .default(getRouteElevationProfileQuerySamplesDefault)
+    .describe(
+      'Number of profile points wanted. Clamped server-side to 2..1000, and further reduced to the number of points actually stored for the route.'
+    ),
+})
+
+export const GetRouteElevationProfileResponse = zod
+  .object({
+    routeId: zod.string().describe('Route ID (TSID)'),
+    slug: zod.string().describe('Route slug'),
+    distance: zod.number().describe('Distance covered by the profile, in meters'),
+    minElevation: zod.number().describe('Lowest elevation of the profile, in meters'),
+    maxElevation: zod.number().describe('Highest elevation of the profile, in meters'),
+    samples: zod
+      .number()
+      .describe(
+        'Number of points actually returned. Never more than the number of points stored for the route, so a short track is not artificially upsampled.'
+      ),
+    points: zod
+      .array(
+        zod
+          .object({
+            distance: zod
+              .number()
+              .describe('Cumulative distance from the start of the route, in meters'),
+            elevation: zod.number().describe('Elevation above sea level, in meters'),
+            grade: zod
+              .number()
+              .describe(
+                'Grade of the segment ending at this point, in percent. Zero on the first point, which ends no segment.'
+              ),
+          })
+          .describe('One point of an elevation profile')
+      )
+      .describe('Profile points, by increasing distance'),
+  })
+  .describe('Sampled elevation profile of a route, ready to draw')
 
 /**
  * Change route URL slug. Requires organizer permissions.
@@ -1982,6 +2241,12 @@ export const ChangeRouteSlugResponse = zod
       )
       .describe('Waypoints'),
     deleted: zod.boolean().describe('Whether the route is soft-deleted'),
+    commentCount: zod
+      .number()
+      .optional()
+      .describe(
+        'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
   })
   .describe('Detailed route information')
 
@@ -2249,6 +2514,12 @@ export const UndeleteRouteResponse = zod
       )
       .describe('Waypoints'),
     deleted: zod.boolean().describe('Whether the route is soft-deleted'),
+    commentCount: zod
+      .number()
+      .optional()
+      .describe(
+        'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
   })
   .describe('Detailed route information')
 

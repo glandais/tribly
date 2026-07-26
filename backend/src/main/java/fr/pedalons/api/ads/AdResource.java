@@ -1,12 +1,16 @@
 package fr.pedalons.api.ads;
 
 import fr.pedalons.dto.ads.request.AdRequest;
+import fr.pedalons.dto.ads.request.AdSearchParams;
 import fr.pedalons.dto.ads.response.AdDto;
 import fr.pedalons.dto.ads.response.AdEditDto;
 import fr.pedalons.dto.ads.response.AdListResponse;
 import fr.pedalons.dto.common.request.SlugChangeRequest;
 import fr.pedalons.dto.error.ErrorResponse;
+import fr.pedalons.enums.AdSortBy;
 import fr.pedalons.enums.AdType;
+import fr.pedalons.enums.ListViewMode;
+import fr.pedalons.enums.SortDirection;
 import fr.pedalons.service.ad.AdService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -15,6 +19,7 @@ import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.math.BigDecimal;
 import java.time.Instant;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
@@ -57,13 +62,57 @@ public class AdResource {
           @Nullable String fromStr,
       @Parameter(description = "End date filter (ISO format)") @QueryParam("to")
           @Nullable String toStr,
+      @Parameter(
+              description =
+                  "Lowest asking price to include. Ads with no price ('à négocier') are excluded by"
+                      + " either price bound.")
+          @QueryParam("minPrice")
+          @Nullable BigDecimal minPrice,
+      @Parameter(description = "Highest asking price to include") @QueryParam("maxPrice")
+          @Nullable BigDecimal maxPrice,
+      @Parameter(description = "Latitude for proximity search") @QueryParam("nearLat")
+          @Nullable Double nearLat,
+      @Parameter(description = "Longitude for proximity search") @QueryParam("nearLon")
+          @Nullable Double nearLon,
+      @Parameter(
+              description =
+                  "Search radius in metres around nearLat/nearLon (default 25000, capped at"
+                      + " 500000). Ads with no location are excluded when a centre is given.")
+          @QueryParam("nearRadius")
+          @Nullable Double nearRadius,
+      @Parameter(description = "Sort column (default: publication date)") @QueryParam("sortBy")
+          @Nullable AdSortBy sortBy,
+      @Parameter(description = "Sort direction (default: DESC)") @QueryParam("sortDir")
+          @Nullable SortDirection sortDir,
+      @Parameter(
+              description =
+                  "How much of each row to send. COMPACT (case-insensitive) returns media.markdown"
+                      + " empty and media.assets empty — read 'excerpt', 'thumbnailUrl' and"
+                      + " 'images' instead, all of which are present either way. Omitted, or FULL,"
+                      + " is the previous behaviour, byte for byte.")
+          @QueryParam("view")
+          @Nullable ListViewMode view,
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
     Instant from = fromStr != null ? Instant.parse(fromStr) : null;
     Instant to = toStr != null ? Instant.parse(toStr) : null;
 
-    AdListResponse ads = adService.listAds(teamSlug, search, adType, from, to, page, size);
+    AdSearchParams params =
+        AdSearchParams.builder()
+            .search(search)
+            .adType(adType)
+            .from(from)
+            .to(to)
+            .minPrice(minPrice)
+            .maxPrice(maxPrice)
+            .nearLat(nearLat)
+            .nearLon(nearLon)
+            .nearRadius(nearRadius)
+            .sortBy(sortBy)
+            .sortDir(sortDir)
+            .build();
+    AdListResponse ads = adService.listAds(teamSlug, params, view, page, size);
 
     return Response.ok(ads).build();
   }

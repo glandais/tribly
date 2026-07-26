@@ -7,10 +7,14 @@ import 'package:dio/dio.dart' hide Headers;
 import 'package:retrofit/retrofit.dart';
 import 'package:retrofit/error_logger.dart';
 
+import '../models/list_view_mode.dart';
 import '../models/public_user_dto.dart';
+import '../models/publication_list_response.dart';
+import '../models/status.dart';
 import '../models/update_user_request.dart';
 import '../models/user_dto.dart';
 import '../models/user_export_dto.dart';
+import '../models/user_preferences_request.dart';
 
 part 'users_client.g.dart';
 
@@ -87,6 +91,41 @@ abstract class UsersClient {
   @GET('/api/users/me/export/{exportId}')
   Future<UserExportDto> getExport({
     @Path('exportId') required String exportId,
+  });
+
+  /// List my participations.
+  ///
+  /// The rides and trips the current user is registered to, soonest first. Only publications the user may still see are returned: leaving a team removes its outings from this list.
+  ///
+  /// [from] - Start date filter (ISO format).
+  ///
+  /// [page] - Page number.
+  ///
+  /// [size] - Page size.
+  ///
+  /// [status] - Only publications with this status.
+  ///
+  /// [to] - End date filter (ISO format).
+  ///
+  /// [view] - How much of each row to send. COMPACT (case-insensitive) returns media.markdown empty and media.assets empty — read 'excerpt' and 'thumbnailUrl' instead, both of which are present either way. Omitted, or FULL, is the previous behaviour, byte for byte.
+  @GET('/api/users/me/participations')
+  Future<PublicationListResponse> listMyParticipations({
+    @Query('page') int? page = 0,
+    @Query('size') int? size = 20,
+    @Query('from') String? from,
+    @Query('status') Status? status,
+    @Query('to') String? to,
+    @Query('view') ListViewMode? view,
+  });
+
+  /// Update display preferences.
+  ///
+  /// Set the current user's unit system, colour scheme and language. A partial update: fields omitted (or sent null) are left unchanged. These live on the server so that a member who picks imperial units on their phone sees them on the web too, and so that reinstalling the app does not lose them.
+  ///
+  /// [body] - Name not received - field will be skipped.
+  @PATCH('/api/users/me/preferences')
+  Future<UserDto> updateMyPreferences({
+    @Body() required UserPreferencesRequest body,
   });
 
   /// Search users.

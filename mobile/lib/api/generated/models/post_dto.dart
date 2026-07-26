@@ -49,11 +49,20 @@ abstract class PostDto with _$PostDto {
     /// Whether the post is soft-deleted
     required bool deleted,
 
+    /// Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter.
+    String? excerpt,
+
+    /// URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture.
+    String? thumbnailUrl,
+
     /// Publication timestamp
     String? publishAt,
 
     /// Creation timestamp
     String? createdAt,
+
+    /// Number of comments, replies included. Absent when the caller may not read the comments of this post — comments are members-only, so an outsider is told nothing, not even zero.
+    int? commentCount,
   }) = _PostDto;
 
   factory PostDto.fromJson(Map<String, Object?> json) =>

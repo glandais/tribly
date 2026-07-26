@@ -22,6 +22,8 @@ abstract class TeamsClient {
   ///
   /// Get a paginated list of public teams with optional search.
   ///
+  /// [joinable] - Keep only teams that accept a join request from any domain user (true), or only those that do not (false). Omitted keeps both. A filter on top of the visibility rules, never instead of them.
+  ///
   /// [minRole] - Minimum role in team.
   ///
   /// [page] - Page number (0-indexed).
@@ -33,6 +35,7 @@ abstract class TeamsClient {
   Future<TeamListResponse> listTeams({
     @Query('page') int? page = 0,
     @Query('size') int? size = 20,
+    @Query('joinable') bool? joinable,
     @Query('minRole') MinRole? minRole,
     @Query('search') String? search,
   });

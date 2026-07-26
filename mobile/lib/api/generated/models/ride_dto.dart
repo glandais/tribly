@@ -64,6 +64,15 @@ abstract class RideDto with _$RideDto {
     /// Whether the ride is soft-deleted
     required bool deleted,
 
+    /// Whether the current user is registered in one of this ride's groups. False if anonymous.
+    required bool registered,
+
+    /// Whether every group of the ride has reached its capacity. False when the ride has no group, or when at least one group has no maxParticipants.
+    required bool full,
+
+    /// Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter.
+    String? excerpt,
+
     /// Publication timestamp
     String? publishAt,
 
@@ -84,6 +93,15 @@ abstract class RideDto with _$RideDto {
 
     /// Thumbnail URL (dark)
     String? thumbnailDarkUrl,
+
+    /// The one thumbnail to show when the client does not theme its cards: the light variant if there is one, else the dark one. Saves a compact row from carrying media.assets just to find a picture.
+    String? thumbnailUrl,
+
+    /// ID (TSID) of the group the current user joined, null if not registered
+    String? registeredGroupId,
+
+    /// Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.
+    int? commentCount,
   }) = _RideDto;
 
   factory RideDto.fromJson(Map<String, Object?> json) =>

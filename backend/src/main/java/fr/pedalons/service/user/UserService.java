@@ -4,8 +4,10 @@ import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.gps.response.GpsServiceConnectionDto;
 import fr.pedalons.dto.social.response.SocialIdentityDto;
 import fr.pedalons.dto.users.request.UpdateUserRequest;
+import fr.pedalons.dto.users.request.UserPreferencesRequest;
 import fr.pedalons.dto.users.response.PublicUserDto;
 import fr.pedalons.dto.users.response.UserDto;
+import fr.pedalons.enums.ThemePreference;
 import fr.pedalons.enums.UnitSystem;
 import fr.pedalons.repository.gps.GpsServiceConnectionRepository;
 import fr.pedalons.repository.social.UserSocialIdentityRepository;
@@ -64,6 +66,33 @@ public class UserService {
     UnitSystem unitSystem = request.unitSystem();
     if (unitSystem != null) {
       user.setUnitSystem(unitSystem);
+    }
+
+    userRepository.persist(user);
+    return UserDto.from(user);
+  }
+
+  /**
+   * Writes the display preferences the profile screen owns, leaving the rest of the profile alone.
+   *
+   * <p>A null field means "unchanged", not "clear": see {@link UserPreferencesRequest}.
+   */
+  @Logged
+  @Transactional
+  public UserDto updatePreferences(UserPreferencesRequest request) {
+    User user = pedalonsContext.getUser();
+
+    UnitSystem unitSystem = request.unitSystem();
+    if (unitSystem != null) {
+      user.setUnitSystem(unitSystem);
+    }
+    ThemePreference theme = request.theme();
+    if (theme != null) {
+      user.setTheme(theme);
+    }
+    String language = request.language();
+    if (language != null) {
+      user.setLanguage(language);
     }
 
     userRepository.persist(user);

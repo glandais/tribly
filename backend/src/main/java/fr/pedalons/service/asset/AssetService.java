@@ -346,12 +346,59 @@ public class AssetService {
     } else {
       visibility = asset.getTeamEntity().getVisibility();
     }
+    return buildImageUrl(teamSlug, visibility, asset.getId());
+  }
+
+  /**
+   * The URL template of the entity's first image, in the order the editor arranged them.
+   *
+   * <p>Entities with no generated thumbnail — a post, an ad — still have a picture to show on a
+   * card, and it is the first of their images. Exposing it as a scalar is what lets a compact list
+   * row drop {@code media.assets} entirely instead of carrying the whole inventory to read one URL.
+   *
+   * @return {@code null} when the entity has no image
+   */
+  public @Nullable String getFirstImageUrl(TeamEntity teamEntity) {
+    return teamEntity.getAssets().stream()
+        .filter(asset -> asset.getType() == AssetType.IMAGE)
+        .min(Comparator.comparing(Asset::getSortOrder))
+        .map(this::getImageUrl)
+        .orElse(null);
+  }
+
+  /**
+   * The URL templates of every image on the entity, in the order the editor arranged them.
+   *
+   * <p>A gallery — a classified ad's photos, say — needs the whole list, but not the filenames,
+   * content types and dimensions that {@link #getAssetsDto} carries alongside them. Reads the same
+   * already-materialised collection as {@link #getFirstImageUrl}, so a caller that exposes both
+   * pays for one, and a compact row that already carries a thumbnail can carry a gallery for free.
+   *
+   * @return an empty list when the entity has no image
+   */
+  public List<String> getImageUrls(TeamEntity teamEntity) {
+    return teamEntity.getAssets().stream()
+        .filter(asset -> asset.getType() == AssetType.IMAGE)
+        .sorted(Comparator.comparing(Asset::getSortOrder))
+        .map(this::getImageUrl)
+        .toList();
+  }
+
+  /**
+   * The image URL template for an asset described by scalars rather than by the entity itself.
+   *
+   * <p>{@link #getImageUrl(Asset)} walks two lazy to-one associations to reach the team slug and the
+   * owning entity's visibility, which is fine for one asset and a per-row cost for a page of them.
+   * Bulk callers project those two scalars in their own query and land here, so the URL shape stays
+   * defined in exactly one place. See {@code ThumbnailLookup}.
+   */
+  public static String buildImageUrl(String teamSlug, Visibility visibility, Long assetId) {
     return "/api/download/"
         + visibility.name().toLowerCase()
         + "/images/"
         + teamSlug
         + "/"
-        + TsidUtils.toString(asset.getId())
+        + TsidUtils.toString(assetId)
         + "/{size}";
   }
 

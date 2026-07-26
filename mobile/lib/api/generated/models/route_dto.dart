@@ -52,6 +52,15 @@ abstract class RouteDto with _$RouteDto {
 
     /// Whether the route is soft-deleted
     required bool deleted,
+
+    /// Plain-text opening of the description, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the description holds no text. Lets a list row render its two lines without the description being sent at all — see the 'view' parameter.
+    String? excerpt,
+
+    /// URL template of the route's thumbnail, light variant if there is one, else dark. Saves a compact row from carrying media.assets just to find the map preview.
+    String? thumbnailUrl,
+
+    /// Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.
+    int? commentCount,
   }) = _RouteDto;
 
   factory RouteDto.fromJson(Map<String, Object?> json) =>

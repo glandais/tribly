@@ -37,6 +37,7 @@ class _RoutesClient implements RoutesClient {
     RouteSortBy? sortBy,
     SortDirection? sortDir,
     SurfaceType? surfaceType,
+    ListViewMode? view,
     WindDirection? windDirection,
   }) async {
     final _extra = <String, dynamic>{};
@@ -57,6 +58,7 @@ class _RoutesClient implements RoutesClient {
       r'sortBy': sortBy?.toJson(),
       r'sortDir': sortDir?.toJson(),
       r'surfaceType': surfaceType?.toJson(),
+      r'view': view?.toJson(),
       r'windDirection': windDirection?.toJson(),
     };
     queryParameters.removeWhere((k, v) => v == null);
@@ -140,6 +142,62 @@ class _RoutesClient implements RoutesClient {
   }
 
   @override
+  Future<CountResponse> countAllRoutes({
+    Hilliness? hilliness,
+    double? maxDistance,
+    double? maxElevationGain,
+    double? minDistance,
+    double? minElevationGain,
+    MinRole? minRole,
+    double? nearLat,
+    double? nearLon,
+    double? nearRadius,
+    NearType? nearType,
+    String? search,
+    SurfaceType? surfaceType,
+    WindDirection? windDirection,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'hilliness': hilliness?.toJson(),
+      r'maxDistance': maxDistance,
+      r'maxElevationGain': maxElevationGain,
+      r'minDistance': minDistance,
+      r'minElevationGain': minElevationGain,
+      r'minRole': minRole?.toJson(),
+      r'nearLat': nearLat,
+      r'nearLon': nearLon,
+      r'nearRadius': nearRadius,
+      r'nearType': nearType?.toJson(),
+      r'search': search,
+      r'surfaceType': surfaceType?.toJson(),
+      r'windDirection': windDirection?.toJson(),
+    };
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<CountResponse>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/api/routes/count',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, Object?>>(_options);
+    late CountResponse _value;
+    try {
+      _value = CountResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
   Future<void> allRoutesTile({
     required int x,
     required int y,
@@ -208,6 +266,7 @@ class _RoutesClient implements RoutesClient {
     RouteSortBy? sortBy,
     SortDirection? sortDir,
     SurfaceType? surfaceType,
+    ListViewMode? view,
     WindDirection? windDirection,
   }) async {
     final _extra = <String, dynamic>{};
@@ -227,6 +286,7 @@ class _RoutesClient implements RoutesClient {
       r'sortBy': sortBy?.toJson(),
       r'sortDir': sortDir?.toJson(),
       r'surfaceType': surfaceType?.toJson(),
+      r'view': view?.toJson(),
       r'windDirection': windDirection?.toJson(),
     };
     queryParameters.removeWhere((k, v) => v == null);
@@ -352,6 +412,61 @@ class _RoutesClient implements RoutesClient {
   }
 
   @override
+  Future<CountResponse> countRoutes({
+    required String teamSlug,
+    Hilliness? hilliness,
+    double? maxDistance,
+    double? maxElevationGain,
+    double? minDistance,
+    double? minElevationGain,
+    double? nearLat,
+    double? nearLon,
+    double? nearRadius,
+    NearType? nearType,
+    String? search,
+    SurfaceType? surfaceType,
+    WindDirection? windDirection,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'hilliness': hilliness?.toJson(),
+      r'maxDistance': maxDistance,
+      r'maxElevationGain': maxElevationGain,
+      r'minDistance': minDistance,
+      r'minElevationGain': minElevationGain,
+      r'nearLat': nearLat,
+      r'nearLon': nearLon,
+      r'nearRadius': nearRadius,
+      r'nearType': nearType?.toJson(),
+      r'search': search,
+      r'surfaceType': surfaceType?.toJson(),
+      r'windDirection': windDirection?.toJson(),
+    };
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<CountResponse>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/api/teams/${teamSlug}/routes/count',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, Object?>>(_options);
+    late CountResponse _value;
+    try {
+      _value = CountResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
   Future<void> routesTile({
     required String teamSlug,
     required int x,
@@ -449,9 +564,15 @@ class _RoutesClient implements RoutesClient {
   Future<RouteDetailDto> getRoute({
     required String routeSlug,
     required String teamSlug,
+    int? points,
+    double? simplify,
   }) async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'points': points,
+      r'simplify': simplify,
+    };
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
     final _options = _setStreamType<RouteDetailDto>(
@@ -495,6 +616,38 @@ class _RoutesClient implements RoutesClient {
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
     await _dio.fetch<void>(_options);
+  }
+
+  @override
+  Future<ElevationProfileDto> getRouteElevationProfile({
+    required String routeSlug,
+    required String teamSlug,
+    int? samples = 300,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'samples': samples};
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<ElevationProfileDto>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/api/teams/${teamSlug}/routes/${routeSlug}/elevation-profile',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, Object?>>(_options);
+    late ElevationProfileDto _value;
+    try {
+      _value = ElevationProfileDto.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
   }
 
   @override

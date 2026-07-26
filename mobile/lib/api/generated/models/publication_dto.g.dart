@@ -25,6 +25,9 @@ PublicationDtoRide _$PublicationDtoRideFromJson(Map<String, dynamic> json) =>
           .map((e) => PublicUserDto.fromJson(e as Map<String, dynamic>))
           .toList(),
       deleted: json['deleted'] as bool,
+      registered: json['registered'] as bool,
+      full: json['full'] as bool,
+      excerpt: json['excerpt'] as String?,
       publishAt: json['publishAt'] as String?,
       createdAt: json['createdAt'] as String?,
       routeSlug: json['routeSlug'] as String?,
@@ -36,6 +39,9 @@ PublicationDtoRide _$PublicationDtoRideFromJson(Map<String, dynamic> json) =>
           : PlaceDetailDto.fromJson(json['endPlace'] as Map<String, dynamic>),
       thumbnailLightUrl: json['thumbnailLightUrl'] as String?,
       thumbnailDarkUrl: json['thumbnailDarkUrl'] as String?,
+      thumbnailUrl: json['thumbnailUrl'] as String?,
+      registeredGroupId: json['registeredGroupId'] as String?,
+      commentCount: (json['commentCount'] as num?)?.toInt(),
       $type: json['type'] as String?,
     );
 
@@ -55,6 +61,9 @@ Map<String, dynamic> _$PublicationDtoRideToJson(
   'groups': instance.groups.map((e) => e.toJson()).toList(),
   'topParticipants': instance.topParticipants.map((e) => e.toJson()).toList(),
   'deleted': instance.deleted,
+  'registered': instance.registered,
+  'full': instance.full,
+  'excerpt': instance.excerpt,
   'publishAt': instance.publishAt,
   'createdAt': instance.createdAt,
   'routeSlug': instance.routeSlug,
@@ -62,6 +71,9 @@ Map<String, dynamic> _$PublicationDtoRideToJson(
   'endPlace': instance.endPlace?.toJson(),
   'thumbnailLightUrl': instance.thumbnailLightUrl,
   'thumbnailDarkUrl': instance.thumbnailDarkUrl,
+  'thumbnailUrl': instance.thumbnailUrl,
+  'registeredGroupId': instance.registeredGroupId,
+  'commentCount': instance.commentCount,
   'type': instance.$type,
 };
 
@@ -76,8 +88,11 @@ PublicationDtoPost _$PublicationDtoPostFromJson(Map<String, dynamic> json) =>
       status: json['status'] as String,
       visibility: json['visibility'] as String,
       deleted: json['deleted'] as bool,
+      excerpt: json['excerpt'] as String?,
+      thumbnailUrl: json['thumbnailUrl'] as String?,
       publishAt: json['publishAt'] as String?,
       createdAt: json['createdAt'] as String?,
+      commentCount: (json['commentCount'] as num?)?.toInt(),
       $type: json['type'] as String?,
     );
 
@@ -92,8 +107,11 @@ Map<String, dynamic> _$PublicationDtoPostToJson(PublicationDtoPost instance) =>
       'status': instance.status,
       'visibility': instance.visibility,
       'deleted': instance.deleted,
+      'excerpt': instance.excerpt,
+      'thumbnailUrl': instance.thumbnailUrl,
       'publishAt': instance.publishAt,
       'createdAt': instance.createdAt,
+      'commentCount': instance.commentCount,
       'type': instance.$type,
     };
 
@@ -116,11 +134,18 @@ PublicationDtoTrip _$PublicationDtoTripFromJson(Map<String, dynamic> json) =>
           .map((e) => PublicUserDto.fromJson(e as Map<String, dynamic>))
           .toList(),
       deleted: json['deleted'] as bool,
+      registered: json['registered'] as bool,
+      excerpt: json['excerpt'] as String?,
+      endDate: json['endDate'] as String?,
       publishAt: json['publishAt'] as String?,
       createdAt: json['createdAt'] as String?,
       routeSlug: json['routeSlug'] as String?,
+      totalDistance: (json['totalDistance'] as num?)?.toDouble(),
+      totalElevationGain: (json['totalElevationGain'] as num?)?.toDouble(),
       thumbnailLightUrl: json['thumbnailLightUrl'] as String?,
       thumbnailDarkUrl: json['thumbnailDarkUrl'] as String?,
+      thumbnailUrl: json['thumbnailUrl'] as String?,
+      commentCount: (json['commentCount'] as num?)?.toInt(),
       $type: json['type'] as String?,
     );
 
@@ -139,10 +164,17 @@ Map<String, dynamic> _$PublicationDtoTripToJson(PublicationDtoTrip instance) =>
       'stages': instance.stages.map((e) => e.toJson()).toList(),
       'participants': instance.participants.map((e) => e.toJson()).toList(),
       'deleted': instance.deleted,
+      'registered': instance.registered,
+      'excerpt': instance.excerpt,
+      'endDate': instance.endDate,
       'publishAt': instance.publishAt,
       'createdAt': instance.createdAt,
       'routeSlug': instance.routeSlug,
+      'totalDistance': instance.totalDistance,
+      'totalElevationGain': instance.totalElevationGain,
       'thumbnailLightUrl': instance.thumbnailLightUrl,
       'thumbnailDarkUrl': instance.thumbnailDarkUrl,
+      'thumbnailUrl': instance.thumbnailUrl,
+      'commentCount': instance.commentCount,
       'type': instance.$type,
     };

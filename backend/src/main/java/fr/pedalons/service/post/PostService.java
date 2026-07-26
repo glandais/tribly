@@ -8,6 +8,7 @@ import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.Status;
 import fr.pedalons.repository.post.PostRepository;
+import fr.pedalons.service.comment.CommentCountLookup;
 import fr.pedalons.service.common.TeamEntityService;
 import fr.pedalons.service.security.annotation.CheckAccess;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -19,6 +20,8 @@ public class PostService extends TeamEntityService<Post, PostRepository, PostDto
 
   @Inject PostRepository postRepository;
 
+  @Inject CommentCountLookup commentCountLookup;
+
   @Override
   protected PostRepository getRepository() {
     return postRepository;
@@ -26,7 +29,7 @@ public class PostService extends TeamEntityService<Post, PostRepository, PostDto
 
   @Override
   protected PostDto toDto(Post entity) {
-    return PostDto.from(entity, assetService);
+    return PostDto.from(entity, assetService, commentCountLookup.forEntity(entity));
   }
 
   @Override

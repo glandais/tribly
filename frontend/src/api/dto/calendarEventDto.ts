@@ -1,5 +1,6 @@
 import type { CalendarEventType } from './calendarEventType.ts'
 import type { Instant } from './instant.ts'
+import type { Status } from './status.ts'
 
 /**
  * Calendar event data
@@ -25,4 +26,18 @@ export interface CalendarEventDto {
   entitySlug: string
   /** Parent trip slug (for stages only) */
   tripSlug?: string
+  /** Name of the meeting place, null when the ride or stage has no start place */
+  startPlaceName?: string
+  /** Distance in meters of the attached route, null when there is no route */
+  distance?: number
+  /** Total elevation gain in meters of the attached route, null when there is no route */
+  elevationGain?: number
+  /** Thumbnail image URL template (contains a {size} placeholder). Falls back to the route's thumbnail when the ride or stage has none of its own. */
+  thumbnailUrl?: string
+  /** Whether the current user is registered to this ride, or to the trip this stage belongs to. False for an anonymous caller. */
+  registered: boolean
+  /** Name of the ride group the current user joined. Null when not registered, and always null for trip stages, which have no groups. */
+  groupName?: string
+  /** Publication status of the ride or stage */
+  status: Status
 }

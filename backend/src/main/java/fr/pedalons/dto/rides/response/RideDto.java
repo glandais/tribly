@@ -1,17 +1,21 @@
 package fr.pedalons.dto.rides.response;
 
+import fr.pedalons.common.MarkdownExcerpt;
 import fr.pedalons.common.TsidUtils;
 import fr.pedalons.domain.place.Place;
 import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.domain.ride.RideGroup;
 import fr.pedalons.domain.ride.RideParticipation;
+import fr.pedalons.dto.comments.response.CommentCounts;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.places.response.PlaceDetailDto;
 import fr.pedalons.dto.publications.response.PublicationDto;
 import fr.pedalons.dto.publications.response.PublicationType;
 import fr.pedalons.dto.publications.response.TeamPublicationDto;
+import fr.pedalons.dto.publications.response.UserParticipations;
 import fr.pedalons.dto.users.response.PublicUserDto;
 import fr.pedalons.dto.validation.ValidateSchema;
+import fr.pedalons.enums.ListViewMode;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.service.asset.AssetService;
@@ -47,6 +51,15 @@ public class RideDto implements PublicationDto {
 
   @Schema(description = "Publication media", required = true)
   final MediaDto media;
+
+  @Nullable
+  @Schema(
+      description =
+          "Plain-text opening of the markdown body, flattened (links become their label) and cut on"
+              + " a word boundary at about 200 characters. Null when the body holds no text. Lets a"
+              + " list row render its two lines without the body being sent at all — see the 'view'"
+              + " parameter.")
+  final String excerpt;
 
   @Schema(description = "Publication date/time", required = true)
   final Instant dateTime;
@@ -97,8 +110,42 @@ public class RideDto implements PublicationDto {
   @Schema(description = "Thumbnail URL (dark)")
   final String thumbnailDarkUrl;
 
+  @Nullable
+  @Schema(
+      description =
+          "The one thumbnail to show when the client does not theme its cards: the light variant if"
+              + " there is one, else the dark one. Saves a compact row from carrying"
+              + " media.assets just to find a picture.")
+  final String thumbnailUrl;
+
   @Schema(description = "Whether the ride is soft-deleted", required = true)
   final boolean deleted;
+
+  @Schema(
+      description =
+          "Whether the current user is registered in one of this ride's groups. False if"
+              + " anonymous.",
+      required = true)
+  final boolean registered;
+
+  @Nullable
+  @Schema(description = "ID (TSID) of the group the current user joined, null if not registered")
+  final String registeredGroupId;
+
+  @Schema(
+      description =
+          "Whether every group of the ride has reached its capacity. False when the ride has no"
+              + " group, or when at least one group has no maxParticipants.",
+      required = true)
+  final boolean full;
+
+  @Nullable
+  @Schema(
+      description =
+          "Number of comments, replies included. Absent when the caller may not read the comments"
+              + " of this ride — comments are members-only, so an outsider is told nothing, not"
+              + " even zero.")
+  final Integer commentCount;
 
   public RideDto(
       TeamPublicationDto team,
@@ -106,6 +153,7 @@ public class RideDto implements PublicationDto {
       String slug,
       String name,
       MediaDto media,
+      @Nullable String excerpt,
       Instant dateTime,
       Status status,
       Visibility visibility,
@@ -120,13 +168,19 @@ public class RideDto implements PublicationDto {
       List<PublicUserDto> topParticipants,
       @Nullable String thumbnailLightUrl,
       @Nullable String thumbnailDarkUrl,
-      boolean deleted) {
+      @Nullable String thumbnailUrl,
+      boolean deleted,
+      boolean registered,
+      @Nullable String registeredGroupId,
+      boolean full,
+      @Nullable Integer commentCount) {
     super();
     this.team = team;
     this.id = id;
     this.slug = slug;
     this.name = name;
     this.media = media;
+    this.excerpt = excerpt;
     this.dateTime = dateTime;
     this.status = status;
     this.visibility = visibility;
@@ -141,7 +195,12 @@ public class RideDto implements PublicationDto {
     this.topParticipants = topParticipants;
     this.thumbnailLightUrl = thumbnailLightUrl;
     this.thumbnailDarkUrl = thumbnailDarkUrl;
+    this.thumbnailUrl = thumbnailUrl;
     this.deleted = deleted;
+    this.registered = registered;
+    this.registeredGroupId = registeredGroupId;
+    this.full = full;
+    this.commentCount = commentCount;
   }
 
   /**
@@ -154,21 +213,64 @@ public class RideDto implements PublicationDto {
    */
   public static RideDto fromListItem(
       Ride ride, RideListSummary summary, AssetService assetService) {
+    return fromListItem(ride, summary, assetService, UserParticipations.NONE, CommentCounts.NONE);
+  }
+
+  /**
+   * @param participations the current user's registrations for this whole page, resolved in one
+   *     query by {@code ParticipationLookup} — never one lookup per row
+   */
+  public static RideDto fromListItem(
+      Ride ride,
+      RideListSummary summary,
+      AssetService assetService,
+      UserParticipations participations,
+      CommentCounts commentCounts) {
+    return fromListItem(
+        ride, summary, assetService, participations, commentCounts, ListViewMode.FULL);
+  }
+
+  /**
+   * @param view {@link ListViewMode#COMPACT} leaves the markdown body and the asset inventory out of the
+   *     row; {@code excerpt} and {@code thumbnailUrl} carry what it renders instead
+   */
+  public static RideDto fromListItem(
+      Ride ride,
+      RideListSummary summary,
+      AssetService assetService,
+      UserParticipations participations,
+      CommentCounts commentCounts,
+      @Nullable ListViewMode view) {
     return build(
         ride,
         List.of(),
         summary.groupCount(),
         summary.participantCount(),
         summary.topParticipants(),
-        assetService);
+        assetService,
+        participations.registeredGroupId(ride.getId()),
+        summary.full(),
+        commentCounts.forEntity(ride.getId()),
+        view);
   }
 
   public static RideDto from(Ride ride, boolean groupDetails, AssetService assetService) {
+    return from(ride, groupDetails, assetService, UserParticipations.NONE, CommentCounts.NONE);
+  }
+
+  public static RideDto from(
+      Ride ride,
+      boolean groupDetails,
+      AssetService assetService,
+      UserParticipations participations,
+      CommentCounts commentCounts) {
+    Long registeredGroupId = participations.registeredGroupId(ride.getId());
+
     List<RideGroupDto> groupDtos =
         groupDetails
             ? ride.getGroups().stream()
                 .sorted(Comparator.comparing(RideGroup::getSortOrder))
-                .map(RideGroupDto::from)
+                .map(group -> RideGroupDto.from(group, registeredGroupId))
                 .toList()
             : List.of();
 
@@ -184,13 +286,22 @@ public class RideDto implements PublicationDto {
             .map(PublicUserDto::from)
             .toList();
 
+    // The detail path already holds the groups, so "every group is at capacity" is a fold, not a
+    // query. A ride with no group is not full.
+    List<RideGroup> groups = ride.getGroups();
+    boolean full = !groups.isEmpty() && groups.stream().noneMatch(RideGroup::hasCapacity);
+
     return build(
         ride,
         groupDtos,
         ride.getGroupCount(),
         ride.getParticipantCount(),
         topParticipants,
-        assetService);
+        assetService,
+        registeredGroupId,
+        full,
+        commentCounts.forEntity(ride.getId()),
+        ListViewMode.FULL);
   }
 
   private static RideDto build(
@@ -199,7 +310,11 @@ public class RideDto implements PublicationDto {
       int groupCount,
       int participantCount,
       List<PublicUserDto> topParticipants,
-      AssetService assetService) {
+      AssetService assetService,
+      @Nullable Long registeredGroupId,
+      boolean full,
+      @Nullable Integer commentCount,
+      @Nullable ListViewMode view) {
     Place startPlace = ride.getStart();
     Place endPlace = ride.getEnd();
 
@@ -229,7 +344,8 @@ public class RideDto implements PublicationDto {
         TsidUtils.toString(ride.getId()),
         ride.getSlug(),
         ride.getName(),
-        MediaDto.from(ride, assetService),
+        MediaDto.from(ride, assetService, view),
+        MarkdownExcerpt.of(ride.getMarkdown()),
         ride.getDateTime(),
         ride.getStatus(),
         ride.getVisibility(),
@@ -244,6 +360,11 @@ public class RideDto implements PublicationDto {
         topParticipants,
         thumbnailLightUrl,
         thumbnailDarkUrl,
-        ride.isDeleted());
+        thumbnailLightUrl != null ? thumbnailLightUrl : thumbnailDarkUrl,
+        ride.isDeleted(),
+        registeredGroupId != null,
+        registeredGroupId != null ? TsidUtils.toString(registeredGroupId) : null,
+        full,
+        commentCount);
   }
 }

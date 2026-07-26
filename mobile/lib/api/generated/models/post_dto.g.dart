@@ -17,8 +17,11 @@ _PostDto _$PostDtoFromJson(Map<String, dynamic> json) => _PostDto(
   status: json['status'] as String,
   visibility: json['visibility'] as String,
   deleted: json['deleted'] as bool,
+  excerpt: json['excerpt'] as String?,
+  thumbnailUrl: json['thumbnailUrl'] as String?,
   publishAt: json['publishAt'] as String?,
   createdAt: json['createdAt'] as String?,
+  commentCount: (json['commentCount'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$PostDtoToJson(_PostDto instance) => <String, dynamic>{
@@ -32,6 +35,9 @@ Map<String, dynamic> _$PostDtoToJson(_PostDto instance) => <String, dynamic>{
   'status': instance.status,
   'visibility': instance.visibility,
   'deleted': instance.deleted,
+  'excerpt': instance.excerpt,
+  'thumbnailUrl': instance.thumbnailUrl,
   'publishAt': instance.publishAt,
   'createdAt': instance.createdAt,
+  'commentCount': instance.commentCount,
 };

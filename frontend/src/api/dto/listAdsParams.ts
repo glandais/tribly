@@ -1,4 +1,7 @@
+import type { AdSortBy } from './adSortBy.ts'
 import type { AdType } from './adType.ts'
+import type { ListViewMode } from './listViewMode.ts'
+import type { SortDirection } from './sortDirection.ts'
 
 export type ListAdsParams = {
   /**
@@ -9,6 +12,26 @@ export type ListAdsParams = {
    * Start date filter (ISO format)
    */
   from?: string
+  /**
+   * Highest asking price to include
+   */
+  maxPrice?: number
+  /**
+   * Lowest asking price to include. Ads with no price ('à négocier') are excluded by either price bound.
+   */
+  minPrice?: number
+  /**
+   * Latitude for proximity search
+   */
+  nearLat?: number
+  /**
+   * Longitude for proximity search
+   */
+  nearLon?: number
+  /**
+   * Search radius in metres around nearLat/nearLon (default 25000, capped at 500000). Ads with no location are excluded when a centre is given.
+   */
+  nearRadius?: number
   /**
    * Page number
    */
@@ -22,7 +45,19 @@ export type ListAdsParams = {
    */
   size?: number
   /**
+   * Sort column (default: publication date)
+   */
+  sortBy?: AdSortBy
+  /**
+   * Sort direction (default: DESC)
+   */
+  sortDir?: SortDirection
+  /**
    * End date filter (ISO format)
    */
   to?: string
+  /**
+   * How much of each row to send. COMPACT (case-insensitive) returns media.markdown empty and media.assets empty — read 'excerpt', 'thumbnailUrl' and 'images' instead, all of which are present either way. Omitted, or FULL, is the previous behaviour, byte for byte.
+   */
+  view?: ListViewMode
 }

@@ -26,8 +26,16 @@ class _AdsClient implements AdsClient {
     int? size = 20,
     AdType? adType,
     String? from,
+    num? maxPrice,
+    num? minPrice,
+    double? nearLat,
+    double? nearLon,
+    double? nearRadius,
     String? search,
+    AdSortBy? sortBy,
+    SortDirection? sortDir,
     String? to,
+    ListViewMode? view,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -35,8 +43,16 @@ class _AdsClient implements AdsClient {
       r'size': size,
       r'adType': adType?.toJson(),
       r'from': from,
+      r'maxPrice': maxPrice,
+      r'minPrice': minPrice,
+      r'nearLat': nearLat,
+      r'nearLon': nearLon,
+      r'nearRadius': nearRadius,
       r'search': search,
+      r'sortBy': sortBy?.toJson(),
+      r'sortDir': sortDir?.toJson(),
       r'to': to,
+      r'view': view?.toJson(),
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};

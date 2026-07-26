@@ -22,7 +22,11 @@ _TeamDetailDto _$TeamDetailDtoFromJson(Map<String, dynamic> json) =>
       joinable: json['joinable'] as bool,
       addMemberAllowed: json['addMemberAllowed'] as bool,
       memberCount: (json['memberCount'] as num).toInt(),
+      upcomingRideCount: (json['upcomingRideCount'] as num).toInt(),
+      routeCount: (json['routeCount'] as num).toInt(),
       createdAt: json['createdAt'] as String,
+      excerpt: json['excerpt'] as String?,
+      logoUrl: json['logoUrl'] as String?,
       pages: (json['pages'] as List<dynamic>?)
           ?.map((e) => TeamPageSummaryDto.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -50,7 +54,11 @@ Map<String, dynamic> _$TeamDetailDtoToJson(_TeamDetailDto instance) =>
       'joinable': instance.joinable,
       'addMemberAllowed': instance.addMemberAllowed,
       'memberCount': instance.memberCount,
+      'upcomingRideCount': instance.upcomingRideCount,
+      'routeCount': instance.routeCount,
       'createdAt': instance.createdAt,
+      'excerpt': instance.excerpt,
+      'logoUrl': instance.logoUrl,
       'pages': instance.pages?.map((e) => e.toJson()).toList(),
       'role': instance.role,
       'geometry': instance.geometry?.toJson(),

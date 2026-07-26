@@ -7,7 +7,9 @@ import static org.geolatte.geom.crs.CoordinateReferenceSystems.addVerticalSystem
 
 import fr.pedalons.domain.route.GpxTrack;
 import fr.pedalons.dto.common.GeoJsonLineString;
+import fr.pedalons.dto.routes.request.GeometryOptions;
 import fr.pedalons.dto.validation.ValidateSchema;
+import fr.pedalons.service.route.TrackGeometry;
 import io.github.glandais.gpx.climb.Climb;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -32,6 +34,23 @@ public record TrackDto(
 
   public static TrackDto from(GpxTrack track) {
     return of(track.getTrackPoints(), track.getClimbs());
+  }
+
+  /**
+   * Same track, with the line decimated as {@code geometry} asks.
+   *
+   * <p>The climbs are left alone on purpose: {@link ClimbPartDto} carries absolute distances in
+   * meters, not point indices, so it stays aligned with a decimated line — re-indexing it would be
+   * the only way to break that.
+   */
+  public static TrackDto from(GpxTrack track, GeometryOptions geometry) {
+    if (geometry.isFull()) {
+      return from(track);
+    }
+    List<GpxTrack.TrackPoint> points =
+        TrackGeometry.simplify(track.getTrackPoints(), geometry.simplifyMeters());
+    points = TrackGeometry.decimateTo(points, geometry.maxPoints());
+    return of(points, track.getClimbs());
   }
 
   /** Builds a track DTO straight from computed points and climbs, with no entity involved. */

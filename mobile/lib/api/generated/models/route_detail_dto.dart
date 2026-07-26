@@ -70,6 +70,9 @@ abstract class RouteDetailDto with _$RouteDetailDto {
     required bool deleted,
     GeoJsonPoint? start,
     GeoJsonPoint? end,
+
+    /// Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.
+    int? commentCount,
   }) = _RouteDetailDto;
 
   factory RouteDetailDto.fromJson(Map<String, Object?> json) =>

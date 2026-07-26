@@ -48,11 +48,18 @@ public class TeamResource {
           @Nullable String search,
       @Parameter(description = "Minimum role in team") @QueryParam(value = "minRole")
           @Nullable MinRole minRole,
+      @Parameter(
+              description =
+                  "Keep only teams that accept a join request from any domain user (true), or only"
+                      + " those that do not (false). Omitted keeps both. A filter on top of the"
+                      + " visibility rules, never instead of them.")
+          @QueryParam("joinable")
+          @Nullable Boolean joinable,
       @Parameter(description = "Page number (0-indexed)") @QueryParam("page") @DefaultValue("0")
           int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
-    TeamListResponse teams = teamService.listTeams(minRole, search, page, size);
+    TeamListResponse teams = teamService.listTeams(minRole, search, joinable, page, size);
     return Response.ok(teams).build();
   }
 
