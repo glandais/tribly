@@ -862,7 +862,7 @@ moins l'équipe et la section, et le menu d'onglets est atteignable.
 
 ---
 
-**T5.2 ☐ — Rattacher les pages de détail au contexte d'équipe**
+**T5.2 ☑ — Rattacher les pages de détail au contexte d'équipe**
 *Fichiers modifiés* : `frontend/src/pages/ride/RideDetailPage.tsx`,
 `frontend/src/pages/post/PostDetailPage.tsx`, `frontend/src/pages/trip/TripDetailPage.tsx`,
 `frontend/src/pages/ad/AdDetailPage.tsx`, `frontend/src/components/team/TeamLayout.tsx`
@@ -929,8 +929,11 @@ ponctuel, dans les deux thèmes.
 
 ---
 
-**T5.6 ☐ — Préférences persistées côté serveur** (la partie thème/langue/unités reste optionnelle ;
-l'interrupteur `contactableByMembers` ne l'est pas, il conditionne T5.7)
+**T5.6 ☑ — Préférences persistées côté serveur** *(partie obligatoire seulement)*
+La partie thème/langue/unités **n'est pas livrée** : elle est optionnelle et a été écartée du
+périmètre. Seul l'interrupteur `contactableByMembers` l'est — il conditionne T5.7 — et il est le
+premier appel de `PATCH /api/users/me/preferences` du web, `preferencesStore` étant resté purement
+local pour le reste.
 *Fichiers modifiés* : `frontend/src/store/preferencesStore.ts`,
 `frontend/src/components/common/{ColorSchemeSwitcher,LanguageSwitcher,UnitSystemSwitcher}.tsx`,
 `frontend/src/pages/auth/UserProfilePage.tsx`, `frontend/src/locales/{fr,en}/common.json`.
@@ -953,7 +956,7 @@ membre depuis un autre compte renvoie `AD_CONTACT_OPTED_OUT`.
 
 ---
 
-**T5.7 ☐ — « Contacter le vendeur » sur le détail d'annonce**
+**T5.7 ☑ — « Contacter le vendeur » sur le détail d'annonce**
 *Fichiers* : `frontend/src/components/ad/AdContactModal.tsx` (créé),
 `frontend/src/components/ad/index.ts` (modifié), `frontend/src/pages/ad/AdDetailPage.tsx` (modifié),
 `frontend/src/lib/apiError.ts` et `frontend/src/lib/axiosInstance.ts` (modifiés — voir plus bas),

@@ -46,6 +46,7 @@ import { QueryStateBoundary } from '../../components/common/QueryStateBoundary'
 import { DetailPageSkeleton } from '../../components/common/DetailPageSkeleton'
 import { TripStageCard } from '../../components/trip/TripStageCard'
 import { TripLayout } from '../../components/trip/TripLayout'
+import { TeamContextBanner } from '../../components/team/TeamContextBanner'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 
 // Lazy load the map component (pulls in map-vendor ~1MB and chart-vendor ~150KB)
@@ -261,6 +262,9 @@ export function TripDetailPage() {
 
   return (
     <Container size="xl" py="xl">
+      {/* Way back to the team: this page is not mounted inside TeamLayout */}
+      {team && <TeamContextBanner team={team} />}
+
       {/* Header */}
       <Paper withBorder p="lg" mb="lg">
         <Group justify="space-between" align="flex-start" wrap="wrap">

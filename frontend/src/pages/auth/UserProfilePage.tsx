@@ -23,6 +23,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { UserAvatar } from '../../components/common/UserAvatar'
 import { UnitSystemSwitcher } from '../../components/common/UnitSystemSwitcher'
+import { ContactPreference } from '../../components/profile/ContactPreference'
 import { PasskeyManager } from '../../components/auth/PasskeyManager'
 import { GpsConnectionsManager } from '../../components/profile/GpsConnectionsManager'
 import { SocialConnectionsManager } from '../../components/profile/SocialConnectionsManager'
@@ -223,6 +224,7 @@ export function UserProfilePage() {
               {t('profile.preferences.title')}
             </Title>
             <UnitSystemSwitcher />
+            <ContactPreference contactableByMembers={user.contactableByMembers} />
           </Stack>
 
           <Divider />

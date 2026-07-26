@@ -7,6 +7,7 @@ import i18next from 'i18next'
 import {
   IconCalendar,
   IconPencil,
+  IconMail,
   IconChevronDown,
   IconMapPin,
   IconCurrencyEuro,
@@ -34,10 +35,13 @@ import {
   getGetAdQueryKey,
 } from '../../api/endpoints/ads/ads'
 import { QueryStateBoundary } from '../../components/common/QueryStateBoundary'
+import { AdContactModal } from '../../components/ad/AdContactModal'
+import { useAuth } from '../../hooks/useAuth'
 import { DetailPageSkeleton } from '../../components/common/DetailPageSkeleton'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
+import { TeamContextBanner } from '../../components/team/TeamContextBanner'
 import { useFormattedDate } from '../../utils/dateFormat'
 import { paths } from '@/config/paths'
 import { AdType, RentalPeriod, Status } from '../../api/dto'
@@ -63,6 +67,8 @@ export function AdDetailPage() {
   const queryClient = useQueryClient()
   const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [contactOpen, setContactOpen] = useState(false)
+  const { user } = useAuth()
 
   const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },
@@ -108,6 +114,9 @@ export function AdDetailPage() {
   }
 
   const isAdmin = team?.role === 'ADMIN'
+  // The relay is open to anyone who may read the ad, i.e. a team member — except its author,
+  // who has no one to write to. `AD_CONTACT_SELF` therefore never needs a rendering.
+  const canContactAuthor = !!team?.role && ad.createdById !== user?.id
   // Note: Full creator check would require comparing createdById with current user ID
   // For now, backend handles authorization, frontend shows edit for all members
   const canEdit = isAdmin || !!team?.role
@@ -187,6 +196,9 @@ export function AdDetailPage() {
 
   return (
     <Container size="md" py="xl">
+      {/* Way back to the team: this page is not mounted inside TeamLayout */}
+      {team && <TeamContextBanner team={team} />}
+
       {/* Header */}
       <Paper withBorder p="lg" mb="lg">
         <Group justify="space-between" align="flex-start" wrap="wrap">
@@ -206,6 +218,16 @@ export function AdDetailPage() {
               </Group>
             </Stack>
           </Group>
+
+          {canContactAuthor && (
+            <Button
+              leftSection={<IconMail size={16} />}
+              onClick={() => setContactOpen(true)}
+              mr="sm"
+            >
+              {t('ads.contact.button')}
+            </Button>
+          )}
 
           {canEdit && (
             <Button.Group>
@@ -308,6 +330,13 @@ export function AdDetailPage() {
         variant="warning"
         isLoading={updateMutation.isPending}
       />
+      <AdContactModal
+        opened={contactOpen}
+        onClose={() => setContactOpen(false)}
+        teamSlug={teamSlug!}
+        adSlug={adSlug!}
+      />
+
       <ConfirmDialog
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}

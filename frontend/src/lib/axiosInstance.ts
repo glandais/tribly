@@ -3,7 +3,7 @@ import { useAuthStore } from '../store/authStore'
 import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import type { ErrorResponse } from '../api/dto'
-import { ApiClientError } from './apiError'
+import { ApiClientError, parseRetryAfter } from './apiError'
 import { getSSRHeaders } from './ssrContext'
 
 const isServer = typeof window === 'undefined'
@@ -163,7 +163,11 @@ export const axiosMutator = <T>(
         }
 
         if (errorData?.code) {
-          const apiError = new ApiClientError(axiosError.status || 500, errorData)
+          const apiError = new ApiClientError(
+            axiosError.status || 500,
+            errorData,
+            parseRetryAfter(axiosError.response?.headers?.['retry-after'])
+          )
           if (!isServer) {
             notifications.show({
               message: i18next.t('errors.api.' + errorData.code, errorData.errorDetails || {}),

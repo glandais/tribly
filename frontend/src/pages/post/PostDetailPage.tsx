@@ -34,6 +34,7 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
 import { CommentSection } from '../../components/comment'
+import { TeamContextBanner } from '../../components/team/TeamContextBanner'
 import { useFormattedDate } from '../../utils/dateFormat'
 import { paths } from '@/config/paths'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
@@ -186,6 +187,9 @@ export function PostDetailPage() {
   return (
     <Container size="md" py="xl">
       <Stack>
+        {/* Way back to the team: this page is not mounted inside TeamLayout */}
+        <TeamContextBanner team={team} mb={0} />
+
         {/* Header */}
         <Paper withBorder p="lg" radius="md">
           <Group justify="space-between" align="flex-start" wrap="wrap">

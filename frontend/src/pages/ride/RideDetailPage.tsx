@@ -48,6 +48,7 @@ import { EmptyState } from '../../components/common/EmptyState'
 import { QueryStateBoundary } from '../../components/common/QueryStateBoundary'
 import { DetailPageSkeleton } from '../../components/common/DetailPageSkeleton'
 import { RideGroupCard } from '../../components/ride/RideGroupCard'
+import { TeamContextBanner } from '../../components/team/TeamContextBanner'
 import type { MapRouteItem } from '../../components/route/RoutesMapView'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 
@@ -314,6 +315,9 @@ export function RideDetailPage() {
 
   return (
     <Container size="xl" py="xl">
+      {/* Way back to the team: this page is not mounted inside TeamLayout */}
+      <TeamContextBanner team={team} />
+
       {/* Header */}
       <Paper shadow="xs" p="lg" mb="lg" withBorder>
         <Group justify="space-between" wrap="wrap">
