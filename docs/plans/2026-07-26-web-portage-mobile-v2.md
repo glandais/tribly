@@ -510,7 +510,7 @@ sorties et voyages où l'utilisateur est inscrit, et jamais en anonyme (`registe
 
 ---
 
-**T1.3 ☐ — Calendrier : inscription, lieu, distance et groupe**
+**T1.3 ☑ — Calendrier : inscription, lieu, distance et groupe**
 *Fichiers modifiés* : `frontend/src/components/calendar/CalendarView.tsx`.
 *Détail* : la projection `CalendarEventDto → Schedule` (`CalendarView.tsx:88-92`) ne retient
 aujourd'hui que cinq champs. Ajouter `startPlaceName`, `distance`, `elevationGain`, `groupName`,
@@ -543,7 +543,7 @@ retenue.
 
 ---
 
-**T1.5 ☐ — Filtre « je participe » et « à venir » sur les fils**
+**T1.5 ☑ — Filtre « je participe » et « à venir » sur les fils**
 *Fichiers modifiés* : `frontend/src/hooks/filters/publicationFilters.ts` (ajouter
 `participating: z.coerce.boolean().default(false)` et `scope: z.enum(['all','upcoming'])`),
 `frontend/src/hooks/filters/homeFilters.ts` (alias courts, p. ex. `participating` → `me`),

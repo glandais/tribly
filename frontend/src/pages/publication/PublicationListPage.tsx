@@ -26,6 +26,7 @@ import { PublicationCard, PublicationCardSkeleton } from '../../components/card'
 import { TeamLayout } from '../../components/team/TeamLayout'
 import { Pagination } from '../../components/common/Pagination'
 import { ResultCount } from '../../components/common/ResultCount'
+import { PublicationScopeControl } from '../../components/home/PublicationScopeControl'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { useUrlFilters } from '../../hooks/useUrlFilters'
 import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
@@ -34,6 +35,7 @@ import {
   publicationFiltersSchema,
   publicationFiltersAlias,
   publicationFilterToType,
+  publicationScopeToParams,
   type PublicationFilterValue,
 } from '../../hooks/filters/publicationFilters'
 import { SearchInput } from '../../components/common/SearchInput'
@@ -55,6 +57,9 @@ export function PublicationListPage() {
   const [search, setSearch] = useDebouncedSearch(filters.search ?? '', commitSearch)
   const { listTopRef, scrollToListTop } = useScrollToListTop()
 
+  // Frozen per mount so `from` does not change the query key on every render.
+  const nowIso = useMemo(() => new Date().toISOString(), [])
+
   // `filter` is the page's own value; the API wants a PublicationType.
   const apiParams = useMemo(
     () => ({
@@ -62,8 +67,9 @@ export function PublicationListPage() {
       page: filters.page,
       size: filters.size,
       type: publicationFilterToType[filters.filter],
+      ...publicationScopeToParams(filters.scope, nowIso),
     }),
-    [filters]
+    [filters, nowIso]
   )
 
   const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
@@ -166,6 +172,10 @@ export function PublicationListPage() {
             fullWidth
           />
           <Group gap="xs">
+            <PublicationScopeControl
+              value={filters.scope}
+              onChange={(scope) => setFilters({ scope, page: 0 })}
+            />
             <Select
               value={filters.filter}
               onChange={(value) => {

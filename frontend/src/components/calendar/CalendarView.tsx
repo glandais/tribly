@@ -3,13 +3,15 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Schedule } from '@mantine/schedule'
 import type {
+  RenderEventBody,
   ScheduleEventData,
   ScheduleLabelsOverride,
   ScheduleViewLevel,
 } from '@mantine/schedule'
-import { LoadingOverlay, Box } from '@mantine/core'
+import { Box, Image, LoadingOverlay, Stack, Text, Tooltip } from '@mantine/core'
 import dayjs from 'dayjs'
 import { paths } from '@/config/paths'
+import { useUnits } from '@/hooks/useUnits'
 import type { CalendarEventDto, CalendarEventType } from '@/api/dto'
 
 interface CalendarViewProps {
@@ -18,9 +20,29 @@ interface CalendarViewProps {
   onDateRangeChange: (start: Date, end: Date) => void
 }
 
+/**
+ * `@mantine/schedule` types `renderEvent` internally but does not re-export the type from its
+ * entry point (only `RenderEventBody` is public), so we restate the same signature here.
+ */
+type RenderEvent = (
+  event: ScheduleEventData,
+  props: React.ComponentPropsWithoutRef<'button'> & { children: React.ReactNode }
+) => React.ReactElement
+
+interface CalendarEventPayload {
+  dto: CalendarEventDto
+  [key: PropertyKey]: unknown
+}
+
 const EVENT_COLORS: Record<CalendarEventType, string> = {
   RIDE: '#228be6',
   TRIP_STAGE: '#40c057',
+}
+
+const SEPARATOR = ' · '
+
+function getPayloadDto(event: ScheduleEventData): CalendarEventDto | undefined {
+  return (event.payload as CalendarEventPayload | undefined)?.dto
 }
 
 function getVisibleRange(date: string, view: ScheduleViewLevel): { start: Date; end: Date } {
@@ -47,6 +69,7 @@ export function CalendarView({
 }: CalendarViewProps): React.ReactElement {
   const navigate = useNavigate()
   const { t, i18n } = useTranslation()
+  const { distance: formatDistance, elevation: formatElevation } = useUnits()
 
   const labels = useMemo<ScheduleLabelsOverride>(
     () => ({
@@ -90,11 +113,134 @@ export function CalendarView({
         start: dayjs(event.start).format('YYYY-MM-DD HH:mm:ss'),
         end: dayjs(event.end ?? event.start).format('YYYY-MM-DD HH:mm:ss'),
         color: EVENT_COLORS[event.type],
+        payload: { dto: event } satisfies CalendarEventPayload,
       })),
     [events]
   )
 
   const eventMap = useMemo(() => new Map(events.map((e) => [String(e.id), e])), [events])
+
+  /** Metric line ("42 km · 850 m"), empty when the entity carries no route. */
+  const buildMetrics = useCallback(
+    (dto: CalendarEventDto): string =>
+      [
+        dto.distance != null ? formatDistance(dto.distance) : null,
+        dto.elevationGain != null ? formatElevation(dto.elevationGain) : null,
+      ]
+        .filter(Boolean)
+        .join(SEPARATOR),
+    [formatDistance, formatElevation]
+  )
+
+  /** "team · time · start place" — the summary line required on every event. */
+  const buildSummary = useCallback(
+    (dto: CalendarEventDto): string =>
+      [
+        dto.teamName,
+        dto.allDay ? t('calendar.schedule.allDay') : dayjs(dto.start).format('HH:mm'),
+        dto.startPlaceName ?? null,
+      ]
+        .filter(Boolean)
+        .join(SEPARATOR),
+    [t]
+  )
+
+  /** "Inscrit" / "Inscrit · Groupe A", empty when the user is not registered. */
+  const buildRegistration = useCallback(
+    (dto: CalendarEventDto): string => {
+      if (!dto.registered) {
+        return ''
+      }
+      return dto.groupName
+        ? t('calendar.event.registeredInGroup', { group: dto.groupName })
+        : t('calendar.event.registered')
+    },
+    [t]
+  )
+
+  /**
+   * Month-view event rows have a fixed height (one text line), so the body stays on a single
+   * truncated line and the tooltip carries the structured detail.
+   */
+  const renderEventBody = useCallback<RenderEventBody>(
+    (event) => {
+      const dto = getPayloadDto(event)
+      if (!dto) {
+        return event.title
+      }
+      const details = [buildSummary(dto), buildMetrics(dto), buildRegistration(dto)]
+        .filter(Boolean)
+        .join(SEPARATOR)
+      return (
+        <Text size="xs" lh={1.3} truncate>
+          <Text span inherit fw={600}>
+            {dto.title}
+          </Text>
+          <Text span inherit c="dimmed">
+            {details ? SEPARATOR + details : ''}
+          </Text>
+        </Text>
+      )
+    },
+    [buildMetrics, buildRegistration, buildSummary]
+  )
+
+  const renderEvent = useCallback<RenderEvent>(
+    (event, props) => {
+      const dto = getPayloadDto(event)
+      const isPast = dayjs(event.end ?? event.start).isBefore(dayjs())
+      const thumbnail = dto?.thumbnailUrl?.replace('{size}', '128')
+      const metrics = dto ? buildMetrics(dto) : ''
+      const registration = dto ? buildRegistration(dto) : ''
+
+      const button = (
+        <button
+          {...props}
+          style={{
+            ...props.style,
+            opacity: isPast ? 0.55 : undefined,
+            borderInlineStart: dto?.registered
+              ? '3px solid var(--mantine-primary-color-filled)'
+              : undefined,
+          }}
+        />
+      )
+
+      if (!dto) {
+        return button
+      }
+
+      const tooltip = (
+        <Stack gap={4}>
+          {thumbnail ? (
+            <Image src={thumbnail} alt={dto.title} w={200} h={80} fit="cover" radius="sm" />
+          ) : null}
+          <Text size="sm" fw={600}>
+            {dto.title}
+          </Text>
+          <Text size="xs">{buildSummary(dto)}</Text>
+          {metrics ? <Text size="xs">{metrics}</Text> : null}
+          {registration ? (
+            <Text size="xs" fw={500}>
+              {registration}
+            </Text>
+          ) : null}
+          {dto.status !== 'PUBLISHED' ? (
+            <Text size="xs">
+              {t(`status.${dto.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
+            </Text>
+          ) : null}
+        </Stack>
+      )
+
+      return (
+        <Tooltip label={tooltip} withArrow multiline w={220} openDelay={250} position="top">
+          {button}
+        </Tooltip>
+      )
+    },
+    [buildMetrics, buildRegistration, buildSummary, t]
+  )
 
   const handleEventClick = useCallback(
     (event: ScheduleEventData) => {
@@ -126,7 +272,11 @@ export function CalendarView({
         onEventClick={handleEventClick}
         locale={i18n.language}
         labels={labels}
-        monthViewProps={{ firstDayOfWeek: 1 }}
+        renderEventBody={renderEventBody}
+        monthViewProps={{ firstDayOfWeek: 1, renderEvent }}
+        weekViewProps={{ renderEvent }}
+        dayViewProps={{ renderEvent }}
+        mobileMonthViewProps={{ renderEvent }}
       />
     </Box>
   )

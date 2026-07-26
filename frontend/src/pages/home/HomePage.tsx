@@ -20,7 +20,9 @@ import { useScrollToListTop } from '../../hooks/useScrollToListTop'
 import { useAuth } from '../../hooks/useAuth'
 import {
   publicationFilterToType,
+  publicationScopeToParams,
   type PublicationFilterValue,
+  type PublicationScopeValue,
 } from '../../hooks/filters/publicationFilters'
 import {
   makeHomeFiltersSchema,
@@ -31,6 +33,7 @@ import { membershipToMinRole, type MembershipFilterValue } from '../../hooks/fil
 import { SearchInput } from '../../components/common/SearchInput'
 import { HomeLayout } from '../../components/home/HomeLayout'
 import { NextRideCard } from '../../components/home/NextRideCard'
+import { PublicationScopeControl } from '../../components/home/PublicationScopeControl'
 import { useMyParticipations } from '../../hooks/useMyParticipations'
 import { useAppName } from '../../hooks/useAppName'
 
@@ -56,6 +59,10 @@ export function HomePage() {
 
   // `filter` and `membership` are the page's own values; the API wants a PublicationType and a
   // MinRole.
+  // Frozen per mount: a `from` recomputed on every render would change the query key
+  // continuously and defeat the cache.
+  const nowIso = useMemo(() => new Date().toISOString(), [])
+
   const apiParams = useMemo(
     () => ({
       search: filters.search,
@@ -63,8 +70,9 @@ export function HomePage() {
       size: filters.size,
       type: publicationFilterToType[filters.filter],
       minRole: membershipToMinRole[filters.membership],
+      ...publicationScopeToParams(filters.scope, nowIso),
     }),
-    [filters]
+    [filters, nowIso]
   )
 
   const { data: publicationsData, isLoading, isError } = useListAllPublications(apiParams)
@@ -87,7 +95,7 @@ export function HomePage() {
   // "Ma prochaine sortie" — authenticated-only, so it renders after hydration and
   // is deliberately absent from the route's prefetch (SSR carries no credential).
   const { data: participations } = useMyParticipations({
-    from: useMemo(() => new Date().toISOString(), []),
+    from: nowIso,
     status: Status.PUBLISHED,
     size: 5,
     view: ListViewMode.COMPACT,
@@ -143,6 +151,10 @@ export function HomePage() {
             ]}
             aria-label={t('teams.publications.list.filter.label')}
             w={{ base: '100%', sm: 160 }}
+          />
+          <PublicationScopeControl
+            value={filters.scope}
+            onChange={(scope: PublicationScopeValue) => setFilters({ scope, page: 0 })}
           />
           {isAuthenticated && (
             <Select

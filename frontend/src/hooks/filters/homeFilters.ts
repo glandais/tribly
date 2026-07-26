@@ -15,6 +15,7 @@ export const homeFiltersAlias = {
   ...COMMON_ALIAS,
   ...MEMBERSHIP_ALIAS,
   filter: 'type',
+  scope: 'w',
 } as const
 
 export const homeFiltersAlwaysSerialize = MEMBERSHIP_ALWAYS_SERIALIZE
