@@ -98,10 +98,10 @@ class PublicationCompactViewTest extends AbstractResourceTest {
         .then()
         .statusCode(200)
         .body(row("Public Ride") + ".media.markdown", equalTo(""))
-        .body(row("Public Ride") + ".media.assets.images", hasSize(0))
+        .body(row("Public Ride") + ".media.assets.images", hasSize(1))
         .body(row("Public Ride") + ".media.assets.attachments", hasSize(0))
         .body(row("Public Post") + ".media.markdown", equalTo(""))
-        .body(row("Public Post") + ".media.assets.images", hasSize(0));
+        .body(row("Public Post") + ".media.assets.images", hasSize(1));
   }
 
   @Test

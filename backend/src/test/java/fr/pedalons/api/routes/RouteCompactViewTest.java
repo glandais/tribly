@@ -83,7 +83,7 @@ class RouteCompactViewTest extends AbstractResourceTest {
         .statusCode(200)
         .body(row() + ".media.markdown", equalTo(""))
         .body(row() + ".media.assets.gpx", nullValue())
-        .body(row() + ".media.assets.thumbnailLight", nullValue())
+        .body(row() + ".media.assets.thumbnailLight", notNullValue())
         .body(row() + ".excerpt", not(emptyOrNullString()))
         .body(row() + ".thumbnailUrl", not(emptyOrNullString()))
         .body(row() + ".distance", notNullValue());

@@ -115,7 +115,7 @@ class AdDetailsAndFiltersTest extends AbstractResourceTest {
         .then()
         .statusCode(200)
         .body(row("Velo de route") + ".images", hasSize(2))
-        .body(row("Velo de route") + ".media.assets.images", hasSize(0));
+        .body(row("Velo de route") + ".media.assets.images", hasSize(1));
   }
 
   // --- blurred location --------------------------------------------------------------

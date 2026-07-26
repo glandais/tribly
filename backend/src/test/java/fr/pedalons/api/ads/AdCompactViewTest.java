@@ -61,7 +61,7 @@ class AdCompactViewTest extends AbstractResourceTest {
         .then()
         .statusCode(200)
         .body(row() + ".media.markdown", equalTo(""))
-        .body(row() + ".media.assets.images", hasSize(0))
+        .body(row() + ".media.assets.images", hasSize(1))
         .body(row() + ".excerpt", not(emptyOrNullString()))
         .body(row() + ".thumbnailUrl", not(emptyOrNullString()));
   }
