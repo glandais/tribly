@@ -1191,9 +1191,17 @@ premier à commenter. » **sans point d'exclamation** (`brand.md` §8.1).
 
 | # | État | Tâche | Fichiers | Dépend de | Taille | Fin |
 |---|---|---|---|---|---|---|
-| S31-1 | ☐ | Livrer les pièces jointes | `[M] core/pdl/pdl_attachment_row.dart` · `[M] features/posts/...` | F-CO-3 | S | Icône ou vignette 56 px (dérivée d'`imageUrl` via le gabarit `{size}` d'imgproxy), nom tronqué, type MIME, bouton 44 px dont le libellé d'accessibilité **nomme le fichier** |
-| S31-2 | ☐ | Assembler l'écran publication | `[M] features/posts/presentation/pages/post_detail_page.dart` | F-TE-10, S31-1, S12-6 | M | Couverture plein écran zoomable, corps complet (tables et code compris), pièces jointes, commentaires réservés aux membres, partage ; aucun bloc auteur inventé |
-| S31-3 | ☐ | Livrer la navigation précédent / suivant | `[M] core/pdl/pdl_prev_next_nav.dart` · `[M] config/router.dart` (voisins en `extra`) | S31-2 | M | Blocs de 64 px rendus depuis un fil chargé, **absents en ouverture froide**, sans espace vide |
+| S31-1 | ☑ | Livrer les pièces jointes | `[M] core/pdl/pdl_attachment_row.dart` · `[M] features/posts/...` | F-CO-3 | S | Icône ou vignette 56 px (dérivée d'`imageUrl` via le gabarit `{size}` d'imgproxy), nom tronqué, type MIME, bouton 44 px dont le libellé d'accessibilité **nomme le fichier** |
+| S31-2 | ☑ | Assembler l'écran publication | `[M] features/posts/presentation/pages/post_detail_page.dart` | F-TE-10, S31-1, S12-6 | M | Couverture plein écran zoomable, corps complet (tables et code compris), pièces jointes, commentaires réservés aux membres, partage ; aucun bloc auteur inventé |
+| S31-3 | ☑ | Livrer la navigation précédent / suivant | `[M] core/pdl/pdl_prev_next_nav.dart` · `[M] config/router.dart` (voisins en `extra`) | S31-2 | M | Blocs de 64 px rendus depuis un fil chargé, **absents en ouverture froide**, sans espace vide |
+
+**Note de livraison — `S31-1` et `S31-3` n'ont pas touché `core/pdl`.**
+`PdlAttachmentRow` (vignette de 56 px, action de 44 px, libellé nommant le fichier) et
+`PdlPrevNextNav` (blocs de 64 px, disparition complète sans voisin) tenaient déjà leur
+critère de fin depuis les vagues B et C. Ce qui restait était côté écran : alimenter les
+pièces jointes depuis `media.assets.attachments`, et transporter les voisins. Ceux-ci
+voyagent en **liste entière plus index** (`PostNeighbours`) et non en simple couple : sans
+la liste, passer au suivant lui laisserait les voisins du précédent.
 
 ### 5.2 Écran 32 — Annonces
 

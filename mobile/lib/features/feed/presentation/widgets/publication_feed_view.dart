@@ -8,6 +8,7 @@ import '../../../../core/pagination/pagination.dart';
 import '../../../../core/pdl/pdl.dart';
 import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/utils/api_error_handler.dart';
+import '../../../posts/domain/post_neighbours.dart';
 import '../../../teams/presentation/widgets/publication_card.dart';
 import '../../providers/publication_feed_provider.dart';
 
@@ -255,7 +256,10 @@ class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
           itemBuilder: (context, index) {
             notifier.onItemBuilt(index);
             return ContentWidthConstraint(
-              child: PublicationCard(publication: state.items[index]),
+              child: PublicationCard(
+                publication: state.items[index],
+                postNeighbours: _postNeighbours(state.items, index),
+              ),
             );
           },
         ),
@@ -439,4 +443,28 @@ class _FilterChips extends StatelessWidget {
       onTap: () => onSelected(value),
     );
   }
+}
+
+/// La place de la publication en [index] **dans l'ordre du fil**.
+///
+/// Le contrat n'expose aucun voisinage : cette liste-ci est la seule source
+/// honnête, et elle ne vaut que pour cette session d'écran — d'où le passage
+/// par l'`extra` de la route plutôt que par l'URL.
+///
+/// Seules les **publications** entrent dans la liste : une sortie n'est pas la
+/// publication suivante d'une publication, et le bloc mènerait à un autre
+/// écran.
+PostNeighbours? _postNeighbours(List<PublicationDto> items, int index) {
+  if (items[index] is! PublicationDtoPost) return null;
+
+  final List<PostNeighbour> posts = <PostNeighbour>[];
+  int position = -1;
+  for (int i = 0; i < items.length; i++) {
+    final PublicationDto item = items[i];
+    if (item is! PublicationDtoPost) continue;
+    if (i == index) position = posts.length;
+    posts.add(PostNeighbour(slug: item.slug, name: item.name));
+  }
+  if (posts.length < 2) return null;
+  return PostNeighbours(posts: posts, index: position);
 }

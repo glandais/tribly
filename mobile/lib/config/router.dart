@@ -16,6 +16,7 @@ import '../features/navigation/presentation/shell/main_shell.dart';
 import '../features/profile/presentation/pages/profile_page.dart';
 import '../core/pdl/pdl.dart';
 import '../features/ads/presentation/pages/ad_detail_page.dart';
+import '../features/posts/domain/post_neighbours.dart';
 import '../features/posts/presentation/pages/post_detail_page.dart';
 import '../features/rides/presentation/pages/ride_detail_page.dart';
 import '../features/trips/presentation/pages/stage_detail_page.dart';
@@ -347,6 +348,12 @@ GoRoute _teamTree(String locale) {
         builder: (context, state) => PostDetailPage(
           teamSlug: state.pathParameters['teamSlug']!,
           postSlug: state.pathParameters['postSlug']!,
+          // Les voisins viennent du fil déjà chargé et voyagent dans `extra`,
+          // hors de l'URL : ils n'appartiennent pas à l'identité de la
+          // publication, et un lien partagé n'en a donc aucun.
+          neighbours: state.extra is PostNeighbours
+              ? state.extra! as PostNeighbours
+              : null,
         ),
       ),
       GoRoute(

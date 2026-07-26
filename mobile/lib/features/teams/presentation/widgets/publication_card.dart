@@ -13,6 +13,7 @@ import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../posts/domain/post_neighbours.dart';
 
 /// Les quatre hauteurs de bandeau média de la charte, **partagées**.
 ///
@@ -47,9 +48,16 @@ class PublicationCard extends ConsumerWidget {
     super.key,
     required this.publication,
     this.showTeamLine = true,
+    this.postNeighbours,
   });
 
   final PublicationDto publication;
+
+  /// Voisins de cette publication **dans le fil courant**, calculés par la
+  /// liste qui rend la carte. Ils voyagent dans l'`extra` de la route : le
+  /// contrat n'expose aucun voisinage, et une URL partagée n'en porte donc
+  /// aucun (§5.1). Sans objet pour une sortie ou un voyage.
+  final PostNeighbours? postNeighbours;
 
   /// Masquée sur un fil d'équipe, où l'équipe est déjà l'écran.
   final bool showTeamLine;
@@ -64,6 +72,7 @@ class PublicationCard extends ConsumerWidget {
       PublicationDtoPost post => _PostBody(
         post: post,
         showTeamLine: showTeamLine,
+        neighbours: postNeighbours,
       ),
       PublicationDtoTrip trip => _TripBody(
         trip: trip,
@@ -313,10 +322,15 @@ class _RideBody extends ConsumerWidget {
 // ──────────────────────────────────────────────────────────────── publication
 
 class _PostBody extends StatelessWidget {
-  const _PostBody({required this.post, required this.showTeamLine});
+  const _PostBody({
+    required this.post,
+    required this.showTeamLine,
+    this.neighbours,
+  });
 
   final PublicationDtoPost post;
   final bool showTeamLine;
+  final PostNeighbours? neighbours;
 
   @override
   Widget build(BuildContext context) {
@@ -324,7 +338,10 @@ class _PostBody extends StatelessWidget {
     final DateTime? at = DateTime.tryParse(post.dateTime)?.toLocal();
 
     return _CardShell(
-      onTap: () => context.push(Paths.post(post.team.slug, post.slug)),
+      onTap: () => context.push(
+        Paths.post(post.team.slug, post.slug),
+        extra: neighbours,
+      ),
       tone: PdlMediaTone.post,
       icon: PdlIcons.post,
       // Le post n'a pas de variante thémée au contrat : `thumbnailUrl` est

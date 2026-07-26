@@ -349,7 +349,13 @@
     "cancelledMessage": "Cette sortie n'aura pas lieu. Aucune inscription n'est possible."
   },
   "posts": {
-    "title": "Publications"
+    "title": "Publications",
+    "attachments": "Pièces jointes",
+    "openAttachment": "Ouvrir {file}",
+    "openCover": "Ouvrir l'image de couverture",
+    "previous": "Publication précédente",
+    "next": "Publication suivante",
+    "commentsMembersOnly": "Les commentaires sont réservés aux membres de l'équipe."
   },
   "ads": {
     "title": "Annonces",
@@ -857,7 +863,7 @@
       "other": "{} commentaires"
     },
     "emptyTitle": "Aucun commentaire",
-    "emptyMessage": "Personne n'a encore réagi. Lancez la discussion.",
+    "emptyMessage": "Soyez le premier à commenter.",
     "placeholder": "Écrire un commentaire...",
     "send": "Publier",
     "sending": "Publication...",

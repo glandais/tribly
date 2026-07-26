@@ -349,7 +349,13 @@
     "cancelledMessage": "This ride will not take place. No registration is possible."
   },
   "posts": {
-    "title": "Posts"
+    "title": "Posts",
+    "attachments": "Attachments",
+    "openAttachment": "Open {file}",
+    "openCover": "Open the cover image",
+    "previous": "Previous post",
+    "next": "Next post",
+    "commentsMembersOnly": "Comments are reserved for team members."
   },
   "ads": {
     "title": "Ads",
@@ -857,7 +863,7 @@
       "other": "{} comments"
     },
     "emptyTitle": "No comment",
-    "emptyMessage": "Nobody has replied yet. Start the discussion.",
+    "emptyMessage": "Be the first to comment.",
     "placeholder": "Write a comment...",
     "send": "Post",
     "sending": "Posting...",
