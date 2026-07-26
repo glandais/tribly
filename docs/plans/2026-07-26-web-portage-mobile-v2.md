@@ -652,7 +652,7 @@ retirer le filtre dont la levée ramène le plus de parcours, et affiche trois e
 
 ---
 
-**T2.3 ☐ — Distinguer 404 et erreur sur les pages de détail**
+**T2.3 ☑ — Distinguer 404 et erreur sur les pages de détail**
 *Fichiers modifiés* : `frontend/src/pages/ride/RideDetailPage.tsx`,
 `frontend/src/pages/post/PostDetailPage.tsx`, `frontend/src/pages/trip/TripDetailPage.tsx`,
 `frontend/src/pages/trip/StageDetailPage.tsx`, `frontend/src/pages/route/RouteDetailPage.tsx`,

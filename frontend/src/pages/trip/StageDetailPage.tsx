@@ -19,7 +19,8 @@ import { useGetRoute } from '../../api/endpoints/routes/routes'
 import { RouteDetailView } from '../../components/route/RouteDetailView'
 import { paths } from '../../config/paths'
 import { useAuth } from '../../hooks/useAuth'
-import { LoadingPage } from '../../components/common/LoadingSpinner'
+import { QueryStateBoundary } from '../../components/common/QueryStateBoundary'
+import { DetailPageSkeleton } from '../../components/common/DetailPageSkeleton'
 import { TripLayout } from '../../components/trip/TripLayout'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
@@ -50,6 +51,7 @@ export function StageDetailPage() {
     data: trip,
     isLoading: isLoadingTrip,
     error,
+    refetch,
   } = useGetTrip(teamSlug!, tripSlug!, {
     query: { enabled: !!teamSlug && !!tripSlug },
   })
@@ -72,11 +74,9 @@ export function StageDetailPage() {
     team && trip && stageSlug ? paths.stage(team.slug, trip.slug, stageSlug) : undefined
   )
 
-  if (isLoadingTeam || isLoadingTrip || (routeSlug && isLoadingRoute)) {
-    return <LoadingPage message={t('loading')} />
-  }
+  const isLoading = isLoadingTeam || isLoadingTrip || !!(routeSlug && isLoadingRoute)
 
-  if (!team) {
+  if (!isLoading && !team) {
     return <Navigate to={paths.teams()} replace />
   }
 
@@ -84,20 +84,25 @@ export function StageDetailPage() {
     return <Navigate to={paths.team(teamSlug!)} replace />
   }
 
-  if (error || !trip) {
+  if (isLoading || error || !trip) {
     return (
       <Container size="xl" py="xl">
-        <Paper withBorder p="xl" ta="center">
-          <Title order={2} mb="xs">
-            {t('trips.detail.notFound.title')}
-          </Title>
-          <Text c="dimmed" mb="lg">
-            {t('trips.detail.notFound.message')}
-          </Text>
-          <Button component={Link} to={paths.team(teamSlug!)}>
-            {t('trips.detail.notFound.backToTrips')}
-          </Button>
-        </Paper>
+        <QueryStateBoundary
+          isLoading={isLoading}
+          isError={!!error}
+          error={error}
+          isNotFound={!trip}
+          onRetry={() => void refetch()}
+          skeleton={<DetailPageSkeleton />}
+          notFound={{
+            title: t('trips.detail.notFound.title'),
+            message: t('trips.detail.notFound.message'),
+            backTo: paths.team(teamSlug!),
+            backLabel: t('trips.detail.notFound.backToTrips'),
+          }}
+        >
+          {null}
+        </QueryStateBoundary>
       </Container>
     )
   }
@@ -105,17 +110,18 @@ export function StageDetailPage() {
   if (!stage) {
     return (
       <Container size="xl" py="xl">
-        <Paper withBorder p="xl" ta="center">
-          <Title order={2} mb="xs">
-            {t('trips.stage.notFound.title')}
-          </Title>
-          <Text c="dimmed" mb="lg">
-            {t('trips.stage.notFound.message')}
-          </Text>
-          <Button component={Link} to={paths.trip(teamSlug!, tripSlug!)}>
-            {t('trips.stage.notFound.backToTrip')}
-          </Button>
-        </Paper>
+        <QueryStateBoundary
+          isLoading={false}
+          isNotFound
+          notFound={{
+            title: t('trips.stage.notFound.title'),
+            message: t('trips.stage.notFound.message'),
+            backTo: paths.trip(teamSlug!, tripSlug!),
+            backLabel: t('trips.stage.notFound.backToTrip'),
+          }}
+        >
+          {null}
+        </QueryStateBoundary>
       </Container>
     )
   }

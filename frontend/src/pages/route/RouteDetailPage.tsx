@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { paths } from '../../config/paths'
-import { Box, Button, Group, SimpleGrid, Skeleton, Stack, Text, Title, Center } from '@mantine/core'
+import { Box, Button, Group, Stack, Title } from '@mantine/core'
 import {
   useGetRoute,
   useDeleteRoute,
@@ -17,6 +17,8 @@ import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { RouteDetailView } from '../../components/route/RouteDetailView'
 import { RouteUsages } from '../../components/route/RouteUsages'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
+import { QueryStateBoundary } from '../../components/common/QueryStateBoundary'
+import { DetailPageSkeleton } from '../../components/common/DetailPageSkeleton'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
 import { CommentSection } from '../../components/comment'
@@ -28,10 +30,15 @@ export function RouteDetailPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const { data: team } = useGetTeam(teamSlug!, {
+  const { data: team, isLoading: teamLoading } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },
   })
-  const { data: route, isLoading: routeLoading } = useGetRoute(teamSlug!, routeSlug!, undefined, {
+  const {
+    data: route,
+    isLoading: routeLoading,
+    error,
+    refetch,
+  } = useGetRoute(teamSlug!, routeSlug!, undefined, {
     query: { enabled: !!teamSlug && !!routeSlug },
   })
   const deleteRouteMutation = useDeleteRoute()
@@ -80,28 +87,25 @@ export function RouteDetailPage() {
     }
   }
 
-  if (routeLoading) {
+  if (routeLoading || teamLoading || error || !route || !team) {
     return (
       <Box maw={1280} mx="auto" px="md" py="xl">
-        <Stack>
-          <Skeleton height={32} width="25%" />
-          <Skeleton height={384} />
-          <SimpleGrid cols={{ base: 1, md: 3 }} spacing="lg">
-            {[...Array(3)].map((_, i) => (
-              <Skeleton key={i} height={96} />
-            ))}
-          </SimpleGrid>
-        </Stack>
-      </Box>
-    )
-  }
-
-  if (!route || !team) {
-    return (
-      <Box maw={1280} mx="auto" px="md" py="xl">
-        <Center>
-          <Text c="dimmed">{t('errors.api.notFound')}</Text>
-        </Center>
+        <QueryStateBoundary
+          isLoading={routeLoading || teamLoading}
+          isError={!!error}
+          error={error}
+          isNotFound={!route || !team}
+          onRetry={() => void refetch()}
+          skeleton={<DetailPageSkeleton />}
+          notFound={{
+            title: t('routes.detail.notFound.title'),
+            message: t('routes.detail.notFound.message'),
+            backTo: paths.routes(teamSlug!),
+            backLabel: t('routes.detail.notFound.backToRoutes'),
+          }}
+        >
+          {null}
+        </QueryStateBoundary>
       </Box>
     )
   }

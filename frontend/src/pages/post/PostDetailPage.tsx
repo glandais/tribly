@@ -16,7 +16,6 @@ import {
   Stack,
   Text,
   Box,
-  Center,
   Loader,
 } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
@@ -29,7 +28,8 @@ import {
 } from '../../api/endpoints/posts/posts'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { Status } from '../../api/dto'
-import { LoadingPage } from '../../components/common/LoadingSpinner'
+import { QueryStateBoundary } from '../../components/common/QueryStateBoundary'
+import { DetailPageSkeleton } from '../../components/common/DetailPageSkeleton'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
@@ -62,6 +62,7 @@ export function PostDetailPage() {
     data: post,
     isLoading: isLoadingPost,
     error,
+    refetch,
   } = useGetPost(teamSlug!, postSlug!, { query: { enabled: !!teamSlug && !!postSlug } })
 
   const updateMutation = useUpdatePost()
@@ -70,24 +71,25 @@ export function PostDetailPage() {
 
   useCanonicalPath(team && post ? paths.post(team.slug, post.slug) : undefined)
 
-  if (isLoadingTeam || isLoadingPost) {
-    return <LoadingPage message={t('loading')} />
-  }
-
-  if (error || !post || !team) {
+  if (isLoadingTeam || isLoadingPost || error || !post || !team) {
     return (
       <Container size="lg" py="xl">
-        <Paper withBorder p="xl" radius="md">
-          <Center>
-            <Stack align="center">
-              <Title order={2}>{t('posts.detail.notFound.title')}</Title>
-              <Text c="dimmed">{t('posts.detail.notFound.message')}</Text>
-              <Button component={Link} to={paths.team(teamSlug!)}>
-                {t('posts.title')}
-              </Button>
-            </Stack>
-          </Center>
-        </Paper>
+        <QueryStateBoundary
+          isLoading={isLoadingTeam || isLoadingPost}
+          isError={!!error}
+          error={error}
+          isNotFound={!post || !team}
+          onRetry={() => void refetch()}
+          skeleton={<DetailPageSkeleton withMap={false} />}
+          notFound={{
+            title: t('posts.detail.notFound.title'),
+            message: t('posts.detail.notFound.message'),
+            backTo: paths.team(teamSlug!),
+            backLabel: t('posts.title'),
+          }}
+        >
+          {null}
+        </QueryStateBoundary>
       </Container>
     )
   }

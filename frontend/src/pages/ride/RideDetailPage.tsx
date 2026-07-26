@@ -41,7 +41,8 @@ import {
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { Status } from '@/api/dto'
 import { useAuth } from '../../hooks/useAuth'
-import { LoadingPage } from '../../components/common/LoadingSpinner'
+import { QueryStateBoundary } from '../../components/common/QueryStateBoundary'
+import { DetailPageSkeleton } from '../../components/common/DetailPageSkeleton'
 import { RideGroupCard } from '../../components/ride/RideGroupCard'
 import type { MapRouteItem } from '../../components/route/RoutesMapView'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
@@ -83,6 +84,7 @@ export function RideDetailPage() {
     data: ride,
     isLoading: isLoadingRide,
     error,
+    refetch,
   } = useGetRide(teamSlug!, rideSlug!, {
     query: { enabled: !!teamSlug && !!rideSlug },
   })
@@ -120,20 +122,25 @@ export function RideDetailPage() {
 
   useCanonicalPath(team && ride ? paths.ride(team.slug, ride.slug) : undefined)
 
-  if (isLoadingTeam || isLoadingRide) {
-    return <LoadingPage message={t('loading')} />
-  }
-
-  if (error || !ride || !team) {
+  if (isLoadingTeam || isLoadingRide || error || !ride || !team) {
     return (
       <Container size="xl" py="xl">
-        <Stack align="center" py="xl">
-          <Title order={2}>{t('rides.detail.notFound.title')}</Title>
-          <Text c="dimmed">{t('rides.detail.notFound.message')}</Text>
-          <Button component={Link} to={paths.team(teamSlug!)}>
-            {t('rides.detail.notFound.backToRides')}
-          </Button>
-        </Stack>
+        <QueryStateBoundary
+          isLoading={isLoadingTeam || isLoadingRide}
+          isError={!!error}
+          error={error}
+          isNotFound={!ride || !team}
+          onRetry={() => void refetch()}
+          skeleton={<DetailPageSkeleton />}
+          notFound={{
+            title: t('rides.detail.notFound.title'),
+            message: t('rides.detail.notFound.message'),
+            backTo: paths.team(teamSlug!),
+            backLabel: t('rides.detail.notFound.backToRides'),
+          }}
+        >
+          {null}
+        </QueryStateBoundary>
       </Container>
     )
   }

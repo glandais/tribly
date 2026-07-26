@@ -33,7 +33,8 @@ import {
   getListAdsQueryKey,
   getGetAdQueryKey,
 } from '../../api/endpoints/ads/ads'
-import { LoadingPage } from '../../components/common/LoadingSpinner'
+import { QueryStateBoundary } from '../../components/common/QueryStateBoundary'
+import { DetailPageSkeleton } from '../../components/common/DetailPageSkeleton'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
@@ -70,6 +71,7 @@ export function AdDetailPage() {
     data: ad,
     isLoading: isLoadingAd,
     error,
+    refetch,
   } = useGetAd(teamSlug!, adSlug!, { query: { enabled: !!teamSlug && !!adSlug } })
 
   useCanonicalPath(team && ad ? paths.ad(team.slug, ad.slug) : undefined)
@@ -78,28 +80,29 @@ export function AdDetailPage() {
   const deleteMutation = useDeleteAd()
   const undeleteMutation = useUndeleteAd()
 
-  if (isLoadingTeam || isLoadingAd) {
-    return <LoadingPage message={t('loading')} />
-  }
-
-  if (!team) {
+  if (!isLoadingTeam && !team) {
     return <Navigate to={paths.teams()} replace />
   }
 
-  if (error || !ad) {
+  if (isLoadingTeam || isLoadingAd || error || !ad) {
     return (
       <Container size="xl" py="xl">
-        <Paper withBorder p="xl" ta="center">
-          <Title order={2} mb="xs">
-            {t('ads.detail.notFound.title')}
-          </Title>
-          <Text c="dimmed" mb="lg">
-            {t('ads.detail.notFound.message')}
-          </Text>
-          <Button component={Link} to={paths.ads(teamSlug!)}>
-            {t('ads.title')}
-          </Button>
-        </Paper>
+        <QueryStateBoundary
+          isLoading={isLoadingTeam || isLoadingAd}
+          isError={!!error}
+          error={error}
+          isNotFound={!ad}
+          onRetry={() => void refetch()}
+          skeleton={<DetailPageSkeleton withMap={false} />}
+          notFound={{
+            title: t('ads.detail.notFound.title'),
+            message: t('ads.detail.notFound.message'),
+            backTo: paths.ads(teamSlug!),
+            backLabel: t('ads.title'),
+          }}
+        >
+          {null}
+        </QueryStateBoundary>
       </Container>
     )
   }

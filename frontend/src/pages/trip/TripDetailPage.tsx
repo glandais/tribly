@@ -42,7 +42,8 @@ import {
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { Status } from '@/api/dto'
 import { useAuth } from '../../hooks/useAuth'
-import { LoadingPage } from '../../components/common/LoadingSpinner'
+import { QueryStateBoundary } from '../../components/common/QueryStateBoundary'
+import { DetailPageSkeleton } from '../../components/common/DetailPageSkeleton'
 import { TripStageCard } from '../../components/trip/TripStageCard'
 import { TripLayout } from '../../components/trip/TripLayout'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
@@ -84,6 +85,7 @@ export function TripDetailPage() {
     data: trip,
     isLoading: isLoadingTrip,
     error,
+    refetch,
   } = useGetTrip(teamSlug!, tripSlug!, {
     query: { enabled: !!teamSlug && !!tripSlug },
   })
@@ -110,11 +112,7 @@ export function TripDetailPage() {
     }))
   }, [trip])
 
-  if (isLoadingTeam || isLoadingTrip) {
-    return <LoadingPage message={t('loading')} />
-  }
-
-  if (!team) {
+  if (!isLoadingTeam && !team) {
     return <Navigate to={paths.teams()} replace />
   }
 
@@ -122,20 +120,25 @@ export function TripDetailPage() {
     return <Navigate to={paths.team(teamSlug!)} replace />
   }
 
-  if (error || !trip) {
+  if (isLoadingTeam || isLoadingTrip || error || !trip) {
     return (
       <Container size="xl" py="xl">
-        <Paper withBorder p="xl" ta="center">
-          <Title order={2} mb="xs">
-            {t('trips.detail.notFound.title')}
-          </Title>
-          <Text c="dimmed" mb="lg">
-            {t('trips.detail.notFound.message')}
-          </Text>
-          <Button component={Link} to={paths.team(teamSlug!)}>
-            {t('trips.detail.notFound.backToTrips')}
-          </Button>
-        </Paper>
+        <QueryStateBoundary
+          isLoading={isLoadingTeam || isLoadingTrip}
+          isError={!!error}
+          error={error}
+          isNotFound={!trip}
+          onRetry={() => void refetch()}
+          skeleton={<DetailPageSkeleton />}
+          notFound={{
+            title: t('trips.detail.notFound.title'),
+            message: t('trips.detail.notFound.message'),
+            backTo: paths.team(teamSlug!),
+            backLabel: t('trips.detail.notFound.backToTrips'),
+          }}
+        >
+          {null}
+        </QueryStateBoundary>
       </Container>
     )
   }

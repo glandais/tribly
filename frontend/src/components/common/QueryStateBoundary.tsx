@@ -3,6 +3,7 @@ import { Button, Center, Stack, Text, Title } from '@mantine/core'
 import { IconMoodEmpty } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
+import { isAxiosError } from 'axios'
 import { ApiClientError } from '@/lib/apiError'
 import { ErrorMessage } from './ErrorBoundary'
 
@@ -29,8 +30,15 @@ interface QueryStateBoundaryProps {
   children: ReactNode
 }
 
+/**
+ * `axiosMutator` only wraps an error in `ApiClientError` when the body carries a `code`;
+ * a bare 404 or a non-JSON 5xx arrives as the raw AxiosError. Read both shapes, so a 404
+ * is recognised either way, and fall through to the recoverable branch when neither says.
+ */
 function statusOf(error: unknown): number | undefined {
-  return error instanceof ApiClientError ? error.status : undefined
+  if (error instanceof ApiClientError) return error.status
+  if (isAxiosError(error)) return error.response?.status
+  return undefined
 }
 
 /**
@@ -57,8 +65,11 @@ export function QueryStateBoundary({
     return <>{skeleton}</>
   }
 
+  // An error wins over `isNotFound`: callers derive the latter from `!data`, which is also
+  // true on a 500 — treating that as "not found" is exactly the lie this component exists
+  // to stop. Only a genuine 404, or a successful-but-empty response, is "not found".
   const status = statusOf(error)
-  const missing = isNotFound || (isError && status === 404)
+  const missing = isError ? status === 404 : isNotFound
 
   if (isError && !missing) {
     return (
