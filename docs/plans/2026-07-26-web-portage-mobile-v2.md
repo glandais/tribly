@@ -697,7 +697,7 @@ bloc d'erreur à la place de la carte.
 
 ---
 
-**T3.1 ☐ — Passer les listes en `view=COMPACT`**
+**T3.1 ▶ — Passer les listes en `view=COMPACT`** *(première moitié livrée, seconde bloquée)*
 *Fichiers modifiés* : `frontend/src/pages/home/HomePage.tsx`,
 `frontend/src/pages/publication/PublicationListPage.tsx`,
 `frontend/src/components/route/RouteListContent.tsx` (et ses deux pages appelantes),
@@ -712,6 +712,23 @@ bloc d'erreur à la place de la carte.
 *Critère de fin* : la charge utile d'une page de 12 publications diminue de façon mesurable
 (onglet réseau) et aucune carte ne perd son extrait ni sa vignette ; le détail (`getRide`,
 `getPost`, `getTrip`) reste en `FULL`.
+
+*État réel.* La première moitié est livrée : `CardDescription` lit `excerpt` (repli markdown),
+`CardImage` accepte `thumbnailUrl`, `RouteCard` retombe dessus quand l'asset thémé manque. La
+bascule des listes en `COMPACT` est **bloquée par le contrat**, et le §2.4 avait manqué le cas :
+`MediaDto.compact()` (backend) renvoie `AssetsDto.builder().build()`, un inventaire **entièrement
+vide** — `logo` compris. Or `PublicationCard` et `RouteCard` rendent un `EntityLogo` tiré de
+`media.assets.logo`, et **aucun** DTO de liste ne hisse de `logoUrl` : le seul du contrat est sur
+`TeamDetailDto`. Passer en `COMPACT` aujourd'hui effacerait donc silencieusement le logo de chaque
+carte. Second manque, indépendant : `RideDto.thumbnailUrl` / `TripDto.thumbnailUrl` valent l'aperçu
+**cartographique** (`thumbnailLightUrl` sinon `thumbnailDarkUrl`), déjà rendu à part par
+`RouteThumbnail` — ils ne peuvent pas servir de photo d'en-tête, contrairement à
+`PostDto.thumbnailUrl` qui est bien la première image du billet.
+
+Débloquer suppose une évolution du contrat — un `logoUrl` hissé sur `RideDto` / `PostDto` /
+`TripDto` / `RouteDto` (et `AdDto`, même défaut hors périmètre), plus un champ d'image d'en-tête
+distinct de l'aperçu cartographique sur `RideDto` / `TripDto`. C'est un lot backend à instruire
+séparément ; tant qu'il n'est pas livré, les listes restent en `FULL`.
 
 ---
 

@@ -9,6 +9,12 @@ interface CardImageProps {
   alt: string
   height?: number
   type?: CardType
+  /**
+   * Server-computed URL template of the picture a card header shows, `{size}` token included.
+   * Present whatever the list `view`, so it is read before `media.assets`, which a compact row
+   * does not carry.
+   */
+  thumbnailUrl?: string
 }
 
 const typeIcons: Record<CardType, typeof IconBike> = {
@@ -27,15 +33,16 @@ const typeGradients: Record<CardType, string> = {
   AD: 'linear-gradient(135deg, var(--mantine-color-orange-5) 0%, var(--mantine-color-yellow-4) 100%)',
 }
 
-export function CardImage({ media, alt, height = 160, type }: CardImageProps) {
+export function CardImage({ media, alt, height = 160, type, thumbnailUrl }: CardImageProps) {
   const { assets } = media
 
-  // Priority 1: First image from images array (actual photos)
-  const firstImage = assets.images?.[0]
-  if (firstImage?.imageUrl) {
+  // Priority 1: the compact-safe thumbnail, else the first image from the asset inventory
+  // (actual photos). Both are `{size}`-templated; ×2 for HiDPI.
+  const imageUrl = thumbnailUrl ?? assets.images?.[0]?.imageUrl
+  if (imageUrl) {
     return (
       <Image
-        src={firstImage.imageUrl.replace('{size}', String(height * 2))}
+        src={imageUrl.replace('{size}', String(height * 2))}
         alt={alt}
         h={height}
         fit="cover"

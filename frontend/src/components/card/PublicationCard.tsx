@@ -129,11 +129,16 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
   const participants = getParticipants()
   const { lightUrl: thumbnailLightUrl, darkUrl: thumbnailDarkUrl } = getThumbnailUrls()
 
+  // `thumbnailUrl` is a photo only for posts. On rides and trips it is the map preview, already
+  // rendered below by RouteThumbnail — feeding it to the header would duplicate it.
+  const headerImageUrl = publication.type === 'POST' ? publication.thumbnailUrl : undefined
+
   return (
     <Card to={getPublicationPath()}>
       {/* Featured image with fallback chain */}
       <CardImage
         media={publication.media}
+        thumbnailUrl={headerImageUrl}
         alt={publication.name}
         type={publication.type}
         height={160}
@@ -150,7 +155,11 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
             <EntityLogo logo={publication.media.assets.logo} alt={publication.name} size="sm" />
             <Box style={{ flex: 1, minWidth: 0 }}>
               <CardTitle>{publication.name}</CardTitle>
-              <CardDescription markdown={true} media={publication.media} />
+              <CardDescription
+                excerpt={publication.excerpt}
+                markdown={true}
+                media={publication.media}
+              />
             </Box>
           </Group>
           <Stack gap={4} align="flex-end" ml="sm">
