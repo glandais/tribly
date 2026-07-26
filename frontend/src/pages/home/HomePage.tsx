@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Box, Select, Stack, Title, Group, Paper, Text, Center, SimpleGrid } from '@mantine/core'
 import { IconNews } from '@tabler/icons-react'
 import { isSingleTeam } from '../../config/appConfig'
+import { ListViewMode, Status, type RideDto } from '../../api/dto'
 import {
   useListAllPublications,
   listAllPublications,
@@ -29,6 +30,8 @@ import {
 import { membershipToMinRole, type MembershipFilterValue } from '../../hooks/filters/membership'
 import { SearchInput } from '../../components/common/SearchInput'
 import { HomeLayout } from '../../components/home/HomeLayout'
+import { NextRideCard } from '../../components/home/NextRideCard'
+import { useMyParticipations } from '../../hooks/useMyParticipations'
 import { useAppName } from '../../hooks/useAppName'
 
 export function HomePage() {
@@ -81,6 +84,18 @@ export function HomePage() {
     prefetchPage,
   })
 
+  // "Ma prochaine sortie" — authenticated-only, so it renders after hydration and
+  // is deliberately absent from the route's prefetch (SSR carries no credential).
+  const { data: participations } = useMyParticipations({
+    from: useMemo(() => new Date().toISOString(), []),
+    status: Status.PUBLISHED,
+    size: 5,
+    view: ListViewMode.COMPACT,
+  })
+  const nextRide = participations?.publications?.find(
+    (p): p is RideDto => p.type === 'RIDE' && (p as RideDto).registered
+  )
+
   return (
     <HomeLayout currentTab="feed">
       <Stack>
@@ -93,6 +108,15 @@ export function HomePage() {
           {/* Publications Section */}
           <Title order={2}>{t('home.feed.title')}</Title>
         </Box>
+
+        {nextRide && (
+          <Box>
+            <Title order={3} mb="xs">
+              {t('home.nextRide.title')}
+            </Title>
+            <NextRideCard ride={nextRide} />
+          </Box>
+        )}
 
         {/* Search and Filter */}
         <Group align="flex-end" wrap="wrap">

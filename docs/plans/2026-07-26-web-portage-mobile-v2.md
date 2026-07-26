@@ -473,7 +473,7 @@ de `Card`, `Badge`, `Stat`, `UserAvatarGroup`, `Progress` et `RouteThumbnail` ex
 
 ---
 
-**T1.1 ☐ — Hook et bloc « Ma prochaine sortie »**
+**T1.1 ☑ — Hook et bloc « Ma prochaine sortie »**
 *Fichiers* : `frontend/src/hooks/useMyParticipations.ts` (créé — mince façade sur
 `useListMyParticipations`, pas de refetch manuel), `frontend/src/components/home/NextRideCard.tsx`
 (créé), `frontend/src/pages/home/HomePage.tsx` (modifié), `frontend/src/locales/{fr,en}/common.json`.
