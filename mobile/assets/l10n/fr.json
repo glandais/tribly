@@ -246,7 +246,8 @@
     "leaveSuccess": "Désinscription confirmée",
     "noGroupAvailable": "Aucun groupe disponible",
     "selectGroup": "Choisir un groupe",
-    "description": "Description"
+    "description": "Description",
+    "actionFailed": "Inscription au groupe {group} impossible."
   },
   "posts": {
     "title": "Publications"

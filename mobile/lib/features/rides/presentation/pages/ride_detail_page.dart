@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/adaptive/adaptive.dart';
+import '../../../../core/pdl/pdl.dart';
 import '../../../../core/preferences/user_preferences_provider.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
@@ -13,7 +14,6 @@ import '../../../../core/utils/safe_string.dart';
 import '../../../../core/widgets/authenticated_image.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../../core/widgets/team_banner.dart';
-import '../../../auth/providers/auth_provider.dart';
 import '../../data/ride_repository.dart';
 
 final rideDetailProvider =
@@ -42,6 +42,10 @@ class RideDetailPage extends ConsumerStatefulWidget {
 class _RideDetailPageState extends ConsumerState<RideDetailPage> {
   bool _isJoining = false;
 
+  /// Le dernier échec d'inscription ou de désinscription, avec le groupe
+  /// concerné. Persistant : c'est un état, pas un événement.
+  ({String? group, String message})? _actionError;
+
   @override
   Widget build(BuildContext context) {
     final params = (teamSlug: widget.teamSlug, rideSlug: widget.rideSlug);
@@ -51,6 +55,8 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
       data: (ride) => _RideDetailContent(
         ride: ride,
         isJoining: _isJoining,
+        actionError: _actionError,
+        onDismissError: () => setState(() => _actionError = null),
         onJoin: () => _joinRide(ride),
         onLeave: () => _leaveRide(ride),
       ),
@@ -105,30 +111,54 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
 
     if (groupId == null) return;
 
-    setState(() => _isJoining = true);
+    setState(() {
+      _isJoining = true;
+      _actionError = null;
+    });
     try {
       final repository = ref.read(rideRepositoryProvider);
       await repository.joinRideGroup(ride.team.slug, ride.slug, groupId);
-      ref.invalidate(
-        rideDetailProvider((
-          teamSlug: widget.teamSlug,
-          rideSlug: widget.rideSlug,
-        )),
-      );
+      _invalidateRide();
       if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('rides.joinSuccess'.tr())));
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(getErrorMessage(e))));
-      }
+      // Le `ref.invalidate` manquait ici : après un échec, l'écran gardait
+      // l'état d'avant l'appel, alors que la cause de l'échec — un groupe
+      // devenu complet, par exemple — venait justement de le périmer.
+      _invalidateRide();
+      _showActionError(e, groupId: groupId, ride: ride);
     } finally {
-      setState(() => _isJoining = false);
+      if (mounted) setState(() => _isJoining = false);
     }
+  }
+
+  void _invalidateRide() => ref.invalidate(
+    rideDetailProvider((teamSlug: widget.teamSlug, rideSlug: widget.rideSlug)),
+  );
+
+  /// F-DE-7 : l'échec partait en `SnackBar`, que la barre d'onglets masquait —
+  /// l'action échouait donc **en silence**. Il devient un bandeau persistant
+  /// qui **nomme le groupe** : « Grupetto » n'est pas « Groupe 2 », et savoir
+  /// lequel a refusé est la moitié de l'information.
+  void _showActionError(
+    Object error, {
+    required String groupId,
+    required RideDto ride,
+  }) {
+    if (!mounted) return;
+    String? groupName;
+    for (final RideGroupDto g in ride.groups) {
+      if (g.id == groupId) {
+        groupName = g.name;
+        break;
+      }
+    }
+    setState(() {
+      _actionError = (group: groupName, message: getErrorMessage(error));
+    });
   }
 
   Future<String?> _showGroupSelectionDialog(RideDto ride) async {
@@ -174,41 +204,36 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
   }
 
   Future<void> _leaveRide(RideDto ride) async {
-    // Find the group the user is in (for now, try to leave all groups)
-    // The API should handle this gracefully
-    if (ride.groups.isEmpty) return;
+    // F-DE-7 : la désinscription essayait de quitter **chaque** groupe de la
+    // sortie l'un après l'autre en avalant les échecs, jusqu'à ce que l'un
+    // réussisse. Sur une sortie à dix groupes, c'étaient jusqu'à neuf requêtes
+    // `DELETE` vouées à l'échec envoyées au serveur, et autant d'erreurs dans
+    // ses journaux, pour une désinscription. `registeredGroupId` dit lequel :
+    // c'est un appel unique.
+    final String? groupId = ride.registeredGroupId;
+    if (groupId == null) return;
 
-    setState(() => _isJoining = true);
+    setState(() {
+      _isJoining = true;
+      _actionError = null;
+    });
     try {
       final repository = ref.read(rideRepositoryProvider);
-      // Try to leave each group (the one we're in will succeed)
-      for (final group in ride.groups) {
-        try {
-          await repository.leaveRideGroup(ride.team.slug, ride.slug, group.id);
-          break; // Successfully left, no need to try other groups
-        } catch (_) {
-          // Not in this group, try the next one
-        }
-      }
-      ref.invalidate(
-        rideDetailProvider((
-          teamSlug: widget.teamSlug,
-          rideSlug: widget.rideSlug,
-        )),
-      );
+      await repository.leaveRideGroup(ride.team.slug, ride.slug, groupId);
+      _invalidateRide();
       if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('rides.leaveSuccess'.tr())));
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(getErrorMessage(e))));
-      }
+      // L'état affiché ne reflète plus forcément le serveur : on le redemande
+      // avant d'expliquer, sinon le bouton reste sur « Ne plus participer »
+      // alors que l'appel a peut-être abouti côté serveur.
+      _invalidateRide();
+      _showActionError(e, groupId: groupId, ride: ride);
     } finally {
-      setState(() => _isJoining = false);
+      if (mounted) setState(() => _isJoining = false);
     }
   }
 }
@@ -216,12 +241,16 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
 class _RideDetailContent extends ConsumerWidget {
   final RideDto ride;
   final bool isJoining;
+  final ({String? group, String message})? actionError;
+  final VoidCallback onDismissError;
   final VoidCallback onJoin;
   final VoidCallback onLeave;
 
   const _RideDetailContent({
     required this.ride,
     required this.isJoining,
+    required this.actionError,
+    required this.onDismissError,
     required this.onJoin,
     required this.onLeave,
   });
@@ -471,44 +500,68 @@ class _RideDetailContent extends ConsumerWidget {
     );
   }
 
-  bool _isCurrentUserParticipant(WidgetRef ref) {
-    final currentUser = ref.watch(authProvider).user;
-    if (currentUser == null) return false;
-    return ride.groups.any(
-      (group) => group.participants.any((p) => p.id == currentUser.id),
-    );
-  }
-
   Widget _buildBottomBar(WidgetRef ref) {
-    final isParticipant = _isCurrentUserParticipant(ref);
+    // F-DE-7 : l'inscription se lisait en parcourant `participants[]` de
+    // chaque groupe à la recherche de l'utilisateur courant. Cette liste est
+    // **tronquée** par l'API, si bien qu'un inscrit assez loin dans un gros
+    // groupe se voyait proposer « Participer » alors qu'il participait déjà —
+    // et se prenait un 409 en tapant dessus. `registered` est calculé côté
+    // serveur et ne dépend d'aucune troncature.
+    final bool isParticipant = ride.registered;
+
+    final ({String? group, String message})? failure = actionError;
 
     return SafeArea(
       child: ContentWidthConstraint(
         padding: const EdgeInsets.all(16),
-        child: isParticipant
-            ? OutlinedButton.icon(
-                onPressed: isJoining ? null : onLeave,
-                icon: isJoining
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.close),
-                label: Text('rides.leave'.tr()),
-              )
-            : FilledButton.icon(
-                onPressed: isJoining ? null : onJoin,
-                icon: isJoining
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.check),
-                label: Text('rides.join'.tr()),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            if (failure != null) ...<Widget>[
+              PdlBanner(
+                tone: PdlBannerTone.danger,
+                title: failure.group == null
+                    ? null
+                    : 'rides.actionFailed'.tr(
+                        namedArgs: <String, String>{'group': failure.group!},
+                      ),
+                message: failure.message,
+                onDismiss: onDismissError,
+                dismissSemanticLabel: 'common.close'.tr(),
               ),
+              const SizedBox(height: 12),
+            ],
+            _buildAction(isParticipant),
+          ],
+        ),
       ),
     );
+  }
+
+  Widget _buildAction(bool isParticipant) {
+    return isParticipant
+        ? OutlinedButton.icon(
+            onPressed: isJoining ? null : onLeave,
+            icon: isJoining
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.close),
+            label: Text('rides.leave'.tr()),
+          )
+        : FilledButton.icon(
+            onPressed: isJoining ? null : onJoin,
+            icon: isJoining
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.check),
+            label: Text('rides.join'.tr()),
+          );
   }
 }
