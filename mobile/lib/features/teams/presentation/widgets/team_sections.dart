@@ -4,6 +4,10 @@ import '../../../../api/generated/export.dart';
 import '../../../../config/locale_context.dart';
 import '../../../../config/paths.generated.dart';
 
+/// The sections a team can show. The router names one per route, which is what
+/// lets the chip row highlight the right one without re-parsing the URL.
+enum TeamSectionKind { feed, calendar, routes, ads, members, about }
+
 /// One section of a team — Feed, Calendar, Routes, Ads, Members, About.
 ///
 /// Sections used to be the destinations of a second `NavigationBar` stacked
@@ -12,6 +16,8 @@ import '../../../../config/paths.generated.dart';
 /// team. Hence a model of its own rather than the app-level `AppDestination` —
 /// nothing here drives a branch of the shell.
 class TeamSection {
+  final TeamSectionKind kind;
+
   /// URL variants per locale, straight from [PathVariants].
   final Map<String, String> paths;
 
@@ -21,6 +27,7 @@ class TeamSection {
   final String label;
 
   const TeamSection({
+    required this.kind,
     required this.paths,
     required this.icon,
     required this.label,
@@ -42,6 +49,7 @@ List<TeamSection> buildTeamSections(TeamDetailDto team) {
   return [
     // Feed — always visible.
     TeamSection(
+      kind: TeamSectionKind.feed,
       paths: PathVariants.team(slug),
       icon: Icons.dynamic_feed_outlined,
       label: 'teams.tabs.feed',
@@ -49,6 +57,7 @@ List<TeamSection> buildTeamSections(TeamDetailDto team) {
     // Calendar — members only, and only if rides or trips are enabled.
     if (isMember && (team.enableRides || team.enableTrips))
       TeamSection(
+        kind: TeamSectionKind.calendar,
         paths: PathVariants.teamCalendar(slug),
         icon: Icons.calendar_today_outlined,
         label: 'teams.tabs.calendar',
@@ -56,6 +65,7 @@ List<TeamSection> buildTeamSections(TeamDetailDto team) {
     // Routes — if enabled.
     if (team.enableRoutes)
       TeamSection(
+        kind: TeamSectionKind.routes,
         paths: PathVariants.routes(slug),
         icon: Icons.route_outlined,
         label: 'teams.tabs.routes',
@@ -63,6 +73,7 @@ List<TeamSection> buildTeamSections(TeamDetailDto team) {
     // Ads — members only, and only if classifieds are enabled.
     if (isMember && team.enableAds)
       TeamSection(
+        kind: TeamSectionKind.ads,
         paths: PathVariants.teamAds(slug),
         icon: Icons.sell_outlined,
         label: 'teams.tabs.ads',
@@ -70,12 +81,14 @@ List<TeamSection> buildTeamSections(TeamDetailDto team) {
     // Members — members only: the list is not public.
     if (isMember)
       TeamSection(
+        kind: TeamSectionKind.members,
         paths: PathVariants.teamMembersPublic(slug),
         icon: Icons.people_outline,
         label: 'teams.tabs.members',
       ),
     // About — always visible.
     TeamSection(
+      kind: TeamSectionKind.about,
       paths: PathVariants.teamAbout(slug),
       icon: Icons.info_outlined,
       label: 'teams.tabs.about',
@@ -83,18 +96,16 @@ List<TeamSection> buildTeamSections(TeamDetailDto team) {
   ];
 }
 
-/// Index of the section owning [location], or 0 (the feed) when none matches.
+/// Index of [kind] in [sections], or `-1` when that section is not visible for
+/// this team — the members section reached by a link while not a member, say.
+/// No chip is then highlighted, which is truer than highlighting the feed.
 ///
-/// Iterates from index 1 so the feed, whose path is a prefix of every other
-/// section, does not shadow them. Matches every locale variant so a link in one
-/// language selects the right chip in another.
-int getTeamSectionIndex(String location, List<TeamSection> sections) {
-  for (int i = 1; i < sections.length; i++) {
-    for (final path in sections[i].paths.values) {
-      if (location == path || location.startsWith('$path/')) {
-        return i;
-      }
-    }
+/// The active section follows the URL because the router names the section of
+/// every team route: no second parsing of the location, and therefore no way
+/// for the row and the page below it to disagree.
+int indexOfSection(TeamSectionKind kind, List<TeamSection> sections) {
+  for (int i = 0; i < sections.length; i++) {
+    if (sections[i].kind == kind) return i;
   }
-  return 0;
+  return -1;
 }

@@ -105,7 +105,8 @@
     "errorPrefix": "Erreur: {error}",
     "user": "Utilisateur",
     "comingSoon": "Cet écran arrive dans une prochaine version.",
-    "close": "Fermer"
+    "close": "Fermer",
+    "clearSearch": "Effacer la recherche"
   },
   "placeholders": {
     "teamsDiscover": {
@@ -186,7 +187,14 @@
     "joinTeamPrompt": "Rejoignez une équipe pour commencer",
     "feed": {
       "all": "Tout",
-      "empty": "Aucune publication"
+      "empty": "Aucune publication",
+      "emptyHint": "Les sorties, publications et voyages de vos équipes s'afficheront ici.",
+      "searchPlaceholder": "Rechercher une publication…",
+      "errorTitle": "Fil indisponible.",
+      "emptyFiltered": {
+        "title": "Aucun résultat",
+        "message": "Aucune publication ne correspond à « {search} »."
+      }
     }
   },
   "teams": {
@@ -211,6 +219,19 @@
     "aboutPage": {
       "createdYear": "Création",
       "pages": "Pages"
+    },
+    "loadError": {
+      "title": "Équipe indisponible"
+    },
+    "search": {
+      "open": "Rechercher une équipe",
+      "close": "Fermer la recherche",
+      "clear": "Effacer la recherche",
+      "hint": "Rechercher une équipe…"
+    },
+    "searchEmpty": {
+      "title": "Aucune équipe pour cette recherche",
+      "message": "Aucune de vos équipes ne contient « {search} »."
     }
   },
   "rides": {
@@ -245,7 +266,8 @@
       "DAY": "Jour",
       "WEEK": "Semaine",
       "MONTH": "Mois"
-    }
+    },
+    "emptyHint": "Les annonces de vente, de location et de recherche de votre équipe apparaîtront ici."
   },
   "trips": {
     "title": "Voyages",
@@ -354,7 +376,13 @@
   },
   "calendar": {
     "title": "Calendrier",
-    "noEvents": "Aucun événement ce mois-ci"
+    "noEvents": "Aucun événement ce mois-ci",
+    "noEventsHint": "Les sorties et voyages de vos équipes s'afficheront ici dès qu'ils seront programmés.",
+    "backToCurrentMonth": "Revenir au mois en cours",
+    "noEventsThisMonth": {
+      "title": "Rien en {month}",
+      "message": "Aucun événement ce mois-là. D'autres mois en contiennent peut-être."
+    }
   },
   "profile": {
     "title": "Profil",
@@ -477,6 +505,11 @@
     "outdated": {
       "title": "Mise à jour requise",
       "message": "Cette version de Pédalons est plus ancienne que ce que le serveur accepte. Mettez-la à jour pour éviter les erreurs."
+    },
+    "notFound": {
+      "title": "Page introuvable",
+      "message": "Cette adresse ne correspond à aucune page : {path}",
+      "action": "Retour à l'accueil"
     }
   },
   "links": {

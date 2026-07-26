@@ -105,7 +105,8 @@
     "errorPrefix": "Error: {error}",
     "user": "User",
     "comingSoon": "This screen is coming in a future release.",
-    "close": "Close"
+    "close": "Close",
+    "clearSearch": "Clear search"
   },
   "placeholders": {
     "teamsDiscover": {
@@ -186,7 +187,14 @@
     "joinTeamPrompt": "Join a team to get started",
     "feed": {
       "all": "All",
-      "empty": "No publications"
+      "empty": "No publications",
+      "emptyHint": "Your teams' rides, posts and trips will show up here.",
+      "searchPlaceholder": "Search publications…",
+      "errorTitle": "Feed unavailable.",
+      "emptyFiltered": {
+        "title": "No results",
+        "message": "No publication matches “{search}”."
+      }
     }
   },
   "teams": {
@@ -211,6 +219,19 @@
     "aboutPage": {
       "createdYear": "Created",
       "pages": "Pages"
+    },
+    "loadError": {
+      "title": "Team unavailable"
+    },
+    "search": {
+      "open": "Search a team",
+      "close": "Close search",
+      "clear": "Clear search",
+      "hint": "Search a team…"
+    },
+    "searchEmpty": {
+      "title": "No team for this search",
+      "message": "None of your teams contains “{search}”."
     }
   },
   "rides": {
@@ -245,7 +266,8 @@
       "DAY": "Day",
       "WEEK": "Week",
       "MONTH": "Month"
-    }
+    },
+    "emptyHint": "Your team's items for sale, for rent and wanted will appear here."
   },
   "trips": {
     "title": "Trips",
@@ -354,7 +376,13 @@
   },
   "calendar": {
     "title": "Calendar",
-    "noEvents": "No events this month"
+    "noEvents": "No events this month",
+    "noEventsHint": "Your teams' rides and trips will show up here as soon as they are scheduled.",
+    "backToCurrentMonth": "Back to the current month",
+    "noEventsThisMonth": {
+      "title": "Nothing in {month}",
+      "message": "No event that month. Other months may have some."
+    }
   },
   "profile": {
     "title": "Profile",
@@ -477,6 +505,11 @@
     "outdated": {
       "title": "Update required",
       "message": "This version of Pédalons is older than the server accepts. Update it to avoid errors."
+    },
+    "notFound": {
+      "title": "Page not found",
+      "message": "This address does not match any page: {path}",
+      "action": "Back to home"
     }
   },
   "links": {

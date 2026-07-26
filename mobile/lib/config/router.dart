@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -13,9 +14,8 @@ import '../features/home/presentation/pages/home_page.dart';
 import '../features/legal/presentation/pages/legal_page.dart';
 import '../features/navigation/presentation/shell/main_shell.dart';
 import '../features/profile/presentation/pages/profile_page.dart';
-import '../api/generated/export.dart';
+import '../core/pdl/pdl.dart';
 import '../features/ads/presentation/pages/ad_detail_page.dart';
-import '../features/ads/presentation/pages/ads_page.dart';
 import '../features/posts/presentation/pages/post_detail_page.dart';
 import '../features/rides/presentation/pages/ride_detail_page.dart';
 import '../features/trips/presentation/pages/stage_detail_page.dart';
@@ -23,13 +23,10 @@ import '../features/trips/presentation/pages/trip_detail_page.dart';
 import '../features/routes/presentation/pages/all_routes_map_page.dart';
 import '../features/routes/presentation/pages/all_routes_page.dart';
 import '../features/routes/presentation/pages/route_detail_page.dart';
-import '../features/routes/presentation/pages/routes_page.dart';
-import '../features/teams/presentation/pages/team_about_page.dart';
 import '../features/teams/presentation/pages/team_custom_page.dart';
-import '../features/teams/presentation/pages/team_detail_page.dart';
-import '../features/teams/presentation/pages/team_feed_page.dart';
-import '../features/teams/presentation/pages/team_members_page.dart';
+import '../features/teams/presentation/pages/team_home_page.dart';
 import '../features/teams/presentation/pages/teams_discover_page.dart';
+import '../features/teams/presentation/widgets/team_sections.dart';
 import '../features/teams/presentation/pages/teams_page.dart';
 import 'paths.dart';
 
@@ -271,80 +268,36 @@ String _underTeam(
 GoRoute _teamTree(String locale) {
   final teamBase = PathVariants.team(':teamSlug')[locale]!;
 
-  return GoRoute(
-    path: teamBase,
-    pageBuilder: (context, state) {
-      final teamSlug = state.pathParameters['teamSlug']!;
-      return NoTransitionPage(
-        child: _TeamTabPageWrapper(
-          teamSlug: teamSlug,
-          builder: (team) => TeamFeedPage(teamSlug: teamSlug, team: team),
+  /// Every section of a team is the **same page** with another section: one
+  /// owner of the team's loading and error state, and a row of sections that
+  /// is content rather than a second navigation bar.
+  GoRoute section(Map<String, String> variants, TeamSectionKind kind) =>
+      GoRoute(
+        path: _underTeam(variants, locale, teamBase),
+        pageBuilder: (context, state) => NoTransitionPage(
+          child: TeamHomePage(
+            teamSlug: state.pathParameters['teamSlug']!,
+            section: kind,
+          ),
         ),
       );
-    },
+
+  return GoRoute(
+    path: teamBase,
+    pageBuilder: (context, state) => NoTransitionPage(
+      child: TeamHomePage(
+        teamSlug: state.pathParameters['teamSlug']!,
+        section: TeamSectionKind.feed,
+      ),
+    ),
     routes: [
-      GoRoute(
-        path: _underTeam(
-          PathVariants.teamCalendar(':teamSlug'),
-          locale,
-          teamBase,
-        ),
-        pageBuilder: (context, state) {
-          final teamSlug = state.pathParameters['teamSlug']!;
-          return NoTransitionPage(
-            child: _TeamTabPageWrapper(
-              teamSlug: teamSlug,
-              builder: (team) =>
-                  _TeamCalendarTab(teamSlug: teamSlug, team: team),
-            ),
-          );
-        },
-      ),
-      GoRoute(
-        path: _underTeam(PathVariants.routes(':teamSlug'), locale, teamBase),
-        pageBuilder: (context, state) {
-          final teamSlug = state.pathParameters['teamSlug']!;
-          return NoTransitionPage(
-            child: _TeamTabPageWrapper(
-              teamSlug: teamSlug,
-              builder: (team) => _TeamRoutesTab(teamSlug: teamSlug, team: team),
-            ),
-          );
-        },
-      ),
-      GoRoute(
-        path: _underTeam(PathVariants.teamAds(':teamSlug'), locale, teamBase),
-        pageBuilder: (context, state) {
-          final teamSlug = state.pathParameters['teamSlug']!;
-          return NoTransitionPage(
-            child: _TeamTabPageWrapper(
-              teamSlug: teamSlug,
-              builder: (team) => AdsPage(teamSlug: teamSlug, team: team),
-            ),
-          );
-        },
-      ),
-      GoRoute(
-        path: _underTeam(PathVariants.teamAbout(':teamSlug'), locale, teamBase),
-        pageBuilder: (context, state) {
-          final teamSlug = state.pathParameters['teamSlug']!;
-          return NoTransitionPage(
-            child: _TeamTabPageWrapper(
-              teamSlug: teamSlug,
-              builder: (team) => TeamAboutPage(teamSlug: teamSlug, team: team),
-            ),
-          );
-        },
-      ),
-      GoRoute(
-        path: _underTeam(
-          PathVariants.teamMembersPublic(':teamSlug'),
-          locale,
-          teamBase,
-        ),
-        pageBuilder: (context, state) => NoTransitionPage(
-          child: TeamMembersPage(teamSlug: state.pathParameters['teamSlug']!),
-        ),
+      section(PathVariants.teamCalendar(':teamSlug'), TeamSectionKind.calendar),
+      section(PathVariants.routes(':teamSlug'), TeamSectionKind.routes),
+      section(PathVariants.teamAds(':teamSlug'), TeamSectionKind.ads),
+      section(PathVariants.teamAbout(':teamSlug'), TeamSectionKind.about),
+      section(
+        PathVariants.teamMembersPublic(':teamSlug'),
+        TeamSectionKind.members,
       ),
       GoRoute(
         path: _underTeam(
@@ -609,96 +562,28 @@ final routerProvider = Provider<GoRouter>((ref) {
         (ctx, st) => const LegalPage(type: LegalPageType.terms),
       ),
     ],
+    // The only screen that used to carry hard-coded French. It is also a
+    // screen a user reaches by accident, so it says what happened, quotes the
+    // address, and offers the one way out.
     errorBuilder: (context, state) => Scaffold(
-      appBar: AppBar(title: const Text('Erreur')),
+      appBar: PdlAppBar(title: 'errors.notFound.title'.tr()),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 64),
-            const SizedBox(height: 16),
-            Text('Page non trouvée: ${state.matchedLocation}'),
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: () => context.go(Paths.home()),
-              child: const Text('Retour à l\'accueil'),
+        child: SingleChildScrollView(
+          child: PdlEmptyState(
+            variant: PdlEmptyVariant.notFound,
+            title: 'errors.notFound.title'.tr(),
+            message: 'errors.notFound.message'.tr(
+              namedArgs: {'path': state.matchedLocation},
             ),
-          ],
+            actions: [
+              PdlButton(
+                label: 'errors.notFound.action'.tr(),
+                onPressed: () => context.go(Paths.home()),
+              ),
+            ],
+          ),
         ),
       ),
     ),
   );
 });
-
-/// Wraps every team tab, which all render a bare scrollable.
-///
-/// The [Scaffold] is what makes the iOS status bar tap scroll back to the top:
-/// it looks up the [PrimaryScrollController] of its own route. `MainShell`'s
-/// Scaffold lives in the root navigator's route, while the sections live in the
-/// branch navigator's route — two different controllers — so each section needs
-/// a Scaffold on its own side of that boundary.
-class _TeamTabPageWrapper extends ConsumerWidget {
-  final String teamSlug;
-  final Widget Function(TeamDetailDto team) builder;
-
-  const _TeamTabPageWrapper({required this.teamSlug, required this.builder});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final teamAsync = ref.watch(teamDetailProvider(teamSlug));
-
-    return Scaffold(
-      body: teamAsync.when(
-        data: (team) => builder(team),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, _) => const SizedBox.shrink(),
-      ),
-    );
-  }
-}
-
-class _TeamCalendarTab extends StatelessWidget {
-  final String teamSlug;
-  final TeamDetailDto team;
-
-  const _TeamCalendarTab({required this.teamSlug, required this.team});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        AppBar(
-          title: Text(team.name),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.go(Paths.teams()),
-          ),
-        ),
-        Expanded(child: CalendarPage(teamSlug: teamSlug, embedded: true)),
-      ],
-    );
-  }
-}
-
-class _TeamRoutesTab extends StatelessWidget {
-  final String teamSlug;
-  final TeamDetailDto team;
-
-  const _TeamRoutesTab({required this.teamSlug, required this.team});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        AppBar(
-          title: Text(team.name),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.go(Paths.teams()),
-          ),
-        ),
-        Expanded(child: RoutesPage(teamSlug: teamSlug, embedded: true)),
-      ],
-    );
-  }
-}

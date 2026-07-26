@@ -5,6 +5,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
+import '../../../../core/pdl/pdl.dart';
+import '../../../../core/theme/pdl_icons.dart';
+import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/widgets/authenticated_image.dart';
 import '../../../../core/widgets/widgets.dart';
@@ -17,11 +20,56 @@ final myTeamsProvider = FutureProvider<List<TeamDetailDto>>((ref) async {
   return repository.getMyTeams();
 });
 
-class TeamsPage extends ConsumerWidget {
+/// The teams the user belongs to.
+///
+/// The magnifier used to be an icon-action with neither effect nor tooltip —
+/// the accessibility defect named in the brief §5. It now opens a real search
+/// over the loaded list, and the search is deliberately **local**: the endpoint
+/// returns *my* teams, a handful of them, already in memory. Finding a team one
+/// is not a member of is another job, and it has its own screen — which is
+/// where the empty state's call to action leads.
+class TeamsPage extends ConsumerStatefulWidget {
   const TeamsPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TeamsPage> createState() => _TeamsPageState();
+}
+
+class _TeamsPageState extends ConsumerState<TeamsPage> {
+  /// Whether the search field is shown. Hidden by default: over three teams, a
+  /// permanent field would cost more room than it gives.
+  bool _searching = false;
+
+  /// Current query, lower-cased by [_onQueryChanged], `null` when empty.
+  String? _query;
+
+  void _toggleSearch() {
+    setState(() {
+      _searching = !_searching;
+      if (!_searching) _query = null;
+    });
+  }
+
+  void _clearSearch() => setState(() {
+    _searching = false;
+    _query = null;
+  });
+
+  void _onQueryChanged(String? value) =>
+      setState(() => _query = value?.toLowerCase());
+
+  List<TeamDetailDto> _filter(List<TeamDetailDto> teams) {
+    final String? query = _query;
+    if (query == null || query.isEmpty) return teams;
+    return teams
+        .where((TeamDetailDto team) => team.name.toLowerCase().contains(query))
+        .toList();
+  }
+
+  void _openDiscover() => context.push(Paths.teamsDiscover());
+
+  @override
+  Widget build(BuildContext context) {
     final teamsAsync = ref.watch(myTeamsProvider);
 
     return Scaffold(
@@ -29,91 +77,123 @@ class TeamsPage extends ConsumerWidget {
         title: Text('teams.title'.tr()),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              // TODO: Navigate to discover teams
-            },
+            icon: Icon(_searching ? PdlIcons.close : PdlIcons.search),
+            tooltip: _searching
+                ? 'teams.search.close'.tr()
+                : 'teams.search.open'.tr(),
+            onPressed: _toggleSearch,
+          ),
+          IconButton(
+            icon: const Icon(Icons.travel_explore_outlined),
+            tooltip: 'teams.discover'.tr(),
+            onPressed: _openDiscover,
           ),
         ],
       ),
-      body: teamsAsync.when(
-        data: (teams) {
-          if (teams.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  AnimatedEmptyState(
-                    child: Icon(
-                      Icons.group_off,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.outline,
+      body: Column(
+        children: [
+          if (_searching)
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: PdlSpacing.section,
+                vertical: PdlSpacing.feedGap,
+              ),
+              child: PdlSearchField(
+                value: _query,
+                autofocus: true,
+                onChanged: _onQueryChanged,
+                hintText: 'teams.search.hint'.tr(),
+                clearTooltip: 'teams.search.clear'.tr(),
+              ),
+            ),
+          Expanded(
+            child: teamsAsync.when(
+              data: _buildList,
+              loading: () => Padding(
+                padding: const EdgeInsets.all(PdlSpacing.section),
+                child: Column(
+                  children: List.generate(
+                    3,
+                    (index) => const Padding(
+                      padding: EdgeInsets.only(bottom: 12),
+                      child: ShimmerTeamCard(),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'teams.empty'.tr(),
-                    style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+              error: (error, stack) => Center(
+                child: SingleChildScrollView(
+                  child: PdlEmptyState(
+                    variant: PdlEmptyVariant.error,
+                    title: 'teams.loadError.title'.tr(),
+                    message: getErrorMessage(error),
+                    actions: [
+                      PdlButton(
+                        label: 'common.retry'.tr(),
+                        onPressed: () => ref.invalidate(myTeamsProvider),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  Text('teams.joinPrompt'.tr()),
-                  const SizedBox(height: 24),
-                  FilledButton.icon(
-                    onPressed: () {
-                      // TODO: Navigate to discover teams
-                    },
-                    icon: const Icon(Icons.search),
-                    label: Text('teams.discover'.tr()),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildList(List<TeamDetailDto> teams) {
+    final List<TeamDetailDto> visible = _filter(teams);
+
+    // The two empties do not say the same thing: belonging to no team calls
+    // for joining one, while a search that matches nothing calls for dropping
+    // the search — never for joining a team.
+    if (visible.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: () => ref.refresh(myTeamsProvider.future),
+        child: ListView(
+          children: [
+            if (teams.isEmpty)
+              PdlEmptyState(
+                variant: PdlEmptyVariant.empty,
+                icon: PdlIcons.team,
+                title: 'teams.empty'.tr(),
+                message: 'teams.joinPrompt'.tr(),
+                actions: [
+                  PdlButton(
+                    label: 'teams.discover'.tr(),
+                    icon: PdlIcons.search,
+                    onPressed: _openDiscover,
+                  ),
+                ],
+              )
+            else
+              PdlEmptyState(
+                variant: PdlEmptyVariant.filtered,
+                title: 'teams.searchEmpty.title'.tr(),
+                message: 'teams.searchEmpty.message'.tr(
+                  namedArgs: {'search': _query ?? ''},
+                ),
+                actions: [
+                  PdlButton(
+                    label: 'teams.search.clear'.tr(),
+                    onPressed: _clearSearch,
                   ),
                 ],
               ),
-            );
-          }
+          ],
+        ),
+      );
+    }
 
-          return RefreshIndicator(
-            onRefresh: () => ref.refresh(myTeamsProvider.future),
-            child: AnimatedResponsiveGrid(
-              padding: const EdgeInsets.all(16),
-              itemCount: teams.length,
-              childAspectRatio: 2.5,
-              itemBuilder: (context, index) {
-                final team = teams[index];
-                return _TeamCard(team: team);
-              },
-            ),
-          );
-        },
-        loading: () => Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: List.generate(
-              3,
-              (index) => const Padding(
-                padding: EdgeInsets.only(bottom: 12),
-                child: ShimmerTeamCard(),
-              ),
-            ),
-          ),
-        ),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline,
-                size: 48,
-                color: Theme.of(context).colorScheme.error,
-              ),
-              const SizedBox(height: 16),
-              Text(getErrorMessage(error)),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: () => ref.invalidate(myTeamsProvider),
-                child: Text('common.retry'.tr()),
-              ),
-            ],
-          ),
-        ),
+    return RefreshIndicator(
+      onRefresh: () => ref.refresh(myTeamsProvider.future),
+      child: AnimatedResponsiveGrid(
+        padding: const EdgeInsets.all(PdlSpacing.section),
+        itemCount: visible.length,
+        childAspectRatio: 2.5,
+        itemBuilder: (context, index) => _TeamCard(team: visible[index]),
       ),
     );
   }

@@ -15,15 +15,7 @@ import '../../../rides/data/ride_repository.dart';
 import '../../../rides/presentation/widgets/ride_card.dart';
 import '../../../routes/data/route_repository.dart';
 import '../../../routes/domain/route_filters.dart';
-import '../../data/team_repository.dart';
-
-final teamDetailProvider = FutureProvider.family<TeamDetailDto, String>((
-  ref,
-  slug,
-) async {
-  final repository = ref.watch(teamRepositoryProvider);
-  return repository.getTeam(slug);
-});
+import '../../providers/team_providers.dart';
 
 final teamRidesProvider = FutureProvider.family<List<RideDto>, String>((
   ref,

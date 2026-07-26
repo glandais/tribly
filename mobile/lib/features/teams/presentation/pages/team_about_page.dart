@@ -6,7 +6,6 @@ import '../../../../api/generated/export.dart';
 import '../../../../api/pedalons_api_client.dart';
 import '../../../../core/adaptive/adaptive.dart';
 import '../../../../core/widgets/widgets.dart';
-import '../widgets/team_sliver_app_bar.dart';
 
 /// Provider for a single team page's full content
 final _teamPageProvider =
@@ -21,11 +20,24 @@ final _teamPageProvider =
       );
     });
 
+/// A team's About section: its presentation and its free pages.
+///
+/// `TeamHomePage` owns the header and the team's loading state; this page
+/// renders the section proper, with the pinned row of sections it is handed as
+/// the first sliver of its own scroll view.
 class TeamAboutPage extends ConsumerWidget {
   final String teamSlug;
   final TeamDetailDto team;
 
-  const TeamAboutPage({super.key, required this.teamSlug, required this.team});
+  /// The pinned section row.
+  final Widget? toolbar;
+
+  const TeamAboutPage({
+    super.key,
+    required this.teamSlug,
+    required this.team,
+    this.toolbar,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -34,7 +46,7 @@ class TeamAboutPage extends ConsumerWidget {
 
     return CustomScrollView(
       slivers: [
-        TeamSliverAppBar(team: team),
+        ?toolbar,
 
         // Stats row
         SliverToBoxAdapter(
