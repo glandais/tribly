@@ -117,7 +117,7 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
     });
     try {
       final repository = ref.read(rideRepositoryProvider);
-      await repository.joinRideGroup(ride.team.slug, ride.slug, groupId);
+      await repository.joinGroup(ride.team.slug, ride.slug, groupId);
       _invalidateRide();
       if (mounted) {
         ScaffoldMessenger.of(
@@ -219,7 +219,7 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
     });
     try {
       final repository = ref.read(rideRepositoryProvider);
-      await repository.leaveRideGroup(ride.team.slug, ride.slug, groupId);
+      await repository.leaveGroup(ride.team.slug, ride.slug, groupId);
       _invalidateRide();
       if (mounted) {
         ScaffoldMessenger.of(

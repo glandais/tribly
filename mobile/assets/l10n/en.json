@@ -247,7 +247,34 @@
     "noGroupAvailable": "No group available",
     "selectGroup": "Select a group",
     "description": "Description",
-    "actionFailed": "Couldn't update your registration in {group}."
+    "actionFailed": "Couldn't update your registration in {group}.",
+    "registered": "Registered",
+    "registeredIn": "Registered · {group}",
+    "finished": "Finished",
+    "groupJoin": "Join",
+    "groupLeave": "Leave",
+    "groupFull": "Full",
+    "joining": "Joining...",
+    "leaving": "Leaving...",
+    "leaderIs": "Leader: {name}",
+    "participantsOf": "{count}/{max} participants",
+    "viewRoute": "View route",
+    "otherGroups": {
+      "one": "View the other group",
+      "other": "View the {} other groups"
+    },
+    "groupCount": {
+      "zero": "No group",
+      "one": "{} group",
+      "other": "{} groups"
+    },
+    "groupsRoute": "Group routes",
+    "selectedGroupProfile": "Selected group profile",
+    "dateAndTime": "Date and time",
+    "viewParticipants": "View list",
+    "startPlace": "Start",
+    "endPlace": "Finish",
+    "comments": "Comments"
   },
   "posts": {
     "title": "Posts"
@@ -373,7 +400,8 @@
       "date_time": "Date",
       "asc": "Ascending",
       "desc": "Descending"
-    }
+    },
+    "exportFit": "FIT"
   },
   "calendar": {
     "title": "Calendar",

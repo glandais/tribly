@@ -47,7 +47,12 @@ class PdlTone {
 
   /// Raccourci pour une famille rendue en doux : la paire vient du jeton, et
   /// [fill] est l'aplat correspondant.
-  PdlTone._pair(PdlSoftPair pair, this.fill)
+  ///
+  /// Publique parce que tous les badges ne sortent pas d'une énumération du
+  /// contrat : « ✓ Inscrit » (famille indigo) et « Terminée » (famille grise
+  /// foncée) sont des états dérivés côté client, sans champ d'API qui les
+  /// porte.
+  PdlTone.pair(PdlSoftPair pair, this.fill)
     : soft = pair.background,
       onSoft = pair.foreground,
       onFill = const Color(0xFFFFFFFF),
@@ -58,10 +63,10 @@ class PdlTone {
 
 extension StatusTone on Status {
   PdlTone tone(PdlColors c) => switch (this) {
-    Status.draft => PdlTone._pair(c.softGray, c.neutral),
-    Status.published => PdlTone._pair(c.softGreen, c.success),
-    Status.cancelled => PdlTone._pair(c.softRed, c.danger),
-    Status.$unknown => PdlTone._pair(c.softGray, c.neutral),
+    Status.draft => PdlTone.pair(c.softGray, c.neutral),
+    Status.published => PdlTone.pair(c.softGreen, c.success),
+    Status.cancelled => PdlTone.pair(c.softRed, c.danger),
+    Status.$unknown => PdlTone.pair(c.softGray, c.neutral),
   };
 }
 
@@ -69,10 +74,10 @@ extension StatusTone on Status {
 
 extension TeamRoleTone on TeamRole {
   PdlTone tone(PdlColors c) => switch (this) {
-    TeamRole.admin => PdlTone._pair(c.softGrape, c.accentGrape),
-    TeamRole.organizer => PdlTone._pair(c.softBlue, c.accentBlue),
-    TeamRole.member => PdlTone._pair(c.softGray, c.neutral),
-    TeamRole.$unknown => PdlTone._pair(c.softGray, c.neutral),
+    TeamRole.admin => PdlTone.pair(c.softGrape, c.accentGrape),
+    TeamRole.organizer => PdlTone.pair(c.softBlue, c.accentBlue),
+    TeamRole.member => PdlTone.pair(c.softGray, c.neutral),
+    TeamRole.$unknown => PdlTone.pair(c.softGray, c.neutral),
   };
 }
 
@@ -83,11 +88,11 @@ extension SurfaceTypeTone on SurfaceType {
   /// doux : la charte lui donne le near-black `#2e2e2e` en trait de rappel de
   /// tracé, tout en le badgeant en gris.
   PdlTone tone(PdlColors c) => switch (this) {
-    SurfaceType.road => PdlTone._pair(c.softGray, c.accentDark),
-    SurfaceType.gravel => PdlTone._pair(c.softOrange, c.accentOrange),
-    SurfaceType.mtb => PdlTone._pair(c.softGreen, c.success),
-    SurfaceType.mixed => PdlTone._pair(c.softTeal, c.accentTeal),
-    SurfaceType.$unknown => PdlTone._pair(c.softGray, c.neutral),
+    SurfaceType.road => PdlTone.pair(c.softGray, c.accentDark),
+    SurfaceType.gravel => PdlTone.pair(c.softOrange, c.accentOrange),
+    SurfaceType.mtb => PdlTone.pair(c.softGreen, c.success),
+    SurfaceType.mixed => PdlTone.pair(c.softTeal, c.accentTeal),
+    SurfaceType.$unknown => PdlTone.pair(c.softGray, c.neutral),
   };
 }
 
@@ -141,10 +146,10 @@ extension ClimbCategoryTone on ClimbCategory {
 
 extension AdTypeTone on AdType {
   PdlTone tone(PdlColors c) => switch (this) {
-    AdType.sale => PdlTone._pair(c.softGreen, c.success),
-    AdType.rental => PdlTone._pair(c.softIndigo, c.primary),
-    AdType.wanted => PdlTone._pair(c.softOrange, c.accentOrange),
-    AdType.$unknown => PdlTone._pair(c.softGray, c.neutral),
+    AdType.sale => PdlTone.pair(c.softGreen, c.success),
+    AdType.rental => PdlTone.pair(c.softIndigo, c.primary),
+    AdType.wanted => PdlTone.pair(c.softOrange, c.accentOrange),
+    AdType.$unknown => PdlTone.pair(c.softGray, c.neutral),
   };
 }
 
@@ -152,10 +157,10 @@ extension AdTypeTone on AdType {
 
 extension VisibilityTone on Visibility {
   PdlTone tone(PdlColors c) => switch (this) {
-    Visibility.public => PdlTone._pair(c.softBlue, c.accentBlue),
-    Visibility.publicUnlisted => PdlTone._pair(c.softOrange, c.accentOrange),
-    Visibility.team => PdlTone._pair(c.softGray, c.neutral),
-    Visibility.$unknown => PdlTone._pair(c.softGray, c.neutral),
+    Visibility.public => PdlTone.pair(c.softBlue, c.accentBlue),
+    Visibility.publicUnlisted => PdlTone.pair(c.softOrange, c.accentOrange),
+    Visibility.team => PdlTone.pair(c.softGray, c.neutral),
+    Visibility.$unknown => PdlTone.pair(c.softGray, c.neutral),
   };
 }
 
@@ -163,9 +168,26 @@ extension VisibilityTone on Visibility {
 
 extension PublicationTypeTone on PublicationType {
   PdlTone tone(PdlColors c) => switch (this) {
-    PublicationType.ride => PdlTone._pair(c.softBlue, c.accentBlue),
-    PublicationType.post => PdlTone._pair(c.softGrape, c.accentGrape),
-    PublicationType.trip => PdlTone._pair(c.softTeal, c.accentTeal),
-    PublicationType.$unknown => PdlTone._pair(c.softGray, c.neutral),
+    PublicationType.ride => PdlTone.pair(c.softBlue, c.accentBlue),
+    PublicationType.post => PdlTone.pair(c.softGrape, c.accentGrape),
+    PublicationType.trip => PdlTone.pair(c.softTeal, c.accentTeal),
+    PublicationType.$unknown => PdlTone.pair(c.softGray, c.neutral),
   };
+}
+
+// ── États dérivés côté client ───────────────────────────────────────────────
+
+/// Les deux familles de badge qu'aucune énumération du contrat ne porte.
+///
+/// « Inscrit » se déduit de `registered`, « Terminée » de `dateTime < now`
+/// (§5.2-18 : le statut `TERMINÉE` n'existe pas dans l'enum `Status`). Les
+/// nommer ici évite qu'un écran ne recompose la paire à la main — et donc
+/// qu'un écran se retrouve avec une autre teinte que son voisin.
+abstract final class PdlDerivedTones {
+  /// `.b-ins` — indigo. Inscription à une sortie ou à un groupe.
+  static PdlTone registered(PdlColors c) =>
+      PdlTone.pair(c.softIndigo, c.primary);
+
+  /// `.b-done` — gris foncé. Sortie ou voyage terminé.
+  static PdlTone done(PdlColors c) => PdlTone.pair(c.softDone, c.neutral);
 }

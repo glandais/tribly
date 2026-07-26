@@ -247,7 +247,34 @@
     "noGroupAvailable": "Aucun groupe disponible",
     "selectGroup": "Choisir un groupe",
     "description": "Description",
-    "actionFailed": "Inscription au groupe {group} impossible."
+    "actionFailed": "Inscription au groupe {group} impossible.",
+    "registered": "Inscrit",
+    "registeredIn": "Inscrit · {group}",
+    "finished": "Terminée",
+    "groupJoin": "Rejoindre",
+    "groupLeave": "Quitter",
+    "groupFull": "Complet",
+    "joining": "Adhésion...",
+    "leaving": "Désinscription...",
+    "leaderIs": "Meneur : {name}",
+    "participantsOf": "{count}/{max} participants",
+    "viewRoute": "Voir le parcours",
+    "otherGroups": {
+      "one": "Voir l'autre groupe",
+      "other": "Voir les {} autres groupes"
+    },
+    "groupCount": {
+      "zero": "Aucun groupe",
+      "one": "{} groupe",
+      "other": "{} groupes"
+    },
+    "groupsRoute": "Parcours des groupes",
+    "selectedGroupProfile": "Profil du groupe sélectionné",
+    "dateAndTime": "Date et heure",
+    "viewParticipants": "Voir la liste",
+    "startPlace": "Départ",
+    "endPlace": "Arrivée",
+    "comments": "Commentaires"
   },
   "posts": {
     "title": "Publications"
@@ -373,7 +400,8 @@
       "date_time": "Date",
       "asc": "Croissant",
       "desc": "Décroissant"
-    }
+    },
+    "exportFit": "FIT"
   },
   "calendar": {
     "title": "Calendrier",
