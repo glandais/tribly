@@ -624,7 +624,7 @@ moins un bouton de sortie (« Effacer la recherche » ou « Effacer les filtres 
 
 ---
 
-**T2.2 ☐ — État vide « cul-de-sac » sur les parcours**
+**T2.2 ☑ — État vide « cul-de-sac » sur les parcours**
 *Fichiers* : `frontend/src/components/route/RouteDeadEnd.tsx` (créé),
 `frontend/src/components/route/RouteListContent.tsx` (modifié),
 `frontend/src/locales/{fr,en}/common.json`.

@@ -21,6 +21,8 @@ interface RouteListContentProps {
   onPageChange: (page: number) => void
   /** Lets the user out of a filtered empty state — mandatory wherever filters can be active. */
   onClearFilters?: () => void
+  /** When set, a filtered empty state renders the richer dead-end instead. */
+  deadEnd?: ReactNode
   emptyAction?: ReactNode
   density?: RouteDensity
 }
@@ -35,6 +37,7 @@ export function RouteListContent({
   totalPages,
   onPageChange,
   onClearFilters,
+  deadEnd,
   emptyAction,
   density = 'card',
 }: RouteListContentProps) {
@@ -97,6 +100,10 @@ export function RouteListContent({
 
   // The filtered case is precisely the one needing the richest copy: it always carries a
   // description and a way out, never a bare title.
+  if (hasFiltersOrSearch && deadEnd) {
+    return <>{deadEnd}</>
+  }
+
   return (
     <EmptyState
       variant={hasFiltersOrSearch ? 'filtered' : 'absolute'}

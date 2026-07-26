@@ -24,6 +24,7 @@ import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
 import { RouteListContent } from '../../components/route/RouteListContent'
 import { ResultCount } from '@/components/common/ResultCount'
 import { RouteDensityToggle } from '@/components/route/RouteDensityToggle'
+import { RouteDeadEnd } from '@/components/route/RouteDeadEnd'
 import { RouteViewToggle } from '../../components/route/RouteViewToggle'
 
 export function AllRoutesPage() {
@@ -113,6 +114,14 @@ export function AllRoutesPage() {
 
         <RouteListContent
           density={density}
+          deadEnd={
+            <RouteDeadEnd
+              filters={filters}
+
+              onSetFilters={setFilters}
+              onClearFilters={clearFilters}
+            />
+          }
           routes={routesData?.routes}
           isLoading={isLoading}
           isError={isError}

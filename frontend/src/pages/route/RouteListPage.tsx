@@ -21,6 +21,7 @@ import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
 import { RouteListContent } from '../../components/route/RouteListContent'
 import { ResultCount } from '@/components/common/ResultCount'
 import { RouteDensityToggle } from '@/components/route/RouteDensityToggle'
+import { RouteDeadEnd } from '@/components/route/RouteDeadEnd'
 import { RouteViewToggle } from '../../components/route/RouteViewToggle'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { UploadGpxFiles } from '../../components/route/UploadGpxFiles'
@@ -123,6 +124,14 @@ export function RouteListPage() {
 
         <RouteListContent
           density={density}
+          deadEnd={
+            <RouteDeadEnd
+              filters={filters}
+              teamSlug={teamSlug!}
+              onSetFilters={setFilters}
+              onClearFilters={clearFilters}
+            />
+          }
           routes={routesData?.routes}
           isLoading={isLoadingRoutes}
           showTeam={false}
