@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 
+import '../pdl/pdl_skeleton.dart';
+import '../theme/pdl_tokens.dart';
+
 /// A shimmer animation placeholder for loading states.
 ///
 /// Creates a gradient animation that sweeps across the widget,
 /// providing a more polished loading experience than a spinner.
-class ShimmerPlaceholder extends StatefulWidget {
+///
+/// Façade historique au-dessus de [PdlSkeleton], qui porte désormais l'unique
+/// implémentation du scintillement — dégradé `neutralSoft → disabledBg`,
+/// 1400 ms, coupé par `MediaQuery.disableAnimations`. Les nouveaux écrans
+/// emploient [PdlSkeleton] directement.
+class ShimmerPlaceholder extends StatelessWidget {
   /// The width of the shimmer placeholder.
   final double? width;
 
@@ -21,7 +29,7 @@ class ShimmerPlaceholder extends StatefulWidget {
     super.key,
     this.width,
     this.height,
-    this.borderRadius = const BorderRadius.all(Radius.circular(8)),
+    this.borderRadius = PdlRadii.mdAll,
     this.child,
   });
 
@@ -32,7 +40,7 @@ class ShimmerPlaceholder extends StatefulWidget {
     this.child,
   }) : width = radius * 2,
        height = radius * 2,
-       borderRadius = const BorderRadius.all(Radius.circular(1000));
+       borderRadius = PdlRadii.pillAll;
 
   /// Creates a text-line shimmer placeholder.
   const ShimmerPlaceholder.text({
@@ -40,87 +48,16 @@ class ShimmerPlaceholder extends StatefulWidget {
     required this.width,
     double? height,
   }) : height = height ?? 14,
-       borderRadius = const BorderRadius.all(Radius.circular(4)),
+       borderRadius = PdlRadii.smAll,
        child = null;
 
   @override
-  State<ShimmerPlaceholder> createState() => _ShimmerPlaceholderState();
-}
-
-class _ShimmerPlaceholderState extends State<ShimmerPlaceholder>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    );
-
-    _animation = Tween<double>(
-      begin: -1.0,
-      end: 2.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-
-    _controller.repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final reduceMotion = MediaQuery.of(context).disableAnimations;
-
-    final baseColor = isDark
-        ? theme.colorScheme.surfaceContainerHighest
-        : theme.colorScheme.surfaceContainerHigh;
-    final highlightColor = isDark
-        ? theme.colorScheme.surfaceContainerHigh
-        : theme.colorScheme.surface;
-
-    if (reduceMotion) {
-      return Container(
-        width: widget.width,
-        height: widget.height,
-        decoration: BoxDecoration(
-          color: baseColor,
-          borderRadius: widget.borderRadius,
-        ),
-        child: widget.child,
-      );
-    }
-
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        return Container(
-          width: widget.width,
-          height: widget.height,
-          decoration: BoxDecoration(
-            borderRadius: widget.borderRadius,
-            gradient: LinearGradient(
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-              stops: [
-                (_animation.value - 0.3).clamp(0.0, 1.0),
-                _animation.value.clamp(0.0, 1.0),
-                (_animation.value + 0.3).clamp(0.0, 1.0),
-              ],
-              colors: [baseColor, highlightColor, baseColor],
-            ),
-          ),
-          child: widget.child,
-        );
-      },
+    return PdlSkeleton(
+      width: width,
+      height: height,
+      borderRadius: borderRadius,
+      child: child,
     );
   }
 }

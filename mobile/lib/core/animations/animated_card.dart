@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 
+import '../pdl/pdl_card.dart';
+import '../theme/pdl_tokens.dart';
+
 /// A card widget with tap feedback animation.
 ///
 /// Provides a subtle scale-down effect (0.98x) when pressed,
 /// making the app feel more responsive.
-class AnimatedCard extends StatefulWidget {
+///
+/// Façade historique au-dessus de [PdlCard], qui porte désormais l'unique
+/// implémentation de l'échelle au press et du respect de
+/// `MediaQuery.disableAnimations`. Les nouveaux écrans emploient [PdlCard]
+/// directement : il sait aussi rendre les variantes `selected` et `flat`.
+class AnimatedCard extends StatelessWidget {
   /// The child widget to wrap.
   final Widget child;
 
@@ -28,54 +36,22 @@ class AnimatedCard extends StatefulWidget {
     required this.child,
     this.onTap,
     this.onLongPress,
-    this.borderRadius = const BorderRadius.all(Radius.circular(12)),
+    this.borderRadius = PdlRadii.cardAll,
     this.duration = const Duration(milliseconds: 100),
     this.pressedScale = 0.98,
   });
 
   @override
-  State<AnimatedCard> createState() => _AnimatedCardState();
-}
-
-class _AnimatedCardState extends State<AnimatedCard> {
-  bool _isPressed = false;
-
-  void _handleTapDown(TapDownDetails details) {
-    setState(() => _isPressed = true);
-  }
-
-  void _handleTapUp(TapUpDetails details) {
-    setState(() => _isPressed = false);
-  }
-
-  void _handleTapCancel() {
-    setState(() => _isPressed = false);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    // Respect user's motion preferences
-    final reduceMotion = MediaQuery.of(context).disableAnimations;
-    final scale = _isPressed && !reduceMotion ? widget.pressedScale : 1.0;
-    final duration = reduceMotion ? Duration.zero : widget.duration;
-
-    return GestureDetector(
-      onTapDown: _handleTapDown,
-      onTapUp: _handleTapUp,
-      onTapCancel: _handleTapCancel,
-      child: AnimatedScale(
-        scale: scale,
-        duration: duration,
-        curve: Curves.easeInOut,
-        child: Card(
-          child: InkWell(
-            onTap: widget.onTap,
-            onLongPress: widget.onLongPress,
-            borderRadius: widget.borderRadius,
-            child: widget.child,
-          ),
-        ),
-      ),
+    return PdlCard(
+      onTap: onTap,
+      onLongPress: onLongPress,
+      borderRadius: borderRadius,
+      pressDuration: duration,
+      pressedScale: pressedScale,
+      // Les appelants historiques posent leur propre `Padding` dans [child].
+      padding: PdlCardPadding.none,
+      child: child,
     );
   }
 }

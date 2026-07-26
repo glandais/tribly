@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../api/pedalons_api_client.dart';
 import '../../config/app_config.dart';
+import '../pdl/pdl_skeleton.dart';
+import '../theme/pdl_icons.dart';
 
 /// Resolves a URL to an absolute URL if it's relative.
 String _resolveUrl(String url) {
@@ -66,13 +68,14 @@ class AuthenticatedImage extends ConsumerWidget {
       fit: fit,
       width: width,
       height: height,
+      // Un squelette et non un tourniquet : une image qui charge occupe déjà
+      // sa place, elle n'a pas besoin d'annoncer qu'elle travaille.
       placeholder: placeholder != null
           ? (context, url) => placeholder!
-          : (context, url) =>
-                const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          : (context, url) => PdlSkeleton(width: width, height: height),
       errorWidget: errorWidget != null
           ? (context, url, error) => errorWidget!
-          : (context, url, error) => const Icon(Icons.broken_image_outlined),
+          : (context, url, error) => const Icon(PdlIcons.brokenImage),
     );
   }
 }
