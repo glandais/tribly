@@ -23,6 +23,8 @@ import jakarta.ws.rs.core.Response;
 import java.math.BigDecimal;
 import java.time.Instant;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.headers.Header;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
@@ -168,7 +170,12 @@ public class AdResource {
     @APIResponse(responseCode = "204", description = "Message relayed"),
     @APIResponse(
         responseCode = "400",
-        description = "Message missing or outside the allowed length",
+        description =
+            "VALIDATION when the message is missing or outside the allowed length,"
+                + " AD_CONTACT_SELF when writing to your own ad, AD_CONTACT_OPTED_OUT when the"
+                + " author turned the relay off. These two are rules about the message, not"
+                + " authorization failures — the caller may use this endpoint on this ad, they"
+                + " just may not send this particular message.",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     @APIResponse(
         responseCode = "401",
@@ -176,9 +183,7 @@ public class AdResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     @APIResponse(
         responseCode = "403",
-        description =
-            "Caller is not a team member (AD_CONTACT_SELF when writing to your own ad,"
-                + " AD_CONTACT_OPTED_OUT when the author turned the relay off)",
+        description = "Caller may not read this ad",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     @APIResponse(
         responseCode = "404",
@@ -187,6 +192,11 @@ public class AdResource {
     @APIResponse(
         responseCode = "429",
         description = "AD_CONTACT_RATE_LIMITED — too many messages relayed in the window",
+        headers =
+            @Header(
+                name = "Retry-After",
+                description = "Seconds until the sender's quota frees up",
+                schema = @Schema(type = SchemaType.INTEGER)),
         content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     @APIResponse(
         responseCode = "500",

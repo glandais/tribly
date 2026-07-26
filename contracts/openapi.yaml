@@ -8517,7 +8517,11 @@ paths:
         "204":
           description: Message relayed
         "400":
-          description: Message missing or outside the allowed length
+          description: "VALIDATION when the message is missing or outside the allowed\
+            \ length, AD_CONTACT_SELF when writing to your own ad, AD_CONTACT_OPTED_OUT\
+            \ when the author turned the relay off. These two are rules about the\
+            \ message, not authorization failures — the caller may use this endpoint\
+            \ on this ad, they just may not send this particular message."
           content:
             application/json:
               schema:
@@ -8529,9 +8533,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "403":
-          description: "Caller is not a team member (AD_CONTACT_SELF when writing\
-            \ to your own ad, AD_CONTACT_OPTED_OUT when the author turned the relay\
-            \ off)"
+          description: Caller may not read this ad
           content:
             application/json:
               schema:
@@ -8545,6 +8547,11 @@ paths:
         "429":
           description: AD_CONTACT_RATE_LIMITED — too many messages relayed in the
             window
+          headers:
+            Retry-After:
+              description: Seconds until the sender's quota frees up
+              schema:
+                type: integer
           content:
             application/json:
               schema:
