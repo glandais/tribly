@@ -78,6 +78,7 @@ export function SocialConnectionsManager() {
                   color="red"
                   onClick={() => setConfirmUnlink(true)}
                   title={t('profile.social.unlink')}
+                  aria-label={t('profile.social.unlink')}
                 >
                   <IconUnlink size={16} />
                 </ActionIcon>

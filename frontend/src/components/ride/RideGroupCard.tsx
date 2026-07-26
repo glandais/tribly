@@ -164,6 +164,7 @@ export function RideGroupCard({
         <UnstyledButton
           onClick={() => setShowParticipants(true)}
           title={t('rides.detail.groups.viewParticipants')}
+          aria-label={t('rides.detail.groups.viewParticipants')}
           style={{ borderRadius: 'var(--mantine-radius-sm)' }}
         >
           <Group gap="sm">
@@ -225,7 +226,7 @@ export function RideGroupCard({
           {isAuthenticated && connectedServices.length > 0 && (
             <Menu shadow="md" width={200}>
               <Menu.Target>
-                <UnstyledButton disabled={isUploading}>
+                <UnstyledButton disabled={isUploading} aria-label={t('routes.detail.sendToDevice')}>
                   <Group gap={4}>
                     {isUploading ? <Loader size={16} /> : <IconDeviceMobile size={16} />}
                     <Text size="xs" c="dimmed">

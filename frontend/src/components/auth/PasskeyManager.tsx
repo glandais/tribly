@@ -156,6 +156,7 @@ export function PasskeyManager() {
                   color="red"
                   onClick={() => passkey.id && setDeletePasskeyId(passkey.id)}
                   title={t('passkeys.delete')}
+                  aria-label={t('passkeys.delete')}
                 >
                   <IconTrash size={16} />
                 </ActionIcon>

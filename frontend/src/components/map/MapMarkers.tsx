@@ -64,6 +64,9 @@ interface KmMarkerProps extends MarkerProps {
 }
 
 export function KmMarker({ longitude, latitude, label }: KmMarkerProps) {
+  const colorScheme = useComputedColorScheme('light')
+  const labelColor = colorScheme === 'dark' ? 'var(--mantine-color-gray-0)' : '#000000'
+
   return (
     <Marker longitude={longitude} latitude={latitude} anchor="center">
       <Box
@@ -72,14 +75,14 @@ export function KmMarker({ longitude, latitude, label }: KmMarkerProps) {
         style={{
           borderRadius: '50%',
           border: '1.5px solid #AAAAAA',
-          backgroundColor: 'white',
+          backgroundColor: getOverlayBg(colorScheme, true),
           boxShadow: 'var(--mantine-shadow-sm)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
         }}
       >
-        <Text size="xs" fw={700} style={{ color: '#000000', lineHeight: 1 }}>
+        <Text size="xs" fw={700} style={{ color: labelColor, lineHeight: 1 }}>
           {label}
         </Text>
       </Box>

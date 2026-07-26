@@ -25,6 +25,7 @@ import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { PublicationCard, PublicationCardSkeleton } from '../../components/card'
 import { TeamLayout } from '../../components/team/TeamLayout'
 import { Pagination } from '../../components/common/Pagination'
+import { ResultCount } from '../../components/common/ResultCount'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { useUrlFilters } from '../../hooks/useUrlFilters'
 import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
@@ -191,6 +192,8 @@ export function PublicationListPage() {
           </Group>
         </Group>
 
+        <ResultCount total={publicationsData?.total} resource="publications" />
+
         {/* Publications List */}
         {isLoadingPublications ? (
           <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
@@ -224,7 +227,7 @@ export function PublicationListPage() {
                 <Box
                   p="lg"
                   style={{
-                    backgroundColor: 'var(--mantine-color-gray-1)',
+                    backgroundColor: 'var(--mantine-color-default-hover)',
                     borderRadius: '50%',
                   }}
                 >

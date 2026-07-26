@@ -91,6 +91,7 @@ export function IcsFeedSettings({ teamSlug }: IcsFeedSettingsProps): React.React
                     variant="light"
                     size="lg"
                     color={copied ? 'teal' : 'blue'}
+                    aria-label={t('calendar.ics.copyLink')}
                   >
                     {copied ? <IconCheck size={18} /> : <IconCopy size={18} />}
                   </ActionIcon>

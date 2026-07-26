@@ -278,6 +278,7 @@ export function MediaEditor({
                       onClick={() => handleRemoveAttachment(attachment.id)}
                       disabled={disabled}
                       title={t('actions.delete')}
+                      aria-label={t('actions.delete')}
                     >
                       <IconX size={14} />
                     </ActionIcon>

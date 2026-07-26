@@ -134,6 +134,7 @@ export function UserProfilePage() {
                   onClick={() => avatarInputRef.current?.click()}
                   disabled={isUploadingAvatar}
                   title={t('profile.avatar.upload')}
+                  aria-label={t('profile.avatar.upload')}
                 >
                   {isUploadingAvatar ? <Loader size="sm" /> : <IconCamera size={14} />}
                 </ActionIcon>
@@ -146,6 +147,7 @@ export function UserProfilePage() {
                     onClick={() => deleteAvatar()}
                     disabled={isDeletingAvatar}
                     title={t('profile.avatar.remove')}
+                    aria-label={t('profile.avatar.remove')}
                   >
                     {isDeletingAvatar ? <Loader size="sm" /> : <IconX size={14} />}
                   </ActionIcon>

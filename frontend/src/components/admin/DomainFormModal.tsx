@@ -472,6 +472,7 @@ function GpsCredentialsSection({ domainId }: { domainId: string }) {
                               color="gray"
                               type="button"
                               onClick={() => setEditingCredentialId(null)}
+                              aria-label={t('actions.cancelAction')}
                             >
                               <IconX size={16} />
                             </ActionIcon>
@@ -485,6 +486,7 @@ function GpsCredentialsSection({ domainId }: { domainId: string }) {
                                   handleUpdateCredential(credential.id, values)
                                 )()
                               }
+                              aria-label={t('actions.save')}
                             >
                               <IconCheck size={16} />
                             </ActionIcon>
@@ -514,6 +516,7 @@ function GpsCredentialsSection({ domainId }: { domainId: string }) {
                           <ActionIcon
                             variant="subtle"
                             onClick={() => startEditCredential(credential)}
+                            aria-label={t('actions.edit')}
                           >
                             <IconPencil size={16} />
                           </ActionIcon>
@@ -523,6 +526,7 @@ function GpsCredentialsSection({ domainId }: { domainId: string }) {
                             variant="subtle"
                             color="red"
                             onClick={() => setDeleteCredential(credential)}
+                            aria-label={t('actions.delete')}
                           >
                             <IconTrash size={16} />
                           </ActionIcon>
@@ -815,6 +819,7 @@ function DomainAliasesSection({ domainId }: { domainId: string }) {
                             color="gray"
                             type="button"
                             onClick={() => setEditingAliasId(null)}
+                            aria-label={t('actions.cancelAction')}
                           >
                             <IconX size={16} />
                           </ActionIcon>
@@ -826,6 +831,7 @@ function DomainAliasesSection({ domainId }: { domainId: string }) {
                             onClick={() =>
                               editForm.onSubmit((values) => handleUpdate(alias.id, values))()
                             }
+                            aria-label={t('actions.save')}
                           >
                             <IconCheck size={16} />
                           </ActionIcon>
@@ -851,7 +857,11 @@ function DomainAliasesSection({ domainId }: { domainId: string }) {
                     <Table.Td ta="center">
                       <Group gap="xs" justify="center">
                         <Tooltip label={t('actions.edit')}>
-                          <ActionIcon variant="subtle" onClick={() => startEdit(alias)}>
+                          <ActionIcon
+                            variant="subtle"
+                            onClick={() => startEdit(alias)}
+                            aria-label={t('actions.edit')}
+                          >
                             <IconPencil size={16} />
                           </ActionIcon>
                         </Tooltip>
@@ -866,6 +876,11 @@ function DomainAliasesSection({ domainId }: { domainId: string }) {
                             variant="subtle"
                             loading={toggleMutation.isPending}
                             onClick={() => handleToggle(alias.id)}
+                            aria-label={
+                              alias.active
+                                ? t('admin.domains.deactivate')
+                                : t('admin.domains.activate')
+                            }
                           >
                             {alias.active ? (
                               <IconToggleRight size={18} />
@@ -879,6 +894,7 @@ function DomainAliasesSection({ domainId }: { domainId: string }) {
                             variant="subtle"
                             color="red"
                             onClick={() => setDeleteAlias(alias)}
+                            aria-label={t('actions.delete')}
                           >
                             <IconTrash size={16} />
                           </ActionIcon>

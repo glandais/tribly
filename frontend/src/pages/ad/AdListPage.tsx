@@ -26,6 +26,7 @@ import { adFiltersSchema, adFiltersAlias } from '../../hooks/filters/adFilters'
 import { AdCard, AdCardSkeleton } from '../../components/ad'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { Pagination } from '../../components/common/Pagination'
+import { ResultCount } from '../../components/common/ResultCount'
 import { SearchInput } from '../../components/common/SearchInput'
 import { TeamLayout } from '../../components/team/TeamLayout'
 import { paths } from '@/config/paths'
@@ -126,6 +127,8 @@ export function AdListPage() {
       </Group>
 
       <Space h="md" />
+
+      <ResultCount total={adsResponse?.total} resource="ads" />
 
       {/* Content */}
       {isLoadingAds ? (

@@ -105,6 +105,7 @@ export function GpsConnectionsManager() {
                           color="red"
                           onClick={() => setDisconnectServiceType(type)}
                           title={t('gps.disconnect')}
+                          aria-label={t('gps.disconnect')}
                         >
                           <IconUnlink size={16} />
                         </ActionIcon>

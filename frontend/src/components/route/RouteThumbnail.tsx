@@ -1,6 +1,7 @@
 import { Image, Box } from '@mantine/core'
 import { useComputedColorScheme } from '@mantine/core'
 import { IconRoute } from '@tabler/icons-react'
+import { useTranslation } from 'react-i18next'
 
 interface RouteThumbnailProps {
   thumbnailLightUrl?: string
@@ -19,6 +20,7 @@ export function RouteThumbnail({
   thumbnailDarkUrl,
   size = 'sm',
 }: RouteThumbnailProps) {
+  const { t } = useTranslation()
   const colorScheme = useComputedColorScheme('light')
 
   // Pick the right thumbnail based on color scheme, with fallback to legacy
@@ -41,12 +43,12 @@ export function RouteThumbnail({
         borderRadius: 'var(--mantine-radius-md)',
         overflow: 'hidden',
         flexShrink: 0,
-        border: '1px solid var(--mantine-color-gray-3)',
+        border: '1px solid var(--mantine-color-default-border)',
       }}
     >
       <Image
         src={imageUrl}
-        alt="Route preview"
+        alt={t('routes.thumbnail.alt')}
         w={pixelSize}
         h={pixelSize}
         fit="cover"
@@ -66,14 +68,14 @@ export function RouteThumbnailPlaceholder({ size = 'sm' }: { size?: 'sm' | 'md' 
         width: pixelSize,
         height: pixelSize,
         borderRadius: 'var(--mantine-radius-md)',
-        backgroundColor: 'var(--mantine-color-gray-1)',
+        backgroundColor: 'var(--mantine-color-default-hover)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         flexShrink: 0,
       }}
     >
-      <IconRoute size={24} color="var(--mantine-color-gray-5)" />
+      <IconRoute size={24} color="var(--mantine-color-dimmed)" />
     </Box>
   )
 }

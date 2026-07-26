@@ -429,7 +429,7 @@ lien vers le fil d'équipe.
 
 ---
 
-**T0.4 ☐ — `ResultCount` : le total en tête de liste**
+**T0.4 ☑ — `ResultCount` : le total en tête de liste**
 *Fichiers* : `frontend/src/components/common/ResultCount.tsx` (créé),
 `frontend/src/locales/{fr,en}/common.json` (modifiés : clés plates `list.count_one` /
 `list.count_other` déclinées par domaine, avec `{{count}}`).
@@ -445,7 +445,7 @@ de milliers de la locale.
 
 ---
 
-**T0.5 ☐ — Lot d'accessibilité et de thème sombre**
+**T0.5 ☑ — Lot d'accessibilité et de thème sombre**
 *Fichiers modifiés* : `frontend/src/components/route/RouteThumbnail.tsx` (alt traduit via `t()`,
 `gray-3` → `var(--mantine-color-default-border)`, `gray-1` → `var(--mantine-color-default-hover)`,
 `gray-5` → `var(--mantine-color-dimmed)`), `frontend/src/pages/publication/PublicationListPage.tsx`

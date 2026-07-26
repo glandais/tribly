@@ -178,6 +178,7 @@ export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
                         color="gray"
                         onClick={() => setEditingPlace(place)}
                         title={t('actions.edit')}
+                        aria-label={t('actions.edit')}
                       >
                         <IconPencil size={16} />
                       </ActionIcon>
@@ -186,6 +187,7 @@ export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
                         color="danger"
                         onClick={() => setDeleteConfirm(place.id)}
                         title={t('places.delete')}
+                        aria-label={t('places.delete')}
                       >
                         <IconTrash size={16} />
                       </ActionIcon>

@@ -10,6 +10,7 @@ import {
 } from '../../api/endpoints/publications/publications'
 import { PublicationCard, PublicationCardSkeleton } from '../../components/card'
 import { Pagination } from '../../components/common/Pagination'
+import { ResultCount } from '../../components/common/ResultCount'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { useUrlFilters } from '../../hooks/useUrlFilters'
 import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
@@ -135,6 +136,8 @@ export function HomePage() {
             />
           )}
         </Group>
+
+        <ResultCount total={publicationsData?.total} resource="publications" />
 
         {/* Loading State */}
         {isLoading ? (

@@ -115,6 +115,7 @@ export function SlugEditor({
             size="sm"
             onClick={handleStartEdit}
             title={t('slug.edit')}
+            aria-label={t('slug.edit')}
           >
             <IconPencil size={16} />
           </ActionIcon>
@@ -150,6 +151,7 @@ export function SlugEditor({
           onClick={handleSave}
           disabled={isLoading}
           title={t('actions.save')}
+          aria-label={t('actions.save')}
         >
           <IconCheck size={16} />
         </ActionIcon>
@@ -160,6 +162,7 @@ export function SlugEditor({
           onClick={handleCancel}
           disabled={isLoading}
           title={t('actions.cancelAction')}
+          aria-label={t('actions.cancelAction')}
         >
           <IconX size={16} />
         </ActionIcon>

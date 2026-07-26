@@ -14,6 +14,7 @@ import { useRouteFilters } from '../../hooks/useRouteFilters'
 import { routeFiltersSchema, routeFiltersAlias } from '../../hooks/filters/routeFilters'
 import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
 import { RouteListContent } from '../../components/route/RouteListContent'
+import { ResultCount } from '@/components/common/ResultCount'
 import { RouteViewToggle } from '../../components/route/RouteViewToggle'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { UploadGpxFiles } from '../../components/route/UploadGpxFiles'
@@ -94,6 +95,8 @@ export function RouteListPage() {
           isOpen={filtersOpen}
           onOpenChange={setFiltersOpen}
         />
+
+        <ResultCount total={routesData?.total} resource="routes" />
 
         <RouteListContent
           routes={routesData?.routes}

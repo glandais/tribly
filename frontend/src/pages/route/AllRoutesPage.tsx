@@ -20,6 +20,7 @@ import { MembershipSelect } from '../../components/common/MembershipSelect'
 import { HomeLayout } from '../../components/home/HomeLayout'
 import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
 import { RouteListContent } from '../../components/route/RouteListContent'
+import { ResultCount } from '@/components/common/ResultCount'
 import { RouteViewToggle } from '../../components/route/RouteViewToggle'
 
 export function AllRoutesPage() {
@@ -89,6 +90,8 @@ export function AllRoutesPage() {
           isOpen={filtersOpen}
           onOpenChange={setFiltersOpen}
         />
+
+        <ResultCount total={routesData?.total} resource="routes" />
 
         <RouteListContent
           routes={routesData?.routes}

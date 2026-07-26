@@ -57,6 +57,7 @@ export function CommentForm({
             disabled={isLoading || !form.isValid()}
             size="lg"
             variant="filled"
+            aria-label={t('comments.form.submit')}
           >
             {isLoading ? <Loader size="sm" color="white" /> : <IconSend size={18} />}
           </ActionIcon>
