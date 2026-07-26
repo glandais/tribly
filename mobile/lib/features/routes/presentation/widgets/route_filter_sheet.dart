@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../api/generated/export.dart';
+import '../../../../core/preferences/user_preferences_provider.dart';
+import '../../../../core/utils/formatters.dart';
 import '../../domain/route_filters.dart';
 import '../../providers/route_list_provider.dart';
-import 'route_filter_labels.dart';
 
 /// Opens the filter sheet and returns the filters to apply, or null if the
 /// user dismissed it.
@@ -72,6 +73,7 @@ class _RouteFilterSheetState extends ConsumerState<_RouteFilterSheet> {
       if (value != null) _lastCount = value;
     });
     final count = ref.watch(countProvider).value ?? _lastCount;
+    final units = ref.watch(unitSystemProvider);
 
     return SafeArea(
       top: false,
@@ -104,10 +106,11 @@ class _RouteFilterSheetState extends ConsumerState<_RouteFilterSheet> {
                   children: [
                     _RangeSection(
                       label: 'routes.filters.distance'.tr(),
-                      summary: RouteFilterLabels.range(
+                      summary: AppFormatters.filterRange(
                         _draft.minDistance,
                         _draft.maxDistance,
-                        RouteFilterLabels.distance,
+                        (meters) =>
+                            AppFormatters.formatDistanceRounded(meters, units),
                       ),
                       min: _draft.minDistance,
                       max: _draft.maxDistance,
@@ -120,10 +123,11 @@ class _RouteFilterSheetState extends ConsumerState<_RouteFilterSheet> {
                     const SizedBox(height: 20),
                     _RangeSection(
                       label: 'routes.filters.elevationGain'.tr(),
-                      summary: RouteFilterLabels.range(
+                      summary: AppFormatters.filterRange(
                         _draft.minElevationGain,
                         _draft.maxElevationGain,
-                        RouteFilterLabels.elevation,
+                        (meters) =>
+                            AppFormatters.formatElevation(meters, units),
                       ),
                       min: _draft.minElevationGain,
                       max: _draft.maxElevationGain,
@@ -141,7 +145,7 @@ class _RouteFilterSheetState extends ConsumerState<_RouteFilterSheet> {
                       label: 'routes.filters.surfaceType'.tr(),
                       values: SurfaceType.$valuesDefined,
                       selected: _draft.surfaceType,
-                      labelOf: RouteFilterLabels.surfaceType,
+                      labelOf: AppFormatters.surfaceTypeName,
                       onSelected: (value) =>
                           _update(_draft.copyWith(surfaceType: value)),
                     ),
@@ -150,7 +154,7 @@ class _RouteFilterSheetState extends ConsumerState<_RouteFilterSheet> {
                       label: 'routes.filters.hilliness'.tr(),
                       values: Hilliness.$valuesDefined,
                       selected: _draft.hilliness,
-                      labelOf: RouteFilterLabels.hilliness,
+                      labelOf: AppFormatters.hillinessName,
                       onSelected: (value) =>
                           _update(_draft.copyWith(hilliness: value)),
                     ),
@@ -161,7 +165,7 @@ class _RouteFilterSheetState extends ConsumerState<_RouteFilterSheet> {
                       label: 'routes.filters.windDirection'.tr(),
                       value: _draft.windDirection == null
                           ? 'routes.filters.anyFeminine'.tr()
-                          : RouteFilterLabels.windDirection(
+                          : AppFormatters.windDirectionName(
                               _draft.windDirection!,
                             ),
                       onTap: _pickWindDirection,
@@ -195,7 +199,7 @@ class _RouteFilterSheetState extends ConsumerState<_RouteFilterSheet> {
 
   String _sortSummary() {
     final arrow = _draft.sortDir == SortDirection.asc ? '↑' : '↓';
-    return '${RouteFilterLabels.sortBy(_draft.sortBy)} $arrow';
+    return '${AppFormatters.routeSortByName(_draft.sortBy)} $arrow';
   }
 
   Future<void> _pickWindDirection() async {
@@ -208,7 +212,7 @@ class _RouteFilterSheetState extends ConsumerState<_RouteFilterSheet> {
         anyLabel: 'routes.filters.anyFeminine'.tr(),
         values: WindDirection.$valuesDefined,
         selected: _draft.windDirection,
-        labelOf: RouteFilterLabels.windDirection,
+        labelOf: AppFormatters.windDirectionName,
       ),
     );
     if (result != null) _update(_draft.copyWith(windDirection: result.value));
@@ -483,7 +487,7 @@ class _SortSheetState extends State<_SortSheet> {
             ),
             for (final value in RouteSortBy.$valuesDefined)
               _OptionRow(
-                label: RouteFilterLabels.sortBy(value),
+                label: AppFormatters.routeSortByName(value),
                 isSelected: _by == value,
                 onTap: () => setState(() => _by = value),
               ),

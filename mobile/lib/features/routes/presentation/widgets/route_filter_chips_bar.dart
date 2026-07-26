@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../api/generated/export.dart';
+import '../../../../core/preferences/user_preferences_provider.dart';
+import '../../../../core/utils/formatters.dart';
 import '../../domain/route_filters.dart';
-import 'route_filter_labels.dart';
 import 'route_filter_sheet.dart';
 
 /// The filter state made visible above the list, one chip per constraint.
@@ -10,7 +12,7 @@ import 'route_filter_sheet.dart';
 /// On mobile this replaces the web's stack of selects: what is applied is
 /// readable at a glance and removable in one tap. Sort is a chip like the
 /// others, in first position.
-class RouteFilterChipsBar extends StatelessWidget {
+class RouteFilterChipsBar extends ConsumerWidget {
   final RouteFilters filters;
   final ValueChanged<RouteFilters> onChanged;
 
@@ -26,8 +28,9 @@ class RouteFilterChipsBar extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final units = ref.watch(unitSystemProvider);
     final active = filters.activeFields;
     final inactive = RouteFilterField.values
         .where((f) => f != RouteFilterField.search && !active.contains(f))
@@ -46,13 +49,15 @@ class RouteFilterChipsBar extends StatelessWidget {
                   : Icons.arrow_downward,
               size: 16,
             ),
-            label: Text(RouteFilterLabels.sortBy(filters.sortBy)),
+            label: Text(AppFormatters.routeSortByName(filters.sortBy)),
             onPressed: () => _pickSort(context),
           ),
           for (final field in active) ...[
             const SizedBox(width: 8),
             InputChip(
-              label: Text(RouteFilterLabels.chip(filters, field) ?? ''),
+              label: Text(
+                AppFormatters.filterChip(filters, field, units) ?? '',
+              ),
               selected: true,
               showCheckmark: false,
               onDeleted: () => onChanged(filters.without(field)),
@@ -62,7 +67,7 @@ class RouteFilterChipsBar extends StatelessWidget {
           for (final field in inactive) ...[
             const SizedBox(width: 8),
             ActionChip(
-              label: Text(RouteFilterLabels.field(field)),
+              label: Text(AppFormatters.filterFieldName(field)),
               labelStyle: theme.textTheme.labelLarge?.copyWith(
                 color: theme.colorScheme.outline,
               ),

@@ -6,11 +6,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pedalons/api/generated/export.dart';
 import 'package:pedalons/core/pagination/pagination.dart';
+import 'package:pedalons/core/preferences/user_preferences_provider.dart';
 import 'package:pedalons/features/feed/presentation/widgets/publication_feed_view.dart';
 import 'package:pedalons/features/feed/providers/publication_feed_provider.dart';
 import 'package:pedalons/features/routes/data/route_repository.dart';
 import 'package:pedalons/features/routes/presentation/pages/routes_page.dart';
 import 'package:pedalons/features/routes/providers/route_list_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// The paginated lists must stay the primary scrollable of their route,
 /// otherwise an iOS status-bar tap has nothing to scroll — see
@@ -21,6 +23,18 @@ import 'package:pedalons/features/routes/providers/route_list_provider.dart';
 /// away, because a scroll view with an explicit controller is no longer the
 /// primary one.
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  /// The route list shows distances, so it reads the unit system, which reads
+  /// the local mirror. The mirror is normally loaded before `runApp`; here an
+  /// empty one is enough — the defaults are what this test wants anyway.
+  late SharedPreferences prefs;
+
+  setUp(() async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    prefs = await SharedPreferences.getInstance();
+  });
+
   /// The automatic [PrimaryScrollController] inheritance keys off the
   /// platform, which [MaterialScrollBehavior] reads from the theme.
   Widget iosApp(Widget home) => MaterialApp(
@@ -56,6 +70,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
           routeListProvider.overrideWith(
             (ref, key) => _StuckRouteListNotifier(key),
           ),

@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../api/pedalons_api_client.dart';
+import '../../../../core/preferences/user_preferences_provider.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../auth/providers/auth_provider.dart';
@@ -77,6 +78,7 @@ class _RouteDetailContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final units = ref.watch(unitSystemProvider);
     return Scaffold(
       body: Stack(
         children: [
@@ -182,18 +184,26 @@ class _RouteDetailContent extends ConsumerWidget {
                           children: [
                             _StatItem(
                               icon: Icons.straighten,
-                              value:
-                                  '${(route.distance / 1000).toStringAsFixed(1)} km',
+                              value: AppFormatters.formatDistance(
+                                route.distance,
+                                units,
+                              ),
                               label: 'routes.distance'.tr(),
                             ),
                             _StatItem(
                               icon: Icons.trending_up,
-                              value: '${route.elevationGain.toInt()} m',
+                              value: AppFormatters.formatElevation(
+                                route.elevationGain,
+                                units,
+                              ),
                               label: 'routes.elevation'.tr(),
                             ),
                             _StatItem(
                               icon: Icons.trending_down,
-                              value: '${route.elevationLoss.toInt()} m',
+                              value: AppFormatters.formatElevation(
+                                route.elevationLoss,
+                                units,
+                              ),
                               label: 'routes.elevationDown'.tr(),
                             ),
                           ],

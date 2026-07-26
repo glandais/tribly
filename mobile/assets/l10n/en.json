@@ -131,7 +131,35 @@
   "dates": {
     "today": "Today",
     "tomorrow": "Tomorrow",
-    "departure": "Departure: {time}"
+    "departure": "Departure: {time}",
+    "at": "{date} at {time}",
+    "relative": {
+      "now": "just now",
+      "minutesAgo": {
+        "one": "{count} minute ago",
+        "other": "{count} minutes ago"
+      },
+      "hoursAgo": {
+        "one": "{count} hour ago",
+        "other": "{count} hours ago"
+      },
+      "daysAgo": {
+        "one": "{count} day ago",
+        "other": "{count} days ago"
+      },
+      "inMinutes": {
+        "one": "in {count} minute",
+        "other": "in {count} minutes"
+      },
+      "inHours": {
+        "one": "in {count} hour",
+        "other": "in {count} hours"
+      },
+      "inDays": {
+        "one": "in {count} day",
+        "other": "in {count} days"
+      }
+    }
   },
   "roles": {
     "owner": "Owner",
@@ -285,13 +313,10 @@
       "searchPlaceholder": "Search for a route…",
       "distance": "Distance",
       "elevationGain": "Elevation gain",
-      "elevationSuffix": "elev.",
       "surfaceType": "Surface",
       "hilliness": "Hilliness",
       "windDirection": "Wind direction",
       "sort": "Sort by",
-      "kmValue": "{value} km",
-      "mValue": "{value} m",
       "rangeBetween": "{min} – {max}",
       "rangeFrom": "> {value}",
       "rangeTo": "< {value}"
@@ -461,5 +486,13 @@
     "unavailable": "Your location couldn't be determined. Try again in a moment.",
     "openSettings": "Open Settings",
     "retry": "Try again"
+  },
+  "units": {
+    "metric": "Metric",
+    "metricExample": "km, m, km/h",
+    "imperial": "Imperial",
+    "imperialExample": "mi, ft, mph",
+    "elevationGain": "elev. +",
+    "elevationLoss": "elev. −"
   }
 }

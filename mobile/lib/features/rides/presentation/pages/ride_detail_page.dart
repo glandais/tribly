@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/adaptive/adaptive.dart';
+import '../../../../core/preferences/user_preferences_provider.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/safe_string.dart';
@@ -150,7 +151,10 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
                         },
                       ),
                     if (group.averageSpeed != null)
-                      '${group.averageSpeed!.toStringAsFixed(0)} km/h',
+                      AppFormatters.formatSpeed(
+                        group.averageSpeed!,
+                        ref.read(unitSystemProvider),
+                      ),
                   ].join(' • '),
                 ),
                 trailing: Text('${group.countParticipants}'),
@@ -413,7 +417,10 @@ class _RideDetailContent extends ConsumerWidget {
                               },
                             ),
                           if (group.averageSpeed != null)
-                            '${group.averageSpeed!.toStringAsFixed(0)} km/h',
+                            AppFormatters.formatSpeed(
+                              group.averageSpeed!,
+                              ref.watch(unitSystemProvider),
+                            ),
                         ].join(' • '),
                       ),
                       trailing: Row(

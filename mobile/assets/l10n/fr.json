@@ -131,7 +131,35 @@
   "dates": {
     "today": "Aujourd'hui",
     "tomorrow": "Demain",
-    "departure": "Départ: {time}"
+    "departure": "Départ: {time}",
+    "at": "{date} à {time}",
+    "relative": {
+      "now": "à l'instant",
+      "minutesAgo": {
+        "one": "il y a {count} minute",
+        "other": "il y a {count} minutes"
+      },
+      "hoursAgo": {
+        "one": "il y a {count} heure",
+        "other": "il y a {count} heures"
+      },
+      "daysAgo": {
+        "one": "il y a {count} jour",
+        "other": "il y a {count} jours"
+      },
+      "inMinutes": {
+        "one": "dans {count} minute",
+        "other": "dans {count} minutes"
+      },
+      "inHours": {
+        "one": "dans {count} heure",
+        "other": "dans {count} heures"
+      },
+      "inDays": {
+        "one": "dans {count} jour",
+        "other": "dans {count} jours"
+      }
+    }
   },
   "roles": {
     "owner": "Propriétaire",
@@ -285,13 +313,10 @@
       "searchPlaceholder": "Rechercher un parcours…",
       "distance": "Distance",
       "elevationGain": "Dénivelé positif",
-      "elevationSuffix": "D+",
       "surfaceType": "Revêtement",
       "hilliness": "Relief",
       "windDirection": "Direction du vent",
       "sort": "Trier par",
-      "kmValue": "{value} km",
-      "mValue": "{value} m",
       "rangeBetween": "{min} – {max}",
       "rangeFrom": "> {value}",
       "rangeTo": "< {value}"
@@ -461,5 +486,13 @@
     "unavailable": "Votre position n'a pas pu être déterminée. Réessayez dans un instant.",
     "openSettings": "Ouvrir les réglages",
     "retry": "Réessayer"
+  },
+  "units": {
+    "metric": "Métrique",
+    "metricExample": "km, m, km/h",
+    "imperial": "Impérial",
+    "imperialExample": "mi, ft, mph",
+    "elevationGain": "D+",
+    "elevationLoss": "D−"
   }
 }

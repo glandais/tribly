@@ -98,22 +98,7 @@ class _AdDetailContent extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  if (ad.price != null)
-                    Text(
-                      _formatPrice(ad),
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.primary,
-                      ),
-                    )
-                  else
-                    Text(
-                      'ads.detail.priceNegotiable'.tr(),
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: theme.colorScheme.outline,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
+                  _AdPrice(ad: ad),
                 ],
               ),
             ),
@@ -176,13 +161,47 @@ class _AdDetailContent extends StatelessWidget {
       ),
     );
   }
+}
 
-  String _formatPrice(AdDto ad) {
-    final price = '${ad.price!.toStringAsFixed(2)} €';
-    if (ad.rentalPeriod != null) {
-      final period = 'ads.rentalPeriod.${ad.rentalPeriod}'.tr();
-      return '$price / $period';
+/// Le prix d'une annonce : montant en 600, période en 400 atténué, et
+/// « Prix à négocier » — jamais un tiret — quand il n'y a pas de montant.
+///
+/// La décomposition vient d'[AppFormatters.formatPrice] ; ce widget ne
+/// formate rien, il ne fait qu'habiller les deux morceaux.
+class _AdPrice extends StatelessWidget {
+  final AdDto ad;
+
+  const _AdPrice({required this.ad});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final price = AppFormatters.formatPrice(
+      ad.price,
+      rentalPeriod: ad.rentalPeriod,
+    );
+    final amountStyle = theme.textTheme.titleLarge?.copyWith(
+      fontWeight: FontWeight.w600,
+      color: price.isNegotiable
+          ? theme.colorScheme.onSurface
+          : theme.colorScheme.primary,
+    );
+    if (price.period == null) {
+      return Text(price.amount, style: amountStyle);
     }
-    return price;
+    return Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(text: price.amount, style: amountStyle),
+          TextSpan(
+            text: ' ${price.period}',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w400,
+              color: theme.colorScheme.outline,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
