@@ -106,7 +106,8 @@
     "user": "Utilisateur",
     "comingSoon": "Cet écran arrive dans une prochaine version.",
     "close": "Fermer",
-    "clearSearch": "Effacer la recherche"
+    "clearSearch": "Effacer la recherche",
+    "delete": "Supprimer"
   },
   "placeholders": {
     "teamsDiscover": {
@@ -600,5 +601,33 @@
     "end": "Arrivée",
     "truncated": "{shown} parcours affichés sur {total} dans cette zone",
     "unavailable": "Carte indisponible"
+  },
+  "comments": {
+    "count": {
+      "zero": "Aucun commentaire",
+      "one": "{} commentaire",
+      "other": "{} commentaires"
+    },
+    "emptyTitle": "Aucun commentaire",
+    "emptyMessage": "Personne n'a encore réagi. Lancez la discussion.",
+    "placeholder": "Écrire un commentaire...",
+    "send": "Publier",
+    "sending": "Publication...",
+    "reply": "Répondre",
+    "replyingTo": "En réponse à {name}",
+    "showReplies": {
+      "one": "Voir la réponse",
+      "other": "Voir les {} réponses"
+    },
+    "progress": "{loaded} commentaires sur {total}"
+  },
+  "participants": {
+    "title": "Participants",
+    "search": "Rechercher un participant…",
+    "emptyTitle": "Aucun participant",
+    "emptyMessage": "Personne n'est encore inscrit dans ce groupe.",
+    "noMatchTitle": "Aucun participant trouvé",
+    "noMatchMessage": "Aucun nom ne correspond à « {search} ».",
+    "groupOrganizer": "Organisateur du groupe"
   }
 }

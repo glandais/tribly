@@ -152,3 +152,22 @@ final adsClientProvider = Provider<AdsClient>((ref) {
 final teamPagesClientProvider = Provider<TeamPagesClient>((ref) {
   return ref.watch(apiClientProvider).teamPages;
 });
+
+// Les quatre clients de commentaires. Ils partagent la même forme d'API mais
+// pas d'interface commune côté généré : c'est `CommentRepository` qui les
+// unifie derrière un `CommentTarget`.
+final rideCommentsClientProvider = Provider<RideCommentsClient>((ref) {
+  return ref.watch(apiClientProvider).rideComments;
+});
+
+final postCommentsClientProvider = Provider<PostCommentsClient>((ref) {
+  return ref.watch(apiClientProvider).postComments;
+});
+
+final routeCommentsClientProvider = Provider<RouteCommentsClient>((ref) {
+  return ref.watch(apiClientProvider).routeComments;
+});
+
+final tripCommentsClientProvider = Provider<TripCommentsClient>((ref) {
+  return ref.watch(apiClientProvider).tripComments;
+});

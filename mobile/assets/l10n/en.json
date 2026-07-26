@@ -106,7 +106,8 @@
     "user": "User",
     "comingSoon": "This screen is coming in a future release.",
     "close": "Close",
-    "clearSearch": "Clear search"
+    "clearSearch": "Clear search",
+    "delete": "Delete"
   },
   "placeholders": {
     "teamsDiscover": {
@@ -600,5 +601,33 @@
     "end": "Finish",
     "truncated": "{shown} of {total} routes shown in this area",
     "unavailable": "Map unavailable"
+  },
+  "comments": {
+    "count": {
+      "zero": "No comment",
+      "one": "{} comment",
+      "other": "{} comments"
+    },
+    "emptyTitle": "No comment",
+    "emptyMessage": "Nobody has replied yet. Start the discussion.",
+    "placeholder": "Write a comment...",
+    "send": "Post",
+    "sending": "Posting...",
+    "reply": "Reply",
+    "replyingTo": "Replying to {name}",
+    "showReplies": {
+      "one": "View the reply",
+      "other": "View the {} replies"
+    },
+    "progress": "{loaded} comments out of {total}"
+  },
+  "participants": {
+    "title": "Participants",
+    "search": "Search a participant…",
+    "emptyTitle": "No participant",
+    "emptyMessage": "Nobody has joined this group yet.",
+    "noMatchTitle": "No participant found",
+    "noMatchMessage": "No name matches “{search}”.",
+    "groupOrganizer": "Group organizer"
   }
 }
