@@ -38,6 +38,7 @@ class PdlMap extends StatefulWidget {
     this.fitPadding = const EdgeInsets.all(50),
     this.selectedTrackId,
     this.onTrackSelected,
+    this.onMapTapped,
     this.onCameraIdle,
     this.gestures = const MapGestures.all(),
     this.overlays = const <Widget>[],
@@ -71,6 +72,13 @@ class PdlMap extends StatefulWidget {
 
   final String? selectedTrackId;
   final ValueChanged<String?>? onTrackSelected;
+
+  /// Tap sur la carte, en coordonnées **géographiques** `(lon, lat)`.
+  ///
+  /// Distinct de [onTrackSelected], qui rend l'identité d'un tracé touché :
+  /// ici c'est la position brute, dont l'appelant fait ce qu'il veut — la
+  /// fiche parcours en dérive la distance cumulée du réticule.
+  final void Function(double lon, double lat)? onMapTapped;
 
   /// Appelé quand la caméra se stabilise, avec la région visible — de quoi
   /// alimenter « Rechercher dans cette zone ».
@@ -155,6 +163,7 @@ class _PdlMapState extends State<PdlMap> {
       case MapEventStyleLoaded():
         _onStyleLoaded(event.style);
       case MapEventClick():
+        widget.onMapTapped?.call(event.point.lon, event.point.lat);
         final String? id = _controller.trackIdAt(event.screenPoint);
         if (id != null || _controller.selectedTrackId != null) {
           widget.onTrackSelected?.call(id);
@@ -176,6 +185,7 @@ class _PdlMapState extends State<PdlMap> {
         end: c.mapEnd,
         waypoint: c.mapWaypoint,
         stroke: c.surface,
+        cursor: c.primary,
       )
       ..select(widget.selectedTrackId);
     await _controller.setContent(

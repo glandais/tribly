@@ -1,497 +1,356 @@
-import 'package:dio/dio.dart' show Dio;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
-import '../../../../api/pedalons_api_client.dart';
 import '../../../../core/pdl/pdl.dart';
 import '../../../../core/preferences/user_preferences_provider.dart';
+import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_icons.dart';
+import '../../../../core/theme/pdl_tokens.dart';
+import '../../../../core/theme/pdl_typography.dart';
+import '../../../../core/units/unit_system.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
-import '../../../auth/providers/auth_provider.dart';
-import '../../data/route_repository.dart';
-import '../../../../core/widgets/widgets.dart';
+import '../../data/elevation_profile_repository.dart';
+import '../../providers/route_detail_provider.dart';
+import '../../providers/route_elevation_provider.dart';
+import '../widgets/route_climbs_section.dart';
+import '../widgets/route_cursor_controller.dart';
+import '../widgets/route_download_actions.dart';
 import '../widgets/route_map.dart';
+import '../widgets/route_sheet_header.dart';
+import '../widgets/route_usages_section.dart';
 
-final routeDetailProvider =
-    FutureProvider.family<
-      RouteDetailDto,
-      ({String teamSlug, String routeSlug})
-    >((ref, params) async {
-      final repository = ref.watch(routeRepositoryProvider);
-      return repository.getRoute(params.teamSlug, params.routeSlug);
-    });
-
-class RouteDetailPage extends ConsumerWidget {
-  final String teamSlug;
-  final String routeSlug;
-
+/// L'écran 13 — fiche parcours.
+///
+/// **Restructuré, pas réécrit** : le motif `Stack` = carte plein écran +
+/// feuille glissante est le meilleur socle de l'application, et il est
+/// conservé. Ce qui change :
+///
+/// * les crans passent de `0.15 / 0.1 / 0.7` à `[0.18, 0.5, 0.92]` — l'ancien
+///   plafond de 0,7 laissait 800 px de vide sous le contenu ;
+/// * la pastille de titre passe de 80 % à opaque (F-DE-2) ;
+/// * le tracé est colorisé par pente et porte un réticule synchronisé ;
+/// * s'ajoutent les cols, les usages, les informations et la barre d'actions.
+class RouteDetailPage extends ConsumerStatefulWidget {
   const RouteDetailPage({
     super.key,
     required this.teamSlug,
     required this.routeSlug,
   });
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final params = (teamSlug: teamSlug, routeSlug: routeSlug);
-    final routeAsync = ref.watch(routeDetailProvider(params));
+  final String teamSlug;
+  final String routeSlug;
 
-    return routeAsync.when(
-      data: (route) => _RouteDetailContent(route: route),
-      loading: () => Scaffold(
-        appBar: AppBar(),
-        body: const Center(child: CircularProgressIndicator()),
+  @override
+  ConsumerState<RouteDetailPage> createState() => _RouteDetailPageState();
+}
+
+class _RouteDetailPageState extends ConsumerState<RouteDetailPage> {
+  RouteCursorController? _cursor;
+  String? _cursorForSlug;
+
+  RouteKey get _key =>
+      RouteKey(teamSlug: widget.teamSlug, routeSlug: widget.routeSlug);
+
+  @override
+  void dispose() {
+    _cursor?.dispose();
+    super.dispose();
+  }
+
+  /// Le réticule est indexé sur la géométrie : il n'est reconstruit que si le
+  /// parcours change, jamais à chaque `build`.
+  RouteCursorController _cursorFor(RouteDetailDto route) {
+    if (_cursor != null && _cursorForSlug == route.slug) return _cursor!;
+    _cursor?.dispose();
+    _cursorForSlug = route.slug;
+    return _cursor = RouteCursorController(
+      lines: <List<List<double>>>[
+        for (final TrackDto t in route.tracks) t.line.coordinates,
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AsyncValue<RouteDetailDto> detail = ref.watch(
+      routeDetailProvider(_key),
+    );
+
+    return detail.when(data: _content, loading: _loading, error: _error);
+  }
+
+  // ── Écran chargé ────────────────────────────────────────────────────────
+  Widget _content(RouteDetailDto route) {
+    final RouteCursorController cursor = _cursorFor(route);
+
+    return Scaffold(
+      body: Stack(
+        children: <Widget>[
+          // La carte occupe tout le fond. `PdlMapHero` pose le voile haut et
+          // `SystemUiOverlayStyle.light` : rien n'est jamais écrit à même la
+          // tuile.
+          Positioned.fill(
+            child: RouteMap(
+              route: route,
+              cursor: cursor,
+              onMapTapped: cursor.moveTo,
+            ),
+          ),
+          _overlay(route),
+          PdlDetentSheet(
+            detents: const <double>[0.18, 0.5, 0.92],
+            initialDetentIndex: 1,
+            headerBuilder: (BuildContext context, double extent) =>
+                RouteSheetHeader(route: route, extent: extent),
+            footer: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 22),
+              child: RouteDownloadActions(route: route),
+            ),
+            bodyBuilder: (BuildContext context, ScrollController controller) =>
+                _sheetBody(route, cursor, controller),
+          ),
+        ],
       ),
-      error: (error, stack) => Scaffold(
-        appBar: AppBar(),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline,
-                size: 48,
-                color: Theme.of(context).colorScheme.error,
+    );
+  }
+
+  /// L'overlay haut : retour et pastille de titre, **tous deux opaques**.
+  ///
+  /// F-DE-2 : `surface.withValues(alpha: 0.8)` laissait passer la tuile, et le
+  /// nom devenait illisible sur du satellite ou une zone urbaine dense.
+  /// `PdlMapButton` et `PdlMapPill` portent `overlaySolid` — 95 % — plus un
+  /// flou.
+  Widget _overlay(RouteDetailDto route) {
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: Row(
+            children: <Widget>[
+              PdlMapButton(
+                icon: PdlIcons.back,
+                semanticLabel: 'common.back'.tr(),
+                onPressed: () => context.pop(),
               ),
-              const SizedBox(height: 16),
-              Text(getErrorMessage(error)),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: () => ref.invalidate(routeDetailProvider(params)),
-                child: Text('common.retry'.tr()),
-              ),
+              const SizedBox(width: PdlSpacing.chipGap),
+              Expanded(child: PdlMapPill(label: route.name)),
             ],
           ),
         ),
       ),
     );
   }
-}
 
-class _RouteDetailContent extends ConsumerWidget {
-  final RouteDetailDto route;
+  Widget _sheetBody(
+    RouteDetailDto route,
+    RouteCursorController cursor,
+    ScrollController controller,
+  ) {
+    final List<ClimbDto> climbs = route.allClimbs;
 
-  const _RouteDetailContent({required this.route});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final units = ref.watch(unitSystemProvider);
-    return Scaffold(
-      body: Stack(
-        children: [
-          // Full-screen map
-          RouteMap(route: route),
-
-          // Top bar overlay
-          //
-          // F-DE-2 : `surface.withValues(alpha: 0.8)` laissait passer la tuile.
-          // Sur du satellite, ou simplement sur une zone urbaine dense, le nom
-          // du parcours devenait illisible. `PdlMapButton` et `PdlMapPill`
-          // portent `overlaySolid` — 95 % — plus un flou : c'est le seul
-          // rendu de la charte autorisé au-dessus d'une carte.
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                child: Row(
-                  children: [
-                    PdlMapButton(
-                      icon: PdlIcons.back,
-                      semanticLabel: 'common.back'.tr(),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: PdlMapPill(label: route.name),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+    return ListView(
+      controller: controller,
+      padding: EdgeInsets.zero,
+      children: <Widget>[
+        if (route.hasGeometry)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: _profile(route, cursor),
+          )
+        else
+          PdlEmptyState(
+            variant: PdlEmptyVariant.empty,
+            icon: PdlIcons.route,
+            title: 'routes.noTrackTitle'.tr(),
+            message: 'routes.noTrackMessage'.tr(),
+          ),
+        if (climbs.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: RouteClimbsSection(
+              climbs: climbs,
+              // Taper une montée y amène le réticule : le lien entre la liste,
+              // le profil et la carte est toujours une distance cumulée.
+              onTapClimb: (ClimbDto c) =>
+                  cursor.moveTo(c.startDistance.toDouble()),
             ),
           ),
-
-          // Bottom sheet
-          DraggableScrollableSheet(
-            initialChildSize: 0.15,
-            minChildSize: 0.1,
-            maxChildSize: 0.7,
-            snap: true,
-            snapSizes: const [0.15, 0.45],
-            builder: (context, scrollController) {
-              return Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(16),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Theme.of(
-                        context,
-                      ).shadowColor.withValues(alpha: 0.2),
-                      blurRadius: 10,
-                      offset: const Offset(0, -2),
-                    ),
-                  ],
-                ),
-                child: SingleChildScrollView(
-                  controller: scrollController,
-                  child: Column(
-                    children: [
-                      // Drag handle
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Container(
-                          width: 40,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurfaceVariant
-                                .withValues(alpha: 0.4),
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-
-                      // Stats row
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            _StatItem(
-                              icon: Icons.straighten,
-                              value: AppFormatters.formatDistance(
-                                route.distance,
-                                units,
-                              ),
-                              label: 'routes.distance'.tr(),
-                            ),
-                            _StatItem(
-                              icon: Icons.trending_up,
-                              value: AppFormatters.formatElevation(
-                                route.elevationGain,
-                                units,
-                              ),
-                              label: 'routes.elevation'.tr(),
-                            ),
-                            _StatItem(
-                              icon: Icons.trending_down,
-                              value: AppFormatters.formatElevation(
-                                route.elevationLoss,
-                                units,
-                              ),
-                              label: 'routes.elevationDown'.tr(),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // Surface type
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Card(
-                          child: ListTile(
-                            leading: Icon(
-                              AppFormatters.surfaceIcon(route.surfaceType),
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            title: Text('routes.surface'.tr()),
-                            subtitle: Text(
-                              AppFormatters.surfaceName(route.surfaceType),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      // Description
-                      if (route.media.markdown.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'routes.description'.tr(),
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.titleMedium,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  MarkdownContent(
-                                    data: route.media.markdown,
-                                    images: route.media.assets.images,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-
-                      // Download button
-                      _DownloadButton(route: route),
-
-                      const SizedBox(height: 16),
-                    ],
-                  ),
-                ),
-              );
-            },
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          child: RouteUsagesSection(routeKey: _key),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          child: _information(route),
+        ),
+        if (route.media.markdown.trim().isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                PdlSectionHeader(title: 'routes.description'.tr()),
+                PdlMarkdownBody(data: route.media.markdown),
+              ],
+            ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _DownloadButton extends ConsumerWidget {
-  final RouteDetailDto route;
-
-  const _DownloadButton({required this.route});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final hasDownloads =
-        route.media.assets.gpx != null || route.media.assets.fit != null;
-    final connectedServices =
-        ref.watch(authProvider).user?.connectedServices ?? [];
-    final hasActions = hasDownloads || connectedServices.isNotEmpty;
-
-    if (!hasActions) return const SizedBox.shrink();
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: SizedBox(
-        width: double.infinity,
-        child: FilledButton.icon(
-          onPressed: () => _showDownloadSheet(context, ref),
-          icon: const Icon(Icons.download),
-          label: Text('routes.download'.tr()),
-        ),
-      ),
-    );
-  }
-
-  void _showDownloadSheet(BuildContext context, WidgetRef ref) {
-    final connectedServices =
-        ref.read(authProvider).user?.connectedServices ?? [];
-
-    // F-DE-8 : sans `useRootNavigator: true`, la feuille s'ouvrait *dans* la
-    // branche de la coquille et la barre d'onglets lui passait devant.
-    // `PdlSheet.show` force le drapeau, il n'est pas paramétrable.
-    PdlSheet.show(
-      context: context,
-      builder: (sheetContext) => PdlSheet(
-        title: 'routes.download'.tr(),
-        children: [
-          if (route.media.assets.gpx != null)
-            _FileDownloadTile(
-              asset: route.media.assets.gpx!,
-              label: 'routes.downloadGpx'.tr(),
-              dio: ref.read(dioProvider),
-            ),
-          if (route.media.assets.fit != null)
-            _FileDownloadTile(
-              asset: route.media.assets.fit!,
-              label: 'routes.downloadFit'.tr(),
-              dio: ref.read(dioProvider),
-            ),
-          if (connectedServices.isNotEmpty) ...[
-            const Divider(),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'routes.sendToDevice'.tr(),
-                  style: Theme.of(sheetContext).textTheme.titleSmall,
-                ),
-              ),
-            ),
-            ...connectedServices.map(
-              (service) => _DeviceUploadTile(
-                service: service,
-                teamSlug: route.team.slug,
-                routeSlug: route.slug,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _FileDownloadTile extends StatefulWidget {
-  final AssetDto asset;
-  final String label;
-  final Dio dio;
-
-  const _FileDownloadTile({
-    required this.asset,
-    required this.label,
-    required this.dio,
-  });
-
-  @override
-  State<_FileDownloadTile> createState() => _FileDownloadTileState();
-}
-
-class _FileDownloadTileState extends State<_FileDownloadTile> {
-  bool _isDownloading = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: _isDownloading
-          ? const SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : const Icon(Icons.download),
-      title: Text(widget.label),
-      onTap: _isDownloading ? null : _download,
-    );
-  }
-
-  Future<void> _download() async {
-    setState(() => _isDownloading = true);
-    try {
-      final dir = await getTemporaryDirectory();
-      final filePath = '${dir.path}/${widget.asset.fileName}';
-      await widget.dio.download(widget.asset.url, filePath);
-      if (mounted) {
-        final box = context.findRenderObject() as RenderBox?;
-        final origin = box != null
-            ? box.localToGlobal(Offset.zero) & box.size
-            : Rect.zero;
-        Navigator.pop(context);
-        await SharePlus.instance.share(
-          ShareParams(files: [XFile(filePath)], sharePositionOrigin: origin),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(getErrorMessage(e))));
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isDownloading = false);
-      }
-    }
-  }
-}
-
-class _DeviceUploadTile extends ConsumerStatefulWidget {
-  final GpsServiceConnectionDto service;
-  final String teamSlug;
-  final String routeSlug;
-
-  const _DeviceUploadTile({
-    required this.service,
-    required this.teamSlug,
-    required this.routeSlug,
-  });
-
-  @override
-  ConsumerState<_DeviceUploadTile> createState() => _DeviceUploadTileState();
-}
-
-class _DeviceUploadTileState extends ConsumerState<_DeviceUploadTile> {
-  bool _isUploading = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: _isUploading
-          ? const SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : const Icon(Icons.smartphone),
-      title: Text(widget.service.displayName),
-      onTap: _isUploading ? null : _upload,
-    );
-  }
-
-  Future<void> _upload() async {
-    setState(() => _isUploading = true);
-    try {
-      final client = ref.read(gpsServicesClientProvider);
-      await client.uploadRoute(
-        serviceType: GpsServiceType.fromJson(widget.service.serviceType),
-        teamSlug: widget.teamSlug,
-        routeSlug: widget.routeSlug,
-      );
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('routes.uploadSuccess'.tr())));
-      }
-    } catch (e) {
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(getErrorMessage(e))));
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isUploading = false);
-      }
-    }
-  }
-}
-
-class _StatItem extends StatelessWidget {
-  final IconData icon;
-  final String value;
-  final String label;
-
-  const _StatItem({
-    required this.icon,
-    required this.value,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(icon, color: Theme.of(context).colorScheme.primary),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        Text(label, style: Theme.of(context).textTheme.bodySmall),
       ],
+    );
+  }
+
+  Widget _profile(RouteDetailDto route, RouteCursorController cursor) {
+    final UnitSystem units = ref.watch(unitSystemProvider);
+    final ElevationProfileKey key = ElevationProfileKey.forWidth(
+      teamSlug: widget.teamSlug,
+      routeSlug: widget.routeSlug,
+      logicalWidth: MediaQuery.sizeOf(context).width,
+    );
+
+    return ref
+        .watch(routeElevationSamplesProvider(key))
+        .when(
+          data: (ElevationSamples samples) => PdlElevationProfile(
+            samples: samples,
+            height: PdlMetrics.elevationLarge,
+            // Le **seul** état partagé avec la carte, et il ne passe pas par
+            // Riverpod : le réticule bouge à chaque frame de glissement.
+            cursorDistance: cursor.distance,
+            axisLabel: (double meters, {required bool isLast}) => isLast
+                ? AppFormatters.formatDistance(meters, units)
+                : AppFormatters.formatNumber(
+                    units.longDistance(meters),
+                    fractionDigits: 1,
+                  ),
+            tipLabel: (ElevationReading r) => <String>[
+              AppFormatters.formatDistance(r.distance, units),
+              AppFormatters.formatAltitude(r.elevation, units),
+              if (r.grade != null) AppFormatters.formatGrade(r.grade!),
+            ].join(' · '),
+          ),
+          loading: () => PdlElevationProfile.loading(
+            label: 'routes.profileLoading'.tr(),
+            height: PdlMetrics.elevationLarge,
+          ),
+          error: (Object error, StackTrace stack) => PdlElevationProfile.failed(
+            label: 'routes.profileUnavailable'.tr(),
+            actionLabel: 'common.retry'.tr(),
+            height: PdlMetrics.elevationLarge,
+            onRetry: () => ref.invalidate(elevationProfileProvider(key)),
+          ),
+        );
+  }
+
+  Widget _information(RouteDetailDto route) {
+    final PdlColors c = context.pdl;
+    final DateTime? createdAt = DateTime.tryParse(route.createdAt)?.toLocal();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        PdlSectionHeader(
+          title: 'routes.information'.tr(),
+          padding: const EdgeInsets.only(bottom: 4),
+        ),
+        // `createdBy` **existe au contrat et n'était pas lu** : cette section
+        // l'active.
+        PdlInfoLine(
+          label: 'routes.author'.tr(),
+          value: route.createdBy.displayName,
+        ),
+        if (createdAt != null)
+          PdlInfoLine(
+            label: 'routes.createdOn'.tr(),
+            value: AppFormatters.formatLongDate(createdAt),
+          ),
+        PdlInfoLine(
+          label: 'routes.ownerTeam'.tr(),
+          showDivider: false,
+          valueWidget: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              PdlAvatar(name: route.team.name, size: 20),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  route.team.name,
+                  style: context.pdlText.body.copyWith(color: c.text),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── Chargement et erreurs ───────────────────────────────────────────────
+  /// Chargement **progressif** : la feuille apparaît d'abord, le profil ensuite
+  /// (§4.3 du brief). Ici la fiche entière attend le détail, mais le squelette
+  /// en annonce la forme plutôt que de faire tourner un rond.
+  Widget _loading() {
+    return Scaffold(
+      appBar: PdlAppBar(
+        onBack: () => context.pop(),
+        backSemanticLabel: 'common.back'.tr(),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(PdlSpacing.section),
+        children: const <Widget>[
+          PdlSkeleton(height: 20, width: 220),
+          SizedBox(height: 14),
+          PdlSkeleton(height: 48),
+          SizedBox(height: 14),
+          PdlSkeleton(height: PdlMetrics.elevationLarge),
+        ],
+      ),
+    );
+  }
+
+  Widget _error(Object error, StackTrace stack) {
+    final ApiError resolved = resolveApiError(error, stack);
+    final bool notFound = resolved.code == 'NOT_FOUND';
+
+    return Scaffold(
+      appBar: PdlAppBar(
+        onBack: () => context.pop(),
+        backSemanticLabel: 'common.back'.tr(),
+      ),
+      body: Center(
+        child: PdlEmptyState(
+          variant: notFound ? PdlEmptyVariant.notFound : PdlEmptyVariant.error,
+          icon: notFound
+              ? PdlIcons.route
+              : (resolved.isOffline ? PdlIcons.offline : null),
+          title: notFound
+              ? 'routes.notFoundTitle'.tr()
+              : (resolved.title ?? 'routes.loadErrorTitle'.tr()),
+          message: notFound ? 'routes.notFoundMessage'.tr() : resolved.message,
+          actions: <Widget>[
+            if (notFound)
+              PdlButton(
+                label: 'routes.backToRoutes'.tr(),
+                variant: PdlButtonVariant.outline,
+                onPressed: () => context.pop(),
+              )
+            else
+              PdlButton(
+                label: 'common.retry'.tr(),
+                variant: PdlButtonVariant.outline,
+                onPressed: () => ref.invalidate(routeDetailProvider(_key)),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -18,6 +18,7 @@ class PdlMapTrack {
     required this.lines,
     required this.color,
     this.label,
+    this.segmentColors,
   });
 
   /// Identité du tracé. Elle finit dans le `layerId` de la couche MapLibre,
@@ -39,6 +40,20 @@ class PdlMapTrack {
   /// Libellé facultatif, à l'usage de l'appelant (légende, carte flottante).
   /// `core/pdl` ne l'affiche pas et ne le traduit pas.
   final String? label;
+
+  /// Couleur **par segment**, une entrée par intervalle entre deux sommets
+  /// consécutifs, `lines` aplaties dans l'ordre.
+  ///
+  /// C'est la colorisation par pente de la fiche parcours. Elle ne passe pas
+  /// par `line-gradient`, qui exige `lineMetrics` sur la source et n'accepte
+  /// qu'une progression le long d'**une** ligne : chaque segment devient une
+  /// entité GeoJSON portant sa couleur, et la couche lit `['get', 'color']`.
+  ///
+  /// Une entrée manquante ou une liste trop courte fait retomber le segment sur
+  /// [color] — on ne devine pas une teinte.
+  final List<Color>? segmentColors;
+
+  bool get isSegmented => segmentColors != null && segmentColors!.isNotEmpty;
 }
 
 /// Un point remarquable : départ, arrivée, point de passage, borne
@@ -233,6 +248,7 @@ class PdlMapController extends ChangeNotifier {
   PdlMapPoint? _start;
   PdlMapPoint? _end;
   String? _selectedId;
+  PdlMapPoint? _cursor;
   bool _styleReady = false;
 
   /// Les couches réellement posées, dans leur ordre de dessin.
@@ -241,6 +257,7 @@ class PdlMapController extends ChangeNotifier {
   String get _sourceId => '$layerPrefix-src';
   String get _pointsSourceId => '$layerPrefix-points';
   String get _waypointsSourceId => '$layerPrefix-waypoints';
+  String get _cursorSourceId => '$layerPrefix-cursor';
 
   MapController? get map => _map;
 
@@ -337,6 +354,45 @@ class PdlMapController extends ChangeNotifier {
     if (trackId != null) await _raise(trackId);
   }
 
+  /// Déplace le marqueur de réticule, ou l'efface avec `null`.
+  ///
+  /// La couche et sa source sont posées **une fois** au chargement du style,
+  /// vides ; ce déplacement n'est qu'un `updateGeoJsonSource`. Ajouter et
+  /// retirer une couche à chaque frame de glissement ferait scintiller la
+  /// carte et fuiterait des couches (§1.3.1).
+  Future<void> setCursor(PdlMapPoint? point) async {
+    if (_cursor == point) return;
+    _cursor = point;
+    final StyleController? style = _style;
+    if (style == null) return;
+    await _safe(
+      () => style.updateGeoJsonSource(
+        id: _cursorSourceId,
+        data: _cursorGeoJson(),
+      ),
+    );
+  }
+
+  PdlMapPoint? get cursor => _cursor;
+
+  String _cursorGeoJson() {
+    final PdlMapPoint? p = _cursor;
+    return jsonEncode(<String, Object?>{
+      'type': 'FeatureCollection',
+      'features': <Map<String, Object?>>[
+        if (p != null)
+          <String, Object?>{
+            'type': 'Feature',
+            'properties': <String, Object?>{},
+            'geometry': <String, Object?>{
+              'type': 'Point',
+              'coordinates': <double>[p.lon, p.lat],
+            },
+          },
+      ],
+    });
+  }
+
   /// L'identifiant du tracé sous [screenPoint], ou `null`.
   ///
   /// Interroge une petite croix de points autour du doigt : un trait de 5 px
@@ -422,6 +478,31 @@ class PdlMapController extends ChangeNotifier {
     }
 
     await _addPointLayers(style);
+    await _addCursorLayer(style);
+  }
+
+  /// Pose la couche du réticule, **vide**, une fois pour toutes.
+  ///
+  /// Elle est ajoutée en dernier pour rester au-dessus des tracés et des
+  /// marqueurs. Son contenu ne bouge ensuite que par [setCursor].
+  Future<void> _addCursorLayer(StyleController style) async {
+    await _safe(() => style.removeLayer('$_cursorSourceId-dot'));
+    await _safe(() => style.removeSource(_cursorSourceId));
+    await style.addSource(
+      GeoJsonSource(id: _cursorSourceId, data: _cursorGeoJson()),
+    );
+    await style.addLayer(
+      CircleStyleLayer(
+        id: '$_cursorSourceId-dot',
+        sourceId: _cursorSourceId,
+        paint: <String, Object>{
+          'circle-radius': 7,
+          'circle-color': _cursorColor.toHexString(),
+          'circle-stroke-width': 3,
+          'circle-stroke-color': _pointStroke.toHexString(),
+        },
+      ),
+    );
   }
 
   PdlMapTrack? get _selectedTrack {
@@ -447,7 +528,9 @@ class PdlMapController extends ChangeNotifier {
           'line-join': 'round',
         },
         paint: <String, Object>{
-          'line-color': track.color.toHexString(),
+          // Lue sur l'entité, jamais figée sur la couche : c'est ce qui permet
+          // à un tracé colorisé par pente de tenir sur **une** couche.
+          'line-color': <Object>['get', 'color'],
           'line-width': <Object>[
             'case',
             <Object>[
@@ -560,6 +643,7 @@ class PdlMapController extends ChangeNotifier {
   Color _endColor = const Color(0xFFFA5252);
   Color _waypointColor = const Color(0xFFFAB005);
   Color _pointStroke = const Color(0xFFFFFFFF);
+  Color _cursorColor = const Color(0xFF4C6EF5);
 
   /// Injecte les couleurs de marqueur lues sur le thème.
   ///
@@ -572,7 +656,9 @@ class PdlMapController extends ChangeNotifier {
     required Color end,
     required Color waypoint,
     required Color stroke,
+    Color? cursor,
   }) {
+    if (cursor != null) _cursorColor = cursor;
     _startColor = start;
     _endColor = end;
     _waypointColor = waypoint;
@@ -596,13 +682,19 @@ class PdlMapController extends ChangeNotifier {
   String _tracksGeoJson() {
     final List<Map<String, Object?>> features = <Map<String, Object?>>[];
     for (final PdlMapTrack track in _tracks) {
+      final bool selected = track.id == _selectedId;
+      if (track.isSegmented) {
+        _appendSegments(features, track, selected);
+        continue;
+      }
       for (final List<List<double>> line in track.lines) {
         if (line.length < 2) continue;
         features.add(<String, Object?>{
           'type': 'Feature',
           'properties': <String, Object?>{
             'trackId': track.id,
-            'sel': track.id == _selectedId ? 1 : 0,
+            'sel': selected ? 1 : 0,
+            'color': track.color.toHexString(),
           },
           'geometry': <String, Object?>{
             'type': 'LineString',
@@ -621,6 +713,78 @@ class PdlMapController extends ChangeNotifier {
       'features': features,
     });
   }
+
+  /// Un segment = une entité, portant sa propre couleur.
+  ///
+  /// Les segments **consécutifs de même couleur sont fusionnés** : un parcours
+  /// de 3 000 sommets produirait sinon 2 999 entités, là où une pente réelle
+  /// n'a qu'une poignée de teintes distinctes par kilomètre. La fusion divise
+  /// typiquement le nombre d'entités par dix sans changer un pixel.
+  void _appendSegments(
+    List<Map<String, Object?>> features,
+    PdlMapTrack track,
+    bool selected,
+  ) {
+    final List<Color> colors = track.segmentColors!;
+    int segment = 0;
+
+    for (final List<List<double>> line in track.lines) {
+      if (line.length < 2) {
+        segment += line.isEmpty ? 0 : line.length - 1;
+        continue;
+      }
+      List<List<double>> run = <List<double>>[
+        <double>[line[0][0], line[0][1]],
+      ];
+      String runColor =
+          (segment < colors.length ? colors[segment] : track.color)
+              .toHexString();
+
+      for (int i = 1; i < line.length; i++) {
+        final int index = segment + i - 1;
+        final String color =
+            (index < colors.length ? colors[index] : track.color).toHexString();
+        if (color != runColor) {
+          features.add(
+            _segmentFeature(
+              track.id,
+              selected,
+              runColor,
+              List<List<double>>.of(run),
+            ),
+          );
+          // Le nouveau tronçon repart du dernier sommet : sans ce
+          // recouvrement, un trou d'un segment apparaîtrait à chaque
+          // changement de teinte.
+          run = <List<double>>[run.last];
+          runColor = color;
+        }
+        run.add(<double>[line[i][0], line[i][1]]);
+      }
+      if (run.length >= 2) {
+        features.add(_segmentFeature(track.id, selected, runColor, run));
+      }
+      segment += line.length - 1;
+    }
+  }
+
+  Map<String, Object?> _segmentFeature(
+    String trackId,
+    bool selected,
+    String color,
+    List<List<double>> coordinates,
+  ) => <String, Object?>{
+    'type': 'Feature',
+    'properties': <String, Object?>{
+      'trackId': trackId,
+      'sel': selected ? 1 : 0,
+      'color': color,
+    },
+    'geometry': <String, Object?>{
+      'type': 'LineString',
+      'coordinates': coordinates,
+    },
+  };
 
   /// Avale l'échec d'un retrait : retirer une couche ou une source absente
   /// lève sur certaines plateformes, et c'est le cas normal au premier

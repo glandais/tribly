@@ -8,6 +8,8 @@ import '../../../../core/pdl/map/pdl_map.dart';
 import '../../../../core/pdl/map/pdl_map_controller.dart';
 import '../../../../core/pdl/map/pdl_map_hero.dart';
 import '../../../../core/theme/pdl_colors.dart';
+import '../../domain/track_slope_colors.dart';
+import 'route_cursor_controller.dart';
 
 /// L'adaptateur entre `RouteDetailDto` et [PdlMap].
 ///
@@ -15,10 +17,62 @@ import '../../../../core/theme/pdl_colors.dart';
 /// vers les types simples de `core/pdl/map`, et le branchement des fonds servis
 /// par `ConfigDto.mapStyles[]`. **Aucune URL de style, aucun
 /// `Future.delayed`, aucune couleur en dur.**
-class RouteMap extends ConsumerWidget {
-  const RouteMap({super.key, required this.route});
+class RouteMap extends ConsumerStatefulWidget {
+  const RouteMap({
+    super.key,
+    required this.route,
+    this.cursor,
+    this.onMapTapped,
+  });
 
   final RouteDetailDto route;
+
+  /// Le réticule partagé avec le profil altimétrique. `null` sur les écrans qui
+  /// n'en ont pas (l'aperçu d'une sortie, par exemple).
+  final RouteCursorController? cursor;
+
+  /// Tap sur la carte, converti en distance cumulée par [cursor]. `null`
+  /// signifie « hors du tracé », ce qui efface le réticule.
+  final ValueChanged<double?>? onMapTapped;
+
+  @override
+  ConsumerState<RouteMap> createState() => _RouteMapState();
+}
+
+class _RouteMapState extends ConsumerState<RouteMap> {
+  final PdlMapController _controller = PdlMapController();
+
+  RouteDetailDto get route => widget.route;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.cursor?.distance.addListener(_pushCursor);
+  }
+
+  @override
+  void didUpdateWidget(RouteMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.cursor != widget.cursor) {
+      oldWidget.cursor?.distance.removeListener(_pushCursor);
+      widget.cursor?.distance.addListener(_pushCursor);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.cursor?.distance.removeListener(_pushCursor);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  /// Profil → carte. **Aucun `setState`** : on pousse la source GeoJSON du
+  /// marqueur, l'arbre Flutter ne bouge pas d'un widget.
+  void _pushCursor() {
+    final RouteCursorController? cursor = widget.cursor;
+    if (cursor == null) return;
+    _controller.setCursor(cursor.positionFor(cursor.distance.value));
+  }
 
   /// Les LineStrings du parcours, telles quelles.
   List<List<List<double>>> get _lines => <List<List<double>>>[
@@ -26,7 +80,7 @@ class RouteMap extends ConsumerWidget {
   ];
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final Brightness brightness = Theme.of(context).brightness;
     final AsyncValue<ResolvedMapStyle?> style = ref.watch(
       mapStyleProvider(brightness),
@@ -52,6 +106,10 @@ class RouteMap extends ConsumerWidget {
         lines: _lines,
         color: context.pdl.mapTrack,
         label: route.name,
+        // Colorisation **par segment** : chaque tronçon porte la teinte de sa
+        // propre pente (§1.1.5). Le repli `mapTrack` reste la couleur d'un
+        // segment sans altitude exploitable.
+        segmentColors: slopeColorsForLines(_lines),
       ),
     ];
 
@@ -76,7 +134,12 @@ class RouteMap extends ConsumerWidget {
       onStyleSelected: (String id) =>
           ref.read(mapStyleIdProvider.notifier).select(id),
       mapBuilder: (BuildContext context) => PdlMap(
+        controller: _controller,
         styleUrl: resolved.url,
+        onMapTapped: widget.onMapTapped == null
+            ? null
+            : (double lon, double lat) =>
+                  widget.onMapTapped!(widget.cursor?.distanceNear(lon, lat)),
         tracks: tracks,
         start: _point(route.start) ?? route.firstPoint,
         end: _point(route.end) ?? route.lastPoint,

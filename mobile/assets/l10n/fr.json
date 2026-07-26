@@ -419,7 +419,36 @@
     },
     "exportFit": "FIT",
     "profileLoading": "Chargement du profil altimétrique...",
-    "profileUnavailable": "Profil indisponible"
+    "profileUnavailable": "Profil indisponible",
+    "climbs": "Cols et montées ({count})",
+    "climbNumber": "Montée {index}",
+    "climbRange": "du {from} au {to}",
+    "climbCategory": {
+      "hc": "HC",
+      "cat1": "Cat. 1",
+      "cat2": "Cat. 2",
+      "cat3": "Cat. 3",
+      "cat4": "Cat. 4",
+      "none": "Montée"
+    },
+    "gradeAverage": "moy.",
+    "gradeMax": "max.",
+    "usedIn": "Utilisée dans",
+    "viaGroups": "via les groupes : {names}",
+    "viaStage": "via l'étape {names}",
+    "information": "Informations",
+    "author": "Auteur",
+    "createdOn": "Créé le",
+    "ownerTeam": "Équipe propriétaire",
+    "noTrackTitle": "Aucune donnée de tracé",
+    "noTrackMessage": "Ce parcours n'a pas de géométrie enregistrée. Seules ses informations sont disponibles.",
+    "notFoundTitle": "Parcours introuvable",
+    "notFoundMessage": "Ce parcours n'existe pas ou a été supprimé.",
+    "backToRoutes": "Retour aux parcours",
+    "loadErrorTitle": "Chargement impossible",
+    "cursorHint": "Réticule synchronisé dans les deux sens avec le marqueur sur la carte.",
+    "downloading": "Téléchargement...",
+    "openFullSheet": "Voir la fiche complète"
   },
   "calendar": {
     "title": "Calendrier",
@@ -590,7 +619,9 @@
     "imperial": "Impérial",
     "imperialExample": "mi, ft, mph",
     "elevationGain": "D+",
-    "elevationLoss": "D−"
+    "elevationLoss": "D−",
+    "elevationGainLong": "Dénivelé positif",
+    "elevationLossLong": "Dénivelé négatif"
   },
   "map": {
     "fullscreen": "Plein écran",
@@ -640,5 +671,10 @@
     "public": "Public",
     "public_unlisted": "Non répertorié",
     "team": "Équipe"
+  },
+  "publicationType": {
+    "ride": "Sortie",
+    "post": "Publication",
+    "trip": "Voyage"
   }
 }

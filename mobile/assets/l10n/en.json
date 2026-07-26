@@ -419,7 +419,36 @@
     },
     "exportFit": "FIT",
     "profileLoading": "Loading elevation profile...",
-    "profileUnavailable": "Profile unavailable"
+    "profileUnavailable": "Profile unavailable",
+    "climbs": "Climbs ({count})",
+    "climbNumber": "Climb {index}",
+    "climbRange": "from {from} to {to}",
+    "climbCategory": {
+      "hc": "HC",
+      "cat1": "Cat. 1",
+      "cat2": "Cat. 2",
+      "cat3": "Cat. 3",
+      "cat4": "Cat. 4",
+      "none": "Climb"
+    },
+    "gradeAverage": "avg.",
+    "gradeMax": "max.",
+    "usedIn": "Used in",
+    "viaGroups": "via groups: {names}",
+    "viaStage": "via stage {names}",
+    "information": "Information",
+    "author": "Author",
+    "createdOn": "Created on",
+    "ownerTeam": "Owner team",
+    "noTrackTitle": "No track data",
+    "noTrackMessage": "This route has no recorded geometry. Only its information is available.",
+    "notFoundTitle": "Route not found",
+    "notFoundMessage": "This route does not exist or has been deleted.",
+    "backToRoutes": "Back to routes",
+    "loadErrorTitle": "Could not load",
+    "cursorHint": "The crosshair is synced both ways with the marker on the map.",
+    "downloading": "Downloading...",
+    "openFullSheet": "View full route"
   },
   "calendar": {
     "title": "Calendar",
@@ -590,7 +619,9 @@
     "imperial": "Imperial",
     "imperialExample": "mi, ft, mph",
     "elevationGain": "elev. +",
-    "elevationLoss": "elev. −"
+    "elevationLoss": "elev. −",
+    "elevationGainLong": "Elevation gain",
+    "elevationLossLong": "Elevation loss"
   },
   "map": {
     "fullscreen": "Fullscreen",
@@ -640,5 +671,10 @@
     "public": "Public",
     "public_unlisted": "Unlisted",
     "team": "Team"
+  },
+  "publicationType": {
+    "ride": "Ride",
+    "post": "Post",
+    "trip": "Trip"
   }
 }
