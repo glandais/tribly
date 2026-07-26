@@ -80,7 +80,7 @@ export function TeamMembersPage() {
   const removeMemberMutation = useRemoveMember()
   const addMemberMutation = useAddMember()
 
-  useCanonicalPath(team ? paths.teamMembers(team.slug) : undefined)
+  useCanonicalPath(team ? paths.teamAdminMembers(team.slug) : undefined)
 
   if (isLoadingTeam) {
     return <LoadingPage message={t('loading')} />

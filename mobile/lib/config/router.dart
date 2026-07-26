@@ -131,7 +131,7 @@ final List<_DeepLinkHierarchy> _deepLinkHierarchies = [
     ancestors: [_teamsAncestor, _teamAncestor],
   ),
   _DeepLinkHierarchy(
-    patterns: PathVariants.teamMembersPublic(':teamSlug'),
+    patterns: PathVariants.teamMembers(':teamSlug'),
     ancestors: [_teamsAncestor, _teamAncestor],
   ),
 
@@ -295,10 +295,7 @@ GoRoute _teamTree(String locale) {
       section(PathVariants.routes(':teamSlug'), TeamSectionKind.routes),
       section(PathVariants.teamAds(':teamSlug'), TeamSectionKind.ads),
       section(PathVariants.teamAbout(':teamSlug'), TeamSectionKind.about),
-      section(
-        PathVariants.teamMembersPublic(':teamSlug'),
-        TeamSectionKind.members,
-      ),
+      section(PathVariants.teamMembers(':teamSlug'), TeamSectionKind.members),
       GoRoute(
         path: _underTeam(
           PathVariants.teamPage(':teamSlug', ':pageSlug'),

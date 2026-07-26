@@ -180,7 +180,7 @@ export const paths = {
       default: return `/teams/${teamSlug}/admin/pages/${pageSlug}/edit`
     }
   },
-  teamMembers: (teamSlug: string) => {
+  teamAdminMembers: (teamSlug: string) => {
     switch (getCurrentLocale()) {
       case 'fr': return `/equipes/${teamSlug}/admin/membres`
       default: return `/teams/${teamSlug}/admin/members`
@@ -396,7 +396,7 @@ export const pathVariants = {
   teamAdminPages: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/admin/pages`, fr: `/equipes/${teamSlug}/admin/pages` }),
   teamAdminPageNew: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/admin/pages/new`, fr: `/equipes/${teamSlug}/admin/pages/nouvelle` }),
   teamAdminPageEdit: (teamSlug: string, pageSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/admin/pages/${pageSlug}/edit`, fr: `/equipes/${teamSlug}/admin/pages/${pageSlug}/modifier` }),
-  teamMembers: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/admin/members`, fr: `/equipes/${teamSlug}/admin/membres` }),
+  teamAdminMembers: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/admin/members`, fr: `/equipes/${teamSlug}/admin/membres` }),
   teamSettings: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/admin/settings`, fr: `/equipes/${teamSlug}/admin/parametres` }),
   rideNew: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/rides/new`, fr: `/equipes/${teamSlug}/sorties/nouvelle` }),
   ride: (teamSlug: string, rideSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/rides/${rideSlug}`, fr: `/equipes/${teamSlug}/sorties/${rideSlug}` }),

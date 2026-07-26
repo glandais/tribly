@@ -54,7 +54,7 @@ export function TeamAdminLayout({ team, currentTab, children }: TeamAdminLayoutP
     },
     {
       id: 'members',
-      path: paths.teamMembers(team.slug),
+      path: paths.teamAdminMembers(team.slug),
       label: t('teams.admin.tabs.members'),
       icon: IconUsers,
       adminOnly: true,

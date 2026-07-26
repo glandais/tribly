@@ -558,7 +558,7 @@ export const routesConfig: RoutesConfig = [
   },
   {
     id: 'team-members',
-    paths: pathVariants.teamMembers(':teamSlug'),
+    paths: pathVariants.teamAdminMembers(':teamSlug'),
     component: TeamMembersPage,
     auth: 'authenticated',
     parentId: 'team-admin',

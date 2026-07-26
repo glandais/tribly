@@ -82,7 +82,7 @@ List<TeamSection> buildTeamSections(TeamDetailDto team) {
     if (isMember)
       TeamSection(
         kind: TeamSectionKind.members,
-        paths: PathVariants.teamMembersPublic(slug),
+        paths: PathVariants.teamMembers(slug),
         icon: Icons.people_outline,
         label: 'teams.tabs.members',
       ),

@@ -111,7 +111,7 @@ void main() {
         ...PathVariants.teamAbout(slug).values,
         ...PathVariants.teamCalendar(slug).values,
         ...PathVariants.teamAds(slug).values,
-        ...PathVariants.teamMembersPublic(slug).values,
+        ...PathVariants.teamMembers(slug).values,
         ...PathVariants.teamPage(slug, 'notre-histoire').values,
         ...PathVariants.routes(slug).values,
         ...PathVariants.route(slug, 'galibier').values,

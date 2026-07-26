@@ -70,7 +70,7 @@ void main() {
         ...PathVariants.team(teamSlug).values,
         ...PathVariants.teamAbout(teamSlug).values,
         ...PathVariants.teamAds(teamSlug).values,
-        ...PathVariants.teamMembersPublic(teamSlug).values,
+        ...PathVariants.teamMembers(teamSlug).values,
         ...PathVariants.teamsDiscover().values,
         ...PathVariants.teamPage(teamSlug, 'histoire').values,
         ...PathVariants.ride(teamSlug, 'rando').values,

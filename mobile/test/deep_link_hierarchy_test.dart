@@ -82,7 +82,7 @@ final List<_LinkCase> _cases = [
     PathVariants.teams(),
     PathVariants.team(_teamSlug),
   ]),
-  _LinkCase('teamMembersPublic', PathVariants.teamMembersPublic(_teamSlug), [
+  _LinkCase('teamMembers', PathVariants.teamMembers(_teamSlug), [
     PathVariants.teams(),
     PathVariants.team(_teamSlug),
   ]),

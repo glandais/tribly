@@ -236,9 +236,10 @@ routes:
     mobile: true
     deeplink: true
 
-  # Public member list of a team. Distinct from `teamMembers`, which is the
-  # admin screen under /admin/members and stays web-only.
-  - id: teamMembersPublic
+  # Member list of a team, shown to regular (non-admin) members. Distinct
+  # from `teamAdminMembers`, which is the admin screen under /admin/members
+  # and stays web-only.
+  - id: teamMembers
     path:
       en: /teams/{teamSlug}/members
       fr: /equipes/{teamSlug}/membres
@@ -296,7 +297,7 @@ routes:
       - teamSlug
       - pageSlug
     web: true
-  - id: teamMembers
+  - id: teamAdminMembers
     path:
       en: /teams/{teamSlug}/admin/members
       fr: /equipes/{teamSlug}/admin/membres

@@ -154,7 +154,7 @@ class Paths {
     }
   }
 
-  static String teamMembersPublic(String teamSlug) {
+  static String teamMembers(String teamSlug) {
     switch (getCurrentLocale()) {
       case 'fr':
         return '/equipes/$teamSlug/membres';
@@ -310,7 +310,7 @@ class PathVariants {
     'en': '/teams/$teamSlug/calendar',
     'fr': '/equipes/$teamSlug/calendrier',
   };
-  static Map<String, String> teamMembersPublic(String teamSlug) => {
+  static Map<String, String> teamMembers(String teamSlug) => {
     'en': '/teams/$teamSlug/members',
     'fr': '/equipes/$teamSlug/membres',
   };
