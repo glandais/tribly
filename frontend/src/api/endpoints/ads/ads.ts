@@ -15,6 +15,7 @@ import type {
 } from '@tanstack/react-query'
 
 import type {
+  AdContactRequest,
   AdDto,
   AdEditDto,
   AdListResponse,
@@ -590,6 +591,91 @@ export const useDeleteAd = <TError = ErrorType<ErrorResponse>, TContext = unknow
   TContext
 > => {
   return useMutation(getDeleteAdMutationOptions(options), queryClient)
+}
+/**
+ * Relays a message to the author of an ad. Neither party's address appears anywhere in this API: the server sends the email and sets Reply-To to the caller, so the author can answer directly. Writing therefore discloses the caller's address to the author — a one-way disclosure the caller chose — while the author's address is never disclosed at all. Requires the same access as reading the ad.
+ * @summary Contact an ad's author
+ */
+export const contactAdAuthor = (
+  teamSlug: string,
+  slug: string,
+  adContactRequest: BodyType<AdContactRequest>,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<void>(
+    {
+      url: `/api/teams/${teamSlug}/classifieds/${slug}/contact`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: adContactRequest,
+      signal,
+    },
+    options
+  )
+}
+
+export const getContactAdAuthorMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof contactAdAuthor>>,
+    TError,
+    { teamSlug: string; slug: string; data: BodyType<AdContactRequest> },
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof contactAdAuthor>>,
+  TError,
+  { teamSlug: string; slug: string; data: BodyType<AdContactRequest> },
+  TContext
+> => {
+  const mutationKey = ['contactAdAuthor']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof contactAdAuthor>>,
+    { teamSlug: string; slug: string; data: BodyType<AdContactRequest> }
+  > = (props) => {
+    const { teamSlug, slug, data } = props ?? {}
+
+    return contactAdAuthor(teamSlug, slug, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type ContactAdAuthorMutationResult = NonNullable<Awaited<ReturnType<typeof contactAdAuthor>>>
+export type ContactAdAuthorMutationBody = BodyType<AdContactRequest>
+export type ContactAdAuthorMutationError = ErrorType<ErrorResponse>
+
+/**
+ * @summary Contact an ad's author
+ */
+export const useContactAdAuthor = <TError = ErrorType<ErrorResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof contactAdAuthor>>,
+      TError,
+      { teamSlug: string; slug: string; data: BodyType<AdContactRequest> },
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof contactAdAuthor>>,
+  TError,
+  { teamSlug: string; slug: string; data: BodyType<AdContactRequest> },
+  TContext
+> => {
+  return useMutation(getContactAdAuthorMutationOptions(options), queryClient)
 }
 /**
  * Get detailed ad information

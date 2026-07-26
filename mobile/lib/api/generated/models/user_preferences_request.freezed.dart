@@ -18,7 +18,8 @@ mixin _$UserPreferencesRequest {
 /// Preferred unit system. Omit or send null to leave it unchanged.
  String? get unitSystem;/// Preferred colour scheme. Omit or send null to leave it unchanged.
  String? get theme;/// Preferred language as a BCP-47 tag ('fr', 'en', 'fr-CA'). Omit or send null to leave it unchanged. Not validated against the set of translations the app ships: a client asking for a language nobody has translated yet falls back on its own, which is better than a 400 the day a translation lands.
- String? get language;
+ String? get language;/// Whether team members may reach you through the classified-ad relay. Omit or send null to leave it unchanged. Setting it to false stops the relay from delivering to you; your ads stay visible, they simply stop being answerable.
+ bool? get contactableByMembers;
 /// Create a copy of UserPreferencesRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -31,16 +32,16 @@ $UserPreferencesRequestCopyWith<UserPreferencesRequest> get copyWith => _$UserPr
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserPreferencesRequest&&(identical(other.unitSystem, unitSystem) || other.unitSystem == unitSystem)&&(identical(other.theme, theme) || other.theme == theme)&&(identical(other.language, language) || other.language == language));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserPreferencesRequest&&(identical(other.unitSystem, unitSystem) || other.unitSystem == unitSystem)&&(identical(other.theme, theme) || other.theme == theme)&&(identical(other.language, language) || other.language == language)&&(identical(other.contactableByMembers, contactableByMembers) || other.contactableByMembers == contactableByMembers));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,unitSystem,theme,language);
+int get hashCode => Object.hash(runtimeType,unitSystem,theme,language,contactableByMembers);
 
 @override
 String toString() {
-  return 'UserPreferencesRequest(unitSystem: $unitSystem, theme: $theme, language: $language)';
+  return 'UserPreferencesRequest(unitSystem: $unitSystem, theme: $theme, language: $language, contactableByMembers: $contactableByMembers)';
 }
 
 
@@ -51,7 +52,7 @@ abstract mixin class $UserPreferencesRequestCopyWith<$Res>  {
   factory $UserPreferencesRequestCopyWith(UserPreferencesRequest value, $Res Function(UserPreferencesRequest) _then) = _$UserPreferencesRequestCopyWithImpl;
 @useResult
 $Res call({
- String? unitSystem, String? theme, String? language
+ String? unitSystem, String? theme, String? language, bool? contactableByMembers
 });
 
 
@@ -68,12 +69,13 @@ class _$UserPreferencesRequestCopyWithImpl<$Res>
 
 /// Create a copy of UserPreferencesRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? unitSystem = freezed,Object? theme = freezed,Object? language = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? unitSystem = freezed,Object? theme = freezed,Object? language = freezed,Object? contactableByMembers = freezed,}) {
   return _then(_self.copyWith(
 unitSystem: freezed == unitSystem ? _self.unitSystem : unitSystem // ignore: cast_nullable_to_non_nullable
 as String?,theme: freezed == theme ? _self.theme : theme // ignore: cast_nullable_to_non_nullable
 as String?,language: freezed == language ? _self.language : language // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,contactableByMembers: freezed == contactableByMembers ? _self.contactableByMembers : contactableByMembers // ignore: cast_nullable_to_non_nullable
+as bool?,
   ));
 }
 
@@ -158,10 +160,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? unitSystem,  String? theme,  String? language)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? unitSystem,  String? theme,  String? language,  bool? contactableByMembers)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UserPreferencesRequest() when $default != null:
-return $default(_that.unitSystem,_that.theme,_that.language);case _:
+return $default(_that.unitSystem,_that.theme,_that.language,_that.contactableByMembers);case _:
   return orElse();
 
 }
@@ -179,10 +181,10 @@ return $default(_that.unitSystem,_that.theme,_that.language);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? unitSystem,  String? theme,  String? language)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? unitSystem,  String? theme,  String? language,  bool? contactableByMembers)  $default,) {final _that = this;
 switch (_that) {
 case _UserPreferencesRequest():
-return $default(_that.unitSystem,_that.theme,_that.language);case _:
+return $default(_that.unitSystem,_that.theme,_that.language,_that.contactableByMembers);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +201,10 @@ return $default(_that.unitSystem,_that.theme,_that.language);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? unitSystem,  String? theme,  String? language)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? unitSystem,  String? theme,  String? language,  bool? contactableByMembers)?  $default,) {final _that = this;
 switch (_that) {
 case _UserPreferencesRequest() when $default != null:
-return $default(_that.unitSystem,_that.theme,_that.language);case _:
+return $default(_that.unitSystem,_that.theme,_that.language,_that.contactableByMembers);case _:
   return null;
 
 }
@@ -214,7 +216,7 @@ return $default(_that.unitSystem,_that.theme,_that.language);case _:
 @JsonSerializable()
 
 class _UserPreferencesRequest implements UserPreferencesRequest {
-  const _UserPreferencesRequest({this.unitSystem, this.theme, this.language});
+  const _UserPreferencesRequest({this.unitSystem, this.theme, this.language, this.contactableByMembers});
   factory _UserPreferencesRequest.fromJson(Map<String, dynamic> json) => _$UserPreferencesRequestFromJson(json);
 
 /// Preferred unit system. Omit or send null to leave it unchanged.
@@ -223,6 +225,8 @@ class _UserPreferencesRequest implements UserPreferencesRequest {
 @override final  String? theme;
 /// Preferred language as a BCP-47 tag ('fr', 'en', 'fr-CA'). Omit or send null to leave it unchanged. Not validated against the set of translations the app ships: a client asking for a language nobody has translated yet falls back on its own, which is better than a 400 the day a translation lands.
 @override final  String? language;
+/// Whether team members may reach you through the classified-ad relay. Omit or send null to leave it unchanged. Setting it to false stops the relay from delivering to you; your ads stay visible, they simply stop being answerable.
+@override final  bool? contactableByMembers;
 
 /// Create a copy of UserPreferencesRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -237,16 +241,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserPreferencesRequest&&(identical(other.unitSystem, unitSystem) || other.unitSystem == unitSystem)&&(identical(other.theme, theme) || other.theme == theme)&&(identical(other.language, language) || other.language == language));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserPreferencesRequest&&(identical(other.unitSystem, unitSystem) || other.unitSystem == unitSystem)&&(identical(other.theme, theme) || other.theme == theme)&&(identical(other.language, language) || other.language == language)&&(identical(other.contactableByMembers, contactableByMembers) || other.contactableByMembers == contactableByMembers));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,unitSystem,theme,language);
+int get hashCode => Object.hash(runtimeType,unitSystem,theme,language,contactableByMembers);
 
 @override
 String toString() {
-  return 'UserPreferencesRequest(unitSystem: $unitSystem, theme: $theme, language: $language)';
+  return 'UserPreferencesRequest(unitSystem: $unitSystem, theme: $theme, language: $language, contactableByMembers: $contactableByMembers)';
 }
 
 
@@ -257,7 +261,7 @@ abstract mixin class _$UserPreferencesRequestCopyWith<$Res> implements $UserPref
   factory _$UserPreferencesRequestCopyWith(_UserPreferencesRequest value, $Res Function(_UserPreferencesRequest) _then) = __$UserPreferencesRequestCopyWithImpl;
 @override @useResult
 $Res call({
- String? unitSystem, String? theme, String? language
+ String? unitSystem, String? theme, String? language, bool? contactableByMembers
 });
 
 
@@ -274,12 +278,13 @@ class __$UserPreferencesRequestCopyWithImpl<$Res>
 
 /// Create a copy of UserPreferencesRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? unitSystem = freezed,Object? theme = freezed,Object? language = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? unitSystem = freezed,Object? theme = freezed,Object? language = freezed,Object? contactableByMembers = freezed,}) {
   return _then(_UserPreferencesRequest(
 unitSystem: freezed == unitSystem ? _self.unitSystem : unitSystem // ignore: cast_nullable_to_non_nullable
 as String?,theme: freezed == theme ? _self.theme : theme // ignore: cast_nullable_to_non_nullable
 as String?,language: freezed == language ? _self.language : language // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,contactableByMembers: freezed == contactableByMembers ? _self.contactableByMembers : contactableByMembers // ignore: cast_nullable_to_non_nullable
+as bool?,
   ));
 }
 

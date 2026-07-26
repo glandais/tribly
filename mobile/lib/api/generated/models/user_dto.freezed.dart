@@ -18,7 +18,8 @@ mixin _$UserDto {
 /// User ID (TSID)
  String get id;/// User email address
  String get email;/// User display name
- String get displayName;/// Whether the account's email has been verified
+ String get displayName;/// Whether team members may reach this user through the classified-ad relay. True unless they explicitly opted out, so an account that predates the preference is contactable.
+ bool get contactableByMembers;/// Whether the account's email has been verified
  bool get emailVerified;/// True when the account still needs a real, verified email (e.g. a migrated Strava account with a placeholder address)
  bool get requiresEmail;/// User avatar URL
  String? get avatarUrl;/// Account creation timestamp
@@ -41,16 +42,16 @@ $UserDtoCopyWith<UserDto> get copyWith => _$UserDtoCopyWithImpl<UserDto>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserDto&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.emailVerified, emailVerified) || other.emailVerified == emailVerified)&&(identical(other.requiresEmail, requiresEmail) || other.requiresEmail == requiresEmail)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.unitSystem, unitSystem) || other.unitSystem == unitSystem)&&(identical(other.theme, theme) || other.theme == theme)&&(identical(other.language, language) || other.language == language)&&(identical(other.platformRole, platformRole) || other.platformRole == platformRole)&&const DeepCollectionEquality().equals(other.connectedServices, connectedServices)&&const DeepCollectionEquality().equals(other.socialIdentities, socialIdentities));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserDto&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.contactableByMembers, contactableByMembers) || other.contactableByMembers == contactableByMembers)&&(identical(other.emailVerified, emailVerified) || other.emailVerified == emailVerified)&&(identical(other.requiresEmail, requiresEmail) || other.requiresEmail == requiresEmail)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.unitSystem, unitSystem) || other.unitSystem == unitSystem)&&(identical(other.theme, theme) || other.theme == theme)&&(identical(other.language, language) || other.language == language)&&(identical(other.platformRole, platformRole) || other.platformRole == platformRole)&&const DeepCollectionEquality().equals(other.connectedServices, connectedServices)&&const DeepCollectionEquality().equals(other.socialIdentities, socialIdentities));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,email,displayName,emailVerified,requiresEmail,avatarUrl,createdAt,unitSystem,theme,language,platformRole,const DeepCollectionEquality().hash(connectedServices),const DeepCollectionEquality().hash(socialIdentities));
+int get hashCode => Object.hash(runtimeType,id,email,displayName,contactableByMembers,emailVerified,requiresEmail,avatarUrl,createdAt,unitSystem,theme,language,platformRole,const DeepCollectionEquality().hash(connectedServices),const DeepCollectionEquality().hash(socialIdentities));
 
 @override
 String toString() {
-  return 'UserDto(id: $id, email: $email, displayName: $displayName, emailVerified: $emailVerified, requiresEmail: $requiresEmail, avatarUrl: $avatarUrl, createdAt: $createdAt, unitSystem: $unitSystem, theme: $theme, language: $language, platformRole: $platformRole, connectedServices: $connectedServices, socialIdentities: $socialIdentities)';
+  return 'UserDto(id: $id, email: $email, displayName: $displayName, contactableByMembers: $contactableByMembers, emailVerified: $emailVerified, requiresEmail: $requiresEmail, avatarUrl: $avatarUrl, createdAt: $createdAt, unitSystem: $unitSystem, theme: $theme, language: $language, platformRole: $platformRole, connectedServices: $connectedServices, socialIdentities: $socialIdentities)';
 }
 
 
@@ -61,7 +62,7 @@ abstract mixin class $UserDtoCopyWith<$Res>  {
   factory $UserDtoCopyWith(UserDto value, $Res Function(UserDto) _then) = _$UserDtoCopyWithImpl;
 @useResult
 $Res call({
- String id, String email, String displayName, bool emailVerified, bool requiresEmail, String? avatarUrl, String? createdAt, String? unitSystem, String? theme, String? language, String? platformRole, List<GpsServiceConnectionDto>? connectedServices, List<SocialIdentityDto>? socialIdentities
+ String id, String email, String displayName, bool contactableByMembers, bool emailVerified, bool requiresEmail, String? avatarUrl, String? createdAt, String? unitSystem, String? theme, String? language, String? platformRole, List<GpsServiceConnectionDto>? connectedServices, List<SocialIdentityDto>? socialIdentities
 });
 
 
@@ -78,12 +79,13 @@ class _$UserDtoCopyWithImpl<$Res>
 
 /// Create a copy of UserDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? email = null,Object? displayName = null,Object? emailVerified = null,Object? requiresEmail = null,Object? avatarUrl = freezed,Object? createdAt = freezed,Object? unitSystem = freezed,Object? theme = freezed,Object? language = freezed,Object? platformRole = freezed,Object? connectedServices = freezed,Object? socialIdentities = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? email = null,Object? displayName = null,Object? contactableByMembers = null,Object? emailVerified = null,Object? requiresEmail = null,Object? avatarUrl = freezed,Object? createdAt = freezed,Object? unitSystem = freezed,Object? theme = freezed,Object? language = freezed,Object? platformRole = freezed,Object? connectedServices = freezed,Object? socialIdentities = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
-as String,emailVerified: null == emailVerified ? _self.emailVerified : emailVerified // ignore: cast_nullable_to_non_nullable
+as String,contactableByMembers: null == contactableByMembers ? _self.contactableByMembers : contactableByMembers // ignore: cast_nullable_to_non_nullable
+as bool,emailVerified: null == emailVerified ? _self.emailVerified : emailVerified // ignore: cast_nullable_to_non_nullable
 as bool,requiresEmail: null == requiresEmail ? _self.requiresEmail : requiresEmail // ignore: cast_nullable_to_non_nullable
 as bool,avatarUrl: freezed == avatarUrl ? _self.avatarUrl : avatarUrl // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -178,10 +180,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String email,  String displayName,  bool emailVerified,  bool requiresEmail,  String? avatarUrl,  String? createdAt,  String? unitSystem,  String? theme,  String? language,  String? platformRole,  List<GpsServiceConnectionDto>? connectedServices,  List<SocialIdentityDto>? socialIdentities)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String email,  String displayName,  bool contactableByMembers,  bool emailVerified,  bool requiresEmail,  String? avatarUrl,  String? createdAt,  String? unitSystem,  String? theme,  String? language,  String? platformRole,  List<GpsServiceConnectionDto>? connectedServices,  List<SocialIdentityDto>? socialIdentities)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UserDto() when $default != null:
-return $default(_that.id,_that.email,_that.displayName,_that.emailVerified,_that.requiresEmail,_that.avatarUrl,_that.createdAt,_that.unitSystem,_that.theme,_that.language,_that.platformRole,_that.connectedServices,_that.socialIdentities);case _:
+return $default(_that.id,_that.email,_that.displayName,_that.contactableByMembers,_that.emailVerified,_that.requiresEmail,_that.avatarUrl,_that.createdAt,_that.unitSystem,_that.theme,_that.language,_that.platformRole,_that.connectedServices,_that.socialIdentities);case _:
   return orElse();
 
 }
@@ -199,10 +201,10 @@ return $default(_that.id,_that.email,_that.displayName,_that.emailVerified,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String email,  String displayName,  bool emailVerified,  bool requiresEmail,  String? avatarUrl,  String? createdAt,  String? unitSystem,  String? theme,  String? language,  String? platformRole,  List<GpsServiceConnectionDto>? connectedServices,  List<SocialIdentityDto>? socialIdentities)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String email,  String displayName,  bool contactableByMembers,  bool emailVerified,  bool requiresEmail,  String? avatarUrl,  String? createdAt,  String? unitSystem,  String? theme,  String? language,  String? platformRole,  List<GpsServiceConnectionDto>? connectedServices,  List<SocialIdentityDto>? socialIdentities)  $default,) {final _that = this;
 switch (_that) {
 case _UserDto():
-return $default(_that.id,_that.email,_that.displayName,_that.emailVerified,_that.requiresEmail,_that.avatarUrl,_that.createdAt,_that.unitSystem,_that.theme,_that.language,_that.platformRole,_that.connectedServices,_that.socialIdentities);case _:
+return $default(_that.id,_that.email,_that.displayName,_that.contactableByMembers,_that.emailVerified,_that.requiresEmail,_that.avatarUrl,_that.createdAt,_that.unitSystem,_that.theme,_that.language,_that.platformRole,_that.connectedServices,_that.socialIdentities);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -219,10 +221,10 @@ return $default(_that.id,_that.email,_that.displayName,_that.emailVerified,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String email,  String displayName,  bool emailVerified,  bool requiresEmail,  String? avatarUrl,  String? createdAt,  String? unitSystem,  String? theme,  String? language,  String? platformRole,  List<GpsServiceConnectionDto>? connectedServices,  List<SocialIdentityDto>? socialIdentities)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String email,  String displayName,  bool contactableByMembers,  bool emailVerified,  bool requiresEmail,  String? avatarUrl,  String? createdAt,  String? unitSystem,  String? theme,  String? language,  String? platformRole,  List<GpsServiceConnectionDto>? connectedServices,  List<SocialIdentityDto>? socialIdentities)?  $default,) {final _that = this;
 switch (_that) {
 case _UserDto() when $default != null:
-return $default(_that.id,_that.email,_that.displayName,_that.emailVerified,_that.requiresEmail,_that.avatarUrl,_that.createdAt,_that.unitSystem,_that.theme,_that.language,_that.platformRole,_that.connectedServices,_that.socialIdentities);case _:
+return $default(_that.id,_that.email,_that.displayName,_that.contactableByMembers,_that.emailVerified,_that.requiresEmail,_that.avatarUrl,_that.createdAt,_that.unitSystem,_that.theme,_that.language,_that.platformRole,_that.connectedServices,_that.socialIdentities);case _:
   return null;
 
 }
@@ -234,7 +236,7 @@ return $default(_that.id,_that.email,_that.displayName,_that.emailVerified,_that
 @JsonSerializable()
 
 class _UserDto implements UserDto {
-  const _UserDto({required this.id, required this.email, required this.displayName, required this.emailVerified, required this.requiresEmail, this.avatarUrl, this.createdAt, this.unitSystem, this.theme, this.language, this.platformRole, final  List<GpsServiceConnectionDto>? connectedServices, final  List<SocialIdentityDto>? socialIdentities}): _connectedServices = connectedServices,_socialIdentities = socialIdentities;
+  const _UserDto({required this.id, required this.email, required this.displayName, required this.contactableByMembers, required this.emailVerified, required this.requiresEmail, this.avatarUrl, this.createdAt, this.unitSystem, this.theme, this.language, this.platformRole, final  List<GpsServiceConnectionDto>? connectedServices, final  List<SocialIdentityDto>? socialIdentities}): _connectedServices = connectedServices,_socialIdentities = socialIdentities;
   factory _UserDto.fromJson(Map<String, dynamic> json) => _$UserDtoFromJson(json);
 
 /// User ID (TSID)
@@ -243,6 +245,8 @@ class _UserDto implements UserDto {
 @override final  String email;
 /// User display name
 @override final  String displayName;
+/// Whether team members may reach this user through the classified-ad relay. True unless they explicitly opted out, so an account that predates the preference is contactable.
+@override final  bool contactableByMembers;
 /// Whether the account's email has been verified
 @override final  bool emailVerified;
 /// True when the account still needs a real, verified email (e.g. a migrated Strava account with a placeholder address)
@@ -295,16 +299,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserDto&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.emailVerified, emailVerified) || other.emailVerified == emailVerified)&&(identical(other.requiresEmail, requiresEmail) || other.requiresEmail == requiresEmail)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.unitSystem, unitSystem) || other.unitSystem == unitSystem)&&(identical(other.theme, theme) || other.theme == theme)&&(identical(other.language, language) || other.language == language)&&(identical(other.platformRole, platformRole) || other.platformRole == platformRole)&&const DeepCollectionEquality().equals(other._connectedServices, _connectedServices)&&const DeepCollectionEquality().equals(other._socialIdentities, _socialIdentities));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserDto&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.contactableByMembers, contactableByMembers) || other.contactableByMembers == contactableByMembers)&&(identical(other.emailVerified, emailVerified) || other.emailVerified == emailVerified)&&(identical(other.requiresEmail, requiresEmail) || other.requiresEmail == requiresEmail)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.unitSystem, unitSystem) || other.unitSystem == unitSystem)&&(identical(other.theme, theme) || other.theme == theme)&&(identical(other.language, language) || other.language == language)&&(identical(other.platformRole, platformRole) || other.platformRole == platformRole)&&const DeepCollectionEquality().equals(other._connectedServices, _connectedServices)&&const DeepCollectionEquality().equals(other._socialIdentities, _socialIdentities));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,email,displayName,emailVerified,requiresEmail,avatarUrl,createdAt,unitSystem,theme,language,platformRole,const DeepCollectionEquality().hash(_connectedServices),const DeepCollectionEquality().hash(_socialIdentities));
+int get hashCode => Object.hash(runtimeType,id,email,displayName,contactableByMembers,emailVerified,requiresEmail,avatarUrl,createdAt,unitSystem,theme,language,platformRole,const DeepCollectionEquality().hash(_connectedServices),const DeepCollectionEquality().hash(_socialIdentities));
 
 @override
 String toString() {
-  return 'UserDto(id: $id, email: $email, displayName: $displayName, emailVerified: $emailVerified, requiresEmail: $requiresEmail, avatarUrl: $avatarUrl, createdAt: $createdAt, unitSystem: $unitSystem, theme: $theme, language: $language, platformRole: $platformRole, connectedServices: $connectedServices, socialIdentities: $socialIdentities)';
+  return 'UserDto(id: $id, email: $email, displayName: $displayName, contactableByMembers: $contactableByMembers, emailVerified: $emailVerified, requiresEmail: $requiresEmail, avatarUrl: $avatarUrl, createdAt: $createdAt, unitSystem: $unitSystem, theme: $theme, language: $language, platformRole: $platformRole, connectedServices: $connectedServices, socialIdentities: $socialIdentities)';
 }
 
 
@@ -315,7 +319,7 @@ abstract mixin class _$UserDtoCopyWith<$Res> implements $UserDtoCopyWith<$Res> {
   factory _$UserDtoCopyWith(_UserDto value, $Res Function(_UserDto) _then) = __$UserDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String email, String displayName, bool emailVerified, bool requiresEmail, String? avatarUrl, String? createdAt, String? unitSystem, String? theme, String? language, String? platformRole, List<GpsServiceConnectionDto>? connectedServices, List<SocialIdentityDto>? socialIdentities
+ String id, String email, String displayName, bool contactableByMembers, bool emailVerified, bool requiresEmail, String? avatarUrl, String? createdAt, String? unitSystem, String? theme, String? language, String? platformRole, List<GpsServiceConnectionDto>? connectedServices, List<SocialIdentityDto>? socialIdentities
 });
 
 
@@ -332,12 +336,13 @@ class __$UserDtoCopyWithImpl<$Res>
 
 /// Create a copy of UserDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? email = null,Object? displayName = null,Object? emailVerified = null,Object? requiresEmail = null,Object? avatarUrl = freezed,Object? createdAt = freezed,Object? unitSystem = freezed,Object? theme = freezed,Object? language = freezed,Object? platformRole = freezed,Object? connectedServices = freezed,Object? socialIdentities = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? email = null,Object? displayName = null,Object? contactableByMembers = null,Object? emailVerified = null,Object? requiresEmail = null,Object? avatarUrl = freezed,Object? createdAt = freezed,Object? unitSystem = freezed,Object? theme = freezed,Object? language = freezed,Object? platformRole = freezed,Object? connectedServices = freezed,Object? socialIdentities = freezed,}) {
   return _then(_UserDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
-as String,emailVerified: null == emailVerified ? _self.emailVerified : emailVerified // ignore: cast_nullable_to_non_nullable
+as String,contactableByMembers: null == contactableByMembers ? _self.contactableByMembers : contactableByMembers // ignore: cast_nullable_to_non_nullable
+as bool,emailVerified: null == emailVerified ? _self.emailVerified : emailVerified // ignore: cast_nullable_to_non_nullable
 as bool,requiresEmail: null == requiresEmail ? _self.requiresEmail : requiresEmail // ignore: cast_nullable_to_non_nullable
 as bool,avatarUrl: freezed == avatarUrl ? _self.avatarUrl : avatarUrl // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable

@@ -6,6 +6,7 @@ import 'package:dio/dio.dart' hide Headers;
 import 'package:retrofit/retrofit.dart';
 import 'package:retrofit/error_logger.dart';
 
+import '../models/ad_contact_request.dart';
 import '../models/ad_dto.dart';
 import '../models/ad_edit_dto.dart';
 import '../models/ad_list_response.dart';
@@ -127,6 +128,22 @@ abstract class AdsClient {
   Future<void> deleteAd({
     @Path('slug') required String slug,
     @Path('teamSlug') required String teamSlug,
+  });
+
+  /// Contact an ad's author.
+  ///
+  /// Relays a message to the author of an ad. Neither party's address appears anywhere in this API: the server sends the email and sets Reply-To to the caller, so the author can answer directly. Writing therefore discloses the caller's address to the author — a one-way disclosure the caller chose — while the author's address is never disclosed at all. Requires the same access as reading the ad.
+  ///
+  /// [slug] - Ad URL slug.
+  ///
+  /// [teamSlug] - Team URL slug.
+  ///
+  /// [body] - Name not received - field will be skipped.
+  @POST('/api/teams/{teamSlug}/classifieds/{slug}/contact')
+  Future<void> contactAdAuthor({
+    @Path('slug') required String slug,
+    @Path('teamSlug') required String teamSlug,
+    @Body() required AdContactRequest body,
   });
 
   /// Get ad details for edit.

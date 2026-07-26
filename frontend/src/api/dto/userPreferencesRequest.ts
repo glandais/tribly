@@ -16,4 +16,6 @@ export interface UserPreferencesRequest {
    * @pattern ^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$
    */
   language?: string
+  /** Whether team members may reach you through the classified-ad relay. Omit or send null to leave it unchanged. Setting it to false stops the relay from delivering to you; your ads stay visible, they simply stop being answerable. */
+  contactableByMembers?: boolean
 }

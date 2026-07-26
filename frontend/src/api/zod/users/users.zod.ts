@@ -51,6 +51,11 @@ export const UpdateMeResponse = zod
       .describe(
         'Preferred language as a BCP-47 tag. Null means the user never chose one; the client then follows the device or the domain.'
       ),
+    contactableByMembers: zod
+      .boolean()
+      .describe(
+        'Whether team members may reach this user through the classified-ad relay. True unless they explicitly opted out, so an account that predates the preference is contactable.'
+      ),
     platformRole: zod
       .enum(['PLATFORM_ADMIN'])
       .optional()
@@ -116,6 +121,11 @@ export const GetMeResponse = zod
       .optional()
       .describe(
         'Preferred language as a BCP-47 tag. Null means the user never chose one; the client then follows the device or the domain.'
+      ),
+    contactableByMembers: zod
+      .boolean()
+      .describe(
+        'Whether team members may reach this user through the classified-ad relay. True unless they explicitly opted out, so an account that predates the preference is contactable.'
       ),
     platformRole: zod
       .enum(['PLATFORM_ADMIN'])
@@ -193,6 +203,11 @@ export const UploadAvatarResponse = zod
       .describe(
         'Preferred language as a BCP-47 tag. Null means the user never chose one; the client then follows the device or the domain.'
       ),
+    contactableByMembers: zod
+      .boolean()
+      .describe(
+        'Whether team members may reach this user through the classified-ad relay. True unless they explicitly opted out, so an account that predates the preference is contactable.'
+      ),
     platformRole: zod
       .enum(['PLATFORM_ADMIN'])
       .optional()
@@ -258,6 +273,11 @@ export const DeleteAvatarResponse = zod
       .optional()
       .describe(
         'Preferred language as a BCP-47 tag. Null means the user never chose one; the client then follows the device or the domain.'
+      ),
+    contactableByMembers: zod
+      .boolean()
+      .describe(
+        'Whether team members may reach this user through the classified-ad relay. True unless they explicitly opted out, so an account that predates the preference is contactable.'
       ),
     platformRole: zod
       .enum(['PLATFORM_ADMIN'])
@@ -1657,6 +1677,12 @@ export const UpdateMyPreferencesBody = zod
       .describe(
         "Preferred language as a BCP-47 tag ('fr', 'en', 'fr-CA'). Omit or send null to leave it unchanged. Not validated against the set of translations the app ships: a client asking for a language nobody has translated yet falls back on its own, which is better than a 400 the day a translation lands."
       ),
+    contactableByMembers: zod
+      .boolean()
+      .optional()
+      .describe(
+        'Whether team members may reach you through the classified-ad relay. Omit or send null to leave it unchanged. Setting it to false stops the relay from delivering to you; your ads stay visible, they simply stop being answerable.'
+      ),
   })
   .describe("Partial update of the current user's display preferences")
 
@@ -1682,6 +1708,11 @@ export const UpdateMyPreferencesResponse = zod
       .optional()
       .describe(
         'Preferred language as a BCP-47 tag. Null means the user never chose one; the client then follows the device or the domain.'
+      ),
+    contactableByMembers: zod
+      .boolean()
+      .describe(
+        'Whether team members may reach this user through the classified-ad relay. True unless they explicitly opted out, so an account that predates the preference is contactable.'
       ),
     platformRole: zod
       .enum(['PLATFORM_ADMIN'])

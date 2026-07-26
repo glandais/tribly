@@ -1,3 +1,4 @@
+export * from './adContactRequest.ts'
 export * from './addMemberRequest.ts'
 export * from './adDto.ts'
 export * from './adDtoLocationGeometry.ts'

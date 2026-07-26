@@ -35,6 +35,13 @@ public record UserDto(
                 "Preferred language as a BCP-47 tag. Null means the user never chose one; the"
                     + " client then follows the device or the domain.")
         String language,
+    @Schema(
+            description =
+                "Whether team members may reach this user through the classified-ad relay. True"
+                    + " unless they explicitly opted out, so an account that predates the"
+                    + " preference is contactable.",
+            required = true)
+        boolean contactableByMembers,
     @Nullable @Schema(description = "Platform role (null if regular user)")
         PlatformRole platformRole,
     @Schema(description = "Whether the account's email has been verified", required = true)
@@ -70,6 +77,7 @@ public record UserDto(
         user.getUnitSystem(),
         user.getTheme(),
         user.getLanguage(),
+        user.isContactableByMembers(),
         user.getPlatformRole(),
         user.isEmailVerified(),
         !user.isEmailVerified(),

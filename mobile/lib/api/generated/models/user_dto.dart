@@ -27,6 +27,9 @@ abstract class UserDto with _$UserDto {
     /// User display name
     required String displayName,
 
+    /// Whether team members may reach this user through the classified-ad relay. True unless they explicitly opted out, so an account that predates the preference is contactable.
+    required bool contactableByMembers,
+
     /// Whether the account's email has been verified
     required bool emailVerified,
 

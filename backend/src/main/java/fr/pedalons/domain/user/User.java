@@ -55,6 +55,20 @@ public class User extends BaseEntity {
   @Column(name = "language", length = 10)
   private @Nullable String language;
 
+  /**
+   * Whether team members may reach this user through the classified-ad relay.
+   *
+   * <p>Null means "never chosen" and reads as contactable, so the relay works for accounts that
+   * predate it. Only an explicit {@code false} silences it — see {@link #isContactableByMembers()}.
+   */
+  @Column(name = "contactable_by_members")
+  private @Nullable Boolean contactableByMembers;
+
+  /** Null is contactable: the preference opts out, it does not opt in. */
+  public boolean isContactableByMembers() {
+    return !Boolean.FALSE.equals(contactableByMembers);
+  }
+
   @Column(name = "email_verified", nullable = false)
   private boolean emailVerified = false;
 

@@ -2,6 +2,21 @@
   "openapi" : "3.1.0",
   "components" : {
     "schemas" : {
+      "AdContactRequest" : {
+        "description" : "A message to relay to the author of an ad",
+        "type" : "object",
+        "required" : [ "message" ],
+        "properties" : {
+          "message" : {
+            "type" : "string",
+            "description" : "The message body, plain text. Rendered as text in the email: any markup is escaped rather than interpreted.",
+            "examples" : [ "Bonjour, le vélo est-il toujours disponible ? Je peux passer samedi." ],
+            "pattern" : "\\S",
+            "minLength" : 10,
+            "maxLength" : 2000
+          }
+        }
+      },
       "AdDto" : {
         "description" : "Ad data",
         "type" : "object",
@@ -1616,7 +1631,7 @@
       },
       "ErrorCode" : {
         "type" : "string",
-        "enum" : [ "BAD_REQUEST", "NOT_FOUND", "UNAUTHORIZED", "FORBIDDEN", "INTERNAL_ERROR", "UNKNOWN", "VALIDATION", "BUSINESS_RULE", "LAST_ADMIN", "ALREADY_REGISTERED", "NOT_REGISTERED", "INVALID_SLUG", "SLUG_TAKEN", "USER_NOT_SYNCED", "GROUP_FULL", "INVALID_VISIBILITY", "PUBLIC_TRIP_PRIVATE_ROUTE", "GPX_FAILURE", "FILE_REQUIRED", "FILE_TYPE_REJECTED", "FILE_DETECTION_FAILED", "FILE_TOO_LARGE", "TOO_MANY_TEAM_PAGES", "GPX_EMPTY", "INVALID_FORMAT", "RENTAL_PERIOD_MISSING", "STATUS_INVALID", "PUBLIC_RIDE_PRIVATE_ROUTE", "INVALID_CREDENTIALS", "EMAIL_NOT_VERIFIED", "EMAIL_ALREADY_EXISTS", "TOKEN_INVALID", "TOKEN_EXPIRED", "SESSION_EXPIRED", "PASSWORD_NOT_SET", "PASSKEY_NOT_FOUND", "USER_NOT_FOUND", "DOMAIN_NOT_FOUND", "TEAM_NOT_FOUND", "TEAM_CREATION_DISABLED", "USER_TEAM_LIMIT_REACHED", "TEAM_JOIN_NOT_ALLOWED", "TEAM_ADD_MEMBER_NOT_ALLOWED", "GPS_SERVICE_ALREADY_CONNECTED", "GPS_SERVICE_NOT_CONNECTED", "GPS_SERVICE_NOT_CONFIGURED", "GPS_INVALID_STATE", "GPS_STATE_EXPIRED", "GPX_NOT_FOUND", "AUTHORIZATION_PENDING", "GPS_CREDENTIAL_ALREADY_EXISTS", "GPS_TOKEN_EXCHANGE_FAILED", "ENCRYPTION_FAILED", "DECRYPTION_FAILED", "DOMAIN_ALIAS_NOT_FOUND", "DOMAIN_ALIAS_HOSTNAME_EXISTS", "DOMAIN_ALIAS_TEAM_MISMATCH", "SOCIAL_SERVICE_NOT_CONFIGURED", "SOCIAL_INVALID_STATE", "SOCIAL_IDENTITY_ALREADY_LINKED", "SOCIAL_LOGIN_CODE_INVALID", "SOCIAL_NO_ACCOUNT", "SOCIAL_LAST_LOGIN_METHOD", "EXPORT_IN_PROGRESS", "EXPORT_RATE_LIMITED" ]
+        "enum" : [ "BAD_REQUEST", "NOT_FOUND", "UNAUTHORIZED", "FORBIDDEN", "INTERNAL_ERROR", "UNKNOWN", "VALIDATION", "BUSINESS_RULE", "LAST_ADMIN", "ALREADY_REGISTERED", "NOT_REGISTERED", "INVALID_SLUG", "SLUG_TAKEN", "USER_NOT_SYNCED", "GROUP_FULL", "INVALID_VISIBILITY", "PUBLIC_TRIP_PRIVATE_ROUTE", "GPX_FAILURE", "FILE_REQUIRED", "FILE_TYPE_REJECTED", "FILE_DETECTION_FAILED", "FILE_TOO_LARGE", "TOO_MANY_TEAM_PAGES", "GPX_EMPTY", "INVALID_FORMAT", "RENTAL_PERIOD_MISSING", "STATUS_INVALID", "PUBLIC_RIDE_PRIVATE_ROUTE", "INVALID_CREDENTIALS", "EMAIL_NOT_VERIFIED", "EMAIL_ALREADY_EXISTS", "TOKEN_INVALID", "TOKEN_EXPIRED", "SESSION_EXPIRED", "PASSWORD_NOT_SET", "PASSKEY_NOT_FOUND", "USER_NOT_FOUND", "DOMAIN_NOT_FOUND", "TEAM_NOT_FOUND", "TEAM_CREATION_DISABLED", "USER_TEAM_LIMIT_REACHED", "TEAM_JOIN_NOT_ALLOWED", "TEAM_ADD_MEMBER_NOT_ALLOWED", "GPS_SERVICE_ALREADY_CONNECTED", "GPS_SERVICE_NOT_CONNECTED", "GPS_SERVICE_NOT_CONFIGURED", "GPS_INVALID_STATE", "GPS_STATE_EXPIRED", "GPX_NOT_FOUND", "AUTHORIZATION_PENDING", "GPS_CREDENTIAL_ALREADY_EXISTS", "GPS_TOKEN_EXCHANGE_FAILED", "ENCRYPTION_FAILED", "DECRYPTION_FAILED", "DOMAIN_ALIAS_NOT_FOUND", "DOMAIN_ALIAS_HOSTNAME_EXISTS", "DOMAIN_ALIAS_TEAM_MISMATCH", "SOCIAL_SERVICE_NOT_CONFIGURED", "SOCIAL_INVALID_STATE", "SOCIAL_IDENTITY_ALREADY_LINKED", "SOCIAL_LOGIN_CODE_INVALID", "SOCIAL_NO_ACCOUNT", "SOCIAL_LAST_LOGIN_METHOD", "EXPORT_IN_PROGRESS", "EXPORT_RATE_LIMITED", "AD_CONTACT_SELF", "AD_CONTACT_OPTED_OUT", "AD_CONTACT_RATE_LIMITED", "AD_CONTACT_DELIVERY_FAILED" ]
       },
       "ErrorDetails" : {
         "oneOf" : [ {
@@ -4491,7 +4506,7 @@
       "UserDto" : {
         "type" : "object",
         "description" : "User profile data",
-        "required" : [ "id", "email", "displayName", "emailVerified", "requiresEmail" ],
+        "required" : [ "id", "email", "displayName", "contactableByMembers", "emailVerified", "requiresEmail" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -4528,6 +4543,10 @@
           "language" : {
             "type" : "string",
             "description" : "Preferred language as a BCP-47 tag. Null means the user never chose one; the client then follows the device or the domain."
+          },
+          "contactableByMembers" : {
+            "type" : "boolean",
+            "description" : "Whether team members may reach this user through the classified-ad relay. True unless they explicitly opted out, so an account that predates the preference is contactable."
           },
           "platformRole" : {
             "description" : "Platform role (null if regular user)",
@@ -4621,6 +4640,11 @@
             "pattern" : "^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$",
             "minLength" : 2,
             "maxLength" : 10
+          },
+          "contactableByMembers" : {
+            "type" : "boolean",
+            "description" : "Whether team members may reach you through the classified-ad relay. Omit or send null to leave it unchanged. Setting it to false stops the relay from delivering to you; your ads stay visible, they simply stop being answerable.",
+            "examples" : [ true ]
           }
         }
       },
@@ -10335,6 +10359,109 @@
           },
           "404" : {
             "description" : "Team or ad not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{teamSlug}/classifieds/{slug}/contact" : {
+      "post" : {
+        "summary" : "Contact an ad's author",
+        "description" : "Relays a message to the author of an ad. Neither party's address appears anywhere in this API: the server sends the email and sets Reply-To to the caller, so the author can answer directly. Writing therefore discloses the caller's address to the author — a one-way disclosure the caller chose — while the author's address is never disclosed at all. Requires the same access as reading the ad.",
+        "operationId" : "contactAdAuthor",
+        "tags" : [ "Ads" ],
+        "parameters" : [ {
+          "description" : "Ad URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AdContactRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "Message relayed"
+          },
+          "400" : {
+            "description" : "Message missing or outside the allowed length",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Caller is not a team member (AD_CONTACT_SELF when writing to your own ad, AD_CONTACT_OPTED_OUT when the author turned the relay off)",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team or ad not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429" : {
+            "description" : "AD_CONTACT_RATE_LIMITED — too many messages relayed in the window",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "AD_CONTACT_DELIVERY_FAILED — the mail provider refused the message. Nothing was recorded and the attempt does not count against the quota.",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -16777,7 +16904,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "1.3.0",
+    "version" : "1.4.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

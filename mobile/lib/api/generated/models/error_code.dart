@@ -136,6 +136,14 @@ enum ErrorCode {
   exportInProgress('EXPORT_IN_PROGRESS'),
   @JsonValue('EXPORT_RATE_LIMITED')
   exportRateLimited('EXPORT_RATE_LIMITED'),
+  @JsonValue('AD_CONTACT_SELF')
+  adContactSelf('AD_CONTACT_SELF'),
+  @JsonValue('AD_CONTACT_OPTED_OUT')
+  adContactOptedOut('AD_CONTACT_OPTED_OUT'),
+  @JsonValue('AD_CONTACT_RATE_LIMITED')
+  adContactRateLimited('AD_CONTACT_RATE_LIMITED'),
+  @JsonValue('AD_CONTACT_DELIVERY_FAILED')
+  adContactDeliveryFailed('AD_CONTACT_DELIVERY_FAILED'),
 
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
   $unknown(null);

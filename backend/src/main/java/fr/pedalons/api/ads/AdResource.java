@@ -1,5 +1,6 @@
 package fr.pedalons.api.ads;
 
+import fr.pedalons.dto.ads.request.AdContactRequest;
 import fr.pedalons.dto.ads.request.AdRequest;
 import fr.pedalons.dto.ads.request.AdSearchParams;
 import fr.pedalons.dto.ads.response.AdDto;
@@ -150,6 +151,58 @@ public class AdResource {
     AdDto ad = adService.createAd(teamSlug, request);
 
     return Response.status(Response.Status.CREATED).entity(ad).build();
+  }
+
+  @POST
+  @Path("/{slug}/contact")
+  @Operation(
+      operationId = "contactAdAuthor",
+      summary = "Contact an ad's author",
+      description =
+          "Relays a message to the author of an ad. Neither party's address appears anywhere in"
+              + " this API: the server sends the email and sets Reply-To to the caller, so the"
+              + " author can answer directly. Writing therefore discloses the caller's address to"
+              + " the author — a one-way disclosure the caller chose — while the author's address"
+              + " is never disclosed at all. Requires the same access as reading the ad.")
+  @APIResponses({
+    @APIResponse(responseCode = "204", description = "Message relayed"),
+    @APIResponse(
+        responseCode = "400",
+        description = "Message missing or outside the allowed length",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description =
+            "Caller is not a team member (AD_CONTACT_SELF when writing to your own ad,"
+                + " AD_CONTACT_OPTED_OUT when the author turned the relay off)",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team or ad not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "429",
+        description = "AD_CONTACT_RATE_LIMITED — too many messages relayed in the window",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "500",
+        description =
+            "AD_CONTACT_DELIVERY_FAILED — the mail provider refused the message. Nothing was"
+                + " recorded and the attempt does not count against the quota.",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response contactAdAuthor(
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
+      @Parameter(description = "Ad URL slug") @PathParam("slug") String slug,
+      @Valid AdContactRequest request) {
+
+    adService.contactAuthor(teamSlug, slug, request);
+
+    return Response.noContent().build();
   }
 
   @GET

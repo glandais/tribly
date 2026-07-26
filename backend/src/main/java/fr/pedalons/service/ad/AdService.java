@@ -1,8 +1,13 @@
 package fr.pedalons.service.ad;
 
 import fr.pedalons.common.exception.BusinessException;
+import fr.pedalons.common.exception.InternalException;
+import fr.pedalons.common.exception.TooManyRequestsException;
 import fr.pedalons.domain.ad.Ad;
+import fr.pedalons.domain.ad.AdContact;
 import fr.pedalons.domain.team.Team;
+import fr.pedalons.domain.user.User;
+import fr.pedalons.dto.ads.request.AdContactRequest;
 import fr.pedalons.dto.ads.request.AdRequest;
 import fr.pedalons.dto.ads.request.AdSearchParams;
 import fr.pedalons.dto.ads.response.AdDto;
@@ -11,22 +16,37 @@ import fr.pedalons.dto.ads.response.AdListResponse;
 import fr.pedalons.dto.common.PedalonsPage;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.enums.*;
+import fr.pedalons.repository.ad.AdContactRepository;
 import fr.pedalons.repository.ad.AdQuery;
 import fr.pedalons.repository.ad.AdRepository;
 import fr.pedalons.service.common.TeamEntityService;
 import fr.pedalons.service.security.annotation.CheckAccess;
+import fr.pedalons.service.security.annotation.Logged;
+import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
 public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
 
   @Inject AdRepository adRepository;
+
+  @Inject AdContactRepository adContactRepository;
+
+  @Inject AdContactEmailService adContactEmailService;
+
+  @ConfigProperty(name = "pedalons.ads.contact.max-per-window", defaultValue = "10")
+  int contactMaxPerWindow;
+
+  @ConfigProperty(name = "pedalons.ads.contact.rate-limit-window-minutes", defaultValue = "60")
+  int contactWindowMinutes;
 
   @Override
   protected AdRepository getRepository() {
@@ -192,6 +212,62 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
     ad.setDeleted(false);
     adRepository.persist(ad);
     return AdEditDto.from(ad, assetService);
+  }
+
+  /**
+   * Relays a message to an ad's author without publishing anyone's address.
+   *
+   * <p>The alternative shape — a {@code contact} column rendered on the ad — is cheaper to build
+   * and worse to live with: it hands an email address or a phone number to every member of the
+   * team, permanently, and no later change of mind takes it back. On a 1999-member team that is an
+   * irrevocable disclosure. Here the contract carries no contact field at all: the server knows
+   * both addresses, the caller learns neither, and the author can switch the channel off.
+   *
+   * <p>{@link ActionType#READ} is the right gate and not a lax one — being able to write to an ad
+   * is exactly being able to see it. Anything looser would let a non-member address a team's
+   * sellers; anything stricter would stop members answering ads they can read.
+   */
+  @Logged
+  @Transactional
+  @CheckAccess(entityType = EntityType.AD, action = ActionType.READ)
+  public void contactAuthor(String teamSlug, String adSlug, AdContactRequest request) {
+    Team team = teamService.getTeam(teamSlug);
+    Ad ad = findBySlug(team, adSlug);
+    User sender = pedalonsContext.getUser();
+    User author = ad.getCreatedBy();
+
+    if (author.getId().equals(sender.getId())) {
+      throw new BusinessException(ErrorCode.AD_CONTACT_SELF);
+    }
+    if (!author.isContactableByMembers()) {
+      throw new BusinessException(ErrorCode.AD_CONTACT_OPTED_OUT);
+    }
+
+    // Per sender, not per ad: a member who may read the classifieds may write to all of them, so a
+    // per-ad cap caps nothing — three per ad across twenty ads is sixty relayed emails from one
+    // account. What the threshold protects is the domain's sending reputation, and one account
+    // consumes that whoever it writes to.
+    long recent = adContactRepository.countRecentBySender(sender.getId(), contactWindowMinutes);
+    if (recent >= contactMaxPerWindow) {
+      Log.warnf(
+          "Ad contact rate limit exceeded for user=%d ad=%d (%d in %d min)",
+          sender.getId(), ad.getId(), recent, contactWindowMinutes);
+      throw new TooManyRequestsException(
+          ErrorCode.AD_CONTACT_RATE_LIMITED, Duration.ofMinutes(contactWindowMinutes).toSeconds());
+    }
+
+    adContactRepository.persist(new AdContact(sender, ad));
+
+    try {
+      adContactEmailService.sendContactMessage(ad, author, sender, request.message());
+    } catch (RuntimeException e) {
+      // Deliberately not swallowed, and the reason the persist above sits inside the transaction:
+      // a relay that answers 204 and drops the message is worse than one that fails, because the
+      // sender waits for a reply that was never going to come. Rolling back also means a failed
+      // attempt neither counts against the quota nor leaves a row claiming a delivery.
+      Log.errorf(e, "Ad contact delivery failed for ad=%d sender=%d", ad.getId(), sender.getId());
+      throw new InternalException(ErrorCode.AD_CONTACT_DELIVERY_FAILED, e);
+    }
   }
 
   private void verifyAd(Team team, AdRequest request) {

@@ -12,6 +12,7 @@ _UserPreferencesRequest _$UserPreferencesRequestFromJson(
   unitSystem: json['unitSystem'] as String?,
   theme: json['theme'] as String?,
   language: json['language'] as String?,
+  contactableByMembers: json['contactableByMembers'] as bool?,
 );
 
 Map<String, dynamic> _$UserPreferencesRequestToJson(
@@ -20,4 +21,5 @@ Map<String, dynamic> _$UserPreferencesRequestToJson(
   'unitSystem': instance.unitSystem,
   'theme': instance.theme,
   'language': instance.language,
+  'contactableByMembers': instance.contactableByMembers,
 };

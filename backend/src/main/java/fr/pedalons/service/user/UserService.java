@@ -94,6 +94,10 @@ public class UserService {
     if (language != null) {
       user.setLanguage(language);
     }
+    Boolean contactable = request.contactableByMembers();
+    if (contactable != null) {
+      user.setContactableByMembers(contactable);
+    }
 
     userRepository.persist(user);
     return UserDto.from(user);

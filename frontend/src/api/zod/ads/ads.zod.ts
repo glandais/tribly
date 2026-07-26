@@ -1305,6 +1305,35 @@ export const DeleteAdParams = zod.object({
 export const DeleteAdResponse = zod.void()
 
 /**
+ * Relays a message to the author of an ad. Neither party's address appears anywhere in this API: the server sends the email and sets Reply-To to the caller, so the author can answer directly. Writing therefore discloses the caller's address to the author — a one-way disclosure the caller chose — while the author's address is never disclosed at all. Requires the same access as reading the ad.
+ * @summary Contact an ad's author
+ */
+export const ContactAdAuthorParams = zod.object({
+  slug: zod.string().describe('Ad URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
+})
+
+export const contactAdAuthorBodyMessageMin = 10
+export const contactAdAuthorBodyMessageMax = 2000
+
+export const contactAdAuthorBodyMessageRegExp = new RegExp('\\S')
+
+export const ContactAdAuthorBody = zod
+  .object({
+    message: zod
+      .string()
+      .min(contactAdAuthorBodyMessageMin)
+      .max(contactAdAuthorBodyMessageMax)
+      .regex(contactAdAuthorBodyMessageRegExp)
+      .describe(
+        'The message body, plain text. Rendered as text in the email: any markup is escaped rather than interpreted.'
+      ),
+  })
+  .describe('A message to relay to the author of an ad')
+
+export const ContactAdAuthorResponse = zod.void()
+
+/**
  * Get detailed ad information
  * @summary Get ad details for edit
  */

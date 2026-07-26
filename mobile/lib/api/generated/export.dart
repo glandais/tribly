@@ -37,6 +37,7 @@ export 'clients/trips_client.dart';
 export 'clients/trip_comments_client.dart';
 export 'clients/server_version_client.dart';
 // Data classes
+export 'models/ad_contact_request.dart';
 export 'models/ad_dto.dart';
 export 'models/ad_edit_dto.dart';
 export 'models/ad_list_response.dart';

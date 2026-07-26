@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
 public class EmailService {
@@ -17,6 +18,7 @@ public class EmailService {
   public static final String OTP = "otp";
   public static final String PASSWORD_RESET = "password-reset";
   public static final String DATA_EXPORT = "data-export";
+  public static final String AD_CONTACT = "ad-contact";
 
   @ConfigProperty(name = "pedalons.email.brevo.enabled", defaultValue = "false")
   boolean brevoEnabled;
@@ -48,28 +50,58 @@ public class EmailService {
   @ConfigProperty(name = "pedalons.email.brevo.templates.data-export.en")
   Optional<Long> templateDataExportEn;
 
+  @ConfigProperty(name = "pedalons.email.brevo.templates.ad-contact.fr")
+  Optional<Long> templateAdContactFr;
+
+  @ConfigProperty(name = "pedalons.email.brevo.templates.ad-contact.en")
+  Optional<Long> templateAdContactEn;
+
   @Inject @RestClient BrevoRestClient brevoRestClient;
 
   @Inject Mailer mailer;
 
   public void sendEmail(
       String toEmail, String templateName, String language, Map<String, Object> params) {
+    sendEmail(toEmail, templateName, language, params, null);
+  }
+
+  /**
+   * Sends a template, optionally asking replies to go somewhere other than the no-reply sender.
+   *
+   * <p>Every other email this service sends is a notification nobody answers, so {@code replyTo}
+   * stayed null until the classified-ad relay needed it: the whole point of relaying a message is
+   * that the recipient can answer the person who wrote it without either address having been
+   * published.
+   */
+  public void sendEmail(
+      String toEmail,
+      String templateName,
+      String language,
+      Map<String, Object> params,
+      @Nullable String replyTo) {
     if (brevoEnabled) {
-      sendViaBrevo(toEmail, templateName, language, params);
+      sendViaBrevo(toEmail, templateName, language, params, replyTo);
     } else {
-      sendViaSMTP(toEmail, templateName, params);
+      sendViaSMTP(toEmail, templateName, params, replyTo);
     }
   }
 
   private void sendViaBrevo(
-      String toEmail, String templateName, String language, Map<String, Object> params) {
+      String toEmail,
+      String templateName,
+      String language,
+      Map<String, Object> params,
+      @Nullable String replyTo) {
     long templateId = resolveTemplateId(templateName, language);
     String apiKey =
         brevoApiKey.orElseThrow(() -> new IllegalStateException("Brevo API key not configured"));
     brevoRestClient.send(
         apiKey,
         new BrevoEmailRequest(
-            List.of(new BrevoEmailRequest.EmailAddress(toEmail)), templateId, params));
+            List.of(new BrevoEmailRequest.EmailAddress(toEmail)),
+            templateId,
+            params,
+            replyTo == null ? null : new BrevoEmailRequest.EmailAddress(replyTo)));
   }
 
   private long resolveTemplateId(String templateName, String language) {
@@ -108,13 +140,22 @@ public class EmailService {
           templateDataExportEn.orElseThrow(
               () ->
                   new IllegalStateException("Brevo template ID not configured for data-export.en"));
+      case AD_CONTACT + ".fr" ->
+          templateAdContactFr.orElseThrow(
+              () ->
+                  new IllegalStateException("Brevo template ID not configured for ad-contact.fr"));
+      case AD_CONTACT + ".en" ->
+          templateAdContactEn.orElseThrow(
+              () ->
+                  new IllegalStateException("Brevo template ID not configured for ad-contact.en"));
       default ->
           throw new IllegalArgumentException(
               "Unknown template: " + templateName + " / " + language);
     };
   }
 
-  private void sendViaSMTP(String toEmail, String templateName, Map<String, Object> params) {
+  private void sendViaSMTP(
+      String toEmail, String templateName, Map<String, Object> params, @Nullable String replyTo) {
     String subject;
     String body;
     switch (templateName) {
@@ -208,8 +249,49 @@ public class EmailService {
             """
                 .formatted(displayName, appName, fileSize, downloadUrl, expiresAt, appName);
       }
+      case AD_CONTACT -> {
+        String appName = (String) params.get("appName");
+        String recipientName = (String) params.get("recipientName");
+        String senderName = (String) params.get("senderName");
+        String adName = (String) params.get("adName");
+        String adUrl = (String) params.get("adUrl");
+        String message = (String) params.get("message");
+        subject = "%s vous écrit au sujet de « %s »".formatted(senderName, adName);
+        body =
+            """
+            Bonjour %s,
+
+            %s vous a écrit au sujet de votre annonce « %s » sur %s :
+
+            %s
+
+            Vous pouvez répondre directement à cet e-mail : votre réponse partira vers l'adresse \
+            de %s. Votre propre adresse ne lui a pas été communiquée.
+
+            L'annonce : %s
+
+            Si vous ne souhaitez plus être contacté de cette façon, désactivez l'option dans \
+            votre profil.
+
+            Cordialement,
+            L'équipe %s
+            """
+                .formatted(
+                    recipientName,
+                    senderName,
+                    adName,
+                    appName,
+                    message,
+                    senderName,
+                    adUrl,
+                    appName);
+      }
       default -> throw new IllegalArgumentException("Unknown template: " + templateName);
     }
-    mailer.send(Mail.withText(toEmail, subject, body));
+    Mail mail = Mail.withText(toEmail, subject, body);
+    if (replyTo != null) {
+      mail.setReplyTo(replyTo);
+    }
+    mailer.send(mail);
   }
 }
