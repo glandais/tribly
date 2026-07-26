@@ -794,7 +794,7 @@ de `chartjs-plugin-zoom` reste en place (invariant SSR).
 
 ---
 
-**T3.6 ☐ — Réduire le chrome d'équipe**
+**T3.6 ☑ — Réduire le chrome d'équipe**
 *Fichiers modifiés* : `frontend/src/components/team/TeamLayout.tsx`,
 `frontend/src/components/common/NavButtons.tsx`.
 *Détail* : `TeamAvatar size="xl"` → `size="lg"`, `Title order={1}` conservé mais avec un

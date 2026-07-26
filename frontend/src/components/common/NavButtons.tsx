@@ -16,7 +16,12 @@ interface NavButtonsProps {
 
 export function NavButtons({ items, currentId }: NavButtonsProps) {
   return (
-    <ScrollArea type="never" offsetScrollbars={false}>
+    // The row scrolls horizontally with no scrollbar; the fade tells the user there is more.
+    <ScrollArea
+      type="never"
+      offsetScrollbars={false}
+      classNames={{ viewport: 'nav-buttons-viewport' }}
+    >
       <Group gap="xs" wrap="nowrap" align="flex-start">
         {items.map((item) => {
           const isActive = item.id === currentId
@@ -44,23 +49,25 @@ export function NavButtons({ items, currentId }: NavButtonsProps) {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  width: 48,
-                  height: 48,
+                  width: 40,
+                  height: 40,
                   borderRadius: 'var(--mantine-radius-md)',
                   backgroundColor: isActive
                     ? 'var(--mantine-primary-color-filled)'
                     : 'var(--mantine-color-default-hover)',
                 }}
               >
-                <Icon size={24} color={isActive ? 'white' : 'var(--mantine-color-text)'} />
+                <Icon
+                  size={20}
+                  color={isActive ? 'var(--mantine-color-white)' : 'var(--mantine-color-text)'}
+                />
               </Box>
               <Text
                 size="xs"
                 fw={isActive ? 600 : 400}
                 c={isActive ? undefined : 'dimmed'}
                 ta="center"
-                lineClamp={2}
-                style={{ lineHeight: 1.2 }}
+                className="nav-buttons-label"
               >
                 {item.label}
               </Text>

@@ -76,12 +76,15 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
   return (
     <Stack>
       {/* Team Header */}
-      <Group align="flex-start" wrap="wrap">
-        <TeamAvatar team={team} size="xl" />
-        <Box style={{ flex: 1 }}>
-          <Group justify="space-between" align="flex-start" wrap="wrap">
-            <Group gap="sm">
-              <Title order={1}>{team.name}</Title>
+      {/* Kept under ~120px so the first real content is visible without scrolling */}
+      <Group align="center" wrap="nowrap" gap="sm">
+        <TeamAvatar team={team} size="lg" />
+        <Box style={{ flex: 1, minWidth: 0 }}>
+          <Group justify="space-between" align="center" wrap="wrap" gap="sm">
+            <Group gap="sm" style={{ minWidth: 0 }}>
+              <Title order={1} lineClamp={1}>
+                {team.name}
+              </Title>
               <VisibilityBadge visibility={team.visibility} />
             </Group>
 

@@ -54,3 +54,25 @@ body {
     grid-column: span 2;
   }
 }
+
+/* NavButtons: signal horizontal overflow with an edge fade rather than a scrollbar */
+.nav-buttons-viewport {
+  mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 28px), transparent 100%);
+}
+
+/* Two lines on a narrow screen where labels have to wrap, one line once there is room */
+.nav-buttons-label {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  line-height: 1.2;
+}
+
+@media (min-width: 48em) {
+  .nav-buttons-label {
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+  }
+}
