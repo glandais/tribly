@@ -8,15 +8,16 @@ import '../../../../api/pedalons_api_client.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/adaptive/adaptive.dart';
 import '../../../../core/pagination/pagination.dart';
+import '../../../../core/preferences/user_preferences_provider.dart';
+import '../../../../core/pdl/pdl.dart';
 import '../../../../core/utils/api_error_handler.dart';
+import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/authenticated_image.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../domain/route_filters.dart';
 import '../../providers/route_list_provider.dart';
 import '../widgets/route_filter_chips_bar.dart';
-import '../widgets/route_filter_labels.dart';
 import '../widgets/route_filter_sheet.dart';
-import '../widgets/route_search_bar.dart';
 
 class RoutesPage extends ConsumerStatefulWidget {
   /// Team to list routes for, or null for every team the user can see.
@@ -219,12 +220,27 @@ class _FilterHeader extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
-            child: RouteSearchBar(
-              search: filters.search,
-              activeFilterCount: filters.activeCount,
-              onSearchChanged: (value) =>
-                  onChanged(filters.copyWith(search: value)),
-              onOpenFilters: onOpenFilters,
+            // Le champ et le bouton de filtres sont deux primitives distinctes
+            // depuis la v2 : `RouteSearchBar` les mariait, `PdlSearchField` et
+            // `PdlFilterButton` se réemploient séparément.
+            child: Row(
+              children: [
+                Expanded(
+                  child: PdlSearchField(
+                    value: filters.search,
+                    hintText: 'routes.filters.searchPlaceholder'.tr(),
+                    clearTooltip: 'common.cancel'.tr(),
+                    onChanged: (value) =>
+                        onChanged(filters.copyWith(search: value)),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                PdlFilterButton(
+                  onPressed: onOpenFilters,
+                  semanticLabel: 'routes.filters.title'.tr(),
+                  activeCount: filters.activeCount,
+                ),
+              ],
             ),
           ),
           RouteFilterChipsBar(
@@ -332,7 +348,7 @@ class RoutesEmptyState extends ConsumerWidget {
               ),
               child: Text(
                 'routes.list.empty.removeFilter'.tr(
-                  namedArgs: {'filter': RouteFilterLabels.field(culprit)},
+                  namedArgs: {'filter': AppFormatters.filterFieldName(culprit)},
                 ),
               ),
             ),
@@ -386,7 +402,7 @@ class _WithoutFilterPreview extends ConsumerWidget {
         const SizedBox(height: 28),
         Text(
           'routes.list.empty.withoutFilter'.tr(
-            namedArgs: {'filter': RouteFilterLabels.field(field)},
+            namedArgs: {'filter': AppFormatters.filterFieldName(field)},
           ),
           style: theme.textTheme.labelMedium?.copyWith(
             color: theme.colorScheme.outline,
@@ -403,13 +419,14 @@ class _WithoutFilterPreview extends ConsumerWidget {
   }
 }
 
-class _RoutePreviewTile extends StatelessWidget {
+class _RoutePreviewTile extends ConsumerWidget {
   final RouteDto route;
 
   const _RoutePreviewTile({required this.route});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final units = ref.watch(unitSystemProvider);
     return Card(
       margin: EdgeInsets.zero,
       child: ListTile(
@@ -423,8 +440,8 @@ class _RoutePreviewTile extends StatelessWidget {
           ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
         ),
         subtitle: Text(
-          '${RouteFilterLabels.preciseDistance(route.distance)} · '
-          '${RouteFilterLabels.elevation(route.elevationGain)}',
+          '${AppFormatters.formatDistance(route.distance, units)} · '
+          '${AppFormatters.formatElevationGain(route.elevationGain, units)}',
         ),
         trailing: const Icon(Icons.chevron_right, size: 20),
         onTap: () => context.push(Paths.route(route.team.slug, route.slug)),
@@ -442,6 +459,7 @@ class _RouteGridItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final token = ref.watch(accessTokenHolderProvider);
+    final units = ref.watch(unitSystemProvider);
 
     final thumbnail = Theme.of(context).brightness == Brightness.dark
         ? route.media.assets.thumbnailDark
@@ -507,13 +525,17 @@ class _RouteGridItem extends ConsumerWidget {
                     children: [
                       _StatChip(
                         icon: Icons.straighten,
-                        value: RouteFilterLabels.preciseDistance(
+                        value: AppFormatters.formatDistance(
                           route.distance,
+                          units,
                         ),
                       ),
                       _StatChip(
                         icon: Icons.trending_up,
-                        value: RouteFilterLabels.elevation(route.elevationGain),
+                        value: AppFormatters.formatElevation(
+                          route.elevationGain,
+                          units,
+                        ),
                       ),
                     ],
                   ),

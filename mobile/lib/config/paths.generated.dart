@@ -91,12 +91,39 @@ class Paths {
     }
   }
 
+  static String allRoutes() {
+    switch (getCurrentLocale()) {
+      case 'fr':
+        return '/parcours';
+      default:
+        return '/routes';
+    }
+  }
+
+  static String allRoutesMap() {
+    switch (getCurrentLocale()) {
+      case 'fr':
+        return '/parcours/carte';
+      default:
+        return '/routes/map';
+    }
+  }
+
   static String teams() {
     switch (getCurrentLocale()) {
       case 'fr':
         return '/equipes';
       default:
         return '/teams';
+    }
+  }
+
+  static String teamsDiscover() {
+    switch (getCurrentLocale()) {
+      case 'fr':
+        return '/equipes/decouvrir';
+      default:
+        return '/teams/discover';
     }
   }
 
@@ -124,6 +151,24 @@ class Paths {
         return '/equipes/$teamSlug/calendrier';
       default:
         return '/teams/$teamSlug/calendar';
+    }
+  }
+
+  static String teamMembersPublic(String teamSlug) {
+    switch (getCurrentLocale()) {
+      case 'fr':
+        return '/equipes/$teamSlug/membres';
+      default:
+        return '/teams/$teamSlug/members';
+    }
+  }
+
+  static String teamPage(String teamSlug, String pageSlug) {
+    switch (getCurrentLocale()) {
+      case 'fr':
+        return '/equipes/$teamSlug/pages/$pageSlug';
+      default:
+        return '/teams/$teamSlug/pages/$pageSlug';
     }
   }
 
@@ -240,7 +285,19 @@ class PathVariants {
     'en': '/calendar',
     'fr': '/calendrier',
   };
+  static Map<String, String> allRoutes() => {
+    'en': '/routes',
+    'fr': '/parcours',
+  };
+  static Map<String, String> allRoutesMap() => {
+    'en': '/routes/map',
+    'fr': '/parcours/carte',
+  };
   static Map<String, String> teams() => {'en': '/teams', 'fr': '/equipes'};
+  static Map<String, String> teamsDiscover() => {
+    'en': '/teams/discover',
+    'fr': '/equipes/decouvrir',
+  };
   static Map<String, String> team(String teamSlug) => {
     'en': '/teams/$teamSlug',
     'fr': '/equipes/$teamSlug',
@@ -252,6 +309,14 @@ class PathVariants {
   static Map<String, String> teamCalendar(String teamSlug) => {
     'en': '/teams/$teamSlug/calendar',
     'fr': '/equipes/$teamSlug/calendrier',
+  };
+  static Map<String, String> teamMembersPublic(String teamSlug) => {
+    'en': '/teams/$teamSlug/members',
+    'fr': '/equipes/$teamSlug/membres',
+  };
+  static Map<String, String> teamPage(String teamSlug, String pageSlug) => {
+    'en': '/teams/$teamSlug/pages/$pageSlug',
+    'fr': '/equipes/$teamSlug/pages/$pageSlug',
   };
   static Map<String, String> ride(String teamSlug, String rideSlug) => {
     'en': '/teams/$teamSlug/rides/$rideSlug',

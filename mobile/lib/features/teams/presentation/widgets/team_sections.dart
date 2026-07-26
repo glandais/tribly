@@ -1,0 +1,100 @@
+import 'package:flutter/material.dart';
+
+import '../../../../api/generated/export.dart';
+import '../../../../config/locale_context.dart';
+import '../../../../config/paths.generated.dart';
+
+/// One section of a team — Feed, Calendar, Routes, Ads, Members, About.
+///
+/// Sections used to be the destinations of a second `NavigationBar` stacked
+/// under the app one (`TeamShell`). They are now **content**: a chip row
+/// pinned under the team header, so the five global tabs stay visible inside a
+/// team. Hence a model of its own rather than the app-level `AppDestination` —
+/// nothing here drives a branch of the shell.
+class TeamSection {
+  /// URL variants per locale, straight from [PathVariants].
+  final Map<String, String> paths;
+
+  final IconData icon;
+
+  /// Translation key.
+  final String label;
+
+  const TeamSection({
+    required this.paths,
+    required this.icon,
+    required this.label,
+  });
+
+  /// URL in the current locale — use for `context.go(...)`.
+  String get currentPath => paths[getCurrentLocale()] ?? paths.values.first;
+}
+
+/// The sections visible for [team], given its feature switches and the current
+/// user's membership.
+///
+/// Order is the reading order of the chip row. Members and Ads are members-only;
+/// Feed and About are always there, so the row is never empty.
+List<TeamSection> buildTeamSections(TeamDetailDto team) {
+  final isMember = team.role != null;
+  final slug = team.slug;
+
+  return [
+    // Feed — always visible.
+    TeamSection(
+      paths: PathVariants.team(slug),
+      icon: Icons.dynamic_feed_outlined,
+      label: 'teams.tabs.feed',
+    ),
+    // Calendar — members only, and only if rides or trips are enabled.
+    if (isMember && (team.enableRides || team.enableTrips))
+      TeamSection(
+        paths: PathVariants.teamCalendar(slug),
+        icon: Icons.calendar_today_outlined,
+        label: 'teams.tabs.calendar',
+      ),
+    // Routes — if enabled.
+    if (team.enableRoutes)
+      TeamSection(
+        paths: PathVariants.routes(slug),
+        icon: Icons.route_outlined,
+        label: 'teams.tabs.routes',
+      ),
+    // Ads — members only, and only if classifieds are enabled.
+    if (isMember && team.enableAds)
+      TeamSection(
+        paths: PathVariants.teamAds(slug),
+        icon: Icons.sell_outlined,
+        label: 'teams.tabs.ads',
+      ),
+    // Members — members only: the list is not public.
+    if (isMember)
+      TeamSection(
+        paths: PathVariants.teamMembersPublic(slug),
+        icon: Icons.people_outline,
+        label: 'teams.tabs.members',
+      ),
+    // About — always visible.
+    TeamSection(
+      paths: PathVariants.teamAbout(slug),
+      icon: Icons.info_outlined,
+      label: 'teams.tabs.about',
+    ),
+  ];
+}
+
+/// Index of the section owning [location], or 0 (the feed) when none matches.
+///
+/// Iterates from index 1 so the feed, whose path is a prefix of every other
+/// section, does not shadow them. Matches every locale variant so a link in one
+/// language selects the right chip in another.
+int getTeamSectionIndex(String location, List<TeamSection> sections) {
+  for (int i = 1; i < sections.length; i++) {
+    for (final path in sections[i].paths.values) {
+      if (location == path || location.startsWith('$path/')) {
+        return i;
+      }
+    }
+  }
+  return 0;
+}

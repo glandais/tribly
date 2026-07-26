@@ -69,12 +69,16 @@
                 <data android:path="/calendrier" />
                 <data android:path="/teams" />
                 <data android:path="/equipes" />
+                <data android:path="/teams/discover" />
+                <data android:path="/equipes/decouvrir" />
                 <data android:pathPattern="/teams/.*" />
                 <data android:pathPattern="/equipes/.*" />
                 <data android:pathPattern="/teams/.*/about" />
                 <data android:pathPattern="/equipes/.*/a-propos" />
                 <data android:pathPattern="/teams/.*/calendar" />
                 <data android:pathPattern="/equipes/.*/calendrier" />
+                <data android:pathPattern="/teams/.*/members" />
+                <data android:pathPattern="/equipes/.*/membres" />
                 <data android:pathPattern="/teams/.*/rides/.*" />
                 <data android:pathPattern="/equipes/.*/sorties/.*" />
                 <data android:pathPattern="/teams/.*/trips/.*" />

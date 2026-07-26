@@ -23,6 +23,7 @@ const _stageSlug = 'etape-1';
 const _postSlug = 'mon-article';
 const _routeSlug = 'col-du-galibier';
 const _adSlug = 'velo-a-vendre';
+const _pageSlug = 'notre-histoire';
 
 /// One entry of `_deepLinkHierarchies`, mirrored as concrete URLs.
 ///
@@ -48,19 +49,49 @@ final List<_LinkCase> _cases = [
     PathVariants.home(),
   ]),
 
-  // Team pages and team tabs → back to the teams list (not home: two main
-  // shell tabs stacked would merge into one shell match).
+  // Routes branch: the map sits under the route library.
+  _LinkCase('allRoutesMap', PathVariants.allRoutesMap(), [
+    PathVariants.allRoutes(),
+  ]),
+
+  // Team pages → back to the teams list (not home: two branch roots stacked
+  // would merge into one shell match).
+  _LinkCase('teamsDiscover', PathVariants.teamsDiscover(), [
+    PathVariants.teams(),
+  ]),
   _LinkCase('team', PathVariants.team(_teamSlug), [PathVariants.teams()]),
+
+  // Team sections. They stopped at the teams list while `TeamShell` provided
+  // the navigation between them; that shell is gone, so each section is a plain
+  // page of the Teams branch and needs the team itself underneath — otherwise a
+  // cold start on `/equipes/x/a-propos` would go back to `/equipes` without ever
+  // showing team x.
   _LinkCase('teamAbout', PathVariants.teamAbout(_teamSlug), [
     PathVariants.teams(),
+    PathVariants.team(_teamSlug),
   ]),
   _LinkCase('teamCalendar', PathVariants.teamCalendar(_teamSlug), [
     PathVariants.teams(),
+    PathVariants.team(_teamSlug),
   ]),
-  _LinkCase('routes', PathVariants.routes(_teamSlug), [PathVariants.teams()]),
-  _LinkCase('teamAds', PathVariants.teamAds(_teamSlug), [PathVariants.teams()]),
+  _LinkCase('routes', PathVariants.routes(_teamSlug), [
+    PathVariants.teams(),
+    PathVariants.team(_teamSlug),
+  ]),
+  _LinkCase('teamAds', PathVariants.teamAds(_teamSlug), [
+    PathVariants.teams(),
+    PathVariants.team(_teamSlug),
+  ]),
+  _LinkCase('teamMembersPublic', PathVariants.teamMembersPublic(_teamSlug), [
+    PathVariants.teams(),
+    PathVariants.team(_teamSlug),
+  ]),
 
   // Detail pages → the full chain down to their list.
+  _LinkCase('teamPage', PathVariants.teamPage(_teamSlug, _pageSlug), [
+    PathVariants.teams(),
+    PathVariants.team(_teamSlug),
+  ]),
   _LinkCase('ride', PathVariants.ride(_teamSlug, _rideSlug), [
     PathVariants.teams(),
     PathVariants.team(_teamSlug),
@@ -96,6 +127,7 @@ final Map<String, Map<String, String>> _selfNavigating = {
   'home': PathVariants.home(),
   'teams': PathVariants.teams(),
   'calendar': PathVariants.calendar(),
+  'allRoutes': PathVariants.allRoutes(),
   'profile': PathVariants.profile(),
   'login': PathVariants.login(),
   'register': PathVariants.register(),
@@ -234,19 +266,53 @@ void main() {
       },
     );
 
-    // Team-scoped chains start at the teams tab, not at home: stacking two main
-    // shell tabs would leave the shell state — and so the highlighted tab — on
-    // the first one.
-    test('team pages and team tabs go back to the teams list', () {
+    // Team-scoped chains start at the teams tab, not at home: stacking two
+    // branch roots would leave the shell state — and so the highlighted tab —
+    // on the first one.
+    test('a team goes back to the teams list', () {
       expect(ancestorsForDeepLink('/equipes/velo-club'), ['/equipes']);
       expect(ancestorsForDeepLink('/teams/velo-club'), ['/teams']);
-      expect(ancestorsForDeepLink('/equipes/velo-club/a-propos'), ['/equipes']);
+      expect(ancestorsForDeepLink('/equipes/decouvrir'), ['/equipes']);
+    });
+
+    // Sections are content of the team since `TeamShell` was removed, so the
+    // team sits between them and the teams list.
+    test('team sections go back through the team itself', () {
+      expect(ancestorsForDeepLink('/equipes/velo-club/a-propos'), [
+        '/equipes',
+        '/equipes/velo-club',
+      ]);
       expect(ancestorsForDeepLink('/equipes/velo-club/calendrier'), [
         '/equipes',
+        '/equipes/velo-club',
       ]);
-      expect(ancestorsForDeepLink('/equipes/velo-club/parcours'), ['/equipes']);
-      expect(ancestorsForDeepLink('/equipes/velo-club/annonces'), ['/equipes']);
-      expect(ancestorsForDeepLink('/teams/velo-club/classifieds'), ['/teams']);
+      expect(ancestorsForDeepLink('/equipes/velo-club/parcours'), [
+        '/equipes',
+        '/equipes/velo-club',
+      ]);
+      expect(ancestorsForDeepLink('/equipes/velo-club/annonces'), [
+        '/equipes',
+        '/equipes/velo-club',
+      ]);
+      expect(ancestorsForDeepLink('/teams/velo-club/classifieds'), [
+        '/teams',
+        '/teams/velo-club',
+      ]);
+      // The criterion of F-NA-3, verbatim: a cold link to a team's member list
+      // has the team, then "my teams", underneath.
+      expect(ancestorsForDeepLink('/equipes/n-peloton/membres'), [
+        '/equipes',
+        '/equipes/n-peloton',
+      ]);
+      expect(ancestorsForDeepLink('/teams/n-peloton/members'), [
+        '/teams',
+        '/teams/n-peloton',
+      ]);
+    });
+
+    test('the global routes map goes back to the routes tab', () {
+      expect(ancestorsForDeepLink('/parcours/carte'), ['/parcours']);
+      expect(ancestorsForDeepLink('/routes/map'), ['/routes']);
     });
 
     test('detail pages rebuild their full hierarchy', () {
@@ -279,6 +345,10 @@ void main() {
         '/equipes',
         '/equipes/velo-club',
         '/equipes/velo-club/annonces',
+      ]);
+      expect(ancestorsForDeepLink('/equipes/velo-club/pages/notre-histoire'), [
+        '/equipes',
+        '/equipes/velo-club',
       ]);
     });
 

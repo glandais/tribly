@@ -20,18 +20,28 @@ import '../features/posts/presentation/pages/post_detail_page.dart';
 import '../features/rides/presentation/pages/ride_detail_page.dart';
 import '../features/trips/presentation/pages/stage_detail_page.dart';
 import '../features/trips/presentation/pages/trip_detail_page.dart';
+import '../features/routes/presentation/pages/all_routes_map_page.dart';
+import '../features/routes/presentation/pages/all_routes_page.dart';
 import '../features/routes/presentation/pages/route_detail_page.dart';
 import '../features/routes/presentation/pages/routes_page.dart';
 import '../features/teams/presentation/pages/team_about_page.dart';
+import '../features/teams/presentation/pages/team_custom_page.dart';
 import '../features/teams/presentation/pages/team_detail_page.dart';
 import '../features/teams/presentation/pages/team_feed_page.dart';
+import '../features/teams/presentation/pages/team_members_page.dart';
+import '../features/teams/presentation/pages/teams_discover_page.dart';
 import '../features/teams/presentation/pages/teams_page.dart';
-import '../features/teams/presentation/shell/team_shell.dart';
 import 'paths.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
-final _shellNavigatorKey = GlobalKey<NavigatorState>();
-final _teamShellNavigatorKey = GlobalKey<NavigatorState>();
+
+/// One navigator per branch of the shell — that is what gives each tab its own
+/// back stack. Order matches [kAppDestinations] and the branch list below.
+final _homeNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'home');
+final _teamsNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'teams');
+final _calendarNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'calendar');
+final _routesNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'routes');
+final _profileNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'profile');
 
 /// Provider for the initial deep link path (set in main.dart)
 final initialDeepLinkProvider = Provider<String?>((ref) => null);
@@ -60,6 +70,8 @@ String _teamAdsAncestor(Map<String, String> p, String locale) =>
     PathVariants.teamAds(p['teamSlug']!)[locale]!;
 String _teamRoutesAncestor(Map<String, String> p, String locale) =>
     PathVariants.routes(p['teamSlug']!)[locale]!;
+String _allRoutesAncestor(Map<String, String> p, String locale) =>
+    PathVariants.allRoutes()[locale]!;
 
 final List<_DeepLinkHierarchy> _deepLinkHierarchies = [
   // Standalone pages outside any shell: without an ancestor they would be the
@@ -81,33 +93,56 @@ final List<_DeepLinkHierarchy> _deepLinkHierarchies = [
     ancestors: [_homeAncestor],
   ),
 
-  // Team shell pages: the team bottom navigation only moves between team tabs.
-  // The chain starts at the teams tab rather than home — pushing one main shell
-  // tab over another merges them into a single shell match whose state stays on
-  // the first one, which would light up the wrong tab. The teams tab still has
-  // the bottom navigation to reach home.
+  // Pages of the Routes branch. Its root carries the tab bar, the map does not.
+  _DeepLinkHierarchy(
+    patterns: PathVariants.allRoutesMap(),
+    ancestors: [_allRoutesAncestor],
+  ),
+
+  // Team pages. The chain starts at the teams tab rather than home — pushing
+  // one branch root over another merges them into a single shell match whose
+  // state stays on the first one, which would light up the wrong tab. The teams
+  // tab still has the bottom navigation to reach home.
+  _DeepLinkHierarchy(
+    patterns: PathVariants.teamsDiscover(),
+    ancestors: [_teamsAncestor],
+  ),
   _DeepLinkHierarchy(
     patterns: PathVariants.team(':teamSlug'),
     ancestors: [_teamsAncestor],
   ),
+
+  // Team sections. They used to stop at the teams list because `TeamShell`
+  // provided the navigation between them; with the shell gone they are ordinary
+  // pages of the Teams branch, so a cold start on one of them must find the
+  // team itself underneath — otherwise going back would skip straight past the
+  // team the section belongs to.
   _DeepLinkHierarchy(
     patterns: PathVariants.teamAbout(':teamSlug'),
-    ancestors: [_teamsAncestor],
+    ancestors: [_teamsAncestor, _teamAncestor],
   ),
   _DeepLinkHierarchy(
     patterns: PathVariants.teamCalendar(':teamSlug'),
-    ancestors: [_teamsAncestor],
+    ancestors: [_teamsAncestor, _teamAncestor],
   ),
   _DeepLinkHierarchy(
     patterns: PathVariants.routes(':teamSlug'),
-    ancestors: [_teamsAncestor],
+    ancestors: [_teamsAncestor, _teamAncestor],
   ),
   _DeepLinkHierarchy(
     patterns: PathVariants.teamAds(':teamSlug'),
-    ancestors: [_teamsAncestor],
+    ancestors: [_teamsAncestor, _teamAncestor],
+  ),
+  _DeepLinkHierarchy(
+    patterns: PathVariants.teamMembersPublic(':teamSlug'),
+    ancestors: [_teamsAncestor, _teamAncestor],
   ),
 
   // Detail pages.
+  _DeepLinkHierarchy(
+    patterns: PathVariants.teamPage(':teamSlug', ':pageSlug'),
+    ancestors: [_teamsAncestor, _teamAncestor],
+  ),
   _DeepLinkHierarchy(
     patterns: PathVariants.ride(':teamSlug', ':rideSlug'),
     ancestors: [_teamsAncestor, _teamAncestor],
@@ -229,9 +264,11 @@ String _underTeam(
   return full.substring(teamBase.length + 1);
 }
 
-/// Build the team shell subtree for a single locale. Segments are derived from
-/// [PathVariants] so no hand-maintained segment map is needed.
-GoRoute _teamShellTree(String locale) {
+/// Build the team subtree for a single locale, grafted under the Teams branch.
+/// Segments are derived from [PathVariants] so no hand-maintained segment map
+/// is needed — which is why moving the tree from its own shell to a branch did
+/// not change a single URL.
+GoRoute _teamTree(String locale) {
   final teamBase = PathVariants.team(':teamSlug')[locale]!;
 
   return GoRoute(
@@ -298,6 +335,27 @@ GoRoute _teamShellTree(String locale) {
             ),
           );
         },
+      ),
+      GoRoute(
+        path: _underTeam(
+          PathVariants.teamMembersPublic(':teamSlug'),
+          locale,
+          teamBase,
+        ),
+        pageBuilder: (context, state) => NoTransitionPage(
+          child: TeamMembersPage(teamSlug: state.pathParameters['teamSlug']!),
+        ),
+      ),
+      GoRoute(
+        path: _underTeam(
+          PathVariants.teamPage(':teamSlug', ':pageSlug'),
+          locale,
+          teamBase,
+        ),
+        builder: (context, state) => TeamCustomPage(
+          teamSlug: state.pathParameters['teamSlug']!,
+          pageSlug: state.pathParameters['pageSlug']!,
+        ),
       ),
       GoRoute(
         path: _underTeam(
@@ -385,15 +443,15 @@ GoRoute _tripShellRoute(String locale, String teamBase) {
 
 /// Built once at module load. The router provider can rebuild on auth changes;
 /// caching avoids re-walking [PathVariants] and re-allocating the closures.
-final List<GoRoute> _teamShellTreesCache = _buildTeamShellTrees();
+final List<GoRoute> _teamTreesCache = _buildTeamTrees();
 
-List<GoRoute> _buildTeamShellTrees() {
+List<GoRoute> _buildTeamTrees() {
   final seenBases = <String>{};
   final trees = <GoRoute>[];
   final teamBases = PathVariants.team(':teamSlug');
   for (final locale in teamBases.keys) {
     if (seenBases.add(teamBases[locale]!)) {
-      trees.add(_teamShellTree(locale));
+      trees.add(_teamTree(locale));
     }
   }
   return trees;
@@ -469,41 +527,76 @@ final routerProvider = Provider<GoRouter>((ref) {
         (ctx, st) => DeviceVerifyPage(code: st.uri.queryParameters['code']),
       ),
 
-      // Main shell with bottom navigation
-      ShellRoute(
-        navigatorKey: _shellNavigatorKey,
-        builder: (context, state, child) =>
-            MainShell(state: state, child: child),
-        routes: [
-          ..._perLocale(
-            PathVariants.home(),
-            (ctx, st) => const HomePage(),
-            asPage: true,
+      // The single navigation shell: five fixed tabs, one branch each, one
+      // navigator per branch so every tab keeps its own back stack. A team is
+      // content of the Teams branch, not a shell of its own — the tab bar never
+      // disappears. Full-screen detail pages opt out through
+      // `parentNavigatorKey: _rootNavigatorKey`.
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            MainShell(state: state, navigationShell: navigationShell),
+        branches: [
+          // 0 · Home
+          StatefulShellBranch(
+            navigatorKey: _homeNavigatorKey,
+            routes: _perLocale(
+              PathVariants.home(),
+              (ctx, st) => const HomePage(),
+              asPage: true,
+            ),
           ),
-          ..._perLocale(
-            PathVariants.teams(),
-            (ctx, st) => const TeamsPage(),
-            asPage: true,
+          // 1 · Teams, and the whole team tree under it — same URLs as before,
+          // only the graft point changed. `/teams/discover` is declared before
+          // `/teams/:teamSlug` so the literal segment wins over the parameter.
+          StatefulShellBranch(
+            navigatorKey: _teamsNavigatorKey,
+            routes: [
+              ..._perLocale(
+                PathVariants.teams(),
+                (ctx, st) => const TeamsPage(),
+                asPage: true,
+              ),
+              ..._perLocale(
+                PathVariants.teamsDiscover(),
+                (ctx, st) => const TeamsDiscoverPage(),
+              ),
+              ..._teamTreesCache,
+            ],
           ),
-          ..._perLocale(
-            PathVariants.calendar(),
-            (ctx, st) => const CalendarPage(),
-            asPage: true,
+          // 2 · Calendar
+          StatefulShellBranch(
+            navigatorKey: _calendarNavigatorKey,
+            routes: _perLocale(
+              PathVariants.calendar(),
+              (ctx, st) => const CalendarPage(),
+              asPage: true,
+            ),
           ),
-          ..._perLocale(
-            PathVariants.profile(),
-            (ctx, st) => const ProfilePage(),
-            asPage: true,
+          // 3 · Routes, across every team.
+          StatefulShellBranch(
+            navigatorKey: _routesNavigatorKey,
+            routes: [
+              ..._perLocale(
+                PathVariants.allRoutes(),
+                (ctx, st) => const AllRoutesPage(),
+                asPage: true,
+              ),
+              ..._perLocale(
+                PathVariants.allRoutesMap(),
+                (ctx, st) => const AllRoutesMapPage(),
+              ),
+            ],
+          ),
+          // 4 · Profile
+          StatefulShellBranch(
+            navigatorKey: _profileNavigatorKey,
+            routes: _perLocale(
+              PathVariants.profile(),
+              (ctx, st) => const ProfilePage(),
+              asPage: true,
+            ),
           ),
         ],
-      ),
-
-      // Team shell with bottom navigation — one subtree per locale.
-      ShellRoute(
-        navigatorKey: _teamShellNavigatorKey,
-        builder: (context, state, child) =>
-            TeamShell(state: state, child: child),
-        routes: _teamShellTreesCache,
       ),
 
       // Legal pages (outside shell, accessible without auth)
@@ -540,10 +633,10 @@ final routerProvider = Provider<GoRouter>((ref) {
 /// Wraps every team tab, which all render a bare scrollable.
 ///
 /// The [Scaffold] is what makes the iOS status bar tap scroll back to the top:
-/// it looks up the [PrimaryScrollController] of its own route. [TeamShell]'s
-/// Scaffold lives in the root navigator's route, while the tabs live in the
-/// shell navigator's route — two different controllers — so each tab needs a
-/// Scaffold on its own side of that boundary.
+/// it looks up the [PrimaryScrollController] of its own route. `MainShell`'s
+/// Scaffold lives in the root navigator's route, while the sections live in the
+/// branch navigator's route — two different controllers — so each section needs
+/// a Scaffold on its own side of that boundary.
 class _TeamTabPageWrapper extends ConsumerWidget {
   final String teamSlug;
   final Widget Function(TeamDetailDto team) builder;
