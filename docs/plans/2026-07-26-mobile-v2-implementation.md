@@ -7,7 +7,7 @@ le tout en lots livrables. Il est autoportant : le détail visuel se lit dans
 [`docs/audit-ux/BRIEF.md`](../audit-ux/BRIEF.md), dans
 [`docs/audit-ux/analyse/brand.md`](../audit-ux/analyse/brand.md) et dans les planches de
 maquettes v2 (`00 Fondations`, écrans 11 à 34), mais aucune décision n'y est déléguée ; le
-contrat d'API fait foi dans [`contracts/openapi.yaml`](../../contracts/openapi.yaml) (1.4.0) et
+contrat d'API fait foi dans [`contracts/openapi.yaml`](../../contracts/openapi.yaml) (1.5.0) et
 les conventions de code dans [`mobile/CLAUDE.md`](../../mobile/CLAUDE.md) et
 [`mobile/rules.md`](../../mobile/rules.md).
 
@@ -44,16 +44,27 @@ lancé depuis `frontend/` après édition de `contracts/routes.yaml`.
 
 ### 1.0.2 Faits acquis, à ne pas re-discuter
 
-- L'API v2 est livrée, le contrat régénéré en **1.4.0**, les clients Retrofit/Freezed mobiles
-  sont à jour. `PedalonsApiClient.version` doit être vérifié à `'1.4.0'`.
+- L'API v2 est livrée, le contrat régénéré en **1.5.0**, les clients Retrofit/Freezed mobiles
+  sont à jour. `PedalonsApiClient.version` doit être vérifié à `'1.5.0'`.
 - Ne sont **pas** livrés : notifications push, pagination par curseur, ETag / URLs d'images
   signées / blurHash, `GET /api/map/features`, le champ `waitlisted`. Aucune tâche de ce plan
   n'en dépend ; chaque dégradation est nommée.
-- **Le meneur de groupe est décidé mais pas livré** : une colonne `leader_id` nullable sur
-  `ride_groups` (FK vers `users`), exposée en `RideGroupDto.leader`, est planifiée côté serveur.
-  Tant qu'elle n'existe pas, la pastille « Organisateur » se code **conditionnelle** (rien quand
-  le meneur est nul) et n'est **jamais** alimentée par `createdBy`, qui vaut le créateur de la
-  sortie pour **tous** les groupes.
+- **Le meneur de groupe est livré** en 1.5.0 : la migration `V30__ride_group_leader.sql` ajoute
+  `ride_groups.leader_id`, **nullable**, FK vers `users` en `ON DELETE SET NULL` (un compte
+  supprimé n'emporte ni le groupe, ni son parcours, ni ses participants). En lecture,
+  **`RideGroupDto.leader`** est un `PublicUserDto` **nullable** (`id`, `displayName`,
+  `avatarUrl`) ; en écriture, **`GroupRequest.leaderId`** est un TSID en chaîne **optionnel**, et
+  envoyer `null` **efface** la désignation — c'est une opération réelle, pas une omission. Le
+  membre désigné **doit appartenir à l'équipe qui possède la sortie**, sinon **400
+  `RIDE_GROUP_LEADER_NOT_MEMBER`** ; l'appartenance n'est **pas** revérifiée ensuite, un meneur
+  qui quitte l'équipe reste affiché sur la sortie, qui a eu lieu — le mobile ne re-valide donc
+  rien et affiche ce que l'API rend. La pastille « Organisateur » reste
+  **conditionnelle**, non plus faute de donnée mais parce que **la plupart des groupes n'auront
+  pas de meneur désigné** : `leader` nul ⇒ on n'affiche rien, et **jamais** de repli sur
+  `createdBy`, qui vaut le créateur de la sortie pour **tous** ses groupes — c'est précisément le
+  défaut que cette colonne corrige. Les **gabarits de sortie** n'ont volontairement pas de
+  meneur : `RideTemplateGroupRequest` ne gagne aucun champ, instancier une sortie depuis un
+  gabarit ne désigne personne.
 - **Le contact d'un annonceur est livré** en 1.4.0 : `POST
   /api/teams/{teamSlug}/classifieds/{slug}/contact` relaie un message par e-mail, `Reply-To`
   posé sur l'expéditeur. **Aucune adresse n'apparaît dans l'API** ; `AdDto` ne porte aucun champ
@@ -342,7 +353,7 @@ apparaître nulle part.
 | B7 | `PdlEmptyState` | 4 variantes `empty` / `filtered` / `error` / `notFound` : icône 48 px, **titre nominal**, phrase, actions | **étendre** `core/animations/animated_empty_state.dart` |
 | B8 | `PdlBanner` | Bandeau **persistant** `info` / `warn` / `danger`, titre gras dans le flux, action optionnelle, `fullBleed`. **Jamais un snackbar de 4 s** | créer |
 | B9 | `PdlPagedListFooter` | « N *sur* M · chargement de la suite... », erreur → « Réessayer », fin → « Vous avez tout vu ». **Le total est indispensable** | **étendre** `core/pagination/paged_list_footer.dart` |
-| B10 | `PdlPersonRow` | Min 56 px, avatar 40, nom `bodyStrong`, sous-titre, badge de rôle, filet bas. Pastille « Organisateur » **conditionnelle et nulle par défaut** : le paramètre existe, rien n'est rendu tant que `RideGroupDto.leader` (planifié, évolution d'API n° 3) n'est pas livré, et **jamais** de repli sur `createdBy` | créer |
+| B10 | `PdlPersonRow` | Min 56 px, avatar 40, nom `bodyStrong`, sous-titre, badge de rôle, filet bas. `organizerFlag` est **alimenté** par `RideGroupDto.leader` (1.5.0) comparé à l'identifiant de la personne rendue ; la pastille « Organisateur » reste **conditionnelle** parce que la plupart des groupes n'ont pas de meneur désigné — `false` ⇒ rien n'est rendu, et **jamais** de repli sur `createdBy` | créer |
 | B11 | `PdlAttachmentRow` | Icône ou `PdlThumb 56` + nom + `mono` « TYPE », bouton 44 × 44 dont le libellé d'accessibilité nomme le fichier | créer |
 | B12 | `PdlLegendRow` | Légende de tracés défilante, trait 14 × 3, entrée active en `text`/600 | créer |
 | B13 | `PdlClimbRow` | Badge **plein** de catégorie + nom + plage + 3 colonnes chiffrées ; passage en `Wrap` au text scaling élevé | créer |
@@ -741,7 +752,11 @@ bandeau d'erreur d'inscription, `RideGroupCard` × 4 puis « Voir les N autres g
 pleine** ; `PdlStatRow(nowrap)` heure · vitesse · **distance** · **D+** (jamais coupée, repli en
 deux lignes au text scaling) ; avatars + « X/Y participants » + « Voir tout », remplacés par
 `PdlProgressBar(full)` si `full` ; actions texte « Voir le parcours », « GPX », « FIT »,
-« Envoyer vers l'appareil ». Le bouton se dérive **sans heuristique** grâce à la v2 :
+« Envoyer vers l'appareil ». **Meneur** : quand `RideGroupDto.leader` est non nul, la carte rend
+une ligne « Meneur » avec l'avatar 24 px et le `displayName` du `PublicUserDto` (repli initiales
+si `avatarUrl` est nul) ; quand `leader` est nul, **rien n'est rendu** — ni ligne, ni libellé, ni
+emplacement réservé — et c'est le **cas courant**, pas un cas dégradé : la plupart des groupes
+n'auront pas de meneur désigné. Le bouton se dérive **sans heuristique** grâce à la v2 :
 
 ```
 group.registered           → PdlButton(outline, sm) « Quitter »
@@ -788,9 +803,9 @@ inscription, actions texte conservées) · **annulée** (bandeau rouge pleine la
 action **y compris pour un inscrit** : on n'offre pas « Quitter » sur une sortie annulée) ·
 sans parcours · sans groupe.
 
-**Limites assumées** : le meneur de groupe est **planifié mais pas livré** (§1.0.2, évolution d'API n° 3) —
-la pastille « Organisateur » est codée **conditionnelle** dès maintenant et ne rend rien tant que
-`RideGroupDto.leader` est nul, à ne jamais simuler avec `createdBy` ; le logo d'équipe reste absent
+**Limites assumées** : le meneur de groupe est **livré** (§1.0.2, `RideGroupDto.leader`), mais son
+rendu reste **conditionnel** — la plupart des groupes n'en désignent pas, et un `leader` nul
+n'affiche rien plutôt que de se replier sur `createdBy` ; le logo d'équipe reste absent
 de `PdlTeamLine` car la sortie porte un `TeamPublicationDto`, qui n'a pas `logoUrl` (seul
 `TeamDetailDto` l'a) — repli sur les initiales teintées ; le statut « Terminée » est dérivé
 client (`RideDto.isPast`, **une seule extension** partagée par les trois écrans, sensible à
@@ -804,7 +819,7 @@ l'horloge de l'appareil) ; aucune liste d'attente, « Complet » est terminal.
 | S12-4 | Construire la carte multi-tracés et la sélection croisée | `[C] features/rides/presentation/widgets/ride_groups_map.dart`, `.../providers/ride_group_selection_provider.dart` | F-TE-4, F-TE-8 | L | Une `GeoJsonSource` et **une couche par groupe** (`ride-track-{groupId}`) ; les `routeSlug` sont dédoublonnés avant appel ; tap sur un tracé sélectionne la carte de groupe et réciproquement ; hauteur `clamp(260, 44 %, 460)` ; la sélection change les propriétés de deux couches, elle ne reconstruit pas la carte |
 | S12-5 | Brancher le profil du groupe sélectionné | `[C] features/routes/providers/route_elevation_provider.dart` | S12-4, F-TE-6 | S | Le profil est rechargé au changement de sélection et mis en cache par `routeSlug` ; le squelette 110 px n'empêche pas le reste de l'écran d'être interactif |
 | S12-6 | Livrer le fil de commentaires paginé | `[C] features/comments/presentation/widgets/comment_thread.dart`, `.../providers/comment_thread_provider.dart`, `.../data/comment_repository.dart` | F-CO-3 | L | Page 0 de 20 commentaires de premier niveau, `itemTotal` alimente le compteur, `replyCount > replies.length` déclenche un appel `parentId` à la demande ; **un seul niveau de réponse** (indentation 14 px, filet gauche 2 px) ; composeur **unique** en zone multiligne 72 px + bouton (les deux formes maquettées sont unifiées sur celle-ci) ; « Supprimer » visible pour l'auteur seul ; dates relatives longues |
-| S12-7 | Livrer la feuille Participants | `[C] features/participants/presentation/widgets/participants_sheet.dart` | F-CO-4 | S | Ouverte par `PdlSheet.show` / `PdlFullSheet` — visible **au-dessus** de la barre d'onglets ; recherche **côté client** (les participants sont embarqués, non paginés) ; le titre porte le total simple, pas de pied « N sur M » ; la pastille « Organisateur » est **conditionnelle** — câblée sur `RideGroupDto.leader`, donc **rien n'est rendu** tant que le champ n'existe pas, et **jamais** de repli sur `createdBy` ; un commentaire de code pointe l'évolution attendue (évolution d'API n° 3) |
+| S12-7 | Livrer la feuille Participants | `[C] features/participants/presentation/widgets/participants_sheet.dart` | F-CO-4 | S | Ouverte par `PdlSheet.show` / `PdlFullSheet` — visible **au-dessus** de la barre d'onglets ; recherche **côté client** (les participants sont embarqués, non paginés) ; le titre porte le total simple, pas de pied « N sur M » ; la pastille « Organisateur du groupe » est **conditionnelle** — `organizerFlag` vaut `leader?.id == participant.id`, donc **rien n'est rendu** quand `RideGroupDto.leader` est nul (cas courant) ou quand le meneur ne participe pas au groupe, et **jamais** de repli sur `createdBy` ; un test couvre les trois cas (pas de meneur, meneur participant, meneur non participant) |
 | S12-8 | Assembler l'écran, le hero et les bandeaux d'état | `[M→réécrit] features/rides/presentation/pages/ride_detail_page.dart` | S12-1…S12-7, F-TE-10 | L | Les 8 sections sont en place ; annulée, passée, non-membre, sans parcours et sans groupe rendent les bandeaux et états prévus ; aucun texte n'est posé sans voile sur une tuile ; recette en clair **et** en sombre |
 
 ### 2.2 Écran 13 — Fiche parcours
@@ -1202,7 +1217,14 @@ d'exploitation, pas de code, et le mobile n'a rien à contourner — il rend le 
 
 ### 5.3 Écran 34 — Membres et découverte d'équipes
 
-La feuille Participants (34-A) est livrée au lot 2 (S12-7). Restent deux surfaces.
+La feuille Participants (34-A) est livrée au lot 2 (S12-7). Sa pastille « Organisateur du
+groupe » est **alimentée** par `RideGroupDto.leader` (1.5.0) : la feuille reçoit le `leader` du
+groupe ouvert et pose `organizerFlag` sur la seule ligne dont l'identifiant lui est égal — elle
+ne cherche pas de meneur dans la liste et ne se replie **jamais** sur `createdBy`. Deux cas
+rendent zéro pastille et sont l'un comme l'autre normaux : `leader` nul, qui restera le cas
+courant, et un meneur qui **ne participe pas** au groupe — il figure alors sur la carte de groupe
+de l'écran 12 mais pas dans la liste, et **aucune ligne fantôme n'est insérée** pour l'y faire
+apparaître ; la feuille liste les participants, pas les rôles. Restent deux surfaces.
 
 **34-B · Trombinoscope** — écran plein, atteint depuis la cellule « N membres » de l'écran 23 :
 barre « Membres de N-Peloton », compteur, `PdlPinnedToolbar` (recherche + chips de rôle
@@ -1417,7 +1439,7 @@ attend `S13-6` ; `S24-6` et `S31-2` attendent `S12-6` (`CommentThread`). Tout le
 | 8 | **La refonte du fil casse son second appelant** (`publication_feed_view` sert l'accueil *et* la page d'équipe) | `team_feed_page.dart` ne compile plus, ou le fil d'équipe perd ses filtres | Le critère de S11-6 l'interdit explicitement ; en dernier recours, dupliquer temporairement le widget et refermer la dette au lot 6 |
 | 9 | **Le lot 1 est long avant qu'un écran ne bouge** — risque de démarrer les écrans sur une bibliothèque incomplète | Un lot d'écran commence alors que la vague C n'est pas livrée, et réinvente des barres ou des feuilles localement | Prioriser `C1`, `C3` et `C5` dans `F-CO-4` : l'écran 12 n'a besoin ni de `C6`, ni de `C9`, ni de `C10`. Toute barre ou feuille écrite hors `core/pdl` est un motif de refus en revue |
 | 10 | **L'erreur nue « Erreur » à l'inscription n'est pas causée par l'API** mais par une désérialisation Freezed de `RideParticipationDto` | Après un 201, une exception **non-`DioException`** apparaît dans les journaux (F-TE-3 la rend visible) | Vérifier la réponse réelle du serveur **avant** de conclure ; rendre le mapping tolérant aux champs absents. Ne pas masquer la cause derrière le bandeau |
-| 11 | **Une maquette recettée réclame une donnée qui n'existe pas** (meneur de groupe, liste d'attente, auteur de publication) | Une revue demande d'« afficher quand même » en dérivant un champ approchant | Refuser la simulation : `createdBy` n'est **pas** le meneur, l'absence de file d'attente n'est pas un « complet temporaire ». La pastille « Organisateur » reste **conditionnelle** en attendant `RideGroupDto.leader` ; les dégradations sont nommées dans le code et listées en §5 |
+| 11 | **Une maquette recettée réclame une donnée qui n'existe pas** (liste d'attente, auteur de publication) — ou, pour le meneur, réclame de le rendre **toujours** | Une revue demande d'« afficher quand même » en dérivant un champ approchant, ou s'étonne qu'un groupe n'affiche pas de meneur | Refuser la simulation : `createdBy` n'est **pas** le meneur (c'est le créateur de la sortie, identique sur tous ses groupes), l'absence de file d'attente n'est pas un « complet temporaire ». `RideGroupDto.leader` est livré, mais la pastille « Organisateur » reste **conditionnelle** : `leader` nul est le cas courant et ne rend rien ; les dégradations restantes sont nommées dans le code et listées en §5 |
 | 12 | **Un fichier généré est édité à la main** (`paths.generated.dart`, `apple-app-site-association`, section deeplink d'`AndroidManifest.xml`, DTO Freezed) | Un `git diff` montre l'un de ces fichiers modifié sans exécution du générateur | Revert et régénération : `pnpm generate-routes` depuis `frontend/` pour les routes, `dart run build_runner build` pour les modèles |
 
 ---
@@ -1440,29 +1462,32 @@ attend `S13-6` ; `S24-6` et `S31-2` attendent `S12-6` (`CommentThread`). Tout le
 
 ## 5.2 Évolutions d'API qui lèveraient une dégradation
 
-Aucune ne bloque un lot ; chacune supprimerait une dégradation nommée dans ce plan.
+Aucune ne bloque un lot ; chacune supprimerait une dégradation nommée dans ce plan. Le meneur de
+groupe n'y figure plus : il est **livré** en 1.5.0 (`RideGroupDto.leader`, `GroupRequest.leaderId`
+— §1.0.2). Les **gabarits de sortie** n'en ont volontairement pas, et ce n'est pas un manque à
+combler : `RideTemplateGroupRequest` reste sans champ de meneur, instancier une sortie depuis un
+gabarit n'en désigne aucun.
 
 | # | Manque | Écrans | Dégradation actuelle |
 |---|---|---|---|
 | 1 | URL de tuile authentifiable (jeton court en paramètre de requête) | 21 | Repli GeoJSON, plafond de quelques centaines de tracés |
 | 2 | `logoUrl` sur `TeamPublicationDto` (le `TeamDetailDto` l'a déjà) | 11, 12, 13, 24, 31, 32 | Avatar d'initiales à teinte hachée |
-| 3 | **`RideGroupDto.leader`** — colonne `leader_id` nullable sur `ride_groups` (FK vers `users`), alimentée depuis le formulaire de groupe. **Décidé et à planifier**, pas encore livré | 12, 34-A | Pastille « Organisateur » codée **conditionnelle** et jamais rendue tant que le meneur est nul ; **jamais** de repli sur `createdBy`, qui vaut le créateur de la sortie pour tous les groupes et serait faux presque partout |
-| 4 | `RideGroupDto.thumbnailUrl` | 11 | Vignette de la sortie au lieu de celle du parcours du groupe |
-| 5 | `groups[]` ou un `registeredGroup` compact sur les lignes de liste | 11 | Un `getRide` supplémentaire pour la seule prochaine sortie |
-| 6 | Capacité agrégée sur `RideDto` de liste | 11 | « N participants » au lieu de « N/M » |
-| 7 | `PostDto.createdByDisplayName` / `createdById` | 31 | Bloc auteur supprimé, seule la date reste |
-| 8 | `AssetDto.size` | 31, 32 | « PDF » au lieu de « PDF · 240 Ko » |
-| 9 | Voisins de publication (`prev`/`next`) | 31 | Navigation rendue seulement depuis un fil déjà chargé |
-| 10 | `RouteUsageDto.endDate` | 13 | Date de début seule pour un usage de type voyage |
-| 11 | `ClimbDto.name` | 13, 25 | « Montée N » |
-| 12 | Commentaires d'étape | 25 | Section absente, renvoi vers le voyage |
-| 13 | Participants paginés et cherchables côté serveur | 24, 34-A | Liste complète embarquée, recherche client, pas de pied « N sur M » |
-| 14 | Tri sur `GET /api/teams` | 34-C | Mention « triées par nombre de membres » retirée |
-| 15 | `SocialIdentityDto.externalUsername`, `logoUrl` de service GPS | 33 | Avatar-lettre et « Lié le *date* » |
-| 16 | Préférences de notification et push | 33, 11 | Section entière non livrée, aucune cloche |
-| 17 | `Team.timezone` ou dates zonées au contrat | 22, 24, 25 | Fuseau de l'appareil, parité web |
-| 18 | `GET /api/map/features` | 24, 21 | N appels de parcours plafonnés, tracé partiel au-delà de 12 étapes |
-| 19 | Statut `TERMINÉE` dans l'enum `Status` | 11, 12, 22 | Dérivé client de `dateTime < now`, centralisé dans `RideDto.isPast` |
+| 3 | `RideGroupDto.thumbnailUrl` | 11 | Vignette de la sortie au lieu de celle du parcours du groupe |
+| 4 | `groups[]` ou un `registeredGroup` compact sur les lignes de liste | 11 | Un `getRide` supplémentaire pour la seule prochaine sortie |
+| 5 | Capacité agrégée sur `RideDto` de liste | 11 | « N participants » au lieu de « N/M » |
+| 6 | `PostDto.createdByDisplayName` / `createdById` | 31 | Bloc auteur supprimé, seule la date reste |
+| 7 | `AssetDto.size` | 31, 32 | « PDF » au lieu de « PDF · 240 Ko » |
+| 8 | Voisins de publication (`prev`/`next`) | 31 | Navigation rendue seulement depuis un fil déjà chargé |
+| 9 | `RouteUsageDto.endDate` | 13 | Date de début seule pour un usage de type voyage |
+| 10 | `ClimbDto.name` | 13, 25 | « Montée N » |
+| 11 | Commentaires d'étape | 25 | Section absente, renvoi vers le voyage |
+| 12 | Participants paginés et cherchables côté serveur | 24, 34-A | Liste complète embarquée, recherche client, pas de pied « N sur M » |
+| 13 | Tri sur `GET /api/teams` | 34-C | Mention « triées par nombre de membres » retirée |
+| 14 | `SocialIdentityDto.externalUsername`, `logoUrl` de service GPS | 33 | Avatar-lettre et « Lié le *date* » |
+| 15 | Préférences de notification et push | 33, 11 | Section entière non livrée, aucune cloche |
+| 16 | `Team.timezone` ou dates zonées au contrat | 22, 24, 25 | Fuseau de l'appareil, parité web |
+| 17 | `GET /api/map/features` | 24, 21 | N appels de parcours plafonnés, tracé partiel au-delà de 12 étapes |
+| 18 | Statut `TERMINÉE` dans l'enum `Status` | 11, 12, 22 | Dérivé client de `dateTime < now`, centralisé dans `RideDto.isPast` |
 
 ## 5.3 Cas de test à écrire avec les écrans
 

@@ -14,7 +14,8 @@ frontend montre que le site ne sait **rien** de la participation de l'utilisateu
 n'ouvre une sortie. Ensuite, les maquettes mobiles imposent une densité et une hiérarchie d'états
 (vide absolu / vide filtré / erreur récupérable) que le web n'applique que par endroits. Enfin,
 l'API v2 (contrat `1.3.0`, puis `1.4.0` qui ajoute le relais de contact d'annonce et la préférence
-`contactableByMembers` — les deux livrés et régénérés dans `frontend/src/api/`) apporte exactement
+`contactableByMembers`, puis `1.5.0` qui ajoute le meneur de groupe — tous livrés et régénérés dans
+`frontend/src/api/`) apporte exactement
 les champs qui manquaient aux deux plateformes : `registered`, `registeredGroupId`, `full`,
 `GET /api/users/me/participations`, `?view=COMPACT`, `…/count`, `…/elevation-profile`, la
 pagination des commentaires et un `CalendarEventDto` enrichi.
@@ -69,7 +70,7 @@ petit écran). La colonne « vérifié » indique le fichier consulté pour tran
 | Bandeau d'annulation | déjà web | `RideDetailPage.tsx:316` |
 | Lieux de départ et d'arrivée avec pastilles vert/rouge | déjà web | `RideDetailPage.tsx:368-395` |
 | Feuille des participants nominatifs | déjà web | `ParticipantListModal.tsx` |
-| Pastille « Organisateur » sur un participant | **bloqué — `leader_id` à planifier** | `ParticipantListModal.tsx:10,65` : la prop `isOrganizer` n'est alimentée par personne (`group.participants` est un `UserSummaryDto`) |
+| **Pastille de meneur sur la carte de groupe et sur le participant** | **à porter** | `RideGroupDto.leader` livré en `1.5.0` ; la prop `isOrganizer` de `ParticipantListModal.tsx:10,65` n'est encore alimentée par personne |
 | Encart non-membre | déjà web | `RideDetailPage.tsx:465-483` |
 | **Squelette structuré (carte + 3 blocs) au lieu d'un spinner** | **à porter** | `RideDetailPage.tsx:127-129` bloque toute la page |
 | **Boutons « Partager » et « Ajouter à mon calendrier »** | **à porter** (petit) | aucun bouton de partage sur les pages de détail |
@@ -183,9 +184,10 @@ cartographiée.
 | Unités selon la préférence, espace insécable, séparateur de milliers | déjà web | `useUnits`, `RangeInput` avec `displayMultiplier` |
 | Feuilles modales au-dessus de la barre d'onglets | sans objet | — |
 
-**Bilan.** Sur ~63 idées, 27 sont déjà au site, 26 sont à porter (dont 8 seulement à fort
-rendement), 9 sont sans objet en desktop et 1 attend une évolution du modèle de données (la pastille
-« Organisateur », cf. §4). Le portage n'est donc pas un chantier de refonte mais
+**Bilan.** Sur ~63 idées, 27 sont déjà au site, 27 sont à porter (dont 8 seulement à fort
+rendement) et 9 sont sans objet en desktop. Plus aucune n'attend une évolution du modèle de données :
+la pastille de meneur, la dernière bloquée, est débloquée par `RideGroupDto.leader`, livré en
+`1.5.0` (cf. T1.7). Le portage n'est donc pas un chantier de refonte mais
 une série de compléments ciblés — sauf sur la participation, qui est un manque structurant.
 
 ---
@@ -557,6 +559,35 @@ dans la pile de badges quand `isPast`. `RideGroupCard` utilise `group.full` au l
 *Critère de fin* : sur une sortie dont `dateTime` est passée, aucun bouton « Rejoindre » ni
 « Quitter » n'est rendu et le badge « Terminée » apparaît ; sur un groupe `full`, le badge gris
 « Complet » remplace l'action.
+
+---
+
+**T1.7 — Meneur de groupe : avatar, nom et pastille**
+*Fichiers modifiés* : `frontend/src/components/ride/RideGroupCard.tsx`,
+`frontend/src/components/ride/ParticipantListModal.tsx`,
+`frontend/src/locales/{fr,en}/common.json`.
+*Détail* : le contrat `1.5.0` livre `RideGroupDto.leader`, un `PublicUserDto` (`id`, `displayName`,
+`avatarUrl`) **nullable**. `RideGroupCard` rend, sous le nom du groupe, un `Group gap="xs"` :
+`UserAvatar size="sm"` (de `common/UserAvatar`) + `Text size="sm"` du `displayName` + `Badge
+variant="light" leftSection={<IconShieldCheck size={12}/>}` « Meneur » (`@tabler/icons-react`, icône
+déjà importée par `ParticipantListModal`). Quand `group.leader` est nul, **rien n'est rendu** : ni
+pastille, ni ligne vide, ni libellé « Aucun meneur ». Ce n'est pas un cas dégradé mais **le cas
+courant** — la plupart des groupes n'auront pas de meneur désigné, et la carte doit se lire
+exactement comme aujourd'hui sans cette ligne. Dans `ParticipantListModal`, la prop `isOrganizer`
+(présente depuis l'origine, alimentée par personne) se calcule enfin dans `RideGroupCard` :
+`participant.id === group.leader?.id`. **Jamais de repli sur `createdBy`** : cf. §4. L'appartenance
+du meneur à l'équipe est vérifiée à l'écriture seulement et **n'est pas revérifiée ensuite** — un
+meneur qui a quitté l'équipe reste affiché, parce que la sortie a eu lieu ; le front ne doit donc
+tenter aucune validation d'appartenance à l'affichage. Aucune requête supplémentaire : le meneur
+arrive dans la réponse de la sortie (l'association est en `@ManyToOne(LAZY)` et le batch fetch
+résout tous les meneurs d'une sortie en une requête).
+L'**attribution** n'est pas dans cette tâche : `GroupRequest.leaderId` est acceptée par l'API depuis
+`1.5.0`, mais `RideEditor.tsx` reste hors périmètre de ce document (cf. §4).
+*Dépendances* : aucune. *Taille* : **S**.
+*Critère de fin* : sur un groupe avec meneur, l'avatar et le nom apparaissent sur la carte et la
+pastille sur la ligne du participant correspondant dans la feuille des participants ; sur un groupe
+sans meneur, la carte est strictement identique à l'existant ; aucune requête supplémentaire n'est
+émise ; les clés de libellé sont plates et présentes dans `fr` **et** `en`.
 
 ---
 
@@ -960,7 +991,7 @@ forcément un défaut du front.
 ### Ordre recommandé
 
 `T0.1 → T0.2 → T0.3 → T0.4 → T0.5` puis, en parallèle possible :
-lot 1 (`T1.1 … T1.6`) et lot 3 (`T3.1 → T3.3 → T3.4 → T3.5`).
+lot 1 (`T1.1 … T1.7`) et lot 3 (`T3.1 → T3.3 → T3.4 → T3.5`).
 Le lot 2 suit le lot 0 (`T2.1`, `T2.3`, `T2.5`) sauf `T2.2` qui attend `T3.2`, et `T2.4` qui suit
 `T1.6`. Les lots 4 et 5 sont indépendants et peuvent être décalés sans bloquer quoi que ce soit —
 à une contrainte interne près : `T5.6` précède `T5.7`, l'interrupteur d'opt-out doit exister avant
@@ -1020,18 +1051,28 @@ propositions du brief, pas des livrables). Ne rien maquetter, ne rien câbler.
 **La liste d'attente.** Le champ `waitlisted` du brief §3.2 n'a **pas** été livré et il n'existe
 aucune liste d'attente en base. Le portage se limite à `registered`, `registeredGroupId` et `full`.
 
-**La pastille « Organisateur » sur les données actuelles.** `RideGroup` n'expose aujourd'hui que
-`createdBy`, qui vaut le créateur de la **sortie** pour **tous** les groupes : s'en servir de repli
-afficherait la pastille sur la même personne dans chaque groupe, donc à tort presque partout. Le
-meneur de groupe est **planifié** — colonne `leader_id` nullable sur `ride_groups` (FK vers
-`users`), exposée en `RideGroupDto.leader` et alimentée depuis le formulaire de groupe — mais **il
-n'est pas livré** : `RideGroupDto` ne porte aucun champ `leader` dans le contrat `1.4.0`, et la prop
-`isOrganizer` de `ParticipantListModal.tsx:10` n'est alimentée par aucun appelant (`RideGroupCard`
-lui passe `group.participants`, un `UserSummaryDto`), si bien que la pastille ne s'affiche
-aujourd'hui jamais. Règle d'affichage à respecter le jour où le champ arrive, et dès maintenant
-partout où la pastille apparaît : **elle est conditionnelle au meneur, et absente quand le meneur est
-nul** — jamais de repli sur `createdBy`. Ne pas l'étendre au fil ni au calendrier avant cette
-évolution du modèle de données, qui est un chantier d'écriture à planifier hors de ce plan.
+**Le repli sur `createdBy` pour le meneur.** `RideGroup.createdBy` vaut le créateur de la **sortie**
+pour **tous** ses groupes : s'en servir de repli afficherait le même nom comme meneur dans chaque
+groupe, donc à tort presque partout. C'est exactement le défaut que la colonne `leader_id` corrige,
+et un repli le réintroduirait sous un nom plus crédible. La règle vaut partout où la pastille
+apparaît : `leader` nul ⇒ **rien** (T1.7). Ne pas non plus étendre la pastille au fil ni au
+calendrier : le meneur est une propriété du **groupe**, et ni `PublicationCard` ni
+`CalendarEventDto` n'en portent.
+
+**Le sélecteur de meneur dans le formulaire de sortie.** L'affichage du meneur est à porter (T1.7),
+son **attribution** non. `GroupRequest.leaderId` (TSID en chaîne, optionnel) est acceptée depuis le
+contrat `1.5.0` et `RideEditor.tsx` édite bien les groupes d'une sortie, mais ce document porte sur
+la consultation et la participation : il ne décrit aucune autre tâche de formulaire, et n'ouvre pas
+celle-ci. Un `Select` de meneur suppose la liste des membres de l'équipe dans l'éditeur, la gestion
+du `null` explicite (envoyer `null` **efface** la désignation — c'est une opération réelle, pas une
+omission) et le rendu du `400 RIDE_GROUP_LEADER_NOT_MEMBER`, renvoyé quand la personne désignée
+n'appartient pas à l'équipe propriétaire de la sortie. C'est un lot d'édition à instruire
+séparément, avec les autres champs de `RideEditor`.
+
+**Le meneur sur les gabarits de sortie.** Décision produit : les gabarits n'en ont pas.
+`RideTemplateGroupRequest` est un type de requête distinct de `GroupRequest` et ne gagne aucun champ
+de meneur ; instancier une sortie depuis un gabarit ne désigne personne. Ne prévoir ni champ, ni
+colonne, ni pastille de meneur dans les vues de gabarit.
 
 **Les voyages au calendrier.** `CalendarEventType` reste `RIDE | TRIP_STAGE` : les étapes y sont, le
 voyage en tant qu'objet non. Le brief §3.5 le demandait ; ce n'est pas livré.
@@ -1057,7 +1098,7 @@ au-dessus d'hypothèses.
 | Préférence de thème / langue synchronisée | livré (`PATCH /api/users/me/preferences`, `UserDto.language`, `UserDto.theme`) | — |
 | Contact du vendeur d'une annonce | livré en `1.4.0` (`POST …/classifieds/{slug}/contact`, `contactableByMembers`) ; côté exploitation, les gabarits Brevo `ad-contact.{fr,en}` restent à renseigner | aucune : T5.7 se câble dès maintenant, la recette de bout en bout attend les gabarits |
 | Délai exact du quota de contact (429) | `Retry-After` est posé par le backend mais **non déclaré dans le contrat**, et `ApiClientError` ne conserve pas les en-têtes | lire l'en-tête défensivement (T5.7) ; à défaut, message de quota sans délai chiffré |
-| Pastille « Organisateur » d'un groupe | `RideGroupDto.leader` non livré — `leader_id` est décidé mais reste à écrire | ne rien afficher tant que le meneur est nul ; jamais de repli sur `createdBy` (§4) |
+| Pastille de meneur d'un groupe | livré en `1.5.0` (`RideGroupDto.leader`, `PublicUserDto` nullable ; `GroupRequest.leaderId` en écriture) ; les gabarits n'en auront pas (`RideTemplateGroupRequest` inchangé) | aucune pour l'affichage (T1.7) : `leader` nul ⇒ rien, et c'est le cas courant, pas le cas dégradé ; jamais de repli sur `createdBy` (§4) |
 | Position exacte d'une annonce | volontaire : `AdDto.locationGeometry` est floutée à ~1 km, le point exact ne sort que sur `AdEditDto` | rendre un secteur (cercle) et non une punaise (§1.8, T5.5) |
 
 Deux points d'attention transverses à ne pas oublier au moment d'écrire le code :

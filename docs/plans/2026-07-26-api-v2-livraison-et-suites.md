@@ -1,19 +1,22 @@
-# API v2 — ce que les versions 1.3.0 et 1.4.0 ont apporté, et ce qui reste
+# API v2 — ce que les versions 1.3.0, 1.4.0 et 1.5.0 ont apporté, et ce qui reste
 
 Document de référence du chantier « API v2 » mené en réponse au §3 de
 [`docs/audit-ux/BRIEF.md`](../audit-ux/BRIEF.md).
 
 - **Contrat** : `1.2.0` → `1.3.0` (le lot API v2), puis `1.3.0` → `1.4.0` (le relais de contact
-  d'annonce, §1.13). Deux MINOR : aucun retrait, aucun renommage, aucun changement de type.
+  d'annonce, §1.13), puis `1.4.0` → `1.5.0` (le meneur de groupe, §1.14). Trois MINOR : aucun
+  retrait, aucun renommage, aucun changement de type.
   Source : `backend/src/main/resources/application.properties:85` (`pedalons.api.version`), qui
   alimente `info.version` de `contracts/openapi.yaml` et `GET /api/version`.
 - **Régénéré** : `contracts/openapi.yaml` + `.json`, client web Orval (`frontend/src/api/`), client
   mobile Retrofit/Freezed (`mobile/lib/api/generated/`).
 - **Migrations** : `backend/src/main/resources/db/migration/V28__user_preferences.sql` (deux
-  colonnes nullables sur `users`) et `V29__ad_contact.sql` (table `ad_contacts` + colonne
-  `users.contactable_by_members`, nullable). Ce sont les deux seules migrations.
+  colonnes nullables sur `users`), `V29__ad_contact.sql` (table `ad_contacts` + colonne
+  `users.contactable_by_members`, nullable) et `V30__ride_group_leader.sql` (colonne
+  `ride_groups.leader_id`, nullable). Ce sont les trois seules migrations.
 - **Périmètre** : lecture et participation. Deux endpoints d'écriture nouveaux seulement —
-  `PATCH /api/users/me/preferences` et `POST /api/teams/{teamSlug}/classifieds/{slug}/contact`.
+  `PATCH /api/users/me/preferences` et `POST /api/teams/{teamSlug}/classifieds/{slug}/contact` — plus
+  un champ d'écriture ajouté sur une surface existante (`GroupRequest.leaderId`, §1.14).
 
 Ce document dit **ce qui est là**, **pourquoi c'est fait comme ça**, **ce que le propriétaire du
 produit a tranché**, et **ce qui n'a pas été livré** — avec assez de détail pour que les quatre
@@ -47,7 +50,8 @@ chantiers restants soient chiffrables sans re-instruction.
 
 Hors brief mais livré dans le même lot : préférences utilisateur serveur (§1.12), qui est ce qui
 rend le mode sombre du §5 réalisable côté produit. Livré ensuite, en 1.4.0 : le relais de contact
-d'annonce (§1.13), qui referme le seul manque de l'item 13.
+d'annonce (§1.13), qui referme le seul manque de l'item 13. Puis en 1.5.0 : le meneur de groupe
+(§1.14), qui donne enfin une donnée à la pastille « Organisateur » des maquettes.
 
 ---
 
@@ -405,6 +409,65 @@ dev, l'envoi passe par Mailhog et ne dépend d'aucun template.
 
 ---
 
+### 1.14 Contrat 1.5.0 — le meneur de groupe
+
+La pastille « Organisateur » des maquettes n'avait aucune donnée à afficher : `RideGroup` n'avait que
+`createdBy`, hérité de `BaseEntity`, qui vaut le **créateur de la sortie** et est donc identique sur
+tous ses groupes. C'est livré, sous la forme d'une colonne dédiée. Additif : aucun retrait, aucun
+renommage, aucun changement de type.
+
+**Migration.** `backend/src/main/resources/db/migration/V30__ride_group_leader.sql` — colonne
+`ride_groups.leader_id`, **nullable**, FK vers `users` en **`ON DELETE SET NULL`** (§2.10), plus un
+index **partiel** `idx_ride_groups_leader on ride_groups (leader_id) where leader_id is not null` :
+la colonne est nulle bien plus souvent que non.
+
+**Entité.** `RideGroup.leader`, `@ManyToOne(FetchType.LAZY)` sur `leader_id`, nullable. Comme les
+groupes d'une sortie sont mappés en un passage, le batch fetch résout **tous les meneurs d'une sortie
+en une requête**, pas une par groupe — le même invariant que le §2.8.
+
+**Lecture.** `RideGroupDto.leader`, de type `PublicUserDto` (`id`, `displayName`, `avatarUrl`),
+**nullable et non requis** : Jackson est configuré `NON_NULL`, le champ **disparaît du JSON** quand
+aucun meneur n'est désigné, comme `commentCount` au §2.7. Aucune adresse ni donnée privée n'est
+exposée — `PublicUserDto` est la projection publique déjà utilisée ailleurs.
+
+**Écriture.** `GroupRequest.leaderId` (TSID en chaîne), **optionnel**. Envoyer `null` **efface la
+désignation** — c'est une opération réelle, pas une omission. `RideTemplateGroupRequest` ne gagne
+**aucun champ de meneur** : les gabarits de sortie n'en portent pas, et instancier une sortie depuis
+un gabarit ne désigne personne (§2.10).
+
+**Validation.** Le membre désigné **doit appartenir à l'équipe propriétaire de la sortie**, vérifié
+par `RideService.resolveLeader` via `UserTeamRepository.findByUserAndTeam`. Sinon **400**
+`RIDE_GROUP_LEADER_NOT_MEMBER`. L'appartenance **n'est pas revérifiée ensuite** (§2.10).
+
+**Fichiers principaux.**
+
+- `backend/src/main/resources/db/migration/V30__ride_group_leader.sql`
+- `backend/src/main/java/fr/pedalons/domain/ride/RideGroup.java` (champ `leader`)
+- `backend/src/main/java/fr/pedalons/dto/rides/response/RideGroupDto.java` (champ `leader`),
+  `dto/rides/request/GroupRequest.java` (champ `leaderId`, avec le constructeur d'avant conservé
+  pour les appelants existants)
+- `backend/src/main/java/fr/pedalons/service/ride/RideService.java:172` (`resolveLeader`)
+- `backend/src/main/java/fr/pedalons/dto/error/ErrorCode.java` (`RIDE_GROUP_LEADER_NOT_MEMBER`)
+
+**Test.** `backend/src/test/java/fr/pedalons/api/rides/RideGroupLeaderTest.java` — le meneur exposé
+sur le groupe, le cas sans meneur qui reste **nul plutôt que de retomber sur le créateur**, le rejet
+d'un non-membre, le rejet d'un membre d'une autre équipe, la désignation puis l'effacement par
+`null`, et le test qui garde l'invariant : `groupLeader_isNotTheRideCreator`.
+
+**Maquettes débloquées.** `12 Sortie` (pastille sur la carte de groupe) et `34 Participants`
+(pastille sur la ligne du meneur) — **conditionnellement** : `leader` absent ⇒ on n'affiche rien, et
+c'est le cas courant, pas le cas dégradé (§2.10).
+
+**Rétrocompatibilité.** Colonne nullable, champ de DTO optionnel, champ de requête optionnel. Les
+clients qui ignorent `leader` continuent de fonctionner ; les 665 sorties existantes de `n-peloton`
+restent sans meneur jusqu'à ce que quelqu'un en désigne un.
+
+**Reste à câbler.** Le sélecteur de meneur dans l'éditeur de groupes de
+`frontend/src/components/ride/RideEditor.tsx`, puis l'écran équivalent du mobile — champ facultatif,
+avec une option « aucun ». Aucun écran ne lit ni n'écrit `leader` aujourd'hui.
+
+---
+
 ## 2. Décisions de conception et leurs raisons
 
 ### 2.1 Compaction additive (`?view=compact`) plutôt que modification en place
@@ -452,7 +515,7 @@ Deux mauvaises options ont été écartées :
   promotion à la libération d'une place, notification), donc un chantier d'écriture hors du
   périmètre lecture de ce lot.
 
-`waitlisted` est donc **absent du contrat 1.4.0**. Une maquette qui l'affiche doit dégrader vers
+`waitlisted` est donc **absent du contrat 1.5.0**. Une maquette qui l'affiche doit dégrader vers
 `full` (groupe complet, pas d'inscription possible) — ce que fait `12 Sortie` avec son badge
 `Complet` désactivé.
 
@@ -570,12 +633,56 @@ de 20 lignes aurait gagné 60 allers-retours.
 visibilité, jamais substituée : un membre ne peut pas demander `status=DRAFT` pour voir les
 brouillons des autres. Ce qu'il gagne, c'est de masquer ce qu'il a déjà le droit de voir.
 
+### 2.10 Le meneur de groupe est une colonne dédiée, nullable, et jamais dérivée de `createdBy`
+
+**Pourquoi une colonne plutôt qu'une lecture de `createdBy`.** `createdBy` vaut le créateur de la
+**sortie**, donc la même personne sur tous ses groupes. L'afficher sous le libellé « meneur du
+groupe » aurait été faux sur presque tous les groupes, et faux de la façon qui ne se signale pas :
+un nom plausible, à la bonne place, que personne ne pense à contester. C'est exactement le défaut que
+`leader_id` corrige — **aucun repli sur `createdBy` n'est acceptable nulle part**, ni en base, ni
+dans un DTO, ni dans un client. Un repli réintroduirait le bug sous un nom plus crédible.
+
+**Pourquoi nullable, et pourquoi pas de `NOT NULL DEFAULT`.** Un `NOT NULL DEFAULT` n'aurait aucune
+valeur honnête à poser : la seule candidate est `createdBy`, qui est précisément la mauvaise réponse.
+Et ce n'est pas qu'une contrainte de migration — **la plupart des groupes n'auront jamais de meneur
+désigné**. `null` signifie « pas désigné », pas « inconnu » ni « pas encore renseigné ».
+
+**Pourquoi `ON DELETE SET NULL`.** Un `CASCADE` ferait disparaître le groupe, son parcours et ses
+participants avec le compte du meneur. La disparition d'un compte ne doit rien emporter d'autre que
+la désignation : le groupe retombe simplement dans le cas courant, celui sans meneur.
+
+**Pourquoi « membre de l'équipe » et non « participant du groupe ».** Sans contrôle du tout,
+n'importe quel identifiant du domaine pouvait être publié comme meneur d'une sortie que la personne
+n'a jamais accepté de mener — une attribution à un tiers, écrite par quelqu'un d'autre. Exiger qu'il
+soit **participant** aurait été pire : les groupes se construisent avant toute inscription, la
+contrainte rendrait la désignation impossible au moment où on la fait. L'appartenance à l'équipe
+propriétaire est la borne juste — elle exclut les inconnus sans interdire le cas normal.
+
+**Pourquoi l'appartenance n'est pas revérifiée ensuite.** Un meneur qui quitte l'équipe garde la
+ligne. La sortie a eu lieu, et réécrire l'histoire à chaque changement d'adhésion désattribuerait des
+sorties passées — un écran de sortie de l'an dernier perdrait son meneur parce que la personne a
+changé de club. Le chemin de lecture rend ce qui est là.
+
+**Pourquoi les gabarits de sortie n'ont pas de meneur.** Décision produit : `RideTemplateGroup` a son
+propre type de requête (`RideTemplateGroupRequest`) et ne gagne **aucun champ de meneur** ;
+instancier une sortie depuis un gabarit ne désigne personne. Un gabarit décrit une forme de sortie
+récurrente, pas qui la mènera cette fois-ci ; une désignation figée dans le gabarit se répéterait sur
+chaque instance et vieillirait mal, exactement comme `createdBy`.
+
+**Conséquence d'affichage, imposée et non négociable** : **pas de pastille « Organisateur » quand
+`leader` est absent**. Tout écran qui montre la pastille (`12 Sortie`, `34 Participants`) doit la
+traiter comme **conditionnelle** : présente si `leader` est présent, absente sinon, et surtout pas
+remplacée par un libellé de repli. La nuance compte pour les maquettes : depuis 1.5.0 ce n'est plus
+« la donnée manque » mais « la plupart des groupes n'ont pas de meneur ». Le cas « pas de meneur »
+est le **cas courant**, à dessiner comme tel, pas comme une dégradation.
+
 ---
 
 ## 3. Ce que le propriétaire du produit a tranché
 
-Les trois points laissés ouverts par le lot 1.3.0 sont arbitrés. Deux sont clos — la résolution du
-floutage et le canal de contact ; le troisième devient un chantier à planifier, pas une question.
+Les trois points laissés ouverts par le lot 1.3.0 sont arbitrés, et les trois sont clos : la
+résolution du floutage est confirmée, le canal de contact est livré en 1.4.0, le meneur de groupe
+en 1.5.0.
 
 ### 3.1 Position des annonces : arrondi à ~1 km, **confirmé**
 
@@ -607,41 +714,21 @@ qu'elle publie une donnée personnelle irrévocablement à toute l'équipe. Le r
 en §2.5. Le lien vers un profil public ne résolvait rien (il n'y a ni écran de profil public, ni
 moyen de joindre depuis là), et la messagerie interne reste hors de proportion avec le besoin.
 
-### 3.3 Meneur de groupe : chantier **planifié**
+### 3.3 Meneur de groupe : **résolu, et livré**
 
-**Décision actée** : la notion de meneur de groupe a un sens produit, elle est à implémenter. Ce
-n'est **pas livré** — c'est un chantier d'écriture, spécifié ici pour être chiffré.
+La colonne `ride_groups.leader_id`, `RideGroupDto.leader` et `GroupRequest.leaderId` sont en 1.5.0.
+Voir **§1.14** pour le contrat, la migration et les fichiers, **§2.10** pour les raisons — dont les
+deux qui contraignent les maquettes : **jamais de repli sur `createdBy`**, et la pastille
+« Organisateur » reste **conditionnelle**, parce que la plupart des groupes n'auront pas de meneur
+désigné.
 
-Aujourd'hui la donnée n'existe pas : `RideGroup` n'a que `createdBy`, hérité de `BaseEntity`, qui
-vaut le **créateur de la sortie** pour tous les groupes de cette sortie. Il ne désigne pas un
-meneur.
+Décision produit complémentaire, actée en même temps : **les gabarits de sortie n'ont pas de
+meneur**. `RideTemplateGroupRequest` ne gagne aucun champ, et instancier une sortie depuis un
+gabarit ne désigne personne (§2.10).
 
-**Périmètre.**
-
-- **Migration** : colonne `leader_id` sur `ride_groups`, **nullable**, FK vers `users`. Nullable est
-  le point structurant : tous les groupes existants naissent sans meneur, et un `NOT NULL DEFAULT`
-  n'aurait aucune valeur honnête à poser. Prévoir un index sur `leader_id` seulement si une lecture
-  « les groupes que je mène » apparaît.
-- **Contrat** : `RideGroupDto.leader` en `PublicUserDto`, **optionnel** — Jackson est configuré
-  `NON_NULL`, le champ disparaît donc du JSON quand il n'y a pas de meneur, comme `commentCount`
-  au §2.7. Ajout MINOR.
-- **Écriture** : champ `leaderId` sur `GroupRequest` (et symétriquement sur
-  `RideTemplateGroupRequest` / `RideTemplateGroupDto` si les modèles de sortie doivent le porter —
-  à confirmer au moment de faire). Le serveur doit valider que l'utilisateur désigné est membre de
-  l'équipe propriétaire.
-- **Formulaire** : le sélecteur de meneur s'ajoute à l'éditeur de groupes de
-  `frontend/src/components/ride/RideEditor.tsx`, puis à l'écran équivalent du mobile. Champ
-  facultatif, avec une option « aucun ».
-
-**Rétrocompatibilité.** Aucune rupture : colonne nullable, champ de DTO optionnel, champ de requête
-optionnel. Les clients qui ignorent `leader` continuent de fonctionner ; les 665 sorties existantes
-de `n-peloton` restent sans meneur jusqu'à ce que quelqu'un en désigne un.
-
-**Règle d'affichage, imposée et non négociable** : **pas de pastille « Organisateur » quand le
-meneur est nul.** Jamais de repli sur `createdBy` — il vaut le créateur de la sortie pour tous les
-groupes et serait faux dans presque tous les cas. Tout écran qui montre la pastille (`12 Sortie`,
-`34 Participants`) doit la traiter comme **conditionnelle** : présente si `leader` est présent,
-absente sinon, et surtout pas remplacée par un libellé de repli.
+Reste à câbler côté clients : le sélecteur de meneur dans l'éditeur de groupes
+(`frontend/src/components/ride/RideEditor.tsx`) puis son équivalent mobile, et la pastille sur
+`12 Sortie` et `34 Participants`.
 
 ---
 
@@ -888,7 +975,8 @@ autres entités, il n'est pas un prérequis de la vue carte des parcours.
 
 ### 5.1 Base de données
 
-Les migrations `V28__user_preferences.sql` et `V29__ad_contact.sql` sont appliquées **par Flyway au
+Les migrations `V28__user_preferences.sql`, `V29__ad_contact.sql` et `V30__ride_group_leader.sql`
+sont appliquées **par Flyway au
 démarrage** du backend (`quarkus.flyway.migrate-at-start`, mode `validate` en production). Aucune
 commande manuelle. Les tests utilisent `drop-and-create` et ne passent pas par Flyway — un test vert
 ne prouve donc **pas** que les migrations s'appliquent sur une base existante. Vérifier au moins un
@@ -898,7 +986,7 @@ démarrage réel :
 cd /Users/glandais/code/perso/tribly
 docker compose up -d
 cd backend && mvn quarkus:dev
-# attendre "Migrating schema ... to version 29"
+# attendre "Migrating schema ... to version 30"
 ```
 
 Contrôler ensuite que V29 a bien posé ses deux objets :
@@ -911,9 +999,24 @@ docker exec -i pedalons-dev-postgres psql -U pedalons -d pedalons \
 # → contactable_by_members | YES   (nullable : null vaut « joignable »)
 ```
 
+Et que V30 a bien posé les siens — colonne nullable, FK en `SET NULL`, index partiel :
+
+```bash
+docker exec -i pedalons-dev-postgres psql -U pedalons -d pedalons \
+  -c "select column_name, is_nullable from information_schema.columns
+      where table_name='ride_groups' and column_name='leader_id';"
+# → leader_id | YES   (nullable : null vaut « pas de meneur désigné », le cas courant)
+
+docker exec -i pedalons-dev-postgres psql -U pedalons -d pedalons -c '\d ride_groups'
+# → FOREIGN KEY (leader_id) REFERENCES users(id) ON DELETE SET NULL
+#   (surtout pas CASCADE : un compte supprimé n'emporte pas le groupe, son parcours ni ses participants)
+# → "idx_ride_groups_leader" btree (leader_id) WHERE leader_id IS NOT NULL
+```
+
 ### 5.2 Tests backend, module par module
 
-Les 23 classes de test ajoutées (22 par le lot 1.3.0, plus `AdContactResourceTest` en 1.4.0),
+Les 24 classes de test ajoutées (22 par le lot 1.3.0, plus `AdContactResourceTest` en 1.4.0 et
+`RideGroupLeaderTest` en 1.5.0),
 groupées par item. Les lancer par groupe donne un diagnostic plus lisible qu'un `mvn test` complet.
 
 ```bash
@@ -943,6 +1046,9 @@ mvn test -Dtest='fr.pedalons.common.*Test'
 # 1.4.0 — le relais de contact d'annonce
 mvn test -Dtest='AdContactResourceTest'
 
+# 1.5.0 — le meneur de groupe
+mvn test -Dtest='RideGroupLeaderTest'
+
 # Et pour finir, la totalité
 mvn test
 ```
@@ -953,6 +1059,13 @@ dans `AdDto`**, le 400 `AD_CONTACT_SELF`, le 400 `AD_CONTACT_OPTED_OUT` (avec v�
 e-mail n'est parti), le 401 anonyme et le 403/404 pour un non-membre, et le 429
 `AD_CONTACT_RATE_LIMITED` **atteint en écrivant à des annonces différentes** — c'est ce test-là qui
 garde l'invariant « quota par expéditeur » du §2.5.
+
+`RideGroupLeaderTest` couvre les six comportements du meneur : le meneur exposé sur le groupe après
+création, le groupe **sans** meneur qui laisse `leader` nul au lieu de retomber sur le créateur, le
+400 `RIDE_GROUP_LEADER_NOT_MEMBER` pour un non-membre puis pour un membre d'une autre équipe, la
+désignation puis l'**effacement** par `"leaderId": null` sur une mise à jour, et
+`groupLeader_isNotTheRideCreator` — c'est ce dernier qui garde l'invariant du §2.10 : il échoue si
+quelqu'un réintroduit un repli sur `createdBy`. Ne pas le désactiver pour faire passer un build.
 
 Les tests `…QueryCountTest` (`CalendarQueryCountTest`, `ParticipationQueryCountTest`) sont ceux qui
 gardent l'invariant du §2.8 : ils échouent si quelqu'un réintroduit une requête par ligne. Ne pas
@@ -975,8 +1088,8 @@ c'est le seul cas où il faut recommiter les fichiers générés.
 Vérifier aussi que la version est bien celle attendue :
 
 ```bash
-grep 'pedalons.api.version' backend/src/main/resources/application.properties   # 1.4.0
-grep -A2 '^info:' contracts/openapi.yaml                                        # version: 1.4.0
+grep 'pedalons.api.version' backend/src/main/resources/application.properties   # 1.5.0
+grep -A2 '^info:' contracts/openapi.yaml                                        # version: 1.5.0
 ```
 
 Et l'invariant du relais, qui est ce que la fonctionnalité existe pour tenir : **`AdDto` ne porte
@@ -994,6 +1107,31 @@ spec = yaml.safe_load(open('contracts/openapi.yaml'))
 props = spec['components']['schemas']['AdDto']['properties']
 leaks = [p for p in props if re.search(r'contact|email|phone|mail|tel', p, re.I)]
 print('AdDto:', 'OK — aucun champ de contact' if not leaks else f'FUITE : {leaks}')
+EOF
+```
+
+Et les invariants du meneur : `leader` présent mais **non requis** en lecture, `leaderId` présent en
+écriture, et **rien** sur les gabarits.
+
+```bash
+python3 - <<'EOF'
+import yaml
+s = yaml.safe_load(open('contracts/openapi.yaml'))
+sc = s['components']['schemas']
+
+g = sc['RideGroupDto']
+print('RideGroupDto.leader :', 'OK' if 'leader' in g['properties'] else 'MANQUANT')
+print('  non requis        :', 'OK' if 'leader' not in g.get('required', []) else
+      'ERREUR — un leader requis force un objet vide quand personne ne mène')
+print('  type              :', g['properties']['leader'].get('$ref'))  # PublicUserDto
+
+print('GroupRequest.leaderId       :', 'OK' if 'leaderId' in sc['GroupRequest']['properties'] else 'MANQUANT')
+print('  optionnel                 :', 'OK' if 'leaderId' not in sc['GroupRequest'].get('required', []) else 'ERREUR')
+
+tpl = sc['RideTemplateGroupRequest']['properties']
+print('RideTemplateGroupRequest    :', 'OK — aucun meneur'
+      if not [p for p in tpl if 'leader' in p.lower()]
+      else 'ERREUR — un champ de meneur est apparu sur les gabarits, qui ne doivent pas en porter')
 EOF
 ```
 
@@ -1018,11 +1156,18 @@ Le relais de 1.4.0 a ajouté `contactAdAuthor` au client Orval (`frontend/src/ap
 et `contactableByMembers` à `userDto`/`userPreferencesRequest` ; **aucun écran web ne les appelle
 encore**. Le bouton de contact et l'interrupteur de préférence restent à câbler.
 
+Le meneur de 1.5.0 a ajouté `leader` à `frontend/src/api/dto/rideGroupDto.ts` et `leaderId` à
+`frontend/src/api/dto/groupRequest.ts`, tous deux optionnels ; **aucun écran web ne les lit ni ne
+les écrit encore**. Restent à câbler le sélecteur de meneur dans `RideEditor.tsx` et la pastille sur
+la carte de groupe — cette dernière **rendue seulement si `leader` est présent**, sans repli sur
+`createdBy` (§2.10).
+
 ### 5.5 Mobile
 
 Les clients générés sont à jour — y compris `contactAdAuthor` dans
-`mobile/lib/api/generated/clients/ads_client.dart` — mais **aucun écran ne consomme encore les
-nouveaux champs** ; c'est le chantier suivant.
+`mobile/lib/api/generated/clients/ads_client.dart`, et `leader` / `leaderId` dans
+`mobile/lib/api/generated/models/ride_group_dto.dart` et `group_request.dart` — mais **aucun écran ne
+consomme encore les nouveaux champs** ; c'est le chantier suivant.
 
 ```bash
 cd /Users/glandais/code/perso/tribly/mobile
@@ -1048,6 +1193,28 @@ curl -s -H "Authorization: Bearer $TOKEN" \
 # commentCount absent pour un anonyme (et non zéro)
 curl -s "http://localhost:8080/api/publications?size=1" | jq '.publications[0] | has("commentCount")'
 # → false
+
+# le meneur : sur un groupe sans meneur désigné, la clé « leader » doit être ABSENTE du JSON —
+# pas un objet vide, pas un objet portant le créateur de la sortie
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8080/api/teams/gaby/rides/<slug>" | jq '[.groups[] | has("leader")]'
+# → false sur les groupes sans meneur (le cas courant), true seulement sur ceux qui en ont un
+
+# et quand il y en a un, c'est un PublicUserDto ({id, displayName, avatarUrl}), pas une chaîne
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8080/api/teams/gaby/rides/<slug>" \
+  | jq '[.groups[] | {name, leader}]'
+# sur une sortie à plusieurs groupes ayant chacun un meneur distinct, les valeurs doivent différer —
+# c'est ce qu'un repli sur le créateur de la sortie rendrait identique partout
+
+# désigner un non-membre doit échouer, pas passer silencieusement
+curl -s -X PUT -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"...":"...","groups":[{"name":"G1","leaderId":"<id hors équipe>"}]}' \
+  "http://localhost:8080/api/teams/gaby/rides/<slug>" | jq '.code'
+# → "RIDE_GROUP_LEADER_NOT_MEMBER" en 400
+
+# effacer une désignation : envoyer null, ce qui est une opération réelle et non une omission
+# (rejouer le GET ci-dessus : la clé « leader » doit avoir disparu)
 
 # le relais : 204 sans corps, et l'e-mail visible dans Mailhog (http://localhost:8025)
 curl -s -o /dev/null -w '%{http_code}\n' -X POST \
