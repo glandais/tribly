@@ -4,36 +4,43 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../api/generated/export.dart';
 import '../../../../core/pdl/pdl.dart';
 import '../../../../core/preferences/user_preferences_provider.dart';
+import '../../../../core/theme/pdl_icons.dart';
 import '../../domain/route_filters.dart';
-import 'route_filter_sheet.dart';
 import '../../domain/route_filter_labels.dart';
+import 'route_filter_sheet.dart';
 
 /// The filter state made visible above the list, one chip per constraint.
 ///
 /// On mobile this replaces the web's stack of selects: what is applied is
 /// readable at a glance and removable in one tap. Sort is a chip like the
 /// others, in first position.
+///
+/// Elle n'existe **qu'en vue Liste** : en vue Carte, le compteur du
+/// [PdlFilterButton] prend le relais (§3.1).
 class RouteFilterChipsBar extends ConsumerWidget {
   final RouteFilters filters;
   final ValueChanged<RouteFilters> onChanged;
-
-  /// Opens the full filter sheet — used by the chips for fields that are not
-  /// set yet.
-  final VoidCallback onOpenFilters;
 
   const RouteFilterChipsBar({
     super.key,
     required this.filters,
     required this.onChanged,
-    required this.onOpenFilters,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final units = ref.watch(unitSystemProvider);
-    final active = filters.activeFields;
-    final inactive = RouteFilterField.values
-        .where((f) => f != RouteFilterField.search && !active.contains(f))
+    final UnitSystem units = ref.watch(unitSystemProvider);
+    final List<RouteFilterField> active = filters.activeFields;
+    final List<RouteFilterField> inactive = RouteFilterField.values
+        .where(
+          (RouteFilterField f) =>
+              f != RouteFilterField.search &&
+              // La proximité ne s'arme pas depuis la feuille de filtres mais
+              // depuis « Autour de moi » : proposer une chip inerte ici serait
+              // une icône-action sans effet.
+              f != RouteFilterField.proximity &&
+              !active.contains(f),
+        )
         .toList();
 
     // F-DE-3 : la rangée figeait sa hauteur à 40 px et la 4ᵉ chip se faisait
@@ -42,37 +49,46 @@ class RouteFilterChipsBar extends ConsumerWidget {
     // typographique — et fond les 28 derniers pixels, ce qui annonce le
     // débordement au lieu de le subir.
     return PdlChipRow(
-      children: [
+      children: <Widget>[
         PdlChip(
           sortStyle: true,
           icon: filters.sortDir == SortDirection.asc
-              ? Icons.arrow_upward
-              : Icons.arrow_downward,
+              ? PdlIcons.chevronUp
+              : PdlIcons.chevronDown,
           label: RouteFilterLabels.routeSortByName(filters.sortBy),
           onTap: () => _pickSort(context),
         ),
-        for (final field in active)
+        for (final RouteFilterField field in active)
           PdlChip(
             label: RouteFilterLabels.filterChip(filters, field, units) ?? '',
             selected: true,
-            onTap: onOpenFilters,
+            onTap: () => _openFilters(context),
             onRemoved: () => onChanged(filters.without(field)),
           ),
-        for (final field in inactive)
+        for (final RouteFilterField field in inactive)
           PdlChip(
             label: RouteFilterLabels.filterFieldName(field),
-            onTap: onOpenFilters,
+            onTap: () => _openFilters(context),
           ),
       ],
     );
   }
 
-  Future<void> _pickSort(BuildContext context) async {
-    final result = await showRouteSortSheet(
+  Future<void> _openFilters(BuildContext context) async {
+    final RouteFilters? result = await showRouteFilterSheet(
       context,
-      sortBy: filters.sortBy,
-      sortDir: filters.sortDir,
+      filters: filters,
     );
+    if (result != null) onChanged(result);
+  }
+
+  Future<void> _pickSort(BuildContext context) async {
+    final ({RouteSortBy by, SortDirection dir})? result =
+        await showRouteSortSheet(
+          context,
+          sortBy: filters.sortBy,
+          sortDir: filters.sortDir,
+        );
     if (result != null) {
       onChanged(filters.copyWith(sortBy: result.by, sortDir: result.dir));
     }

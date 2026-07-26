@@ -107,7 +107,8 @@
     "comingSoon": "Cet écran arrive dans une prochaine version.",
     "close": "Fermer",
     "clearSearch": "Effacer la recherche",
-    "delete": "Supprimer"
+    "delete": "Supprimer",
+    "open": "Ouvrir"
   },
   "placeholders": {
     "teamsDiscover": {
@@ -385,7 +386,9 @@
         "removeFilter": "Retirer le filtre {filter}",
         "resetAll": "Tout réinitialiser",
         "withoutFilter": "Sans le filtre {filter}"
-      }
+      },
+      "countOf": "{shown} parcours sur {total}",
+      "densitySwitched": "Au-delà de {threshold} résultats, la liste passe en affichage compact. Vous pouvez revenir aux vignettes à tout moment."
     },
     "filters": {
       "title": "Filtres",
@@ -408,7 +411,9 @@
       "sort": "Trier par",
       "rangeBetween": "{min} – {max}",
       "rangeFrom": "> {value}",
-      "rangeTo": "< {value}"
+      "rangeTo": "< {value}",
+      "proximity": "Proximité",
+      "proximityValue": "Autour de moi · {radius}"
     },
     "hilliness": {
       "flat": "Plat",
@@ -470,7 +475,26 @@
     "loadErrorTitle": "Chargement impossible",
     "cursorHint": "Réticule synchronisé dans les deux sens avec le marqueur sur la carte.",
     "downloading": "Téléchargement...",
-    "openFullSheet": "Voir la fiche complète"
+    "openFullSheet": "Voir la fiche complète",
+    "view": {
+      "list": "Liste",
+      "map": "Carte"
+    },
+    "density": {
+      "cards": "Vignettes",
+      "compact": "Compact"
+    },
+    "scope": {
+      "title": "Portée",
+      "allTeams": "Toutes mes équipes",
+      "minRole": "Rôle minimum",
+      "anyRole": "Tous les rôles"
+    },
+    "nearMe": {
+      "title": "Autour de moi",
+      "active": "Autour de moi · {radius}",
+      "locating": "Localisation…"
+    }
   },
   "calendar": {
     "title": "Calendrier",
@@ -480,6 +504,48 @@
     "noEventsThisMonth": {
       "title": "Rien en {month}",
       "message": "Aucun événement ce mois-là. D'autres mois en contiennent peut-être."
+    },
+    "cancelled": "Annulé",
+    "today": "Aujourd'hui",
+    "scope": "Portée",
+    "previousMonth": "Mois précédent",
+    "nextMonth": "Mois suivant",
+    "collapseGrid": "Replier le mois",
+    "expandGrid": "Déplier le mois",
+    "upcoming": "À venir",
+    "clearFilters": "Effacer les filtres",
+    "goToNextMonthWithEvents": "Aller au prochain mois avec une sortie",
+    "noEventsIn": "Vos équipes n'ont publié aucune sortie ni étape de voyage en {month}.",
+    "eventCount": {
+      "zero": "aucun événement",
+      "one": "{} événement",
+      "other": "{} événements"
+    },
+    "filters": {
+      "all": "Tout",
+      "rides": "Sorties",
+      "trips": "Voyages"
+    },
+    "legend": {
+      "ride": "Sortie",
+      "stage": "Étape de voyage"
+    },
+    "noEventsFiltered": {
+      "title": "Rien avec ces filtres",
+      "message": "Ce mois contient des événements, mais aucun ne correspond au filtre choisi."
+    },
+    "subscription": {
+      "title": "Abonnement calendrier",
+      "help": "Abonnez-vous à ce calendrier depuis votre application de calendrier (Apple Calendar, Google Calendar, Outlook…).",
+      "tokenHidden": "Le jeton personnel n'est jamais affiché en clair.",
+      "copy": "Copier le lien",
+      "copied": "Lien copié. Collez-le dans votre application de calendrier.",
+      "subscribe": "S'abonner",
+      "noHandler": "Aucune application de calendrier n'a pris la main. Le lien a été copié, collez-le à la main.",
+      "regenerate": "Régénérer le lien",
+      "regenerateTitle": "Régénérer le lien ?",
+      "regenerateWarning": "L'ancien lien cessera immédiatement de fonctionner sur tous vos appareils.",
+      "regenerated": "Lien régénéré. Réabonnez vos appareils avec le nouveau lien."
     }
   },
   "profile": {

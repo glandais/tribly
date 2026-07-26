@@ -1,19 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/widgets/coming_soon_page.dart';
+import 'routes_page.dart';
 
 /// Cross-team route library — the root of the Routes tab.
 ///
-/// Placeholder: the real screen (filters, sorting, list/map toggle) is
-/// delivered by batch 3. The tab exists now so the five-tab bar is complete on
-/// every screen.
+/// C'est le **même écran** que la section Parcours d'une équipe, à la portée
+/// près : ici elle est libre et le sélecteur de portée s'affiche.
 class AllRoutesPage extends StatelessWidget {
   const AllRoutesPage({super.key});
 
   @override
-  Widget build(BuildContext context) => const ComingSoonPage(
-    titleKey: 'placeholders.allRoutes.title',
-    messageKey: 'placeholders.allRoutes.message',
-    icon: Icons.route_outlined,
-  );
+  Widget build(BuildContext context) => const RoutesPage(teamSlug: null);
 }

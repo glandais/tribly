@@ -8,7 +8,7 @@ import '../../../../core/preferences/user_preferences_provider.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../domain/route_filters.dart';
-import '../../providers/route_list_provider.dart';
+import '../../providers/route_count_provider.dart';
 import '../../domain/route_filter_labels.dart';
 
 /// Opens the filter sheet and returns the filters to apply, or null if the
@@ -22,13 +22,11 @@ import '../../domain/route_filter_labels.dart';
 /// passait devant et mangeait son bouton de validation.
 Future<RouteFilters?> showRouteFilterSheet(
   BuildContext context, {
-  required String? teamSlug,
   required RouteFilters filters,
 }) {
   return PdlSheet.show<RouteFilters>(
     context: context,
-    builder: (context) =>
-        _RouteFilterSheet(teamSlug: teamSlug, initial: filters),
+    builder: (context) => _RouteFilterSheet(initial: filters),
   );
 }
 
@@ -45,10 +43,9 @@ Future<({RouteSortBy by, SortDirection dir})?> showRouteSortSheet(
 }
 
 class _RouteFilterSheet extends ConsumerStatefulWidget {
-  final String? teamSlug;
   final RouteFilters initial;
 
-  const _RouteFilterSheet({required this.teamSlug, required this.initial});
+  const _RouteFilterSheet({required this.initial});
 
   @override
   ConsumerState<_RouteFilterSheet> createState() => _RouteFilterSheetState();
@@ -65,10 +62,10 @@ class _RouteFilterSheetState extends ConsumerState<_RouteFilterSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final countProvider = routeCountProvider((
-      teamSlug: widget.teamSlug,
-      filters: _draft,
-    ));
+    // S21-2 : le CTA annonce le compte **du serveur**, pas une estimation.
+    // La famille débounce elle-même, si bien que glisser un curseur ne part
+    // pas compter à chaque pixel.
+    final countProvider = routeCountProvider(_draft);
     ref.listen(countProvider, (_, next) {
       final value = next.value;
       if (value != null) _lastCount = value;
@@ -114,6 +111,17 @@ class _RouteFilterSheetState extends ConsumerState<_RouteFilterSheet> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // « Trier par » ouvre la feuille, comme la maquette : c'est la
+              // première décision qu'on prend sur une liste de 2 585 entrées,
+              // pas la dernière. F-DE-5 l'avait laissée écrasée à 1 pt en fin
+              // de colonne ; elle est désormais en tête, à 52 px garantis.
+              _NavigationRow(
+                label: 'routes.filters.sort'.tr(),
+                value: _sortSummary(),
+                onTap: _pickSort,
+                showTopBorder: false,
+              ),
+              const SizedBox(height: 12),
               _RangeSection(
                 label: 'routes.filters.distance'.tr(),
                 summary: RouteFilterLabels.filterRange(
@@ -165,8 +173,8 @@ class _RouteFilterSheetState extends ConsumerState<_RouteFilterSheet> {
                     _update(_draft.copyWith(hilliness: value)),
               ),
               const SizedBox(height: 12),
-              // Wind and sort are one level down: the two filters that
-              // actually decide the list stay above the fold.
+              // La direction du vent reste d'un niveau plus bas : c'est le
+              // filtre le moins souvent posé.
               _NavigationRow(
                 label: 'routes.filters.windDirection'.tr(),
                 value: _draft.windDirection == null
@@ -175,11 +183,6 @@ class _RouteFilterSheetState extends ConsumerState<_RouteFilterSheet> {
                         _draft.windDirection!,
                       ),
                 onTap: _pickWindDirection,
-              ),
-              _NavigationRow(
-                label: 'routes.filters.sort'.tr(),
-                value: _sortSummary(),
-                onTap: _pickSort,
               ),
             ],
           ),
@@ -334,11 +337,13 @@ class _NavigationRow extends StatelessWidget {
   final String label;
   final String value;
   final VoidCallback onTap;
+  final bool showTopBorder;
 
   const _NavigationRow({
     required this.label,
     required this.value,
     required this.onTap,
+    this.showTopBorder = true,
   });
 
   @override
@@ -350,7 +355,9 @@ class _NavigationRow extends StatelessWidget {
       // C'est exactement ce que F-DE-5 avait perdu — cette ligne mesurait
       // 1 pt. `minTileHeight` la rend vérifiable par un test.
       minTileHeight: kFilterNavigationRowHeight,
-      shape: Border(top: BorderSide(color: theme.dividerColor)),
+      shape: showTopBorder
+          ? Border(top: BorderSide(color: theme.dividerColor))
+          : null,
       title: Text(label, style: theme.textTheme.titleSmall),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,

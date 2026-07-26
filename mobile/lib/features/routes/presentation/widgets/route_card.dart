@@ -1,0 +1,136 @@
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart' hide Visibility;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../api/generated/export.dart';
+import '../../../../config/paths.dart';
+import '../../../../core/pdl/pdl.dart';
+import '../../../../core/preferences/user_preferences_provider.dart';
+import '../../../../core/theme/enum_colors.dart';
+import '../../../../core/theme/pdl_colors.dart';
+import '../../../../core/theme/pdl_icons.dart';
+import '../../../../core/theme/pdl_tokens.dart';
+import '../../../../core/theme/pdl_typography.dart';
+import '../../../../core/utils/formatters.dart';
+
+/// La densité « vignettes » de la parcothèque — un bandeau média de 208 px,
+/// l'équipe, le nom, deux chiffres, deux badges.
+///
+/// C'est la densité par défaut sous [kRouteCompactThreshold] résultats : quand
+/// on parcourt, la miniature du tracé en dit plus qu'un nom.
+///
+/// **`hilliness` n'est volontairement pas rendu ici** : `RouteDto` ne le porte
+/// pas (§3.1, « Limites »). C'est un filtre serveur sans restitution possible,
+/// et afficher un relief déduit de la pente moyenne serait inventer une donnée.
+class RouteCard extends ConsumerWidget {
+  const RouteCard({super.key, required this.route, this.onTap});
+
+  final RouteDto route;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final PdlColors c = context.pdl;
+    final PdlTypography t = context.pdlText;
+    final UnitSystem units = ref.watch(unitSystemProvider);
+    final bool dark = Theme.of(context).brightness == Brightness.dark;
+
+    final String? thumbnail =
+        (dark
+            ? route.media.assets.thumbnailDark?.url
+            : route.media.assets.thumbnailLight?.url) ??
+        route.thumbnailUrl;
+
+    return PdlCard(
+      padding: PdlCardPadding.none,
+      onTap: onTap ?? () => _open(context),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Hero(
+            tag: 'route-thumbnail-${route.slug}',
+            child: PdlCardMedia(
+              tone: PdlMediaTone.ride,
+              icon: PdlIcons.route,
+              imageUrl: thumbnail,
+              height: PdlMetrics.media16x9,
+              borderRadius: const BorderRadius.vertical(top: PdlRadii.card),
+              semanticLabel: route.name,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(PdlSpacing.card),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                // Pas de logo : `TeamPublicationDto` n'en porte pas (§5.2-2),
+                // et `PdlTeamLine` retombe alors sur son icône.
+                PdlTeamLine(
+                  label: route.team.name,
+                  onTap: () => context.push(Paths.team(route.team.slug)),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  route.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: t.cardTitle.copyWith(color: c.text),
+                ),
+                const SizedBox(height: 8),
+                PdlStatRow(stats: routeStats(route, units)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: PdlSpacing.badgeGap,
+                  runSpacing: PdlSpacing.badgeGap,
+                  children: routeBadges(context, route),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _open(BuildContext context) =>
+      context.push(Paths.route(route.team.slug, route.slug));
+}
+
+/// Les deux chiffres d'un parcours, dans le système d'unités de
+/// l'utilisateur. Partagés par les deux densités et par la carte flottante de
+/// la vue Carte, pour qu'un même parcours ne s'écrive jamais de deux façons.
+List<PdlStat> routeStats(RouteDto route, UnitSystem units) => <PdlStat>[
+  PdlStat(
+    icon: PdlIcons.distance,
+    value: AppFormatters.formatDistance(route.distance, units),
+  ),
+  PdlStat(
+    icon: PdlIcons.elevationUp,
+    value: AppFormatters.formatElevation(route.elevationGain, units),
+  ),
+];
+
+/// Revêtement puis visibilité, dans l'ordre du §1.2 (type → statut →
+/// visibilité).
+List<Widget> routeBadges(BuildContext context, RouteDto route) {
+  final SurfaceType surface = SurfaceType.fromJson(route.surfaceType);
+  final Visibility visibility = Visibility.fromJson(route.visibility);
+  return <Widget>[
+    PdlBadge(
+      label: 'routes.surfaceType.${route.surfaceType.toLowerCase()}'.tr(),
+      tone: surface.tone(context.pdl),
+    ),
+    PdlBadge(
+      label: 'visibility.${route.visibility.toLowerCase()}'.tr(),
+      tone: visibility.tone(context.pdl),
+      icon: switch (visibility) {
+        Visibility.public => PdlIcons.visibilityPublic,
+        Visibility.publicUnlisted => PdlIcons.visibilityUnlisted,
+        _ => PdlIcons.visibilityTeam,
+      },
+    ),
+  ];
+}

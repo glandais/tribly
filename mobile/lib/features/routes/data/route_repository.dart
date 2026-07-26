@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../api/generated/export.dart';
 import '../../../api/pedalons_api_client.dart';
 import '../../../core/pagination/pagination.dart';
+import '../../../core/pdl/map/pdl_map_controller.dart';
 import '../domain/route_filters.dart';
 
 final routeRepositoryProvider = Provider<RouteRepository>((ref) {
@@ -16,15 +17,16 @@ class RouteRepository {
 
   /// One page of routes, filtered and sorted.
   ///
-  /// [teamSlug] null queries every team the user can see, otherwise the list
-  /// is scoped to that team.
+  /// La portée est dans [filters] : `teamSlug` nul interroge toutes les
+  /// équipes visibles, sinon la liste est celle de cette équipe.
   Future<PageResult<RouteDto>> fetchRoutes({
-    required String? teamSlug,
     required RouteFilters filters,
     int page = 0,
     int size = kDefaultPageSize,
+    ListViewMode? view,
   }) async {
-    final search = filters.search?.trim();
+    final String? search = _search(filters);
+    final String? teamSlug = filters.teamSlug;
     final response = teamSlug == null
         ? await _routesClient.listAllRoutes(
             page: page,
@@ -34,10 +36,18 @@ class RouteRepository {
             maxElevationGain: filters.maxElevationGain,
             minDistance: filters.minDistance,
             minElevationGain: filters.minElevationGain,
-            search: (search?.isEmpty ?? true) ? null : search,
+            minRole: filters.minRole,
+            nearLat: filters.hasProximity ? filters.nearLat : null,
+            nearLon: filters.hasProximity ? filters.nearLon : null,
+            nearRadius: filters.hasProximity
+                ? filters.effectiveNearRadius
+                : null,
+            nearType: filters.hasProximity ? filters.nearType : null,
+            search: search,
             sortBy: filters.sortBy,
             sortDir: filters.sortDir,
             surfaceType: filters.surfaceType,
+            view: view,
             windDirection: filters.windDirection,
           )
         : await _routesClient.listRoutes(
@@ -49,10 +59,17 @@ class RouteRepository {
             maxElevationGain: filters.maxElevationGain,
             minDistance: filters.minDistance,
             minElevationGain: filters.minElevationGain,
-            search: (search?.isEmpty ?? true) ? null : search,
+            nearLat: filters.hasProximity ? filters.nearLat : null,
+            nearLon: filters.hasProximity ? filters.nearLon : null,
+            nearRadius: filters.hasProximity
+                ? filters.effectiveNearRadius
+                : null,
+            nearType: filters.hasProximity ? filters.nearType : null,
+            search: search,
             sortBy: filters.sortBy,
             sortDir: filters.sortDir,
             surfaceType: filters.surfaceType,
+            view: view,
             windDirection: filters.windDirection,
           );
 
@@ -61,18 +78,99 @@ class RouteRepository {
 
   /// Number of routes matching [filters], without fetching them.
   ///
-  /// Used by the filter sheet to keep its button honest about what applying
-  /// the draft would yield.
-  Future<int> countRoutes({
-    required String? teamSlug,
-    required RouteFilters filters,
-  }) async {
-    final result = await fetchRoutes(
-      teamSlug: teamSlug,
-      filters: filters,
-      size: 1,
+  /// Passe par `…/routes/count` et non par une page de taille 1 : le serveur
+  /// ne lit alors **aucun** parcours, et le compte ne peut pas diverger de la
+  /// liste puisqu'il accepte exactement les mêmes filtres.
+  Future<int> countRoutes(RouteFilters filters) async {
+    final String? search = _search(filters);
+    final String? teamSlug = filters.teamSlug;
+    final CountResponse response = teamSlug == null
+        ? await _routesClient.countAllRoutes(
+            hilliness: filters.hilliness,
+            maxDistance: filters.maxDistance,
+            maxElevationGain: filters.maxElevationGain,
+            minDistance: filters.minDistance,
+            minElevationGain: filters.minElevationGain,
+            minRole: filters.minRole,
+            nearLat: filters.hasProximity ? filters.nearLat : null,
+            nearLon: filters.hasProximity ? filters.nearLon : null,
+            nearRadius: filters.hasProximity
+                ? filters.effectiveNearRadius
+                : null,
+            nearType: filters.hasProximity ? filters.nearType : null,
+            search: search,
+            surfaceType: filters.surfaceType,
+            windDirection: filters.windDirection,
+          )
+        : await _routesClient.countRoutes(
+            teamSlug: teamSlug,
+            hilliness: filters.hilliness,
+            maxDistance: filters.maxDistance,
+            maxElevationGain: filters.maxElevationGain,
+            minDistance: filters.minDistance,
+            minElevationGain: filters.minElevationGain,
+            nearLat: filters.hasProximity ? filters.nearLat : null,
+            nearLon: filters.hasProximity ? filters.nearLon : null,
+            nearRadius: filters.hasProximity
+                ? filters.effectiveNearRadius
+                : null,
+            nearType: filters.hasProximity ? filters.nearType : null,
+            search: search,
+            surfaceType: filters.surfaceType,
+            windDirection: filters.windDirection,
+          );
+    return response.total;
+  }
+
+  /// La boîte englobant les parcours de [filters], pour cadrer la carte
+  /// **avant** son premier rendu. `null` quand aucun parcours ne correspond.
+  Future<PdlMapBox?> fetchBounds(RouteFilters filters) async {
+    final String? search = _search(filters);
+    final String? teamSlug = filters.teamSlug;
+    final RouteBoundsResponse response = teamSlug == null
+        ? await _routesClient.getAllRoutesBounds(
+            hilliness: filters.hilliness,
+            maxDistance: filters.maxDistance,
+            maxElevationGain: filters.maxElevationGain,
+            minDistance: filters.minDistance,
+            minElevationGain: filters.minElevationGain,
+            minRole: filters.minRole,
+            nearLat: filters.hasProximity ? filters.nearLat : null,
+            nearLon: filters.hasProximity ? filters.nearLon : null,
+            nearRadius: filters.hasProximity
+                ? filters.effectiveNearRadius
+                : null,
+            nearType: filters.hasProximity ? filters.nearType : null,
+            search: search,
+            surfaceType: filters.surfaceType,
+            windDirection: filters.windDirection,
+          )
+        : await _routesClient.getRoutesBounds(
+            teamSlug: teamSlug,
+            hilliness: filters.hilliness,
+            maxDistance: filters.maxDistance,
+            maxElevationGain: filters.maxElevationGain,
+            minDistance: filters.minDistance,
+            minElevationGain: filters.minElevationGain,
+            nearLat: filters.hasProximity ? filters.nearLat : null,
+            nearLon: filters.hasProximity ? filters.nearLon : null,
+            nearRadius: filters.hasProximity
+                ? filters.effectiveNearRadius
+                : null,
+            nearType: filters.hasProximity ? filters.nearType : null,
+            search: search,
+            surfaceType: filters.surfaceType,
+            windDirection: filters.windDirection,
+          );
+
+    final BoundsDto? bounds = response.bounds;
+    if (bounds == null) return null;
+    return PdlMapBox(
+      minLon: bounds.minLon,
+      minLat: bounds.minLat,
+      maxLon: bounds.maxLon,
+      maxLat: bounds.maxLat,
     );
-    return result.total;
   }
 
   /// Get route details
@@ -99,5 +197,10 @@ class RouteRepository {
       simplify: simplify,
       points: points,
     );
+  }
+
+  static String? _search(RouteFilters filters) {
+    final String? search = filters.search?.trim();
+    return (search == null || search.isEmpty) ? null : search;
   }
 }

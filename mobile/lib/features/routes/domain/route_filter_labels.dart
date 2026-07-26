@@ -22,6 +22,7 @@ abstract final class RouteFilterLabels {
     RouteFilterField.hilliness => 'routes.filters.hilliness'.tr(),
     RouteFilterField.surfaceType => 'routes.filters.surfaceType'.tr(),
     RouteFilterField.windDirection => 'routes.filters.windDirection'.tr(),
+    RouteFilterField.proximity => 'routes.filters.proximity'.tr(),
   };
 
   static String hillinessName(Hilliness value) =>
@@ -69,6 +70,19 @@ abstract final class RouteFilterLabels {
         filters.windDirection == null
             ? null
             : windDirectionName(filters.windDirection!),
+      // « Autour de moi · 25 km » : le rayon fait partie du filtre, et le
+      // taire rendrait la chip indistincte d'un rayon à 50 km.
+      RouteFilterField.proximity =>
+        !filters.hasProximity
+            ? null
+            : 'routes.filters.proximityValue'.tr(
+                namedArgs: <String, String>{
+                  'radius': AppFormatters.formatDistanceRounded(
+                    filters.effectiveNearRadius,
+                    units,
+                  ),
+                },
+              ),
     };
   }
 

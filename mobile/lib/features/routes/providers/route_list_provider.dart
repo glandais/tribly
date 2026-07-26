@@ -1,49 +1,56 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../api/generated/export.dart';
 import '../../../core/pagination/pagination.dart';
+import '../../../core/preferences/user_preferences_provider.dart';
 import '../data/route_repository.dart';
 import '../domain/route_filters.dart';
 
-/// Identifies one route result set: a scope (a team, or every visible team)
-/// plus the filters applied to it.
-typedef RouteListKey = ({String? teamSlug, RouteFilters filters});
-
-/// Filters currently applied to a route list, keyed by scope.
+/// Filters currently applied to a route list, **keyed by the screen's fixed
+/// scope**.
 ///
-/// Kept outside the paged notifier on purpose: changing it swaps the family
-/// key below, which builds a fresh list rather than mutating the current one.
+/// La clé de famille n'est pas la portée choisie mais celle que l'écran
+/// impose : `null` pour l'onglet Parcours, le slug pour la section d'une
+/// équipe. La portée *choisie*, elle, vit dans `RouteFilters.teamSlug`, ce qui
+/// la fait participer à la clé de liste — changer d'équipe crée un jeu de
+/// résultats neuf, comme n'importe quel autre filtre.
 final routeFiltersProvider = StateProvider.autoDispose
-    .family<RouteFilters, String?>((ref, teamSlug) => const RouteFilters());
+    .family<RouteFilters, String?>(
+      (ref, teamSlug) => RouteFilters(teamSlug: teamSlug),
+    );
 
-/// The paginated route list for a scope + filters pair.
+/// The paginated route list for one filter set.
 ///
 /// Auto-disposed, so abandoning a filter combination frees it, while the list
 /// the user is actually reading stays alive as long as the page is mounted —
 /// which is what preserves loaded pages and scroll position when they open a
 /// route and come back.
 final routeListProvider = StateNotifierProvider.autoDispose
-    .family<RouteListNotifier, PagedListState<RouteDto>, RouteListKey>((
+    .family<RouteListNotifier, PagedListState<RouteDto>, RouteFilters>((
       ref,
-      key,
+      filters,
     ) {
-      return RouteListNotifier(ref.watch(routeRepositoryProvider), key);
+      return RouteListNotifier(ref.watch(routeRepositoryProvider), filters);
     });
 
 class RouteListNotifier extends PagedListNotifier<RouteDto> {
   final RouteRepository _repository;
-  final RouteListKey _key;
+  final RouteFilters _filters;
 
-  RouteListNotifier(this._repository, this._key);
+  RouteListNotifier(this._repository, this._filters);
 
   @override
   Future<PageResult<RouteDto>> fetchPage(int page) {
     return _repository.fetchRoutes(
-      teamSlug: _key.teamSlug,
-      filters: _key.filters,
+      filters: _filters,
       page: page,
       size: pageSize,
+      // Une ligne de liste n'a jamais besoin du markdown, des pièces jointes
+      // ni des images au-delà de la première : `COMPACT` les laisse au
+      // serveur, ce qui divise le poids d'une page par un ordre de grandeur.
+      view: ListViewMode.compact,
     );
   }
 
@@ -51,31 +58,93 @@ class RouteListNotifier extends PagedListNotifier<RouteDto> {
   Object? itemKey(RouteDto item) => item.id;
 }
 
-/// How many routes the given filters would return.
-///
-/// Debounced so dragging a slider in the filter sheet does not fire a request
-/// per pixel; the auto-dispose family drops the pending call as soon as the
-/// draft changes again.
-final routeCountProvider = FutureProvider.autoDispose.family<int, RouteListKey>(
-  (ref, key) async {
-    await Future<void>.delayed(const Duration(milliseconds: 350));
-    if (!ref.mounted) return 0;
-    final repository = ref.watch(routeRepositoryProvider);
-    return repository.countRoutes(teamSlug: key.teamSlug, filters: key.filters);
-  },
-);
-
-/// A short preview of what the list would hold without the given filter.
+/// A short preview of what the list would hold under the given filters.
 ///
 /// Feeds the dead-end empty state: rather than claiming that dropping a filter
 /// helps, it shows the routes that would actually come back.
-final routePreviewWithoutFilterProvider = FutureProvider.autoDispose
-    .family<List<RouteDto>, RouteListKey>((ref, key) async {
-      final repository = ref.watch(routeRepositoryProvider);
-      final page = await repository.fetchRoutes(
-        teamSlug: key.teamSlug,
-        filters: key.filters,
+final routePreviewProvider = FutureProvider.autoDispose
+    .family<List<RouteDto>, RouteFilters>((ref, filters) async {
+      final RouteRepository repository = ref.watch(routeRepositoryProvider);
+      final PageResult<RouteDto> page = await repository.fetchRoutes(
+        filters: filters,
         size: 3,
+        view: ListViewMode.compact,
       );
       return page.items;
     });
+
+// ── Vue et densité ───────────────────────────────────────────────────────────
+//
+// Ni l'une ni l'autre n'est un filtre : elles ne changent pas le jeu de
+// résultats, seulement son rendu. Les faire entrer dans `RouteFilters` — qui
+// est la clé de famille de la liste — rejouerait tout le jeu à chaque bascule.
+
+const String _kRouteViewKey = 'routes.view';
+const String _kRouteDensityKey = 'routes.density';
+
+/// Liste ou carte. Persistée : revenir sur l'onglet Parcours restitue la vue
+/// qu'on y avait laissée.
+final routeViewModeProvider =
+    NotifierProvider<RouteViewModeNotifier, RouteViewMode>(
+      RouteViewModeNotifier.new,
+    );
+
+class RouteViewModeNotifier extends Notifier<RouteViewMode> {
+  @override
+  RouteViewMode build() {
+    final String? stored = ref
+        .watch(sharedPreferencesProvider)
+        .getString(_kRouteViewKey);
+    return stored == RouteViewMode.map.name
+        ? RouteViewMode.map
+        : RouteViewMode.list;
+  }
+
+  Future<void> select(RouteViewMode mode) async {
+    state = mode;
+    await ref
+        .read(sharedPreferencesProvider)
+        .setString(_kRouteViewKey, mode.name);
+  }
+}
+
+/// Densité **choisie** par l'utilisateur, ou `null` tant qu'il n'a rien choisi.
+///
+/// Le nul est significatif : c'est lui qui laisse la règle automatique
+/// (vignettes sous [kRouteCompactThreshold] résultats, compact au-delà)
+/// s'appliquer. Un choix manuel l'écrase et survit au redémarrage.
+final routeDensityProvider =
+    NotifierProvider<RouteDensityNotifier, RouteListDensity?>(
+      RouteDensityNotifier.new,
+    );
+
+class RouteDensityNotifier extends Notifier<RouteListDensity?> {
+  @override
+  RouteListDensity? build() {
+    final String? stored = ref
+        .watch(sharedPreferencesProvider)
+        .getString(_kRouteDensityKey);
+    return switch (stored) {
+      'cards' => RouteListDensity.cards,
+      'compact' => RouteListDensity.compact,
+      _ => null,
+    };
+  }
+
+  Future<void> select(RouteListDensity density) async {
+    state = density;
+    final SharedPreferences prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setString(_kRouteDensityKey, density.name);
+  }
+}
+
+/// La densité effectivement rendue pour [total] résultats.
+///
+/// Le choix manuel gagne toujours ; à défaut, la règle de seuil tranche.
+RouteListDensity effectiveRouteDensity(RouteListDensity? chosen, int? total) {
+  if (chosen != null) return chosen;
+  if (total != null && total > kRouteCompactThreshold) {
+    return RouteListDensity.compact;
+  }
+  return RouteListDensity.cards;
+}

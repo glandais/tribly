@@ -101,19 +101,29 @@ class PdlDeadEndEmpty extends StatelessWidget {
           const SizedBox(height: 8),
           Text(message, textAlign: TextAlign.center, style: t.sub),
           const SizedBox(height: 20),
-          if (removeFilterLabel != null) ...<Widget>[
-            PdlButton(
-              label: removeFilterLabel!,
-              fullWidth: true,
-              onPressed: onRemoveFilter,
-            ),
-            const SizedBox(height: 10),
-          ],
-          PdlButton(
-            label: resetAllLabel,
-            variant: PdlButtonVariant.outline,
-            fullWidth: true,
-            onPressed: onResetAll,
+          // Les deux actions côte à côte, et non empilées pleine largeur :
+          // « Retirer le filtre X » et « Tout réinitialiser » sont deux issues
+          // du même choix, et deux boutons pleine largeur superposés se lisent
+          // comme une action principale suivie d'un repentir. Le [Wrap] les
+          // repasse en colonne dès que l'agrandissement typographique ne leur
+          // laisse plus la largeur.
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: PdlSpacing.chipGap,
+            runSpacing: PdlSpacing.chipGap,
+            children: <Widget>[
+              if (removeFilterLabel != null)
+                PdlButton(
+                  label: removeFilterLabel!,
+                  variant: PdlButtonVariant.outline,
+                  onPressed: onRemoveFilter,
+                ),
+              PdlButton(
+                label: resetAllLabel,
+                variant: PdlButtonVariant.outline,
+                onPressed: onResetAll,
+              ),
+            ],
           ),
           if (hasPreview) ...<Widget>[
             const SizedBox(height: 24),

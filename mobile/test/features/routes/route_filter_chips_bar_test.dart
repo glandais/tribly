@@ -41,7 +41,6 @@ void main() {
             child: RouteFilterChipsBar(
               filters: const RouteFilters(),
               onChanged: (_) {},
-              onOpenFilters: () {},
             ),
           ),
         ),

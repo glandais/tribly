@@ -68,11 +68,8 @@ void main() {
             builder: (BuildContext context) => Scaffold(
               body: Center(
                 child: ElevatedButton(
-                  onPressed: () => showRouteFilterSheet(
-                    context,
-                    teamSlug: null,
-                    filters: everythingSet,
-                  ),
+                  onPressed: () =>
+                      showRouteFilterSheet(context, filters: everythingSet),
                   child: const Text('ouvrir'),
                 ),
               ),

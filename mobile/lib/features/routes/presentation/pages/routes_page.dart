@@ -4,41 +4,81 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
-import '../../../../api/pedalons_api_client.dart';
 import '../../../../config/paths.dart';
-import '../../../../core/adaptive/adaptive.dart';
 import '../../../../core/pagination/pagination.dart';
-import '../../../../core/preferences/user_preferences_provider.dart';
 import '../../../../core/pdl/pdl.dart';
+import '../../../../core/preferences/user_preferences_provider.dart';
+import '../../../../core/theme/pdl_colors.dart';
+import '../../../../core/theme/pdl_icons.dart';
+import '../../../../core/theme/pdl_tokens.dart';
+import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
-import '../../../../core/utils/formatters.dart';
-import '../../../../core/widgets/authenticated_image.dart';
-import '../../../../core/widgets/widgets.dart';
-import '../../domain/route_filters.dart';
-import '../../providers/route_list_provider.dart';
-import '../widgets/route_filter_chips_bar.dart';
-import '../widgets/route_filter_sheet.dart';
 import '../../domain/route_filter_labels.dart';
+import '../../domain/route_filters.dart';
+import '../../providers/route_count_provider.dart';
+import '../../providers/route_list_provider.dart';
+import '../widgets/compact_route_row.dart';
+import '../widgets/route_card.dart';
+import '../widgets/route_filter_sheet.dart';
+import '../widgets/routes_map_view.dart';
+import '../widgets/routes_toolbar.dart';
 
+/// La parcothèque : une coquille, un jeu de filtres, deux vues.
+///
+/// La page ne rend plus rien elle-même. Elle tient l'état — filtres, vue,
+/// densité — et laisse `RoutesToolbar`, `RoutesMapView` et les deux densités
+/// de ligne faire le rendu. C'est ce qui permet aux deux vues de partager
+/// **un seul** `routeFiltersProvider` : changer un filtre en carte le change
+/// en liste, sans synchronisation à écrire.
 class RoutesPage extends ConsumerStatefulWidget {
   /// Team to list routes for, or null for every team the user can see.
+  ///
+  /// Ce n'est pas la portée *choisie* mais celle que l'écran **impose** : la
+  /// section Parcours d'une équipe n'offre pas d'en changer.
   final String? teamSlug;
   final bool embedded;
 
-  const RoutesPage({super.key, required this.teamSlug, this.embedded = false});
+  /// Vue d'ouverture, quand la route en impose une (`/parcours/carte`). Sans
+  /// elle, c'est la dernière vue employée qui gagne.
+  final RouteViewMode? initialView;
+
+  const RoutesPage({
+    super.key,
+    required this.teamSlug,
+    this.embedded = false,
+    this.initialView,
+  });
 
   @override
   ConsumerState<RoutesPage> createState() => _RoutesPageState();
 }
 
 class _RoutesPageState extends ConsumerState<RoutesPage> {
+  /// Vrai une fois que le seuil de densité a été franchi et signalé : le
+  /// bandeau ne se répète pas à chaque page chargée.
+  bool _densityNoticeShown = false;
+  bool _showDensityNotice = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final RouteViewMode? forced = widget.initialView;
+    if (forced != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) ref.read(routeViewModeProvider.notifier).select(forced);
+      });
+    }
+  }
+
   /// Scrolls back to the top through the route's primary controller.
   ///
   /// The list deliberately declares no `controller:` of its own: that is what
   /// keeps it the primary scrollable of its route, which is what makes an iOS
   /// status-bar tap scroll it to the top.
   void _scrollToTop() {
-    final controller = PrimaryScrollController.maybeOf(context);
+    final ScrollController? controller = PrimaryScrollController.maybeOf(
+      context,
+    );
     if (controller != null && controller.hasClients) controller.jumpTo(0);
   }
 
@@ -50,239 +90,329 @@ class _RoutesPageState extends ConsumerState<RoutesPage> {
   Widget build(BuildContext context) {
     // Any filter change is a new result set, so the list restarts at the top
     // instead of leaving the user mid-scroll in results they never saw.
-    ref.listen(routeFiltersProvider(widget.teamSlug), (previous, next) {
+    ref.listen(routeFiltersProvider(widget.teamSlug), (
+      RouteFilters? previous,
+      RouteFilters next,
+    ) {
       if (previous != next) _scrollToTop();
     });
 
-    final filters = ref.watch(routeFiltersProvider(widget.teamSlug));
-    final key = (teamSlug: widget.teamSlug, filters: filters);
-    final state = ref.watch(routeListProvider(key));
-    final notifier = ref.read(routeListProvider(key).notifier);
-
-    final body = RefreshIndicator(
-      onRefresh: notifier.refresh,
-      child: CustomScrollView(
-        // Explicitly the route's primary scrollable, with no controller of its
-        // own: an iOS status-bar tap scrolls it back to the top, and pull-to-
-        // refresh still works when the list is too short to scroll.
-        primary: true,
-        slivers: [
-          PinnedHeaderSliver(
-            child: _FilterHeader(
-              filters: filters,
-              onChanged: _setFilters,
-              onOpenFilters: _openFilterSheet,
-            ),
-          ),
-          ..._buildContentSlivers(context, state, notifier, filters),
-          const SliverPadding(padding: EdgeInsets.only(bottom: 32)),
-        ],
-      ),
+    final RouteFilters filters = ref.watch(
+      routeFiltersProvider(widget.teamSlug),
     );
+    final RouteViewMode view = ref.watch(routeViewModeProvider);
+
+    final Widget toolbar = RoutesToolbar(
+      filters: filters,
+      onChanged: _setFilters,
+      onOpenFilters: _openFilterSheet,
+      view: view,
+      onViewChanged: (RouteViewMode next) =>
+          ref.read(routeViewModeProvider.notifier).select(next),
+      showScopeSelector: widget.teamSlug == null,
+    );
+
+    final Widget body = view == RouteViewMode.map
+        ? _MapBody(toolbar: toolbar, filters: filters, onChanged: _setFilters)
+        : _buildList(filters, toolbar);
 
     if (widget.embedded) return body;
 
     return Scaffold(
-      appBar: AppBar(title: Text('routes.title'.tr())),
+      appBar: PdlAppBar(title: 'routes.title'.tr()),
       body: body,
     );
   }
 
+  Widget _buildList(RouteFilters filters, Widget toolbar) {
+    final PagedListState<RouteDto> state = ref.watch(
+      routeListProvider(filters),
+    );
+    final RouteListNotifier notifier = ref.read(
+      routeListProvider(filters).notifier,
+    );
+
+    return RefreshIndicator(
+      onRefresh: notifier.refresh,
+      child: CustomScrollView(
+        // La clé de stockage est ce qui rend l'offset de défilement à
+        // l'identique au retour de la vue Carte comme au retour d'un détail :
+        // la liste est recréée, sa position ne l'est pas.
+        key: PageStorageKey<String>('routes-list-${widget.teamSlug}'),
+        // Explicitly the route's primary scrollable, with no controller of its
+        // own: an iOS status-bar tap scrolls it back to the top, and pull-to-
+        // refresh still works when the list is too short to scroll.
+        primary: true,
+        slivers: <Widget>[
+          PdlPinnedToolbar(child: toolbar),
+          ..._buildContentSlivers(state, notifier, filters),
+          const SliverPadding(padding: EdgeInsets.only(bottom: 32)),
+        ],
+      ),
+    );
+  }
+
   List<Widget> _buildContentSlivers(
-    BuildContext context,
     PagedListState<RouteDto> state,
     RouteListNotifier notifier,
     RouteFilters filters,
   ) {
-    const padding = EdgeInsets.fromLTRB(16, 8, 16, 0);
+    const EdgeInsets padding = EdgeInsets.fromLTRB(
+      PdlSpacing.section,
+      PdlSpacing.chipGap,
+      PdlSpacing.section,
+      0,
+    );
 
     if (state.showsSkeletons) {
-      return [
+      return <Widget>[
         SliverPadding(
           padding: padding,
-          sliver: const ResponsiveSliverGrid(
-            itemCount: 4,
-            childAspectRatio: _routeCardAspectRatio,
-            itemBuilder: _shimmerBuilder,
+          // Cinq squelettes, pas deux (§1.0.4) : deux ressemblent à une fin de
+          // liste.
+          sliver: const SliverToBoxAdapter(
+            child: PdlSkeletonCardList(
+              variant: PdlSkeletonCardVariant.media,
+              count: 5,
+            ),
           ),
         ),
       ];
     }
 
     if (state.initialError != null) {
-      return [
+      return <Widget>[
         SliverFillRemaining(
           hasScrollBody: false,
-          child: _ListErrorState(
-            error: state.initialError!,
-            onRetry: notifier.loadFirstPage,
+          child: Center(
+            child: PdlEmptyState(
+              variant: PdlEmptyVariant.error,
+              title: 'common.loadError'.tr(),
+              message: getErrorMessage(state.initialError!),
+              actions: <Widget>[
+                PdlButton(
+                  label: 'common.retry'.tr(),
+                  variant: PdlButtonVariant.outline,
+                  size: PdlButtonSize.sm,
+                  onPressed: notifier.loadFirstPage,
+                ),
+              ],
+            ),
           ),
         ),
       ];
     }
 
     if (state.isEmpty) {
-      return [
+      return <Widget>[
         SliverToBoxAdapter(
-          child: RoutesEmptyState(
-            teamSlug: widget.teamSlug,
-            filters: filters,
-            onChanged: _setFilters,
-          ),
+          child: RoutesEmptyState(filters: filters, onChanged: _setFilters),
         ),
       ];
     }
 
-    return [
+    final int? total = state.total;
+    final RouteListDensity density = effectiveRouteDensity(
+      ref.watch(routeDensityProvider),
+      total,
+    );
+    _maybeNoticeDensityCrossing(total);
+
+    return <Widget>[
       SliverToBoxAdapter(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-          child: Text(
-            'routes.list.count'.plural(state.total ?? state.items.length),
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: Theme.of(context).colorScheme.outline,
-            ),
+          padding: const EdgeInsets.fromLTRB(
+            PdlSpacing.section,
+            PdlSpacing.chipGap,
+            PdlSpacing.section,
+            4,
+          ),
+          child: _CountAndDensityRow(
+            filters: filters,
+            shown: total ?? state.items.length,
+            density: density,
           ),
         ),
       ),
+      if (_showDensityNotice)
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              PdlSpacing.section,
+              0,
+              PdlSpacing.section,
+              PdlSpacing.chipGap,
+            ),
+            child: PdlBanner(
+              tone: PdlBannerTone.info,
+              message: 'routes.list.densitySwitched'.tr(
+                namedArgs: <String, String>{
+                  'threshold': '$kRouteCompactThreshold',
+                },
+              ),
+              onDismiss: () => setState(() => _showDensityNotice = false),
+              dismissSemanticLabel: 'common.close'.tr(),
+            ),
+          ),
+        ),
       SliverPadding(
         padding: padding,
-        sliver: ResponsiveSliverGrid(
+        sliver: SliverList.separated(
           itemCount: state.items.length,
-          childAspectRatio: _routeCardAspectRatio,
-          itemBuilder: (context, index) {
+          separatorBuilder: (_, _) =>
+              const SizedBox(height: PdlSpacing.feedGap),
+          itemBuilder: (BuildContext context, int index) {
             notifier.onItemBuilt(index);
-            return _RouteGridItem(route: state.items[index]);
+            final RouteDto route = state.items[index];
+            return density == RouteListDensity.compact
+                ? CompactRouteRow(key: ValueKey<String>(route.id), route: route)
+                : RouteCard(key: ValueKey<String>(route.id), route: route);
           },
         ),
       ),
       SliverPadding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: PdlSpacing.section),
         sliver: SliverToBoxAdapter(
-          child: PagedListFooter(
-            state: state,
+          child: PdlPagedListFooter(
+            isLoadingNext: state.isLoadingNext,
+            hasMore: state.hasMore,
+            isEmpty: state.items.isEmpty,
+            hasError: state.nextError != null,
             onRetry: notifier.retryNextPage,
-            skeleton: const SizedBox(
-              height: 190,
-              child: ShimmerRouteGridItem(),
+            progressLabel: 'pagination.progress'.tr(
+              namedArgs: <String, String>{
+                'loaded': '${state.items.length}',
+                'total': '${total ?? state.items.length}',
+              },
             ),
+            loadingLabel: 'pagination.loadingMore'.tr(),
+            endLabel: 'pagination.end'.tr(),
+            errorLabel: 'pagination.error'.tr(),
+            retryLabel: 'common.retry'.tr(),
           ),
         ),
       ),
     ];
   }
 
+  /// Le franchissement du seuil rebascule **une fois** en compact, et le dit.
+  ///
+  /// Sans le bandeau, la liste changerait de forme toute seule et l'utilisateur
+  /// conclurait à un bug ; sans le « une fois », son choix manuel serait
+  /// définitivement confisqué.
+  void _maybeNoticeDensityCrossing(int? total) {
+    if (total == null || _densityNoticeShown) return;
+    if (total <= kRouteCompactThreshold) return;
+    if (ref.read(routeDensityProvider) != RouteListDensity.cards) return;
+    _densityNoticeShown = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(routeDensityProvider.notifier).select(RouteListDensity.compact);
+      setState(() => _showDensityNotice = true);
+    });
+  }
+
   Future<void> _openFilterSheet() async {
-    final current = ref.read(routeFiltersProvider(widget.teamSlug));
-    final result = await showRouteFilterSheet(
+    final RouteFilters current = ref.read(
+      routeFiltersProvider(widget.teamSlug),
+    );
+    final RouteFilters? result = await showRouteFilterSheet(
       context,
-      teamSlug: widget.teamSlug,
       filters: current,
     );
     if (result != null) _setFilters(result);
   }
 }
 
-/// [ShimmerRouteGridItem] lays its content out with [Expanded], so it needs a
-/// bounded height. [ResponsiveSliverGrid] gives its children one in grid mode
-/// but not in the single-column list mode it falls back to on a phone, hence
-/// the [AspectRatio] — which collapses to the tight box when there is one.
-Widget _shimmerBuilder(BuildContext context, int index) => const AspectRatio(
-  aspectRatio: _routeCardAspectRatio,
-  child: ShimmerRouteGridItem(),
-);
-
-const double _routeCardAspectRatio = 1.2;
-
-/// Search bar and filter chips, pinned so the controls stay reachable while
-/// the list scrolls under them.
+/// La vue Carte : la barre d'outils, puis la carte sur tout le reste.
 ///
-/// Sized by its own content rather than a hardcoded extent: the search field
-/// and the chips grow with the user's text scale, and a persistent header
-/// delegate promising a fixed height would break as soon as they did.
-class _FilterHeader extends StatelessWidget {
-  final RouteFilters filters;
-  final ValueChanged<RouteFilters> onChanged;
-  final VoidCallback onOpenFilters;
-
-  const _FilterHeader({
+/// Pas de `CustomScrollView` ici — une carte ne défile pas —, donc pas de
+/// `PdlPinnedToolbar` non plus : la barre est simplement posée au-dessus, ce
+/// qui revient au même puisque rien ne passe dessous.
+class _MapBody extends StatelessWidget {
+  const _MapBody({
+    required this.toolbar,
     required this.filters,
     required this.onChanged,
-    required this.onOpenFilters,
   });
+
+  final Widget toolbar;
+  final RouteFilters filters;
+  final ValueChanged<RouteFilters> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Material(
-      color: theme.colorScheme.surface,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
-            // Le champ et le bouton de filtres sont deux primitives distinctes
-            // depuis la v2 : `RouteSearchBar` les mariait, `PdlSearchField` et
-            // `PdlFilterButton` se réemploient séparément.
-            child: Row(
-              children: [
-                Expanded(
-                  child: PdlSearchField(
-                    value: filters.search,
-                    hintText: 'routes.filters.searchPlaceholder'.tr(),
-                    clearTooltip: 'common.cancel'.tr(),
-                    onChanged: (value) =>
-                        onChanged(filters.copyWith(search: value)),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                PdlFilterButton(
-                  onPressed: onOpenFilters,
-                  semanticLabel: 'routes.filters.title'.tr(),
-                  activeCount: filters.activeCount,
-                ),
-              ],
+    final PdlColors c = context.pdl;
+    return Column(
+      children: <Widget>[
+        Material(
+          color: c.overlaySolid,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: PdlMetrics.toolbarPadding,
             ),
+            child: toolbar,
           ),
-          RouteFilterChipsBar(
-            filters: filters,
-            onChanged: onChanged,
-            onOpenFilters: onOpenFilters,
-          ),
-          Divider(height: 1, color: theme.dividerColor),
-        ],
-      ),
+        ),
+        Divider(height: 1, color: c.borderSubtle),
+        Expanded(
+          child: RoutesMapView(filters: filters, onChanged: onChanged),
+        ),
+      ],
     );
   }
 }
 
-/// The first page failed: there is nothing to show but the error.
-class _ListErrorState extends StatelessWidget {
-  final Object error;
-  final VoidCallback onRetry;
+/// « 412 parcours sur 2 585 » et le segmenté de densité.
+///
+/// Les deux nombres viennent du **même** endpoint `count`, l'un sur les
+/// filtres courants, l'autre sur la portée seule : ils ne peuvent donc pas
+/// raconter deux histoires différentes.
+class _CountAndDensityRow extends ConsumerWidget {
+  const _CountAndDensityRow({
+    required this.filters,
+    required this.shown,
+    required this.density,
+  });
 
-  const _ListErrorState({required this.error, required this.onRetry});
+  final RouteFilters filters;
+  final int shown;
+  final RouteListDensity density;
 
   @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 48,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            const SizedBox(height: 16),
-            Text(getErrorMessage(error), textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: onRetry, child: Text('common.retry'.tr())),
-          ],
+  Widget build(BuildContext context, WidgetRef ref) {
+    final PdlTypography t = context.pdlText;
+    final int? total = ref.watch(routeTotalCountProvider(filters)).value;
+    final bool filtered = filters.activeFields.isNotEmpty;
+
+    final String label = (filtered && total != null && total != shown)
+        ? 'routes.list.countOf'.tr(
+            namedArgs: <String, String>{'shown': '$shown', 'total': '$total'},
+          )
+        : 'routes.list.count'.plural(shown);
+
+    return Row(
+      children: <Widget>[
+        Expanded(child: Text(label, style: t.count)),
+        SizedBox(
+          width: 176,
+          child: PdlSegmented<RouteListDensity>(
+            value: density,
+            onChanged: (RouteListDensity next) =>
+                ref.read(routeDensityProvider.notifier).select(next),
+            segments: <PdlSegment<RouteListDensity>>[
+              PdlSegment<RouteListDensity>(
+                value: RouteListDensity.cards,
+                label: 'routes.density.cards'.tr(),
+              ),
+              PdlSegment<RouteListDensity>(
+                value: RouteListDensity.compact,
+                label: 'routes.density.compact'.tr(),
+              ),
+            ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }
@@ -293,37 +423,41 @@ class _ListErrorState extends StatelessWidget {
 /// blame, offers to drop it, and proves the offer is worth taking by
 /// previewing what would come back without it.
 ///
-/// Le rendu appartient désormais à [PdlDeadEndEmpty] (B22) : ce qui reste ici
-/// est ce que `core/pdl` ne peut pas connaître — les [RouteFilters], les clés
-/// de localisation et le provider d'aperçu.
+/// **Le filtre proposé n'est plus deviné** (S21-8) : c'est celui qui, une fois
+/// levé, maximise le compte serveur — voir [routeDeadEndSuggestionProvider].
+/// Le rendu, lui, appartient à [PdlDeadEndEmpty] (B22) ; ce qui reste ici est
+/// ce que `core/pdl` ne peut pas connaître — les [RouteFilters], les clés de
+/// localisation et le provider d'aperçu.
 class RoutesEmptyState extends ConsumerWidget {
-  final String? teamSlug;
   final RouteFilters filters;
   final ValueChanged<RouteFilters> onChanged;
 
   const RoutesEmptyState({
     super.key,
-    required this.teamSlug,
     required this.filters,
     required this.onChanged,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final culprit = filters.narrowestField;
-    final search = filters.search?.trim();
+    final RouteFilterField? culprit = ref.watch(
+      routeDeadEndSuggestionProvider(filters),
+    );
+    final String? search = filters.search?.trim();
 
     return PdlDeadEndEmpty(
       title: 'routes.list.empty.title'.tr(),
       message: search == null || search.isEmpty
           ? 'routes.list.empty.description'.tr()
           : 'routes.list.empty.descriptionSearch'.tr(
-              namedArgs: {'search': search},
+              namedArgs: <String, String>{'search': search},
             ),
       removeFilterLabel: culprit == null
           ? null
           : 'routes.list.empty.removeFilter'.tr(
-              namedArgs: {'filter': RouteFilterLabels.filterFieldName(culprit)},
+              namedArgs: <String, String>{
+                'filter': RouteFilterLabels.filterFieldName(culprit),
+              },
             ),
       onRemoveFilter: culprit == null
           ? null
@@ -332,54 +466,42 @@ class RoutesEmptyState extends ConsumerWidget {
       onResetAll: () => onChanged(filters.cleared),
       previewChild: culprit == null
           ? null
-          : _WithoutFilterPreview(
-              teamSlug: teamSlug,
-              filters: filters,
-              field: culprit,
-            ),
+          : _WithoutFilterPreview(filters: filters, field: culprit),
     );
   }
 }
 
 /// A few of the routes that dropping [field] would bring back.
 class _WithoutFilterPreview extends ConsumerWidget {
-  final String? teamSlug;
   final RouteFilters filters;
   final RouteFilterField field;
 
-  const _WithoutFilterPreview({
-    required this.teamSlug,
-    required this.filters,
-    required this.field,
-  });
+  const _WithoutFilterPreview({required this.filters, required this.field});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final preview = ref.watch(
-      routePreviewWithoutFilterProvider((
-        teamSlug: teamSlug,
-        filters: filters.without(field),
-      )),
-    );
-    final routes = preview.value;
+    final PdlTypography t = context.pdlText;
+    final List<RouteDto>? routes = ref
+        .watch(routePreviewProvider(filters.without(field)))
+        .value;
     if (routes == null || routes.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+      children: <Widget>[
         Text(
           'routes.list.empty.withoutFilter'.tr(
-            namedArgs: {'filter': RouteFilterLabels.filterFieldName(field)},
+            namedArgs: <String, String>{
+              'filter': RouteFilterLabels.filterFieldName(field),
+            },
           ),
-          style: theme.textTheme.labelMedium?.copyWith(
-            color: theme.colorScheme.outline,
-          ),
+          style: t.count,
         ),
         const SizedBox(height: 8),
-        for (final route in routes)
+        // Trois lignes, pas plus : c'est un argument, pas une liste.
+        for (final RouteDto route in routes.take(3))
           Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.only(bottom: PdlSpacing.feedGap),
             child: _RoutePreviewTile(route: route),
           ),
       ],
@@ -394,144 +516,42 @@ class _RoutePreviewTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final units = ref.watch(unitSystemProvider);
-    return Card(
-      margin: EdgeInsets.zero,
-      child: ListTile(
-        leading: const Icon(Icons.route),
-        title: Text(
-          route.name,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(
-            context,
-          ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(
-          '${AppFormatters.formatDistance(route.distance, units)} · '
-          '${AppFormatters.formatElevationGain(route.elevationGain, units)}',
-        ),
-        trailing: const Icon(Icons.chevron_right, size: 20),
-        onTap: () => context.push(Paths.route(route.team.slug, route.slug)),
-      ),
-    );
-  }
-}
+    final PdlColors c = context.pdl;
+    final PdlTypography t = context.pdlText;
+    final UnitSystem units = ref.watch(unitSystemProvider);
 
-/// Route grid item - works both for list and grid views.
-class _RouteGridItem extends ConsumerWidget {
-  final RouteDto route;
-
-  const _RouteGridItem({required this.route});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final token = ref.watch(accessTokenHolderProvider);
-    final units = ref.watch(unitSystemProvider);
-
-    final thumbnail = Theme.of(context).brightness == Brightness.dark
-        ? route.media.assets.thumbnailDark
-        : route.media.assets.thumbnailLight;
-
-    return AnimatedCard(
+    return PdlCard(
+      padding: PdlCardPadding.tight,
       onTap: () => context.push(Paths.route(route.team.slug, route.slug)),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Thumbnail with Hero animation
-            AspectRatio(
-              aspectRatio: 16 / 9,
-              child: Hero(
-                tag: 'route-thumbnail-${route.slug}',
-                child: Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    image: thumbnail?.url != null
-                        ? DecorationImage(
-                            image: AuthenticatedDecorationImage.fromUrl(
-                              thumbnail!.url,
-                              token,
-                            )!,
-                            fit: BoxFit.cover,
-                          )
-                        : null,
-                  ),
-                  child: thumbnail?.url == null
-                      ? Center(
-                          child: Icon(
-                            Icons.route,
-                            size: 48,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onPrimaryContainer,
-                          ),
-                        )
-                      : null,
+      child: Row(
+        children: <Widget>[
+          PdlThumb(
+            imageUrl:
+                route.media.assets.thumbnailLight?.url ?? route.thumbnailUrl,
+            darkImageUrl: route.media.assets.thumbnailDark?.url,
+            size: PdlMetrics.thumbSm,
+            fallbackIcon: PdlIcons.route,
+          ),
+          const SizedBox(width: PdlSpacing.cardTight),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text(
+                  route.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: t.cardTitle.copyWith(color: c.text),
                 ),
-              ),
+                const SizedBox(height: 2),
+                PdlStatRow(stats: routeStats(route, units)),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    route.name,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      _StatChip(
-                        icon: Icons.straighten,
-                        value: AppFormatters.formatDistance(
-                          route.distance,
-                          units,
-                        ),
-                      ),
-                      _StatChip(
-                        icon: Icons.trending_up,
-                        value: AppFormatters.formatElevation(
-                          route.elevationGain,
-                          units,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+          Icon(PdlIcons.chevronRight, size: 20, color: c.textDimmed),
+        ],
       ),
-    );
-  }
-}
-
-class _StatChip extends StatelessWidget {
-  final IconData icon;
-  final String value;
-
-  const _StatChip({required this.icon, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 16, color: Theme.of(context).colorScheme.outline),
-        const SizedBox(width: 4),
-        Text(value, style: Theme.of(context).textTheme.bodySmall),
-      ],
     );
   }
 }

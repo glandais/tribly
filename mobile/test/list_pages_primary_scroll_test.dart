@@ -11,6 +11,7 @@ import 'package:pedalons/features/feed/presentation/widgets/publication_feed_vie
 import 'package:pedalons/features/feed/providers/publication_feed_provider.dart';
 import 'package:pedalons/features/routes/data/route_repository.dart';
 import 'package:pedalons/features/routes/presentation/pages/routes_page.dart';
+import 'package:pedalons/features/routes/domain/route_filters.dart';
 import 'package:pedalons/features/routes/providers/route_list_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -109,8 +110,8 @@ void main() {
 /// Never answers, so the page stays on its skeleton state and no HTTP call is
 /// ever made.
 class _StuckRouteListNotifier extends RouteListNotifier {
-  _StuckRouteListNotifier(RouteListKey key)
-    : super(RouteRepository(RoutesClient(Dio())), key);
+  _StuckRouteListNotifier(RouteFilters filters)
+    : super(RouteRepository(RoutesClient(Dio())), filters);
 
   @override
   Future<PageResult<RouteDto>> fetchPage(int page) =>

@@ -107,7 +107,8 @@
     "comingSoon": "This screen is coming in a future release.",
     "close": "Close",
     "clearSearch": "Clear search",
-    "delete": "Delete"
+    "delete": "Delete",
+    "open": "Open"
   },
   "placeholders": {
     "teamsDiscover": {
@@ -385,7 +386,9 @@
         "removeFilter": "Remove the {filter} filter",
         "resetAll": "Reset everything",
         "withoutFilter": "Without the {filter} filter"
-      }
+      },
+      "countOf": "{shown} of {total} routes",
+      "densitySwitched": "Past {threshold} results the list switches to the compact layout. You can go back to thumbnails at any time."
     },
     "filters": {
       "title": "Filters",
@@ -408,7 +411,9 @@
       "sort": "Sort by",
       "rangeBetween": "{min} – {max}",
       "rangeFrom": "> {value}",
-      "rangeTo": "< {value}"
+      "rangeTo": "< {value}",
+      "proximity": "Proximity",
+      "proximityValue": "Around me · {radius}"
     },
     "hilliness": {
       "flat": "Flat",
@@ -470,7 +475,26 @@
     "loadErrorTitle": "Could not load",
     "cursorHint": "The crosshair is synced both ways with the marker on the map.",
     "downloading": "Downloading...",
-    "openFullSheet": "View full route"
+    "openFullSheet": "View full route",
+    "view": {
+      "list": "List",
+      "map": "Map"
+    },
+    "density": {
+      "cards": "Thumbnails",
+      "compact": "Compact"
+    },
+    "scope": {
+      "title": "Scope",
+      "allTeams": "All my teams",
+      "minRole": "Minimum role",
+      "anyRole": "Any role"
+    },
+    "nearMe": {
+      "title": "Around me",
+      "active": "Around me · {radius}",
+      "locating": "Locating…"
+    }
   },
   "calendar": {
     "title": "Calendar",
@@ -480,6 +504,48 @@
     "noEventsThisMonth": {
       "title": "Nothing in {month}",
       "message": "No event that month. Other months may have some."
+    },
+    "cancelled": "Cancelled",
+    "today": "Today",
+    "scope": "Scope",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "collapseGrid": "Collapse the month",
+    "expandGrid": "Expand the month",
+    "upcoming": "Upcoming",
+    "clearFilters": "Clear filters",
+    "goToNextMonthWithEvents": "Go to the next month with a ride",
+    "noEventsIn": "Your teams have published no ride or trip stage in {month}.",
+    "eventCount": {
+      "zero": "no events",
+      "one": "{} event",
+      "other": "{} events"
+    },
+    "filters": {
+      "all": "All",
+      "rides": "Rides",
+      "trips": "Trips"
+    },
+    "legend": {
+      "ride": "Ride",
+      "stage": "Trip stage"
+    },
+    "noEventsFiltered": {
+      "title": "Nothing with these filters",
+      "message": "This month has events, but none match the chosen filter."
+    },
+    "subscription": {
+      "title": "Calendar subscription",
+      "help": "Subscribe to this calendar from your calendar app (Apple Calendar, Google Calendar, Outlook…).",
+      "tokenHidden": "The personal token is never shown in clear text.",
+      "copy": "Copy the link",
+      "copied": "Link copied. Paste it into your calendar app.",
+      "subscribe": "Subscribe",
+      "noHandler": "No calendar app took over. The link was copied — paste it manually.",
+      "regenerate": "Regenerate the link",
+      "regenerateTitle": "Regenerate the link?",
+      "regenerateWarning": "The old link will stop working immediately on all your devices.",
+      "regenerated": "Link regenerated. Re-subscribe your devices with the new link."
     }
   },
   "profile": {
