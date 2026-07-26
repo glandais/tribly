@@ -345,12 +345,30 @@
       "backToTrip": "Retour au voyage",
       "startPlace": "Lieu de départ",
       "endPlace": "Lieu d'arrivée",
-      "viewRoute": "Voir le parcours"
+      "viewRoute": "Voir le parcours",
+      "numberOf": "Étape {index} sur {total}"
     },
     "stageCount": {
       "zero": "Aucune étape",
       "one": "{} étape",
       "other": "{} étapes"
+    },
+    "finished": "Terminé",
+    "registered": "Je participe",
+    "addToCalendar": "Ajouter à mon calendrier",
+    "description": "Description",
+    "noStageTitle": "Aucune étape",
+    "noStageMessage": "Aucune étape n'a encore été définie pour ce voyage.",
+    "summary": {
+      "dates": "Dates",
+      "dateRange": "{start} → {end}",
+      "dayRange": "J1 à J{last}",
+      "days": {
+        "one": "{} jour",
+        "other": "{} jours"
+      },
+      "totalDistance": "Distance totale",
+      "totalElevation": "Dénivelé cumulé"
     }
   },
   "routes": {

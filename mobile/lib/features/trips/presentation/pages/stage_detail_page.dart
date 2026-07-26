@@ -10,7 +10,7 @@ import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/team_banner.dart';
 import '../../../../core/widgets/widgets.dart';
-import 'trip_detail_page.dart';
+import '../../providers/trip_detail_provider.dart';
 
 class StageDetailPage extends ConsumerWidget {
   final String teamSlug;
@@ -26,7 +26,7 @@ class StageDetailPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final params = (teamSlug: teamSlug, tripSlug: tripSlug);
+    final params = TripKey(teamSlug: teamSlug, tripSlug: tripSlug);
     final tripAsync = ref.watch(tripDetailProvider(params));
 
     return tripAsync.when(

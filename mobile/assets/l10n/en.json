@@ -345,12 +345,30 @@
       "backToTrip": "Back to trip",
       "startPlace": "Start place",
       "endPlace": "End place",
-      "viewRoute": "View route"
+      "viewRoute": "View route",
+      "numberOf": "Stage {index} of {total}"
     },
     "stageCount": {
       "zero": "No stage",
       "one": "{} stage",
       "other": "{} stages"
+    },
+    "finished": "Finished",
+    "registered": "I'm going",
+    "addToCalendar": "Add to my calendar",
+    "description": "Description",
+    "noStageTitle": "No stage yet",
+    "noStageMessage": "No stage has been defined for this trip yet.",
+    "summary": {
+      "dates": "Dates",
+      "dateRange": "{start} → {end}",
+      "dayRange": "Day 1 to day {last}",
+      "days": {
+        "one": "{} day",
+        "other": "{} days"
+      },
+      "totalDistance": "Total distance",
+      "totalElevation": "Total elevation gain"
     }
   },
   "routes": {

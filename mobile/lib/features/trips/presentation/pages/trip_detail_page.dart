@@ -1,400 +1,374 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
+// `Visibility` est à la fois un widget Flutter et un enum du contrat.
+import 'package:flutter/material.dart' hide Visibility;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
-import '../../../../core/adaptive/adaptive.dart';
+import '../../../../core/pdl/pdl.dart';
+import '../../../../core/theme/enum_colors.dart';
+import '../../../../core/theme/pdl_colors.dart';
+import '../../../../core/theme/pdl_icons.dart';
+import '../../../../core/theme/pdl_tokens.dart';
+import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
-import '../../../../core/utils/formatters.dart';
-import '../../../../core/utils/safe_string.dart';
-import '../../../../core/widgets/authenticated_image.dart';
-import '../../../../core/widgets/team_banner.dart';
-import '../../../../core/widgets/widgets.dart';
-import '../../../auth/providers/auth_provider.dart';
-import '../../data/trip_repository.dart';
+import '../../../calendar/presentation/widgets/calendar_subscription_card.dart';
+import '../../../teams/providers/team_providers.dart';
+import '../../providers/trip_detail_provider.dart';
+import '../../providers/trip_stage_selection_provider.dart';
+import '../widgets/stage_card.dart';
+import '../widgets/trip_summary_card.dart';
 
-final tripDetailProvider =
-    FutureProvider.family<TripDto, ({String teamSlug, String tripSlug})>((
-      ref,
-      params,
-    ) async {
-      final repository = ref.watch(tripRepositoryProvider);
-      return repository.getTrip(params.teamSlug, params.tripSlug);
-    });
+/// Hauteur du hero : la vignette statique du tracé global.
+const double _kTripHeroHeight = 210;
 
-class TripDetailPage extends ConsumerStatefulWidget {
-  final String teamSlug;
-  final String tripSlug;
-
+/// L'écran 24 — le voyage.
+///
+/// De la v1 il reste la liste d'étapes et la description ; tout le reste est
+/// neuf. La v1 n'avait ni carte, ni distance totale, ni dénivelé cumulé, ni
+/// date de fin, ni profil, ni commentaires — un voyage de sept jours y était
+/// une date de départ suivie de sept lignes.
+class TripDetailPage extends ConsumerWidget {
   const TripDetailPage({
     super.key,
     required this.teamSlug,
     required this.tripSlug,
   });
 
-  @override
-  ConsumerState<TripDetailPage> createState() => _TripDetailPageState();
-}
-
-class _TripDetailPageState extends ConsumerState<TripDetailPage> {
-  bool _isJoining = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final params = (teamSlug: widget.teamSlug, tripSlug: widget.tripSlug);
-    final tripAsync = ref.watch(tripDetailProvider(params));
-
-    return tripAsync.when(
-      data: (trip) => _TripDetailContent(
-        trip: trip,
-        isJoining: _isJoining,
-        onJoin: () => _joinTrip(trip),
-        onLeave: () => _leaveTrip(trip),
-      ),
-      loading: () => Scaffold(
-        appBar: AppBar(),
-        body: const Center(child: CircularProgressIndicator()),
-      ),
-      error: (error, stack) => Scaffold(
-        appBar: AppBar(),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline,
-                size: 48,
-                color: Theme.of(context).colorScheme.error,
-              ),
-              const SizedBox(height: 16),
-              Text(getErrorMessage(error)),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: () => ref.invalidate(tripDetailProvider(params)),
-                child: Text('common.retry'.tr()),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _joinTrip(TripDto trip) async {
-    setState(() => _isJoining = true);
-    try {
-      final repository = ref.read(tripRepositoryProvider);
-      await repository.joinTrip(trip.team.slug, trip.slug);
-      ref.invalidate(
-        tripDetailProvider((
-          teamSlug: widget.teamSlug,
-          tripSlug: widget.tripSlug,
-        )),
-      );
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('trips.joinSuccess'.tr())));
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(getErrorMessage(e))));
-      }
-    } finally {
-      setState(() => _isJoining = false);
-    }
-  }
-
-  Future<void> _leaveTrip(TripDto trip) async {
-    setState(() => _isJoining = true);
-    try {
-      final repository = ref.read(tripRepositoryProvider);
-      await repository.leaveTrip(trip.team.slug, trip.slug);
-      ref.invalidate(
-        tripDetailProvider((
-          teamSlug: widget.teamSlug,
-          tripSlug: widget.tripSlug,
-        )),
-      );
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('trips.leaveSuccess'.tr())));
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(getErrorMessage(e))));
-      }
-    } finally {
-      setState(() => _isJoining = false);
-    }
-  }
-}
-
-class _TripDetailContent extends ConsumerWidget {
-  final TripDto trip;
-  final bool isJoining;
-  final VoidCallback onJoin;
-  final VoidCallback onLeave;
-
-  const _TripDetailContent({
-    required this.trip,
-    required this.isJoining,
-    required this.onJoin,
-    required this.onLeave,
-  });
+  final String teamSlug;
+  final String tripSlug;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final thumbnailUrl = Theme.of(context).brightness == Brightness.dark
-        ? trip.thumbnailDarkUrl
-        : trip.thumbnailLightUrl;
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          MediaSliverAppBar(
-            title: trip.name,
-            imageUrl: thumbnailUrl,
-            backSemanticLabel: 'common.back'.tr(),
-          ),
+    final TripKey key = TripKey(teamSlug: teamSlug, tripSlug: tripSlug);
 
-          // Team
-          SliverToBoxAdapter(
-            child: ContentWidthConstraint(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: TeamBanner(team: trip.team),
+    return ref
+        .watch(tripDetailProvider(key))
+        .when(
+          data: (TripDto trip) => _TripDetailContent(tripKey: key, trip: trip),
+          loading: () => const _TripDetailSkeleton(),
+          error: (Object error, StackTrace stack) =>
+              _TripDetailError(tripKey: key, error: error),
+        );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────── contenu
+
+class _TripDetailContent extends ConsumerWidget {
+  const _TripDetailContent({required this.tripKey, required this.trip});
+
+  final TripKey tripKey;
+  final TripDto trip;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bool? isMember = ref.watch(teamMembershipProvider(trip.team.slug));
+    final List<TripStageDto> stages = trip.orderedStages;
+    final String? selected = ref.watch(selectedStageProvider(tripKey));
+
+    void select(String id) =>
+        ref.read(selectedStageProvider(tripKey).notifier).state = id;
+
+    return PdlScreenScaffold(
+      slivers: <Widget>[
+        SliverToBoxAdapter(child: _hero(context, isMember)),
+        SliverToBoxAdapter(child: _identity(context)),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: TripSummaryCard(
+              trip: trip,
+              onShowParticipants: () => _showParticipants(context),
             ),
           ),
+        ),
+        SliverToBoxAdapter(child: _stages(context, stages, selected, select)),
+        if (trip.media.markdown.trim().isNotEmpty)
+          SliverToBoxAdapter(child: _description(context)),
+        const SliverToBoxAdapter(child: SizedBox(height: PdlSpacing.section)),
+      ],
+    );
+  }
 
-          // Date
-          SliverToBoxAdapter(
-            child: ContentWidthConstraint(
-              padding: const EdgeInsets.all(16),
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.calendar_today,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      const SizedBox(width: 16),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            AppFormatters.formatFullDate(
-                              DateTime.parse(trip.dateTime),
-                            ),
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            AppFormatters.formatTime(
-                              DateTime.parse(trip.dateTime),
-                            ),
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+  // ── 1 · Hero ────────────────────────────────────────────────────────────
+  /// La vignette servie par le serveur, sous deux voiles. Aucun texte n'est
+  /// posé sur la tuile sans voile (F-DE-1) : le titre de la barre est blanc sur
+  /// le voile haut, pas sur l'image.
+  Widget _hero(BuildContext context, bool? isMember) {
+    final String? url = Theme.of(context).brightness == Brightness.dark
+        ? (trip.thumbnailDarkUrl ?? trip.thumbnailLightUrl)
+        : (trip.thumbnailLightUrl ?? trip.thumbnailDarkUrl);
+
+    return SizedBox(
+      height: _kTripHeroHeight,
+      child: Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          PdlCardMedia(
+            tone: PdlMediaTone.trip,
+            height: _kTripHeroHeight,
+            imageUrl: url,
+            icon: PdlIcons.trip,
+            borderRadius: BorderRadius.zero,
           ),
-
-          // Participants
-          SliverToBoxAdapter(
-            child: ContentWidthConstraint(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.people,
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'trips.participants'.tr(
-                      namedArgs: {'count': trip.participantCount.toString()},
+          const PdlScrim(edge: PdlScrimEdge.top),
+          const PdlScrim(edge: PdlScrimEdge.bottom),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              bottom: false,
+              child: PdlAppBar(
+                variant: PdlAppBarVariant.overlay,
+                title: trip.name,
+                onBack: () => context.pop(),
+                backSemanticLabel: 'common.back'.tr(),
+                actions: <Widget>[
+                  // Aucun endpoint ICS par publication (§5.2) : « Ajouter à mon
+                  // calendrier » ouvre l'abonnement d'équipe de l'écran 22, qui
+                  // porte le voyage parmi ses événements. Un non-membre n'a pas
+                  // ce calendrier — le bouton disparaît plutôt que d'échouer.
+                  if (isMember == true)
+                    PdlAppBarAction(
+                      icon: PdlIcons.date,
+                      variant: PdlAppBarVariant.overlay,
+                      semanticLabel: 'trips.addToCalendar'.tr(),
+                      onPressed: () => _openCalendarSubscription(context),
                     ),
-                    style: Theme.of(context).textTheme.titleSmall,
+                  PdlAppBarAction(
+                    icon: PdlIcons.share,
+                    variant: PdlAppBarVariant.overlay,
+                    semanticLabel: 'routes.share'.tr(),
+                    onPressed: () => _share(context),
                   ),
-                  const Spacer(),
-                  ...trip.participants
-                      .take(5)
-                      .map(
-                        (p) => Padding(
-                          padding: const EdgeInsets.only(left: 4),
-                          child: AuthenticatedCircleAvatar(
-                            imageUrl: p.avatarUrl,
-                            fallbackText: p.displayName.safeFirstUpper(),
-                            radius: 14,
-                            fontSize: 10,
-                          ),
-                        ),
-                      ),
                 ],
               ),
             ),
           ),
-
-          // Stages
-          if (trip.stages.isNotEmpty) ...[
-            SliverToBoxAdapter(
-              child: ContentWidthConstraint(
-                padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-                child: Text(
-                  'trips.stages'.tr(),
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ),
-            ),
-            SliverList(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                final stage = trip.stages[index];
-                return ContentWidthConstraint(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 4,
-                  ),
-                  child: Card(
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor: Theme.of(
-                          context,
-                        ).colorScheme.onPrimary,
-                        radius: 16,
-                        child: Text(
-                          '${index + 1}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      title: Text(stage.name),
-                      subtitle: Text(
-                        AppFormatters.formatFullDate(
-                          DateTime.parse(stage.dateTime),
-                        ),
-                      ),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => context.push(
-                        Paths.stage(trip.team.slug, trip.slug, stage.slug),
-                      ),
-                    ),
-                  ),
-                );
-              }, childCount: trip.stages.length),
-            ),
-          ],
-
-          if (trip.stages.isEmpty)
-            SliverToBoxAdapter(
-              child: ContentWidthConstraint(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  'trips.stages.empty'.tr(),
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                ),
-              ),
-            ),
-
-          // Route
-          if (trip.routeSlug != null)
-            SliverToBoxAdapter(
-              child: ContentWidthConstraint(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 4,
-                ),
-                child: Card(
-                  child: ListTile(
-                    leading: Icon(
-                      Icons.route,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    title: Text('routes.route'.tr()),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => context.push(
-                      Paths.route(trip.team.slug, trip.routeSlug!),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-          // Description
-          if (trip.media.markdown.isNotEmpty)
-            SliverToBoxAdapter(
-              child: ContentWidthConstraint(
-                padding: const EdgeInsets.all(16),
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: MarkdownContent(
-                      data: trip.media.markdown,
-                      images: trip.media.assets.images,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-          const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
         ],
       ),
-      bottomNavigationBar: _buildBottomBar(ref),
     );
   }
 
-  bool _isCurrentUserParticipant(WidgetRef ref) {
-    final currentUser = ref.watch(authProvider).user;
-    if (currentUser == null) return false;
-    return trip.participants.any((p) => p.id == currentUser.id);
+  Future<void> _share(BuildContext context) async {
+    final RenderBox? box = context.findRenderObject() as RenderBox?;
+    await SharePlus.instance.share(
+      ShareParams(
+        text: trip.name,
+        sharePositionOrigin: box == null
+            ? Rect.zero
+            : box.localToGlobal(Offset.zero) & box.size,
+      ),
+    );
   }
 
-  Widget _buildBottomBar(WidgetRef ref) {
-    final isParticipant = _isCurrentUserParticipant(ref);
+  Future<void> _openCalendarSubscription(BuildContext context) {
+    return PdlSheet.show<void>(
+      context: context,
+      builder: (BuildContext _) => PdlSheet(
+        title: 'calendar.subscription.title'.tr(),
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: PdlSpacing.section),
+            child: CalendarSubscriptionCard(teamSlug: trip.team.slug),
+          ),
+        ],
+      ),
+    );
+  }
 
-    return SafeArea(
-      child: ContentWidthConstraint(
-        padding: const EdgeInsets.all(16),
-        child: isParticipant
-            ? OutlinedButton.icon(
-                onPressed: isJoining ? null : onLeave,
-                icon: isJoining
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.close),
-                label: Text('trips.leave'.tr()),
-              )
-            : FilledButton.icon(
-                onPressed: isJoining ? null : onJoin,
-                icon: isJoining
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.check),
-                label: Text('trips.join'.tr()),
+  void _showParticipants(BuildContext context) {
+    // À venir avec la barre d'action (S24-6) : la feuille Participants du
+    // lot 2 est généralisée aux voyages, dont les participants sont eux aussi
+    // embarqués et non paginés.
+  }
+
+  // ── 2 · Identité ────────────────────────────────────────────────────────
+  Widget _identity(BuildContext context) {
+    final PdlColors c = context.pdl;
+    final PdlTypography t = context.pdlText;
+
+    return Padding(
+      padding: const EdgeInsets.all(PdlSpacing.section),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          PdlTeamLine(
+            label: trip.team.name,
+            onTap: () => context.push(Paths.team(trip.team.slug)),
+          ),
+          const SizedBox(height: 2),
+          Text(trip.name, style: t.screenTitle),
+          const SizedBox(height: PdlSpacing.chipGap),
+          Wrap(
+            spacing: PdlSpacing.badgeGap,
+            runSpacing: PdlSpacing.badgeGap,
+            children: <Widget>[
+              if (trip.isPast && !trip.isCancelled)
+                PdlBadge(
+                  label: 'trips.finished'.tr(),
+                  tone: PdlDerivedTones.done(c),
+                )
+              else
+                PdlBadge(
+                  label: 'status.${trip.status.toLowerCase()}'.tr(),
+                  tone: Status.fromJson(trip.status).tone(c),
+                ),
+              PdlBadge(
+                label: 'visibility.${trip.visibility.toLowerCase()}'.tr(),
+                tone: Visibility.fromJson(trip.visibility).tone(c),
+                icon: _visibilityIcon(trip.visibility),
               ),
+              if (trip.registered)
+                PdlBadge(
+                  label: 'trips.registered'.tr(),
+                  tone: PdlDerivedTones.registered(c),
+                  icon: PdlIcons.check,
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _visibilityIcon(String visibility) => switch (visibility) {
+    'PUBLIC' => PdlIcons.visibilityPublic,
+    'PUBLIC_UNLISTED' => PdlIcons.visibilityUnlisted,
+    _ => PdlIcons.visibilityTeam,
+  };
+
+  // ── 3 · Étapes ──────────────────────────────────────────────────────────
+  Widget _stages(
+    BuildContext context,
+    List<TripStageDto> stages,
+    String? selected,
+    ValueChanged<String> select,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          PdlSectionHeader(
+            title: 'trips.stages'.tr(),
+            count: stages.isEmpty ? null : '${stages.length}',
+          ),
+          if (stages.isEmpty)
+            PdlEmptyState(
+              variant: PdlEmptyVariant.empty,
+              icon: PdlIcons.stage,
+              title: 'trips.noStageTitle'.tr(),
+              message: 'trips.noStageMessage'.tr(),
+            )
+          else
+            for (final TripStageDto stage in stages)
+              Padding(
+                padding: const EdgeInsets.only(bottom: PdlSpacing.feedGap),
+                child: StageCard(
+                  stage: stage,
+                  selected: stage.id == selected,
+                  onSelect: () => select(stage.id),
+                  onTap: () => context.push(
+                    Paths.stage(trip.team.slug, trip.slug, stage.slug),
+                  ),
+                ),
+              ),
+        ],
+      ),
+    );
+  }
+
+  // ── 4 · Description ─────────────────────────────────────────────────────
+  Widget _description(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          PdlSectionHeader(title: 'trips.description'.tr()),
+          PdlMarkdownBody(data: trip.media.markdown),
+        ],
+      ),
+    );
+  }
+}
+
+// ────────────────────────────────────────────────────── chargement, erreur
+
+class _TripDetailSkeleton extends StatelessWidget {
+  const _TripDetailSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return PdlScreenScaffold(
+      appBar: PdlAppBar(
+        onBack: () => context.pop(),
+        backSemanticLabel: 'common.back'.tr(),
+      ),
+      body: ListView(
+        children: <Widget>[
+          const PdlSkeleton(
+            height: _kTripHeroHeight,
+            borderRadius: BorderRadius.zero,
+          ),
+          Padding(
+            padding: const EdgeInsets.all(PdlSpacing.section),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                const PdlSkeleton(height: 12, width: 120),
+                const SizedBox(height: PdlSpacing.chipGap),
+                const PdlSkeleton(height: 20, width: 220),
+                const SizedBox(height: 14),
+                for (int i = 0; i < 4; i++) ...<Widget>[
+                  if (i > 0) const SizedBox(height: PdlSpacing.feedGap),
+                  const PdlSkeleton(height: 64),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TripDetailError extends ConsumerWidget {
+  const _TripDetailError({required this.tripKey, required this.error});
+
+  final TripKey tripKey;
+  final Object error;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ApiError resolved = resolveApiError(error);
+
+    return PdlScreenScaffold(
+      appBar: PdlAppBar(
+        onBack: () => context.pop(),
+        backSemanticLabel: 'common.back'.tr(),
+      ),
+      body: Center(
+        child: PdlEmptyState(
+          variant: resolved.code == 'NOT_FOUND'
+              ? PdlEmptyVariant.notFound
+              : PdlEmptyVariant.error,
+          icon: resolved.isOffline ? PdlIcons.offline : null,
+          title: resolved.title ?? 'common.loadError'.tr(),
+          message: resolved.message,
+          actions: <Widget>[
+            PdlButton(
+              label: 'common.retry'.tr(),
+              variant: PdlButtonVariant.outline,
+              onPressed: () => ref.invalidate(tripDetailProvider(tripKey)),
+            ),
+          ],
+        ),
       ),
     );
   }
