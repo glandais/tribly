@@ -41,6 +41,7 @@ class PdlMonthGrid extends StatelessWidget {
     this.today,
     this.selectedDay,
     this.onDayTap,
+    this.daySemanticLabel,
     this.gap = 2,
     this.cellHeight = 52,
   }) : assert(
@@ -67,6 +68,14 @@ class PdlMonthGrid extends StatelessWidget {
 
   final DateTime? selectedDay;
   final ValueChanged<DateTime>? onDayTap;
+
+  /// Ce qu'un lecteur d'écran annonce pour une case — « mercredi 22 juillet,
+  /// 2 événements, inscrit ».
+  ///
+  /// Sans lui, une cellule ne dit que son numéro : les points et l'anneau sont
+  /// **purement visuels**, et toute l'information de la grille disparaît pour
+  /// qui ne la voit pas. L'écran le fournit, `core/pdl` ne traduit rien.
+  final String Function(DateTime day)? daySemanticLabel;
 
   final double gap;
   final double cellHeight;
@@ -154,6 +163,9 @@ class PdlMonthGrid extends StatelessWidget {
                             const <Color>[])
                       : const <Color>[],
                   onTap: onDayTap,
+                  semanticLabel: daySemanticLabel?.call(
+                    cells[week * 7 + i].date,
+                  ),
                   colors: c,
                   text: t,
                 ),
@@ -176,6 +188,7 @@ class _Day extends StatelessWidget {
     required this.registered,
     required this.dots,
     required this.onTap,
+    required this.semanticLabel,
     required this.colors,
     required this.text,
   });
@@ -186,6 +199,7 @@ class _Day extends StatelessWidget {
   final bool registered;
   final List<Color> dots;
   final ValueChanged<DateTime>? onTap;
+  final String? semanticLabel;
   final PdlColors colors;
   final PdlTypography text;
 
@@ -268,16 +282,27 @@ class _Day extends StatelessWidget {
       child: SizedBox.expand(child: content),
     );
 
-    if (onTap == null) return box;
+    if (onTap == null) {
+      return semanticLabel == null
+          ? box
+          : Semantics(
+              label: semanticLabel,
+              child: ExcludeSemantics(child: box),
+            );
+    }
     return Semantics(
       button: true,
       selected: selected,
+      label: semanticLabel,
       child: Material(
         type: MaterialType.transparency,
         child: InkWell(
           onTap: () => onTap!(cell.date),
           borderRadius: PdlRadii.mdAll,
-          child: box,
+          // Le libellé fourni **remplace** le numéro plutôt que de s'y
+          // ajouter : « mercredi 22 juillet, 2 événements » puis « 22 » se lit
+          // comme deux cases.
+          child: semanticLabel == null ? box : ExcludeSemantics(child: box),
         ),
       ),
     );

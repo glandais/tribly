@@ -1,36 +1,32 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import '../../../../api/generated/export.dart';
-import '../../../../config/paths.dart';
-import '../../../../core/adaptive/adaptive.dart';
 import '../../../../core/pdl/pdl.dart';
+import '../../../../core/theme/pdl_colors.dart';
+import '../../../../core/theme/pdl_icons.dart';
+import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/utils/api_error_handler.dart';
-import '../../../../core/widgets/widgets.dart';
 import '../../../../core/utils/formatters.dart';
-import '../../data/calendar_repository.dart';
+import '../../providers/calendar_month_provider.dart';
+import '../widgets/agenda_card.dart';
+import '../widgets/calendar_subscription_card.dart';
+import '../widgets/calendar_toolbar.dart';
 
-final calendarEventsProvider =
-    FutureProvider.family<
-      List<CalendarEventDto>,
-      ({DateTime start, DateTime end, String? teamSlug})
-    >((ref, params) async {
-      final repository = ref.watch(calendarRepositoryProvider);
-      if (params.teamSlug != null) {
-        return repository.getTeamCalendarEvents(
-          params.teamSlug!,
-          start: params.start,
-          end: params.end,
-        );
-      }
-      return repository.getMyCalendarEvents(
-        start: params.start,
-        end: params.end,
-      );
-    });
+/// Hauteur maximale de la grille de mois, légende comprise. Elle se compresse
+/// au défilement jusqu'à disparaître : sans cela, deux cartes d'agenda
+/// seulement seraient visibles au premier paint (§3.2).
+const double kCalendarGridMaxHeight = 334;
 
+/// Le calendrier : un mois qu'on voit, un agenda qu'on lit.
+///
+/// L'ancienne page ne rendait qu'une liste par jour et sondait jusqu'à six mois
+/// à l'ouverture pour trouver où se poser. Elle ouvre désormais **sur le mois
+/// courant**, comme le veut §3.2 ; le sondage sert encore, mais à l'action
+/// « Aller au prochain mois avec une sortie » de l'état vide, où il répond à
+/// une question que l'utilisateur a posée.
 class CalendarPage extends ConsumerStatefulWidget {
   final String? teamSlug;
   final bool embedded;
@@ -42,218 +38,67 @@ class CalendarPage extends ConsumerStatefulWidget {
 }
 
 class _CalendarPageState extends ConsumerState<CalendarPage> {
-  DateTime _selectedMonth = DateTime.now();
-  bool _initialMonthResolved = false;
+  final ItemScrollController _agendaController = ItemScrollController();
 
-  DateTime get _monthStart =>
-      DateTime(_selectedMonth.year, _selectedMonth.month, 1);
-  DateTime get _monthEnd =>
-      DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0, 23, 59, 59);
+  /// 0 = grille pleine, 1 = grille repliée. Le défilement l'interpole, le
+  /// chevron la force.
+  double _collapse = 0;
+  bool _pinnedCollapsed = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _findFirstMonthWithEvents();
-  }
-
-  Future<void> _findFirstMonthWithEvents() async {
-    final now = DateTime.now();
-    final repository = ref.read(calendarRepositoryProvider);
-
-    for (int i = 0; i < 6; i++) {
-      final month = DateTime(now.year, now.month + i, 1);
-      final start = i == 0 ? now : month;
-      final end = DateTime(month.year, month.month + 1, 0, 23, 59, 59);
-
-      try {
-        final List<CalendarEventDto> events;
-        if (widget.teamSlug != null) {
-          events = await repository.getTeamCalendarEvents(
-            widget.teamSlug!,
-            start: start,
-            end: end,
-          );
-        } else {
-          events = await repository.getMyCalendarEvents(start: start, end: end);
-        }
-        if (events.isNotEmpty) {
-          if (mounted && !_initialMonthResolved) {
-            setState(() {
-              _selectedMonth = month;
-              _initialMonthResolved = true;
-            });
-          }
-          return;
-        }
-      } catch (_) {
-        break;
-      }
-    }
-    if (mounted) {
-      setState(() => _initialMonthResolved = true);
-    }
-  }
+  /// Le mois pour lequel l'agenda a déjà été positionné : sans ce garde-fou,
+  /// chaque cadre ramènerait la liste sur aujourd'hui.
+  CalendarMonthKey? _positionedFor;
 
   @override
   Widget build(BuildContext context) {
-    final params = (
-      start: _monthStart,
-      end: _monthEnd,
-      teamSlug: widget.teamSlug,
+    final CalendarMonthKey monthKey = ref.watch(
+      calendarMonthKeyProvider(widget.teamSlug),
     );
-    final eventsAsync = ref.watch(calendarEventsProvider(params));
+    final CalendarTypeFilter typeFilter = ref.watch(calendarTypeFilterProvider);
+    final AsyncValue<CalendarMonth> month = ref.watch(
+      calendarMonthProvider(monthKey),
+    );
 
-    final body = Column(
-      children: [
-        // Month selector
-        ContentWidthConstraint(
-          child: _MonthSelector(
-            selectedMonth: _selectedMonth,
-            onPreviousMonth: () {
-              setState(() {
-                _selectedMonth = DateTime(
-                  _selectedMonth.year,
-                  _selectedMonth.month - 1,
-                  1,
-                );
-              });
-            },
-            onNextMonth: () {
-              setState(() {
-                _selectedMonth = DateTime(
-                  _selectedMonth.year,
-                  _selectedMonth.month + 1,
-                  1,
-                );
-              });
-            },
+    final Widget body = Column(
+      children: <Widget>[
+        Material(
+          color: context.pdl.overlaySolid,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: PdlMetrics.toolbarPadding,
+            ),
+            child: CalendarToolbar(
+              monthKey: monthKey,
+              onMonthChanged: _setMonth,
+              typeFilter: typeFilter,
+              onTypeChanged: (CalendarTypeFilter next) {
+                ref.read(calendarTypeFilterProvider.notifier).state = next;
+              },
+              showScope: widget.teamSlug == null,
+              // Sans app bar à elle, la section d'équipe perdrait le raccourci
+              // « Aujourd'hui » : il descend alors dans la barre d'outils.
+              onToday: widget.embedded ? _goToToday : null,
+            ),
           ),
         ),
-
-        // Events list
+        Divider(height: 1, color: context.pdl.borderSubtle),
         Expanded(
-          child: eventsAsync.when(
-            data: (events) {
-              if (events.isEmpty) {
-                // F-DE-9 : l'agenda n'a pas de recherche, il a un **mois**.
-                // C'est son filtre, et c'est lui qui sépare les deux vides :
-                // « rien ce mois-ci » n'appelle rien, mais « rien en mars
-                // 2027 » appelle un retour au mois courant — l'équivalent
-                // exact du « Effacer la recherche » des listes.
-                final now = DateTime.now();
-                final onCurrentMonth =
-                    _selectedMonth.year == now.year &&
-                    _selectedMonth.month == now.month;
-
-                return Center(
-                  child: onCurrentMonth
-                      ? PdlEmptyState(
-                          variant: PdlEmptyVariant.empty,
-                          icon: Icons.event_busy,
-                          title: 'calendar.noEvents'.tr(),
-                          message: 'calendar.noEventsHint'.tr(),
-                        )
-                      : PdlEmptyState(
-                          variant: PdlEmptyVariant.filtered,
-                          icon: Icons.event_busy,
-                          title: 'calendar.noEventsThisMonth.title'.tr(
-                            namedArgs: {
-                              'month': AppFormatters.formatMonthYear(
-                                _selectedMonth,
-                              ),
-                            },
-                          ),
-                          message: 'calendar.noEventsThisMonth.message'.tr(),
-                          actions: [
-                            PdlButton(
-                              label: 'calendar.backToCurrentMonth'.tr(),
-                              variant: PdlButtonVariant.outline,
-                              size: PdlButtonSize.sm,
-                              onPressed: () => setState(
-                                () => _selectedMonth = DateTime(
-                                  now.year,
-                                  now.month,
-                                  1,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                );
-              }
-
-              // Group events by date
-              final groupedEvents = <DateTime, List<CalendarEventDto>>{};
-              for (final event in events) {
-                final startDate = DateTime.parse(event.start);
-                final date = DateTime(
-                  startDate.year,
-                  startDate.month,
-                  startDate.day,
-                );
-                groupedEvents.putIfAbsent(date, () => []).add(event);
-              }
-
-              final sortedDates = groupedEvents.keys.toList()..sort();
-
-              return RefreshIndicator(
-                onRefresh: () =>
-                    ref.refresh(calendarEventsProvider(params).future),
-                child: StaggeredListView(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: sortedDates.length,
-                  itemBuilder: (context, index) {
-                    final date = sortedDates[index];
-                    final dayEvents = groupedEvents[date]!;
-                    return ContentWidthConstraint(
-                      child: _DaySection(date: date, events: dayEvents),
-                    );
-                  },
-                ),
-              );
-            },
-            loading: () => Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Day header placeholder
-                  Row(
-                    children: [
-                      ShimmerPlaceholder(
-                        width: 48,
-                        height: 48,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      const SizedBox(width: 12),
-                      ShimmerPlaceholder.text(width: 100, height: 16),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  // Event card placeholders
-                  // Cinq squelettes, pas deux ni trois (§1.0.4).
-                  ...List.generate(
-                    5,
-                    (index) => const Padding(
-                      padding: EdgeInsets.only(left: 60, bottom: 8),
-                      child: ShimmerEventCard(),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            error: (error, stack) => Center(
+          child: month.when(
+            data: (CalendarMonth loaded) =>
+                _content(monthKey, loaded.filtered(typeFilter), typeFilter),
+            loading: _skeletons,
+            error: (Object error, StackTrace _) => Center(
               child: PdlEmptyState(
                 variant: PdlEmptyVariant.error,
                 title: 'common.loadError'.tr(),
                 message: getErrorMessage(error),
-                actions: [
+                actions: <Widget>[
                   PdlButton(
                     label: 'common.retry'.tr(),
                     variant: PdlButtonVariant.outline,
                     size: PdlButtonSize.sm,
                     onPressed: () =>
-                        ref.invalidate(calendarEventsProvider(params)),
+                        ref.invalidate(calendarMonthProvider(monthKey)),
                   ),
                 ],
               ),
@@ -263,221 +108,404 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
       ],
     );
 
-    if (widget.embedded) {
-      return body;
-    }
+    if (widget.embedded) return body;
 
     return Scaffold(
-      appBar: AppBar(title: Text('calendar.title'.tr())),
-      body: body,
-    );
-  }
-}
-
-class _MonthSelector extends StatelessWidget {
-  final DateTime selectedMonth;
-  final VoidCallback onPreviousMonth;
-  final VoidCallback onNextMonth;
-
-  const _MonthSelector({
-    required this.selectedMonth,
-    required this.onPreviousMonth,
-    required this.onNextMonth,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(
-            onPressed: onPreviousMonth,
-            icon: const Icon(Icons.chevron_left),
-          ),
-          Text(
-            AppFormatters.formatMonthYear(selectedMonth),
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          IconButton(
-            onPressed: onNextMonth,
-            icon: const Icon(Icons.chevron_right),
+      appBar: PdlAppBar(
+        title: 'calendar.title'.tr(),
+        actions: <Widget>[
+          PdlButton(
+            variant: PdlButtonVariant.outline,
+            size: PdlButtonSize.sm,
+            pill: true,
+            label: 'calendar.today'.tr(),
+            onPressed: _goToToday,
           ),
         ],
       ),
+      body: body,
     );
   }
-}
 
-class _DaySection extends StatelessWidget {
-  final DateTime date;
-  final List<CalendarEventDto> events;
+  // ── Contenu ───────────────────────────────────────────────────────────────
 
-  const _DaySection({required this.date, required this.events});
-
-  @override
-  Widget build(BuildContext context) {
-    final isToday = _isToday(date);
+  Widget _content(
+    CalendarMonthKey monthKey,
+    CalendarMonth month,
+    CalendarTypeFilter typeFilter,
+  ) {
+    final List<_AgendaEntry> entries = _compose(month);
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: isToday
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(8),
+      children: <Widget>[
+        _grid(monthKey, month),
+        Expanded(
+          child: entries.isEmpty
+              ? SingleChildScrollView(
+                  child: Column(
+                    children: <Widget>[
+                      _emptyState(monthKey, typeFilter),
+                      CalendarSubscriptionCard(teamSlug: widget.teamSlug),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
+                )
+              : NotificationListener<ScrollNotification>(
+                  onNotification: _onAgendaScroll,
+                  child: ScrollablePositionedList.builder(
+                    itemScrollController: _agendaController,
+                    // La liste ne pose **pas** de marge latérale : le bloc
+                    // d'abonnement, qui en est la dernière entrée, porte les
+                    // siennes et les doublerait.
+                    padding: const EdgeInsets.only(bottom: 32),
+                    itemCount: entries.length + 1,
+                    itemBuilder: (BuildContext context, int index) =>
+                        index == entries.length
+                        ? CalendarSubscriptionCard(teamSlug: widget.teamSlug)
+                        : _entry(entries[index]),
+                  ),
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      AppFormatters.dayAbbrev(date.weekday),
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: isToday
-                            ? Theme.of(context).colorScheme.onPrimary
-                            : Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    Text(
-                      '${date.day}',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: isToday
-                            ? Theme.of(context).colorScheme.onPrimary
-                            : Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                isToday
-                    ? AppFormatters.today
-                    : AppFormatters.formatDayMonth(date),
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-            ],
-          ),
         ),
-        ...events.map(
-          (event) => _EventCard(key: ValueKey(event.entitySlug), event: event),
-        ),
-        const SizedBox(height: 8),
       ],
     );
   }
 
-  bool _isToday(DateTime date) {
-    final now = DateTime.now();
-    return date.year == now.year &&
-        date.month == now.month &&
-        date.day == now.day;
-  }
-}
+  Widget _entry(_AgendaEntry entry) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: PdlSpacing.section),
+    child: _entryBody(entry),
+  );
 
-class _EventCard extends StatelessWidget {
-  final CalendarEventDto event;
+  Widget _entryBody(_AgendaEntry entry) => switch (entry) {
+    _DayHeaderEntry(:final DateTime day) => PdlDayHeader(label: _dayLabel(day)),
+    _UpcomingSeparatorEntry() => Padding(
+      padding: const EdgeInsets.only(top: PdlSpacing.section),
+      child: PdlSectionHeader(
+        title: 'calendar.upcoming'.tr(),
+        padding: EdgeInsets.zero,
+      ),
+    ),
+    _EventEntry(:final CalendarEventDto event) => Padding(
+      padding: const EdgeInsets.only(bottom: PdlSpacing.feedGap),
+      child: AgendaCard(event: event),
+    ),
+  };
 
-  const _EventCard({super.key, required this.event});
+  Widget _grid(CalendarMonthKey monthKey, CalendarMonth month) {
+    final PdlColors c = context.pdl;
+    final DateTime? selected = ref.watch(calendarSelectedDayProvider);
+    final DateTime today = DateTime.now();
 
-  DateTime get _startDate => DateTime.parse(event.start);
+    _schedulePositioning(monthKey, month, today);
 
-  void Function()? _onTap(BuildContext context) {
-    switch (event.type) {
-      case 'RIDE':
-        return () => context.push(Paths.ride(event.teamSlug, event.entitySlug));
-      case 'TRIP_STAGE':
-        if (event.tripSlug != null) {
-          return () => context.push(
-            Paths.stage(event.teamSlug, event.tripSlug!, event.entitySlug),
-          );
-        }
-        return null;
-      default:
-        return null;
-    }
-  }
+    final double factor = (1 - _collapse).clamp(0.0, 1.0);
 
-  IconData get _icon {
-    switch (event.type) {
-      case 'RIDE':
-        return Icons.directions_bike;
-      case 'TRIP_STAGE':
-        return Icons.hiking;
-      default:
-        return Icons.event;
-    }
-  }
-
-  Color _color(BuildContext context) {
-    switch (event.type) {
-      case 'RIDE':
-        return Theme.of(context).colorScheme.primary;
-      case 'TRIP_STAGE':
-        return Theme.of(context).colorScheme.tertiary;
-      default:
-        return Theme.of(context).colorScheme.outline;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final color = _color(context);
-
-    return Padding(
-      padding: const EdgeInsets.only(left: 60, bottom: 8),
-      child: AnimatedCard(
-        onTap: _onTap(context),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              Container(
-                width: 4,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(2),
+    return ClipRect(
+      child: Align(
+        alignment: Alignment.topCenter,
+        heightFactor: factor,
+        child: Opacity(
+          opacity: factor,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              PdlSpacing.section,
+              PdlSpacing.chipGap,
+              PdlSpacing.section,
+              0,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                PdlMonthGrid(
+                  year: monthKey.year,
+                  month: monthKey.month,
+                  weekdayLabels: _weekdayLabels(),
+                  today: today,
+                  selectedDay: selected,
+                  onDayTap: (DateTime day) => _selectDay(day, month),
+                  dotsOf: (DateTime day) => _dotsOf(c, month, day),
+                  isRegistered: (DateTime day) =>
+                      month.byDay[day]?.any(
+                        (CalendarEventDto e) => e.registered,
+                      ) ??
+                      false,
+                  daySemanticLabel: (DateTime day) =>
+                      _daySemanticLabel(month, day),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Icon(_icon, color: color),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      event.title,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
+                const SizedBox(height: PdlSpacing.chipGap),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: PdlLegendRow(
+                        padding: EdgeInsets.zero,
+                        entries: <PdlLegendEntry>[
+                          PdlLegendEntry(
+                            color: calendarEventColor(c, 'RIDE'),
+                            label: 'calendar.legend.ride'.tr(),
+                          ),
+                          PdlLegendEntry(
+                            color: calendarEventColor(c, 'TRIP_STAGE'),
+                            label: 'calendar.legend.stage'.tr(),
+                          ),
+                          PdlLegendEntry(
+                            color: c.primary,
+                            label: 'rides.registered'.tr(),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${event.teamName} • ${AppFormatters.formatTime(_startDate)}',
-                      style: Theme.of(context).textTheme.bodySmall,
+                    PdlAppBarAction(
+                      icon: _pinnedCollapsed
+                          ? PdlIcons.chevronDown
+                          : PdlIcons.chevronUp,
+                      semanticLabel: _pinnedCollapsed
+                          ? 'calendar.expandGrid'.tr()
+                          : 'calendar.collapseGrid'.tr(),
+                      onPressed: _toggleGrid,
                     ),
                   ],
                 ),
-              ),
-              const Icon(Icons.chevron_right),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
+
+  Widget _skeletons() => ListView(
+    padding: const EdgeInsets.all(PdlSpacing.section),
+    children: const <Widget>[
+      PdlSkeletonCardList(variant: PdlSkeletonCardVariant.compact, count: 5),
+    ],
+  );
+
+  Widget _emptyState(CalendarMonthKey monthKey, CalendarTypeFilter type) {
+    // Deux vides bien distincts : « rien ce mois-ci » et « rien *avec ces
+    // filtres* ». Le second se résout en effaçant les filtres, jamais en
+    // changeant de mois.
+    if (type != CalendarTypeFilter.all) {
+      return Padding(
+        padding: const EdgeInsets.all(PdlSpacing.section),
+        child: PdlEmptyState(
+          variant: PdlEmptyVariant.filtered,
+          icon: PdlIcons.dateBusy,
+          title: 'calendar.noEventsFiltered.title'.tr(),
+          message: 'calendar.noEventsFiltered.message'.tr(),
+          actions: <Widget>[
+            PdlButton(
+              label: 'calendar.clearFilters'.tr(),
+              variant: PdlButtonVariant.outline,
+              size: PdlButtonSize.sm,
+              onPressed: () {
+                ref.read(calendarTypeFilterProvider.notifier).state =
+                    CalendarTypeFilter.all;
+              },
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(PdlSpacing.section),
+      child: Consumer(
+        builder: (BuildContext context, WidgetRef ref, _) {
+          final CalendarMonthKey? next = ref
+              .watch(calendarNextMonthWithEventsProvider(monthKey))
+              .value;
+          return PdlEmptyState(
+            variant: PdlEmptyVariant.empty,
+            icon: PdlIcons.dateBusy,
+            title: 'calendar.noEvents'.tr(),
+            message: 'calendar.noEventsIn'.tr(
+              namedArgs: <String, String>{
+                'month': AppFormatters.formatMonthYear(monthKey.start),
+              },
+            ),
+            actions: <Widget>[
+              if (next != null)
+                PdlButton(
+                  label: 'calendar.goToNextMonthWithEvents'.tr(),
+                  variant: PdlButtonVariant.outline,
+                  size: PdlButtonSize.sm,
+                  onPressed: () => _setMonth(next),
+                ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  // ── Composition de l'agenda ───────────────────────────────────────────────
+
+  List<_AgendaEntry> _compose(CalendarMonth month) {
+    final DateTime now = DateTime.now();
+    final DateTime todayStart = DateTime(now.year, now.month, now.day);
+    final List<_AgendaEntry> entries = <_AgendaEntry>[];
+    bool separatorPlaced = false;
+
+    for (final DateTime day in month.days) {
+      // « À venir » sépare une fois le passé du reste, et seulement s'il y a un
+      // passé à séparer.
+      if (!separatorPlaced && !day.isBefore(todayStart) && entries.isNotEmpty) {
+        entries.add(const _UpcomingSeparatorEntry());
+        separatorPlaced = true;
+      }
+      entries.add(_DayHeaderEntry(day));
+      for (final CalendarEventDto event in month.byDay[day]!) {
+        entries.add(_EventEntry(event));
+      }
+    }
+    return entries;
+  }
+
+  /// L'index d'agenda d'un jour : son en-tête.
+  int? _indexOfDay(CalendarMonth month, DateTime day) {
+    final List<_AgendaEntry> entries = _compose(month);
+    for (int i = 0; i < entries.length; i++) {
+      final _AgendaEntry entry = entries[i];
+      if (entry is _DayHeaderEntry && _sameDay(entry.day, day)) return i;
+    }
+    return null;
+  }
+
+  /// À l'ouverture : aujourd'hui s'il est renseigné, sinon le prochain jour
+  /// qui l'est. Jamais le 1ᵉʳ du mois, qui n'a aucune raison d'intéresser.
+  void _schedulePositioning(
+    CalendarMonthKey monthKey,
+    CalendarMonth month,
+    DateTime today,
+  ) {
+    if (_positionedFor == monthKey || month.isEmpty) return;
+    _positionedFor = monthKey;
+
+    final DateTime todayStart = DateTime(today.year, today.month, today.day);
+    final DateTime? target = month.days
+        .where((DateTime d) => !d.isBefore(todayStart))
+        .firstOrNull;
+    if (target == null) return;
+    final int? index = _indexOfDay(month, target);
+    if (index == null) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _agendaController.isAttached) {
+        _agendaController.jumpTo(index: index);
+      }
+    });
+  }
+
+  // ── Interactions ──────────────────────────────────────────────────────────
+
+  void _setMonth(CalendarMonthKey next) {
+    ref.read(calendarMonthKeyProvider(widget.teamSlug).notifier).state = next;
+    ref.read(calendarSelectedDayProvider.notifier).state = null;
+    setState(() {
+      _positionedFor = null;
+      _collapse = 0;
+      _pinnedCollapsed = false;
+    });
+  }
+
+  void _goToToday() {
+    final DateTime now = DateTime.now();
+    _setMonth(
+      CalendarMonthKey(
+        year: now.year,
+        month: now.month,
+        teamSlug: widget.teamSlug,
+      ),
+    );
+    ref.read(calendarSelectedDayProvider.notifier).state = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    );
+  }
+
+  void _selectDay(DateTime day, CalendarMonth month) {
+    ref.read(calendarSelectedDayProvider.notifier).state = day;
+    final int? index = _indexOfDay(month, day);
+    if (index != null && _agendaController.isAttached) {
+      _agendaController.scrollTo(
+        index: index,
+        duration: PdlMotion.stateChange,
+        curve: PdlMotion.stateChangeCurve,
+      );
+    }
+  }
+
+  void _toggleGrid() => setState(() {
+    _pinnedCollapsed = !_pinnedCollapsed;
+    _collapse = _pinnedCollapsed ? 1 : 0;
+  });
+
+  bool _onAgendaScroll(ScrollNotification notification) {
+    if (_pinnedCollapsed || notification.depth != 0) return false;
+    final double next = (notification.metrics.pixels / kCalendarGridMaxHeight)
+        .clamp(0.0, 1.0);
+    if ((next - _collapse).abs() < 0.01) return false;
+    setState(() => _collapse = next);
+    return false;
+  }
+
+  // ── Libellés ──────────────────────────────────────────────────────────────
+
+  List<String> _weekdayLabels() => <String>[
+    for (int weekday = DateTime.monday; weekday <= DateTime.sunday; weekday++)
+      AppFormatters.dayAbbrev(weekday, context: context),
+  ];
+
+  String _dayLabel(DateTime day) => _sameDay(day, DateTime.now())
+      ? AppFormatters.today
+      : AppFormatters.formatDayMonth(day);
+
+  String _daySemanticLabel(CalendarMonth month, DateTime day) {
+    final List<CalendarEventDto> events =
+        month.byDay[day] ?? const <CalendarEventDto>[];
+    final String date = AppFormatters.formatDayMonth(day);
+    if (events.isEmpty) return date;
+    final String count = 'calendar.eventCount'.plural(events.length);
+    final bool registered = events.any((CalendarEventDto e) => e.registered);
+    return registered
+        ? '$date, $count, ${'rides.registered'.tr()}'
+        : '$date, $count';
+  }
+
+  /// Zéro à deux points : un par type présent ce jour-là, dans l'ordre de la
+  /// légende. Au-delà de deux la case devient illisible — c'est le contrat de
+  /// `PdlMonthGrid`, et c'est ici qu'on tronque.
+  List<Color> _dotsOf(PdlColors c, CalendarMonth month, DateTime day) {
+    final List<CalendarEventDto> events =
+        month.byDay[day] ?? const <CalendarEventDto>[];
+    return <Color>[
+      if (events.any((CalendarEventDto e) => e.type == 'RIDE'))
+        calendarEventColor(c, 'RIDE'),
+      if (events.any((CalendarEventDto e) => e.type == 'TRIP_STAGE'))
+        calendarEventColor(c, 'TRIP_STAGE'),
+    ];
+  }
+
+  static bool _sameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+}
+
+// ── Entrées d'agenda ────────────────────────────────────────────────────────
+
+sealed class _AgendaEntry {
+  const _AgendaEntry();
+}
+
+class _DayHeaderEntry extends _AgendaEntry {
+  const _DayHeaderEntry(this.day);
+  final DateTime day;
+}
+
+class _EventEntry extends _AgendaEntry {
+  const _EventEntry(this.event);
+  final CalendarEventDto event;
+}
+
+class _UpcomingSeparatorEntry extends _AgendaEntry {
+  const _UpcomingSeparatorEntry();
 }
