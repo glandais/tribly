@@ -1,7 +1,11 @@
+import 'dart:async';
+
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../api/generated/models/asset_dto.dart';
 import '../pdl/pdl_markdown_body.dart';
+import '../utils/link_launcher.dart';
 
 /// Image size widths in pixels — mirrors frontend assetMarkdown.ts.
 const _imageSizeWidths = {
@@ -60,6 +64,13 @@ AssetDto? _findAsset(List<AssetDto> images, String id) {
 /// jamais : le défilement appartient à la page, ce qui garde son
 /// `ScrollController` attaché au `PrimaryScrollController` — iOS en a besoin
 /// pour le tap sur la barre d'état (`Scaffold.handleStatusBarTap`).
+///
+/// C'est **ici** que les liens deviennent actifs (F-TE-10) : la façade branche
+/// `onLinkTap` sur `openLink`, qui sait pousser une route interne, passer la
+/// main au système, et — jamais silencieusement — afficher un bandeau quand ni
+/// l'un ni l'autre n'est possible. Aucun écran ne doit instancier
+/// [PdlMarkdownBody] directement, sous peine de retrouver le lien inerte que
+/// cette tâche corrige.
 class MarkdownContent extends StatelessWidget {
   final String data;
   final List<AssetDto> images;
@@ -76,6 +87,11 @@ class MarkdownContent extends StatelessWidget {
         ? data
         : _resolveAssetDirectives(data, images);
 
-    return PdlMarkdownBody(data: processedData);
+    return PdlMarkdownBody(
+      data: processedData,
+      onLinkTap: (String href) => unawaited(openLink(context, href)),
+      codeCopiedLabel: 'links.codeCopied'.tr(),
+      imageCloseLabel: 'links.imageClose'.tr(),
+    );
   }
 }

@@ -104,7 +104,8 @@
     "loadError": "Loading error",
     "errorPrefix": "Error: {error}",
     "user": "User",
-    "comingSoon": "This screen is coming in a future release."
+    "comingSoon": "This screen is coming in a future release.",
+    "close": "Close"
   },
   "placeholders": {
     "teamsDiscover": {
@@ -473,6 +474,14 @@
       "USER_NOT_SYNCED": "The user account is not synchronized",
       "VALIDATION": "The provided data is invalid"
     }
+  },
+  "links": {
+    "copy": "Copy link",
+    "unopenable": {
+      "title": "This link can't be opened."
+    },
+    "codeCopied": "Code copied",
+    "imageClose": "Close image"
   },
   "pagination": {
     "loadingMore": "loading more…",

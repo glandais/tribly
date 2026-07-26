@@ -104,7 +104,8 @@
     "loadError": "Erreur de chargement",
     "errorPrefix": "Erreur: {error}",
     "user": "Utilisateur",
-    "comingSoon": "Cet écran arrive dans une prochaine version."
+    "comingSoon": "Cet écran arrive dans une prochaine version.",
+    "close": "Fermer"
   },
   "placeholders": {
     "teamsDiscover": {
@@ -473,6 +474,14 @@
       "USER_NOT_SYNCED": "Le compte utilisateur n'est pas synchronisé",
       "VALIDATION": "Les données fournies sont invalides"
     }
+  },
+  "links": {
+    "copy": "Copier le lien",
+    "unopenable": {
+      "title": "Impossible d'ouvrir ce lien."
+    },
+    "codeCopied": "Code copié",
+    "imageClose": "Fermer l'image"
   },
   "pagination": {
     "loadingMore": "chargement de la suite…",

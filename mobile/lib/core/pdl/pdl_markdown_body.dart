@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:markdown_widget/markdown_widget.dart';
 
+import '../../api/pedalons_api_client.dart';
 import '../theme/pdl_colors.dart';
 import '../theme/pdl_tokens.dart';
 import '../theme/pdl_typography.dart';
 import '../widgets/authenticated_image.dart';
+import 'pdl_image_viewer.dart';
 import 'pdl_skeleton.dart';
 
 /// B24 — Corps markdown, feuille de style unique du plan §1.3.5.
@@ -21,12 +25,13 @@ import 'pdl_skeleton.dart';
 /// attaché au `PrimaryScrollController`, dont iOS a besoin pour le tap sur la
 /// barre d'état.
 ///
-/// **Les liens sont stylés, pas encore actifs.** `LinkConfig` reçoit ici sa
-/// seule feuille de style ; l'attachement de `onTap`, la résolution interne
-/// contre `paths.generated.dart` et `url_launcher` sont la tâche F-TE-10, qui
-/// livrera aussi `core/utils/link_launcher.dart`. Poser un `onTap` à moitié
-/// ici — sans repli ni bandeau d'échec — rendrait le défaut plus difficile à
-/// voir, pas moins réel.
+/// **Les liens sont actifs** (F-TE-10) : `LinkConfig` reçoit [onLinkTap], et
+/// `markdown_widget` n'attache un `TapGestureRecognizer` que si ce rappel est
+/// non nul — c'était tout le défaut d'origine. Ce que le rappel fait de l'URL
+/// — route interne, navigateur, bandeau d'échec — appartient à
+/// `core/utils/link_launcher.dart` : ouvrir une application tierce est une E/S,
+/// et `core/pdl` n'en fait pas. Tout appelant réel passe par
+/// `core/widgets/markdown_content.dart`, qui le branche.
 class PdlMarkdownBody extends StatelessWidget {
   const PdlMarkdownBody({
     super.key,
@@ -34,6 +39,8 @@ class PdlMarkdownBody extends StatelessWidget {
     this.selectable = true,
     this.imageBuilder,
     this.onLinkTap,
+    this.codeCopiedLabel,
+    this.imageCloseLabel,
   });
 
   /// Markdown déjà résolu — les directives `::asset{…}` sont dépliées par
@@ -47,8 +54,20 @@ class PdlMarkdownBody extends StatelessWidget {
   final Widget Function(String url, Map<String, String> attributes)?
   imageBuilder;
 
-  /// Prévu pour F-TE-10 ; laissé nul, les liens restent inertes mais stylés.
+  /// Appelé avec le `href` brut du lien tapé. **Le laisser nul rend les liens
+  /// inertes** : `markdown_widget` n'attache alors aucun recognizer. Seule la
+  /// galerie de démonstration s'en passe.
   final ValueChanged<String>? onLinkTap;
+
+  /// Confirmation affichée après un appui long sur un bloc de code. Nul : la
+  /// copie se fait quand même, sans retour visuel. `core/pdl` ne traduit rien,
+  /// le libellé vient de l'appelant.
+  final String? codeCopiedLabel;
+
+  /// Étiquette du bouton de fermeture de la visionneuse plein écran. À défaut,
+  /// celle de `MaterialLocalizations` — traduite par Flutter, jamais codée en
+  /// dur ici.
+  final String? imageCloseLabel;
 
   /// Largeur minimale d'une table avant défilement horizontal.
   static const double tableMinWidth = 430;
@@ -112,6 +131,15 @@ class PdlMarkdownBody extends StatelessWidget {
                 borderRadius: PdlRadii.mdAll,
                 border: Border.all(color: c.borderSubtle),
               ),
+              // Le bloc que construit `markdown_widget` défile déjà
+              // horizontalement ; ce qui lui manque, c'est **l'appui long =
+              // copier**. Sur un téléphone, sélectionner à la main les huit
+              // lignes d'une URL d'inscription n'est pas une option.
+              wrapper: (Widget child, String code, String _) => _CopyableCode(
+                code: code,
+                copiedLabel: codeCopiedLabel,
+                child: child,
+              ),
             ),
             BlockquoteConfig(
               sideColor: c.border,
@@ -149,7 +177,11 @@ class PdlMarkdownBody extends StatelessWidget {
               builder:
                   imageBuilder ??
                   (String url, Map<String, String> attributes) =>
-                      _defaultImage(context, url),
+                      _MarkdownImage(
+                        url: url,
+                        alt: attributes['alt'],
+                        closeLabel: imageCloseLabel,
+                      ),
             ),
           ],
         );
@@ -165,28 +197,125 @@ class PdlMarkdownBody extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _defaultImage(BuildContext context, String url) {
+/// Un bloc de code que l'appui long copie.
+///
+/// `Clipboard` est un canal de plateforme, pas une E/S réseau : il ne connaît
+/// ni DTO ni route, et reste donc dans `core/pdl`. Le libellé de confirmation,
+/// lui, vient de l'appelant.
+class _CopyableCode extends StatelessWidget {
+  const _CopyableCode({
+    required this.code,
+    required this.copiedLabel,
+    required this.child,
+  });
+
+  final String code;
+  final String? copiedLabel;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      // `opaque` : le geste doit gagner contre la sélection de texte du
+      // `SelectionArea` qui enveloppe le corps quand `selectable` est vrai.
+      behavior: HitTestBehavior.opaque,
+      onLongPress: () async {
+        await Clipboard.setData(ClipboardData(text: code));
+        await HapticFeedback.mediumImpact();
+        if (!context.mounted) return;
+        final String? label = copiedLabel;
+        if (label == null) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(label), behavior: SnackBarBehavior.floating),
+        );
+      },
+      child: child,
+    );
+  }
+}
+
+/// L'image d'un contenu markdown : 160 px de haut, rayon 8, **plein écran au
+/// tap** avec transition [Hero].
+///
+/// Elle lit le jeton d'accès parce que les images de contenu sont servies
+/// derrière l'API : c'est le même écart que `AuthenticatedImage`, déjà employé
+/// ici depuis la vague B, et il est documenté dans `core/pdl/README.md`. La
+/// règle qui tient est l'autre : **aucun DTO généré n'entre ici** — le `grep`
+/// de revue du README reste vide.
+class _MarkdownImage extends ConsumerStatefulWidget {
+  const _MarkdownImage({required this.url, this.alt, this.closeLabel});
+
+  final String url;
+  final String? alt;
+  final String? closeLabel;
+
+  @override
+  ConsumerState<_MarkdownImage> createState() => _MarkdownImageState();
+}
+
+class _MarkdownImageState extends ConsumerState<_MarkdownImage> {
+  /// Étiquette [Hero] **propre à cette occurrence** : la même image citée deux
+  /// fois dans un article partagerait sinon une étiquette, ce qui fait lever
+  /// le `Hero` au lieu d'animer.
+  final Object _heroTag = Object();
+
+  @override
+  Widget build(BuildContext context) {
     final PdlColors c = context.pdl;
+    final String? token = ref.watch(accessTokenHolderProvider);
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      child: ClipRRect(
-        borderRadius: PdlRadii.mdAll,
-        child: SizedBox(
-          height: imageHeight,
-          child: AuthenticatedImage(
-            imageUrl: url,
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: imageHeight,
-            placeholder: const PdlSkeleton(
-              width: double.infinity,
-              height: imageHeight,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _openFullScreen(token),
+        child: Semantics(
+          image: true,
+          button: true,
+          label: widget.alt?.isNotEmpty ?? false ? widget.alt : null,
+          child: Hero(
+            tag: _heroTag,
+            child: ClipRRect(
+              borderRadius: PdlRadii.mdAll,
+              child: SizedBox(
+                height: PdlMarkdownBody.imageHeight,
+                child: AuthenticatedImage(
+                  imageUrl: widget.url,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: PdlMarkdownBody.imageHeight,
+                  placeholder: const PdlSkeleton(
+                    width: double.infinity,
+                    height: PdlMarkdownBody.imageHeight,
+                  ),
+                  errorWidget: ColoredBox(color: c.surfaceAlt),
+                ),
+              ),
             ),
-            errorWidget: ColoredBox(color: c.surfaceAlt),
           ),
         ),
       ),
+    );
+  }
+
+  void _openFullScreen(String? token) {
+    // Plein écran : on redemande la plus grande variante, pas la vignette de
+    // 400 px étirée sur toute la dalle.
+    final ImageProvider? provider = AuthenticatedDecorationImage.fromUrl(
+      widget.url,
+      token,
+      size: 1920,
+    );
+    if (provider == null) return;
+    PdlImageViewer.show(
+      context,
+      imageProvider: provider,
+      heroTag: _heroTag,
+      closeSemanticLabel:
+          widget.closeLabel ??
+          MaterialLocalizations.of(context).closeButtonLabel,
     );
   }
 }
