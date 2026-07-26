@@ -13,7 +13,7 @@
 create table ad_contacts
 (
     id            bigint      not null primary key,
-    ad_id         bigint      not null references ads (id) on delete cascade,
+    ad_id         bigint      not null references team_entities (id) on delete cascade,
     created_by_id bigint      not null references users (id),
     created_at    timestamptz not null,
     updated_at    timestamptz not null,
