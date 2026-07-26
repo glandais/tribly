@@ -1,13 +1,19 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
+import '../pdl/pdl_paged_list_footer.dart';
 import 'paged_list_state.dart';
 
 /// Foot of an infinitely scrolled list.
 ///
-/// Renders whichever of the three end-of-list states applies: next page
-/// loading, next page failed, or nothing left to load. Deliberately the only
-/// place a next-page problem is shown — the items above it stay untouched.
+/// Façade **traduite** au-dessus de [PdlPagedListFooter] (B9) : le rendu, lui,
+/// vit dans `core/pdl`, qui ne traduit rien. Ce qui reste ici est la lecture du
+/// [PagedListState] et les clés de localisation.
+///
+/// Le compteur porte **toujours le total** (« 8 participants sur 40 ») : un
+/// « Chargement… » nu ne dit ni où on en est, ni combien il reste. Le total
+/// vient de [PagedListState.total], renvoyé par le serveur avec la première
+/// page ; tant qu'il manque, seul le nombre chargé est affiché.
 class PagedListFooter extends StatelessWidget {
   final PagedListState<Object?> state;
   final VoidCallback onRetry;
@@ -16,85 +22,54 @@ class PagedListFooter extends StatelessWidget {
   /// so the list grows into the incoming content instead of jumping.
   final Widget? skeleton;
 
+  /// Nom de ce qui est compté, déjà accordé au pluriel par l'appelant —
+  /// « participants », « parcours ». Absent, le compteur reste « 8 sur 40 ».
+  final String? itemNoun;
+
   const PagedListFooter({
     super.key,
     required this.state,
     required this.onRetry,
     this.skeleton,
+    this.itemNoun,
   });
+
+  String _progressLabel() {
+    final int loaded = state.items.length;
+    final int? total = state.total;
+    if (total == null) {
+      return 'pagination.loaded'.tr(
+        namedArgs: <String, String>{'loaded': '$loaded'},
+      );
+    }
+    if (itemNoun == null) {
+      return 'pagination.progress'.tr(
+        namedArgs: <String, String>{'loaded': '$loaded', 'total': '$total'},
+      );
+    }
+    return 'pagination.progressNamed'.tr(
+      namedArgs: <String, String>{
+        'loaded': '$loaded',
+        'noun': itemNoun!,
+        'total': '$total',
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    if (state.nextError != null) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                Text(
-                  'pagination.nextPageError'.tr(),
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: onRetry,
-                  icon: const Icon(Icons.refresh, size: 18),
-                  label: Text('common.retry'.tr()),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    if (state.isLoadingNext) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Column(
-          children: [
-            if (skeleton != null) ...[skeleton!, const SizedBox(height: 12)],
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  'pagination.loadingMore'.tr(),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.outline,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (!state.hasMore && state.items.isNotEmpty) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        child: Center(
-          child: Text(
-            'pagination.endOfList'.tr(),
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.outline,
-            ),
-          ),
-        ),
-      );
-    }
-
-    return const SizedBox(height: 8);
+    return PdlPagedListFooter(
+      isLoadingNext: state.isLoadingNext,
+      hasMore: state.hasMore,
+      isEmpty: state.items.isEmpty,
+      hasError: state.nextError != null,
+      onRetry: onRetry,
+      skeleton: skeleton,
+      progressLabel: _progressLabel(),
+      loadingLabel: 'pagination.loadingMore'.tr(),
+      endLabel: 'pagination.endOfList'.tr(),
+      errorLabel: 'pagination.nextPageError'.tr(),
+      retryLabel: 'common.retry'.tr(),
+    );
   }
 }

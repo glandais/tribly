@@ -475,9 +475,12 @@
     }
   },
   "pagination": {
-    "loadingMore": "Chargement…",
+    "loadingMore": "chargement de la suite…",
     "nextPageError": "Impossible de charger la suite.\nVérifiez votre connexion.",
-    "endOfList": "Vous avez tout vu"
+    "endOfList": "Vous avez tout vu",
+    "loaded": "{loaded} chargés",
+    "progress": "{loaded} sur {total}",
+    "progressNamed": "{loaded} {noun} sur {total}"
   },
   "location": {
     "serviceDisabled": "La localisation est désactivée sur votre appareil.",
@@ -494,5 +497,16 @@
     "imperialExample": "mi, ft, mph",
     "elevationGain": "D+",
     "elevationLoss": "D−"
+  },
+  "map": {
+    "fullscreen": "Plein écran",
+    "exitFullscreen": "Quitter le plein écran",
+    "background": "Fond de carte",
+    "chooseBackground": "Choisir le fond de carte",
+    "searchThisArea": "Rechercher dans cette zone",
+    "start": "Départ",
+    "end": "Arrivée",
+    "truncated": "{shown} parcours affichés sur {total} dans cette zone",
+    "unavailable": "Carte indisponible"
   }
 }

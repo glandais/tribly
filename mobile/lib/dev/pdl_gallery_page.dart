@@ -99,6 +99,12 @@ class _GalleryBodyState extends State<_GalleryBody> {
   String? _search;
   bool _chipSelected = true;
 
+  // ── État des composés de la vague B ─────────────────────────────────────
+  RangeValues _range = const RangeValues(20, 90);
+  int _dotIndex = 1;
+  DateTime? _selectedDay;
+  static final DateTime _demoToday = DateTime(2026, 7, 22);
+
   @override
   Widget build(BuildContext context) {
     final PdlColors c = context.pdl;
@@ -675,10 +681,780 @@ class _GalleryBodyState extends State<_GalleryBody> {
             ),
           ],
         ),
+
+        // ── PdlElevationProfile ───────────────────────────────────────────
+        _Block(
+          title: 'PdlElevationProfile',
+          children: <Widget>[
+            const _Caption('110 — écrans 12 et 24 · réticule persistant'),
+            PdlElevationProfile(
+              samples: _demoProfile,
+              height: PdlMetrics.elevationMedium,
+              axisLabel: _demoAxisLabel,
+              tipLabel: _demoTipLabel,
+            ),
+            const SizedBox(height: 16),
+            const _Caption('72 — compact'),
+            PdlElevationProfile(
+              samples: _demoProfile,
+              height: PdlMetrics.elevationCompact,
+              axisLabel: _demoAxisLabel,
+              tipLabel: _demoTipLabel,
+            ),
+            const SizedBox(height: 16),
+            const _Caption('chargement'),
+            const PdlElevationProfile.loading(
+              label: 'Chargement du profil altimétrique...',
+              height: PdlMetrics.elevationCompact,
+            ),
+            const SizedBox(height: 16),
+            const _Caption('échec du seul profil'),
+            PdlElevationProfile.failed(
+              label: 'Profil indisponible',
+              actionLabel: 'Réessayer',
+              onRetry: () {},
+            ),
+          ],
+        ),
+
+        // ══ Vague B — les 26 composés ═════════════════════════════════════
+
+        // ── B1 ────────────────────────────────────────────────────────────
+        _Block(
+          title: 'B1 · PdlChipRow',
+          padded: false,
+          children: <Widget>[
+            const _PaddedCaption('hauteur mesurée · fondu des 28 derniers px'),
+            PdlChipRow(
+              children: <Widget>[
+                PdlChip(label: 'Tout', selected: true, onTap: () {}),
+                PdlChip(label: 'Sorties', onTap: () {}),
+                PdlChip(label: 'Publications', onTap: () {}),
+                PdlChip(label: 'Voyages', onTap: () {}),
+                PdlChip(label: 'Annonces', onTap: () {}),
+                PdlChip(label: 'Parcours', onTap: () {}),
+              ],
+            ),
+          ],
+        ),
+
+        // ── B2 ────────────────────────────────────────────────────────────
+        _Block(
+          title: 'B2 · PdlAvatarStack',
+          children: <Widget>[
+            PdlAvatarStack(
+              people: _demoPeople,
+              semanticLabel: '40 participants',
+              onTap: () {},
+            ),
+            const SizedBox(height: 12),
+            const _Caption('sans reste, taille 32'),
+            PdlAvatarStack(people: _demoPeople.take(3).toList(), size: 32),
+          ],
+        ),
+
+        // ── B3 ────────────────────────────────────────────────────────────
+        _Block(
+          title: 'B3 · PdlTeamLine',
+          children: <Widget>[
+            PdlTeamLine(label: 'N-Peloton', onTap: () {}),
+            const SizedBox(height: 8),
+            const _Caption('variante voyage — icône au lieu de l\'avatar'),
+            PdlTeamLine(
+              label: 'Vosges 2026',
+              icon: PdlIcons.trip,
+              onTap: () {},
+            ),
+          ],
+        ),
+
+        // ── B4 ────────────────────────────────────────────────────────────
+        _Block(
+          title: 'B4 · PdlPlaceRow',
+          children: const <Widget>[
+            PdlPlaceRow(
+              kind: PdlPlaceKind.start,
+              name: 'Fonderies',
+              address: '2 boulevard de Berlin, Nantes',
+            ),
+            SizedBox(height: 12),
+            PdlPlaceRow(
+              kind: PdlPlaceKind.end,
+              name: 'Place du Bourg',
+              address: 'Vertou',
+            ),
+          ],
+        ),
+
+        // ── B5 ────────────────────────────────────────────────────────────
+        _Block(
+          title: 'B5 · PdlThumb',
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                PdlThumb(size: PdlMetrics.thumbLg, onTap: () {}),
+                const SizedBox(width: 12),
+                const PdlThumb(size: PdlMetrics.thumbMd),
+                const SizedBox(width: 12),
+                const PdlThumb(
+                  size: PdlMetrics.thumbSm,
+                  fallbackIcon: PdlIcons.image,
+                ),
+              ],
+            ),
+          ],
+        ),
+
+        // ── B6 ────────────────────────────────────────────────────────────
+        _Block(
+          title: 'B6 · PdlCardMedia',
+          children: <Widget>[
+            const _Caption('208 — dégradé de repli et icône de type'),
+            PdlCard(
+              padding: PdlCardPadding.none,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  const PdlCardMedia(
+                    tone: PdlMediaTone.ride,
+                    height: PdlMetrics.media16x9,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(PdlSpacing.card),
+                    child: Text('N-Peloton #664', style: t.cardTitle),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            const _Caption('120 · 160 — publication et voyage'),
+            Row(
+              children: const <Widget>[
+                Expanded(
+                  child: PdlCardMedia(
+                    tone: PdlMediaTone.post,
+                    height: PdlMetrics.media120,
+                    borderRadius: PdlRadii.cardAll,
+                  ),
+                ),
+                SizedBox(width: 8),
+                Expanded(
+                  child: PdlCardMedia(
+                    tone: PdlMediaTone.trip,
+                    height: PdlMetrics.media120,
+                    borderRadius: PdlRadii.cardAll,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+
+        // ── B7 ────────────────────────────────────────────────────────────
+        _Block(
+          title: 'B7 · PdlEmptyState — les 4 variantes',
+          children: <Widget>[
+            PdlCard(
+              padding: PdlCardPadding.none,
+              child: PdlEmptyState(
+                variant: PdlEmptyVariant.empty,
+                title: 'Aucune publication',
+                message: 'Cette équipe n\'a rien publié pour le moment.',
+                actions: <Widget>[
+                  PdlButton(
+                    label: 'Écrire une publication',
+                    size: PdlButtonSize.sm,
+                    onPressed: () {},
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            PdlCard(
+              padding: PdlCardPadding.none,
+              child: PdlEmptyState(
+                variant: PdlEmptyVariant.filtered,
+                title: 'Aucun résultat',
+                message: 'Aucune publication ne correspond à « gravel ».',
+                actions: <Widget>[
+                  PdlButton(
+                    label: 'Effacer la recherche',
+                    variant: PdlButtonVariant.outline,
+                    size: PdlButtonSize.sm,
+                    onPressed: () {},
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            PdlCard(
+              padding: PdlCardPadding.none,
+              child: PdlEmptyState(
+                variant: PdlEmptyVariant.error,
+                title: 'Chargement impossible',
+                message: 'Vérifiez votre connexion, puis réessayez.',
+                actions: <Widget>[
+                  PdlButton(
+                    label: 'Réessayer',
+                    variant: PdlButtonVariant.outline,
+                    size: PdlButtonSize.sm,
+                    icon: PdlIcons.refresh,
+                    onPressed: () {},
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            const PdlCard(
+              padding: PdlCardPadding.none,
+              child: PdlEmptyState(
+                variant: PdlEmptyVariant.notFound,
+                title: 'Sortie introuvable',
+                message: 'Elle a peut-être été supprimée ou rendue privée.',
+              ),
+            ),
+          ],
+        ),
+
+        // ── B8 ────────────────────────────────────────────────────────────
+        _Block(
+          title: 'B8 · PdlBanner',
+          children: <Widget>[
+            const PdlBanner(
+              tone: PdlBannerTone.danger,
+              title: 'Inscription impossible.',
+              message:
+                  'Vous êtes déjà inscrit dans un autre groupe de cette sortie.',
+            ),
+            const SizedBox(height: 8),
+            PdlBanner(
+              tone: PdlBannerTone.warn,
+              message: 'Rejoignez cette équipe pour participer aux sorties.',
+              action: PdlButton(
+                label: 'Voir l\'équipe',
+                variant: PdlButtonVariant.text,
+                size: PdlButtonSize.sm,
+                onPressed: () {},
+              ),
+            ),
+            const SizedBox(height: 8),
+            const PdlBanner(
+              tone: PdlBannerTone.info,
+              title: 'Mode hors ligne.',
+              message: 'Les données affichées datent de votre dernière visite.',
+            ),
+          ],
+        ),
+
+        // ── B9 ────────────────────────────────────────────────────────────
+        _Block(
+          title: 'B9 · PdlPagedListFooter',
+          children: const <Widget>[
+            _Caption('chargement — le total est indispensable'),
+            PdlPagedListFooter(
+              isLoadingNext: true,
+              hasMore: true,
+              isEmpty: false,
+              progressLabel: '8 participants sur 40',
+              loadingLabel: 'chargement de la suite...',
+              endLabel: 'Vous avez tout vu',
+              errorLabel: 'Impossible de charger la suite.',
+              retryLabel: 'Réessayer',
+            ),
+            _Caption('fin de liste'),
+            PdlPagedListFooter(
+              isLoadingNext: false,
+              hasMore: false,
+              isEmpty: false,
+              progressLabel: '40 participants sur 40',
+              loadingLabel: 'chargement de la suite...',
+              endLabel: 'Vous avez tout vu',
+              errorLabel: 'Impossible de charger la suite.',
+              retryLabel: 'Réessayer',
+            ),
+            _Caption('échec de la page suivante'),
+            PdlPagedListFooter(
+              isLoadingNext: false,
+              hasMore: true,
+              isEmpty: false,
+              hasError: true,
+              progressLabel: '8 participants sur 40',
+              loadingLabel: 'chargement de la suite...',
+              endLabel: 'Vous avez tout vu',
+              errorLabel:
+                  'Impossible de charger la suite.\n'
+                  'Vérifiez votre connexion.',
+              retryLabel: 'Réessayer',
+            ),
+          ],
+        ),
+
+        // ── B10 ───────────────────────────────────────────────────────────
+        _Block(
+          title: 'B10 · PdlPersonRow',
+          children: <Widget>[
+            PdlPersonRow(
+              name: 'Antoine Yvon',
+              organizerFlag: true,
+              organizerLabel: 'Organisateur du groupe',
+              showDivider: true,
+              onTap: () {},
+            ),
+            PdlPersonRow(
+              name: 'Hélène Ebrard',
+              subtitle: 'N-Peloton · inscrite depuis 2024',
+              showDivider: true,
+              roleBadge: PdlBadge(
+                label: 'Admin',
+                tone: tone(c.primary, c.softIndigo),
+              ),
+              onTap: () {},
+            ),
+            const PdlPersonRow(
+              name: 'Gabriel Landais',
+              isCurrentUser: true,
+              subtitle: 'C\'est vous',
+            ),
+          ],
+        ),
+
+        // ── B11 ───────────────────────────────────────────────────────────
+        _Block(
+          title: 'B11 · PdlAttachmentRow',
+          children: <Widget>[
+            PdlAttachmentRow(
+              name: 'np664-chill-gravel.gpx',
+              type: 'gpx',
+              subtitle: '412 ko',
+              actionSemanticLabel: 'Télécharger np664-chill-gravel.gpx',
+              onAction: () {},
+              showDivider: true,
+            ),
+            PdlAttachmentRow(
+              name: 'Roadbook Vosges 2026.pdf',
+              type: 'pdf',
+              icon: PdlIcons.page,
+              actionSemanticLabel: 'Télécharger Roadbook Vosges 2026.pdf',
+              onAction: () {},
+            ),
+          ],
+        ),
+
+        // ── B12 ───────────────────────────────────────────────────────────
+        _Block(
+          title: 'B12 · PdlLegendRow',
+          padded: false,
+          children: <Widget>[
+            const _PaddedCaption('l\'entrée active passe en text/600'),
+            PdlLegendRow(
+              activeIndex: 1,
+              entries: <PdlLegendEntry>[
+                PdlLegendEntry(
+                  color: multiTrackColor(0),
+                  label: 'Chill Route Court',
+                  onTap: () {},
+                ),
+                PdlLegendEntry(
+                  color: multiTrackColor(1),
+                  label: 'Chill Route Long',
+                  onTap: () {},
+                ),
+                PdlLegendEntry(
+                  color: multiTrackColor(2),
+                  label: 'G1',
+                  onTap: () {},
+                ),
+                PdlLegendEntry(
+                  color: multiTrackColor(3),
+                  label: 'G2',
+                  onTap: () {},
+                ),
+              ],
+            ),
+          ],
+        ),
+
+        // ── B13 ───────────────────────────────────────────────────────────
+        _Block(
+          title: 'B13 · PdlClimbRow',
+          children: <Widget>[
+            PdlClimbRow(
+              categoryLabel: 'HC',
+              categoryTone: PdlTone(
+                fill: c.accentGrape,
+                soft: c.grapeSoft,
+                onSoft: c.grapeOnSoft,
+                filledStyle: true,
+              ),
+              name: 'Col de la Schlucht',
+              range: '12,4 → 18,1 km',
+              figures: const <PdlClimbFigure>[
+                PdlClimbFigure(value: '5,7 km', label: 'long.'),
+                PdlClimbFigure(value: '412 m', label: 'D+'),
+                PdlClimbFigure(value: '7,2 %', label: 'moy.'),
+              ],
+            ),
+            PdlClimbRow(
+              categoryLabel: 'Cat. 3',
+              categoryTone: PdlTone(
+                fill: c.warning,
+                soft: c.warningSoft,
+                onSoft: c.warningOnSoft,
+                onFill: c.neutralOnSoft,
+                filledStyle: true,
+              ),
+              name: 'Côte de Vertou',
+              range: '31,0 → 32,6 km',
+              showDivider: false,
+              figures: const <PdlClimbFigure>[
+                PdlClimbFigure(value: '1,6 km', label: 'long.'),
+                PdlClimbFigure(value: '74 m', label: 'D+'),
+                PdlClimbFigure(value: '4,6 %', label: 'moy.'),
+              ],
+            ),
+          ],
+        ),
+
+        // ── B14 ───────────────────────────────────────────────────────────
+        _Block(
+          title: 'B14 · PdlStatCellRow',
+          children: <Widget>[
+            PdlStatCellRow(
+              cells: <PdlStatCell>[
+                PdlStatCell(
+                  value: '12',
+                  label: 'À venir',
+                  onTap: () {},
+                  semanticLabel: '12 sorties à venir',
+                ),
+                const PdlStatCell(value: '184', label: 'Historique'),
+                const PdlStatCell(value: '4 210 km', label: 'Cette année'),
+              ],
+            ),
+          ],
+        ),
+
+        // ── B15 ───────────────────────────────────────────────────────────
+        _Block(
+          title: 'B15 · PdlAvatarEditor',
+          children: <Widget>[
+            Center(
+              child: PdlAvatarEditor(
+                name: 'Gabriel Landais',
+                onPick: () {},
+                pickSemanticLabel: 'Changer la photo de profil',
+                onRemove: () {},
+                removeLabel: 'Supprimer la photo',
+              ),
+            ),
+          ],
+        ),
+
+        // ── B16 ───────────────────────────────────────────────────────────
+        _Block(
+          title: 'B16 · PdlDangerZone',
+          padded: false,
+          children: <Widget>[
+            PdlDangerZone(
+              title: 'Supprimer mon compte',
+              consequence:
+                  'Cette action est irréversible : vos inscriptions, vos '
+                  'publications et vos parcours seront supprimés.',
+              actionLabel: 'Supprimer mon compte',
+              onAction: () {},
+            ),
+          ],
+        ),
+
+        // ── B17 ───────────────────────────────────────────────────────────
+        _Block(
+          title: 'B17 · PdlRangeFilter',
+          children: <Widget>[
+            PdlRangeFilter(
+              values: _range,
+              min: 0,
+              max: 200,
+              divisions: 40,
+              lowLabel: '0 km',
+              highLabel: '200 km',
+              semanticFormatter: (double v) => '${v.round()} km',
+              onChanged: (RangeValues v) => setState(() => _range = v),
+            ),
+          ],
+        ),
+
+        // ── B18 ───────────────────────────────────────────────────────────
+        _Block(
+          title: 'B18 · PdlGalleryDots',
+          children: <Widget>[
+            ClipRRect(
+              borderRadius: PdlRadii.cardAll,
+              child: SizedBox(
+                height: 140,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: <Widget>[
+                    const DecoratedBox(
+                      decoration: BoxDecoration(gradient: PdlGradients.ad),
+                    ),
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 12,
+                      child: Center(
+                        child: PdlGalleryDots(
+                          count: 4,
+                          index: _dotIndex,
+                          semanticLabel: 'Photo',
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            PdlButton(
+              label: 'Photo suivante',
+              variant: PdlButtonVariant.outline,
+              size: PdlButtonSize.sm,
+              onPressed: () => setState(() => _dotIndex = (_dotIndex + 1) % 4),
+            ),
+          ],
+        ),
+
+        // ── B19 ───────────────────────────────────────────────────────────
+        _Block(
+          title: 'B19 · PdlPriceBlock',
+          children: <Widget>[
+            const PdlPriceBlock(price: '1 250 €', note: 'Prix à débattre'),
+            const SizedBox(height: 8),
+            PdlPriceBlock(
+              price: '35 € / jour',
+              note: 'Location, caution 300 €',
+              trailing: PdlButton(
+                label: 'Contacter',
+                size: PdlButtonSize.sm,
+                onPressed: () {},
+              ),
+            ),
+          ],
+        ),
+
+        // ── B20 ───────────────────────────────────────────────────────────
+        _Block(
+          title: 'B20 · PdlBadgeStack',
+          children: <Widget>[
+            Align(
+              alignment: Alignment.centerRight,
+              child: PdlBadgeStack(
+                badges: <Widget>[
+                  PdlBadge(
+                    label: 'Sortie',
+                    tone: tone(c.accentBlue, c.softBlue),
+                  ),
+                  PdlBadge(label: 'Publié', tone: tone(c.success, c.softGreen)),
+                  PdlBadge(
+                    label: 'Public',
+                    icon: PdlIcons.visibilityPublic,
+                    tone: tone(c.accentBlue, c.softBlue),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+
+        // ── B21 ───────────────────────────────────────────────────────────
+        _Block(
+          title: 'B21 · PdlSkeletonCard — 5 squelettes, pas 2',
+          children: const <Widget>[
+            _Caption('gabarit média 208'),
+            PdlSkeletonCard(),
+            SizedBox(height: 8),
+            _Caption('ligne compacte 100'),
+            PdlSkeletonCard(variant: PdlSkeletonCardVariant.compact),
+            SizedBox(height: 8),
+            _Caption('personne 56'),
+            PdlSkeletonCardList(
+              variant: PdlSkeletonCardVariant.person,
+              count: 3,
+            ),
+          ],
+        ),
+
+        // ── B22 ───────────────────────────────────────────────────────────
+        _Block(
+          title: 'B22 · PdlDeadEndEmpty',
+          padded: false,
+          children: <Widget>[
+            PdlDeadEndEmpty(
+              title: 'Aucun parcours',
+              message:
+                  'Aucun parcours ne contient « gravel » avec les filtres '
+                  'Distance 40–80 km et Revêtement Route.',
+              removeFilterLabel: 'Retirer le filtre Revêtement',
+              onRemoveFilter: () {},
+              resetAllLabel: 'Tout réinitialiser',
+              onResetAll: () {},
+              previewTitle: 'Sans le filtre Revêtement',
+              preview: <Widget>[
+                for (final String name in const <String>[
+                  'NP664 - CHILL GRAVEL',
+                  'NP663 - ROUTE LONGUE',
+                  'NP661 - BORDS DE LOIRE',
+                ])
+                  PdlCard(
+                    padding: PdlCardPadding.tight,
+                    onTap: () {},
+                    child: Row(
+                      children: <Widget>[
+                        Icon(PdlIcons.route, size: 20, color: c.textDimmed),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(name, style: t.bodyStrong),
+                              Text('46,3 km · 187 m', style: t.xs),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          PdlIcons.chevronRight,
+                          size: 20,
+                          color: c.textPlaceholder,
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
+
+        // ── B23 ───────────────────────────────────────────────────────────
+        _Block(
+          title: 'B23 · PdlScopeSelector',
+          children: <Widget>[
+            PdlScopeSelector(
+              label: 'Toutes mes équipes',
+              onTap: () {},
+              semanticLabel: 'Portée : toutes mes équipes',
+            ),
+            const SizedBox(height: 12),
+            const _Caption('variante ligne — barre d\'outils du calendrier'),
+            PdlScopeSelector(
+              label: 'N-Peloton',
+              style: PdlScopeStyle.row,
+              onTap: () {},
+            ),
+          ],
+        ),
+
+        // ── B24 ───────────────────────────────────────────────────────────
+        _Block(
+          title: 'B24 · PdlMarkdownBody',
+          children: const <Widget>[PdlMarkdownBody(data: _demoMarkdown)],
+        ),
+
+        // ── B25 ───────────────────────────────────────────────────────────
+        _Block(
+          title: 'B25 · PdlImageViewer',
+          children: <Widget>[
+            const _Caption('pincement · balayage vertical pour fermer'),
+            PdlButton(
+              label: 'Ouvrir la visionneuse',
+              variant: PdlButtonVariant.outline,
+              icon: PdlIcons.image,
+              onPressed: () => PdlImageViewer.show(
+                context,
+                imageProvider: const AssetImage('assets/icon.png'),
+                closeSemanticLabel: 'Fermer',
+                caption: Text(
+                  'Départ des Fonderies',
+                  style: t.sub.copyWith(color: c.onPrimary),
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        // ── B26 ───────────────────────────────────────────────────────────
+        _Block(
+          title: 'B26 · PdlMonthGrid + PdlDayHeader',
+          children: <Widget>[
+            const _Caption(
+              'semaine lundi → dimanche calculée · aujourd\'hui et inscrit '
+              'cumulables',
+            ),
+            PdlMonthGrid(
+              year: 2026,
+              month: 7,
+              weekdayLabels: const <String>[
+                'lun.',
+                'mar.',
+                'mer.',
+                'jeu.',
+                'ven.',
+                'sam.',
+                'dim.',
+              ],
+              today: _demoToday,
+              selectedDay: _selectedDay,
+              isRegistered: (DateTime d) =>
+                  d.day == 22 || d.day == 19 || d.day == 26,
+              dotsOf: (DateTime d) => <Color>[
+                if (d.day % 7 == 1) c.accentBlue,
+                if (d.day % 5 == 2) c.accentTeal,
+              ],
+              onDayTap: (DateTime d) => setState(() => _selectedDay = d),
+            ),
+            const PdlDayHeader(label: 'mer. 22 juillet'),
+            PdlCard(
+              padding: PdlCardPadding.tight,
+              onTap: () {},
+              child: Text('N-Peloton #664', style: t.bodyStrong),
+            ),
+          ],
+        ),
       ],
     );
   }
 }
+
+/// Quelques personnes pour les grappes et les lignes de personne.
+const List<PdlAvatarEntry> _demoPeople = <PdlAvatarEntry>[
+  PdlAvatarEntry(name: 'Nicolas Bertin'),
+  PdlAvatarEntry(name: 'Claire Vasseur'),
+  PdlAvatarEntry(name: 'Benoît Lecomte'),
+  PdlAvatarEntry(name: 'Julie Daumas'),
+  PdlAvatarEntry(name: 'Yann Marchand'),
+  PdlAvatarEntry(name: 'Gabriel Landais', isCurrentUser: true),
+  PdlAvatarEntry(name: 'Hélène Ebrard'),
+  PdlAvatarEntry(name: 'Antoine Yvon'),
+];
+
+const String _demoMarkdown = '''
+## Départ des Fonderies
+
+Quatre groupes au programme, retour par les **bords de Loire**. Pensez aux
+éclairages : le retour se fera de nuit.
+
+- Rendez-vous 19h15, départ 19h30
+- Prévoir une chambre à air
+- [Le parcours complet](https://example.org/parcours)
+
+> Sortie annulée en cas de pluie forte annoncée à 18h.
+
+| Groupe | Allure | Distance |
+| --- | --- | --- |
+| Chill Route Court | 22 km/h | 47,0 km |
+| Chill Route Long | 26 km/h | 66,5 km |
+| G1 | 30 km/h | 72,3 km |
+
+Code d'accès du local : `4C6E-F5`.
+''';
 
 /// Appareillage de planche — n'appartient pas à la charte.
 class _Block extends StatelessWidget {
@@ -738,6 +1514,25 @@ class _Block extends StatelessWidget {
   }
 }
 
+/// Légende d'un bloc non rembourré — les rangées défilantes vont bord à bord,
+/// leur légende, non.
+class _PaddedCaption extends StatelessWidget {
+  const _PaddedCaption(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(
+      PdlSpacing.section,
+      0,
+      PdlSpacing.section,
+      6,
+    ),
+    child: Text(text, style: context.pdlText.mono),
+  );
+}
+
 class _Caption extends StatelessWidget {
   const _Caption(this.text);
 
@@ -748,4 +1543,37 @@ class _Caption extends StatelessWidget {
     padding: const EdgeInsets.only(bottom: 6),
     child: Text(text, style: context.pdlText.mono),
   );
+}
+
+/// Profil de démonstration : 300 points, une bosse et une descente, de quoi
+/// balayer toute l'échelle de pente.
+///
+/// Construit **une fois** et gardé : le painter des barres compare son profil
+/// par identité, le reconstruire à chaque `build` le ferait repeindre.
+final ElevationSamples _demoProfile = ElevationSamples.fromPoints(
+  <ElevationPoint>[
+    for (int i = 0; i < 300; i++)
+      ElevationPoint(
+        distance: i * 155.0,
+        elevation: 120 + 180 * (1 - (i / 150 - 1).abs()) + (i % 7) * 3,
+        grade: i == 0 ? 0 : (i < 150 ? 12 * (i / 150) : -9 * ((i - 150) / 150)),
+      ),
+  ],
+);
+
+/// La galerie n'a ni locale ni préférence d'unités : elle formate à la main.
+/// Dans l'app, ces deux fonctions passent par `AppFormatters`.
+String _demoAxisLabel(double meters, {required bool isLast}) {
+  final String value = (meters / 1000).toStringAsFixed(1).replaceAll('.', ',');
+  return isLast ? '$value km' : value;
+}
+
+String _demoTipLabel(ElevationReading reading) {
+  final String km = (reading.distance / 1000)
+      .toStringAsFixed(1)
+      .replaceAll('.', ',');
+  final String grade = reading.grade == null
+      ? '—'
+      : '${reading.grade!.toStringAsFixed(1).replaceAll('.', ',')} %';
+  return '$km km · ${reading.elevation.round()} m · $grade';
 }

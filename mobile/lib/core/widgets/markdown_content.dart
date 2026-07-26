@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:markdown_widget/markdown_widget.dart';
 
 import '../../api/generated/models/asset_dto.dart';
-import 'authenticated_image.dart';
+import '../pdl/pdl_markdown_body.dart';
 
 /// Image size widths in pixels — mirrors frontend assetMarkdown.ts.
 const _imageSizeWidths = {
@@ -50,16 +49,17 @@ AssetDto? _findAsset(List<AssetDto> images, String id) {
   return null;
 }
 
-/// A widget that renders markdown content styled to match the app theme.
+/// Rend un contenu markdown avec la feuille de style unique de la charte.
 ///
-/// Uses [MarkdownBlock] with colors derived from the current [Theme]. It always
-/// sizes itself to its content and never scrolls: the parent owns the scroll
-/// view. That keeps the page's own scrollable attached to the route's
-/// [PrimaryScrollController], which iOS needs for the status bar tap-to-top
-/// gesture (handled by [Scaffold.handleStatusBarTap]).
+/// Ce n'est plus qu'une **façade** : le rendu appartient à [PdlMarkdownBody]
+/// (B24). Ce qui reste ici est ce que `core/pdl` ne peut pas connaître — les
+/// directives `::asset{id="..." size="..." alt="..."}`, qui se résolvent
+/// contre des [AssetDto].
 ///
-/// Pass [images] to support `::asset{id="..." size="..." alt="..."}` directives
-/// and authenticated image rendering (via [AuthenticatedImage]).
+/// Comme [PdlMarkdownBody], il se dimensionne à son contenu et ne défile
+/// jamais : le défilement appartient à la page, ce qui garde son
+/// `ScrollController` attaché au `PrimaryScrollController` — iOS en a besoin
+/// pour le tap sur la barre d'état (`Scaffold.handleStatusBarTap`).
 class MarkdownContent extends StatelessWidget {
   final String data;
   final List<AssetDto> images;
@@ -72,64 +72,10 @@ class MarkdownContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     final processedData = images.isEmpty
         ? data
         : _resolveAssetDirectives(data, images);
 
-    final config = isDark
-        ? MarkdownConfig.darkConfig
-        : MarkdownConfig.defaultConfig;
-
-    final styledConfig = config.copy(
-      configs: [
-        PConfig(textStyle: textTheme.bodyMedium!),
-        H1Config(
-          style: textTheme.headlineSmall!.copyWith(
-            color: colorScheme.onSurface,
-          ),
-        ),
-        H2Config(
-          style: textTheme.titleLarge!.copyWith(color: colorScheme.onSurface),
-        ),
-        H3Config(
-          style: textTheme.titleMedium!.copyWith(color: colorScheme.onSurface),
-        ),
-        LinkConfig(
-          style: textTheme.bodyMedium!.copyWith(
-            color: colorScheme.primary,
-            decoration: TextDecoration.underline,
-            decorationColor: colorScheme.primary,
-          ),
-        ),
-        CodeConfig(
-          style: textTheme.bodySmall!.copyWith(
-            fontFamily: 'monospace',
-            backgroundColor: colorScheme.surfaceContainerHighest,
-            color: colorScheme.onSurfaceVariant,
-          ),
-        ),
-        BlockquoteConfig(
-          sideColor: colorScheme.primary,
-          textColor: colorScheme.onSurfaceVariant,
-        ),
-        HrConfig(color: colorScheme.outlineVariant),
-        ImgConfig(
-          builder: (url, attributes) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: AuthenticatedImage(
-              imageUrl: url,
-              fit: BoxFit.contain,
-              width: double.maxFinite,
-            ),
-          ),
-        ),
-      ],
-    );
-
-    return MarkdownBlock(data: processedData, config: styledConfig);
+    return PdlMarkdownBody(data: processedData);
   }
 }

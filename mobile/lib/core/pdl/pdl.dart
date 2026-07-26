@@ -28,3 +28,42 @@ export 'pdl_skeleton.dart';
 export 'pdl_stat.dart';
 export 'pdl_stat_row.dart';
 export 'pdl_switch.dart';
+
+// ── Vague B — composés ──────────────────────────────────────────────────────
+export 'pdl_attachment_row.dart';
+export 'pdl_avatar_editor.dart';
+export 'pdl_avatar_stack.dart';
+export 'pdl_badge_stack.dart';
+export 'pdl_banner.dart';
+export 'pdl_card_media.dart';
+export 'pdl_chip_row.dart';
+export 'pdl_climb_row.dart';
+export 'pdl_danger_zone.dart';
+export 'pdl_dead_end_empty.dart';
+export 'pdl_empty_state.dart';
+export 'pdl_gallery_dots.dart';
+export 'pdl_image_viewer.dart';
+export 'pdl_legend_row.dart';
+export 'pdl_markdown_body.dart';
+export 'pdl_month_grid.dart';
+export 'pdl_paged_list_footer.dart';
+export 'pdl_person_row.dart';
+export 'pdl_place_row.dart';
+export 'pdl_price_block.dart';
+export 'pdl_range_filter.dart';
+export 'pdl_scope_selector.dart';
+export 'pdl_skeleton_card.dart';
+export 'pdl_stat_cell_row.dart';
+export 'pdl_team_line.dart';
+export 'pdl_thumb.dart';
+
+// ── Briques techniques ──────────────────────────────────────────────────────
+export 'elevation/elevation_bars_painter.dart';
+export 'elevation/elevation_cursor_painter.dart';
+export 'elevation/elevation_samples.dart';
+export 'elevation/pdl_elevation_profile.dart';
+export 'map/pdl_map.dart';
+export 'map/pdl_map_buttons.dart';
+export 'map/pdl_map_controller.dart';
+export 'map/pdl_map_hero.dart';
+export 'map/pdl_mass_layer.dart';

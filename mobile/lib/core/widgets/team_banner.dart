@@ -3,11 +3,14 @@ import 'package:go_router/go_router.dart';
 
 import '../../api/generated/export.dart';
 import '../../config/paths.dart';
-import '../utils/safe_string.dart';
-import 'authenticated_image.dart';
+import '../pdl/pdl_team_line.dart';
 
-/// Displays a team logo (initials fallback) and name.
-/// Taps navigate to the team detail page.
+/// Ligne d'appartenance d'une publication : logo, nom d'équipe, chevron.
+///
+/// Ce n'est plus qu'une **façade** : le rendu appartient à [PdlTeamLine]
+/// (B3). Ce qui reste ici est ce que `core/pdl` ne peut pas connaître — le DTO
+/// et l'itinéraire de navigation. C'est la frontière du module : tout widget
+/// qui prend un DTO vit hors de `core/pdl`, sans préfixe `Pdl`.
 class TeamBanner extends StatelessWidget {
   final TeamPublicationDto team;
 
@@ -15,37 +18,9 @@ class TeamBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(8),
+    return PdlTeamLine(
+      label: team.name,
       onTap: () => context.push(Paths.team(team.slug)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AuthenticatedCircleAvatar(
-              imageUrl: null,
-              fallbackText: team.name.safeFirstUpper(),
-              radius: 14,
-              fontSize: 10,
-            ),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                team.name,
-                style: Theme.of(context).textTheme.titleSmall,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Icon(
-              Icons.chevron_right,
-              size: 16,
-              color: Theme.of(context).colorScheme.outline,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

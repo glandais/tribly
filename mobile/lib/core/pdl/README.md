@@ -108,8 +108,58 @@ Les noms sont tranchés (plan v2 §1.0.3-3) et **les alias sont interdits** :
 
 Un fichier par widget, une entrée par fichier dans `pdl.dart`.
 
+## Vague B — les 26 composés livrés
+
+| # | Widget | Fichier |
+|---|---|---|
+| B1 | `PdlChipRow` | `pdl_chip_row.dart` |
+| B2 | `PdlAvatarStack` | `pdl_avatar_stack.dart` |
+| B3 | `PdlTeamLine` | `pdl_team_line.dart` |
+| B4 | `PdlPlaceRow` | `pdl_place_row.dart` |
+| B5 | `PdlThumb` | `pdl_thumb.dart` |
+| B6 | `PdlCardMedia` | `pdl_card_media.dart` |
+| B7 | `PdlEmptyState` | `pdl_empty_state.dart` |
+| B8 | `PdlBanner` | `pdl_banner.dart` |
+| B9 | `PdlPagedListFooter` | `pdl_paged_list_footer.dart` |
+| B10 | `PdlPersonRow` | `pdl_person_row.dart` |
+| B11 | `PdlAttachmentRow` | `pdl_attachment_row.dart` |
+| B12 | `PdlLegendRow` | `pdl_legend_row.dart` |
+| B13 | `PdlClimbRow` | `pdl_climb_row.dart` |
+| B14 | `PdlStatCellRow` | `pdl_stat_cell_row.dart` |
+| B15 | `PdlAvatarEditor` | `pdl_avatar_editor.dart` |
+| B16 | `PdlDangerZone` | `pdl_danger_zone.dart` |
+| B17 | `PdlRangeFilter` | `pdl_range_filter.dart` |
+| B18 | `PdlGalleryDots` | `pdl_gallery_dots.dart` |
+| B19 | `PdlPriceBlock` | `pdl_price_block.dart` |
+| B20 | `PdlBadgeStack` | `pdl_badge_stack.dart` |
+| B21 | `PdlSkeletonCard` | `pdl_skeleton_card.dart` |
+| B22 | `PdlDeadEndEmpty` | `pdl_dead_end_empty.dart` |
+| B23 | `PdlScopeSelector` | `pdl_scope_selector.dart` |
+| B24 | `PdlMarkdownBody` | `pdl_markdown_body.dart` |
+| B25 | `PdlImageViewer` | `pdl_image_viewer.dart` |
+| B26 | `PdlMonthGrid` + `PdlDayHeader` | `pdl_month_grid.dart` |
+
+Quatre d'entre eux **remplacent** un widget existant, qui n'est plus qu'une
+façade portant ce que `core/pdl` ne peut pas connaître — un DTO, une route, une
+clé de traduction : `core/widgets/team_banner.dart` (B3),
+`core/pagination/paged_list_footer.dart` (B9),
+`core/widgets/markdown_content.dart` (B24) et `RoutesEmptyState` de
+`features/routes/.../routes_page.dart` (B22). `PdlEmptyState` et
+`PdlDeadEndEmpty` composent, eux, `core/animations/animated_empty_state.dart`.
+
+Trois écarts assumés à la charte, documentés sur place :
+
+* **`PdlTeamLine` mesure 24 px** et non 44 (`.teamline { min-height: 24px }`) :
+  c'est un lien inline dans une carte déjà tappable en entier. `minHeight` le
+  remonte là où il est seul.
+* **`PdlBanner(warn)` emploie la paire `warning`** et non l'orange `#fff4e6` de
+  la planche : seule la paire sémantique est définie dans les deux modes.
+* **`PdlAvatarEditor` ne sélectionne pas l'image** : `image_picker` demande une
+  permission et produit des erreurs à traduire, deux choses qui appartiennent à
+  l'écran. Le widget expose `onPick`.
+
 ## Voir le rendu
 
-`lib/dev/pdl_gallery_page.dart` rend les 20 primitives dans leurs variantes,
-avec une bascule clair / sombre. C'est une page de **debug**, volontairement
-absente du `GoRouter` ; son en-tête explique comment l'ouvrir.
+`lib/dev/pdl_gallery_page.dart` rend les 20 primitives et les 26 composés dans
+leurs variantes, avec une bascule clair / sombre. C'est une page de **debug**,
+volontairement absente du `GoRouter` ; son en-tête explique comment l'ouvrir.

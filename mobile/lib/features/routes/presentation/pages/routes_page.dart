@@ -291,6 +291,10 @@ class _ListErrorState extends StatelessWidget {
 /// Rather than a bare "no results", this names the filter most likely to
 /// blame, offers to drop it, and proves the offer is worth taking by
 /// previewing what would come back without it.
+///
+/// Le rendu appartient désormais à [PdlDeadEndEmpty] (B22) : ce qui reste ici
+/// est ce que `core/pdl` ne peut pas connaître — les [RouteFilters], les clés
+/// de localisation et le provider d'aperçu.
 class RoutesEmptyState extends ConsumerWidget {
   final String? teamSlug;
   final RouteFilters filters;
@@ -305,69 +309,33 @@ class RoutesEmptyState extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final culprit = filters.narrowestField;
     final search = filters.search?.trim();
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 40, 24, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          AnimatedEmptyState(
-            child: Icon(
-              Icons.search_off,
-              size: 56,
-              color: theme.colorScheme.outline,
+    return PdlDeadEndEmpty(
+      title: 'routes.list.empty.title'.tr(),
+      message: search == null || search.isEmpty
+          ? 'routes.list.empty.description'.tr()
+          : 'routes.list.empty.descriptionSearch'.tr(
+              namedArgs: {'search': search},
             ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'routes.list.empty.title'.tr(),
-            textAlign: TextAlign.center,
-            style: theme.textTheme.titleMedium,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            search == null || search.isEmpty
-                ? 'routes.list.empty.description'.tr()
-                : 'routes.list.empty.descriptionSearch'.tr(
-                    namedArgs: {'search': search},
-                  ),
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.outline,
+      removeFilterLabel: culprit == null
+          ? null
+          : 'routes.list.empty.removeFilter'.tr(
+              namedArgs: {'filter': AppFormatters.filterFieldName(culprit)},
             ),
-          ),
-          const SizedBox(height: 24),
-          if (culprit != null)
-            FilledButton(
-              onPressed: () => onChanged(filters.without(culprit)),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(48),
-              ),
-              child: Text(
-                'routes.list.empty.removeFilter'.tr(
-                  namedArgs: {'filter': AppFormatters.filterFieldName(culprit)},
-                ),
-              ),
-            ),
-          if (culprit != null) const SizedBox(height: 10),
-          OutlinedButton(
-            onPressed: () => onChanged(filters.cleared),
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size.fromHeight(48),
-            ),
-            child: Text('routes.list.empty.resetAll'.tr()),
-          ),
-          if (culprit != null)
-            _WithoutFilterPreview(
+      onRemoveFilter: culprit == null
+          ? null
+          : () => onChanged(filters.without(culprit)),
+      resetAllLabel: 'routes.list.empty.resetAll'.tr(),
+      onResetAll: () => onChanged(filters.cleared),
+      previewChild: culprit == null
+          ? null
+          : _WithoutFilterPreview(
               teamSlug: teamSlug,
               filters: filters,
               field: culprit,
             ),
-        ],
-      ),
     );
   }
 }
@@ -399,7 +367,6 @@ class _WithoutFilterPreview extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: 28),
         Text(
           'routes.list.empty.withoutFilter'.tr(
             namedArgs: {'filter': AppFormatters.filterFieldName(field)},

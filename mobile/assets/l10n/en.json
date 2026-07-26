@@ -475,9 +475,12 @@
     }
   },
   "pagination": {
-    "loadingMore": "Loading…",
+    "loadingMore": "loading more…",
     "nextPageError": "Could not load more.\nCheck your connection.",
-    "endOfList": "You have seen everything"
+    "endOfList": "You have seen everything",
+    "loaded": "{loaded} loaded",
+    "progress": "{loaded} of {total}",
+    "progressNamed": "{loaded} {noun} of {total}"
   },
   "location": {
     "serviceDisabled": "Location is turned off on your device.",
@@ -494,5 +497,16 @@
     "imperialExample": "mi, ft, mph",
     "elevationGain": "elev. +",
     "elevationLoss": "elev. −"
+  },
+  "map": {
+    "fullscreen": "Fullscreen",
+    "exitFullscreen": "Exit fullscreen",
+    "background": "Map background",
+    "chooseBackground": "Choose map background",
+    "searchThisArea": "Search this area",
+    "start": "Start",
+    "end": "Finish",
+    "truncated": "{shown} of {total} routes shown in this area",
+    "unavailable": "Map unavailable"
   }
 }
