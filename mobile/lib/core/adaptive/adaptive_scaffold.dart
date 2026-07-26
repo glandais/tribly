@@ -1,15 +1,21 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
+import '../pdl/pdl.dart';
 import 'breakpoints.dart';
 import 'navigation_destination.dart';
 
-/// Adaptive scaffold that switches between bottom navigation and navigation rail
+/// Adaptive scaffold that switches between bottom tabs and navigation rail
 /// based on window width.
 ///
-/// - Compact (< 600): Bottom NavigationBar
+/// - Compact (< 600): [PdlBottomTabs] — the charter's tab bar, five fixed
+///   entries, real system inset, blurred overlay background
 /// - Medium (600-840): NavigationRail with icons and labels
 /// - Expanded (>= 840): Extended NavigationRail
+///
+/// The rail is deliberately kept: below 600 px a bottom bar is the only place
+/// a thumb reaches, above it a side rail gives the content its width back.
+/// Only the compact branch moved to the component library.
 class AdaptiveScaffold extends StatelessWidget {
   final Widget child;
   final int selectedIndex;
@@ -34,18 +40,22 @@ class AdaptiveScaffold extends StatelessWidget {
     };
   }
 
-  /// Compact layout with bottom navigation bar.
+  /// Compact layout with the charter's bottom tab bar.
   Widget _buildCompactLayout(BuildContext context) {
+    // A plain [Scaffold] and not [PdlScreenScaffold]: the shell hosts whole
+    // pages, each with its own scaffold, app bar and bottom padding. Letting
+    // the shell extend its body under the tabs would make every page pad for
+    // them a second time.
     return Scaffold(
       body: child,
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: PdlBottomTabs(
         selectedIndex: selectedIndex,
-        onDestinationSelected: onDestinationSelected,
-        destinations: kAppDestinations
+        onSelected: onDestinationSelected,
+        items: kAppDestinations
             .map(
-              (dest) => NavigationDestination(
-                icon: Icon(dest.icon),
-                selectedIcon: Icon(dest.selectedIcon),
+              (dest) => PdlTabItem(
+                icon: dest.icon,
+                activeIcon: dest.selectedIcon,
                 label: dest.label.tr(),
               ),
             )

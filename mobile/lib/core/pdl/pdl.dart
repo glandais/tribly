@@ -57,6 +57,18 @@ export 'pdl_stat_cell_row.dart';
 export 'pdl_team_line.dart';
 export 'pdl_thumb.dart';
 
+// ── Vague C — coquilles d'écran ─────────────────────────────────────────────
+export 'pdl_action_bar.dart';
+export 'pdl_app_bar.dart';
+export 'pdl_bottom_tabs.dart';
+export 'pdl_detent_sheet.dart';
+export 'pdl_full_sheet.dart';
+export 'pdl_pinned_toolbar.dart';
+export 'pdl_prev_next_nav.dart';
+export 'pdl_screen_scaffold.dart';
+export 'pdl_sheet.dart';
+export 'pdl_stage_rail.dart';
+
 // ── Briques techniques ──────────────────────────────────────────────────────
 export 'elevation/elevation_bars_painter.dart';
 export 'elevation/elevation_cursor_painter.dart';

@@ -147,7 +147,7 @@ clé de traduction : `core/widgets/team_banner.dart` (B3),
 `features/routes/.../routes_page.dart` (B22). `PdlEmptyState` et
 `PdlDeadEndEmpty` composent, eux, `core/animations/animated_empty_state.dart`.
 
-Trois écarts assumés à la charte, documentés sur place :
+Quatre écarts assumés à la charte, documentés sur place :
 
 * **`PdlTeamLine` mesure 24 px** et non 44 (`.teamline { min-height: 24px }`) :
   c'est un lien inline dans une carte déjà tappable en entier. `minHeight` le
@@ -157,9 +157,84 @@ Trois écarts assumés à la charte, documentés sur place :
 * **`PdlAvatarEditor` ne sélectionne pas l'image** : `image_picker` demande une
   permission et produit des erreurs à traduire, deux choses qui appartiennent à
   l'écran. Le widget expose `onPick`.
+* **`PdlMarkdownBody` lit le jeton d'accès** pour son image d'article : les
+  images de contenu sont servies derrière l'API, et la visionneuse plein écran
+  a besoin d'un `ImageProvider` authentifié. C'est le prolongement de
+  `AuthenticatedImage`, déjà employé là depuis la vague B. Ce qui ne bouge pas :
+  **aucun import de `api/generated`**, et **rien n'y est traduit** —
+  `codeCopiedLabel` et `imageCloseLabel` sont des `String` fournis par
+  l'appelant, et le repli du second est `MaterialLocalizations`.
+
+Ce que `PdlMarkdownBody` **ne fait pas** : ouvrir un lien. Il reçoit
+`onLinkTap` ; sans lui, `markdown_widget` n'attache aucun
+`TapGestureRecognizer` et le lien est stylé mais inerte — c'était le défaut
+F-DE-6. La résolution (route interne, application externe, bandeau d'échec)
+vit dans `core/utils/link_launcher.dart`, et `core/widgets/markdown_content.dart`
+la branche. **Aucun écran ne doit instancier `PdlMarkdownBody` directement.**
+
+## Vague C — les 10 coquilles d'écran livrées
+
+| # | Widget | Fichier |
+|---|---|---|
+| C1 | `PdlAppBar` · `PdlAppBarAction` · `PdlSliverAppBar` | `pdl_app_bar.dart` |
+| C2 | `PdlBottomTabs` · `PdlTabItem` | `pdl_bottom_tabs.dart` |
+| C3 | `PdlPinnedToolbar` | `pdl_pinned_toolbar.dart` |
+| C4 | `PdlActionBar` | `pdl_action_bar.dart` |
+| C5 | `PdlSheet` · `PdlSheetHandle` | `pdl_sheet.dart` |
+| C6 | `PdlFullSheet` | `pdl_full_sheet.dart` |
+| C7 | `PdlDetentSheet` | `pdl_detent_sheet.dart` |
+| C8 | `PdlScreenScaffold` | `pdl_screen_scaffold.dart` |
+| C9 | `PdlStageRail` · `PdlStageRailItem` | `pdl_stage_rail.dart` |
+| C10 | `PdlPrevNextNav` · `PdlPrevNextTarget` | `pdl_prev_next_nav.dart` |
+
+`PdlBottomTabs` **remplace** la `NavigationBar` provisoire de
+`core/adaptive/adaptive_scaffold.dart` ; la bascule vers `NavigationRail`
+au-delà de 600 px est conservée telle quelle.
+
+### La troisième règle de revue
+
+```bash
+grep -rn --include='*.dart' "showModalBottomSheet" mobile/lib   # seul pdl_sheet.dart
+```
+
+`PdlSheet.show()` force `useRootNavigator`, `isScrollControlled`,
+`useSafeArea` et `barrierColor` — les quatre drapeaux dont l'oubli produisait
+une feuille rendue sous la barre d'onglets et un « Trier par » écrasé à 1 pt.
+Les trois écrans qui appellent encore la fonction Material en direct
+(`route_filter_sheet`, `route_detail_page`, `profile_page`) basculent avec leur
+lot, qui les réécrit de toute façon.
+
+Trois écarts assumés de la vague C, documentés sur place :
+
+* **La hauteur des barres est un plancher, jamais un plafond** — 56 pour C1,
+  52 pour C2, 64 pour C9 et C10 : à 130 % d'agrandissement typographique une
+  hauteur figée rogne le libellé, c'est-à-dire la seule chose qui dit où l'on
+  est. Seule C1, dont le contenu est une ligne unique, garde ses 56 px exacts.
+* **Le bas de C2 et de C4 emploie l'inset système réel** et non les 22 px de la
+  planche, qui *sont* l'inset présumé de l'appareil maquetté. C4 garde 22 pour
+  plancher.
+* **C3 mesure sa hauteur en deux temps** : le premier cadre emploie
+  `estimatedExtent`, le suivant la hauteur relevée. Un `SliverPersistentHeader`
+  demande ses extents avant de construire son enfant ; c'est le seul moyen de
+  ne pas figer la valeur.
+
+### Deux suppressions (F-CO-5)
+
+* `core/widgets/safe_network_image.dart` — `SafeCircleAvatar` et
+  `SafeDecorationImage` étaient des doublons **non authentifiés** de
+  `AuthenticatedCircleAvatar` / `AuthenticatedImage`. Aucun appelant : seul le
+  barrel `core/widgets/widgets.dart` les exportait.
+* `SliverContentWidthConstraint` de
+  `core/adaptive/content_width_constraint.dart` — il rendait son sliver tel
+  quel dans un `SliverToBoxAdapter` : il ne contraignait rien et piégeait. La
+  contrainte de 600 px passe désormais par
+  `PdlScreenScaffold(constrainWidth: true)`.
 
 ## Voir le rendu
 
-`lib/dev/pdl_gallery_page.dart` rend les 20 primitives et les 26 composés dans
-leurs variantes, avec une bascule clair / sombre. C'est une page de **debug**,
-volontairement absente du `GoRouter` ; son en-tête explique comment l'ouvrir.
+`lib/dev/pdl_gallery_page.dart` rend les 20 primitives, les 26 composés et les
+10 coquilles dans leurs variantes, avec une bascule clair / sombre.
+`lib/dev/pdl_shell_demo_page.dart` empile la coquille complète — C1 + C3 +
+liste longue + C4 + C2 — et sert de sujet à `test/core/pdl/wave_c_test.dart`.
+Ce sont deux pages de **debug**, volontairement absentes du `GoRouter` ; leur
+en-tête explique comment les ouvrir.

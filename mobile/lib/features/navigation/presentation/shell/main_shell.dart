@@ -10,12 +10,9 @@ import '../../../../core/adaptive/adaptive.dart';
 /// stack**: opening a team, switching to Calendar and coming back to Teams
 /// restores the team where it was left.
 ///
-/// - Compact screens: bottom NavigationBar
+/// - Compact screens: `PdlBottomTabs` (wave C of the component library)
 /// - Medium screens: side NavigationRail
 /// - Expanded screens: extended NavigationRail
-///
-/// The Material `NavigationBar` inside [AdaptiveScaffold] is provisional: wave C
-/// of the component library replaces it with `PdlBottomTabs`.
 class MainShell extends StatelessWidget {
   /// The shell built by go_router. It is both the body (an `IndexedStack` of
   /// the five branch navigators) and the API to switch branch.

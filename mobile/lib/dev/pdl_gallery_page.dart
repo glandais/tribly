@@ -16,18 +16,22 @@
 // thème avec `Theme(data: PedalonsTheme.build(brightness))`, ce qui permet de
 // vérifier les deux modes sans toucher aux préférences de l'app.
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../core/pdl/pdl.dart';
+import '../core/utils/link_launcher.dart';
 import '../core/theme/enum_colors.dart' show PdlTone;
 import '../core/theme/pdl_colors.dart';
 import '../core/theme/pdl_icons.dart';
 import '../core/theme/pdl_tokens.dart';
 import '../core/theme/pdl_typography.dart';
 import '../core/theme/pedalons_theme.dart';
+import 'pdl_shell_demo_page.dart';
 
-/// Galerie des 20 primitives de la vague A, dans leurs variantes, en clair et
-/// en sombre.
+/// Galerie des 20 primitives, des 26 composés et des 10 coquilles, dans leurs
+/// variantes, en clair et en sombre.
 class PdlGalleryPage extends StatefulWidget {
   const PdlGalleryPage({super.key});
 
@@ -102,6 +106,10 @@ class _GalleryBodyState extends State<_GalleryBody> {
   // ── État des composés de la vague B ─────────────────────────────────────
   RangeValues _range = const RangeValues(20, 90);
   int _dotIndex = 1;
+
+  // ── État des coquilles de la vague C ────────────────────────────────────
+  int _tab = 1;
+  int _stage = 2;
   DateTime? _selectedDay;
   static final DateTime _demoToday = DateTime(2026, 7, 22);
 
@@ -1355,7 +1363,15 @@ class _GalleryBodyState extends State<_GalleryBody> {
         // ── B24 ───────────────────────────────────────────────────────────
         _Block(
           title: 'B24 · PdlMarkdownBody',
-          children: const <Widget>[PdlMarkdownBody(data: _demoMarkdown)],
+          children: <Widget>[
+            // Branché sur le vrai routeur de liens : une galerie dont les
+            // liens ne font rien ne montrerait pas le composant, elle
+            // montrerait le défaut qu'on vient de corriger (F-DE-6).
+            PdlMarkdownBody(
+              data: _demoMarkdown,
+              onLinkTap: (String href) => unawaited(openLink(context, href)),
+            ),
+          ],
         ),
 
         // ── B25 ───────────────────────────────────────────────────────────
@@ -1415,6 +1431,280 @@ class _GalleryBodyState extends State<_GalleryBody> {
               padding: PdlCardPadding.tight,
               onTap: () {},
               child: Text('N-Peloton #664', style: t.bodyStrong),
+            ),
+          ],
+        ),
+
+        // ── C1 ────────────────────────────────────────────────────────────
+        _Block(
+          title: 'C1 · PdlAppBar',
+          padded: false,
+          children: <Widget>[
+            const _PaddedCaption('solid · titre + retour + action'),
+            PdlAppBar(
+              title: 'Détail de la sortie',
+              onBack: () {},
+              backSemanticLabel: 'Retour',
+              actions: <Widget>[
+                PdlAppBarAction(
+                  icon: PdlIcons.share,
+                  semanticLabel: 'Partager',
+                  onPressed: () {},
+                ),
+              ],
+            ),
+            const SizedBox(height: PdlSpacing.sectionTightV),
+            const _PaddedCaption('solid · logotype de l\'accueil'),
+            PdlAppBar(
+              titleWidget: Text('Pédalons', style: t.wordmark),
+              actions: <Widget>[
+                PdlAppBarAction(
+                  icon: PdlIcons.search,
+                  semanticLabel: 'Rechercher',
+                  onPressed: () {},
+                ),
+              ],
+            ),
+            const SizedBox(height: PdlSpacing.sectionTightV),
+            const _PaddedCaption('overlay · posée sur une tuile'),
+            SizedBox(
+              height: PdlMetrics.media,
+              child: Stack(
+                children: <Widget>[
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: const BoxDecoration(
+                        gradient: PdlGradients.ride,
+                      ),
+                    ),
+                  ),
+                  const Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: PdlScrim.top(),
+                  ),
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: PdlAppBar(
+                      variant: PdlAppBarVariant.overlay,
+                      title: 'Boucle de la Loire',
+                      onBack: () {},
+                      backSemanticLabel: 'Retour',
+                      actions: <Widget>[
+                        PdlAppBarAction(
+                          icon: PdlIcons.share,
+                          semanticLabel: 'Partager',
+                          variant: PdlAppBarVariant.overlay,
+                          onPressed: () {},
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+
+        // ── C2 ────────────────────────────────────────────────────────────
+        _Block(
+          title: 'C2 · PdlBottomTabs',
+          padded: false,
+          children: <Widget>[
+            const _PaddedCaption(
+              'cinq entrées racine · aucune variante équipe',
+            ),
+            PdlBottomTabs(
+              items: kDemoTabs,
+              selectedIndex: _tab,
+              onSelected: (int i) => setState(() => _tab = i),
+            ),
+          ],
+        ),
+
+        // ── C3, C4, C8 ────────────────────────────────────────────────────
+        _Block(
+          title:
+              'C3 · PdlPinnedToolbar · C4 · PdlActionBar · C8 · '
+              'PdlScreenScaffold',
+          children: <Widget>[
+            const _Caption(
+              'l\'empilement complet vit dans son propre écran : barre '
+              'épinglée au défilement, feuille par-dessus les onglets',
+            ),
+            PdlButton(
+              label: 'Ouvrir la coquille de démonstration',
+              variant: PdlButtonVariant.outline,
+              fullWidth: true,
+              onPressed: () => Navigator.of(context).push<void>(
+                MaterialPageRoute<void>(
+                  builder: (BuildContext context) => PdlShellDemoPage(
+                    onBack: () => Navigator.of(context).pop(),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        // ── C5, C6 ────────────────────────────────────────────────────────
+        _Block(
+          title: 'C5 · PdlSheet · C6 · PdlFullSheet',
+          children: <Widget>[
+            const _Caption(
+              'en-tête fixe · corps défilant borné · pied fixe ; navigateur '
+              'racine, donc au-dessus des onglets',
+            ),
+            PdlButton(
+              label: 'Feuille simple',
+              variant: PdlButtonVariant.outline,
+              fullWidth: true,
+              onPressed: () => PdlSheet.show<void>(
+                context: context,
+                builder: (BuildContext sheetContext) => PdlSheet(
+                  title: 'Trier par',
+                  footer: Padding(
+                    padding: const EdgeInsets.all(PdlSpacing.section),
+                    child: PdlButton(
+                      label: 'Appliquer',
+                      fullWidth: true,
+                      onPressed: () => Navigator.of(sheetContext).pop(),
+                    ),
+                  ),
+                  children: <Widget>[
+                    for (final String option in <String>[
+                      'Date',
+                      'Distance',
+                      'Dénivelé',
+                    ])
+                      PdlSettingRow(
+                        title: option,
+                        onTap: () => Navigator.of(sheetContext).pop(),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: PdlSpacing.chipGap),
+            PdlButton(
+              label: 'Feuille plein rideau',
+              variant: PdlButtonVariant.outline,
+              fullWidth: true,
+              onPressed: () => PdlFullSheet.show<void>(
+                context: context,
+                builder: (BuildContext sheetContext) => PdlFullSheet(
+                  title: 'Participants',
+                  headerAction: PdlAppBarAction(
+                    icon: PdlIcons.close,
+                    semanticLabel: 'Fermer',
+                    onPressed: () => Navigator.of(sheetContext).pop(),
+                  ),
+                  bodyBuilder:
+                      (BuildContext context, ScrollController controller) =>
+                          ListView.builder(
+                            controller: controller,
+                            itemCount: _demoPeople.length * 4,
+                            itemBuilder: (BuildContext context, int i) =>
+                                PdlPersonRow(
+                                  name:
+                                      _demoPeople[i % _demoPeople.length].name,
+                                ),
+                          ),
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        // ── C7 ────────────────────────────────────────────────────────────
+        _Block(
+          title: 'C7 · PdlDetentSheet',
+          padded: false,
+          children: <Widget>[
+            const _PaddedCaption('crans .18 / .5 / .92 · pied fixe'),
+            SizedBox(
+              height: 320,
+              child: Stack(
+                children: <Widget>[
+                  Positioned.fill(child: ColoredBox(color: c.surfaceAlt)),
+                  PdlDetentSheet(
+                    headerBuilder: (BuildContext context, double extent) =>
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: PdlSpacing.section,
+                            vertical: PdlSpacing.sectionTightV,
+                          ),
+                          child: Text(
+                            extent > 0.35 ? '12 parcours' : '12 parcours ›',
+                            style: t.sectionTitle,
+                          ),
+                        ),
+                    bodyBuilder:
+                        (BuildContext context, ScrollController controller) =>
+                            ListView.builder(
+                              controller: controller,
+                              padding: const EdgeInsets.only(bottom: 60),
+                              itemCount: 20,
+                              itemBuilder: (BuildContext context, int i) =>
+                                  PdlSettingRow(
+                                    title: 'Boucle n° ${i + 1}',
+                                    onTap: () {},
+                                  ),
+                            ),
+                    footer: PdlActionBar(
+                      children: <Widget>[
+                        PdlButton(label: 'Filtrer', onPressed: () {}),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+
+        // ── C9 ────────────────────────────────────────────────────────────
+        _Block(
+          title: 'C9 · PdlStageRail',
+          padded: false,
+          children: <Widget>[
+            const _PaddedCaption(
+              'pastille active recentrée · troncature par graphèmes',
+            ),
+            PdlStageRail(
+              items: const <PdlStageRailItem>[
+                PdlStageRailItem(label: 'Aperçu'),
+                PdlStageRailItem(label: 'J1', sublabel: 'Saint-Étienne'),
+                PdlStageRailItem(label: 'J2', sublabel: 'Col de la Croix 🚴'),
+                PdlStageRailItem(label: 'J3', sublabel: 'Vallée du Rhône'),
+                PdlStageRailItem(label: 'J4', sublabel: 'Mont Ventoux'),
+                PdlStageRailItem(label: 'J5', sublabel: 'Retour par la Loire'),
+              ],
+              selectedIndex: _stage,
+              onSelected: (int i) => setState(() => _stage = i),
+            ),
+          ],
+        ),
+
+        // ── C10 ───────────────────────────────────────────────────────────
+        _Block(
+          title: 'C10 · PdlPrevNextNav',
+          children: <Widget>[
+            const _Caption('deux blocs de 64 · le suivant inversé'),
+            PdlPrevNextNav(
+              previous: PdlPrevNextTarget(
+                caption: 'Publication précédente',
+                title: 'Trêve estivale : pas de sortie du 15 au 28 juillet',
+                onTap: () {},
+              ),
+              next: PdlPrevNextTarget(
+                caption: 'Publication suivante',
+                title: 'Compte rendu de la sortie longue du 12 juillet',
+                onTap: () {},
+              ),
             ),
           ],
         ),

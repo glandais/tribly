@@ -83,7 +83,9 @@ class AuthenticatedImage extends ConsumerWidget {
 /// A CircleAvatar that includes the Authorization header and falls back
 /// to initials when the image fails to load.
 ///
-/// Similar to [SafeCircleAvatar] but with authenticated image loading.
+/// The only avatar of the app: the unauthenticated `SafeCircleAvatar` it used
+/// to sit next to was a duplicate that silently dropped the Authorization
+/// header, and was removed with wave C.
 class AuthenticatedCircleAvatar extends ConsumerWidget {
   /// The URL of the image to display (can be a template with {size}).
   final String? imageUrl;

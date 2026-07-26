@@ -4,9 +4,9 @@ import 'package:flutter/services.dart';
 import '../../theme/pdl_colors.dart';
 import '../../theme/pdl_icons.dart';
 import '../../theme/pdl_tokens.dart';
-import '../../theme/pdl_typography.dart';
 import '../pdl_scrim.dart';
 import '../pdl_setting_row.dart';
+import '../pdl_sheet.dart';
 import 'pdl_map_buttons.dart';
 
 /// Un fond de carte proposé au sélecteur.
@@ -210,41 +210,24 @@ class PdlMapHero extends StatelessWidget {
 
   Future<void> _openStyleSheet(BuildContext context) async {
     final PdlColors c = context.pdl;
-    final String? picked = await showModalBottomSheet<String>(
+    // Par `PdlSheet` et non par `showModalBottomSheet` : c'est la règle du
+    // C5, et elle vaut aussi pour la bibliothèque elle-même.
+    final String? picked = await PdlSheet.show<String>(
       context: context,
-      backgroundColor: c.surfaceRaised,
-      barrierColor: c.sheetBarrier,
-      shape: const RoundedRectangleBorder(borderRadius: PdlRadii.sheetTop),
-      builder: (BuildContext sheetContext) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                PdlSpacing.section,
-                PdlSpacing.section,
-                PdlSpacing.section,
-                PdlSpacing.sectionTightV,
-              ),
-              child: Text(
-                labels.backgroundSheetTitle,
-                style: sheetContext.pdlText.sectionTitle,
-              ),
+      builder: (BuildContext sheetContext) => PdlSheet(
+        title: labels.backgroundSheetTitle,
+        children: <Widget>[
+          // **Dans l'ordre servi** : le serveur classe ses fonds, le client
+          // ne re-trie pas.
+          for (final PdlMapStyleOption style in styles)
+            PdlSettingRow(
+              title: style.label,
+              onTap: () => Navigator.of(sheetContext).pop(style.id),
+              trailing: style.id == selectedStyleId
+                  ? Icon(PdlIcons.check, size: 20, color: c.primary)
+                  : const SizedBox.shrink(),
             ),
-            // **Dans l'ordre servi** : le serveur classe ses fonds, le client
-            // ne re-trie pas.
-            for (final PdlMapStyleOption style in styles)
-              PdlSettingRow(
-                title: style.label,
-                onTap: () => Navigator.of(sheetContext).pop(style.id),
-                trailing: style.id == selectedStyleId
-                    ? Icon(PdlIcons.check, size: 20, color: c.primary)
-                    : const SizedBox.shrink(),
-              ),
-            const SizedBox(height: PdlSpacing.section),
-          ],
-        ),
+        ],
       ),
     );
     if (picked != null) onStyleSelected?.call(picked);

@@ -38,45 +38,10 @@ class ContentWidthConstraint extends StatelessWidget {
   }
 }
 
-/// A sliver version of ContentWidthConstraint for use in CustomScrollView.
-class SliverContentWidthConstraint extends StatelessWidget {
-  final Widget sliver;
-
-  const SliverContentWidthConstraint({super.key, required this.sliver});
-
-  @override
-  Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
-    final sizeClass = Breakpoints.getWindowSizeClass(width);
-    final maxWidth = Breakpoints.contentMaxWidth(sizeClass);
-
-    if (maxWidth == null) {
-      return sliver;
-    }
-
-    return SliverToBoxAdapter(
-      child: Center(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: maxWidth),
-          child: _SliverToBox(sliver: sliver),
-        ),
-      ),
-    );
-  }
-}
-
-/// Helper widget to convert sliver back to box for constraint.
-/// This is a simplified approach - for complex slivers, consider using
-/// SliverPadding with calculated horizontal padding instead.
-class _SliverToBox extends StatelessWidget {
-  final Widget sliver;
-
-  const _SliverToBox({required this.sliver});
-
-  @override
-  Widget build(BuildContext context) {
-    // This approach works for SliverToBoxAdapter-wrapped content
-    // For complex sliver trees, you may need a different approach
-    return sliver;
-  }
-}
+// There used to be a `SliverContentWidthConstraint` here. It was removed with
+// wave C of the component library: it wrapped the sliver in a
+// `SliverToBoxAdapter` and handed it straight back, so it constrained nothing
+// while reading as if it did — and putting a real sliver inside a box adapter
+// throws. A sliver tree that must be constrained goes through
+// `PdlScreenScaffold(constrainWidth: true)`, which clamps the whole scroll
+// view, or through a `SliverPadding` with computed horizontal padding.
