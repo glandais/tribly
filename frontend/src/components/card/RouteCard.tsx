@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { IconMap, IconArrowUp } from '@tabler/icons-react'
+import { IconMap, IconArrowUp, IconMessageCircle } from '@tabler/icons-react'
 import { useUnits } from '@/hooks/useUnits'
 import { Group, Image, Box, useComputedColorScheme } from '@mantine/core'
 import type { RouteDto } from '@/api/dto'
@@ -41,6 +41,11 @@ export function RouteCard({ route, showTeam }: RouteCardProps) {
         <StatGroup>
           <Stat icon={<IconMap size={16} />}>{distance(route.distance)}</Stat>
           <Stat icon={<IconArrowUp size={16} />}>{elevation(route.elevationGain)}</Stat>
+          {route.commentCount !== undefined && (
+            <Stat icon={<IconMessageCircle size={16} />}>
+              {t('comments.count', { count: route.commentCount })}
+            </Stat>
+          )}
         </StatGroup>
 
         <Group gap="xs">

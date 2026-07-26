@@ -1,5 +1,11 @@
 import { useTranslation } from 'react-i18next'
-import { IconCalendar, IconUsers, IconStack2, IconCheck } from '@tabler/icons-react'
+import {
+  IconCalendar,
+  IconUsers,
+  IconStack2,
+  IconCheck,
+  IconMessageCircle,
+} from '@tabler/icons-react'
 import { Badge, Group, Box, Stack } from '@mantine/core'
 import { Card, CardContent, CardTitle, CardDescription, CardImage, CardTeamLink } from './common'
 import { TypeBadge, StatusBadge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from './common'
@@ -62,6 +68,16 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
     const participantsIcon = <IconUsers size={16} />
     const groupsIcon = <IconStack2 size={16} />
 
+    // `commentCount` is absent when the caller may not read the comments — an outsider is
+    // told nothing, not even zero. Undefined therefore means "hide", not "none".
+    const commentCount = publication.commentCount
+    const commentStat =
+      commentCount === undefined ? null : (
+        <Stat icon={<IconMessageCircle size={16} />}>
+          {t('comments.count', { count: commentCount })}
+        </Stat>
+      )
+
     switch (publication.type) {
       case 'RIDE': {
         const ride = publication as RideDto
@@ -72,6 +88,7 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
               {t('participantCount', { count: ride.participantCount })}
             </Stat>
             <Stat icon={groupsIcon}>{t('groups.groupCount', { count: ride.groupCount })}</Stat>
+            {commentStat}
           </StatGroup>
         )
       }
@@ -84,6 +101,7 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
               {t('participantCount', { count: trip.participantCount })}
             </Stat>
             <Stat icon={groupsIcon}>{t('trips.card.stageCount', { count: trip.stageCount })}</Stat>
+            {commentStat}
           </StatGroup>
         )
       }
@@ -91,6 +109,7 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
         return (
           <StatGroup>
             <Stat icon={calendarIcon}>{formattedDate}</Stat>
+            {commentStat}
           </StatGroup>
         )
     }

@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import {
@@ -25,12 +25,40 @@ import {
   deleteRouteComment,
   getListRouteCommentsQueryKey,
 } from '../api/endpoints/route-comments/route-comments'
-import type { CommentDto, CommentListResponse, CommentRequest } from '@/api/dto'
+import type { CommentDto, CommentListResponse, CommentRequest, SortDirection } from '@/api/dto'
 
 // Re-export types for convenience
 export type { CommentDto, CommentListResponse, CommentRequest }
 
 export type EntityType = 'rides' | 'posts' | 'trips' | 'routes'
+
+/** Top-level comments per request. The contract caps `size` at 100. */
+export const COMMENT_PAGE_SIZE = 20
+
+interface CommentPageParams {
+  page?: number
+  size?: number
+  sort?: SortDirection
+  parentId?: string
+}
+
+function listComments(
+  teamSlug: string,
+  entityType: EntityType,
+  entitySlug: string,
+  params: CommentPageParams
+) {
+  switch (entityType) {
+    case 'rides':
+      return listRideComments(teamSlug, entitySlug, params)
+    case 'posts':
+      return listPostComments(teamSlug, entitySlug, params)
+    case 'trips':
+      return listTripComments(teamSlug, entitySlug, params)
+    case 'routes':
+      return listRouteComments(teamSlug, entitySlug, params)
+  }
+}
 
 function getQueryKey(teamSlug: string, entityType: EntityType, entitySlug: string) {
   switch (entityType) {
@@ -45,27 +73,51 @@ function getQueryKey(teamSlug: string, entityType: EntityType, entitySlug: strin
   }
 }
 
+/**
+ * Top-level comments, one page at a time, most recent first.
+ *
+ * This used to load the entire tree in one request whatever its size. The query key keeps the
+ * generated key as its prefix, so the mutations below still invalidate it by prefix.
+ */
 export function useComments(
   teamSlug: string | undefined,
   entityType: EntityType,
-  entitySlug: string | undefined
+  entitySlug: string | undefined,
+  options?: { size?: number; sort?: SortDirection }
 ) {
-  return useQuery({
-    queryKey: getQueryKey(teamSlug!, entityType, entitySlug!),
-    queryFn: async () => {
-      switch (entityType) {
-        case 'rides':
-          return await listRideComments(teamSlug!, entitySlug!)
-        case 'posts':
-          return await listPostComments(teamSlug!, entitySlug!)
-        case 'trips':
-          return await listTripComments(teamSlug!, entitySlug!)
-        case 'routes':
-          return await listRouteComments(teamSlug!, entitySlug!)
-      }
-    },
+  const size = options?.size ?? COMMENT_PAGE_SIZE
+  const sort = options?.sort
+
+  return useInfiniteQuery({
+    queryKey: [...getQueryKey(teamSlug!, entityType, entitySlug!), { size, sort }],
+    queryFn: ({ pageParam }) =>
+      listComments(teamSlug!, entityType, entitySlug!, { page: pageParam, size, sort }),
+    initialPageParam: 0,
+    getNextPageParam: (last) =>
+      (last.page + 1) * last.size < last.itemTotal ? last.page + 1 : undefined,
     enabled: !!teamSlug && !!entitySlug,
     staleTime: 30 * 1000, // 30 seconds - comments need fresher data
+  })
+}
+
+/**
+ * The replies of one comment, fetched on demand.
+ *
+ * A paginated page of top-level comments does not necessarily embed every reply, so a thread
+ * whose `replyCount` exceeds the replies it carries is expanded through this.
+ */
+export function useCommentReplies(
+  teamSlug: string | undefined,
+  entityType: EntityType,
+  entitySlug: string | undefined,
+  parentId: string,
+  enabled: boolean
+) {
+  return useQuery({
+    queryKey: [...getQueryKey(teamSlug!, entityType, entitySlug!), { parentId }],
+    queryFn: () => listComments(teamSlug!, entityType, entitySlug!, { parentId, size: 100 }),
+    enabled: enabled && !!teamSlug && !!entitySlug,
+    staleTime: 30 * 1000,
   })
 }
 

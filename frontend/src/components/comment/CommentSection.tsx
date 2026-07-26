@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Paper, Title, Stack, Center, Loader } from '@mantine/core'
+import { Button, Paper, Title, Stack, Center, Loader } from '@mantine/core'
+import { SortDirection } from '@/api/dto'
 import { IconMessageCircle } from '@tabler/icons-react'
 import { EmptyState } from '../common/EmptyState'
 import {
@@ -31,7 +32,16 @@ export function CommentSection({
   const { user } = useAuth()
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
 
-  const { data, isLoading } = useComments(teamSlug, entityType, entitySlug)
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useComments(
+    teamSlug,
+    entityType,
+    entitySlug,
+    { sort: SortDirection.DESC }
+  )
+
+  // `total` counts replies too — that is the number the heading has always shown.
+  const total = data?.pages[0]?.total ?? 0
+  const comments = data?.pages.flatMap((page) => page.items) ?? []
   const createMutation = useCreateComment(teamSlug, entityType, entitySlug)
   const deleteMutation = useDeleteComment(teamSlug, entityType, entitySlug)
 
@@ -63,7 +73,7 @@ export function CommentSection({
   return (
     <Paper p="xl" shadow="xs" withBorder>
       <Title order={4} mb="md">
-        {t('comments.title')} ({data?.total || 0})
+        {t('comments.title')} ({total})
       </Title>
 
       {/* Comment form for new top-level comments */}
@@ -75,10 +85,13 @@ export function CommentSection({
 
       {/* Comments list */}
       <Stack mt="xl">
-        {data?.items.map((comment) => (
+        {comments.map((comment) => (
           <CommentItem
             key={comment.id}
             comment={comment}
+            teamSlug={teamSlug}
+            entityType={entityType}
+            entitySlug={entitySlug}
             canDeleteComment={canDeleteComment}
             onDeleteComment={(commentId) => deleteMutation.mutate(commentId)}
             onReply={() => setReplyingTo(comment.id)}
@@ -89,12 +102,23 @@ export function CommentSection({
             isReplying={createMutation.isPending}
           />
         ))}
-        {(!data?.items || data.items.length === 0) && (
+        {comments.length === 0 && (
           <EmptyState
             icon={<IconMessageCircle size={48} />}
             title={t('comments.emptyTitle')}
             description={t('comments.empty')}
           />
+        )}
+
+        {hasNextPage && (
+          <Button
+            variant="subtle"
+            onClick={() => fetchNextPage()}
+            loading={isFetchingNextPage}
+            mt="sm"
+          >
+            {t('comments.loadMore')}
+          </Button>
         )}
       </Stack>
     </Paper>

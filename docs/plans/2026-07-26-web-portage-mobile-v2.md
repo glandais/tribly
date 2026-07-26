@@ -828,7 +828,7 @@ onglets est visuellement signalé.
 
 ---
 
-**T4.1 ☐ — Pagination et compteur de commentaires**
+**T4.1 ☑ — Pagination et compteur de commentaires**
 *Fichiers modifiés* : `frontend/src/hooks/useComments.ts` (passer `page`, `size`, `sort` et
 `parentId` aux quatre fonctions générées), `frontend/src/components/comment/CommentSection.tsx`,
 `frontend/src/components/comment/CommentItem.tsx` (bouton « Voir les N réponses » alimenté par

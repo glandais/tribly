@@ -7,9 +7,14 @@ import { CommentForm } from './CommentForm'
 import { ConfirmDialog } from '../common/ConfirmDialog'
 import { useFormattedDate } from '../../utils/dateFormat'
 import type { CommentDto } from '@/api/dto'
+import { useCommentReplies, type EntityType } from '../../hooks/useComments'
 
 interface CommentItemProps {
   comment: CommentDto
+  /** Needed to expand a thread whose replies were not embedded in the page. */
+  teamSlug?: string
+  entityType?: EntityType
+  entitySlug?: string
   canDeleteComment: (comment: CommentDto) => boolean
   onDeleteComment: (commentId: string) => void
   onReply?: () => void
@@ -23,6 +28,9 @@ interface CommentItemProps {
 
 export function CommentItem({
   comment,
+  teamSlug,
+  entityType,
+  entitySlug,
   canDeleteComment,
   onDeleteComment,
   onReply,
@@ -37,8 +45,22 @@ export function CommentItem({
   const { t } = useTranslation()
   const { formatRelative } = useFormattedDate()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [threadExpanded, setThreadExpanded] = useState(false)
 
   const isReplyingToThis = replyingTo === comment.id
+
+  // A page of top-level comments does not necessarily embed every reply; `replyCount` is
+  // authoritative, so anything it counts beyond what we hold is fetched on demand.
+  const embedded = comment.replies ?? []
+  const hasHiddenReplies = comment.replyCount > embedded.length
+  const { data: fetchedReplies, isFetching: isFetchingReplies } = useCommentReplies(
+    teamSlug,
+    entityType ?? 'rides',
+    entitySlug,
+    comment.id,
+    threadExpanded && hasHiddenReplies && !!teamSlug && !!entitySlug
+  )
+  const replies = threadExpanded && fetchedReplies ? fetchedReplies.items : embedded
 
   return (
     <Box
@@ -96,9 +118,23 @@ export function CommentItem({
         </Box>
       )}
 
-      {comment.replies && comment.replies.length > 0 && (
+      {!isReply && hasHiddenReplies && !threadExpanded && (
+        <Button
+          variant="subtle"
+          size="xs"
+          color="gray"
+          mt="xs"
+          ml={44}
+          loading={isFetchingReplies}
+          onClick={() => setThreadExpanded(true)}
+        >
+          {t('comments.showReplies', { count: comment.replyCount })}
+        </Button>
+      )}
+
+      {replies.length > 0 && (
         <Stack gap="sm" mt="md">
-          {comment.replies.map((reply) => (
+          {replies.map((reply) => (
             <CommentItem
               key={reply.id}
               comment={reply}
