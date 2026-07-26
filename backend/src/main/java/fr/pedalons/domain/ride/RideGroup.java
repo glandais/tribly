@@ -50,6 +50,22 @@ public class RideGroup extends BaseEntity {
   @Column(name = "sort_order", nullable = false)
   private int sortOrder = 0;
 
+  /**
+   * The member who leads this group, when one is designated.
+   *
+   * <p>Distinct from {@link BaseEntity#createdBy}, which holds whoever created the <em>ride</em>
+   * and is therefore identical across all its groups — reading it as a leader would be wrong on
+   * almost every group. Null means "not designated", not "unknown": clients render no pill rather
+   * than falling back on anything.
+   *
+   * <p>Lazy, like every other to-one here: a ride's groups are mapped in one pass, so batch fetch
+   * resolves the whole set in a single query rather than one per group.
+   */
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "leader_id")
+  @Nullable
+  private User leader;
+
   @OneToMany(mappedBy = "rideGroup", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<RideParticipation> participations = new ArrayList<>();
 

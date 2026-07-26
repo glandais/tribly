@@ -73,6 +73,8 @@ public enum ErrorCode {
   // GDPR data export errors
   EXPORT_IN_PROGRESS,
   EXPORT_RATE_LIMITED,
+  // Ride groups
+  RIDE_GROUP_LEADER_NOT_MEMBER,
   // Classified-ad contact relay
   AD_CONTACT_SELF,
   AD_CONTACT_OPTED_OUT,

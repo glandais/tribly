@@ -30,4 +30,6 @@ export interface RideGroupDto {
   distance?: number
   /** Total elevation gain in meters of the group route, if it has one */
   elevationGain?: number
+  /** The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride. */
+  leader?: PublicUserDto
 }

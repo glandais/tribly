@@ -207,6 +207,12 @@ export const CreateRideBody = zod
               .optional()
               .describe('Maximum participants'),
             routeSlug: zod.string().optional().describe('Route slug for this group'),
+            leaderId: zod
+              .string()
+              .optional()
+              .describe(
+                "ID (TSID) of the member who leads this group. Must belong to the team owning the ride. Omit or send null for no designated leader — clients then show no leader at all rather than falling back on the ride's creator."
+              ),
           })
           .describe('Ride group creation request')
       )
@@ -432,6 +438,16 @@ export const CreateRideResponse = zod
               .number()
               .optional()
               .describe('Total elevation gain in meters of the group route, if it has one'),
+            leader: zod
+              .object({
+                id: zod.string().describe('User ID (TSID)'),
+                displayName: zod.string().describe('User display name'),
+                avatarUrl: zod.string().optional().describe('User avatar URL'),
+              })
+              .optional()
+              .describe(
+                "The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride."
+              ),
           })
           .describe('Ride group information')
       )
@@ -723,6 +739,12 @@ export const UpdateRideBody = zod
               .optional()
               .describe('Maximum participants'),
             routeSlug: zod.string().optional().describe('Route slug for this group'),
+            leaderId: zod
+              .string()
+              .optional()
+              .describe(
+                "ID (TSID) of the member who leads this group. Must belong to the team owning the ride. Omit or send null for no designated leader — clients then show no leader at all rather than falling back on the ride's creator."
+              ),
           })
           .describe('Ride group creation request')
       )
@@ -948,6 +970,16 @@ export const UpdateRideResponse = zod
               .number()
               .optional()
               .describe('Total elevation gain in meters of the group route, if it has one'),
+            leader: zod
+              .object({
+                id: zod.string().describe('User ID (TSID)'),
+                displayName: zod.string().describe('User display name'),
+                avatarUrl: zod.string().optional().describe('User avatar URL'),
+              })
+              .optional()
+              .describe(
+                "The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride."
+              ),
           })
           .describe('Ride group information')
       )
@@ -1258,6 +1290,16 @@ export const GetRideResponse = zod
               .number()
               .optional()
               .describe('Total elevation gain in meters of the group route, if it has one'),
+            leader: zod
+              .object({
+                id: zod.string().describe('User ID (TSID)'),
+                displayName: zod.string().describe('User display name'),
+                avatarUrl: zod.string().optional().describe('User avatar URL'),
+              })
+              .optional()
+              .describe(
+                "The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride."
+              ),
           })
           .describe('Ride group information')
       )
@@ -1623,6 +1665,16 @@ export const ChangeRideSlugResponse = zod
               .number()
               .optional()
               .describe('Total elevation gain in meters of the group route, if it has one'),
+            leader: zod
+              .object({
+                id: zod.string().describe('User ID (TSID)'),
+                displayName: zod.string().describe('User display name'),
+                avatarUrl: zod.string().optional().describe('User avatar URL'),
+              })
+              .optional()
+              .describe(
+                "The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride."
+              ),
           })
           .describe('Ride group information')
       )
@@ -1933,6 +1985,16 @@ export const UndeleteRideResponse = zod
               .number()
               .optional()
               .describe('Total elevation gain in meters of the group route, if it has one'),
+            leader: zod
+              .object({
+                id: zod.string().describe('User ID (TSID)'),
+                displayName: zod.string().describe('User display name'),
+                avatarUrl: zod.string().optional().describe('User avatar URL'),
+              })
+              .optional()
+              .describe(
+                "The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride."
+              ),
           })
           .describe('Ride group information')
       )

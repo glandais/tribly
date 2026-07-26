@@ -1617,6 +1617,7 @@ components:
       - SOCIAL_LAST_LOGIN_METHOD
       - EXPORT_IN_PROGRESS
       - EXPORT_RATE_LIMITED
+      - RIDE_GROUP_LEADER_NOT_MEMBER
       - AD_CONTACT_SELF
       - AD_CONTACT_OPTED_OUT
       - AD_CONTACT_RATE_LIMITED
@@ -1977,6 +1978,14 @@ components:
         routeSlug:
           type: string
           description: Route slug for this group
+        leaderId:
+          type: string
+          description: ID (TSID) of the member who leads this group. Must belong to
+            the team owning the ride. Omit or send null for no designated leader —
+            clients then show no leader at all rather than falling back on the ride's
+            creator.
+          examples:
+          - 0h4a8xzk8jv80
       required:
       - name
     Hilliness:
@@ -2810,6 +2819,13 @@ components:
           format: float
           description: "Total elevation gain in meters of the group route, if it has\
             \ one"
+        leader:
+          description: "The member who leads this group, when one is designated. Null\
+            \ means no leader was designated — render nothing rather than falling\
+            \ back on the ride's creator, who is the same person on every group of\
+            \ the ride."
+          type: object
+          $ref: "#/components/schemas/PublicUserDto"
     RideListResponse:
       description: Paginated ride list response
       type: object
@@ -13096,7 +13112,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 1.4.0
+  version: 1.5.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

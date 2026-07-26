@@ -50,6 +50,9 @@ abstract class RideGroupDto with _$RideGroupDto {
 
     /// Total elevation gain in meters of the group route, if it has one
     double? elevationGain,
+
+    /// The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride.
+    PublicUserDto? leader,
   }) = _RideGroupDto;
 
   factory RideGroupDto.fromJson(Map<String, Object?> json) =>

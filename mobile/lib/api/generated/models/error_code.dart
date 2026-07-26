@@ -136,6 +136,8 @@ enum ErrorCode {
   exportInProgress('EXPORT_IN_PROGRESS'),
   @JsonValue('EXPORT_RATE_LIMITED')
   exportRateLimited('EXPORT_RATE_LIMITED'),
+  @JsonValue('RIDE_GROUP_LEADER_NOT_MEMBER')
+  rideGroupLeaderNotMember('RIDE_GROUP_LEADER_NOT_MEMBER'),
   @JsonValue('AD_CONTACT_SELF')
   adContactSelf('AD_CONTACT_SELF'),
   @JsonValue('AD_CONTACT_OPTED_OUT')

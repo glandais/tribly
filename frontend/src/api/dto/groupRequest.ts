@@ -26,4 +26,6 @@ export interface GroupRequest {
   maxParticipants?: number
   /** Route slug for this group */
   routeSlug?: string
+  /** ID (TSID) of the member who leads this group. Must belong to the team owning the ride. Omit or send null for no designated leader — clients then show no leader at all rather than falling back on the ride's creator. */
+  leaderId?: string
 }

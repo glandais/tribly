@@ -14,6 +14,7 @@ _GroupRequest _$GroupRequestFromJson(Map<String, dynamic> json) =>
       averageSpeed: (json['averageSpeed'] as num?)?.toDouble(),
       maxParticipants: (json['maxParticipants'] as num?)?.toInt(),
       routeSlug: json['routeSlug'] as String?,
+      leaderId: json['leaderId'] as String?,
     );
 
 Map<String, dynamic> _$GroupRequestToJson(_GroupRequest instance) =>
@@ -24,4 +25,5 @@ Map<String, dynamic> _$GroupRequestToJson(_GroupRequest instance) =>
       'averageSpeed': instance.averageSpeed,
       'maxParticipants': instance.maxParticipants,
       'routeSlug': instance.routeSlug,
+      'leaderId': instance.leaderId,
     };

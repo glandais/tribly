@@ -28,6 +28,9 @@ abstract class GroupRequest with _$GroupRequest {
 
     /// Route slug for this group
     String? routeSlug,
+
+    /// ID (TSID) of the member who leads this group. Must belong to the team owning the ride. Omit or send null for no designated leader — clients then show no leader at all rather than falling back on the ride's creator.
+    String? leaderId,
   }) = _GroupRequest;
 
   factory GroupRequest.fromJson(Map<String, Object?> json) =>

@@ -23,6 +23,9 @@ _RideGroupDto _$RideGroupDtoFromJson(Map<String, dynamic> json) =>
       maxParticipants: (json['maxParticipants'] as num?)?.toInt(),
       distance: (json['distance'] as num?)?.toDouble(),
       elevationGain: (json['elevationGain'] as num?)?.toDouble(),
+      leader: json['leader'] == null
+          ? null
+          : PublicUserDto.fromJson(json['leader'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$RideGroupDtoToJson(_RideGroupDto instance) =>
@@ -40,4 +43,5 @@ Map<String, dynamic> _$RideGroupDtoToJson(_RideGroupDto instance) =>
       'maxParticipants': instance.maxParticipants,
       'distance': instance.distance,
       'elevationGain': instance.elevationGain,
+      'leader': instance.leader?.toJson(),
     };

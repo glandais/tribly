@@ -20,7 +20,8 @@ mixin _$GroupRequest {
  String? get id; LocalTime? get time;/// Average speed in km/h
  double? get averageSpeed;/// Maximum participants
  int? get maxParticipants;/// Route slug for this group
- String? get routeSlug;
+ String? get routeSlug;/// ID (TSID) of the member who leads this group. Must belong to the team owning the ride. Omit or send null for no designated leader — clients then show no leader at all rather than falling back on the ride's creator.
+ String? get leaderId;
 /// Create a copy of GroupRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -33,16 +34,16 @@ $GroupRequestCopyWith<GroupRequest> get copyWith => _$GroupRequestCopyWithImpl<G
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GroupRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.id, id) || other.id == id)&&(identical(other.time, time) || other.time == time)&&(identical(other.averageSpeed, averageSpeed) || other.averageSpeed == averageSpeed)&&(identical(other.maxParticipants, maxParticipants) || other.maxParticipants == maxParticipants)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GroupRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.id, id) || other.id == id)&&(identical(other.time, time) || other.time == time)&&(identical(other.averageSpeed, averageSpeed) || other.averageSpeed == averageSpeed)&&(identical(other.maxParticipants, maxParticipants) || other.maxParticipants == maxParticipants)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.leaderId, leaderId) || other.leaderId == leaderId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,id,time,averageSpeed,maxParticipants,routeSlug);
+int get hashCode => Object.hash(runtimeType,name,id,time,averageSpeed,maxParticipants,routeSlug,leaderId);
 
 @override
 String toString() {
-  return 'GroupRequest(name: $name, id: $id, time: $time, averageSpeed: $averageSpeed, maxParticipants: $maxParticipants, routeSlug: $routeSlug)';
+  return 'GroupRequest(name: $name, id: $id, time: $time, averageSpeed: $averageSpeed, maxParticipants: $maxParticipants, routeSlug: $routeSlug, leaderId: $leaderId)';
 }
 
 
@@ -53,7 +54,7 @@ abstract mixin class $GroupRequestCopyWith<$Res>  {
   factory $GroupRequestCopyWith(GroupRequest value, $Res Function(GroupRequest) _then) = _$GroupRequestCopyWithImpl;
 @useResult
 $Res call({
- String name, String? id, LocalTime? time, double? averageSpeed, int? maxParticipants, String? routeSlug
+ String name, String? id, LocalTime? time, double? averageSpeed, int? maxParticipants, String? routeSlug, String? leaderId
 });
 
 
@@ -70,7 +71,7 @@ class _$GroupRequestCopyWithImpl<$Res>
 
 /// Create a copy of GroupRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? id = freezed,Object? time = freezed,Object? averageSpeed = freezed,Object? maxParticipants = freezed,Object? routeSlug = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? id = freezed,Object? time = freezed,Object? averageSpeed = freezed,Object? maxParticipants = freezed,Object? routeSlug = freezed,Object? leaderId = freezed,}) {
   return _then(_self.copyWith(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -78,6 +79,7 @@ as String?,time: freezed == time ? _self.time : time // ignore: cast_nullable_to
 as LocalTime?,averageSpeed: freezed == averageSpeed ? _self.averageSpeed : averageSpeed // ignore: cast_nullable_to_non_nullable
 as double?,maxParticipants: freezed == maxParticipants ? _self.maxParticipants : maxParticipants // ignore: cast_nullable_to_non_nullable
 as int?,routeSlug: freezed == routeSlug ? _self.routeSlug : routeSlug // ignore: cast_nullable_to_non_nullable
+as String?,leaderId: freezed == leaderId ? _self.leaderId : leaderId // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -163,10 +165,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String? id,  LocalTime? time,  double? averageSpeed,  int? maxParticipants,  String? routeSlug)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String? id,  LocalTime? time,  double? averageSpeed,  int? maxParticipants,  String? routeSlug,  String? leaderId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _GroupRequest() when $default != null:
-return $default(_that.name,_that.id,_that.time,_that.averageSpeed,_that.maxParticipants,_that.routeSlug);case _:
+return $default(_that.name,_that.id,_that.time,_that.averageSpeed,_that.maxParticipants,_that.routeSlug,_that.leaderId);case _:
   return orElse();
 
 }
@@ -184,10 +186,10 @@ return $default(_that.name,_that.id,_that.time,_that.averageSpeed,_that.maxParti
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String? id,  LocalTime? time,  double? averageSpeed,  int? maxParticipants,  String? routeSlug)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String? id,  LocalTime? time,  double? averageSpeed,  int? maxParticipants,  String? routeSlug,  String? leaderId)  $default,) {final _that = this;
 switch (_that) {
 case _GroupRequest():
-return $default(_that.name,_that.id,_that.time,_that.averageSpeed,_that.maxParticipants,_that.routeSlug);case _:
+return $default(_that.name,_that.id,_that.time,_that.averageSpeed,_that.maxParticipants,_that.routeSlug,_that.leaderId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -204,10 +206,10 @@ return $default(_that.name,_that.id,_that.time,_that.averageSpeed,_that.maxParti
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String? id,  LocalTime? time,  double? averageSpeed,  int? maxParticipants,  String? routeSlug)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String? id,  LocalTime? time,  double? averageSpeed,  int? maxParticipants,  String? routeSlug,  String? leaderId)?  $default,) {final _that = this;
 switch (_that) {
 case _GroupRequest() when $default != null:
-return $default(_that.name,_that.id,_that.time,_that.averageSpeed,_that.maxParticipants,_that.routeSlug);case _:
+return $default(_that.name,_that.id,_that.time,_that.averageSpeed,_that.maxParticipants,_that.routeSlug,_that.leaderId);case _:
   return null;
 
 }
@@ -219,7 +221,7 @@ return $default(_that.name,_that.id,_that.time,_that.averageSpeed,_that.maxParti
 @JsonSerializable()
 
 class _GroupRequest implements GroupRequest {
-  const _GroupRequest({required this.name, this.id, this.time, this.averageSpeed, this.maxParticipants, this.routeSlug});
+  const _GroupRequest({required this.name, this.id, this.time, this.averageSpeed, this.maxParticipants, this.routeSlug, this.leaderId});
   factory _GroupRequest.fromJson(Map<String, dynamic> json) => _$GroupRequestFromJson(json);
 
 /// Group name
@@ -233,6 +235,8 @@ class _GroupRequest implements GroupRequest {
 @override final  int? maxParticipants;
 /// Route slug for this group
 @override final  String? routeSlug;
+/// ID (TSID) of the member who leads this group. Must belong to the team owning the ride. Omit or send null for no designated leader — clients then show no leader at all rather than falling back on the ride's creator.
+@override final  String? leaderId;
 
 /// Create a copy of GroupRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -247,16 +251,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GroupRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.id, id) || other.id == id)&&(identical(other.time, time) || other.time == time)&&(identical(other.averageSpeed, averageSpeed) || other.averageSpeed == averageSpeed)&&(identical(other.maxParticipants, maxParticipants) || other.maxParticipants == maxParticipants)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GroupRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.id, id) || other.id == id)&&(identical(other.time, time) || other.time == time)&&(identical(other.averageSpeed, averageSpeed) || other.averageSpeed == averageSpeed)&&(identical(other.maxParticipants, maxParticipants) || other.maxParticipants == maxParticipants)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.leaderId, leaderId) || other.leaderId == leaderId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,id,time,averageSpeed,maxParticipants,routeSlug);
+int get hashCode => Object.hash(runtimeType,name,id,time,averageSpeed,maxParticipants,routeSlug,leaderId);
 
 @override
 String toString() {
-  return 'GroupRequest(name: $name, id: $id, time: $time, averageSpeed: $averageSpeed, maxParticipants: $maxParticipants, routeSlug: $routeSlug)';
+  return 'GroupRequest(name: $name, id: $id, time: $time, averageSpeed: $averageSpeed, maxParticipants: $maxParticipants, routeSlug: $routeSlug, leaderId: $leaderId)';
 }
 
 
@@ -267,7 +271,7 @@ abstract mixin class _$GroupRequestCopyWith<$Res> implements $GroupRequestCopyWi
   factory _$GroupRequestCopyWith(_GroupRequest value, $Res Function(_GroupRequest) _then) = __$GroupRequestCopyWithImpl;
 @override @useResult
 $Res call({
- String name, String? id, LocalTime? time, double? averageSpeed, int? maxParticipants, String? routeSlug
+ String name, String? id, LocalTime? time, double? averageSpeed, int? maxParticipants, String? routeSlug, String? leaderId
 });
 
 
@@ -284,7 +288,7 @@ class __$GroupRequestCopyWithImpl<$Res>
 
 /// Create a copy of GroupRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? id = freezed,Object? time = freezed,Object? averageSpeed = freezed,Object? maxParticipants = freezed,Object? routeSlug = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? id = freezed,Object? time = freezed,Object? averageSpeed = freezed,Object? maxParticipants = freezed,Object? routeSlug = freezed,Object? leaderId = freezed,}) {
   return _then(_GroupRequest(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -292,6 +296,7 @@ as String?,time: freezed == time ? _self.time : time // ignore: cast_nullable_to
 as LocalTime?,averageSpeed: freezed == averageSpeed ? _self.averageSpeed : averageSpeed // ignore: cast_nullable_to_non_nullable
 as double?,maxParticipants: freezed == maxParticipants ? _self.maxParticipants : maxParticipants // ignore: cast_nullable_to_non_nullable
 as int?,routeSlug: freezed == routeSlug ? _self.routeSlug : routeSlug // ignore: cast_nullable_to_non_nullable
+as String?,leaderId: freezed == leaderId ? _self.leaderId : leaderId // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

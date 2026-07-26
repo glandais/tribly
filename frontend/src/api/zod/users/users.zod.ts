@@ -651,6 +651,16 @@ export const ListMyParticipationsResponse = zod
                           .describe(
                             'Total elevation gain in meters of the group route, if it has one'
                           ),
+                        leader: zod
+                          .object({
+                            id: zod.string().describe('User ID (TSID)'),
+                            displayName: zod.string().describe('User display name'),
+                            avatarUrl: zod.string().optional().describe('User avatar URL'),
+                          })
+                          .optional()
+                          .describe(
+                            "The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride."
+                          ),
                       })
                       .describe('Ride group information')
                   )

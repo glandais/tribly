@@ -27,7 +27,8 @@ mixin _$RideGroupDto {
  double? get averageSpeed;/// Maximum participants
  int? get maxParticipants;/// Distance in meters of the group route, if it has one
  double? get distance;/// Total elevation gain in meters of the group route, if it has one
- double? get elevationGain;
+ double? get elevationGain;/// The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride.
+ PublicUserDto? get leader;
 /// Create a copy of RideGroupDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -40,16 +41,16 @@ $RideGroupDtoCopyWith<RideGroupDto> get copyWith => _$RideGroupDtoCopyWithImpl<R
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RideGroupDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.countParticipants, countParticipants) || other.countParticipants == countParticipants)&&const DeepCollectionEquality().equals(other.participants, participants)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&(identical(other.registered, registered) || other.registered == registered)&&(identical(other.full, full) || other.full == full)&&(identical(other.time, time) || other.time == time)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.averageSpeed, averageSpeed) || other.averageSpeed == averageSpeed)&&(identical(other.maxParticipants, maxParticipants) || other.maxParticipants == maxParticipants)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RideGroupDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.countParticipants, countParticipants) || other.countParticipants == countParticipants)&&const DeepCollectionEquality().equals(other.participants, participants)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&(identical(other.registered, registered) || other.registered == registered)&&(identical(other.full, full) || other.full == full)&&(identical(other.time, time) || other.time == time)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.averageSpeed, averageSpeed) || other.averageSpeed == averageSpeed)&&(identical(other.maxParticipants, maxParticipants) || other.maxParticipants == maxParticipants)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.leader, leader) || other.leader == leader));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,countParticipants,const DeepCollectionEquality().hash(participants),sortOrder,registered,full,time,routeSlug,averageSpeed,maxParticipants,distance,elevationGain);
+int get hashCode => Object.hash(runtimeType,id,name,countParticipants,const DeepCollectionEquality().hash(participants),sortOrder,registered,full,time,routeSlug,averageSpeed,maxParticipants,distance,elevationGain,leader);
 
 @override
 String toString() {
-  return 'RideGroupDto(id: $id, name: $name, countParticipants: $countParticipants, participants: $participants, sortOrder: $sortOrder, registered: $registered, full: $full, time: $time, routeSlug: $routeSlug, averageSpeed: $averageSpeed, maxParticipants: $maxParticipants, distance: $distance, elevationGain: $elevationGain)';
+  return 'RideGroupDto(id: $id, name: $name, countParticipants: $countParticipants, participants: $participants, sortOrder: $sortOrder, registered: $registered, full: $full, time: $time, routeSlug: $routeSlug, averageSpeed: $averageSpeed, maxParticipants: $maxParticipants, distance: $distance, elevationGain: $elevationGain, leader: $leader)';
 }
 
 
@@ -60,11 +61,11 @@ abstract mixin class $RideGroupDtoCopyWith<$Res>  {
   factory $RideGroupDtoCopyWith(RideGroupDto value, $Res Function(RideGroupDto) _then) = _$RideGroupDtoCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, int countParticipants, List<PublicUserDto> participants, int sortOrder, bool registered, bool full, LocalTime? time, String? routeSlug, double? averageSpeed, int? maxParticipants, double? distance, double? elevationGain
+ String id, String name, int countParticipants, List<PublicUserDto> participants, int sortOrder, bool registered, bool full, LocalTime? time, String? routeSlug, double? averageSpeed, int? maxParticipants, double? distance, double? elevationGain, PublicUserDto? leader
 });
 
 
-
+$PublicUserDtoCopyWith<$Res>? get leader;
 
 }
 /// @nodoc
@@ -77,7 +78,7 @@ class _$RideGroupDtoCopyWithImpl<$Res>
 
 /// Create a copy of RideGroupDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? countParticipants = null,Object? participants = null,Object? sortOrder = null,Object? registered = null,Object? full = null,Object? time = freezed,Object? routeSlug = freezed,Object? averageSpeed = freezed,Object? maxParticipants = freezed,Object? distance = freezed,Object? elevationGain = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? countParticipants = null,Object? participants = null,Object? sortOrder = null,Object? registered = null,Object? full = null,Object? time = freezed,Object? routeSlug = freezed,Object? averageSpeed = freezed,Object? maxParticipants = freezed,Object? distance = freezed,Object? elevationGain = freezed,Object? leader = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -92,10 +93,23 @@ as String?,averageSpeed: freezed == averageSpeed ? _self.averageSpeed : averageS
 as double?,maxParticipants: freezed == maxParticipants ? _self.maxParticipants : maxParticipants // ignore: cast_nullable_to_non_nullable
 as int?,distance: freezed == distance ? _self.distance : distance // ignore: cast_nullable_to_non_nullable
 as double?,elevationGain: freezed == elevationGain ? _self.elevationGain : elevationGain // ignore: cast_nullable_to_non_nullable
-as double?,
+as double?,leader: freezed == leader ? _self.leader : leader // ignore: cast_nullable_to_non_nullable
+as PublicUserDto?,
   ));
 }
+/// Create a copy of RideGroupDto
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PublicUserDtoCopyWith<$Res>? get leader {
+    if (_self.leader == null) {
+    return null;
+  }
 
+  return $PublicUserDtoCopyWith<$Res>(_self.leader!, (value) {
+    return _then(_self.copyWith(leader: value));
+  });
+}
 }
 
 
@@ -177,10 +191,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  int countParticipants,  List<PublicUserDto> participants,  int sortOrder,  bool registered,  bool full,  LocalTime? time,  String? routeSlug,  double? averageSpeed,  int? maxParticipants,  double? distance,  double? elevationGain)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  int countParticipants,  List<PublicUserDto> participants,  int sortOrder,  bool registered,  bool full,  LocalTime? time,  String? routeSlug,  double? averageSpeed,  int? maxParticipants,  double? distance,  double? elevationGain,  PublicUserDto? leader)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _RideGroupDto() when $default != null:
-return $default(_that.id,_that.name,_that.countParticipants,_that.participants,_that.sortOrder,_that.registered,_that.full,_that.time,_that.routeSlug,_that.averageSpeed,_that.maxParticipants,_that.distance,_that.elevationGain);case _:
+return $default(_that.id,_that.name,_that.countParticipants,_that.participants,_that.sortOrder,_that.registered,_that.full,_that.time,_that.routeSlug,_that.averageSpeed,_that.maxParticipants,_that.distance,_that.elevationGain,_that.leader);case _:
   return orElse();
 
 }
@@ -198,10 +212,10 @@ return $default(_that.id,_that.name,_that.countParticipants,_that.participants,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  int countParticipants,  List<PublicUserDto> participants,  int sortOrder,  bool registered,  bool full,  LocalTime? time,  String? routeSlug,  double? averageSpeed,  int? maxParticipants,  double? distance,  double? elevationGain)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  int countParticipants,  List<PublicUserDto> participants,  int sortOrder,  bool registered,  bool full,  LocalTime? time,  String? routeSlug,  double? averageSpeed,  int? maxParticipants,  double? distance,  double? elevationGain,  PublicUserDto? leader)  $default,) {final _that = this;
 switch (_that) {
 case _RideGroupDto():
-return $default(_that.id,_that.name,_that.countParticipants,_that.participants,_that.sortOrder,_that.registered,_that.full,_that.time,_that.routeSlug,_that.averageSpeed,_that.maxParticipants,_that.distance,_that.elevationGain);case _:
+return $default(_that.id,_that.name,_that.countParticipants,_that.participants,_that.sortOrder,_that.registered,_that.full,_that.time,_that.routeSlug,_that.averageSpeed,_that.maxParticipants,_that.distance,_that.elevationGain,_that.leader);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -218,10 +232,10 @@ return $default(_that.id,_that.name,_that.countParticipants,_that.participants,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  int countParticipants,  List<PublicUserDto> participants,  int sortOrder,  bool registered,  bool full,  LocalTime? time,  String? routeSlug,  double? averageSpeed,  int? maxParticipants,  double? distance,  double? elevationGain)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  int countParticipants,  List<PublicUserDto> participants,  int sortOrder,  bool registered,  bool full,  LocalTime? time,  String? routeSlug,  double? averageSpeed,  int? maxParticipants,  double? distance,  double? elevationGain,  PublicUserDto? leader)?  $default,) {final _that = this;
 switch (_that) {
 case _RideGroupDto() when $default != null:
-return $default(_that.id,_that.name,_that.countParticipants,_that.participants,_that.sortOrder,_that.registered,_that.full,_that.time,_that.routeSlug,_that.averageSpeed,_that.maxParticipants,_that.distance,_that.elevationGain);case _:
+return $default(_that.id,_that.name,_that.countParticipants,_that.participants,_that.sortOrder,_that.registered,_that.full,_that.time,_that.routeSlug,_that.averageSpeed,_that.maxParticipants,_that.distance,_that.elevationGain,_that.leader);case _:
   return null;
 
 }
@@ -233,7 +247,7 @@ return $default(_that.id,_that.name,_that.countParticipants,_that.participants,_
 @JsonSerializable()
 
 class _RideGroupDto implements RideGroupDto {
-  const _RideGroupDto({required this.id, required this.name, required this.countParticipants, required final  List<PublicUserDto> participants, required this.sortOrder, required this.registered, required this.full, this.time, this.routeSlug, this.averageSpeed, this.maxParticipants, this.distance, this.elevationGain}): _participants = participants;
+  const _RideGroupDto({required this.id, required this.name, required this.countParticipants, required final  List<PublicUserDto> participants, required this.sortOrder, required this.registered, required this.full, this.time, this.routeSlug, this.averageSpeed, this.maxParticipants, this.distance, this.elevationGain, this.leader}): _participants = participants;
   factory _RideGroupDto.fromJson(Map<String, dynamic> json) => _$RideGroupDtoFromJson(json);
 
 /// Group ID (TSID)
@@ -268,6 +282,8 @@ class _RideGroupDto implements RideGroupDto {
 @override final  double? distance;
 /// Total elevation gain in meters of the group route, if it has one
 @override final  double? elevationGain;
+/// The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride.
+@override final  PublicUserDto? leader;
 
 /// Create a copy of RideGroupDto
 /// with the given fields replaced by the non-null parameter values.
@@ -282,16 +298,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RideGroupDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.countParticipants, countParticipants) || other.countParticipants == countParticipants)&&const DeepCollectionEquality().equals(other._participants, _participants)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&(identical(other.registered, registered) || other.registered == registered)&&(identical(other.full, full) || other.full == full)&&(identical(other.time, time) || other.time == time)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.averageSpeed, averageSpeed) || other.averageSpeed == averageSpeed)&&(identical(other.maxParticipants, maxParticipants) || other.maxParticipants == maxParticipants)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RideGroupDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.countParticipants, countParticipants) || other.countParticipants == countParticipants)&&const DeepCollectionEquality().equals(other._participants, _participants)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&(identical(other.registered, registered) || other.registered == registered)&&(identical(other.full, full) || other.full == full)&&(identical(other.time, time) || other.time == time)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.averageSpeed, averageSpeed) || other.averageSpeed == averageSpeed)&&(identical(other.maxParticipants, maxParticipants) || other.maxParticipants == maxParticipants)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.leader, leader) || other.leader == leader));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,countParticipants,const DeepCollectionEquality().hash(_participants),sortOrder,registered,full,time,routeSlug,averageSpeed,maxParticipants,distance,elevationGain);
+int get hashCode => Object.hash(runtimeType,id,name,countParticipants,const DeepCollectionEquality().hash(_participants),sortOrder,registered,full,time,routeSlug,averageSpeed,maxParticipants,distance,elevationGain,leader);
 
 @override
 String toString() {
-  return 'RideGroupDto(id: $id, name: $name, countParticipants: $countParticipants, participants: $participants, sortOrder: $sortOrder, registered: $registered, full: $full, time: $time, routeSlug: $routeSlug, averageSpeed: $averageSpeed, maxParticipants: $maxParticipants, distance: $distance, elevationGain: $elevationGain)';
+  return 'RideGroupDto(id: $id, name: $name, countParticipants: $countParticipants, participants: $participants, sortOrder: $sortOrder, registered: $registered, full: $full, time: $time, routeSlug: $routeSlug, averageSpeed: $averageSpeed, maxParticipants: $maxParticipants, distance: $distance, elevationGain: $elevationGain, leader: $leader)';
 }
 
 
@@ -302,11 +318,11 @@ abstract mixin class _$RideGroupDtoCopyWith<$Res> implements $RideGroupDtoCopyWi
   factory _$RideGroupDtoCopyWith(_RideGroupDto value, $Res Function(_RideGroupDto) _then) = __$RideGroupDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, int countParticipants, List<PublicUserDto> participants, int sortOrder, bool registered, bool full, LocalTime? time, String? routeSlug, double? averageSpeed, int? maxParticipants, double? distance, double? elevationGain
+ String id, String name, int countParticipants, List<PublicUserDto> participants, int sortOrder, bool registered, bool full, LocalTime? time, String? routeSlug, double? averageSpeed, int? maxParticipants, double? distance, double? elevationGain, PublicUserDto? leader
 });
 
 
-
+@override $PublicUserDtoCopyWith<$Res>? get leader;
 
 }
 /// @nodoc
@@ -319,7 +335,7 @@ class __$RideGroupDtoCopyWithImpl<$Res>
 
 /// Create a copy of RideGroupDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? countParticipants = null,Object? participants = null,Object? sortOrder = null,Object? registered = null,Object? full = null,Object? time = freezed,Object? routeSlug = freezed,Object? averageSpeed = freezed,Object? maxParticipants = freezed,Object? distance = freezed,Object? elevationGain = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? countParticipants = null,Object? participants = null,Object? sortOrder = null,Object? registered = null,Object? full = null,Object? time = freezed,Object? routeSlug = freezed,Object? averageSpeed = freezed,Object? maxParticipants = freezed,Object? distance = freezed,Object? elevationGain = freezed,Object? leader = freezed,}) {
   return _then(_RideGroupDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -334,11 +350,24 @@ as String?,averageSpeed: freezed == averageSpeed ? _self.averageSpeed : averageS
 as double?,maxParticipants: freezed == maxParticipants ? _self.maxParticipants : maxParticipants // ignore: cast_nullable_to_non_nullable
 as int?,distance: freezed == distance ? _self.distance : distance // ignore: cast_nullable_to_non_nullable
 as double?,elevationGain: freezed == elevationGain ? _self.elevationGain : elevationGain // ignore: cast_nullable_to_non_nullable
-as double?,
+as double?,leader: freezed == leader ? _self.leader : leader // ignore: cast_nullable_to_non_nullable
+as PublicUserDto?,
   ));
 }
 
+/// Create a copy of RideGroupDto
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PublicUserDtoCopyWith<$Res>? get leader {
+    if (_self.leader == null) {
+    return null;
+  }
 
+  return $PublicUserDtoCopyWith<$Res>(_self.leader!, (value) {
+    return _then(_self.copyWith(leader: value));
+  });
+}
 }
 
 // dart format on

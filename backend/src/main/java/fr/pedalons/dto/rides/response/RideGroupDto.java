@@ -39,7 +39,14 @@ public record RideGroupDto(
         Float distance,
     @Nullable
         @Schema(description = "Total elevation gain in meters of the group route, if it has one")
-        Float elevationGain) {
+        Float elevationGain,
+    @Nullable
+        @Schema(
+            description =
+                "The member who leads this group, when one is designated. Null means no leader was"
+                    + " designated — render nothing rather than falling back on the ride's"
+                    + " creator, who is the same person on every group of the ride.")
+        PublicUserDto leader) {
 
   public static RideGroupDto from(RideGroup group) {
     return from(group, null);
@@ -71,6 +78,7 @@ public record RideGroupDto(
         registeredGroupId != null && registeredGroupId.equals(group.getId()),
         !group.hasCapacity(),
         route != null ? route.getDistance() : null,
-        route != null ? route.getElevationGain() : null);
+        route != null ? route.getElevationGain() : null,
+        group.getLeader() != null ? PublicUserDto.from(group.getLeader()) : null);
   }
 }

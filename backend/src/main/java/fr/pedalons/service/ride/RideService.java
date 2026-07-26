@@ -12,6 +12,7 @@ import fr.pedalons.domain.ride.RideGroup;
 import fr.pedalons.domain.ride.RideParticipation;
 import fr.pedalons.domain.route.Route;
 import fr.pedalons.domain.team.Team;
+import fr.pedalons.domain.team.UserTeam;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.dto.rides.request.GroupRequest;
@@ -26,6 +27,7 @@ import fr.pedalons.repository.place.PlaceRepository;
 import fr.pedalons.repository.ride.RideGroupRepository;
 import fr.pedalons.repository.ride.RideParticipationRepository;
 import fr.pedalons.repository.ride.RideRepository;
+import fr.pedalons.repository.team.UserTeamRepository;
 import fr.pedalons.service.comment.CommentCountLookup;
 import fr.pedalons.service.common.ParticipationLookup;
 import fr.pedalons.service.common.TeamEntityService;
@@ -58,6 +60,8 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
   @Inject ParticipationLookup participationLookup;
 
   @Inject CommentCountLookup commentCountLookup;
+
+  @Inject UserTeamRepository userTeamRepository;
 
   @Override
   protected RideRepository getRepository() {
@@ -150,6 +154,31 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
     group.setMaxParticipants(groupRequest.maxParticipants());
     group.setSortOrder(sortOrder);
     group.setRoute(groupRoute);
+    group.setLeader(resolveLeader(ride, groupRequest.leaderId()));
+  }
+
+  /**
+   * The member designated to lead a group, or null.
+   *
+   * <p>Membership of the ride's team is checked rather than assumed. Without it, any user id in the
+   * domain could be written into a group and rendered as its leader on a page every member reads —
+   * a way to attribute a ride to someone who never agreed to lead it. Requiring participation
+   * instead would be worse: groups are built before anyone has signed up.
+   *
+   * <p>The check is deliberately not re-run afterwards. A leader who later leaves the team keeps
+   * the row: the group happened, and rewriting history on a membership change would silently
+   * unattribute past rides. The read path renders whoever is there.
+   */
+  private @Nullable User resolveLeader(Ride ride, @Nullable String leaderId) {
+    Long id = TsidUtils.toLongNullable(leaderId);
+    if (id == null) {
+      return null;
+    }
+    Long teamId = ride.getTeam().getId();
+    return userTeamRepository
+        .findByUserAndTeam(id, teamId)
+        .map(UserTeam::getUser)
+        .orElseThrow(() -> new BusinessException(ErrorCode.RIDE_GROUP_LEADER_NOT_MEMBER));
   }
 
   private @Nullable Route getRoute(
