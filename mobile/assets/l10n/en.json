@@ -346,7 +346,13 @@
       "startPlace": "Start place",
       "endPlace": "End place",
       "viewRoute": "View route",
-      "numberOf": "Stage {index} of {total}"
+      "numberOf": "Stage {index} of {total}",
+      "overview": "Overview",
+      "groupStart": "Group start at {time}",
+      "commentOnTrip": "Comment on this trip",
+      "notFoundMessage": "This stage does not exist or was removed from the trip.",
+      "noRouteTitle": "No route",
+      "noRouteMessage": "This stage has no route attached yet."
     },
     "stageCount": {
       "zero": "No stage",

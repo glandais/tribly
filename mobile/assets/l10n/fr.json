@@ -346,7 +346,13 @@
       "startPlace": "Lieu de départ",
       "endPlace": "Lieu d'arrivée",
       "viewRoute": "Voir le parcours",
-      "numberOf": "Étape {index} sur {total}"
+      "numberOf": "Étape {index} sur {total}",
+      "overview": "Aperçu",
+      "groupStart": "Départ groupé à {time}",
+      "commentOnTrip": "Commenter ce voyage",
+      "notFoundMessage": "Cette étape n'existe pas ou a été supprimée du voyage.",
+      "noRouteTitle": "Aucun parcours",
+      "noRouteMessage": "Cette étape n'a pas encore de parcours associé."
     },
     "stageCount": {
       "zero": "Aucune étape",

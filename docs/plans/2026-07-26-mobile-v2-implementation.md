@@ -1150,10 +1150,10 @@ accepté. Ligne de col non tapable (aucune interaction maquettée).
 
 | # | État | Tâche | Fichiers | Dépend de | Taille | Fin |
 |---|---|---|---|---|---|---|
-| S25-1 | ☐ | Livrer le rail d'étapes collant | `[M] core/pdl/pdl_stage_rail.dart` · `[M] features/trips/.../stage_detail_page.dart` | F-CO-4, F-TE-1 | L | Rail épinglé sous l'app bar, pastille active **centrée automatiquement**, tap = remplacement d'écran **sans empilement** ; troncature sûre des noms longs par `characters` (test avec emoji et accents) |
-| S25-2 | ☐ | Rendre le bloc lieux avec adresse | `[M] stage_detail_page.dart` | F-CO-3 | S | `address` affichée sous le nom ; absente → la ligne se réduit sans espace vide |
-| S25-3 | ☐ | Intégrer la fiche parcours embarquée | `[M] stage_detail_page.dart` | S13-6 | M | Le bloc est celui de l'écran 13, **sans divergence de rendu** ; exports fonctionnels ; « Voir les détails du parcours » ouvre l'écran 13 |
-| S25-4 | ☐ | Assembler l'écran étape | `[M] stage_detail_page.dart` | S25-1…S25-3 | M | Retour = voyage ; badge « Étape N sur M » ; états sans parcours et introuvable rendus ; squelettes (4 pastilles de rail + carte + deux blocs) |
+| S25-1 | ☑ | Livrer le rail d'étapes collant | `[M] core/pdl/pdl_stage_rail.dart` · `[M] features/trips/.../stage_detail_page.dart` | F-CO-4, F-TE-1 | L | Rail épinglé sous l'app bar, pastille active **centrée automatiquement**, tap = remplacement d'écran **sans empilement** ; troncature sûre des noms longs par `characters` (test avec emoji et accents) |
+| S25-2 | ☑ | Rendre le bloc lieux avec adresse | `[M] stage_detail_page.dart` | F-CO-3 | S | `address` affichée sous le nom ; absente → la ligne se réduit sans espace vide |
+| S25-3 | ☑ | Intégrer la fiche parcours embarquée | `[M] stage_detail_page.dart` | S13-6 | M | Le bloc est celui de l'écran 13, **sans divergence de rendu** ; exports fonctionnels ; « Voir les détails du parcours » ouvre l'écran 13 |
+| S25-4 | ☑ | Assembler l'écran étape | `[M] stage_detail_page.dart` | S25-1…S25-3 | M | Retour = voyage ; badge « Étape N sur M » ; états sans parcours et introuvable rendus ; squelettes (4 pastilles de rail + carte + deux blocs) |
 
 **État livrable en fin de lot 4** — le voyage et l'étape sont au niveau des écrans hero ;
 `EmbeddedRouteSheet` est prouvé partagé.
