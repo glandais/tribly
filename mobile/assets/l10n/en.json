@@ -7,6 +7,7 @@
     "home": "Home",
     "teams": "Teams",
     "calendar": "Calendar",
+    "routes": "Routes",
     "profile": "Profile"
   },
   "auth": {
@@ -102,7 +103,30 @@
     "discover": "Discover",
     "loadError": "Loading error",
     "errorPrefix": "Error: {error}",
-    "user": "User"
+    "user": "User",
+    "comingSoon": "This screen is coming in a future release."
+  },
+  "placeholders": {
+    "teamsDiscover": {
+      "title": "Discover teams",
+      "message": "Searching public teams and requesting to join will live here."
+    },
+    "teamMembers": {
+      "title": "Members",
+      "message": "The team member list and their profiles will live here."
+    },
+    "teamPage": {
+      "title": "Team page",
+      "message": "Free-form pages published by the team will be shown here."
+    },
+    "allRoutes": {
+      "title": "Routes",
+      "message": "Every route from your teams, filterable and sortable, will live here."
+    },
+    "allRoutesMap": {
+      "title": "Routes map",
+      "message": "The map of all your routes will live here."
+    }
   },
   "dates": {
     "today": "Today",
@@ -149,6 +173,7 @@
       "calendar": "Calendar",
       "routes": "Routes",
       "ads": "Ads",
+      "members": "Members",
       "about": "About"
     },
     "feed": {
@@ -321,7 +346,18 @@
     "version": "Version",
     "serverVersion": "Server version",
     "privacy": "Privacy policy",
-    "terms": "Terms of use"
+    "terms": "Terms of use",
+    "theme": "Appearance",
+    "themeOptions": {
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "units": "Units",
+    "unitOptions": {
+      "metric": "Kilometres",
+      "imperial": "Miles"
+    }
   },
   "dialog": {
     "logout": {

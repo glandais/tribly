@@ -7,6 +7,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../../../../api/generated/export.dart';
 import '../../../../api/pedalons_api_client.dart';
 import '../../../../config/paths.dart';
+import '../../../../core/preferences/user_preferences_provider.dart';
+import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/safe_string.dart';
 import '../../../../core/widgets/authenticated_image.dart';
@@ -149,9 +151,13 @@ class ProfilePage extends ConsumerWidget {
               Card(
                 child: Column(
                   children: [
+                    const _ThemePreferenceRow(),
+                    const Divider(height: 1),
+                    const _UnitSystemRow(),
+                    const Divider(height: 1),
                     ListTile(
                       leading: Icon(
-                        Icons.language,
+                        PdlIcons.language,
                         color: theme.colorScheme.outline,
                       ),
                       title: Text('profile.language'.tr()),
@@ -160,8 +166,8 @@ class ProfilePage extends ConsumerWidget {
                             ? 'languages.fr'.tr()
                             : 'languages.en'.tr(),
                       ),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => _showLanguagePicker(context),
+                      trailing: const Icon(PdlIcons.chevronRight),
+                      onTap: () => _showLanguagePicker(context, ref),
                     ),
                   ],
                 ),
@@ -254,33 +260,32 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
-  void _showLanguagePicker(BuildContext context) {
+  void _showLanguagePicker(BuildContext context, WidgetRef ref) {
+    Widget option(String code, String labelKey) => ListTile(
+      title: Text(labelKey.tr()),
+      trailing: context.locale.languageCode == code
+          ? const Icon(PdlIcons.check)
+          : null,
+      onTap: () {
+        Navigator.pop(context);
+        // La langue passe par le provider : elle est persistée côté serveur
+        // et suit l'utilisateur d'un appareil à l'autre. `context.setLocale`
+        // est appliqué par `app.dart` en réaction, pas ici.
+        _savePreference(
+          context,
+          () => ref.read(userPreferencesProvider.notifier).setLanguage(code),
+        );
+      },
+    );
+
     showModalBottomSheet(
       context: context,
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(
-              title: Text('languages.fr'.tr()),
-              trailing: context.locale.languageCode == 'fr'
-                  ? const Icon(Icons.check)
-                  : null,
-              onTap: () {
-                context.setLocale(const Locale('fr'));
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: Text('languages.en'.tr()),
-              trailing: context.locale.languageCode == 'en'
-                  ? const Icon(Icons.check)
-                  : null,
-              onTap: () {
-                context.setLocale(const Locale('en'));
-                Navigator.pop(context);
-              },
-            ),
+            option('fr', 'languages.fr'),
+            option('en', 'languages.en'),
           ],
         ),
       ),
@@ -320,5 +325,116 @@ class ProfilePage extends ConsumerWidget {
         ).showSnackBar(SnackBar(content: Text(getErrorMessage(e))));
       }
     }
+  }
+}
+
+/// Applique une préférence en rendant compte de l'échec.
+///
+/// Le provider remet l'état précédent et relance : ne rien afficher donnerait
+/// un réglage qui revient en arrière tout seul, sans explication.
+Future<void> _savePreference(
+  BuildContext context,
+  Future<void> Function() action,
+) async {
+  final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+  try {
+    await action();
+  } catch (e) {
+    messenger.showSnackBar(SnackBar(content: Text(getErrorMessage(e))));
+  }
+}
+
+/// Le choix d'apparence, greffé sur le profil existant.
+///
+/// C'est le **seul** point d'entrée des préférences de l'app : l'écran 33 du
+/// lot 6 consomme `userPreferencesProvider`, il ne le duplique pas. Le rendu
+/// s'appuie ici sur `SegmentedButton` faute de `PdlSegmented` — la vague A de
+/// la bibliothèque le remplacera lors de la refonte de l'écran 33.
+class _ThemePreferenceRow extends ConsumerWidget {
+  const _ThemePreferenceRow();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = ref.watch(userPreferencesProvider).theme;
+    return ListTile(
+      leading: Icon(
+        PdlIcons.theme,
+        color: Theme.of(context).colorScheme.outline,
+      ),
+      title: Text('profile.theme'.tr()),
+      subtitle: Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: SegmentedButton<ThemePreference>(
+          showSelectedIcon: false,
+          segments: <ButtonSegment<ThemePreference>>[
+            ButtonSegment<ThemePreference>(
+              value: ThemePreference.system,
+              label: Text('profile.themeOptions.system'.tr()),
+            ),
+            ButtonSegment<ThemePreference>(
+              value: ThemePreference.light,
+              label: Text('profile.themeOptions.light'.tr()),
+            ),
+            ButtonSegment<ThemePreference>(
+              value: ThemePreference.dark,
+              label: Text('profile.themeOptions.dark'.tr()),
+            ),
+          ],
+          selected: <ThemePreference>{
+            theme == ThemePreference.$unknown ? ThemePreference.system : theme,
+          },
+          onSelectionChanged: (Set<ThemePreference> selection) =>
+              _savePreference(
+                context,
+                () => ref
+                    .read(userPreferencesProvider.notifier)
+                    .setTheme(selection.first),
+              ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Le système d'unités. Il pilote `AppFormatters` : le changer reformate
+/// distances, dénivelés et vitesses partout, sans redémarrage.
+class _UnitSystemRow extends ConsumerWidget {
+  const _UnitSystemRow();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final units = ref.watch(userPreferencesProvider).unitSystem;
+    return ListTile(
+      leading: Icon(
+        PdlIcons.units,
+        color: Theme.of(context).colorScheme.outline,
+      ),
+      title: Text('profile.units'.tr()),
+      subtitle: Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: SegmentedButton<UnitSystem>(
+          showSelectedIcon: false,
+          segments: <ButtonSegment<UnitSystem>>[
+            ButtonSegment<UnitSystem>(
+              value: UnitSystem.metric,
+              label: Text('profile.unitOptions.metric'.tr()),
+            ),
+            ButtonSegment<UnitSystem>(
+              value: UnitSystem.imperial,
+              label: Text('profile.unitOptions.imperial'.tr()),
+            ),
+          ],
+          selected: <UnitSystem>{
+            units == UnitSystem.$unknown ? UnitSystem.metric : units,
+          },
+          onSelectionChanged: (Set<UnitSystem> selection) => _savePreference(
+            context,
+            () => ref
+                .read(userPreferencesProvider.notifier)
+                .setUnitSystem(selection.first),
+          ),
+        ),
+      ),
+    );
   }
 }

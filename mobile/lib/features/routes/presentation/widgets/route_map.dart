@@ -32,8 +32,11 @@ class _RouteMapState extends State<RouteMap> {
   MapController? _controller;
   List<_KmMarkerData> _kmMarkers = [];
 
+  /// La luminosité vient du **thème de l'app**, pas de celle de la plateforme :
+  /// cette dernière ignore `themeMode`, si bien qu'une app forcée en sombre sur
+  /// un téléphone en clair gardait une carte claire.
   String _mapStyle(BuildContext context) {
-    final brightness = MediaQuery.platformBrightnessOf(context);
+    final brightness = Theme.of(context).brightness;
     final styleName = brightness == Brightness.dark ? 'eclipse' : 'colorful';
     return 'https://tiles.versatiles.org/assets/styles/$styleName/style.json';
   }
@@ -48,7 +51,7 @@ class _RouteMapState extends State<RouteMap> {
       ),
       onMapCreated: (controller) => _controller = controller,
       onStyleLoaded: (style) async {
-        final brightness = MediaQuery.platformBrightnessOf(context);
+        final brightness = Theme.of(context).brightness;
         await _addRouteLayers(style, brightness);
         _computeAndSetKmMarkers();
         // Delay fitBounds to let the map complete its layout

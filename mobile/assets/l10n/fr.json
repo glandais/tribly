@@ -7,6 +7,7 @@
     "home": "Accueil",
     "teams": "Équipes",
     "calendar": "Calendrier",
+    "routes": "Parcours",
     "profile": "Profil"
   },
   "auth": {
@@ -102,7 +103,30 @@
     "discover": "Découvrir",
     "loadError": "Erreur de chargement",
     "errorPrefix": "Erreur: {error}",
-    "user": "Utilisateur"
+    "user": "Utilisateur",
+    "comingSoon": "Cet écran arrive dans une prochaine version."
+  },
+  "placeholders": {
+    "teamsDiscover": {
+      "title": "Découvrir des équipes",
+      "message": "La recherche d'équipes publiques et la demande d'adhésion arriveront ici."
+    },
+    "teamMembers": {
+      "title": "Membres",
+      "message": "La liste des membres de l'équipe et leurs profils arriveront ici."
+    },
+    "teamPage": {
+      "title": "Page d'équipe",
+      "message": "Les pages libres publiées par l'équipe s'afficheront ici."
+    },
+    "allRoutes": {
+      "title": "Parcours",
+      "message": "Tous les parcours de vos équipes, filtrables et triables, arriveront ici."
+    },
+    "allRoutesMap": {
+      "title": "Carte des parcours",
+      "message": "La carte de tous vos parcours arrivera ici."
+    }
   },
   "dates": {
     "today": "Aujourd'hui",
@@ -149,6 +173,7 @@
       "calendar": "Calendrier",
       "routes": "Parcours",
       "ads": "Annonces",
+      "members": "Membres",
       "about": "À propos"
     },
     "feed": {
@@ -321,7 +346,18 @@
     "version": "Version",
     "serverVersion": "Version du serveur",
     "privacy": "Politique de confidentialité",
-    "terms": "Conditions d'utilisation"
+    "terms": "Conditions d'utilisation",
+    "theme": "Apparence",
+    "themeOptions": {
+      "system": "Système",
+      "light": "Clair",
+      "dark": "Sombre"
+    },
+    "units": "Unités",
+    "unitOptions": {
+      "metric": "Kilomètres",
+      "imperial": "Miles"
+    }
   },
   "dialog": {
     "logout": {

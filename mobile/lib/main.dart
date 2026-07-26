@@ -5,14 +5,21 @@ import 'package:app_links/app_links.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
 import 'config/router.dart';
+import 'core/preferences/user_preferences_provider.dart';
 import 'features/auth/providers/auth_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
+
+  // Le miroir des préférences se lit AVANT le premier cadre : sans lui, l'app
+  // s'ouvre en clair puis bascule en sombre une fois `GET /api/users/me`
+  // revenu. Une lecture asynchrone dans un provider arriverait trop tard.
+  final sharedPreferences = await SharedPreferences.getInstance();
 
   // Handle deep links
   final appLinks = AppLinks();
@@ -37,6 +44,7 @@ void main() async {
       fallbackLocale: const Locale('fr'),
       child: ProviderScope(
         overrides: [
+          sharedPreferencesProvider.overrideWithValue(sharedPreferences),
           if (initialPath != null)
             initialDeepLinkProvider.overrideWithValue(initialPath),
         ],

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'config/locale_context.dart';
 import 'config/router.dart';
+import 'core/preferences/user_preferences_provider.dart';
 import 'core/theme/theme.dart';
 import 'features/auth/providers/auth_provider.dart';
 
@@ -24,18 +25,45 @@ class _PedalonsAppState extends ConsumerState<PedalonsApp> {
     });
   }
 
+  /// Applique la langue choisie par l'utilisateur si elle diffère de celle du
+  /// contexte. `null` signifie « jamais choisi » : easy_localization suit
+  /// alors l'appareil, ce qui est le comportement attendu.
+  void _syncLocale(String? language) {
+    if (language == null) return;
+    final String code = language.split('-').first;
+    if (code == context.locale.languageCode) return;
+    Locale? target;
+    for (final Locale l in context.supportedLocales) {
+      if (l.languageCode == code) {
+        target = l;
+        break;
+      }
+    }
+    if (target == null) return;
+    final Locale resolved = target;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.setLocale(resolved);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     setCurrentLocale(context.locale.languageCode);
     final authState = ref.watch(authProvider);
     final router = ref.watch(routerProvider);
+    final preferences = ref.watch(userPreferencesProvider);
+    _syncLocale(preferences.language);
+
+    final lightTheme = PedalonsTheme.build(Brightness.light);
+    final darkTheme = PedalonsTheme.build(Brightness.dark);
 
     // Show loading while initializing
     if (!authState.isInitialized) {
       return MaterialApp(
         title: 'Pédalons',
-        theme: PedalonsTheme.build(Brightness.light),
-        darkTheme: PedalonsTheme.build(Brightness.dark),
+        theme: lightTheme,
+        darkTheme: darkTheme,
+        themeMode: preferences.themeMode,
         localizationsDelegates: context.localizationDelegates,
         supportedLocales: context.supportedLocales,
         locale: context.locale,
@@ -45,8 +73,11 @@ class _PedalonsAppState extends ConsumerState<PedalonsApp> {
 
     return MaterialApp.router(
       title: 'Pédalons',
-      theme: PedalonsTheme.build(Brightness.light),
-      darkTheme: PedalonsTheme.build(Brightness.dark),
+      theme: lightTheme,
+      darkTheme: darkTheme,
+      // Sans `themeMode`, l'app suivait le système sans recours possible : un
+      // utilisateur qui choisissait « clair » restait en sombre.
+      themeMode: preferences.themeMode,
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,
       locale: context.locale,
