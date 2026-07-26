@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import { paths } from '../../config/paths'
+import { ErrorBoundary } from '../../components/common/ErrorBoundary'
 import {
   IconCalendar,
   IconUsers,
@@ -389,14 +390,16 @@ export function TripDetailPage() {
                 spans 2 cols on xl, sticky on md+ (via .detail-map). */}
             <Box className="detail-map" style={{ order: 1 }}>
               {mapItems.length > 0 && (
-                <Suspense fallback={<Skeleton height={500} radius="md" />}>
-                  <RoutesMapView
-                    items={mapItems}
-                    teamSlug={teamSlug!}
-                    highlightedItemId={highlightedStageId}
-                    onItemHover={setHighlightedStageId}
-                  />
-                </Suspense>
+                <ErrorBoundary variant="inline">
+                  <Suspense fallback={<Skeleton height={500} radius="md" />}>
+                    <RoutesMapView
+                      items={mapItems}
+                      teamSlug={teamSlug!}
+                      highlightedItemId={highlightedStageId}
+                      onItemHover={setHighlightedStageId}
+                    />
+                  </Suspense>
+                </ErrorBoundary>
               )}
             </Box>
 

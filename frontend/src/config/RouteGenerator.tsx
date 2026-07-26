@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { Navigate, type RouteObject } from 'react-router-dom'
 import type { QueryClient } from '@tanstack/react-query'
 import Axios from 'axios'
@@ -69,9 +70,12 @@ function buildRoutesForConfig(config: RouteConfig, queryClient: QueryClient): Ro
     <Navigate to={paths.home()} replace />
   ) : (
     wrapWithAuth(
-      <Suspense fallback={<Loader />}>
-        <Component />
-      </Suspense>,
+      // Per-route boundary: a crash in one page shows an error block instead of a blank app.
+      <ErrorBoundary>
+        <Suspense fallback={<Loader />}>
+          <Component />
+        </Suspense>
+      </ErrorBoundary>,
       config.auth
     )
   )

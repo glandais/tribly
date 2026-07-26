@@ -526,7 +526,7 @@ supplémentaire par événement (pas de N+1 `getRide`).
 
 ---
 
-**T1.4 ☐ — Section « Mes participations » au profil**
+**T1.4 ☑ — Section « Mes participations » au profil**
 *Fichiers* : `frontend/src/components/profile/MyParticipations.tsx` (créé),
 `frontend/src/pages/auth/UserProfilePage.tsx` (modifié), `frontend/src/locales/{fr,en}/common.json`.
 *Détail* : deux lignes cliquables — « Mes sorties à venir » (`from = maintenant`, badge indigo) et
@@ -682,7 +682,7 @@ tentative ; le clic sur « Rejoindre » bascule visuellement avant la réponse s
 
 ---
 
-**T2.5 ☐ — `ErrorBoundary` par section**
+**T2.5 ☑ — `ErrorBoundary` par section**
 *Fichiers modifiés* : `frontend/src/components/common/ErrorBoundary.tsx` (variante `inline` sans
 `mih="100vh"`), `frontend/src/config/RouteGenerator.tsx` (enveloppe par route),
 `frontend/src/pages/ride/RideDetailPage.tsx` et `frontend/src/pages/trip/TripDetailPage.tsx`

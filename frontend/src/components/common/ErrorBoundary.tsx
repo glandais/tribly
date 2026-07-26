@@ -18,6 +18,12 @@ interface ErrorBoundaryProps {
   children: ReactNode
   fallback?: ReactNode
   onError?: (error: Error, errorInfo: ErrorInfo) => void
+  /**
+   * `page` (default) fills the viewport — for a whole route. `inline` stays inside
+   * its slot, so a section that throws (a map, a chart) is replaced in place rather
+   * than wiping the page around it.
+   */
+  variant?: 'page' | 'inline'
 }
 
 interface ErrorBoundaryState {
@@ -53,8 +59,18 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       return (
         <Translation ns="common">
           {(t) => (
-            <Center mih="100vh" bg="var(--mantine-color-body)">
-              <Paper shadow="lg" p="xl" radius="md" w={{ base: '100%', sm: 400 }}>
+            <Center
+              mih={this.props.variant === 'inline' ? undefined : '100vh'}
+              py={this.props.variant === 'inline' ? 'xl' : undefined}
+              bg="var(--mantine-color-body)"
+            >
+              <Paper
+                shadow={this.props.variant === 'inline' ? 'xs' : 'lg'}
+                withBorder={this.props.variant === 'inline'}
+                p="xl"
+                radius="md"
+                w={{ base: '100%', sm: 400 }}
+              >
                 <Stack align="center">
                   <ThemeIcon size="xl" radius="xl" color="red" variant="light">
                     <IconAlertTriangle size={24} />
@@ -72,9 +88,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                   )}
                   <Group>
                     <Button onClick={this.handleRetry}>{t('boundary.retry')}</Button>
-                    <Button variant="default" onClick={() => window.location.reload()}>
-                      {t('boundary.reload')}
-                    </Button>
+                    {this.props.variant !== 'inline' && (
+                      <Button variant="default" onClick={() => window.location.reload()}>
+                        {t('boundary.reload')}
+                      </Button>
+                    )}
                   </Group>
                 </Stack>
               </Paper>

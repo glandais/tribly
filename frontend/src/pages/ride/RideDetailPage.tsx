@@ -55,6 +55,7 @@ import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
 import { CommentSection } from '../../components/comment'
 import { paths } from '@/config/paths'
+import { ErrorBoundary } from '../../components/common/ErrorBoundary'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
 const statusColors: Record<Status, string> = {
@@ -420,14 +421,16 @@ export function RideDetailPage() {
         {/* Map - shown first on mobile, spans 2 cols on xl */}
         <Box className="detail-map" style={{ order: 1 }}>
           {mapItems.length > 0 && (
-            <Suspense fallback={<Skeleton height={500} radius="md" />}>
-              <RoutesMapView
-                items={mapItems}
-                teamSlug={teamSlug!}
-                highlightedItemId={highlightedGroupId}
-                onItemHover={setHighlightedGroupId}
-              />
-            </Suspense>
+            <ErrorBoundary variant="inline">
+              <Suspense fallback={<Skeleton height={500} radius="md" />}>
+                <RoutesMapView
+                  items={mapItems}
+                  teamSlug={teamSlug!}
+                  highlightedItemId={highlightedGroupId}
+                  onItemHover={setHighlightedGroupId}
+                />
+              </Suspense>
+            </ErrorBoundary>
           )}
         </Box>
 
