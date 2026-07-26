@@ -375,7 +375,12 @@
     "notMemberBanner": "Join this team to take part in trips.",
     "joining": "Joining...",
     "leaving": "Leaving...",
-    "participationFailedTitle": "Could not update your participation"
+    "participationFailedTitle": "Could not update your participation",
+    "tripTrack": "Trip track",
+    "globalProfile": "Overall elevation profile",
+    "partialTrack": "Partial track: {shown} of {total} stages are shown.",
+    "missingTracks": "{count} track(s) could not be loaded.",
+    "profileGaps": "Incomplete profile: {stages} could not be loaded."
   },
   "routes": {
     "title": "Routes",

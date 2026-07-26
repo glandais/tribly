@@ -375,7 +375,12 @@
     "notMemberBanner": "Rejoignez cette équipe pour participer aux voyages.",
     "joining": "Inscription...",
     "leaving": "Désinscription...",
-    "participationFailedTitle": "Participation impossible"
+    "participationFailedTitle": "Participation impossible",
+    "tripTrack": "Tracé du voyage",
+    "globalProfile": "Profil altimétrique global",
+    "partialTrack": "Tracé partiel : {shown} étapes sur {total} sont affichées.",
+    "missingTracks": "{count} tracé(s) n'ont pas pu être chargés.",
+    "profileGaps": "Profil incomplet : {stages} n'a pas pu être chargée."
   },
   "routes": {
     "title": "Parcours",

@@ -23,6 +23,8 @@ import '../../providers/trip_detail_provider.dart';
 import '../../providers/trip_participation_controller.dart';
 import '../../providers/trip_stage_selection_provider.dart';
 import '../widgets/stage_card.dart';
+import '../widgets/trip_elevation.dart';
+import '../widgets/trip_map.dart';
 import '../widgets/trip_summary_card.dart';
 
 /// Hauteur du hero : la vignette statique du tracé global.
@@ -121,6 +123,20 @@ class _TripDetailContent extends ConsumerWidget {
               onShowParticipants: () =>
                   ParticipantsSheet.openTrip(context, trip),
             ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: TripMap(
+            tripKey: tripKey,
+            trip: trip,
+            selectedStageId: selected,
+            onSelect: select,
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(PdlSpacing.section),
+            child: TripElevationSection(tripKey: tripKey, trip: trip),
           ),
         ),
         SliverToBoxAdapter(child: _stages(context, stages, selected, select)),
