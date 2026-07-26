@@ -7,6 +7,7 @@ import '../../../../core/preferences/user_preferences_provider.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../domain/route_filters.dart';
 import '../../providers/route_list_provider.dart';
+import '../../domain/route_filter_labels.dart';
 
 /// Opens the filter sheet and returns the filters to apply, or null if the
 /// user dismissed it.
@@ -106,7 +107,7 @@ class _RouteFilterSheetState extends ConsumerState<_RouteFilterSheet> {
                   children: [
                     _RangeSection(
                       label: 'routes.filters.distance'.tr(),
-                      summary: AppFormatters.filterRange(
+                      summary: RouteFilterLabels.filterRange(
                         _draft.minDistance,
                         _draft.maxDistance,
                         (meters) =>
@@ -123,7 +124,7 @@ class _RouteFilterSheetState extends ConsumerState<_RouteFilterSheet> {
                     const SizedBox(height: 20),
                     _RangeSection(
                       label: 'routes.filters.elevationGain'.tr(),
-                      summary: AppFormatters.filterRange(
+                      summary: RouteFilterLabels.filterRange(
                         _draft.minElevationGain,
                         _draft.maxElevationGain,
                         (meters) =>
@@ -145,7 +146,7 @@ class _RouteFilterSheetState extends ConsumerState<_RouteFilterSheet> {
                       label: 'routes.filters.surfaceType'.tr(),
                       values: SurfaceType.$valuesDefined,
                       selected: _draft.surfaceType,
-                      labelOf: AppFormatters.surfaceTypeName,
+                      labelOf: RouteFilterLabels.surfaceTypeName,
                       onSelected: (value) =>
                           _update(_draft.copyWith(surfaceType: value)),
                     ),
@@ -154,7 +155,7 @@ class _RouteFilterSheetState extends ConsumerState<_RouteFilterSheet> {
                       label: 'routes.filters.hilliness'.tr(),
                       values: Hilliness.$valuesDefined,
                       selected: _draft.hilliness,
-                      labelOf: AppFormatters.hillinessName,
+                      labelOf: RouteFilterLabels.hillinessName,
                       onSelected: (value) =>
                           _update(_draft.copyWith(hilliness: value)),
                     ),
@@ -165,7 +166,7 @@ class _RouteFilterSheetState extends ConsumerState<_RouteFilterSheet> {
                       label: 'routes.filters.windDirection'.tr(),
                       value: _draft.windDirection == null
                           ? 'routes.filters.anyFeminine'.tr()
-                          : AppFormatters.windDirectionName(
+                          : RouteFilterLabels.windDirectionName(
                               _draft.windDirection!,
                             ),
                       onTap: _pickWindDirection,
@@ -199,7 +200,7 @@ class _RouteFilterSheetState extends ConsumerState<_RouteFilterSheet> {
 
   String _sortSummary() {
     final arrow = _draft.sortDir == SortDirection.asc ? '↑' : '↓';
-    return '${AppFormatters.routeSortByName(_draft.sortBy)} $arrow';
+    return '${RouteFilterLabels.routeSortByName(_draft.sortBy)} $arrow';
   }
 
   Future<void> _pickWindDirection() async {
@@ -212,7 +213,7 @@ class _RouteFilterSheetState extends ConsumerState<_RouteFilterSheet> {
         anyLabel: 'routes.filters.anyFeminine'.tr(),
         values: WindDirection.$valuesDefined,
         selected: _draft.windDirection,
-        labelOf: AppFormatters.windDirectionName,
+        labelOf: RouteFilterLabels.windDirectionName,
       ),
     );
     if (result != null) _update(_draft.copyWith(windDirection: result.value));
@@ -487,7 +488,7 @@ class _SortSheetState extends State<_SortSheet> {
             ),
             for (final value in RouteSortBy.$valuesDefined)
               _OptionRow(
-                label: AppFormatters.routeSortByName(value),
+                label: RouteFilterLabels.routeSortByName(value),
                 isSelected: _by == value,
                 onTap: () => setState(() => _by = value),
               ),

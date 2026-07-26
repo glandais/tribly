@@ -14,6 +14,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:pedalons/api/generated/export.dart';
 import 'package:pedalons/core/utils/formatters.dart';
 import 'package:pedalons/features/routes/domain/route_filters.dart';
+import 'package:pedalons/features/routes/domain/route_filter_labels.dart';
 
 /// Les caractères que la typographie impose, nommés une fois pour que les
 /// assertions portent sur le point de code et non sur ce que l'éditeur montre.
@@ -424,7 +425,7 @@ void main() {
         withLocale(
           'fr',
           fr,
-          () => AppFormatters.filterChip(
+          () => RouteFilterLabels.filterChip(
             filters,
             RouteFilterField.distance,
             UnitSystem.metric,
@@ -436,7 +437,7 @@ void main() {
         withLocale(
           'en',
           en,
-          () => AppFormatters.filterChip(
+          () => RouteFilterLabels.filterChip(
             filters,
             RouteFilterField.distance,
             UnitSystem.imperial,
@@ -451,7 +452,7 @@ void main() {
         withLocale(
           'fr',
           fr,
-          () => AppFormatters.filterChip(
+          () => RouteFilterLabels.filterChip(
             filters,
             RouteFilterField.elevationGain,
             UnitSystem.metric,
@@ -466,7 +467,7 @@ void main() {
         withLocale(
           'fr',
           fr,
-          () => AppFormatters.filterChip(
+          () => RouteFilterLabels.filterChip(
             filters,
             RouteFilterField.hilliness,
             UnitSystem.metric,
@@ -481,7 +482,7 @@ void main() {
         withLocale(
           'fr',
           fr,
-          () => AppFormatters.filterRange(
+          () => RouteFilterLabels.filterRange(
             null,
             null,
             (double m) => AppFormatters.formatDistanceRounded(m),

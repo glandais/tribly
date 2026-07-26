@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../core/preferences/user_preferences_provider.dart';
-import '../../../../core/utils/formatters.dart';
 import '../../domain/route_filters.dart';
 import 'route_filter_sheet.dart';
+import '../../domain/route_filter_labels.dart';
 
 /// The filter state made visible above the list, one chip per constraint.
 ///
@@ -49,14 +49,14 @@ class RouteFilterChipsBar extends ConsumerWidget {
                   : Icons.arrow_downward,
               size: 16,
             ),
-            label: Text(AppFormatters.routeSortByName(filters.sortBy)),
+            label: Text(RouteFilterLabels.routeSortByName(filters.sortBy)),
             onPressed: () => _pickSort(context),
           ),
           for (final field in active) ...[
             const SizedBox(width: 8),
             InputChip(
               label: Text(
-                AppFormatters.filterChip(filters, field, units) ?? '',
+                RouteFilterLabels.filterChip(filters, field, units) ?? '',
               ),
               selected: true,
               showCheckmark: false,
@@ -67,7 +67,7 @@ class RouteFilterChipsBar extends ConsumerWidget {
           for (final field in inactive) ...[
             const SizedBox(width: 8),
             ActionChip(
-              label: Text(AppFormatters.filterFieldName(field)),
+              label: Text(RouteFilterLabels.filterFieldName(field)),
               labelStyle: theme.textTheme.labelLarge?.copyWith(
                 color: theme.colorScheme.outline,
               ),

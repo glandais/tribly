@@ -2,7 +2,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../api/generated/export.dart';
-import '../../features/routes/domain/route_filters.dart';
 import '../units/unit_system.dart';
 
 /// **Le** point d'entrée du formatage de l'app.
@@ -310,110 +309,6 @@ class AppFormatters {
         namedArgs: <String, String>{'count': '${relative.count}'},
       ),
     };
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // Filtres de parcours
-  //
-  // Fusionnés ici depuis `route_filter_labels.dart` : les bornes de filtre
-  // sont des distances et des dénivelés comme les autres, et elles doivent
-  // suivre le système d'unités de l'utilisateur.
-  // ─────────────────────────────────────────────────────────────────────────
-
-  /// Nom d'une dimension de filtre : titre de section, et sujet du « retirer
-  /// ce filtre ».
-  static String filterFieldName(RouteFilterField field) => switch (field) {
-    RouteFilterField.search => 'routes.filters.search'.tr(),
-    RouteFilterField.distance => 'routes.filters.distance'.tr(),
-    RouteFilterField.elevationGain => 'routes.filters.elevationGain'.tr(),
-    RouteFilterField.hilliness => 'routes.filters.hilliness'.tr(),
-    RouteFilterField.surfaceType => 'routes.filters.surfaceType'.tr(),
-    RouteFilterField.windDirection => 'routes.filters.windDirection'.tr(),
-  };
-
-  static String hillinessName(Hilliness value) =>
-      _enumName('routes.hilliness', value.json);
-
-  static String surfaceTypeName(SurfaceType value) =>
-      _enumName('routes.surfaceType', value.json);
-
-  static String windDirectionName(WindDirection value) =>
-      _enumName('routes.windDirection', value.json);
-
-  static String routeSortByName(RouteSortBy value) =>
-      _enumName('routes.sort', value.json);
-
-  /// Valeur d'un filtre telle qu'elle s'affiche sur sa puce. `null` quand le
-  /// champ n'est pas contraint.
-  static String? filterChip(
-    RouteFilters filters,
-    RouteFilterField field, [
-    UnitSystem units = UnitSystem.metric,
-  ]) {
-    return switch (field) {
-      RouteFilterField.search =>
-        (filters.search?.trim().isEmpty ?? true)
-            ? null
-            : '"${filters.search!.trim()}"',
-      RouteFilterField.distance => _range(
-        filters.minDistance,
-        filters.maxDistance,
-        (double m) => formatDistanceRounded(m, units),
-      ),
-      RouteFilterField.elevationGain => _range(
-        filters.minElevationGain,
-        filters.maxElevationGain,
-        (double m) => formatElevation(m, units),
-        suffix: 'units.elevationGain'.tr(),
-      ),
-      RouteFilterField.hilliness =>
-        filters.hilliness == null ? null : hillinessName(filters.hilliness!),
-      RouteFilterField.surfaceType =>
-        filters.surfaceType == null
-            ? null
-            : surfaceTypeName(filters.surfaceType!),
-      RouteFilterField.windDirection =>
-        filters.windDirection == null
-            ? null
-            : windDirectionName(filters.windDirection!),
-    };
-  }
-
-  /// Résumé d'une plage, à côté d'un curseur : « Tous », « 30 – 60 km »,
-  /// « > 30 km ».
-  static String filterRange(
-    double? min,
-    double? max,
-    String Function(double) format,
-  ) => _range(min, max, format) ?? 'routes.filters.any'.tr();
-
-  static String? _range(
-    double? min,
-    double? max,
-    String Function(double) format, {
-    String? suffix,
-  }) {
-    if (min == null && max == null) return null;
-    final String text;
-    if (min != null && max != null) {
-      text = 'routes.filters.rangeBetween'.tr(
-        namedArgs: <String, String>{'min': format(min), 'max': format(max)},
-      );
-    } else if (min != null) {
-      text = 'routes.filters.rangeFrom'.tr(
-        namedArgs: <String, String>{'value': format(min)},
-      );
-    } else {
-      text = 'routes.filters.rangeTo'.tr(
-        namedArgs: <String, String>{'value': format(max!)},
-      );
-    }
-    return suffix == null ? text : '$text $suffix';
-  }
-
-  static String _enumName(String prefix, String? jsonValue) {
-    if (jsonValue == null) return 'routes.filters.any'.tr();
-    return '$prefix.${jsonValue.toLowerCase()}'.tr();
   }
 }
 

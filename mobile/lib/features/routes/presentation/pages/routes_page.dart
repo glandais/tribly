@@ -18,6 +18,7 @@ import '../../domain/route_filters.dart';
 import '../../providers/route_list_provider.dart';
 import '../widgets/route_filter_chips_bar.dart';
 import '../widgets/route_filter_sheet.dart';
+import '../../domain/route_filter_labels.dart';
 
 class RoutesPage extends ConsumerStatefulWidget {
   /// Team to list routes for, or null for every team the user can see.
@@ -322,7 +323,7 @@ class RoutesEmptyState extends ConsumerWidget {
       removeFilterLabel: culprit == null
           ? null
           : 'routes.list.empty.removeFilter'.tr(
-              namedArgs: {'filter': AppFormatters.filterFieldName(culprit)},
+              namedArgs: {'filter': RouteFilterLabels.filterFieldName(culprit)},
             ),
       onRemoveFilter: culprit == null
           ? null
@@ -369,7 +370,7 @@ class _WithoutFilterPreview extends ConsumerWidget {
       children: [
         Text(
           'routes.list.empty.withoutFilter'.tr(
-            namedArgs: {'filter': AppFormatters.filterFieldName(field)},
+            namedArgs: {'filter': RouteFilterLabels.filterFieldName(field)},
           ),
           style: theme.textTheme.labelMedium?.copyWith(
             color: theme.colorScheme.outline,
