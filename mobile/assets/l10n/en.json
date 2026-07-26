@@ -232,7 +232,8 @@
     "searchEmpty": {
       "title": "No team for this search",
       "message": "None of your teams contains “{search}”."
-    }
+    },
+    "viewTeam": "View team"
   },
   "rides": {
     "title": "Rides",
@@ -274,7 +275,20 @@
     "viewParticipants": "View list",
     "startPlace": "Start",
     "endPlace": "Finish",
-    "comments": "Comments"
+    "comments": "Comments",
+    "noGroupTitle": "No group",
+    "noGroupMessage": "No group is defined for this ride.",
+    "noRouteTitle": "No route available",
+    "noRouteMessage": "The track has not been published yet. Start and finish places are still shown above.",
+    "cancelledTitle": "Ride cancelled.",
+    "notMemberBanner": "Join this team to take part in rides.",
+    "failure": {
+      "exclusive": "Cannot join {group}.",
+      "full": "Group is full.",
+      "notMember": "Team members only.",
+      "generic": "Cannot join {group}.",
+      "leaveAndJoin": "Leave {group}"
+    }
   },
   "posts": {
     "title": "Posts"

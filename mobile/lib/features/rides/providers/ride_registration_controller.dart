@@ -1,0 +1,335 @@
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
+
+import '../../../api/generated/export.dart';
+import '../../../core/utils/api_error_handler.dart';
+import '../data/ride_repository.dart';
+import 'ride_detail_provider.dart';
+
+/// Pourquoi une inscription a échoué, à la granularité que le bandeau rend.
+///
+/// Quatre motifs, parce que quatre phrases différentes valent la peine d'être
+/// écrites. Le générique n'est pas un fourre-tout honteux : il porte le message
+/// résolu par [resolveApiError] — donc l'explication du serveur quand il y en a
+/// une, et le motif hors-ligne quand c'est le cas — et propose « Réessayer ».
+enum RegistrationFailureReason {
+  /// L'utilisateur est déjà inscrit **ailleurs** dans cette sortie. Le seul cas
+  /// où le bandeau porte une action inline : « Quitter {groupe actuel} ».
+  alreadyRegistered,
+
+  /// Le groupe visé a atteint sa capacité. État **terminal** : il n'y a pas de
+  /// liste d'attente (§5.1), donc rien à proposer.
+  groupFull,
+
+  /// L'équipe n'accepte que ses membres. Renvoie vers l'équipe.
+  notMember,
+
+  /// Tout le reste, hors-ligne compris.
+  generic,
+}
+
+/// Un échec d'inscription, **persistant** : c'est un état, pas un événement.
+///
+/// Il **nomme le groupe fautif**. « Grupetto » n'est pas « Groupe 2 », et
+/// savoir lequel a refusé est la moitié de l'information — c'est précisément ce
+/// que le `SnackBar` de la v1 perdait, quand la barre d'onglets ne le masquait
+/// pas purement et simplement.
+@immutable
+class RegistrationFailure {
+  const RegistrationFailure({
+    required this.reason,
+    required this.groupId,
+    required this.groupName,
+    required this.message,
+    this.blockingGroupId,
+    this.blockingGroupName,
+  });
+
+  final RegistrationFailureReason reason;
+
+  /// Le groupe qu'on essayait de rejoindre ou de quitter — son identifiant
+  /// **et** son nom. L'identifiant parce qu'une action de reprise doit viser
+  /// le même groupe sans le retrouver par son libellé, que rien n'oblige à
+  /// être unique.
+  final String groupId;
+  final String groupName;
+
+  /// Le message résolu, rendu en corps de bandeau.
+  final String message;
+
+  /// Le groupe qui bloque, quand [reason] vaut
+  /// [RegistrationFailureReason.alreadyRegistered] : la cible de l'action
+  /// inline « Quitter {groupe} ».
+  final String? blockingGroupId;
+  final String? blockingGroupName;
+
+  /// L'action inline n'est offerte que si l'on sait quoi quitter.
+  bool get canSwitch =>
+      reason == RegistrationFailureReason.alreadyRegistered &&
+      blockingGroupId != null;
+}
+
+/// L'état de l'inscription à une sortie.
+///
+/// Le `RideDto` vit **ici** et non dans le seul `rideDetailProvider` parce que
+/// la bascule doit être optimiste : le bouton change en moins de 16 ms, avant
+/// tout aller-retour réseau, et se rétablit intégralement si l'appel échoue.
+/// Un `AsyncValue` rechargé n'offre pas ce point de reprise.
+@immutable
+class RideRegistrationState {
+  const RideRegistrationState({
+    required this.ride,
+    this.pendingGroupId,
+    this.failure,
+  });
+
+  final AsyncValue<RideDto> ride;
+
+  /// Le groupe sur lequel un appel est en vol, s'il y en a un. Un seul à la
+  /// fois : une seconde demande pendant qu'une première est en vol est ignorée
+  /// plutôt que mise en file.
+  final String? pendingGroupId;
+
+  final RegistrationFailure? failure;
+
+  RideRegistrationState copyWith({
+    AsyncValue<RideDto>? ride,
+    String? pendingGroupId,
+    RegistrationFailure? failure,
+    bool clearPending = false,
+    bool clearFailure = false,
+  }) => RideRegistrationState(
+    ride: ride ?? this.ride,
+    pendingGroupId: clearPending
+        ? null
+        : (pendingGroupId ?? this.pendingGroupId),
+    failure: clearFailure ? null : (failure ?? this.failure),
+  );
+}
+
+/// Le contrôleur d'inscription d'une sortie.
+///
+/// `autoDispose` : il n'a de sens que tant que l'écran de la sortie est ouvert.
+/// Le détail, lui, survit — c'est `rideDetailProvider` qui le porte, et
+/// l'accueil s'en sert.
+final rideRegistrationProvider = StateNotifierProvider.autoDispose
+    .family<RideRegistrationController, RideRegistrationState, RideKey>((
+      Ref ref,
+      RideKey key,
+    ) {
+      final RideRegistrationController controller = RideRegistrationController(
+        ref,
+        key,
+      );
+      // Le détail reste la source de vérité : toute invalidation externe
+      // (pull-to-refresh, retour d'un autre écran, succès d'inscription) se
+      // propage ici sans code de synchronisation.
+      ref.listen<AsyncValue<RideDto>>(
+        rideDetailProvider(key),
+        (AsyncValue<RideDto>? _, AsyncValue<RideDto> next) =>
+            controller.adopt(next),
+        fireImmediately: true,
+      );
+      return controller;
+    });
+
+/// La séquence d'inscription du §2.1 du plan, en un seul endroit :
+///
+/// 1. si un **autre** groupe porte `registered == true`, on n'appelle pas —
+///    l'API répondrait 400, et le bandeau d'exclusivité dit la même chose sans
+///    aller-retour ni clignotement du bouton ;
+/// 2. mutation optimiste locale ;
+/// 3. `joinGroup` / `leaveGroup` — **un seul appel**, jamais une boucle sur
+///    tous les groupes ;
+/// 4. succès → invalidation du détail partagé, donc de l'accueil qui le lit ;
+/// 5. échec → **rétablissement complet** de l'état d'avant, puis bandeau.
+///
+/// Aucun `showSnackBar` : le lot 2 en interdit l'usage dans `features/rides`.
+class RideRegistrationController extends StateNotifier<RideRegistrationState> {
+  RideRegistrationController(this._ref, this._key)
+    : super(const RideRegistrationState(ride: AsyncValue<RideDto>.loading()));
+
+  final Ref _ref;
+  final RideKey _key;
+
+  RideRepository get _repository => _ref.read(rideRepositoryProvider);
+
+  RideDto? get _ride => state.ride.value;
+
+  /// Adopte le détail rafraîchi — sauf pendant un appel, où l'état optimiste
+  /// doit tenir jusqu'à la réponse.
+  void adopt(AsyncValue<RideDto> detail) {
+    if (state.pendingGroupId != null) return;
+    state = state.copyWith(ride: detail);
+  }
+
+  void dismissFailure() => state = state.copyWith(clearFailure: true);
+
+  /// Rejoindre [groupId].
+  Future<void> join(String groupId) async {
+    final RideDto? ride = _ride;
+    if (ride == null || state.pendingGroupId != null) return;
+
+    final RideGroupDto? target = _groupById(ride, groupId);
+    if (target == null) return;
+
+    // (1) L'exclusivité se vérifie **avant** l'appel. `registeredGroupId` la
+    // rend lisible sans parcourir `participants[]`.
+    final RideGroupDto? blocking = ride.registeredGroup;
+    if (blocking != null && blocking.id != groupId) {
+      state = state.copyWith(
+        failure: RegistrationFailure(
+          reason: RegistrationFailureReason.alreadyRegistered,
+          groupId: target.id,
+          groupName: target.name,
+          message: 'errors.api.ALREADY_REGISTERED'.tr(),
+          blockingGroupId: blocking.id,
+          blockingGroupName: blocking.name,
+        ),
+      );
+      return;
+    }
+
+    // (2) Bascule optimiste.
+    state = state.copyWith(
+      ride: AsyncValue<RideDto>.data(_withRegistration(ride, groupId)),
+      pendingGroupId: groupId,
+      clearFailure: true,
+    );
+
+    try {
+      // (3) Un appel.
+      await _repository.joinGroup(_key.teamSlug, _key.rideSlug, groupId);
+      // (4) Le détail partagé redevient la source ; l'accueil, qui lit le même
+      // provider, se met à jour du même coup.
+      state = state.copyWith(clearPending: true);
+      _ref.invalidate(rideDetailProvider(_key));
+    } catch (error, stackTrace) {
+      // (5) Rétablissement **complet** avant d'expliquer : le bouton doit
+      // revenir à « Rejoindre », sans quoi l'utilisateur lit un état qui n'a
+      // jamais existé côté serveur.
+      _fail(
+        previous: ride,
+        group: target,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  /// Quitter [groupId].
+  Future<void> leave(String groupId) async {
+    final RideDto? ride = _ride;
+    if (ride == null || state.pendingGroupId != null) return;
+
+    final RideGroupDto? target = _groupById(ride, groupId);
+    if (target == null) return;
+
+    state = state.copyWith(
+      ride: AsyncValue<RideDto>.data(_withRegistration(ride, null)),
+      pendingGroupId: groupId,
+      clearFailure: true,
+    );
+
+    try {
+      await _repository.leaveGroup(_key.teamSlug, _key.rideSlug, groupId);
+      state = state.copyWith(clearPending: true);
+      _ref.invalidate(rideDetailProvider(_key));
+    } catch (error, stackTrace) {
+      _fail(
+        previous: ride,
+        group: target,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  /// L'action inline du bandeau d'exclusivité : quitter le groupe qui bloque,
+  /// puis rejoindre celui qu'on visait. Deux appels enchaînés, une intention.
+  Future<void> switchGroup({
+    required String leaveGroupId,
+    required String joinGroupId,
+  }) async {
+    await leave(leaveGroupId);
+    if (state.failure != null) return;
+    await join(joinGroupId);
+  }
+
+  void _fail({
+    required RideDto previous,
+    required RideGroupDto group,
+    required Object error,
+    required StackTrace stackTrace,
+  }) {
+    final ApiError resolved = resolveApiError(error, stackTrace);
+    final RideGroupDto? blocking = previous.registeredGroup;
+    state = RideRegistrationState(
+      ride: AsyncValue<RideDto>.data(previous),
+      failure: RegistrationFailure(
+        reason: switch (resolved.code) {
+          'GROUP_FULL' => RegistrationFailureReason.groupFull,
+          'ALREADY_REGISTERED' => RegistrationFailureReason.alreadyRegistered,
+          'FORBIDDEN' => RegistrationFailureReason.notMember,
+          _ => RegistrationFailureReason.generic,
+        },
+        groupId: group.id,
+        groupName: group.name,
+        message: resolved.message,
+        blockingGroupId: blocking?.id,
+        blockingGroupName: blocking?.name,
+      ),
+    );
+    // L'état affiché ne reflète peut-être plus le serveur — un groupe devenu
+    // complet vient précisément de le périmer. On le redemande.
+    _ref.invalidate(rideDetailProvider(_key));
+  }
+
+  RideGroupDto? _groupById(RideDto ride, String id) {
+    for (final RideGroupDto g in ride.groups) {
+      if (g.id == id) return g;
+    }
+    return null;
+  }
+
+  /// Applique localement l'inscription à [groupId] (ou la désinscription si
+  /// `null`), en tenant `countParticipants`, `full` et `registeredGroupId`
+  /// cohérents — c'est ce que le serveur renverra.
+  RideDto _withRegistration(RideDto ride, String? groupId) {
+    final List<RideGroupDto> groups = <RideGroupDto>[
+      for (final RideGroupDto g in ride.groups)
+        if (g.id == groupId && !g.registered)
+          _shift(g, registered: true, delta: 1)
+        else if (g.registered && g.id != groupId)
+          _shift(g, registered: false, delta: -1)
+        else
+          g,
+    ];
+    final bool wasRegistered = ride.registeredGroupId != null;
+    final bool isRegistered = groupId != null;
+    return ride.copyWith(
+      groups: groups,
+      registered: isRegistered,
+      registeredGroupId: groupId,
+      participantCount:
+          ride.participantCount +
+          (isRegistered ? (wasRegistered ? 0 : 1) : (wasRegistered ? -1 : 0)),
+    );
+  }
+
+  RideGroupDto _shift(
+    RideGroupDto g, {
+    required bool registered,
+    required int delta,
+  }) {
+    final int count = (g.countParticipants + delta).clamp(0, 1 << 30);
+    final int? max = g.maxParticipants;
+    return g.copyWith(
+      registered: registered,
+      countParticipants: count,
+      full: max != null && count >= max,
+    );
+  }
+}

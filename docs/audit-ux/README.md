@@ -20,6 +20,7 @@ iPhone 17 Pro / iOS 27.0 (402 × 874 pt) piloté par AXe. Équipes de référenc
 | [`analyse/mobile-screens.md`](analyse/mobile-screens.md) | Structure de chaque écran de l'app, et ce qui manque |
 | [`analyse/api-surface.md`](analyse/api-surface.md) | Endpoints de lecture, ce que le mobile n'utilise pas, évolutions proposées |
 | [`analyse/brand.md`](analyse/brand.md) | Palette clair/sombre, typographie, rayons, composants signature, tokens CSS |
+| [`pedalons.css`](pedalons.css) | Feuille de style des maquettes, copiée du projet Claude Design. Fait autorité sur les métriques contre la planche `00 Fondations` |
 | [`web/`](web/) | 27 captures du site + descriptif ([`web/README.md`](web/README.md)) |
 | [`mobile/`](mobile/) | 38 captures de l'app + descriptif ([`mobile/README.md`](mobile/README.md)) |
 

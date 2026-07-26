@@ -13,12 +13,7 @@ import '../../../../core/widgets/authenticated_image.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/safe_string.dart';
-import '../../data/team_repository.dart';
-
-final myTeamsProvider = FutureProvider<List<TeamDetailDto>>((ref) async {
-  final repository = ref.watch(teamRepositoryProvider);
-  return repository.getMyTeams();
-});
+import '../../providers/team_providers.dart';
 
 /// The teams the user belongs to.
 ///

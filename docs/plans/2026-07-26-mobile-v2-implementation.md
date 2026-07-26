@@ -6,8 +6,18 @@ parallèle, tranche leurs contradictions, dédoublonne la bibliothèque de compo
 le tout en lots livrables. Il est autoportant : le détail visuel se lit dans
 [`docs/audit-ux/BRIEF.md`](../audit-ux/BRIEF.md), dans
 [`docs/audit-ux/analyse/brand.md`](../audit-ux/analyse/brand.md) et dans les planches de
-maquettes v2 (`00 Fondations`, écrans 11 à 34), mais aucune décision n'y est déléguée ; le
-contrat d'API fait foi dans [`contracts/openapi.yaml`](../../contracts/openapi.yaml) (1.5.0) et
+maquettes v2 (`00 Fondations`, écrans 11 à 34), mais aucune décision n'y est déléguée.
+
+Les planches vivent dans le **projet Claude Design**
+[« Pédalons — Mobile v2 »](https://claude.ai/design/p/587c89e2-46d9-4b7b-bad7-2485a1235632)
+(`587c89e2-46d9-4b7b-bad7-2485a1235632`), consultable avec les outils
+`mcp__claude-design__*` (`list_files`, `read_file`, `render_preview`). Deux réserves : le
+projet est en partage restreint, un compte non invité n'y accède pas ; et ses
+`contexte/*.md` sont des **copies** de `BRIEF.md`, `brand.md`, `mobile-screens.md` et
+`web-pages.md` déjà divergentes — le dépôt fait foi. La feuille de style des planches, elle,
+est versionnée ici : [`docs/audit-ux/pedalons.css`](../audit-ux/pedalons.css).
+
+Le contrat d'API fait foi dans [`contracts/openapi.yaml`](../../contracts/openapi.yaml) (1.5.0) et
 les conventions de code dans [`mobile/CLAUDE.md`](../../mobile/CLAUDE.md) et
 [`mobile/rules.md`](../../mobile/rules.md).
 
@@ -88,7 +98,8 @@ lancé depuis `frontend/` après édition de `contracts/routes.yaml`.
   de contact, et c'est le point de la conception.
 - Aucune maquette ne fournit le mode sombre, alors que le brief §5 l'exige. Il est **dérivé**
   par la règle du §1.1.2, qui produit des valeurs exactes, pas approchées.
-- `pedalons.css` fait autorité contre la planche `00 Fondations` : `.media--16x9` = **208 px**,
+- [`pedalons.css`](../audit-ux/pedalons.css) fait autorité contre la planche
+  `00 Fondations` : `.media--16x9` = **208 px**,
   `.btn--sm` = **44 px** (cible tactile minimale du brief §5).
 
 ### 1.0.3 Arbitrages tranchés entre les trois plans sources
@@ -832,7 +843,7 @@ l'horloge de l'appareil) ; aucune liste d'attente, « Complet » est terminal.
 |---|---|---|---|---|---|---|
 | S12-1 | ☑ | Reprendre le repository et créer les providers de détail | `[M] features/rides/data/ride_repository.dart` (suppression de `getTeamRides`) · `[C] features/rides/providers/ride_detail_provider.dart` | F-TE-3 | S | `rideDetailProvider((teamSlug, rideSlug))` rend un `RideDto` aux `groups[]` peuplées ; `getTeamRides` n'a plus d'appelant |
 | S12-2 | ☑ | Construire `RideGroupCard` et ses six états de bouton | `[C] features/rides/presentation/widgets/ride_group_card.dart` | F-TE-2, F-CO-3 | M | Les 6 états sont dérivés de `registered` et `full` **sans parcourir `participants[]`** ; la ligne de statistiques ne se coupe jamais et bascule en deux lignes à `textScaleFactor ≥ 1,3` ; golden test des 6 états en clair et en sombre |
-| S12-3 | ☐ | Écrire le contrôleur d'inscription : bascule optimiste et bandeau persistant | `[C] features/rides/providers/ride_registration_controller.dart`, `.../widgets/ride_groups_section.dart` · `[M] assets/l10n/{fr,en}.json` | S12-1, S12-2 | L | Rejoindre bascule le bouton en < 16 ms sans attendre le réseau ; un `GROUP_FULL` produit le bandeau nommant le groupe **et restaure** l'état ; un `ALREADY_REGISTERED` propose « Quitter {groupe} » en action inline ; `grep -rn "showSnackBar" mobile/lib/features/rides` ne renvoie rien ; test de widget sur les trois motifs |
+| S12-3 | ▶ | Écrire le contrôleur d'inscription : bascule optimiste et bandeau persistant | `[C] features/rides/providers/ride_registration_controller.dart`, `.../widgets/ride_groups_section.dart` · `[M] assets/l10n/{fr,en}.json` | S12-1, S12-2 | L | Rejoindre bascule le bouton en < 16 ms sans attendre le réseau ; un `GROUP_FULL` produit le bandeau nommant le groupe **et restaure** l'état ; un `ALREADY_REGISTERED` propose « Quitter {groupe} » en action inline ; `grep -rn "showSnackBar" mobile/lib/features/rides` ne renvoie rien ; test de widget sur les trois motifs. **Livré sauf le grep** : les trois derniers `showSnackBar` vivent dans le `ride_detail_page.dart` de la v1, que S12-8 réécrit intégralement — les retirer avant serait du code jeté. Solde à S12-8 |
 | S12-4 | ☐ | Construire la carte multi-tracés et la sélection croisée | `[C] features/rides/presentation/widgets/ride_groups_map.dart`, `.../providers/ride_group_selection_provider.dart` | F-TE-4, F-TE-8 | L | Une `GeoJsonSource` et **une couche par groupe** (`ride-track-{groupId}`) ; les `routeSlug` sont dédoublonnés avant appel ; tap sur un tracé sélectionne la carte de groupe et réciproquement ; hauteur `clamp(260, 44 %, 460)` ; la sélection change les propriétés de deux couches, elle ne reconstruit pas la carte |
 | S12-5 | ☐ | Brancher le profil du groupe sélectionné | `[C] features/routes/providers/route_elevation_provider.dart` | S12-4, F-TE-6 | S | Le profil est rechargé au changement de sélection et mis en cache par `routeSlug` ; le squelette 110 px n'empêche pas le reste de l'écran d'être interactif |
 | S12-6 | ☐ | Livrer le fil de commentaires paginé | `[C] features/comments/presentation/widgets/comment_thread.dart`, `.../providers/comment_thread_provider.dart`, `.../data/comment_repository.dart` | F-CO-3 | L | Page 0 de 20 commentaires de premier niveau, `itemTotal` alimente le compteur, `replyCount > replies.length` déclenche un appel `parentId` à la demande ; **un seul niveau de réponse** (indentation 14 px, filet gauche 2 px) ; composeur **unique** en zone multiligne 72 px + bouton (les deux formes maquettées sont unifiées sur celle-ci) ; « Supprimer » visible pour l'auteur seul ; dates relatives longues |

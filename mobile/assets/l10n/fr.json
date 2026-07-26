@@ -232,7 +232,8 @@
     "searchEmpty": {
       "title": "Aucune équipe pour cette recherche",
       "message": "Aucune de vos équipes ne contient « {search} »."
-    }
+    },
+    "viewTeam": "Voir l'équipe"
   },
   "rides": {
     "title": "Sorties",
@@ -274,7 +275,20 @@
     "viewParticipants": "Voir la liste",
     "startPlace": "Départ",
     "endPlace": "Arrivée",
-    "comments": "Commentaires"
+    "comments": "Commentaires",
+    "noGroupTitle": "Aucun groupe",
+    "noGroupMessage": "Aucun groupe n'est défini pour cette sortie.",
+    "noRouteTitle": "Aucun parcours disponible",
+    "noRouteMessage": "Le tracé n'a pas encore été publié. Les lieux de départ et d'arrivée restent affichés ci-dessus.",
+    "cancelledTitle": "Sortie annulée.",
+    "notMemberBanner": "Rejoignez cette équipe pour participer aux sorties.",
+    "failure": {
+      "exclusive": "Inscription impossible à {group}.",
+      "full": "Groupe complet.",
+      "notMember": "Réservé aux membres de l'équipe.",
+      "generic": "Inscription impossible à {group}.",
+      "leaveAndJoin": "Quitter {group}"
+    }
   },
   "posts": {
     "title": "Publications"
