@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'config/locale_context.dart';
 import 'config/router.dart';
+import 'core/config/config_provider.dart';
 import 'core/preferences/user_preferences_provider.dart';
 import 'core/theme/theme.dart';
 import 'features/auth/providers/auth_provider.dart';
@@ -22,6 +23,10 @@ class _PedalonsAppState extends ConsumerState<PedalonsApp> {
     // Initialize auth state
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(authProvider.notifier).initialize();
+      // La configuration servie (fonds de carte, centre par défaut, plancher
+      // de version) est demandée dès le démarrage : la première carte ouverte
+      // ne doit pas attendre un aller-retour pour connaître son style.
+      ref.read(appConfigProvider);
     });
   }
 
