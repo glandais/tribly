@@ -666,7 +666,7 @@ n'affichent plus de spinner plein écran.
 
 ---
 
-**T2.4 ☐ — Retour d'erreur contextuel et bascule optimiste sur l'inscription**
+**T2.4 ☑ — Retour d'erreur contextuel et bascule optimiste sur l'inscription**
 *Fichiers modifiés* : `frontend/src/pages/ride/RideDetailPage.tsx`,
 `frontend/src/components/ride/RideGroupCard.tsx`, `frontend/src/locales/{fr,en}/common.json`.
 *Détail* : ajouter `onMutate` (bascule optimiste de `group.registered` / `ride.registered` dans le

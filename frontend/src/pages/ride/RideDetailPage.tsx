@@ -41,6 +41,8 @@ import {
 } from '../../api/endpoints/rides/rides'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { Status } from '@/api/dto'
+import type { RideDto } from '@/api/dto'
+import { ApiClientError } from '@/lib/apiError'
 import { useAuth } from '../../hooks/useAuth'
 import { EmptyState } from '../../components/common/EmptyState'
 import { QueryStateBoundary } from '../../components/common/QueryStateBoundary'
@@ -73,6 +75,9 @@ export function RideDetailPage() {
   const { teamSlug, rideSlug } = useParams<{ teamSlug: string; rideSlug: string }>()
   const { isAuthenticated } = useAuth()
   const [joiningGroupId, setJoiningGroupId] = useState<string | null>(null)
+  // Failure message for the group whose join/leave just failed. Kept in the card rather than
+  // in a toast: a toast fires far from the button, then vanishes, leaving the card unchanged.
+  const [groupError, setGroupError] = useState<{ groupId: string; message: string } | null>(null)
   const [highlightedGroupId, setHighlightedGroupId] = useState<string | null>(null)
   const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
@@ -241,33 +246,71 @@ export function RideDetailPage() {
     )
   }
 
-  const handleJoinGroup = (groupId: string) => {
+  const rideQueryKey = getGetRideQueryKey(teamSlug!, rideSlug!)
+
+  /**
+   * Flips `registered` on the ride and on one group in the cache, and returns the previous
+   * snapshot so the caller can roll back. `countParticipants` moves with it so the card does
+   * not show "8/20" next to a freshly-added avatar.
+   */
+  const applyOptimisticMembership = (groupId: string, joining: boolean) => {
+    const previous = queryClient.getQueryData<RideDto>(rideQueryKey)
+    if (!previous) return previous
+
+    queryClient.setQueryData<RideDto>(rideQueryKey, {
+      ...previous,
+      registered: joining,
+      registeredGroupId: joining ? groupId : undefined,
+      groups: previous.groups?.map((group) =>
+        group.id === groupId
+          ? {
+              ...group,
+              registered: joining,
+              countParticipants: group.countParticipants + (joining ? 1 : -1),
+            }
+          : group
+      ),
+    })
+    return previous
+  }
+
+  const describeGroupError = (error: unknown) => {
+    const code = error instanceof ApiClientError ? error.error.code : undefined
+    // Codes are open-ended, so a generic fallback is mandatory rather than optional.
+    return code
+      ? t(`errors.api.${code}`, { defaultValue: t('rides.detail.groups.actionFailed') })
+      : t('rides.detail.groups.actionFailed')
+  }
+
+  const mutateMembership = (groupId: string, joining: boolean) => {
     setJoiningGroupId(groupId)
-    joinMutation.mutate(
+    setGroupError(null)
+    const previous = applyOptimisticMembership(groupId, joining)
+    const mutation = joining ? joinMutation : leaveMutation
+
+    mutation.mutate(
       { teamSlug: teamSlug!, rideSlug: rideSlug!, groupId },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
-          notifications.show({ message: t('rides.notifications.joined'), color: 'green' })
+          notifications.show({
+            message: t(joining ? 'rides.notifications.joined' : 'rides.notifications.left'),
+            color: 'green',
+          })
         },
-        onSettled: () => setJoiningGroupId(null),
+        onError: (error) => {
+          if (previous) queryClient.setQueryData(rideQueryKey, previous)
+          setGroupError({ groupId, message: describeGroupError(error) })
+        },
+        onSettled: () => {
+          setJoiningGroupId(null)
+          queryClient.invalidateQueries({ queryKey: rideQueryKey })
+        },
       }
     )
   }
 
-  const handleLeaveGroup = (groupId: string) => {
-    setJoiningGroupId(groupId)
-    leaveMutation.mutate(
-      { teamSlug: teamSlug!, rideSlug: rideSlug!, groupId },
-      {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
-          notifications.show({ message: t('rides.notifications.left'), color: 'green' })
-        },
-        onSettled: () => setJoiningGroupId(null),
-      }
-    )
-  }
+  const handleJoinGroup = (groupId: string) => mutateMembership(groupId, true)
+  const handleLeaveGroup = (groupId: string) => mutateMembership(groupId, false)
 
   return (
     <Container size="xl" py="xl">
@@ -466,6 +509,7 @@ export function RideDetailPage() {
                       joiningGroupId === group.id &&
                       (joinMutation.isPending || leaveMutation.isPending)
                     }
+                    error={groupError?.groupId === group.id ? groupError.message : undefined}
                   />
                 )
               })}

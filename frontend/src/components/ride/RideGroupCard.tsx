@@ -11,8 +11,10 @@ import {
   IconArrowsMaximize,
   IconArrowUp,
   IconShieldCheck,
+  IconAlertTriangle,
 } from '@tabler/icons-react'
 import {
+  Alert,
   Paper,
   Group,
   Text,
@@ -42,6 +44,8 @@ interface RideGroupCardProps {
   isLoading?: boolean
   onHover?: (groupId: string | null) => void
   isHighlighted?: boolean
+  /** Why the last join/leave on THIS group failed. Persists until the next attempt. */
+  error?: string
 }
 
 export function RideGroupCard({
@@ -54,6 +58,7 @@ export function RideGroupCard({
   isLoading,
   onHover,
   isHighlighted = false,
+  error,
 }: RideGroupCardProps) {
   const { t } = useTranslation()
   const { speed, distance, elevation } = useUnits()
@@ -279,6 +284,12 @@ export function RideGroupCard({
             </Menu>
           )}
         </Group>
+      )}
+
+      {error && (
+        <Alert color="red" variant="light" mt="sm" icon={<IconAlertTriangle size={16} />}>
+          {error}
+        </Alert>
       )}
 
       <ParticipantListModal

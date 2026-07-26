@@ -597,6 +597,7 @@
   "rides.create.subtitle": "Plan a ride for {{teamName}}",
   "rides.create.title": "Create a Ride",
   "rides.detail.finished": "Finished",
+  "rides.detail.groups.actionFailed": "Your registration could not be saved. Please try again.",
   "rides.detail.groups.leader": "Leader",
   "rides.detail.actions.cancel": "Cancel Ride",
   "rides.detail.actions.uncancel": "Restore Ride",

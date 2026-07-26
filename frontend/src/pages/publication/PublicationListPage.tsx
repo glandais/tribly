@@ -116,6 +116,15 @@ export function PublicationListPage() {
 
   const primaryCreate = createMenuItems[0]
 
+  // The type and scope selects narrow the feed just as much as the search box does, so an empty
+  // result under either of them is a filtered state — and must offer a way out.
+  const hasNonSearchFilters = filters.filter !== 'all' || filters.scope !== 'all'
+  const hasFiltersOrSearch = !!search || hasNonSearchFilters
+  const clearFilters = () => {
+    setSearch('')
+    setFilters({ search: undefined, filter: 'all', scope: 'all', page: 0 })
+  }
+
   return (
     <TeamLayout team={team} currentTab="publications">
       <Stack gap="lg">
@@ -223,18 +232,18 @@ export function PublicationListPage() {
           </Stack>
         ) : (
           <EmptyState
-            variant={search ? 'filtered' : 'absolute'}
-            icon={search ? <IconSearchOff size={48} /> : <IconNews size={48} />}
-            title={search ? t('noResults') : t('teams.publications.list.empty')}
+            variant={hasFiltersOrSearch ? 'filtered' : 'absolute'}
+            icon={hasFiltersOrSearch ? <IconSearchOff size={48} /> : <IconNews size={48} />}
+            title={hasFiltersOrSearch ? t('noResults') : t('teams.publications.list.empty')}
             description={
-              search
+              hasFiltersOrSearch
                 ? t('teams.publications.list.search.noResultsDescription')
                 : t('teams.publications.list.emptyDescription')
             }
             actions={
-              search ? (
-                <Button variant="light" onClick={() => setSearch('')}>
-                  {t('common.clearSearch')}
+              hasFiltersOrSearch ? (
+                <Button variant="light" onClick={clearFilters}>
+                  {hasNonSearchFilters ? t('common.clearFilters') : t('common.clearSearch')}
                 </Button>
               ) : undefined
             }

@@ -597,6 +597,7 @@
   "rides.create.subtitle": "Planifiez une sortie pour {{teamName}}",
   "rides.create.title": "Créer une sortie",
   "rides.detail.finished": "Terminée",
+  "rides.detail.groups.actionFailed": "L'inscription n'a pas pu être enregistrée. Réessayez.",
   "rides.detail.groups.leader": "Meneur",
   "rides.detail.actions.cancel": "Annuler la sortie",
   "rides.detail.actions.uncancel": "Restaurer la sortie",
