@@ -289,7 +289,8 @@
       "notMember": "Réservé aux membres de l'équipe.",
       "generic": "Inscription impossible à {group}.",
       "leaveAndJoin": "Quitter {group}"
-    }
+    },
+    "cancelledMessage": "Cette sortie n'aura pas lieu. Aucune inscription n'est possible."
   },
   "posts": {
     "title": "Publications"
@@ -629,5 +630,15 @@
     "noMatchTitle": "Aucun participant trouvé",
     "noMatchMessage": "Aucun nom ne correspond à « {search} ».",
     "groupOrganizer": "Organisateur du groupe"
+  },
+  "status": {
+    "draft": "Brouillon",
+    "published": "Publié",
+    "cancelled": "Annulé"
+  },
+  "visibility": {
+    "public": "Public",
+    "public_unlisted": "Non répertorié",
+    "team": "Équipe"
   }
 }

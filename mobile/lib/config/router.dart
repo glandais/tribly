@@ -329,6 +329,12 @@ GoRoute _teamTree(String locale) {
         builder: (context, state) => RideDetailPage(
           teamSlug: state.pathParameters['teamSlug']!,
           rideSlug: state.pathParameters['rideSlug']!,
+          // Poussé par le carrousel de l'accueil, jamais par un deeplink : la
+          // valeur voyage dans `extra`, hors de l'URL, pour qu'un lien partagé
+          // n'inscrive personne à son insu.
+          autoJoin: state.extra is RideDetailExtra
+              ? (state.extra! as RideDetailExtra).autoJoin
+              : false,
         ),
       ),
       GoRoute(

@@ -289,7 +289,8 @@
       "notMember": "Team members only.",
       "generic": "Cannot join {group}.",
       "leaveAndJoin": "Leave {group}"
-    }
+    },
+    "cancelledMessage": "This ride will not take place. No registration is possible."
   },
   "posts": {
     "title": "Posts"
@@ -629,5 +630,15 @@
     "noMatchTitle": "No participant found",
     "noMatchMessage": "No name matches “{search}”.",
     "groupOrganizer": "Group organizer"
+  },
+  "status": {
+    "draft": "Draft",
+    "published": "Published",
+    "cancelled": "Cancelled"
+  },
+  "visibility": {
+    "public": "Public",
+    "public_unlisted": "Unlisted",
+    "team": "Team"
   }
 }
