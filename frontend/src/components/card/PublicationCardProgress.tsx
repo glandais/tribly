@@ -28,8 +28,9 @@ export function PublicationCardProgress({ ride }: PublicationCardProgressProps) 
   }
 
   const percentage = Math.min((current / totalMax) * 100, 100)
-  const spotsLeft = Math.max(totalMax - current, 0)
-  const isFull = spotsLeft === 0
+  // `full` is computed server-side (contract 1.3.0); fall back on the local sum only
+  // for a ride whose groups carry no capacity at all.
+  const isFull = ride.full ?? totalMax - current <= 0
 
   // Color based on fill percentage
   const color = isFull ? 'red' : percentage >= 80 ? 'yellow' : 'green'

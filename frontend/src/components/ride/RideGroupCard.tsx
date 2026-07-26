@@ -10,6 +10,7 @@ import {
   IconDeviceMobile,
   IconArrowsMaximize,
   IconArrowUp,
+  IconShieldCheck,
 } from '@tabler/icons-react'
 import {
   Paper,
@@ -24,7 +25,7 @@ import {
 } from '@mantine/core'
 import type { RideGroupDto, GpsServiceType } from '@/api/dto'
 import { useGetRoute } from '@/api/endpoints/routes/routes'
-import { UserAvatarGroup } from '../common/UserAvatar'
+import { UserAvatar, UserAvatarGroup } from '../common/UserAvatar'
 import { ParticipantListModal } from './ParticipantListModal'
 import { paths } from '@/config/paths'
 import { useUnits } from '@/hooks/useUnits'
@@ -35,7 +36,6 @@ interface RideGroupCardProps {
   group: RideGroupDto
   teamSlug: string
   rideRouteSlug?: string
-  isJoined?: boolean
   canJoin?: boolean
   onJoin?: () => void
   onLeave?: () => void
@@ -48,7 +48,6 @@ export function RideGroupCard({
   group,
   teamSlug,
   rideRouteSlug,
-  isJoined,
   canJoin,
   onJoin,
   onLeave,
@@ -61,7 +60,9 @@ export function RideGroupCard({
   const { isAuthenticated } = useAuth()
   const { connectedServices, uploadRoute, isUploading } = useGpsConnections()
   const [showParticipants, setShowParticipants] = useState(false)
-  const isFull = group.maxParticipants && group.countParticipants >= group.maxParticipants
+  // `full` and `registered` are computed server-side (contract 1.3.0) — never recompute them here.
+  const isFull = group.full
+  const isJoined = group.registered
 
   // Determine effective route slug (group route or ride route as fallback)
   const effectiveRouteSlug = group.routeSlug || rideRouteSlug
@@ -126,6 +127,24 @@ export function RideGroupCard({
           </>
         )}
       </Group>
+
+      {/* Leader — rendered only when one is designated; no fallback on the ride's creator */}
+      {group.leader && (
+        <Group gap="xs" mt="xs" wrap="nowrap">
+          <UserAvatar user={group.leader} size="sm" />
+          <Text size="sm" truncate>
+            {group.leader.displayName}
+          </Text>
+          <Badge
+            size="sm"
+            variant="light"
+            leftSection={<IconShieldCheck size={12} />}
+            style={{ flexShrink: 0 }}
+          >
+            {t('rides.detail.groups.leader')}
+          </Badge>
+        </Group>
+      )}
 
       {/* Details row */}
       <Group mt="xs">
@@ -255,6 +274,7 @@ export function RideGroupCard({
         onClose={() => setShowParticipants(false)}
         participants={group.participants}
         groupName={group.name}
+        leaderId={group.leader?.id}
       />
     </Paper>
   )

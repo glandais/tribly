@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
-import { IconCalendar, IconUsers, IconStack2 } from '@tabler/icons-react'
-import { Group, Box, Stack } from '@mantine/core'
+import { IconCalendar, IconUsers, IconStack2, IconCheck } from '@tabler/icons-react'
+import { Badge, Group, Box, Stack } from '@mantine/core'
 import { Card, CardContent, CardTitle, CardDescription, CardImage, CardTeamLink } from './common'
 import { TypeBadge, StatusBadge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from './common'
 import { EntityLogo } from '../common/EntityLogo'
@@ -18,6 +18,11 @@ interface PublicationCardProps {
 
 export function PublicationCard({ publication, showTeam }: PublicationCardProps) {
   const { t } = useTranslation()
+  // Read the server-computed flag — never recompute registration client-side.
+  const isRegistered =
+    publication.type === 'RIDE' || publication.type === 'TRIP'
+      ? ((publication as RideDto | TripDto).registered ?? false)
+      : false
   const { formatDateTime } = useFormattedDate()
 
   // Get the appropriate path based on publication type
@@ -149,6 +154,16 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
             </Box>
           </Group>
           <Stack gap={4} align="flex-end" ml="sm">
+            {isRegistered && (
+              <Badge
+                size="sm"
+                color="primary"
+                variant="light"
+                leftSection={<IconCheck size={12} />}
+              >
+                {t('publications.registered')}
+              </Badge>
+            )}
             <TypeBadge type={publication.type}>{getTypeLabel()}</TypeBadge>
             <StatusBadge status={publication.status}>{getStatusLabel()}</StatusBadge>
             <VisibilityBadge visibility={publication.visibility} />

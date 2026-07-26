@@ -496,7 +496,7 @@ pas le bloc et n'échoue pas.
 
 ---
 
-**T1.2 ☐ — Badge « Inscrit » et places dans le fil**
+**T1.2 ☑ — Badge « Inscrit » et places dans le fil**
 *Fichiers modifiés* : `frontend/src/components/card/PublicationCard.tsx`,
 `frontend/src/components/card/PublicationCardProgress.tsx`, `frontend/src/locales/{fr,en}/common.json`.
 *Détail* : ajouter le badge `Inscrit` dans la pile de badges existante (elle porte déjà type /
@@ -559,7 +559,7 @@ restaure l'état exact ; « Je participe » est masqué pour un visiteur anonyme
 
 ---
 
-**T1.6 ☐ — Sortie passée et sortie complète**
+**T1.6 ☑ — Sortie passée et sortie complète**
 *Fichiers modifiés* : `frontend/src/pages/ride/RideDetailPage.tsx`,
 `frontend/src/components/ride/RideGroupCard.tsx`, `frontend/src/locales/{fr,en}/common.json`.
 *Détail* : `canJoinRide` devient
@@ -575,7 +575,7 @@ dans la pile de badges quand `isPast`. `RideGroupCard` utilise `group.full` au l
 
 ---
 
-**T1.7 ☐ — Meneur de groupe : avatar, nom et pastille**
+**T1.7 ☑ — Meneur de groupe : avatar, nom et pastille**
 *Fichiers modifiés* : `frontend/src/components/ride/RideGroupCard.tsx`,
 `frontend/src/components/ride/ParticipantListModal.tsx`,
 `frontend/src/locales/{fr,en}/common.json`.

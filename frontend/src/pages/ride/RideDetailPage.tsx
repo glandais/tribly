@@ -2,6 +2,7 @@ import { useState, useMemo, lazy, Suspense } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
+import dayjs from 'dayjs'
 import { notifications } from '@mantine/notifications'
 import {
   IconCalendar,
@@ -66,7 +67,7 @@ export function RideDetailPage() {
   const { t } = useTranslation()
   const { formatDateTime } = useFormattedDate()
   const { teamSlug, rideSlug } = useParams<{ teamSlug: string; rideSlug: string }>()
-  const { isAuthenticated, user } = useAuth()
+  const { isAuthenticated } = useAuth()
   const [joiningGroupId, setJoiningGroupId] = useState<string | null>(null)
   const [highlightedGroupId, setHighlightedGroupId] = useState<string | null>(null)
   const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false)
@@ -140,11 +141,11 @@ export function RideDetailPage() {
   const isAdmin = team?.role === 'ADMIN'
   const isOrganizer = team?.role === 'ORGANIZER'
   const canEdit = isAdmin || isOrganizer
-  const hasJoinedAnyGroup =
-    user && ride.groups
-      ? ride.groups.some((group) => group.participants.some((p) => p.id === user.id))
-      : false
-  const canJoinRide = isMember && ride.status === Status.PUBLISHED && !hasJoinedAnyGroup
+  // A ride that has already happened is not joinable — `canJoinRide` used to ignore the date
+  // entirely, so last year's rides kept a live "Join" button.
+  const isPast = dayjs(ride.dateTime).isBefore(dayjs())
+  const canJoinRide =
+    isMember && ride.status === Status.PUBLISHED && !ride.registered && !isPast && !ride.full
 
   const formattedDate = formatDateTime(ride.dateTime)
 
@@ -274,6 +275,11 @@ export function RideDetailPage() {
             <Badge color={statusColors[ride.status]} variant="light">
               {t(`status.${ride.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
             </Badge>
+            {isPast && (
+              <Badge color="gray" variant="light">
+                {t('rides.detail.finished')}
+              </Badge>
+            )}
           </Group>
 
           {canEdit && (
@@ -433,14 +439,12 @@ export function RideDetailPage() {
           {ride.groups && ride.groups.length > 0 ? (
             <Stack gap="sm">
               {ride.groups.map((group) => {
-                const isJoined = user ? group.participants.some((p) => p.id === user.id) : false
                 return (
                   <RideGroupCard
                     key={group.id}
                     group={group}
                     teamSlug={teamSlug!}
                     rideRouteSlug={ride.routeSlug}
-                    isJoined={isJoined}
                     canJoin={canJoinRide}
                     onJoin={() => handleJoinGroup(group.id)}
                     onLeave={() => handleLeaveGroup(group.id)}

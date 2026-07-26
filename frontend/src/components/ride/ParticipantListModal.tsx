@@ -7,7 +7,6 @@ interface Participant {
   id: string
   displayName: string
   avatarUrl?: string
-  isOrganizer?: boolean
 }
 
 interface ParticipantListModalProps {
@@ -15,6 +14,8 @@ interface ParticipantListModalProps {
   onClose: () => void
   participants: Participant[]
   groupName: string
+  /** `RideGroupDto.leader.id`, when the group has a designated leader. */
+  leaderId?: string
 }
 
 export function ParticipantListModal({
@@ -22,6 +23,7 @@ export function ParticipantListModal({
   onClose,
   participants,
   groupName,
+  leaderId,
 }: ParticipantListModalProps) {
   const { t } = useTranslation()
 
@@ -42,61 +44,67 @@ export function ParticipantListModal({
           </Stack>
         ) : (
           <Stack gap="xs" component="ul" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-            {participants.map((participant) => (
-              <Box
-                key={participant.id}
-                component="li"
-                p="sm"
-                style={{
-                  borderRadius: 'var(--mantine-radius-md)',
-                  transition: 'all 200ms ease',
-                  cursor: 'default',
-                }}
-                mod={{ hover: true }}
-                __vars={{
-                  '--hover-bg':
-                    'linear-gradient(to right, var(--mantine-primary-color-light), var(--mantine-primary-color-light))',
-                }}
-              >
-                <Group gap="sm" wrap="nowrap">
-                  {/* Avatar with organizer badge */}
-                  <Box pos="relative" style={{ flexShrink: 0 }}>
-                    <UserAvatar user={participant} size="md" />
-                    {participant.isOrganizer && (
-                      <ThemeIcon
-                        size={20}
-                        radius="xl"
-                        color="primary"
-                        pos="absolute"
-                        bottom={-4}
-                        right={-4}
-                        style={{ border: '2px solid white' }}
-                        title={t('roles.ORGANIZER')}
-                      >
-                        <IconShieldCheck size={12} />
-                      </ThemeIcon>
-                    )}
-                  </Box>
+            {participants.map((participant) => {
+              const isLeader = !!leaderId && participant.id === leaderId
+              return (
+                <Box
+                  key={participant.id}
+                  component="li"
+                  p="sm"
+                  style={{
+                    borderRadius: 'var(--mantine-radius-md)',
+                    transition: 'all 200ms ease',
+                    cursor: 'default',
+                  }}
+                  mod={{ hover: true }}
+                  __vars={{
+                    '--hover-bg':
+                      'linear-gradient(to right, var(--mantine-primary-color-light), var(--mantine-primary-color-light))',
+                  }}
+                >
+                  <Group gap="sm" wrap="nowrap">
+                    {/* Avatar with organizer badge */}
+                    <Box pos="relative" style={{ flexShrink: 0 }}>
+                      <UserAvatar user={participant} size="md" />
+                      {isLeader && (
+                        <ThemeIcon
+                          size={20}
+                          radius="xl"
+                          color="primary"
+                          pos="absolute"
+                          bottom={-4}
+                          right={-4}
+                          style={{ border: '2px solid var(--mantine-color-body)' }}
+                          title={t('rides.detail.groups.leader')}
+                        >
+                          <IconShieldCheck size={12} />
+                        </ThemeIcon>
+                      )}
+                    </Box>
 
-                  {/* Participant info */}
-                  <Box style={{ flex: 1, minWidth: 0 }}>
-                    <Text size="sm" fw={600} truncate>
-                      {participant.displayName}
-                    </Text>
-                    {participant.isOrganizer && (
-                      <Text size="xs" c="dimmed" mt={2}>
-                        {t('groups.groupOrganizer')}
+                    {/* Participant info */}
+                    <Box style={{ flex: 1, minWidth: 0 }}>
+                      <Text size="sm" fw={600} truncate>
+                        {participant.displayName}
                       </Text>
-                    )}
-                  </Box>
+                      {isLeader && (
+                        <Text size="xs" c="dimmed" mt={2}>
+                          {t('rides.detail.groups.leader')}
+                        </Text>
+                      )}
+                    </Box>
 
-                  {/* Subtle hover indicator */}
-                  <Box style={{ flexShrink: 0, opacity: 0.5 }}>
-                    <IconChevronRight size={16} color="var(--mantine-primary-color-light-color)" />
-                  </Box>
-                </Group>
-              </Box>
-            ))}
+                    {/* Subtle hover indicator */}
+                    <Box style={{ flexShrink: 0, opacity: 0.5 }}>
+                      <IconChevronRight
+                        size={16}
+                        color="var(--mantine-primary-color-light-color)"
+                      />
+                    </Box>
+                  </Group>
+                </Box>
+              )
+            })}
           </Stack>
         )}
       </Stack>
