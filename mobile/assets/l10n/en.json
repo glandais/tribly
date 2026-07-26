@@ -453,5 +453,13 @@
     "loadingMore": "Loading…",
     "nextPageError": "Could not load more.\nCheck your connection.",
     "endOfList": "You have seen everything"
+  },
+  "location": {
+    "serviceDisabled": "Location is turned off on your device.",
+    "denied": "Without access to your location, sorting by distance isn't possible.",
+    "deniedForever": "Pédalons is denied access to your location. You can restore it in Settings.",
+    "unavailable": "Your location couldn't be determined. Try again in a moment.",
+    "openSettings": "Open Settings",
+    "retry": "Try again"
   }
 }

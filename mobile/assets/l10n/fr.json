@@ -453,5 +453,13 @@
     "loadingMore": "Chargement…",
     "nextPageError": "Impossible de charger la suite.\nVérifiez votre connexion.",
     "endOfList": "Vous avez tout vu"
+  },
+  "location": {
+    "serviceDisabled": "La localisation est désactivée sur votre appareil.",
+    "denied": "Sans accès à votre position, le tri par proximité n'est pas possible.",
+    "deniedForever": "L'accès à votre position est refusé pour Pédalons. Vous pouvez le rétablir dans les réglages.",
+    "unavailable": "Votre position n'a pas pu être déterminée. Réessayez dans un instant.",
+    "openSettings": "Ouvrir les réglages",
+    "retry": "Réessayer"
   }
 }
