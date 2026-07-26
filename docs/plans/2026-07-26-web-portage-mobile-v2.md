@@ -384,7 +384,7 @@ pure.
 
 ---
 
-**T0.1 ☐ — Corriger l'override `Button` du thème**
+**T0.1 ☑ — Corriger l'override `Button` du thème**
 *Fichiers* : `frontend/src/lib/theme.ts` (modifié), `frontend/src/index.css` (modifié).
 *Détail* : retirer la media query de l'objet `styles` (inopérante) et poser la variable dans
 `index.css` : `:root { --button-min-height: 44px }` puis `@media (min-width: 48em) { :root {
@@ -397,7 +397,7 @@ Aucune dépendance sur un global navigateur : compatible SSR.
 
 ---
 
-**T0.2 ☐ — `EmptyState`, le composant d'état vide unique**
+**T0.2 ☑ — `EmptyState`, le composant d'état vide unique**
 *Fichiers* : `frontend/src/components/common/EmptyState.tsx` (créé),
 `frontend/src/locales/{fr,en}/common.json` (modifiés).
 *Détail* : reprendre littéralement le bon pattern de `PublicationListPage.tsx:216-249`, généralisé.
@@ -411,7 +411,7 @@ dur (uniquement `c="dimmed"` et `var(--mantine-color-dimmed)`), donc lisible en 
 
 ---
 
-**T0.3 ☐ — `QueryStateBoundary` : chargement, erreur récupérable, vide**
+**T0.3 ☑ — `QueryStateBoundary` : chargement, erreur récupérable, vide**
 *Fichiers* : `frontend/src/components/common/QueryStateBoundary.tsx` (créé),
 `frontend/src/components/common/DetailPageSkeleton.tsx` (créé),
 `frontend/src/components/common/ErrorBoundary.tsx` (modifié — exporter `ErrorMessage` proprement).

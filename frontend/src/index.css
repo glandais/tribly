@@ -11,6 +11,16 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* Touch-friendly button height on mobile; consumed by the Button override in lib/theme.ts */
+  --button-min-height: 44px;
+}
+
+/* Denser buttons on desktop (48em = 768px), where there is no thumb to accommodate */
+@media (min-width: 48em) {
+  :root {
+    --button-min-height: 36px;
+  }
 }
 
 body {

@@ -42,11 +42,10 @@ export const theme = createTheme({
     Button: {
       styles: {
         root: {
-          // Touch-friendly minimum on mobile (44px), smaller on desktop
+          // Touch-friendly minimum on mobile (44px), smaller on desktop.
+          // The variable is defined in index.css — a media query cannot live in
+          // a Mantine `styles` object, which compiles to an inline style.
           minHeight: 'var(--button-min-height, 44px)',
-          '@media (minWidth: 48em)': {
-            '--button-min-height': '36px',
-          },
         },
       },
     },
