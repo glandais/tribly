@@ -210,23 +210,33 @@ export function CalendarView({
         return button
       }
 
+      // `c="inherit"` is load-bearing: Mantine's Tooltip inverts its own colours per scheme
+      // (dark surface + white text in light mode, light surface + black text in dark mode),
+      // while `Text` defaults to `--mantine-color-text` — the opposite value in both. Without
+      // it the label renders dark-on-dark in light mode and light-on-light in dark mode.
       const tooltip = (
         <Stack gap={4}>
           {thumbnail ? (
             <Image src={thumbnail} alt={dto.title} w={200} h={80} fit="cover" radius="sm" />
           ) : null}
-          <Text size="sm" fw={600}>
+          <Text size="sm" fw={600} c="inherit">
             {dto.title}
           </Text>
-          <Text size="xs">{buildSummary(dto)}</Text>
-          {metrics ? <Text size="xs">{metrics}</Text> : null}
+          <Text size="xs" c="inherit">
+            {buildSummary(dto)}
+          </Text>
+          {metrics ? (
+            <Text size="xs" c="inherit">
+              {metrics}
+            </Text>
+          ) : null}
           {registration ? (
-            <Text size="xs" fw={500}>
+            <Text size="xs" fw={500} c="inherit">
               {registration}
             </Text>
           ) : null}
           {dto.status !== 'PUBLISHED' ? (
-            <Text size="xs">
+            <Text size="xs" c="inherit">
               {t(`status.${dto.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
             </Text>
           ) : null}
