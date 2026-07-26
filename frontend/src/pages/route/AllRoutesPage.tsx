@@ -38,6 +38,7 @@ export function AllRoutesPage() {
     handleFiltersChange,
     handlePageChange,
     hasFiltersOrSearch,
+    clearFilters,
     pageSize,
   } = useRouteFilters({
     schema,
@@ -120,6 +121,7 @@ export function AllRoutesPage() {
           currentPage={filters.page}
           totalPages={totalPages}
           onPageChange={handlePageChange}
+          onClearFilters={clearFilters}
         />
       </Stack>
     </HomeLayout>

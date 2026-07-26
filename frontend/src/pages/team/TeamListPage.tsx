@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { paths } from '../../config/paths'
-import { IconPlus, IconUsersGroup } from '@tabler/icons-react'
+import { IconPlus, IconSearchOff, IconUsersGroup } from '@tabler/icons-react'
 import { useListTeams, listTeams, getListTeamsQueryKey } from '@/api/endpoints/teams/teams'
 import { useAuth } from '../../hooks/useAuth'
 import { getAppConfig } from '../../config/appConfig'
@@ -18,22 +18,11 @@ import {
 } from '../../hooks/filters/teamFilters'
 import { membershipToMinRole, type MembershipFilterValue } from '../../hooks/filters/membership'
 import { TeamCard, TeamCardSkeleton } from '../../components/card'
+import { EmptyState } from '../../components/common/EmptyState'
 import { Pagination } from '../../components/common/Pagination'
 import { SearchInput } from '../../components/common/SearchInput'
 import { HomeLayout } from '../../components/home/HomeLayout'
-import {
-  Select,
-  Box,
-  Group,
-  Title,
-  Text,
-  Stack,
-  Button,
-  SimpleGrid,
-  Paper,
-  Center,
-  Alert,
-} from '@mantine/core'
+import { Select, Box, Group, Title, Text, Stack, Button, SimpleGrid, Alert } from '@mantine/core'
 
 export function TeamListPage() {
   const { t } = useTranslation()
@@ -85,6 +74,18 @@ export function TeamListPage() {
   const hasTeams = (teamsData?.total ?? 0) > 0
   const canCreateTeam = isAuthenticated && (!config?.singleTeam || !hasTeams)
 
+  const hasFiltersOrSearch = !!filters.search || filters.membership !== membershipDefault
+  const clearFilters = () => {
+    setSearch('')
+    setFilters({ search: undefined, membership: membershipDefault, page: 0 })
+  }
+
+  const createTeamButton = canCreateTeam ? (
+    <Button component={Link} to={paths.teamsNew()} leftSection={<IconPlus size={20} />}>
+      {t('teams.create.title')}
+    </Button>
+  ) : null
+
   return (
     <HomeLayout currentTab="teams">
       <Stack>
@@ -95,11 +96,7 @@ export function TeamListPage() {
               {t('teams.list.subtitle')}
             </Text>
           </div>
-          {canCreateTeam && (
-            <Button component={Link} to={paths.teamsNew()} leftSection={<IconPlus size={20} />}>
-              {t('teams.create.title')}
-            </Button>
-          )}
+          {createTeamButton}
         </Group>
 
         <Group align="flex-end" wrap="wrap">
@@ -158,25 +155,28 @@ export function TeamListPage() {
             </Box>
           </Stack>
         ) : (
-          <Paper withBorder p="xl" radius="md">
-            <Center>
-              <Stack align="center" gap="sm">
-                <IconUsersGroup size={48} color="var(--mantine-color-dimmed)" />
-                <Text fw={500}>{t('teams.list.empty.title')}</Text>
-                <Text c="dimmed">{t('teams.list.empty.publicTeams')}</Text>
-                {canCreateTeam && (
-                  <Button
-                    component={Link}
-                    to={paths.teamsNew()}
-                    leftSection={<IconPlus size={20} />}
-                    mt="md"
-                  >
-                    {t('teams.create.title')}
+          <EmptyState
+            variant={hasFiltersOrSearch ? 'filtered' : 'absolute'}
+            icon={hasFiltersOrSearch ? <IconSearchOff size={48} /> : <IconUsersGroup size={48} />}
+            title={
+              hasFiltersOrSearch ? t('teams.list.empty.title') : t('teams.list.empty.noTeamsTitle')
+            }
+            description={
+              hasFiltersOrSearch
+                ? t('teams.list.empty.publicTeams')
+                : t('teams.list.empty.noTeamsDescription')
+            }
+            actions={
+              <>
+                {hasFiltersOrSearch && (
+                  <Button variant="light" onClick={clearFilters}>
+                    {t('common.clearFilters')}
                   </Button>
                 )}
-              </Stack>
-            </Center>
-          </Paper>
+                {createTeamButton}
+              </>
+            }
+          />
         )}
       </Stack>
     </HomeLayout>

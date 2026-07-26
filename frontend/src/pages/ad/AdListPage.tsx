@@ -2,20 +2,8 @@ import { useCallback } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { keepPreviousData } from '@tanstack/react-query'
-import { IconPlus } from '@tabler/icons-react'
-import {
-  Button,
-  Select,
-  Stack,
-  Group,
-  Title,
-  Text,
-  SimpleGrid,
-  Box,
-  Paper,
-  Center,
-  Space,
-} from '@mantine/core'
+import { IconPlus, IconSearchOff, IconTag } from '@tabler/icons-react'
+import { Button, Select, Stack, Group, Title, SimpleGrid, Box, Space } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { useListAds, listAds, getListAdsQueryKey } from '../../api/endpoints/ads/ads'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
@@ -24,6 +12,7 @@ import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
 import { useScrollToListTop } from '../../hooks/useScrollToListTop'
 import { adFiltersSchema, adFiltersAlias } from '../../hooks/filters/adFilters'
 import { AdCard, AdCardSkeleton } from '../../components/ad'
+import { EmptyState } from '../../components/common/EmptyState'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { Pagination } from '../../components/common/Pagination'
 import { ResultCount } from '../../components/common/ResultCount'
@@ -86,6 +75,11 @@ export function AdListPage() {
 
   const isMember = !!team.role
   const ads = adsResponse?.ads || []
+  const hasFiltersOrSearch = !!filters.search || !!filters.adType
+  const clearFilters = () => {
+    setSearch('')
+    setFilters({ search: undefined, adType: undefined, page: 0 })
+  }
 
   return (
     <TeamLayout team={team} currentTab="ads">
@@ -138,18 +132,19 @@ export function AdListPage() {
           ))}
         </SimpleGrid>
       ) : ads.length === 0 ? (
-        <Paper withBorder p="xl" radius="md">
-          <Center>
-            <Stack align="center" gap="sm">
-              <Title order={3}>{t('ads.list.empty.title')}</Title>
-              <Text c="dimmed">
-                {filters.search || filters.adType
-                  ? t('ads.list.noResults')
-                  : t('ads.list.empty.member')}
-              </Text>
-            </Stack>
-          </Center>
-        </Paper>
+        <EmptyState
+          variant={hasFiltersOrSearch ? 'filtered' : 'absolute'}
+          icon={hasFiltersOrSearch ? <IconSearchOff size={48} /> : <IconTag size={48} />}
+          title={hasFiltersOrSearch ? t('ads.list.noResultsTitle') : t('ads.list.empty.title')}
+          description={hasFiltersOrSearch ? t('ads.list.noResults') : t('ads.list.empty.member')}
+          actions={
+            hasFiltersOrSearch ? (
+              <Button variant="light" onClick={clearFilters}>
+                {t('common.clearFilters')}
+              </Button>
+            ) : undefined
+          }
+        />
       ) : (
         <Stack>
           <SimpleGrid

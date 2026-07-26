@@ -37,6 +37,7 @@ export function RouteListPage() {
     handleFiltersChange,
     handlePageChange,
     hasFiltersOrSearch,
+    clearFilters,
     pageSize,
   } = useRouteFilters({ schema: routeFiltersSchema, alias: routeFiltersAlias })
 
@@ -129,6 +130,7 @@ export function RouteListPage() {
           currentPage={filters.page}
           totalPages={totalPages}
           onPageChange={handlePageChange}
+          onClearFilters={clearFilters}
           emptyAction={
             canCreateRoute && !hasFiltersOrSearch ? (
               <Button component="a" href={paths.routeNew(teamSlug!)} mt="sm">

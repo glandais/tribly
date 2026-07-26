@@ -26,9 +26,25 @@ export function useRouteFilters<S extends z.ZodObject<z.ZodRawShape>>(
     routeFilters.surfaceType !== undefined ||
     routeFilters.windDirection !== undefined
 
+  // Resets every key `hasFiltersOrSearch` looks at, by name rather than by omission, so the
+  // filters this hook does not own — membership, sort, density — survive the reset.
+  const clearFilters = () =>
+    patchRouteFilters({
+      search: undefined,
+      minDistance: undefined,
+      maxDistance: undefined,
+      minElevationGain: undefined,
+      maxElevationGain: undefined,
+      hilliness: undefined,
+      surfaceType: undefined,
+      windDirection: undefined,
+      page: 0,
+    })
+
   return {
     filters: filters as z.infer<S> & RouteFilters,
     setFilters,
+    clearFilters,
     // RouteFilterPanel hands back the whole filter set with the cleared keys reset, so this must
     // replace rather than merge.
     handleFiltersChange: replaceFilters,

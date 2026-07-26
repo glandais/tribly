@@ -10,6 +10,7 @@ import {
   IconPencil,
   IconMapPin,
   IconChevronDown,
+  IconUsersGroup,
 } from '@tabler/icons-react'
 import {
   Container,
@@ -41,6 +42,7 @@ import {
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { Status } from '@/api/dto'
 import { useAuth } from '../../hooks/useAuth'
+import { EmptyState } from '../../components/common/EmptyState'
 import { QueryStateBoundary } from '../../components/common/QueryStateBoundary'
 import { DetailPageSkeleton } from '../../components/common/DetailPageSkeleton'
 import { RideGroupCard } from '../../components/ride/RideGroupCard'
@@ -469,7 +471,11 @@ export function RideDetailPage() {
               })}
             </Stack>
           ) : (
-            <Text c="dimmed">{t('rides.detail.groups.empty')}</Text>
+            <EmptyState
+              icon={<IconUsersGroup size={48} />}
+              title={t('rides.detail.groups.emptyTitle')}
+              description={t('rides.detail.groups.empty')}
+            />
           )}
         </Box>
       </SimpleGrid>

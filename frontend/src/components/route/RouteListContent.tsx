@@ -1,11 +1,12 @@
 import { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { IconMap } from '@tabler/icons-react'
-import { Box, Center, Paper, SimpleGrid, Stack, Text, Title } from '@mantine/core'
+import { IconMap, IconSearchOff } from '@tabler/icons-react'
+import { Box, Button, Center, Paper, SimpleGrid, Stack, Title } from '@mantine/core'
 import type { RouteDto } from '@/api/dto'
 import { RouteCard, RouteCardSkeleton } from '../card'
 import { RouteRow } from './RouteRow'
 import type { RouteDensity } from '@/hooks/filters/routeFilters'
+import { EmptyState } from '../common/EmptyState'
 import { Pagination } from '../common/Pagination'
 import { useScrollToListTop } from '@/hooks/useScrollToListTop'
 
@@ -18,6 +19,8 @@ interface RouteListContentProps {
   currentPage: number
   totalPages: number
   onPageChange: (page: number) => void
+  /** Lets the user out of a filtered empty state — mandatory wherever filters can be active. */
+  onClearFilters?: () => void
   emptyAction?: ReactNode
   density?: RouteDensity
 }
@@ -31,6 +34,7 @@ export function RouteListContent({
   currentPage,
   totalPages,
   onPageChange,
+  onClearFilters,
   emptyAction,
   density = 'card',
 }: RouteListContentProps) {
@@ -91,18 +95,26 @@ export function RouteListContent({
     )
   }
 
+  // The filtered case is precisely the one needing the richest copy: it always carries a
+  // description and a way out, never a bare title.
   return (
-    <Paper shadow="xs" withBorder py="xl">
-      <Center>
-        <Stack align="center">
-          <IconMap size={48} color="var(--mantine-color-dimmed)" />
-          <Title order={3}>
-            {hasFiltersOrSearch ? t('routes.list.noResults') : t('routes.list.empty.title')}
-          </Title>
-          {!hasFiltersOrSearch && <Text c="dimmed">{t('routes.list.empty.description')}</Text>}
+    <EmptyState
+      variant={hasFiltersOrSearch ? 'filtered' : 'absolute'}
+      icon={hasFiltersOrSearch ? <IconSearchOff size={48} /> : <IconMap size={48} />}
+      title={hasFiltersOrSearch ? t('routes.list.noResultsTitle') : t('routes.list.empty.title')}
+      description={
+        hasFiltersOrSearch ? t('routes.list.noResults') : t('routes.list.empty.description')
+      }
+      actions={
+        <>
+          {hasFiltersOrSearch && onClearFilters && (
+            <Button variant="light" onClick={onClearFilters}>
+              {t('common.clearFilters')}
+            </Button>
+          )}
           {emptyAction}
-        </Stack>
-      </Center>
-    </Paper>
+        </>
+      }
+    />
   )
 }

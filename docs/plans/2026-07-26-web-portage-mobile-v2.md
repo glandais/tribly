@@ -608,7 +608,7 @@ sans meneur, la carte est strictement identique à l'existant ; aucune requête 
 
 ---
 
-**T2.1 ☐ — Généraliser `EmptyState`**
+**T2.1 ☑ — Généraliser `EmptyState`**
 *Fichiers modifiés* : `frontend/src/pages/home/HomePage.tsx`,
 `frontend/src/components/route/RouteListContent.tsx`,
 `frontend/src/pages/publication/PublicationListPage.tsx` (remplacer le pattern local par le

@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Paper, Title, Stack, Text, Center, Loader } from '@mantine/core'
+import { Paper, Title, Stack, Center, Loader } from '@mantine/core'
+import { IconMessageCircle } from '@tabler/icons-react'
+import { EmptyState } from '../common/EmptyState'
 import {
   useComments,
   useCreateComment,
@@ -88,9 +90,11 @@ export function CommentSection({
           />
         ))}
         {(!data?.items || data.items.length === 0) && (
-          <Text c="dimmed" ta="center" py="md">
-            {t('comments.empty')}
-          </Text>
+          <EmptyState
+            icon={<IconMessageCircle size={48} />}
+            title={t('comments.emptyTitle')}
+            description={t('comments.empty')}
+          />
         )}
       </Stack>
     </Paper>

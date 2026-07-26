@@ -1,7 +1,18 @@
 import { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Box, Select, Stack, Title, Group, Paper, Text, Center, SimpleGrid } from '@mantine/core'
-import { IconNews } from '@tabler/icons-react'
+import {
+  Box,
+  Button,
+  Select,
+  Stack,
+  Title,
+  Group,
+  Paper,
+  Text,
+  Center,
+  SimpleGrid,
+} from '@mantine/core'
+import { IconNews, IconSearchOff } from '@tabler/icons-react'
 import { isSingleTeam } from '../../config/appConfig'
 import { ListViewMode, Status, type RideDto } from '../../api/dto'
 import {
@@ -10,6 +21,7 @@ import {
   getListAllPublicationsQueryKey,
 } from '../../api/endpoints/publications/publications'
 import { PublicationCard, PublicationCardSkeleton } from '../../components/card'
+import { EmptyState } from '../../components/common/EmptyState'
 import { Pagination } from '../../components/common/Pagination'
 import { ResultCount } from '../../components/common/ResultCount'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
@@ -56,6 +68,23 @@ export function HomePage() {
     [setFilters]
   )
   const [search, setSearch] = useDebouncedSearch(filters.search ?? '', commitSearch)
+
+  // An empty feed reads differently depending on whether anything is narrowing it down.
+  const hasFiltersOrSearch =
+    !!filters.search ||
+    filters.filter !== 'all' ||
+    filters.scope !== 'all' ||
+    filters.membership !== membershipDefault
+  const clearFilters = useCallback(() => {
+    setSearch('')
+    setFilters({
+      search: undefined,
+      filter: 'all',
+      scope: 'all',
+      membership: membershipDefault,
+      page: 0,
+    })
+  }, [setSearch, setFilters, membershipDefault])
 
   // `filter` and `membership` are the page's own values; the API wants a PublicationType and a
   // MinRole.
@@ -219,14 +248,21 @@ export function HomePage() {
           </Stack>
         ) : (
           /* Empty State */
-          <Paper withBorder p="xl" radius="md">
-            <Center>
-              <Stack align="center" gap="sm">
-                <IconNews size={48} color="var(--mantine-color-dimmed)" />
-                <Text fw={500}>{search ? t('home.feed.noResults') : t('home.feed.empty')}</Text>
-              </Stack>
-            </Center>
-          </Paper>
+          <EmptyState
+            variant={hasFiltersOrSearch ? 'filtered' : 'absolute'}
+            icon={hasFiltersOrSearch ? <IconSearchOff size={48} /> : <IconNews size={48} />}
+            title={hasFiltersOrSearch ? t('home.feed.noResultsTitle') : t('home.feed.empty')}
+            description={
+              hasFiltersOrSearch ? t('home.feed.noResults') : t('home.feed.emptyDescription')
+            }
+            actions={
+              hasFiltersOrSearch ? (
+                <Button variant="light" onClick={clearFilters}>
+                  {t('common.clearFilters')}
+                </Button>
+              ) : undefined
+            }
+          />
         )}
       </Stack>
     </HomeLayout>

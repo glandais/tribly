@@ -2,20 +2,8 @@ import { useCallback, useMemo } from 'react'
 import { ListViewMode } from '@/api/dto'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { IconPlus, IconNews, IconChevronDown } from '@tabler/icons-react'
-import {
-  Button,
-  Menu,
-  Select,
-  Stack,
-  Group,
-  Title,
-  Paper,
-  Text,
-  Center,
-  Box,
-  SimpleGrid,
-} from '@mantine/core'
+import { IconPlus, IconNews, IconChevronDown, IconSearchOff } from '@tabler/icons-react'
+import { Button, Menu, Select, Stack, Group, Title, Box, SimpleGrid } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
   useListPublications,
@@ -25,6 +13,7 @@ import {
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { PublicationCard, PublicationCardSkeleton } from '../../components/card'
 import { TeamLayout } from '../../components/team/TeamLayout'
+import { EmptyState } from '../../components/common/EmptyState'
 import { Pagination } from '../../components/common/Pagination'
 import { ResultCount } from '../../components/common/ResultCount'
 import { PublicationScopeControl } from '../../components/home/PublicationScopeControl'
@@ -233,34 +222,23 @@ export function PublicationListPage() {
             </Box>
           </Stack>
         ) : (
-          <Paper withBorder p={48} radius="md">
-            <Center>
-              <Stack align="center" gap="md">
-                <Box
-                  p="lg"
-                  style={{
-                    backgroundColor: 'var(--mantine-color-default-hover)',
-                    borderRadius: '50%',
-                  }}
-                >
-                  <IconNews size={48} color="var(--mantine-color-dimmed)" />
-                </Box>
-                <Title order={3} ta="center">
-                  {search ? t('noResults') : t('teams.publications.list.empty')}
-                </Title>
-                <Text c="dimmed" ta="center" maw={400}>
-                  {search
-                    ? t('teams.publications.list.search.noResultsDescription')
-                    : t('teams.publications.list.emptyDescription')}
-                </Text>
-                {search && (
-                  <Button variant="light" onClick={() => setSearch('')}>
-                    {t('common.clearSearch')}
-                  </Button>
-                )}
-              </Stack>
-            </Center>
-          </Paper>
+          <EmptyState
+            variant={search ? 'filtered' : 'absolute'}
+            icon={search ? <IconSearchOff size={48} /> : <IconNews size={48} />}
+            title={search ? t('noResults') : t('teams.publications.list.empty')}
+            description={
+              search
+                ? t('teams.publications.list.search.noResultsDescription')
+                : t('teams.publications.list.emptyDescription')
+            }
+            actions={
+              search ? (
+                <Button variant="light" onClick={() => setSearch('')}>
+                  {t('common.clearSearch')}
+                </Button>
+              ) : undefined
+            }
+          />
         )}
       </Stack>
     </TeamLayout>
