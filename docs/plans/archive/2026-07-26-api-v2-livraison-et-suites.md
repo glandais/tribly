@@ -1,7 +1,7 @@
 # API v2 — ce que les versions 1.3.0, 1.4.0 et 1.5.0 ont apporté, et ce qui reste
 
 Document de référence du chantier « API v2 » mené en réponse au §3 de
-[`docs/audit-ux/BRIEF.md`](../audit-ux/BRIEF.md).
+[`docs/audit-ux/BRIEF.md`](../../audit-ux/BRIEF.md).
 
 - **Contrat** : `1.2.0` → `1.3.0` (le lot API v2), puis `1.3.0` → `1.4.0` (le relais de contact
   d'annonce, §1.13), puis `1.4.0` → `1.5.0` (le meneur de groupe, §1.14). Trois MINOR : aucun

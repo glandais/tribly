@@ -4,8 +4,8 @@ Ce document est le plan unique d'implémentation de la version 2 de l'applicatio
 il fusionne et arbitre trois plans partiels (fondations, écrans hero, écrans core) rédigés en
 parallèle, tranche leurs contradictions, dédoublonne la bibliothèque de composants et ordonne
 le tout en lots livrables. Il est autoportant : le détail visuel se lit dans
-[`docs/audit-ux/BRIEF.md`](../audit-ux/BRIEF.md), dans
-[`docs/audit-ux/analyse/brand.md`](../audit-ux/analyse/brand.md) et dans les planches de
+[`docs/audit-ux/BRIEF.md`](../../audit-ux/BRIEF.md), dans
+[`docs/audit-ux/analyse/brand.md`](../../audit-ux/analyse/brand.md) et dans les planches de
 maquettes v2 (`00 Fondations`, écrans 11 à 34), mais aucune décision n'y est déléguée.
 
 Les planches vivent dans le **projet Claude Design**
@@ -15,11 +15,11 @@ Les planches vivent dans le **projet Claude Design**
 projet est en partage restreint, un compte non invité n'y accède pas ; et ses
 `contexte/*.md` sont des **copies** de `BRIEF.md`, `brand.md`, `mobile-screens.md` et
 `web-pages.md` déjà divergentes — le dépôt fait foi. La feuille de style des planches, elle,
-est versionnée ici : [`docs/audit-ux/pedalons.css`](../audit-ux/pedalons.css).
+est versionnée ici : [`docs/audit-ux/pedalons.css`](../../audit-ux/pedalons.css).
 
-Le contrat d'API fait foi dans [`contracts/openapi.yaml`](../../contracts/openapi.yaml) (1.5.0) et
-les conventions de code dans [`mobile/CLAUDE.md`](../../mobile/CLAUDE.md) et
-[`mobile/rules.md`](../../mobile/rules.md).
+Le contrat d'API fait foi dans [`contracts/openapi.yaml`](../../../contracts/openapi.yaml) (1.5.0) et
+les conventions de code dans [`mobile/CLAUDE.md`](../../../mobile/CLAUDE.md) et
+[`mobile/rules.md`](../../../mobile/rules.md).
 
 ## Suivi d'avancement
 
@@ -98,7 +98,7 @@ lancé depuis `frontend/` après édition de `contracts/routes.yaml`.
   de contact, et c'est le point de la conception.
 - Aucune maquette ne fournit le mode sombre, alors que le brief §5 l'exige. Il est **dérivé**
   par la règle du §1.1.2, qui produit des valeurs exactes, pas approchées.
-- [`pedalons.css`](../audit-ux/pedalons.css) fait autorité contre la planche
+- [`pedalons.css`](../../audit-ux/pedalons.css) fait autorité contre la planche
   `00 Fondations` : `.media--16x9` = **208 px**,
   `.btn--sm` = **44 px** (cible tactile minimale du brief §5).
 

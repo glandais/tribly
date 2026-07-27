@@ -1,5 +1,29 @@
 # Pédalons — Identité visuelle
 
+> **Statut, au 27 juillet 2026.** Contrairement au reste de
+> [`docs/audit-ux/`](../README.md), ce document n'est **pas** périmé par la v2 : c'est la charte la
+> plus complète du projet, et les §4 à §8 (typographie, rayons, ombres, espacements, iconographie,
+> composants signature, lexique français) n'existent nulle part ailleurs. Il a servi de source aux
+> jetons Flutter de `mobile/lib/core/theme/`.
+>
+> Trois précisions pour l'utiliser sans se tromper :
+>
+> - **Le mode sombre des fonds doux de badge n'est pas ici.** Ce document n'en publie que cinq
+>   paires ; les autres ont été **dérivées** pour la v2 par la règle
+>   `soft(sombre) = nuance 9 × 0,5`, `on-soft(sombre) = nuance 0`, démontrée sur ces cinq paires.
+>   La table complète et sa justification vivent dans
+>   [`mobile/lib/core/theme/pdl_colors.dart`](../../../mobile/lib/core/theme/pdl_colors.dart), qui
+>   fait foi là-dessus.
+> - **Le §9 (« Jetons CSS prêts à copier ») ne doit pas être implémenté côté site.** Ce sont les
+>   variables du moteur de maquettage ([`../pedalons.css`](../pedalons.css)). Le site exprime déjà la
+>   même charte en thème Mantine : y ajouter une seconde couche de variables créerait deux sources de
+>   vérité. Le §9 sert à lire les maquettes, pas à produire du CSS de production.
+> - **Le minimum de 44 px est une règle tactile.** Le web descend volontairement à 36 px au-delà de
+>   48em.
+>
+> Pour l'entrée en matière et le partage des rôles entre les trois sources de charte, voir
+> [`BRANDING.md`](../../../BRANDING.md).
+
 Document de référence pour la production de maquettes. Toutes les valeurs sont extraites du code réel :
 `BRANDING.md`, `frontend/src/lib/theme.ts` (thème Mantine 8), `frontend/src/index.css`,
 `frontend/src/components/**`, `mobile/lib/core/theme/*.dart` (thème Flutter Material 3),
@@ -100,9 +124,11 @@ Valeurs exactes issues de Mantine 8 avec `primaryColor: 'primary'` (→ indigo) 
 | Voile / superposition | `rgba(255,255,255,0.9)` | `rgba(36,36,36,0.9)` | `OVERLAY_BG` |
 | Voile opaque | `rgba(255,255,255,0.95)` | `rgba(36,36,36,0.95)` | `OVERLAY_BG_SOLID` |
 
-> **Note d'écart** : `BRANDING.md` indique que la variante *light* utilise la nuance 0. Depuis
-> Mantine 8, c'est la **nuance 1** en mode clair (ex. indigo `#dbe4ff`, pas `#edf2ff`). Le tableau
-> ci-dessus donne la valeur réellement rendue. C'est visible sur tous les badges du produit.
+> **Écart relevé, et corrigé depuis** : `BRANDING.md` indiquait que la variante *light* utilisait la
+> nuance 0. Depuis Mantine 8, c'est la **nuance 1** en mode clair (ex. indigo `#dbe4ff`, pas
+> `#edf2ff`) — visible sur tous les badges du produit. Le tableau ci-dessus donne la valeur
+> réellement rendue, `BRANDING.md` a été aligné le 27 juillet 2026, et les jetons Flutter portent bien
+> `#DBE4FF`. Les trois sources concordent.
 
 ### 3.2 Couleurs d'accent
 

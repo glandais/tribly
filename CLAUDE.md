@@ -7,7 +7,34 @@ Pedalons: multi-tenant cycling team platform (rides, routes with GPX/maps, posts
 Each module has its own `CLAUDE.md` with commands, architecture, and gotchas — it loads automatically when you work with files in that directory:
 [backend/](backend/CLAUDE.md) · [frontend/](frontend/CLAUDE.md) · [mobile/](mobile/CLAUDE.md) · [karoo/](karoo/CLAUDE.md) · [garmin-app/](garmin-app/CLAUDE.md)
 
-See [BRANDING.md](BRANDING.md) for logo, icon assets, brand colors, and full theme reference.
+See [BRANDING.md](BRANDING.md) for logo, icon assets and brand colours — **start there**: its header
+maps which of the three brand sources is authoritative over what (this file for assets and the web
+theme, `mobile/lib/core/theme/` for Flutter and the derived dark mode, `docs/audit-ux/analyse/brand.md`
+for the fullest charter and the French lexicon). The business colour code is semantic and shared by
+both clients: changing it in one place only makes them diverge silently.
+
+## Where things are written down
+
+| Question | Read |
+|---|---|
+| What's left to do, and what was deliberately ruled out | **[docs/NEXT.md](docs/NEXT.md)** — start here |
+| Product roadmap (P0 → Icebox) | [BACKLOG.md](BACKLOG.md) |
+| Why the mobile app / the site / the API look the way they do | [docs/plans/archive/](docs/plans/archive/) — executed plans, kept for their arbitrations |
+| Infrastructure and security audit, still open | [docs/plans/2026-02-14-project-audit.md](docs/plans/2026-02-14-project-audit.md) |
+| The design brief the v2 came from (state *before* v2) | [docs/audit-ux/](docs/audit-ux/) |
+
+Three invariants that cut across modules, each of which a plausible-looking change would break:
+
+- **A ride group's leader is `RideGroupDto.leader`, nullable, and null is the common case** — render
+  nothing, and never fall back to `createdBy` (the *ride's* creator, identical across all its
+  groups). Guarded by the backend test `groupLeader_isNotTheRideCreator`.
+- **An ad's position is blurred to ~1 km and the proximity probe is quantised on the same grid** —
+  every client renders a **sector, never a pin**. `AdDto` carries no contact field either: messages
+  go through an e-mail relay so no address ever appears in the API.
+- **List lookups resolve per *page*, never per row** — `ParticipationLookup`, `CommentCountLookup`
+  and `ThumbnailLookup` each take a fixed number of queries for a whole page. The
+  `…QueryCountTest` classes fail if someone reintroduces a per-row query; don't disable them to make
+  a build pass.
 
 ## Tech Stack
 

@@ -1,5 +1,31 @@
 # Pedalons - Branding & Theme Reference
 
+There are **three** places brand values live. They agree on the business colour code — and they must
+keep agreeing — but each is authoritative over a different thing. Read this before changing a colour
+in one of them:
+
+| Source | Authoritative over | Not authoritative over |
+|---|---|---|
+| **This file** | Icons and generated assets, meta/SEO, and the **web** theme as Mantine renders it (CSS variables, shade scales, component defaults) | Flutter values; anything about layout, motion or editorial tone |
+| [`mobile/lib/core/theme/`](mobile/lib/core/theme/) (`pdl_colors.dart`, `pdl_tokens.dart`, `pdl_typography.dart`) | The **Flutter** app's tokens — and the *only* home of the **derived dark-mode badge pairs**, since no mockup supplied a dark mode. `pdl_colors.dart` documents the derivation rule and proves it against the five pairs the charter does publish | The web |
+| [`docs/audit-ux/analyse/brand.md`](docs/audit-ux/analyse/brand.md) | The fullest written charter: typography scale, radii, shadows, spacing, iconography, signature components, and the **French editorial lexicon** — none of which is in this file | Current code (it was written 25 July 2026, before the v2) |
+
+**The business colour code is semantic, never aesthetic** — one colour means one entity type, status,
+role, surface or climb category. The tables below are the reference; the Flutter side maps the same
+enums in `core/theme/enum_colors.dart`, and the web in
+`frontend/src/components/card/common/badgeColors.ts`. A change here means a change in both, or the
+clients diverge silently.
+
+Two traps worth naming:
+
+- **The 44 px minimum tap target is a *touch* rule.** The web deliberately drops to 36 px above 48em.
+  Don't read the mockup stylesheet as a web specification on this point.
+- **Never introduce the `--pdl-*` CSS variables into the site.** They are the mockup engine's
+  restatement of this charter (`docs/audit-ux/pedalons.css`, quoted in `brand.md` §9). The site
+  already expresses the same charter as a Mantine theme; a second variable layer would create two
+  sources of truth. The Flutter `Pdl*` token classes are a *different* thing — they are that app's
+  real theme, and they are correct.
+
 ## Logo & Icon
 
 **Design**: Stylized letter "P" shaped as a bicycle frame (stem, handlebars, fork) on a rounded square background. Created in Inkscape.
@@ -144,17 +170,21 @@ In light mode, `filled` uses **shade 6**. In dark mode, `filled` shifts to **sha
 
 ### Light Variant (subtle background)
 
-The `light` variant uses a tinted background that also differs per mode:
+The `light` variant uses a tinted background that also differs per mode. In light mode it is
+**shade 1**, not shade 0 — this changed in Mantine 8, and the values below are what actually
+renders. It is visible on every badge in the product; the corresponding *text* colour on that
+background is shade 9 in light mode and shade 0 in dark mode.
 
-| Color  | Light mode bg              | Dark mode bg              |
-|--------|----------------------------|---------------------------|
-| indigo | shade-0 `#edf2ff`          | `rgba(27, 40, 100, 1)`   |
-| blue   | shade-0 `#e7f5ff`          | `rgba(12, 50, 86, 1)`    |
-| green  | shade-0 `#ebfbee`          | `rgba(22, 69, 31, 1)`    |
-| red    | shade-0 `#fff5f5`          | `rgba(101, 21, 21, 1)`   |
-| grape  | shade-0 `#f8f0fc`          | `rgba(67, 23, 78, 1)`    |
-| orange | shade-0 `#fff4e6`          | `rgba(109, 36, 8, 1)`    |
-| gray   | shade-0 `#f8f9fa`          | `rgba(17, 19, 21, 1)`    |
+| Color  | Light mode bg (shade 1) | Dark mode bg              |
+|--------|-------------------------|---------------------------|
+| indigo | `#dbe4ff`               | `rgba(27, 40, 100, 1)`   |
+| blue   | `#d0ebff`               | `rgba(12, 50, 86, 1)`    |
+| green  | `#d3f9d8`               | `rgba(22, 69, 31, 1)`    |
+| red    | `#ffe3e3`               | `rgba(101, 21, 21, 1)`   |
+| grape  | `#f3d9fa`               | `rgba(67, 23, 78, 1)`    |
+| orange | `#ffe8cc`               | `rgba(109, 36, 8, 1)`    |
+| yellow | `#fff3bf`               | `rgba(115, 60, 0, 1)`    |
+| gray   | `#f1f3f5`               | `rgba(17, 19, 21, 1)`    |
 
 ## Mantine Color Palette Reference
 
@@ -228,10 +258,13 @@ Used on badges and card gradients to visually distinguish content types.
 
 ## Visibility Colors
 
-| Visibility | Color  | Hex (shade 6) |
-|------------|--------|---------------|
-| PUBLIC     | `blue` | `#228be6`     |
-| TEAM       | `gray` | `#868e96`     |
+| Visibility        | Color    | Hex (shade 6) |
+|-------------------|----------|---------------|
+| PUBLIC            | `blue`   | `#228be6`     |
+| PUBLIC_UNLISTED   | `orange` | `#fd7e14`     |
+| TEAM              | `gray`   | `#868e96`     |
+
+All three values exist in the `Visibility` enum and are coloured in both clients.
 
 ## Climb Category Colors
 

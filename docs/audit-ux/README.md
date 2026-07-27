@@ -1,5 +1,15 @@
 # Audit UX — écart site web / application mobile
 
+> **Document historique.** Il décrit l'application **telle qu'elle était avant la v2**, et c'est ce
+> qui fait sa valeur : c'est l'entrant qui a produit la v2, pas une description du code actuel. La
+> v2 mobile est livrée depuis le 27 juillet 2026 et la plupart des écarts listés ici sont refermés —
+> les captures de [`mobile/`](mobile/) ne ressemblent plus à l'app. Pour l'état du code, lire
+> [`../plans/archive/`](../plans/archive/) ; pour la suite, [`../NEXT.md`](../NEXT.md).
+>
+> Reste utile en revanche, et sans date de péremption : [`analyse/brand.md`](analyse/brand.md) (la
+> charte, dont le mode sombre a été **dérivé** faute de maquette) et
+> [`pedalons.css`](pedalons.css), qui fait autorité sur les métriques des maquettes.
+
 Entrant de design produit le 25 juillet 2026 pour cadrer la prochaine version de l'app mobile.
 L'objectif est de rapprocher l'application de ce que le site propose déjà.
 

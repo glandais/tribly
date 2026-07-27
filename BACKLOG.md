@@ -1,5 +1,10 @@
 # Pédalons Roadmap
 
+This is the **product** roadmap. The engineering follow-ups from the July 2026 v2 — API gaps that
+each remove a named degradation, the four uncommitted infrastructure workstreams, and the live-app
+test checklist — are in [docs/NEXT.md](docs/NEXT.md). Two entries below overlap with it and are
+noted where they appear.
+
 ## P0 — Launch Blockers
 Must-have for public launch. Focus on first impressions and core UX.
 
@@ -35,6 +40,8 @@ Drive engagement and reduce friction for organizers.
 - [X] Calendar view (rides, trips) + sync URL export
 - [X] User unit system toggle (metric/imperial) — Respect preferences
 - [ ] Ride/trip "Terminated" status — Clarity on past events
+  - Both clients derive it from `dateTime < now` today (mobile centralises it in `RideDto.isPast`).
+    A real `TERMINATED` value in the `Status` enum would remove that. See docs/NEXT.md §5.16
 
 ### Content System
 - [ ] Markdown image improvements:
@@ -61,6 +68,11 @@ Features that differentiate and deepen engagement.
 
 ### Visibility Controls
 - [ ] PUBLIC_UNLISTED visibility — Shareable but not indexed
+  - Half done: the enum value exists, both editors offer it, and both clients badge it orange. The
+    **"not indexed" half is missing** — `frontend/index.html` ships a static
+    `<meta name="robots" content="index, follow">` and nothing emits a per-page `noindex`. Since
+    unlisted pages are SSR-rendered, a crawler indexes them today. The fix belongs with the `meta()`
+    builders in `routes.config.ts`
 
 ### Trip Enhancements
 - [ ] Trip stats (save in DB)
@@ -77,6 +89,9 @@ Requires significant architecture work. Spike before committing.
   - Event types
   - Team/user preferences
   - Dispatchers: webhook, email, in-app
+  - Mobile push is scoped in docs/NEXT.md §4.2 (six endpoints, three triggers) — note that the
+    store-side work (APNs key, `POST_NOTIFICATIONS`, both privacy forms, a new submission) is what
+    sets the real timeline, not the code. No bell is shown anywhere until this lands
 
 ### Administration
 - [X] System admin panel
@@ -105,6 +120,9 @@ Validated interest required before prioritization.
 
 ### Mobile
 - [X] Mobile application (iOS/Android) — Flutter app with auth, teams, rides, routes, calendar
+- [X] Mobile v2 (July 2026) — `core/pdl` design system, five-tab shell, light/dark, metric/imperial,
+      twelve reworked screens. Consultation and participation only: creating and editing content
+      stays out of scope
 
 ### Other
 - [ ] User dedicated team (personal workspace)
