@@ -183,9 +183,10 @@ class RideGroupCard extends StatelessWidget {
           trend: PdlStatTrend.up,
         ),
     ];
-    // `nowrap` avec repli assuré par `PdlStatRow` : au-delà de
-    // `textScaler.scale(14) > 17` la rangée repasse en deux lignes plutôt que
-    // de rogner le dénivelé, systématiquement le dernier et donc le sacrifié.
+    // `nowrap` = gouttière serrée, avec le repli assuré par `PdlStatRow` : dès
+    // que les quatre valeurs ne tiennent plus, la rangée passe en deux lignes
+    // plutôt que de rogner le dénivelé, systématiquement le dernier et donc le
+    // sacrifié.
     return PdlStatRow(stats: stats, nowrap: true);
   }
 

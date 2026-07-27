@@ -45,6 +45,9 @@ class PdlAvatar extends StatelessWidget {
   /// Anneau 2 px `surface` — grappes d'avatars qui se chevauchent.
   final bool ring;
 
+  /// Épaisseur de l'anneau, prise **sur** le diamètre et non autour.
+  static const double _kRingWidth = 2;
+
   /// Corps de la police par taille (§1.2.1 : 8/10/10/12/14/19/34, graisse 700).
   ///
   /// Clés entières : une `Map<double, …>` constante est refusée par l'analyse,
@@ -99,8 +102,6 @@ class PdlAvatar extends StatelessWidget {
     final Color tint = tintFor(c, name, isCurrentUser: isCurrentUser);
 
     final Widget fallback = Container(
-      width: size,
-      height: size,
       alignment: Alignment.center,
       color: tint,
       child: Text(
@@ -118,17 +119,25 @@ class PdlAvatar extends StatelessWidget {
       ),
     );
 
-    Widget avatar = ClipOval(
+    // L'anneau est tracé **à l'intérieur** du diamètre : un `PdlAvatar` occupe
+    // toujours `size × size`, avec ou sans anneau. Sinon un
+    // `Border.all(width: 2)` posé autour porterait l'empreinte réelle à
+    // `size + 4`, et tout appelant qui dimensionne à `size` — la grappe
+    // d'avatars la première, qui pose ses disques dans un `Stack` clippé —
+    // rognerait le disque à droite et l'aplatirait en haut et en bas.
+    final double inner = ring ? size - _kRingWidth * 2 : size;
+
+    final Widget disc = ClipOval(
       child: SizedBox(
-        width: size,
-        height: size,
+        width: inner,
+        height: inner,
         child: imageUrl == null
             ? fallback
             : AuthenticatedImage(
                 imageUrl: imageUrl!,
-                size: (size * 3).round(),
-                width: size,
-                height: size,
+                size: (inner * 3).round(),
+                width: inner,
+                height: inner,
                 fit: BoxFit.cover,
                 placeholder: fallback,
                 errorWidget: fallback,
@@ -136,15 +145,18 @@ class PdlAvatar extends StatelessWidget {
       ),
     );
 
-    if (ring) {
-      avatar = Container(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(color: c.surface, width: 2),
-        ),
-        child: avatar,
-      );
-    }
+    final Widget avatar = ring
+        ? Container(
+            width: size,
+            height: size,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: c.surface, width: _kRingWidth),
+            ),
+            child: disc,
+          )
+        : disc;
 
     return Semantics(label: name, image: true, child: avatar);
   }
