@@ -4,9 +4,10 @@ import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import type { RouteDto, TeamDetailDto, SurfaceType, RouteRequest } from '@/api/dto'
 import { RouteEditor } from './RouteEditor'
-import { useCreateRoute, getListRoutesQueryKey } from '@/api/endpoints/routes/routes'
+import { useCreateRoute } from '@/api/endpoints/routes/routes'
 import { SurfaceType as SurfaceTypeEnum } from '@/api/dto'
 import { defaultMedia } from '@/lib/apiUtils'
+import { invalidateRouteQueries } from '@/lib/routeCacheInvalidation'
 import { Modal } from '@mantine/core'
 
 interface CreateRouteModalProps {
@@ -41,7 +42,7 @@ export function CreateRouteModal({ isOpen, onClose, onRouteCreated, team }: Crea
       },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListRoutesQueryKey(team.slug) })
+          invalidateRouteQueries(queryClient, team.slug)
           notifications.show({ message: i18next.t('routes.notifications.created'), color: 'green' })
         },
       }

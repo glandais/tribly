@@ -49,7 +49,15 @@ public record RouteDetailDto(
                 "Number of comments, replies included. Absent when the caller may not read the"
                     + " comments of this route — comments are members-only, so an outsider is told"
                     + " nothing, not even zero.")
-        Integer commentCount) {
+        Integer commentCount,
+    @Nullable
+        @Schema(
+            description =
+                "Sampled elevation profile of the route. Absent unless explicitly requested (the"
+                    + " bulk route endpoint's 'elevation' flag) — computing and serialising it"
+                    + " costs nothing to skip, so every other caller of this DTO gets exactly what"
+                    + " it got before this field existed.")
+        ElevationProfileDto elevationProfile) {
 
   public static RouteDetailDto from(Route route, AssetService assetService) {
     return from(route, assetService, GeometryOptions.FULL, CommentCounts.NONE);
@@ -85,6 +93,32 @@ public record RouteDetailDto(
         route.getTracks().stream().map(track -> TrackDto.from(track, geometry)).toList(),
         route.getWaypoints().stream().map(WaypointDto::from).toList(),
         route.isDeleted(),
-        commentCounts.forEntity(route.getId()));
+        commentCounts.forEntity(route.getId()),
+        null);
+  }
+
+  /** Same detail, with its elevation profile attached — the bulk route endpoint's opt-in. */
+  public RouteDetailDto withElevationProfile(ElevationProfileDto elevationProfile) {
+    return new RouteDetailDto(
+        id,
+        slug,
+        team,
+        name,
+        media,
+        distance,
+        elevationGain,
+        elevationLoss,
+        surfaceType,
+        visibility,
+        start,
+        end,
+        createdBy,
+        createdAt,
+        updatedAt,
+        tracks,
+        waypoints,
+        deleted,
+        commentCount,
+        elevationProfile);
   }
 }

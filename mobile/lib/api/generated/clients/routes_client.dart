@@ -20,6 +20,7 @@ import '../models/route_list_response.dart';
 import '../models/route_request.dart';
 import '../models/route_sort_by.dart';
 import '../models/route_usages_response.dart';
+import '../models/routes_bulk_response.dart';
 import '../models/slug_change_request.dart';
 import '../models/sort_direction.dart';
 import '../models/surface_type.dart';
@@ -361,6 +362,31 @@ abstract class RoutesClient {
     @Query('search') String? search,
     @Query('surfaceType') SurfaceType? surfaceType,
     @Query('windDirection') WindDirection? windDirection,
+  });
+
+  /// Get several routes' details at once.
+  ///
+  /// The detail of every requested 'slug' that exists and the caller may read, in one round-trip — built for the screens that load several routes together (a ride's stages, a comparison view), which would otherwise cost one request per route. Accepts the same 'simplify' and 'points' geometry knobs as the single-route endpoint, plus an optional elevation profile per route. Unknown slugs and slugs the caller may not read are silently left out of the answer rather than failing the whole batch. When the batch resolves to a single route, 'simplify'/'points' behave exactly as on the single-route endpoint — including returning the stored track unchanged when neither is given. Past one route, the per-route point count is capped at 1000 regardless of what 'simplify'/'points' resolve to, so a request naming many slugs cannot be used to pull the full stored geometry of all of them at once. The response also carries the bounding box of the track geometry actually sent back (waypoints are excluded, so an imported meeting-point or car-park waypoint far off the track cannot widen it), so a map can frame the batch without a second request.
+  ///
+  /// [teamSlug] - Team URL slug.
+  ///
+  /// [elevation] - Whether to attach each route's sampled elevation profile.
+  ///
+  /// [elevationSamples] - Resolution of the elevation profile when 'elevation' is true. Same clamping as the single-route elevation-profile endpoint.
+  ///
+  /// [points] - Maximum number of track points per route, applied to every route of the batch — same semantics as on the single-route endpoint. Once the batch resolves to more than one route, this is capped at 1000 per route regardless of the value passed here (or of 'simplify'), so a request naming many slugs cannot be used to pull the full stored geometry of all of them at once.
+  ///
+  /// [simplify] - Douglas-Peucker tolerance in meters, applied to every route of the batch — same semantics as on the single-route endpoint.
+  ///
+  /// [slug] - Route slug to include, repeatable. Capped at 50; unknown slugs and slugs the caller may not read are silently omitted from the response rather than erroring. Unlike GET /{routeSlug}, a slug that was renamed is also omitted rather than followed to the route's current slug: the single-route endpoint falls back to the rename history, this one does not. Same 'omit, never fail' contract as an unknown or unreadable slug, just for a different reason.
+  @GET('/api/teams/{teamSlug}/routes/bulk')
+  Future<RoutesBulkResponse> getRoutesBulk({
+    @Path('teamSlug') required String teamSlug,
+    @Query('points') int? points,
+    @Query('simplify') double? simplify,
+    @Query('slug') List<String>? slug,
+    @Query('elevation') bool? elevation = false,
+    @Query('elevationSamples') int? elevationSamples = 300,
   });
 
   /// Count routes.

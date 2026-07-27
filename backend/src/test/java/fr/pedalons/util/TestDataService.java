@@ -20,6 +20,7 @@ import fr.pedalons.domain.ride.*;
 import fr.pedalons.domain.ridetemplate.RideTemplate;
 import fr.pedalons.domain.ridetemplate.RideTemplateGroup;
 import fr.pedalons.domain.route.GpxTrack;
+import fr.pedalons.domain.route.GpxWaypoint;
 import fr.pedalons.domain.route.Route;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.team.TeamPage;
@@ -450,6 +451,53 @@ public class TestDataService {
     route.addTrack(track);
     routeRepository.persistAndFlush(route);
     return route;
+  }
+
+  /**
+   * A route with several tracks — one {@link GpxTrack} per entry of {@code tracksPoints}, mirroring
+   * one GPX {@code trk}/{@code rte} element per track. Nothing else in this test helper file builds
+   * more than one track per route; this exists specifically to reproduce a route whose stored
+   * geometry is spread across N rows instead of one, e.g. for {@link
+   * fr.pedalons.service.route.RouteService#getRoutesBulk} tests bounding the per-route point
+   * budget regardless of track count.
+   */
+  @Transactional
+  public Route createRouteWithTracks(
+      Team team,
+      User createdBy,
+      String name,
+      Visibility visibility,
+      List<List<GpxTrack.TrackPoint>> tracksPoints) {
+    Route route =
+        new Route(createdBy, team, name, SlugService.slugify(name), visibility, SurfaceType.ROAD);
+    int i = 0;
+    for (List<GpxTrack.TrackPoint> trackPoints : tracksPoints) {
+      GpxTrack.TrackPoint first = trackPoints.getFirst();
+      GpxTrack.TrackPoint last = trackPoints.getLast();
+      String geometry =
+          String.format(
+              "LINESTRING(%f %f,%f %f)", first.lng(), first.lat(), last.lng(), last.lat());
+      LineString<G2D> lineString = (LineString<G2D>) Wkt.fromWkt(geometry, WGS84);
+      GpxTrack track =
+          new GpxTrack(
+              createdBy, name + " " + i, lineString, trackPoints, new Climbs(), 10, 10, 10);
+      route.addTrack(track);
+      i++;
+    }
+    routeRepository.persistAndFlush(route);
+    return route;
+  }
+
+  /** Adds a waypoint at an arbitrary position to an existing route — e.g. a GPX 'wpt'. */
+  @Transactional
+  public void addWaypoint(Route route, User createdBy, String name, double lat, double lon) {
+    GpxWaypoint waypoint =
+        new GpxWaypoint(
+            createdBy,
+            name,
+            org.geolatte.geom.builder.DSL.point(WGS84, org.geolatte.geom.builder.DSL.g(lon, lat)));
+    route.addWaypoint(waypoint);
+    routeRepository.getEntityManager().merge(route);
   }
 
   @Transactional

@@ -1,3 +1,4 @@
+import type { ElevationProfileDto } from './elevationProfileDto.ts'
 import type { GeoJsonPoint } from './geoJsonPoint.ts'
 import type { Instant } from './instant.ts'
 import type { MediaDto } from './mediaDto.ts'
@@ -48,4 +49,6 @@ export interface RouteDetailDto {
   deleted: boolean
   /** Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero. */
   commentCount?: number
+  /** Sampled elevation profile of the route. Absent unless explicitly requested (the bulk route endpoint's 'elevation' flag) — computing and serialising it costs nothing to skip, so every other caller of this DTO gets exactly what it got before this field existed. */
+  elevationProfile?: ElevationProfileDto
 }

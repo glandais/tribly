@@ -40,8 +40,9 @@ import {
   getGetRideQueryKey,
 } from '../../api/endpoints/rides/rides'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
+import { useRoutesBulk } from '@/hooks/useRoutesBulk'
 import { Status } from '@/api/dto'
-import type { RideDto } from '@/api/dto'
+import type { RideDto, RouteDetailDto } from '@/api/dto'
 import { ApiClientError } from '@/lib/apiError'
 import { useAuth } from '../../hooks/useAuth'
 import { EmptyState } from '../../components/common/EmptyState'
@@ -127,6 +128,32 @@ export function RideDetailPage() {
 
     return items
   }, [ride, t])
+
+  // One bulk request for every group's (or the ride's) route, instead of each `RideGroupCard`
+  // fetching its own on first hover — groups frequently share the ride's route. The key string
+  // is memoized on the slugs' own values so the request stays stable across unrelated renders.
+  const groupRouteSlugsKey = (ride?.groups ?? [])
+    .map((g) => g.routeSlug || ride?.routeSlug)
+    .filter((s): s is string => !!s)
+    .sort()
+    .join(',')
+  const groupRouteSlugs = useMemo(
+    () => (groupRouteSlugsKey ? Array.from(new Set(groupRouteSlugsKey.split(','))) : []),
+    [groupRouteSlugsKey]
+  )
+  const { data: groupRoutesBulk } = useRoutesBulk(teamSlug!, {
+    // Only the GPX/FIT asset links are used — request the minimum track geometry the
+    // contract allows (2 points) rather than the full simplified track.
+    slug: groupRouteSlugs,
+    points: 2,
+  })
+  const groupRoutesBySlug = useMemo(() => {
+    const map = new Map<string, RouteDetailDto>()
+    for (const route of groupRoutesBulk?.routes ?? []) {
+      map.set(route.slug, route)
+    }
+    return map
+  }, [groupRoutesBulk])
 
   useCanonicalPath(team && ride ? paths.ride(team.slug, ride.slug) : undefined)
 
@@ -504,6 +531,7 @@ export function RideDetailPage() {
                     group={group}
                     teamSlug={teamSlug!}
                     rideRouteSlug={ride.routeSlug}
+                    routesBySlug={groupRoutesBySlug}
                     canJoin={canJoinRide}
                     onJoin={() => handleJoinGroup(group.id)}
                     onLeave={() => handleLeaveGroup(group.id)}

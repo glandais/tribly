@@ -26,7 +26,8 @@ import { RoutePreview } from '../route/RoutePreview'
 import { RoutePreviewCompact } from '../route/RoutePreviewCompact'
 import { MediaEditor } from '../common/MediaEditor'
 import { PlaceAutocomplete } from '../common/PlaceAutocomplete'
-import type { RouteDto, TeamDetailDto, RideRequest, PublicUserDto } from '@/api/dto'
+import { useRoutesBulk } from '@/hooks/useRoutesBulk'
+import type { RouteDto, RouteDetailDto, TeamDetailDto, RideRequest, PublicUserDto } from '@/api/dto'
 import { UserAutocomplete } from '../common/UserAutocomplete'
 import { UserAvatar } from '../common/UserAvatar'
 import { Status } from '@/api/dto'
@@ -102,6 +103,50 @@ export function RideEditor({
     () => initialLeaders ?? {}
   )
   const routeSlug = form.values.routeSlug
+
+  // One bulk request for every group's route preview, instead of one `getRoute` per group —
+  // groups frequently share the same route. The key string is memoized on the slugs' own
+  // values (not the `groups` array reference, which mantine's `useForm` may recreate on
+  // unrelated field edits) so the request stays stable across renders that don't touch routes.
+  const groupRouteSlugsKey = groups
+    .map((g) => g.routeSlug)
+    .filter((s): s is string => !!s)
+    .sort()
+    .join(',')
+  const groupRouteSlugs = useMemo(
+    () => (groupRouteSlugsKey ? Array.from(new Set(groupRouteSlugsKey.split(','))) : []),
+    [groupRouteSlugsKey]
+  )
+  const {
+    data: groupRoutesBulk,
+    isLoading: isLoadingGroupRoutes,
+    isFetching: isFetchingGroupRoutes,
+    failedSlugs: failedGroupRouteSlugs,
+  } = useRoutesBulk(teamSlug, {
+    // Only the name, distance and elevation gain are shown — request the minimum track
+    // geometry the contract allows (2 points) rather than the full simplified track.
+    slug: groupRouteSlugs,
+    points: 2,
+  })
+  const groupRoutesBySlug = useMemo(() => {
+    const map = new Map<string, RouteDetailDto>()
+    for (const route of groupRoutesBulk?.routes ?? []) {
+      map.set(route.slug, route)
+    }
+    return map
+  }, [groupRoutesBulk])
+  // `useRoutesBulk` keeps previous data while the slug set changes, so `isLoadingGroupRoutes`
+  // alone would only be true on first mount — picking a new route for one group must still show
+  // a spinner for THAT row rather than briefly rendering nothing (no match in `groupRoutesBySlug`
+  // yet) or stale data for a different route. Rows whose slug is already resolved keep rendering
+  // from the previous data untouched. A slug whose chunk failed (`failedGroupRouteSlugs`) is never
+  // "loading" — even while another chunk is still in flight — so its row falls through to
+  // `RoutePreviewCompact`'s "not found" state instead of spinning forever.
+  const isGroupRouteLoading = (slug: string | undefined) =>
+    !!slug &&
+    !groupRoutesBySlug.has(slug) &&
+    !failedGroupRouteSlugs.has(slug) &&
+    (isLoadingGroupRoutes || isFetchingGroupRoutes)
 
   useEffect(() => {
     form.validateField('publishAt')
@@ -445,7 +490,10 @@ export function RideEditor({
                     </Group>
                   </Group>
                   {group.routeSlug ? (
-                    <RoutePreviewCompact routeSlug={group.routeSlug} teamSlug={teamSlug} />
+                    <RoutePreviewCompact
+                      route={groupRoutesBySlug.get(group.routeSlug)}
+                      isLoading={isGroupRouteLoading(group.routeSlug)}
+                    />
                   ) : (
                     <Text size="xs" c="dimmed" fs="italic">
                       {t('noRouteSelected')}

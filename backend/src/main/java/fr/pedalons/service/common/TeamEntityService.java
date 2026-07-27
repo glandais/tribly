@@ -118,7 +118,10 @@ public abstract class TeamEntityService<
       return toDto(entity);
     }
 
-    if (getRepository().existsByTeamAndSlug(entity.getTeam().getId(), newSlug)) {
+    // A reserved slug is well-formed but permanently unavailable — same "taken" shape as a
+    // genuine uniqueness conflict, see SlugService.isReservedSlug.
+    if (slugService.isReservedSlug(getRepository().getEntityType(), newSlug)
+        || getRepository().existsByTeamAndSlug(entity.getTeam().getId(), newSlug)) {
       throw new ConflictException(ErrorCode.SLUG_TAKEN);
     }
 

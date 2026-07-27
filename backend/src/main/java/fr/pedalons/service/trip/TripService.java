@@ -138,7 +138,9 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
   /**
    * {@code TripStageRepository} is a plain {@code BaseRepository}, so the {@code
    * generateSlug(name, teamId, repository)} overload is out of reach — the uniqueness probe is spelt
-   * out instead. It counts soft-deleted stages too, matching {@code uk_team_entity_slug}, which has
+   * out instead, via the {@code TeamEntityType}-aware overload so a reserved slug (should {@code
+   * TRIP_STAGE} ever gain one in {@code SlugService.RESERVED_SLUGS}) is rejected the same way a
+   * taken one is. It counts soft-deleted stages too, matching {@code uk_team_entity_slug}, which has
    * no {@code deleted} predicate. Panache adds the discriminator, so only stages are considered.
    */
   private String stageSlug(Trip trip, StageRequest stageRequest) {
@@ -146,6 +148,7 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
     String slug =
         slugService.generateSlug(
             stageRequest.name(),
+            TeamEntityType.TRIP_STAGE,
             candidate ->
                 tripStageRepository.count("team.id = ?1 and slug = ?2", teamId, candidate) > 0);
     slugService.clearEntityRedirect(teamId, TeamEntityType.TRIP_STAGE, slug);

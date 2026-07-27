@@ -87,6 +87,34 @@ class TrackGeometryTest {
       assertEquals(source.getLast(), decimated.getLast());
     }
 
+    /**
+     * Defect B1-b: {@code maxPoints <= 2} used to be treated the same as "not asked for" (0) and
+     * short-circuited to the untouched source — so a caller asking for the smallest budget the
+     * contract allows (2, {@link fr.pedalons.dto.routes.request.GeometryOptions#MIN_POINTS}) got
+     * back the full stored track instead, megabytes for a long route. The algorithm already
+     * terminates at exactly two points once both endpoints are kept and the budget is met, so all
+     * that was needed was to stop taking the shortcut for a small positive budget.
+     */
+    @Test
+    void shouldReturnJustTheEndpointsWhenTheBudgetIsTwo() {
+      List<TrackPoint> source = wobblyLine(21);
+      List<TrackPoint> decimated = TrackGeometry.decimateTo(source, 2);
+      assertEquals(2, decimated.size());
+      assertEquals(source.getFirst(), decimated.getFirst());
+      assertEquals(source.getLast(), decimated.getLast());
+      assertNotSame(source, decimated, "a budget of 2 on a 21-point source must decimate");
+    }
+
+    /**
+     * A budget below two cannot be honoured literally — both endpoints are always kept — but it
+     * must not fall back to the untouched-source shortcut either: two points beats the full track.
+     */
+    @Test
+    void shouldReturnJustTheEndpointsWhenTheBudgetIsOne() {
+      List<TrackPoint> source = wobblyLine(21);
+      assertEquals(2, TrackGeometry.decimateTo(source, 1).size());
+    }
+
     @Test
     void shouldPreserveOrdering() {
       List<TrackPoint> decimated = TrackGeometry.decimateTo(wobblyLine(101), 12);

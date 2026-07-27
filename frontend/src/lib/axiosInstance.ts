@@ -12,6 +12,10 @@ const isServer = typeof window === 'undefined'
 // On the server, read API_BASE_URL at runtime (not baked at build time via Vite define).
 export const AXIOS_INSTANCE = Axios.create({
   withCredentials: true,
+  // Axios's built-in serializer defaults array query params to `key[]=a&key[]=b` (`indexes:
+  // false`). JAX-RS `@QueryParam List<String>` (e.g. routes/bulk's `slug`) only binds the plain
+  // repeated form `key=a&key=b` — `indexes: null` selects that form for every array param.
+  paramsSerializer: { indexes: null },
   ...(isServer ? { baseURL: process.env.API_BASE_URL || 'http://localhost:8080' } : {}),
 })
 

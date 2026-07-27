@@ -69,7 +69,11 @@ class RideGroupsMap extends ConsumerWidget {
       final RouteDetailDto? route = ref
           .watch(
             rideRouteGeometryProvider(
-              RouteRef(teamSlug: ride.team.slug, routeSlug: slug),
+              RouteRef(
+                teamSlug: ride.team.slug,
+                rideSlug: rideKey.rideSlug,
+                routeSlug: slug,
+              ),
             ),
           )
           .value;

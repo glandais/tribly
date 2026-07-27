@@ -254,4 +254,39 @@ public class RouteRepository implements TeamEntityRepository<Route, RouteQuery> 
   public List<Route> findByCreator(Long domainId, Long userId) {
     return list("createdBy.id = ?2 and team.domain.id = ?1 order by createdAt", domainId, userId);
   }
+
+  /**
+   * Every route of {@code slugs} the caller may read, in one query — the bulk detail endpoint's
+   * backing fetch.
+   *
+   * <p>Reuses the exact shape {@link #findOne} would use for a single slug ({@code list=false}):
+   * same visibility clauses, same fetch-joined team, only the {@code slug = } equality is widened
+   * to an {@code IN}. A slug that is unknown, deleted (unless {@code includeDeleted}), or whose
+   * route the caller may not read per those clauses simply does not come back — the caller cannot
+   * tell the three apart, which is the point: a bulk fetch has no single "not found" to report.
+   */
+  public List<Route> findByTeamAndSlugs(
+      Long domainId,
+      Long teamId,
+      @Nullable Long userId,
+      Set<String> slugs,
+      boolean includeDeleted,
+      boolean platformAdmin) {
+    if (slugs.isEmpty()) {
+      return List.of();
+    }
+    RouteQuery query =
+        RouteQuery.builder()
+            .domainId(domainId)
+            .teamIds(Set.of(teamId))
+            .userId(userId)
+            .includeDeleted(includeDeleted)
+            .platformAdmin(platformAdmin)
+            .build();
+    QueryShape singleEntityShape =
+        new QueryShape("te", getEntityType().getTypeName() + " te left join fetch te.team", true);
+    return findAll(
+        getPedalonsQuery(query, false, singleEntityShape)
+            .and("te.slug IN (:slugs)", Map.of("slugs", slugs)));
+  }
 }

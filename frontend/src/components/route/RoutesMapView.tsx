@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
-import { useQueries } from '@tanstack/react-query'
+import type { LngLatBoundsLike } from 'maplibre-gl'
 import { Source, Layer, MapRef, MapMouseEvent } from 'react-map-gl/maplibre'
 import { Line } from 'react-chartjs-2'
 import {
@@ -18,7 +18,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { Box, Center, Text, Paper, useComputedColorScheme, useMantineTheme } from '@mantine/core'
 import { useMapHeight } from '@/hooks/useResponsive'
-import { getGetRouteQueryOptions } from '@/api/endpoints/routes/routes'
+import { useRoutesBulk } from '@/hooks/useRoutesBulk'
 import type { RouteDetailDto } from '@/api/dto'
 import { StartMarker, EndMarker } from '../map/MapMarkers'
 import { calculateBounds, routeToGeoJSON } from '../map/mapUtils'
@@ -102,29 +102,40 @@ export function RoutesMapView({
   const [cursor, setCursor] = useState<string>('grab')
   const [isMapLoaded, setIsMapLoaded] = useState(false)
 
-  // One query per route, run in parallel and shared with every other consumer of
-  // `getRoute` (RideGroupCard, RouteDetailPage). This used to be a `for … await`
-  // loop calling the raw `getRoute()` outside React Query: sequential, uncached,
-  // undeduplicated, and with no exploitable error state.
+  // One bulk request for every distinct route slug on the screen, instead of one `getRoute`
+  // per item (several ride groups, or every stage of a trip, often share the same route).
+  // Slugs are deduped and the array is memoized on their sorted, joined value so the query
+  // key — and so the request — stays stable across renders that don't actually change the set.
   const itemsWithRoutes = useMemo(() => items.filter((item) => item.routeSlug), [items])
-  const routeQueries = useQueries({
-    queries: itemsWithRoutes.map((item) =>
-      getGetRouteQueryOptions(teamSlug, item.routeSlug!, { simplify: MAP_SIMPLIFY_TOLERANCE_M })
-    ),
+  const dedupedSlugsKey = useMemo(
+    () =>
+      Array.from(new Set(itemsWithRoutes.map((item) => item.routeSlug!)))
+        .sort()
+        .join(','),
+    [itemsWithRoutes]
+  )
+  const dedupedSlugs = useMemo(
+    () => (dedupedSlugsKey ? dedupedSlugsKey.split(',') : []),
+    [dedupedSlugsKey]
+  )
+
+  const { data: bulkData, isLoading } = useRoutesBulk(teamSlug, {
+    slug: dedupedSlugs,
+    simplify: MAP_SIMPLIFY_TOLERANCE_M,
   })
 
-  const isLoading = routeQueries.some((q) => q.isLoading)
-
-  // `useQueries` returns a fresh array on every render, so memoising on it directly would
-  // recompute each time — and `routesData` feeds `fitBoundsToRoutes`, which would then
-  // refit the map on every render. Key the memo on when the data last changed instead.
-  const routesFetchedAt = routeQueries.map((q) => q.dataUpdatedAt).join(',')
-  const routeData = routeQueries.map((q) => q.data)
+  const routesBySlug = useMemo(() => {
+    const map = new Map<string, RouteDetailDto>()
+    for (const route of bulkData?.routes ?? []) {
+      map.set(route.slug, route)
+    }
+    return map
+  }, [bulkData])
 
   const routesData = useMemo<RouteData[]>(
     () =>
       itemsWithRoutes.flatMap((item, i) => {
-        const routeDetail = routeData[i]
+        const routeDetail = routesBySlug.get(item.routeSlug!)
         if (!routeDetail) return []
         const trackPoints = routeDetail.tracks?.flatMap((track) => track.line.coordinates) || []
         if (trackPoints.length === 0) return []
@@ -140,22 +151,27 @@ export function RoutesMapView({
           },
         ]
       }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [itemsWithRoutes, routesFetchedAt]
+    [itemsWithRoutes, routesBySlug]
   )
 
-  // Fit bounds when map is loaded AND routes are available
+  // Fit bounds when map is loaded AND routes are available. Prefer the server-computed
+  // `extent` (built from the same decimated geometry actually returned) over recomputing it
+  // client-side from `routesData`.
   const fitBoundsToRoutes = useCallback(() => {
     if (mapRef.current && routesData.length > 0) {
-      const allTrackPoints = routesData.flatMap((r) => r.trackPoints)
-      const bounds = calculateBounds(allTrackPoints)
+      const bounds = bulkData?.extent
+        ? ([
+            [bulkData.extent.minLon, bulkData.extent.minLat],
+            [bulkData.extent.maxLon, bulkData.extent.maxLat],
+          ] satisfies LngLatBoundsLike)
+        : calculateBounds(routesData.flatMap((r) => r.trackPoints))
       // Chart overlay is 150px at top-right, add top padding to keep route visible
       mapRef.current.fitBounds(bounds, {
         padding: { top: 170, bottom: 50, left: 50, right: 50 },
         duration: 0,
       })
     }
-  }, [routesData])
+  }, [routesData, bulkData])
 
   // Handle map load
   const handleMapLoad = useCallback(() => {

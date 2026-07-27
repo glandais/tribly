@@ -1,3 +1,7 @@
+import 'dart:async';
+import 'dart:developer' as developer;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
@@ -18,47 +22,223 @@ import 'ride_detail_provider.dart';
 final selectedRideGroupProvider = StateProvider.autoDispose
     .family<String?, RideKey>((Ref ref, RideKey key) => null);
 
-/// Les tracés d'une sortie, **dédoublonnés par `routeSlug`**.
+/// Au-delà de ce nombre de parcours distincts, on n'en charge que les
+/// premiers.
 ///
-/// Dix groupes partagent souvent trois parcours : sans déduplication, la carte
-/// déclencherait dix `getRoute` pour trois géométries. La clé du cache est le
-/// slug, pas le groupe.
+/// C'est le plafond serveur de `getRoutesBulk` (`RouteService.MAX_BULK_SLUGS`) :
+/// sans lui, une sortie aux dizaines de groupes sur autant de parcours
+/// distincts ferait 400 sur le lot et laisserait la carte vide. Une sortie
+/// avec plus de cinquante parcours distincts est de toute façon pathologique
+/// — le plafond est donc silencieux côté utilisateur, mais **journalisé**.
+const int kRideRouteSlugCap = 50;
+
+/// Les tracés d'une sortie, **dédoublonnés par `routeSlug`** et chargés en
+/// **un seul appel groupé** au premier chargement.
+///
+/// Dix groupes partagent souvent trois parcours : sans déduplication (faite
+/// par [distinctRouteSlugs]), le lot demanderait dix géométries pour trois
+/// utiles. Et le lot lui-même remplace ce qui était encore N `getRoute` (un
+/// par slug distinct) par une seule requête `getRoutesBulk`.
+///
+/// Le chargement ne dépend du détail de la sortie que pour calculer
+/// [distinctRouteSlugs] — il n'est **pas** relancé quand le détail se
+/// recharge sans que cet ensemble change (une inscription, un changement de
+/// groupe, un échec réinvalident tous `rideDetailProvider`, mais ne changent
+/// jamais les parcours des groupes). C'est le même principe que
+/// `tripTracksProvider` : une file de slugs déjà demandés fait taire les
+/// réémissions qui n'apportent rien de neuf.
+///
+/// Quand l'ensemble *change* vraiment (édition de la sortie), seuls les
+/// nouveaux slugs repartent en requête — comme `tripTracksProvider`, les
+/// géométries déjà connues restent dans l'état pendant que le complément se
+/// charge, au lieu d'un `AsyncValue.loading()` sec qui viderait la carte
+/// entière le temps du lot. Un slug qui sort de l'ensemble voulu est retiré
+/// tout de suite, lui, sans attendre la fin du nouveau lot.
 ///
 /// `simplify: 15` / `points: 1500` : un aperçu de sortie n'a pas besoin de la
 /// précision du mètre, et dix tracés pleins tiendraient plusieurs mégaoctets.
+final rideRouteGeometriesProvider = StateNotifierProvider.autoDispose
+    .family<RideRouteGeometriesController, RideRouteGeometriesState, RideKey>((
+      Ref ref,
+      RideKey key,
+    ) {
+      final RideRouteGeometriesController controller =
+          RideRouteGeometriesController(ref, key);
+      ref.listen<AsyncValue<RideDto>>(rideDetailProvider(key), (
+        AsyncValue<RideDto>? _,
+        AsyncValue<RideDto> next,
+      ) {
+        final RideDto? ride = next.value;
+        if (ride != null) controller.loadFor(ride);
+      }, fireImmediately: true);
+      return controller;
+    });
+
+/// Ce que la carte d'une sortie sait de ses tracés, à un instant donné.
+///
+/// Même forme que `TripTracksState` : une carte de géométries qui ne se
+/// remplace jamais d'un coup, et un ensemble d'échecs séparé — un lot qui
+/// omet un slug (inconnu, illisible) ou qui échoue tout entier rejoint
+/// [failed] sans effacer ce qui était déjà chargé.
+@immutable
+class RideRouteGeometriesState {
+  const RideRouteGeometriesState({
+    this.geometries = const <String, RouteDetailDto>{},
+    this.failed = const <String>{},
+  });
+
+  /// Les géométries chargées, par `routeSlug`.
+  final Map<String, RouteDetailDto> geometries;
+
+  /// Les parcours dont l'appel a échoué, ou absents de la réponse groupée.
+  final Set<String> failed;
+
+  RideRouteGeometriesState copyWith({
+    Map<String, RouteDetailDto>? geometries,
+    Set<String>? failed,
+  }) => RideRouteGeometriesState(
+    geometries: geometries ?? this.geometries,
+    failed: failed ?? this.failed,
+  );
+}
+
+class RideRouteGeometriesController
+    extends StateNotifier<RideRouteGeometriesState> {
+  RideRouteGeometriesController(this._ref, this._key)
+    : super(const RideRouteGeometriesState());
+
+  final Ref _ref;
+  final RideKey _key;
+
+  /// L'ensemble de slugs de la dernière requête envoyée — `null` avant la
+  /// première. Comparé à chaque appel de [loadFor] : un ensemble inchangé
+  /// n'émet aucune nouvelle requête, même si `rideDetailProvider` vient de
+  /// réémettre (voir la note de tête du fichier).
+  Set<String>? _requestedSlugs;
+
+  void loadFor(RideDto ride) {
+    List<String> slugs = distinctRouteSlugs(ride);
+    if (slugs.length > kRideRouteSlugCap) {
+      developer.log(
+        'Sortie ${_key.rideSlug} : ${slugs.length} parcours distincts, '
+        'plafonné à $kRideRouteSlugCap',
+        name: 'rides.geometries',
+      );
+      slugs = slugs.take(kRideRouteSlugCap).toList();
+    }
+
+    final Set<String> wanted = slugs.toSet();
+    if (_requestedSlugs != null && setEquals(_requestedSlugs, wanted)) {
+      return;
+    }
+    _requestedSlugs = wanted;
+
+    // Les slugs qui sortent de l'ensemble voulu sont retirés tout de suite —
+    // ils n'ont aucune raison de survivre le temps du prochain lot.
+    state = state.copyWith(
+      geometries: Map<String, RouteDetailDto>.fromEntries(
+        state.geometries.entries.where(
+          (MapEntry<String, RouteDetailDto> e) => wanted.contains(e.key),
+        ),
+      ),
+      failed: state.failed.where(wanted.contains).toSet(),
+    );
+
+    // Seuls les slugs pas encore connus repartent en requête : un slug déjà
+    // chargé reste affiché tel quel, il n'a pas besoin d'être retéléchargé
+    // parce que d'autres groupes ont changé de parcours.
+    final List<String> todo = slugs
+        .where((String slug) => !state.geometries.containsKey(slug))
+        .toList();
+    if (todo.isEmpty) return;
+    unawaited(_load(todo));
+  }
+
+  /// Charge [slugs] en un appel groupé et fusionne le résultat dans l'état
+  /// existant, sans jamais le remplacer — c'est ce qui garde à l'écran les
+  /// tracés déjà connus pendant que ceux-ci se chargent.
+  Future<void> _load(List<String> slugs) async {
+    try {
+      final RoutesBulkResponse response = await _ref
+          .read(routeRepositoryProvider)
+          .getRoutesBulk(_key.teamSlug, slugs, simplify: 15, points: 1500);
+      if (!mounted) return;
+      final Map<String, RouteDetailDto> loaded = <String, RouteDetailDto>{
+        for (final RouteDetailDto route in response.routes) route.slug: route,
+      };
+      final Set<String> missing = slugs
+          .where((String slug) => !loaded.containsKey(slug))
+          .toSet();
+      state = state.copyWith(
+        geometries: <String, RouteDetailDto>{...state.geometries, ...loaded},
+        failed: <String>{...state.failed, ...missing},
+      );
+    } catch (_) {
+      if (!mounted) return;
+      state = state.copyWith(failed: <String>{...state.failed, ...slugs});
+    }
+  }
+}
+
+/// Le tracé d'**un** parcours d'une sortie — lu dans le lot chargé par
+/// [rideRouteGeometriesProvider], jamais par un appel séparé.
+///
+/// Conservé comme point d'entrée par slug pour les consommateurs (la carte de
+/// groupes, qui a besoin d'observer chaque parcours indépendamment) : c'est le
+/// lot sous-jacent qui est partagé et dédoublonné, pas cette façade.
 final rideRouteGeometryProvider =
-    FutureProvider.family<RouteDetailDto, RouteRef>((
+    Provider.family<AsyncValue<RouteDetailDto>, RouteRef>((
       Ref ref,
       RouteRef route,
-    ) async {
-      return ref
-          .watch(routeRepositoryProvider)
-          .getRouteDetail(
-            route.teamSlug,
-            route.routeSlug,
-            simplify: 15,
-            points: 1500,
-          );
+    ) {
+      final RideRouteGeometriesState state = ref.watch(
+        rideRouteGeometriesProvider(
+          RideKey(teamSlug: route.teamSlug, rideSlug: route.rideSlug),
+        ),
+      );
+      final RouteDetailDto? found = state.geometries[route.routeSlug];
+      if (found != null) return AsyncValue<RouteDetailDto>.data(found);
+      if (state.failed.contains(route.routeSlug)) {
+        // Absent du lot : slug inconnu, ou illisible par l'appelant (le lot
+        // ne fait jamais 404 pour ça — il omet). Une erreur ici reproduit ce
+        // qu'aurait fait un `getRoute` individuel en échec : la carte omet
+        // ce tracé plutôt que de planter.
+        return AsyncValue<RouteDetailDto>.error(
+          StateError(
+            'Route ${route.routeSlug} absente de la réponse groupée '
+            'pour la sortie ${route.rideSlug}',
+          ),
+          StackTrace.current,
+        );
+      }
+      // Ni chargé ni en échec : la requête qui le couvre est en vol.
+      return const AsyncValue<RouteDetailDto>.loading();
     }, isAutoDispose: true);
 
-/// Un parcours dans son équipe — la clé de cache des géométries.
+/// Un parcours d'une sortie donnée — la clé de cache des géométries.
 class RouteRef {
-  const RouteRef({required this.teamSlug, required this.routeSlug});
+  const RouteRef({
+    required this.teamSlug,
+    required this.rideSlug,
+    required this.routeSlug,
+  });
 
   final String teamSlug;
+  final String rideSlug;
   final String routeSlug;
 
   @override
   bool operator ==(Object other) =>
       other is RouteRef &&
       other.teamSlug == teamSlug &&
+      other.rideSlug == rideSlug &&
       other.routeSlug == routeSlug;
 
   @override
-  int get hashCode => Object.hash(teamSlug, routeSlug);
+  int get hashCode => Object.hash(teamSlug, rideSlug, routeSlug);
 
   @override
-  String toString() => 'RouteRef($teamSlug/$routeSlug)';
+  String toString() => 'RouteRef($teamSlug/$rideSlug/$routeSlug)';
 }
 
 /// Les `routeSlug` distincts d'une sortie, dans l'ordre des groupes.

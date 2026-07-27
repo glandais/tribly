@@ -135,6 +135,7 @@ d'états vides).
 | 2.1 | `GET /api/teams/{teamSlug}/classifieds/count` — la 5ᵉ des cinq listes visées, seule sans endpoint de comptage. En attendant, la feuille de filtres des annonces lit `total` d'un `…/classifieds?size=1&view=compact` | backend, symétrique des quatre autres `…/count` | S |
 | 2.2 | Déclarer `Retry-After` dans le contrat sur les réponses **429** des autres endpoints à quota. Le backend le pose déjà (`GlobalExceptionMapper`) mais seul `contactAdAuthor` le déclare, donc les clients le lisent défensivement | contrat + `ApiClientError` | S |
 | 2.3 | Mettre à jour le document d'API archivé, ou le laisser tel quel en assumant qu'il s'arrête à 1.5.0 : il ne mentionne ni 1.5.1 (mode compact qui **rogne** les assets au lieu de les vider) ni 1.6.0 (`teamSlug` sur `GET /api/users/search`) | `docs/plans/archive/` | S |
+| 2.4 | `SlugService.RESERVED_SLUGS` (`bulk`, `count`, `bounds`, `tiles` pour `ROUTE` ; `reorder` pour `TEAM_PAGE`) n'empêche que les **nouvelles** écritures. Vérifier qu'aucune ligne pré-existante ne porte déjà un de ces slugs (`SELECT slug, team_id FROM routes WHERE slug IN ('bulk','count','bounds','tiles')`, et l'équivalent sur `team_pages` pour `reorder`) — une telle ligne serait **définitivement inatteignable par son slug** (JAX-RS fait toujours gagner le segment littéral) et aurait besoin d'un renommage/backfill. Pas de raison de croire qu'il y en a, juste jamais vérifié | base de données (une requête), puis backend si une ligne est trouvée | S |
 
 ---
 
@@ -273,6 +274,36 @@ même marqueur.
 
 À noter : ce n'est **pas** un prérequis de la vue carte des parcours, qui fonctionne déjà par les
 tuiles MVT. C'est ce qui permet d'y **ajouter** les autres entités.
+
+### 4.5 Borner le coût par parcours de la géométrie (M)
+
+Ouvert en livrant `GET /api/teams/{teamSlug}/routes/bulk` (1.7.x). Le lot est plafonné à
+`MAX_BULK_SLUGS = 50` et les **points de trace** sont budgétés (`DEFAULT_BULK_MAX_POINTS_PER_ROUTE
+= 1000`, réparti sur les traces d'un parcours par `RouteService.perRouteBudget`). Trois dimensions
+ne le sont pas, et le bulk les **amplifie ×50** :
+
+| # | Ce qui n'est pas borné | Mesure | Fichier |
+|---|---|---|---|
+| D1 | `simplify` lance un Douglas-Peucker sur la trace **stockée** ; seul le résultat est budgété. Superlinéaire (×3,8 par doublement) | 9,9 s pour une trace adverse de 100 k points, ~495 s pour un lot de 50 | `TrackDto.java:51` |
+| D2 | Les climbs et climb-parts ne sont jamais décimés, et leur nombre suit la longueur **rééchantillonnée** (`computeOnePointPerDistance` sur-échantillonne à 1 pt/10 m), pas les octets déposés | ~110 Mo de réponse démontrés depuis un corpus GPX de 2,75 Mo | `TrackDto.java:53` |
+| D4 | `simplify=NaN` passe les gardes (`NaN <= 0` est faux) et aplatit chaque trace à 2 points, sans erreur | — | `GeometryOptions.java:35-38` |
+
+Le endpoint est `@PermitAll` et **il n'y a aucun rate limiting sur les lectures** dans ce dépôt
+(seuls `AuthService` et `AdService` en ont). Rien de tout cela n'est *introduit* par le bulk : les
+trois sont déjà atteignables un parcours à la fois sur `GET /{routeSlug}`, qui a exactement le même
+pipeline. Le bulk multiplie par le plafond de slugs. C'est pourquoi le correctif n'a pas sa place
+dans le bulk seul — il faut borner à la source, ce qui touche `GET /{routeSlug}`,
+`GeometryOptions`, `TrackDto`, et probablement un plafond de points stockés à l'ingestion GPX
+(`GpxProcessingService`).
+
+Deux mitigations moins chères si le sujet devient urgent avant d'avoir le temps du chantier :
+descendre `MAX_BULK_SLUGS` de 50 à ~15 (les appelants réels plafonnent à 12 : `kTripTrackStageCap`)
+et budgéter les climbs comme les points — cela ferme D2, la dimension la plus lourde, et divise
+l'amplification par trois.
+
+Note annexe (D3, sans exposition nouvelle) : un lot qui ne résout **qu'un seul** parcours n'est pas
+clampé du tout — c'est délibéré, il se comporte alors exactement comme `GET /{routeSlug}`. La
+description OpenAPI ne le dit qu'à partir de deux slugs résolus.
 
 ---
 

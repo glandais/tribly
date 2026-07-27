@@ -1,17 +1,22 @@
 import { useTranslation } from 'react-i18next'
 import { Group, Loader, Text } from '@mantine/core'
-import { useGetRoute } from '@/api/endpoints/routes/routes'
+import type { RouteDetailDto } from '@/api/dto'
 import { useUnits } from '@/hooks/useUnits'
 
 interface RoutePreviewCompactProps {
-  routeSlug: string
-  teamSlug: string
+  /**
+   * The route to preview, already fetched by the parent. `RoutePreviewCompact` is only ever
+   * rendered in a loop (`RideEditor`'s groups, `TripEditor`'s stages) — the parent fetches every
+   * distinct route slug of the loop in one `getRoutesBulk` call and passes each entry down,
+   * rather than every row issuing its own `getRoute`.
+   */
+  route: RouteDetailDto | undefined
+  isLoading: boolean
 }
 
-export function RoutePreviewCompact({ routeSlug, teamSlug }: RoutePreviewCompactProps) {
+export function RoutePreviewCompact({ route, isLoading }: RoutePreviewCompactProps) {
   const { t } = useTranslation()
   const { distance, elevation } = useUnits()
-  const { data: route, isLoading } = useGetRoute(teamSlug, routeSlug)
 
   if (isLoading)
     return (

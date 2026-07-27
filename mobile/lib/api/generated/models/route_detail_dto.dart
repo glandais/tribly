@@ -4,6 +4,7 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'elevation_profile_dto.dart';
 import 'geo_json_point.dart';
 import 'instant.dart';
 import 'media_dto.dart';
@@ -73,6 +74,9 @@ abstract class RouteDetailDto with _$RouteDetailDto {
 
     /// Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.
     int? commentCount,
+
+    /// Sampled elevation profile of the route. Absent unless explicitly requested (the bulk route endpoint's 'elevation' flag) — computing and serialising it costs nothing to skip, so every other caller of this DTO gets exactly what it got before this field existed.
+    ElevationProfileDto? elevationProfile,
   }) = _RouteDetailDto;
 
   factory RouteDetailDto.fromJson(Map<String, Object?> json) =>

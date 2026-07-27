@@ -438,4 +438,42 @@ class TeamPageResourceTest extends AbstractResourceTest {
         .then()
         .statusCode(400);
   }
+
+  /**
+   * "reorder" is the literal path segment {@code PUT /api/teams/{teamSlug}/pages/reorder} declares
+   * alongside {@code PUT /{pageSlug}} — a page slugged that would be permanently shadowed by the
+   * reorder endpoint. Rejected with the same 409 shape as a genuine slug-uniqueness conflict.
+   */
+  @Test
+  void changeSlug_toReorder_shouldReturn409() {
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .contentType("application/json")
+        .body(new SlugChangeRequest("reorder"))
+        .when()
+        .patch("/api/teams/" + team1Slug + "/pages/" + pageSlug + "/slug")
+        .then()
+        .statusCode(409);
+  }
+
+  /**
+   * A page named so its slugified form collides with "reorder" is auto-suffixed on creation,
+   * exactly like a genuine slug collision — see {@code SlugService.generateSlug}.
+   */
+  @Test
+  void createPage_namedReorder_shouldSuffixIt() {
+    TeamPageRequest request = createPageRequest("Reorder");
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .contentType("application/json")
+        .body(request)
+        .when()
+        .post("/api/teams/" + team1Slug + "/pages")
+        .then()
+        .statusCode(201)
+        .body("slug", equalTo("reorder-1"));
+  }
 }

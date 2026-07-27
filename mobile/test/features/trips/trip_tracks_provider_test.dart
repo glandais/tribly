@@ -11,57 +11,68 @@ import 'trip_fixtures.dart';
 
 /// S24-3 — le chargement des tracés d'un voyage.
 ///
-/// Faute d'endpoint de carte multi-entités, le tracé global coûte un appel par
-/// étape. Trois garde-fous se vérifient ici : la concurrence est **plafonnée à
-/// quatre**, le nombre d'étapes chargées est **plafonné à douze** et le
-/// dépassement est visible dans l'état, et deux étapes qui partagent un
-/// parcours ne coûtent **qu'un** appel.
+/// Un seul appel `getRoutesBulk` couvre toutes les étapes voulues, au lieu
+/// d'un `getRoute` par étape : ce qui se vérifie ici, c'est que **un seul**
+/// appel part (pas un par étape), que le nombre d'étapes chargées reste
+/// **plafonné à douze** avec le dépassement visible dans l'état, que deux
+/// étapes qui partagent un parcours ne demandent **qu'un** slug, et qu'un
+/// parcours absent de la réponse (silencieusement omis par le lot, comme le
+/// ferait un slug inconnu ou illisible) est retenu dans `failed`, pas perdu.
 class _CountingRouteRepository implements RouteRepository {
   _CountingRouteRepository({this.failFor = const <String>{}});
 
   final Set<String> failFor;
 
-  final List<String> requested = <String>[];
-  int inFlight = 0;
-  int peakInFlight = 0;
+  /// Un élément par appel `getRoutesBulk`, avec les slugs demandés dans
+  /// l'ordre envoyé.
+  final List<List<String>> bulkCalls = <List<String>>[];
 
-  /// Retient les appels jusqu'à ce que le test libère, pour mesurer le pic.
+  /// Retient la réponse jusqu'à ce que le test libère, pour observer l'état
+  /// intermédiaire.
   Completer<void>? gate;
 
   @override
-  Future<RouteDetailDto> getRouteDetail(
+  Future<RoutesBulkResponse> getRoutesBulk(
     String teamSlug,
-    String routeSlug, {
+    List<String> slugs, {
     double? simplify,
     int? points,
+    bool elevation = false,
+    int? elevationSamples,
   }) async {
-    requested.add(routeSlug);
-    inFlight++;
-    peakInFlight = inFlight > peakInFlight ? inFlight : peakInFlight;
-    try {
-      if (gate != null) await gate!.future;
-      if (failFor.contains(routeSlug)) throw StateError('boom');
-      return RouteDetailDto(
-        id: 'r-$routeSlug',
-        slug: routeSlug,
-        team: kFixtureTeam,
-        name: routeSlug,
-        media: kEmptyMedia,
-        distance: 50000,
-        elevationGain: 800,
-        elevationLoss: 800,
-        surfaceType: 'GRAVEL',
-        visibility: 'PUBLIC',
-        createdBy: const PublicUserDto(id: 'u9', displayName: 'Créatrice'),
-        createdAt: '2026-01-01T10:00:00Z',
-        updatedAt: '2026-01-01T10:00:00Z',
-        deleted: false,
-        tracks: const <TrackDto>[],
-        waypoints: const <WaypointDto>[],
-      );
-    } finally {
-      inFlight--;
-    }
+    bulkCalls.add(slugs);
+    if (gate != null) await gate!.future;
+    // Un slug de `failFor` est **absent** de la réponse — c'est ainsi que le
+    // lot traite un slug inconnu ou illisible côté serveur : jamais une
+    // erreur pour tout le lot.
+    return RoutesBulkResponse(
+      routes: <RouteDetailDto>[
+        for (final String slug in slugs)
+          if (!failFor.contains(slug))
+            RouteDetailDto(
+              id: 'r-$slug',
+              slug: slug,
+              team: kFixtureTeam,
+              name: slug,
+              media: kEmptyMedia,
+              distance: 50000,
+              elevationGain: 800,
+              elevationLoss: 800,
+              surfaceType: 'GRAVEL',
+              visibility: 'PUBLIC',
+              createdBy: const PublicUserDto(
+                id: 'u9',
+                displayName: 'Créatrice',
+              ),
+              createdAt: '2026-01-01T10:00:00Z',
+              updatedAt: '2026-01-01T10:00:00Z',
+              deleted: false,
+              tracks: const <TrackDto>[],
+              waypoints: const <WaypointDto>[],
+            ),
+      ],
+      extent: null,
+    );
   }
 
   @override
@@ -110,21 +121,25 @@ void main() {
     return (container, repo);
   }
 
-  test('jamais plus de quatre requêtes en vol', () async {
+  test('toutes les étapes partent dans un seul appel groupé', () async {
     final (ProviderContainer container, _CountingRouteRepository repo) =
         await boot(_tripWithStages(10), hold: true);
 
-    // Les quatre ouvriers démarrent, puis butent tous sur la porte : dix
-    // étapes sont en file, quatre seulement sont en vol.
+    // Un seul appel part, avec les dix slugs — pas dix appels séparés.
     await Future<void>.delayed(const Duration(milliseconds: 10));
-    expect(repo.inFlight, kTripTrackConcurrency);
-    expect(repo.requested.length, kTripTrackConcurrency);
+    expect(repo.bulkCalls.length, 1);
+    expect(repo.bulkCalls.single.length, 10);
+    expect(
+      container.read(tripTracksProvider(key)).geometries,
+      isEmpty,
+      reason: 'la porte retient encore la réponse',
+    );
 
     repo.gate!.complete();
     await Future<void>.delayed(const Duration(milliseconds: 20));
 
-    expect(repo.requested.length, 10, reason: 'la file se vide entièrement');
-    expect(repo.peakInFlight, kTripTrackConcurrency);
+    expect(container.read(tripTracksProvider(key)).geometries.length, 10);
+    expect(repo.bulkCalls.length, 1, reason: 'toujours un seul appel');
   });
 
   test('au-delà de douze étapes, le plafond est chargé et signalé', () async {
@@ -136,10 +151,10 @@ void main() {
     expect(state.total, 18);
     expect(state.requested, kTripTrackStageCap);
     expect(state.truncated, isTrue, reason: 'jamais silencieux');
-    expect(repo.requested.length, kTripTrackStageCap);
+    expect(repo.bulkCalls.single.length, kTripTrackStageCap);
   });
 
-  test('deux étapes sur le même parcours ne coûtent qu\'un appel', () async {
+  test('deux étapes sur le même parcours ne demandent qu\'un slug', () async {
     final RouteDto shared = fixtureStageRoute(slug: 'aller-retour');
     final (
       ProviderContainer container,
@@ -154,11 +169,11 @@ void main() {
     );
     await Future<void>.delayed(const Duration(milliseconds: 20));
 
-    expect(repo.requested, <String>['aller-retour']);
+    expect(repo.bulkCalls.single, <String>['aller-retour']);
     expect(container.read(tripTracksProvider(key)).total, 1);
   });
 
-  test('un parcours en échec est retenu, pas perdu', () async {
+  test('un parcours absent de la réponse est retenu, pas perdu', () async {
     final (ProviderContainer container, _CountingRouteRepository repo) =
         await boot(_tripWithStages(3), failFor: <String>{'etape-2'});
     await Future<void>.delayed(const Duration(milliseconds: 20));
@@ -167,6 +182,24 @@ void main() {
     expect(state.failed, <String>{'etape-2'});
     expect(state.geometries.keys, containsAll(<String>['etape-1', 'etape-3']));
     expect(state.isLoading, isFalse);
+  });
+
+  test('le retry ne redemande que ce qui a échoué', () async {
+    final (ProviderContainer container, _CountingRouteRepository repo) =
+        await boot(_tripWithStages(3), failFor: <String>{'etape-2'});
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    expect(repo.bulkCalls.length, 1);
+
+    container.read(tripTracksProvider(key).notifier).retryFailed();
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+
+    // Un second appel groupé part, avec le seul slug qui manquait — pas les
+    // trois étapes.
+    expect(repo.bulkCalls.length, 2);
+    expect(repo.bulkCalls.last, <String>['etape-2']);
+    // Le faux dépôt exclut toujours `etape-2` : le retry échoue de nouveau,
+    // ce qui montre que c'est bien un nouvel appel qui a couru, pas un cache.
+    expect(container.read(tripTracksProvider(key)).failed, <String>{'etape-2'});
   });
 
   test('les étapes partent dans l\'ordre du voyage', () async {
@@ -184,6 +217,6 @@ void main() {
     );
     await Future<void>.delayed(const Duration(milliseconds: 20));
 
-    expect(repo.requested, <String>['etape-1', 'etape-2', 'etape-3']);
+    expect(repo.bulkCalls.single, <String>['etape-1', 'etape-2', 'etape-3']);
   });
 }

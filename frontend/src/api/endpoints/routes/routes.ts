@@ -26,6 +26,7 @@ import type {
   GetRouteElevationProfileParams,
   GetRouteParams,
   GetRoutesBoundsParams,
+  GetRoutesBulkParams,
   ListAllRoutesParams,
   ListRoutesParams,
   RouteBoundsResponse,
@@ -33,6 +34,7 @@ import type {
   RouteDto,
   RouteListResponse,
   RouteUsagesResponse,
+  RoutesBulkResponse,
   RoutesTileParams,
   SlugChangeRequest,
   UpdateRouteBody,
@@ -1043,6 +1045,156 @@ export const prefetchGetRoutesBoundsQuery = async <
   }
 ): Promise<QueryClient> => {
   const queryOptions = getGetRoutesBoundsQueryOptions(teamSlug, params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
+ * The detail of every requested 'slug' that exists and the caller may read, in one round-trip — built for the screens that load several routes together (a ride's stages, a comparison view), which would otherwise cost one request per route. Accepts the same 'simplify' and 'points' geometry knobs as the single-route endpoint, plus an optional elevation profile per route. Unknown slugs and slugs the caller may not read are silently left out of the answer rather than failing the whole batch. When the batch resolves to a single route, 'simplify'/'points' behave exactly as on the single-route endpoint — including returning the stored track unchanged when neither is given. Past one route, the per-route point count is capped at 1000 regardless of what 'simplify'/'points' resolve to, so a request naming many slugs cannot be used to pull the full stored geometry of all of them at once. The response also carries the bounding box of the track geometry actually sent back (waypoints are excluded, so an imported meeting-point or car-park waypoint far off the track cannot widen it), so a map can frame the batch without a second request.
+ * @summary Get several routes' details at once
+ */
+export const getRoutesBulk = (
+  teamSlug: string,
+  params?: GetRoutesBulkParams,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<RoutesBulkResponse>(
+    { url: `/api/teams/${teamSlug}/routes/bulk`, method: 'GET', params, signal },
+    options
+  )
+}
+
+export const getGetRoutesBulkQueryKey = (teamSlug: string, params?: GetRoutesBulkParams) => {
+  return [`/api/teams/${teamSlug}/routes/bulk`, ...(params ? [params] : [])] as const
+}
+
+export const getGetRoutesBulkQueryOptions = <
+  TData = Awaited<ReturnType<typeof getRoutesBulk>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params?: GetRoutesBulkParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoutesBulk>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getGetRoutesBulkQueryKey(teamSlug, params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getRoutesBulk>>> = ({ signal }) =>
+    getRoutesBulk(teamSlug, params, requestOptions, signal)
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: teamSlug !== null && teamSlug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getRoutesBulk>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+}
+
+export type GetRoutesBulkQueryResult = NonNullable<Awaited<ReturnType<typeof getRoutesBulk>>>
+export type GetRoutesBulkQueryError = ErrorType<ErrorResponse>
+
+export function useGetRoutesBulk<
+  TData = Awaited<ReturnType<typeof getRoutesBulk>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params: undefined | GetRoutesBulkParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoutesBulk>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRoutesBulk>>,
+          TError,
+          Awaited<ReturnType<typeof getRoutesBulk>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRoutesBulk<
+  TData = Awaited<ReturnType<typeof getRoutesBulk>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params?: GetRoutesBulkParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoutesBulk>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRoutesBulk>>,
+          TError,
+          Awaited<ReturnType<typeof getRoutesBulk>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRoutesBulk<
+  TData = Awaited<ReturnType<typeof getRoutesBulk>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params?: GetRoutesBulkParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoutesBulk>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get several routes' details at once
+ */
+
+export function useGetRoutesBulk<
+  TData = Awaited<ReturnType<typeof getRoutesBulk>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params?: GetRoutesBulkParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoutesBulk>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetRoutesBulkQueryOptions(teamSlug, params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Get several routes' details at once
+ */
+export const prefetchGetRoutesBulkQuery = async <
+  TData = Awaited<ReturnType<typeof getRoutesBulk>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  params?: GetRoutesBulkParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoutesBulk>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetRoutesBulkQueryOptions(teamSlug, params, options)
 
   await queryClient.prefetchQuery(queryOptions)
 

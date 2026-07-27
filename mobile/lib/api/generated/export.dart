@@ -164,6 +164,7 @@ export 'models/route_usages_response.dart';
 export 'models/router_profile.dart';
 export 'models/router_request.dart';
 export 'models/router_response.dart';
+export 'models/routes_bulk_response.dart';
 export 'models/searched_by.dart';
 export 'models/slug_change_request.dart';
 export 'models/social_backfill_response.dart';

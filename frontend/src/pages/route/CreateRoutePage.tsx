@@ -9,9 +9,10 @@ import { Stack, Text, Title } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { RouteEditor } from '../../components/route/RouteEditor'
-import { useCreateRoute, getListRoutesQueryKey } from '@/api/endpoints/routes/routes'
+import { useCreateRoute } from '@/api/endpoints/routes/routes'
 import { SurfaceType, RouteRequest } from '@/api/dto'
 import { defaultMedia } from '@/lib/apiUtils'
+import { invalidateRouteQueries } from '@/lib/routeCacheInvalidation'
 
 export function CreateRoutePage() {
   const { teamSlug } = useParams<{ teamSlug: string }>()
@@ -40,7 +41,7 @@ export function CreateRoutePage() {
       },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListRoutesQueryKey(teamSlug!) })
+          invalidateRouteQueries(queryClient, teamSlug!)
           notifications.show({ message: i18next.t('routes.notifications.created'), color: 'green' })
         },
       }

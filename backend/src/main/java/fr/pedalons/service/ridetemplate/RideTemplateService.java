@@ -75,7 +75,9 @@ public class RideTemplateService {
       throw new BusinessException(ErrorCode.INVALID_VISIBILITY);
     }
 
-    // Generate slug from name, ensure unique within team
+    // Generate slug from name, ensure unique within team. RideTemplate is a plain BaseEntity, not
+    // a TeamEntity, so it has no TeamEntityType and can never be a SlugService.RESERVED_SLUGS key
+    // — the reserved-slug check the TeamEntityType-aware overload adds does not apply here.
     Long teamId = team.getId();
     String slug =
         slugService.generateSlug(

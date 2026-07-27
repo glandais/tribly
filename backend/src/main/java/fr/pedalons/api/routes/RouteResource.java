@@ -19,6 +19,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -213,6 +214,109 @@ public class RouteResource {
     RouteDto route = routeService.createRoute(teamSlug, routeRequest, gpxPath);
 
     return Response.status(Response.Status.CREATED).entity(route).build();
+  }
+
+  /**
+   * Get several routes' details at once.
+   *
+   * <p>Declared before {@code /{routeSlug}} so the literal path segment "bulk" is matched by this
+   * method rather than captured as a route slug — JAX-RS scores a literal segment over a template
+   * one regardless of declaration order, but the ordering is kept here too as documentation of that
+   * fact. {@code SlugService} refuses to hand out "bulk" (and the other literal siblings of this
+   * resource: "count", "bounds", "tiles") to a new or renamed route so this shadowing can never
+   * strand one — see {@code SlugService.RESERVED_SLUGS}.
+   */
+  @GET
+  @Path("/bulk")
+  @PermitAll
+  @Operation(
+      operationId = "getRoutesBulk",
+      summary = "Get several routes' details at once",
+      description =
+          "The detail of every requested 'slug' that exists and the caller may read, in one"
+              + " round-trip — built for the screens that load several routes together (a ride's"
+              + " stages, a comparison view), which would otherwise cost one request per route."
+              + " Accepts the same 'simplify' and 'points' geometry knobs as the single-route"
+              + " endpoint, plus an optional elevation profile per route. Unknown slugs and slugs"
+              + " the caller may not read are silently left out of the answer rather than failing"
+              + " the whole batch. When the batch resolves to a single route, 'simplify'/'points'"
+              + " behave exactly as on the single-route endpoint — including returning the stored"
+              + " track unchanged when neither is given. Past one route, the per-route point count"
+              + " is capped at "
+              + RouteService.DEFAULT_BULK_MAX_POINTS_PER_ROUTE
+              + " regardless of what 'simplify'/'points' resolve to, so a request naming many"
+              + " slugs cannot be used to pull the full stored geometry of all of them at once."
+              + " The response also carries the bounding box of the track geometry actually sent"
+              + " back (waypoints are excluded, so an imported meeting-point or car-park waypoint"
+              + " far off the track cannot widen it), so a map can frame the batch without a"
+              + " second request.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Routes retrieved successfully",
+        content = @Content(schema = @Schema(implementation = RoutesBulkResponse.class))),
+    @APIResponse(
+        responseCode = "400",
+        description = "More than " + RouteService.MAX_BULK_SLUGS + " slugs requested",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+  })
+  public Response getRoutesBulk(
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
+      @Parameter(
+              description =
+                  "Route slug to include, repeatable. Capped at "
+                      + RouteService.MAX_BULK_SLUGS
+                      + "; unknown slugs and slugs the caller may not read are silently omitted"
+                      + " from the response rather than erroring. Unlike GET /{routeSlug}, a slug"
+                      + " that was renamed is also omitted rather than followed to the route's"
+                      + " current slug: the single-route endpoint falls back to the rename"
+                      + " history, this one does not. Same 'omit, never fail' contract as an"
+                      + " unknown or unreadable slug, just for a different reason.")
+          @QueryParam("slug")
+          List<String> slugs,
+      @Parameter(
+              description =
+                  "Douglas-Peucker tolerance in meters, applied to every route of the batch — same"
+                      + " semantics as on the single-route endpoint.")
+          @QueryParam("simplify")
+          @Nullable Double simplify,
+      @Parameter(
+              description =
+                  "Maximum number of track points per route, applied to every route of the batch —"
+                      + " same semantics as on the single-route endpoint. Once the batch resolves"
+                      + " to more than one route, this is capped at "
+                      + RouteService.DEFAULT_BULK_MAX_POINTS_PER_ROUTE
+                      + " per route regardless of the value passed here (or of 'simplify'), so a"
+                      + " request naming many slugs cannot be used to pull the full stored"
+                      + " geometry of all of them at once.")
+          @QueryParam("points")
+          @Nullable Integer points,
+      @Parameter(description = "Whether to attach each route's sampled elevation profile.")
+          @QueryParam("elevation")
+          @DefaultValue("false")
+          boolean elevation,
+      @Parameter(
+              description =
+                  "Resolution of the elevation profile when 'elevation' is true. Same clamping as"
+                      + " the single-route elevation-profile endpoint.")
+          @QueryParam("elevationSamples")
+          @DefaultValue(RouteService.DEFAULT_PROFILE_SAMPLES)
+          int elevationSamples) {
+
+    RoutesBulkResponse routes =
+        routeService.getRoutesBulk(
+            teamSlug,
+            slugs == null ? List.of() : slugs,
+            GeometryOptions.of(simplify, points),
+            elevation,
+            elevationSamples);
+    // Rows carry a per-user field (commentCount, which follows the caller's team
+    // membership): never let a shared cache keep one user's answer for the next one.
+    return Response.ok(routes).header(HttpHeaders.CACHE_CONTROL, PRIVATE_NO_STORE).build();
   }
 
   /**

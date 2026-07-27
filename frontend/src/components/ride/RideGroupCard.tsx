@@ -25,8 +25,7 @@ import {
   Menu,
   Loader,
 } from '@mantine/core'
-import type { RideGroupDto, GpsServiceType } from '@/api/dto'
-import { useGetRoute } from '@/api/endpoints/routes/routes'
+import type { RideGroupDto, GpsServiceType, RouteDetailDto } from '@/api/dto'
 import { UserAvatar, UserAvatarGroup } from '../common/UserAvatar'
 import { ParticipantListModal } from './ParticipantListModal'
 import { paths } from '@/config/paths'
@@ -38,6 +37,12 @@ interface RideGroupCardProps {
   group: RideGroupDto
   teamSlug: string
   rideRouteSlug?: string
+  /**
+   * Every route referenced by the ride, keyed by slug — the parent (`RideDetailPage`) fetches
+   * them all in one `getRoutesBulk` call and shares the map across every group card, rather
+   * than each card issuing its own `getRoute`.
+   */
+  routesBySlug: Map<string, RouteDetailDto>
   canJoin?: boolean
   onJoin?: () => void
   onLeave?: () => void
@@ -52,6 +57,7 @@ export function RideGroupCard({
   group,
   teamSlug,
   rideRouteSlug,
+  routesBySlug,
   canJoin,
   onJoin,
   onLeave,
@@ -72,14 +78,10 @@ export function RideGroupCard({
   // Determine effective route slug (group route or ride route as fallback)
   const effectiveRouteSlug = group.routeSlug || rideRouteSlug
 
-  // Distance and elevation now come from the group itself (RideGroupDto). The route is
-  // only needed to build the GPX/FIT links and the device upload, so it is fetched on
-  // first interaction with the card — not on page load, where a ride with ten groups
-  // meant ten full geometry downloads before anything was even clicked.
-  const [routeActionsOpened, setRouteActionsOpened] = useState(false)
-  const { data: route } = useGetRoute(teamSlug, effectiveRouteSlug!, undefined, {
-    query: { enabled: !!effectiveRouteSlug && routeActionsOpened },
-  })
+  // Distance and elevation come from the group itself (RideGroupDto). The route is only
+  // needed to build the GPX/FIT links and the device upload; `routesBySlug` was fetched once
+  // for every group of the ride in a single bulk call by the parent.
+  const route = effectiveRouteSlug ? routesBySlug.get(effectiveRouteSlug) : undefined
 
   const handleSendToDevice = (serviceType: GpsServiceType) => {
     if (effectiveRouteSlug) {
@@ -102,14 +104,8 @@ export function RideGroupCard({
         boxShadow: isJoined ? '0 0 0 1px var(--mantine-primary-color-filled)' : undefined,
         transition: 'all 150ms ease',
       }}
-      onMouseEnter={() => {
-        onHover?.(group.id)
-        setRouteActionsOpened(true)
-      }}
+      onMouseEnter={() => onHover?.(group.id)}
       onMouseLeave={() => onHover?.(null)}
-      // Touch and keyboard have no hover: arm the route fetch on first contact with the card.
-      onPointerDown={() => setRouteActionsOpened(true)}
-      onFocusCapture={() => setRouteActionsOpened(true)}
     >
       {/* Header row: title + badge + button */}
       <Group justify="space-between" wrap="nowrap">

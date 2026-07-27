@@ -3197,6 +3197,13 @@ components:
           description: "Number of comments, replies included. Absent when the caller\
             \ may not read the comments of this route — comments are members-only,\
             \ so an outsider is told nothing, not even zero."
+        elevationProfile:
+          description: "Sampled elevation profile of the route. Absent unless explicitly\
+            \ requested (the bulk route endpoint's 'elevation' flag) — computing and\
+            \ serialising it costs nothing to skip, so every other caller of this\
+            \ DTO gets exactly what it got before this field existed."
+          type: object
+          $ref: "#/components/schemas/ElevationProfileDto"
     RouteDto:
       type: object
       description: Route summary data
@@ -3441,6 +3448,23 @@ components:
         ascend:
           type: number
           format: double
+    RoutesBulkResponse:
+      description: "Detail of several routes fetched at once, plus their combined\
+        \ extent"
+      type: object
+      required:
+      - routes
+      properties:
+        routes:
+          type: array
+          items:
+            $ref: "#/components/schemas/RouteDetailDto"
+          description: "Route details, one per readable requested slug"
+        extent:
+          description: "Bounding box of every returned route, or null when routes\
+            \ is empty"
+          type: object
+          $ref: "#/components/schemas/BoundsDto"
     SearchedBy:
       type: string
       enum:
@@ -11386,6 +11410,99 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/teams/{teamSlug}/routes/bulk:
+    get:
+      summary: Get several routes' details at once
+      description: "The detail of every requested 'slug' that exists and the caller\
+        \ may read, in one round-trip — built for the screens that load several routes\
+        \ together (a ride's stages, a comparison view), which would otherwise cost\
+        \ one request per route. Accepts the same 'simplify' and 'points' geometry\
+        \ knobs as the single-route endpoint, plus an optional elevation profile per\
+        \ route. Unknown slugs and slugs the caller may not read are silently left\
+        \ out of the answer rather than failing the whole batch. When the batch resolves\
+        \ to a single route, 'simplify'/'points' behave exactly as on the single-route\
+        \ endpoint — including returning the stored track unchanged when neither is\
+        \ given. Past one route, the per-route point count is capped at 1000 regardless\
+        \ of what 'simplify'/'points' resolve to, so a request naming many slugs cannot\
+        \ be used to pull the full stored geometry of all of them at once. The response\
+        \ also carries the bounding box of the track geometry actually sent back (waypoints\
+        \ are excluded, so an imported meeting-point or car-park waypoint far off\
+        \ the track cannot widen it), so a map can frame the batch without a second\
+        \ request."
+      operationId: getRoutesBulk
+      tags:
+      - Routes
+      parameters:
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Whether to attach each route's sampled elevation profile.
+        name: elevation
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - description: Resolution of the elevation profile when 'elevation' is true.
+          Same clamping as the single-route elevation-profile endpoint.
+        name: elevationSamples
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 300
+      - description: "Maximum number of track points per route, applied to every route\
+          \ of the batch — same semantics as on the single-route endpoint. Once the\
+          \ batch resolves to more than one route, this is capped at 1000 per route\
+          \ regardless of the value passed here (or of 'simplify'), so a request naming\
+          \ many slugs cannot be used to pull the full stored geometry of all of them\
+          \ at once."
+        name: points
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - description: "Douglas-Peucker tolerance in meters, applied to every route\
+          \ of the batch — same semantics as on the single-route endpoint."
+        name: simplify
+        in: query
+        schema:
+          type: number
+          format: double
+      - description: "Route slug to include, repeatable. Capped at 50; unknown slugs\
+          \ and slugs the caller may not read are silently omitted from the response\
+          \ rather than erroring. Unlike GET /{routeSlug}, a slug that was renamed\
+          \ is also omitted rather than followed to the route's current slug: the\
+          \ single-route endpoint falls back to the rename history, this one does\
+          \ not. Same 'omit, never fail' contract as an unknown or unreadable slug,\
+          \ just for a different reason."
+        name: slug
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+      responses:
+        "200":
+          description: Routes retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoutesBulkResponse"
+        "400":
+          description: More than 50 slugs requested
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/teams/{teamSlug}/routes/count:
     get:
       summary: Count routes
@@ -13136,7 +13253,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 1.6.0
+  version: 1.7.3
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

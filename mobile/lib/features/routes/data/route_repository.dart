@@ -199,6 +199,45 @@ class RouteRepository {
     );
   }
 
+  /// Le détail de plusieurs parcours en **un seul appel**, plus l'emprise
+  /// combinée des tracés renvoyés.
+  ///
+  /// Remplace un ancien pattern de N appels à [getRouteDetail] (un par slug) :
+  /// les écrans qui affichent plusieurs parcours à la fois — les tracés d'une
+  /// sortie, la carte globale d'un voyage — n'ont plus qu'une requête à
+  /// attendre. Les slugs inconnus ou illisibles par l'appelant sont
+  /// **silencieusement absents** de `routes` plutôt que de faire échouer tout
+  /// le lot ; c'est à l'appelant de repérer les slugs demandés qui manquent à
+  /// la réponse s'il veut le signaler.
+  ///
+  /// `simplify`/`points` ont le même rôle que sur [getRouteDetail], appliqués
+  /// à chaque parcours du lot. `elevation` ajoute le profil altimétrique de
+  /// chaque parcours (`elevationSamples` commun à tout le lot, borné
+  /// `2..1000` côté serveur) — un pas de résolution unique, donc impropre à un
+  /// budget de points réparti par étape (voir `trip_elevation_provider.dart`).
+  Future<RoutesBulkResponse> getRoutesBulk(
+    String teamSlug,
+    List<String> slugs, {
+    double? simplify,
+    int? points,
+    bool elevation = false,
+    int? elevationSamples,
+  }) {
+    if (slugs.isEmpty) {
+      return Future<RoutesBulkResponse>.value(
+        RoutesBulkResponse(routes: const <RouteDetailDto>[], extent: null),
+      );
+    }
+    return _routesClient.getRoutesBulk(
+      teamSlug: teamSlug,
+      slug: slugs,
+      simplify: simplify,
+      points: points,
+      elevation: elevation,
+      elevationSamples: elevationSamples,
+    );
+  }
+
   static String? _search(RouteFilters filters) {
     final String? search = filters.search?.trim();
     return (search == null || search.isEmpty) ? null : search;

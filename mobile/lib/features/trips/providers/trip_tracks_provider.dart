@@ -16,11 +16,14 @@ import 'trip_detail_provider.dart';
 /// charger. Le plafond est **signalé à l'utilisateur**, jamais silencieux.
 const int kTripTrackStageCap = 12;
 
-/// Requêtes simultanées.
+/// Requêtes simultanées pour le profil altimétrique (`trip_elevation_provider.dart`).
 ///
-/// Quatre, pas « toutes » : le pool borne la mémoire et la bande passante, et
-/// l'ordre de départ suit celui des étapes, si bien que la carte se remplit du
-/// début du voyage vers sa fin plutôt que dans un ordre arbitraire.
+/// Les tracés, eux, tiennent en **un seul appel groupé** (`getRoutesBulk`) — ce
+/// plafond ne les concerne plus. Il reste défini ici parce que le profil
+/// partage le plafond d'étapes [kTripTrackStageCap] et continue d'appeler
+/// `getRouteElevationProfile` par étape (budget de points réparti
+/// proportionnellement à la distance, incompatible avec le pas unique de
+/// `elevationSamples` du lot — voir le commentaire de tête de ce fichier-là).
 const int kTripTrackConcurrency = 4;
 
 /// Simplification agressive : le tracé global est vu à l'échelle d'une région,
@@ -118,46 +121,41 @@ class TripTracksController extends StateNotifier<TripTracksState> {
         .toList();
     if (todo.isEmpty) return;
     _requestedSlugs.addAll(todo);
-    unawaited(_drain(todo));
+    unawaited(_load(todo));
   }
 
-  /// Le pool : [kTripTrackConcurrency] ouvriers puisent dans la même file, donc
-  /// jamais plus de quatre requêtes en vol, et la file est dans l'ordre des
-  /// étapes.
-  Future<void> _drain(List<String> queue) async {
-    int cursor = 0;
-
-    Future<void> worker() async {
-      while (mounted) {
-        if (cursor >= queue.length) return;
-        final String slug = queue[cursor++];
-        try {
-          final RouteDetailDto route = await _ref
-              .read(routeRepositoryProvider)
-              .getRouteDetail(
-                _key.teamSlug,
-                slug,
-                simplify: kTripTrackSimplify,
-                points: kTripTrackPoints,
-              );
-          if (!mounted) return;
-          state = state.copyWith(
-            geometries: <String, RouteDetailDto>{
-              ...state.geometries,
-              slug: route,
-            },
+  /// Charge [slugs] en **un seul appel groupé**, au lieu d'un `getRouteDetail`
+  /// par étape.
+  ///
+  /// Un slug absent de `response.routes` (inconnu, ou illisible par
+  /// l'appelant — le lot ne fait jamais 404 pour ça) rejoint [failed] comme
+  /// l'aurait fait un appel individuel en échec ; un échec du lot entier (réseau,
+  /// équipe introuvable) y met tous les slugs demandés.
+  Future<void> _load(List<String> slugs) async {
+    try {
+      final RoutesBulkResponse response = await _ref
+          .read(routeRepositoryProvider)
+          .getRoutesBulk(
+            _key.teamSlug,
+            slugs,
+            simplify: kTripTrackSimplify,
+            points: kTripTrackPoints,
           );
-        } catch (_) {
-          if (!mounted) return;
-          state = state.copyWith(failed: <String>{...state.failed, slug});
-        }
-      }
+      if (!mounted) return;
+      final Map<String, RouteDetailDto> loaded = <String, RouteDetailDto>{
+        for (final RouteDetailDto route in response.routes) route.slug: route,
+      };
+      final Set<String> missing = slugs
+          .where((String slug) => !loaded.containsKey(slug))
+          .toSet();
+      state = state.copyWith(
+        geometries: <String, RouteDetailDto>{...state.geometries, ...loaded},
+        failed: <String>{...state.failed, ...missing},
+      );
+    } catch (_) {
+      if (!mounted) return;
+      state = state.copyWith(failed: <String>{...state.failed, ...slugs});
     }
-
-    await Future.wait(<Future<void>>[
-      for (int i = 0; i < kTripTrackConcurrency && i < queue.length; i++)
-        worker(),
-    ]);
   }
 
   /// Réessaie ce qui a échoué.
@@ -165,6 +163,6 @@ class TripTracksController extends StateNotifier<TripTracksState> {
     final List<String> failed = state.failed.toList();
     if (failed.isEmpty) return;
     state = state.copyWith(failed: const <String>{});
-    unawaited(_drain(failed));
+    unawaited(_load(failed));
   }
 }

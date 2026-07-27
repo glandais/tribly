@@ -661,6 +661,58 @@ class RouteResourceTest extends AbstractResourceTest {
         .statusCode(401);
   }
 
+  /**
+   * "bulk", "count", "bounds" and "tiles" are literal path segments {@code RouteResource} declares
+   * alongside {@code /{routeSlug}} — a route slugged one of them would be permanently shadowed by
+   * that sibling endpoint. Rejected with the same 409 shape as a genuine slug-uniqueness conflict,
+   * since the slug is well-formed and simply unavailable, not malformed.
+   */
+  @Test
+  void changeSlug_toALiteralSiblingOfTheRouteResource_shouldReturn409() {
+    Route testRoute =
+        dataService.createRoute(team1, user1, "Reserved Slug Route", Visibility.PUBLIC);
+
+    for (String reserved : new String[] {"bulk", "count", "bounds", "tiles"}) {
+      given()
+          .auth()
+          .oauth2(getAccessToken(USER1))
+          .contentType("application/json")
+          .body(new SlugChangeRequest(reserved))
+          .when()
+          .patch("/api/teams/" + team1Slug + "/routes/" + testRoute.getSlug() + "/slug")
+          .then()
+          .statusCode(409);
+    }
+  }
+
+  /**
+   * A route named so its slugified form collides with a reserved word is auto-suffixed on
+   * creation, exactly like a genuine slug collision — see {@code SlugService.generateSlug}.
+   */
+  @Test
+  void createRoute_namedAfterAReservedSlug_shouldSuffixIt() {
+    File gpxFile = new File("src/test/resources/example.gpx");
+
+    RouteRequest route =
+        new RouteRequest(
+            "Bulk",
+            MediaDto.builder().markdown("Named after a reserved word").build(),
+            SurfaceType.ROAD,
+            Visibility.PUBLIC,
+            null);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .multiPart("route", route, MediaType.APPLICATION_JSON)
+        .multiPart("gpxFile", gpxFile, "application/gpx+xml")
+        .when()
+        .post("/api/teams/" + team1Slug + "/routes")
+        .then()
+        .statusCode(201)
+        .body("slug", equalTo("bulk-1"));
+  }
+
   // ==================== Vector Tile Tests ====================
 
   /** Tile covering the test routes, which run from (6, 45) to (6.1, 45.1). */

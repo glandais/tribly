@@ -6,13 +6,8 @@ import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { paths } from '../../config/paths'
 import { Box, Skeleton, Stack, Text, Title } from '@mantine/core'
-import {
-  useGetRoute,
-  useUpdateRoute,
-  useChangeRouteSlug,
-  getGetRouteQueryKey,
-  getListRoutesQueryKey,
-} from '@/api/endpoints/routes/routes'
+import { useGetRoute, useUpdateRoute, useChangeRouteSlug } from '@/api/endpoints/routes/routes'
+import { invalidateRouteQueries } from '@/lib/routeCacheInvalidation'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { SurfaceType, RouteRequest } from '@/api/dto'
 import { LoadingPage } from '@/components/common/LoadingSpinner'
@@ -100,8 +95,7 @@ export function EditRoutePage() {
       },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetRouteQueryKey(teamSlug!, routeSlug!) })
-          queryClient.invalidateQueries({ queryKey: getListRoutesQueryKey(teamSlug!) })
+          invalidateRouteQueries(queryClient, teamSlug!, routeSlug!)
           notifications.show({ message: i18next.t('routes.notifications.updated'), color: 'green' })
         },
       }
@@ -114,8 +108,7 @@ export function EditRoutePage() {
       { teamSlug: teamSlug!, routeSlug: routeSlug!, data: { slug: newSlug } },
       {
         onSuccess: (updatedRoute) => {
-          queryClient.invalidateQueries({ queryKey: getListRoutesQueryKey(teamSlug!) })
-          queryClient.invalidateQueries({ queryKey: getGetRouteQueryKey(teamSlug!, routeSlug!) })
+          invalidateRouteQueries(queryClient, teamSlug!, routeSlug!)
           navigate(paths.routeEdit(teamSlug!, updatedRoute.slug), { replace: true })
         },
       }

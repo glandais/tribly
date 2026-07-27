@@ -3,9 +3,10 @@ import { useTranslation } from 'react-i18next'
 import { Button, Text } from '@mantine/core'
 import { IconUpload } from '@tabler/icons-react'
 import { useQueryClient } from '@tanstack/react-query'
-import { createRoute, getListRoutesQueryKey } from '@/api/endpoints/routes/routes'
+import { createRoute } from '@/api/endpoints/routes/routes'
 import { SurfaceType, TeamDetailDto } from '@/api/dto'
 import { defaultMedia } from '@/lib/apiUtils'
+import { invalidateRouteQueries } from '@/lib/routeCacheInvalidation'
 
 export interface UploadGpxFilesProps {
   team: TeamDetailDto
@@ -57,8 +58,8 @@ export function UploadGpxFiles({ team, disabled }: UploadGpxFilesProps) {
     setProgress(null)
 
     if (successCount > 0) {
-      // Invalidate routes list to refresh
-      queryClient.invalidateQueries({ queryKey: getListRoutesQueryKey(teamSlug) })
+      // Refresh every cached view of this team's routes (list, detail, bulk).
+      invalidateRouteQueries(queryClient, teamSlug)
     }
 
     if (fileInputRef.current) {

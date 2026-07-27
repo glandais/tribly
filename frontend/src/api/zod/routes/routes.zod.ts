@@ -1133,6 +1133,369 @@ export const GetRoutesBoundsResponse = zod
   .describe('Bounding box of the routes matching a filter set')
 
 /**
+ * The detail of every requested 'slug' that exists and the caller may read, in one round-trip — built for the screens that load several routes together (a ride's stages, a comparison view), which would otherwise cost one request per route. Accepts the same 'simplify' and 'points' geometry knobs as the single-route endpoint, plus an optional elevation profile per route. Unknown slugs and slugs the caller may not read are silently left out of the answer rather than failing the whole batch. When the batch resolves to a single route, 'simplify'/'points' behave exactly as on the single-route endpoint — including returning the stored track unchanged when neither is given. Past one route, the per-route point count is capped at 1000 regardless of what 'simplify'/'points' resolve to, so a request naming many slugs cannot be used to pull the full stored geometry of all of them at once. The response also carries the bounding box of the track geometry actually sent back (waypoints are excluded, so an imported meeting-point or car-park waypoint far off the track cannot widen it), so a map can frame the batch without a second request.
+ * @summary Get several routes' details at once
+ */
+export const GetRoutesBulkParams = zod.object({
+  teamSlug: zod.string().describe('Team URL slug'),
+})
+
+export const getRoutesBulkQueryElevationDefault = false
+export const getRoutesBulkQueryElevationSamplesDefault = 300
+
+export const GetRoutesBulkQueryParams = zod.object({
+  elevation: zod
+    .boolean()
+    .default(getRoutesBulkQueryElevationDefault)
+    .describe("Whether to attach each route's sampled elevation profile."),
+  elevationSamples: zod
+    .number()
+    .default(getRoutesBulkQueryElevationSamplesDefault)
+    .describe(
+      "Resolution of the elevation profile when 'elevation' is true. Same clamping as the single-route elevation-profile endpoint."
+    ),
+  points: zod
+    .number()
+    .optional()
+    .describe(
+      "Maximum number of track points per route, applied to every route of the batch — same semantics as on the single-route endpoint. Once the batch resolves to more than one route, this is capped at 1000 per route regardless of the value passed here (or of 'simplify'), so a request naming many slugs cannot be used to pull the full stored geometry of all of them at once."
+    ),
+  simplify: zod
+    .number()
+    .optional()
+    .describe(
+      'Douglas-Peucker tolerance in meters, applied to every route of the batch — same semantics as on the single-route endpoint.'
+    ),
+  slug: zod
+    .array(zod.string())
+    .optional()
+    .describe(
+      "Route slug to include, repeatable. Capped at 50; unknown slugs and slugs the caller may not read are silently omitted from the response rather than erroring. Unlike GET \/{routeSlug}, a slug that was renamed is also omitted rather than followed to the route's current slug: the single-route endpoint falls back to the rename history, this one does not. Same 'omit, never fail' contract as an unknown or unreadable slug, just for a different reason."
+    ),
+})
+
+export const GetRoutesBulkResponse = zod
+  .object({
+    routes: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Route ID (TSID)'),
+            slug: zod.string().describe('Route slug'),
+            team: zod
+              .object({
+                id: zod.string().describe('Team ID (TSID)'),
+                name: zod.string().describe('Team name'),
+                slug: zod.string().describe('Team URL slug'),
+                visibility: zod
+                  .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                  .describe('Whether the team is public'),
+              })
+              .describe('Team'),
+            name: zod.string().describe('Route name'),
+            media: zod
+              .object({
+                markdown: zod.string().describe('Markdown'),
+                assets: zod
+                  .object({
+                    logo: zod
+                      .object({
+                        id: zod.string().describe('ID (TSID)'),
+                        fileName: zod.string().describe('Filename'),
+                        contentType: zod.string().describe('Content-Type'),
+                        url: zod.string().describe('url'),
+                        imageUrl: zod.string().optional().describe('image template url'),
+                        imageDimensions: zod
+                          .object({
+                            width: zod.number().optional(),
+                            height: zod.number().optional(),
+                          })
+                          .optional()
+                          .describe('image dimensions'),
+                      })
+                      .optional()
+                      .describe('Logo'),
+                    images: zod
+                      .array(
+                        zod.object({
+                          id: zod.string().describe('ID (TSID)'),
+                          fileName: zod.string().describe('Filename'),
+                          contentType: zod.string().describe('Content-Type'),
+                          url: zod.string().describe('url'),
+                          imageUrl: zod.string().optional().describe('image template url'),
+                          imageDimensions: zod
+                            .object({
+                              width: zod.number().optional(),
+                              height: zod.number().optional(),
+                            })
+                            .optional()
+                            .describe('image dimensions'),
+                        })
+                      )
+                      .describe('Images'),
+                    attachments: zod
+                      .array(
+                        zod.object({
+                          id: zod.string().describe('ID (TSID)'),
+                          fileName: zod.string().describe('Filename'),
+                          contentType: zod.string().describe('Content-Type'),
+                          url: zod.string().describe('url'),
+                          imageUrl: zod.string().optional().describe('image template url'),
+                          imageDimensions: zod
+                            .object({
+                              width: zod.number().optional(),
+                              height: zod.number().optional(),
+                            })
+                            .optional()
+                            .describe('image dimensions'),
+                        })
+                      )
+                      .describe('Attachments'),
+                    originalGpx: zod
+                      .object({
+                        id: zod.string().describe('ID (TSID)'),
+                        fileName: zod.string().describe('Filename'),
+                        contentType: zod.string().describe('Content-Type'),
+                        url: zod.string().describe('url'),
+                        imageUrl: zod.string().optional().describe('image template url'),
+                        imageDimensions: zod
+                          .object({
+                            width: zod.number().optional(),
+                            height: zod.number().optional(),
+                          })
+                          .optional()
+                          .describe('image dimensions'),
+                      })
+                      .optional()
+                      .describe('Original GPX'),
+                    gpx: zod
+                      .object({
+                        id: zod.string().describe('ID (TSID)'),
+                        fileName: zod.string().describe('Filename'),
+                        contentType: zod.string().describe('Content-Type'),
+                        url: zod.string().describe('url'),
+                        imageUrl: zod.string().optional().describe('image template url'),
+                        imageDimensions: zod
+                          .object({
+                            width: zod.number().optional(),
+                            height: zod.number().optional(),
+                          })
+                          .optional()
+                          .describe('image dimensions'),
+                      })
+                      .optional()
+                      .describe('GPX'),
+                    fit: zod
+                      .object({
+                        id: zod.string().describe('ID (TSID)'),
+                        fileName: zod.string().describe('Filename'),
+                        contentType: zod.string().describe('Content-Type'),
+                        url: zod.string().describe('url'),
+                        imageUrl: zod.string().optional().describe('image template url'),
+                        imageDimensions: zod
+                          .object({
+                            width: zod.number().optional(),
+                            height: zod.number().optional(),
+                          })
+                          .optional()
+                          .describe('image dimensions'),
+                      })
+                      .optional()
+                      .describe('FIT'),
+                    thumbnailLight: zod
+                      .object({
+                        id: zod.string().describe('ID (TSID)'),
+                        fileName: zod.string().describe('Filename'),
+                        contentType: zod.string().describe('Content-Type'),
+                        url: zod.string().describe('url'),
+                        imageUrl: zod.string().optional().describe('image template url'),
+                        imageDimensions: zod
+                          .object({
+                            width: zod.number().optional(),
+                            height: zod.number().optional(),
+                          })
+                          .optional()
+                          .describe('image dimensions'),
+                      })
+                      .optional()
+                      .describe('Light thumbnail'),
+                    thumbnailDark: zod
+                      .object({
+                        id: zod.string().describe('ID (TSID)'),
+                        fileName: zod.string().describe('Filename'),
+                        contentType: zod.string().describe('Content-Type'),
+                        url: zod.string().describe('url'),
+                        imageUrl: zod.string().optional().describe('image template url'),
+                        imageDimensions: zod
+                          .object({
+                            width: zod.number().optional(),
+                            height: zod.number().optional(),
+                          })
+                          .optional()
+                          .describe('image dimensions'),
+                      })
+                      .optional()
+                      .describe('Dark thumbnail'),
+                  })
+                  .describe('Assets'),
+              })
+              .describe('Media'),
+            distance: zod.number().describe('Distance in meters'),
+            elevationGain: zod.number().describe('Total elevation gain in meters'),
+            elevationLoss: zod.number().describe('Total elevation loss in meters'),
+            surfaceType: zod.enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED']).describe('Surface type'),
+            visibility: zod
+              .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+              .describe('Whether the route is public'),
+            start: zod
+              .object({
+                type: zod.enum(['Point']),
+                coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+              })
+              .optional()
+              .describe('Location coordinates [longitude, latitude]'),
+            end: zod
+              .object({
+                type: zod.enum(['Point']),
+                coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+              })
+              .optional()
+              .describe('Location coordinates [longitude, latitude]'),
+            createdBy: zod
+              .object({
+                id: zod.string().describe('User ID (TSID)'),
+                displayName: zod.string().describe('User display name'),
+                avatarUrl: zod.string().optional().describe('User avatar URL'),
+              })
+              .describe('Creator user'),
+            createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
+            updatedAt: zod.iso.datetime({ offset: true }).describe('Last update timestamp'),
+            tracks: zod
+              .array(
+                zod
+                  .object({
+                    line: zod.object({
+                      type: zod.enum(['LineString']),
+                      coordinates: zod
+                        .array(zod.array(zod.number()))
+                        .describe('Array of [lon, lat] coordinates'),
+                    }),
+                    climbs: zod
+                      .array(
+                        zod
+                          .object({
+                            startDistance: zod
+                              .number()
+                              .describe('Start distance from route start in meters'),
+                            endDistance: zod
+                              .number()
+                              .describe('End distance from route start in meters'),
+                            elevationGain: zod.number().describe('Elevation gain in meters'),
+                            averageGradient: zod.number().describe('Average gradient percentage'),
+                            maxGradient: zod.number().describe('Maximum gradient percentage'),
+                            category: zod
+                              .enum(['HC', 'CAT1', 'CAT2', 'CAT3', 'CAT4'])
+                              .optional()
+                              .describe('Climb category (HC, 1, 2, 3, 4)'),
+                            parts: zod
+                              .array(
+                                zod
+                                  .object({
+                                    startDistance: zod
+                                      .number()
+                                      .describe('Start distance from route start in meters'),
+                                    endDistance: zod
+                                      .number()
+                                      .describe('End distance from route start in meters'),
+                                    elevationGain: zod
+                                      .number()
+                                      .describe('Elevation gain in meters'),
+                                    grade: zod.number().describe('Gradient percentage'),
+                                  })
+                                  .describe('Climb part information')
+                              )
+                              .describe('Gradient segments making up the climb'),
+                          })
+                          .describe('Climb segment information')
+                      )
+                      .describe('List of climbs on the route'),
+                  })
+                  .describe('GPX track with track points')
+              )
+              .describe('Tracks'),
+            waypoints: zod
+              .array(
+                zod.object({
+                  geometry: zod
+                    .object({
+                      type: zod.enum(['Point']),
+                      coordinates: zod
+                        .array(zod.number())
+                        .describe('Coordinates [longitude, latitude]'),
+                    })
+                    .describe('Location coordinates [longitude, latitude]'),
+                  name: zod.string().optional(),
+                })
+              )
+              .describe('Waypoints'),
+            deleted: zod.boolean().describe('Whether the route is soft-deleted'),
+            commentCount: zod
+              .number()
+              .optional()
+              .describe(
+                'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
+              ),
+            elevationProfile: zod
+              .object({
+                routeId: zod.string().describe('Route ID (TSID)'),
+                slug: zod.string().describe('Route slug'),
+                distance: zod.number().describe('Distance covered by the profile, in meters'),
+                minElevation: zod.number().describe('Lowest elevation of the profile, in meters'),
+                maxElevation: zod.number().describe('Highest elevation of the profile, in meters'),
+                samples: zod
+                  .number()
+                  .describe(
+                    'Number of points actually returned. Never more than the number of points stored for the route, so a short track is not artificially upsampled.'
+                  ),
+                points: zod
+                  .array(
+                    zod
+                      .object({
+                        distance: zod
+                          .number()
+                          .describe('Cumulative distance from the start of the route, in meters'),
+                        elevation: zod.number().describe('Elevation above sea level, in meters'),
+                        grade: zod
+                          .number()
+                          .describe(
+                            'Grade of the segment ending at this point, in percent. Zero on the first point, which ends no segment.'
+                          ),
+                      })
+                      .describe('One point of an elevation profile')
+                  )
+                  .describe('Profile points, by increasing distance'),
+              })
+              .optional()
+              .describe(
+                "Sampled elevation profile of the route. Absent unless explicitly requested (the bulk route endpoint's 'elevation' flag) — computing and serialising it costs nothing to skip, so every other caller of this DTO gets exactly what it got before this field existed."
+              ),
+          })
+          .describe('Detailed route information')
+      )
+      .describe('Route details, one per readable requested slug'),
+    extent: zod
+      .object({
+        minLon: zod.number().describe('Western edge'),
+        minLat: zod.number().describe('Southern edge'),
+        maxLon: zod.number().describe('Eastern edge'),
+        maxLat: zod.number().describe('Northern edge'),
+      })
+      .optional()
+      .describe('Bounding box of every returned route, or null when routes is empty'),
+  })
+  .describe('Detail of several routes fetched at once, plus their combined extent')
+
+/**
  * How many of the team's routes match the filters, with none of them read. Accepts exactly the same filters as the route list, minus sorting and pagination, so the figure and the list it opens can never disagree. Meant for a filter sheet that wants to announce its result count before the user commits to it.
  * @summary Count routes
  */
@@ -1897,6 +2260,40 @@ export const GetRouteResponse = zod
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
       ),
+    elevationProfile: zod
+      .object({
+        routeId: zod.string().describe('Route ID (TSID)'),
+        slug: zod.string().describe('Route slug'),
+        distance: zod.number().describe('Distance covered by the profile, in meters'),
+        minElevation: zod.number().describe('Lowest elevation of the profile, in meters'),
+        maxElevation: zod.number().describe('Highest elevation of the profile, in meters'),
+        samples: zod
+          .number()
+          .describe(
+            'Number of points actually returned. Never more than the number of points stored for the route, so a short track is not artificially upsampled.'
+          ),
+        points: zod
+          .array(
+            zod
+              .object({
+                distance: zod
+                  .number()
+                  .describe('Cumulative distance from the start of the route, in meters'),
+                elevation: zod.number().describe('Elevation above sea level, in meters'),
+                grade: zod
+                  .number()
+                  .describe(
+                    'Grade of the segment ending at this point, in percent. Zero on the first point, which ends no segment.'
+                  ),
+              })
+              .describe('One point of an elevation profile')
+          )
+          .describe('Profile points, by increasing distance'),
+      })
+      .optional()
+      .describe(
+        "Sampled elevation profile of the route. Absent unless explicitly requested (the bulk route endpoint's 'elevation' flag) — computing and serialising it costs nothing to skip, so every other caller of this DTO gets exactly what it got before this field existed."
+      ),
   })
   .describe('Detailed route information')
 
@@ -2247,6 +2644,40 @@ export const ChangeRouteSlugResponse = zod
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
       ),
+    elevationProfile: zod
+      .object({
+        routeId: zod.string().describe('Route ID (TSID)'),
+        slug: zod.string().describe('Route slug'),
+        distance: zod.number().describe('Distance covered by the profile, in meters'),
+        minElevation: zod.number().describe('Lowest elevation of the profile, in meters'),
+        maxElevation: zod.number().describe('Highest elevation of the profile, in meters'),
+        samples: zod
+          .number()
+          .describe(
+            'Number of points actually returned. Never more than the number of points stored for the route, so a short track is not artificially upsampled.'
+          ),
+        points: zod
+          .array(
+            zod
+              .object({
+                distance: zod
+                  .number()
+                  .describe('Cumulative distance from the start of the route, in meters'),
+                elevation: zod.number().describe('Elevation above sea level, in meters'),
+                grade: zod
+                  .number()
+                  .describe(
+                    'Grade of the segment ending at this point, in percent. Zero on the first point, which ends no segment.'
+                  ),
+              })
+              .describe('One point of an elevation profile')
+          )
+          .describe('Profile points, by increasing distance'),
+      })
+      .optional()
+      .describe(
+        "Sampled elevation profile of the route. Absent unless explicitly requested (the bulk route endpoint's 'elevation' flag) — computing and serialising it costs nothing to skip, so every other caller of this DTO gets exactly what it got before this field existed."
+      ),
   })
   .describe('Detailed route information')
 
@@ -2519,6 +2950,40 @@ export const UndeleteRouteResponse = zod
       .optional()
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
+    elevationProfile: zod
+      .object({
+        routeId: zod.string().describe('Route ID (TSID)'),
+        slug: zod.string().describe('Route slug'),
+        distance: zod.number().describe('Distance covered by the profile, in meters'),
+        minElevation: zod.number().describe('Lowest elevation of the profile, in meters'),
+        maxElevation: zod.number().describe('Highest elevation of the profile, in meters'),
+        samples: zod
+          .number()
+          .describe(
+            'Number of points actually returned. Never more than the number of points stored for the route, so a short track is not artificially upsampled.'
+          ),
+        points: zod
+          .array(
+            zod
+              .object({
+                distance: zod
+                  .number()
+                  .describe('Cumulative distance from the start of the route, in meters'),
+                elevation: zod.number().describe('Elevation above sea level, in meters'),
+                grade: zod
+                  .number()
+                  .describe(
+                    'Grade of the segment ending at this point, in percent. Zero on the first point, which ends no segment.'
+                  ),
+              })
+              .describe('One point of an elevation profile')
+          )
+          .describe('Profile points, by increasing distance'),
+      })
+      .optional()
+      .describe(
+        "Sampled elevation profile of the route. Absent unless explicitly requested (the bulk route endpoint's 'elevation' flag) — computing and serialising it costs nothing to skip, so every other caller of this DTO gets exactly what it got before this field existed."
       ),
   })
   .describe('Detailed route information')

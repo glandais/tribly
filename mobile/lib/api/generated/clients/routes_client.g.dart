@@ -412,6 +412,47 @@ class _RoutesClient implements RoutesClient {
   }
 
   @override
+  Future<RoutesBulkResponse> getRoutesBulk({
+    required String teamSlug,
+    int? points,
+    double? simplify,
+    List<String>? slug,
+    bool? elevation = false,
+    int? elevationSamples = 300,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'points': points,
+      r'simplify': simplify,
+      r'slug': slug,
+      r'elevation': elevation,
+      r'elevationSamples': elevationSamples,
+    };
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<RoutesBulkResponse>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/api/teams/${teamSlug}/routes/bulk',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, Object?>>(_options);
+    late RoutesBulkResponse _value;
+    try {
+      _value = RoutesBulkResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
   Future<CountResponse> countRoutes({
     required String teamSlug,
     Hilliness? hilliness,

@@ -73,12 +73,21 @@ public final class TrackGeometry {
    * of the horizontal offset and the elevation offset from the chord, both in meters — which is what
    * makes the local extrema (a col, a dip) survive instead of being averaged away.
    *
-   * @param maxPoints two or less, or a value at least as large as the source, returns the source
-   *     list untouched
+   * @param maxPoints zero or less ("no cap asked for") or a value at least as large as the
+   *     source returns the source list untouched. One or two do NOT take this shortcut — the
+   *     loop below already terminates at exactly two points in that case (it starts with both
+   *     endpoints kept and {@code kept == 2}, so a {@code maxPoints} of 1 or 2 never enters the
+   *     loop body) — that distinction from "not asked for" matters: {@link
+   *     fr.pedalons.dto.routes.request.GeometryOptions#MIN_POINTS} is 2, and a caller-requested
+   *     2 must come back as the two endpoints, not the untouched source. See {@code
+   *     TrackGeometryTest#DecimateTo} and {@code
+   *     RouteBulkResourceTest#getRoutesBulk_withPointsEqualsTwoAndOneRoute_shouldReturnJustTheEndpoints}
+   *     for the regression this guards ({@code points=2} used to silently return the full stored
+   *     track).
    */
   public static List<TrackPoint> decimateTo(List<TrackPoint> points, int maxPoints) {
     int n = points.size();
-    if (maxPoints <= 2 || maxPoints >= n || n <= 2) {
+    if (maxPoints <= 0 || maxPoints >= n || n <= 2) {
       return points;
     }
     Projected projected = Projected.of(points);

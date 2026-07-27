@@ -11,6 +11,7 @@ import fr.pedalons.domain.team.TeamSlugRedirect;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.enums.TeamEntityType;
 import fr.pedalons.enums.Visibility;
+import fr.pedalons.repository.route.RouteRepository;
 import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.util.TestDataCleaner;
 import fr.pedalons.util.TestDataService;
@@ -31,6 +32,9 @@ class SlugServiceTest extends AbstractBaseTest {
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
   @Inject DomainResolver domainResolver;
+  // Injected here rather than in the @Nested class that uses it: CDI only injects the outer test
+  // instance, so an @Inject field on a JUnit inner class stays null.
+  @Inject RouteRepository routeRepository;
 
   @Nested
   class Slugify {
@@ -233,6 +237,75 @@ class SlugServiceTest extends AbstractBaseTest {
     void shouldAcceptSlugAtMaxLength() {
       String maxSlug = "a".repeat(200);
       assertTrue(slugService.isValidSlug(maxSlug));
+    }
+  }
+
+  @Nested
+  class IsReservedSlug {
+
+    @Test
+    void shouldRejectEveryLiteralSiblingOfTheRouteResource() {
+      assertTrue(slugService.isReservedSlug(TeamEntityType.ROUTE, "bulk"));
+      assertTrue(slugService.isReservedSlug(TeamEntityType.ROUTE, "count"));
+      assertTrue(slugService.isReservedSlug(TeamEntityType.ROUTE, "bounds"));
+      assertTrue(slugService.isReservedSlug(TeamEntityType.ROUTE, "tiles"));
+    }
+
+    @Test
+    void shouldAcceptAnOrdinaryRouteSlug() {
+      assertFalse(slugService.isReservedSlug(TeamEntityType.ROUTE, "col-du-galibier"));
+    }
+
+    @Test
+    void shouldRejectTheLiteralSiblingOfTheTeamPageResource() {
+      assertTrue(slugService.isReservedSlug(TeamEntityType.TEAM_PAGE, "reorder"));
+    }
+
+    @Test
+    void shouldAcceptAnOrdinaryPageSlug() {
+      assertFalse(slugService.isReservedSlug(TeamEntityType.TEAM_PAGE, "about-us"));
+    }
+
+    @Test
+    void shouldScopeAReservationToTheEntityTypeItProtects() {
+      // "bulk"/"reorder" only shadow their own resource; a ride has no such literal sibling.
+      assertFalse(slugService.isReservedSlug(TeamEntityType.RIDE, "bulk"));
+      assertFalse(slugService.isReservedSlug(TeamEntityType.RIDE, "reorder"));
+      assertFalse(slugService.isReservedSlug(TeamEntityType.ROUTE, "reorder"));
+      assertFalse(slugService.isReservedSlug(TeamEntityType.TEAM_PAGE, "bulk"));
+    }
+  }
+
+  @Nested
+  class GenerateSlugForEntity {
+
+    private Domain domain;
+    private Team team;
+    private User admin;
+
+    @BeforeEach
+    void setUp() {
+      dataCleaner.cleanAll();
+      domain = dataService.getOrCreateDefaultDomain();
+      domainResolver.setDomainForTest(domain);
+      admin = dataService.createUser("admin@example.com", "Admin");
+      team = dataService.createTeam(admin, "Test Team", "test-team", Visibility.PUBLIC);
+    }
+
+    @Test
+    void shouldSuffixANameThatSlugifiesToAReservedWord() {
+      String slug = slugService.generateSlug("Bulk", team.getId(), routeRepository);
+
+      assertEquals("bulk-1", slug);
+    }
+
+    @Test
+    void shouldStillAvoidAGenuineCollisionAfterSkippingTheReservedWord() {
+      dataService.createRoute(team, admin, "Bulk 1");
+
+      String slug = slugService.generateSlug("Bulk", team.getId(), routeRepository);
+
+      assertEquals("bulk-2", slug);
     }
   }
 

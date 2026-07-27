@@ -6,13 +6,8 @@ import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { paths } from '../../config/paths'
 import { Box, Button, Group, Stack, Title } from '@mantine/core'
-import {
-  useGetRoute,
-  useDeleteRoute,
-  useUndeleteRoute,
-  getGetRouteQueryKey,
-  getListRoutesQueryKey,
-} from '@/api/endpoints/routes/routes'
+import { useGetRoute, useDeleteRoute, useUndeleteRoute } from '@/api/endpoints/routes/routes'
+import { invalidateRouteQueries } from '@/lib/routeCacheInvalidation'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { RouteDetailView } from '../../components/route/RouteDetailView'
 import { RouteUsages } from '../../components/route/RouteUsages'
@@ -57,7 +52,7 @@ export function RouteDetailPage() {
         { teamSlug: teamSlug, routeSlug },
         {
           onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: getListRoutesQueryKey(teamSlug) })
+            invalidateRouteQueries(queryClient, teamSlug, routeSlug)
             notifications.show({
               message: i18next.t('routes.notifications.deleted'),
               color: 'green',
@@ -75,8 +70,7 @@ export function RouteDetailPage() {
         { teamSlug: teamSlug, routeSlug },
         {
           onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: getGetRouteQueryKey(teamSlug, routeSlug) })
-            queryClient.invalidateQueries({ queryKey: getListRoutesQueryKey(teamSlug) })
+            invalidateRouteQueries(queryClient, teamSlug, routeSlug)
             notifications.show({
               message: i18next.t('routes.notifications.restored'),
               color: 'green',

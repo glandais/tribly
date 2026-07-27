@@ -24,7 +24,8 @@ import { RoutePreview } from '../route/RoutePreview'
 import { RoutePreviewCompact } from '../route/RoutePreviewCompact'
 import { MediaEditor } from '../common/MediaEditor'
 import { PlaceAutocomplete } from '../common/PlaceAutocomplete'
-import type { RouteDto, TeamDetailDto, TripRequest } from '@/api/dto'
+import { useRoutesBulk } from '@/hooks/useRoutesBulk'
+import type { RouteDto, RouteDetailDto, TeamDetailDto, TripRequest } from '@/api/dto'
 import { Status } from '@/api/dto'
 import { defaultMedia } from '@/lib/apiUtils'
 import { CreateTripBody } from '@/api/zod/trips/trips.zod'
@@ -92,6 +93,50 @@ export function TripEditor({
   const dateTime = form.values.dateTime
   const stages = form.values.stages
   const routeSlug = form.values.routeSlug
+
+  // One bulk request for every stage's route preview, instead of one `getRoute` per stage —
+  // stages frequently share the same route. The key string is memoized on the slugs' own
+  // values (not the `stages` array reference, which mantine's `useForm` may recreate on
+  // unrelated field edits) so the request stays stable across renders that don't touch routes.
+  const stageRouteSlugsKey = stages
+    .map((s) => s.routeSlug)
+    .filter((s): s is string => !!s)
+    .sort()
+    .join(',')
+  const stageRouteSlugs = useMemo(
+    () => (stageRouteSlugsKey ? Array.from(new Set(stageRouteSlugsKey.split(','))) : []),
+    [stageRouteSlugsKey]
+  )
+  const {
+    data: stageRoutesBulk,
+    isLoading: isLoadingStageRoutes,
+    isFetching: isFetchingStageRoutes,
+    failedSlugs: failedStageRouteSlugs,
+  } = useRoutesBulk(teamSlug, {
+    // Only the name, distance and elevation gain are shown — request the minimum track
+    // geometry the contract allows (2 points) rather than the full simplified track.
+    slug: stageRouteSlugs,
+    points: 2,
+  })
+  const stageRoutesBySlug = useMemo(() => {
+    const map = new Map<string, RouteDetailDto>()
+    for (const route of stageRoutesBulk?.routes ?? []) {
+      map.set(route.slug, route)
+    }
+    return map
+  }, [stageRoutesBulk])
+  // `useRoutesBulk` keeps previous data while the slug set changes, so `isLoadingStageRoutes`
+  // alone would only be true on first mount — picking a new route for one stage must still show
+  // a spinner for THAT row rather than briefly rendering nothing (no match in `stageRoutesBySlug`
+  // yet) or stale data for a different route. Rows whose slug is already resolved keep rendering
+  // from the previous data untouched. A slug whose chunk failed (`failedStageRouteSlugs`) is never
+  // "loading" — even while another chunk is still in flight — so its row falls through to
+  // `RoutePreviewCompact`'s "not found" state instead of spinning forever.
+  const isStageRouteLoading = (slug: string | undefined) =>
+    !!slug &&
+    !stageRoutesBySlug.has(slug) &&
+    !failedStageRouteSlugs.has(slug) &&
+    (isLoadingStageRoutes || isFetchingStageRoutes)
 
   useEffect(() => {
     form.validateField('publishAt')
@@ -432,7 +477,10 @@ export function TripEditor({
                       </Group>
                     </Group>
                     {stage.routeSlug ? (
-                      <RoutePreviewCompact routeSlug={stage.routeSlug} teamSlug={teamSlug} />
+                      <RoutePreviewCompact
+                        route={stageRoutesBySlug.get(stage.routeSlug)}
+                        isLoading={isStageRouteLoading(stage.routeSlug)}
+                      />
                     ) : (
                       <Text size="sm" c="dimmed" fs="italic">
                         {t('noRouteSelected')}
