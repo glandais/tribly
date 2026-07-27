@@ -32,6 +32,14 @@ ne le fournit : c'est là que les erreurs de contraste apparaissent), sur un com
 `n-peloton` (1 999 membres, 2 585 parcours, ~665 sorties) *et* sur `gaby` (7 membres — l'échantillon
 d'états vides).
 
+**Passe partielle du 27 juillet 2026** : audit de code complet sur les douze écrans, plus un passage
+en direct sur simulateur (thème sombre, compte `n-peloton` — un seul compte suffit, il est admin des
+deux équipes `n-peloton` et `gaby`). Un défaut trouvé et corrigé (le `GROUP_FULL` ne nommait pas le
+groupe, voir ci-dessous). Restent à faire en conditions réelles, non couvrables par la lecture de
+code : bascule de fuseau horaire sur l'appareil, ouverture d'un deeplink app tuée, mesure de fps
+(parcours et liste de 200), rendu du text scaling ×1,3/×2,0, et la capture d'écran de preuve pour le
+jeton ICS. Thème clair et compte `gaby` pas repassés en revue depuis.
+
 - [ ] **Accueil (11)** — « Ma prochaine sortie » s'affiche quand on est inscrit, disparaît sinon ;
       badge `INSCRIT` sur les cartes du fil ; barre supérieure rétractable, barre d'outils épinglée ;
       5 squelettes au chargement, pas 2.
@@ -39,6 +47,9 @@ d'états vides).
       affiche `Complet` **désactivé** (il n'existe aucune liste d'attente, « complet » est un état
       terminal) ; un `GROUP_FULL` en réponse restaure l'état optimiste **et nomme le groupe** ;
       aucune erreur nue « Erreur ». Carte à un tracé par groupe, sélection au tap.
+      *(Corrigé le 27 juillet 2026 : le bandeau `GROUP_FULL` affichait « Groupe complet. » sans
+      jamais dire lequel — `rides.failure.full` prend maintenant `{group}`, comme les bandeaux
+      voisins.)*
 - [ ] **Pastille « Organisateur »** — présente uniquement si `RideGroupDto.leader` est présent.
       **Le cas courant est l'absence** (les 665 sorties existantes de `n-peloton` n'ont pas de
       meneur) : vérifier que ça ne rend rien, et surtout pas le créateur de la sortie.
