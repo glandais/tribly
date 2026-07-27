@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:app_links/app_links.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_driver/driver_extension.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -13,6 +14,13 @@ import 'core/preferences/user_preferences_provider.dart';
 import 'features/auth/providers/auth_provider.dart';
 
 void main() async {
+  // Lets an AI assistant (or `flutter drive`) screenshot/tap/hot-reload this
+  // build via the Dart/Flutter MCP server — never on by default, since it
+  // disables real keyboard input. See mobile/CLAUDE.md.
+  if (const bool.fromEnvironment('ENABLE_FLUTTER_DRIVER')) {
+    enableFlutterDriverExtension();
+  }
+
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
 

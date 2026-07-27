@@ -28,6 +28,30 @@ dart run build_runner build
 dart run openapi_retrofit_generator
 ```
 
+## Agent tooling
+
+Skills from [dart-lang/skills](https://github.com/dart-lang/skills) and [flutter/agent-plugins](https://github.com/flutter/agent-plugins)
+are vendored under `.claude/skills/` (`dart-*` and `flutter-*`, installed via `npx skills add ... --agent claude-code --copy`) —
+Claude picks them up automatically for tasks like adding tests/mocks, fixing runtime errors or layout overflows, JSON
+serialization, routing, or localization. Re-run the same `npx skills` command (see each repo's README) to update them; there's
+no dependency on the `.agents/skills` universal layout since we vendor a copy instead of symlinking.
+
+The [Dart/Flutter MCP server](https://docs.flutter.dev/ai/mcp-server) (`dart mcp-server`) is registered project-wide in
+`../.mcp.json` as `dart-mcp-server` — it gives Claude live `analyze_files`, `hot_reload`/`hot_restart`, `get_runtime_errors`,
+`widget_inspector`, `run_tests`, and device/app-lifecycle tools against a running Flutter app, on top of the static skill
+instructions above.
+
+To let it [drive a running app](https://docs.flutter.dev/ai/mcp-server#interact-with-a-running-app) — screenshots, tapping,
+entering text, scrolling, hot reload — launch with the Flutter Driver extension enabled (off by default, gated in
+`main.dart` behind `ENABLE_FLUTTER_DRIVER`, never in production builds):
+
+```bash
+flutter run -d <device-id> --dart-define=ENABLE_FLUTTER_DRIVER=true
+```
+
+Then ask Claude to connect to the running app. **Warning**: this disables real keyboard input on the device (typing is
+dropped, the on-screen keyboard may not appear) — only launch this way when you actually need the agent to drive the UI.
+
 ## Architecture
 
 ```
