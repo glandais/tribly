@@ -61,14 +61,9 @@ export function StageDetailPage() {
   const routeSlug = stage?.route?.slug
 
   // Fetch route if stage has one
-  const { data: route, isLoading: isLoadingRoute } = useGetRoute(
-    teamSlug!,
-    routeSlug ?? '',
-    undefined,
-    {
-      query: { enabled: !!teamSlug && !!routeSlug },
-    }
-  )
+  const { data: route, isLoading: isLoadingRoute } = useGetRoute(teamSlug!, routeSlug ?? '', {
+    query: { enabled: !!teamSlug && !!routeSlug },
+  })
 
   useCanonicalPath(
     team && trip && stageSlug ? paths.stage(team.slug, trip.slug, stageSlug) : undefined

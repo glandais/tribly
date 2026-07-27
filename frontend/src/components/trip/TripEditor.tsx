@@ -113,10 +113,10 @@ export function TripEditor({
     isFetching: isFetchingStageRoutes,
     failedSlugs: failedStageRouteSlugs,
   } = useRoutesBulk(teamSlug, {
-    // Only the name, distance and elevation gain are shown — request the minimum track
-    // geometry the contract allows (2 points) rather than the full simplified track.
+    // Only the name, distance and elevation gain are shown — ask for no geometry at all rather
+    // than downloading each stage's track to throw it away.
     slug: stageRouteSlugs,
-    points: 2,
+    geometry: false,
   })
   const stageRoutesBySlug = useMemo(() => {
     const map = new Map<string, RouteDetailDto>()

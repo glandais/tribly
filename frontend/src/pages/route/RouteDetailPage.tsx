@@ -33,7 +33,7 @@ export function RouteDetailPage() {
     isLoading: routeLoading,
     error,
     refetch,
-  } = useGetRoute(teamSlug!, routeSlug!, undefined, {
+  } = useGetRoute(teamSlug!, routeSlug!, {
     query: { enabled: !!teamSlug && !!routeSlug },
   })
   const deleteRouteMutation = useDeleteRoute()

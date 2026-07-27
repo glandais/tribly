@@ -9,8 +9,10 @@ import '../../../core/theme/pdl_tokens.dart';
 /// La source est la géométrie elle-même, pas le profil altimétrique : les
 /// coordonnées GeoJSON du contrat sont en `G3DM`, `[lon, lat, altitude,
 /// cumul]`, et la pente d'un segment se lit donc exactement entre ses deux
-/// sommets. Rééchantillonner depuis les ~300 points du profil produirait des
-/// bandes de couleur décalées du tracé.
+/// sommets. C'est aussi la source du profil altimétrique
+/// (`route_elevation_builder.dart`), et les deux doivent le rester : deux
+/// règles de calcul de longueur donneraient des bandes de couleur décalées des
+/// barres du profil.
 ///
 /// **Pente signée, colorisation non signée.** L'échelle du §1.1.5 va du vert au
 /// violet sur `0 → 18 %` : une descente à −8 % est peinte comme une montée à

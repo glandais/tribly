@@ -47,12 +47,18 @@ const double _degToRad = pi / 180.0;
 class PolylineIndex {
   final List<LngLat> _points;
   final List<double> _cumulative;
+  final List<double?> _elevations;
 
   /// Whether the cumulative distances come from the 4th coordinate component
   /// (`M`) rather than from a haversine computation.
   final bool usesMeasures;
 
-  PolylineIndex._(this._points, this._cumulative, this.usesMeasures);
+  PolylineIndex._(
+    this._points,
+    this._cumulative,
+    this._elevations,
+    this.usesMeasures,
+  );
 
   /// Builds an index from one or more LineStrings.
   ///
@@ -70,8 +76,9 @@ class PolylineIndex {
 
     final points = <LngLat>[];
     final cumulative = <double>[];
+    final elevations = <double?>[];
     if (cleaned.isEmpty) {
-      return PolylineIndex._(points, cumulative, false);
+      return PolylineIndex._(points, cumulative, elevations, false);
     }
 
     final useMeasures = cleaned.every(_hasUsableMeasures);
@@ -87,9 +94,11 @@ class PolylineIndex {
       for (var i = 0; i < line.length; i++) {
         final coordinate = line[i];
         final point = LngLat(coordinate[0], coordinate[1]);
+        final elevation = coordinate.length >= 3 ? coordinate[2] : null;
         if (i == 0) {
           points.add(point);
           cumulative.add(base);
+          elevations.add(elevation);
           continue;
         }
         total = useMeasures
@@ -97,11 +106,12 @@ class PolylineIndex {
             : total + haversineMeters(points.last, point);
         points.add(point);
         cumulative.add(total);
+        elevations.add(elevation);
       }
       total = cumulative.last;
     }
 
-    return PolylineIndex._(points, cumulative, useMeasures);
+    return PolylineIndex._(points, cumulative, elevations, useMeasures);
   }
 
   /// Builds an index from a single LineString.
@@ -122,6 +132,21 @@ class PolylineIndex {
 
   /// The cumulative distance of each vertex, in meters.
   List<double> get cumulativeDistances => List.unmodifiable(_cumulative);
+
+  /// The altitude of each vertex, in meters, `null` where the coordinate
+  /// carried none.
+  ///
+  /// Kept alongside the cumulative distances rather than recomputed elsewhere
+  /// so that anything drawing an elevation profile chains multi-track routes
+  /// *exactly* the way [positionAt] and [nearest] do — same rebasing per line,
+  /// same haversine bridge between two tracks. A profile built on its own
+  /// convention would drift against the map cursor on the routes that have
+  /// more than one track.
+  List<double?> get elevations => List.unmodifiable(_elevations);
+
+  /// Whether every vertex carries an altitude.
+  bool get hasElevations =>
+      _elevations.isNotEmpty && _elevations.every((e) => e != null);
 
   /// The position reached after [meters] along the polyline.
   ///

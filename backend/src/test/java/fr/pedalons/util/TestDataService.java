@@ -457,9 +457,8 @@ public class TestDataService {
    * A route with several tracks — one {@link GpxTrack} per entry of {@code tracksPoints}, mirroring
    * one GPX {@code trk}/{@code rte} element per track. Nothing else in this test helper file builds
    * more than one track per route; this exists specifically to reproduce a route whose stored
-   * geometry is spread across N rows instead of one, e.g. for {@link
-   * fr.pedalons.service.route.RouteService#getRoutesBulk} tests bounding the per-route point
-   * budget regardless of track count.
+   * geometry is spread across N rows instead of one. Each track's {@code dist} restarts at zero,
+   * which is why clients chain them rather than concatenating blindly.
    */
   @Transactional
   public Route createRouteWithTracks(

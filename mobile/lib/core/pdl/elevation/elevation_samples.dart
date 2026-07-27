@@ -2,9 +2,8 @@
 ///
 /// **Pur Dart, aucun DTO.** `core/pdl` ne connaît pas le client d'API généré
 /// (contrat du module, §3) : le widget prend un [ElevationSamples], et c'est
-/// l'écran qui
-/// convertit son `ElevationProfileDto` — la conversion vit dans
-/// `features/routes/domain/elevation_samples_mapper.dart`.
+/// l'écran qui le construit depuis la géométrie du parcours — la conversion vit
+/// dans `features/routes/domain/route_elevation_builder.dart`.
 ///
 /// L'agrégation est ici, pas dans le painter : elle ne dépend ni du thème ni de
 /// la taille de la boîte, elle se calcule une fois par profil et se teste sans
@@ -15,9 +14,10 @@ import 'package:flutter/foundation.dart';
 
 /// Nombre de barres visé par l'agrégation.
 ///
-/// Le serveur renvoie jusqu'à 300 points (§1.0.3-5 du plan) ; les dessiner tous
-/// sur 402 pt donnerait des barres d'un pixel et un histogramme illisible. 76
-/// barres à gap 1 px tiennent exactement la largeur d'un écran de téléphone.
+/// Le profil est dérivé de la géométrie stockée, soit des centaines à des
+/// milliers de sommets ; les dessiner tous sur 402 pt donnerait des barres d'un
+/// pixel et un histogramme illisible. 76 barres à gap 1 px tiennent exactement
+/// la largeur d'un écran de téléphone.
 const int kElevationBarTarget = 76;
 
 /// Un point de profil : distance cumulée et altitude, toutes deux en mètres.
@@ -135,19 +135,19 @@ class ElevationSamples {
 
   /// Agrège [points] vers [targetBars] barres.
   ///
-  /// Deux précautions, toutes deux imposées par le contrat du serveur :
+  /// Deux précautions :
   ///
-  /// * `samples` est borné à `2..1000` **et réduit au nombre de points
-  ///   réellement stockés** : un parcours court peut renvoyer trois points
-  ///   quand on en demandait trois cents. Le nombre de barres est donc plafonné
-  ///   au nombre de segments disponibles — on n'invente pas de résolution.
-  /// * Les points ne sont pas garantis équidistants. La pente d'une barre est
-  ///   la moyenne des pentes des segments qu'elle couvre **pondérée par la
-  ///   longueur du recouvrement**, jamais une moyenne arithmétique.
+  /// * un tracé très court peut n'avoir que trois sommets. Le nombre de barres
+  ///   est donc plafonné au nombre de segments disponibles — on n'invente pas
+  ///   de résolution.
+  /// * Les points ne sont **pas** équidistants : le tracé stocké est filtré
+  ///   Douglas-Peucker, donc dense dans les lacets et clairsemé en ligne
+  ///   droite. La pente d'une barre est la moyenne des pentes des segments
+  ///   qu'elle couvre **pondérée par la longueur du recouvrement**, jamais une
+  ///   moyenne arithmétique.
   ///
   /// [minElevation] / [maxElevation] / [totalDistance] priment sur les valeurs
-  /// déduites des points quand elles sont fournies : le serveur les calcule sur
-  /// le tracé complet, l'échantillonnage peut avoir raboté un sommet.
+  /// déduites des points quand elles sont fournies.
   factory ElevationSamples.fromPoints(
     List<ElevationPoint> points, {
     int targetBars = kElevationBarTarget,

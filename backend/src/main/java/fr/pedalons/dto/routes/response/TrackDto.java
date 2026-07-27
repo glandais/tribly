@@ -7,9 +7,7 @@ import static org.geolatte.geom.crs.CoordinateReferenceSystems.addVerticalSystem
 
 import fr.pedalons.domain.route.GpxTrack;
 import fr.pedalons.dto.common.GeoJsonLineString;
-import fr.pedalons.dto.routes.request.GeometryOptions;
 import fr.pedalons.dto.validation.ValidateSchema;
-import fr.pedalons.service.route.TrackGeometry;
 import io.github.glandais.gpx.climb.Climb;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -32,25 +30,18 @@ public record TrackDto(
       addLinearSystem(
           addVerticalSystem(WGS84, G3D.class, LinearUnit.METER), G3DM.class, LinearUnit.METER);
 
+  /**
+   * The stored track, points and climbs untouched.
+   *
+   * <p>There is no read-time decimation any more, and deliberately so: the points reaching this
+   * method were already resampled to ~10 m and run through Douglas-Peucker at import time ({@code
+   * GpxProcessingService.computeGpx}), which lands them at roughly one point every 90 m. A second,
+   * purely 2D pass on read bought almost nothing on that data and cost the thing clients actually
+   * need — it decides on horizontal deviation alone, so it shaves summits off the elevation the
+   * same coordinates carry in their Z and M ordinates.
+   */
   public static TrackDto from(GpxTrack track) {
     return of(track.getTrackPoints(), track.getClimbs());
-  }
-
-  /**
-   * Same track, with the line decimated as {@code geometry} asks.
-   *
-   * <p>The climbs are left alone on purpose: {@link ClimbPartDto} carries absolute distances in
-   * meters, not point indices, so it stays aligned with a decimated line — re-indexing it would be
-   * the only way to break that.
-   */
-  public static TrackDto from(GpxTrack track, GeometryOptions geometry) {
-    if (geometry.isFull()) {
-      return from(track);
-    }
-    List<GpxTrack.TrackPoint> points =
-        TrackGeometry.simplify(track.getTrackPoints(), geometry.simplifyMeters());
-    points = TrackGeometry.decimateTo(points, geometry.maxPoints());
-    return of(points, track.getClimbs());
   }
 
   /** Builds a track DTO straight from computed points and climbs, with no entity involved. */

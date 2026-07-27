@@ -10,8 +10,8 @@ import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/formatters.dart';
-import '../../../routes/data/elevation_profile_repository.dart';
-import '../../../routes/providers/route_elevation_provider.dart';
+import '../../providers/ride_detail_provider.dart';
+import '../../providers/ride_group_selection_provider.dart';
 
 /// Le profil altimétrique du groupe sélectionné (écran 12), en 110 px.
 ///
@@ -22,16 +22,18 @@ class RideElevationSection extends ConsumerWidget {
   const RideElevationSection({
     super.key,
     required this.teamSlug,
+    required this.rideSlug,
     required this.routeSlug,
     this.distance,
     this.elevationGain,
   });
 
   final String teamSlug;
+  final String rideSlug;
 
-  /// Le parcours du groupe sélectionné. Change avec la sélection ; le cache
-  /// par `(routeSlug, samples)` fait que revenir sur un groupe déjà vu ne
-  /// recharge rien.
+  /// Le parcours du groupe sélectionné. Change avec la sélection, mais aucun
+  /// appel réseau ne s'ensuit : la géométrie de tous les groupes est déjà dans
+  /// le lot chargé pour la carte, profil compris.
   final String routeSlug;
 
   final double? distance;
@@ -43,13 +45,13 @@ class RideElevationSection extends ConsumerWidget {
     final PdlTypography t = context.pdlText;
     final UnitSystem units = ref.watch(unitSystemProvider);
 
-    final ElevationProfileKey key = ElevationProfileKey.forWidth(
+    final RouteRef routeRef = RouteRef(
       teamSlug: teamSlug,
+      rideSlug: rideSlug,
       routeSlug: routeSlug,
-      logicalWidth: MediaQuery.sizeOf(context).width,
     );
-    final AsyncValue<ElevationSamples> samples = ref.watch(
-      routeElevationSamplesProvider(key),
+    final AsyncValue<ElevationSamples?> samples = ref.watch(
+      rideRouteElevationProvider(routeRef),
     );
 
     return Column(
@@ -73,22 +75,26 @@ class RideElevationSection extends ConsumerWidget {
         ),
         const SizedBox(height: 6),
         samples.when(
-          data: (ElevationSamples data) => PdlElevationProfile(
-            samples: data,
-            height: PdlMetrics.elevationMedium,
-            // Seule la dernière graduation porte l'unité (§1.3.1).
-            axisLabel: (double meters, {required bool isLast}) => isLast
-                ? AppFormatters.formatDistance(meters, units)
-                : AppFormatters.formatNumber(
-                    units.longDistance(meters),
-                    fractionDigits: 1,
-                  ),
-            tipLabel: (ElevationReading r) => <String>[
-              AppFormatters.formatDistance(r.distance, units),
-              AppFormatters.formatAltitude(r.elevation, units),
-              if (r.grade != null) AppFormatters.formatGrade(r.grade!),
-            ].join(' · '),
-          ),
+          // Pas d'altitude exploitable : rien, plutôt qu'un profil plat qui se
+          // ferait passer pour un terrain.
+          data: (ElevationSamples? data) => data == null
+              ? const SizedBox.shrink()
+              : PdlElevationProfile(
+                  samples: data,
+                  height: PdlMetrics.elevationMedium,
+                  // Seule la dernière graduation porte l'unité (§1.3.1).
+                  axisLabel: (double meters, {required bool isLast}) => isLast
+                      ? AppFormatters.formatDistance(meters, units)
+                      : AppFormatters.formatNumber(
+                          units.longDistance(meters),
+                          fractionDigits: 1,
+                        ),
+                  tipLabel: (ElevationReading r) => <String>[
+                    AppFormatters.formatDistance(r.distance, units),
+                    AppFormatters.formatAltitude(r.elevation, units),
+                    if (r.grade != null) AppFormatters.formatGrade(r.grade!),
+                  ].join(' · '),
+                ),
           loading: () => PdlElevationProfile.loading(
             label: 'routes.profileLoading'.tr(),
             height: PdlMetrics.elevationMedium,
@@ -97,7 +103,11 @@ class RideElevationSection extends ConsumerWidget {
             label: 'routes.profileUnavailable'.tr(),
             actionLabel: 'common.retry'.tr(),
             height: PdlMetrics.elevationMedium,
-            onRetry: () => ref.invalidate(elevationProfileProvider(key)),
+            onRetry: () => ref.invalidate(
+              rideRouteGeometriesProvider(
+                RideKey(teamSlug: teamSlug, rideSlug: rideSlug),
+              ),
+            ),
           ),
         ),
       ],

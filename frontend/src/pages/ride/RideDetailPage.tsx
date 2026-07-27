@@ -142,10 +142,10 @@ export function RideDetailPage() {
     [groupRouteSlugsKey]
   )
   const { data: groupRoutesBulk } = useRoutesBulk(teamSlug!, {
-    // Only the GPX/FIT asset links are used — request the minimum track geometry the
-    // contract allows (2 points) rather than the full simplified track.
+    // Only the GPX/FIT asset links are used — ask for no geometry at all rather than
+    // downloading each group's track to throw it away.
     slug: groupRouteSlugs,
-    points: 2,
+    geometry: false,
   })
   const groupRoutesBySlug = useMemo(() => {
     const map = new Map<string, RouteDetailDto>()

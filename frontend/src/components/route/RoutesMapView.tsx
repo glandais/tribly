@@ -30,10 +30,6 @@ import { getOverlayBg } from '@/lib/colors'
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler)
 
-// Douglas-Peucker tolerance for the preview geometry, in metres. The contract caps it at 1000;
-// 25 m keeps every corner visible at map-preview zoom for a fraction of the payload.
-const MAP_SIMPLIFY_TOLERANCE_M = 25
-
 // Route colors (matching biketeam)
 const ROUTE_COLORS = [
   '#566B13',
@@ -121,7 +117,6 @@ export function RoutesMapView({
 
   const { data: bulkData, isLoading } = useRoutesBulk(teamSlug, {
     slug: dedupedSlugs,
-    simplify: MAP_SIMPLIFY_TOLERANCE_M,
   })
 
   const routesBySlug = useMemo(() => {

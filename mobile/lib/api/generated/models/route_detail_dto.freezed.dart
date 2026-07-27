@@ -28,12 +28,11 @@ mixin _$RouteDetailDto {
  String get visibility;/// Creator user
  PublicUserDto get createdBy;/// Creation timestamp
  String get createdAt;/// Last update timestamp
- String get updatedAt;/// Tracks
+ String get updatedAt;/// Tracks, with the stored geometry untouched — every coordinate carries longitude, latitude, elevation and cumulative distance in meters. Empty when the bulk endpoint was called with 'geometry=false'.
  List<TrackDto> get tracks;/// Waypoints
  List<WaypointDto> get waypoints;/// Whether the route is soft-deleted
  bool get deleted; GeoJsonPoint? get start; GeoJsonPoint? get end;/// Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.
- int? get commentCount;/// Sampled elevation profile of the route. Absent unless explicitly requested (the bulk route endpoint's 'elevation' flag) — computing and serialising it costs nothing to skip, so every other caller of this DTO gets exactly what it got before this field existed.
- ElevationProfileDto? get elevationProfile;
+ int? get commentCount;
 /// Create a copy of RouteDetailDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -46,16 +45,16 @@ $RouteDetailDtoCopyWith<RouteDetailDto> get copyWith => _$RouteDetailDtoCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RouteDetailDto&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.team, team) || other.team == team)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.elevationLoss, elevationLoss) || other.elevationLoss == elevationLoss)&&(identical(other.surfaceType, surfaceType) || other.surfaceType == surfaceType)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.createdBy, createdBy) || other.createdBy == createdBy)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.tracks, tracks)&&const DeepCollectionEquality().equals(other.waypoints, waypoints)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end)&&(identical(other.commentCount, commentCount) || other.commentCount == commentCount)&&(identical(other.elevationProfile, elevationProfile) || other.elevationProfile == elevationProfile));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RouteDetailDto&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.team, team) || other.team == team)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.elevationLoss, elevationLoss) || other.elevationLoss == elevationLoss)&&(identical(other.surfaceType, surfaceType) || other.surfaceType == surfaceType)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.createdBy, createdBy) || other.createdBy == createdBy)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.tracks, tracks)&&const DeepCollectionEquality().equals(other.waypoints, waypoints)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end)&&(identical(other.commentCount, commentCount) || other.commentCount == commentCount));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,slug,team,name,media,distance,elevationGain,elevationLoss,surfaceType,visibility,createdBy,createdAt,updatedAt,const DeepCollectionEquality().hash(tracks),const DeepCollectionEquality().hash(waypoints),deleted,start,end,commentCount,elevationProfile]);
+int get hashCode => Object.hashAll([runtimeType,id,slug,team,name,media,distance,elevationGain,elevationLoss,surfaceType,visibility,createdBy,createdAt,updatedAt,const DeepCollectionEquality().hash(tracks),const DeepCollectionEquality().hash(waypoints),deleted,start,end,commentCount]);
 
 @override
 String toString() {
-  return 'RouteDetailDto(id: $id, slug: $slug, team: $team, name: $name, media: $media, distance: $distance, elevationGain: $elevationGain, elevationLoss: $elevationLoss, surfaceType: $surfaceType, visibility: $visibility, createdBy: $createdBy, createdAt: $createdAt, updatedAt: $updatedAt, tracks: $tracks, waypoints: $waypoints, deleted: $deleted, start: $start, end: $end, commentCount: $commentCount, elevationProfile: $elevationProfile)';
+  return 'RouteDetailDto(id: $id, slug: $slug, team: $team, name: $name, media: $media, distance: $distance, elevationGain: $elevationGain, elevationLoss: $elevationLoss, surfaceType: $surfaceType, visibility: $visibility, createdBy: $createdBy, createdAt: $createdAt, updatedAt: $updatedAt, tracks: $tracks, waypoints: $waypoints, deleted: $deleted, start: $start, end: $end, commentCount: $commentCount)';
 }
 
 
@@ -66,11 +65,11 @@ abstract mixin class $RouteDetailDtoCopyWith<$Res>  {
   factory $RouteDetailDtoCopyWith(RouteDetailDto value, $Res Function(RouteDetailDto) _then) = _$RouteDetailDtoCopyWithImpl;
 @useResult
 $Res call({
- String id, String slug, TeamPublicationDto team, String name, MediaDto media, double distance, double elevationGain, double elevationLoss, String surfaceType, String visibility, PublicUserDto createdBy, String createdAt, String updatedAt, List<TrackDto> tracks, List<WaypointDto> waypoints, bool deleted, GeoJsonPoint? start, GeoJsonPoint? end, int? commentCount, ElevationProfileDto? elevationProfile
+ String id, String slug, TeamPublicationDto team, String name, MediaDto media, double distance, double elevationGain, double elevationLoss, String surfaceType, String visibility, PublicUserDto createdBy, String createdAt, String updatedAt, List<TrackDto> tracks, List<WaypointDto> waypoints, bool deleted, GeoJsonPoint? start, GeoJsonPoint? end, int? commentCount
 });
 
 
-$TeamPublicationDtoCopyWith<$Res> get team;$MediaDtoCopyWith<$Res> get media;$PublicUserDtoCopyWith<$Res> get createdBy;$GeoJsonPointCopyWith<$Res>? get start;$GeoJsonPointCopyWith<$Res>? get end;$ElevationProfileDtoCopyWith<$Res>? get elevationProfile;
+$TeamPublicationDtoCopyWith<$Res> get team;$MediaDtoCopyWith<$Res> get media;$PublicUserDtoCopyWith<$Res> get createdBy;$GeoJsonPointCopyWith<$Res>? get start;$GeoJsonPointCopyWith<$Res>? get end;
 
 }
 /// @nodoc
@@ -83,7 +82,7 @@ class _$RouteDetailDtoCopyWithImpl<$Res>
 
 /// Create a copy of RouteDetailDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? team = null,Object? name = null,Object? media = null,Object? distance = null,Object? elevationGain = null,Object? elevationLoss = null,Object? surfaceType = null,Object? visibility = null,Object? createdBy = null,Object? createdAt = null,Object? updatedAt = null,Object? tracks = null,Object? waypoints = null,Object? deleted = null,Object? start = freezed,Object? end = freezed,Object? commentCount = freezed,Object? elevationProfile = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? team = null,Object? name = null,Object? media = null,Object? distance = null,Object? elevationGain = null,Object? elevationLoss = null,Object? surfaceType = null,Object? visibility = null,Object? createdBy = null,Object? createdAt = null,Object? updatedAt = null,Object? tracks = null,Object? waypoints = null,Object? deleted = null,Object? start = freezed,Object? end = freezed,Object? commentCount = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
@@ -104,8 +103,7 @@ as List<WaypointDto>,deleted: null == deleted ? _self.deleted : deleted // ignor
 as bool,start: freezed == start ? _self.start : start // ignore: cast_nullable_to_non_nullable
 as GeoJsonPoint?,end: freezed == end ? _self.end : end // ignore: cast_nullable_to_non_nullable
 as GeoJsonPoint?,commentCount: freezed == commentCount ? _self.commentCount : commentCount // ignore: cast_nullable_to_non_nullable
-as int?,elevationProfile: freezed == elevationProfile ? _self.elevationProfile : elevationProfile // ignore: cast_nullable_to_non_nullable
-as ElevationProfileDto?,
+as int?,
   ));
 }
 /// Create a copy of RouteDetailDto
@@ -158,18 +156,6 @@ $GeoJsonPointCopyWith<$Res>? get end {
 
   return $GeoJsonPointCopyWith<$Res>(_self.end!, (value) {
     return _then(_self.copyWith(end: value));
-  });
-}/// Create a copy of RouteDetailDto
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$ElevationProfileDtoCopyWith<$Res>? get elevationProfile {
-    if (_self.elevationProfile == null) {
-    return null;
-  }
-
-  return $ElevationProfileDtoCopyWith<$Res>(_self.elevationProfile!, (value) {
-    return _then(_self.copyWith(elevationProfile: value));
   });
 }
 }
@@ -253,10 +239,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  TeamPublicationDto team,  String name,  MediaDto media,  double distance,  double elevationGain,  double elevationLoss,  String surfaceType,  String visibility,  PublicUserDto createdBy,  String createdAt,  String updatedAt,  List<TrackDto> tracks,  List<WaypointDto> waypoints,  bool deleted,  GeoJsonPoint? start,  GeoJsonPoint? end,  int? commentCount,  ElevationProfileDto? elevationProfile)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  TeamPublicationDto team,  String name,  MediaDto media,  double distance,  double elevationGain,  double elevationLoss,  String surfaceType,  String visibility,  PublicUserDto createdBy,  String createdAt,  String updatedAt,  List<TrackDto> tracks,  List<WaypointDto> waypoints,  bool deleted,  GeoJsonPoint? start,  GeoJsonPoint? end,  int? commentCount)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _RouteDetailDto() when $default != null:
-return $default(_that.id,_that.slug,_that.team,_that.name,_that.media,_that.distance,_that.elevationGain,_that.elevationLoss,_that.surfaceType,_that.visibility,_that.createdBy,_that.createdAt,_that.updatedAt,_that.tracks,_that.waypoints,_that.deleted,_that.start,_that.end,_that.commentCount,_that.elevationProfile);case _:
+return $default(_that.id,_that.slug,_that.team,_that.name,_that.media,_that.distance,_that.elevationGain,_that.elevationLoss,_that.surfaceType,_that.visibility,_that.createdBy,_that.createdAt,_that.updatedAt,_that.tracks,_that.waypoints,_that.deleted,_that.start,_that.end,_that.commentCount);case _:
   return orElse();
 
 }
@@ -274,10 +260,10 @@ return $default(_that.id,_that.slug,_that.team,_that.name,_that.media,_that.dist
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  TeamPublicationDto team,  String name,  MediaDto media,  double distance,  double elevationGain,  double elevationLoss,  String surfaceType,  String visibility,  PublicUserDto createdBy,  String createdAt,  String updatedAt,  List<TrackDto> tracks,  List<WaypointDto> waypoints,  bool deleted,  GeoJsonPoint? start,  GeoJsonPoint? end,  int? commentCount,  ElevationProfileDto? elevationProfile)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  TeamPublicationDto team,  String name,  MediaDto media,  double distance,  double elevationGain,  double elevationLoss,  String surfaceType,  String visibility,  PublicUserDto createdBy,  String createdAt,  String updatedAt,  List<TrackDto> tracks,  List<WaypointDto> waypoints,  bool deleted,  GeoJsonPoint? start,  GeoJsonPoint? end,  int? commentCount)  $default,) {final _that = this;
 switch (_that) {
 case _RouteDetailDto():
-return $default(_that.id,_that.slug,_that.team,_that.name,_that.media,_that.distance,_that.elevationGain,_that.elevationLoss,_that.surfaceType,_that.visibility,_that.createdBy,_that.createdAt,_that.updatedAt,_that.tracks,_that.waypoints,_that.deleted,_that.start,_that.end,_that.commentCount,_that.elevationProfile);case _:
+return $default(_that.id,_that.slug,_that.team,_that.name,_that.media,_that.distance,_that.elevationGain,_that.elevationLoss,_that.surfaceType,_that.visibility,_that.createdBy,_that.createdAt,_that.updatedAt,_that.tracks,_that.waypoints,_that.deleted,_that.start,_that.end,_that.commentCount);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -294,10 +280,10 @@ return $default(_that.id,_that.slug,_that.team,_that.name,_that.media,_that.dist
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  TeamPublicationDto team,  String name,  MediaDto media,  double distance,  double elevationGain,  double elevationLoss,  String surfaceType,  String visibility,  PublicUserDto createdBy,  String createdAt,  String updatedAt,  List<TrackDto> tracks,  List<WaypointDto> waypoints,  bool deleted,  GeoJsonPoint? start,  GeoJsonPoint? end,  int? commentCount,  ElevationProfileDto? elevationProfile)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  TeamPublicationDto team,  String name,  MediaDto media,  double distance,  double elevationGain,  double elevationLoss,  String surfaceType,  String visibility,  PublicUserDto createdBy,  String createdAt,  String updatedAt,  List<TrackDto> tracks,  List<WaypointDto> waypoints,  bool deleted,  GeoJsonPoint? start,  GeoJsonPoint? end,  int? commentCount)?  $default,) {final _that = this;
 switch (_that) {
 case _RouteDetailDto() when $default != null:
-return $default(_that.id,_that.slug,_that.team,_that.name,_that.media,_that.distance,_that.elevationGain,_that.elevationLoss,_that.surfaceType,_that.visibility,_that.createdBy,_that.createdAt,_that.updatedAt,_that.tracks,_that.waypoints,_that.deleted,_that.start,_that.end,_that.commentCount,_that.elevationProfile);case _:
+return $default(_that.id,_that.slug,_that.team,_that.name,_that.media,_that.distance,_that.elevationGain,_that.elevationLoss,_that.surfaceType,_that.visibility,_that.createdBy,_that.createdAt,_that.updatedAt,_that.tracks,_that.waypoints,_that.deleted,_that.start,_that.end,_that.commentCount);case _:
   return null;
 
 }
@@ -309,7 +295,7 @@ return $default(_that.id,_that.slug,_that.team,_that.name,_that.media,_that.dist
 @JsonSerializable()
 
 class _RouteDetailDto implements RouteDetailDto {
-  const _RouteDetailDto({required this.id, required this.slug, required this.team, required this.name, required this.media, required this.distance, required this.elevationGain, required this.elevationLoss, required this.surfaceType, required this.visibility, required this.createdBy, required this.createdAt, required this.updatedAt, required final  List<TrackDto> tracks, required final  List<WaypointDto> waypoints, required this.deleted, this.start, this.end, this.commentCount, this.elevationProfile}): _tracks = tracks,_waypoints = waypoints;
+  const _RouteDetailDto({required this.id, required this.slug, required this.team, required this.name, required this.media, required this.distance, required this.elevationGain, required this.elevationLoss, required this.surfaceType, required this.visibility, required this.createdBy, required this.createdAt, required this.updatedAt, required final  List<TrackDto> tracks, required final  List<WaypointDto> waypoints, required this.deleted, this.start, this.end, this.commentCount}): _tracks = tracks,_waypoints = waypoints;
   factory _RouteDetailDto.fromJson(Map<String, dynamic> json) => _$RouteDetailDtoFromJson(json);
 
 /// Route ID (TSID)
@@ -338,9 +324,9 @@ class _RouteDetailDto implements RouteDetailDto {
 @override final  String createdAt;
 /// Last update timestamp
 @override final  String updatedAt;
-/// Tracks
+/// Tracks, with the stored geometry untouched — every coordinate carries longitude, latitude, elevation and cumulative distance in meters. Empty when the bulk endpoint was called with 'geometry=false'.
  final  List<TrackDto> _tracks;
-/// Tracks
+/// Tracks, with the stored geometry untouched — every coordinate carries longitude, latitude, elevation and cumulative distance in meters. Empty when the bulk endpoint was called with 'geometry=false'.
 @override List<TrackDto> get tracks {
   if (_tracks is EqualUnmodifiableListView) return _tracks;
   // ignore: implicit_dynamic_type
@@ -362,8 +348,6 @@ class _RouteDetailDto implements RouteDetailDto {
 @override final  GeoJsonPoint? end;
 /// Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.
 @override final  int? commentCount;
-/// Sampled elevation profile of the route. Absent unless explicitly requested (the bulk route endpoint's 'elevation' flag) — computing and serialising it costs nothing to skip, so every other caller of this DTO gets exactly what it got before this field existed.
-@override final  ElevationProfileDto? elevationProfile;
 
 /// Create a copy of RouteDetailDto
 /// with the given fields replaced by the non-null parameter values.
@@ -378,16 +362,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RouteDetailDto&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.team, team) || other.team == team)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.elevationLoss, elevationLoss) || other.elevationLoss == elevationLoss)&&(identical(other.surfaceType, surfaceType) || other.surfaceType == surfaceType)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.createdBy, createdBy) || other.createdBy == createdBy)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other._tracks, _tracks)&&const DeepCollectionEquality().equals(other._waypoints, _waypoints)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end)&&(identical(other.commentCount, commentCount) || other.commentCount == commentCount)&&(identical(other.elevationProfile, elevationProfile) || other.elevationProfile == elevationProfile));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RouteDetailDto&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.team, team) || other.team == team)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.elevationLoss, elevationLoss) || other.elevationLoss == elevationLoss)&&(identical(other.surfaceType, surfaceType) || other.surfaceType == surfaceType)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.createdBy, createdBy) || other.createdBy == createdBy)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other._tracks, _tracks)&&const DeepCollectionEquality().equals(other._waypoints, _waypoints)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end)&&(identical(other.commentCount, commentCount) || other.commentCount == commentCount));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,slug,team,name,media,distance,elevationGain,elevationLoss,surfaceType,visibility,createdBy,createdAt,updatedAt,const DeepCollectionEquality().hash(_tracks),const DeepCollectionEquality().hash(_waypoints),deleted,start,end,commentCount,elevationProfile]);
+int get hashCode => Object.hashAll([runtimeType,id,slug,team,name,media,distance,elevationGain,elevationLoss,surfaceType,visibility,createdBy,createdAt,updatedAt,const DeepCollectionEquality().hash(_tracks),const DeepCollectionEquality().hash(_waypoints),deleted,start,end,commentCount]);
 
 @override
 String toString() {
-  return 'RouteDetailDto(id: $id, slug: $slug, team: $team, name: $name, media: $media, distance: $distance, elevationGain: $elevationGain, elevationLoss: $elevationLoss, surfaceType: $surfaceType, visibility: $visibility, createdBy: $createdBy, createdAt: $createdAt, updatedAt: $updatedAt, tracks: $tracks, waypoints: $waypoints, deleted: $deleted, start: $start, end: $end, commentCount: $commentCount, elevationProfile: $elevationProfile)';
+  return 'RouteDetailDto(id: $id, slug: $slug, team: $team, name: $name, media: $media, distance: $distance, elevationGain: $elevationGain, elevationLoss: $elevationLoss, surfaceType: $surfaceType, visibility: $visibility, createdBy: $createdBy, createdAt: $createdAt, updatedAt: $updatedAt, tracks: $tracks, waypoints: $waypoints, deleted: $deleted, start: $start, end: $end, commentCount: $commentCount)';
 }
 
 
@@ -398,11 +382,11 @@ abstract mixin class _$RouteDetailDtoCopyWith<$Res> implements $RouteDetailDtoCo
   factory _$RouteDetailDtoCopyWith(_RouteDetailDto value, $Res Function(_RouteDetailDto) _then) = __$RouteDetailDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String slug, TeamPublicationDto team, String name, MediaDto media, double distance, double elevationGain, double elevationLoss, String surfaceType, String visibility, PublicUserDto createdBy, String createdAt, String updatedAt, List<TrackDto> tracks, List<WaypointDto> waypoints, bool deleted, GeoJsonPoint? start, GeoJsonPoint? end, int? commentCount, ElevationProfileDto? elevationProfile
+ String id, String slug, TeamPublicationDto team, String name, MediaDto media, double distance, double elevationGain, double elevationLoss, String surfaceType, String visibility, PublicUserDto createdBy, String createdAt, String updatedAt, List<TrackDto> tracks, List<WaypointDto> waypoints, bool deleted, GeoJsonPoint? start, GeoJsonPoint? end, int? commentCount
 });
 
 
-@override $TeamPublicationDtoCopyWith<$Res> get team;@override $MediaDtoCopyWith<$Res> get media;@override $PublicUserDtoCopyWith<$Res> get createdBy;@override $GeoJsonPointCopyWith<$Res>? get start;@override $GeoJsonPointCopyWith<$Res>? get end;@override $ElevationProfileDtoCopyWith<$Res>? get elevationProfile;
+@override $TeamPublicationDtoCopyWith<$Res> get team;@override $MediaDtoCopyWith<$Res> get media;@override $PublicUserDtoCopyWith<$Res> get createdBy;@override $GeoJsonPointCopyWith<$Res>? get start;@override $GeoJsonPointCopyWith<$Res>? get end;
 
 }
 /// @nodoc
@@ -415,7 +399,7 @@ class __$RouteDetailDtoCopyWithImpl<$Res>
 
 /// Create a copy of RouteDetailDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? slug = null,Object? team = null,Object? name = null,Object? media = null,Object? distance = null,Object? elevationGain = null,Object? elevationLoss = null,Object? surfaceType = null,Object? visibility = null,Object? createdBy = null,Object? createdAt = null,Object? updatedAt = null,Object? tracks = null,Object? waypoints = null,Object? deleted = null,Object? start = freezed,Object? end = freezed,Object? commentCount = freezed,Object? elevationProfile = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? slug = null,Object? team = null,Object? name = null,Object? media = null,Object? distance = null,Object? elevationGain = null,Object? elevationLoss = null,Object? surfaceType = null,Object? visibility = null,Object? createdBy = null,Object? createdAt = null,Object? updatedAt = null,Object? tracks = null,Object? waypoints = null,Object? deleted = null,Object? start = freezed,Object? end = freezed,Object? commentCount = freezed,}) {
   return _then(_RouteDetailDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
@@ -436,8 +420,7 @@ as List<WaypointDto>,deleted: null == deleted ? _self.deleted : deleted // ignor
 as bool,start: freezed == start ? _self.start : start // ignore: cast_nullable_to_non_nullable
 as GeoJsonPoint?,end: freezed == end ? _self.end : end // ignore: cast_nullable_to_non_nullable
 as GeoJsonPoint?,commentCount: freezed == commentCount ? _self.commentCount : commentCount // ignore: cast_nullable_to_non_nullable
-as int?,elevationProfile: freezed == elevationProfile ? _self.elevationProfile : elevationProfile // ignore: cast_nullable_to_non_nullable
-as ElevationProfileDto?,
+as int?,
   ));
 }
 
@@ -491,18 +474,6 @@ $GeoJsonPointCopyWith<$Res>? get end {
 
   return $GeoJsonPointCopyWith<$Res>(_self.end!, (value) {
     return _then(_self.copyWith(end: value));
-  });
-}/// Create a copy of RouteDetailDto
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$ElevationProfileDtoCopyWith<$Res>? get elevationProfile {
-    if (_self.elevationProfile == null) {
-    return null;
-  }
-
-  return $ElevationProfileDtoCopyWith<$Res>(_self.elevationProfile!, (value) {
-    return _then(_self.copyWith(elevationProfile: value));
   });
 }
 }

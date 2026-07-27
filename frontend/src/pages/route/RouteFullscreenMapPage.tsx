@@ -22,7 +22,7 @@ export function RouteFullscreenMapPage() {
   const { data: team } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },
   })
-  const { data: route, isLoading } = useGetRoute(teamSlug!, routeSlug!, undefined, {
+  const { data: route, isLoading } = useGetRoute(teamSlug!, routeSlug!, {
     query: { enabled: !!teamSlug && !!routeSlug },
   })
 

@@ -35,10 +35,7 @@ class _CountingRouteRepository implements RouteRepository {
   Future<RoutesBulkResponse> getRoutesBulk(
     String teamSlug,
     List<String> slugs, {
-    double? simplify,
-    int? points,
-    bool elevation = false,
-    int? elevationSamples,
+    bool geometry = true,
   }) async {
     bulkCalls.add(slugs);
     if (gate != null) await gate!.future;

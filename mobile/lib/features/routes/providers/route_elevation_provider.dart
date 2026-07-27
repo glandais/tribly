@@ -2,12 +2,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../api/generated/export.dart';
 import '../../../core/pdl/elevation/elevation_samples.dart';
-import '../data/elevation_profile_repository.dart';
-import '../domain/elevation_samples_mapper.dart';
+import '../domain/route_elevation_builder.dart';
+import 'route_detail_provider.dart';
 
-/// Le profil d'un parcours, **prêt à peindre**.
+/// Le profil d'un parcours, **prêt à peindre**, dérivé de sa géométrie.
 ///
-/// Un cran au-dessus d'[elevationProfileProvider], qui rend le DTO : ici
+/// Un cran au-dessus de [routeDetailProvider], qui rend le DTO : ici
 /// l'agrégation vers ~76 barres est faite une fois et **mémorisée avec la
 /// réponse**. Sans ce palier, chaque `build` reconstruirait un
 /// [ElevationSamples] neuf, que le painter comparerait par identité et jugerait
@@ -15,15 +15,18 @@ import '../domain/elevation_samples_mapper.dart';
 /// glissement du réticule, ce que toute l'architecture à deux couches cherche
 /// précisément à éviter.
 ///
-/// La clé porte le nombre d'échantillons, quantifié par
-/// [ElevationProfileKey.forWidth] : deux largeurs voisines partagent une
-/// entrée, changer de groupe sur la même largeur en crée une par parcours.
+/// La donnée vient du **même appel** que le tracé : plus de clé portant un
+/// nombre d'échantillons, plus de requête séparée, et un axe des distances
+/// rigoureusement identique à celui du curseur de la carte.
+///
+/// La valeur est `null` quand le parcours n'a pas d'altitude exploitable —
+/// l'écran ne rend alors pas de profil, plutôt qu'un profil plat.
 final routeElevationSamplesProvider =
-    Provider.family<AsyncValue<ElevationSamples>, ElevationProfileKey>((
+    Provider.family<AsyncValue<ElevationSamples?>, RouteKey>((
       Ref ref,
-      ElevationProfileKey key,
+      RouteKey key,
     ) {
       return ref
-          .watch(elevationProfileProvider(key))
-          .whenData((ElevationProfileDto dto) => dto.toSamples());
+          .watch(routeDetailProvider(key))
+          .whenData((RouteDetailDto route) => route.elevationSamples());
     }, isAutoDispose: true);

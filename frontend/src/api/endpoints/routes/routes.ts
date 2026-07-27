@@ -20,11 +20,8 @@ import type {
   CountResponse,
   CountRoutesParams,
   CreateRouteBody,
-  ElevationProfileDto,
   ErrorResponse,
   GetAllRoutesBoundsParams,
-  GetRouteElevationProfileParams,
-  GetRouteParams,
   GetRoutesBoundsParams,
   GetRoutesBulkParams,
   ListAllRoutesParams,
@@ -1052,7 +1049,7 @@ export const prefetchGetRoutesBoundsQuery = async <
 }
 
 /**
- * The detail of every requested 'slug' that exists and the caller may read, in one round-trip — built for the screens that load several routes together (a ride's stages, a comparison view), which would otherwise cost one request per route. Accepts the same 'simplify' and 'points' geometry knobs as the single-route endpoint, plus an optional elevation profile per route. Unknown slugs and slugs the caller may not read are silently left out of the answer rather than failing the whole batch. When the batch resolves to a single route, 'simplify'/'points' behave exactly as on the single-route endpoint — including returning the stored track unchanged when neither is given. Past one route, the per-route point count is capped at 1000 regardless of what 'simplify'/'points' resolve to, so a request naming many slugs cannot be used to pull the full stored geometry of all of them at once. The response also carries the bounding box of the track geometry actually sent back (waypoints are excluded, so an imported meeting-point or car-park waypoint far off the track cannot widen it), so a map can frame the batch without a second request.
+ * The detail of every requested 'slug' that exists and the caller may read, in one round-trip — built for the screens that load several routes together (a ride's stages, a comparison view), which would otherwise cost one request per route. Each row is exactly what the single-route endpoint returns, geometry included. Unknown slugs and slugs the caller may not read are silently left out of the answer rather than failing the whole batch. Set 'geometry' to false for the screens that only need each route's name and figures. The response also carries the bounding box of the track geometry actually sent back (waypoints are excluded, so an imported meeting-point or car-park waypoint far off the track cannot widen it), so a map can frame the batch without a second request.
  * @summary Get several routes' details at once
  */
 export const getRoutesBulk = (
@@ -1638,28 +1635,23 @@ export const useUpdateRoute = <TError = ErrorType<ErrorResponse>, TContext = unk
   return useMutation(getUpdateRouteMutationOptions(options), queryClient)
 }
 /**
- * Get detailed route information including GPS coordinates and statistics. The stored track holds one point every ten meters, which is megabytes of JSON on a long route: 'simplify' and 'points' let a client trade fidelity for weight. Passing neither returns the stored track unchanged.
+ * Get detailed route information including GPS coordinates and statistics. The track is returned exactly as stored — already resampled and Douglas-Peucker-filtered at import, which lands it at roughly one point every 90 m. Every coordinate carries longitude, latitude, elevation and cumulative distance in meters, so a client can draw both the line and its elevation profile from this one payload.
  * @summary Get route details
  */
 export const getRoute = (
   teamSlug: string,
   routeSlug: string,
-  params?: GetRouteParams,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<RouteDetailDto>(
-    { url: `/api/teams/${teamSlug}/routes/${routeSlug}`, method: 'GET', params, signal },
+    { url: `/api/teams/${teamSlug}/routes/${routeSlug}`, method: 'GET', signal },
     options
   )
 }
 
-export const getGetRouteQueryKey = (
-  teamSlug: string,
-  routeSlug: string,
-  params?: GetRouteParams
-) => {
-  return [`/api/teams/${teamSlug}/routes/${routeSlug}`, ...(params ? [params] : [])] as const
+export const getGetRouteQueryKey = (teamSlug: string, routeSlug: string) => {
+  return [`/api/teams/${teamSlug}/routes/${routeSlug}`] as const
 }
 
 export const getGetRouteQueryOptions = <
@@ -1668,7 +1660,6 @@ export const getGetRouteQueryOptions = <
 >(
   teamSlug: string,
   routeSlug: string,
-  params?: GetRouteParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoute>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
@@ -1676,10 +1667,10 @@ export const getGetRouteQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getGetRouteQueryKey(teamSlug, routeSlug, params)
+  const queryKey = queryOptions?.queryKey ?? getGetRouteQueryKey(teamSlug, routeSlug)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getRoute>>> = ({ signal }) =>
-    getRoute(teamSlug, routeSlug, params, requestOptions, signal)
+    getRoute(teamSlug, routeSlug, requestOptions, signal)
 
   return {
     queryKey,
@@ -1701,7 +1692,6 @@ export function useGetRoute<
 >(
   teamSlug: string,
   routeSlug: string,
-  params: undefined | GetRouteParams,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoute>>, TError, TData>> &
       Pick<
@@ -1722,7 +1712,6 @@ export function useGetRoute<
 >(
   teamSlug: string,
   routeSlug: string,
-  params?: GetRouteParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoute>>, TError, TData>> &
       Pick<
@@ -1743,7 +1732,6 @@ export function useGetRoute<
 >(
   teamSlug: string,
   routeSlug: string,
-  params?: GetRouteParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoute>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
@@ -1760,14 +1748,13 @@ export function useGetRoute<
 >(
   teamSlug: string,
   routeSlug: string,
-  params?: GetRouteParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoute>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetRouteQueryOptions(teamSlug, routeSlug, params, options)
+  const queryOptions = getGetRouteQueryOptions(teamSlug, routeSlug, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>
@@ -1786,13 +1773,12 @@ export const prefetchGetRouteQuery = async <
   queryClient: QueryClient,
   teamSlug: string,
   routeSlug: string,
-  params?: GetRouteParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoute>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
   }
 ): Promise<QueryClient> => {
-  const queryOptions = getGetRouteQueryOptions(teamSlug, routeSlug, params, options)
+  const queryOptions = getGetRouteQueryOptions(teamSlug, routeSlug, options)
 
   await queryClient.prefetchQuery(queryOptions)
 
@@ -1877,192 +1863,6 @@ export const useDeleteRoute = <TError = ErrorType<ErrorResponse>, TContext = unk
 > => {
   return useMutation(getDeleteRouteMutationOptions(options), queryClient)
 }
-/**
- * The route's elevation profile resampled to 'samples' evenly spaced distances, each point carrying its cumulative distance, its elevation and the grade in percent of the segment ending on it — everything needed to draw a profile coloured by gradient without downloading the full track. Multi-track routes are concatenated into one continuous profile. The answer never holds more points than the stored track.
- * @summary Get route elevation profile
- */
-export const getRouteElevationProfile = (
-  teamSlug: string,
-  routeSlug: string,
-  params?: GetRouteElevationProfileParams,
-  options?: SecondParameter<typeof axiosMutator>,
-  signal?: AbortSignal
-) => {
-  return axiosMutator<ElevationProfileDto>(
-    {
-      url: `/api/teams/${teamSlug}/routes/${routeSlug}/elevation-profile`,
-      method: 'GET',
-      params,
-      signal,
-    },
-    options
-  )
-}
-
-export const getGetRouteElevationProfileQueryKey = (
-  teamSlug: string,
-  routeSlug: string,
-  params?: GetRouteElevationProfileParams
-) => {
-  return [
-    `/api/teams/${teamSlug}/routes/${routeSlug}/elevation-profile`,
-    ...(params ? [params] : []),
-  ] as const
-}
-
-export const getGetRouteElevationProfileQueryOptions = <
-  TData = Awaited<ReturnType<typeof getRouteElevationProfile>>,
-  TError = ErrorType<ErrorResponse>,
->(
-  teamSlug: string,
-  routeSlug: string,
-  params?: GetRouteElevationProfileParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getRouteElevationProfile>>, TError, TData>
-    >
-    request?: SecondParameter<typeof axiosMutator>
-  }
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {}
-
-  const queryKey =
-    queryOptions?.queryKey ?? getGetRouteElevationProfileQueryKey(teamSlug, routeSlug, params)
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getRouteElevationProfile>>> = ({
-    signal,
-  }) => getRouteElevationProfile(teamSlug, routeSlug, params, requestOptions, signal)
-
-  return {
-    queryKey,
-    queryFn,
-    enabled:
-      teamSlug !== null && teamSlug !== undefined && routeSlug !== null && routeSlug !== undefined,
-    ...queryOptions,
-  } as UseQueryOptions<Awaited<ReturnType<typeof getRouteElevationProfile>>, TError, TData> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
-}
-
-export type GetRouteElevationProfileQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getRouteElevationProfile>>
->
-export type GetRouteElevationProfileQueryError = ErrorType<ErrorResponse>
-
-export function useGetRouteElevationProfile<
-  TData = Awaited<ReturnType<typeof getRouteElevationProfile>>,
-  TError = ErrorType<ErrorResponse>,
->(
-  teamSlug: string,
-  routeSlug: string,
-  params: undefined | GetRouteElevationProfileParams,
-  options: {
-    query: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getRouteElevationProfile>>, TError, TData>
-    > &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getRouteElevationProfile>>,
-          TError,
-          Awaited<ReturnType<typeof getRouteElevationProfile>>
-        >,
-        'initialData'
-      >
-    request?: SecondParameter<typeof axiosMutator>
-  },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetRouteElevationProfile<
-  TData = Awaited<ReturnType<typeof getRouteElevationProfile>>,
-  TError = ErrorType<ErrorResponse>,
->(
-  teamSlug: string,
-  routeSlug: string,
-  params?: GetRouteElevationProfileParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getRouteElevationProfile>>, TError, TData>
-    > &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getRouteElevationProfile>>,
-          TError,
-          Awaited<ReturnType<typeof getRouteElevationProfile>>
-        >,
-        'initialData'
-      >
-    request?: SecondParameter<typeof axiosMutator>
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetRouteElevationProfile<
-  TData = Awaited<ReturnType<typeof getRouteElevationProfile>>,
-  TError = ErrorType<ErrorResponse>,
->(
-  teamSlug: string,
-  routeSlug: string,
-  params?: GetRouteElevationProfileParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getRouteElevationProfile>>, TError, TData>
-    >
-    request?: SecondParameter<typeof axiosMutator>
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary Get route elevation profile
- */
-
-export function useGetRouteElevationProfile<
-  TData = Awaited<ReturnType<typeof getRouteElevationProfile>>,
-  TError = ErrorType<ErrorResponse>,
->(
-  teamSlug: string,
-  routeSlug: string,
-  params?: GetRouteElevationProfileParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getRouteElevationProfile>>, TError, TData>
-    >
-    request?: SecondParameter<typeof axiosMutator>
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetRouteElevationProfileQueryOptions(teamSlug, routeSlug, params, options)
-
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
-
-  return withQueryKey(query, queryOptions.queryKey)
-}
-
-/**
- * @summary Get route elevation profile
- */
-export const prefetchGetRouteElevationProfileQuery = async <
-  TData = Awaited<ReturnType<typeof getRouteElevationProfile>>,
-  TError = ErrorType<ErrorResponse>,
->(
-  queryClient: QueryClient,
-  teamSlug: string,
-  routeSlug: string,
-  params?: GetRouteElevationProfileParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getRouteElevationProfile>>, TError, TData>
-    >
-    request?: SecondParameter<typeof axiosMutator>
-  }
-): Promise<QueryClient> => {
-  const queryOptions = getGetRouteElevationProfileQueryOptions(teamSlug, routeSlug, params, options)
-
-  await queryClient.prefetchQuery(queryOptions)
-
-  return queryClient
-}
-
 /**
  * Change route URL slug. Requires organizer permissions.
  * @summary Change route slug

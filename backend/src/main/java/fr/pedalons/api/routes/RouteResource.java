@@ -3,7 +3,6 @@ package fr.pedalons.api.routes;
 import fr.pedalons.dto.common.CountResponse;
 import fr.pedalons.dto.common.request.SlugChangeRequest;
 import fr.pedalons.dto.error.ErrorResponse;
-import fr.pedalons.dto.routes.request.GeometryOptions;
 import fr.pedalons.dto.routes.request.RouteFilterParams;
 import fr.pedalons.dto.routes.request.RouteListParams;
 import fr.pedalons.dto.routes.request.RouteRequest;
@@ -236,20 +235,13 @@ public class RouteResource {
           "The detail of every requested 'slug' that exists and the caller may read, in one"
               + " round-trip — built for the screens that load several routes together (a ride's"
               + " stages, a comparison view), which would otherwise cost one request per route."
-              + " Accepts the same 'simplify' and 'points' geometry knobs as the single-route"
-              + " endpoint, plus an optional elevation profile per route. Unknown slugs and slugs"
-              + " the caller may not read are silently left out of the answer rather than failing"
-              + " the whole batch. When the batch resolves to a single route, 'simplify'/'points'"
-              + " behave exactly as on the single-route endpoint — including returning the stored"
-              + " track unchanged when neither is given. Past one route, the per-route point count"
-              + " is capped at "
-              + RouteService.DEFAULT_BULK_MAX_POINTS_PER_ROUTE
-              + " regardless of what 'simplify'/'points' resolve to, so a request naming many"
-              + " slugs cannot be used to pull the full stored geometry of all of them at once."
-              + " The response also carries the bounding box of the track geometry actually sent"
-              + " back (waypoints are excluded, so an imported meeting-point or car-park waypoint"
-              + " far off the track cannot widen it), so a map can frame the batch without a"
-              + " second request.")
+              + " Each row is exactly what the single-route endpoint returns, geometry included."
+              + " Unknown slugs and slugs the caller may not read are silently left out of the"
+              + " answer rather than failing the whole batch. Set 'geometry' to false for the"
+              + " screens that only need each route's name and figures. The response also carries"
+              + " the bounding box of the track geometry actually sent back (waypoints are"
+              + " excluded, so an imported meeting-point or car-park waypoint far off the track"
+              + " cannot widen it), so a map can frame the batch without a second request.")
   @APIResponses({
     @APIResponse(
         responseCode = "200",
@@ -280,40 +272,15 @@ public class RouteResource {
           List<String> slugs,
       @Parameter(
               description =
-                  "Douglas-Peucker tolerance in meters, applied to every route of the batch — same"
-                      + " semantics as on the single-route endpoint.")
-          @QueryParam("simplify")
-          @Nullable Double simplify,
-      @Parameter(
-              description =
-                  "Maximum number of track points per route, applied to every route of the batch —"
-                      + " same semantics as on the single-route endpoint. Once the batch resolves"
-                      + " to more than one route, this is capped at "
-                      + RouteService.DEFAULT_BULK_MAX_POINTS_PER_ROUTE
-                      + " per route regardless of the value passed here (or of 'simplify'), so a"
-                      + " request naming many slugs cannot be used to pull the full stored"
-                      + " geometry of all of them at once.")
-          @QueryParam("points")
-          @Nullable Integer points,
-      @Parameter(description = "Whether to attach each route's sampled elevation profile.")
-          @QueryParam("elevation")
-          @DefaultValue("false")
-          boolean elevation,
-      @Parameter(
-              description =
-                  "Resolution of the elevation profile when 'elevation' is true. Same clamping as"
-                      + " the single-route elevation-profile endpoint.")
-          @QueryParam("elevationSamples")
-          @DefaultValue(RouteService.DEFAULT_PROFILE_SAMPLES)
-          int elevationSamples) {
+                  "Whether to include each route's track geometry. False answers metadata only —"
+                      + " name, distances, media, asset links — with an empty 'tracks' array and no"
+                      + " 'extent', for the screens that name routes without drawing them.")
+          @QueryParam("geometry")
+          @DefaultValue("true")
+          boolean geometry) {
 
     RoutesBulkResponse routes =
-        routeService.getRoutesBulk(
-            teamSlug,
-            slugs == null ? List.of() : slugs,
-            GeometryOptions.of(simplify, points),
-            elevation,
-            elevationSamples);
+        routeService.getRoutesBulk(teamSlug, slugs == null ? List.of() : slugs, geometry);
     // Rows carry a per-user field (commentCount, which follows the caller's team
     // membership): never let a shared cache keep one user's answer for the next one.
     return Response.ok(routes).header(HttpHeaders.CACHE_CONTROL, PRIVATE_NO_STORE).build();
@@ -328,10 +295,11 @@ public class RouteResource {
   @Operation(
       summary = "Get route details",
       description =
-          "Get detailed route information including GPS coordinates and statistics. The stored"
-              + " track holds one point every ten meters, which is megabytes of JSON on a long"
-              + " route: 'simplify' and 'points' let a client trade fidelity for weight. Passing"
-              + " neither returns the stored track unchanged.")
+          "Get detailed route information including GPS coordinates and statistics. The track is"
+              + " returned exactly as stored — already resampled and Douglas-Peucker-filtered at"
+              + " import, which lands it at roughly one point every 90 m. Every coordinate carries"
+              + " longitude, latitude, elevation and cumulative distance in meters, so a client can"
+              + " draw both the line and its elevation profile from this one payload.")
   @APIResponses({
     @APIResponse(
         responseCode = "200",
@@ -344,71 +312,12 @@ public class RouteResource {
   })
   public Response getRoute(
       @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
-      @Parameter(description = "Route slug") @PathParam("routeSlug") String routeSlug,
-      @Parameter(
-              description =
-                  "Douglas-Peucker tolerance in meters: drop every track point lying closer than"
-                      + " this to the line joining the points kept around it. The returned line"
-                      + " stays within that many meters of the stored one, and its first and last"
-                      + " points are always kept. Capped at 1000; absent or zero means no"
-                      + " simplification.")
-          @QueryParam("simplify")
-          @Nullable Double simplify,
-      @Parameter(
-              description =
-                  "Maximum number of track points to return. The points kept are those deviating"
-                      + " most from the simplified line — corners and elevation extrema survive,"
-                      + " straight flat stretches are dropped — and the first and last points are"
-                      + " always kept. Applied after 'simplify' when both are given. Absent, zero"
-                      + " or a value larger than the stored track means no decimation.")
-          @QueryParam("points")
-          @Nullable Integer points) {
+      @Parameter(description = "Route slug") @PathParam("routeSlug") String routeSlug) {
 
-    RouteDetailDto route =
-        routeService.getDto(teamSlug, routeSlug, GeometryOptions.of(simplify, points));
+    RouteDetailDto route = routeService.getDto(teamSlug, routeSlug);
     // Rows carry a per-user field (commentCount, which follows the caller's team
     // membership): never let a shared cache keep one user's answer for the next one.
     return Response.ok(route).header(HttpHeaders.CACHE_CONTROL, PRIVATE_NO_STORE).build();
-  }
-
-  /**
-   * Sampled elevation profile of a route.
-   */
-  @GET
-  @Path("/{routeSlug}/elevation-profile")
-  @PermitAll
-  @Operation(
-      operationId = "getRouteElevationProfile",
-      summary = "Get route elevation profile",
-      description =
-          "The route's elevation profile resampled to 'samples' evenly spaced distances, each point"
-              + " carrying its cumulative distance, its elevation and the grade in percent of the"
-              + " segment ending on it — everything needed to draw a profile coloured by gradient"
-              + " without downloading the full track. Multi-track routes are concatenated into one"
-              + " continuous profile. The answer never holds more points than the stored track.")
-  @APIResponses({
-    @APIResponse(
-        responseCode = "200",
-        description = "Elevation profile computed successfully",
-        content = @Content(schema = @Schema(implementation = ElevationProfileDto.class))),
-    @APIResponse(
-        responseCode = "404",
-        description = "Team or route not found",
-        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-  })
-  public Response getElevationProfile(
-      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
-      @Parameter(description = "Route slug") @PathParam("routeSlug") String routeSlug,
-      @Parameter(
-              description =
-                  "Number of profile points wanted. Clamped server-side to 2..1000, and further"
-                      + " reduced to the number of points actually stored for the route.")
-          @QueryParam("samples")
-          @DefaultValue(RouteService.DEFAULT_PROFILE_SAMPLES)
-          int samples) {
-
-    ElevationProfileDto profile = routeService.getElevationProfile(teamSlug, routeSlug, samples);
-    return Response.ok(profile).build();
   }
 
   /**

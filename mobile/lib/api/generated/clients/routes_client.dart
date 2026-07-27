@@ -8,7 +8,6 @@ import 'package:retrofit/retrofit.dart';
 import 'package:retrofit/error_logger.dart';
 
 import '../models/count_response.dart';
-import '../models/elevation_profile_dto.dart';
 import '../models/hilliness.dart';
 import '../models/list_view_mode.dart';
 import '../models/min_role.dart';
@@ -366,27 +365,18 @@ abstract class RoutesClient {
 
   /// Get several routes' details at once.
   ///
-  /// The detail of every requested 'slug' that exists and the caller may read, in one round-trip — built for the screens that load several routes together (a ride's stages, a comparison view), which would otherwise cost one request per route. Accepts the same 'simplify' and 'points' geometry knobs as the single-route endpoint, plus an optional elevation profile per route. Unknown slugs and slugs the caller may not read are silently left out of the answer rather than failing the whole batch. When the batch resolves to a single route, 'simplify'/'points' behave exactly as on the single-route endpoint — including returning the stored track unchanged when neither is given. Past one route, the per-route point count is capped at 1000 regardless of what 'simplify'/'points' resolve to, so a request naming many slugs cannot be used to pull the full stored geometry of all of them at once. The response also carries the bounding box of the track geometry actually sent back (waypoints are excluded, so an imported meeting-point or car-park waypoint far off the track cannot widen it), so a map can frame the batch without a second request.
+  /// The detail of every requested 'slug' that exists and the caller may read, in one round-trip — built for the screens that load several routes together (a ride's stages, a comparison view), which would otherwise cost one request per route. Each row is exactly what the single-route endpoint returns, geometry included. Unknown slugs and slugs the caller may not read are silently left out of the answer rather than failing the whole batch. Set 'geometry' to false for the screens that only need each route's name and figures. The response also carries the bounding box of the track geometry actually sent back (waypoints are excluded, so an imported meeting-point or car-park waypoint far off the track cannot widen it), so a map can frame the batch without a second request.
   ///
   /// [teamSlug] - Team URL slug.
   ///
-  /// [elevation] - Whether to attach each route's sampled elevation profile.
-  ///
-  /// [elevationSamples] - Resolution of the elevation profile when 'elevation' is true. Same clamping as the single-route elevation-profile endpoint.
-  ///
-  /// [points] - Maximum number of track points per route, applied to every route of the batch — same semantics as on the single-route endpoint. Once the batch resolves to more than one route, this is capped at 1000 per route regardless of the value passed here (or of 'simplify'), so a request naming many slugs cannot be used to pull the full stored geometry of all of them at once.
-  ///
-  /// [simplify] - Douglas-Peucker tolerance in meters, applied to every route of the batch — same semantics as on the single-route endpoint.
+  /// [geometry] - Whether to include each route's track geometry. False answers metadata only — name, distances, media, asset links — with an empty 'tracks' array and no 'extent', for the screens that name routes without drawing them.
   ///
   /// [slug] - Route slug to include, repeatable. Capped at 50; unknown slugs and slugs the caller may not read are silently omitted from the response rather than erroring. Unlike GET /{routeSlug}, a slug that was renamed is also omitted rather than followed to the route's current slug: the single-route endpoint falls back to the rename history, this one does not. Same 'omit, never fail' contract as an unknown or unreadable slug, just for a different reason.
   @GET('/api/teams/{teamSlug}/routes/bulk')
   Future<RoutesBulkResponse> getRoutesBulk({
     @Path('teamSlug') required String teamSlug,
-    @Query('points') int? points,
-    @Query('simplify') double? simplify,
     @Query('slug') List<String>? slug,
-    @Query('elevation') bool? elevation = false,
-    @Query('elevationSamples') int? elevationSamples = 300,
+    @Query('geometry') bool? geometry = true,
   });
 
   /// Count routes.
@@ -512,21 +502,15 @@ abstract class RoutesClient {
 
   /// Get route details.
   ///
-  /// Get detailed route information including GPS coordinates and statistics. The stored track holds one point every ten meters, which is megabytes of JSON on a long route: 'simplify' and 'points' let a client trade fidelity for weight. Passing neither returns the stored track unchanged.
+  /// Get detailed route information including GPS coordinates and statistics. The track is returned exactly as stored — already resampled and Douglas-Peucker-filtered at import, which lands it at roughly one point every 90 m. Every coordinate carries longitude, latitude, elevation and cumulative distance in meters, so a client can draw both the line and its elevation profile from this one payload.
   ///
   /// [routeSlug] - Route slug.
   ///
   /// [teamSlug] - Team URL slug.
-  ///
-  /// [points] - Maximum number of track points to return. The points kept are those deviating most from the simplified line — corners and elevation extrema survive, straight flat stretches are dropped — and the first and last points are always kept. Applied after 'simplify' when both are given. Absent, zero or a value larger than the stored track means no decimation.
-  ///
-  /// [simplify] - Douglas-Peucker tolerance in meters: drop every track point lying closer than this to the line joining the points kept around it. The returned line stays within that many meters of the stored one, and its first and last points are always kept. Capped at 1000; absent or zero means no simplification.
   @GET('/api/teams/{teamSlug}/routes/{routeSlug}')
   Future<RouteDetailDto> getRoute({
     @Path('routeSlug') required String routeSlug,
     @Path('teamSlug') required String teamSlug,
-    @Query('points') int? points,
-    @Query('simplify') double? simplify,
   });
 
   /// Delete route.
@@ -540,22 +524,6 @@ abstract class RoutesClient {
   Future<void> deleteRoute({
     @Path('routeSlug') required String routeSlug,
     @Path('teamSlug') required String teamSlug,
-  });
-
-  /// Get route elevation profile.
-  ///
-  /// The route's elevation profile resampled to 'samples' evenly spaced distances, each point carrying its cumulative distance, its elevation and the grade in percent of the segment ending on it — everything needed to draw a profile coloured by gradient without downloading the full track. Multi-track routes are concatenated into one continuous profile. The answer never holds more points than the stored track.
-  ///
-  /// [routeSlug] - Route slug.
-  ///
-  /// [teamSlug] - Team URL slug.
-  ///
-  /// [samples] - Number of profile points wanted. Clamped server-side to 2..1000, and further reduced to the number of points actually stored for the route.
-  @GET('/api/teams/{teamSlug}/routes/{routeSlug}/elevation-profile')
-  Future<ElevationProfileDto> getRouteElevationProfile({
-    @Path('routeSlug') required String routeSlug,
-    @Path('teamSlug') required String teamSlug,
-    @Query('samples') int? samples = 300,
   });
 
   /// Change route slug.

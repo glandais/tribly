@@ -13,7 +13,6 @@ import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/units/unit_system.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
-import '../../data/elevation_profile_repository.dart';
 import '../../providers/route_detail_provider.dart';
 import '../../providers/route_elevation_provider.dart';
 import '../widgets/route_climbs_section.dart';
@@ -208,33 +207,33 @@ class _RouteDetailPageState extends ConsumerState<RouteDetailPage> {
 
   Widget _profile(RouteDetailDto route, RouteCursorController cursor) {
     final UnitSystem units = ref.watch(unitSystemProvider);
-    final ElevationProfileKey key = ElevationProfileKey.forWidth(
-      teamSlug: widget.teamSlug,
-      routeSlug: widget.routeSlug,
-      logicalWidth: MediaQuery.sizeOf(context).width,
-    );
 
     return ref
-        .watch(routeElevationSamplesProvider(key))
+        .watch(routeElevationSamplesProvider(_key))
         .when(
-          data: (ElevationSamples samples) => PdlElevationProfile(
-            samples: samples,
-            height: PdlMetrics.elevationLarge,
-            // Le **seul** état partagé avec la carte, et il ne passe pas par
-            // Riverpod : le réticule bouge à chaque frame de glissement.
-            cursorDistance: cursor.distance,
-            axisLabel: (double meters, {required bool isLast}) => isLast
-                ? AppFormatters.formatDistance(meters, units)
-                : AppFormatters.formatNumber(
-                    units.longDistance(meters),
-                    fractionDigits: 1,
-                  ),
-            tipLabel: (ElevationReading r) => <String>[
-              AppFormatters.formatDistance(r.distance, units),
-              AppFormatters.formatAltitude(r.elevation, units),
-              if (r.grade != null) AppFormatters.formatGrade(r.grade!),
-            ].join(' · '),
-          ),
+          // Pas d'altitude exploitable : rien, plutôt qu'un profil plat qui
+          // se ferait passer pour un terrain.
+          data: (ElevationSamples? samples) => samples == null
+              ? const SizedBox.shrink()
+              : PdlElevationProfile(
+                  samples: samples,
+                  height: PdlMetrics.elevationLarge,
+                  // Le **seul** état partagé avec la carte, et il ne passe pas
+                  // par Riverpod : le réticule bouge à chaque frame de
+                  // glissement.
+                  cursorDistance: cursor.distance,
+                  axisLabel: (double meters, {required bool isLast}) => isLast
+                      ? AppFormatters.formatDistance(meters, units)
+                      : AppFormatters.formatNumber(
+                          units.longDistance(meters),
+                          fractionDigits: 1,
+                        ),
+                  tipLabel: (ElevationReading r) => <String>[
+                    AppFormatters.formatDistance(r.distance, units),
+                    AppFormatters.formatAltitude(r.elevation, units),
+                    if (r.grade != null) AppFormatters.formatGrade(r.grade!),
+                  ].join(' · '),
+                ),
           loading: () => PdlElevationProfile.loading(
             label: 'routes.profileLoading'.tr(),
             height: PdlMetrics.elevationLarge,
@@ -243,7 +242,7 @@ class _RouteDetailPageState extends ConsumerState<RouteDetailPage> {
             label: 'routes.profileUnavailable'.tr(),
             actionLabel: 'common.retry'.tr(),
             height: PdlMetrics.elevationLarge,
-            onRetry: () => ref.invalidate(elevationProfileProvider(key)),
+            onRetry: () => ref.invalidate(routeDetailProvider(_key)),
           ),
         );
   }

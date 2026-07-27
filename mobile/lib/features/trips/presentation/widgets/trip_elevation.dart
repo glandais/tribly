@@ -13,6 +13,7 @@ import '../../../../core/units/unit_system.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../providers/trip_detail_provider.dart';
 import '../../providers/trip_elevation_provider.dart';
+import '../../providers/trip_tracks_provider.dart';
 
 /// Le profil altimétrique global du voyage.
 ///
@@ -121,7 +122,7 @@ class TripElevationSection extends ConsumerWidget {
             label: 'routes.profileUnavailable'.tr(),
             actionLabel: 'common.retry'.tr(),
             height: PdlMetrics.elevationMedium,
-            onRetry: () => ref.invalidate(tripElevationProvider(tripKey)),
+            onRetry: () => ref.invalidate(tripTracksProvider(tripKey)),
           ),
         ),
       ],

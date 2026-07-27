@@ -10,7 +10,6 @@ import '../../../../core/preferences/user_preferences_provider.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/units/unit_system.dart';
 import '../../../../core/utils/formatters.dart';
-import '../../data/elevation_profile_repository.dart';
 import '../../providers/route_detail_provider.dart';
 import '../../providers/route_elevation_provider.dart';
 import 'route_climbs_section.dart';
@@ -151,31 +150,29 @@ class _EmbeddedRouteSheetState extends ConsumerState<EmbeddedRouteSheet> {
     RouteCursorController cursor,
     UnitSystem units,
   ) {
-    final ElevationProfileKey key = ElevationProfileKey.forWidth(
-      teamSlug: widget.routeKey.teamSlug,
-      routeSlug: widget.routeKey.routeSlug,
-      logicalWidth: MediaQuery.sizeOf(context).width,
-    );
-
     return ref
-        .watch(routeElevationSamplesProvider(key))
+        .watch(routeElevationSamplesProvider(widget.routeKey))
         .when(
-          data: (ElevationSamples samples) => PdlElevationProfile(
-            samples: samples,
-            height: PdlMetrics.elevationLarge,
-            cursorDistance: cursor.distance,
-            axisLabel: (double meters, {required bool isLast}) => isLast
-                ? AppFormatters.formatDistance(meters, units)
-                : AppFormatters.formatNumber(
-                    units.longDistance(meters),
-                    fractionDigits: 1,
-                  ),
-            tipLabel: (ElevationReading r) => <String>[
-              AppFormatters.formatDistance(r.distance, units),
-              AppFormatters.formatAltitude(r.elevation, units),
-              if (r.grade != null) AppFormatters.formatGrade(r.grade!),
-            ].join(' · '),
-          ),
+          // Pas d'altitude exploitable : rien, plutôt qu'un profil plat qui se
+          // ferait passer pour un terrain.
+          data: (ElevationSamples? samples) => samples == null
+              ? const SizedBox.shrink()
+              : PdlElevationProfile(
+                  samples: samples,
+                  height: PdlMetrics.elevationLarge,
+                  cursorDistance: cursor.distance,
+                  axisLabel: (double meters, {required bool isLast}) => isLast
+                      ? AppFormatters.formatDistance(meters, units)
+                      : AppFormatters.formatNumber(
+                          units.longDistance(meters),
+                          fractionDigits: 1,
+                        ),
+                  tipLabel: (ElevationReading r) => <String>[
+                    AppFormatters.formatDistance(r.distance, units),
+                    AppFormatters.formatAltitude(r.elevation, units),
+                    if (r.grade != null) AppFormatters.formatGrade(r.grade!),
+                  ].join(' · '),
+                ),
           loading: () => PdlElevationProfile.loading(
             label: 'routes.profileLoading'.tr(),
             height: PdlMetrics.elevationLarge,
@@ -184,7 +181,7 @@ class _EmbeddedRouteSheetState extends ConsumerState<EmbeddedRouteSheet> {
             label: 'routes.profileUnavailable'.tr(),
             actionLabel: 'common.retry'.tr(),
             height: PdlMetrics.elevationLarge,
-            onRetry: () => ref.invalidate(elevationProfileProvider(key)),
+            onRetry: () => ref.invalidate(routeDetailProvider(widget.routeKey)),
           ),
         );
   }

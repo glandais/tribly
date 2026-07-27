@@ -6,7 +6,6 @@ import fr.pedalons.dto.comments.response.CommentCounts;
 import fr.pedalons.dto.common.GeoJsonPoint;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.publications.response.TeamPublicationDto;
-import fr.pedalons.dto.routes.request.GeometryOptions;
 import fr.pedalons.dto.users.response.PublicUserDto;
 import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.enums.SurfaceType;
@@ -40,7 +39,13 @@ public record RouteDetailDto(
     @Schema(description = "Creator user", required = true) PublicUserDto createdBy,
     @Schema(description = "Creation timestamp", required = true) Instant createdAt,
     @Schema(description = "Last update timestamp", required = true) Instant updatedAt,
-    @Schema(description = "Tracks", required = true) List<TrackDto> tracks,
+    @Schema(
+            description =
+                "Tracks, with the stored geometry untouched — every coordinate carries longitude,"
+                    + " latitude, elevation and cumulative distance in meters. Empty when the bulk"
+                    + " endpoint was called with 'geometry=false'.",
+            required = true)
+        List<TrackDto> tracks,
     @Schema(description = "Waypoints", required = true) List<WaypointDto> waypoints,
     @Schema(description = "Whether the route is soft-deleted", required = true) boolean deleted,
     @Nullable
@@ -49,31 +54,22 @@ public record RouteDetailDto(
                 "Number of comments, replies included. Absent when the caller may not read the"
                     + " comments of this route — comments are members-only, so an outsider is told"
                     + " nothing, not even zero.")
-        Integer commentCount,
-    @Nullable
-        @Schema(
-            description =
-                "Sampled elevation profile of the route. Absent unless explicitly requested (the"
-                    + " bulk route endpoint's 'elevation' flag) — computing and serialising it"
-                    + " costs nothing to skip, so every other caller of this DTO gets exactly what"
-                    + " it got before this field existed.")
-        ElevationProfileDto elevationProfile) {
+        Integer commentCount) {
 
   public static RouteDetailDto from(Route route, AssetService assetService) {
-    return from(route, assetService, GeometryOptions.FULL, CommentCounts.NONE);
+    return from(route, assetService, CommentCounts.NONE, true);
   }
 
+  /**
+   * The route detail.
+   *
+   * <p>{@code withGeometry} false yields an empty {@code tracks} list rather than tracks holding
+   * empty lines — a GeoJSON {@code LineString} with no coordinate is not a valid geometry. It
+   * exists for the screens that show a route's name and figures without drawing it; everything
+   * else about the payload is identical.
+   */
   public static RouteDetailDto from(
-      Route route, AssetService assetService, GeometryOptions geometry) {
-    return from(route, assetService, geometry, CommentCounts.NONE);
-  }
-
-  /** Same detail, with every track decimated as {@code geometry} asks. */
-  public static RouteDetailDto from(
-      Route route,
-      AssetService assetService,
-      GeometryOptions geometry,
-      CommentCounts commentCounts) {
+      Route route, AssetService assetService, CommentCounts commentCounts, boolean withGeometry) {
     return new RouteDetailDto(
         TsidUtils.toString(route.getId()),
         route.getSlug(),
@@ -90,35 +86,9 @@ public record RouteDetailDto(
         PublicUserDto.from(route.getCreatedBy()),
         route.getCreatedAt(),
         route.getUpdatedAt(),
-        route.getTracks().stream().map(track -> TrackDto.from(track, geometry)).toList(),
+        withGeometry ? route.getTracks().stream().map(TrackDto::from).toList() : List.of(),
         route.getWaypoints().stream().map(WaypointDto::from).toList(),
         route.isDeleted(),
-        commentCounts.forEntity(route.getId()),
-        null);
-  }
-
-  /** Same detail, with its elevation profile attached — the bulk route endpoint's opt-in. */
-  public RouteDetailDto withElevationProfile(ElevationProfileDto elevationProfile) {
-    return new RouteDetailDto(
-        id,
-        slug,
-        team,
-        name,
-        media,
-        distance,
-        elevationGain,
-        elevationLoss,
-        surfaceType,
-        visibility,
-        start,
-        end,
-        createdBy,
-        createdAt,
-        updatedAt,
-        tracks,
-        waypoints,
-        deleted,
-        commentCount,
-        elevationProfile);
+        commentCounts.forEntity(route.getId()));
   }
 }

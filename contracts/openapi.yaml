@@ -1452,68 +1452,6 @@ components:
           items:
             $ref: "#/components/schemas/GpsServiceType"
           description: List of connected GPS services
-    ElevationPointDto:
-      description: One point of an elevation profile
-      type: object
-      required:
-      - distance
-      - elevation
-      - grade
-      properties:
-        distance:
-          type: number
-          format: double
-          description: "Cumulative distance from the start of the route, in meters"
-        elevation:
-          type: number
-          format: double
-          description: "Elevation above sea level, in meters"
-        grade:
-          type: number
-          format: double
-          description: "Grade of the segment ending at this point, in percent. Zero\
-            \ on the first point, which ends no segment."
-    ElevationProfileDto:
-      description: "Sampled elevation profile of a route, ready to draw"
-      type: object
-      required:
-      - routeId
-      - slug
-      - distance
-      - minElevation
-      - maxElevation
-      - samples
-      - points
-      properties:
-        routeId:
-          type: string
-          description: Route ID (TSID)
-        slug:
-          type: string
-          description: Route slug
-        distance:
-          type: number
-          format: double
-          description: "Distance covered by the profile, in meters"
-        minElevation:
-          type: number
-          format: double
-          description: "Lowest elevation of the profile, in meters"
-        maxElevation:
-          type: number
-          format: double
-          description: "Highest elevation of the profile, in meters"
-        samples:
-          type: integer
-          format: int32
-          description: "Number of points actually returned. Never more than the number\
-            \ of points stored for the route, so a short track is not artificially\
-            \ upsampled."
-        points:
-          type: array
-          items:
-            $ref: "#/components/schemas/ElevationPointDto"
-          description: "Profile points, by increasing distance"
     EmailChangeRequest:
       description: Request to set/change the account's real email address
       type: object
@@ -3182,7 +3120,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/TrackDto"
-          description: Tracks
+          description: "Tracks, with the stored geometry untouched — every coordinate\
+            \ carries longitude, latitude, elevation and cumulative distance in meters.\
+            \ Empty when the bulk endpoint was called with 'geometry=false'."
         waypoints:
           type: array
           items:
@@ -3197,13 +3137,6 @@ components:
           description: "Number of comments, replies included. Absent when the caller\
             \ may not read the comments of this route — comments are members-only,\
             \ so an outsider is told nothing, not even zero."
-        elevationProfile:
-          description: "Sampled elevation profile of the route. Absent unless explicitly\
-            \ requested (the bulk route endpoint's 'elevation' flag) — computing and\
-            \ serialising it costs nothing to skip, so every other caller of this\
-            \ DTO gets exactly what it got before this field existed."
-          type: object
-          $ref: "#/components/schemas/ElevationProfileDto"
     RouteDto:
       type: object
       description: Route summary data
@@ -11416,19 +11349,14 @@ paths:
       description: "The detail of every requested 'slug' that exists and the caller\
         \ may read, in one round-trip — built for the screens that load several routes\
         \ together (a ride's stages, a comparison view), which would otherwise cost\
-        \ one request per route. Accepts the same 'simplify' and 'points' geometry\
-        \ knobs as the single-route endpoint, plus an optional elevation profile per\
-        \ route. Unknown slugs and slugs the caller may not read are silently left\
-        \ out of the answer rather than failing the whole batch. When the batch resolves\
-        \ to a single route, 'simplify'/'points' behave exactly as on the single-route\
-        \ endpoint — including returning the stored track unchanged when neither is\
-        \ given. Past one route, the per-route point count is capped at 1000 regardless\
-        \ of what 'simplify'/'points' resolve to, so a request naming many slugs cannot\
-        \ be used to pull the full stored geometry of all of them at once. The response\
-        \ also carries the bounding box of the track geometry actually sent back (waypoints\
-        \ are excluded, so an imported meeting-point or car-park waypoint far off\
-        \ the track cannot widen it), so a map can frame the batch without a second\
-        \ request."
+        \ one request per route. Each row is exactly what the single-route endpoint\
+        \ returns, geometry included. Unknown slugs and slugs the caller may not read\
+        \ are silently left out of the answer rather than failing the whole batch.\
+        \ Set 'geometry' to false for the screens that only need each route's name\
+        \ and figures. The response also carries the bounding box of the track geometry\
+        \ actually sent back (waypoints are excluded, so an imported meeting-point\
+        \ or car-park waypoint far off the track cannot widen it), so a map can frame\
+        \ the batch without a second request."
       operationId: getRoutesBulk
       tags:
       - Routes
@@ -11439,38 +11367,15 @@ paths:
         required: true
         schema:
           type: string
-      - description: Whether to attach each route's sampled elevation profile.
-        name: elevation
+      - description: "Whether to include each route's track geometry. False answers\
+          \ metadata only — name, distances, media, asset links — with an empty 'tracks'\
+          \ array and no 'extent', for the screens that name routes without drawing\
+          \ them."
+        name: geometry
         in: query
         schema:
           type: boolean
-          default: false
-      - description: Resolution of the elevation profile when 'elevation' is true.
-          Same clamping as the single-route elevation-profile endpoint.
-        name: elevationSamples
-        in: query
-        schema:
-          type: integer
-          format: int32
-          default: 300
-      - description: "Maximum number of track points per route, applied to every route\
-          \ of the batch — same semantics as on the single-route endpoint. Once the\
-          \ batch resolves to more than one route, this is capped at 1000 per route\
-          \ regardless of the value passed here (or of 'simplify'), so a request naming\
-          \ many slugs cannot be used to pull the full stored geometry of all of them\
-          \ at once."
-        name: points
-        in: query
-        schema:
-          type: integer
-          format: int32
-      - description: "Douglas-Peucker tolerance in meters, applied to every route\
-          \ of the batch — same semantics as on the single-route endpoint."
-        name: simplify
-        in: query
-        schema:
-          type: number
-          format: double
+          default: true
       - description: "Route slug to include, repeatable. Capped at 50; unknown slugs\
           \ and slugs the caller may not read are silently omitted from the response\
           \ rather than erroring. Unlike GET /{routeSlug}, a slug that was renamed\
@@ -11941,9 +11846,11 @@ paths:
     get:
       summary: Get route details
       description: "Get detailed route information including GPS coordinates and statistics.\
-        \ The stored track holds one point every ten meters, which is megabytes of\
-        \ JSON on a long route: 'simplify' and 'points' let a client trade fidelity\
-        \ for weight. Passing neither returns the stored track unchanged."
+        \ The track is returned exactly as stored — already resampled and Douglas-Peucker-filtered\
+        \ at import, which lands it at roughly one point every 90 m. Every coordinate\
+        \ carries longitude, latitude, elevation and cumulative distance in meters,\
+        \ so a client can draw both the line and its elevation profile from this one\
+        \ payload."
       operationId: getRoute
       tags:
       - Routes
@@ -11960,26 +11867,6 @@ paths:
         required: true
         schema:
           type: string
-      - description: "Maximum number of track points to return. The points kept are\
-          \ those deviating most from the simplified line — corners and elevation\
-          \ extrema survive, straight flat stretches are dropped — and the first and\
-          \ last points are always kept. Applied after 'simplify' when both are given.\
-          \ Absent, zero or a value larger than the stored track means no decimation."
-        name: points
-        in: query
-        schema:
-          type: integer
-          format: int32
-      - description: "Douglas-Peucker tolerance in meters: drop every track point\
-          \ lying closer than this to the line joining the points kept around it.\
-          \ The returned line stays within that many meters of the stored one, and\
-          \ its first and last points are always kept. Capped at 1000; absent or zero\
-          \ means no simplification."
-        name: simplify
-        in: query
-        schema:
-          type: number
-          format: double
       responses:
         "200":
           description: Route retrieved successfully
@@ -12036,52 +11923,6 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{teamSlug}/routes/{routeSlug}/elevation-profile:
-    get:
-      summary: Get route elevation profile
-      description: "The route's elevation profile resampled to 'samples' evenly spaced\
-        \ distances, each point carrying its cumulative distance, its elevation and\
-        \ the grade in percent of the segment ending on it — everything needed to\
-        \ draw a profile coloured by gradient without downloading the full track.\
-        \ Multi-track routes are concatenated into one continuous profile. The answer\
-        \ never holds more points than the stored track."
-      operationId: getRouteElevationProfile
-      tags:
-      - Routes
-      parameters:
-      - description: Route slug
-        name: routeSlug
-        in: path
-        required: true
-        schema:
-          type: string
-      - description: Team URL slug
-        name: teamSlug
-        in: path
-        required: true
-        schema:
-          type: string
-      - description: "Number of profile points wanted. Clamped server-side to 2..1000,\
-          \ and further reduced to the number of points actually stored for the route."
-        name: samples
-        in: query
-        schema:
-          type: integer
-          format: int32
-          default: 300
-      responses:
-        "200":
-          description: Elevation profile computed successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ElevationProfileDto"
-        "404":
-          description: Team or route not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
   /api/teams/{teamSlug}/routes/{routeSlug}/slug:
     patch:
       summary: Change route slug
@@ -13253,7 +13094,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 1.7.3
+  version: 2.0.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

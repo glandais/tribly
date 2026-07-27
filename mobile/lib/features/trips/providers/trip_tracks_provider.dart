@@ -11,27 +11,14 @@ import 'trip_detail_provider.dart';
 /// Au-delà de ce nombre d'étapes, on ne charge que les premières.
 ///
 /// Il n'existe **pas d'endpoint de carte multi-entités** (§5.2) : le tracé
-/// global d'un voyage coûte un `getRoute` par étape. Douze appels sont déjà
-/// beaucoup ; trente sur un réseau mobile seraient une page qui ne finit pas de
-/// charger. Le plafond est **signalé à l'utilisateur**, jamais silencieux.
-const int kTripTrackStageCap = 12;
-
-/// Requêtes simultanées pour le profil altimétrique (`trip_elevation_provider.dart`).
+/// global d'un voyage se compose des géométries de ses étapes, et une géométrie
+/// complète pèse ~65 Ko. Douze en un lot, c'est déjà beaucoup ; trente sur un
+/// réseau mobile seraient une page qui ne finit pas de charger. Le plafond est
+/// **signalé à l'utilisateur**, jamais silencieux.
 ///
-/// Les tracés, eux, tiennent en **un seul appel groupé** (`getRoutesBulk`) — ce
-/// plafond ne les concerne plus. Il reste défini ici parce que le profil
-/// partage le plafond d'étapes [kTripTrackStageCap] et continue d'appeler
-/// `getRouteElevationProfile` par étape (budget de points réparti
-/// proportionnellement à la distance, incompatible avec le pas unique de
-/// `elevationSamples` du lot — voir le commentaire de tête de ce fichier-là).
-const int kTripTrackConcurrency = 4;
-
-/// Simplification agressive : le tracé global est vu à l'échelle d'une région,
-/// pas d'un virage. Vingt-cinq mètres de tolérance sont invisibles à ce
-/// cadrage, et le plafond de sommets borne le pire cas — sept étapes de
-/// 3 000 points feraient sinon 21 000 points pour 350 px de carte.
-const double kTripTrackSimplify = 25;
-const int kTripTrackPoints = 600;
+/// Il borne aussi le profil global, qui se dérive de ces mêmes géométries
+/// (`trip_elevation_provider.dart`) et ne fait donc aucun appel à lui.
+const int kTripTrackStageCap = 12;
 
 /// Ce que la carte d'un voyage sait, à un instant donné.
 @immutable
@@ -135,12 +122,7 @@ class TripTracksController extends StateNotifier<TripTracksState> {
     try {
       final RoutesBulkResponse response = await _ref
           .read(routeRepositoryProvider)
-          .getRoutesBulk(
-            _key.teamSlug,
-            slugs,
-            simplify: kTripTrackSimplify,
-            points: kTripTrackPoints,
-          );
+          .getRoutesBulk(_key.teamSlug, slugs);
       if (!mounted) return;
       final Map<String, RouteDetailDto> loaded = <String, RouteDetailDto>{
         for (final RouteDetailDto route in response.routes) route.slug: route,

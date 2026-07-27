@@ -28,21 +28,18 @@ class RouteKey {
 
 /// Le détail d'un parcours pour sa fiche.
 ///
-/// **`simplify: 5` / `points: 3000`.** Ces deux paramètres existent au contrat
-/// et n'étaient pas envoyés : la fiche téléchargeait la géométrie brute, soit
-/// plusieurs mégaoctets sur un parcours de 150 km, pour dessiner un tracé de
-/// 390 px de large. Cinq mètres de tolérance sont invisibles à l'écran ; le
-/// plafond de sommets borne le pire cas.
-///
-/// Un **seul** appel, pas de « simplifié puis complet » : deux passes
-/// feraient clignoter le tracé pour un gain que l'œil ne voit pas.
+/// **C'est la seule source de la fiche**, tracé *et* profil altimétrique : les
+/// coordonnées renvoyées portent `[lon, lat, alt, distance cumulée]`, donc tout
+/// ce qu'il faut pour dessiner les deux. Il n'y a plus de second appel à un
+/// endpoint de profil, et plus de réconciliation entre deux résolutions
+/// différentes — le curseur et l'axe des distances viennent du même tableau.
 final routeDetailProvider = FutureProvider.family<RouteDetailDto, RouteKey>((
   Ref ref,
   RouteKey key,
 ) {
   return ref
       .watch(routeRepositoryProvider)
-      .getRouteDetail(key.teamSlug, key.routeSlug, simplify: 5, points: 3000);
+      .getRouteDetail(key.teamSlug, key.routeSlug);
 });
 
 /// Où ce parcours est employé : sorties, publications, étapes de voyage.

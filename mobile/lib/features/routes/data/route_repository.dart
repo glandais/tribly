@@ -173,30 +173,17 @@ class RouteRepository {
     );
   }
 
-  /// Get route details
-  Future<RouteDetailDto> getRoute(String teamSlug, String routeSlug) {
-    return _routesClient.getRoute(teamSlug: teamSlug, routeSlug: routeSlug);
-  }
-
-  /// Le détail d'un parcours, géométrie **bornée**.
+  /// Le détail d'un parcours, géométrie stockée telle quelle.
   ///
-  /// `simplify` (tolérance de Douglas-Peucker en mètres) et `points` (plafond
-  /// de sommets) existent au contrat et n'étaient pas envoyés : un parcours de
-  /// 150 km descendait plusieurs mégaoctets de coordonnées pour dessiner un
-  /// tracé de 300 px de large. L'appelant choisit sa finesse — 15 m / 1 500
-  /// points pour un aperçu multi-tracés, 5 m / 3 000 pour la fiche.
-  Future<RouteDetailDto> getRouteDetail(
-    String teamSlug,
-    String routeSlug, {
-    double? simplify,
-    int? points,
-  }) {
-    return _routesClient.getRoute(
-      teamSlug: teamSlug,
-      routeSlug: routeSlug,
-      simplify: simplify,
-      points: points,
-    );
+  /// Il n'y a plus de négociation de finesse : l'API servait `simplify` et
+  /// `points`, mesure faite ils ne servaient à rien. Les points stockés sont
+  /// déjà rééchantillonnés puis filtrés Douglas-Peucker à l'import, soit ~90 m
+  /// entre deux sommets et ~65 Ko par parcours médian — la fiche demandait
+  /// `simplify: 5 / points: 3000`, ce qui ne retirait rien. La passe de
+  /// simplification en lecture, elle, était purement 2D : elle rabotait
+  /// l'altitude que ces mêmes coordonnées transportent.
+  Future<RouteDetailDto> getRouteDetail(String teamSlug, String routeSlug) {
+    return _routesClient.getRoute(teamSlug: teamSlug, routeSlug: routeSlug);
   }
 
   /// Le détail de plusieurs parcours en **un seul appel**, plus l'emprise
@@ -210,18 +197,14 @@ class RouteRepository {
   /// le lot ; c'est à l'appelant de repérer les slugs demandés qui manquent à
   /// la réponse s'il veut le signaler.
   ///
-  /// `simplify`/`points` ont le même rôle que sur [getRouteDetail], appliqués
-  /// à chaque parcours du lot. `elevation` ajoute le profil altimétrique de
-  /// chaque parcours (`elevationSamples` commun à tout le lot, borné
-  /// `2..1000` côté serveur) — un pas de résolution unique, donc impropre à un
-  /// budget de points réparti par étape (voir `trip_elevation_provider.dart`).
+  /// Chaque ligne est ce que rendrait [getRouteDetail] pour ce slug. Passer
+  /// `geometry: false` renvoie les métadonnées seules — nom, distances, liens
+  /// d'asset — avec un `tracks` vide et pas d'`extent` : c'est pour les écrans
+  /// qui nomment des parcours sans les dessiner.
   Future<RoutesBulkResponse> getRoutesBulk(
     String teamSlug,
     List<String> slugs, {
-    double? simplify,
-    int? points,
-    bool elevation = false,
-    int? elevationSamples,
+    bool geometry = true,
   }) {
     if (slugs.isEmpty) {
       return Future<RoutesBulkResponse>.value(
@@ -231,10 +214,7 @@ class RouteRepository {
     return _routesClient.getRoutesBulk(
       teamSlug: teamSlug,
       slug: slugs,
-      simplify: simplify,
-      points: points,
-      elevation: elevation,
-      elevationSamples: elevationSamples,
+      geometry: geometry,
     );
   }
 

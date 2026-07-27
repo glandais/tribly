@@ -123,10 +123,10 @@ export function RideEditor({
     isFetching: isFetchingGroupRoutes,
     failedSlugs: failedGroupRouteSlugs,
   } = useRoutesBulk(teamSlug, {
-    // Only the name, distance and elevation gain are shown — request the minimum track
-    // geometry the contract allows (2 points) rather than the full simplified track.
+    // Only the name, distance and elevation gain are shown — ask for no geometry at all rather
+    // than downloading each group's track to throw it away.
     slug: groupRouteSlugs,
-    points: 2,
+    geometry: false,
   })
   const groupRoutesBySlug = useMemo(() => {
     const map = new Map<string, RouteDetailDto>()

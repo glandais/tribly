@@ -6,7 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../api/generated/export.dart';
+import '../../../core/pdl/elevation/elevation_samples.dart';
 import '../../routes/data/route_repository.dart';
+import '../../routes/domain/route_elevation_builder.dart';
 import 'ride_detail_provider.dart';
 
 /// Le groupe pointé, **un seul pour tout l'écran**.
@@ -55,8 +57,9 @@ const int kRideRouteSlugCap = 50;
 /// entière le temps du lot. Un slug qui sort de l'ensemble voulu est retiré
 /// tout de suite, lui, sans attendre la fin du nouveau lot.
 ///
-/// `simplify: 15` / `points: 1500` : un aperçu de sortie n'a pas besoin de la
-/// précision du mètre, et dix tracés pleins tiendraient plusieurs mégaoctets.
+/// Le lot sert **aussi le profil altimétrique** de l'écran (voir
+/// [rideRouteElevationProvider]) : les coordonnées portent l'altitude et le
+/// cumul, il n'y a donc plus d'appel séparé pour lui.
 final rideRouteGeometriesProvider = StateNotifierProvider.autoDispose
     .family<RideRouteGeometriesController, RideRouteGeometriesState, RideKey>((
       Ref ref,
@@ -161,7 +164,7 @@ class RideRouteGeometriesController
     try {
       final RoutesBulkResponse response = await _ref
           .read(routeRepositoryProvider)
-          .getRoutesBulk(_key.teamSlug, slugs, simplify: 15, points: 1500);
+          .getRoutesBulk(_key.teamSlug, slugs);
       if (!mounted) return;
       final Map<String, RouteDetailDto> loaded = <String, RouteDetailDto>{
         for (final RouteDetailDto route in response.routes) route.slug: route,
@@ -213,6 +216,26 @@ final rideRouteGeometryProvider =
       }
       // Ni chargé ni en échec : la requête qui le couvre est en vol.
       return const AsyncValue<RouteDetailDto>.loading();
+    }, isAutoDispose: true);
+
+/// Le profil altimétrique d'un parcours de la sortie, **prêt à peindre**.
+///
+/// Dérivé du lot déjà chargé pour la carte : cet écran ne fait plus d'appel
+/// réseau pour son profil. Il en faisait un — l'ancien endpoint dédié — pour
+/// une donnée que `rideRouteGeometryProvider` avait déjà en mémoire, la
+/// géométrie portant l'altitude et le cumul sur chacune de ses coordonnées.
+///
+/// L'agrégation est mémorisée ici et pas dans un `build` : le painter compare
+/// les échantillons **par identité**, un objet neuf à chaque frame le ferait
+/// repeindre pour rien.
+final rideRouteElevationProvider =
+    Provider.family<AsyncValue<ElevationSamples?>, RouteRef>((
+      Ref ref,
+      RouteRef route,
+    ) {
+      return ref
+          .watch(rideRouteGeometryProvider(route))
+          .whenData((RouteDetailDto detail) => detail.elevationSamples());
     }, isAutoDispose: true);
 
 /// Un parcours d'une sortie donnée — la clé de cache des géométries.

@@ -477,6 +477,7 @@ class _RideDetailContent extends ConsumerWidget {
             padding: const EdgeInsets.all(PdlSpacing.section),
             child: RideElevationSection(
               teamSlug: ride.team.slug,
+              rideSlug: ride.slug,
               routeSlug: routeSlug,
               distance: selectedGroup?.distance,
               elevationGain: selectedGroup?.elevationGain,

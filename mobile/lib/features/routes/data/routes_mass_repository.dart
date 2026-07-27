@@ -21,15 +21,21 @@ import 'route_repository.dart';
 /// **Le coût, dit franchement.** L'API ne sert aucune géométrie en liste :
 /// `RouteDto` porte le nom, les distances et une vignette, jamais la
 /// polyligne. Dessiner N parcours impose donc N appels de détail
-/// (`GET …/routes/{slug}`) — un `N+1` assumé, borné de trois façons :
+/// (`GET …/routes/{slug}`) — un `N+1` assumé, borné de deux façons :
 ///
-/// * `simplify` et `points` sur chaque détail : le serveur applique
-///   Douglas-Peucker et rend une ligne allégée, largement suffisante à un
-///   niveau de zoom régional ;
 /// * un plafond de tracés ([PdlMassLayerController.limit]) et un parallélisme
 ///   borné, pour ne pas ouvrir 120 sockets d'un coup ;
 /// * un cache mémoire par `(teamSlug, routeSlug)` : déplacer la carte et
 ///   revenir ne retélécharge rien.
+///
+/// **Il n'y a plus de troisième borne.** `simplify`/`points` ont été retirés
+/// du contrat : mesuré sur la base, le tracé stocké est déjà filtré à
+/// l'import (~90 m entre deux sommets, ~65 Ko pour le parcours médian) et la
+/// simplification en lecture ne retirait presque rien tout en rabotant
+/// l'altitude. C'est donc **cet écran qui paie** le changement — un plafond de
+/// tracés atteint pèse quelques mégaoctets là où il pesait quelques centaines
+/// de kilooctets. Si ça devient sensible, le levier est [PdlMassLayerController.limit],
+/// pas le retour d'un paramètre de finesse.
 ///
 /// C'est le prix du blocage documenté en tête de `pdl_mass_layer.dart`. Une
 /// URL de tuile signée le ferait disparaître entièrement.
@@ -60,13 +66,6 @@ class RoutesMassRepository {
   /// Nombre d'appels de détail simultanés. Six : au-delà, le gain de latence
   /// est mangé par la contention réseau sur un lien mobile.
   static const int _concurrency = 6;
-
-  /// Tolérance de simplification, en mètres. À l'échelle d'une carte de masse,
-  /// 25 m est invisible et divise le nombre de points par un ordre de grandeur.
-  static const double _simplifyMeters = 25;
-
-  /// Plafond de points par tracé, en plus de la simplification.
-  static const int _maxPoints = 300;
 
   /// Construit le [PdlMassFetcher] attendu par `PdlMassLayerController`.
   ///
@@ -135,8 +134,6 @@ class RoutesMassRepository {
       final RouteDetailDto detail = await _client.getRoute(
         teamSlug: row.team.slug,
         routeSlug: row.slug,
-        simplify: _simplifyMeters,
-        points: _maxPoints,
       );
       final List<List<List<double>>> lines = <List<List<double>>>[
         for (final TrackDto t in detail.tracks) t.line.coordinates,

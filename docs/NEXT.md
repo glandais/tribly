@@ -175,16 +175,16 @@ jamais sur un zoom élevé qui suggérerait une adresse. Une légende « Positio
 1 km près » évite la mésinterprétation. `@mantine/carousel` n'est pas dans les dépendances : composer
 avec `Image` + `Group` si on ne veut pas l'ajouter. **Taille : M.**
 
-### 3.3 T3.5 — Abandonnée, et il vaut mieux savoir pourquoi
+### 3.3 T3.5 — Abandonnée, puis tranchée dans l'autre sens (2.0.0)
 
 Alimenter `ElevationChart` par `…/elevation-profile` au lieu de la géométrie complète. **La prémisse
-ne tient pas** : il n'existe aucune vue web qui rende un profil *sans* rendre de carte, donc la
-géométrie est de toute façon nécessaire et l'appel supplémentaire **ajouterait** une requête au lieu
-d'en retirer une. Le gain visé est par ailleurs déjà obtenu par `?simplify=25` sur les vues d'aperçu.
+ne tenait pas** : il n'existe aucune vue web qui rende un profil *sans* rendre de carte, donc la
+géométrie est de toute façon nécessaire et l'appel supplémentaire **ajoutait** une requête au lieu
+d'en retirer une.
 
-À rouvrir **seulement si** une vue affiche un jour un profil seul (ligne de liste, carte de sortie
-sans carte). Ne pas la reprendre telle quelle : `ElevationChart` est adhérent aux `climbs` et à
-l'indexation des points que la synchronisation carte↔graphique exige.
+C'est finalement l'inverse qui a été fait, et pour la même raison : `…/elevation-profile` a été
+**supprimé** de l'API en 2.0.0, et le mobile dérive désormais son profil de la géométrie comme le
+web le faisait déjà. Voir §4.5. Ne pas rouvrir : le sujet est clos dans les deux clients.
 
 ### 3.4 Refonte sémantique de `NavButtons`
 
@@ -275,35 +275,36 @@ même marqueur.
 À noter : ce n'est **pas** un prérequis de la vue carte des parcours, qui fonctionne déjà par les
 tuiles MVT. C'est ce qui permet d'y **ajouter** les autres entités.
 
-### 4.5 Borner le coût par parcours de la géométrie (M)
+### 4.5 Coût par parcours de la géométrie — tranché en 2.0.0
 
-Ouvert en livrant `GET /api/teams/{teamSlug}/routes/bulk` (1.7.x). Le lot est plafonné à
-`MAX_BULK_SLUGS = 50` et les **points de trace** sont budgétés (`DEFAULT_BULK_MAX_POINTS_PER_ROUTE
-= 1000`, réparti sur les traces d'un parcours par `RouteService.perRouteBudget`). Trois dimensions
-ne le sont pas, et le bulk les **amplifie ×50** :
+**Résolu autrement que prévu, et il vaut mieux savoir comment.** Ce point demandait de borner
+`simplify` et les climbs, dont un Douglas-Peucker superlinéaire relancé en lecture sur la trace
+stockée (9,9 s pour une trace adverse de 100 k points) et un `simplify=NaN` qui passait les gardes.
 
-| # | Ce qui n'est pas borné | Mesure | Fichier |
-|---|---|---|---|
-| D1 | `simplify` lance un Douglas-Peucker sur la trace **stockée** ; seul le résultat est budgété. Superlinéaire (×3,8 par doublement) | 9,9 s pour une trace adverse de 100 k points, ~495 s pour un lot de 50 | `TrackDto.java:51` |
-| D2 | Les climbs et climb-parts ne sont jamais décimés, et leur nombre suit la longueur **rééchantillonnée** (`computeOnePointPerDistance` sur-échantillonne à 1 pt/10 m), pas les octets déposés | ~110 Mo de réponse démontrés depuis un corpus GPX de 2,75 Mo | `TrackDto.java:53` |
-| D4 | `simplify=NaN` passe les gardes (`NaN <= 0` est faux) et aplatit chaque trace à 2 points, sans erreur | — | `GeometryOptions.java:35-38` |
+La mesure a montré que le paramètre lui-même ne servait à rien : les points stockés sont **déjà**
+rééchantillonnés puis filtrés Douglas-Peucker à l'import (`GpxProcessingService.computeGpx`), ce qui
+les laisse à **88,7 m de médiane entre deux sommets** (p05 59 m, p95 120 m) sur les 5 493 parcours de
+staging — 681 points pour le parcours médian, 65 Ko de JSON. Le mobile demandait `simplify: 5 /
+points: 3000` sur sa fiche : un no-op complet. Et cette passe en lecture est purement 2D, donc elle
+rabotait l'altitude que les mêmes coordonnées transportent en Z et M — d'où l'existence même de
+`…/elevation-profile`.
 
-Le endpoint est `@PermitAll` et **il n'y a aucun rate limiting sur les lectures** dans ce dépôt
-(seuls `AuthService` et `AdService` en ont). Rien de tout cela n'est *introduit* par le bulk : les
-trois sont déjà atteignables un parcours à la fois sur `GET /{routeSlug}`, qui a exactement le même
-pipeline. Le bulk multiplie par le plafond de slugs. C'est pourquoi le correctif n'a pas sa place
-dans le bulk seul — il faut borner à la source, ce qui touche `GET /{routeSlug}`,
-`GeometryOptions`, `TrackDto`, et probablement un plafond de points stockés à l'ingestion GPX
-(`GpxProcessingService`).
+`simplify`, `points`, `GET …/elevation-profile` et `elevation`/`elevationSamples` ont donc été
+**supprimés**, avec `TrackGeometry`, `GeometryOptions`, `ElevationProfileDto` et tout le budget
+`DEFAULT_BULK_MAX_POINTS_PER_ROUTE` / `perRouteBudget`. D1, D2 et D4 disparaissent avec eux. Un
+drapeau `geometry=false` sur `/routes/bulk` remplace l'astuce `points: 2` des trois écrans web qui ne
+voulaient que les métadonnées.
 
-Deux mitigations moins chères si le sujet devient urgent avant d'avoir le temps du chantier :
-descendre `MAX_BULK_SLUGS` de 50 à ~15 (les appelants réels plafonnent à 12 : `kTripTrackStageCap`)
-et budgéter les climbs comme les points — cela ferme D2, la dimension la plus lourde, et divise
-l'amplification par trois.
+**Ce qui reste ouvert, dit franchement.** `MAX_BULK_SLUGS = 50` est désormais le *seul* garde-fou du
+lot, sur un endpoint `@PermitAll` sans rate limiting en lecture. Un lot réaliste de 50 parcours pèse
+3,2 Mo ; les 50 plus lourds de la base pèsent 64 Mo. Ce cas suppose un appelant qui sait lesquels
+sont les plus lourds et les nomme tous : c'est un sujet de **rate limiting**, pas de contrat. Le
+levier si ça devient sensible est de descendre `MAX_BULK_SLUGS` vers ~15 (les appelants réels
+plafonnent à 12, `kTripTrackStageCap`), pas de réintroduire un paramètre de finesse.
 
-Note annexe (D3, sans exposition nouvelle) : un lot qui ne résout **qu'un seul** parcours n'est pas
-clampé du tout — c'est délibéré, il se comporte alors exactement comme `GET /{routeSlug}`. La
-description OpenAPI ne le dit qu'à partir de deux slugs résolus.
+Côté mobile, l'écran qui paie est la **carte de masse** (`routes_mass_repository.dart`) : jusqu'à
+~120 fiches à 65 Ko médian, soit quelques mégaoctets là où c'était quelques centaines de kilooctets.
+Son levier est `PdlMassLayerController.limit`. À surveiller.
 
 ---
 

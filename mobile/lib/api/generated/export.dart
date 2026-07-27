@@ -87,8 +87,6 @@ export 'models/device_routes_response.dart';
 export 'models/device_token_request.dart';
 export 'models/device_token_response.dart';
 export 'models/device_user_status_response.dart';
-export 'models/elevation_point_dto.dart';
-export 'models/elevation_profile_dto.dart';
 export 'models/email_change_request.dart';
 export 'models/entity_type.dart';
 export 'models/error_code.dart';
