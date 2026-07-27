@@ -156,7 +156,9 @@ class _RideGroupsSectionState extends ConsumerState<RideGroupsSection> {
         'rides.failure.exclusive'.tr(
           namedArgs: <String, String>{'group': failure.groupName},
         ),
-      RegistrationFailureReason.groupFull => 'rides.failure.full'.tr(),
+      RegistrationFailureReason.groupFull => 'rides.failure.full'.tr(
+        namedArgs: <String, String>{'group': failure.groupName},
+      ),
       RegistrationFailureReason.notMember => 'rides.failure.notMember'.tr(),
       RegistrationFailureReason.generic => 'rides.failure.generic'.tr(
         namedArgs: <String, String>{'group': failure.groupName},

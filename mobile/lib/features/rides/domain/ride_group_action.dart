@@ -3,11 +3,16 @@ import '../providers/ride_detail_provider.dart';
 
 /// L'action offerte par une carte de groupe.
 ///
-/// Six états, **tous dérivés de champs serveur** : `registered` et `full` sont
-/// calculés par l'API depuis la 1.3.0. Rien ici ne parcourt `participants[]`,
-/// qui est vide sans droit de lecture et tronqué au-delà de cinq entrées —
-/// c'était la cause de « Participer » proposé à un inscrit, puis du 409 qui
-/// suivait.
+/// Quatre valeurs, **toutes dérivées de champs serveur** : `registered` et
+/// `full` sont calculés par l'API depuis la 1.3.0. Rien ici ne parcourt
+/// `participants[]`, qui est vide sans droit de lecture et tronqué au-delà de
+/// cinq entrées — c'était la cause de « Participer » proposé à un inscrit,
+/// puis du 409 qui suivait.
+///
+/// Combinées au drapeau `pending` de [RideGroupCard] (chargement sur `join`
+/// et `leave` seulement), elles donnent les six états visuels du bouton :
+/// rien, « Rejoindre », « Rejoindre » en chargement, « Quitter », « Quitter »
+/// en chargement, « Complet » désactivé.
 enum RideGroupAction {
   /// Aucune action : sortie passée ou annulée, ou utilisateur non membre.
   none,

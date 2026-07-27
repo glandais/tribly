@@ -356,7 +356,7 @@
     "notMemberBanner": "Join this team to take part in rides.",
     "failure": {
       "exclusive": "Cannot join {group}.",
-      "full": "Group is full.",
+      "full": "{group} is full.",
       "notMember": "Team members only.",
       "generic": "Cannot join {group}.",
       "leaveAndJoin": "Leave {group}"

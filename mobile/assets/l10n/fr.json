@@ -356,7 +356,7 @@
     "notMemberBanner": "Rejoignez cette équipe pour participer aux sorties.",
     "failure": {
       "exclusive": "Inscription impossible à {group}.",
-      "full": "Groupe complet.",
+      "full": "{group} est complet.",
       "notMember": "Réservé aux membres de l'équipe.",
       "generic": "Inscription impossible à {group}.",
       "leaveAndJoin": "Quitter {group}"
