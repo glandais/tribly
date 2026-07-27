@@ -141,6 +141,12 @@ final publicationsClientProvider = Provider<PublicationsClient>((ref) {
   return ref.watch(apiClientProvider).publications;
 });
 
+final stravaAuthenticationClientProvider = Provider<StravaAuthenticationClient>(
+  (ref) {
+    return ref.watch(apiClientProvider).stravaAuthentication;
+  },
+);
+
 final gpsServicesClientProvider = Provider<GpsServicesClient>((ref) {
   return ref.watch(apiClientProvider).gpsServices;
 });

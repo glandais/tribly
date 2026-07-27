@@ -71,6 +71,7 @@ final Map<String, List<String>> internalRouteTemplates = <String, List<String>>{
   'privacy': PathVariants.privacy().values.toList(),
   'terms': PathVariants.terms().values.toList(),
   'profile': PathVariants.profile().values.toList(),
+  'myParticipations': PathVariants.myParticipations().values.toList(),
   'calendar': PathVariants.calendar().values.toList(),
   'allRoutes': PathVariants.allRoutes().values.toList(),
   'allRoutesMap': PathVariants.allRoutesMap().values.toList(),

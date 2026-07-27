@@ -82,6 +82,15 @@ class Paths {
     }
   }
 
+  static String myParticipations() {
+    switch (getCurrentLocale()) {
+      case 'fr':
+        return '/profil/participations';
+      default:
+        return '/profile/participations';
+    }
+  }
+
   static String calendar() {
     switch (getCurrentLocale()) {
       case 'fr':
@@ -281,6 +290,10 @@ class PathVariants {
   };
   static Map<String, String> terms() => {'en': '/terms', 'fr': '/cgu'};
   static Map<String, String> profile() => {'en': '/profile', 'fr': '/profil'};
+  static Map<String, String> myParticipations() => {
+    'en': '/profile/participations',
+    'fr': '/profil/participations',
+  };
   static Map<String, String> calendar() => {
     'en': '/calendar',
     'fr': '/calendrier',

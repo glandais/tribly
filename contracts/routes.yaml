@@ -115,6 +115,15 @@ routes:
     web: true
     mobile: true
     deeplink: true
+  # Rides and trips the current user is registered to. Mobile-only for now:
+  # the web profile has no equivalent screen.
+  - id: myParticipations
+    path:
+      en: /profile/participations
+      fr: /profil/participations
+    web: false
+    mobile: true
+    deeplink: true
   - id: calendar
     path:
       en: /calendar

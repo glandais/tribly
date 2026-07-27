@@ -65,6 +65,8 @@
                 <data android:path="/cgu" />
                 <data android:path="/profile" />
                 <data android:path="/profil" />
+                <data android:path="/profile/participations" />
+                <data android:path="/profil/participations" />
                 <data android:path="/calendar" />
                 <data android:path="/calendrier" />
                 <data android:path="/teams" />

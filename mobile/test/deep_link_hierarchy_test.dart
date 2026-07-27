@@ -49,6 +49,11 @@ final List<_LinkCase> _cases = [
     PathVariants.home(),
   ]),
 
+  // La page des participations vit sous le profil.
+  _LinkCase('myParticipations', PathVariants.myParticipations(), [
+    PathVariants.profile(),
+  ]),
+
   // Routes branch: the map sits under the route library.
   _LinkCase('allRoutesMap', PathVariants.allRoutesMap(), [
     PathVariants.allRoutes(),

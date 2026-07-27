@@ -706,24 +706,111 @@
       "title": "Passkeys",
       "enabled": "Biometric login enabled",
       "notConfigured": "Not configured",
-      "add": "Add",
-      "replace": "Replace"
+      "add": "Add a passkey",
+      "replace": "Replace",
+      "count": {
+        "zero": "No passkey",
+        "one": "{} passkey",
+        "other": "{} passkeys"
+      },
+      "adding": "Registering…",
+      "none": "No passkey registered on this account.",
+      "unnamedDevice": "Unnamed device",
+      "lastUsed": "Last used on {date}",
+      "neverUsed": "Never used",
+      "deleteTitle": "Delete the passkey “{device}”?",
+      "deleteMessage": "This device will no longer sign in without a password. Your other passkeys stay valid.",
+      "deleteSemantic": "Delete the passkey {device}"
     },
     "language": "Language",
     "version": "Version",
     "serverVersion": "Server version",
     "privacy": "Privacy policy",
     "terms": "Terms of use",
-    "theme": "Appearance",
+    "theme": "Theme",
     "themeOptions": {
       "system": "System",
       "light": "Light",
       "dark": "Dark"
     },
-    "units": "Units",
+    "units": "Unit system",
     "unitOptions": {
-      "metric": "Kilometres",
-      "imperial": "Miles"
+      "metric": "Metric",
+      "imperial": "Imperial"
+    },
+    "unitsExample": "Applied at once to distances, elevation, speeds and filter bounds: {distance} · {elevation} · {speed}.",
+    "identity": {
+      "displayName": "Display name",
+      "email": "Email address",
+      "readOnly": "Read only",
+      "changePhoto": "Change profile picture",
+      "removePhoto": "Remove the picture",
+      "save": "Save",
+      "saving": "Saving…"
+    },
+    "contactable": {
+      "title": "Be contacted by members",
+      "hint": "Members of your teams can write to you about your classifieds; your address is never shown to them."
+    },
+    "participations": {
+      "title": "My participations",
+      "upcoming": "My upcoming rides",
+      "past": "History",
+      "count": {
+        "zero": "No participation",
+        "one": "{} participation",
+        "other": "{} participations"
+      },
+      "emptyUpcoming": "No upcoming ride",
+      "emptyUpcomingHint": "Register for a ride in one of your teams; it will show up here.",
+      "emptyPast": "No past participation",
+      "emptyPastHint": "Your past rides and trips will show up here."
+    },
+    "gps": {
+      "title": "GPS devices",
+      "connect": "Connect",
+      "disconnect": "Disconnect",
+      "connectedOn": "Connected on {date}",
+      "notConnected": "Not connected",
+      "none": "No GPS service is offered at the moment.",
+      "hint": "These devices power the “Send to device” action from a route or a ride group.",
+      "disconnectTitle": "Disconnect {service}?",
+      "disconnectMessage": "You will no longer be able to send routes to this device until it is reconnected."
+    },
+    "linked": {
+      "title": "Linked accounts",
+      "strava": "Strava",
+      "link": "Link",
+      "unlink": "Unlink",
+      "linkedOn": "Linked on {date}",
+      "notLinked": "Not linked",
+      "unlinkTitle": "Unlink Strava?",
+      "unlinkMessage": "Your activities will no longer be synchronised. You can link this account again at any time."
+    },
+    "data": {
+      "title": "Your data",
+      "export": "Export of my data",
+      "never": "Never requested",
+      "preparing": "Being prepared…",
+      "ready": "Ready",
+      "readyUntil": "Ready · valid until {date}",
+      "failed": "Preparation failed",
+      "byEmail": "The archive is emailed to you: the download link is in that message.",
+      "request": "Request an export",
+      "newExport": "New export",
+      "requesting": "Requesting…"
+    },
+    "account": {
+      "title": "Account",
+      "logout": "Sign out",
+      "logoutAll": "Sign out of every device",
+      "logoutAllTitle": "Sign out of every device?",
+      "logoutAllMessage": "All your sessions will be closed, this one included. You will have to sign in again.",
+      "dangerZone": "Danger zone",
+      "dangerHint": "Deleting the account erases your profile, your registrations and your comments across every team. Published routes stay the property of the teams.",
+      "delete": "Delete the account",
+      "deleteTitle": "Do you really want to delete your account?",
+      "deleteMessage": "This cannot be undone. Your registrations, your comments and your profile will be permanently deleted."
     }
   },
   "dialog": {
@@ -914,5 +1001,9 @@
     "ride": "Ride",
     "post": "Post",
     "trip": "Trip"
+  },
+  "gps": {
+    "GARMIN": "Garmin Connect",
+    "HAMMERHEAD": "Hammerhead Karoo"
   }
 }

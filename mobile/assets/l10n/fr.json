@@ -706,24 +706,111 @@
       "title": "Passkeys",
       "enabled": "Connexion biométrique activée",
       "notConfigured": "Non configuré",
-      "add": "Ajouter",
-      "replace": "Remplacer"
+      "add": "Ajouter une clé d'accès",
+      "replace": "Remplacer",
+      "count": {
+        "zero": "Aucune clé d'accès",
+        "one": "{} clé d'accès",
+        "other": "{} clés d'accès"
+      },
+      "adding": "Enregistrement…",
+      "none": "Aucune clé d'accès enregistrée sur ce compte.",
+      "unnamedDevice": "Appareil sans nom",
+      "lastUsed": "Dernière utilisation le {date}",
+      "neverUsed": "Jamais utilisée",
+      "deleteTitle": "Supprimer la clé « {device} » ?",
+      "deleteMessage": "Cet appareil ne pourra plus se connecter sans mot de passe. Vos autres clés restent valables.",
+      "deleteSemantic": "Supprimer la clé {device}"
     },
     "language": "Langue",
     "version": "Version",
     "serverVersion": "Version du serveur",
     "privacy": "Politique de confidentialité",
     "terms": "Conditions d'utilisation",
-    "theme": "Apparence",
+    "theme": "Thème",
     "themeOptions": {
       "system": "Système",
       "light": "Clair",
       "dark": "Sombre"
     },
-    "units": "Unités",
+    "units": "Système d'unités",
     "unitOptions": {
-      "metric": "Kilomètres",
-      "imperial": "Miles"
+      "metric": "Métrique",
+      "imperial": "Impérial"
+    },
+    "unitsExample": "Appliqué immédiatement aux distances, dénivelés, vitesses et bornes de filtres : {distance} · {elevation} · {speed}.",
+    "identity": {
+      "displayName": "Nom affiché",
+      "email": "Adresse e-mail",
+      "readOnly": "Lecture seule",
+      "changePhoto": "Changer la photo de profil",
+      "removePhoto": "Supprimer la photo",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…"
+    },
+    "contactable": {
+      "title": "Être contacté par les membres",
+      "hint": "Les membres de vos équipes peuvent vous écrire au sujet de vos annonces ; votre adresse ne leur est jamais montrée."
+    },
+    "participations": {
+      "title": "Mes participations",
+      "upcoming": "Mes sorties à venir",
+      "past": "Historique",
+      "count": {
+        "zero": "Aucune participation",
+        "one": "{} participation",
+        "other": "{} participations"
+      },
+      "emptyUpcoming": "Aucune sortie à venir",
+      "emptyUpcomingHint": "Inscrivez-vous à une sortie de l'une de vos équipes ; elle apparaîtra ici.",
+      "emptyPast": "Aucune participation passée",
+      "emptyPastHint": "Vos sorties et voyages passés s'afficheront ici."
+    },
+    "gps": {
+      "title": "Appareils GPS",
+      "connect": "Connecter",
+      "disconnect": "Déconnecter",
+      "connectedOn": "Connecté le {date}",
+      "notConnected": "Non connecté",
+      "none": "Aucun service GPS n'est proposé pour le moment.",
+      "hint": "Ces appareils alimentent l'action « Envoyer vers l'appareil » depuis un parcours ou un groupe de sortie.",
+      "disconnectTitle": "Déconnecter {service} ?",
+      "disconnectMessage": "Vous ne pourrez plus envoyer de parcours vers cet appareil tant qu'il n'est pas reconnecté."
+    },
+    "linked": {
+      "title": "Comptes liés",
+      "strava": "Strava",
+      "link": "Lier",
+      "unlink": "Délier",
+      "linkedOn": "Lié le {date}",
+      "notLinked": "Non lié",
+      "unlinkTitle": "Délier Strava ?",
+      "unlinkMessage": "Vos activités ne seront plus synchronisées. Vous pourrez relier ce compte à tout moment."
+    },
+    "data": {
+      "title": "Vos données",
+      "export": "Export de mes données",
+      "never": "Jamais demandé",
+      "preparing": "En préparation…",
+      "ready": "Prêt",
+      "readyUntil": "Prêt · valable jusqu'au {date}",
+      "failed": "La préparation a échoué",
+      "byEmail": "L'archive vous est envoyée par e-mail : le lien de téléchargement se trouve dans ce message.",
+      "request": "Demander un export",
+      "newExport": "Nouvel export",
+      "requesting": "Demande en cours…"
+    },
+    "account": {
+      "title": "Compte",
+      "logout": "Se déconnecter",
+      "logoutAll": "Déconnecter tous les appareils",
+      "logoutAllTitle": "Déconnecter tous les appareils ?",
+      "logoutAllMessage": "Toutes vos sessions seront fermées, celle-ci comprise. Vous devrez vous reconnecter.",
+      "dangerZone": "Zone de danger",
+      "dangerHint": "La suppression du compte efface votre profil, vos inscriptions et vos commentaires sur toutes vos équipes. Les parcours publiés restent la propriété des équipes.",
+      "delete": "Supprimer le compte",
+      "deleteTitle": "Voulez-vous vraiment supprimer votre compte ?",
+      "deleteMessage": "Cette action est irréversible. Vos inscriptions, vos commentaires et votre profil seront définitivement supprimés."
     }
   },
   "dialog": {
@@ -914,5 +1001,9 @@
     "ride": "Sortie",
     "post": "Publication",
     "trip": "Voyage"
+  },
+  "gps": {
+    "GARMIN": "Garmin Connect",
+    "HAMMERHEAD": "Hammerhead Karoo"
   }
 }

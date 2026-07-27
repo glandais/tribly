@@ -13,6 +13,7 @@ import '../features/calendar/presentation/pages/calendar_page.dart';
 import '../features/home/presentation/pages/home_page.dart';
 import '../features/legal/presentation/pages/legal_page.dart';
 import '../features/navigation/presentation/shell/main_shell.dart';
+import '../features/profile/presentation/pages/my_participations_page.dart';
 import '../features/profile/presentation/pages/profile_page.dart';
 import '../core/pdl/pdl.dart';
 import '../features/ads/presentation/pages/ad_detail_page.dart';
@@ -64,6 +65,8 @@ String _teamAncestor(Map<String, String> p, String locale) =>
     PathVariants.team(p['teamSlug']!)[locale]!;
 String _tripAncestor(Map<String, String> p, String locale) =>
     PathVariants.trip(p['teamSlug']!, p['tripSlug']!)[locale]!;
+String _profileAncestor(Map<String, String> p, String locale) =>
+    PathVariants.profile()[locale]!;
 String _teamAdsAncestor(Map<String, String> p, String locale) =>
     PathVariants.teamAds(p['teamSlug']!)[locale]!;
 String _teamRoutesAncestor(Map<String, String> p, String locale) =>
@@ -89,6 +92,13 @@ final List<_DeepLinkHierarchy> _deepLinkHierarchies = [
   _DeepLinkHierarchy(
     patterns: PathVariants.deviceVerifyKaroo(),
     ancestors: [_homeAncestor],
+  ),
+
+  // La page des participations vit sous le profil : ouverte par un lien
+  // froid, elle doit trouver le profil dessous.
+  _DeepLinkHierarchy(
+    patterns: PathVariants.myParticipations(),
+    ancestors: [_profileAncestor],
   ),
 
   // Pages of the Routes branch. Its root carries the tab bar, the map does not.
@@ -553,11 +563,22 @@ final routerProvider = Provider<GoRouter>((ref) {
           // 4 · Profile
           StatefulShellBranch(
             navigatorKey: _profileNavigatorKey,
-            routes: _perLocale(
-              PathVariants.profile(),
-              (ctx, st) => const ProfilePage(),
-              asPage: true,
-            ),
+            routes: [
+              ..._perLocale(
+                PathVariants.profile(),
+                (ctx, st) => const ProfilePage(),
+                asPage: true,
+              ),
+              ..._perLocale(
+                PathVariants.myParticipations(),
+                (ctx, st) => MyParticipationsPage(
+                  // L'onglet d'ouverture vient de la ligne touchée sur le
+                  // profil : il voyage dans `extra`, hors de l'URL, parce
+                  // qu'il n'identifie pas la page.
+                  initialUpcoming: st.extra is bool ? st.extra! as bool : true,
+                ),
+              ),
+            ],
           ),
         ],
       ),

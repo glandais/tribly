@@ -24,6 +24,8 @@
           "/cgu",
           "/profile",
           "/profil",
+          "/profile/participations",
+          "/profil/participations",
           "/calendar",
           "/calendrier",
           "/teams",
