@@ -4,3 +4,4 @@
 
 "NSPhotoLibraryUsageDescription" = "Pédalons needs access to your photos so you can pick a profile picture.";
 "NSLocationWhenInUseUsageDescription" = "Pédalons uses your approximate location only to sort rides and routes by distance from you. It is never stored or shared.";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Pédalons uses your approximate location only while you are using the app, to sort rides and routes by distance from you. It is never used in the background, stored or shared.";

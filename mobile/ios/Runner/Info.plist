@@ -47,6 +47,11 @@
 	<string>Pédalons needs access to your photos so you can pick a profile picture.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Pédalons uses your approximate location only to sort rides and routes by distance from you. It is never stored or shared.</string>
+	<!-- The app only ever asks for when-in-use, but the location plugin links the
+	     "always" API, and App Store validation (ITMS-90683) requires the string
+	     regardless of whether it is used. -->
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Pédalons uses your approximate location only while you are using the app, to sort rides and routes by distance from you. It is never used in the background, stored or shared.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
