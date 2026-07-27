@@ -13,8 +13,8 @@ pnpm build                         # Dual build: dist/client (browser) + dist/se
 pnpm typecheck                     # Type checking via tsgo (typescript-go)
 pnpm generate-api                  # Regenerate API client from ../contracts/openapi.json
 pnpm generate-routes               # Regenerate path builders + deeplinks from ../contracts/routes.yaml
-pnpm lint                          # ESLint (includes i18next/no-literal-string)
-pnpm lint:fix                      # ESLint with auto-fix
+pnpm lint                          # oxlint (includes i18next/no-literal-string via jsPlugins)
+pnpm lint:fix                      # oxlint with auto-fix
 pnpm format                        # Prettier
 pnpm test                          # Vitest (watch mode)
 pnpm i18n:lint                     # Validate i18n keys (checks templated keys have type annotations)
@@ -23,7 +23,7 @@ pnpm i18n:extract                  # Extract new keys from t() and tRegister() c
 
 ## Stack
 
-TypeScript 5, React 19, Vite, Mantine UI 8, React Router 7, TanStack React Query 5, Zustand 5, Zod 4, Orval (API codegen), i18next, MapLibre GL, Tiptap (rich text), Chart.js, FullCalendar.
+TypeScript 7 (native `tsgo` compiler, via the `typescript` package), React 19, Vite, Mantine UI 8, React Router 7, TanStack React Query 5, Zustand 5, Zod 4, Orval (API codegen), i18next, MapLibre GL, Tiptap (rich text), Chart.js, FullCalendar.
 
 ## Architecture
 
