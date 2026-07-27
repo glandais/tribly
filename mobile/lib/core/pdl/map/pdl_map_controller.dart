@@ -1,9 +1,12 @@
 import 'dart:convert';
+import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:maplibre/maplibre.dart';
 
 import '../../geo/polyline_index.dart';
+import 'pdl_map_camera.dart';
 
 /// Un tracé à dessiner, **sans aucun DTO**.
 ///
@@ -54,6 +57,39 @@ class PdlMapTrack {
   final List<Color>? segmentColors;
 
   bool get isSegmented => segmentColors != null && segmentColors!.isNotEmpty;
+
+  /// Égalité **de valeur**, avec les géométries comparées par référence.
+  ///
+  /// Les écrans reconstruisent leur liste de tracés à chaque `build` (une
+  /// `List` neuve, des `PdlMapTrack` neufs) mais les coordonnées, elles,
+  /// viennent du DTO mis en cache par le provider : ce sont les *mêmes* objets
+  /// d'un `build` à l'autre. Comparer les lignes par `identical` coûte donc
+  /// quelques nanosecondes là où un `listEquals` profond parcourrait 3 000
+  /// sommets, et suffit à ce que [PdlMap] ne repose pas ses couches — donc à ce
+  /// que la caméra ne soit pas bousculée — quand rien n'a changé.
+  @override
+  bool operator ==(Object other) =>
+      other is PdlMapTrack &&
+      other.id == id &&
+      other.color == color &&
+      other.label == label &&
+      _sameLines(other.lines, lines) &&
+      listEquals(other.segmentColors, segmentColors);
+
+  @override
+  int get hashCode => Object.hash(id, color, label, lines.length);
+
+  static bool _sameLines(
+    List<List<List<double>>> a,
+    List<List<List<double>>> b,
+  ) {
+    if (identical(a, b)) return true;
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (!identical(a[i], b[i]) && !listEquals(a[i], b[i])) return false;
+    }
+    return true;
+  }
 }
 
 /// Un point remarquable : départ, arrivée, point de passage, borne
@@ -67,6 +103,19 @@ class PdlMapPoint {
 
   /// Texte déjà localisé par l'appelant, ou `null`.
   final String? label;
+
+  /// Égalité de valeur : les écrans reconstruisent leurs points à chaque
+  /// `build`, et sans elle `PdlMap` croirait le départ et l'arrivée changés à
+  /// chaque image.
+  @override
+  bool operator ==(Object other) =>
+      other is PdlMapPoint &&
+      other.lon == lon &&
+      other.lat == lat &&
+      other.label == label;
+
+  @override
+  int get hashCode => Object.hash(lon, lat, label);
 }
 
 /// Une boîte englobante, en degrés WGS84.
@@ -107,6 +156,64 @@ class PdlMapBox {
       minLat: minLat!,
       maxLon: maxLon!,
       maxLat: maxLat!,
+    );
+  }
+
+  /// Boîte englobant les points donnés, ou `null` s'il n'y en a aucun.
+  static PdlMapBox? ofPoints(Iterable<PdlMapPoint> points) {
+    double? minLon, minLat, maxLon, maxLat;
+    for (final PdlMapPoint p in points) {
+      minLon = minLon == null || p.lon < minLon ? p.lon : minLon;
+      maxLon = maxLon == null || p.lon > maxLon ? p.lon : maxLon;
+      minLat = minLat == null || p.lat < minLat ? p.lat : minLat;
+      maxLat = maxLat == null || p.lat > maxLat ? p.lat : maxLat;
+    }
+    if (minLon == null) return null;
+    return PdlMapBox(
+      minLon: minLon,
+      minLat: minLat!,
+      maxLon: maxLon!,
+      maxLat: maxLat!,
+    );
+  }
+
+  /// Vrai si `this` couvre [other], à [slack] degrés près.
+  ///
+  /// La tolérance absorbe l'arrondi de la projection : `fitBounds` cadre au
+  /// pixel, et la région rendue peut manquer la boîte demandée d'un cheveu sans
+  /// que rien ne soit mal cadré. 1e-6° ≈ 10 cm.
+  bool contains(PdlMapBox other, {double slack = 1e-6}) =>
+      minLon <= other.minLon + slack &&
+      minLat <= other.minLat + slack &&
+      maxLon >= other.maxLon - slack &&
+      maxLat >= other.maxLat - slack;
+
+  /// La plus petite boîte contenant `this` et [other].
+  PdlMapBox union(PdlMapBox other) => PdlMapBox(
+    minLon: minLon < other.minLon ? minLon : other.minLon,
+    minLat: minLat < other.minLat ? minLat : other.minLat,
+    maxLon: maxLon > other.maxLon ? maxLon : other.maxLon,
+    maxLat: maxLat > other.maxLat ? maxLat : other.maxLat,
+  );
+
+  /// La même boîte, élargie pour couvrir au moins [minSpan] degrés dans chaque
+  /// dimension.
+  ///
+  /// Une boîte dégénérée — un parcours réduit à un point, un secteur d'annonce,
+  /// une sortie dont un seul groupe a une géométrie — a un `span` nul :
+  /// `fitBounds` y répond par un zoom maximal, c'est-à-dire une rue au hasard.
+  /// 0,004° ≈ 400 m, l'échelle à laquelle un point isolé se lit.
+  PdlMapBox expandedToMinSpan([double minSpan = 0.004]) {
+    final double dLon = (minSpan - (maxLon - minLon)) / 2;
+    final double dLat = (minSpan - (maxLat - minLat)) / 2;
+    if (dLon <= 0 && dLat <= 0) return this;
+    final double padLon = dLon > 0 ? dLon : 0;
+    final double padLat = dLat > 0 ? dLat : 0;
+    return PdlMapBox(
+      minLon: minLon - padLon,
+      minLat: minLat - padLat,
+      maxLon: maxLon + padLon,
+      maxLat: maxLat + padLat,
     );
   }
 
@@ -430,24 +537,71 @@ class PdlMapController extends ChangeNotifier {
     return _tracks.any((PdlMapTrack t) => t.id == candidate) ? candidate : null;
   }
 
-  /// Cadre la carte sur [box].
+  /// Largeur du monde entier, en pixels logiques, au zoom 0.
   ///
-  /// À n'appeler que depuis `MapEventStyleLoaded` (ou après) : c'est
-  /// précisément ce qui remplace le `Future.delayed(100 ms)` de l'ancienne
-  /// implémentation.
-  Future<void> fitBox(
+  /// 512 est la convention de MapLibre GL ; certaines vues natives comptent en
+  /// tuiles de 256, et s'y tromper coûte pile un niveau de zoom. On ne devine
+  /// donc pas : [calibrate] la **mesure** sur la carte réelle, une fois.
+  double _worldPixelsAtZoom0 = 512;
+
+  double get worldPixelsAtZoom0 => _worldPixelsAtZoom0;
+
+  /// Déduit [worldPixelsAtZoom0] de l'état courant de la carte.
+  ///
+  /// La largeur visible en longitude, le zoom courant et la largeur de la vue
+  /// suffisent : `largeurVue = mondePixels · 2^zoom · fractionDeMondeVisible`.
+  /// À appeler quand la carte a rendu au moins une image — avant, la région
+  /// visible ne veut rien dire. Sans effet si la lecture échoue : la valeur
+  /// précédente reste en place.
+  void calibrate(Size viewSize) {
+    final MapController? m = _map;
+    if (m == null || viewSize.width <= 0) return;
+    try {
+      final MapCamera camera = m.getCamera();
+      final LngLatBounds visible = m.getVisibleRegion();
+      final double spanLon = (visible.longitudeEast - visible.longitudeWest)
+          .abs();
+      if (spanLon <= 0 || spanLon >= 360) return;
+      final double world =
+          viewSize.width / ((spanLon / 360) * math.pow(2, camera.zoom));
+      // Une mesure aberrante (vue pivotée, lecture pendant une transition) ne
+      // doit pas empoisonner tous les cadrages suivants.
+      if (world.isFinite && world >= 64 && world <= 4096) {
+        _worldPixelsAtZoom0 = world;
+      }
+    } catch (_) {
+      // La vue native n'est pas lisible : on garde la valeur en place.
+    }
+  }
+
+  /// Place la caméra pour montrer [box] dans une vue de [viewSize], en lui
+  /// réservant [padding]. Rend `false` si le cadrage n'a pas pu être calculé.
+  ///
+  /// Remplace `MapController.fitBounds`, qui délègue le calcul à la vue native
+  /// et l'exécute sans erreur *ni effet* quand celle-ci n'a pas encore sa
+  /// taille — et qui, sur iOS, anime toujours (`animated: true` en dur).
+  /// Ici le calcul est fait ici ([pdlCameraForBox]) à partir d'une taille que
+  /// Flutter connaît, et `moveCamera` s'y rend sans animation.
+  Future<bool> fitBox(
     PdlMapBox box, {
+    required Size viewSize,
     EdgeInsets padding = const EdgeInsets.all(50),
-    Duration nativeDuration = const Duration(milliseconds: 1),
   }) async {
     final MapController? m = _map;
-    if (m == null) return;
-    await m.fitBounds(
-      bounds: box.toLngLatBounds(),
+    if (m == null) return false;
+    final PdlMapCamera? camera = pdlCameraForBox(
+      // Une boîte dégénérée ferait plonger la caméra au zoom maximal.
+      box.expandedToMinSpan(),
+      size: viewSize,
       padding: padding,
-      nativeDuration: nativeDuration,
-      webLinear: true,
+      worldPixelsAtZoom0: _worldPixelsAtZoom0,
     );
+    if (camera == null) return false;
+    await m.moveCamera(
+      center: Geographic(lon: camera.lon, lat: camera.lat),
+      zoom: camera.zoom,
+    );
+    return true;
   }
 
   // ── Pose des couches ──────────────────────────────────────────────────

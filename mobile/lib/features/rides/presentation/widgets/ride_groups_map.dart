@@ -80,6 +80,14 @@ class RideGroupsMap extends ConsumerWidget {
       if (route != null) geometries[slug] = route;
     }
 
+    // L'emprise vient du serveur (`RoutesBulkResponse.extent`), pas d'un
+    // parcours des sommets : elle arrive **avec** le premier lot, et couvre
+    // déjà tous les parcours demandés — y compris ceux dont la géométrie est
+    // encore en vol.
+    final BoundsDto? extent = ref
+        .watch(rideRouteGeometriesProvider(rideKey))
+        .extent;
+
     final String? styleUrl = style.value?.url;
     if (styleUrl == null) {
       return PdlSkeleton(height: height, borderRadius: PdlRadii.mdAll);
@@ -90,33 +98,87 @@ class RideGroupsMap extends ConsumerWidget {
 
     return SizedBox(
       height: height,
-      child: PdlMap(
-        styleUrl: styleUrl,
-        tracks: tracks,
-        start: _point(ride.startPlace),
-        end: _point(ride.endPlace),
-        initialCenter: _defaultCenter(ref),
-        selectedTrackId: selectedGroupId,
-        onTrackSelected: (String? id) {
-          if (id != null) onSelect(id);
-        },
-        overlays: <Widget>[
-          if (selected != null)
-            Positioned(
-              left: 12,
-              top: 12,
-              child: PdlMapPill(
-                label: selected.name,
-                leading: PdlColorTrack(
-                  color: multiTrackColor(selected.sortOrder),
-                  shape: PdlColorTrackShape.legend,
-                ),
-              ),
-            ),
+      child: PdlMapHero(
+        labels: PdlMapHeroLabels(
+          enterFullscreen: 'map.fullscreen'.tr(),
+          exitFullscreen: 'map.exitFullscreen'.tr(),
+          chooseBackground: 'map.background'.tr(),
+          backgroundSheetTitle: 'map.background'.tr(),
+        ),
+        styles: <PdlMapStyleOption>[
+          for (final MapStyleDto s
+              in ref.watch(appConfigProvider).value?.mapStyles ??
+                  const <MapStyleDto>[])
+            PdlMapStyleOption(id: s.id, label: s.label),
         ],
+        selectedStyleId: style.value?.style.id,
+        onStyleSelected: (String id) =>
+            ref.read(mapStyleIdProvider.notifier).select(id),
+        mapBuilder: (BuildContext context) =>
+            _map(context, styleUrl, tracks, selected, extent, ref),
       ),
     );
   }
+
+  Widget _map(
+    BuildContext context,
+    String styleUrl,
+    List<PdlMapTrack> tracks,
+    RideGroupDto? selected,
+    BoundsDto? extent,
+    WidgetRef ref,
+  ) {
+    // **La carte encastrée ne se manipule pas.** Elle vit au milieu d'une liste
+    // qui défile : un pan y dispute le doigt au défilement de la page, et le
+    // geste part à moitié dans l'un, à moitié dans l'autre. Le tap reste — il
+    // sélectionne un groupe, et n'est pas un geste de caméra. Pour explorer,
+    // le bouton plein écran, où plus rien ne se dispute le doigt.
+    final bool fullscreen = PdlMapHero.isFullscreenOf(context);
+
+    return PdlMap(
+      styleUrl: styleUrl,
+      interactive: fullscreen,
+      tracks: tracks,
+      start: _point(ride.startPlace),
+      end: _point(ride.endPlace),
+      initialCenter: _defaultCenter(ref),
+      fitBox: extent == null
+          ? null
+          : PdlMapBox(
+              minLon: extent.minLon,
+              minLat: extent.minLat,
+              maxLon: extent.maxLon,
+              maxLat: extent.maxLat,
+            ),
+      selectedTrackId: selectedGroupId,
+      onTrackSelected: (String? id) {
+        if (id != null) onSelect(id);
+      },
+      overlays: <Widget>[
+        if (selected != null)
+          Positioned(
+            left: 12,
+            top: 12,
+            // En plein écran la carte remonte sous l'heure et la batterie :
+            // la pilule doit céder l'encoche. Encastrée dans une liste, elle
+            // est déjà loin du haut de l'écran, et un `SafeArea` y ajouterait
+            // une gouttière de 59 px sortie de nulle part — `MediaQuery.padding`
+            // ne se remet pas à zéro pour un widget au milieu de la page.
+            child: fullscreen
+                ? SafeArea(child: _pill(selected))
+                : _pill(selected),
+          ),
+      ],
+    );
+  }
+
+  Widget _pill(RideGroupDto group) => PdlMapPill(
+    label: group.name,
+    leading: PdlColorTrack(
+      color: multiTrackColor(group.sortOrder),
+      shape: PdlColorTrackShape.legend,
+    ),
+  );
 
   /// Un tracé par groupe — **pas** un par parcours : deux groupes qui partagent
   /// un parcours doivent chacun être sélectionnables, et la carte de groupe

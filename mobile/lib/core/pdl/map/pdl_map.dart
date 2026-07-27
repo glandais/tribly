@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:maplibre/maplibre.dart';
 
@@ -40,7 +41,8 @@ class PdlMap extends StatefulWidget {
     this.onTrackSelected,
     this.onMapTapped,
     this.onCameraIdle,
-    this.gestures = const MapGestures.all(),
+    this.interactive = true,
+    this.gestures,
     this.overlays = const <Widget>[],
   });
 
@@ -84,7 +86,18 @@ class PdlMap extends StatefulWidget {
   /// alimenter « Rechercher dans cette zone ».
   final ValueChanged<PdlMapBox>? onCameraIdle;
 
-  final MapGestures gestures;
+  /// La carte se laisse-t-elle déplacer et zoomer ?
+  ///
+  /// `false` pour une carte **encastrée dans une liste qui défile** : le pan y
+  /// dispute le doigt au défilement de la page, et le geste finit à moitié dans
+  /// l'un, à moitié dans l'autre. Le tap n'est pas concerné — ce n'est pas un
+  /// geste de caméra — donc une carte non interactive reste sélectionnable.
+  final bool interactive;
+
+  /// Réglage fin des gestes, quand [interactive] est trop grossier. Il l'emporte
+  /// sur lui. Réservé à `core/pdl` et aux rares écrans qui importent déjà
+  /// MapLibre : le vocabulaire courant est [interactive].
+  final MapGestures? gestures;
 
   /// Surcouches posées **dans** le contexte de la carte : boutons, pilules,
   /// carte flottante. Elles arrivent après la couche de marqueurs, donc
@@ -98,7 +111,29 @@ class PdlMap extends StatefulWidget {
 class _PdlMapState extends State<PdlMap> {
   PdlMapController? _owned;
   PdlMapBox? _fittedBox;
+
+  /// La marge avec laquelle [_fittedBox] a été cadrée. Une feuille qui change
+  /// de cran ne change pas la boîte visée, seulement la place qu'elle laisse :
+  /// sans ce second témoin, le cadrage resterait celui du cran précédent.
+  EdgeInsets? _fittedPadding;
+
   String? _appliedStyleUrl;
+
+  /// Mémo de la boîte des tracés : le calcul parcourt tous les sommets, et
+  /// `didUpdateWidget` passe à chaque image.
+  List<PdlMapTrack>? _boxedTracks;
+  PdlMapBox? _tracksBox;
+
+  /// La dernière taille allouée à la carte, relevée par le `LayoutBuilder` de
+  /// [build]. On ne peut **pas** lire `context.size` depuis `didUpdateWidget` :
+  /// le framework est alors en phase de construction et lève « Cannot get size
+  /// during build ».
+  Size? _lastSize;
+
+  /// Vrai dès le premier [MapEventIdle] : la vue native a rendu au moins une
+  /// image, donc elle a une taille — la seule condition sous laquelle
+  /// `fitBounds` fait réellement quelque chose.
+  bool _settled = false;
 
   PdlMapController get _controller =>
       widget.controller ?? (_owned ??= PdlMapController());
@@ -128,8 +163,11 @@ class _PdlMapState extends State<PdlMap> {
       _controller.map?.setStyle(widget.styleUrl);
     }
 
-    if (!identical(widget.tracks, oldWidget.tracks) ||
-        !identical(widget.waypoints, oldWidget.waypoints) ||
+    // Comparaison **de valeur**, pas d'identité : les écrans reconstruisent
+    // ces listes à chaque `build`, et reposer les couches à chaque image
+    // faisait scintiller la carte et bousculait la caméra.
+    if (!listEquals(widget.tracks, oldWidget.tracks) ||
+        !listEquals(widget.waypoints, oldWidget.waypoints) ||
         widget.start != oldWidget.start ||
         widget.end != oldWidget.end) {
       _pushContent();
@@ -137,9 +175,7 @@ class _PdlMapState extends State<PdlMap> {
     if (widget.selectedTrackId != oldWidget.selectedTrackId) {
       _controller.select(widget.selectedTrackId);
     }
-    if (widget.fitBox != null && widget.fitBox != _fittedBox) {
-      _fit();
-    }
+    _fit();
   }
 
   void _pushContent() {
@@ -151,11 +187,97 @@ class _PdlMapState extends State<PdlMap> {
     );
   }
 
+  /// La boîte à cadrer : celle qu'impose l'appelant, ou à défaut celle des
+  /// tracés.
+  ///
+  /// Le repli sur les tracés doit être **réévalué à chaque mise à jour**, et
+  /// pas seulement au chargement du style : sur la fiche d'une sortie, les
+  /// géométries des parcours arrivent d'un provider asynchrone, donc *après*
+  /// `MapEventStyleLoaded`. Ne cadrer qu'une fois y laissait la carte sur le
+  /// centre par défaut, la France entière, avec le tracé quelque part dedans.
+  /// Le repli couvre aussi le départ, l'arrivée et les points de passage : sur
+  /// une sortie dont les géométries n'arrivent pas (parcours privé, appel
+  /// groupé en échec), cadrer sur les deux lieux vaut infiniment mieux que de
+  /// rester sur le centre par défaut — la France entière.
+  PdlMapBox? get _targetBox {
+    final PdlMapBox? explicit = widget.fitBox;
+    if (explicit != null) return explicit;
+    if (!identical(_boxedTracks, widget.tracks)) {
+      _boxedTracks = widget.tracks;
+      _tracksBox = PdlMapBox.ofTracks(widget.tracks);
+    }
+    final PdlMapBox? points = PdlMapBox.ofPoints(<PdlMapPoint>[
+      ?widget.start,
+      ?widget.end,
+      ...widget.waypoints,
+    ]);
+    final PdlMapBox? tracks = _tracksBox;
+    if (tracks == null) return points;
+    return points == null ? tracks : tracks.union(points);
+  }
+
+  /// Cadre sur la boîte visée — **jamais avant le premier [MapEventIdle]**.
+  ///
+  /// `MapEventStyleLoaded` ne dit que « le style est là » : la vue native peut
+  /// n'avoir aucune taille utile à cet instant, et `fitBounds` s'y exécute
+  /// alors sans erreur *et sans effet* — la caméra reste sur `initCenter`, ou
+  /// pire, se cale sur une hauteur utile nulle une fois les 50 px de marge
+  /// retirés de chaque côté, et part au zoom minimal. Rien ne le signale. C'est
+  /// exactement ce qui rendait le cadrage « capricieux » : il marchait ou non
+  /// selon qui gagnait la course entre le style, la mise en page et la donnée.
+  ///
+  /// `MapEventIdle` est le seul signal qui garantisse le contraire — il veut
+  /// dire « toutes les tuiles demandées sont chargées, plus aucune transition
+  /// en cours », donc la vue a été rendue, donc elle a une taille. Le cadrage
+  /// demandé avant est simplement mémorisé et rejoué là. Pas de boucle, pas de
+  /// `Future.delayed` : un seul point de déclenchement, déterministe.
   Future<void> _fit() async {
-    final PdlMapBox? box = widget.fitBox ?? PdlMapBox.ofTracks(widget.tracks);
+    final PdlMapBox? box = _targetBox;
     if (box == null) return;
-    _fittedBox = box;
-    await _controller.fitBox(box, padding: widget.fitPadding);
+    final EdgeInsets padding = _padding();
+    if (box == _fittedBox && padding == _fittedPadding) return;
+    // Pas encore prêt : `_fittedBox` reste tel quel, et le premier `idle`
+    // rejouera ce même calcul.
+    final Size? size = _lastSize;
+    if (size == null || !_settled || !_controller.isStyleReady) return;
+    if (await _controller.fitBox(box, viewSize: size, padding: padding)) {
+      _fittedBox = box;
+      _fittedPadding = padding;
+    }
+  }
+
+  /// La marge demandée, ramenée à ce que la carte peut réellement offrir.
+  ///
+  /// Une marge plus grande que la carte laisse une zone utile nulle, et
+  /// `fitBounds` répond alors par le zoom minimal — la planète pour montrer un
+  /// parcours. Le plafond porte donc sur **la somme** des deux marges d'un axe,
+  /// et non sur chacune : une fiche parcours qui réserve la moitié basse de sa
+  /// carte à une feuille est légitime, 50 px de chaque côté sur une carte de
+  /// 260 px de haut ne l'est pas. Au-delà, les deux marges de l'axe sont
+  /// réduites dans la même proportion, ce qui préserve leur asymétrie — c'est
+  /// elle qui décale le tracé au-dessus de la feuille.
+  static const double _kMaxPaddingRatio = 0.8;
+
+  EdgeInsets _padding() {
+    final Size? size = _lastSize;
+    final EdgeInsets p = widget.fitPadding;
+    if (size == null || size.isEmpty) return p;
+    final double h = _shrink(p.left + p.right, size.width);
+    final double v = _shrink(p.top + p.bottom, size.height);
+    return EdgeInsets.fromLTRB(
+      p.left * h,
+      p.top * v,
+      p.right * h,
+      p.bottom * v,
+    );
+  }
+
+  /// Le facteur à appliquer aux deux marges d'un axe pour qu'elles laissent au
+  /// moins `1 - _kMaxPaddingRatio` de la dimension.
+  static double _shrink(double total, double extent) {
+    final double max = extent * _kMaxPaddingRatio;
+    if (total <= max || total <= 0) return 1;
+    return max / total;
   }
 
   void _onEvent(MapEvent event) {
@@ -172,6 +294,18 @@ class _PdlMapState extends State<PdlMap> {
       case MapEventCameraIdle():
         final PdlMapBox? box = _controller.visibleBox;
         if (box != null) widget.onCameraIdle?.call(box);
+      case MapEventIdle():
+        // Première image rendue : la carte est enfin mesurable. On en profite
+        // pour étalonner l'échelle — c'est le seul moment où région visible et
+        // zoom se correspondent à coup sûr — puis le cadrage mémorisé
+        // s'applique. Les `idle` suivants ne coûtent rien : `_fit` sort aussitôt
+        // quand la boîte et la marge sont déjà celles en place.
+        if (!_settled) {
+          _settled = true;
+          final Size? size = _lastSize;
+          if (size != null) _controller.calibrate(size);
+        }
+        _fit();
       default:
         break;
     }
@@ -195,14 +329,27 @@ class _PdlMapState extends State<PdlMap> {
       end: widget.end,
     );
     await _controller.attachStyle(style);
-    // **Le cadrage part d'ici**, et de nulle part ailleurs : c'est le seul
-    // moment où la vue native a une taille et un style. Plus de
-    // `Future.delayed`.
+    // **Le premier cadrage part d'ici** : c'est le premier moment où la vue
+    // native a une taille et un style. Plus de `Future.delayed`. Les suivants
+    // partent de `didUpdateWidget`, quand la donnée arrive.
     await _fit();
   }
 
   @override
   Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        // Relevé ici parce que `context.size` est interdit pendant un build,
+        // et que c'est justement là que `_fit` s'exécute.
+        if (constraints.hasBoundedWidth && constraints.hasBoundedHeight) {
+          _lastSize = constraints.biggest;
+        }
+        return _buildMap(context);
+      },
+    );
+  }
+
+  Widget _buildMap(BuildContext context) {
     final PdlMapPoint? center = widget.initialCenter;
 
     return MapLibreMap(
@@ -212,7 +359,11 @@ class _PdlMapState extends State<PdlMap> {
             : Geographic(lon: center.lon, lat: center.lat),
         initZoom: widget.initialZoom,
         initStyle: widget.styleUrl,
-        gestures: widget.gestures,
+        gestures:
+            widget.gestures ??
+            (widget.interactive
+                ? const MapGestures.all()
+                : const MapGestures.none()),
       ),
       onMapCreated: _controller.attachMap,
       onEvent: _onEvent,

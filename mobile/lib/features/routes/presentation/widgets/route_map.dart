@@ -23,6 +23,7 @@ class RouteMap extends ConsumerStatefulWidget {
     required this.route,
     this.cursor,
     this.onMapTapped,
+    this.fitPadding = const EdgeInsets.all(50),
   });
 
   final RouteDetailDto route;
@@ -34,6 +35,11 @@ class RouteMap extends ConsumerStatefulWidget {
   /// Tap sur la carte, converti en distance cumulée par [cursor]. `null`
   /// signifie « hors du tracé », ce qui efface le réticule.
   final ValueChanged<double?>? onMapTapped;
+
+  /// Marge de cadrage. La fiche parcours y réserve la hauteur de sa feuille :
+  /// sans cela le tracé est cadré sur toute la carte, dont la feuille masque la
+  /// moitié — « bien cadré » et pourtant à moitié invisible.
+  final EdgeInsets fitPadding;
 
   @override
   ConsumerState<RouteMap> createState() => _RouteMapState();
@@ -158,6 +164,7 @@ class _RouteMapState extends ConsumerState<RouteMap> {
             : PdlMapPoint(lon: defaultCenter.lon, lat: defaultCenter.lat),
         initialZoom: defaultCenter?.zoom ?? 5,
         fitBox: PdlMapBox.ofTracks(tracks),
+        fitPadding: widget.fitPadding,
       ),
     );
   }

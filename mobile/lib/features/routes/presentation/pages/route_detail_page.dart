@@ -47,9 +47,19 @@ class RouteDetailPage extends ConsumerStatefulWidget {
   ConsumerState<RouteDetailPage> createState() => _RouteDetailPageState();
 }
 
+/// Les crans de la feuille, partagés entre elle et le cadrage de la carte.
+const List<double> _kDetents = <double>[0.18, 0.5, 0.92];
+const int _kInitialDetent = 1;
+
 class _RouteDetailPageState extends ConsumerState<RouteDetailPage> {
   RouteCursorController? _cursor;
   String? _cursorForSlug;
+
+  /// Le cran courant de la feuille. Il pilote la marge basse du cadrage : sans
+  /// elle, le tracé est cadré sur toute la hauteur de la carte, dont la feuille
+  /// couvre la moitié. Alimenté par `onDetentChanged`, donc **au franchissement
+  /// de cran** et jamais en continu : la caméra ne bouge pas sous le doigt.
+  double _detent = _kDetents[_kInitialDetent];
 
   RouteKey get _key =>
       RouteKey(teamSlug: widget.teamSlug, routeSlug: widget.routeSlug);
@@ -97,12 +107,21 @@ class _RouteDetailPageState extends ConsumerState<RouteDetailPage> {
               route: route,
               cursor: cursor,
               onMapTapped: cursor.moveTo,
+              fitPadding: EdgeInsets.fromLTRB(
+                50,
+                50,
+                50,
+                MediaQuery.sizeOf(context).height * _detent,
+              ),
             ),
           ),
           _overlay(route),
           PdlDetentSheet(
-            detents: const <double>[0.18, 0.5, 0.92],
-            initialDetentIndex: 1,
+            detents: _kDetents,
+            initialDetentIndex: _kInitialDetent,
+            onDetentChanged: (double detent) {
+              if (detent != _detent) setState(() => _detent = detent);
+            },
             headerBuilder: (BuildContext context, double extent) =>
                 RouteSheetHeader(route: route, extent: extent),
             footer: Padding(

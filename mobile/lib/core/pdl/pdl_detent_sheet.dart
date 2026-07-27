@@ -68,11 +68,82 @@ class _PdlDetentSheetState extends State<PdlDetentSheet> {
   );
   double _lastSnapped = -1;
 
+  /// Le contrôleur du glissement. [DraggableScrollableSheet] ne se laisse
+  /// entraîner que par **son** scrollable, or la poignée et l'en-tête n'en font
+  /// pas partie : sans lui, tirer sur la poignée — le geste que la poignée
+  /// annonce — ne fait rien, et il faut viser la liste, laquelle défile au lieu
+  /// de bouger la feuille dès qu'elle n'est plus en haut. C'est ce qui rendait
+  /// la feuille « capricieuse ».
+  late final DraggableScrollableController _controller =
+      widget.controller ?? DraggableScrollableController();
+
+  /// La hauteur disponible, relevée par le `LayoutBuilder` de [build] : les
+  /// crans sont des fractions, les gestes des pixels.
+  double _available = 0;
+
   @override
   void dispose() {
+    // Un contrôleur fourni par l'appelant lui appartient.
+    if (widget.controller == null) _controller.dispose();
     _extent.dispose();
     super.dispose();
   }
+
+  double get _min => widget.detents.first;
+  double get _max => widget.detents.last;
+
+  /// Le cran le plus proche de [size], la vélocité départageant les ex æquo.
+  ///
+  /// [velocity] est en pixels par seconde, positive vers le bas. Un geste franc
+  /// (au-delà de 400 px/s, le seuil de `DraggableScrollableSheet` lui-même)
+  /// emmène au cran suivant dans son sens, même s'il n'a pas parcouru la moitié
+  /// de la distance : c'est ce qui fait qu'un petit coup sec suffit.
+  double _snapTarget(double size, double velocity) {
+    final List<double> detents = widget.detents;
+    if (velocity.abs() > 400) {
+      final bool up = velocity < 0;
+      for (int i = 0; i < detents.length; i++) {
+        final int j = up ? i : detents.length - 1 - i;
+        if (up ? detents[j] > size + 0.01 : detents[j] < size - 0.01) {
+          return detents[j];
+        }
+      }
+    }
+    return detents.reduce(
+      (double a, double b) => (a - size).abs() < (b - size).abs() ? a : b,
+    );
+  }
+
+  void _onHandleDrag(DragUpdateDetails details) {
+    if (_available <= 0 || !_controller.isAttached) return;
+    // Vers le haut = la feuille grandit, d'où le signe.
+    final double next = (_controller.size - details.delta.dy / _available)
+        .clamp(_min, _max);
+    _controller.jumpTo(next);
+  }
+
+  void _onHandleDragEnd(DragEndDetails details) {
+    if (!_controller.isAttached) return;
+    _animateTo(
+      _snapTarget(_controller.size, details.velocity.pixelsPerSecond.dy),
+    );
+  }
+
+  /// Ramène la feuille d'un cran, en réponse à un tap sur la carte au-dessus.
+  void _collapseOneStep() {
+    if (!_controller.isAttached) return;
+    final List<double> detents = widget.detents;
+    final double size = _controller.size;
+    for (int i = detents.length - 1; i >= 0; i--) {
+      if (detents[i] < size - 0.01) return _animateTo(detents[i]);
+    }
+  }
+
+  void _animateTo(double size) => _controller.animateTo(
+    size,
+    duration: PdlMotion.stateChange,
+    curve: PdlMotion.stateChangeCurve,
+  );
 
   bool _onNotification(DraggableScrollableNotification notification) {
     _extent.value = notification.extent;
@@ -97,10 +168,50 @@ class _PdlDetentSheetState extends State<PdlDetentSheet> {
     final PdlColors c = context.pdl;
     final List<double> detents = widget.detents;
 
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        _available = constraints.maxHeight;
+        return Stack(
+          children: <Widget>[
+            // Au-dessus de la feuille : un tap la ramène d'un cran. La zone
+            // est **exactement** la partie non couverte, et n'est active
+            // qu'au-delà du cran d'ouverture. En deçà, la carte qui vit dessous
+            // garde ses taps — sur la fiche parcours, c'est ce tap qui pose le
+            // réticule, et le lui prendre à tous les crans serait une perte
+            // sèche. Au-delà, il ne reste plus assez de carte pour viser quoi
+            // que ce soit : refermer est la seule intention plausible.
+            ValueListenableBuilder<double>(
+              valueListenable: _extent,
+              builder: (BuildContext context, double extent, _) {
+                final bool active =
+                    extent > widget.detents[widget.initialDetentIndex] + 0.01;
+                return Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  height: (1 - extent) * _available,
+                  child: IgnorePointer(
+                    ignoring: !active,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: _collapseOneStep,
+                    ),
+                  ),
+                );
+              },
+            ),
+            _sheet(c, detents),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _sheet(PdlColors c, List<double> detents) {
     return NotificationListener<DraggableScrollableNotification>(
       onNotification: _onNotification,
       child: DraggableScrollableSheet(
-        controller: widget.controller,
+        controller: _controller,
         initialChildSize: detents[widget.initialDetentIndex],
         minChildSize: detents.first,
         maxChildSize: detents.last,
@@ -121,13 +232,29 @@ class _PdlDetentSheetState extends State<PdlDetentSheet> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      const PdlSheetHandle(),
-                      if (widget.headerBuilder != null)
-                        ValueListenableBuilder<double>(
-                          valueListenable: _extent,
-                          builder: (BuildContext context, double extent, _) =>
-                              widget.headerBuilder!(context, extent),
+                      // Poignée **et** en-tête entraînent la feuille : ils
+                      // sont hors du scrollable, donc `DraggableScrollableSheet`
+                      // ne les voit pas, et c'est ce `GestureDetector` qui
+                      // rattache le geste au contrôleur.
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onVerticalDragUpdate: _onHandleDrag,
+                        onVerticalDragEnd: _onHandleDragEnd,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            const PdlSheetHandle(),
+                            if (widget.headerBuilder != null)
+                              ValueListenableBuilder<double>(
+                                valueListenable: _extent,
+                                builder:
+                                    (BuildContext context, double extent, _) =>
+                                        widget.headerBuilder!(context, extent),
+                              ),
+                          ],
                         ),
+                      ),
                       Expanded(
                         child: widget.bodyBuilder(context, scrollController),
                       ),

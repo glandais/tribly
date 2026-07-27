@@ -110,6 +110,18 @@ class PdlMapHero extends StatelessWidget {
   /// Vrai dans la page plein écran : le bouton bascule alors en sortie.
   final bool isFullscreen;
 
+  /// Vrai si le contexte est celui de la carte **plein écran**.
+  ///
+  /// [mapBuilder] est appelé dans les deux, et une carte encastrée dans une
+  /// liste ne se pilote pas comme une carte plein écran : la première doit
+  /// laisser le doigt au défilement de la page, la seconde est là pour être
+  /// manipulée. Sans ce témoin, l'appelant ne peut pas faire la différence.
+  static bool isFullscreenOf(BuildContext context) =>
+      context
+          .dependOnInheritedWidgetOfExactType<_PdlMapHeroScope>()
+          ?.isFullscreen ??
+      false;
+
   @override
   Widget build(BuildContext context) {
     final Widget stack = _buildStack(context);
@@ -147,7 +159,10 @@ class PdlMapHero extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: <Widget>[
-        Builder(builder: mapBuilder),
+        _PdlMapHeroScope(
+          isFullscreen: isFullscreen,
+          child: Builder(builder: mapBuilder),
+        ),
         if (topScrim)
           const Positioned(left: 0, right: 0, top: 0, child: PdlScrim.top()),
         if (bottomScrim)
@@ -232,4 +247,15 @@ class PdlMapHero extends StatelessWidget {
     );
     if (picked != null) onStyleSelected?.call(picked);
   }
+}
+
+/// Porte [PdlMapHero.isFullscreenOf] jusqu'au `mapBuilder`.
+class _PdlMapHeroScope extends InheritedWidget {
+  const _PdlMapHeroScope({required this.isFullscreen, required super.child});
+
+  final bool isFullscreen;
+
+  @override
+  bool updateShouldNotify(_PdlMapHeroScope oldWidget) =>
+      oldWidget.isFullscreen != isFullscreen;
 }

@@ -88,6 +88,7 @@ class RideRouteGeometriesState {
   const RideRouteGeometriesState({
     this.geometries = const <String, RouteDetailDto>{},
     this.failed = const <String>{},
+    this.extent,
   });
 
   /// Les géométries chargées, par `routeSlug`.
@@ -96,12 +97,30 @@ class RideRouteGeometriesState {
   /// Les parcours dont l'appel a échoué, ou absents de la réponse groupée.
   final Set<String> failed;
 
+  /// L'emprise servie par `RoutesBulkResponse.extent`.
+  ///
+  /// C'est **la** boîte de cadrage de la carte : la calculer sur les tracés
+  /// obligerait à attendre que toutes les géométries soient là, et à
+  /// reparcourir des milliers de sommets. Le serveur la donne déjà, et il la
+  /// donne pour le lot entier — donc dès la première réponse, avant même que
+  /// la carte ait un tracé à dessiner.
+  ///
+  /// Elle n'est retenue que quand le lot demandé couvre **tous** les parcours
+  /// voulus, ce qui est le cas au premier affichage. Un lot complémentaire —
+  /// des groupes qui changent de parcours pendant qu'on regarde — porte
+  /// l'emprise de ce seul complément : la garder rétrécirait le cadrage sur
+  /// une partie des tracés, alors que l'emprise déjà connue reste juste pour
+  /// ceux qu'on affiche.
+  final BoundsDto? extent;
+
   RideRouteGeometriesState copyWith({
     Map<String, RouteDetailDto>? geometries,
     Set<String>? failed,
+    BoundsDto? extent,
   }) => RideRouteGeometriesState(
     geometries: geometries ?? this.geometries,
     failed: failed ?? this.failed,
+    extent: extent ?? this.extent,
   );
 }
 
@@ -138,7 +157,8 @@ class RideRouteGeometriesController
 
     // Les slugs qui sortent de l'ensemble voulu sont retirés tout de suite —
     // ils n'ont aucune raison de survivre le temps du prochain lot.
-    state = state.copyWith(
+    state = RideRouteGeometriesState(
+      extent: state.extent,
       geometries: Map<String, RouteDetailDto>.fromEntries(
         state.geometries.entries.where(
           (MapEntry<String, RouteDetailDto> e) => wanted.contains(e.key),
@@ -154,13 +174,13 @@ class RideRouteGeometriesController
         .where((String slug) => !state.geometries.containsKey(slug))
         .toList();
     if (todo.isEmpty) return;
-    unawaited(_load(todo));
+    unawaited(_load(todo, full: todo.length == slugs.length));
   }
 
   /// Charge [slugs] en un appel groupé et fusionne le résultat dans l'état
   /// existant, sans jamais le remplacer — c'est ce qui garde à l'écran les
   /// tracés déjà connus pendant que ceux-ci se chargent.
-  Future<void> _load(List<String> slugs) async {
+  Future<void> _load(List<String> slugs, {required bool full}) async {
     try {
       final RoutesBulkResponse response = await _ref
           .read(routeRepositoryProvider)
@@ -175,6 +195,7 @@ class RideRouteGeometriesController
       state = state.copyWith(
         geometries: <String, RouteDetailDto>{...state.geometries, ...loaded},
         failed: <String>{...state.failed, ...missing},
+        extent: full ? response.extent : state.extent,
       );
     } catch (_) {
       if (!mounted) return;
