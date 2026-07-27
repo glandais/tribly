@@ -102,7 +102,15 @@ class PdlAppBar extends StatelessWidget implements PreferredSizeWidget {
             ? Border(bottom: BorderSide(color: c.borderSubtle))
             : null,
       ),
-      child: bar,
+      // `preferredSize` ne compte que les 56 px de la rangée : c'est le
+      // [Scaffold] qui ajoute l'encoche par-dessus. Sans ce `SafeArea`, la
+      // rangée se cale en haut de l'emplacement ainsi agrandi et le titre passe
+      // sous l'heure de l'appareil. Le fond, lui, reste *hors* du `SafeArea`
+      // pour continuer de couvrir la barre système.
+      //
+      // En `overlay` l'appelant place la barre lui-même (`Positioned` +
+      // `SafeArea`, ou `PdlScreenScaffold`), d'où le retour anticipé plus haut.
+      child: SafeArea(bottom: false, left: false, right: false, child: bar),
     );
   }
 

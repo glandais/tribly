@@ -196,4 +196,37 @@ void main() {
       expect(size.width, greaterThanOrEqualTo(PdlMetrics.tapTarget));
     }
   });
+
+  testWidgets('le titre de PdlAppBar se pose sous la barre système', (
+    WidgetTester tester,
+  ) async {
+    const double kTopInset = 59;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: PedalonsTheme.build(Brightness.light),
+        builder: (BuildContext context, Widget? child) => MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(padding: const EdgeInsets.only(top: kTopInset)),
+          child: child!,
+        ),
+        home: Scaffold(
+          appBar: PdlAppBar(title: 'Profil'),
+          body: const SizedBox.expand(),
+        ),
+      ),
+    );
+
+    // Le fond couvre l'encoche — 56 + l'inset —, mais le titre commence
+    // franchement en dessous : c'était le défaut, le titre chevauchait l'heure.
+    expect(
+      tester.getSize(find.byType(PdlAppBar)).height,
+      PdlMetrics.appBar + kTopInset,
+    );
+    expect(
+      tester.getTopLeft(find.text('Profil')).dy,
+      greaterThanOrEqualTo(kTopInset),
+    );
+  });
 }
