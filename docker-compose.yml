@@ -50,7 +50,7 @@ services:
     volumes:
       - ./data/storage:/mnt/storage
       - ./data/keys:/mnt/keys:ro
-      # gpx2web's tile + elevation cache (DATA_CACHE_PATH). Shared with backend-restore, and kept
+      # vcyclist's tile + elevation cache (DATA_CACHE_PATH). Shared with backend-restore, and kept
       # outside the container so it outlives `down`.
       - ./data/cache:/mnt/cache
     labels:

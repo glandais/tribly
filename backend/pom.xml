@@ -22,7 +22,7 @@
         <spotless-plugin.version>3.10.1</spotless-plugin.version>
         <git-commit-id-plugin.version>10.0.0</git-commit-id-plugin.version>
         <hypersistence-utils-hibernate.version>3.15.5</hypersistence-utils-hibernate.version>
-        <gpx.version>1.4.5</gpx.version>
+        <vcyclist.version>5.0.0</vcyclist.version>
         <lombok.version>1.18.46</lombok.version>
         <jspecify.version>1.0.0</jspecify.version>
         <magika.version>0.6.1</magika.version>
@@ -125,17 +125,17 @@
             <artifactId>quarkus-smallrye-openapi</artifactId>
         </dependency>
 
-        <!-- GPX Processing -->
+        <!-- GPX Processing (vcyclist: -jvm artifacts, the root ones are Gradle-metadata poms) -->
         <dependency>
-            <groupId>io.github.glandais.gpx2web</groupId>
-            <artifactId>gpx</artifactId>
-            <version>${gpx.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.github.haifengl</groupId>
-                    <artifactId>smile-core</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>io.github.glandais</groupId>
+            <artifactId>vcyclist-engine-jvm</artifactId>
+            <version>${vcyclist.version}</version>
+        </dependency>
+        <!-- Map rendering: pure JVM (no -jvm suffix) and not a dependency of :engine -->
+        <dependency>
+            <groupId>io.github.glandais</groupId>
+            <artifactId>vcyclist-map</artifactId>
+            <version>${vcyclist.version}</version>
         </dependency>
 
         <!-- Timezone lookup from GPS coordinates -->
