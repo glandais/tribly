@@ -498,6 +498,22 @@ Le détail de chacune est dans l'historique git de ce fichier et de `LEDGER_NEXT
   connues : un GPX/FIT déposé en pièce jointe (`API-49`) ; le rédacteur de la bibliothèque
   (`API-50`) ; la pose du marqueur n'a pas de test (`API-51`) ; les copies déjà envoyées à Garmin,
   Wahoo ou Hammerhead avant le correctif ne se réparent pas de notre côté.
+  **Porté sur vcyclist** (migration gpx2web → vcyclist, rebasée sur ce correctif le 2026-09-29) :
+  le modèle étant immuable, `GpxSanitizer.sanitize` rend un **nouveau** `GpxDocument` (position,
+  altitude, noms, nature trace/route et segments ; plus aucun instant, capteur, type, largeur de
+  route ni champ de waypoint autre que position et nom) et `computeGpx` poursuit avec lui. Un point
+  sans horloge n'a plus de `<time>` du tout, et le FIT d'un parcours sans horloge part de l'epoch
+  FIT (1989-12-31, `FitExporter`) : partir de l'epoch Unix le datait de 2106 par débordement.
+  `original.gpx` reste une resérialisation — l'arbitrage « octets uploadés verbatim » de la
+  migration a été abandonné pour ce ledger. Le rattrapage lit et réécrit avec vcyclist ;
+  `isDirty` accepte l'epoch des fichiers nettoyés du temps de gpx2web comme leur absence. Les
+  décisions « en place » et « `EPOCH` et non `null` » ci-dessus ne valaient que pour gpx2web ;
+  « un seul point d'entrée » et « pas de rejeu du pipeline » restent.
+- `API-50` **Le rédacteur GPX n'écrit plus de `creator` trompeur ni d'heure epoch** (2026-09-29,
+  migration vers vcyclist) — gpx2web écrivait `creator="https://www.mapstogpx.com/strava"` et, depuis
+  `API-44`, `<time>1970-01-01T00:00:00Z</time>` sur chaque point. vcyclist écrit
+  `creator="@glandais/vcyclist"` et omet `<time>` pour un point sans horloge. Test :
+  `GpxSanitizerTest` (aucun `<time>` dans les deux sérialisations).
 
 ### `API-39` T5.4 — Trombinoscope : débloqué par un réglage d'équipe (contrat `3.0.0`)
 
@@ -644,6 +660,20 @@ Ce qui reste ouvert (`MAX_BULK_SLUGS` comme seul garde-fou) est `API-27`.
   `SdkClientException`. Les deux attentes restent bien en deçà des 180 s du `start_period`. Le premier
   déploiement d'une stack ne voit donc plus de backend en échec. Ne pas retirer ces retries : Swarm
   ignore `depends_on`. Pas de test automatisé (le cas demande un redéploiement Swarm).
+- `OPS-10` **Cache de tuiles : plus de fichier tronqué ni de tuile vide pour de bon** (2026-09-30,
+  migration vers vcyclist) — les tuiles d'élévation sont écrites dans un fichier temporaire du
+  répertoire cible puis renommées (`ATOMIC_MOVE`), et seulement une fois décodées
+  (`DemTileFetcher`) ; les tuiles de carte le sont aussi depuis vcyclist 5.1.0, qui supprime et
+  retélécharge en outre une entrée de cache illisible au lieu de la sauter. Deux backends qui
+  téléchargent la même tuile s'écrasent avec des octets identiques. Le rendu des vignettes est en
+  `MissingTilePolicy.FAIL` (`VcyclistProducer`) : une tuile introuvable fait échouer la vignette,
+  jamais un fond troué. vcyclist 5.1.1 range en outre chaque tuile sous sa source entière (hôte,
+  port, chemin du style) : jusqu'en 5.1.0, la clé n'était que l'hôte, et les styles clair et sombre
+  partageaient leurs tuiles — ce que `MapThumbnailRendererTest` a révélé en suite complète (son style
+  inexistant trouvait les tuiles `colorful` d'un autre test). Ne pas redescendre sous 5.1.1.
+  Tests : `DemTileFetcherTest`, `MapThumbnailRendererTest`. `DATA_CACHE_PATH`
+  reste propre à chaque environnement : la raison technique de ne pas le partager a disparu, mais
+  le partage n'a été ni décidé ni essayé.
 
 ---
 

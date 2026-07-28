@@ -192,10 +192,10 @@ Two services stay per-environment on purpose, even though they look shareable:
 
 - **imgproxy/varnish** — imgproxy only takes a single global `IMGPROXY_S3_ENDPOINT`, so one instance
   cannot serve two MinIO backends. They become shareable if and when MinIO is shared.
-- **the gpx2web cache** (`DATA_CACHE_PATH`) — since gpx2web 1.5.1 map tiles are written then renamed,
-  and only on a 2xx, but the elevation tiles next to them were not reviewed and the downloads are
-  guarded only by an in-JVM lock: don't share the directory between backends (tracked as
-  ledger `OPS-10`). Keep it at
+- **the vcyclist cache** (`DATA_CACHE_PATH`) — map tiles (vcyclist ≥ 5.1.1) and elevation tiles
+  (`DemTileFetcher`) are both written to a temp file then renamed, and only once they decode, so two
+  backends racing on a tile can no longer corrupt it (ledger `OPS-10`); an unreadable cached tile is
+  fetched again. Sharing it is therefore no longer unsafe, but it has not been done. Keep it at
   `/mnt/cache`: pointed at `/tmp` it lives inside the container and is re-downloaded in full on every
   restart.
 

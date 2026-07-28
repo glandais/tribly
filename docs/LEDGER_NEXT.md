@@ -372,12 +372,6 @@ décision produit : `RideTemplateGroupRequest` reste sans champ.
       (liste noire qui accepte xml/fit) garde horodatages et capteurs. La politique le dit (§1,
       pièces jointes gardées telles quelles). Soit le passer par `GpxSanitizer` dans `store()`,
       soit le laisser et garder la phrase. Taille : S.
-- [ ] `API-50` **Le rédacteur GPX de gpx2web écrit un `creator` fixe et une heure epoch** — la
-      bibliothèque (gpx 1.5.x) écrit `creator="https://www.mapstogpx.com/strava"` (trompeur, pas
-      personnel) et `<time>1970-01-01T00:00:00Z</time>` sur chaque point depuis `API-44`. Ne pas
-      émettre `<time>` quand l'instant est `EPOCH` donnerait des fichiers plus propres. Changement de
-      bibliothèque, pas de Pédalons ; `GpxSanitizationBackfill.isDirty` accepte déjà l'absence de
-      `<time>`. Taille : S.
 - [ ] `API-51` **La pose du marqueur du rattrapage GPX n'a pas de test** —
       `GpxSanitizationBackfill.runOnce` ne doit pas repasser quand
       `maintenance/api-44-gpx-sanitized` existe, et ne doit pas l'écrire si un fichier a échoué.
@@ -484,14 +478,12 @@ Ce que les tests ne prouvent pas, parce qu'ils ne passent ni par Flyway ni par u
       sauvegarde, puis à chaque changement d'extrait OSM. Rien ne dit que c'est fait, et les données
       tileserver, nommées comme « à reconstruire à la main », ne sont couvertes par aucune
       procédure. Source : [`OPERATIONS.md`](OPERATIONS.md#cold-backup-of-the-shared-stack).
-- [ ] `OPS-10` **Cache gpx2web : tuiles d'élévation non revues** — elles ne sont gardées que par un
-      verrou interne à la JVM : tant que ce n'est pas revu, `DATA_CACHE_PATH` ne se partage pas entre
-      backends. Piste pour la revue : gpx2web 1.5.2 (la version du dépôt) contient
-      « fix(gpx): never cache a partial elevation tile download » (`HttpTileFetcher` écrit dans un
-      `.part` puis renomme), reste à vérifier ce que deux backends font en téléchargeant la même
-      tuile. Le commentaire périmé de `.env.example` qui en faisait partie est `OPS-12`. Source :
-      [`OPERATIONS.md`](OPERATIONS.md) (services « per-environment on purpose »). (Relevé le
-      29 septembre 2026.)
+- [ ] `OPS-21` **Veille après le déploiement de vcyclist** (§11 de
+      [`plans/2026-07-28-migration-vcyclist.md`](plans/2026-07-28-migration-vcyclist.md)) — le cache
+      de tuiles carto change de layout et se remplit une fois entièrement au premier rendu qui touche
+      une zone (les tuiles d'élévation, elles, sont conservées). La récupération d'élévation devient
+      concurrente (10 tuiles en parallèle) contre un fetch séquentiel avant : à cache froid,
+      surveiller un ×10 sur le débit vers `tiles.mapterhorn.com`.
 
 ---
 
@@ -711,6 +703,7 @@ redevient une entrée de sa section sous le même identifiant.
 | `API-34` | **`acceptTerms` obligatoire à l'inscription (contrat `4.1.0`)** | Laissé en mineure | Les builds mobiles qui n'envoient pas le champ reçoivent un 400 `VALIDATION` à l'inscription. La rupture est acceptée sans passer en `5.0.0` |
 | `API-54` | **exiftool pour retirer les métadonnées des images** | Écarté le 29 septembre 2026, après mesure sur un corpus synthétique (métadonnées marquées, pixels comparés) | exiftool (micro-service ou WASM) retire ce qu'il connaît au lieu de ne garder que ce qui est autorisé : il a laissé passer un chunk PNG privé et les octets après le trailer GIF, et refusé un WebP valide. Il ne nettoie pas les PDF, il a des CVE répétées (dont CVE-2026-7580, qui touche la 13.50) et il ajoute un conteneur. En WASM (zeroperl sur Chicory), sa sortie est identique mais il prend 17 à 19 s par image. imgproxy, écarté le même jour parce qu'il n'a pas de mode sans perte, a finalement été retenu : la perte d'un réencodage a été acceptée pour un code plus simple, qui ne laisse rien passer par construction et lit aussi HEIC, AVIF, TIFF et JPEG XL (`API-43`) |
 | `API-52` | **Durcir `ImageMetadataStripper`** | Sans objet depuis le 29 septembre 2026 | Le nettoyeur maison sans perte a été supprimé : le stockage fait réencoder chaque image par imgproxy (`API-43`), qui n'écrit que les pixels. Ne pas le réintroduire pour gagner la qualité perdue : c'est lui dont les branches gardaient par défaut ce qu'elles ne connaissaient pas |
+| `API-55` | **`dominantHeadwindAzimuthDeg()` (vcyclist g31) dans `WindEstimator`** | Écarté de la migration gpx2web → vcyclist | Rendrait un azimut compas directement exploitable et supprimerait `findDirectionFromVector` (le repli `-v.getY()` du repère Mercator, voir §4 de [`plans/2026-07-28-migration-vcyclist.md`](plans/2026-07-28-migration-vcyclist.md)) — mais c'est un changement de comportement, pas une migration à iso-fonctionnalité |
 | `WEB-8` | **Scroll infini côté web** | Non porté | Incompatible avec la règle structurante du frontend (filtres et pagination dans la query string, donc toute vue partageable). `usePaginatedQuery` précharge déjà la page suivante **et** la précédente |
 | `WEB-9` | **Gabarits tactiles portés au web** | Non portés | Feuilles à crans, barre d'onglets basse, app bar interpolée, chips en remplacement des `Select` : ils résolvent une contrainte que le desktop n'a pas, et produiraient des composants hors Mantine |
 | `WEB-10` | **Minimum de 44 px sur les boutons web** | Règle **tactile** uniquement | Le web descend à 36 px au-dessus de 768 px. Ne pas prendre `pedalons.css` pour une spécification web |
@@ -745,6 +738,12 @@ restent ouvertes :
   suivies sous `AUD`.
 - [`SECURITY_AUDIT.md`](SECURITY_AUDIT.md) — audit de sécurité de septembre 2026 ; il fait foi pour
   les vulnérabilités, l'audit de février pour l'infrastructure. Suivi sous `SEC`.
+- [`plans/2026-07-28-migration-vcyclist.md`](plans/2026-07-28-migration-vcyclist.md) — remplacer
+  gpx2web par vcyclist dans le backend. **Exécuté**, contre **vcyclist 5.1.1 depuis Maven
+  Central** : un manque côté vcyclist se corrige par une release amont. Contrat d'API **inchangé**
+  par construction : les cols gardent leur forme JSONB actuelle via des records maison, donc ni
+  bump de `pedalons.api.version` ni migration Flyway. Ce qui change à la marge, et seulement pour
+  les parcours **réimportés** : détection des cols et direction de vent. Suivi sous `OPS-21`.
 - [`plans/2026-07-25-privacy-improvement-opportunities.md`](plans/2026-07-25-privacy-improvement-opportunities.md) —
   les options d'amélioration de la vie privée et leur justification ; ce qui en reste ouvert est
   suivi sous `WEB-28` (le chiffrement des jetons Karoo est `SEC-12`). L'audit de juillet et la mise à jour de
