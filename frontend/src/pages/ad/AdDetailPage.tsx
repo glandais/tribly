@@ -11,12 +11,17 @@ import {
   IconChevronDown,
   IconMapPin,
   IconCurrencyEuro,
+  IconCircleCheck,
+  IconUser,
 } from '@tabler/icons-react'
 import {
+  Alert,
+  Avatar,
   Box,
   Button,
   Menu,
   Container,
+  Divider,
   Paper,
   Group,
   Stack,
@@ -35,7 +40,9 @@ import {
   getGetAdQueryKey,
 } from '../../api/endpoints/ads/ads'
 import { QueryStateBoundary } from '../../components/common/QueryStateBoundary'
-import { AdContactModal } from '../../components/ad/AdContactModal'
+import { AdContactModal, type AdContactOutcome } from '../../components/ad/AdContactModal'
+import { AdGallery } from '../../components/ad/AdGallery'
+import { AdLocationMap } from '../../components/ad/AdLocationMap'
 import { useAuth } from '../../hooks/useAuth'
 import { DetailPageSkeleton } from '../../components/common/DetailPageSkeleton'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
@@ -68,6 +75,12 @@ export function AdDetailPage() {
   const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [contactOpen, setContactOpen] = useState(false)
+  /**
+   * What came of writing to the author. `sent` and `optedOut` are *states of the page*, not
+   * notifications: a confirmation that vanishes before it is read is no confirmation, and an
+   * author who opted out cannot be reached by trying again.
+   */
+  const [contactOutcome, setContactOutcome] = useState<AdContactOutcome | null>(null)
   const { user } = useAuth()
 
   const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
@@ -199,6 +212,10 @@ export function AdDetailPage() {
       {/* Way back to the team: this page is not mounted inside TeamLayout */}
       {team && <TeamContextBanner team={team} />}
 
+      {/* The pictures, straight from `images[]` so a trimmed `media` changes nothing here.
+          Renders nothing at all when the ad has none. */}
+      <AdGallery images={ad.images} name={ad.name} />
+
       {/* Header */}
       <Paper withBorder p="lg" mb="lg">
         <Group justify="space-between" align="flex-start" wrap="wrap">
@@ -218,16 +235,6 @@ export function AdDetailPage() {
               </Group>
             </Stack>
           </Group>
-
-          {canContactAuthor && (
-            <Button
-              leftSection={<IconMail size={16} />}
-              onClick={() => setContactOpen(true)}
-              mr="sm"
-            >
-              {t('ads.contact.button')}
-            </Button>
-          )}
 
           {canEdit && (
             <Button.Group>
@@ -295,28 +302,79 @@ export function AdDetailPage() {
           </Group>
         </Box>
 
-        {/* Description */}
-        <Box mt="md">
-          <MediaDisplay media={ad.media} />
-        </Box>
-
-        {/* Meta info */}
-        <Group mt="md">
-          <Group gap="xs">
-            <IconCalendar size={16} />
-            <Text size="sm" c="dimmed">
-              {formattedDate}
-            </Text>
-          </Group>
-          {ad.locationDescription && (
-            <Group gap="xs">
-              <IconMapPin size={16} />
-              <Text size="sm" c="dimmed">
-                {ad.locationDescription}
-              </Text>
-            </Group>
-          )}
+        {/* Publication date: on its own, right under the price, as on mobile */}
+        <Group gap="xs" mt="md">
+          <IconCalendar size={16} />
+          <Text size="sm" c="dimmed">
+            {formattedDate}
+          </Text>
         </Group>
+
+        {/* Description. `MediaDisplay` also lists the attachments, so the section stays for an ad
+            whose body is empty but which carries a file. */}
+        {(ad.media.markdown.length > 0 || ad.media.assets.attachments.length > 0) && (
+          <Box mt="lg">
+            <Title order={4} mb="xs">
+              {t('ads.detail.description')}
+            </Title>
+            <MediaDisplay media={ad.media} />
+          </Box>
+        )}
+
+        {/* Location. The written place stands on its own — no map when the geometry is missing,
+            since a map centred on a fallback would lie. */}
+        {(ad.locationDescription || ad.locationGeometry) && (
+          <Box mt="lg">
+            <Title order={4} mb="xs">
+              {t('ads.detail.location')}
+            </Title>
+            <Stack gap="xs">
+              {ad.locationDescription && (
+                <Group gap="xs">
+                  <IconMapPin size={16} />
+                  <Text size="sm">{ad.locationDescription}</Text>
+                </Group>
+              )}
+              {ad.locationGeometry && <AdLocationMap geometry={ad.locationGeometry} />}
+            </Stack>
+          </Box>
+        )}
+
+        <Divider my="lg" />
+
+        {/* The author. `createdByDisplayName` is all the DTO carries about them — there is no
+            contact channel on an ad, only the relay below. */}
+        <Title order={4} mb="xs">
+          {t('ads.detail.seller')}
+        </Title>
+        <Group gap="sm">
+          <Avatar radius="xl" color="primary">
+            <IconUser size={18} />
+          </Avatar>
+          <Text fw={500}>{ad.createdByDisplayName}</Text>
+        </Group>
+
+        {contactOutcome === 'sent' ? (
+          <Alert mt="md" color="green" icon={<IconCircleCheck size={16} />}>
+            {t('ads.contact.sent')}
+          </Alert>
+        ) : contactOutcome === 'optedOut' ? (
+          <Alert mt="md" color="orange">
+            {t('ads.contact.error.optedOut')}
+          </Alert>
+        ) : (
+          // The button does not exist on one's own ad: relaying a message to oneself is not an
+          // action.
+          canContactAuthor && (
+            <Button
+              mt="md"
+              leftSection={<IconMail size={16} />}
+              onClick={() => setContactOpen(true)}
+            >
+              {t('ads.contact.button')}
+            </Button>
+          )
+        )}
       </Paper>
 
       {/* Confirmation Dialogs */}
@@ -335,6 +393,8 @@ export function AdDetailPage() {
         onClose={() => setContactOpen(false)}
         teamSlug={teamSlug!}
         adSlug={adSlug!}
+        sellerName={ad.createdByDisplayName}
+        onOutcome={setContactOutcome}
       />
 
       <ConfirmDialog

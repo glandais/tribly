@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useForm } from '@mantine/form'
 import { Alert, Button, Group, Modal, Stack, Text, Textarea } from '@mantine/core'
-import { notifications } from '@mantine/notifications'
 import { IconInfoCircle } from '@tabler/icons-react'
 import {
   contactAdAuthorBodyMessageMax,
@@ -12,11 +11,28 @@ import {
 import { useContactAdAuthor } from '@/api/endpoints/ads/ads'
 import { ApiClientError } from '@/lib/apiError'
 
+/** What the modal reports back to the page that opened it. */
+export type AdContactOutcome =
+  /** 204: the server took the message. */
+  | 'sent'
+  /**
+   * `AD_CONTACT_OPTED_OUT`: the author made themselves unreachable. Trying again changes nothing,
+   * so the page drops the button entirely.
+   */
+  | 'optedOut'
+
 interface AdContactModalProps {
   opened: boolean
   onClose: () => void
   teamSlug: string
   adSlug: string
+  /** Display name of the author, so the modal says who the message goes to. */
+  sellerName: string
+  /**
+   * Called with the outcomes the *page* has to render. Recoverable failures — a quota, a relay
+   * outage — never reach it: they are handled here, draft in hand.
+   */
+  onOutcome: (outcome: AdContactOutcome) => void
 }
 
 interface Failure {
@@ -31,7 +47,14 @@ interface Failure {
  * sender, so the author can answer directly while neither address ever reaches the API or the
  * DOM. There is deliberately nothing here to display as a contact address.
  */
-export function AdContactModal({ opened, onClose, teamSlug, adSlug }: AdContactModalProps) {
+export function AdContactModal({
+  opened,
+  onClose,
+  teamSlug,
+  adSlug,
+  sellerName,
+  onOutcome,
+}: AdContactModalProps) {
   const { t } = useTranslation()
   const [failure, setFailure] = useState<Failure | null>(null)
   const mutation = useContactAdAuthor()
@@ -54,16 +77,11 @@ export function AdContactModal({ opened, onClose, teamSlug, adSlug }: AdContactM
   const outOfBounds =
     length < contactAdAuthorBodyMessageMin || length > contactAdAuthorBodyMessageMax
 
-  // `AD_CONTACT_OPTED_OUT` is the one failure that cannot be retried by trying again.
-  const optedOut = failure !== null && failure.message === t('ads.contact.error.optedOut')
-
   const describe = (error: unknown): Failure => {
     if (!(error instanceof ApiClientError)) {
       return { color: 'red', message: t('ads.contact.error.generic') }
     }
     switch (error.error.code) {
-      case 'AD_CONTACT_OPTED_OUT':
-        return { color: 'orange', message: t('ads.contact.error.optedOut') }
       case 'AD_CONTACT_RATE_LIMITED':
         return {
           color: 'orange',
@@ -85,14 +103,27 @@ export function AdContactModal({ opened, onClose, teamSlug, adSlug }: AdContactM
     mutation.mutate(
       { teamSlug, slug: adSlug, data: { message: values.message } },
       {
+        // No optimistic success: the modal stays until the server has answered 204. A relay that
+        // swallows a message is worse than one that fails, because the sender then waits for an
+        // answer that will never come. The confirmation is a *state of the page* rather than a
+        // toast that disappears before it is read, so the outcome goes back to the caller.
         onSuccess: () => {
-          notifications.show({ message: t('ads.contact.success'), color: 'green' })
           form.reset()
           onClose()
+          onOutcome('sent')
         },
-        // The draft is deliberately kept on every failure: a quota or a delivery outage is
-        // not the sender's fault, and losing what they wrote would be.
-        onError: (error) => setFailure(describe(error)),
+        // The draft is deliberately kept on every recoverable failure: a quota or a delivery
+        // outage is not the sender's fault, and losing what they wrote would be.
+        onError: (error) => {
+          if (error instanceof ApiClientError && error.error.code === 'AD_CONTACT_OPTED_OUT') {
+            // Nothing to retry: the page drops the button.
+            form.reset()
+            onClose()
+            onOutcome('optedOut')
+            return
+          }
+          setFailure(describe(error))
+        },
       }
     )
   })
@@ -106,6 +137,13 @@ export function AdContactModal({ opened, onClose, teamSlug, adSlug }: AdContactM
     <Modal opened={opened} onClose={handleClose} title={t('ads.contact.title')}>
       <form onSubmit={handleSubmit}>
         <Stack>
+          <Text size="sm" c="dimmed">
+            {t('ads.contact.intro', { seller: sellerName })}
+          </Text>
+
+          {/* A consent, not a footnote. The API discloses no address; the sender's own goes out
+              all the same, since the server puts the `Reply-To` on it. Saying so before the send
+              is the only way it is chosen. */}
           <Alert variant="light" icon={<IconInfoCircle size={16} />}>
             {t('ads.contact.disclosure')}
           </Alert>
@@ -130,8 +168,8 @@ export function AdContactModal({ opened, onClose, teamSlug, adSlug }: AdContactM
             <Button variant="default" onClick={handleClose}>
               {t('actions.cancel')}
             </Button>
-            <Button type="submit" loading={mutation.isPending} disabled={outOfBounds || optedOut}>
-              {t('ads.contact.send')}
+            <Button type="submit" loading={mutation.isPending} disabled={outOfBounds}>
+              {failure ? t('generic.retry') : t('ads.contact.send')}
             </Button>
           </Group>
         </Stack>

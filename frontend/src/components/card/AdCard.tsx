@@ -46,8 +46,15 @@ export function AdCard({ ad }: AdCardProps) {
 
   return (
     <Card to={paths.ad(ad.team.slug, ad.slug)}>
-      {/* Header image */}
-      <CardImage media={ad.media} alt={ad.name} height={120} type="AD" />
+      {/* Header image. `thumbnailUrl` is the ad's first picture, computed server-side, and is
+          present whatever the list `view` — `media.assets` is trimmed in COMPACT. */}
+      <CardImage
+        media={ad.media}
+        thumbnailUrl={ad.thumbnailUrl}
+        alt={ad.name}
+        height={120}
+        type="AD"
+      />
 
       <CardContent>
         {/* Title row with logo */}
@@ -56,7 +63,7 @@ export function AdCard({ ad }: AdCardProps) {
             <EntityLogo logo={ad.media.assets.logo} alt={ad.name} size="md" />
             <Box style={{ flex: 1, minWidth: 0 }}>
               <CardTitle>{ad.name}</CardTitle>
-              <CardDescription markdown={true} media={ad.media} />
+              <CardDescription markdown={true} media={ad.media} excerpt={ad.excerpt} />
             </Box>
           </Group>
           <Stack gap={4} align="flex-end" ml="sm">

@@ -1,17 +1,33 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { keepPreviousData } from '@tanstack/react-query'
 import { IconPlus, IconSearchOff, IconTag } from '@tabler/icons-react'
-import { Button, Select, Stack, Group, Title, SimpleGrid, Box, Space } from '@mantine/core'
+import {
+  Button,
+  NumberInput,
+  Select,
+  Stack,
+  Group,
+  Text,
+  Title,
+  SimpleGrid,
+  Box,
+  Space,
+} from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { useListAds, listAds, getListAdsQueryKey } from '../../api/endpoints/ads/ads'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { useUrlFilters } from '../../hooks/useUrlFilters'
 import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
 import { useScrollToListTop } from '../../hooks/useScrollToListTop'
-import { adFiltersSchema, adFiltersAlias } from '../../hooks/filters/adFilters'
+import { adFiltersSchema, adFiltersAlias, isAdFiltered } from '../../hooks/filters/adFilters'
 import { AdCard, AdCardSkeleton } from '../../components/ad'
+import {
+  AD_SORT_OPTIONS,
+  adSortOptionByValue,
+  adSortOptionOf,
+} from '../../components/ad/adSortOptions'
 import { EmptyState } from '../../components/common/EmptyState'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { Pagination } from '../../components/common/Pagination'
@@ -19,7 +35,7 @@ import { ResultCount } from '../../components/common/ResultCount'
 import { SearchInput } from '../../components/common/SearchInput'
 import { TeamLayout } from '../../components/team/TeamLayout'
 import { paths } from '@/config/paths'
-import { AdType } from '../../api/dto'
+import { AdType, ListViewMode } from '../../api/dto'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
 export function AdListPage() {
@@ -40,20 +56,24 @@ export function AdListPage() {
   const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },
   })
+  // A card needs `excerpt`, `thumbnailUrl` and `images`, all of which COMPACT keeps — it only
+  // drops the markdown body, the attachments and every picture past the first.
+  const apiParams = useMemo(() => ({ ...filters, view: ListViewMode.COMPACT }), [filters])
+
   const {
     data: adsResponse,
     isLoading: isLoadingAds,
     isFetching,
-  } = useListAds(teamSlug!, filters, {
+  } = useListAds(teamSlug!, apiParams, {
     query: { enabled: !!teamSlug, placeholderData: keepPreviousData },
   })
 
   const prefetchPage = useCallback(
     (prefetchPageNum: number) => ({
-      queryKey: getListAdsQueryKey(teamSlug!, { ...filters, page: prefetchPageNum }),
-      queryFn: () => listAds(teamSlug!, { ...filters, page: prefetchPageNum }),
+      queryKey: getListAdsQueryKey(teamSlug!, { ...apiParams, page: prefetchPageNum }),
+      queryFn: () => listAds(teamSlug!, { ...apiParams, page: prefetchPageNum }),
     }),
-    [teamSlug, filters]
+    [teamSlug, apiParams]
   )
 
   const { totalPages } = usePaginatedQuery({
@@ -75,10 +95,18 @@ export function AdListPage() {
 
   const isMember = !!team.role
   const ads = adsResponse?.ads || []
-  const hasFiltersOrSearch = !!filters.search || !!filters.adType
+  const hasFiltersOrSearch = isAdFiltered(filters)
+  // The sort survives: clearing brings the list back into view, it does not reorder what the
+  // reader chose to read.
   const clearFilters = () => {
     setSearch('')
-    setFilters({ search: undefined, adType: undefined, page: 0 })
+    setFilters({
+      search: undefined,
+      adType: undefined,
+      minPrice: undefined,
+      maxPrice: undefined,
+      page: 0,
+    })
   }
 
   return (
@@ -118,6 +146,56 @@ export function AdListPage() {
             { value: AdType.WANTED, label: t('ads.adType.WANTED') },
           ]}
         />
+        <Select
+          w={{ base: '100%', sm: 220 }}
+          label={t('ads.sort.title')}
+          allowDeselect={false}
+          value={adSortOptionOf(filters.sortBy, filters.sortDir)}
+          onChange={(value) => {
+            const option = value ? adSortOptionByValue(value) : undefined
+            if (option) setFilters({ sortBy: option.sortBy, sortDir: option.sortDir })
+          }}
+          data={AD_SORT_OPTIONS.map((option) => ({
+            value: option.value,
+            label: t(
+              `ads.sort.${option.value satisfies 'newest' | 'oldest' | 'priceAsc' | 'priceDesc' | 'nameAsc' | 'nameDesc'}`
+            ),
+          }))}
+        />
+      </Group>
+
+      <Space h="xs" />
+
+      {/* Price bounds. Either one drops the ads with no price — said in the hint, because a
+          "Prix à négocier" ad vanishing from a filtered list is otherwise unexplained. */}
+      <Group align="flex-end" wrap="wrap">
+        <NumberInput
+          w={{ base: '100%', sm: 160 }}
+          label={t('ads.list.filters.minPrice')}
+          placeholder={t('ads.list.filters.pricePlaceholder')}
+          min={0}
+          step={10}
+          suffix=" €"
+          value={filters.minPrice ?? ''}
+          onChange={(value) =>
+            setFilters({ minPrice: typeof value === 'number' ? value : undefined })
+          }
+        />
+        <NumberInput
+          w={{ base: '100%', sm: 160 }}
+          label={t('ads.list.filters.maxPrice')}
+          placeholder={t('ads.list.filters.pricePlaceholder')}
+          min={0}
+          step={10}
+          suffix=" €"
+          value={filters.maxPrice ?? ''}
+          onChange={(value) =>
+            setFilters({ maxPrice: typeof value === 'number' ? value : undefined })
+          }
+        />
+        <Text size="xs" c="dimmed" pb={8}>
+          {t('ads.list.filters.priceHint')}
+        </Text>
       </Group>
 
       <Space h="md" />

@@ -110,7 +110,16 @@ jeton ICS. Thème clair et compte `gaby` pas repassés en revue depuis.
       initial (`curl` la page) et qu'ils ne clignotent pas à l'hydratation.
 - [ ] Modale « Contacter le vendeur » : les quatre issues, brouillon **conservé** sur 429 et 500,
       et pas de double message (l'`Alert` de la modale **plus** le toast global — les quatre clés
-      `errors.api.AD_CONTACT_*` doivent exister en `fr` et `en`).
+      `errors.api.AD_CONTACT_*` doivent exister en `fr` et `en`). Le succès et
+      `AD_CONTACT_OPTED_OUT` ferment la modale et se rendent en `Alert` **persistante** sur la page,
+      le bouton disparaissant dans le second cas : c'est là que le toast global fait doublon, et
+      `apiClient` n'a aucun moyen de le taire par appel.
+- [ ] Annonces, détail : la galerie navigue aux flèches **et** aux vignettes, le plein écran sert la
+      variante 1920 ; la carte de localisation rend un **disque sans punaise**, cadré sur son
+      emprise, avec sa légende « à environ 1 km près » ; aucune section vide (pas de bloc
+      Localisation sans lieu ni géométrie, pas de bloc Description sans corps).
+- [ ] Annonces, liste : le tri et les bornes de prix survivent au retour arrière et au partage du
+      lien (`?sort=`/`?dir=`/`?pmin=`/`?pmax=`), et « Effacer les filtres » **conserve** le tri.
 - [ ] Page d'équipe en 1440×900 : le premier élément de contenu apparaît à moins de 220 px du haut.
 - [ ] Une sortie à plus de 20 commentaires n'en charge que 20 au premier rendu.
 
@@ -173,18 +182,27 @@ des résultats d'une recherche déjà ouverte à tout connecté. La même forme 
 **Taille : M** (backend) **+ S** (route `teamMembersPublic` dans `contracts/routes.yaml`, puis
 `pnpm generate-routes` — jamais d'édition de `paths.generated.ts`).
 
-### 3.2 T5.5 — Compléments d'annonces : optionnelle, jamais ouverte
+### 3.2 T5.5 — Compléments d'annonces : livrée (juillet 2026)
 
-Filtres de prix (`minPrice`/`maxPrice`), tri (`sortBy`/`sortDir`) dans la query string via
-`useUrlFilters` ; galerie sur `AdDto.images` ; auteur via `createdByDisplayName` ; carte de
-localisation. L'API est livrée depuis 1.3.0 : c'est du câblage.
+L'alignement du web sur le mobile est fait :
 
-Deux contraintes à ne pas perdre : la carte rend un **disque** (couche `circle` MapLibre ou polygone
-GeoJSON, remplissage translucide, contour 1 px) et **aucun `Marker` ni couche `symbol`** — la
-position est le centre d'une cellule d'environ 1 km ; et le cadrage se règle sur l'emprise du cercle,
-jamais sur un zoom élevé qui suggérerait une adresse. Une légende « Position approximative, à environ
-1 km près » évite la mésinterprétation. `@mantine/carousel` n'est pas dans les dépendances : composer
-avec `Image` + `Group` si on ne veut pas l'ajouter. **Taille : M.**
+- **Liste** — tri (les six options à plat, comme la feuille de tri du mobile : personne ne pense
+  « prix, ascendant », on pense « les moins chères d'abord ») et bornes de prix, tous dans la query
+  string via `useUrlFilters` (alias `sort`/`dir`/`pmin`/`pmax`). Le tri **ne participe pas** à
+  `isAdFiltered` et « Effacer les filtres » ne le remet pas à zéro : il ne peut pas vider une liste.
+  La liste passe en `view=COMPACT` et la carte lit `excerpt` / `thumbnailUrl`.
+- **Détail** — galerie sur `AdDto.images` (`Image` + `Group`, vignettes, plein écran en `Modal` —
+  `@mantine/carousel` n'a pas été ajouté pour une galerie), sections Description / Localisation /
+  Annonceur, auteur par `createdByDisplayName`, et `AdLocationMap`.
+- **Contact** — la confirmation est un **état de la page** (`Alert` persistante) et non plus un
+  toast qui disparaît avant d'être lu ; `AD_CONTACT_OPTED_OUT` ferme la modale et **retire** le
+  bouton, puisque réessayer n'y changerait rien. Les échecs récupérables (429, 500) restent traités
+  dans la modale, brouillon en main.
+
+Les deux contraintes qui tenaient la tâche sont respectées et à ne pas perdre : `AdLocationMap` rend
+un **polygone GeoJSON de 500 m** (remplissage translucide, contour 1 px), **aucun `Marker` ni couche
+`symbol`**, cadrage sur l'emprise du cercle via `initialViewState.bounds`, carte non interactive, et
+une légende qui dit « à environ 1 km près ».
 
 ### 3.3 T3.5 — Abandonnée, puis tranchée dans l'autre sens (2.0.0)
 

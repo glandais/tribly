@@ -156,7 +156,7 @@ Public pages unfurl into rich social/messaging cards via server-rendered OG/Twit
 - **Logos**: `TeamAvatar` (with initials fallback) vs `EntityLogo` (no fallback).
 - **`MediaEditor` needs `teamSlug` prop** for uploads (hidden during team creation).
 - **A group's leader is `RideGroupDto.leader` and nothing else** — nullable, and null is the *common* case: render no badge. **Never fall back to `createdBy`**, which is the *ride's* creator and so identical across all its groups; the fallback would be wrong almost everywhere while looking plausible. Don't extend the badge to the feed or the calendar either — the leader is a property of the **group**, and neither `PublicationCard` nor `CalendarEventDto` carries one.
-- **An ad's position renders as a sector, never a pin** — `AdDto.locationGeometry` is the centre of a ~1 km cell. Use a MapLibre `circle` layer or a GeoJSON circle polygon, frame on the circle's bounds, and label it as approximate. A `Marker` would claim a precision the data doesn't have.
+- **An ad's position renders as a sector, never a pin** — `AdDto.locationGeometry` is the centre of a ~1 km cell. `components/ad/AdLocationMap.tsx` is the one rendering: a GeoJSON circle polygon of 500 m, framed on its own bounds, non-interactive, captioned as approximate. A `Marker` would claim a precision the data doesn't have.
 - **No notification UI** — `…/notifications`, `…/devices` and notification preferences don't exist. Don't mock a bell.
 - **Never replace query-string pagination with infinite scroll** — filters and pagination live in the URL so views are shareable and back-navigation restores state, and `usePaginatedQuery` already prefetches the next *and* previous page.
 - **User preferences**: `preferencesStore` is local-first, but for a signed-in user `PATCH /api/users/me/preferences` is the source of truth (`useUpdateMyPreferences`; `UserDto` carries `theme`, `language`, `contactableByMembers`). `localStorage` remains the anonymous fallback and first-render cache — and must not be read at module scope (SSR).
@@ -166,5 +166,6 @@ Public pages unfurl into rich social/messaging cards via server-rendered OG/Twit
 The July 2026 port of the mobile v2 ideas is documented in
 [`../docs/plans/archive/2026-07-26-web-portage-mobile-v2.md`](../docs/plans/archive/2026-07-26-web-portage-mobile-v2.md),
 whose §4 ("what not to port") explains why touch layouts, `--pdl-*` tokens, a derived dark mode and
-infinite scroll were all declined. What's left to do — including the two open tasks and the one
-abandoned with its reasoning — is in [`../docs/NEXT.md`](../docs/NEXT.md).
+infinite scroll were all declined. What's left to do — the one task still blocked (T5.4, a security
+decision) and the one abandoned with its reasoning — is in [`../docs/NEXT.md`](../docs/NEXT.md);
+T5.5, the ads alignment on mobile, was delivered in July 2026.

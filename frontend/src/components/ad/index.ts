@@ -1,3 +1,5 @@
 export { AdCard, AdCardSkeleton } from '../card'
 export { AdEditor } from './AdEditor'
-export { AdContactModal } from './AdContactModal'
+export { AdContactModal, type AdContactOutcome } from './AdContactModal'
+export { AdGallery } from './AdGallery'
+export { AdLocationMap } from './AdLocationMap'
