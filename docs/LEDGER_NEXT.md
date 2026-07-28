@@ -453,12 +453,6 @@ décision produit : `RideTemplateGroupRequest` reste sans champ.
       `API-54`) : il ajoute une mise à jour incrémentale réversible, le dictionnaire Info reste dans
       les octets, et l'EXIF des JPEG embarqués est intact. Seule voie : réécriture complète (PDFBox)
       en faisant réencoder les JPEG embarqués comme les images (`API-43`).
-- [ ] `API-50` **Le rédacteur GPX de gpx2web écrit un `creator` fixe et une heure epoch** — la
-      bibliothèque (gpx 1.5.x) écrit `creator="https://www.mapstogpx.com/strava"` (trompeur, pas
-      personnel) et `<time>1970-01-01T00:00:00Z</time>` sur chaque point depuis `API-44`. Ne pas
-      émettre `<time>` quand l'instant est `EPOCH` donnerait des fichiers plus propres. Changement de
-      bibliothèque, pas de Pédalons ; `GpxSanitizationBackfill.isDirty` accepte déjà l'absence de
-      `<time>`. Taille : S.
 - [ ] `API-68` **Un asset déjà attaché ailleurs est ignoré sans erreur** — relevé pendant la recette
       mobile du 4 octobre 2026 (`MOB-18`) : un `MediaDto` qui cite dans `assets` une pièce jointe
       appartenant déjà à un autre contenu de l'équipe est accepté (201/200), mais le contenu ne la porte
@@ -586,6 +580,12 @@ Ce que les tests ne prouvent pas, parce qu'ils ne passent ni par Flyway ni par u
       poste), copier le fichier sur l'hôte, écrire `~/.config/pedalons/store-demo.env`, créer le
       check Healthchecks et la ligne de crontab de `pedalons`
       ([`OPERATIONS.md`](OPERATIONS.md#store-reviewers-demo-data)). Taille : XS.
+- [ ] `OPS-29` **Veille après le déploiement de vcyclist** (§11 de
+      [`plans/2026-07-28-migration-vcyclist.md`](plans/2026-07-28-migration-vcyclist.md)) — le cache
+      de tuiles carto change de layout et se remplit une fois entièrement au premier rendu qui touche
+      une zone (les tuiles d'élévation, elles, sont conservées). La récupération d'élévation devient
+      concurrente (10 tuiles en parallèle) contre un fetch séquentiel avant : à cache froid,
+      surveiller un ×10 sur le débit vers `tiles.mapterhorn.com`.
 
 ---
 
@@ -772,6 +772,7 @@ redevient une entrée de sa section sous le même identifiant.
 | `WEB-44` | **Passkey en tête du formulaire de connexion** | Ordre actuel gardé (décidé le 4 octobre 2026 avec le propriétaire) | `LoginForm` (`WEB-42`) garde email et mot de passe en tête, puis « ou », puis la passkey et le code par e-mail. Le bouton passkey n'apparaît qu'après hydratation (`browserSupportsWebAuthn`) : en tête, il décalerait le haut de l'accueil rendu côté serveur |
 | `WEB-54` | **Calendrier rendu côté serveur dans le mauvais fuseau, sans préférence `timezone`** | Accepté tel quel (décidé le 4 octobre 2026, à la dissolution de `frontend/docs/SSR-BUGS.md`) | Sans préférence `timezone`, le serveur ne connaît pas le fuseau du visiteur et rend en UTC : une sortie à 00 h 30, heure de Paris, s'affiche dans la case de la **veille**, puis change de case au rendu qui suit l'hydratation, avec le vrai fuseau (`useEffectiveTimezone`, `getServerSnapshot` en UTC ; `CalendarView`). Ce n'est pas une erreur d'hydratation : le rendu d'hydratation lit UTC des deux côtés, et le mois de la grille est calé sur `hourAlignedNow()` dans le même fuseau. Régler une préférence `timezone` supprime l'effet. Seule autre issue : ne pas rendre la grille côté serveur quand le fuseau est deviné, ce qui perd tout l'intérêt de son préchargement |
 | `WEB-58` | **Redirection des anciennes adresses du profil** (`/profil#notifications`, `/profil#gps`, `/profil/participations`) | Non (4 octobre 2026, refonte du profil `WEB-55` / `MOB-48`) | Le site n'est pas encore en service : aucun lien extérieur ne les cite. Les liens internes (e-mails `NotificationLinks.PREFERENCES_PATH`, `FeaturesPromoCard`, aide, politique) visent les nouvelles routes `/profil/<sujet>`. À rouvrir seulement si une de ces adresses a été publiée |
+| `API-74` | **`dominantHeadwindAzimuthDeg()` (vcyclist g31) dans `WindEstimator`** | Écarté de la migration gpx2web → vcyclist | Rendrait un azimut compas directement exploitable et supprimerait `findDirectionFromVector` (le repli `-v.getY()` du repère Mercator, voir §4 de [`plans/2026-07-28-migration-vcyclist.md`](plans/2026-07-28-migration-vcyclist.md)) — mais c'est un changement de comportement, pas une migration à iso-fonctionnalité |
 | `WEB-8` | **Scroll infini côté web** | Non porté | Incompatible avec la règle structurante du frontend (filtres et pagination dans la query string, donc toute vue partageable). `usePaginatedQuery` précharge déjà la page suivante **et** la précédente |
 | `WEB-9` | **Gabarits tactiles portés au web** | Non portés | Feuilles à crans, barre d'onglets basse, app bar interpolée, chips en remplacement des `Select` : ils résolvent une contrainte que le desktop n'a pas, et produiraient des composants hors Mantine |
 | `WEB-10` | **Minimum de 44 px sur les boutons web** | Règle **tactile** uniquement | Le web descend à 36 px au-dessus de 768 px. Ne pas prendre `pedalons.css` pour une spécification web |
@@ -807,6 +808,12 @@ restent ouvertes :
   suivies sous `AUD`.
 - [`SECURITY_AUDIT.md`](SECURITY_AUDIT.md) — audit de sécurité de septembre 2026 ; il fait foi pour
   les vulnérabilités, l'audit de février pour l'infrastructure. Suivi sous `SEC`.
+- [`plans/2026-07-28-migration-vcyclist.md`](plans/2026-07-28-migration-vcyclist.md) — remplacer
+  gpx2web par vcyclist dans le backend. **Exécuté**, contre **vcyclist 5.1.1 depuis Maven
+  Central** : un manque côté vcyclist se corrige par une release amont. Contrat d'API **inchangé**
+  par construction : les cols gardent leur forme JSONB actuelle via des records maison, donc ni
+  bump de `pedalons.api.version` ni migration Flyway. Ce qui change à la marge, et seulement pour
+  les parcours **réimportés** : détection des cols et direction de vent. Suivi sous `OPS-29`.
 - [`plans/2026-07-25-privacy-improvement-opportunities.md`](plans/2026-07-25-privacy-improvement-opportunities.md) —
   les options d'amélioration de la vie privée et leur justification ; ce qui en reste ouvert, le
   chiffrement des jetons Karoo, est suivi sous `SEC-12`. L'audit de juillet et la mise à jour de
