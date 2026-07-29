@@ -55,7 +55,7 @@ Lorsque vous créez ou consultez des itinéraires :
 
 ### Données de connexion à des services GPS tiers
 
-Si vous connectez un service GPS externe (Hammerhead, Garmin) :
+Si vous connectez un service GPS externe (Hammerhead, Garmin, Wahoo) :
 
 - **Jetons d'accès OAuth** : chiffrés en AES-256-GCM avant stockage. Nous ne stockons jamais vos identifiants (nom d'utilisateur/mot de passe) de ces services.
 - **Identifiant utilisateur externe** : fourni par le service tiers pour faire le lien avec votre compte Pedalons.
@@ -130,7 +130,7 @@ Nous pouvons être amenés à communiquer vos données si la loi l'exige (demand
 
 Nos serveurs sont hébergés par **OVHcloud** (OVH SAS, Roubaix, France) et sont situés en France. Vos données restent dans l'Union européenne.
 
-La connexion à des services GPS tiers (Hammerhead, Garmin) implique un transfert de données vers ces services, situés aux États-Unis. Ce transfert repose sur votre consentement explicite lors de la connexion du service.
+La connexion à des services GPS tiers (Hammerhead, Garmin, Wahoo) implique un transfert de données vers ces services, situés aux États-Unis. Ce transfert repose sur votre consentement explicite lors de la connexion du service.
 
 ---
 

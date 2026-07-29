@@ -7,7 +7,7 @@ import * as zod from 'zod'
 export const DeviceGetMeResponse = zod
   .object({
     connectedGpsServices: zod
-      .array(zod.enum(['HAMMERHEAD', 'GARMIN']))
+      .array(zod.enum(['HAMMERHEAD', 'GARMIN', 'WAHOO']))
       .describe('List of connected GPS services'),
   })
   .describe("Response containing user's device connection status")

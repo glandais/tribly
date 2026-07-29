@@ -347,6 +347,7 @@ function GpsCredentialsSection({ domainId }: { domainId: string }) {
   const serviceTypeOptions = [
     { value: GpsServiceType.HAMMERHEAD, label: t('gps.services.hammerhead') },
     { value: GpsServiceType.GARMIN, label: t('gps.services.garmin') },
+    { value: GpsServiceType.WAHOO, label: t('gps.services.wahoo') },
   ]
 
   // Get already used service types

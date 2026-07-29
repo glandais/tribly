@@ -402,6 +402,7 @@
   "gps.notifications.uploadFailed": "Échec de l'envoi du parcours",
   "gps.services.hammerhead": "Hammerhead",
   "gps.services.garmin": "Garmin Connect",
+  "gps.services.wahoo": "Wahoo",
   "gps.noServicesConfigured": "Aucun service GPS n'est configuré pour cette plateforme.",
   "groups.add": "Ajouter un groupe",
   "groups.groupCount_one": "{{count}} groupe",

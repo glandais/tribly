@@ -20,6 +20,7 @@ import type { GpsServiceType } from '@/api/dto'
 const GPS_SERVICE_ICONS: Record<GpsServiceType, React.ReactNode> = {
   HAMMERHEAD: <IconDevices size={20} />,
   GARMIN: <IconDevices size={20} />,
+  WAHOO: <IconDevices size={20} />,
 }
 
 export function GpsConnectionsManager() {
@@ -83,7 +84,9 @@ export function GpsConnectionsManager() {
                     {icon}
                     <div>
                       <Text size="sm" fw={500}>
-                        {t(`gps.services.${type.toLowerCase() as 'hammerhead' | 'garmin'}`)}
+                        {t(
+                          `gps.services.${type.toLowerCase() as 'hammerhead' | 'garmin' | 'wahoo'}`
+                        )}
                       </Text>
                       {connected && connection && (
                         <Text size="xs" c="dimmed">
@@ -134,7 +137,9 @@ export function GpsConnectionsManager() {
         title={t('gps.disconnectConfirm.title')}
         message={t('gps.disconnectConfirm.message', {
           service: disconnectServiceType
-            ? t(`gps.services.${disconnectServiceType.toLowerCase() as 'hammerhead' | 'garmin'}`)
+            ? t(
+                `gps.services.${disconnectServiceType.toLowerCase() as 'hammerhead' | 'garmin' | 'wahoo'}`
+              )
             : '',
         })}
         confirmText={t('gps.disconnectConfirm.confirm')}

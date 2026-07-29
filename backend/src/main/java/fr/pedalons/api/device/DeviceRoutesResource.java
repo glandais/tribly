@@ -144,7 +144,7 @@ public class DeviceRoutesResource {
   @Operation(
       operationId = "deviceSyncRoute",
       summary = "Sync route to cloud service",
-      description = "Upload route to a cloud GPS service (e.g., Hammerhead, Garmin Connect)")
+      description = "Upload route to a cloud GPS service (e.g., Hammerhead, Garmin Connect, Wahoo)")
   @APIResponses({
     @APIResponse(
         responseCode = "200",
@@ -163,7 +163,7 @@ public class DeviceRoutesResource {
       @Parameter(description = "Team slug", required = true) @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Route slug", required = true) @PathParam("routeSlug")
           String routeSlug,
-      @Parameter(description = "GPS service type (hammerhead, garmin)", required = true)
+      @Parameter(description = "GPS service type (hammerhead, garmin, wahoo)", required = true)
           @QueryParam("type")
           String type) {
 
@@ -178,6 +178,7 @@ public class DeviceRoutesResource {
     return switch (type.toLowerCase()) {
       case "hammerhead" -> GpsServiceType.HAMMERHEAD;
       case "garmin" -> GpsServiceType.GARMIN;
+      case "wahoo" -> GpsServiceType.WAHOO;
       default -> throw new BadRequestException("Unknown GPS service type: " + type);
     };
   }

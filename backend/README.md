@@ -137,7 +137,7 @@ The API covers these functional areas:
 | Assets | AssetResource, Download*Resource | File uploads (images, GPX) via S3 |
 | Places | PlaceResource | Named locations |
 | Calendar | CalendarResource, TeamCalendarResource | iCal feed generation |
-| GPS | GpsResource | GPS device integrations (Hammerhead, Garmin) |
+| GPS | GpsResource | GPS device integrations (Hammerhead, Garmin, Wahoo) |
 | Device | Device*Resource | Device code flow + routes for Karoo/Garmin apps |
 | Admin | Admin*Resource | Platform admin (domains, teams, users) |
 | Config | ConfigResource | Frontend app configuration |

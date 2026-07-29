@@ -107,7 +107,9 @@ export const CreateStravaSessionResponse = zod
           .array(
             zod
               .object({
-                serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']).describe('Service type identifier'),
+                serviceType: zod
+                  .enum(['HAMMERHEAD', 'GARMIN', 'WAHOO'])
+                  .describe('Service type identifier'),
                 displayName: zod.string().describe('Display name of the service'),
                 connectedAt: zod.iso
                   .datetime({ offset: true })

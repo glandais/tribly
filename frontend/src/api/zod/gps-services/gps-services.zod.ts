@@ -4,7 +4,7 @@ import * as zod from 'zod'
  * Get list of GPS service types configured for this domain
  * @summary Get available GPS services
  */
-export const GetAvailableServicesResponseItem = zod.enum(['HAMMERHEAD', 'GARMIN'])
+export const GetAvailableServicesResponseItem = zod.enum(['HAMMERHEAD', 'GARMIN', 'WAHOO'])
 export const GetAvailableServicesResponse = zod.array(GetAvailableServicesResponseItem)
 
 /**
@@ -12,7 +12,7 @@ export const GetAvailableServicesResponse = zod.array(GetAvailableServicesRespon
  * @summary OAuth callback
  */
 export const HandleCallbackParams = zod.object({
-  serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']).describe('GPS service type'),
+  serviceType: zod.enum(['HAMMERHEAD', 'GARMIN', 'WAHOO']).describe('GPS service type'),
 })
 
 export const HandleCallbackQueryParams = zod.object({
@@ -28,7 +28,7 @@ export const HandleCallbackResponse = zod.void()
  * @summary Get OAuth authorization URL
  */
 export const GetConnectUrlParams = zod.object({
-  serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']).describe('GPS service type'),
+  serviceType: zod.enum(['HAMMERHEAD', 'GARMIN', 'WAHOO']).describe('GPS service type'),
 })
 
 export const GetConnectUrlResponse = zod
@@ -42,7 +42,7 @@ export const GetConnectUrlResponse = zod
  * @summary Disconnect GPS service
  */
 export const DisconnectParams = zod.object({
-  serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']).describe('GPS service type'),
+  serviceType: zod.enum(['HAMMERHEAD', 'GARMIN', 'WAHOO']).describe('GPS service type'),
 })
 
 export const DisconnectResponse = zod.void()
@@ -53,7 +53,7 @@ export const DisconnectResponse = zod.void()
  */
 export const UploadRouteParams = zod.object({
   routeSlug: zod.string().describe('Route URL slug'),
-  serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']).describe('GPS service type'),
+  serviceType: zod.enum(['HAMMERHEAD', 'GARMIN', 'WAHOO']).describe('GPS service type'),
   teamSlug: zod.string().describe('Team URL slug'),
 })
 

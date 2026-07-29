@@ -55,7 +55,7 @@ When you create or view routes:
 
 ### Third-Party GPS Service Connections
 
-If you connect an external GPS service (Hammerhead, Garmin):
+If you connect an external GPS service (Hammerhead, Garmin, Wahoo):
 
 - **OAuth access tokens**: encrypted with AES-256-GCM before storage. We never store your credentials (username/password) for these services.
 - **External user ID**: provided by the third-party service to link with your Pedalons account.
@@ -130,7 +130,7 @@ We may be required to disclose your data if required by law (judicial request, l
 
 Our servers are hosted by **OVHcloud** (OVH SAS, Roubaix, France) and are located in France. Your data remains within the European Union.
 
-Connecting to third-party GPS services (Hammerhead, Garmin) involves a data transfer to these services, located in the United States. This transfer is based on your explicit consent when connecting the service.
+Connecting to third-party GPS services (Hammerhead, Garmin, Wahoo) involves a data transfer to these services, located in the United States. This transfer is based on your explicit consent when connecting the service.
 
 ---
 

@@ -7,7 +7,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum GpsServiceType {
   HAMMERHEAD("Hammerhead"),
-  GARMIN("Garmin Connect");
+  GARMIN("Garmin Connect"),
+  WAHOO("Wahoo");
 
   private final String displayName;
 }

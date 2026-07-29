@@ -1004,6 +1004,7 @@
   },
   "gps": {
     "GARMIN": "Garmin Connect",
-    "HAMMERHEAD": "Hammerhead Karoo"
+    "HAMMERHEAD": "Hammerhead Karoo",
+    "WAHOO": "Wahoo"
   }
 }

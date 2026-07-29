@@ -460,12 +460,12 @@ export const DeletePreviewParams = zod.object({
 export const DeletePreviewResponse = zod.void()
 
 /**
- * Uploads the preview to the current user's connected Garmin or Hammerhead
+ * Uploads the preview to the current user's connected Garmin, Hammerhead or Wahoo
  * @summary Send an analysed GPX file to a GPS service
  */
 export const UploadToGpsServiceParams = zod.object({
   previewId: zod.string().describe('Public preview identifier'),
-  serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']).describe('GPS service type'),
+  serviceType: zod.enum(['HAMMERHEAD', 'GARMIN', 'WAHOO']).describe('GPS service type'),
 })
 
 export const UploadToGpsServiceResponse = zod

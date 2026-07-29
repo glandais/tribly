@@ -10,6 +10,8 @@ enum GpsServiceType {
   hammerhead('HAMMERHEAD'),
   @JsonValue('GARMIN')
   garmin('GARMIN'),
+  @JsonValue('WAHOO')
+  wahoo('WAHOO'),
 
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
   $unknown(null);

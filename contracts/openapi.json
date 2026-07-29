@@ -1746,7 +1746,7 @@
       },
       "GpsServiceType" : {
         "type" : "string",
-        "enum" : [ "HAMMERHEAD", "GARMIN" ]
+        "enum" : [ "HAMMERHEAD", "GARMIN", "WAHOO" ]
       },
       "GpxPreviewDto" : {
         "description" : "Analysed GPX file, not attached to any team",
@@ -7751,7 +7751,7 @@
     "/api/device/routes/{teamSlug}/{routeSlug}/sync" : {
       "post" : {
         "summary" : "Sync route to cloud service",
-        "description" : "Upload route to a cloud GPS service (e.g., Hammerhead, Garmin Connect)",
+        "description" : "Upload route to a cloud GPS service (e.g., Hammerhead, Garmin Connect, Wahoo)",
         "operationId" : "deviceSyncRoute",
         "tags" : [ "Device Routes" ],
         "parameters" : [ {
@@ -7771,7 +7771,7 @@
             "type" : "string"
           }
         }, {
-          "description" : "GPS service type (hammerhead, garmin)",
+          "description" : "GPS service type (hammerhead, garmin, wahoo)",
           "required" : true,
           "name" : "type",
           "in" : "query",
@@ -8477,7 +8477,7 @@
     "/api/gpx-previews/{previewId}/gps/{serviceType}" : {
       "post" : {
         "summary" : "Send an analysed GPX file to a GPS service",
-        "description" : "Uploads the preview to the current user's connected Garmin or Hammerhead",
+        "description" : "Uploads the preview to the current user's connected Garmin, Hammerhead or Wahoo",
         "operationId" : "uploadToGpsService",
         "tags" : [ "GPX previews" ],
         "parameters" : [ {
@@ -16886,7 +16886,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "2.0.0",
+    "version" : "2.1.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

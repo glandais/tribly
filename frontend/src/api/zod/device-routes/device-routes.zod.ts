@@ -85,7 +85,7 @@ export const DeviceDownloadGpxParams = zod.object({
 export const DeviceDownloadGpxResponse = zod.unknown()
 
 /**
- * Upload route to a cloud GPS service (e.g., Hammerhead, Garmin Connect)
+ * Upload route to a cloud GPS service (e.g., Hammerhead, Garmin Connect, Wahoo)
  * @summary Sync route to cloud service
  */
 export const DeviceSyncRouteParams = zod.object({
@@ -94,7 +94,7 @@ export const DeviceSyncRouteParams = zod.object({
 })
 
 export const DeviceSyncRouteQueryParams = zod.object({
-  type: zod.string().describe('GPS service type (hammerhead, garmin)'),
+  type: zod.string().describe('GPS service type (hammerhead, garmin, wahoo)'),
 })
 
 export const DeviceSyncRouteResponse = zod

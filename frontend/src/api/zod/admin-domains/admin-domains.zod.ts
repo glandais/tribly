@@ -420,7 +420,7 @@ export const ListDomainGpsCredentialsParams = zod.object({
 export const ListDomainGpsCredentialsResponseItem = zod
   .object({
     id: zod.string().describe('Credential ID (TSID)'),
-    serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']).describe('GPS service type'),
+    serviceType: zod.enum(['HAMMERHEAD', 'GARMIN', 'WAHOO']).describe('GPS service type'),
     clientId: zod.string().describe('OAuth client ID'),
     active: zod.boolean().describe('Whether credential is active'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Credential creation timestamp'),
@@ -443,7 +443,7 @@ export const createDomainGpsCredentialBodyClientSecretMax = 500
 
 export const CreateDomainGpsCredentialBody = zod
   .object({
-    serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']).describe('GPS service type'),
+    serviceType: zod.enum(['HAMMERHEAD', 'GARMIN', 'WAHOO']).describe('GPS service type'),
     clientId: zod
       .string()
       .max(createDomainGpsCredentialBodyClientIdMax)
@@ -461,7 +461,7 @@ export const CreateDomainGpsCredentialBody = zod
 export const CreateDomainGpsCredentialResponse = zod
   .object({
     id: zod.string().describe('Credential ID (TSID)'),
-    serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']).describe('GPS service type'),
+    serviceType: zod.enum(['HAMMERHEAD', 'GARMIN', 'WAHOO']).describe('GPS service type'),
     clientId: zod.string().describe('OAuth client ID'),
     active: zod.boolean().describe('Whether credential is active'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Credential creation timestamp'),
@@ -501,7 +501,7 @@ export const UpdateDomainGpsCredentialBody = zod
 export const UpdateDomainGpsCredentialResponse = zod
   .object({
     id: zod.string().describe('Credential ID (TSID)'),
-    serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']).describe('GPS service type'),
+    serviceType: zod.enum(['HAMMERHEAD', 'GARMIN', 'WAHOO']).describe('GPS service type'),
     clientId: zod.string().describe('OAuth client ID'),
     active: zod.boolean().describe('Whether credential is active'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Credential creation timestamp'),

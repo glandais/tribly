@@ -285,7 +285,8 @@ public class GpxPreviewResource {
   @Path("/{previewId}/gps/{serviceType}")
   @Operation(
       summary = "Send an analysed GPX file to a GPS service",
-      description = "Uploads the preview to the current user's connected Garmin or Hammerhead")
+      description =
+          "Uploads the preview to the current user's connected Garmin, Hammerhead or Wahoo")
   @APIResponses({
     @APIResponse(
         responseCode = "200",

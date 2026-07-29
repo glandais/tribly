@@ -677,7 +677,7 @@ export const useDeletePreview = <TError = ErrorType<ErrorResponse>, TContext = u
   return useMutation(getDeletePreviewMutationOptions(options), queryClient)
 }
 /**
- * Uploads the preview to the current user's connected Garmin or Hammerhead
+ * Uploads the preview to the current user's connected Garmin, Hammerhead or Wahoo
  * @summary Send an analysed GPX file to a GPS service
  */
 export const uploadToGpsService = (

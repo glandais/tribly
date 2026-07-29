@@ -19,6 +19,7 @@ import fr.pedalons.infrastructure.gps.HammerheadClient;
 import fr.pedalons.infrastructure.gps.PkceUtils;
 import fr.pedalons.infrastructure.gps.RouteUploadResult;
 import fr.pedalons.infrastructure.gps.TokenResponse;
+import fr.pedalons.infrastructure.gps.WahooClient;
 import fr.pedalons.infrastructure.security.TokenEncryptionService;
 import fr.pedalons.repository.gps.GpsOAuthStateRepository;
 import fr.pedalons.repository.gps.GpsServiceConnectionRepository;
@@ -61,6 +62,8 @@ public class GpsService {
 
   @Inject GarminClient garminClient;
 
+  @Inject WahooClient wahooClient;
+
   @Inject PedalonsQueryContext pedalonsContext;
 
   @Inject RouteService routeService;
@@ -78,6 +81,7 @@ public class GpsService {
     return switch (serviceType) {
       case HAMMERHEAD -> hammerheadClient;
       case GARMIN -> garminClient;
+      case WAHOO -> wahooClient;
     };
   }
 

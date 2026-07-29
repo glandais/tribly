@@ -489,7 +489,7 @@ export const prefetchDeviceDownloadGpxQuery = async <
 }
 
 /**
- * Upload route to a cloud GPS service (e.g., Hammerhead, Garmin Connect)
+ * Upload route to a cloud GPS service (e.g., Hammerhead, Garmin Connect, Wahoo)
  * @summary Sync route to cloud service
  */
 export const deviceSyncRoute = (

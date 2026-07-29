@@ -1716,6 +1716,7 @@ components:
       enum:
       - HAMMERHEAD
       - GARMIN
+      - WAHOO
     GpxPreviewDto:
       description: "Analysed GPX file, not attached to any team"
       type: object
@@ -6598,7 +6599,7 @@ paths:
     post:
       summary: Sync route to cloud service
       description: "Upload route to a cloud GPS service (e.g., Hammerhead, Garmin\
-        \ Connect)"
+        \ Connect, Wahoo)"
       operationId: deviceSyncRoute
       tags:
       - Device Routes
@@ -6615,7 +6616,7 @@ paths:
         in: path
         schema:
           type: string
-      - description: "GPS service type (hammerhead, garmin)"
+      - description: "GPS service type (hammerhead, garmin, wahoo)"
         required: true
         name: type
         in: query
@@ -7107,7 +7108,7 @@ paths:
   /api/gpx-previews/{previewId}/gps/{serviceType}:
     post:
       summary: Send an analysed GPX file to a GPS service
-      description: Uploads the preview to the current user's connected Garmin or Hammerhead
+      description: Uploads the preview to the current user's connected Garmin, Hammerhead or Wahoo
       operationId: uploadToGpsService
       tags:
       - GPX previews
@@ -13094,7 +13095,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 2.0.0
+  version: 2.1.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080
