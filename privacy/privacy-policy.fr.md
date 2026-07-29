@@ -1,6 +1,6 @@
 # Politique de confidentialité
 
-**Dernière mise à jour : 2 avril 2026**
+**Dernière mise à jour : 29 juillet 2026**
 
 La présente politique de confidentialité décrit la manière dont Pedalons (« nous », « notre », « nos ») collecte, utilise et protège vos données personnelles lorsque vous utilisez notre plateforme (site web, application mobile, extensions pour appareils GPS).
 

@@ -114,6 +114,7 @@ Validated interest required before prioritization.
 ### Device Integrations
 - [X] Garmin Connect upload (one-click route sync)
 - [X] Hammerhead Karoo upload
+- [X] Wahoo Cloud upload (cloud-only — no companion app, the ELEMNT syncs from the account)
 - [X] Garmin GPS (iq store) app (route download for current ride)
 - [X] Karoo app (route download)
 - [ ] Weather for ride/trip

@@ -7108,7 +7108,8 @@ paths:
   /api/gpx-previews/{previewId}/gps/{serviceType}:
     post:
       summary: Send an analysed GPX file to a GPS service
-      description: Uploads the preview to the current user's connected Garmin, Hammerhead or Wahoo
+      description: "Uploads the preview to the current user's connected Garmin, Hammerhead\
+        \ or Wahoo"
       operationId: uploadToGpsService
       tags:
       - GPX previews

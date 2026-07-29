@@ -84,9 +84,7 @@ export function GpsConnectionsManager() {
                     {icon}
                     <div>
                       <Text size="sm" fw={500}>
-                        {t(
-                          `gps.services.${type.toLowerCase() as 'hammerhead' | 'garmin' | 'wahoo'}`
-                        )}
+                        {t(`gps.services.${type.toLowerCase() as Lowercase<GpsServiceType>}`)}
                       </Text>
                       {connected && connection && (
                         <Text size="xs" c="dimmed">
@@ -137,9 +135,7 @@ export function GpsConnectionsManager() {
         title={t('gps.disconnectConfirm.title')}
         message={t('gps.disconnectConfirm.message', {
           service: disconnectServiceType
-            ? t(
-                `gps.services.${disconnectServiceType.toLowerCase() as 'hammerhead' | 'garmin' | 'wahoo'}`
-              )
+            ? t(`gps.services.${disconnectServiceType.toLowerCase() as Lowercase<GpsServiceType>}`)
             : '',
         })}
         confirmText={t('gps.disconnectConfirm.confirm')}

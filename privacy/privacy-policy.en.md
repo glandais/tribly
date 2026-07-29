@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last updated: April 2, 2026**
+**Last updated: July 29, 2026**
 
 This privacy policy describes how Pedalons ("we", "our", "us") collects, uses, and protects your personal data when you use our platform (website, mobile app, GPS device extensions).
 

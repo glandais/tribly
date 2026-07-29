@@ -10,6 +10,8 @@ import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.enums.GpsServiceType;
 import fr.pedalons.service.gps.DomainGpsCredentialService;
 import io.github.glandais.gpx.data.GPX;
+import io.github.glandais.gpx.data.GPXPath;
+import io.github.glandais.gpx.data.Point;
 import io.github.glandais.gpx.io.read.GPXFileReader;
 import io.github.glandais.gpx.io.write.FitFileWriter;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -24,19 +26,31 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.UUID;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.Base64;
+import java.util.HexFormat;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.jboss.logging.Logger;
 
 /**
  * Wahoo Cloud API GPS device integration client.
  *
  * <p>Implements OAuth 2.0 (confidential client, no PKCE) and route upload via the Wahoo Cloud API.
- * Unlike Hammerhead (which accepts raw GPX), Wahoo's {@code POST /v1/routes} expects a FIT-format
- * route file, so the GPX is converted to FIT in-process before upload — mirroring how {@link
- * GarminClient} converts GPX to Garmin's own course format.
+ * Unlike Hammerhead (which accepts raw GPX as a multipart part), Wahoo's {@code POST /v1/routes} is
+ * an ordinary form post carrying a FIT file base64-encoded into a {@code data:} URI, plus the
+ * route's start point, distance and ascent as separate required fields. The GPX is therefore parsed
+ * once here and used twice: written out as FIT, and measured for those fields.
  *
  * <p>Wahoo has no companion device application: the route is pushed to the user's Wahoo account and
- * syncs to their ELEMNT head unit from the cloud.
+ * syncs to their ELEMNT head unit from the cloud. Wahoo's own docs note that Cloud API routes reach
+ * the Wahoo app and the head unit, but not the older ELEMNT app.
  */
 @ApplicationScoped
 public class WahooClient implements GpsServiceClient {
@@ -46,8 +60,16 @@ public class WahooClient implements GpsServiceClient {
   private static final String AUTH_URL = "https://api.wahooligan.com/oauth/authorize";
   private static final String TOKEN_URL = "https://api.wahooligan.com/oauth/token";
   private static final String ROUTE_UPLOAD_URL = "https://api.wahooligan.com/v1/routes";
+  // routes_write carries the upload; user_read is mandatory on every call — without it the API
+  // answers 403 whatever the other scopes say.
   private static final String SCOPE = "user_read routes_write";
-  private static final String FIT_CONTENT_TYPE = "application/vnd.ant.fit";
+  // The media type Wahoo's data: URI expects, which is not the ANT type the rest of the app
+  // serves FIT files as.
+  private static final String FIT_CONTENT_TYPE = "application/vnd.fit";
+  // Wahoo workout type family 0 — BIKING.
+  private static final int WORKOUT_TYPE_FAMILY_BIKING = 0;
+  private static final DateTimeFormatter PROVIDER_UPDATED_AT =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneOffset.UTC);
 
   @Inject DomainGpsCredentialService credentialService;
 
@@ -158,7 +180,8 @@ public class WahooClient implements GpsServiceClient {
       String accessToken = jsonString(root, "access_token");
       String refreshToken = jsonString(root, "refresh_token");
       Long expiresIn = jsonLong(root, "expires_in");
-      // Wahoo does not return the user id in the token response; it stays null.
+      // Wahoo's token response carries no user id, so this resolves to null and the connection
+      // keeps no external user id — read the same way as Hammerhead's, which does return one.
       String userId = jsonString(root, "user_id");
 
       return new TokenResponse(accessToken, refreshToken, expiresIn, userId);
@@ -171,18 +194,18 @@ public class WahooClient implements GpsServiceClient {
   public RouteUploadResult uploadRoute(String accessToken, byte[] gpxContent, String routeName) {
     File fitFile = null;
     try {
-      fitFile = convertGpxToFit(gpxContent);
+      GPX gpx = parseGpx(gpxContent);
+      fitFile = writeFit(gpx);
       byte[] fitContent = Files.readAllBytes(fitFile.toPath());
 
-      String boundary = "----" + UUID.randomUUID().toString().replace("-", "");
-      byte[] multipartBody = buildMultipartBody(boundary, fitContent, routeName);
+      String body = buildRouteForm(gpx, gpxContent, fitContent, routeName);
 
       HttpRequest request =
           HttpRequest.newBuilder()
               .uri(URI.create(ROUTE_UPLOAD_URL))
               .header("Authorization", "Bearer " + accessToken)
-              .header("Content-Type", "multipart/form-data; boundary=" + boundary)
-              .POST(HttpRequest.BodyPublishers.ofByteArray(multipartBody))
+              .header("Content-Type", "application/x-www-form-urlencoded")
+              .POST(HttpRequest.BodyPublishers.ofString(body))
               .build();
 
       HttpResponse<String> response =
@@ -206,11 +229,18 @@ public class WahooClient implements GpsServiceClient {
     }
   }
 
-  /** Converts GPX bytes to a temporary FIT route file the caller is responsible for deleting. */
-  private File convertGpxToFit(byte[] gpxContent) throws IOException {
+  private GPX parseGpx(byte[] gpxContent) throws IOException {
+    try {
+      return gpxFileReader.parseGPX(new ByteArrayInputStream(gpxContent));
+    } catch (Exception e) {
+      throw new IOException("Failed to parse GPX", e);
+    }
+  }
+
+  /** Writes a parsed GPX to a temporary FIT file the caller is responsible for deleting. */
+  private File writeFit(GPX gpx) throws IOException {
     File fitFile = File.createTempFile("wahoo-route-", ".fit");
     try {
-      GPX gpx = gpxFileReader.parseGPX(new ByteArrayInputStream(gpxContent));
       fitFileWriter.writeGPX(gpx, fitFile);
       return fitFile;
     } catch (Exception e) {
@@ -220,38 +250,59 @@ public class WahooClient implements GpsServiceClient {
   }
 
   /**
-   * Builds a {@code multipart/form-data} body with the route name and the FIT file, matching the
-   * Wahoo Cloud API {@code POST /v1/routes} contract ({@code route[name]}, {@code route[file]}).
+   * Builds the {@code application/x-www-form-urlencoded} body of {@code POST /v1/routes}. Wahoo
+   * takes the FIT file as a base64 {@code data:} URI in {@code route[file]} rather than as a
+   * multipart part, and requires the route's start point, distance and ascent alongside it — none
+   * of which the FIT payload is read for. They are recomputed here from the same parsed GPX.
+   *
+   * <p>{@code external_id} is the SHA-256 of the GPX bytes: Wahoo deduplicates on it, so sending
+   * the same route twice updates the one record instead of stacking copies in the user's library.
+   * Editing the route changes the hash and therefore creates a new entry, which is the safe way
+   * round — an upload can never overwrite a different route.
    */
-  private byte[] buildMultipartBody(String boundary, byte[] fitContent, String routeName) {
-    String namePart =
-        "--"
-            + boundary
-            + "\r\n"
-            + "Content-Disposition: form-data; name=\"route[name]\"\r\n\r\n"
-            + routeName
-            + "\r\n";
+  private String buildRouteForm(GPX gpx, byte[] gpxContent, byte[] fitContent, String routeName)
+      throws IOException {
+    List<GPXPath> paths = gpx.paths();
+    if (paths.isEmpty() || paths.getFirst().getPoints().isEmpty()) {
+      throw new IOException("GPX holds no track point");
+    }
+    Point start = paths.getFirst().getPoints().getFirst();
+    double distance = paths.stream().mapToDouble(GPXPath::getDist).sum();
+    double ascent = paths.stream().mapToDouble(GPXPath::getTotalElevation).sum();
+    double descent = paths.stream().mapToDouble(GPXPath::getTotalElevationNegative).sum();
 
-    String fileHeader =
-        "--"
-            + boundary
-            + "\r\n"
-            + "Content-Disposition: form-data; name=\"route[file]\"; filename=\""
-            + routeName.replaceAll("[^a-zA-Z0-9_-]", "_")
-            + ".fit\"\r\n"
-            + "Content-Type: "
-            + FIT_CONTENT_TYPE
-            + "\r\n\r\n";
+    String dataUri =
+        "data:" + FIT_CONTENT_TYPE + ";base64," + Base64.getEncoder().encodeToString(fitContent);
 
-    byte[] header = (namePart + fileHeader).getBytes(StandardCharsets.UTF_8);
-    byte[] footer = ("\r\n--" + boundary + "--\r\n").getBytes(StandardCharsets.UTF_8);
+    Map<String, String> params = new LinkedHashMap<>();
+    params.put("route[file]", dataUri);
+    params.put("route[filename]", sanitiseFileName(routeName) + ".fit");
+    params.put("route[name]", routeName);
+    params.put("route[external_id]", sha256Hex(gpxContent));
+    params.put("route[provider_updated_at]", PROVIDER_UPDATED_AT.format(Instant.now()));
+    params.put("route[workout_type_family_id]", Integer.toString(WORKOUT_TYPE_FAMILY_BIKING));
+    params.put("route[start_lat]", Double.toString(start.getLatDeg()));
+    params.put("route[start_lng]", Double.toString(start.getLonDeg()));
+    params.put("route[distance]", Double.toString(distance));
+    params.put("route[ascent]", Double.toString(ascent));
+    params.put("route[descent]", Double.toString(descent));
 
-    byte[] result = new byte[header.length + fitContent.length + footer.length];
-    System.arraycopy(header, 0, result, 0, header.length);
-    System.arraycopy(fitContent, 0, result, header.length, fitContent.length);
-    System.arraycopy(footer, 0, result, header.length + fitContent.length, footer.length);
+    return params.entrySet().stream()
+        .map(e -> urlEncode(e.getKey()) + "=" + urlEncode(e.getValue()))
+        .collect(Collectors.joining("&"));
+  }
 
-    return result;
+  private static String sanitiseFileName(String routeName) {
+    return routeName.replaceAll("[^a-zA-Z0-9_-]", "_");
+  }
+
+  private static String sha256Hex(byte[] content) throws IOException {
+    try {
+      byte[] digest = MessageDigest.getInstance("SHA-256").digest(content);
+      return HexFormat.of().formatHex(digest);
+    } catch (NoSuchAlgorithmException e) {
+      throw new IOException("SHA-256 unavailable", e);
+    }
   }
 
   private String urlEncode(String value) {

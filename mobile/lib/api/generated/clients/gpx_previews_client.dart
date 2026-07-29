@@ -95,7 +95,7 @@ abstract class GpxPreviewsClient {
 
   /// Send an analysed GPX file to a GPS service.
   ///
-  /// Uploads the preview to the current user's connected Garmin or Hammerhead.
+  /// Uploads the preview to the current user's connected Garmin, Hammerhead or Wahoo.
   ///
   /// [previewId] - Public preview identifier.
   ///

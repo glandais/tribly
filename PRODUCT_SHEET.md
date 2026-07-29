@@ -124,7 +124,7 @@
 - **Mobile app** (Flutter, iOS/Android) — teams, rides, routes, calendar
 - **Garmin Connect IQ app** — route browsing and FIT download on Edge devices
 - **Hammerhead Karoo extension** — route browsing and sync
-- **GPS device sync** — upload routes to Garmin Connect and Karoo
+- **GPS device sync** — upload routes to Garmin Connect, Karoo and Wahoo
 - **Calendar sync** — iCal feed export
 
 ## Roadmap Potential

@@ -463,6 +463,7 @@ Users can connect GPS devices from their profile to upload routes directly to th
 **Supported devices:**
 - Hammerhead Karoo
 - Garmin Edge devices (via Garmin Connect)
+- Wahoo ELEMNT (via the Wahoo Cloud account — no companion app, the head unit syncs from the cloud)
 
 **Setup:**
 

@@ -115,7 +115,9 @@ export function RouteDetailView({
                     key={service.serviceType}
                     onClick={() => handleSendToDevice(service.serviceType)}
                   >
-                    {t(`gps.services.${service.serviceType.toLowerCase() as 'hammerhead'}`)}
+                    {t(
+                      `gps.services.${service.serviceType.toLowerCase() as Lowercase<GpsServiceType>}`
+                    )}
                   </Menu.Item>
                 ))}
               </Menu.Dropdown>

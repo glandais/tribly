@@ -56,13 +56,13 @@ abstract class DeviceRoutesClient {
 
   /// Sync route to cloud service.
   ///
-  /// Upload route to a cloud GPS service (e.g., Hammerhead, Garmin Connect).
+  /// Upload route to a cloud GPS service (e.g., Hammerhead, Garmin Connect, Wahoo).
   ///
   /// [routeSlug] - Route slug.
   ///
   /// [teamSlug] - Team slug.
   ///
-  /// [type] - GPS service type (hammerhead, garmin).
+  /// [type] - GPS service type (hammerhead, garmin, wahoo).
   @POST('/api/device/routes/{teamSlug}/{routeSlug}/sync')
   Future<RouteUploadResponse> deviceSyncRoute({
     @Path('routeSlug') required String routeSlug,
