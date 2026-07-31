@@ -15,6 +15,7 @@ import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/share_link.dart';
+import '../../../../core/widgets/markdown_content.dart';
 import '../../../../core/widgets/media_attachments.dart';
 import '../../../comments/data/comment_repository.dart';
 import '../../../comments/presentation/widgets/comment_thread.dart';
@@ -500,7 +501,10 @@ class _RideDetailContent extends ConsumerWidget {
         children: <Widget>[
           PdlSectionHeader(title: 'rides.description'.tr()),
           if (ride.media.markdown.trim().isNotEmpty)
-            PdlMarkdownBody(data: ride.media.markdown),
+            MarkdownContent(
+              data: ride.media.markdown,
+              images: ride.media.assets.images,
+            ),
           // Les lignes portaient le nom du fichier sans bouton : elles
           // annonçaient une pièce jointe sans donner de quoi l'ouvrir.
           MediaAttachments(attachments: attachments),

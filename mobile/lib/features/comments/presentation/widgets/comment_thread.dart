@@ -10,6 +10,7 @@ import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/markdown_content.dart';
 import '../../../auth/domain/auth_state.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../data/comment_repository.dart';
@@ -227,7 +228,9 @@ class _CommentThreadState extends ConsumerState<CommentThread> {
                 ],
               ),
               const SizedBox(height: 2),
-              PdlMarkdownBody(data: comment.content),
+              // Un commentaire ne porte pas d'asset, mais il porte des liens :
+              // passer par la façade est ce qui les rend actifs.
+              MarkdownContent(data: comment.content),
               if (widget.canComment && !isReply)
                 Align(
                   alignment: Alignment.centerLeft,

@@ -14,6 +14,7 @@ import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/share_link.dart';
+import '../../../../core/widgets/markdown_content.dart';
 import '../../../../core/widgets/media_attachments.dart';
 import '../../../calendar/presentation/widgets/calendar_subscription_card.dart';
 import '../../../comments/data/comment_repository.dart';
@@ -481,7 +482,10 @@ class _TripDetailContent extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           PdlSectionHeader(title: 'trips.description'.tr()),
-          PdlMarkdownBody(data: trip.media.markdown),
+          MarkdownContent(
+            data: trip.media.markdown,
+            images: trip.media.assets.images,
+          ),
         ],
       ),
     );

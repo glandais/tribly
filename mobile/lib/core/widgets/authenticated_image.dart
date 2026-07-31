@@ -16,8 +16,17 @@ String _resolveUrl(String url) {
 }
 
 /// Resolves an image URL, replacing {size} placeholder with pixel size.
+///
+/// **La forme percent-encodée compte autant que l'autre** : un gabarit qui
+/// traverse un corps markdown en ressort en `%7Bsize%7D`, `markdown_widget`
+/// encodant les accolades de toute URL. Ne reconnaître que `{size}` laissait
+/// alors partir la requête avec le gabarit littéral — une image cassée, sans
+/// rien qui le dise.
 String resolveImageUrl(String url, {int size = 400}) {
-  final resolvedSize = url.replaceAll('{size}', size.toString());
+  final resolvedSize = url
+      .replaceAll('{size}', size.toString())
+      .replaceAll('%7Bsize%7D', size.toString())
+      .replaceAll('%7bsize%7d', size.toString());
   return _resolveUrl(resolvedSize);
 }
 

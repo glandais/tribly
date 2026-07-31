@@ -7,16 +7,6 @@ import '../../api/generated/models/asset_dto.dart';
 import '../pdl/pdl_markdown_body.dart';
 import '../utils/link_launcher.dart';
 
-/// Image size widths in pixels — mirrors frontend assetMarkdown.ts.
-const _imageSizeWidths = {
-  'icon': 32,
-  'thumbnail': 96,
-  'medium': 448,
-  'full': 1920,
-};
-
-const _defaultSizeWidth = 448; // medium
-
 /// Pre-processes markdown by resolving `::asset{id="..." size="..." alt="..."}`
 /// directives into standard `![alt](url)` markdown image syntax.
 String _resolveAssetDirectives(String data, List<AssetDto> images) {
@@ -25,15 +15,19 @@ String _resolveAssetDirectives(String data, List<AssetDto> images) {
     final id = attrs['id'];
     if (id == null || id.isEmpty) return '';
 
-    final sizeWidth =
-        _imageSizeWidths[attrs['size'] ?? 'medium'] ?? _defaultSizeWidth;
     final alt = attrs['alt'] ?? '';
 
     final asset = _findAsset(images, id);
     if (asset == null) return alt;
 
-    final url =
-        asset.imageUrl?.replaceAll('{size}', sizeWidth.toString()) ?? asset.url;
+    // **Le gabarit `{size}` est laissé intact.** Le figer ici à la largeur
+    // rédigée coûtait le plein écran : la visionneuse redemande la variante
+    // 1920 en substituant `{size}`, et sur une URL déjà résolue en 448 elle
+    // reservait ce même 448, étiré sur toute la dalle. Le rendu en ligne
+    // résout le gabarit de son côté (`AuthenticatedImage`), et la hauteur de
+    // 160 px de `PdlMarkdownBody` rend de toute façon la largeur rédigée sans
+    // effet visible sur mobile.
+    final url = asset.imageUrl ?? asset.url;
     return '![$alt]($url)';
   });
 }

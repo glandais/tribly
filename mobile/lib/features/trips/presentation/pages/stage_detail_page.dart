@@ -14,6 +14,7 @@ import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/share_link.dart';
+import '../../../../core/widgets/markdown_content.dart';
 import '../../../../core/widgets/media_attachments.dart';
 import '../../../routes/presentation/widgets/embedded_route_sheet.dart';
 import '../../../routes/providers/route_detail_provider.dart';
@@ -334,7 +335,10 @@ class _StageDetailContent extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           PdlSectionHeader(title: 'trips.description'.tr()),
-          PdlMarkdownBody(data: stage.media.markdown),
+          MarkdownContent(
+            data: stage.media.markdown,
+            images: stage.media.assets.images,
+          ),
         ],
       ),
     );

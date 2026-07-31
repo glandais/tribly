@@ -13,6 +13,7 @@ import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/units/unit_system.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/markdown_content.dart';
 import '../../../../core/widgets/media_attachments.dart';
 import '../../providers/route_detail_provider.dart';
 import '../../providers/route_elevation_provider.dart';
@@ -217,7 +218,10 @@ class _RouteDetailPageState extends ConsumerState<RouteDetailPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 PdlSectionHeader(title: 'routes.description'.tr()),
-                PdlMarkdownBody(data: route.media.markdown),
+                MarkdownContent(
+                  data: route.media.markdown,
+                  images: route.media.assets.images,
+                ),
               ],
             ),
           ),
