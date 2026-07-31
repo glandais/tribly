@@ -23,7 +23,8 @@ mixin _$ConfigDto {
  List<MapStyleDto> get mapStyles;/// Public base URL of the tile host, for a client that builds its own style, sprite or glyph URLs.
  String get tileServerBaseUrl;/// Where a map opens before it knows what it is showing. On a site rooted on one team this is that team's location; otherwise the deployment default.
  MapCenterDto get defaultCenter;/// Slug of the team the site is pinned to (dedicated hostname / alias). Null on a regular multi-team domain. When set, the app roots on this team.
- String? get pinnedTeamSlug;/// Oldest mobile build this server still serves, as a semver string. Null when no floor is enforced; a client older than this should tell the user to update.
+ String? get pinnedTeamSlug;/// The elevation source the clients may shade the relief with. Null when the deployment configures none — the clients then offer no relief at all rather than falling back to a provider of their own.
+ MapTerrainDto? get terrain;/// Oldest mobile build this server still serves, as a semver string. Null when no floor is enforced; a client older than this should tell the user to update.
  String? get minSupportedAppVersion;
 /// Create a copy of ConfigDto
 /// with the given fields replaced by the non-null parameter values.
@@ -37,16 +38,16 @@ $ConfigDtoCopyWith<ConfigDto> get copyWith => _$ConfigDtoCopyWithImpl<ConfigDto>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ConfigDto&&(identical(other.webAuthnRpId, webAuthnRpId) || other.webAuthnRpId == webAuthnRpId)&&(identical(other.appName, appName) || other.appName == appName)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam)&&(identical(other.enableGpxPlanner, enableGpxPlanner) || other.enableGpxPlanner == enableGpxPlanner)&&const DeepCollectionEquality().equals(other.mapStyles, mapStyles)&&(identical(other.tileServerBaseUrl, tileServerBaseUrl) || other.tileServerBaseUrl == tileServerBaseUrl)&&(identical(other.defaultCenter, defaultCenter) || other.defaultCenter == defaultCenter)&&(identical(other.pinnedTeamSlug, pinnedTeamSlug) || other.pinnedTeamSlug == pinnedTeamSlug)&&(identical(other.minSupportedAppVersion, minSupportedAppVersion) || other.minSupportedAppVersion == minSupportedAppVersion));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ConfigDto&&(identical(other.webAuthnRpId, webAuthnRpId) || other.webAuthnRpId == webAuthnRpId)&&(identical(other.appName, appName) || other.appName == appName)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam)&&(identical(other.enableGpxPlanner, enableGpxPlanner) || other.enableGpxPlanner == enableGpxPlanner)&&const DeepCollectionEquality().equals(other.mapStyles, mapStyles)&&(identical(other.tileServerBaseUrl, tileServerBaseUrl) || other.tileServerBaseUrl == tileServerBaseUrl)&&(identical(other.defaultCenter, defaultCenter) || other.defaultCenter == defaultCenter)&&(identical(other.pinnedTeamSlug, pinnedTeamSlug) || other.pinnedTeamSlug == pinnedTeamSlug)&&(identical(other.terrain, terrain) || other.terrain == terrain)&&(identical(other.minSupportedAppVersion, minSupportedAppVersion) || other.minSupportedAppVersion == minSupportedAppVersion));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,webAuthnRpId,appName,singleTeam,enableGpxPlanner,const DeepCollectionEquality().hash(mapStyles),tileServerBaseUrl,defaultCenter,pinnedTeamSlug,minSupportedAppVersion);
+int get hashCode => Object.hash(runtimeType,webAuthnRpId,appName,singleTeam,enableGpxPlanner,const DeepCollectionEquality().hash(mapStyles),tileServerBaseUrl,defaultCenter,pinnedTeamSlug,terrain,minSupportedAppVersion);
 
 @override
 String toString() {
-  return 'ConfigDto(webAuthnRpId: $webAuthnRpId, appName: $appName, singleTeam: $singleTeam, enableGpxPlanner: $enableGpxPlanner, mapStyles: $mapStyles, tileServerBaseUrl: $tileServerBaseUrl, defaultCenter: $defaultCenter, pinnedTeamSlug: $pinnedTeamSlug, minSupportedAppVersion: $minSupportedAppVersion)';
+  return 'ConfigDto(webAuthnRpId: $webAuthnRpId, appName: $appName, singleTeam: $singleTeam, enableGpxPlanner: $enableGpxPlanner, mapStyles: $mapStyles, tileServerBaseUrl: $tileServerBaseUrl, defaultCenter: $defaultCenter, pinnedTeamSlug: $pinnedTeamSlug, terrain: $terrain, minSupportedAppVersion: $minSupportedAppVersion)';
 }
 
 
@@ -57,11 +58,11 @@ abstract mixin class $ConfigDtoCopyWith<$Res>  {
   factory $ConfigDtoCopyWith(ConfigDto value, $Res Function(ConfigDto) _then) = _$ConfigDtoCopyWithImpl;
 @useResult
 $Res call({
- String webAuthnRpId, String appName, bool singleTeam, bool enableGpxPlanner, List<MapStyleDto> mapStyles, String tileServerBaseUrl, MapCenterDto defaultCenter, String? pinnedTeamSlug, String? minSupportedAppVersion
+ String webAuthnRpId, String appName, bool singleTeam, bool enableGpxPlanner, List<MapStyleDto> mapStyles, String tileServerBaseUrl, MapCenterDto defaultCenter, String? pinnedTeamSlug, MapTerrainDto? terrain, String? minSupportedAppVersion
 });
 
 
-$MapCenterDtoCopyWith<$Res> get defaultCenter;
+$MapCenterDtoCopyWith<$Res> get defaultCenter;$MapTerrainDtoCopyWith<$Res>? get terrain;
 
 }
 /// @nodoc
@@ -74,7 +75,7 @@ class _$ConfigDtoCopyWithImpl<$Res>
 
 /// Create a copy of ConfigDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? webAuthnRpId = null,Object? appName = null,Object? singleTeam = null,Object? enableGpxPlanner = null,Object? mapStyles = null,Object? tileServerBaseUrl = null,Object? defaultCenter = null,Object? pinnedTeamSlug = freezed,Object? minSupportedAppVersion = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? webAuthnRpId = null,Object? appName = null,Object? singleTeam = null,Object? enableGpxPlanner = null,Object? mapStyles = null,Object? tileServerBaseUrl = null,Object? defaultCenter = null,Object? pinnedTeamSlug = freezed,Object? terrain = freezed,Object? minSupportedAppVersion = freezed,}) {
   return _then(_self.copyWith(
 webAuthnRpId: null == webAuthnRpId ? _self.webAuthnRpId : webAuthnRpId // ignore: cast_nullable_to_non_nullable
 as String,appName: null == appName ? _self.appName : appName // ignore: cast_nullable_to_non_nullable
@@ -84,7 +85,8 @@ as bool,mapStyles: null == mapStyles ? _self.mapStyles : mapStyles // ignore: ca
 as List<MapStyleDto>,tileServerBaseUrl: null == tileServerBaseUrl ? _self.tileServerBaseUrl : tileServerBaseUrl // ignore: cast_nullable_to_non_nullable
 as String,defaultCenter: null == defaultCenter ? _self.defaultCenter : defaultCenter // ignore: cast_nullable_to_non_nullable
 as MapCenterDto,pinnedTeamSlug: freezed == pinnedTeamSlug ? _self.pinnedTeamSlug : pinnedTeamSlug // ignore: cast_nullable_to_non_nullable
-as String?,minSupportedAppVersion: freezed == minSupportedAppVersion ? _self.minSupportedAppVersion : minSupportedAppVersion // ignore: cast_nullable_to_non_nullable
+as String?,terrain: freezed == terrain ? _self.terrain : terrain // ignore: cast_nullable_to_non_nullable
+as MapTerrainDto?,minSupportedAppVersion: freezed == minSupportedAppVersion ? _self.minSupportedAppVersion : minSupportedAppVersion // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -96,6 +98,18 @@ $MapCenterDtoCopyWith<$Res> get defaultCenter {
   
   return $MapCenterDtoCopyWith<$Res>(_self.defaultCenter, (value) {
     return _then(_self.copyWith(defaultCenter: value));
+  });
+}/// Create a copy of ConfigDto
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$MapTerrainDtoCopyWith<$Res>? get terrain {
+    if (_self.terrain == null) {
+    return null;
+  }
+
+  return $MapTerrainDtoCopyWith<$Res>(_self.terrain!, (value) {
+    return _then(_self.copyWith(terrain: value));
   });
 }
 }
@@ -179,10 +193,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String webAuthnRpId,  String appName,  bool singleTeam,  bool enableGpxPlanner,  List<MapStyleDto> mapStyles,  String tileServerBaseUrl,  MapCenterDto defaultCenter,  String? pinnedTeamSlug,  String? minSupportedAppVersion)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String webAuthnRpId,  String appName,  bool singleTeam,  bool enableGpxPlanner,  List<MapStyleDto> mapStyles,  String tileServerBaseUrl,  MapCenterDto defaultCenter,  String? pinnedTeamSlug,  MapTerrainDto? terrain,  String? minSupportedAppVersion)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ConfigDto() when $default != null:
-return $default(_that.webAuthnRpId,_that.appName,_that.singleTeam,_that.enableGpxPlanner,_that.mapStyles,_that.tileServerBaseUrl,_that.defaultCenter,_that.pinnedTeamSlug,_that.minSupportedAppVersion);case _:
+return $default(_that.webAuthnRpId,_that.appName,_that.singleTeam,_that.enableGpxPlanner,_that.mapStyles,_that.tileServerBaseUrl,_that.defaultCenter,_that.pinnedTeamSlug,_that.terrain,_that.minSupportedAppVersion);case _:
   return orElse();
 
 }
@@ -200,10 +214,10 @@ return $default(_that.webAuthnRpId,_that.appName,_that.singleTeam,_that.enableGp
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String webAuthnRpId,  String appName,  bool singleTeam,  bool enableGpxPlanner,  List<MapStyleDto> mapStyles,  String tileServerBaseUrl,  MapCenterDto defaultCenter,  String? pinnedTeamSlug,  String? minSupportedAppVersion)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String webAuthnRpId,  String appName,  bool singleTeam,  bool enableGpxPlanner,  List<MapStyleDto> mapStyles,  String tileServerBaseUrl,  MapCenterDto defaultCenter,  String? pinnedTeamSlug,  MapTerrainDto? terrain,  String? minSupportedAppVersion)  $default,) {final _that = this;
 switch (_that) {
 case _ConfigDto():
-return $default(_that.webAuthnRpId,_that.appName,_that.singleTeam,_that.enableGpxPlanner,_that.mapStyles,_that.tileServerBaseUrl,_that.defaultCenter,_that.pinnedTeamSlug,_that.minSupportedAppVersion);case _:
+return $default(_that.webAuthnRpId,_that.appName,_that.singleTeam,_that.enableGpxPlanner,_that.mapStyles,_that.tileServerBaseUrl,_that.defaultCenter,_that.pinnedTeamSlug,_that.terrain,_that.minSupportedAppVersion);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -220,10 +234,10 @@ return $default(_that.webAuthnRpId,_that.appName,_that.singleTeam,_that.enableGp
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String webAuthnRpId,  String appName,  bool singleTeam,  bool enableGpxPlanner,  List<MapStyleDto> mapStyles,  String tileServerBaseUrl,  MapCenterDto defaultCenter,  String? pinnedTeamSlug,  String? minSupportedAppVersion)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String webAuthnRpId,  String appName,  bool singleTeam,  bool enableGpxPlanner,  List<MapStyleDto> mapStyles,  String tileServerBaseUrl,  MapCenterDto defaultCenter,  String? pinnedTeamSlug,  MapTerrainDto? terrain,  String? minSupportedAppVersion)?  $default,) {final _that = this;
 switch (_that) {
 case _ConfigDto() when $default != null:
-return $default(_that.webAuthnRpId,_that.appName,_that.singleTeam,_that.enableGpxPlanner,_that.mapStyles,_that.tileServerBaseUrl,_that.defaultCenter,_that.pinnedTeamSlug,_that.minSupportedAppVersion);case _:
+return $default(_that.webAuthnRpId,_that.appName,_that.singleTeam,_that.enableGpxPlanner,_that.mapStyles,_that.tileServerBaseUrl,_that.defaultCenter,_that.pinnedTeamSlug,_that.terrain,_that.minSupportedAppVersion);case _:
   return null;
 
 }
@@ -235,7 +249,7 @@ return $default(_that.webAuthnRpId,_that.appName,_that.singleTeam,_that.enableGp
 @JsonSerializable()
 
 class _ConfigDto implements ConfigDto {
-  const _ConfigDto({required this.webAuthnRpId, required this.appName, required this.singleTeam, required this.enableGpxPlanner, required final  List<MapStyleDto> mapStyles, required this.tileServerBaseUrl, required this.defaultCenter, this.pinnedTeamSlug, this.minSupportedAppVersion}): _mapStyles = mapStyles;
+  const _ConfigDto({required this.webAuthnRpId, required this.appName, required this.singleTeam, required this.enableGpxPlanner, required final  List<MapStyleDto> mapStyles, required this.tileServerBaseUrl, required this.defaultCenter, this.pinnedTeamSlug, this.terrain, this.minSupportedAppVersion}): _mapStyles = mapStyles;
   factory _ConfigDto.fromJson(Map<String, dynamic> json) => _$ConfigDtoFromJson(json);
 
 /// WebAuthn Relying Party ID (effective host)
@@ -261,6 +275,8 @@ class _ConfigDto implements ConfigDto {
 @override final  MapCenterDto defaultCenter;
 /// Slug of the team the site is pinned to (dedicated hostname / alias). Null on a regular multi-team domain. When set, the app roots on this team.
 @override final  String? pinnedTeamSlug;
+/// The elevation source the clients may shade the relief with. Null when the deployment configures none — the clients then offer no relief at all rather than falling back to a provider of their own.
+@override final  MapTerrainDto? terrain;
 /// Oldest mobile build this server still serves, as a semver string. Null when no floor is enforced; a client older than this should tell the user to update.
 @override final  String? minSupportedAppVersion;
 
@@ -277,16 +293,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ConfigDto&&(identical(other.webAuthnRpId, webAuthnRpId) || other.webAuthnRpId == webAuthnRpId)&&(identical(other.appName, appName) || other.appName == appName)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam)&&(identical(other.enableGpxPlanner, enableGpxPlanner) || other.enableGpxPlanner == enableGpxPlanner)&&const DeepCollectionEquality().equals(other._mapStyles, _mapStyles)&&(identical(other.tileServerBaseUrl, tileServerBaseUrl) || other.tileServerBaseUrl == tileServerBaseUrl)&&(identical(other.defaultCenter, defaultCenter) || other.defaultCenter == defaultCenter)&&(identical(other.pinnedTeamSlug, pinnedTeamSlug) || other.pinnedTeamSlug == pinnedTeamSlug)&&(identical(other.minSupportedAppVersion, minSupportedAppVersion) || other.minSupportedAppVersion == minSupportedAppVersion));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ConfigDto&&(identical(other.webAuthnRpId, webAuthnRpId) || other.webAuthnRpId == webAuthnRpId)&&(identical(other.appName, appName) || other.appName == appName)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam)&&(identical(other.enableGpxPlanner, enableGpxPlanner) || other.enableGpxPlanner == enableGpxPlanner)&&const DeepCollectionEquality().equals(other._mapStyles, _mapStyles)&&(identical(other.tileServerBaseUrl, tileServerBaseUrl) || other.tileServerBaseUrl == tileServerBaseUrl)&&(identical(other.defaultCenter, defaultCenter) || other.defaultCenter == defaultCenter)&&(identical(other.pinnedTeamSlug, pinnedTeamSlug) || other.pinnedTeamSlug == pinnedTeamSlug)&&(identical(other.terrain, terrain) || other.terrain == terrain)&&(identical(other.minSupportedAppVersion, minSupportedAppVersion) || other.minSupportedAppVersion == minSupportedAppVersion));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,webAuthnRpId,appName,singleTeam,enableGpxPlanner,const DeepCollectionEquality().hash(_mapStyles),tileServerBaseUrl,defaultCenter,pinnedTeamSlug,minSupportedAppVersion);
+int get hashCode => Object.hash(runtimeType,webAuthnRpId,appName,singleTeam,enableGpxPlanner,const DeepCollectionEquality().hash(_mapStyles),tileServerBaseUrl,defaultCenter,pinnedTeamSlug,terrain,minSupportedAppVersion);
 
 @override
 String toString() {
-  return 'ConfigDto(webAuthnRpId: $webAuthnRpId, appName: $appName, singleTeam: $singleTeam, enableGpxPlanner: $enableGpxPlanner, mapStyles: $mapStyles, tileServerBaseUrl: $tileServerBaseUrl, defaultCenter: $defaultCenter, pinnedTeamSlug: $pinnedTeamSlug, minSupportedAppVersion: $minSupportedAppVersion)';
+  return 'ConfigDto(webAuthnRpId: $webAuthnRpId, appName: $appName, singleTeam: $singleTeam, enableGpxPlanner: $enableGpxPlanner, mapStyles: $mapStyles, tileServerBaseUrl: $tileServerBaseUrl, defaultCenter: $defaultCenter, pinnedTeamSlug: $pinnedTeamSlug, terrain: $terrain, minSupportedAppVersion: $minSupportedAppVersion)';
 }
 
 
@@ -297,11 +313,11 @@ abstract mixin class _$ConfigDtoCopyWith<$Res> implements $ConfigDtoCopyWith<$Re
   factory _$ConfigDtoCopyWith(_ConfigDto value, $Res Function(_ConfigDto) _then) = __$ConfigDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String webAuthnRpId, String appName, bool singleTeam, bool enableGpxPlanner, List<MapStyleDto> mapStyles, String tileServerBaseUrl, MapCenterDto defaultCenter, String? pinnedTeamSlug, String? minSupportedAppVersion
+ String webAuthnRpId, String appName, bool singleTeam, bool enableGpxPlanner, List<MapStyleDto> mapStyles, String tileServerBaseUrl, MapCenterDto defaultCenter, String? pinnedTeamSlug, MapTerrainDto? terrain, String? minSupportedAppVersion
 });
 
 
-@override $MapCenterDtoCopyWith<$Res> get defaultCenter;
+@override $MapCenterDtoCopyWith<$Res> get defaultCenter;@override $MapTerrainDtoCopyWith<$Res>? get terrain;
 
 }
 /// @nodoc
@@ -314,7 +330,7 @@ class __$ConfigDtoCopyWithImpl<$Res>
 
 /// Create a copy of ConfigDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? webAuthnRpId = null,Object? appName = null,Object? singleTeam = null,Object? enableGpxPlanner = null,Object? mapStyles = null,Object? tileServerBaseUrl = null,Object? defaultCenter = null,Object? pinnedTeamSlug = freezed,Object? minSupportedAppVersion = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? webAuthnRpId = null,Object? appName = null,Object? singleTeam = null,Object? enableGpxPlanner = null,Object? mapStyles = null,Object? tileServerBaseUrl = null,Object? defaultCenter = null,Object? pinnedTeamSlug = freezed,Object? terrain = freezed,Object? minSupportedAppVersion = freezed,}) {
   return _then(_ConfigDto(
 webAuthnRpId: null == webAuthnRpId ? _self.webAuthnRpId : webAuthnRpId // ignore: cast_nullable_to_non_nullable
 as String,appName: null == appName ? _self.appName : appName // ignore: cast_nullable_to_non_nullable
@@ -324,7 +340,8 @@ as bool,mapStyles: null == mapStyles ? _self._mapStyles : mapStyles // ignore: c
 as List<MapStyleDto>,tileServerBaseUrl: null == tileServerBaseUrl ? _self.tileServerBaseUrl : tileServerBaseUrl // ignore: cast_nullable_to_non_nullable
 as String,defaultCenter: null == defaultCenter ? _self.defaultCenter : defaultCenter // ignore: cast_nullable_to_non_nullable
 as MapCenterDto,pinnedTeamSlug: freezed == pinnedTeamSlug ? _self.pinnedTeamSlug : pinnedTeamSlug // ignore: cast_nullable_to_non_nullable
-as String?,minSupportedAppVersion: freezed == minSupportedAppVersion ? _self.minSupportedAppVersion : minSupportedAppVersion // ignore: cast_nullable_to_non_nullable
+as String?,terrain: freezed == terrain ? _self.terrain : terrain // ignore: cast_nullable_to_non_nullable
+as MapTerrainDto?,minSupportedAppVersion: freezed == minSupportedAppVersion ? _self.minSupportedAppVersion : minSupportedAppVersion // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -337,6 +354,18 @@ $MapCenterDtoCopyWith<$Res> get defaultCenter {
   
   return $MapCenterDtoCopyWith<$Res>(_self.defaultCenter, (value) {
     return _then(_self.copyWith(defaultCenter: value));
+  });
+}/// Create a copy of ConfigDto
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$MapTerrainDtoCopyWith<$Res>? get terrain {
+    if (_self.terrain == null) {
+    return null;
+  }
+
+  return $MapTerrainDtoCopyWith<$Res>(_self.terrain!, (value) {
+    return _then(_self.copyWith(terrain: value));
   });
 }
 }

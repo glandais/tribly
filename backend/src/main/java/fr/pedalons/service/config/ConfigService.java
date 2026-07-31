@@ -3,6 +3,7 @@ package fr.pedalons.service.config;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.dto.config.ConfigDto;
 import fr.pedalons.dto.config.MapCenterDto;
+import fr.pedalons.dto.config.MapTerrainDto;
 import fr.pedalons.repository.team.TeamRepository;
 import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.service.security.ResolvedSite;
@@ -60,7 +61,23 @@ public class ConfigService {
         mapStyleService.styles(site.effectiveBaseUrl()),
         mapConfig.tileServerBaseUrl(),
         defaultCenter(siteTeam.map(Team::getGeometry).orElse(null)),
+        terrain(),
         minSupportedAppVersion.filter(version -> !version.isBlank()).orElse(null));
+  }
+
+  /**
+   * The elevation source, or null when the deployment configures none.
+   *
+   * <p>A blank URL is the same as no URL: it is what an unset {@code MAP_TERRAIN_URL} resolves to,
+   * and a client handed an empty string would request the site's own root as a TileJSON.
+   */
+  private @Nullable MapTerrainDto terrain() {
+    MapConfig.Terrain terrain = mapConfig.terrain();
+    return terrain
+        .url()
+        .filter(url -> !url.isBlank())
+        .map(url -> new MapTerrainDto(url, terrain.maxZoom()))
+        .orElse(null);
   }
 
   /**

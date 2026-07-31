@@ -950,6 +950,7 @@
     "exitFullscreen": "Exit fullscreen",
     "background": "Map background",
     "chooseBackground": "Choose map background",
+    "hillshade": "Hillshading",
     "styleGroup": {
       "vector": "Maps",
       "satellite": "Satellite",

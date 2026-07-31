@@ -47,6 +47,35 @@ class MapStyleIdNotifier extends Notifier<String?> {
   }
 }
 
+const String _kHillshadeKey = 'map.hillshade';
+
+/// L'ombrage du relief, allumé ou éteint, mémorisé localement.
+///
+/// Éteint par défaut, comme sur le web : l'ombrage est une couche de tuiles
+/// supplémentaire, donc de la donnée que personne n'a demandée tant qu'on ne
+/// l'a pas allumée.
+final hillshadeEnabledProvider =
+    NotifierProvider<HillshadeEnabledNotifier, bool>(
+      HillshadeEnabledNotifier.new,
+    );
+
+class HillshadeEnabledNotifier extends Notifier<bool> {
+  @override
+  bool build() =>
+      ref.watch(sharedPreferencesProvider).getBool(_kHillshadeKey) ?? false;
+
+  Future<void> set(bool enabled) async {
+    state = enabled;
+    await ref.read(sharedPreferencesProvider).setBool(_kHillshadeKey, enabled);
+  }
+}
+
+/// La source d'élévation servie, ou `null` si le déploiement n'en configure
+/// aucune — l'app ne propose alors pas d'ombrage du tout.
+final mapTerrainProvider = Provider<MapTerrainDto?>(
+  (Ref ref) => ref.watch(appConfigProvider).value?.terrain,
+);
+
 /// Le style de fond de carte effectif, résolu pour une luminosité donnée.
 ///
 /// Le sélecteur liste `ConfigDto.mapStyles` **dans l'ordre servi** ; en sombre

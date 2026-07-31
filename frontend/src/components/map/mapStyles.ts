@@ -1,10 +1,16 @@
-export const TERRAIN_URL = 'https://tiles.mapterhorn.com/tilejson.json'
-export const TERRAIN_MAX_ZOOM = 16
 export const HILLSHADE_SOURCE_ID = 'terrain3d-hillshade'
 export const TERRAIN_SOURCE_ID = 'terrain3d-elevation'
 export const HILLSHADE_LAYER_ID = 'terrain3d-hillshade-layer'
 
 import type { MapStyleDto } from '@/api/dto'
+
+/**
+ * The elevation source is served too (`ConfigDto.terrain`), for the same reason the basemaps are: it
+ * is a third-party tile provider that was hard-coded here, and the mobile app — which now shades its
+ * relief from the very same TileJSON — had none at all. A deployment that configures none serves
+ * null, and both clients then drop the relief controls rather than reaching for a provider of their
+ * own.
+ */
 
 /**
  * A basemap the switcher may offer.

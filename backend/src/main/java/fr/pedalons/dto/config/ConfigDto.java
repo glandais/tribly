@@ -46,6 +46,13 @@ public record ConfigDto(
     @Nullable
         @Schema(
             description =
+                "The elevation source the clients may shade the relief with. Null when the"
+                    + " deployment configures none — the clients then offer no relief at all rather"
+                    + " than falling back to a provider of their own.")
+        MapTerrainDto terrain,
+    @Nullable
+        @Schema(
+            description =
                 "Oldest mobile build this server still serves, as a semver string. Null when no"
                     + " floor is enforced; a client older than this should tell the user to"
                     + " update.")

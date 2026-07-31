@@ -26,6 +26,9 @@ export function useMapStyle() {
   const colorScheme = useComputedColorScheme('light')
   const { data: config } = useGetConfig()
   const styles = config?.mapStyles ?? NO_STYLES
+  // Served like the basemaps, and undefined when the deployment configures no provider — the relief
+  // switches then disappear rather than offering a control that can only fail.
+  const terrainSource = config?.terrain
 
   const {
     savedStyleId,
@@ -44,6 +47,7 @@ export function useMapStyle() {
   return {
     styleId,
     styles,
+    terrainSource,
     setStyleId,
     clearPreference: clearStylePreference,
     currentStyle,

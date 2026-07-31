@@ -105,6 +105,7 @@ class RideGroupsMap extends ConsumerWidget {
           exitFullscreen: 'map.exitFullscreen'.tr(),
           chooseBackground: 'map.background'.tr(),
           backgroundSheetTitle: 'map.background'.tr(),
+          hillshade: 'map.hillshade'.tr(),
         ),
         // Encastrée dans la page, pas plein écran : rien ne la recouvre
         // d'une barre translucide, contrairement au voile par défaut du hero
@@ -112,6 +113,9 @@ class RideGroupsMap extends ConsumerWidget {
         // écran). Même repli que `TripMap`.
         topScrim: false,
         styles: servedMapStyleOptions(ref),
+        hillshadeEnabled: servedHillshadeEnabled(ref),
+        onHillshadeChanged: (bool on) =>
+            ref.read(hillshadeEnabledProvider.notifier).set(on),
         selectedStyleId: style.value?.style.id,
         onStyleSelected: (String id) =>
             ref.read(mapStyleIdProvider.notifier).select(id),
@@ -138,6 +142,7 @@ class RideGroupsMap extends ConsumerWidget {
 
     return PdlMap(
       styleUrl: styleUrl,
+      hillshade: servedHillshade(context, ref),
       interactive: fullscreen,
       tracks: tracks,
       start: _point(ride.startPlace),

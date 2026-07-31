@@ -1,5 +1,6 @@
 import type { MapCenterDto } from './mapCenterDto.ts'
 import type { MapStyleDto } from './mapStyleDto.ts'
+import type { MapTerrainDto } from './mapTerrainDto.ts'
 
 /**
  * Application configuration
@@ -21,6 +22,8 @@ export interface ConfigDto {
   tileServerBaseUrl: string
   /** Where a map opens before it knows what it is showing. On a site rooted on one team this is that team's location; otherwise the deployment default. */
   defaultCenter: MapCenterDto
+  /** The elevation source the clients may shade the relief with. Null when the deployment configures none — the clients then offer no relief at all rather than falling back to a provider of their own. */
+  terrain?: MapTerrainDto
   /** Oldest mobile build this server still serves, as a semver string. Null when no floor is enforced; a client older than this should tell the user to update. */
   minSupportedAppVersion?: string
 }

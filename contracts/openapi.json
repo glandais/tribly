@@ -1219,6 +1219,11 @@
             "type" : "object",
             "$ref" : "#/components/schemas/MapCenterDto"
           },
+          "terrain" : {
+            "description" : "The elevation source the clients may shade the relief with. Null when the deployment configures none — the clients then offer no relief at all rather than falling back to a provider of their own.",
+            "type" : "object",
+            "$ref" : "#/components/schemas/MapTerrainDto"
+          },
           "minSupportedAppVersion" : {
             "type" : "string",
             "description" : "Oldest mobile build this server still serves, as a semver string. Null when no floor is enforced; a client older than this should tell the user to update."
@@ -2087,6 +2092,22 @@
           "darkVariant" : {
             "type" : "string",
             "description" : "URL of the style document to load instead of 'url' when the client renders in dark mode. Null when the style has no dark counterpart — the client then keeps using 'url'."
+          }
+        }
+      },
+      "MapTerrainDto" : {
+        "type" : "object",
+        "description" : "The elevation source used to shade the relief",
+        "required" : [ "url", "maxZoom" ],
+        "properties" : {
+          "url" : {
+            "type" : "string",
+            "description" : "URL of a TileJSON document describing raster-DEM tiles. The document declares the encoding; the clients do not."
+          },
+          "maxZoom" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Deepest zoom the provider renders. Honoured by the web, which sets it on the source; the mobile SDKs take their zoom range from the TileJSON instead."
           }
         }
       },
@@ -17073,7 +17094,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "2.4.0",
+    "version" : "2.5.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

@@ -1,20 +1,19 @@
 import { useEffect } from 'react'
 import { useMap } from 'react-map-gl/maplibre'
-import {
-  HILLSHADE_SOURCE_ID,
-  HILLSHADE_LAYER_ID,
-  TERRAIN_SOURCE_ID,
-  TERRAIN_URL,
-  TERRAIN_MAX_ZOOM,
-} from './mapStyles'
+import type { MapTerrainDto } from '@/api/dto'
+import { HILLSHADE_SOURCE_ID, HILLSHADE_LAYER_ID, TERRAIN_SOURCE_ID } from './mapStyles'
 
 interface Terrain3DProps {
+  /** The served elevation source. Undefined when the deployment configures none. */
+  source: MapTerrainDto | undefined
   terrain: boolean
   hillshade: boolean
 }
 
-export function Terrain3D({ terrain, hillshade }: Terrain3DProps) {
+export function Terrain3D({ source, terrain, hillshade }: Terrain3DProps) {
   const { current: mapRef } = useMap()
+  const url = source?.url
+  const maxzoom = source?.maxZoom
 
   useEffect(() => {
     if (!mapRef) return
@@ -22,13 +21,9 @@ export function Terrain3D({ terrain, hillshade }: Terrain3DProps) {
 
     const apply = () => {
       // Hillshade source — needed by hillshade layer
-      if (hillshade) {
+      if (hillshade && url) {
         if (!map.getSource(HILLSHADE_SOURCE_ID)) {
-          map.addSource(HILLSHADE_SOURCE_ID, {
-            type: 'raster-dem',
-            url: TERRAIN_URL,
-            maxzoom: TERRAIN_MAX_ZOOM,
-          })
+          map.addSource(HILLSHADE_SOURCE_ID, { type: 'raster-dem', url, maxzoom })
         }
         if (!map.getLayer(HILLSHADE_LAYER_ID)) {
           map.addLayer({
@@ -49,13 +44,9 @@ export function Terrain3D({ terrain, hillshade }: Terrain3DProps) {
       }
 
       // Terrain source — needed by 3D terrain
-      if (terrain) {
+      if (terrain && url) {
         if (!map.getSource(TERRAIN_SOURCE_ID)) {
-          map.addSource(TERRAIN_SOURCE_ID, {
-            type: 'raster-dem',
-            url: TERRAIN_URL,
-            maxzoom: TERRAIN_MAX_ZOOM,
-          })
+          map.addSource(TERRAIN_SOURCE_ID, { type: 'raster-dem', url, maxzoom })
         }
         map.setTerrain({ source: TERRAIN_SOURCE_ID, exaggeration: 1 })
       } else {
@@ -72,7 +63,7 @@ export function Terrain3D({ terrain, hillshade }: Terrain3DProps) {
     return () => {
       map.off('style.load', apply)
     }
-  }, [terrain, hillshade, mapRef])
+  }, [terrain, hillshade, url, maxzoom, mapRef])
 
   return null
 }

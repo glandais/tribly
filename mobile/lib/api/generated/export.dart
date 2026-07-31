@@ -114,6 +114,7 @@ export 'models/local_time.dart';
 export 'models/login_request.dart';
 export 'models/map_center_dto.dart';
 export 'models/map_style_dto.dart';
+export 'models/map_terrain_dto.dart';
 export 'models/media_dto.dart';
 export 'models/member_dto.dart';
 export 'models/member_list_response.dart';

@@ -246,6 +246,45 @@ class PdlMapBox {
   String toString() => 'PdlMapBox($minLon, $minLat, $maxLon, $maxLat)';
 }
 
+/// La source d'élévation dont l'ombrage du relief est tiré, **sans DTO**.
+///
+/// [url] est une URL de TileJSON, jamais écrite ici : elle vient de
+/// `ConfigDto.terrain`, comme les fonds de carte. C'est ce document qui déclare
+/// l'encodage du MNT (Terrarium chez Mapterhorn) — le seul canal que lisent les
+/// SDK natifs, qui construisent leur source à partir de l'URL de configuration
+/// et ignorent l'encodage passé à côté.
+@immutable
+class PdlHillshade {
+  const PdlHillshade({
+    required this.url,
+    required this.shadowColor,
+    required this.highlightColor,
+    this.exaggeration = 0.4,
+  });
+
+  /// L'URL du TileJSON décrivant des tuiles raster-DEM.
+  final String url;
+
+  final Color shadowColor;
+  final Color highlightColor;
+
+  /// L'amplitude du relief. 0,4 comme le web : au-delà, le relief écrase le
+  /// tracé, qui est ce qu'on est venu regarder.
+  final double exaggeration;
+
+  @override
+  bool operator ==(Object other) =>
+      other is PdlHillshade &&
+      other.url == url &&
+      other.shadowColor == shadowColor &&
+      other.highlightColor == highlightColor &&
+      other.exaggeration == exaggeration;
+
+  @override
+  int get hashCode =>
+      Object.hash(url, shadowColor, highlightColor, exaggeration);
+}
+
 /// Épaisseurs et opacités des tracés (§1.3.2).
 ///
 /// MapLibre n'a pas de `zIndex` sur les lignes : c'est **l'ordre de dessin**
@@ -356,6 +395,7 @@ class PdlMapController extends ChangeNotifier {
   PdlMapPoint? _end;
   String? _selectedId;
   PdlMapPoint? _cursor;
+  PdlHillshade? _hillshade;
   bool _styleReady = false;
 
   /// Les couches réellement posées, dans leur ordre de dessin.
@@ -365,6 +405,7 @@ class PdlMapController extends ChangeNotifier {
   String get _pointsSourceId => '$layerPrefix-points';
   String get _waypointsSourceId => '$layerPrefix-waypoints';
   String get _cursorSourceId => '$layerPrefix-cursor';
+  String get _hillshadeSourceId => '$layerPrefix-hillshade';
 
   MapController? get map => _map;
 
@@ -429,6 +470,21 @@ class PdlMapController extends ChangeNotifier {
     if (_selectedId == null && tracks.length == 1) {
       _selectedId = tracks.first.id;
     }
+    if (_style != null) {
+      _drawnLayers.clear();
+      await _applyAll();
+    }
+    notifyListeners();
+  }
+
+  /// Allume ou éteint l'ombrage du relief, ou en change la source.
+  ///
+  /// Repose toutes les couches : MapLibre n'a pas de `zIndex`, et l'ombrage doit
+  /// rester **sous** les tracés — sinon il les voile. C'est le même prix qu'un
+  /// changement de contenu, et il n'est payé qu'à la bascule de l'interrupteur.
+  Future<void> setHillshade(PdlHillshade? hillshade) async {
+    if (_hillshade == hillshade) return;
+    _hillshade = hillshade;
     if (_style != null) {
       _drawnLayers.clear();
       await _applyAll();
@@ -610,6 +666,8 @@ class PdlMapController extends ChangeNotifier {
     final StyleController? style = _style;
     if (style == null) return;
 
+    await _addHillshadeLayer(style);
+
     await _safe(() => style.removeLayer(_pointsSourceId));
     await _safe(() => style.removeLayer('$_waypointsSourceId-dot'));
 
@@ -633,6 +691,49 @@ class PdlMapController extends ChangeNotifier {
 
     await _addPointLayers(style);
     await _addCursorLayer(style);
+  }
+
+  /// Pose — ou retire — l'ombrage du relief, **avant tout le reste**.
+  ///
+  /// L'ordre compte : ajoutée en premier de nos couches, elle passe au-dessus du
+  /// fond de carte (comme sur le web) mais reste sous les tracés, les marqueurs
+  /// et le réticule.
+  ///
+  /// La source est un `RasterDemSource` construit sur l'URL du TileJSON. On ne
+  /// lui passe **ni encodage ni plage de zoom** : le greffon ne les applique sur
+  /// aucune des deux plateformes (Android construit `RasterDemSource(url,
+  /// tileSize)` avec un « TODO apply other properties », iOS passe par
+  /// `initWithIdentifier:configurationURL:tileSize:`), c'est le TileJSON qui
+  /// fait foi. Conséquence à connaître : si le document ne déclare pas de
+  /// `maxzoom`, l'ombrage peut disparaître au-delà du zoom natif du
+  /// fournisseur, là où le web le prolonge en le déclarant lui-même.
+  ///
+  /// `hillshade-method` n'est pas envoyé : c'est une propriété de MapLibre GL
+  /// **JS**, absente des SDK natifs, où elle finirait en écriture KVC sur une
+  /// clé inconnue.
+  Future<void> _addHillshadeLayer(StyleController style) async {
+    await _safe(() => style.removeLayer('$_hillshadeSourceId-layer'));
+    await _safe(() => style.removeSource(_hillshadeSourceId));
+    final PdlHillshade? hillshade = _hillshade;
+    if (hillshade == null) return;
+    await _safe(
+      () => style.addSource(
+        RasterDemSource(id: _hillshadeSourceId, url: hillshade.url),
+      ),
+    );
+    await _safe(
+      () => style.addLayer(
+        HillshadeStyleLayer(
+          id: '$_hillshadeSourceId-layer',
+          sourceId: _hillshadeSourceId,
+          paint: <String, Object>{
+            'hillshade-exaggeration': hillshade.exaggeration,
+            'hillshade-shadow-color': hillshade.shadowColor.toHexString(),
+            'hillshade-highlight-color': hillshade.highlightColor.toHexString(),
+          },
+        ),
+      ),
+    );
   }
 
   /// Pose la couche du réticule, **vide**, une fois pour toutes.
