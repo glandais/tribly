@@ -1,6 +1,7 @@
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { RouterProvider, createBrowserRouter, UNSAFE_createRouter } from 'react-router-dom'
-import type { QueryClient } from '@tanstack/react-query'
+import { useQueryClient, type QueryClient } from '@tanstack/react-query'
+import { getGetConfigQueryKey } from './api/endpoints/configuration/configuration'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
 import { buildRoutes } from './config/RouteGenerator'
 import { useAuthStore } from './store/authStore'
@@ -60,13 +61,33 @@ export function AppFrame({ children }: { children: ReactNode }) {
  */
 function AuthEffects() {
   const isInitialized = useAuthStore((state) => state.isInitialized)
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const initialize = useAuthStore((state) => state.initialize)
+  const queryClient = useQueryClient()
+  const revalidatedRef = useRef(false)
   // useAuth triggers the /me query so auth state is populated for the rest of the tree.
   const { isLoading } = useAuth()
 
   useEffect(() => {
     initialize()
   }, [initialize])
+
+  // Everything fetched before initialize() resolved is the ANONYMOUS view: the SSR-dehydrated
+  // cache is rendered without cookies or Authorization, and client queries that fire during
+  // hydration race the /api/auth/refresh round-trip. Both land in the cache as fresh (staleTime
+  // 3 min), so member-only fields stay missing long after the session is known — a route's
+  // `team.role` (no Edit/Delete buttons), a preview's `owned`, and so on. Refetch the active
+  // queries once, as soon as the session turns out to be authenticated.
+  useEffect(() => {
+    if (!isInitialized || !isAuthenticated || revalidatedRef.current) return
+    revalidatedRef.current = true
+    const configKey = getGetConfigQueryKey()
+    void queryClient.invalidateQueries({
+      // The domain config is auth-independent and is seeded synchronously at bootstrap — refetching
+      // it would only add a request.
+      predicate: (query) => query.queryKey[0] !== configKey[0],
+    })
+  }, [isInitialized, isAuthenticated, queryClient])
 
   useEffect(() => {
     if (isInitialized && !isLoading) {
