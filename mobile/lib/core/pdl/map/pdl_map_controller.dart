@@ -7,6 +7,7 @@ import 'package:maplibre/maplibre.dart';
 
 import '../../geo/polyline_index.dart';
 import 'pdl_map_camera.dart';
+import 'pdl_mass_layer.dart';
 
 /// Un tracé à dessiner, **sans aucun DTO**.
 ///
@@ -397,6 +398,8 @@ class PdlMapController extends ChangeNotifier {
   PdlMapPoint? _cursor;
   PdlHillshade? _hillshade;
   bool _styleReady = false;
+  String? _massTileUrl;
+  String _massColorHex = '#1D32A8';
 
   /// Les couches réellement posées, dans leur ordre de dessin.
   final List<String> _drawnLayers = <String>[];
@@ -406,6 +409,11 @@ class PdlMapController extends ChangeNotifier {
   String get _waypointsSourceId => '$layerPrefix-waypoints';
   String get _cursorSourceId => '$layerPrefix-cursor';
   String get _hillshadeSourceId => '$layerPrefix-hillshade';
+  String get _massSourceId => '$layerPrefix-mass-src';
+
+  /// L'identifiant de la couche de masse — public parce que l'écran en a besoin
+  /// pour interroger les entités sous le doigt.
+  String get massLayerId => '$layerPrefix-mass';
 
   MapController? get map => _map;
 
@@ -492,6 +500,74 @@ class PdlMapController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// L'URL de la couche de masse, ou `null` pour l'effacer.
+  ///
+  /// Reçoit une **chaîne**, jamais un DTO : `core/pdl` ne connaît aucune API.
+  /// C'est `features/routes/data/route_tile_urls.dart` qui la fabrique.
+  ///
+  /// La comparaison en tête n'est pas une optimisation. L'URL porte le jeton,
+  /// donc elle *est* la clé de cache de MapLibre : sans ce garde-fou, chaque
+  /// `build` de l'écran viderait le cache de tuiles et retéléchargerait la vue
+  /// entière — plusieurs fois par seconde pendant une animation.
+  ///
+  /// Le remplacement passe par [_applyAll] plutôt que par un simple
+  /// retrait/ajout, et ce n'est pas de la paresse : rajouter une couche la
+  /// remonte au sommet du style. Reposer toute la pile est la seule façon de
+  /// garantir que le tracé sélectionné, les marqueurs et le réticule restent
+  /// **au-dessus** de la masse après un renouvellement de jeton — c'est-à-dire
+  /// douze minutes après l'ouverture, ce qu'aucun test de démarrage ne verrait.
+  Future<void> setMassTileUrl(String? template, {String? colorHex}) async {
+    final String nextColor = colorHex ?? _massColorHex;
+    if (template == _massTileUrl && nextColor == _massColorHex) return;
+    _massTileUrl = template;
+    _massColorHex = nextColor;
+    if (_style == null) return;
+    _drawnLayers.clear();
+    await _applyAll();
+  }
+
+  String? get massTileUrl => _massTileUrl;
+
+  /// Les propriétés de l'entité de masse sous [screenPoint], ou `null`.
+  ///
+  /// **Pourquoi pas [trackIdAt]** : celui-ci déduit le tracé du *nom de la
+  /// couche*, une couche GeoJSON par tracé. Sur une source vectorielle tous les
+  /// parcours sont dans une seule couche, et `QueriedLayer` ne porte aucune
+  /// propriété d'entité. `featuresAtPoint` en porte, lui — c'est exactement ce
+  /// que fait la carte web, qui lit `event.features[0].properties`.
+  ///
+  /// Rend la `Map` brute : `core/pdl` ne connaît aucun DTO, c'est l'appelant
+  /// qui interprète `slug`, `name`, `team_slug`, `distance`, `elevation_gain`.
+  Map<String, Object?>? massFeatureAt(
+    Offset screenPoint, {
+    double tolerance = 12,
+  }) {
+    final MapController? m = _map;
+    if (m == null || _massTileUrl == null) return null;
+    // La même croix de sondage que [trackIdAt] : un trait de quelques pixels
+    // ne se touche pas au pixel près, et l'API n'offre pas de tolérance.
+    for (final Offset probe in _probesAround(screenPoint, tolerance)) {
+      try {
+        final List<RenderedFeature> hits = m.featuresAtPoint(
+          probe,
+          layerIds: <String>[massLayerId],
+        );
+        if (hits.isNotEmpty) return hits.first.properties;
+      } catch (_) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  static List<Offset> _probesAround(Offset point, double tolerance) => <Offset>[
+    point,
+    point.translate(-tolerance, 0),
+    point.translate(tolerance, 0),
+    point.translate(0, -tolerance),
+    point.translate(0, tolerance),
+  ];
+
   /// Change le tracé sélectionné.
   ///
   /// **Ne reconstruit pas les couches** : le trait est piloté par une
@@ -564,14 +640,7 @@ class PdlMapController extends ChangeNotifier {
   String? trackIdAt(Offset screenPoint, {double tolerance = 12}) {
     final MapController? m = _map;
     if (m == null) return null;
-    final List<Offset> probes = <Offset>[
-      screenPoint,
-      screenPoint.translate(-tolerance, 0),
-      screenPoint.translate(tolerance, 0),
-      screenPoint.translate(0, -tolerance),
-      screenPoint.translate(0, tolerance),
-    ];
-    for (final Offset probe in probes) {
+    for (final Offset probe in _probesAround(screenPoint, tolerance)) {
       late final List<QueriedLayer> hits;
       try {
         hits = m.queryLayers(probe);
@@ -671,6 +740,11 @@ class PdlMapController extends ChangeNotifier {
     await _safe(() => style.removeLayer(_pointsSourceId));
     await _safe(() => style.removeLayer('$_waypointsSourceId-dot'));
 
+    // La masse juste au-dessus de l'ombrage, et sous tout le reste : c'est un
+    // fond, et le tracé sélectionné comme les marqueurs doivent rester lisibles
+    // par-dessus.
+    await _applyMassLayer(style);
+
     // Une **seule** source pour tous les tracés (§1.0.3-7) ; c'est le
     // `layerId` qui porte l'identité, chaque couche étant filtrée sur son
     // `trackId`.
@@ -732,6 +806,24 @@ class PdlMapController extends ChangeNotifier {
             'hillshade-highlight-color': hillshade.highlightColor.toHexString(),
           },
         ),
+      ),
+    );
+  }
+
+  /// Pose — ou retire — la couche de tuiles vectorielles de masse.
+  Future<void> _applyMassLayer(StyleController style) async {
+    await _safe(() => style.removeLayer(massLayerId));
+    await _safe(() => style.removeSource(_massSourceId));
+    final String? template = _massTileUrl;
+    if (template == null) return;
+    await style.addSource(
+      PdlMassTiles.source(id: _massSourceId, tileUrlTemplate: template),
+    );
+    await style.addLayer(
+      PdlMassTiles.layer(
+        id: massLayerId,
+        sourceId: _massSourceId,
+        colorHex: _massColorHex,
       ),
     );
   }

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/legacy.dart';
 import '../../../api/generated/export.dart';
 import '../../../api/pedalons_api_client.dart';
 import '../../../core/utils/api_error_handler.dart';
+import '../../routes/data/tile_token_repository.dart';
 import '../data/auth_repository.dart';
 import '../data/secure_storage.dart';
 import '../domain/auth_state.dart';
@@ -53,6 +54,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// `isInitialized` — leaving the app spinning forever on the loading screen.
   /// `test/auth_provider_test.dart` guards it.
   void _resetUserScopedData() {
+    // Le jeton de tuile d'abord, et **explicitement** : invalider le client
+    // suffirait aujourd'hui (le dépôt en dépend, donc il serait recréé), mais
+    // un jeton apatride ne se révoque pas côté serveur — la seule chose qu'on
+    // maîtrise est de ne plus s'en servir, et ça ne doit pas dépendre d'un
+    // effet de bord du graphe de providers.
+    _ref.read(tileTokenRepositoryProvider).clear();
     _ref.invalidate(apiClientProvider);
   }
 

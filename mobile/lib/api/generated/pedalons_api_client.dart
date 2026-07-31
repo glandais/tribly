@@ -36,9 +36,10 @@ import 'clients/ride_comments_client.dart';
 import 'clients/route_comments_client.dart';
 import 'clients/trips_client.dart';
 import 'clients/trip_comments_client.dart';
+import 'clients/tiles_client.dart';
 import 'clients/server_version_client.dart';
 
-/// Pedalons API `v2.5.0`.
+/// Pedalons API `v2.6.0`.
 ///
 /// API for Pedalons Cycling Team Management Platform.
 class PedalonsApiClient {
@@ -51,7 +52,7 @@ class PedalonsApiClient {
   final Dio _dio;
   final String? _baseUrl;
 
-  static String get version => '2.5.0';
+  static String get version => '2.6.0';
 
   AdminDomainsClient? _adminDomains;
   AdminSocialClient? _adminSocial;
@@ -85,6 +86,7 @@ class PedalonsApiClient {
   RouteCommentsClient? _routeComments;
   TripsClient? _trips;
   TripCommentsClient? _tripComments;
+  TilesClient? _tiles;
   ServerVersionClient? _serverVersion;
 
   AdminDomainsClient get adminDomains =>
@@ -175,6 +177,8 @@ class PedalonsApiClient {
 
   TripCommentsClient get tripComments =>
       _tripComments ??= TripCommentsClient(_dio, baseUrl: _baseUrl);
+
+  TilesClient get tiles => _tiles ??= TilesClient(_dio, baseUrl: _baseUrl);
 
   ServerVersionClient get serverVersion =>
       _serverVersion ??= ServerVersionClient(_dio, baseUrl: _baseUrl);

@@ -186,7 +186,7 @@ abstract class RoutesClient {
 
   /// All routes vector tile.
   ///
-  /// Mapbox vector tile holding the routes of all accessible teams, layer 'routes'. Accepts the same filters as the route list, minus sorting and pagination, which a tile has no use for. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
+  /// Mapbox vector tile holding the routes of all accessible teams, layer 'routes'. Accepts the same filters as the route list, minus sorting and pagination, which a tile has no use for. Fetched directly by the map renderer, outside the authenticated HTTP stack: a browser authenticates with its session cookie, any other client with the 't' tile token.
   ///
   /// [x] - Tile column.
   ///
@@ -218,6 +218,8 @@ abstract class RoutesClient {
   ///
   /// [surfaceType] - Filter by surface type.
   ///
+  /// [t] - Tile token from POST /api/tiles/token, for clients whose map renderer cannot carry an Authorization header. Omitted, the request falls back to the session cookie and then to the anonymous visitor.
+  ///
   /// [windDirection] - Filter by wind direction.
   @GET('/api/routes/tiles/{z}/{x}/{y}.mvt')
   Future<void> allRoutesTile({
@@ -236,6 +238,7 @@ abstract class RoutesClient {
     @Query('nearType') NearType? nearType,
     @Query('search') String? search,
     @Query('surfaceType') SurfaceType? surfaceType,
+    @Query('t') String? t,
     @Query('windDirection') WindDirection? windDirection,
   });
 
@@ -427,7 +430,7 @@ abstract class RoutesClient {
 
   /// Team routes vector tile.
   ///
-  /// Mapbox vector tile holding the team's routes, layer 'routes'. Accepts the same filters as the route list, minus sorting and pagination, which a tile has no use for. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
+  /// Mapbox vector tile holding the team's routes, layer 'routes'. Accepts the same filters as the route list, minus sorting and pagination, which a tile has no use for. Fetched directly by the map renderer, outside the authenticated HTTP stack: a browser authenticates with its session cookie, any other client with the 't' tile token.
   ///
   /// [teamSlug] - Team URL slug.
   ///
@@ -459,6 +462,8 @@ abstract class RoutesClient {
   ///
   /// [surfaceType] - Filter by surface type.
   ///
+  /// [t] - Tile token from POST /api/tiles/token, for clients whose map renderer cannot carry an Authorization header. Omitted, the request falls back to the session cookie and then to the anonymous visitor.
+  ///
   /// [windDirection] - Filter by wind direction.
   @GET('/api/teams/{teamSlug}/routes/tiles/{z}/{x}/{y}.mvt')
   Future<void> routesTile({
@@ -477,6 +482,7 @@ abstract class RoutesClient {
     @Query('nearType') NearType? nearType,
     @Query('search') String? search,
     @Query('surfaceType') SurfaceType? surfaceType,
+    @Query('t') String? t,
     @Query('windDirection') WindDirection? windDirection,
   });
 

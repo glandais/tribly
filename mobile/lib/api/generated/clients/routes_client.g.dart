@@ -214,6 +214,7 @@ class _RoutesClient implements RoutesClient {
     NearType? nearType,
     String? search,
     SurfaceType? surfaceType,
+    String? t,
     WindDirection? windDirection,
   }) async {
     final _extra = <String, dynamic>{};
@@ -230,6 +231,7 @@ class _RoutesClient implements RoutesClient {
       r'nearType': nearType?.toJson(),
       r'search': search,
       r'surfaceType': surfaceType?.toJson(),
+      r't': t,
       r'windDirection': windDirection?.toJson(),
     };
     queryParameters.removeWhere((k, v) => v == null);
@@ -518,6 +520,7 @@ class _RoutesClient implements RoutesClient {
     NearType? nearType,
     String? search,
     SurfaceType? surfaceType,
+    String? t,
     WindDirection? windDirection,
   }) async {
     final _extra = <String, dynamic>{};
@@ -533,6 +536,7 @@ class _RoutesClient implements RoutesClient {
       r'nearType': nearType?.toJson(),
       r'search': search,
       r'surfaceType': surfaceType?.toJson(),
+      r't': t,
       r'windDirection': windDirection?.toJson(),
     };
     queryParameters.removeWhere((k, v) => v == null);

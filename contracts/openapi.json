@@ -4096,6 +4096,27 @@
         "type" : "string",
         "enum" : [ "SYSTEM", "LIGHT", "DARK" ]
       },
+      "TileTokenDto" : {
+        "description" : "Short-lived token authorizing vector tile requests",
+        "type" : "object",
+        "required" : [ "token", "expiresAt", "expiresIn" ],
+        "properties" : {
+          "token" : {
+            "type" : "string",
+            "description" : "Token to pass as the 't' query parameter of the .mvt endpoints"
+          },
+          "expiresAt" : {
+            "description" : "Absolute expiry instant (ISO 8601), for logs and diagnostics",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "expiresIn" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Seconds until expiry, measured at issuance. Schedule renewal on this, not on expiresAt: it is immune to a device clock that drifts."
+          }
+        }
+      },
       "TrackDto" : {
         "type" : "object",
         "description" : "GPX track with track points",
@@ -4855,6 +4876,9 @@
   }, {
     "name" : "Teams",
     "description" : "Team management operations"
+  }, {
+    "name" : "Tiles",
+    "description" : "Vector tile access"
   }, {
     "name" : "Trip Comments",
     "description" : "Comment operations for trips"
@@ -9348,7 +9372,7 @@
     "/api/routes/tiles/{z}/{x}/{y}.mvt" : {
       "get" : {
         "summary" : "All routes vector tile",
-        "description" : "Mapbox vector tile holding the routes of all accessible teams, layer 'routes'. Accepts the same filters as the route list, minus sorting and pagination, which a tile has no use for. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.",
+        "description" : "Mapbox vector tile holding the routes of all accessible teams, layer 'routes'. Accepts the same filters as the route list, minus sorting and pagination, which a tile has no use for. Fetched directly by the map renderer, outside the authenticated HTTP stack: a browser authenticates with its session cookie, any other client with the 't' tile token.",
         "operationId" : "allRoutesTile",
         "tags" : [ "Routes" ],
         "parameters" : [ {
@@ -9470,6 +9494,13 @@
             "$ref" : "#/components/schemas/SurfaceType"
           }
         }, {
+          "description" : "Tile token from POST /api/tiles/token, for clients whose map renderer cannot carry an Authorization header. Omitted, the request falls back to the session cookie and then to the anonymous visitor.",
+          "name" : "t",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
           "description" : "Filter by wind direction",
           "name" : "windDirection",
           "in" : "query",
@@ -9486,6 +9517,9 @@
           },
           "400" : {
             "description" : "Invalid tile coordinates"
+          },
+          "401" : {
+            "description" : "Invalid or expired tile token"
           }
         }
       }
@@ -14856,7 +14890,7 @@
     "/api/teams/{teamSlug}/routes/tiles/{z}/{x}/{y}.mvt" : {
       "get" : {
         "summary" : "Team routes vector tile",
-        "description" : "Mapbox vector tile holding the team's routes, layer 'routes'. Accepts the same filters as the route list, minus sorting and pagination, which a tile has no use for. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.",
+        "description" : "Mapbox vector tile holding the team's routes, layer 'routes'. Accepts the same filters as the route list, minus sorting and pagination, which a tile has no use for. Fetched directly by the map renderer, outside the authenticated HTTP stack: a browser authenticates with its session cookie, any other client with the 't' tile token.",
         "operationId" : "routesTile",
         "tags" : [ "Routes" ],
         "parameters" : [ {
@@ -14979,6 +15013,13 @@
             "$ref" : "#/components/schemas/SurfaceType"
           }
         }, {
+          "description" : "Tile token from POST /api/tiles/token, for clients whose map renderer cannot carry an Authorization header. Omitted, the request falls back to the session cookie and then to the anonymous visitor.",
+          "name" : "t",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
           "description" : "Filter by wind direction",
           "name" : "windDirection",
           "in" : "query",
@@ -14995,6 +15036,9 @@
           },
           "400" : {
             "description" : "Invalid tile coordinates"
+          },
+          "401" : {
+            "description" : "Invalid or expired tile token"
           },
           "404" : {
             "description" : "Team not found",
@@ -16503,6 +16547,42 @@
         } ]
       }
     },
+    "/api/tiles/token" : {
+      "post" : {
+        "summary" : "Mint a tile token",
+        "description" : "Short-lived token authorizing the caller's own vector tile requests, to be passed as the 't' query parameter of the .mvt endpoints. Meant for clients whose map renderer has its own HTTP stack and can carry neither an Authorization header nor a session cookie. It grants nothing but tiles: no other endpoint accepts it.",
+        "operationId" : "mint",
+        "tags" : [ "Tiles" ],
+        "responses" : {
+          "200" : {
+            "description" : "Token minted successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TileTokenDto"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
     "/api/users/me" : {
       "put" : {
         "summary" : "Update current user",
@@ -17094,7 +17174,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "2.5.0",
+    "version" : "2.6.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

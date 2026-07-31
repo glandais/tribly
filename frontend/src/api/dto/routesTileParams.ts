@@ -49,6 +49,10 @@ export type RoutesTileParams = {
    */
   surfaceType?: SurfaceType
   /**
+   * Tile token from POST /api/tiles/token, for clients whose map renderer cannot carry an Authorization header. Omitted, the request falls back to the session cookie and then to the anonymous visitor.
+   */
+  t?: string
+  /**
    * Filter by wind direction
    */
   windDirection?: WindDirection

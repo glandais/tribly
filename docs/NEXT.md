@@ -56,10 +56,15 @@ jeton ICS. Thème clair et compte `gaby` pas repassés en revue depuis.
 - [ ] **Parcours (13)** — profil altimétrique colorisé par pente, réticule fluide au glissement
       (60 fps ; regarder au `debugRepaintRainbowEnabled` que les barres ne sont pas repeintes),
       section « Cols et montées ».
-- [ ] **Exploration de parcours (21)** — vue liste et vue carte. Le mobile est sur le **repli GeoJSON
-      de proximité**, pas sur les tuiles `.mvt` : vérifier qu'au-delà de quelques centaines de tracés
-      un **message explicite** apparaît. Une carte silencieusement incomplète est le défaut à
-      chercher. Bascule automatique en compact au-delà de 200 résultats.
+- [ ] **Exploration de parcours (21)** — vue liste et vue carte. Le mobile rend désormais les vraies
+      tuiles `.mvt`, comme le web (jeton signé, API 2.3.0) : vérifier qu'au-delà de quelques
+      centaines de tracés la carte les montre **tous**, sans plafond ni pilule de troncature, et
+      qu'aucune requête ne part au tap sur un tracé. À faire **en build release au moins une fois** :
+      `featuresAtPoint` a un antécédent de `ClassNotFoundException` Android corrigé en maplibre
+      0.3.5, que le mode debug ne montre pas. Vérifier aussi le renouvellement du jeton : laisser la
+      carte ouverte au-delà de la durée de vie, les tuiles doivent continuer d'arriver et les
+      marqueurs rester **au-dessus** de la masse. Bascule automatique en compact au-delà de 200
+      résultats.
 - [ ] **Calendrier (22)** — un mois s'affiche ; les étapes de voyage y sont (le voyage en tant
       qu'objet non, c'est voulu) ; anneau « inscrit » sur l'événement ; un jour à la fois
       « aujourd'hui » et « inscrit » porte les deux marqueurs.
@@ -357,7 +362,7 @@ Beaucoup sont des ajouts d'un champ — le rapport valeur/effort y est bon.
 
 | # | Manque | Écrans | Dégradation actuelle |
 |---|---|---|---|
-| 1 | URL de tuile authentifiable (jeton court en paramètre de requête) — les `.mvt` s'authentifient par cookie de session, que le mobile n'a pas | 21 | Repli GeoJSON, plafond de quelques centaines de tracés contre 2 585 côté web |
+| ~~1~~ | ~~URL de tuile authentifiable (jeton court en paramètre de requête)~~ — **livré en 2.3.0** : `POST /api/tiles/token` puis `?t=` sur les deux `.mvt`. Le repli GeoJSON et son plafond ont été supprimés, le tap lit les propriétés de la tuile comme le web | 21 | — |
 | 2 | `logoUrl` sur `TeamPublicationDto` (`TeamDetailDto` l'a déjà) | 11, 12, 13, 24, 31, 32 | Avatar d'initiales à teinte hachée |
 | 3 | `RideGroupDto.thumbnailUrl` | 11 | Vignette de la sortie au lieu de celle du parcours du groupe |
 | 4 | `groups[]` ou un `registeredGroup` compact sur les lignes de liste | 11 | Un `getRide` supplémentaire pour la seule prochaine sortie |

@@ -6,13 +6,19 @@ import static org.hamcrest.Matchers.*;
 import fr.pedalons.api.AbstractResourceTest;
 import fr.pedalons.domain.route.Route;
 import fr.pedalons.enums.Visibility;
+import fr.pedalons.service.security.TileTokenService;
 import fr.pedalons.service.team.request.MinRole;
 import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
 class AllRouteResourceTest extends AbstractResourceTest {
+
+  @Inject TileTokenService tileTokenService;
 
   private Route publicRoute;
   private Route teamRoute;
@@ -317,5 +323,91 @@ class AllRouteResourceTest extends AbstractResourceTest {
 
     MvtAssert.assertContainsSlugs(tile, teamRoute.getSlug());
     MvtAssert.assertMissingSlugs(tile, publicRoute.getSlug());
+  }
+
+  // ==================== Tile Token Tests ====================
+  //
+  // The token exists because a map renderer fetches tiles through its own HTTP stack: no bearer
+  // header, and on mobile no session cookie either. See TileTokenService.
+
+  /** The whole feature in one assertion: a token turns the anonymous tile into the member's tile. */
+  @Test
+  void allRoutesTile_withTileToken_shouldContainTeamRoute() {
+    String token = tileTokenService.issue(user3.getId(), domain.getId(), Instant.now()).value();
+
+    String tile = MvtAssert.decode(given().queryParam("t", token).when().get(ROUTES_TILE));
+
+    MvtAssert.assertContainsSlugs(tile, publicRoute.getSlug(), teamRoute.getSlug());
+  }
+
+  @Test
+  void allRoutesTile_withTileTokenOfNonMember_shouldOnlyContainPublicRoute() {
+    String token = tileTokenService.issue(user4.getId(), domain.getId(), Instant.now()).value();
+
+    String tile = MvtAssert.decode(given().queryParam("t", token).when().get(ROUTES_TILE));
+
+    MvtAssert.assertContainsSlugs(tile, publicRoute.getSlug());
+    MvtAssert.assertMissingSlugs(tile, teamRoute.getSlug());
+  }
+
+  /**
+   * A present-but-invalid token is an error, never a silent downgrade: an anonymous tile served
+   * here would go out with {@code max-age=300} and be cached as the truth for five minutes.
+   */
+  @Test
+  void allRoutesTile_withExpiredTileToken_shouldReturnUnauthorized() {
+    String expired =
+        tileTokenService
+            .issue(user3.getId(), domain.getId(), Instant.now().minus(2, ChronoUnit.HOURS))
+            .value();
+
+    given().queryParam("t", expired).when().get(ROUTES_TILE).then().statusCode(401);
+  }
+
+  @Test
+  void allRoutesTile_withTamperedTileToken_shouldReturnUnauthorized() {
+    String token = tileTokenService.issue(user3.getId(), domain.getId(), Instant.now()).value();
+
+    // The *first* character of the MAC, not the last: a 16-byte MAC is 22 base64url characters,
+    // i.e. 132 bits for 128 useful ones, so the final character's two low bits are dropped on
+    // decode. Flipping those yields a different-looking string that decodes to the same MAC — and
+    // a tamper test that passes without testing anything.
+    int mac = token.indexOf('.') + 1;
+    String tampered =
+        token.substring(0, mac) + (token.charAt(mac) == 'A' ? 'B' : 'A') + token.substring(mac + 1);
+
+    given().queryParam("t", tampered).when().get(ROUTES_TILE).then().statusCode(401);
+  }
+
+  @Test
+  void allRoutesTile_withGarbageTileToken_shouldReturnUnauthorized() {
+    given().queryParam("t", "not-a-token").when().get(ROUTES_TILE).then().statusCode(401);
+  }
+
+  /**
+   * Multi-tenancy: the domain is part of what was signed, and a token minted elsewhere resolves no
+   * user at all — so the caller falls back to being anonymous rather than borrowing user3.
+   */
+  @Test
+  void allRoutesTile_withTileTokenOfAnotherDomain_shouldOnlyContainPublicRoute() {
+    String foreign =
+        tileTokenService.issue(user3.getId(), domain.getId() + 1, Instant.now()).value();
+
+    String tile = MvtAssert.decode(given().queryParam("t", foreign).when().get(ROUTES_TILE));
+
+    MvtAssert.assertContainsSlugs(tile, publicRoute.getSlug());
+    MvtAssert.assertMissingSlugs(tile, teamRoute.getSlug());
+  }
+
+  /**
+   * The non-regression guard for the web, which never sends a token and must keep taking exactly
+   * the path it took before the filter existed.
+   */
+  @Test
+  void allRoutesTile_withoutTileToken_shouldStillHonourTheBearerToken() {
+    String tile =
+        MvtAssert.decode(given().auth().oauth2(getAccessToken(USER3)).when().get(ROUTES_TILE));
+
+    MvtAssert.assertContainsSlugs(tile, publicRoute.getSlug(), teamRoute.getSlug());
   }
 }

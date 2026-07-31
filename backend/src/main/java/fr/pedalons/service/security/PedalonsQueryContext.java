@@ -38,6 +38,8 @@ public class PedalonsQueryContext {
 
   @Inject DomainRepository domainRepository;
 
+  @Inject TileTokenContext tileTokenContext;
+
   @Nullable User user;
 
   boolean initialized = false;
@@ -171,7 +173,32 @@ public class PedalonsQueryContext {
     } else if (domain != null) {
       // Fallback to cookie-based auth for browser direct requests (downloads, images)
       user = getUserFromRefreshTokenCookie(domain.getId());
+      if (user == null) {
+        user = getUserFromTileToken(domain.getId());
+      }
     }
+  }
+
+  /**
+   * Third fallback: the signed tile token, for renderers that can carry neither a bearer header nor
+   * a cookie.
+   *
+   * <p>Ordered after the cookie so the browser's behaviour stays bit-for-bit what it was. {@link
+   * TileTokenContext} is only ever filled by {@link TileTokenFilter}, itself bound to the methods
+   * carrying {@link fr.pedalons.service.security.annotation.TileTokenAuth} — outside those two
+   * endpoints this fallback cannot return anything but null.
+   */
+  @Nullable
+  private User getUserFromTileToken(Long domainId) {
+    TileTokenClaims claims = tileTokenContext.getClaims();
+    if (claims == null) {
+      return null;
+    }
+    // Multi-tenancy: a token minted on one site is worth nothing on another.
+    if (!domainId.equals(claims.domainId())) {
+      return null;
+    }
+    return userRepository.findActiveById(claims.userId()).orElse(null);
   }
 
   @Nullable

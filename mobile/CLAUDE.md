@@ -7,7 +7,9 @@ Pedalons mobile app: Flutter client for the cycling team platform. See parent `.
 The app is at **v2** (July 2026): a rewritten design system (`core/pdl`), a single five-tab shell, light *and* dark themes, metric *and* imperial units, and twelve reworked screens. Two documents explain the shape of it — read them before adding a widget or a screen:
 
 - **[lib/core/pdl/README.md](lib/core/pdl/README.md)** — the component library's contract, its naming, and the two `grep`s that enforce it in review. Not optional reading: a widget that can't meet the contract belongs in its feature, without the `Pdl` prefix.
-- **[../docs/plans/archive/2026-07-26-mobile-v2-implementation.md](../docs/plans/archive/2026-07-26-mobile-v2-implementation.md)** — the plan that produced v2, kept for the *why* of ~15 arbitrations that still constrain the code (no `createdBy` fallback for a group leader, offset over cursor pagination, device timezone over team timezone, Material icons over Tabler, GeoJSON fallback over `.mvt` tiles).
+- **[../docs/plans/archive/2026-07-26-mobile-v2-implementation.md](../docs/plans/archive/2026-07-26-mobile-v2-implementation.md)** — the plan that produced v2, kept for the *why* of ~15 arbitrations that still constrain the code (no `createdBy` fallback for a group leader, offset over cursor pagination, device timezone over team timezone, Material icons over Tabler). One of them has since been reversed: the GeoJSON fallback that stood in
+for `.mvt` tiles is gone — a signed tile token (API 2.3.0) lets MapLibre fetch the real tiles, and
+the fallback was deleted rather than kept.
 
 What remains to do — and what was deliberately left out — is in **[../docs/NEXT.md](../docs/NEXT.md)**.
 
