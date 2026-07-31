@@ -138,8 +138,12 @@ class _RouteDetailPageState extends ConsumerState<RouteDetailPage> {
                 child: RouteDownloadActions(route: route),
               ),
             ),
-            bodyBuilder: (BuildContext context, ScrollController controller) =>
-                _sheetBody(route, cursor, controller),
+            bodyBuilder:
+                (
+                  BuildContext context,
+                  ScrollController controller,
+                  double footerInset,
+                ) => _sheetBody(route, cursor, controller, footerInset),
           ),
         ],
       ),
@@ -181,12 +185,13 @@ class _RouteDetailPageState extends ConsumerState<RouteDetailPage> {
     RouteDetailDto route,
     RouteCursorController cursor,
     ScrollController controller,
+    double footerInset,
   ) {
     final List<ClimbDto> climbs = route.allClimbs;
 
     return ListView(
       controller: controller,
-      padding: EdgeInsets.zero,
+      padding: EdgeInsets.only(bottom: footerInset),
       children: <Widget>[
         if (route.hasGeometry)
           Padding(

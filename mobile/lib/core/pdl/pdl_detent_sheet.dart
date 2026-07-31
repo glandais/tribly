@@ -37,9 +37,16 @@ class PdlDetentSheet extends StatefulWidget {
     this.onDetentChanged,
   }) : assert(detents.length >= 2, 'Une feuille à crans en a au moins deux.');
 
-  /// Le corps reçoit le [ScrollController] de la feuille : sans lui, tirer sur
-  /// la liste ne fait pas monter la feuille.
-  final Widget Function(BuildContext context, ScrollController controller)
+  /// Le corps reçoit le [ScrollController] de la feuille — sans lui, tirer sur
+  /// la liste ne fait pas monter la feuille — et la hauteur mesurée de
+  /// [footer], à ajouter en fin de liste : le pied est un [Positioned] qui
+  /// flotte **par-dessus** le corps, donc sans cette réserve le dernier
+  /// élément défile sous lui, invisible à fond de feuille.
+  final Widget Function(
+    BuildContext context,
+    ScrollController controller,
+    double footerInset,
+  )
   bodyBuilder;
 
   /// En-tête, reconstruit à chaque changement de fraction — et lui seul.
@@ -67,6 +74,10 @@ class _PdlDetentSheetState extends State<PdlDetentSheet> {
     widget.detents[widget.initialDetentIndex],
   );
   double _lastSnapped = -1;
+
+  /// Hauteur du pied, relevée après pose — variable avec l'échelle de police
+  /// et son contenu, donc jamais une constante devinée.
+  double _footerHeight = 0;
 
   /// Le contrôleur du glissement. [DraggableScrollableSheet] ne se laisse
   /// entraîner que par **son** scrollable, or la poignée et l'en-tête n'en font
@@ -256,7 +267,11 @@ class _PdlDetentSheetState extends State<PdlDetentSheet> {
                         ),
                       ),
                       Expanded(
-                        child: widget.bodyBuilder(context, scrollController),
+                        child: widget.bodyBuilder(
+                          context,
+                          scrollController,
+                          _footerHeight,
+                        ),
                       ),
                     ],
                   ),
@@ -265,7 +280,14 @@ class _PdlDetentSheetState extends State<PdlDetentSheet> {
                       left: 0,
                       right: 0,
                       bottom: 0,
-                      child: widget.footer!,
+                      child: _MeasureSize(
+                        onChange: (double height) {
+                          if (height != _footerHeight) {
+                            setState(() => _footerHeight = height);
+                          }
+                        },
+                        child: widget.footer!,
+                      ),
                     ),
                 ],
               ),
@@ -274,5 +296,38 @@ class _PdlDetentSheetState extends State<PdlDetentSheet> {
         },
       ),
     );
+  }
+}
+
+/// Signale la hauteur rendue de [child], relevée après chaque pose.
+///
+/// [Positioned] ne contraint pas la hauteur d'un pied qui se dimensionne à
+/// son contenu ([PdlDetentSheet] ne la connaît donc pas d'avance ; il n'y a
+/// pas de raccourci `RenderObject` plus court que mesurer après coup.
+class _MeasureSize extends StatefulWidget {
+  const _MeasureSize({required this.onChange, required this.child});
+
+  final ValueChanged<double> onChange;
+  final Widget child;
+
+  @override
+  State<_MeasureSize> createState() => _MeasureSizeState();
+}
+
+class _MeasureSizeState extends State<_MeasureSize> {
+  double? _reported;
+
+  @override
+  Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final double? height =
+          (context.findRenderObject() as RenderBox?)?.size.height;
+      if (height != null && height != _reported) {
+        _reported = height;
+        widget.onChange(height);
+      }
+    });
+    return widget.child;
   }
 }

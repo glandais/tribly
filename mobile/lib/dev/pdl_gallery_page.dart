@@ -1643,17 +1643,20 @@ class _GalleryBodyState extends State<_GalleryBody> {
                           ),
                         ),
                     bodyBuilder:
-                        (BuildContext context, ScrollController controller) =>
-                            ListView.builder(
-                              controller: controller,
-                              padding: const EdgeInsets.only(bottom: 60),
-                              itemCount: 20,
-                              itemBuilder: (BuildContext context, int i) =>
-                                  PdlSettingRow(
-                                    title: 'Boucle n° ${i + 1}',
-                                    onTap: () {},
-                                  ),
-                            ),
+                        (
+                          BuildContext context,
+                          ScrollController controller,
+                          double footerInset,
+                        ) => ListView.builder(
+                          controller: controller,
+                          padding: EdgeInsets.only(bottom: footerInset),
+                          itemCount: 20,
+                          itemBuilder: (BuildContext context, int i) =>
+                              PdlSettingRow(
+                                title: 'Boucle n° ${i + 1}',
+                                onTap: () {},
+                              ),
+                        ),
                     footer: PdlActionBar(
                       children: <Widget>[
                         PdlButton(label: 'Filtrer', onPressed: () {}),
