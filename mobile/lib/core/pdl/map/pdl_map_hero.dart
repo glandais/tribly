@@ -7,6 +7,7 @@ import '../../theme/pdl_tokens.dart';
 import '../pdl_scrim.dart';
 import '../pdl_section_header.dart';
 import '../pdl_setting_row.dart';
+import '../pdl_switch.dart';
 import '../pdl_sheet.dart';
 import 'pdl_map_buttons.dart';
 
@@ -46,12 +47,17 @@ class PdlMapHeroLabels {
     required this.exitFullscreen,
     required this.chooseBackground,
     required this.backgroundSheetTitle,
+    this.hillshade,
   });
 
   final String enterFullscreen;
   final String exitFullscreen;
   final String chooseBackground;
   final String backgroundSheetTitle;
+
+  /// L'intitulé de l'interrupteur d'ombrage. `null` = l'app de cet écran n'en
+  /// propose pas, la ligne n'est pas rendue.
+  final String? hillshade;
 }
 
 /// La coquille d'une carte occupant une surface, avec ses voiles et ses
@@ -80,6 +86,8 @@ class PdlMapHero extends StatelessWidget {
     this.styles = const <PdlMapStyleOption>[],
     this.selectedStyleId,
     this.onStyleSelected,
+    this.hillshadeEnabled,
+    this.onHillshadeChanged,
     this.showFullscreenButton = true,
     this.extraButtons = const <Widget>[],
     this.pill,
@@ -105,6 +113,12 @@ class PdlMapHero extends StatelessWidget {
   final String? selectedStyleId;
   final ValueChanged<String>? onStyleSelected;
 
+  /// L'état de l'ombrage du relief. `null` = le déploiement ne sert aucune
+  /// source d'élévation (`ConfigDto.terrain`), et l'interrupteur disparaît —
+  /// plutôt qu'un réglage sans effet.
+  final bool? hillshadeEnabled;
+  final ValueChanged<bool>? onHillshadeChanged;
+
   final bool showFullscreenButton;
 
   /// Boutons ajoutés sous les deux boutons standards — « autour de moi »,
@@ -122,6 +136,13 @@ class PdlMapHero extends StatelessWidget {
 
   /// Vrai dans la page plein écran : le bouton bascule alors en sortie.
   final bool isFullscreen;
+
+  /// Vrai quand l'ombrage du relief est proposable : une source servie, un
+  /// intitulé et de quoi prévenir l'écran.
+  bool get _hasHillshade =>
+      hillshadeEnabled != null &&
+      onHillshadeChanged != null &&
+      labels.hillshade != null;
 
   /// Vrai si le contexte est celui de la carte **plein écran**.
   ///
@@ -160,7 +181,7 @@ class PdlMapHero extends StatelessWidget {
               : labels.enterFullscreen,
           onPressed: () => _toggleFullscreen(context),
         ),
-      if (styles.isNotEmpty && onStyleSelected != null)
+      if ((styles.isNotEmpty && onStyleSelected != null) || _hasHillshade)
         PdlMapButton(
           icon: PdlIcons.layers,
           semanticLabel: labels.chooseBackground,
@@ -228,6 +249,8 @@ class PdlMapHero extends StatelessWidget {
             styles: styles,
             selectedStyleId: selectedStyleId,
             onStyleSelected: onStyleSelected,
+            hillshadeEnabled: hillshadeEnabled,
+            onHillshadeChanged: onHillshadeChanged,
             extraButtons: extraButtons,
             isFullscreen: true,
           ),
@@ -263,11 +286,65 @@ class PdlMapHero extends StatelessWidget {
                   : const SizedBox.shrink(),
             ),
           ],
+          // Le relief est un réglage **du** fond, pas un choix **de** fond : il
+          // vient après la liste et, contrairement à elle, ne referme pas la
+          // feuille — on veut pouvoir juger de l'ombrage puis changer de fond.
+          if (_hasHillshade)
+            _HillshadeRow(
+              label: labels.hillshade!,
+              initialValue: hillshadeEnabled!,
+              onChanged: onHillshadeChanged!,
+            ),
         ],
       ),
     );
     if (picked != null) onStyleSelected?.call(picked);
   }
+}
+
+/// La ligne « Ombrage du relief » de la feuille des fonds.
+///
+/// Elle tient son propre état parce que la feuille est construite une fois :
+/// `PdlSheet` n'est pas reconstruit quand l'écran l'est, si bien qu'un
+/// interrupteur piloté seulement par la propriété resterait figé dans sa
+/// position d'origine jusqu'à la fermeture. L'écran reste la source de vérité —
+/// il reçoit le changement et le persiste ; ce témoin local n'est que l'écho
+/// immédiat que la feuille doit à celui qui vient d'appuyer.
+class _HillshadeRow extends StatefulWidget {
+  const _HillshadeRow({
+    required this.label,
+    required this.initialValue,
+    required this.onChanged,
+  });
+
+  final String label;
+  final bool initialValue;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  State<_HillshadeRow> createState() => _HillshadeRowState();
+}
+
+class _HillshadeRowState extends State<_HillshadeRow> {
+  late bool _value = widget.initialValue;
+
+  void _toggle() {
+    setState(() => _value = !_value);
+    widget.onChanged(_value);
+  }
+
+  @override
+  Widget build(BuildContext context) => PdlSettingRow(
+    title: widget.label,
+    onTap: _toggle,
+    trailing: PdlSwitch(
+      value: _value,
+      // La ligne entière est déjà une cible tactile de 44 px ; l'interrupteur
+      // n'en ouvre pas une seconde qui ferait diverger les deux états.
+      onChanged: (bool _) => _toggle(),
+      semanticLabel: widget.label,
+    ),
+  );
 }
 
 /// Porte [PdlMapHero.isFullscreenOf] jusqu'au `mapBuilder`.

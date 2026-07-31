@@ -34,6 +34,9 @@ public interface MapConfig {
   /** Where a map opens when nothing else says where to look. */
   DefaultCenter defaultCenter();
 
+  /** The elevation source the clients shade the relief with. */
+  Terrain terrain();
+
   /**
    * One basemap.
    *
@@ -100,6 +103,24 @@ public interface MapConfig {
      * world-zoom map fires a wall of 404s (IGN SCAN 25 starts at z6).
      */
     Optional<Integer> minZoom();
+  }
+
+  /** A raster-DEM provider, described by a TileJSON document. */
+  interface Terrain {
+    /**
+     * URL of the TileJSON. It is that document which declares the DEM's encoding — see the DTO.
+     *
+     * <p>{@code Optional} because the property is declared as {@code ${MAP_TERRAIN_URL:}}: with no
+     * provider configured it resolves to the empty string, which SmallRye hands to the converter as
+     * {@code null} and then rejects on a bare {@code String} (SRCFG00040). Empty means <em>no
+     * relief on any client</em> — the control disappears rather than pointing at a provider the
+     * operator never chose.
+     */
+    Optional<String> url();
+
+    /** The deepest zoom the provider renders. */
+    @WithDefault("16")
+    int maxZoom();
   }
 
   interface DefaultCenter {

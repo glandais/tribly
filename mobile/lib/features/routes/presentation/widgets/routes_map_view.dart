@@ -122,8 +122,12 @@ class _RoutesMapViewState extends ConsumerState<RoutesMapView> {
             exitFullscreen: 'map.exitFullscreen'.tr(),
             chooseBackground: 'map.background'.tr(),
             backgroundSheetTitle: 'map.background'.tr(),
+            hillshade: 'map.hillshade'.tr(),
           ),
           styles: servedMapStyleOptions(ref),
+          hillshadeEnabled: servedHillshadeEnabled(ref),
+          onHillshadeChanged: (bool on) =>
+              ref.read(hillshadeEnabledProvider.notifier).set(on),
           selectedStyleId: resolved.style.id,
           onStyleSelected: (String id) =>
               ref.read(mapStyleIdProvider.notifier).select(id),
@@ -139,6 +143,7 @@ class _RoutesMapViewState extends ConsumerState<RoutesMapView> {
             ),
           ),
           mapBuilder: (BuildContext context) => PdlMap(
+            hillshade: servedHillshade(context, ref),
             styleUrl: resolved.url,
             controller: _controller,
             tracks: mass.tracks,

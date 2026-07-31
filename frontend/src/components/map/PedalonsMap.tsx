@@ -21,8 +21,17 @@ export const PedalonsMap = forwardRef<MapRef, PedalonsMapProps>(
     },
     ref
   ) => {
-    const { styleId, styles, setStyleId, style, terrain3d, setTerrain3d, hillshade, setHillshade } =
-      useMapStyle()
+    const {
+      styleId,
+      styles,
+      terrainSource,
+      setStyleId,
+      style,
+      terrain3d,
+      setTerrain3d,
+      hillshade,
+      setHillshade,
+    } = useMapStyle()
 
     return (
       <Map
@@ -33,16 +42,17 @@ export const PedalonsMap = forwardRef<MapRef, PedalonsMapProps>(
         {...props}
       >
         <NavigationControl position={navigationControlPosition} />
-        <Terrain3D terrain={terrain3d} hillshade={hillshade} />
+        <Terrain3D source={terrainSource} terrain={terrain3d} hillshade={hillshade} />
         <MapStyleSwitcher
           position={mapStyleSwitcherPosition}
           styles={styles}
           currentStyleId={styleId}
           onStyleChange={setStyleId}
           terrain3d={terrain3d}
-          onTerrain3DChange={setTerrain3d}
           hillshade={hillshade}
-          onHillshadeChange={setHillshade}
+          // No served elevation source, no relief controls: the switches would toggle nothing.
+          onTerrain3DChange={terrainSource ? setTerrain3d : undefined}
+          onHillshadeChange={terrainSource ? setHillshade : undefined}
         />
         {children}
       </Map>

@@ -75,8 +75,12 @@ class _PdlMapDemoPageState extends ConsumerState<PdlMapDemoPage> {
                 exitFullscreen: 'Quitter le plein écran',
                 chooseBackground: 'Choisir le fond',
                 backgroundSheetTitle: 'Fond de carte',
+                hillshade: 'Ombrage du relief',
               ),
               styles: servedMapStyleOptions(ref),
+              hillshadeEnabled: servedHillshadeEnabled(ref),
+              onHillshadeChanged: (bool on) =>
+                  ref.read(hillshadeEnabledProvider.notifier).set(on),
               selectedStyleId: style.style.id,
               onStyleSelected: (String id) =>
                   ref.read(mapStyleIdProvider.notifier).select(id),
@@ -110,6 +114,7 @@ class _PdlMapDemoPageState extends ConsumerState<PdlMapDemoPage> {
                       ),
                     ),
               mapBuilder: (BuildContext context) => PdlMap(
+                hillshade: servedHillshade(context, ref),
                 styleUrl: style.url,
                 tracks: _tracks,
                 selectedTrackId: _selected,

@@ -19,6 +19,9 @@ _ConfigDto _$ConfigDtoFromJson(Map<String, dynamic> json) => _ConfigDto(
     json['defaultCenter'] as Map<String, dynamic>,
   ),
   pinnedTeamSlug: json['pinnedTeamSlug'] as String?,
+  terrain: json['terrain'] == null
+      ? null
+      : MapTerrainDto.fromJson(json['terrain'] as Map<String, dynamic>),
   minSupportedAppVersion: json['minSupportedAppVersion'] as String?,
 );
 
@@ -32,5 +35,6 @@ Map<String, dynamic> _$ConfigDtoToJson(_ConfigDto instance) =>
       'tileServerBaseUrl': instance.tileServerBaseUrl,
       'defaultCenter': instance.defaultCenter.toJson(),
       'pinnedTeamSlug': instance.pinnedTeamSlug,
+      'terrain': instance.terrain?.toJson(),
       'minSupportedAppVersion': instance.minSupportedAppVersion,
     };

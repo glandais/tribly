@@ -128,16 +128,21 @@ class _RouteMapState extends ConsumerState<RouteMap> {
         exitFullscreen: 'map.exitFullscreen'.tr(),
         chooseBackground: 'map.chooseBackground'.tr(),
         backgroundSheetTitle: 'map.background'.tr(),
+        hillshade: 'map.hillshade'.tr(),
       ),
       // La fiche parcours **est** déjà la carte plein écran : un bouton de
       // plus n'y mènerait nulle part.
       showFullscreenButton: false,
       topScrim: true,
       styles: servedMapStyleOptions(ref),
+      hillshadeEnabled: servedHillshadeEnabled(ref),
+      onHillshadeChanged: (bool on) =>
+          ref.read(hillshadeEnabledProvider.notifier).set(on),
       selectedStyleId: resolved.style.id,
       onStyleSelected: (String id) =>
           ref.read(mapStyleIdProvider.notifier).select(id),
       mapBuilder: (BuildContext context) => PdlMap(
+        hillshade: servedHillshade(context, ref),
         controller: _controller,
         styleUrl: resolved.url,
         onMapTapped: widget.onMapTapped == null

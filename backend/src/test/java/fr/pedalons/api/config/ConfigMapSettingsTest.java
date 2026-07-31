@@ -122,6 +122,19 @@ class ConfigMapSettingsTest extends AbstractResourceTest {
   }
 
   @Test
+  void getConfig_shouldServeTheElevationSource() {
+    // Served for the same reason the basemaps are: it was hard-coded in the web client, and the
+    // mobile app — which now shades its relief from the very same TileJSON — had none at all.
+    given()
+        .when()
+        .get("/api/config")
+        .then()
+        .statusCode(200)
+        .body("terrain.url", startsWith("http"))
+        .body("terrain.maxZoom", greaterThan(0));
+  }
+
+  @Test
   void getConfig_shouldNotLeakTheInternalRenderer() {
     // tileserver.url is the private renderer the thumbnail service talks to (localhost:18080 in
     // test). Handing it to a client would be useless at best and an SSRF hint at worst.

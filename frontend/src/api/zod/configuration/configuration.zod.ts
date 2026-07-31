@@ -62,6 +62,23 @@ export const GetConfigResponse = zod
       .describe(
         "Where a map opens before it knows what it is showing. On a site rooted on one team this is that team's location; otherwise the deployment default."
       ),
+    terrain: zod
+      .object({
+        url: zod
+          .string()
+          .describe(
+            'URL of a TileJSON document describing raster-DEM tiles. The document declares the encoding; the clients do not.'
+          ),
+        maxZoom: zod
+          .number()
+          .describe(
+            'Deepest zoom the provider renders. Honoured by the web, which sets it on the source; the mobile SDKs take their zoom range from the TileJSON instead.'
+          ),
+      })
+      .optional()
+      .describe(
+        'The elevation source the clients may shade the relief with. Null when the deployment configures none — the clients then offer no relief at all rather than falling back to a provider of their own.'
+      ),
     minSupportedAppVersion: zod
       .string()
       .optional()

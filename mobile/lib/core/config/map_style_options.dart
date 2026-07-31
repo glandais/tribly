@@ -1,8 +1,11 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../api/generated/models/map_style_dto.dart';
+import '../../api/generated/models/map_terrain_dto.dart';
 import '../pdl/pdl.dart';
+import '../theme/pdl_colors.dart';
 import 'config_provider.dart';
 
 /// Les fonds servis, prêts pour le sélecteur de `PdlMapHero`.
@@ -21,6 +24,30 @@ List<PdlMapStyleOption> servedMapStyleOptions(
       groupLabel: mapStyleGroupLabel(style.group),
     ),
 ];
+
+/// L'ombrage du relief à passer à `PdlMap`, ou `null` — pas de source servie,
+/// ou interrupteur éteint.
+///
+/// Les deux teintes viennent de `context.pdl`, jamais d'un littéral : `core/pdl`
+/// ne peut pas les choisir (il ne connaît pas la source), mais elles restent des
+/// couleurs de la charte.
+PdlHillshade? servedHillshade(BuildContext context, WidgetRef ref) {
+  final MapTerrainDto? terrain = ref.watch(mapTerrainProvider);
+  if (terrain == null || !ref.watch(hillshadeEnabledProvider)) return null;
+  final PdlColors c = context.pdl;
+  return PdlHillshade(
+    url: terrain.url,
+    shadowColor: c.mapHillshadeShadow,
+    highlightColor: c.mapHillshadeHighlight,
+  );
+}
+
+/// L'état à donner au sélecteur : `null` quand aucune source n'est servie, ce
+/// qui **retire** la ligne au lieu d'offrir un interrupteur sans effet.
+bool? servedHillshadeEnabled(WidgetRef ref) =>
+    ref.watch(mapTerrainProvider) == null
+    ? null
+    : ref.watch(hillshadeEnabledProvider);
 
 /// L'intitulé d'une section du sélecteur.
 ///

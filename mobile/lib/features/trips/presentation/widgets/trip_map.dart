@@ -81,9 +81,13 @@ class TripMap extends ConsumerWidget {
                     exitFullscreen: 'map.exitFullscreen'.tr(),
                     chooseBackground: 'map.chooseBackground'.tr(),
                     backgroundSheetTitle: 'map.background'.tr(),
+                    hillshade: 'map.hillshade'.tr(),
                   ),
                   topScrim: false,
                   styles: servedMapStyleOptions(ref),
+                  hillshadeEnabled: servedHillshadeEnabled(ref),
+                  onHillshadeChanged: (bool on) =>
+                      ref.read(hillshadeEnabledProvider.notifier).set(on),
                   selectedStyleId: resolved.style.id,
                   onStyleSelected: (String id) =>
                       ref.read(mapStyleIdProvider.notifier).select(id),
@@ -97,6 +101,7 @@ class TripMap extends ConsumerWidget {
                           ),
                         ),
                   mapBuilder: (BuildContext context) => PdlMap(
+                    hillshade: servedHillshade(context, ref),
                     styleUrl: resolved.url,
                     tracks: mapTracks,
                     start: _point(stages.first.startPlace),

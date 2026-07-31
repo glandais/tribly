@@ -83,6 +83,8 @@ class PdlColors extends ThemeExtension<PdlColors> {
     required this.mapStart,
     required this.mapEnd,
     required this.mapWaypoint,
+    required this.mapHillshadeShadow,
+    required this.mapHillshadeHighlight,
   });
 
   // ── Surfaces, bordures, texte ──────────────────────────────────────────
@@ -171,6 +173,17 @@ class PdlColors extends ThemeExtension<PdlColors> {
   final Color mapStart;
   final Color mapEnd;
   final Color mapWaypoint;
+
+  /// Les deux teintes de l'ombrage du relief.
+  ///
+  /// Elles ne suivent **pas** le thème : l'ombrage se peint sur la tuile, pas
+  /// sur la surface de l'app, et un fond de carte reste clair en thème sombre
+  /// (seul `Plan` a une variante nocturne). Éclaircir l'ombre en sombre la
+  /// ferait disparaître sur un satellite. Elles sont donc identiques dans les
+  /// deux tables — inscrites ici quand même, parce qu'une couleur écrite
+  /// ailleurs que dans `core/theme` est le défaut que la règle interdit.
+  final Color mapHillshadeShadow;
+  final Color mapHillshadeHighlight;
 
   /// Alias de [surface] : la charte nomme `--pdl-bg` le fond de page, qui vaut
   /// la surface dans les deux modes.
@@ -276,6 +289,8 @@ class PdlColors extends ThemeExtension<PdlColors> {
     mapStart: Color(0xFF40C057),
     mapEnd: Color(0xFFFA5252),
     mapWaypoint: Color(0xFFFAB005),
+    mapHillshadeShadow: Color(0xFF727C83),
+    mapHillshadeHighlight: Color(0xFFFFFFE4),
   );
 
   static const PdlColors dark = PdlColors(
@@ -337,6 +352,8 @@ class PdlColors extends ThemeExtension<PdlColors> {
     mapStart: Color(0xFF40C057),
     mapEnd: Color(0xFFFA5252),
     mapWaypoint: Color(0xFFFAB005),
+    mapHillshadeShadow: Color(0xFF727C83),
+    mapHillshadeHighlight: Color(0xFFFFFFE4),
   );
 
   static PdlColors of(Brightness brightness) =>
@@ -402,6 +419,8 @@ class PdlColors extends ThemeExtension<PdlColors> {
     Color? mapStart,
     Color? mapEnd,
     Color? mapWaypoint,
+    Color? mapHillshadeShadow,
+    Color? mapHillshadeHighlight,
   }) {
     return PdlColors(
       surface: surface ?? this.surface,
@@ -462,6 +481,9 @@ class PdlColors extends ThemeExtension<PdlColors> {
       mapStart: mapStart ?? this.mapStart,
       mapEnd: mapEnd ?? this.mapEnd,
       mapWaypoint: mapWaypoint ?? this.mapWaypoint,
+      mapHillshadeShadow: mapHillshadeShadow ?? this.mapHillshadeShadow,
+      mapHillshadeHighlight:
+          mapHillshadeHighlight ?? this.mapHillshadeHighlight,
     );
   }
 
@@ -528,6 +550,11 @@ class PdlColors extends ThemeExtension<PdlColors> {
       mapStart: c(mapStart, other.mapStart),
       mapEnd: c(mapEnd, other.mapEnd),
       mapWaypoint: c(mapWaypoint, other.mapWaypoint),
+      mapHillshadeShadow: c(mapHillshadeShadow, other.mapHillshadeShadow),
+      mapHillshadeHighlight: c(
+        mapHillshadeHighlight,
+        other.mapHillshadeHighlight,
+      ),
     );
   }
 }

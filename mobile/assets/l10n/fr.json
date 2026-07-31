@@ -950,6 +950,7 @@
     "exitFullscreen": "Quitter le plein écran",
     "background": "Fond de carte",
     "chooseBackground": "Choisir le fond de carte",
+    "hillshade": "Ombrage du relief",
     "styleGroup": {
       "vector": "Plans",
       "satellite": "Satellite",

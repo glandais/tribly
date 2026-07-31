@@ -6,6 +6,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'map_center_dto.dart';
 import 'map_style_dto.dart';
+import 'map_terrain_dto.dart';
 
 part 'config_dto.freezed.dart';
 part 'config_dto.g.dart';
@@ -37,6 +38,9 @@ abstract class ConfigDto with _$ConfigDto {
 
     /// Slug of the team the site is pinned to (dedicated hostname / alias). Null on a regular multi-team domain. When set, the app roots on this team.
     String? pinnedTeamSlug,
+
+    /// The elevation source the clients may shade the relief with. Null when the deployment configures none — the clients then offer no relief at all rather than falling back to a provider of their own.
+    MapTerrainDto? terrain,
 
     /// Oldest mobile build this server still serves, as a semver string. Null when no floor is enforced; a client older than this should tell the user to update.
     String? minSupportedAppVersion,

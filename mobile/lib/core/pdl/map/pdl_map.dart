@@ -37,6 +37,7 @@ class PdlMap extends StatefulWidget {
     this.initialZoom = 5,
     this.fitBox,
     this.fitPadding = const EdgeInsets.all(50),
+    this.hillshade,
     this.selectedTrackId,
     this.onTrackSelected,
     this.onMapTapped,
@@ -61,6 +62,11 @@ class PdlMap extends StatefulWidget {
 
   final PdlMapPoint? start;
   final PdlMapPoint? end;
+
+  /// L'ombrage du relief, ou `null` pour aucun. La source vient de
+  /// `ConfigDto.terrain` via l'écran — **aucune URL n'est écrite ici**, pas plus
+  /// que pour le fond de carte.
+  final PdlHillshade? hillshade;
 
   /// Où la carte s'ouvre avant toute donnée (`ConfigDto.defaultCenter`).
   final PdlMapPoint? initialCenter;
@@ -171,6 +177,9 @@ class _PdlMapState extends State<PdlMap> {
         widget.start != oldWidget.start ||
         widget.end != oldWidget.end) {
       _pushContent();
+    }
+    if (widget.hillshade != oldWidget.hillshade) {
+      _controller.setHillshade(widget.hillshade);
     }
     if (widget.selectedTrackId != oldWidget.selectedTrackId) {
       _controller.select(widget.selectedTrackId);
@@ -322,6 +331,10 @@ class _PdlMapState extends State<PdlMap> {
         cursor: c.primary,
       )
       ..select(widget.selectedTrackId);
+    // Avant `attachStyle` : le contrôleur repose *toutes* les couches à
+    // l'attache, et l'ombrage doit être connu à ce moment-là pour sortir sous
+    // les tracés plutôt qu'au-dessus.
+    await _controller.setHillshade(widget.hillshade);
     await _controller.setContent(
       tracks: widget.tracks,
       waypoints: widget.waypoints,
