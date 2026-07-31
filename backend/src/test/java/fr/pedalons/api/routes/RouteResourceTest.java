@@ -17,16 +17,21 @@ import fr.pedalons.dto.routes.request.RouteRequest;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.SurfaceType;
 import fr.pedalons.enums.Visibility;
+import fr.pedalons.service.security.TileTokenService;
 import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
 import java.io.File;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
 class RouteResourceTest extends AbstractResourceTest {
+
+  @Inject TileTokenService tileTokenService;
 
   @Override
   @BeforeEach
@@ -905,6 +910,28 @@ class RouteResourceTest extends AbstractResourceTest {
         .then()
         .statusCode(200)
         .body(emptyString());
+  }
+
+  @Test
+  void routesTile_withTileToken_shouldContainTeamRoute() {
+    Route publicRoute = dataService.createRoute(team1, user1, "Tile Public", Visibility.PUBLIC);
+    Route teamRoute = dataService.createRoute(team1, user1, "Tile Team", Visibility.TEAM);
+    String token = tileTokenService.issue(user3.getId(), domain.getId(), Instant.now()).value();
+
+    String tile = MvtAssert.decode(given().queryParam("t", token).when().get(routesTile()));
+
+    MvtAssert.assertContainsSlugs(tile, publicRoute.getSlug(), teamRoute.getSlug());
+  }
+
+  @Test
+  void routesTile_withExpiredTileToken_shouldReturnUnauthorized() {
+    dataService.createRoute(team1, user1, "Tile Public", Visibility.PUBLIC);
+    String expired =
+        tileTokenService
+            .issue(user3.getId(), domain.getId(), Instant.now().minus(2, ChronoUnit.HOURS))
+            .value();
+
+    given().queryParam("t", expired).when().get(routesTile()).then().statusCode(401);
   }
 
   // ==================== Route Usages Tests ====================

@@ -204,6 +204,19 @@ Two services stay per-environment on purpose, even though they look shareable:
   read a truncated file and cache it permanently. Keep it at `/mnt/cache`: pointed at `/tmp` it lives
   inside the container and is re-downloaded in full on every restart.
 
+### Redacting credentials from access logs
+
+Two endpoints carry a credential in the query string, because their client fetches them outside the
+authenticated HTTP stack and cannot set a header:
+
+- `?t=` on `/api/…/tiles/{z}/{x}/{y}.mvt` — the tile token, ~15 min (see `TileTokenService`). MapLibre
+  fetches tiles itself, so this repeats on every tile: dozens of log lines per map session.
+- `?token=` on the ICS calendar feed — this one does **not** expire, so it matters more.
+
+Traefik and Caddy both log the full URI. Configure the host's Caddy access log to redact those two
+parameters. The short TTL is what makes historical tile-token lines inert, and it is the reason the
+TTL must never be raised to hours; the calendar token has no such protection.
+
 ### Seeding the shared Valhalla data
 
 `~/shared/data/valhalla` is ~17 GB and takes hours to build from the `.osm.pbf`. On first start the

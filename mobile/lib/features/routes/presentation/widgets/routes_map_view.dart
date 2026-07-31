@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
+import '../../../../config/app_config.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/config/config_provider.dart';
 import '../../../../core/config/map_style_options.dart';
@@ -16,10 +17,11 @@ import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
+import '../../../../core/utils/formatters.dart';
 import '../../data/route_repository.dart';
-import '../../data/routes_mass_repository.dart';
+import '../../data/route_tile_urls.dart';
+import '../../data/tile_token_repository.dart';
 import '../../domain/route_filters.dart';
-import 'route_card.dart';
 import 'routes_near_me_controls.dart';
 
 /// Le cadrage initial de la carte, **figé au montage**.
@@ -35,11 +37,15 @@ final routeBoundsProvider = FutureProvider.autoDispose
 
 /// La vue Carte de la parcothèque.
 ///
-/// **Le plafond du repli GeoJSON est visible, jamais silencieux** (§3.1, risque
-/// n° 2) : dès que la zone contient plus de tracés que
-/// [PdlMassLayerController.limit], une pilule annonce « 412 ici · 120
-/// affichés ». Une carte tronquée sans le dire se lit comme une carte
-/// complète, et fait conclure qu'il n'y a rien de plus.
+/// **Elle rend les vraies tuiles vectorielles**, comme le web : tous les
+/// parcours de la zone, sans plafond, sans pilule de troncature et sans le
+/// `N+1` d'appels de détail que le repli GeoJSON payait. Ce qui l'a rendu
+/// possible est le jeton signé — voir l'en-tête de
+/// `core/pdl/map/pdl_mass_layer.dart`.
+///
+/// **Le tap ne coûte aucune requête** : les propriétés du parcours touché
+/// voyagent dans la tuile (`slug`, `name`, `team_slug`, `distance`,
+/// `elevation_gain`), et c'est exactement ce que fait la carte web.
 class RoutesMapView extends ConsumerStatefulWidget {
   const RoutesMapView({
     super.key,
@@ -54,42 +60,89 @@ class RoutesMapView extends ConsumerStatefulWidget {
   ConsumerState<RoutesMapView> createState() => _RoutesMapViewState();
 }
 
-class _RoutesMapViewState extends ConsumerState<RoutesMapView> {
+class _RoutesMapViewState extends ConsumerState<RoutesMapView>
+    with WidgetsBindingObserver {
   final PdlMapController _controller = PdlMapController();
-  PdlMassLayerController? _mass;
-  String? _selectedSlug;
+
+  String? _token;
+  Object? _tokenError;
+
+  /// Le parcours touché, lu **dans la tuile**.
+  _MassRoute? _selected;
 
   /// Les filtres du premier cadre : ce sont eux, et eux seuls, qui cadrent la
   /// carte.
   late final RouteFilters _framingFilters = widget.filters;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _ensureToken();
+  }
+
+  @override
   void didUpdateWidget(RoutesMapView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.filters != oldWidget.filters) {
-      // Un filtre a changé : la zone regardée ne bouge pas, son contenu si.
-      _selectedSlug = null;
-      _mass?.searchHere();
+      // Un filtre a changé : la zone regardée ne bouge pas, son contenu si —
+      // et l'URL de tuile change avec lui, donc MapLibre redemande ses tuiles
+      // tout seul. Le parcours sélectionné, lui, peut ne plus être dans le jeu.
+      setState(() => _selected = null);
+    }
+  }
+
+  /// Le cas qui mord vraiment : téléphone en poche, retour vingt minutes plus
+  /// tard sur un jeton périmé. `maplibre` n'expose aucun événement d'erreur de
+  /// tuile, donc le Dart ne peut ni le détecter ni l'annoncer — sans ce
+  /// déclencheur, l'utilisateur revient sur une carte vide.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed &&
+        ref.read(tileTokenRepositoryProvider).needsRenewal) {
+      _ensureToken();
     }
   }
 
   @override
   void dispose() {
-    _mass?.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
     super.dispose();
   }
 
-  PdlMassLayerController _massFor(Color color) {
-    // Le fetcher capture les filtres courants ; il est reconstruit à chaque
-    // build, le contrôleur — et donc les tracés déjà chargés — survit.
-    final PdlMassFetcher fetcher = ref
-        .read(routesMassRepositoryProvider)
-        .fetcher(color: color, filters: widget.filters);
-    final PdlMassLayerController existing = _mass ??= PdlMassLayerController(
-      fetcher: (PdlMassRequest r) => fetcher(r),
-    );
-    return existing;
+  Future<void> _ensureToken() async {
+    try {
+      final String token = await ref
+          .read(tileTokenRepositoryProvider)
+          .current();
+      if (!mounted) return;
+      setState(() {
+        _token = token;
+        _tokenError = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _tokenError = e);
+    }
+  }
+
+  String? get _tileUrl {
+    final String? token = _token;
+    if (token == null) return null;
+    final String? teamSlug = widget.filters.teamSlug;
+    return teamSlug == null
+        ? RouteTileUrls.allRoutes(
+            apiBaseUrl: AppConfig.apiBaseUrl,
+            token: token,
+            filters: widget.filters,
+          )
+        : RouteTileUrls.teamRoutes(
+            apiBaseUrl: AppConfig.apiBaseUrl,
+            teamSlug: teamSlug,
+            token: token,
+            filters: widget.filters,
+          );
   }
 
   @override
@@ -109,56 +162,54 @@ class _RoutesMapViewState extends ConsumerState<RoutesMapView> {
       return _MapPending(error: style.error, onRetry: _reloadConfig);
     }
 
-    final PdlMassLayerController mass = _massFor(c.mapTrack);
+    final PdlMapBox? fitBox = _proximityBox() ?? bounds.value;
 
-    return AnimatedBuilder(
-      animation: mass,
-      builder: (BuildContext context, _) {
-        final PdlMapBox? fitBox = _proximityBox() ?? bounds.value;
-
-        return PdlMapHero(
-          labels: PdlMapHeroLabels(
-            enterFullscreen: 'map.fullscreen'.tr(),
-            exitFullscreen: 'map.exitFullscreen'.tr(),
-            chooseBackground: 'map.background'.tr(),
-            backgroundSheetTitle: 'map.background'.tr(),
-            hillshade: 'map.hillshade'.tr(),
-          ),
-          styles: servedMapStyleOptions(ref),
-          hillshadeEnabled: servedHillshadeEnabled(ref),
-          onHillshadeChanged: (bool on) =>
-              ref.read(hillshadeEnabledProvider.notifier).set(on),
-          selectedStyleId: resolved.style.id,
-          onStyleSelected: (String id) =>
-              ref.read(mapStyleIdProvider.notifier).select(id),
-          pill: _pill(mass),
-          floatingCard: _floatingCard(mass),
-          foreground: Positioned(
-            left: PdlSpacing.sectionTightV,
-            top: PdlSpacing.sectionTightV + PdlMetrics.tapTarget + 8,
-            right: PdlSpacing.sectionTightV + PdlMetrics.tapTarget + 8,
-            child: RoutesNearMeControls(
-              filters: widget.filters,
-              onChanged: widget.onChanged,
-            ),
-          ),
-          mapBuilder: (BuildContext context) => PdlMap(
-            hillshade: servedHillshade(context, ref),
-            styleUrl: resolved.url,
-            controller: _controller,
-            tracks: mass.tracks,
-            initialCenter: center.value == null
-                ? null
-                : PdlMapPoint(lon: center.value!.lon, lat: center.value!.lat),
-            initialZoom: center.value?.zoom.toDouble() ?? 5,
-            fitBox: fitBox,
-            selectedTrackId: _selectedSlug,
-            onTrackSelected: (String? id) => setState(() => _selectedSlug = id),
-            onCameraIdle: mass.onCameraIdle,
-          ),
-        );
-      },
+    return PdlMapHero(
+      labels: PdlMapHeroLabels(
+        enterFullscreen: 'map.fullscreen'.tr(),
+        exitFullscreen: 'map.exitFullscreen'.tr(),
+        chooseBackground: 'map.background'.tr(),
+        backgroundSheetTitle: 'map.background'.tr(),
+        hillshade: 'map.hillshade'.tr(),
+      ),
+      styles: servedMapStyleOptions(ref),
+      hillshadeEnabled: servedHillshadeEnabled(ref),
+      onHillshadeChanged: (bool on) =>
+          ref.read(hillshadeEnabledProvider.notifier).set(on),
+      selectedStyleId: resolved.style.id,
+      onStyleSelected: (String id) =>
+          ref.read(mapStyleIdProvider.notifier).select(id),
+      pill: _pill(),
+      floatingCard: _floatingCard(),
+      foreground: Positioned(
+        left: PdlSpacing.sectionTightV,
+        top: PdlSpacing.sectionTightV + PdlMetrics.tapTarget + 8,
+        right: PdlSpacing.sectionTightV + PdlMetrics.tapTarget + 8,
+        child: RoutesNearMeControls(
+          filters: widget.filters,
+          onChanged: widget.onChanged,
+        ),
+      ),
+      mapBuilder: (BuildContext context) => PdlMap(
+        hillshade: servedHillshade(context, ref),
+        styleUrl: resolved.url,
+        controller: _controller,
+        massTileUrl: _tileUrl,
+        massTileColor: c.mapTrack,
+        onMassFeatureTapped: _onFeatureTapped,
+        initialCenter: center.value == null
+            ? null
+            : PdlMapPoint(lon: center.value!.lon, lat: center.value!.lat),
+        initialZoom: center.value?.zoom.toDouble() ?? 5,
+        fitBox: fitBox,
+      ),
     );
+  }
+
+  void _onFeatureTapped(Map<String, Object?>? properties) {
+    final _MassRoute? route = _MassRoute.fromTile(properties);
+    if (route == null && _selected == null) return;
+    setState(() => _selected = route);
   }
 
   void _reloadConfig() => ref.invalidate(appConfigProvider);
@@ -184,64 +235,79 @@ class _RoutesMapViewState extends ConsumerState<RoutesMapView> {
     );
   }
 
-  /// « Rechercher dans cette zone » — n'apparaît **qu'après un déplacement**,
-  /// jamais au premier cadre : proposer de chercher là où on vient d'arriver
-  /// n'a pas de sens. Elle cède la place au plafond quand celui-ci est atteint,
-  /// parce que le plafond est l'information la plus utile des deux.
-  Widget? _pill(PdlMassLayerController mass) {
-    if (mass.loading) {
-      return PdlMapPill(icon: PdlIcons.refresh, label: 'common.loading'.tr());
-    }
-    if (mass.error != null) {
+  /// La seule pilule qui reste : celle qui **dit** qu'aucune tuile ne peut être
+  /// demandée. Une carte muette qui ne montre rien se lit comme une région sans
+  /// parcours.
+  Widget? _pill() {
+    if (_tokenError != null) {
       return PdlMapPill(
         icon: PdlIcons.error,
-        label: getErrorMessage(mass.error!),
-        onPressed: mass.searchHere,
+        label: getErrorMessage(_tokenError!),
+        onPressed: _ensureToken,
       );
     }
-    if (mass.isStale) {
-      return PdlMapPill(
-        icon: PdlIcons.refresh,
-        label: 'map.searchThisArea'.tr(),
-        onPressed: mass.searchHere,
-      );
-    }
-    if (mass.truncated) {
-      final String label = 'map.truncated'.tr(
-        namedArgs: <String, String>{
-          'total': '${mass.total ?? mass.tracks.length}',
-          'shown': '${mass.tracks.length}',
-        },
-      );
-      return PdlMapPill(icon: PdlIcons.warning, label: label);
+    if (_token == null) {
+      return PdlMapPill(icon: PdlIcons.refresh, label: 'common.loading'.tr());
     }
     return null;
   }
 
-  Widget? _floatingCard(PdlMassLayerController mass) {
-    final String? slug = _selectedSlug;
-    if (slug == null) return null;
-    final PdlMapTrack? track = mass.tracks
-        .where((PdlMapTrack t) => t.id == slug)
-        .firstOrNull;
-    if (track == null) return null;
-    return _SelectedRouteCard(
-      title: track.label ?? slug,
-      route: ref.read(routesMassRepositoryProvider).row(slug),
-    );
+  Widget? _floatingCard() {
+    final _MassRoute? route = _selected;
+    if (route == null) return null;
+    return _SelectedRouteCard(route: route);
   }
 }
 
-/// La carte flottante d'un tracé sélectionné.
+/// Le parcours touché, tel que la tuile le porte.
 ///
-/// Elle relit la ligne de liste que le repli de masse a déjà chargée plutôt
-/// que de rappeler l'API : c'est la même source, et un appel de plus sur un tap
-/// de carte serait payé à chaque sélection.
-class _SelectedRouteCard extends ConsumerWidget {
-  const _SelectedRouteCard({required this.title, required this.route});
+/// Les clés viennent du type `route_mvt_row` du backend, et ce sont les mêmes
+/// que celles que lit la carte web (`RoutesTileMap.tsx`). Les nombres arrivent
+/// en `num` : une tuile ne distingue pas l'entier du flottant.
+@immutable
+class _MassRoute {
+  const _MassRoute({
+    required this.slug,
+    required this.teamSlug,
+    required this.name,
+    this.distance,
+    this.elevationGain,
+  });
 
-  final String title;
-  final RouteDto? route;
+  final String slug;
+  final String teamSlug;
+  final String name;
+  final double? distance;
+  final double? elevationGain;
+
+  static _MassRoute? fromTile(Map<String, Object?>? properties) {
+    if (properties == null) return null;
+    final Object? slug = properties['slug'];
+    final Object? teamSlug = properties['team_slug'];
+    // Sans slug ni équipe, la carte flottante n'aurait nulle part où mener.
+    if (slug is! String || teamSlug is! String) return null;
+    return _MassRoute(
+      slug: slug,
+      teamSlug: teamSlug,
+      name: properties['name'] is String ? properties['name']! as String : slug,
+      distance: _toDouble(properties['distance']),
+      elevationGain: _toDouble(properties['elevation_gain']),
+    );
+  }
+
+  static double? _toDouble(Object? value) =>
+      value is num ? value.toDouble() : null;
+}
+
+/// La carte flottante d'un parcours sélectionné.
+///
+/// Elle se contente de ce que la tuile porte : **aucun appel** n'est fait au
+/// tap. C'est aussi pourquoi il n'y a pas de vignette — la tuile n'en transporte
+/// pas, et la chercher coûterait la requête qu'on vient d'économiser.
+class _SelectedRouteCard extends ConsumerWidget {
+  const _SelectedRouteCard({required this.route});
+
+  final _MassRoute route;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -249,20 +315,11 @@ class _SelectedRouteCard extends ConsumerWidget {
     final PdlTypography t = context.pdlText;
     final UnitSystem units = ref.watch(unitSystemProvider);
 
-    final RouteDto? row = route;
     return PdlMapFloatingCard(
-      onTap: row == null
-          ? null
-          : () => context.push(Paths.route(row.team.slug, row.slug)),
+      onTap: () => context.push(Paths.route(route.teamSlug, route.slug)),
       child: Row(
         children: <Widget>[
-          PdlThumb(
-            imageUrl:
-                row?.media.assets.thumbnailLight?.url ?? row?.thumbnailUrl,
-            darkImageUrl: row?.media.assets.thumbnailDark?.url,
-            size: PdlMetrics.thumbSm,
-            fallbackIcon: PdlIcons.route,
-          ),
+          PdlThumb(size: PdlMetrics.thumbSm, fallbackIcon: PdlIcons.route),
           const SizedBox(width: PdlSpacing.cardTight),
           Expanded(
             child: Column(
@@ -270,31 +327,42 @@ class _SelectedRouteCard extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 Text(
-                  row?.name ?? title,
+                  route.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: t.cardTitle.copyWith(color: c.text),
                 ),
-                if (row != null) ...<Widget>[
-                  const SizedBox(height: 4),
-                  PdlStatRow(stats: routeStats(row, units)),
-                ],
+                const SizedBox(height: 4),
+                PdlStatRow(stats: _stats(units)),
               ],
             ),
           ),
-          if (row != null) ...<Widget>[
-            const SizedBox(width: PdlSpacing.chipGap),
-            PdlButton(
-              size: PdlButtonSize.sm,
-              label: 'common.open'.tr(),
-              onPressed: () =>
-                  context.push(Paths.route(row.team.slug, row.slug)),
-            ),
-          ],
+          const SizedBox(width: PdlSpacing.chipGap),
+          PdlButton(
+            size: PdlButtonSize.sm,
+            label: 'common.open'.tr(),
+            onPressed: () =>
+                context.push(Paths.route(route.teamSlug, route.slug)),
+          ),
         ],
       ),
     );
   }
+
+  /// Même formatage que `routeStats` de la carte de liste — les unités passent
+  /// toujours par `AppFormatters`, jamais par un `km` codé en dur.
+  List<PdlStat> _stats(UnitSystem units) => <PdlStat>[
+    if (route.distance != null)
+      PdlStat(
+        icon: PdlIcons.distance,
+        value: AppFormatters.formatDistance(route.distance!, units),
+      ),
+    if (route.elevationGain != null)
+      PdlStat(
+        icon: PdlIcons.elevationUp,
+        value: AppFormatters.formatElevation(route.elevationGain!, units),
+      ),
+  ];
 }
 
 /// Un écran de carte qui n'a pas encore son fond : `ConfigDto` est en vol, ou

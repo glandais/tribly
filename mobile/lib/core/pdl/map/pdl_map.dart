@@ -45,10 +45,21 @@ class PdlMap extends StatefulWidget {
     this.interactive = true,
     this.gestures,
     this.overlays = const <Widget>[],
+    this.massTileUrl,
+    this.massTileColor,
+    this.onMassFeatureTapped,
   });
 
   /// L'URL du style de fond, **toujours** fournie par l'appelant.
   final String styleUrl;
+
+  /// Gabarit d'URL des tuiles vectorielles de masse, ou `null` pour n'en poser
+  /// aucune. Une chaîne, jamais un DTO : voir
+  /// `features/routes/data/route_tile_urls.dart`.
+  final String? massTileUrl;
+
+  /// Couleur du trait de la masse. À défaut, la primaire du thème.
+  final Color? massTileColor;
 
   /// Contrôleur externe, quand l'écran a besoin de piloter la sélection ou de
   /// lire la région visible. À défaut, [PdlMap] en crée un et le possède.
@@ -87,6 +98,14 @@ class PdlMap extends StatefulWidget {
   /// ici c'est la position brute, dont l'appelant fait ce qu'il veut — la
   /// fiche parcours en dérive la distance cumulée du réticule.
   final void Function(double lon, double lat)? onMapTapped;
+
+  /// Tap sur la couche de masse, avec les **propriétés brutes** de l'entité de
+  /// tuile touchée — ou `null` quand le doigt tombe à côté.
+  ///
+  /// Une `Map`, pas un DTO : `core/pdl` n'en connaît aucun. Les clés sont
+  /// celles que le backend encode dans la tuile (`slug`, `name`, `team_slug`,
+  /// `distance`, `elevation_gain`).
+  final ValueChanged<Map<String, Object?>?>? onMassFeatureTapped;
 
   /// Appelé quand la caméra se stabilise, avec la région visible — de quoi
   /// alimenter « Rechercher dans cette zone ».
@@ -184,7 +203,18 @@ class _PdlMapState extends State<PdlMap> {
     if (widget.selectedTrackId != oldWidget.selectedTrackId) {
       _controller.select(widget.selectedTrackId);
     }
+    // `setMassTileUrl` ignore une URL inchangée : c'est ce qui rend cet appel
+    // sûr à chaque `didUpdateWidget`, alors qu'un remplacement de source
+    // viderait le cache de tuiles à chaque image.
+    _pushMassTiles();
     _fit();
+  }
+
+  void _pushMassTiles() {
+    _controller.setMassTileUrl(
+      widget.massTileUrl,
+      colorHex: (widget.massTileColor ?? context.pdl.primary).toHexString(),
+    );
   }
 
   void _pushContent() {
@@ -300,6 +330,14 @@ class _PdlMapState extends State<PdlMap> {
           widget.onTrackSelected?.call(id);
           if (widget.selectedTrackId == null) _controller.select(id);
         }
+        // La masse est interrogée **après** les tracés GeoJSON : sur un écran
+        // qui affiche les deux, le tracé posé au premier plan gagne le tap,
+        // comme il gagne le dessin.
+        if (widget.onMassFeatureTapped != null && id == null) {
+          widget.onMassFeatureTapped!(
+            _controller.massFeatureAt(event.screenPoint),
+          );
+        }
       case MapEventCameraIdle():
         final PdlMapBox? box = _controller.visibleBox;
         if (box != null) widget.onCameraIdle?.call(box);
@@ -332,9 +370,10 @@ class _PdlMapState extends State<PdlMap> {
       )
       ..select(widget.selectedTrackId);
     // Avant `attachStyle` : le contrôleur repose *toutes* les couches à
-    // l'attache, et l'ombrage doit être connu à ce moment-là pour sortir sous
-    // les tracés plutôt qu'au-dessus.
+    // l'attache, et l'ombrage comme la masse doivent être connus à ce
+    // moment-là pour sortir sous les tracés plutôt qu'au-dessus.
     await _controller.setHillshade(widget.hillshade);
+    _pushMassTiles();
     await _controller.setContent(
       tracks: widget.tracks,
       waypoints: widget.waypoints,

@@ -482,7 +482,7 @@ export const prefetchCountAllRoutesQuery = async <
 }
 
 /**
- * Mapbox vector tile holding the routes of all accessible teams, layer 'routes'. Accepts the same filters as the route list, minus sorting and pagination, which a tile has no use for. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
+ * Mapbox vector tile holding the routes of all accessible teams, layer 'routes'. Accepts the same filters as the route list, minus sorting and pagination, which a tile has no use for. Fetched directly by the map renderer, outside the authenticated HTTP stack: a browser authenticates with its session cookie, any other client with the 't' tile token.
  * @summary All routes vector tile
  */
 export const allRoutesTile = (
@@ -1349,7 +1349,7 @@ export const prefetchCountRoutesQuery = async <
 }
 
 /**
- * Mapbox vector tile holding the team's routes, layer 'routes'. Accepts the same filters as the route list, minus sorting and pagination, which a tile has no use for. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
+ * Mapbox vector tile holding the team's routes, layer 'routes'. Accepts the same filters as the route list, minus sorting and pagination, which a tile has no use for. Fetched directly by the map renderer, outside the authenticated HTTP stack: a browser authenticates with its session cookie, any other client with the 't' tile token.
  * @summary Team routes vector tile
  */
 export const routesTile = (

@@ -9,6 +9,7 @@ import fr.pedalons.dto.routes.request.RouteRequest;
 import fr.pedalons.dto.routes.response.*;
 import fr.pedalons.infrastructure.jaxrs.PedalonsMediaType;
 import fr.pedalons.service.route.RouteService;
+import fr.pedalons.service.security.annotation.TileTokenAuth;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -111,6 +112,7 @@ public class RouteResource {
    */
   @GET
   @PermitAll
+  @TileTokenAuth
   @Path("/tiles/{z}/{x}/{y}.mvt")
   @Produces(PedalonsMediaType.MAPBOX_VECTOR_TILE)
   @Operation(
@@ -118,11 +120,13 @@ public class RouteResource {
       description =
           "Mapbox vector tile holding the team's routes, layer 'routes'. Accepts the same filters"
               + " as the route list, minus sorting and pagination, which a tile has no use for."
-              + " Fetched directly by the map renderer, so it authenticates with the session cookie"
-              + " rather than a bearer token.")
+              + " Fetched directly by the map renderer, outside the authenticated HTTP stack: a"
+              + " browser authenticates with its session cookie, any other client with the 't'"
+              + " tile token.")
   @APIResponses({
     @APIResponse(responseCode = "200", description = "Tile retrieved successfully"),
     @APIResponse(responseCode = "400", description = "Invalid tile coordinates"),
+    @APIResponse(responseCode = "401", description = "Invalid or expired tile token"),
     @APIResponse(
         responseCode = "404",
         description = "Team not found",
@@ -133,6 +137,16 @@ public class RouteResource {
       @Parameter(description = "Zoom level") @PathParam("z") int z,
       @Parameter(description = "Tile column") @PathParam("x") int x,
       @Parameter(description = "Tile row") @PathParam("y") int y,
+      // Declared so the contract is honest and the generated clients expose it, but deliberately
+      // unread here: TileTokenFilter consumes it before this method exists. Do not delete it as
+      // "dead" — removing it would silently drop the parameter from the contract.
+      @Parameter(
+              description =
+                  "Tile token from POST /api/tiles/token, for clients whose map renderer cannot"
+                      + " carry an Authorization header. Omitted, the request falls back to the"
+                      + " session cookie and then to the anonymous visitor.")
+          @QueryParam("t")
+          @Nullable String tileToken,
       @BeanParam RouteFilterParams params) {
 
     return RouteTiles.response(

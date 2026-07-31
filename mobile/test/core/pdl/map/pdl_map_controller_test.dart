@@ -215,5 +215,40 @@ void main() {
       expect(controller.trackIdAt(const Offset(10, 10)), isNull);
       expect(controller.visibleBox, isNull);
     });
+
+    test('sans carte attachée, massFeatureAt ne lève pas', () {
+      final PdlMapController controller = PdlMapController();
+      addTearDown(controller.dispose);
+      expect(controller.massFeatureAt(const Offset(10, 10)), isNull);
+    });
+
+    test('la couche de masse est nommée sous le préfixe de l\'écran', () {
+      final PdlMapController controller = PdlMapController(
+        layerPrefix: 'ride-track',
+      );
+      addTearDown(controller.dispose);
+      expect(controller.massLayerId, 'ride-track-mass');
+    });
+
+    /// **Garde-fou de performance, pas de correction.** L'URL de tuile porte le
+    /// jeton, donc elle *est* la clé de cache de MapLibre : reposer la source
+    /// pour une URL inchangée viderait le cache à chaque `build` de l'écran,
+    /// plusieurs fois par seconde pendant une animation.
+    test('reposer la même URL de masse ne change rien', () async {
+      final PdlMapController controller = PdlMapController();
+      addTearDown(controller.dispose);
+      const String url = 'https://example.test/tiles/{z}/{x}/{y}.mvt?t=abc';
+
+      await controller.setMassTileUrl(url);
+      expect(controller.massTileUrl, url);
+
+      // Sans style attaché il n'y a rien à observer côté MapLibre ; ce qu'on
+      // vérifie est que l'appel est idempotent et ne lève pas.
+      await controller.setMassTileUrl(url);
+      expect(controller.massTileUrl, url);
+
+      await controller.setMassTileUrl(null);
+      expect(controller.massTileUrl, isNull);
+    });
   });
 }

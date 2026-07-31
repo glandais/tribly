@@ -35,6 +35,7 @@ export 'clients/ride_comments_client.dart';
 export 'clients/route_comments_client.dart';
 export 'clients/trips_client.dart';
 export 'clients/trip_comments_client.dart';
+export 'clients/tiles_client.dart';
 export 'clients/server_version_client.dart';
 // Data classes
 export 'models/ad_contact_request.dart';
@@ -184,6 +185,7 @@ export 'models/team_publication_dto.dart';
 export 'models/team_request.dart';
 export 'models/team_role.dart';
 export 'models/theme_preference.dart';
+export 'models/tile_token_dto.dart';
 export 'models/track_dto.dart';
 export 'models/trip_dto.dart';
 export 'models/trip_list_response.dart';

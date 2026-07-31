@@ -378,7 +378,7 @@ export const CountAllRoutesResponse = zod
   .describe('Number of items matching a filter set')
 
 /**
- * Mapbox vector tile holding the routes of all accessible teams, layer 'routes'. Accepts the same filters as the route list, minus sorting and pagination, which a tile has no use for. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
+ * Mapbox vector tile holding the routes of all accessible teams, layer 'routes'. Accepts the same filters as the route list, minus sorting and pagination, which a tile has no use for. Fetched directly by the map renderer, outside the authenticated HTTP stack: a browser authenticates with its session cookie, any other client with the 't' tile token.
  * @summary All routes vector tile
  */
 export const AllRoutesTileParams = zod.object({
@@ -414,6 +414,12 @@ export const AllRoutesTileQueryParams = zod.object({
     .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
     .optional()
     .describe('Filter by surface type'),
+  t: zod
+    .string()
+    .optional()
+    .describe(
+      'Tile token from POST \/api\/tiles\/token, for clients whose map renderer cannot carry an Authorization header. Omitted, the request falls back to the session cookie and then to the anonymous visitor.'
+    ),
   windDirection: zod
     .enum([
       'NORTH',
@@ -1497,7 +1503,7 @@ export const CountRoutesResponse = zod
   .describe('Number of items matching a filter set')
 
 /**
- * Mapbox vector tile holding the team's routes, layer 'routes'. Accepts the same filters as the route list, minus sorting and pagination, which a tile has no use for. Fetched directly by the map renderer, so it authenticates with the session cookie rather than a bearer token.
+ * Mapbox vector tile holding the team's routes, layer 'routes'. Accepts the same filters as the route list, minus sorting and pagination, which a tile has no use for. Fetched directly by the map renderer, outside the authenticated HTTP stack: a browser authenticates with its session cookie, any other client with the 't' tile token.
  * @summary Team routes vector tile
  */
 export const RoutesTileParams = zod.object({
@@ -1528,6 +1534,12 @@ export const RoutesTileQueryParams = zod.object({
     .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
     .optional()
     .describe('Filter by surface type'),
+  t: zod
+    .string()
+    .optional()
+    .describe(
+      'Tile token from POST \/api\/tiles\/token, for clients whose map renderer cannot carry an Authorization header. Omitted, the request falls back to the session cookie and then to the anonymous visitor.'
+    ),
   windDirection: zod
     .enum([
       'NORTH',

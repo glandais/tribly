@@ -113,6 +113,10 @@ final routesClientProvider = Provider<RoutesClient>((ref) {
   return ref.watch(apiClientProvider).routes;
 });
 
+final tilesClientProvider = Provider<TilesClient>((ref) {
+  return ref.watch(apiClientProvider).tiles;
+});
+
 final calendarClientProvider = Provider<CalendarClient>((ref) {
   return ref.watch(apiClientProvider).calendar;
 });
