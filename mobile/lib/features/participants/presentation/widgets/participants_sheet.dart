@@ -59,6 +59,31 @@ class ParticipantsSheet extends ConsumerStatefulWidget {
     );
   }
 
+  /// La même feuille pour une sortie entière, tous groupes confondus.
+  ///
+  /// Le bouton « voir la liste » affiche le total de la sortie
+  /// (`ride.participantCount`) : la feuille doit donc réunir les participants
+  /// de **chaque** groupe, pas seulement celui de l'utilisateur ou le premier
+  /// de la liste. `organizerId` reste nul — une sortie n'a pas de meneur
+  /// unique, chaque groupe a le sien (ou aucun), et rien ne justifie d'en
+  /// mettre un en avant ici.
+  static Future<void> openRide(BuildContext context, RideDto ride) {
+    final Map<String, PublicUserDto> byId = <String, PublicUserDto>{};
+    for (final RideGroupDto group in ride.groups) {
+      for (final PublicUserDto person in group.participants) {
+        byId[person.id] = person;
+      }
+    }
+    return PdlSheet.show<void>(
+      context: context,
+      builder: (BuildContext _) => ParticipantsSheet(
+        subtitle: ride.name,
+        people: byId.values.toList(),
+        count: ride.participantCount,
+      ),
+    );
+  }
+
   /// La même feuille pour un voyage : pas de meneur, pas de groupe.
   static Future<void> openTrip(BuildContext context, TripDto trip) {
     return PdlSheet.show<void>(

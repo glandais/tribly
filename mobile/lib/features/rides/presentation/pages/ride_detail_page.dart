@@ -324,10 +324,7 @@ class _RideDetailContent extends ConsumerWidget {
                   label: 'rides.viewParticipants'.tr(),
                   variant: PdlButtonVariant.text,
                   size: PdlButtonSize.sm,
-                  onPressed: () => ParticipantsSheet.open(
-                    context,
-                    ride.registeredGroup ?? ride.groups.first,
-                  ),
+                  onPressed: () => ParticipantsSheet.openRide(context, ride),
                 ),
               ),
       ),
