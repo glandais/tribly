@@ -1,15 +1,31 @@
-import { useState, useEffect } from 'react'
 import { useComputedColorScheme } from '@mantine/core'
-import type { StyleSpecification } from 'react-map-gl/maplibre'
-import { MAP_STYLES, type MapStyleId, type MapStyle } from '../components/map/mapStyles'
+import { useGetConfig } from '@/api/endpoints/configuration/configuration'
+import {
+  resolveMapStyle,
+  styleUrlFor,
+  type MapStyle,
+  type MapStyleId,
+} from '../components/map/mapStyles'
 import { useMapStyleStore } from '@/store/mapStyleStore'
 
-const DEFAULT_LIGHT_STYLE: MapStyleId = 'colorful'
-const DEFAULT_DARK_STYLE: MapStyleId = 'eclipse'
+const NO_STYLES: MapStyle[] = []
 
+/**
+ * The basemap to render, and the switcher's contents.
+ *
+ * Both come from `GET /api/config` — already prefetched during SSR, so `styles` is populated on the
+ * first render of a public page. There is deliberately no compiled-in fallback: a style URL hard-coded
+ * here would be one more thing to keep in step with the server, and that drift is what this replaces.
+ *
+ * Dark mode no longer selects a *different entry* (it used to jump to `eclipse`, which the switcher
+ * listed separately): the chosen basemap keeps its identity and loads its `darkVariant`. The user's
+ * pick therefore survives a theme change, and the switcher shows one line per basemap rather than
+ * one per basemap-and-scheme.
+ */
 export function useMapStyle() {
   const colorScheme = useComputedColorScheme('light')
-  const defaultStyle = colorScheme === 'dark' ? DEFAULT_DARK_STYLE : DEFAULT_LIGHT_STYLE
+  const { data: config } = useGetConfig()
+  const styles = config?.mapStyles ?? NO_STYLES
 
   const {
     savedStyleId,
@@ -21,30 +37,13 @@ export function useMapStyle() {
     setHillshade,
   } = useMapStyleStore()
 
-  const styleId = savedStyleId ?? defaultStyle
-
-  const currentStyle: MapStyle = MAP_STYLES[styleId]
-
-  const [asyncStyle, setAsyncStyle] = useState<StyleSpecification | undefined>(undefined)
-
-  const rawStyle = currentStyle.style
-  const isAsync = rawStyle instanceof Promise
-
-  useEffect(() => {
-    if (!isAsync) return
-    let cancelled = false
-    rawStyle.then((resolved) => {
-      if (!cancelled) setAsyncStyle(resolved)
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [rawStyle, isAsync])
-
-  const style = isAsync ? asyncStyle : rawStyle
+  const currentStyle = resolveMapStyle(styles, savedStyleId)
+  const styleId: MapStyleId | undefined = currentStyle?.id
+  const style = currentStyle ? styleUrlFor(currentStyle, colorScheme === 'dark') : undefined
 
   return {
     styleId,
+    styles,
     setStyleId,
     clearPreference: clearStylePreference,
     currentStyle,

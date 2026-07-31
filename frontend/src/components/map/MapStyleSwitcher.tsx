@@ -12,17 +12,13 @@ import {
   Switch,
   Divider,
 } from '@mantine/core'
-import {
-  MAP_STYLES,
-  STYLE_IDS,
-  STYLE_GROUPS,
-  type MapStyleId,
-  type MapStyleGroup,
-} from './mapStyles'
+import { groupStyles, isKnownGroup, type MapStyle, type MapStyleId } from './mapStyles'
 
 export interface MapStyleSwitcherProps {
   position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
-  currentStyleId: MapStyleId
+  /** The served basemaps, in served order. Empty while the config is in flight. */
+  styles: readonly MapStyle[]
+  currentStyleId: MapStyleId | undefined
   onStyleChange: (styleId: MapStyleId) => void
   terrain3d?: boolean
   onTerrain3DChange?: (enabled: boolean) => void
@@ -39,6 +35,7 @@ const POSITION_STYLES: Record<string, React.CSSProperties> = {
 
 export function MapStyleSwitcher({
   position = 'bottom-left',
+  styles,
   currentStyleId,
   onStyleChange,
   terrain3d = false,
@@ -108,44 +105,44 @@ export function MapStyleSwitcher({
           {/* Only the list scrolls; the fixed header keeps the close button on one line */}
           <Box style={{ overflowY: 'auto', minHeight: 0 }}>
             <Stack gap="sm">
-              {STYLE_GROUPS.map((group) => {
-                const groupStyleIds = STYLE_IDS.filter((id) => MAP_STYLES[id].group === group)
-                if (groupStyleIds.length === 0) return null
-                return (
-                  <Stack key={group} gap={4}>
-                    <Text size="xs" fw={600} c="dimmed" tt="uppercase">
-                      {t(`map.styles.group.${group satisfies MapStyleGroup}`)}
-                    </Text>
-                    {groupStyleIds.map((styleId) => {
-                      const style = MAP_STYLES[styleId]
-                      const isSelected = styleId === currentStyleId
-                      return (
-                        <UnstyledButton
-                          key={styleId}
-                          onClick={() => handleStyleSelect(styleId)}
-                          px="sm"
-                          py="xs"
-                          style={{
-                            borderRadius: 'var(--mantine-radius-sm)',
-                            backgroundColor: isSelected
-                              ? 'var(--mantine-primary-color-light)'
-                              : undefined,
-                            transition: 'background-color 150ms',
-                          }}
+              {/* Sections follow the served order — the server classifies its basemaps, the client
+                  doesn't re-sort. A group this build has no label for is titled with its raw value
+                  rather than with its untranslated key, or silently merged into the one above. */}
+              {groupStyles(styles).map((section) => (
+                <Stack key={section.group} gap={4}>
+                  <Text size="xs" fw={600} c="dimmed" tt="uppercase">
+                    {isKnownGroup(section.group)
+                      ? t(`map.styles.group.${section.group}`)
+                      : section.group}
+                  </Text>
+                  {section.styles.map((style) => {
+                    const isSelected = style.id === currentStyleId
+                    return (
+                      <UnstyledButton
+                        key={style.id}
+                        onClick={() => handleStyleSelect(style.id)}
+                        px="sm"
+                        py="xs"
+                        style={{
+                          borderRadius: 'var(--mantine-radius-sm)',
+                          backgroundColor: isSelected
+                            ? 'var(--mantine-primary-color-light)'
+                            : undefined,
+                          transition: 'background-color 150ms',
+                        }}
+                      >
+                        <Text
+                          size="sm"
+                          c={isSelected ? 'var(--mantine-primary-color-filled)' : undefined}
+                          fw={isSelected ? 500 : 400}
                         >
-                          <Text
-                            size="sm"
-                            c={isSelected ? 'var(--mantine-primary-color-filled)' : undefined}
-                            fw={isSelected ? 500 : 400}
-                          >
-                            {style.name}
-                          </Text>
-                        </UnstyledButton>
-                      )
-                    })}
-                  </Stack>
-                )
-              })}
+                          {style.label}
+                        </Text>
+                      </UnstyledButton>
+                    )
+                  })}
+                </Stack>
+              ))}
             </Stack>
             {(onTerrain3DChange || onHillshadeChange) && (
               <>

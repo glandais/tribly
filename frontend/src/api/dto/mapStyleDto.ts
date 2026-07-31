@@ -6,7 +6,9 @@ export interface MapStyleDto {
   id: string
   /** Human-readable label for the style switcher */
   label: string
-  /** URL of the MapLibre style document to load in light mode (or at all times when darkVariant is null) */
+  /** Section the switcher should list this style under — 'vector', 'satellite' or 'raster'. Clients group consecutive styles sharing a value and localise the heading themselves; an unknown value is rendered as its own section rather than dropped. */
+  group: string
+  /** URL of the MapLibre style document to load in light mode (or at all times when darkVariant is null). Either a third-party style document or, for a raster basemap the server wraps itself, a URL on /api/map/styles/{id}.json. */
   url: string
   /** URL of the style document to load instead of 'url' when the client renders in dark mode. Null when the style has no dark counterpart — the client then keeps using 'url'. */
   darkVariant?: string

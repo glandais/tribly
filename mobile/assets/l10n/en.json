@@ -950,6 +950,11 @@
     "exitFullscreen": "Exit fullscreen",
     "background": "Map background",
     "chooseBackground": "Choose map background",
+    "styleGroup": {
+      "vector": "Maps",
+      "satellite": "Satellite",
+      "raster": "Other backgrounds"
+    },
     "searchThisArea": "Search this area",
     "start": "Start",
     "end": "Finish",

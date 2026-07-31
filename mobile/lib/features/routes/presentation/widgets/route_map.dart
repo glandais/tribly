@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../core/config/config_provider.dart';
+import '../../../../core/config/map_style_options.dart';
 import '../../../../core/pdl/map/pdl_map.dart';
 import '../../../../core/pdl/map/pdl_map_controller.dart';
 import '../../../../core/pdl/map/pdl_map_hero.dart';
@@ -132,10 +133,7 @@ class _RouteMapState extends ConsumerState<RouteMap> {
       // plus n'y mènerait nulle part.
       showFullscreenButton: false,
       topScrim: true,
-      styles: <PdlMapStyleOption>[
-        for (final MapStyleDto s in _servedStyles(ref))
-          PdlMapStyleOption(id: s.id, label: s.label),
-      ],
+      styles: servedMapStyleOptions(ref),
       selectedStyleId: resolved.style.id,
       onStyleSelected: (String id) =>
           ref.read(mapStyleIdProvider.notifier).select(id),
@@ -168,9 +166,6 @@ class _RouteMapState extends ConsumerState<RouteMap> {
       ),
     );
   }
-
-  List<MapStyleDto> _servedStyles(WidgetRef ref) =>
-      ref.watch(appConfigProvider).value?.mapStyles ?? const <MapStyleDto>[];
 
   /// Le départ et l'arrivée servis par le contrat ; à défaut, les extrémités du
   /// tracé — c'est ce que faisait l'implémentation d'origine.

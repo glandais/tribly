@@ -5,6 +5,7 @@ import '../../theme/pdl_colors.dart';
 import '../../theme/pdl_icons.dart';
 import '../../theme/pdl_tokens.dart';
 import '../pdl_scrim.dart';
+import '../pdl_section_header.dart';
 import '../pdl_setting_row.dart';
 import '../pdl_sheet.dart';
 import 'pdl_map_buttons.dart';
@@ -17,12 +18,24 @@ import 'pdl_map_buttons.dart';
 /// version du client.
 @immutable
 class PdlMapStyleOption {
-  const PdlMapStyleOption({required this.id, required this.label});
+  const PdlMapStyleOption({
+    required this.id,
+    required this.label,
+    this.groupLabel,
+  });
 
   final String id;
 
   /// Libellé déjà localisé par l'appelant.
   final String label;
+
+  /// L'intitulé de la section, **déjà localisé**. Le sélecteur pose un titre
+  /// chaque fois qu'il change d'une option à la suivante — il ne regroupe pas
+  /// lui-même et ne re-trie pas : la liste arrive dans l'ordre servi, et deux
+  /// tronçons portant le même intitulé donneraient deux sections, ce qui est la
+  /// bonne lecture d'un serveur qui les a séparés. `null` partout = pas de
+  /// titres, la liste plate d'avant.
+  final String? groupLabel;
 }
 
 /// Les libellés du hero. `core/pdl` ne traduit rien : l'écran les fournit.
@@ -234,7 +247,14 @@ class PdlMapHero extends StatelessWidget {
         children: <Widget>[
           // **Dans l'ordre servi** : le serveur classe ses fonds, le client
           // ne re-trie pas.
-          for (final PdlMapStyleOption style in styles)
+          for (final (int i, PdlMapStyleOption style)
+              in styles.indexed) ...<Widget>[
+            if (style.groupLabel != null &&
+                (i == 0 || style.groupLabel != styles[i - 1].groupLabel))
+              Padding(
+                padding: const EdgeInsets.only(top: PdlSpacing.sectionTightV),
+                child: PdlSectionHeader(title: style.groupLabel!),
+              ),
             PdlSettingRow(
               title: style.label,
               onTap: () => Navigator.of(sheetContext).pop(style.id),
@@ -242,6 +262,7 @@ class PdlMapHero extends StatelessWidget {
                   ? Icon(PdlIcons.check, size: 20, color: c.primary)
                   : const SizedBox.shrink(),
             ),
+          ],
         ],
       ),
     );

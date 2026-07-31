@@ -3,14 +3,12 @@ package fr.pedalons.service.config;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.dto.config.ConfigDto;
 import fr.pedalons.dto.config.MapCenterDto;
-import fr.pedalons.dto.config.MapStyleDto;
 import fr.pedalons.repository.team.TeamRepository;
 import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.service.security.ResolvedSite;
 import fr.pedalons.service.security.annotation.Public;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import java.util.List;
 import java.util.Optional;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.geolatte.geom.G2D;
@@ -28,6 +26,8 @@ public class ConfigService {
   @Inject TeamRepository teamRepository;
 
   @Inject MapConfig mapConfig;
+
+  @Inject MapStyleService mapStyleService;
 
   /**
    * Oldest mobile build this server still serves, blank when no floor is enforced.
@@ -57,22 +57,10 @@ public class ConfigService {
         // team-independent and so belong to whoever owns the users.
         site.domain().isEnableGpxPlanner(),
         siteTeam.map(Team::getSlug).orElse(null),
-        mapStyles(),
+        mapStyleService.styles(site.effectiveBaseUrl()),
         mapConfig.tileServerBaseUrl(),
         defaultCenter(siteTeam.map(Team::getGeometry).orElse(null)),
         minSupportedAppVersion.filter(version -> !version.isBlank()).orElse(null));
-  }
-
-  private List<MapStyleDto> mapStyles() {
-    return mapConfig.styles().stream()
-        .map(
-            style ->
-                new MapStyleDto(
-                    style.id(),
-                    style.label(),
-                    style.url(),
-                    style.darkVariant().filter(url -> !url.isBlank()).orElse(null)))
-        .toList();
   }
 
   /**

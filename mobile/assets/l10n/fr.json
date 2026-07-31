@@ -950,6 +950,11 @@
     "exitFullscreen": "Quitter le plein écran",
     "background": "Fond de carte",
     "chooseBackground": "Choisir le fond de carte",
+    "styleGroup": {
+      "vector": "Plans",
+      "satellite": "Satellite",
+      "raster": "Autres fonds"
+    },
     "searchThisArea": "Rechercher dans cette zone",
     "start": "Départ",
     "end": "Arrivée",

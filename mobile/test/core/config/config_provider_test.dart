@@ -7,12 +7,14 @@ void main() {
   const MapStyleDto colorful = MapStyleDto(
     id: 'colorful',
     label: 'Coloré',
+    group: 'vector',
     url: 'https://tiles.example/colorful.json',
     darkVariant: 'https://tiles.example/eclipse.json',
   );
   const MapStyleDto satellite = MapStyleDto(
     id: 'satellite',
     label: 'Satellite',
+    group: 'satellite',
     url: 'https://tiles.example/satellite.json',
   );
   const List<MapStyleDto> styles = <MapStyleDto>[colorful, satellite];

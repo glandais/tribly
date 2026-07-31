@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../core/config/config_provider.dart';
+import '../../../../core/config/map_style_options.dart';
 import '../../../../core/pdl/pdl.dart';
 import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
@@ -110,12 +111,7 @@ class RideGroupsMap extends ConsumerWidget {
         // (pensé pour la barre système sous laquelle glisse la carte plein
         // écran). Même repli que `TripMap`.
         topScrim: false,
-        styles: <PdlMapStyleOption>[
-          for (final MapStyleDto s
-              in ref.watch(appConfigProvider).value?.mapStyles ??
-                  const <MapStyleDto>[])
-            PdlMapStyleOption(id: s.id, label: s.label),
-        ],
+        styles: servedMapStyleOptions(ref),
         selectedStyleId: style.value?.style.id,
         onStyleSelected: (String id) =>
             ref.read(mapStyleIdProvider.notifier).select(id),
