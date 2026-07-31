@@ -48,6 +48,15 @@ public record TeamDetailDto(
     @Schema(description = "Posts enabled", required = true) boolean enablePosts,
     @Schema(description = "Rides enabled", required = true) boolean enableRides,
     @Schema(description = "Routes enabled", required = true) boolean enableRoutes,
+    @Schema(
+            description =
+                "Whether the member directory is readable by every member and not just by"
+                    + " administrators. Clients use it to decide whether to offer the directory at"
+                    + " all: an entry that always leads to a 403 is worse than no entry. Organisers"
+                    + " see the directory whatever its value, but only get each member's role and"
+                    + " join date when it is true.",
+            required = true)
+        boolean enableMemberDirectory,
     @Schema(description = "Whether visibility is editable by team admins", required = true)
         boolean visibilityEditable,
     @Schema(description = "Whether any domain user can join this team", required = true)
@@ -114,6 +123,7 @@ public record TeamDetailDto(
         team.isEnablePosts(),
         team.isEnableRides(),
         team.isEnableRoutes(),
+        team.isEnableMemberDirectory(),
         team.isVisibilityEditable(),
         team.isJoinable(),
         team.isAddMemberAllowed(),

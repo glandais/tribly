@@ -18,8 +18,8 @@ mixin _$MemberDto {
 /// Team
  TeamPublicationDto get team;/// Membership ID (TSID)
  String get id;/// User
- PublicUserDto get user;/// Member role
- String get role;/// When the user joined the team
+ PublicUserDto get user;/// Member role. Null when the caller is not entitled to it: an organiser reading the roster of a team that has not opened its member directory gets the names and nothing else.
+ String? get role;/// When the user joined the team
  String? get joinedAt;
 /// Create a copy of MemberDto
 /// with the given fields replaced by the non-null parameter values.
@@ -53,7 +53,7 @@ abstract mixin class $MemberDtoCopyWith<$Res>  {
   factory $MemberDtoCopyWith(MemberDto value, $Res Function(MemberDto) _then) = _$MemberDtoCopyWithImpl;
 @useResult
 $Res call({
- TeamPublicationDto team, String id, PublicUserDto user, String role, String? joinedAt
+ TeamPublicationDto team, String id, PublicUserDto user, String? role, String? joinedAt
 });
 
 
@@ -70,13 +70,13 @@ class _$MemberDtoCopyWithImpl<$Res>
 
 /// Create a copy of MemberDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? team = null,Object? id = null,Object? user = null,Object? role = null,Object? joinedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? team = null,Object? id = null,Object? user = null,Object? role = freezed,Object? joinedAt = freezed,}) {
   return _then(_self.copyWith(
 team: null == team ? _self.team : team // ignore: cast_nullable_to_non_nullable
 as TeamPublicationDto,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,user: null == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
-as PublicUserDto,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
-as String,joinedAt: freezed == joinedAt ? _self.joinedAt : joinedAt // ignore: cast_nullable_to_non_nullable
+as PublicUserDto,role: freezed == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
+as String?,joinedAt: freezed == joinedAt ? _self.joinedAt : joinedAt // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -180,7 +180,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( TeamPublicationDto team,  String id,  PublicUserDto user,  String role,  String? joinedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( TeamPublicationDto team,  String id,  PublicUserDto user,  String? role,  String? joinedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MemberDto() when $default != null:
 return $default(_that.team,_that.id,_that.user,_that.role,_that.joinedAt);case _:
@@ -201,7 +201,7 @@ return $default(_that.team,_that.id,_that.user,_that.role,_that.joinedAt);case _
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( TeamPublicationDto team,  String id,  PublicUserDto user,  String role,  String? joinedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( TeamPublicationDto team,  String id,  PublicUserDto user,  String? role,  String? joinedAt)  $default,) {final _that = this;
 switch (_that) {
 case _MemberDto():
 return $default(_that.team,_that.id,_that.user,_that.role,_that.joinedAt);case _:
@@ -221,7 +221,7 @@ return $default(_that.team,_that.id,_that.user,_that.role,_that.joinedAt);case _
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( TeamPublicationDto team,  String id,  PublicUserDto user,  String role,  String? joinedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( TeamPublicationDto team,  String id,  PublicUserDto user,  String? role,  String? joinedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _MemberDto() when $default != null:
 return $default(_that.team,_that.id,_that.user,_that.role,_that.joinedAt);case _:
@@ -236,7 +236,7 @@ return $default(_that.team,_that.id,_that.user,_that.role,_that.joinedAt);case _
 @JsonSerializable()
 
 class _MemberDto implements MemberDto {
-  const _MemberDto({required this.team, required this.id, required this.user, required this.role, this.joinedAt});
+  const _MemberDto({required this.team, required this.id, required this.user, this.role, this.joinedAt});
   factory _MemberDto.fromJson(Map<String, dynamic> json) => _$MemberDtoFromJson(json);
 
 /// Team
@@ -245,8 +245,8 @@ class _MemberDto implements MemberDto {
 @override final  String id;
 /// User
 @override final  PublicUserDto user;
-/// Member role
-@override final  String role;
+/// Member role. Null when the caller is not entitled to it: an organiser reading the roster of a team that has not opened its member directory gets the names and nothing else.
+@override final  String? role;
 /// When the user joined the team
 @override final  String? joinedAt;
 
@@ -283,7 +283,7 @@ abstract mixin class _$MemberDtoCopyWith<$Res> implements $MemberDtoCopyWith<$Re
   factory _$MemberDtoCopyWith(_MemberDto value, $Res Function(_MemberDto) _then) = __$MemberDtoCopyWithImpl;
 @override @useResult
 $Res call({
- TeamPublicationDto team, String id, PublicUserDto user, String role, String? joinedAt
+ TeamPublicationDto team, String id, PublicUserDto user, String? role, String? joinedAt
 });
 
 
@@ -300,13 +300,13 @@ class __$MemberDtoCopyWithImpl<$Res>
 
 /// Create a copy of MemberDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? team = null,Object? id = null,Object? user = null,Object? role = null,Object? joinedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? team = null,Object? id = null,Object? user = null,Object? role = freezed,Object? joinedAt = freezed,}) {
   return _then(_MemberDto(
 team: null == team ? _self.team : team // ignore: cast_nullable_to_non_nullable
 as TeamPublicationDto,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,user: null == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
-as PublicUserDto,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
-as String,joinedAt: freezed == joinedAt ? _self.joinedAt : joinedAt // ignore: cast_nullable_to_non_nullable
+as PublicUserDto,role: freezed == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
+as String?,joinedAt: freezed == joinedAt ? _self.joinedAt : joinedAt // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

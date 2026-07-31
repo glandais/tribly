@@ -23,7 +23,8 @@ mixin _$TeamRequest {
  bool get enableAds;/// Posts enabled for team
  bool get enablePosts;/// Rides enabled for team
  bool get enableRides;/// Routes enabled for team
- bool get enableRoutes;/// Team location coordinates [longitude, latitude]
+ bool get enableRoutes;/// Member directory readable by every member, not just administrators. Organisers always see the directory; what this flag adds for them is the role and join date of each member.
+ bool get enableMemberDirectory;/// Team location coordinates [longitude, latitude]
  TeamRequestGeometry? get geometry;
 /// Create a copy of TeamRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -37,16 +38,16 @@ $TeamRequestCopyWith<TeamRequest> get copyWith => _$TeamRequestCopyWithImpl<Team
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeamRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.enableTrips, enableTrips) || other.enableTrips == enableTrips)&&(identical(other.enableAds, enableAds) || other.enableAds == enableAds)&&(identical(other.enablePosts, enablePosts) || other.enablePosts == enablePosts)&&(identical(other.enableRides, enableRides) || other.enableRides == enableRides)&&(identical(other.enableRoutes, enableRoutes) || other.enableRoutes == enableRoutes)&&(identical(other.geometry, geometry) || other.geometry == geometry));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeamRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.enableTrips, enableTrips) || other.enableTrips == enableTrips)&&(identical(other.enableAds, enableAds) || other.enableAds == enableAds)&&(identical(other.enablePosts, enablePosts) || other.enablePosts == enablePosts)&&(identical(other.enableRides, enableRides) || other.enableRides == enableRides)&&(identical(other.enableRoutes, enableRoutes) || other.enableRoutes == enableRoutes)&&(identical(other.enableMemberDirectory, enableMemberDirectory) || other.enableMemberDirectory == enableMemberDirectory)&&(identical(other.geometry, geometry) || other.geometry == geometry));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,media,visibility,enableTrips,enableAds,enablePosts,enableRides,enableRoutes,geometry);
+int get hashCode => Object.hash(runtimeType,name,media,visibility,enableTrips,enableAds,enablePosts,enableRides,enableRoutes,enableMemberDirectory,geometry);
 
 @override
 String toString() {
-  return 'TeamRequest(name: $name, media: $media, visibility: $visibility, enableTrips: $enableTrips, enableAds: $enableAds, enablePosts: $enablePosts, enableRides: $enableRides, enableRoutes: $enableRoutes, geometry: $geometry)';
+  return 'TeamRequest(name: $name, media: $media, visibility: $visibility, enableTrips: $enableTrips, enableAds: $enableAds, enablePosts: $enablePosts, enableRides: $enableRides, enableRoutes: $enableRoutes, enableMemberDirectory: $enableMemberDirectory, geometry: $geometry)';
 }
 
 
@@ -57,7 +58,7 @@ abstract mixin class $TeamRequestCopyWith<$Res>  {
   factory $TeamRequestCopyWith(TeamRequest value, $Res Function(TeamRequest) _then) = _$TeamRequestCopyWithImpl;
 @useResult
 $Res call({
- String name, MediaDto media, String visibility, bool enableTrips, bool enableAds, bool enablePosts, bool enableRides, bool enableRoutes, TeamRequestGeometry? geometry
+ String name, MediaDto media, String visibility, bool enableTrips, bool enableAds, bool enablePosts, bool enableRides, bool enableRoutes, bool enableMemberDirectory, TeamRequestGeometry? geometry
 });
 
 
@@ -74,7 +75,7 @@ class _$TeamRequestCopyWithImpl<$Res>
 
 /// Create a copy of TeamRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? media = null,Object? visibility = null,Object? enableTrips = null,Object? enableAds = null,Object? enablePosts = null,Object? enableRides = null,Object? enableRoutes = null,Object? geometry = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? media = null,Object? visibility = null,Object? enableTrips = null,Object? enableAds = null,Object? enablePosts = null,Object? enableRides = null,Object? enableRoutes = null,Object? enableMemberDirectory = null,Object? geometry = freezed,}) {
   return _then(_self.copyWith(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,media: null == media ? _self.media : media // ignore: cast_nullable_to_non_nullable
@@ -84,6 +85,7 @@ as bool,enableAds: null == enableAds ? _self.enableAds : enableAds // ignore: ca
 as bool,enablePosts: null == enablePosts ? _self.enablePosts : enablePosts // ignore: cast_nullable_to_non_nullable
 as bool,enableRides: null == enableRides ? _self.enableRides : enableRides // ignore: cast_nullable_to_non_nullable
 as bool,enableRoutes: null == enableRoutes ? _self.enableRoutes : enableRoutes // ignore: cast_nullable_to_non_nullable
+as bool,enableMemberDirectory: null == enableMemberDirectory ? _self.enableMemberDirectory : enableMemberDirectory // ignore: cast_nullable_to_non_nullable
 as bool,geometry: freezed == geometry ? _self.geometry : geometry // ignore: cast_nullable_to_non_nullable
 as TeamRequestGeometry?,
   ));
@@ -191,10 +193,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  MediaDto media,  String visibility,  bool enableTrips,  bool enableAds,  bool enablePosts,  bool enableRides,  bool enableRoutes,  TeamRequestGeometry? geometry)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  MediaDto media,  String visibility,  bool enableTrips,  bool enableAds,  bool enablePosts,  bool enableRides,  bool enableRoutes,  bool enableMemberDirectory,  TeamRequestGeometry? geometry)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TeamRequest() when $default != null:
-return $default(_that.name,_that.media,_that.visibility,_that.enableTrips,_that.enableAds,_that.enablePosts,_that.enableRides,_that.enableRoutes,_that.geometry);case _:
+return $default(_that.name,_that.media,_that.visibility,_that.enableTrips,_that.enableAds,_that.enablePosts,_that.enableRides,_that.enableRoutes,_that.enableMemberDirectory,_that.geometry);case _:
   return orElse();
 
 }
@@ -212,10 +214,10 @@ return $default(_that.name,_that.media,_that.visibility,_that.enableTrips,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  MediaDto media,  String visibility,  bool enableTrips,  bool enableAds,  bool enablePosts,  bool enableRides,  bool enableRoutes,  TeamRequestGeometry? geometry)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  MediaDto media,  String visibility,  bool enableTrips,  bool enableAds,  bool enablePosts,  bool enableRides,  bool enableRoutes,  bool enableMemberDirectory,  TeamRequestGeometry? geometry)  $default,) {final _that = this;
 switch (_that) {
 case _TeamRequest():
-return $default(_that.name,_that.media,_that.visibility,_that.enableTrips,_that.enableAds,_that.enablePosts,_that.enableRides,_that.enableRoutes,_that.geometry);case _:
+return $default(_that.name,_that.media,_that.visibility,_that.enableTrips,_that.enableAds,_that.enablePosts,_that.enableRides,_that.enableRoutes,_that.enableMemberDirectory,_that.geometry);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -232,10 +234,10 @@ return $default(_that.name,_that.media,_that.visibility,_that.enableTrips,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  MediaDto media,  String visibility,  bool enableTrips,  bool enableAds,  bool enablePosts,  bool enableRides,  bool enableRoutes,  TeamRequestGeometry? geometry)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  MediaDto media,  String visibility,  bool enableTrips,  bool enableAds,  bool enablePosts,  bool enableRides,  bool enableRoutes,  bool enableMemberDirectory,  TeamRequestGeometry? geometry)?  $default,) {final _that = this;
 switch (_that) {
 case _TeamRequest() when $default != null:
-return $default(_that.name,_that.media,_that.visibility,_that.enableTrips,_that.enableAds,_that.enablePosts,_that.enableRides,_that.enableRoutes,_that.geometry);case _:
+return $default(_that.name,_that.media,_that.visibility,_that.enableTrips,_that.enableAds,_that.enablePosts,_that.enableRides,_that.enableRoutes,_that.enableMemberDirectory,_that.geometry);case _:
   return null;
 
 }
@@ -247,7 +249,7 @@ return $default(_that.name,_that.media,_that.visibility,_that.enableTrips,_that.
 @JsonSerializable()
 
 class _TeamRequest implements TeamRequest {
-  const _TeamRequest({required this.name, required this.media, required this.visibility, required this.enableTrips, required this.enableAds, required this.enablePosts, required this.enableRides, required this.enableRoutes, this.geometry});
+  const _TeamRequest({required this.name, required this.media, required this.visibility, required this.enableTrips, required this.enableAds, required this.enablePosts, required this.enableRides, required this.enableRoutes, required this.enableMemberDirectory, this.geometry});
   factory _TeamRequest.fromJson(Map<String, dynamic> json) => _$TeamRequestFromJson(json);
 
 /// Team name
@@ -266,6 +268,8 @@ class _TeamRequest implements TeamRequest {
 @override final  bool enableRides;
 /// Routes enabled for team
 @override final  bool enableRoutes;
+/// Member directory readable by every member, not just administrators. Organisers always see the directory; what this flag adds for them is the role and join date of each member.
+@override final  bool enableMemberDirectory;
 /// Team location coordinates [longitude, latitude]
 @override final  TeamRequestGeometry? geometry;
 
@@ -282,16 +286,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeamRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.enableTrips, enableTrips) || other.enableTrips == enableTrips)&&(identical(other.enableAds, enableAds) || other.enableAds == enableAds)&&(identical(other.enablePosts, enablePosts) || other.enablePosts == enablePosts)&&(identical(other.enableRides, enableRides) || other.enableRides == enableRides)&&(identical(other.enableRoutes, enableRoutes) || other.enableRoutes == enableRoutes)&&(identical(other.geometry, geometry) || other.geometry == geometry));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeamRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.enableTrips, enableTrips) || other.enableTrips == enableTrips)&&(identical(other.enableAds, enableAds) || other.enableAds == enableAds)&&(identical(other.enablePosts, enablePosts) || other.enablePosts == enablePosts)&&(identical(other.enableRides, enableRides) || other.enableRides == enableRides)&&(identical(other.enableRoutes, enableRoutes) || other.enableRoutes == enableRoutes)&&(identical(other.enableMemberDirectory, enableMemberDirectory) || other.enableMemberDirectory == enableMemberDirectory)&&(identical(other.geometry, geometry) || other.geometry == geometry));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,media,visibility,enableTrips,enableAds,enablePosts,enableRides,enableRoutes,geometry);
+int get hashCode => Object.hash(runtimeType,name,media,visibility,enableTrips,enableAds,enablePosts,enableRides,enableRoutes,enableMemberDirectory,geometry);
 
 @override
 String toString() {
-  return 'TeamRequest(name: $name, media: $media, visibility: $visibility, enableTrips: $enableTrips, enableAds: $enableAds, enablePosts: $enablePosts, enableRides: $enableRides, enableRoutes: $enableRoutes, geometry: $geometry)';
+  return 'TeamRequest(name: $name, media: $media, visibility: $visibility, enableTrips: $enableTrips, enableAds: $enableAds, enablePosts: $enablePosts, enableRides: $enableRides, enableRoutes: $enableRoutes, enableMemberDirectory: $enableMemberDirectory, geometry: $geometry)';
 }
 
 
@@ -302,7 +306,7 @@ abstract mixin class _$TeamRequestCopyWith<$Res> implements $TeamRequestCopyWith
   factory _$TeamRequestCopyWith(_TeamRequest value, $Res Function(_TeamRequest) _then) = __$TeamRequestCopyWithImpl;
 @override @useResult
 $Res call({
- String name, MediaDto media, String visibility, bool enableTrips, bool enableAds, bool enablePosts, bool enableRides, bool enableRoutes, TeamRequestGeometry? geometry
+ String name, MediaDto media, String visibility, bool enableTrips, bool enableAds, bool enablePosts, bool enableRides, bool enableRoutes, bool enableMemberDirectory, TeamRequestGeometry? geometry
 });
 
 
@@ -319,7 +323,7 @@ class __$TeamRequestCopyWithImpl<$Res>
 
 /// Create a copy of TeamRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? media = null,Object? visibility = null,Object? enableTrips = null,Object? enableAds = null,Object? enablePosts = null,Object? enableRides = null,Object? enableRoutes = null,Object? geometry = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? media = null,Object? visibility = null,Object? enableTrips = null,Object? enableAds = null,Object? enablePosts = null,Object? enableRides = null,Object? enableRoutes = null,Object? enableMemberDirectory = null,Object? geometry = freezed,}) {
   return _then(_TeamRequest(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,media: null == media ? _self.media : media // ignore: cast_nullable_to_non_nullable
@@ -329,6 +333,7 @@ as bool,enableAds: null == enableAds ? _self.enableAds : enableAds // ignore: ca
 as bool,enablePosts: null == enablePosts ? _self.enablePosts : enablePosts // ignore: cast_nullable_to_non_nullable
 as bool,enableRides: null == enableRides ? _self.enableRides : enableRides // ignore: cast_nullable_to_non_nullable
 as bool,enableRoutes: null == enableRoutes ? _self.enableRoutes : enableRoutes // ignore: cast_nullable_to_non_nullable
+as bool,enableMemberDirectory: null == enableMemberDirectory ? _self.enableMemberDirectory : enableMemberDirectory // ignore: cast_nullable_to_non_nullable
 as bool,geometry: freezed == geometry ? _self.geometry : geometry // ignore: cast_nullable_to_non_nullable
 as TeamRequestGeometry?,
   ));

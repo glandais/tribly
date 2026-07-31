@@ -10,6 +10,15 @@ public class ForbiddenException extends PedalonsException {
     super(ErrorCode.FORBIDDEN, errorDetails, cause);
   }
 
+  /**
+   * A refusal that has a reason worth naming. The bare {@code FORBIDDEN} is right when there is
+   * nothing useful to say — the caller simply may not — but some refusals are actionable, and the
+   * client can only act on them if it is told which one it hit.
+   */
+  public ForbiddenException(ErrorCode errorCode) {
+    super(errorCode, null, null);
+  }
+
   public ForbiddenException(@Nullable Throwable cause) {
     this(null, cause);
   }

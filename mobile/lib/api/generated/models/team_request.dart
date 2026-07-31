@@ -39,6 +39,9 @@ abstract class TeamRequest with _$TeamRequest {
     /// Routes enabled for team
     required bool enableRoutes,
 
+    /// Member directory readable by every member, not just administrators. Organisers always see the directory; what this flag adds for them is the role and join date of each member.
+    required bool enableMemberDirectory,
+
     /// Team location coordinates [longitude, latitude]
     TeamRequestGeometry? geometry,
   }) = _TeamRequest;

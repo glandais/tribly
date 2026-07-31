@@ -19,12 +19,14 @@ import 'clients/device_routes_client.dart';
 import 'clients/users_client.dart';
 import 'clients/gps_services_client.dart';
 import 'clients/gpx_previews_client.dart';
+import 'clients/invitations_client.dart';
 import 'clients/publications_client.dart';
 import 'clients/router_client.dart';
 import 'clients/routes_client.dart';
 import 'clients/teams_client.dart';
 import 'clients/assets_client.dart';
 import 'clients/ads_client.dart';
+import 'clients/team_invitations_client.dart';
 import 'clients/team_members_client.dart';
 import 'clients/team_pages_client.dart';
 import 'clients/places_client.dart';
@@ -39,7 +41,7 @@ import 'clients/trip_comments_client.dart';
 import 'clients/tiles_client.dart';
 import 'clients/server_version_client.dart';
 
-/// Pedalons API `v2.6.0`.
+/// Pedalons API `v3.0.0`.
 ///
 /// API for Pedalons Cycling Team Management Platform.
 class PedalonsApiClient {
@@ -52,7 +54,7 @@ class PedalonsApiClient {
   final Dio _dio;
   final String? _baseUrl;
 
-  static String get version => '2.6.0';
+  static String get version => '3.0.0';
 
   AdminDomainsClient? _adminDomains;
   AdminSocialClient? _adminSocial;
@@ -69,12 +71,14 @@ class PedalonsApiClient {
   UsersClient? _users;
   GpsServicesClient? _gpsServices;
   GpxPreviewsClient? _gpxPreviews;
+  InvitationsClient? _invitations;
   PublicationsClient? _publications;
   RouterClient? _router;
   RoutesClient? _routes;
   TeamsClient? _teams;
   AssetsClient? _assets;
   AdsClient? _ads;
+  TeamInvitationsClient? _teamInvitations;
   TeamMembersClient? _teamMembers;
   TeamPagesClient? _teamPages;
   PlacesClient? _places;
@@ -136,6 +140,9 @@ class PedalonsApiClient {
   GpxPreviewsClient get gpxPreviews =>
       _gpxPreviews ??= GpxPreviewsClient(_dio, baseUrl: _baseUrl);
 
+  InvitationsClient get invitations =>
+      _invitations ??= InvitationsClient(_dio, baseUrl: _baseUrl);
+
   PublicationsClient get publications =>
       _publications ??= PublicationsClient(_dio, baseUrl: _baseUrl);
 
@@ -148,6 +155,9 @@ class PedalonsApiClient {
   AssetsClient get assets => _assets ??= AssetsClient(_dio, baseUrl: _baseUrl);
 
   AdsClient get ads => _ads ??= AdsClient(_dio, baseUrl: _baseUrl);
+
+  TeamInvitationsClient get teamInvitations =>
+      _teamInvitations ??= TeamInvitationsClient(_dio, baseUrl: _baseUrl);
 
   TeamMembersClient get teamMembers =>
       _teamMembers ??= TeamMembersClient(_dio, baseUrl: _baseUrl);

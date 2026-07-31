@@ -28,7 +28,7 @@ import { MediaEditor } from '../common/MediaEditor'
 import { PlaceAutocomplete } from '../common/PlaceAutocomplete'
 import { useRoutesBulk } from '@/hooks/useRoutesBulk'
 import type { RouteDto, RouteDetailDto, TeamDetailDto, RideRequest, PublicUserDto } from '@/api/dto'
-import { UserAutocomplete } from '../common/UserAutocomplete'
+import { TeamMemberAutocomplete } from '../common/TeamMemberAutocomplete'
 import { UserAvatar } from '../common/UserAvatar'
 import { Status } from '@/api/dto'
 import { CreateRideBody } from '@/api/zod/rides/rides.zod'
@@ -446,7 +446,7 @@ export function RideEditor({
                       </Button>
                     </Group>
                   ) : (
-                    <UserAutocomplete
+                    <TeamMemberAutocomplete
                       teamSlug={teamSlug}
                       placeholder={t('rides.create.form.groups.leader.placeholder')}
                       onSelect={(user) => {

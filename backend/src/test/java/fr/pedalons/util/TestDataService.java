@@ -23,6 +23,7 @@ import fr.pedalons.domain.route.GpxTrack;
 import fr.pedalons.domain.route.GpxWaypoint;
 import fr.pedalons.domain.route.Route;
 import fr.pedalons.domain.team.Team;
+import fr.pedalons.domain.team.TeamInvitation;
 import fr.pedalons.domain.team.TeamPage;
 import fr.pedalons.domain.team.TeamSlugRedirect;
 import fr.pedalons.domain.team.UserTeam;
@@ -47,6 +48,7 @@ import fr.pedalons.repository.ride.RideRepository;
 import fr.pedalons.repository.ridetemplate.RideTemplateGroupRepository;
 import fr.pedalons.repository.ridetemplate.RideTemplateRepository;
 import fr.pedalons.repository.route.RouteRepository;
+import fr.pedalons.repository.team.TeamInvitationRepository;
 import fr.pedalons.repository.team.TeamPageRepository;
 import fr.pedalons.repository.team.TeamRepository;
 import fr.pedalons.repository.team.TeamSlugRedirectRepository;
@@ -66,6 +68,7 @@ import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.geolatte.geom.G2D;
 import org.geolatte.geom.LineString;
@@ -77,6 +80,7 @@ public class TestDataService {
 
   @Inject UserRepository userRepository;
   @Inject TeamRepository teamRepository;
+  @Inject TeamInvitationRepository teamInvitationRepository;
   @Inject UserTeamRepository userTeamRepository;
   @Inject RideRepository rideRepository;
   @Inject RideGroupRepository rideGroupRepository;
@@ -250,6 +254,19 @@ public class TestDataService {
   public void setTeamAddMemberAllowed(Team team, boolean allowed) {
     Team managed = teamRepository.findById(team.getId());
     managed.setAddMemberAllowed(allowed);
+  }
+
+  @Transactional
+  public void setTeamEnableMemberDirectory(Team team, boolean enabled) {
+    Team managed = teamRepository.findById(team.getId());
+    managed.setEnableMemberDirectory(enabled);
+  }
+
+  /** Backdates an invitation's expiry, so the lapse path can be exercised without waiting. */
+  @Transactional
+  public void expireInvitation(String tokenHash) {
+    TeamInvitation invitation = teamInvitationRepository.findByTokenHash(tokenHash).orElseThrow();
+    invitation.setExpiresAt(Instant.now().minus(1, ChronoUnit.DAYS));
   }
 
   @Transactional

@@ -20,6 +20,15 @@ public class EmailService {
   public static final String DATA_EXPORT = "data-export";
   public static final String AD_CONTACT = "ad-contact";
 
+  /**
+   * The two invitation templates. Two rather than one with a flag, because Brevo templates have no
+   * conditionals: whatever differs between "you already have an account, sign in" and "create one"
+   * has to differ at the template level.
+   */
+  public static final String TEAM_INVITATION = "team-invitation";
+
+  public static final String TEAM_INVITATION_SIGNUP = "team-invitation-signup";
+
   @ConfigProperty(name = "pedalons.email.brevo.enabled", defaultValue = "false")
   boolean brevoEnabled;
 
@@ -55,6 +64,18 @@ public class EmailService {
 
   @ConfigProperty(name = "pedalons.email.brevo.templates.ad-contact.en")
   Optional<Long> templateAdContactEn;
+
+  @ConfigProperty(name = "pedalons.email.brevo.templates.team-invitation.fr")
+  Optional<Long> templateTeamInvitationFr;
+
+  @ConfigProperty(name = "pedalons.email.brevo.templates.team-invitation.en")
+  Optional<Long> templateTeamInvitationEn;
+
+  @ConfigProperty(name = "pedalons.email.brevo.templates.team-invitation-signup.fr")
+  Optional<Long> templateTeamInvitationSignupFr;
+
+  @ConfigProperty(name = "pedalons.email.brevo.templates.team-invitation-signup.en")
+  Optional<Long> templateTeamInvitationSignupEn;
 
   @Inject @RestClient BrevoRestClient brevoRestClient;
 
@@ -148,6 +169,26 @@ public class EmailService {
           templateAdContactEn.orElseThrow(
               () ->
                   new IllegalStateException("Brevo template ID not configured for ad-contact.en"));
+      case TEAM_INVITATION + ".fr" ->
+          templateTeamInvitationFr.orElseThrow(
+              () ->
+                  new IllegalStateException(
+                      "Brevo template ID not configured for team-invitation.fr"));
+      case TEAM_INVITATION + ".en" ->
+          templateTeamInvitationEn.orElseThrow(
+              () ->
+                  new IllegalStateException(
+                      "Brevo template ID not configured for team-invitation.en"));
+      case TEAM_INVITATION_SIGNUP + ".fr" ->
+          templateTeamInvitationSignupFr.orElseThrow(
+              () ->
+                  new IllegalStateException(
+                      "Brevo template ID not configured for team-invitation-signup.fr"));
+      case TEAM_INVITATION_SIGNUP + ".en" ->
+          templateTeamInvitationSignupEn.orElseThrow(
+              () ->
+                  new IllegalStateException(
+                      "Brevo template ID not configured for team-invitation-signup.en"));
       default ->
           throw new IllegalArgumentException(
               "Unknown template: " + templateName + " / " + language);
@@ -285,6 +326,65 @@ public class EmailService {
                     senderName,
                     adUrl,
                     appName);
+      }
+      case TEAM_INVITATION -> {
+        String appName = (String) params.get("appName");
+        String inviterName = (String) params.get("inviterName");
+        String teamName = (String) params.get("teamName");
+        String invitationUrl = (String) params.get("invitationUrl");
+        String expiresInDays = (String) params.get("expiresInDays");
+        subject = "%s vous invite à rejoindre %s".formatted(inviterName, teamName);
+        body =
+            """
+            Bonjour,
+
+            %s vous invite à rejoindre l'équipe « %s » sur %s.
+
+            Votre compte %s existe déjà : connectez-vous et acceptez l'invitation via le lien \
+            ci-dessous.
+
+            %s
+
+            Vous n'êtes membre de cette équipe qu'une fois l'invitation acceptée : tant que vous \
+            ne cliquez pas, rien ne change pour votre compte.
+
+            Cette invitation expire dans %s jours. Si vous ne souhaitez pas rejoindre cette \
+            équipe, ignorez simplement cet e-mail.
+
+            Cordialement,
+            L'équipe %s
+            """
+                .formatted(
+                    inviterName, teamName, appName, appName, invitationUrl, expiresInDays, appName);
+      }
+      case TEAM_INVITATION_SIGNUP -> {
+        String appName = (String) params.get("appName");
+        String inviterName = (String) params.get("inviterName");
+        String teamName = (String) params.get("teamName");
+        String invitationUrl = (String) params.get("invitationUrl");
+        String expiresInDays = (String) params.get("expiresInDays");
+        subject = "%s vous invite à rejoindre %s".formatted(inviterName, teamName);
+        body =
+            """
+            Bonjour,
+
+            %s vous invite à rejoindre l'équipe « %s » sur %s.
+
+            Vous n'avez pas encore de compte : créez-le via le lien ci-dessous, puis acceptez \
+            l'invitation.
+
+            %s
+
+            Vous n'êtes membre de cette équipe qu'une fois l'invitation acceptée : créer un \
+            compte ne vous y inscrit pas.
+
+            Cette invitation expire dans %s jours. Si vous ne souhaitez pas rejoindre cette \
+            équipe, ignorez simplement cet e-mail : aucun compte ne sera créé.
+
+            Cordialement,
+            L'équipe %s
+            """
+                .formatted(inviterName, teamName, appName, invitationUrl, expiresInDays, appName);
       }
       default -> throw new IllegalArgumentException("Unknown template: " + templateName);
     }

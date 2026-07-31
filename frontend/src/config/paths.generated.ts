@@ -21,6 +21,7 @@ export const paths = {
       default: return '/verify-email'
     }
   },
+  invitation: () => '/invitation',
   forgotPassword: () => {
     switch (getCurrentLocale()) {
       case 'fr': return '/mot-de-passe-oublie'
@@ -367,6 +368,7 @@ export const pathVariants = {
   home: (): Record<Locale, string> => ({ en: '/', fr: '/' }),
   login: (): Record<Locale, string> => ({ en: '/login', fr: '/connexion' }),
   verifyEmail: (): Record<Locale, string> => ({ en: '/verify-email', fr: '/verifier-email' }),
+  invitation: (): Record<Locale, string> => ({ en: '/invitation', fr: '/invitation' }),
   forgotPassword: (): Record<Locale, string> => ({ en: '/forgot-password', fr: '/mot-de-passe-oublie' }),
   resetPassword: (): Record<Locale, string> => ({ en: '/reset-password', fr: '/nouveau-mot-de-passe' }),
   stravaCallback: (): Record<Locale, string> => ({ en: '/strava/callback', fr: '/strava/callback' }),

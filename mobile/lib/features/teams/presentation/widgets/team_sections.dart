@@ -44,6 +44,15 @@ class TeamSection {
 /// Feed and About are always there, so the row is never empty.
 List<TeamSection> buildTeamSections(TeamDetailDto team) {
   final isMember = team.role != null;
+  // Organisers and admins read the roster whatever the team decided; everyone
+  // else needs the team to have opened it. Mirrors UserTeamAccessChecker: the
+  // chip has to disappear when the server would answer 403, because an entry
+  // that always leads to an error is worse than no entry at all.
+  final canSeeMembers =
+      isMember &&
+      (team.role == 'ORGANIZER' ||
+          team.role == 'ADMIN' ||
+          team.enableMemberDirectory);
   final slug = team.slug;
 
   return [
@@ -78,8 +87,8 @@ List<TeamSection> buildTeamSections(TeamDetailDto team) {
         icon: Icons.sell_outlined,
         label: 'teams.tabs.ads',
       ),
-    // Members — members only: the list is not public.
-    if (isMember)
+    // Members — never public, and not even every member: see [canSeeMembers].
+    if (canSeeMembers)
       TeamSection(
         kind: TeamSectionKind.members,
         paths: PathVariants.teamMembers(slug),

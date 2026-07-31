@@ -9,7 +9,6 @@ import fr.pedalons.common.exception.PedalonsException;
 import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.users.request.UpdateUserRequest;
-import fr.pedalons.dto.users.response.PublicUserDto;
 import fr.pedalons.dto.users.response.UserDto;
 import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.service.security.PedalonsQueryContext;
@@ -19,7 +18,6 @@ import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
-import java.util.List;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -159,81 +157,6 @@ class UserServiceTest extends AbstractBaseTest {
 
       queryContext.setUserForTest(user);
       assertThrows(PedalonsException.class, () -> userService.deleteUser());
-    }
-  }
-
-  // ==================== Search By Display Name ====================
-
-  @Nested
-  class SearchByDisplayName {
-
-    @Test
-    void shouldFindMatchingUsers() {
-      dataService.createUser("john@example.com", "John Doe");
-      dataService.createUser("jane@example.com", "Jane Smith");
-      dataService.createUser("johnny@example.com", "Johnny Walker");
-
-      List<PublicUserDto> result = userService.searchByDisplayName("john", 10);
-
-      assertEquals(2, result.size());
-      assertTrue(result.stream().anyMatch(u -> u.displayName().equals("John Doe")));
-      assertTrue(result.stream().anyMatch(u -> u.displayName().equals("Johnny Walker")));
-    }
-
-    @Test
-    void shouldBeCaseInsensitive() {
-      dataService.createUser("test@example.com", "Alice Test");
-
-      List<PublicUserDto> resultLower = userService.searchByDisplayName("alice", 10);
-      List<PublicUserDto> resultUpper = userService.searchByDisplayName("ALICE", 10);
-      List<PublicUserDto> resultMixed = userService.searchByDisplayName("AlIcE", 10);
-
-      assertEquals(1, resultLower.size());
-      assertEquals(1, resultUpper.size());
-      assertEquals(1, resultMixed.size());
-      assertEquals("Alice Test", resultLower.getFirst().displayName());
-    }
-
-    @Test
-    void shouldRespectLimit() {
-      for (int i = 1; i <= 5; i++) {
-        dataService.createUser("user" + i + "@example.com", "Test User " + i);
-      }
-
-      List<PublicUserDto> result = userService.searchByDisplayName("test", 3);
-
-      assertEquals(3, result.size());
-    }
-
-    @Test
-    void shouldExcludeDeletedUsers() {
-      User user1 = dataService.createUser("active@example.com", "Active User");
-      User user2 = dataService.createUser("deleted@example.com", "Deleted User");
-      dataService.deleteUser(user2);
-
-      List<PublicUserDto> result = userService.searchByDisplayName("user", 10);
-
-      assertEquals(1, result.size());
-      assertEquals("Active User", result.getFirst().displayName());
-    }
-
-    @Test
-    void shouldReturnEmptyForNoMatches() {
-      dataService.createUser("john@example.com", "John Doe");
-
-      List<PublicUserDto> result = userService.searchByDisplayName("alice", 10);
-
-      assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void shouldMatchPartialNames() {
-      dataService.createUser("test@example.com", "Alice Johnson");
-
-      List<PublicUserDto> result = userService.searchByDisplayName("ali", 10);
-
-      assertEquals(1, result.size());
-      assertEquals("Alice Johnson", result.getFirst().displayName());
     }
   }
 }

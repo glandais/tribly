@@ -148,6 +148,26 @@ enum ErrorCode {
   adContactRateLimited('AD_CONTACT_RATE_LIMITED'),
   @JsonValue('AD_CONTACT_DELIVERY_FAILED')
   adContactDeliveryFailed('AD_CONTACT_DELIVERY_FAILED'),
+  @JsonValue('TEAM_INVITE_INVALID')
+  teamInviteInvalid('TEAM_INVITE_INVALID'),
+  @JsonValue('TEAM_INVITE_EXPIRED')
+  teamInviteExpired('TEAM_INVITE_EXPIRED'),
+  @JsonValue('TEAM_INVITE_REVOKED')
+  teamInviteRevoked('TEAM_INVITE_REVOKED'),
+  @JsonValue('TEAM_INVITE_ALREADY_USED')
+  teamInviteAlreadyUsed('TEAM_INVITE_ALREADY_USED'),
+  @JsonValue('TEAM_INVITE_ALREADY_MEMBER')
+  teamInviteAlreadyMember('TEAM_INVITE_ALREADY_MEMBER'),
+  @JsonValue('TEAM_INVITE_EMAIL_MISMATCH')
+  teamInviteEmailMismatch('TEAM_INVITE_EMAIL_MISMATCH'),
+  @JsonValue('TEAM_INVITE_SELF')
+  teamInviteSelf('TEAM_INVITE_SELF'),
+  @JsonValue('TEAM_INVITE_NOT_PENDING')
+  teamInviteNotPending('TEAM_INVITE_NOT_PENDING'),
+  @JsonValue('TEAM_INVITE_RATE_LIMITED')
+  teamInviteRateLimited('TEAM_INVITE_RATE_LIMITED'),
+  @JsonValue('TEAM_INVITE_DELIVERY_FAILED')
+  teamInviteDeliveryFailed('TEAM_INVITE_DELIVERY_FAILED'),
 
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
   $unknown(null);

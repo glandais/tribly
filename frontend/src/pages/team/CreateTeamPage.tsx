@@ -34,6 +34,9 @@ export function CreateTeamPage() {
     enablePosts: true,
     enableRides: true,
     enableRoutes: true,
+    // The one enable_* that starts off: opening the roster to every member is a decision, not a
+    // default. Matches the column's DEFAULT FALSE.
+    enableMemberDirectory: false,
   }
 
   return (

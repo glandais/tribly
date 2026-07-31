@@ -6,24 +6,38 @@ import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { paths } from '../../config/paths'
-import { IconPlus } from '@tabler/icons-react'
-import { Alert, Box, Button, Group, Modal, Select, Stack, Text, Title } from '@mantine/core'
+import { IconPlus, IconSend } from '@tabler/icons-react'
+import {
+  Alert,
+  Box,
+  Button,
+  Group,
+  Modal,
+  Select,
+  Stack,
+  Text,
+  TextInput,
+  Title,
+} from '@mantine/core'
 import { useGetTeam, getGetTeamQueryKey } from '@/api/endpoints/teams/teams'
 import {
   useGetMembers,
   useUpdateMemberRole,
   useRemoveMember,
-  useAddMember,
   getGetMembersQueryKey,
   getMembers,
 } from '@/api/endpoints/team-members/team-members'
+import {
+  useInvite,
+  getListInvitationsQueryKey,
+} from '@/api/endpoints/team-invitations/team-invitations'
+
 import { useAuth } from '../../hooks/useAuth'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamMemberList, TeamMemberListSkeleton } from '../../components/team/TeamMemberList'
 import { TeamAdminLayout } from '../../components/team/TeamAdminLayout'
-import { UserAutocomplete } from '../../components/common/UserAutocomplete'
+import { TeamInvitationList } from '../../components/team/TeamInvitationList'
 import { SearchInput } from '../../components/common/SearchInput'
-import type { PublicUserDto } from '@/api/dto'
 import { TeamRole } from '@/api/dto'
 import { Pagination } from '../../components/common/Pagination'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
@@ -42,6 +56,7 @@ export function TeamMembersPage() {
   const queryClient = useQueryClient()
   const [showAddMember, setShowAddMember] = useState(false)
   const [selectedRole, setSelectedRole] = useState<TeamRole>(TeamRole.MEMBER)
+  const [inviteEmail, setInviteEmail] = useState('')
 
   const { filters, setFilters } = useUrlFilters({
     schema: teamMemberFiltersSchema,
@@ -78,7 +93,7 @@ export function TeamMembersPage() {
 
   const updateRoleMutation = useUpdateMemberRole()
   const removeMemberMutation = useRemoveMember()
-  const addMemberMutation = useAddMember()
+  const inviteMutation = useInvite()
 
   useCanonicalPath(team ? paths.teamAdminMembers(team.slug) : undefined)
 
@@ -95,21 +110,33 @@ export function TeamMembersPage() {
     return <Navigate to={paths.team(teamSlug!)} replace />
   }
 
-  const handleAddMember = (selectedUser: PublicUserDto) => {
-    if (!teamSlug) return
-    addMemberMutation.mutate(
-      { teamSlug: teamSlug, data: { userId: selectedUser.id, role: selectedRole } },
+  const closeInviteModal = () => {
+    setShowAddMember(false)
+    setSelectedRole(TeamRole.MEMBER)
+    setInviteEmail('')
+  }
+
+  // The address is the only field, and the server is the authority on it (@Email). This is just the
+  // cheap check that spares a round trip on an obviously malformed entry.
+  const emailLooksValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inviteEmail.trim())
+
+  const handleInvite = () => {
+    if (!teamSlug || !emailLooksValid) return
+    inviteMutation.mutate(
+      { teamSlug, data: { email: inviteEmail.trim(), role: selectedRole } },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
-          queryClient.invalidateQueries({ queryKey: getGetMembersQueryKey(teamSlug) })
+          queryClient.invalidateQueries({ queryKey: getListInvitationsQueryKey(teamSlug) })
           notifications.show({
-            message: i18next.t('teams.notifications.memberAdded'),
+            message: i18next.t('teams.invitations.sent', { email: inviteEmail.trim() }),
             color: 'green',
           })
-          setShowAddMember(false)
-          setSelectedRole(TeamRole.MEMBER)
+          closeInviteModal()
         },
+        // No Alert here on purpose: axiosMutator already raises a toast carrying the translated
+        // errors.api.<CODE>, and a second copy inside the modal is the doubling this codebase
+        // already gets wrong elsewhere. What the modal owes the admin is the address they typed,
+        // which stays put so a typo can be corrected rather than retyped.
       }
     )
   }
@@ -150,7 +177,7 @@ export function TeamMembersPage() {
           <Title order={2}>{t('teams.detail.members.title')}</Title>
           {team.addMemberAllowed && (
             <Button onClick={() => setShowAddMember(true)} leftSection={<IconPlus size={16} />}>
-              {t('teams.detail.members.addMember')}
+              {t('teams.invitations.invite')}
             </Button>
           )}
         </Group>
@@ -213,56 +240,66 @@ export function TeamMembersPage() {
           </Text>
         )}
 
-        {/* Add Member Modal */}
+        <Box mt="xl">
+          <TeamInvitationList teamSlug={teamSlug!} />
+        </Box>
+
+        {/* Invite by e-mail */}
         <Modal
           opened={showAddMember}
-          onClose={() => {
-            setShowAddMember(false)
-            setSelectedRole(TeamRole.MEMBER)
-          }}
-          title={t('teams.detail.members.addMember')}
+          onClose={closeInviteModal}
+          title={t('teams.invitations.invite')}
           size="md"
         >
-          <Stack>
-            <Box>
-              <Text size="sm" fw={500} mb="xs">
-                {t('teams.detail.members.searchUser')}
-              </Text>
-              <UserAutocomplete
-                onSelect={handleAddMember}
-                placeholder={t('teams.detail.members.searchPlaceholder')}
-              />
-            </Box>
-            <Select
-              label={t('teams.detail.members.role')}
-              value={selectedRole}
-              onChange={(value) => setSelectedRole(value as TeamRole)}
-              data={[
-                { value: TeamRole.MEMBER, label: t('roles.MEMBER') },
-                { value: TeamRole.ORGANIZER, label: t('roles.ORGANIZER') },
-                { value: TeamRole.ADMIN, label: t('roles.ADMIN') },
-              ]}
-            />
-            {addMemberMutation.error && (
-              <Alert color="red">
-                {addMemberMutation.error instanceof Error
-                  ? addMemberMutation.error.message
-                  : t('teams.detail.members.addError')}
+          <form
+            onSubmit={(event) => {
+              event.preventDefault()
+              handleInvite()
+            }}
+          >
+            <Stack>
+              <Alert color="blue" variant="light">
+                {t('teams.invitations.consentNotice')}
               </Alert>
-            )}
-          </Stack>
-          <Box mt="md">
-            <Button
-              variant="default"
-              onClick={() => {
-                setShowAddMember(false)
-                setSelectedRole(TeamRole.MEMBER)
-              }}
-              disabled={addMemberMutation.isPending}
-            >
-              {t('actions.cancelAction')}
-            </Button>
-          </Box>
+              <TextInput
+                type="email"
+                label={t('teams.invitations.email')}
+                placeholder={t('teams.invitations.emailPlaceholder')}
+                description={t('teams.invitations.emailHelp')}
+                value={inviteEmail}
+                onChange={(event) => setInviteEmail(event.currentTarget.value)}
+                required
+                data-autofocus
+              />
+              <Select
+                label={t('teams.detail.members.role')}
+                value={selectedRole}
+                onChange={(value) => setSelectedRole(value as TeamRole)}
+                data={[
+                  { value: TeamRole.MEMBER, label: t('roles.MEMBER') },
+                  { value: TeamRole.ORGANIZER, label: t('roles.ORGANIZER') },
+                  { value: TeamRole.ADMIN, label: t('roles.ADMIN') },
+                ]}
+              />
+            </Stack>
+            <Group mt="md" justify="flex-end">
+              <Button
+                variant="default"
+                onClick={closeInviteModal}
+                disabled={inviteMutation.isPending}
+              >
+                {t('actions.cancelAction')}
+              </Button>
+              <Button
+                type="submit"
+                loading={inviteMutation.isPending}
+                disabled={!emailLooksValid}
+                leftSection={<IconSend size={16} />}
+              >
+                {t('teams.invitations.send')}
+              </Button>
+            </Group>
+          </form>
         </Modal>
       </Box>
     </TeamAdminLayout>

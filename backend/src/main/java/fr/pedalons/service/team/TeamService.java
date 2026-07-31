@@ -229,6 +229,7 @@ public class TeamService {
     team.setEnablePosts(request.enablePosts());
     team.setEnableRides(request.enableRides());
     team.setEnableRoutes(request.enableRoutes());
+    team.setEnableMemberDirectory(request.enableMemberDirectory());
     team.setGeometry(request.geometry());
     assetService.updateAssets(team.getAboutPage(), request.media());
 

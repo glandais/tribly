@@ -1,7 +1,7 @@
 import * as zod from 'zod'
 
 /**
- * Get paginated list of team members
+ * Paginated list of team members. Administrators always see it; so do organisers, who need a member list to designate a ride group's leader. Everyone else needs the team to have set enableMemberDirectory. What is returned is graded too: 'role' and 'joinedAt' are null unless the caller is an administrator or the directory is open, and 'search' only matches an e-mail address for an administrator.
  * @summary Get team members
  */
 export const GetMembersParams = zod.object({
@@ -14,7 +14,10 @@ export const getMembersQuerySizeDefault = 50
 export const GetMembersQueryParams = zod.object({
   page: zod.number().default(getMembersQueryPageDefault).describe('Page number'),
   role: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']).optional().describe('Filter by role'),
-  search: zod.string().optional().describe('Search by name or email'),
+  search: zod
+    .string()
+    .optional()
+    .describe('Search by display name. Also matches the e-mail address, for administrators only.'),
   size: zod.number().default(getMembersQuerySizeDefault).describe('Page size'),
 })
 
@@ -42,7 +45,12 @@ export const GetMembersResponse = zod
                 avatarUrl: zod.string().optional().describe('User avatar URL'),
               })
               .describe('User'),
-            role: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']).describe('Member role'),
+            role: zod
+              .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
+              .optional()
+              .describe(
+                'Member role. Null when the caller is not entitled to it: an organiser reading the roster of a team that has not opened its member directory gets the names and nothing else.'
+              ),
             joinedAt: zod.iso
               .datetime({ offset: true })
               .optional()
@@ -95,7 +103,12 @@ export const AddMemberResponse = zod
         avatarUrl: zod.string().optional().describe('User avatar URL'),
       })
       .describe('User'),
-    role: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']).describe('Member role'),
+    role: zod
+      .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
+      .optional()
+      .describe(
+        'Member role. Null when the caller is not entitled to it: an organiser reading the roster of a team that has not opened its member directory gets the names and nothing else.'
+      ),
     joinedAt: zod.iso
       .datetime({ offset: true })
       .optional()
@@ -131,7 +144,12 @@ export const JoinTeamResponse = zod
         avatarUrl: zod.string().optional().describe('User avatar URL'),
       })
       .describe('User'),
-    role: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']).describe('Member role'),
+    role: zod
+      .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
+      .optional()
+      .describe(
+        'Member role. Null when the caller is not entitled to it: an organiser reading the roster of a team that has not opened its member directory gets the names and nothing else.'
+      ),
     joinedAt: zod.iso
       .datetime({ offset: true })
       .optional()
@@ -184,7 +202,12 @@ export const UpdateMemberRoleResponse = zod
         avatarUrl: zod.string().optional().describe('User avatar URL'),
       })
       .describe('User'),
-    role: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']).describe('Member role'),
+    role: zod
+      .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
+      .optional()
+      .describe(
+        'Member role. Null when the caller is not entitled to it: an organiser reading the roster of a team that has not opened its member directory gets the names and nothing else.'
+      ),
     joinedAt: zod.iso
       .datetime({ offset: true })
       .optional()

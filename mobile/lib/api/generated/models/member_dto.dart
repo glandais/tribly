@@ -25,8 +25,8 @@ abstract class MemberDto with _$MemberDto {
     /// User
     required PublicUserDto user,
 
-    /// Member role
-    required String role,
+    /// Member role. Null when the caller is not entitled to it: an organiser reading the roster of a team that has not opened its member directory gets the names and nothing else.
+    String? role,
 
     /// When the user joined the team
     String? joinedAt,

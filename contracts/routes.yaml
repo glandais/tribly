@@ -50,6 +50,20 @@ routes:
     web: true
     mobile: true
     deeplink: true
+  # Where an invitation e-mail lands. The token travels in ?token=, like verifyEmail and
+  # resetPassword: a bearer secret in a path segment ends up in access logs and in the Referer of
+  # anything the page loads.
+  #
+  # mobile/deeplink stay false until there is a Flutter screen to receive it — turning deeplink on
+  # first would make an installed app swallow the link and drop it nowhere. Flip both in the same
+  # commit as that screen.
+  - id: invitation
+    path:
+      en: /invitation
+      fr: /invitation
+    web: true
+    mobile: false
+    deeplink: false
   - id: forgotPassword
     path:
       en: /forgot-password

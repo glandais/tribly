@@ -2,6 +2,19 @@
 openapi: 3.1.0
 components:
   schemas:
+    AcceptInvitationRequest:
+      description: Redeem an invitation token
+      type: object
+      required:
+      - token
+      properties:
+        token:
+          type: string
+          description: "The token from the invitation e-mail. Sent in the body rather\
+            \ than in the path, because a bearer secret in a URL path ends up in access\
+            \ logs and in the Referer of anything the page loads."
+          pattern: \S
+          maxLength: 200
     AdContactRequest:
       description: A message to relay to the author of an ad
       type: object
@@ -1281,6 +1294,28 @@ components:
         active:
           type: boolean
           description: Whether credential is active
+    CreateInvitationRequest:
+      description: Invite an e-mail address to join a team
+      type: object
+      required:
+      - email
+      properties:
+        email:
+          type: string
+          description: Address to invite. The response is the same whether or not
+            an account already exists for it — only the wording of the e-mail differs.
+            Answering differently would turn this into an account-existence oracle
+            for anyone who administers a team.
+          examples:
+          - member@example.com
+          pattern: \S
+          maxLength: 250
+        role:
+          description: Role to grant on acceptance. Defaults to MEMBER.
+          type: string
+          examples:
+          - MEMBER
+          $ref: "#/components/schemas/TeamRole"
     DeviceCodeResponse:
       description: Device code response (RFC 8628)
       type: object
@@ -1590,6 +1625,16 @@ components:
       - AD_CONTACT_OPTED_OUT
       - AD_CONTACT_RATE_LIMITED
       - AD_CONTACT_DELIVERY_FAILED
+      - TEAM_INVITE_INVALID
+      - TEAM_INVITE_EXPIRED
+      - TEAM_INVITE_REVOKED
+      - TEAM_INVITE_ALREADY_USED
+      - TEAM_INVITE_ALREADY_MEMBER
+      - TEAM_INVITE_EMAIL_MISMATCH
+      - TEAM_INVITE_SELF
+      - TEAM_INVITE_NOT_PENDING
+      - TEAM_INVITE_RATE_LIMITED
+      - TEAM_INVITE_DELIVERY_FAILED
     ErrorDetails:
       oneOf:
       - $ref: "#/components/schemas/ErrorValidationDetails"
@@ -1968,6 +2013,49 @@ components:
       format: date-time
       examples:
       - 2022-03-10T16:15:50Z
+    InvitationPreviewDto:
+      description: "What an invitation says, readable by whoever holds its token"
+      type: object
+      required:
+      - teamName
+      - teamSlug
+      - inviterName
+      - maskedEmail
+      - role
+      - status
+      - redeemable
+      properties:
+        teamName:
+          type: string
+          description: Team name
+        teamSlug:
+          type: string
+          description: Team URL slug
+        inviterName:
+          type: string
+          description: Display name of whoever sent the invitation
+        maskedEmail:
+          type: string
+          description: "Invited address, masked (a***@example.com)"
+        role:
+          description: Role granted on acceptance
+          type: string
+          $ref: "#/components/schemas/TeamRole"
+        status:
+          description: Where the invitation stands
+          type: string
+          $ref: "#/components/schemas/InvitationStatus"
+        redeemable:
+          type: boolean
+          description: Whether the invitation can still be redeemed. False for anything
+            but a live PENDING one.
+    InvitationStatus:
+      type: string
+      enum:
+      - PENDING
+      - ACCEPTED
+      - REVOKED
+      - EXPIRED
     ListViewMode:
       type: string
       enum:
@@ -2094,7 +2182,6 @@ components:
       - team
       - id
       - user
-      - role
       properties:
         team:
           description: Team
@@ -2108,7 +2195,9 @@ components:
           type: object
           $ref: "#/components/schemas/PublicUserDto"
         role:
-          description: Member role
+          description: "Member role. Null when the caller is not entitled to it: an\
+            \ organiser reading the roster of a team that has not opened its member\
+            \ directory gets the names and nothing else."
           type: string
           $ref: "#/components/schemas/TeamRole"
         joinedAt:
@@ -2154,6 +2243,45 @@ components:
       - MEMBER
       - ORGANIZER
       - ADMIN
+    MyInvitationDto:
+      description: An invitation waiting for the current user
+      type: object
+      required:
+      - id
+      - team
+      - inviterName
+      - role
+      - expiresAt
+      properties:
+        id:
+          type: string
+          description: Invitation ID (TSID)
+        team:
+          description: Team being offered
+          type: object
+          $ref: "#/components/schemas/TeamPublicationDto"
+        inviterName:
+          type: string
+          description: Display name of whoever sent it
+        role:
+          description: Role granted on acceptance
+          type: string
+          $ref: "#/components/schemas/TeamRole"
+        expiresAt:
+          description: When it stops being redeemable
+          type: string
+          $ref: "#/components/schemas/Instant"
+    MyInvitationListResponse:
+      description: The invitations waiting for the current user
+      type: object
+      required:
+      - invitations
+      properties:
+        invitations:
+          type: array
+          items:
+            $ref: "#/components/schemas/MyInvitationDto"
+          description: "Invitations, newest first"
     NearType:
       type: string
       enum:
@@ -3592,6 +3720,7 @@ components:
       - enablePosts
       - enableRides
       - enableRoutes
+      - enableMemberDirectory
       - visibilityEditable
       - joinable
       - addMemberAllowed
@@ -3651,6 +3780,13 @@ components:
         enableRoutes:
           type: boolean
           description: Routes enabled
+        enableMemberDirectory:
+          type: boolean
+          description: "Whether the member directory is readable by every member and\
+            \ not just by administrators. Clients use it to decide whether to offer\
+            \ the directory at all: an entry that always leads to a 403 is worse than\
+            \ no entry. Organisers see the directory whatever its value, but only\
+            \ get each member's role and join date when it is true."
         visibilityEditable:
           type: boolean
           description: Whether visibility is editable by team admins
@@ -3711,6 +3847,74 @@ components:
               examples:
               - - 2.3522
                 - 48.8566
+    TeamInvitationDto:
+      description: A pending or settled invitation to join a team
+      type: object
+      required:
+      - id
+      - email
+      - role
+      - status
+      - expiresAt
+      - createdAt
+      - invitedBy
+      properties:
+        id:
+          type: string
+          description: Invitation ID (TSID)
+        email:
+          type: string
+          description: Invited e-mail address
+        role:
+          description: Role granted on acceptance
+          type: string
+          $ref: "#/components/schemas/TeamRole"
+        status:
+          description: Where the invitation stands
+          type: string
+          $ref: "#/components/schemas/InvitationStatus"
+        expiresAt:
+          description: When the invitation stops being redeemable
+          type: string
+          $ref: "#/components/schemas/Instant"
+        createdAt:
+          description: When the invitation was sent
+          type: string
+          $ref: "#/components/schemas/Instant"
+        invitedBy:
+          description: Who sent it
+          type: object
+          $ref: "#/components/schemas/PublicUserDto"
+        acceptedAt:
+          description: "When it was accepted, if it was"
+          type: string
+          $ref: "#/components/schemas/Instant"
+    TeamInvitationListResponse:
+      description: Paginated list of a team's invitations
+      type: object
+      required:
+      - invitations
+      - total
+      - page
+      - size
+      properties:
+        invitations:
+          type: array
+          items:
+            $ref: "#/components/schemas/TeamInvitationDto"
+          description: Invitations
+        total:
+          type: integer
+          format: int64
+          description: Total number of invitations
+        page:
+          type: integer
+          format: int32
+          description: Current page (0-indexed)
+        size:
+          type: integer
+          format: int32
+          description: Page size
     TeamListResponse:
       description: Paginated team list response
       type: object
@@ -3867,6 +4071,7 @@ components:
       - enablePosts
       - enableRides
       - enableRoutes
+      - enableMemberDirectory
       properties:
         name:
           type: string
@@ -3911,6 +4116,13 @@ components:
           description: Routes enabled for team
           examples:
           - true
+        enableMemberDirectory:
+          type: boolean
+          description: "Member directory readable by every member, not just administrators.\
+            \ Organisers always see the directory; what this flag adds for them is\
+            \ the role and join date of each member."
+          examples:
+          - false
         geometry:
           description: "Team location coordinates [longitude, latitude]"
           type: object
@@ -4625,6 +4837,8 @@ tags:
   description: GPS device integration operations
 - name: GPX previews
   description: Analyse a GPX file outside of any team
+- name: Invitations
+  description: Redeem a team invitation
 - name: Passkeys
   description: WebAuthn passkey management
 - name: Places
@@ -4651,6 +4865,8 @@ tags:
   description: Server version and build information
 - name: Strava Authentication
   description: Login with Strava and account recovery/binding
+- name: Team Invitations
+  description: Invite people to a team by e-mail
 - name: Team Members
   description: Team membership management operations
 - name: Team Pages
@@ -7303,6 +7519,83 @@ paths:
       security:
       - SecurityScheme:
         - user
+  /api/invitations/accept:
+    post:
+      summary: Accept an invitation
+      description: "Joins the team the token names. Requires a session: accepting\
+        \ is consenting, and a consent attaches to an account — a public accept handing\
+        \ back a session would make the invitation link a login credential. Idempotent:\
+        \ replaying it, or accepting when already a member, returns the existing membership\
+        \ without changing its role, so an invitation as MEMBER never demotes an administrator."
+      operationId: accept
+      tags:
+      - Invitations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AcceptInvitationRequest"
+        required: true
+      responses:
+        "200":
+          description: "Joined, or already a member"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberDto"
+        "400":
+          description: "Invitation unknown, expired, revoked or already used (TEAM_INVITE_INVALID\
+            \ / _EXPIRED / _REVOKED / _ALREADY_USED)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: "Signed in as someone else (TEAM_INVITE_EMAIL_MISMATCH), or\
+            \ the account's address is unverified (EMAIL_NOT_VERIFIED)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
+  /api/invitations/preview:
+    post:
+      summary: Read an invitation
+      description: "What the invitation says, for whoever holds its token. Public,\
+        \ because an invitation opened in a signed-out browser has to be able to name\
+        \ the team and the person inviting — otherwise the page can only show a bare\
+        \ login form with no explanation of why. Nothing here goes beyond what the\
+        \ e-mail already said, and the invited address comes back masked."
+      operationId: preview
+      tags:
+      - Invitations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AcceptInvitationRequest"
+        required: true
+      responses:
+        "200":
+          description: Invitation found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvitationPreviewDto"
+        "400":
+          description: Unknown or malformed token (TEAM_INVITE_INVALID)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/map/styles/{id}.json:
     get:
       summary: Get a generated map style
@@ -8912,10 +9205,212 @@ paths:
       security:
       - SecurityScheme:
         - user
+  /api/teams/{teamSlug}/invitations:
+    get:
+      summary: List a team's invitations
+      description: "Administrators only. This is where a mistyped address shows up:\
+        \ since the creation call cannot tell the admin that an address is unknown,\
+        \ the pending list is what makes a typo visible and revocable."
+      operationId: listInvitations
+      tags:
+      - Team Invitations
+      parameters:
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Page number
+        name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - description: Page size
+        name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 20
+      - description: Filter by status
+        name: status
+        in: query
+        schema:
+          $ref: "#/components/schemas/InvitationStatus"
+      responses:
+        "200":
+          description: Invitations retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamInvitationListResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not a team administrator
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
+    post:
+      summary: Invite an e-mail address
+      description: "Sends an invitation to join the team. The response is the same\
+        \ whether or not an account already exists for the address — only the wording\
+        \ of the e-mail differs — because answering differently would give anyone\
+        \ who administers a team an account-existence probe for the whole domain.\
+        \ Re-inviting the same address is not an error: the previous pending invitation\
+        \ is revoked and a fresh one issued, which is how 'resend' works. Nobody becomes\
+        \ a member until they accept."
+      operationId: invite
+      tags:
+      - Team Invitations
+      parameters:
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateInvitationRequest"
+        required: true
+      responses:
+        "201":
+          description: Invitation created and sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamInvitationDto"
+        "400":
+          description: "Invalid address, or the caller invited themselves (TEAM_INVITE_SELF)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: "Not a team administrator, or the team may not add members"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: The address already belongs to a member of this team
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Too many invitations sent recently
+          headers:
+            Retry-After:
+              description: Seconds to wait before retrying
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: The invitation e-mail could not be delivered; nothing was recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{teamSlug}/invitations/{invitationId}:
+    delete:
+      summary: Revoke an invitation
+      description: "Withdraws a pending invitation. This is also the recourse when\
+        \ an invitation should no longer stand — the inviter having left the team,\
+        \ say — since acceptance does not re-check who sent it."
+      operationId: revoke
+      tags:
+      - Team Invitations
+      parameters:
+      - description: Invitation ID (TSID)
+        name: invitationId
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Invitation revoked
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not a team administrator
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team or invitation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: "The invitation has already been accepted, revoked or expired"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
   /api/teams/{teamSlug}/members:
     get:
       summary: Get team members
-      description: Get paginated list of team members
+      description: "Paginated list of team members. Administrators always see it;\
+        \ so do organisers, who need a member list to designate a ride group's leader.\
+        \ Everyone else needs the team to have set enableMemberDirectory. What is\
+        \ returned is graded too: 'role' and 'joinedAt' are null unless the caller\
+        \ is an administrator or the directory is open, and 'search' only matches\
+        \ an e-mail address for an administrator."
       operationId: getMembers
       tags:
       - Team Members
@@ -8938,7 +9433,8 @@ paths:
         in: query
         schema:
           $ref: "#/components/schemas/TeamRole"
-      - description: Search by name or email
+      - description: "Search by display name. Also matches the e-mail address, for\
+          \ administrators only."
         name: search
         in: query
         schema:
@@ -8963,14 +9459,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not entitled to read this team's member directory
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Team not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: Not Allowed
       security:
       - SecurityScheme:
         - user
@@ -13173,6 +13673,81 @@ paths:
       security:
       - SecurityScheme:
         - user
+  /api/users/me/invitations:
+    get:
+      summary: My pending invitations
+      description: "Live invitations addressed to the current user, newest first.\
+        \ Teams they already belong to are left out."
+      operationId: listMyInvitations
+      tags:
+      - Invitations
+      responses:
+        "200":
+          description: Invitations retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MyInvitationListResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/users/me/invitations/{invitationId}/accept:
+    post:
+      summary: Accept one of my invitations
+      description: "Same effect as redeeming the token, for an invitation reached\
+        \ from this list."
+      operationId: acceptMyInvitation
+      tags:
+      - Invitations
+      parameters:
+      - description: Invitation ID (TSID)
+        name: invitationId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: "Joined, or already a member"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberDto"
+        "400":
+          description: "Invitation expired, revoked or already used"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: The invitation is addressed to someone else
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Invitation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
   /api/users/me/participations:
     get:
       summary: List my participations
@@ -13281,58 +13856,6 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/users/search:
-    get:
-      summary: Search users
-      description: "Search users by display name. Pass 'teamSlug' to keep only the\
-        \ members of that team — useful for a picker that must yield a member, such\
-        \ as a ride group's leader. The parameter only ever removes results, and requires\
-        \ the caller to belong to the team."
-      operationId: searchUsers
-      tags:
-      - Users
-      parameters:
-      - description: Maximum results (max 20)
-        name: limit
-        in: query
-        schema:
-          type: integer
-          format: int32
-          default: 10
-      - description: Search query
-        name: q
-        in: query
-        schema:
-          type: string
-      - description: Keep only members of this team
-        name: teamSlug
-        in: query
-        schema:
-          type: string
-      responses:
-        "200":
-          description: Search results
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/PublicUserDto"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: Not a member of the requested team
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-      security:
-      - SecurityScheme:
-        - user
   /api/version:
     get:
       summary: Get server version
@@ -13350,7 +13873,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 2.6.0
+  version: 3.0.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

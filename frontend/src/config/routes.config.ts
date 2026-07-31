@@ -42,6 +42,11 @@ const DeviceVerifyPage = lazy(() =>
 const VerifyEmailPage = lazy(() =>
   import('../pages/auth/VerifyEmailPage').then((m) => ({ default: m.VerifyEmailPage }))
 )
+const AcceptInvitationPage = lazy(() =>
+  import('../pages/invitation/AcceptInvitationPage').then((m) => ({
+    default: m.AcceptInvitationPage,
+  }))
+)
 const ForgotPasswordPage = lazy(() =>
   import('../pages/auth/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage }))
 )
@@ -380,6 +385,16 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('auth.verifyEmail.title') },
+  },
+  {
+    // Public, not authenticated: the page has to be able to say who is inviting and to what before
+    // anyone signs in, or a signed-out invitee lands on a bare login form with no explanation.
+    id: 'invitation',
+    paths: pathVariants.invitation(),
+    component: AcceptInvitationPage,
+    auth: 'public',
+    parentId: null,
+    breadcrumb: { type: 'static', i18nKey: tRegister('invitations.accept.pageTitle') },
   },
   {
     id: 'forgot-password',

@@ -174,6 +174,7 @@ class TeamResourceTest extends AbstractResourceTest {
             true,
             true,
             true,
+            false,
             null);
     given()
         .auth()
@@ -201,6 +202,7 @@ class TeamResourceTest extends AbstractResourceTest {
             true,
             true,
             true,
+            false,
             null);
     given()
         .contentType("application/json")
@@ -261,6 +263,7 @@ class TeamResourceTest extends AbstractResourceTest {
             true,
             true,
             true,
+            false,
             null);
 
     given()
@@ -288,6 +291,7 @@ class TeamResourceTest extends AbstractResourceTest {
             true,
             true,
             true,
+            false,
             null);
 
     given()

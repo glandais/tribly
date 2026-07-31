@@ -79,6 +79,17 @@ public class Team extends BaseEntity {
   @Column(name = "enable_routes", nullable = false)
   private boolean enableRoutes = true;
 
+  /**
+   * Whether the member directory is open beyond the team's administrators. Off by default, and the
+   * only {@code enable*} flag that is: switching it on discloses the whole roster to every member,
+   * so it has to be an explicit act rather than something a migration does on a team's behalf.
+   *
+   * <p>Organisers see the directory whatever its value — they need a member list to designate a ride
+   * group's leader. What the flag withholds from them is {@code role} and {@code joinedAt}.
+   */
+  @Column(name = "enable_member_directory", nullable = false)
+  private boolean enableMemberDirectory = false;
+
   @Column(name = "geometry", columnDefinition = "geometry(Point,4326)")
   @Nullable
   private Point<G2D> geometry;

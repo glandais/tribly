@@ -1772,24 +1772,3 @@ export const UpdateMyPreferencesResponse = zod
       .describe('Linked external identities (e.g. Strava)'),
   })
   .describe('User profile data')
-
-/**
- * Search users by display name. Pass 'teamSlug' to keep only the members of that team — useful for a picker that must yield a member, such as a ride group's leader. The parameter only ever removes results, and requires the caller to belong to the team.
- * @summary Search users
- */
-export const searchUsersQueryLimitDefault = 10
-
-export const SearchUsersQueryParams = zod.object({
-  limit: zod.number().default(searchUsersQueryLimitDefault).describe('Maximum results (max 20)'),
-  q: zod.string().optional().describe('Search query'),
-  teamSlug: zod.string().optional().describe('Keep only members of this team'),
-})
-
-export const SearchUsersResponseItem = zod
-  .object({
-    id: zod.string().describe('User ID (TSID)'),
-    displayName: zod.string().describe('User display name'),
-    avatarUrl: zod.string().optional().describe('User avatar URL'),
-  })
-  .describe('Public user information (limited fields)')
-export const SearchUsersResponse = zod.array(SearchUsersResponseItem)

@@ -10,7 +10,7 @@ _MemberDto _$MemberDtoFromJson(Map<String, dynamic> json) => _MemberDto(
   team: TeamPublicationDto.fromJson(json['team'] as Map<String, dynamic>),
   id: json['id'] as String,
   user: PublicUserDto.fromJson(json['user'] as Map<String, dynamic>),
-  role: json['role'] as String,
+  role: json['role'] as String?,
   joinedAt: json['joinedAt'] as String?,
 );
 

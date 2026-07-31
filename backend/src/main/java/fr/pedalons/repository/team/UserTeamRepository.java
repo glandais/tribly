@@ -22,8 +22,14 @@ public class UserTeamRepository implements BaseRepository<UserTeam> {
     return find("user.id = ?1 and user.deleted = false and team.deleted = false", userId).list();
   }
 
+  /**
+   * @param searchEmail whether {@code search} may also match a member's e-mail address. Only ever
+   *     true for an administrator. The address is in no response, but a query that matches on it
+   *     turns this endpoint into an oracle: type any address, see whether a row comes back. That is
+   *     what the caller is being denied here, not the sight of the member.
+   */
   public PedalonsPage<UserTeam> findByTeam(
-      Long teamId, int page, int size, String search, TeamRole role) {
+      Long teamId, int page, int size, String search, TeamRole role, boolean searchEmail) {
     PedalonsQuery pedalonsQuery =
         new PedalonsQuery()
             .and("team.id = :teamId", Map.of("teamId", teamId))
@@ -34,8 +40,10 @@ public class UserTeamRepository implements BaseRepository<UserTeam> {
       OrClause orClause = new OrClause();
       orClause.add(
           new SimpleClause("LOWER(user.displayName) LIKE :search", Map.of("search", searchParam)));
-      orClause.add(
-          new SimpleClause("LOWER(user.email) LIKE :search", Map.of("search", searchParam)));
+      if (searchEmail) {
+        orClause.add(
+            new SimpleClause("LOWER(user.email) LIKE :search", Map.of("search", searchParam)));
+      }
       pedalonsQuery.and(orClause);
     }
     if (role != null) {
