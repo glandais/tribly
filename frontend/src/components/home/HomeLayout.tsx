@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Stack } from '@mantine/core'
 import { useHomeNavItems } from '@/hooks/useNavItems'
 import { NavButtons } from '../common/NavButtons'
@@ -11,6 +12,7 @@ interface HomeLayoutProps {
 }
 
 export function HomeLayout({ header = <></>, currentTab, children }: HomeLayoutProps) {
+  const { t } = useTranslation()
   const tabs = useHomeNavItems()
 
   return (
@@ -18,7 +20,7 @@ export function HomeLayout({ header = <></>, currentTab, children }: HomeLayoutP
       {header}
 
       {/* Home Navigation */}
-      <NavButtons items={tabs} currentId={currentTab} />
+      <NavButtons items={tabs} currentId={currentTab} label={t('nav.landmark.home')} />
 
       {/* Page Content */}
       <div>{children}</div>

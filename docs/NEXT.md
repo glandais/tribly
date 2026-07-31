@@ -233,12 +233,33 @@ C'est finalement l'inverse qui a été fait, et pour la même raison : `…/elev
 **supprimé** de l'API en 2.0.0, et le mobile dérive désormais son profil de la géométrie comme le
 web le faisait déjà. Voir §4.5. Ne pas rouvrir : le sujet est clos dans les deux clients.
 
-### 3.4 Refonte sémantique de `NavButtons`
+### 3.4 ~~Refonte sémantique de `NavButtons`~~ — instruit **et livré** le 31 juillet 2026
 
-`NavButtons` n'a ni sémantique de `tablist` ni navigation clavier fléchée. Le remplacer par `Tabs`
-Mantine a été écarté du portage : il porte le pattern visuel identitaire du site (carré + libellé) sur
-toutes les pages Accueil et Équipe, donc le réécrire est un **chantier de design**, pas un portage.
-T3.6 s'est limité à réduire sa hauteur et à signaler le débordement. À instruire séparément. **M.**
+**[`plans/2026-07-31-navbuttons.md`](plans/2026-07-31-navbuttons.md)** (mesures prises dans le
+navigateur, pas déduites du code). La prémisse de cette ligne était fausse et le chantier s'est
+re-taillé.
+
+`NavButtons` doit **rester des liens** : chaque item est une URL distincte, rendue par le serveur et
+inscrite dans l'historique. `Tabs` Mantine promettrait des panneaux échangés sur place — c'est
+sémantiquement faux, et la navigation clavier fléchée qui va avec **casserait** la tabulation
+attendue sur des liens. Ce qui manque vraiment est `<nav>` + `<ul>/<li>` + `aria-current="page"` :
+**aucun changement visuel**, donc pas un chantier de design. **S.**
+
+L'inspection a en revanche sorti ce qui n'était pas dans l'énoncé : sur écran large un libellé de
+plusieurs mots **perd tous ses mots sauf le premier** (« Fil d'actualités » rend « Fil… » à 1 722 px,
+`line-clamp: 1` sur une boîte de 80 px), l'item actif **n'est jamais ramené dans le champ** quand la
+rangée déborde, le fondu de bord est **inconditionnel** donc il ment, et les libellés inactifs
+échouent AA dans les deux thèmes (4,04 sombre / 3,32 clair). **S** de plus.
+
+Le menu de débordement est écarté avec un motif : le nombre d'items est plafonné à 8 (3 pages
+d'équipe maximum), donc la rangée **ne déborde jamais** sur écran de bureau, et le repli mobile
+existe déjà — c'est le menu du fil d'Ariane, alimenté par le même `useNavItems`.
+
+**Livré** : repère `nav` + `ul`/`li` + `aria-current="page"`, `maxWidth` à 130 px au-dessus de 48 em
+(mesuré sur le plus large libellé livré, « Modèles de sortie » à 126 px), recalage de l'item actif,
+fondu piloté par la position de défilement, et libellés inactifs sortis du `dimmed` (4,04/3,32 →
+**9,37/21**). **Reste ouvert** : l'anneau de focus global à 2,74:1 en thème sombre, sous le seuil de
+3,0 de SC 1.4.11 — il vient de `lib/theme.ts` et vaut pour tout le site, donc hors de ce chantier.
 
 ---
 

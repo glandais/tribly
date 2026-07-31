@@ -55,9 +55,23 @@ body {
   }
 }
 
-/* NavButtons: signal horizontal overflow with an edge fade rather than a scrollbar */
+/* NavButtons: signal horizontal overflow with an edge fade rather than a scrollbar.
+   The two widths are driven by the component from the actual scroll position — a fade on a side
+   with nothing beyond it would be a signal that lies, and an unread signal the day it matters. */
 .nav-buttons-viewport {
-  mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 28px), transparent 100%);
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0,
+    #000 var(--nav-fade-start, 0px),
+    #000 calc(100% - var(--nav-fade-end, 0px)),
+    transparent 100%
+  );
+}
+
+.nav-buttons-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 /* Two lines on a narrow screen where labels have to wrap, one line once there is room */
@@ -70,9 +84,24 @@ body {
   line-height: 1.2;
 }
 
+/* One line from 48em, so the row stays short — but wide enough that a multi-word label keeps its
+   words. At 80px the text wrapped at the space and the clamp dropped everything after the first
+   word: "Fil d'actualités" rendered as "Fil…" on a 1722px screen.
+   130px is measured, not guessed: the widest shipped label is "Modèles de sortie" at 126px, then
+   "Tableau de bord" at 115px. It is a cap, not a width — "Lieux" still renders 64px wide — and a
+   full 8-item row (the team maximum: 5 sections + 3 pages) comes to 1096px inside a 1140px column.
+   Free-text page titles can still exceed it, which is what the title attribute is there for. */
+.nav-buttons-item {
+  max-width: 80px;
+}
+
 @media (min-width: 48em) {
   .nav-buttons-label {
     -webkit-line-clamp: 1;
     line-clamp: 1;
+  }
+
+  .nav-buttons-item {
+    max-width: 130px;
   }
 }
