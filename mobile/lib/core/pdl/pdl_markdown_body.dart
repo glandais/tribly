@@ -279,18 +279,26 @@ class _MarkdownImageState extends ConsumerState<_MarkdownImage> {
             tag: _heroTag,
             child: ClipRRect(
               borderRadius: PdlRadii.mdAll,
-              child: SizedBox(
-                height: PdlMarkdownBody.imageHeight,
-                child: AuthenticatedImage(
-                  imageUrl: widget.url,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
+              child: ColoredBox(
+                color: c.surfaceAlt,
+                child: SizedBox(
                   height: PdlMarkdownBody.imageHeight,
-                  placeholder: const PdlSkeleton(
+                  width: double.infinity,
+                  child: AuthenticatedImage(
+                    imageUrl: widget.url,
+                    // `contain`, pas `cover` : une image plus large ou plus
+                    // haute que la bande de 160 px ne doit jamais être rognée,
+                    // seulement réduite à l'échelle — d'où le fond derrière
+                    // pour combler les bandes latérales ou horizontales.
+                    fit: BoxFit.contain,
                     width: double.infinity,
                     height: PdlMarkdownBody.imageHeight,
+                    placeholder: const PdlSkeleton(
+                      width: double.infinity,
+                      height: PdlMarkdownBody.imageHeight,
+                    ),
+                    errorWidget: ColoredBox(color: c.surfaceAlt),
                   ),
-                  errorWidget: ColoredBox(color: c.surfaceAlt),
                 ),
               ),
             ),
