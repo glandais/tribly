@@ -51,7 +51,7 @@ class _MyParticipationsPageState extends ConsumerState<MyParticipationsPage> {
         onBack: () => context.pop(),
         backSemanticLabel: 'profile.title'.tr(),
       ),
-      body: RefreshIndicator(
+      body: PdlRefresh(
         onRefresh: notifier.refresh,
         child: CustomScrollView(
           primary: true,

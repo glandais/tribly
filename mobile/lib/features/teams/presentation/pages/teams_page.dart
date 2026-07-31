@@ -145,7 +145,7 @@ class _TeamsPageState extends ConsumerState<TeamsPage> {
     // for joining one, while a search that matches nothing calls for dropping
     // the search — never for joining a team.
     if (visible.isEmpty) {
-      return RefreshIndicator(
+      return PdlRefresh(
         onRefresh: () => ref.refresh(myTeamsProvider.future),
         child: ListView(
           children: [
@@ -182,7 +182,7 @@ class _TeamsPageState extends ConsumerState<TeamsPage> {
       );
     }
 
-    return RefreshIndicator(
+    return PdlRefresh(
       onRefresh: () => ref.refresh(myTeamsProvider.future),
       child: AnimatedResponsiveGrid(
         padding: const EdgeInsets.all(PdlSpacing.section),

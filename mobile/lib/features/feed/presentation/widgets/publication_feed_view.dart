@@ -109,7 +109,7 @@ class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
     final state = ref.watch(publicationFeedProvider(key));
     final notifier = ref.read(publicationFeedProvider(key).notifier);
 
-    return RefreshIndicator(
+    return PdlRefresh(
       onRefresh: () async {
         await Future.wait<void>(<Future<void>>[
           notifier.refresh(),

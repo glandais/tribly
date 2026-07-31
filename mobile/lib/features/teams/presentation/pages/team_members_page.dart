@@ -68,7 +68,7 @@ class _TeamMembersPageState extends ConsumerState<TeamMembersPage> {
       teamMembersProvider(filters).notifier,
     );
 
-    return RefreshIndicator(
+    return PdlRefresh(
       onRefresh: notifier.refresh,
       child: CustomScrollView(
         key: PageStorageKey<String>('members-${widget.teamSlug}'),

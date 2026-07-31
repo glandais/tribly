@@ -105,6 +105,11 @@ class RideGroupsMap extends ConsumerWidget {
           chooseBackground: 'map.background'.tr(),
           backgroundSheetTitle: 'map.background'.tr(),
         ),
+        // Encastrée dans la page, pas plein écran : rien ne la recouvre
+        // d'une barre translucide, contrairement au voile par défaut du hero
+        // (pensé pour la barre système sous laquelle glisse la carte plein
+        // écran). Même repli que `TripMap`.
+        topScrim: false,
         styles: <PdlMapStyleOption>[
           for (final MapStyleDto s
               in ref.watch(appConfigProvider).value?.mapStyles ??

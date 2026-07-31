@@ -61,7 +61,7 @@ class _AdsPageState extends ConsumerState<AdsPage> {
     final PagedListState<AdDto> state = ref.watch(adListProvider(filters));
     final AdListNotifier notifier = ref.read(adListProvider(filters).notifier);
 
-    return RefreshIndicator(
+    return PdlRefresh(
       onRefresh: notifier.refresh,
       child: CustomScrollView(
         key: PageStorageKey<String>('ads-list-${widget.teamSlug}'),

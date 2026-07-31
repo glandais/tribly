@@ -132,7 +132,7 @@ class _RoutesPageState extends ConsumerState<RoutesPage> {
       routeListProvider(filters).notifier,
     );
 
-    return RefreshIndicator(
+    return PdlRefresh(
       onRefresh: notifier.refresh,
       child: CustomScrollView(
         // La clé de stockage est ce qui rend l'offset de défilement à

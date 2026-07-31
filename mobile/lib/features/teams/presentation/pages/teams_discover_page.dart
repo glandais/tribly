@@ -67,7 +67,7 @@ class _TeamsDiscoverPageState extends ConsumerState<TeamsDiscoverPage> {
         onBack: () => Navigator.of(context).maybePop(),
         backSemanticLabel: 'teams.title'.tr(),
       ),
-      body: RefreshIndicator(
+      body: PdlRefresh(
         onRefresh: notifier.refresh,
         child: CustomScrollView(
           key: const PageStorageKey<String>('teams-discover'),
