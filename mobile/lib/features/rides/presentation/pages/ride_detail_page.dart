@@ -3,7 +3,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
@@ -15,6 +14,7 @@ import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/utils/share_link.dart';
 import '../../../../core/widgets/media_attachments.dart';
 import '../../../comments/data/comment_repository.dart';
 import '../../../comments/presentation/widgets/comment_thread.dart';
@@ -254,17 +254,11 @@ class _RideDetailContent extends ConsumerWidget {
     );
   }
 
-  Future<void> _share(BuildContext context) async {
-    final RenderBox? box = context.findRenderObject() as RenderBox?;
-    await SharePlus.instance.share(
-      ShareParams(
-        text: ride.name,
-        sharePositionOrigin: box == null
-            ? Rect.zero
-            : box.localToGlobal(Offset.zero) & box.size,
-      ),
-    );
-  }
+  Future<void> _share(BuildContext context) => shareAppLink(
+    context,
+    title: ride.name,
+    path: Paths.ride(ride.team.slug, ride.slug),
+  );
 
   // ── 2 · Identité ────────────────────────────────────────────────────────
   Widget _identity(BuildContext context) {

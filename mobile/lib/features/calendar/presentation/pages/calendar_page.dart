@@ -199,73 +199,94 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
 
     final double factor = (1 - _collapse).clamp(0.0, 1.0);
 
-    return ClipRect(
-      child: Align(
-        alignment: Alignment.topCenter,
-        heightFactor: factor,
-        child: Opacity(
-          opacity: factor,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              PdlSpacing.section,
-              PdlSpacing.chipGap,
-              PdlSpacing.section,
-              0,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                PdlMonthGrid(
-                  year: monthKey.year,
-                  month: monthKey.month,
-                  weekdayLabels: _weekdayLabels(),
-                  today: today,
-                  selectedDay: selected,
-                  onDayTap: (DateTime day) => _selectDay(day, month),
-                  dotsOf: (DateTime day) => _dotsOf(c, month, day),
-                  isRegistered: (DateTime day) =>
-                      month.byDay[day]?.any(
-                        (CalendarEventDto e) => e.registered,
-                      ) ??
-                      false,
-                  daySemanticLabel: (DateTime day) =>
-                      _daySemanticLabel(month, day),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        ClipRect(
+          child: Align(
+            alignment: Alignment.topCenter,
+            heightFactor: factor,
+            child: Opacity(
+              opacity: factor,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  PdlSpacing.section,
+                  PdlSpacing.chipGap,
+                  PdlSpacing.section,
+                  0,
                 ),
-                const SizedBox(height: PdlSpacing.chipGap),
-                Row(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    Expanded(
-                      child: PdlLegendRow(
-                        padding: EdgeInsets.zero,
-                        entries: <PdlLegendEntry>[
-                          PdlLegendEntry(
-                            color: calendarEventColor(c, 'RIDE'),
-                            label: 'calendar.legend.ride'.tr(),
-                          ),
-                          PdlLegendEntry(
-                            color: calendarEventColor(c, 'TRIP_STAGE'),
-                            label: 'calendar.legend.stage'.tr(),
-                          ),
-                          PdlLegendEntry(
-                            color: c.primary,
-                            label: 'rides.registered'.tr(),
-                          ),
-                        ],
-                      ),
+                    PdlMonthGrid(
+                      year: monthKey.year,
+                      month: monthKey.month,
+                      weekdayLabels: _weekdayLabels(),
+                      today: today,
+                      selectedDay: selected,
+                      onDayTap: (DateTime day) => _selectDay(day, month),
+                      dotsOf: (DateTime day) => _dotsOf(c, month, day),
+                      isRegistered: (DateTime day) =>
+                          month.byDay[day]?.any(
+                            (CalendarEventDto e) => e.registered,
+                          ) ??
+                          false,
+                      daySemanticLabel: (DateTime day) =>
+                          _daySemanticLabel(month, day),
                     ),
-                    PdlAppBarAction(
-                      icon: _pinnedCollapsed
-                          ? PdlIcons.chevronDown
-                          : PdlIcons.chevronUp,
-                      semanticLabel: _pinnedCollapsed
-                          ? 'calendar.expandGrid'.tr()
-                          : 'calendar.collapseGrid'.tr(),
-                      onPressed: _toggleGrid,
+                    const SizedBox(height: PdlSpacing.chipGap),
+                    PdlLegendRow(
+                      padding: EdgeInsets.zero,
+                      entries: <PdlLegendEntry>[
+                        PdlLegendEntry(
+                          color: calendarEventColor(c, 'RIDE'),
+                          label: 'calendar.legend.ride'.tr(),
+                        ),
+                        PdlLegendEntry(
+                          color: calendarEventColor(c, 'TRIP_STAGE'),
+                          label: 'calendar.legend.stage'.tr(),
+                        ),
+                        PdlLegendEntry(
+                          color: c.primary,
+                          label: 'rides.registered'.tr(),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
+          ),
+        ),
+        _gridHandle(),
+      ],
+    );
+  }
+
+  /// La poignée de repli — **hors du bloc qui se replie**, et c'est tout le
+  /// point : le chevron vivait dans la rangée de légende, donc replier la
+  /// grille emportait le seul moyen de la rouvrir.
+  ///
+  /// Toute la bande est cliquable et non le seul chevron : c'est la cible de
+  /// 44 px, et une poignée se saisit là où l'œil la voit.
+  Widget _gridHandle() {
+    final PdlColors c = context.pdl;
+    final bool collapsed = _collapse > 0.5;
+
+    return Semantics(
+      button: true,
+      label: collapsed
+          ? 'calendar.expandGrid'.tr()
+          : 'calendar.collapseGrid'.tr(),
+      child: InkWell(
+        onTap: _toggleGrid,
+        child: SizedBox(
+          height: PdlMetrics.tapTarget,
+          width: double.infinity,
+          child: Icon(
+            collapsed ? PdlIcons.chevronDown : PdlIcons.chevronUp,
+            size: 20,
+            color: c.textDimmed,
           ),
         ),
       ),
@@ -435,8 +456,11 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
     }
   }
 
+  /// La bascule part de l'état **visible**, pas du seul repli épinglé : une
+  /// grille déjà repliée par le défilement doit se rouvrir au premier appui,
+  /// alors que `_pinnedCollapsed` vaut encore `false`.
   void _toggleGrid() => setState(() {
-    _pinnedCollapsed = !_pinnedCollapsed;
+    _pinnedCollapsed = _collapse <= 0.5;
     _collapse = _pinnedCollapsed ? 1 : 0;
   });
 

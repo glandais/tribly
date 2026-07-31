@@ -4,7 +4,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../api/pedalons_api_client.dart';
@@ -17,6 +16,7 @@ import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/utils/share_link.dart';
 import '../../../../core/widgets/authenticated_image.dart';
 import '../../../../core/widgets/markdown_content.dart';
 import '../../../../core/widgets/media_attachments.dart';
@@ -327,17 +327,11 @@ class _Cover extends ConsumerWidget {
     );
   }
 
-  Future<void> _share(BuildContext context) async {
-    final RenderBox? box = context.findRenderObject() as RenderBox?;
-    await SharePlus.instance.share(
-      ShareParams(
-        text: post.name,
-        sharePositionOrigin: box == null
-            ? Rect.zero
-            : box.localToGlobal(Offset.zero) & box.size,
-      ),
-    );
-  }
+  Future<void> _share(BuildContext context) => shareAppLink(
+    context,
+    title: post.name,
+    path: Paths.post(post.team.slug, post.slug),
+  );
 }
 
 /// Une pièce jointe.

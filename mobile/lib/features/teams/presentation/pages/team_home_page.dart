@@ -60,15 +60,13 @@ class TeamHomePage extends ConsumerWidget {
     return teamAsync.when(
       data: (TeamDetailDto team) =>
           _TeamSectionScaffold(team: team, section: section),
-      loading: () => _TeamChrome(
-        header: null,
-        body: const Padding(
+      loading: () => const _TeamChrome.bare(
+        body: Padding(
           padding: EdgeInsets.all(PdlSpacing.section),
           child: PdlSkeletonCardList(count: 3),
         ),
       ),
-      error: (Object error, _) => _TeamChrome(
-        header: null,
+      error: (Object error, _) => _TeamChrome.bare(
         body: Center(
           child: SingleChildScrollView(
             child: PdlEmptyState(
@@ -101,19 +99,28 @@ class TeamHomePage extends ConsumerWidget {
 /// route, and `MainShell`'s Scaffold lives in the root navigator's route while
 /// a team lives in the Teams branch — two different controllers.
 class _TeamChrome extends StatelessWidget {
-  const _TeamChrome({required this.header, required this.body});
+  /// L'équipe est là : son en-tête porte déjà la flèche de retour, l'action
+  /// d'adhésion et le partage. [header] est `null` quand cet en-tête vit dans
+  /// les slivers du corps (fil, à propos) — **pas** de barre de plus alors,
+  /// sans quoi l'écran affiche deux retours l'un sous l'autre.
+  const _TeamChrome({required this.header, required this.body})
+    : ownBar = false;
 
-  /// L'en-tête déjà rétracté, ou `null` tant que l'équipe n'est pas là — on
-  /// ne rend alors que la barre de retour, sans identité inventée.
+  /// Chargement et erreur : rien à rétracter, pas d'identité à inventer, mais
+  /// il faut de quoi sortir. C'est le seul cas qui pose une barre à lui.
+  const _TeamChrome.bare({required this.body}) : header = null, ownBar = true;
+
   final Widget? header;
 
   final Widget body;
+
+  final bool ownBar;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.pdl.bg,
-      appBar: header == null
+      appBar: ownBar
           ? PdlAppBar(
               onBack: () => context.go(Paths.teams()),
               backSemanticLabel: 'teams.title'.tr(),

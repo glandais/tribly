@@ -179,10 +179,15 @@ class _ProfileIdentitySectionState
             value: _name.text,
             hintText: 'profile.identity.displayName'.tr(),
             errorText: _nameError,
-            // Pas de débounce : ce champ ne cherche rien, il se valide.
+            // Pas de débounce : ce champ ne cherche rien, il se valide. Pas de
+            // loupe ni d'action « Rechercher » au clavier pour la même raison —
+            // c'est « OK », et il enregistre.
             debounce: Duration.zero,
+            prefixIcon: null,
+            textInputAction: TextInputAction.done,
             onChanged: (String? value) =>
                 setState(() => _name.text = value ?? ''),
+            onSubmitted: (_) => _save(),
           ),
           const SizedBox(height: PdlSpacing.chipGap),
           // **Annuler et Enregistrer sont toujours visibles**, désactivés tant

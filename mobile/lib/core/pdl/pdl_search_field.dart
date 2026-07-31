@@ -35,6 +35,8 @@ class PdlSearchField extends StatefulWidget {
     this.autofocus = false,
     this.clearTooltip,
     this.textInputAction = TextInputAction.search,
+    this.prefixIcon = PdlIcons.search,
+    this.onSubmitted,
   });
 
   /// Valeur courante. Peut changer **de l'extérieur** — retrait d'une chip,
@@ -60,6 +62,14 @@ class PdlSearchField extends StatefulWidget {
   final String? clearTooltip;
 
   final TextInputAction textInputAction;
+
+  /// Icône de tête. `null` en retire une : une **saisie courte** — le nom
+  /// affiché du profil — n'est pas une recherche, et la loupe le prétendrait.
+  final IconData? prefixIcon;
+
+  /// Validation depuis le clavier. Le débounce en cours est vidé d'abord, pour
+  /// que l'appelant reçoive la dernière frappe avant d'agir.
+  final ValueChanged<String?>? onSubmitted;
 
   @override
   State<PdlSearchField> createState() => _PdlSearchFieldState();
@@ -97,6 +107,14 @@ class _PdlSearchFieldState extends State<PdlSearchField> {
     });
   }
 
+  void _onSubmitted(String value) {
+    final String trimmed = value.trim();
+    final String? emitted = trimmed.isEmpty ? null : trimmed;
+    _debounce?.cancel();
+    widget.onChanged(emitted);
+    widget.onSubmitted?.call(emitted);
+  }
+
   void _clear() {
     _debounce?.cancel();
     _controller.clear();
@@ -124,6 +142,7 @@ class _PdlSearchFieldState extends State<PdlSearchField> {
           child: TextField(
             controller: _controller,
             onChanged: _onChanged,
+            onSubmitted: _onSubmitted,
             onTap: widget.onTap,
             readOnly: widget.readOnly,
             autofocus: widget.autofocus,
@@ -135,12 +154,14 @@ class _PdlSearchFieldState extends State<PdlSearchField> {
               filled: true,
               fillColor: c.surfaceAlt,
               isDense: true,
-              contentPadding: EdgeInsets.zero,
-              prefixIcon: Icon(
-                PdlIcons.search,
-                size: 20,
-                color: c.textPlaceholder,
-              ),
+              // Sans icône de tête, le texte se collerait au bord : c'est la
+              // loupe qui tient la gouttière de gauche quand elle est là.
+              contentPadding: widget.prefixIcon == null
+                  ? const EdgeInsets.symmetric(horizontal: PdlSpacing.chipGap)
+                  : EdgeInsets.zero,
+              prefixIcon: widget.prefixIcon == null
+                  ? null
+                  : Icon(widget.prefixIcon, size: 20, color: c.textPlaceholder),
               prefixIconConstraints: const BoxConstraints(
                 minWidth: 40,
                 minHeight: PdlMetrics.tapTarget,

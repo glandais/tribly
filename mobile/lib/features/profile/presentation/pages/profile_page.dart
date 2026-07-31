@@ -45,7 +45,16 @@ class ProfilePage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.bg,
-      appBar: PdlAppBar(title: 'profile.title'.tr()),
+      appBar: PdlAppBar(
+        title: 'profile.title'.tr(),
+        // Le profil est un onglet, donc souvent sans pile derrière lui : on
+        // arrive de l'avatar de l'accueil par un changement de branche, qui ne
+        // laisse rien à dépiler. La flèche retombe alors sur l'accueil plutôt
+        // que de disparaître — même arbitrage que l'accueil d'équipe.
+        onBack: () =>
+            context.canPop() ? context.pop() : context.go(Paths.home()),
+        backSemanticLabel: 'common.back'.tr(),
+      ),
       body: PdlScreenScaffold(
         constrainWidth: true,
         slivers: <Widget>[

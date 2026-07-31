@@ -6,11 +6,13 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../api/generated/export.dart';
+import '../../../../config/paths.dart';
 import '../../../../api/pedalons_api_client.dart';
 import '../../../../core/pdl/pdl.dart';
 import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/utils/api_error_handler.dart';
+import '../../../../core/utils/share_link.dart';
 import '../../../auth/domain/auth_state.dart';
 import '../../../auth/providers/auth_provider.dart';
 
@@ -144,11 +146,11 @@ class _RouteDownloadActionsState extends ConsumerState<RouteDownloadActions> {
     }
   }
 
-  Future<void> _share() async {
-    await SharePlus.instance.share(
-      ShareParams(text: route.name, sharePositionOrigin: _origin()),
-    );
-  }
+  Future<void> _share() => shareAppLink(
+    context,
+    title: route.name,
+    path: Paths.route(route.team.slug, route.slug),
+  );
 
   Rect _origin() {
     final RenderBox? box = context.findRenderObject() as RenderBox?;

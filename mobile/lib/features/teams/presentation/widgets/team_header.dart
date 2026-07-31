@@ -4,7 +4,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
@@ -14,6 +13,7 @@ import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
+import '../../../../core/utils/share_link.dart';
 import '../../providers/team_membership_controller.dart';
 
 /// Hauteur de la barre — le plancher de l'en-tête rétracté.
@@ -38,12 +38,21 @@ const double _kExpandedBlock = 56;
 /// de 20 à 17, et les badges s'effacent. Rien ne saute — c'est une
 /// interpolation, pas une bascule à seuil.
 class TeamHeader extends ConsumerWidget {
-  const TeamHeader({super.key, required this.team, required this.t});
+  const TeamHeader({
+    super.key,
+    required this.team,
+    required this.t,
+    this.topPadding = 0,
+  });
 
   final TeamDetailDto team;
 
   /// Facteur de rétraction, 0 → 1.
   final double t;
+
+  /// Encoche et barre d'état, quand l'en-tête est **le premier élément** de
+  /// l'écran — c'est le cas en sliver, où plus aucune `AppBar` ne les tient.
+  final double topPadding;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -55,6 +64,7 @@ class TeamHeader extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
+          SizedBox(height: topPadding),
           SizedBox(
             height: _kBarHeight,
             child: _Bar(team: team, t: t),
@@ -128,21 +138,13 @@ class _Bar extends ConsumerWidget {
           PdlAppBarAction(
             icon: PdlIcons.share,
             semanticLabel: 'routes.share'.tr(),
-            onPressed: () => _share(context),
+            onPressed: () => shareAppLink(
+              context,
+              title: team.name,
+              path: Paths.team(team.slug),
+            ),
           ),
         ],
-      ),
-    );
-  }
-
-  Future<void> _share(BuildContext context) async {
-    final RenderBox? box = context.findRenderObject() as RenderBox?;
-    await SharePlus.instance.share(
-      ShareParams(
-        text: team.name,
-        sharePositionOrigin: box == null
-            ? Rect.zero
-            : box.localToGlobal(Offset.zero) & box.size,
       ),
     );
   }
@@ -339,21 +341,27 @@ class TeamHeaderSliver extends StatelessWidget {
   Widget build(BuildContext context) {
     return SliverPersistentHeader(
       pinned: true,
-      delegate: _TeamHeaderDelegate(team: team),
+      delegate: _TeamHeaderDelegate(
+        team: team,
+        // L'en-tête est le premier pixel de l'écran : il n'y a pas d'`AppBar`
+        // au-dessus de lui, c'est donc à lui de tenir la barre d'état.
+        topPadding: MediaQuery.paddingOf(context).top,
+      ),
     );
   }
 }
 
 class _TeamHeaderDelegate extends SliverPersistentHeaderDelegate {
-  const _TeamHeaderDelegate({required this.team});
+  const _TeamHeaderDelegate({required this.team, required this.topPadding});
 
   final TeamDetailDto team;
+  final double topPadding;
 
   @override
-  double get maxExtent => _kBarHeight + _kExpandedBlock;
+  double get maxExtent => topPadding + _kBarHeight + _kExpandedBlock;
 
   @override
-  double get minExtent => _kBarHeight;
+  double get minExtent => topPadding + _kBarHeight;
 
   @override
   Widget build(
@@ -364,12 +372,13 @@ class _TeamHeaderDelegate extends SliverPersistentHeaderDelegate {
     return TeamHeader(
       team: team,
       t: (shrinkOffset / _kExpandedBlock).clamp(0, 1),
+      topPadding: topPadding,
     );
   }
 
   @override
   bool shouldRebuild(_TeamHeaderDelegate oldDelegate) =>
-      oldDelegate.team != team;
+      oldDelegate.team != team || oldDelegate.topPadding != topPadding;
 }
 
 /// L'en-tête rétracté, en boîte fixe.
