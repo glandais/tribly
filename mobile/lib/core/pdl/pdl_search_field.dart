@@ -85,8 +85,14 @@ class _PdlSearchFieldState extends State<PdlSearchField> {
   void didUpdateWidget(PdlSearchField oldWidget) {
     super.didUpdateWidget(oldWidget);
     final String incoming = widget.value ?? '';
-    if (incoming != (oldWidget.value ?? '') && incoming != _controller.text) {
-      _controller.text = incoming;
+    if (incoming != (oldWidget.value ?? '')) {
+      // **Une remise à zéro venue de l'extérieur annule la frappe en attente.**
+      // « Tout réinitialiser » dans une liste vide se tape à la seconde qui
+      // suit la dernière lettre : sans cette ligne, le minuteur encore en vol
+      // rendait la recherche qu'on vient d'effacer, un tiers de seconde plus
+      // tard, sans que rien n'ait été touché.
+      _debounce?.cancel();
+      if (incoming != _controller.text) _controller.text = incoming;
     }
   }
 
@@ -147,6 +153,13 @@ class _PdlSearchFieldState extends State<PdlSearchField> {
             readOnly: widget.readOnly,
             autofocus: widget.autofocus,
             textInputAction: widget.textInputAction,
+            // **Ni correction ni suggestion.** Le clavier proposait sa
+            // réécriture d'un nom de parcours ou de coéquipier, et la validait
+            // tout seul en quittant le champ — y compris après une remise à
+            // zéro, qui se retrouvait annulée par un mot que personne n'avait
+            // choisi. Un champ de recherche cherche ce qui a été tapé.
+            autocorrect: false,
+            enableSuggestions: false,
             style: t.body,
             decoration: InputDecoration(
               hintText: widget.hintText,
