@@ -218,21 +218,35 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    PdlMonthGrid(
-                      year: monthKey.year,
-                      month: monthKey.month,
-                      weekdayLabels: _weekdayLabels(),
-                      today: today,
-                      selectedDay: selected,
-                      onDayTap: (DateTime day) => _selectDay(day, month),
-                      dotsOf: (DateTime day) => _dotsOf(c, month, day),
-                      isRegistered: (DateTime day) =>
-                          month.byDay[day]?.any(
-                            (CalendarEventDto e) => e.registered,
-                          ) ??
-                          false,
-                      daySemanticLabel: (DateTime day) =>
-                          _daySemanticLabel(month, day),
+                    GestureDetector(
+                      // `onHorizontalDragEnd`, pas `onPanUpdate` : un swipe
+                      // est un geste ponctuel qui change de mois, pas un
+                      // défilement continu — la grille n'a rien à suivre au
+                      // doigt.
+                      onHorizontalDragEnd: (DragEndDetails details) {
+                        final double? velocity = details.primaryVelocity;
+                        if (velocity == null ||
+                            velocity.abs() < _swipeVelocityThreshold) {
+                          return;
+                        }
+                        _setMonth(monthKey.shifted(velocity < 0 ? 1 : -1));
+                      },
+                      child: PdlMonthGrid(
+                        year: monthKey.year,
+                        month: monthKey.month,
+                        weekdayLabels: _weekdayLabels(),
+                        today: today,
+                        selectedDay: selected,
+                        onDayTap: (DateTime day) => _selectDay(day, month),
+                        dotsOf: (DateTime day) => _dotsOf(c, month, day),
+                        isRegistered: (DateTime day) =>
+                            month.byDay[day]?.any(
+                              (CalendarEventDto e) => e.registered,
+                            ) ??
+                            false,
+                        daySemanticLabel: (DateTime day) =>
+                            _daySemanticLabel(month, day),
+                      ),
                     ),
                     const SizedBox(height: PdlSpacing.chipGap),
                     PdlLegendRow(
@@ -417,6 +431,10 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
   }
 
   // ── Interactions ──────────────────────────────────────────────────────────
+
+  /// En dessous, un doigt qui traîne lentement sur la grille (sélection,
+  /// hésitation) ne doit pas changer de mois.
+  static const double _swipeVelocityThreshold = 200;
 
   void _setMonth(CalendarMonthKey next) {
     ref.read(calendarMonthKeyProvider(widget.teamSlug).notifier).state = next;
