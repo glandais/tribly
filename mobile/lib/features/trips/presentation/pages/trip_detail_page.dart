@@ -14,6 +14,7 @@ import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
+import '../../../../core/widgets/media_attachments.dart';
 import '../../../calendar/presentation/widgets/calendar_subscription_card.dart';
 import '../../../comments/data/comment_repository.dart';
 import '../../../comments/presentation/widgets/comment_thread.dart';
@@ -142,6 +143,18 @@ class _TripDetailContent extends ConsumerWidget {
         SliverToBoxAdapter(child: _stages(context, stages, selected, select)),
         if (trip.media.markdown.trim().isNotEmpty)
           SliverToBoxAdapter(child: _description(context)),
+        // Section à part, et non un appendice de la description : un voyage
+        // peut porter un road book sans une ligne de texte.
+        if (trip.media.assets.attachments.isNotEmpty)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: MediaAttachments(
+                attachments: trip.media.assets.attachments,
+                spacingBefore: 0,
+              ),
+            ),
+          ),
         if (trip.participants.isNotEmpty)
           SliverToBoxAdapter(child: _participants(context)),
         if (participation.failure != null)

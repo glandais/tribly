@@ -11,6 +11,7 @@ import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/widgets/markdown_content.dart';
+import '../../../../core/widgets/media_attachments.dart';
 
 /// Le contenu d'une page libre, chargé **à son ouverture** et pas avant.
 final teamPageProvider =
@@ -67,6 +68,7 @@ class TeamCustomPage extends ConsumerWidget {
                 data: page.media.markdown,
                 images: page.media.assets.images,
               ),
+              MediaAttachments(attachments: page.media.assets.attachments),
               const SizedBox(height: 32),
             ],
           ),

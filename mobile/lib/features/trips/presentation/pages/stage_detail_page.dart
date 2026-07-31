@@ -14,6 +14,7 @@ import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/media_attachments.dart';
 import '../../../routes/presentation/widgets/embedded_route_sheet.dart';
 import '../../../routes/providers/route_detail_provider.dart';
 import '../../providers/trip_detail_provider.dart';
@@ -127,6 +128,18 @@ class _StageDetailContent extends ConsumerWidget {
           ),
         if (stage.media.markdown.trim().isNotEmpty)
           SliverToBoxAdapter(child: _description(context)),
+        // Section à part, et non un appendice de la description : une étape
+        // peut porter une trace ou un plan sans une ligne de texte.
+        if (stage.media.assets.attachments.isNotEmpty)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: MediaAttachments(
+                attachments: stage.media.assets.attachments,
+                spacingBefore: 0,
+              ),
+            ),
+          ),
         // **Pas de commentaires d'étape** : le contrat n'en expose que sur les
         // publications, sorties, parcours et voyages (§4.2). Plutôt qu'un fil
         // vide ou un composeur qui échouerait, un renvoi vers celui du voyage.

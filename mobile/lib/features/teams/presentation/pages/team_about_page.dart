@@ -10,6 +10,7 @@ import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/widgets/markdown_content.dart';
+import '../../../../core/widgets/media_attachments.dart';
 
 /// A team's About section: its presentation and its free pages.
 ///
@@ -69,6 +70,13 @@ class TeamAboutPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: PdlSpacing.section),
               ],
+              if (team.about.assets.attachments.isNotEmpty) ...<Widget>[
+                MediaAttachments(
+                  attachments: team.about.assets.attachments,
+                  spacingBefore: 0,
+                ),
+                const SizedBox(height: PdlSpacing.section),
+              ],
               if (pages.isNotEmpty) ...<Widget>[
                 PdlSectionHeader(title: 'teams.aboutPage.pages'.tr()),
                 Text('teams.aboutPage.pagesHint'.tr(), style: t.xs),
@@ -82,7 +90,9 @@ class TeamAboutPage extends ConsumerWidget {
                         context.push(Paths.teamPage(teamSlug, pages[i].slug)),
                   ),
               ],
-              if (team.about.markdown.trim().isEmpty && pages.isEmpty)
+              if (team.about.markdown.trim().isEmpty &&
+                  team.about.assets.attachments.isEmpty &&
+                  pages.isEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 40),
                   child: PdlEmptyState(

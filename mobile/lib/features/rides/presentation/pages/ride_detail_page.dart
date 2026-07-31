@@ -15,6 +15,7 @@ import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/media_attachments.dart';
 import '../../../comments/data/comment_repository.dart';
 import '../../../comments/presentation/widgets/comment_thread.dart';
 import '../../../participants/presentation/widgets/participants_sheet.dart';
@@ -506,26 +507,12 @@ class _RideDetailContent extends ConsumerWidget {
           PdlSectionHeader(title: 'rides.description'.tr()),
           if (ride.media.markdown.trim().isNotEmpty)
             PdlMarkdownBody(data: ride.media.markdown),
-          for (final AssetDto asset in attachments)
-            Padding(
-              padding: const EdgeInsets.only(top: PdlSpacing.chipGap),
-              child: PdlAttachmentRow(
-                name: asset.fileName,
-                // `AssetDto` ne porte pas de taille (§5.2-7) : on affiche le
-                // type seul plutôt qu'un poids inventé.
-                type: _extensionOf(asset.fileName),
-                actionSemanticLabel: 'routes.download'.tr(),
-              ),
-            ),
+          // Les lignes portaient le nom du fichier sans bouton : elles
+          // annonçaient une pièce jointe sans donner de quoi l'ouvrir.
+          MediaAttachments(attachments: attachments),
         ],
       ),
     );
-  }
-
-  String? _extensionOf(String fileName) {
-    final int dot = fileName.lastIndexOf('.');
-    if (dot < 0 || dot == fileName.length - 1) return null;
-    return fileName.substring(dot + 1).toUpperCase();
   }
 }
 

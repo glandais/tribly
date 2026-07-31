@@ -13,6 +13,7 @@ import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/units/unit_system.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/media_attachments.dart';
 import '../../providers/route_detail_provider.dart';
 import '../../providers/route_elevation_provider.dart';
 import '../widgets/route_climbs_section.dart';
@@ -218,6 +219,16 @@ class _RouteDetailPageState extends ConsumerState<RouteDetailPage> {
                 PdlSectionHeader(title: 'routes.description'.tr()),
                 PdlMarkdownBody(data: route.media.markdown),
               ],
+            ),
+          ),
+        // Section à part, et non un appendice de la description : un parcours
+        // peut porter un road book sans une ligne de texte.
+        if (route.media.assets.attachments.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: MediaAttachments(
+              attachments: route.media.assets.attachments,
+              spacingBefore: 0,
             ),
           ),
       ],

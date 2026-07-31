@@ -14,6 +14,7 @@ import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/authenticated_image.dart';
 import '../../../../core/widgets/markdown_content.dart';
+import '../../../../core/widgets/media_attachments.dart';
 import '../../../../core/widgets/team_banner.dart';
 import '../../../auth/domain/auth_state.dart';
 import '../../../auth/providers/auth_provider.dart';
@@ -178,6 +179,11 @@ class _AdDetailContentState extends ConsumerState<_AdDetailContent> {
                     images: ad.media.assets.images,
                   ),
                 ],
+                // Les fichiers joints à l'annonce — facture, notice, fiche
+                // technique. Ils voyagent dans `media.assets.attachments`,
+                // servi en entier par `getAd` : la liste, elle, est chargée en
+                // `COMPACT` et ne les porte pas, d'où leur absence de la carte.
+                MediaAttachments(attachments: ad.media.assets.attachments),
                 if (ad.locationGeometry != null ||
                     ad.locationDescription != null) ...<Widget>[
                   const SizedBox(height: PdlSpacing.section),

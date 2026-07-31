@@ -17,9 +17,9 @@ import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
-import '../../../../core/utils/link_launcher.dart';
 import '../../../../core/widgets/authenticated_image.dart';
 import '../../../../core/widgets/markdown_content.dart';
+import '../../../../core/widgets/media_attachments.dart';
 import '../../../comments/data/comment_repository.dart';
 import '../../../comments/presentation/widgets/comment_thread.dart';
 import '../../../teams/providers/team_providers.dart';
@@ -131,15 +131,7 @@ class _PostDetailContent extends ConsumerWidget {
                     data: post.media.markdown,
                     images: post.media.assets.images,
                   ),
-                if (attachments.isNotEmpty) ...<Widget>[
-                  const SizedBox(height: PdlSpacing.section),
-                  PdlSectionHeader(title: 'posts.attachments'.tr()),
-                  for (int i = 0; i < attachments.length; i++)
-                    _Attachment(
-                      asset: attachments[i],
-                      showDivider: i < attachments.length - 1,
-                    ),
-                ],
+                MediaAttachments(attachments: attachments),
                 const SizedBox(height: PdlSpacing.section),
                 // `commentCount` absent signifie « vous n'avez pas le droit de
                 // lire les commentaires » : un non-membre n'est même pas
@@ -353,32 +345,3 @@ class _Cover extends ConsumerWidget {
 /// Vignette de 56 px quand l'asset est une image — `imageUrl` porte le gabarit
 /// `{size}` d'imgproxy —, icône sinon. **Pas de poids affiché** : `AssetDto`
 /// porte `contentType`, pas d'octets, et « PDF · 240 Ko » serait une invention.
-class _Attachment extends StatelessWidget {
-  const _Attachment({required this.asset, required this.showDivider});
-
-  final AssetDto asset;
-  final bool showDivider;
-
-  @override
-  Widget build(BuildContext context) {
-    return PdlAttachmentRow(
-      name: asset.fileName,
-      type: _extension(asset.fileName) ?? asset.contentType,
-      thumbnailUrl: asset.imageUrl,
-      icon: asset.imageUrl == null ? PdlIcons.attachment : PdlIcons.image,
-      onAction: () => unawaited(openLink(context, asset.url)),
-      // **Le libellé nomme le fichier** : « Ouvrir » répété douze fois dans un
-      // lecteur d'écran ne permet pas de choisir.
-      actionSemanticLabel: 'posts.openAttachment'.tr(
-        namedArgs: <String, String>{'file': asset.fileName},
-      ),
-      showDivider: showDivider,
-    );
-  }
-
-  String? _extension(String fileName) {
-    final int dot = fileName.lastIndexOf('.');
-    if (dot < 0 || dot == fileName.length - 1) return null;
-    return fileName.substring(dot + 1);
-  }
-}

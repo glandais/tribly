@@ -365,8 +365,6 @@
   },
   "posts": {
     "title": "Publications",
-    "attachments": "Pièces jointes",
-    "openAttachment": "Ouvrir {file}",
     "openCover": "Ouvrir l'image de couverture",
     "previous": "Publication précédente",
     "next": "Publication suivante",
@@ -1006,5 +1004,9 @@
     "GARMIN": "Garmin Connect",
     "HAMMERHEAD": "Hammerhead Karoo",
     "WAHOO": "Wahoo"
+  },
+  "media": {
+    "attachments": "Pièces jointes",
+    "openAttachment": "Ouvrir {file}"
   }
 }

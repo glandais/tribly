@@ -97,6 +97,10 @@ jeton ICS. Thème clair et compte `gaby` pas repassés en revue depuis.
       `deep_link_hierarchy_test.dart` couvre la table ; il ne couvre pas l'ouverture réelle.)
 - [ ] **Text scaling ×1,3 puis ×2,0** — badges, lignes de col à 3 colonnes, en-têtes épinglés :
       aucun débordement.
+- [ ] **Pièces jointes** — sur chacun des huit écrans à `MediaDto` (sortie, publication, annonce,
+      parcours, voyage, étape, page d'équipe, « à propos ») : le bloc apparaît **avec** un fichier
+      et disparaît sans, le bouton ouvre bien le fichier, et un contenu qui ne porte qu'une pièce
+      jointe sans texte affiche quand même le bloc (l'« à propos » ne doit plus se déclarer vide).
 - [ ] **Performance** — liste de 200 items : rester au-dessus de 55 fps. Si le `BackdropFilter` des
       barres épinglées coûte trop cher, le repli est **un seul jeton** (`PdlMotion.blurToolbar = 0`,
       surface opaque), aucun écran à rouvrir.
