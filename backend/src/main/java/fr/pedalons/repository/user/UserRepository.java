@@ -35,33 +35,4 @@ public class UserRepository implements BaseRepository<User> {
             "strava!_%@" + placeholderDomain.toLowerCase())
         .list();
   }
-
-  public List<User> searchByDisplayNameAndDomain(Long domainId, String query, int limit) {
-    return find(
-            "domain.id = ?1 and LOWER(displayName) LIKE LOWER(?2) and deleted = false",
-            domainId,
-            "%" + query + "%")
-        .page(0, limit)
-        .list();
-  }
-
-  /**
-   * The same search, narrowed to the members of one team.
-   *
-   * <p>Strictly a subset of {@link #searchByDisplayNameAndDomain}: it can only return fewer users,
-   * never a user the unfiltered search would have hidden. It exists so a picker that must yield a
-   * team member — designating a ride group's leader — cannot offer someone the server will then
-   * reject.
-   */
-  public List<User> searchByDisplayNameAndTeam(
-      Long domainId, Long teamId, String query, int limit) {
-    return find(
-            "domain.id = ?1 and LOWER(displayName) LIKE LOWER(?2) and deleted = false"
-                + " and id in (select ut.user.id from UserTeam ut where ut.team.id = ?3)",
-            domainId,
-            "%" + query + "%",
-            teamId)
-        .page(0, limit)
-        .list();
-  }
 }

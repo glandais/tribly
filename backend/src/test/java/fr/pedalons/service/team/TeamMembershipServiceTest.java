@@ -65,14 +65,110 @@ class TeamMembershipServiceTest extends AbstractBaseTest {
     assertEquals(3, result.members().size()); // admin + user1 + user2
   }
 
+  // The directory is graded along two axes — the caller's role and the team's toggle — so the
+  // tests below are that matrix rather than one "non-admin is refused" case.
+
   @Test
-  void getTeamMembers_shouldThrowForNonAdmin() {
+  void getTeamMembers_asPlainMember_withDirectoryClosed_shouldThrow() {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
     queryContext.setUserForTest(user1);
     assertThrows(
         PedalonsException.class,
         () -> membershipService.getTeamMembers(team.getSlug(), 0, 10, null, null));
+  }
+
+  @Test
+  void getTeamMembers_asPlainMember_withDirectoryOpen_shouldReturnEverything() {
+    dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
+    dataService.setTeamEnableMemberDirectory(team, true);
+
+    queryContext.setUserForTest(user1);
+    MemberListResponse result = membershipService.getTeamMembers(team.getSlug(), 0, 10, null, null);
+
+    assertEquals(2, result.members().size());
+    assertTrue(result.members().stream().allMatch(m -> m.role() != null));
+  }
+
+  @Test
+  void getTeamMembers_asNonMember_shouldThrowEvenWithDirectoryOpen() {
+    dataService.setTeamEnableMemberDirectory(team, true);
+
+    queryContext.setUserForTest(user1);
+    assertThrows(
+        PedalonsException.class,
+        () -> membershipService.getTeamMembers(team.getSlug(), 0, 10, null, null));
+  }
+
+  /**
+   * An organiser reads the roster whatever the team decided — they need candidates for a ride
+   * group's leader, and {@code RideService} rejects a leader who is not a member. What a closed
+   * directory withholds from them is the role and the join date, not the people.
+   */
+  @Test
+  void getTeamMembers_asOrganizer_withDirectoryClosed_shouldReturnNamesOnly() {
+    dataService.addUserToTeam(user1, team, TeamRole.ORGANIZER);
+
+    queryContext.setUserForTest(user1);
+    MemberListResponse result = membershipService.getTeamMembers(team.getSlug(), 0, 10, null, null);
+
+    assertEquals(2, result.members().size());
+    assertTrue(result.members().stream().allMatch(m -> m.role() == null));
+    assertTrue(result.members().stream().allMatch(m -> m.joinedAt() == null));
+    assertTrue(result.members().stream().allMatch(m -> m.user().displayName() != null));
+  }
+
+  @Test
+  void getTeamMembers_asOrganizer_withDirectoryOpen_shouldReturnRoles() {
+    dataService.addUserToTeam(user1, team, TeamRole.ORGANIZER);
+    dataService.setTeamEnableMemberDirectory(team, true);
+
+    queryContext.setUserForTest(user1);
+    MemberListResponse result = membershipService.getTeamMembers(team.getSlug(), 0, 10, null, null);
+
+    assertTrue(result.members().stream().allMatch(m -> m.role() != null));
+  }
+
+  /**
+   * The point of the whole exercise. {@code PublicUserDto} carries no address, so nothing leaks in
+   * the body — but a search that matched on the e-mail would answer "is this address on this team?"
+   * for any address one cares to type, which is an enumeration oracle over the entire domain.
+   */
+  @Test
+  void getTeamMembers_searchByEmail_shouldFindNothingForANonAdmin() {
+    dataService.addUserToTeam(user1, team, TeamRole.ORGANIZER);
+    dataService.addUserToTeam(user2, team, TeamRole.MEMBER);
+
+    queryContext.setUserForTest(user1);
+    MemberListResponse result =
+        membershipService.getTeamMembers(team.getSlug(), 0, 10, "user2@example.com", null);
+
+    assertEquals(0, result.members().size());
+    assertEquals(0, result.total());
+  }
+
+  @Test
+  void getTeamMembers_searchByEmail_shouldStillWorkForAnAdmin() {
+    dataService.addUserToTeam(user2, team, TeamRole.MEMBER);
+
+    queryContext.setUserForTest(admin);
+    MemberListResponse result =
+        membershipService.getTeamMembers(team.getSlug(), 0, 10, "user2@example.com", null);
+
+    assertEquals(1, result.members().size());
+    assertEquals(user2.getId(), TsidUtils.toLong(result.members().getFirst().user().id()));
+  }
+
+  @Test
+  void getTeamMembers_searchByName_shouldWorkForANonAdmin() {
+    dataService.addUserToTeam(user1, team, TeamRole.ORGANIZER);
+    dataService.addUserToTeam(user2, team, TeamRole.MEMBER);
+
+    queryContext.setUserForTest(user1);
+    MemberListResponse result =
+        membershipService.getTeamMembers(team.getSlug(), 0, 10, "User Two", null);
+
+    assertEquals(1, result.members().size());
   }
 
   @Test

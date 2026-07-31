@@ -56,7 +56,8 @@ class UserTeamRepositoryTest extends AbstractBaseTest {
     dataService.addUserToTeam(user2, team, TeamRole.MEMBER);
     dataService.addUserToTeam(user3, team, TeamRole.MEMBER);
 
-    PedalonsPage<UserTeam> result = userTeamRepository.findByTeam(team.getId(), 0, 10, null, null);
+    PedalonsPage<UserTeam> result =
+        userTeamRepository.findByTeam(team.getId(), 0, 10, null, null, true);
 
     assertEquals(3, result.items().size());
     assertEquals(3, result.total());
@@ -67,7 +68,8 @@ class UserTeamRepositoryTest extends AbstractBaseTest {
     dataService.addUserToTeam(user2, team, TeamRole.MEMBER);
     dataService.addUserToTeam(user3, team, TeamRole.MEMBER);
 
-    PedalonsPage<UserTeam> result = userTeamRepository.findByTeam(team.getId(), 0, 2, null, null);
+    PedalonsPage<UserTeam> result =
+        userTeamRepository.findByTeam(team.getId(), 0, 2, null, null, true);
 
     assertEquals(2, result.items().size());
     assertEquals(3, result.total());
@@ -78,7 +80,8 @@ class UserTeamRepositoryTest extends AbstractBaseTest {
     UserTeam deletedMembership = dataService.addUserToTeam(user2, team, TeamRole.MEMBER);
     dataService.deleteUserTeam(deletedMembership);
 
-    PedalonsPage<UserTeam> result = userTeamRepository.findByTeam(team.getId(), 0, 10, null, null);
+    PedalonsPage<UserTeam> result =
+        userTeamRepository.findByTeam(team.getId(), 0, 10, null, null, true);
 
     assertEquals(1, result.items().size());
     assertEquals(user1.getId(), result.items().getFirst().getUser().getId());
@@ -86,7 +89,7 @@ class UserTeamRepositoryTest extends AbstractBaseTest {
 
   @Test
   void findByTeam_shouldReturnEmptyForNonexistentTeam() {
-    PedalonsPage<UserTeam> result = userTeamRepository.findByTeam(-1L, 0, 10, null, null);
+    PedalonsPage<UserTeam> result = userTeamRepository.findByTeam(-1L, 0, 10, null, null, true);
 
     assertEquals(0, result.items().size());
   }

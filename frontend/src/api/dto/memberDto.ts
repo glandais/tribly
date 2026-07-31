@@ -13,8 +13,8 @@ export interface MemberDto {
   id: string
   /** User */
   user: PublicUserDto
-  /** Member role */
-  role: TeamRole
+  /** Member role. Null when the caller is not entitled to it: an organiser reading the roster of a team that has not opened its member directory gets the names and nothing else. */
+  role?: TeamRole
   /** When the user joined the team */
   joinedAt?: Instant
 }

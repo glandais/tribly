@@ -281,6 +281,11 @@ class _MemberRow extends StatelessWidget {
         ? null
         : DateTime.tryParse(member.joinedAt!)?.toLocal();
 
+    // `role` est nul quand l'appelant n'y a pas droit : un organisateur qui lit
+    // une équipe dont le trombinoscope n'est pas ouvert obtient les noms, et
+    // rien d'autre. On ne devine pas un rôle — on n'affiche pas de badge.
+    final String? role = member.role;
+
     return PdlPersonRow(
       name: member.user.displayName,
       imageUrl: member.user.avatarUrl,
@@ -294,10 +299,12 @@ class _MemberRow extends StatelessWidget {
                     '${joined.year}',
               },
             ),
-      roleBadge: PdlBadge(
-        label: AppFormatters.roleName(member.role),
-        tone: TeamRole.fromJson(member.role).tone(c),
-      ),
+      roleBadge: role == null
+          ? null
+          : PdlBadge(
+              label: AppFormatters.roleName(role),
+              tone: TeamRole.fromJson(role).tone(c),
+            ),
       showDivider: showDivider,
     );
   }

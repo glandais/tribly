@@ -33,6 +33,14 @@ public record TeamRequest(
     @Schema(description = "Routes enabled for team", examples = "true", required = true)
         boolean enableRoutes,
     @Schema(
+            description =
+                "Member directory readable by every member, not just administrators. Organisers"
+                    + " always see the directory; what this flag adds for them is the role and join"
+                    + " date of each member.",
+            examples = "false",
+            required = true)
+        boolean enableMemberDirectory,
+    @Schema(
             description = "Team location coordinates [longitude, latitude]",
             implementation = GeoJsonPoint.class)
         @Nullable Point<G2D> geometry) {}

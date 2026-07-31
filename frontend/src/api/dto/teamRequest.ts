@@ -27,6 +27,8 @@ export interface TeamRequest {
   enableRides: boolean
   /** Routes enabled for team */
   enableRoutes: boolean
+  /** Member directory readable by every member, not just administrators. Organisers always see the directory; what this flag adds for them is the role and join date of each member. */
+  enableMemberDirectory: boolean
   /** Team location coordinates [longitude, latitude] */
   geometry?: TeamRequestGeometry
 }

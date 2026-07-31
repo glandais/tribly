@@ -6,7 +6,6 @@ import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.dto.publications.response.PublicationListResponse;
 import fr.pedalons.dto.users.request.UpdateUserRequest;
 import fr.pedalons.dto.users.request.UserPreferencesRequest;
-import fr.pedalons.dto.users.response.PublicUserDto;
 import fr.pedalons.dto.users.response.UserDto;
 import fr.pedalons.dto.users.response.UserExportDto;
 import fr.pedalons.enums.ListViewMode;
@@ -24,7 +23,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.FileInputStream;
 import java.time.Instant;
-import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.headers.Header;
@@ -175,44 +173,6 @@ public class UserResource {
     userAvatarService.deleteAvatar();
     UserDto userDto = userService.getUserDto();
     return Response.ok(userDto).build();
-  }
-
-  @GET
-  @Path("/search")
-  @Operation(
-      summary = "Search users",
-      description =
-          "Search users by display name. Pass 'teamSlug' to keep only the members of that team —"
-              + " useful for a picker that must yield a member, such as a ride group's leader. The"
-              + " parameter only ever removes results, and requires the caller to belong to the"
-              + " team.")
-  @APIResponses({
-    @APIResponse(
-        responseCode = "200",
-        description = "Search results",
-        content = @Content(schema = @Schema(implementation = PublicUserDto[].class))),
-    @APIResponse(
-        responseCode = "401",
-        description = "Unauthorized",
-        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-    @APIResponse(
-        responseCode = "403",
-        description = "Not a member of the requested team",
-        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-  })
-  public Response searchUsers(
-      @Parameter(description = "Search query") @QueryParam("q") @Nullable String query,
-      @Parameter(description = "Maximum results (max 20)") @QueryParam("limit") @DefaultValue("10")
-          int limit,
-      @Parameter(description = "Keep only members of this team") @QueryParam("teamSlug")
-          @Nullable String teamSlug) {
-    if (query == null || query.trim().isEmpty()) {
-      return Response.ok(List.of()).build();
-    }
-
-    List<PublicUserDto> users =
-        userService.searchByDisplayName(query.trim(), Math.min(limit, 20), teamSlug);
-    return Response.ok(users).build();
   }
 
   @GET

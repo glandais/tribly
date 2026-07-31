@@ -36,7 +36,18 @@ public class UserTeamAccessChecker implements AccessChecker {
     }
     return switch (action) {
       case JOIN -> team != null && team.getVisibility() != Visibility.TEAM && team.isJoinable();
-      case READ, LIST, CREATE, UPDATE, DELETE -> teamRole != null && teamRole.isAdmin();
+      // LIST is deliberately its own branch. Folding it back in with CREATE/UPDATE/DELETE would
+      // hand every member the right to add and remove members, which is the same word for a very
+      // different thing.
+      //
+      // An organiser reads the roster whatever the team decided: designating a ride group's leader
+      // needs a list of candidates, and RideService rejects a leader who is not a member. Everyone
+      // else needs the team to have opened its directory. What each of them then *sees* is decided
+      // in TeamMembershipService.getTeamMembers, not here.
+      case LIST ->
+          teamRole != null
+              && (teamRole.isOrganizer() || (team != null && team.isEnableMemberDirectory()));
+      case READ, CREATE, UPDATE, DELETE -> teamRole != null && teamRole.isAdmin();
       case LEAVE -> teamRole != null;
       case LIST_ALL_TEAMS -> false;
     };

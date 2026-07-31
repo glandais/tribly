@@ -10,7 +10,7 @@ export type GetMembersParams = {
    */
   role?: TeamRole
   /**
-   * Search by name or email
+   * Search by display name. Also matches the e-mail address, for administrators only.
    */
   search?: string
   /**

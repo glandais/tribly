@@ -80,7 +80,13 @@ export function TeamMemberList({
       <Stack gap={0}>
         {members.map((member, index) => {
           const isCurrentUser = member.user.id === currentUserId
-          const canEdit = canManageMembers && !isCurrentUser && member.role !== 'ADMIN'
+          // `role` is null when the caller is not entitled to it — an organiser reading a team
+          // that has not opened its directory. This list is the admin screen, where it is always
+          // present, but the type is honest about the wider contract, so the actions that depend on
+          // knowing the role stay off when it is absent rather than guessing.
+          const memberRole = member.role
+          const canEdit =
+            canManageMembers && !isCurrentUser && memberRole != null && memberRole !== 'ADMIN'
           const canRemove = canManageMembers && !isCurrentUser
 
           return (
@@ -154,9 +160,11 @@ export function TeamMemberList({
                     </>
                   ) : (
                     <>
-                      <Badge color={roleBadgeColors[member.role]} variant="light">
-                        {t(`roles.${member.role satisfies 'ADMIN' | 'ORGANIZER' | 'MEMBER'}`)}
-                      </Badge>
+                      {memberRole && (
+                        <Badge color={roleBadgeColors[memberRole]} variant="light">
+                          {t(`roles.${memberRole satisfies 'ADMIN' | 'ORGANIZER' | 'MEMBER'}`)}
+                        </Badge>
+                      )}
 
                       {canEdit && (
                         <Button
@@ -164,7 +172,7 @@ export function TeamMemberList({
                           variant="subtle"
                           color="gray"
                           onClick={() => {
-                            setSelectedRole(member.role)
+                            setSelectedRole(memberRole)
                             setEditingMemberId(member.id)
                           }}
                         >

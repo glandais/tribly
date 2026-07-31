@@ -20,7 +20,7 @@ abstract class TeamMembersClient {
 
   /// Get team members.
   ///
-  /// Get paginated list of team members.
+  /// Paginated list of team members. Administrators always see it; so do organisers, who need a member list to designate a ride group's leader. Everyone else needs the team to have set enableMemberDirectory. What is returned is graded too: 'role' and 'joinedAt' are null unless the caller is an administrator or the directory is open, and 'search' only matches an e-mail address for an administrator.
   ///
   /// [teamSlug] - Team URL slug.
   ///
@@ -28,7 +28,7 @@ abstract class TeamMembersClient {
   ///
   /// [role] - Filter by role.
   ///
-  /// [search] - Search by name or email.
+  /// [search] - Search by display name. Also matches the e-mail address, for administrators only.
   ///
   /// [size] - Page size.
   @GET('/api/teams/{teamSlug}/members')

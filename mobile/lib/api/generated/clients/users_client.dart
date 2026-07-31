@@ -8,7 +8,6 @@ import 'package:retrofit/retrofit.dart';
 import 'package:retrofit/error_logger.dart';
 
 import '../models/list_view_mode.dart';
-import '../models/public_user_dto.dart';
 import '../models/publication_list_response.dart';
 import '../models/status.dart';
 import '../models/update_user_request.dart';
@@ -126,21 +125,5 @@ abstract class UsersClient {
   @PATCH('/api/users/me/preferences')
   Future<UserDto> updateMyPreferences({
     @Body() required UserPreferencesRequest body,
-  });
-
-  /// Search users.
-  ///
-  /// Search users by display name. Pass 'teamSlug' to keep only the members of that team — useful for a picker that must yield a member, such as a ride group's leader. The parameter only ever removes results, and requires the caller to belong to the team.
-  ///
-  /// [limit] - Maximum results (max 20).
-  ///
-  /// [q] - Search query.
-  ///
-  /// [teamSlug] - Keep only members of this team.
-  @GET('/api/users/search')
-  Future<List<PublicUserDto>> searchUsers({
-    @Query('q') String? q,
-    @Query('teamSlug') String? teamSlug,
-    @Query('limit') int? limit = 10,
   });
 }

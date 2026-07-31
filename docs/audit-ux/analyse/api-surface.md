@@ -20,10 +20,9 @@
 | Config | `GET /api/config` | `ConfigDto` | — | oui | oui |
 | Config | `GET /api/version` | `VersionDto` | — | oui | oui |
 | Profil | `GET /api/users/me` | `UserDto` | — | oui | oui |
-| Profil | `GET /api/users/search?q&limit` | `PublicUserDto[]` | limit | oui | **non** |
 | Équipes | `GET /api/teams?minRole&search&page&size` | `TeamListResponse` | oui | oui | oui |
 | Équipes | `GET /api/teams/{teamSlug}` | `TeamDetailDto` | — | oui | oui |
-| Équipes | `GET /api/teams/{teamSlug}/members?role&search&page&size` | `MemberListResponse` | oui | oui | partiel (sans pagination) |
+| Équipes | `GET /api/teams/{teamSlug}/members?role&search&page&size` | `MemberListResponse` | oui | oui | oui — gradué par rôle et par `Team.enableMemberDirectory` depuis `3.0.0` (voir NEXT.md §3.1) |
 | Pages équipe | `GET /api/teams/{teamSlug}/pages` | `TeamPageSummaryDto[]` | — | oui | non (déjà inclus dans `TeamDetailDto.pages`) |
 | Pages équipe | `GET /api/teams/{teamSlug}/pages/{pageSlug}` | `TeamPageDto` | — | oui | oui |
 | Publications | `GET /api/publications?type&search&from&to&minRole&page&size` | `PublicationListResponse` | oui | oui | oui (feed accueil) |
@@ -157,7 +156,6 @@ dans `mobile/lib/api/generated/clients/`**. Le vrai écart est donc *fonctionnel
 | **Liste des membres paginée / filtrée par rôle / recherchable** | `teams/{t}/members?page&size&role&search` | présent | partiel : `TeamRepository.getTeamMembers()` appelle sans `page`/`size` → **20 premiers membres seulement** |
 | **Lieux de l'équipe** (départs / arrivées, carte, détail) | `teams/{t}/places`, `…/{placeId}` | présent | **non** |
 | **Abonnement calendrier ICS** (token + URL de flux) | `calendar/token`, `calendar/ics`, `teams/{t}/calendar/ics` | présent | **non** |
-| **Recherche d'utilisateurs** (mentions, ajout membre) | `users/search?q&limit` | présent | **non** |
 | **Filtres de publications** : `search`, `from`/`to`, `minRole` | `publications`, `teams/{t}/publications` | présent | **non** — le mobile ne passe que `type` et `page`/`size` (`publication_feed_provider.dart`) |
 | **Filtre `minRole` sur la liste de parcours** (« mes équipes » vs tout) | `/api/routes?minRole` | présent | **non** |
 | **Proximité géographique** sur les parcours (`nearLat`/`nearLon`/`nearRadius`/`nearType`) | listes + bounds + tiles | présent | **non** — pourtant c'est le filtre le plus naturel sur mobile |

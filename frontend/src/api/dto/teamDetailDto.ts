@@ -35,6 +35,8 @@ export interface TeamDetailDto {
   enableRides: boolean
   /** Routes enabled */
   enableRoutes: boolean
+  /** Whether the member directory is readable by every member and not just by administrators. Clients use it to decide whether to offer the directory at all: an entry that always leads to a 403 is worse than no entry. Organisers see the directory whatever its value, but only get each member's role and join date when it is true. */
+  enableMemberDirectory: boolean
   /** Whether visibility is editable by team admins */
   visibilityEditable: boolean
   /** Whether any domain user can join this team */

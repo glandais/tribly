@@ -213,6 +213,11 @@ export const ListTeamsResponse = zod
             enablePosts: zod.boolean().describe('Posts enabled'),
             enableRides: zod.boolean().describe('Rides enabled'),
             enableRoutes: zod.boolean().describe('Routes enabled'),
+            enableMemberDirectory: zod
+              .boolean()
+              .describe(
+                "Whether the member directory is readable by every member and not just by administrators. Clients use it to decide whether to offer the directory at all: an entry that always leads to a 403 is worse than no entry. Organisers see the directory whatever its value, but only get each member's role and join date when it is true."
+              ),
             visibilityEditable: zod
               .boolean()
               .describe('Whether visibility is editable by team admins'),
@@ -425,6 +430,11 @@ export const CreateTeamBody = zod
     enablePosts: zod.boolean().describe('Posts enabled for team'),
     enableRides: zod.boolean().describe('Rides enabled for team'),
     enableRoutes: zod.boolean().describe('Routes enabled for team'),
+    enableMemberDirectory: zod
+      .boolean()
+      .describe(
+        'Member directory readable by every member, not just administrators. Organisers always see the directory; what this flag adds for them is the role and join date of each member.'
+      ),
     geometry: zod
       .object({
         type: zod.enum(['Point']),
@@ -624,6 +634,11 @@ export const CreateTeamResponse = zod
     enablePosts: zod.boolean().describe('Posts enabled'),
     enableRides: zod.boolean().describe('Rides enabled'),
     enableRoutes: zod.boolean().describe('Routes enabled'),
+    enableMemberDirectory: zod
+      .boolean()
+      .describe(
+        "Whether the member directory is readable by every member and not just by administrators. Clients use it to decide whether to offer the directory at all: an entry that always leads to a 403 is worse than no entry. Organisers see the directory whatever its value, but only get each member's role and join date when it is true."
+      ),
     visibilityEditable: zod.boolean().describe('Whether visibility is editable by team admins'),
     joinable: zod.boolean().describe('Whether any domain user can join this team'),
     addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
@@ -831,6 +846,11 @@ export const UpdateTeamBody = zod
     enablePosts: zod.boolean().describe('Posts enabled for team'),
     enableRides: zod.boolean().describe('Rides enabled for team'),
     enableRoutes: zod.boolean().describe('Routes enabled for team'),
+    enableMemberDirectory: zod
+      .boolean()
+      .describe(
+        'Member directory readable by every member, not just administrators. Organisers always see the directory; what this flag adds for them is the role and join date of each member.'
+      ),
     geometry: zod
       .object({
         type: zod.enum(['Point']),
@@ -1030,6 +1050,11 @@ export const UpdateTeamResponse = zod
     enablePosts: zod.boolean().describe('Posts enabled'),
     enableRides: zod.boolean().describe('Rides enabled'),
     enableRoutes: zod.boolean().describe('Routes enabled'),
+    enableMemberDirectory: zod
+      .boolean()
+      .describe(
+        "Whether the member directory is readable by every member and not just by administrators. Clients use it to decide whether to offer the directory at all: an entry that always leads to a 403 is worse than no entry. Organisers see the directory whatever its value, but only get each member's role and join date when it is true."
+      ),
     visibilityEditable: zod.boolean().describe('Whether visibility is editable by team admins'),
     joinable: zod.boolean().describe('Whether any domain user can join this team'),
     addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
@@ -1261,6 +1286,11 @@ export const GetTeamResponse = zod
     enablePosts: zod.boolean().describe('Posts enabled'),
     enableRides: zod.boolean().describe('Rides enabled'),
     enableRoutes: zod.boolean().describe('Routes enabled'),
+    enableMemberDirectory: zod
+      .boolean()
+      .describe(
+        "Whether the member directory is readable by every member and not just by administrators. Clients use it to decide whether to offer the directory at all: an entry that always leads to a 403 is worse than no entry. Organisers see the directory whatever its value, but only get each member's role and join date when it is true."
+      ),
     visibilityEditable: zod.boolean().describe('Whether visibility is editable by team admins'),
     joinable: zod.boolean().describe('Whether any domain user can join this team'),
     addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
@@ -1516,6 +1546,11 @@ export const ChangeTeamSlugResponse = zod
     enablePosts: zod.boolean().describe('Posts enabled'),
     enableRides: zod.boolean().describe('Rides enabled'),
     enableRoutes: zod.boolean().describe('Routes enabled'),
+    enableMemberDirectory: zod
+      .boolean()
+      .describe(
+        "Whether the member directory is readable by every member and not just by administrators. Clients use it to decide whether to offer the directory at all: an entry that always leads to a 403 is worse than no entry. Organisers see the directory whatever its value, but only get each member's role and join date when it is true."
+      ),
     visibilityEditable: zod.boolean().describe('Whether visibility is editable by team admins'),
     joinable: zod.boolean().describe('Whether any domain user can join this team'),
     addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),

@@ -22,6 +22,7 @@ import { EmptyState } from '../../components/common/EmptyState'
 import { Pagination } from '../../components/common/Pagination'
 import { SearchInput } from '../../components/common/SearchInput'
 import { HomeLayout } from '../../components/home/HomeLayout'
+import { PendingInvitationsBanner } from '../../components/team/PendingInvitationsBanner'
 import { Select, Box, Group, Title, Text, Stack, Button, SimpleGrid, Alert } from '@mantine/core'
 
 export function TeamListPage() {
@@ -89,6 +90,7 @@ export function TeamListPage() {
   return (
     <HomeLayout currentTab="teams">
       <Stack>
+        <PendingInvitationsBanner />
         <Group justify="space-between" align="flex-start" wrap="wrap">
           <div>
             <Title order={2}>{t('teams.title')}</Title>

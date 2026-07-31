@@ -12,7 +12,7 @@ Sources : [`plans/archive/`](plans/archive/) (les trois plans du 26 juillet, ave
 [`plans/2026-02-14-project-audit.md`](plans/2026-02-14-project-audit.md) (audit d'infrastructure,
 encore ouvert).
 
-**Contrat d'API au moment d'écrire : `1.6.0`.** Toute évolution d'API listée ici demande un bump de
+**Contrat d'API au moment d'écrire : `3.0.0`.** Toute évolution d'API listée ici demande un bump de
 `pedalons.api.version` dans `backend/src/main/resources/application.properties`, puis la
 régénération des deux clients (compétence `contract-first-api`).
 
@@ -135,16 +135,36 @@ jeton ICS. Thème clair et compte `gaby` pas repassés en revue depuis.
       lien (`?sort=`/`?dir=`/`?pmin=`/`?pmax=`), et « Effacer les filtres » **conserve** le tri.
 - [ ] Page d'équipe en 1440×900 : le premier élément de contenu apparaît à moins de 220 px du haut.
 - [ ] Une sortie à plus de 20 commentaires n'en charge que 20 au premier rendu.
+- [ ] **Trombinoscope, la matrice rôle × réglage** — sur `gaby`, réglage désactivé : un membre
+      ordinaire ne voit pas l'entrée « Membres » (mobile) et prend un 403 s'il force l'URL ; un
+      organisateur voit la liste **sans les rôles ni les dates** ; le sélecteur de meneur de
+      `RideEditor` propose toujours des candidats. Réglage activé : le membre voit tout. Puis
+      `?search=` avec l'adresse **exacte** d'un coéquipier — **ne doit rien remonter** en membre et
+      en organisateur, doit le remonter en admin. C'est le seul contrôle qui prouve que l'oracle
+      d'énumération est fermé.
+- [ ] **Invitation par e-mail** — inviter une adresse **avec** compte puis une **sans** : la réponse
+      et l'écran doivent être **identiques**, seul le contenu du mail diffère (Mailhog en dev). La
+      liste des invitations en attente affiche les deux ; « Renvoyer » remplace le jeton ; « Annuler »
+      la retire. Accepter depuis un autre compte que l'adresse invitée : message dédié et bouton
+      « se déconnecter ». Accepter deux fois : pas d'erreur, une seule adhésion.
+- [ ] **Invitation d'une adresse sans compte, parcours complet** — inviter, s'inscrire par le lien,
+      vérifier l'adresse, puis constater qu'on n'est **pas** encore membre et que l'invitation
+      apparaît sur `/equipes` ; l'accepter. C'est le chemin que rien d'automatique ne couvre.
 
 ### 1.3 Backend et exploitation
 
 - [ ] **Démarrage réel du backend** — les tests utilisent `drop-and-create` et ne passent pas par
       Flyway : un test vert ne prouve **pas** que les migrations s'appliquent sur une base existante.
-      Attendre `Migrating schema … to version 30` au moins une fois, puis contrôler que
+      Attendre `Migrating schema … to version 34` au moins une fois, puis contrôler que
       `ad_contacts` existe, que `users.contactable_by_members` est nullable et que
       `ride_groups.leader_id` est nullable avec une FK en `ON DELETE SET NULL` (surtout pas
       `CASCADE`) et son index partiel. Les commandes exactes sont au §5.1 du
       [document d'API](plans/archive/2026-07-26-api-v2-livraison-et-suites.md).
+      **Ajouté en `3.0.0`** : `teams.enable_member_directory` en `NOT NULL DEFAULT FALSE`, et la
+      table `team_invitations` avec son index **partiel** `uk_team_invitations_pending on
+      (team_id, email) where status = 'PENDING'` — les tests construisent le schéma depuis les
+      mappings JPA, qui ne savent pas exprimer un index partiel, donc c'est précisément le genre
+      d'objet qu'un test vert ne prouve pas.
 - [ ] **Les tests backend sont à lancer par le propriétaire du dépôt**, jamais par Claude
       (interdiction du projet). Le découpage par item est au §5.2 du même document. Deux classes à
       ne jamais désactiver pour faire passer un build : `…QueryCountTest` (elles échouent si
@@ -155,6 +175,14 @@ jeton ICS. Thème clair et compte `gaby` pas repassés en revue depuis.
       À revérifier après tout changement de compte Brevo : un identifiant manquant fait répondre
       **500 en nommant le template absent**, ce qui ressemble à un défaut de front et n'en est pas.
       L'API de prévisualisation de Brevo n'est pas exploitable — la seule recette est un envoi réel.
+- [ ] **Les quatre gabarits d'invitation en production** — `team-invitation.{fr,en}` (12, 13) et
+      `team-invitation-signup.{fr,en}` (14, 15) **existent et sont actifs** (créés le 1er août 2026,
+      expéditeur `Pédalons ! <contact@pedalons.fr>`, id 1). Params des quatre : `appName`,
+      `inviterName`, `teamName`, `invitationUrl`, `expiresInDays`. **Reste à faire : un envoi réel**,
+      seule recette possible, comme pour `ad-contact`. Si un identifiant venait à manquer,
+      `POST …/invitations` répond **500 `TEAM_INVITE_DELIVERY_FAILED`** — délibérément, plutôt qu'un
+      `INTERNAL_ERROR` opaque — et la transaction est annulée : aucune invitation fantôme ne
+      subsiste. En dev, Mailhog rend les branches `sendViaSMTP` et ne dépend d'aucun identifiant.
 - [ ] **`AdDto` ne porte aucun champ de contact** — le `grep` et le script Python du §5.3 du document
       d'API. Le jour où ils remontent quelque chose, le relais a été contourné et une adresse
       personnelle est publiée à toute une équipe, irrévocablement.
@@ -174,26 +202,62 @@ jeton ICS. Thème clair et compte `gaby` pas repassés en revue depuis.
 
 ## 3. Le résidu du portage web
 
-### 3.1 T5.4 — Trombinoscope public : bloqué par une décision de sécurité
+### 3.1 T5.4 — Trombinoscope : débloqué par un réglage d'équipe (contrat `3.0.0`)
 
-Le reste de la tâche est livré (rangée de statistiques d'équipe, compléments de voyage). Seul le
-trombinoscope accessible à un membre non-admin manque, et **ce n'est pas un portage** :
-`UserTeamAccessChecker` réserve `USER_TEAM`/`LIST` aux administrateurs, donc
-`GET /api/teams/{teamSlug}/members` n'est pas lisible par un membre ordinaire. Le lien
-« N membres » reste non cliquable — dégradation prévue et appliquée.
+**Livré, sauf la page web publique.** L'oracle d'énumération est traité, l'autorisation est graduée,
+et l'ajout d'un membre par sélection d'utilisateur a été remplacé par une invitation par e-mail.
 
-L'ouvrir demande de traiter un oracle d'énumération avant tout élargissement : `MemberDto` ne porte
-que `PublicUserDto` (id, nom affiché, avatar — aucune adresse), **mais le paramètre `search` de
-l'endpoint filtre par nom *ou par e-mail***. Ouvert tel quel, tout membre pourrait saisir une adresse
-et voir si un coéquipier revient. Restreindre `search` au nom pour les non-administrateurs est le
-minimum, avant d'élargir l'autorisation.
+**Le réglage.** `Team.enableMemberDirectory` (`V33`), famille des `enable*`, éditable par l'admin
+d'équipe — mais **`DEFAULT FALSE`**, le seul du lot : ouvrir le trombinoscope montre l'annuaire
+complet à chaque membre, c'est un geste de l'équipe et pas un effet de bord de la migration.
 
-Précédent utile, déjà en place : plutôt que d'élargir cet endpoint pour le sélecteur de meneur,
-`GET /api/users/search` a gagné un `teamSlug` optionnel (contrat `1.6.0`) qui ne fait que **retirer**
-des résultats d'une recherche déjà ouverte à tout connecté. La même forme conviendrait peut-être ici.
+**L'autorisation, graduée sur deux axes** (`UserTeamAccessChecker`, `TeamMembershipService`) :
 
-**Taille : M** (backend) **+ S** (route `teamMembersPublic` dans `contracts/routes.yaml`, puis
-`pnpm generate-routes` — jamais d'édition de `paths.generated.ts`).
+| Rôle | Accès | `search` porte sur | `role` / `joinedAt` |
+|---|---|---|---|
+| admin (d'équipe ou plateforme) | toujours | nom **ou e-mail** | présents |
+| organisateur | toujours | nom seul | présents si le réglage est activé |
+| membre | si le réglage est activé | nom seul | présents |
+| non-membre | 403 | — | — |
+
+L'organisateur voit la liste quoi qu'il arrive : il lui faut des candidats pour désigner un meneur de
+groupe, et `RideService` refuse un meneur non-membre. Ce que le réglage lui retire, ce sont les rôles
+et les dates, pas les gens. `LIST` a dû être **extrait** de sa branche commune avec
+`CREATE`/`UPDATE`/`DELETE` : les laisser fusionnés aurait ouvert l'ajout et le retrait de membres.
+
+**L'oracle est fermé** : `UserTeamRepository.findByTeam` prend un `searchEmail` que seul un admin
+reçoit. `MemberDto.role` et `joinedAt` deviennent nullables — c'est, avec la suppression ci-dessous,
+la raison du **MAJOR**.
+
+**`GET /api/users/search` est supprimé.** Son seul appelant produit était `UserAutocomplete`, sur deux
+écrans qui n'existent plus sous cette forme. Le sélecteur de meneur passe par
+`TeamMemberAutocomplete`, qui interroge `…/members`. Le garde-fou serveur reste
+`RideService.resolveLeader` (`RIDE_GROUP_LEADER_NOT_MEMBER`).
+
+**L'ajout d'un membre est devenu une invitation** (`V34`, table `team_invitations`) : `POST`/`GET`/
+`DELETE /api/teams/{teamSlug}/invitations`, `POST /api/invitations/preview` (public) et `/accept`,
+plus `GET /api/users/me/invitations`. Quatre décisions à ne pas défaire :
+
+- **Personne ne rejoint une équipe sans un clic à soi**, compte préexistant ou non. `AuthService`
+  n'est pas touché : s'inscrire n'est pas accepter, et avec deux invitations en attente il n'y aurait
+  rien pour choisir. D'où `/me/invitations`, qui est le seul rattrapage de l'inscription spontanée.
+- **La création répond à l'identique que le compte existe ou non** — seul le gabarit d'e-mail change.
+  Sinon tout admin d'une équipe qu'il vient de créer dispose d'une sonde d'existence de compte, ce que
+  `requestOtp` / `requestPasswordReset` / `requestEmailChange` refusent déjà. Prix assumé : une faute
+  de frappe ne se signale pas — d'où la liste des invitations en attente, qui la rend visible.
+- **`addMemberAllowed` n'est pas revérifié à l'acceptation.** Il garde l'acte de l'admin, pas le
+  consentement de l'invité. Idem pour le rôle de l'inviteur : le recours est la révocation, explicite.
+- **L'acceptation est idempotente et n'écrase jamais le rôle** : une invitation MEMBER ne rétrograde
+  pas un ADMIN.
+
+Trois plafonds (`pedalons.teams.invitations.*`) : 20/h par inviteur et 50/j par équipe → **429** ;
+5/j **par adresse** → **échec silencieux** (l'invitation existe, le mail n'est pas envoyé), sinon on
+révélerait à l'admin A que l'admin B, d'une autre équipe, vient d'inviter la même personne.
+
+**Ce qui reste.** La **page web** du trombinoscope n'est pas écrite : la route `teamMembers` existe
+dans `contracts/routes.yaml` en `web: false`, et le lien « N membres » de `TeamAboutPage` reste
+inerte. Repartir de `TeamMembersPage` amputée des actions d'admin. **Taille : S.** Le mobile, lui, est
+fonctionnel : l'écran existait déjà, seule l'entrée de navigation a été conditionnée au réglage.
 
 ### 3.2 T5.5 — Compléments d'annonces : livrée (juillet 2026)
 
@@ -375,7 +439,7 @@ Beaucoup sont des ajouts d'un champ — le rapport valeur/effort y est bon.
 | 16 | Statut `TERMINÉE` dans l'enum `Status` | 11, 12, 22 | Dérivé client de `dateTime < now`, centralisé dans `RideDto.isPast` |
 | 17 | `?format=polyline` sur la géométrie de parcours | — | `?points=` couvre le besoin ; ~÷4 sur le poids, au prix d'un décodeur Dart. **À rouvrir seulement sur une mesure réelle** |
 | 18 | Voyage comme événement multi-jour au calendrier (`CalendarEventType`) | 22 | Les étapes y sont, le voyage en tant qu'objet non |
-| 19 | `GET /api/search?q&types=&limit` unifié | — | `GET /api/users/search` reste la seule recherche transverse |
+| 19 | `GET /api/search?q&types=&limit` unifié | — | Plus aucune recherche transverse : `GET /api/users/search` a été **supprimé** en `3.0.0` (voir §3.1). La seule recherche de personnes est celle du trombinoscope d'une équipe |
 | 20 | Pagination du calendrier | 22 | Fenêtre fixe −30 j / +180 j, non paginée |
 
 **Le meneur de groupe n'est plus dans cette liste** : il est livré en 1.5.0. Et les **gabarits de

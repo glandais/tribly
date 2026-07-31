@@ -35,13 +35,39 @@ public class TeamMembershipService {
 
   @Inject TeamService teamService;
 
+  /**
+   * The team's roster, graded by what the caller is entitled to see.
+   *
+   * <p>Two things vary, and neither is a filter on the rows themselves — every caller who gets past
+   * {@link UserTeamAccessChecker} sees the same members:
+   *
+   * <ul>
+   *   <li><b>What {@code search} matches.</b> Only an administrator searches by e-mail. The address
+   *       is in no response — {@code PublicUserDto} does not carry it — but a search that matches on
+   *       it answers "is this address on this team?" for any address one cares to type, which is an
+   *       enumeration oracle over the whole domain. Restricting the clause to the display name is
+   *       what makes opening this endpoint safe at all.
+   *   <li><b>Whether {@code role} and {@code joinedAt} are filled.</b> They are, for an
+   *       administrator, and for everyone once the team has opened its directory. An organiser on a
+   *       team that has <i>not</i> opened it still gets the list — they need it to designate a ride
+   *       group's leader — but only the names.
+   * </ul>
+   */
   @CheckAccess(entityType = EntityType.USER_TEAM, action = ActionType.LIST)
   public MemberListResponse getTeamMembers(
       String teamSlug, int page, int size, String search, TeamRole role) {
     Team team = teamService.getTeam(teamSlug);
+    // A platform admin never reaches the access checker (SecurityVerifier short-circuits it), so
+    // the "is this caller an admin" question has to be asked again here rather than inferred from
+    // having got this far.
+    TeamRole callerRole = pedalonsContext.getContext(team).teamRole();
+    boolean admin =
+        pedalonsContext.isPlatformAdmin() || (callerRole != null && callerRole.isAdmin());
+    boolean full = admin || team.isEnableMemberDirectory();
+
     PedalonsPage<UserTeam> members =
-        userTeamRepository.findByTeam(team.getId(), page, size, search, role);
-    List<MemberDto> dtos = members.items().stream().map(MemberDto::from).toList();
+        userTeamRepository.findByTeam(team.getId(), page, size, search, role, admin);
+    List<MemberDto> dtos = members.items().stream().map(m -> MemberDto.from(m, full)).toList();
     return new MemberListResponse(dtos, members.total(), page, size);
   }
 
@@ -67,6 +93,22 @@ public class TeamMembershipService {
             .orElseThrow(() -> new NotFoundException(EntityType.USER, targetUserId));
 
     return doAddMember(team, role, targetUser);
+  }
+
+  /**
+   * Creates the membership an accepted invitation earns.
+   *
+   * <p>Not {@code doAddMember}: the membership's {@code createdBy} is the person who invited, not
+   * the person who accepted, so a roster can still answer "who brought this member in" long after
+   * the fact. No authorization of its own — the token the invitee redeemed <em>is</em> the
+   * authorization, and {@code TeamInvitationService} has already established that it is theirs and
+   * still live.
+   */
+  @Transactional
+  public MemberDto addMemberFromInvitation(Team team, User user, TeamInvitation invitation) {
+    UserTeam membership = new UserTeam(invitation.getCreatedBy(), user, team, invitation.getRole());
+    userTeamRepository.persist(membership);
+    return MemberDto.from(membership);
   }
 
   private MemberDto doAddMember(Team team, TeamRole role, User user) {

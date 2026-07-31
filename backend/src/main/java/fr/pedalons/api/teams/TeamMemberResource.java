@@ -33,7 +33,14 @@ public class TeamMemberResource {
   @Inject TeamMembershipService membershipService;
 
   @GET
-  @Operation(summary = "Get team members", description = "Get paginated list of team members")
+  @Operation(
+      summary = "Get team members",
+      description =
+          "Paginated list of team members. Administrators always see it; so do organisers, who need"
+              + " a member list to designate a ride group's leader. Everyone else needs the team to"
+              + " have set enableMemberDirectory. What is returned is graded too: 'role' and"
+              + " 'joinedAt' are null unless the caller is an administrator or the directory is"
+              + " open, and 'search' only matches an e-mail address for an administrator.")
   @APIResponses({
     @APIResponse(
         responseCode = "200",
@@ -42,6 +49,10 @@ public class TeamMemberResource {
     @APIResponse(
         responseCode = "401",
         description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "Not entitled to read this team's member directory",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     @APIResponse(
         responseCode = "404",
@@ -53,7 +64,11 @@ public class TeamMemberResource {
       @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("50") int size,
-      @Parameter(description = "Search by name or email") @QueryParam("search")
+      @Parameter(
+              description =
+                  "Search by display name. Also matches the e-mail address, for administrators"
+                      + " only.")
+          @QueryParam("search")
           @Nullable String search,
       @Parameter(description = "Filter by role") @QueryParam("role") @Nullable TeamRole role) {
 

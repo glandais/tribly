@@ -241,6 +241,15 @@ export function TeamForm({
           {...form.getInputProps('enableAds', { type: 'checkbox' })}
         />
 
+        {/* Off by default, unlike every other enable_* flag: turning it on shows the whole roster
+            to every member, so it is an act the team takes rather than one a migration takes for
+            it. Organisers see the directory either way — they need it to pick a group leader. */}
+        <Checkbox
+          label={t('teams.create.form.enableMemberDirectory.label')}
+          description={t('teams.create.form.enableMemberDirectory.hint')}
+          {...form.getInputProps('enableMemberDirectory', { type: 'checkbox' })}
+        />
+
         {!create && (
           <>
             <Divider mt="md" />

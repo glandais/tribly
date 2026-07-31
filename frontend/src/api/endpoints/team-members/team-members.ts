@@ -44,7 +44,7 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
 }
 
 /**
- * Get paginated list of team members
+ * Paginated list of team members. Administrators always see it; so do organisers, who need a member list to designate a ride group's leader. Everyone else needs the team to have set enableMemberDirectory. What is returned is graded too: 'role' and 'joinedAt' are null unless the caller is an administrator or the directory is open, and 'search' only matches an e-mail address for an administrator.
  * @summary Get team members
  */
 export const getMembers = (
@@ -65,7 +65,7 @@ export const getGetMembersQueryKey = (teamSlug: string, params?: GetMembersParam
 
 export const getGetMembersQueryOptions = <
   TData = Awaited<ReturnType<typeof getMembers>>,
-  TError = ErrorType<ErrorResponse | void>,
+  TError = ErrorType<ErrorResponse>,
 >(
   teamSlug: string,
   params?: GetMembersParams,
@@ -92,11 +92,11 @@ export const getGetMembersQueryOptions = <
 }
 
 export type GetMembersQueryResult = NonNullable<Awaited<ReturnType<typeof getMembers>>>
-export type GetMembersQueryError = ErrorType<ErrorResponse | void>
+export type GetMembersQueryError = ErrorType<ErrorResponse>
 
 export function useGetMembers<
   TData = Awaited<ReturnType<typeof getMembers>>,
-  TError = ErrorType<ErrorResponse | void>,
+  TError = ErrorType<ErrorResponse>,
 >(
   teamSlug: string,
   params: undefined | GetMembersParams,
@@ -116,7 +116,7 @@ export function useGetMembers<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetMembers<
   TData = Awaited<ReturnType<typeof getMembers>>,
-  TError = ErrorType<ErrorResponse | void>,
+  TError = ErrorType<ErrorResponse>,
 >(
   teamSlug: string,
   params?: GetMembersParams,
@@ -136,7 +136,7 @@ export function useGetMembers<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetMembers<
   TData = Awaited<ReturnType<typeof getMembers>>,
-  TError = ErrorType<ErrorResponse | void>,
+  TError = ErrorType<ErrorResponse>,
 >(
   teamSlug: string,
   params?: GetMembersParams,
@@ -152,7 +152,7 @@ export function useGetMembers<
 
 export function useGetMembers<
   TData = Awaited<ReturnType<typeof getMembers>>,
-  TError = ErrorType<ErrorResponse | void>,
+  TError = ErrorType<ErrorResponse>,
 >(
   teamSlug: string,
   params?: GetMembersParams,
@@ -176,7 +176,7 @@ export function useGetMembers<
  */
 export const prefetchGetMembersQuery = async <
   TData = Awaited<ReturnType<typeof getMembers>>,
-  TError = ErrorType<ErrorResponse | void>,
+  TError = ErrorType<ErrorResponse>,
 >(
   queryClient: QueryClient,
   teamSlug: string,
