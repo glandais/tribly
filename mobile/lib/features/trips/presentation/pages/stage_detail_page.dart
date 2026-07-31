@@ -83,7 +83,9 @@ class _StageDetailContent extends ConsumerWidget {
 
     return PdlScreenScaffold(
       appBar: PdlAppBar(
-        title: stage.name,
+        // Pas de titre : le corps le porte déjà en 22/700, juste dessous,
+        // avec sa ligne d'équipe et ses badges. Le répéter en 17 dans la
+        // barre le dit deux fois sur le même écran.
         onBack: () => _openTrip(context),
         backSemanticLabel: 'trips.stage.backToTrip'.tr(),
         actions: <Widget>[

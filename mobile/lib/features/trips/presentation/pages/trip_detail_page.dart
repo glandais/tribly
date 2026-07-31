@@ -86,7 +86,9 @@ class _TripDetailContent extends ConsumerWidget {
 
     return PdlScreenScaffold(
       appBar: PdlAppBar(
-        title: trip.name,
+        // Pas de titre : le corps le porte déjà en 22/700, juste dessous,
+        // avec sa ligne d'équipe et ses badges. Le répéter en 17 dans la
+        // barre le dit deux fois sur le même écran.
         onBack: () => context.pop(),
         backSemanticLabel: 'common.back'.tr(),
         actions: <Widget>[

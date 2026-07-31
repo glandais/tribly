@@ -49,7 +49,7 @@ class TeamCustomPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: context.pdl.bg,
       appBar: PdlAppBar(
-        title: pageAsync.value?.title,
+        // Pas de titre : le corps le porte déjà en 22/700, juste dessous.
         onBack: () => context.pop(),
         backSemanticLabel: 'common.back'.tr(),
       ),
