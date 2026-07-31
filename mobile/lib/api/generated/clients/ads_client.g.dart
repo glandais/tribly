@@ -110,6 +110,55 @@ class _AdsClient implements AdsClient {
   }
 
   @override
+  Future<CountResponse> countAds({
+    required String teamSlug,
+    AdType? adType,
+    String? from,
+    num? maxPrice,
+    num? minPrice,
+    double? nearLat,
+    double? nearLon,
+    double? nearRadius,
+    String? search,
+    String? to,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'adType': adType?.toJson(),
+      r'from': from,
+      r'maxPrice': maxPrice,
+      r'minPrice': minPrice,
+      r'nearLat': nearLat,
+      r'nearLon': nearLon,
+      r'nearRadius': nearRadius,
+      r'search': search,
+      r'to': to,
+    };
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<CountResponse>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/api/teams/${teamSlug}/classifieds/count',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, Object?>>(_options);
+    late CountResponse _value;
+    try {
+      _value = CountResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
   Future<AdDto> updateAd({
     required String slug,
     required String teamSlug,

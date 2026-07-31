@@ -6,6 +6,7 @@ import fr.pedalons.dto.ads.request.AdSearchParams;
 import fr.pedalons.dto.ads.response.AdDto;
 import fr.pedalons.dto.ads.response.AdEditDto;
 import fr.pedalons.dto.ads.response.AdListResponse;
+import fr.pedalons.dto.common.CountResponse;
 import fr.pedalons.dto.common.request.SlugChangeRequest;
 import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.enums.AdSortBy;
@@ -120,6 +121,73 @@ public class AdResource {
     AdListResponse ads = adService.listAds(teamSlug, params, view, page, size);
 
     return Response.ok(ads).build();
+  }
+
+  @GET
+  @Path("/count")
+  @Operation(
+      operationId = "countAds",
+      summary = "Count ads",
+      description =
+          "How many of the team's classifieds match the filters, with none of them read. Accepts"
+              + " exactly the same filters as the classifieds list, minus sorting and pagination,"
+              + " so the figure and the list it opens can never disagree. Meant for a filter sheet"
+              + " that wants to announce its result count before the user commits to it.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Count computed successfully",
+        content = @Content(schema = @Schema(implementation = CountResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response countAds(
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
+      @Parameter(description = "Search by name/description") @QueryParam("search")
+          @Nullable String search,
+      @Parameter(description = "Filter by ad type") @QueryParam("adType") @Nullable AdType adType,
+      @Parameter(description = "Start date filter (ISO format)") @QueryParam("from")
+          @Nullable String fromStr,
+      @Parameter(description = "End date filter (ISO format)") @QueryParam("to")
+          @Nullable String toStr,
+      @Parameter(
+              description =
+                  "Lowest asking price to include. Ads with no price ('à négocier') are excluded by"
+                      + " either price bound.")
+          @QueryParam("minPrice")
+          @Nullable BigDecimal minPrice,
+      @Parameter(description = "Highest asking price to include") @QueryParam("maxPrice")
+          @Nullable BigDecimal maxPrice,
+      @Parameter(description = "Latitude for proximity search") @QueryParam("nearLat")
+          @Nullable Double nearLat,
+      @Parameter(description = "Longitude for proximity search") @QueryParam("nearLon")
+          @Nullable Double nearLon,
+      @Parameter(
+              description =
+                  "Search radius in metres around nearLat/nearLon (default 25000, capped at"
+                      + " 500000). Ads with no location are excluded when a centre is given.")
+          @QueryParam("nearRadius")
+          @Nullable Double nearRadius) {
+
+    Instant from = fromStr != null ? Instant.parse(fromStr) : null;
+    Instant to = toStr != null ? Instant.parse(toStr) : null;
+
+    AdSearchParams params =
+        AdSearchParams.builder()
+            .search(search)
+            .adType(adType)
+            .from(from)
+            .to(to)
+            .minPrice(minPrice)
+            .maxPrice(maxPrice)
+            .nearLat(nearLat)
+            .nearLon(nearLon)
+            .nearRadius(nearRadius)
+            .build();
+
+    return Response.ok(adService.countAds(teamSlug, params)).build();
   }
 
   @POST

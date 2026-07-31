@@ -13,6 +13,7 @@ import '../models/ad_list_response.dart';
 import '../models/ad_request.dart';
 import '../models/ad_sort_by.dart';
 import '../models/ad_type.dart';
+import '../models/count_response.dart';
 import '../models/list_view_mode.dart';
 import '../models/slug_change_request.dart';
 import '../models/sort_direction.dart';
@@ -86,6 +87,43 @@ abstract class AdsClient {
   Future<AdDto> createAd({
     @Path('teamSlug') required String teamSlug,
     @Body() required AdRequest body,
+  });
+
+  /// Count ads.
+  ///
+  /// How many of the team's classifieds match the filters, with none of them read. Accepts exactly the same filters as the classifieds list, minus sorting and pagination, so the figure and the list it opens can never disagree. Meant for a filter sheet that wants to announce its result count before the user commits to it.
+  ///
+  /// [teamSlug] - Team URL slug.
+  ///
+  /// [adType] - Filter by ad type.
+  ///
+  /// [from] - Start date filter (ISO format).
+  ///
+  /// [maxPrice] - Highest asking price to include.
+  ///
+  /// [minPrice] - Lowest asking price to include. Ads with no price ('à négocier') are excluded by either price bound.
+  ///
+  /// [nearLat] - Latitude for proximity search.
+  ///
+  /// [nearLon] - Longitude for proximity search.
+  ///
+  /// [nearRadius] - Search radius in metres around nearLat/nearLon (default 25000, capped at 500000). Ads with no location are excluded when a centre is given.
+  ///
+  /// [search] - Search by name/description.
+  ///
+  /// [to] - End date filter (ISO format).
+  @GET('/api/teams/{teamSlug}/classifieds/count')
+  Future<CountResponse> countAds({
+    @Path('teamSlug') required String teamSlug,
+    @Query('adType') AdType? adType,
+    @Query('from') String? from,
+    @Query('maxPrice') num? maxPrice,
+    @Query('minPrice') num? minPrice,
+    @Query('nearLat') double? nearLat,
+    @Query('nearLon') double? nearLon,
+    @Query('nearRadius') double? nearRadius,
+    @Query('search') String? search,
+    @Query('to') String? to,
   });
 
   /// Update ad.

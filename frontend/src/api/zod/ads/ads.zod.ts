@@ -672,6 +672,42 @@ export const CreateAdResponse = zod
   .describe('Ad data')
 
 /**
+ * How many of the team's classifieds match the filters, with none of them read. Accepts exactly the same filters as the classifieds list, minus sorting and pagination, so the figure and the list it opens can never disagree. Meant for a filter sheet that wants to announce its result count before the user commits to it.
+ * @summary Count ads
+ */
+export const CountAdsParams = zod.object({
+  teamSlug: zod.string().describe('Team URL slug'),
+})
+
+export const CountAdsQueryParams = zod.object({
+  adType: zod.enum(['SALE', 'RENTAL', 'WANTED']).optional().describe('Filter by ad type'),
+  from: zod.string().optional().describe('Start date filter (ISO format)'),
+  maxPrice: zod.number().optional().describe('Highest asking price to include'),
+  minPrice: zod
+    .number()
+    .optional()
+    .describe(
+      "Lowest asking price to include. Ads with no price ('à négocier') are excluded by either price bound."
+    ),
+  nearLat: zod.number().optional().describe('Latitude for proximity search'),
+  nearLon: zod.number().optional().describe('Longitude for proximity search'),
+  nearRadius: zod
+    .number()
+    .optional()
+    .describe(
+      'Search radius in metres around nearLat\/nearLon (default 25000, capped at 500000). Ads with no location are excluded when a centre is given.'
+    ),
+  search: zod.string().optional().describe('Search by name\/description'),
+  to: zod.string().optional().describe('End date filter (ISO format)'),
+})
+
+export const CountAdsResponse = zod
+  .object({
+    total: zod.number().describe('Total number of matching items'),
+  })
+  .describe('Number of items matching a filter set')
+
+/**
  * Update ad information. Only the creator or an admin can update.
  * @summary Update ad
  */

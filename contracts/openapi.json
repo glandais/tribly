@@ -10162,6 +10162,120 @@
         } ]
       }
     },
+    "/api/teams/{teamSlug}/classifieds/count" : {
+      "get" : {
+        "summary" : "Count ads",
+        "description" : "How many of the team's classifieds match the filters, with none of them read. Accepts exactly the same filters as the classifieds list, minus sorting and pagination, so the figure and the list it opens can never disagree. Meant for a filter sheet that wants to announce its result count before the user commits to it.",
+        "operationId" : "countAds",
+        "tags" : [ "Ads" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Filter by ad type",
+          "name" : "adType",
+          "in" : "query",
+          "schema" : {
+            "$ref" : "#/components/schemas/AdType"
+          }
+        }, {
+          "description" : "Start date filter (ISO format)",
+          "name" : "from",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Highest asking price to include",
+          "name" : "maxPrice",
+          "in" : "query",
+          "schema" : {
+            "type" : "number"
+          }
+        }, {
+          "description" : "Lowest asking price to include. Ads with no price ('à négocier') are excluded by either price bound.",
+          "name" : "minPrice",
+          "in" : "query",
+          "schema" : {
+            "type" : "number"
+          }
+        }, {
+          "description" : "Latitude for proximity search",
+          "name" : "nearLat",
+          "in" : "query",
+          "schema" : {
+            "type" : "number",
+            "format" : "double"
+          }
+        }, {
+          "description" : "Longitude for proximity search",
+          "name" : "nearLon",
+          "in" : "query",
+          "schema" : {
+            "type" : "number",
+            "format" : "double"
+          }
+        }, {
+          "description" : "Search radius in metres around nearLat/nearLon (default 25000, capped at 500000). Ads with no location are excluded when a centre is given.",
+          "name" : "nearRadius",
+          "in" : "query",
+          "schema" : {
+            "type" : "number",
+            "format" : "double"
+          }
+        }, {
+          "description" : "Search by name/description",
+          "name" : "search",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "End date filter (ISO format)",
+          "name" : "to",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Count computed successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CountResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
     "/api/teams/{teamSlug}/classifieds/{slug}" : {
       "put" : {
         "summary" : "Update ad",
@@ -16574,6 +16688,14 @@
           },
           "429" : {
             "description" : "An export is already running, or the last one was too recent",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds until the export can be requested again",
+                "schema" : {
+                  "type" : "integer"
+                }
+              }
+            },
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -16915,7 +17037,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "2.2.0",
+    "version" : "2.3.1",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

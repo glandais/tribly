@@ -20,6 +20,8 @@ import type {
   AdEditDto,
   AdListResponse,
   AdRequest,
+  CountAdsParams,
+  CountResponse,
   ErrorResponse,
   ListAdsParams,
   SlugChangeRequest,
@@ -279,6 +281,156 @@ export const useCreateAd = <TError = ErrorType<ErrorResponse>, TContext = unknow
 > => {
   return useMutation(getCreateAdMutationOptions(options), queryClient)
 }
+/**
+ * How many of the team's classifieds match the filters, with none of them read. Accepts exactly the same filters as the classifieds list, minus sorting and pagination, so the figure and the list it opens can never disagree. Meant for a filter sheet that wants to announce its result count before the user commits to it.
+ * @summary Count ads
+ */
+export const countAds = (
+  teamSlug: string,
+  params?: CountAdsParams,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<CountResponse>(
+    { url: `/api/teams/${teamSlug}/classifieds/count`, method: 'GET', params, signal },
+    options
+  )
+}
+
+export const getCountAdsQueryKey = (teamSlug: string, params?: CountAdsParams) => {
+  return [`/api/teams/${teamSlug}/classifieds/count`, ...(params ? [params] : [])] as const
+}
+
+export const getCountAdsQueryOptions = <
+  TData = Awaited<ReturnType<typeof countAds>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  teamSlug: string,
+  params?: CountAdsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof countAds>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getCountAdsQueryKey(teamSlug, params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof countAds>>> = ({ signal }) =>
+    countAds(teamSlug, params, requestOptions, signal)
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: teamSlug !== null && teamSlug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof countAds>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+}
+
+export type CountAdsQueryResult = NonNullable<Awaited<ReturnType<typeof countAds>>>
+export type CountAdsQueryError = ErrorType<void | ErrorResponse>
+
+export function useCountAds<
+  TData = Awaited<ReturnType<typeof countAds>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  teamSlug: string,
+  params: undefined | CountAdsParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof countAds>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof countAds>>,
+          TError,
+          Awaited<ReturnType<typeof countAds>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCountAds<
+  TData = Awaited<ReturnType<typeof countAds>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  teamSlug: string,
+  params?: CountAdsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof countAds>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof countAds>>,
+          TError,
+          Awaited<ReturnType<typeof countAds>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCountAds<
+  TData = Awaited<ReturnType<typeof countAds>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  teamSlug: string,
+  params?: CountAdsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof countAds>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Count ads
+ */
+
+export function useCountAds<
+  TData = Awaited<ReturnType<typeof countAds>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  teamSlug: string,
+  params?: CountAdsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof countAds>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getCountAdsQueryOptions(teamSlug, params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Count ads
+ */
+export const prefetchCountAdsQuery = async <
+  TData = Awaited<ReturnType<typeof countAds>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  params?: CountAdsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof countAds>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getCountAdsQueryOptions(teamSlug, params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
 /**
  * Update ad information. Only the creator or an admin can update.
  * @summary Update ad

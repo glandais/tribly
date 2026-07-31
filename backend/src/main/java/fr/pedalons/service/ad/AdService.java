@@ -13,6 +13,7 @@ import fr.pedalons.dto.ads.request.AdSearchParams;
 import fr.pedalons.dto.ads.response.AdDto;
 import fr.pedalons.dto.ads.response.AdEditDto;
 import fr.pedalons.dto.ads.response.AdListResponse;
+import fr.pedalons.dto.common.CountResponse;
 import fr.pedalons.dto.common.PedalonsPage;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.enums.*;
@@ -144,6 +145,33 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
                 .build());
     List<AdDto> dtos = ads.items().stream().map(ad -> AdDto.from(ad, assetService, view)).toList();
     return new AdListResponse(dtos, ads.total(), page, size);
+  }
+
+  /**
+   * How many classifieds {@link #listAds(String, AdSearchParams, ListViewMode, int, int)} would
+   * list, without listing them. Built from the same {@link AdQuery} as the listing, minus sorting
+   * and pagination, so the two can never disagree.
+   */
+  @CheckAccess(entityType = EntityType.AD, action = ActionType.LIST)
+  public CountResponse countAds(String teamSlug, AdSearchParams params) {
+    Team team = teamService.getTeam(teamSlug);
+    return new CountResponse(
+        adRepository.countMatching(
+            AdQuery.builder()
+                .domainId(pedalonsContext.getDomainId())
+                .userId(pedalonsContext.getUserIdNullable())
+                .teamIds(Set.of(team.getId()))
+                .search(params.search())
+                .adType(params.adType())
+                .from(params.from())
+                .to(params.to())
+                .minPrice(params.minPrice())
+                .maxPrice(params.maxPrice())
+                .nearLat(params.nearLat())
+                .nearLon(params.nearLon())
+                .nearRadius(params.nearRadius())
+                .platformAdmin(isPlatformAdmin())
+                .build()));
   }
 
   @Transactional

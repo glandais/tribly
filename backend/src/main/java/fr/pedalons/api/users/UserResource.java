@@ -26,6 +26,8 @@ import java.io.FileInputStream;
 import java.time.Instant;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.headers.Header;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
@@ -283,6 +285,11 @@ public class UserResource {
     @APIResponse(
         responseCode = "429",
         description = "An export is already running, or the last one was too recent",
+        headers =
+            @Header(
+                name = "Retry-After",
+                description = "Seconds until the export can be requested again",
+                schema = @Schema(type = SchemaType.INTEGER)),
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response requestExport() {
