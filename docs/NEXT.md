@@ -109,13 +109,15 @@ jeton ICS. Thème clair et compte `gaby` pas repassés en revue depuis.
       bandeau « Téléchargement en cours… » reste visible et l'échec réseau donne un bandeau rouge,
       jamais une feuille de partage vide.
 - [ ] **Performance** — liste de 200 items : rester au-dessus de 55 fps. Si le `BackdropFilter` des
-      barres épinglées coûte trop cher, le repli est **un seul jeton** (`PdlMotion.blurToolbar = 0`,
-      surface opaque), aucun écran à rouvrir.
+      barres épinglées coûte trop cher, le repli prévu (non implémenté à ce jour — `blurToolbar` est
+      une constante fixe à 12, aucune branche conditionnelle) serait **un seul jeton** à faire tomber
+      à 0 (`PdlMotion.blurToolbar`, surface opaque), aucun écran à rouvrir.
 
 ### 1.2 Web
 
-- [ ] Les 4 écrans qui appellent `useGetRoute` affichent toujours le tracé complet : détail de
-      parcours, carte plein écran, détail d'étape, carte de groupe d'une sortie.
+- [ ] Les 5 écrans qui affichent le tracé complet d'un parcours : détail de parcours, carte plein
+      écran de parcours et d'étape (les 4 via `useGetRoute`), carte de groupe d'une sortie (via
+      `useRoutesBulk` sans `geometry:false`, `RoutesMapView.tsx`).
 - [ ] « Ma prochaine sortie », badge `Inscrit` et « Mes participations » se rendent **après
       hydratation** : le SSR est anonyme. Vérifier qu'aucun de ces blocs n'apparaît dans le HTML
       initial (`curl` la page) et qu'ils ne clignotent pas à l'hydratation.
@@ -362,7 +364,7 @@ Beaucoup sont des ajouts d'un champ — le rapport valeur/effort y est bon.
 | 5 | Capacité agrégée sur `RideDto` de liste | 11 | « N participants » au lieu de « N/M » |
 | 6 | `PostDto.createdByDisplayName` / `createdById` | 31 | Bloc auteur supprimé, seule la date reste |
 | 7 | `AssetDto.size` | 31, 32 | « PDF » au lieu de « PDF · 240 Ko » |
-| 8 | Voisins de publication (`prev`/`next`) | 31 | Navigation rendue seulement depuis un fil déjà chargé |
+| 8 | Voisins de publication (`prev`/`next`) *(absence à reconfirmer — recherche ciblée seulement, pas de grep exhaustif sur toutes les resources de publication)* | 31 | Navigation rendue seulement depuis un fil déjà chargé |
 | 9 | `RouteUsageDto.endDate` | 13 | Date de début seule pour un usage de type voyage |
 | 10 | `ClimbDto.name` | 13, 25 | « Montée N » |
 | 11 | Commentaires d'étape | 25 | Section absente, renvoi vers le voyage |
