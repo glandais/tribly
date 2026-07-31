@@ -19,6 +19,9 @@ abstract class AdminTeamAttributesRequest with _$AdminTeamAttributesRequest {
 
     /// Whether team admins can add members
     required bool addMemberAllowed,
+
+    /// Whether the interactive route planner is open to this team
+    required bool enableRoutePlanner,
   }) = _AdminTeamAttributesRequest;
 
   factory AdminTeamAttributesRequest.fromJson(Map<String, Object?> json) =>

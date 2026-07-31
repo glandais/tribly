@@ -10,6 +10,7 @@ _ConfigDto _$ConfigDtoFromJson(Map<String, dynamic> json) => _ConfigDto(
   webAuthnRpId: json['webAuthnRpId'] as String,
   appName: json['appName'] as String,
   singleTeam: json['singleTeam'] as bool,
+  enableGpxPlanner: json['enableGpxPlanner'] as bool,
   mapStyles: (json['mapStyles'] as List<dynamic>)
       .map((e) => MapStyleDto.fromJson(e as Map<String, dynamic>))
       .toList(),
@@ -26,6 +27,7 @@ Map<String, dynamic> _$ConfigDtoToJson(_ConfigDto instance) =>
       'webAuthnRpId': instance.webAuthnRpId,
       'appName': instance.appName,
       'singleTeam': instance.singleTeam,
+      'enableGpxPlanner': instance.enableGpxPlanner,
       'mapStyles': instance.mapStyles.map((e) => e.toJson()).toList(),
       'tileServerBaseUrl': instance.tileServerBaseUrl,
       'defaultCenter': instance.defaultCenter.toJson(),

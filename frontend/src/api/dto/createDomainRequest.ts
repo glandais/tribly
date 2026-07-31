@@ -22,6 +22,8 @@ export interface CreateDomainRequest {
   baseUrl: string
   /** Whether domain is single-team mode */
   singleTeam?: boolean
+  /** Whether the interactive planner is open in the GPX tools */
+  enableGpxPlanner?: boolean
   /**
    * Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)
    * @maxLength 1000

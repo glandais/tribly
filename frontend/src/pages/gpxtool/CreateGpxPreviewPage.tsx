@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { Stack, Text, Title } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
@@ -10,6 +10,7 @@ import {
 } from '@/api/endpoints/gpx-previews/gpx-previews'
 import { GpxPreviewEditor } from '@/components/gpxtool/GpxPreviewEditor'
 import { paths } from '@/config/paths'
+import { isGpxPlannerEnabled } from '@/config/appConfig'
 
 /**
  * Draws a GPX preview from scratch: an empty planner map, a name, and nothing else. On submit the
@@ -36,6 +37,12 @@ export function CreateGpxPreviewPage() {
       }
     )
     navigate(paths.gpxToolsView(preview.id))
+  }
+
+  // The card that leads here is hidden when the domain closes the planner, but the URL stays
+  // reachable — send it back to the hub rather than rendering an editor that cannot submit.
+  if (!isGpxPlannerEnabled()) {
+    return <Navigate to={paths.gpxTools()} replace />
   }
 
   return (

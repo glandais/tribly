@@ -58,3 +58,13 @@ export function getPinnedTeamSlug(): string | null {
 export function isSingleTeam(): boolean {
   return getAppConfig()?.singleTeam ?? false
 }
+
+/**
+ * True when the domain opens the interactive planner in the team-independent GPX tools. Off by
+ * default and platform-admin controlled; uploading a .gpx to the tools stays available either way,
+ * so this only governs drawing from scratch. The team-scoped equivalent is
+ * `TeamDetailDto.enableRoutePlanner`.
+ */
+export function isGpxPlannerEnabled(): boolean {
+  return getAppConfig()?.enableGpxPlanner ?? false
+}

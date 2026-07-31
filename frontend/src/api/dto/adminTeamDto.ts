@@ -23,6 +23,8 @@ export interface AdminTeamDto {
   joinable: boolean
   /** Whether team admins can add members */
   addMemberAllowed: boolean
+  /** Whether the interactive route planner is open to this team */
+  enableRoutePlanner: boolean
   /** Is team soft-deleted */
   deleted: boolean
   /** Number of members */

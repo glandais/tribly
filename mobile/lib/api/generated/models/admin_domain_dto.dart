@@ -28,6 +28,9 @@ abstract class AdminDomainDto with _$AdminDomainDto {
     /// Whether domain is single-team mode
     required bool singleTeam,
 
+    /// Whether the interactive planner is open in the GPX tools
+    required bool enableGpxPlanner,
+
     /// Whether domain is active
     required bool active,
 

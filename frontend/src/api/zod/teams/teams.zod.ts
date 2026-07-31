@@ -218,6 +218,11 @@ export const ListTeamsResponse = zod
               .describe('Whether visibility is editable by team admins'),
             joinable: zod.boolean().describe('Whether any domain user can join this team'),
             addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
+            enableRoutePlanner: zod
+              .boolean()
+              .describe(
+                'Whether the interactive route planner is open to this team. Unlike enableRoutes it never hides the routes section: when false the track can still be imported or replaced from a GPX file, only drawing is closed. Platform-admin only.'
+              ),
             memberCount: zod.number().describe('Number of team members'),
             upcomingRideCount: zod
               .number()
@@ -622,6 +627,11 @@ export const CreateTeamResponse = zod
     visibilityEditable: zod.boolean().describe('Whether visibility is editable by team admins'),
     joinable: zod.boolean().describe('Whether any domain user can join this team'),
     addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
+    enableRoutePlanner: zod
+      .boolean()
+      .describe(
+        'Whether the interactive route planner is open to this team. Unlike enableRoutes it never hides the routes section: when false the track can still be imported or replaced from a GPX file, only drawing is closed. Platform-admin only.'
+      ),
     memberCount: zod.number().describe('Number of team members'),
     upcomingRideCount: zod
       .number()
@@ -1023,6 +1033,11 @@ export const UpdateTeamResponse = zod
     visibilityEditable: zod.boolean().describe('Whether visibility is editable by team admins'),
     joinable: zod.boolean().describe('Whether any domain user can join this team'),
     addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
+    enableRoutePlanner: zod
+      .boolean()
+      .describe(
+        'Whether the interactive route planner is open to this team. Unlike enableRoutes it never hides the routes section: when false the track can still be imported or replaced from a GPX file, only drawing is closed. Platform-admin only.'
+      ),
     memberCount: zod.number().describe('Number of team members'),
     upcomingRideCount: zod
       .number()
@@ -1249,6 +1264,11 @@ export const GetTeamResponse = zod
     visibilityEditable: zod.boolean().describe('Whether visibility is editable by team admins'),
     joinable: zod.boolean().describe('Whether any domain user can join this team'),
     addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
+    enableRoutePlanner: zod
+      .boolean()
+      .describe(
+        'Whether the interactive route planner is open to this team. Unlike enableRoutes it never hides the routes section: when false the track can still be imported or replaced from a GPX file, only drawing is closed. Platform-admin only.'
+      ),
     memberCount: zod.number().describe('Number of team members'),
     upcomingRideCount: zod
       .number()
@@ -1499,6 +1519,11 @@ export const ChangeTeamSlugResponse = zod
     visibilityEditable: zod.boolean().describe('Whether visibility is editable by team admins'),
     joinable: zod.boolean().describe('Whether any domain user can join this team'),
     addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
+    enableRoutePlanner: zod
+      .boolean()
+      .describe(
+        'Whether the interactive route planner is open to this team. Unlike enableRoutes it never hides the routes section: when false the track can still be imported or replaced from a GPX file, only drawing is closed. Platform-admin only.'
+      ),
     memberCount: zod.number().describe('Number of team members'),
     upcomingRideCount: zod
       .number()

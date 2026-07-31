@@ -150,6 +150,7 @@ public class AdminDomainResource {
             request.name(),
             request.baseUrl(),
             request.singleTeam(),
+            request.enableGpxPlanner(),
             request.androidFingerprints());
     return Response.status(Response.Status.CREATED).entity(domain).build();
   }
@@ -185,6 +186,7 @@ public class AdminDomainResource {
             request.name(),
             request.baseUrl(),
             request.singleTeam(),
+            request.enableGpxPlanner(),
             request.androidFingerprints());
     return Response.ok(domain).build();
   }

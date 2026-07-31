@@ -70,6 +70,7 @@ interface DomainFormValues {
   name: string
   baseUrl: string
   singleTeam: boolean
+  enableGpxPlanner: boolean
   androidFingerprints: string
 }
 
@@ -96,6 +97,7 @@ export function DomainFormModal({ isOpen, onClose, domain }: DomainFormModalProp
       name: '',
       baseUrl: '',
       singleTeam: false,
+      enableGpxPlanner: false,
       androidFingerprints: '',
     },
   })
@@ -108,6 +110,7 @@ export function DomainFormModal({ isOpen, onClose, domain }: DomainFormModalProp
         name: domain?.name ?? '',
         baseUrl: domain?.baseUrl ?? '',
         singleTeam: domain?.singleTeam ?? false,
+        enableGpxPlanner: domain?.enableGpxPlanner ?? false,
         androidFingerprints: domain?.androidFingerprints ?? '',
       })
     }
@@ -123,6 +126,7 @@ export function DomainFormModal({ isOpen, onClose, domain }: DomainFormModalProp
             name: values.name,
             baseUrl: values.baseUrl,
             singleTeam: values.singleTeam,
+            enableGpxPlanner: values.enableGpxPlanner,
             androidFingerprints: values.androidFingerprints || undefined,
           },
         },
@@ -145,6 +149,7 @@ export function DomainFormModal({ isOpen, onClose, domain }: DomainFormModalProp
             name: values.name,
             baseUrl: values.baseUrl,
             singleTeam: values.singleTeam,
+            enableGpxPlanner: values.enableGpxPlanner,
             androidFingerprints: values.androidFingerprints || undefined,
           },
         },
@@ -195,6 +200,12 @@ export function DomainFormModal({ isOpen, onClose, domain }: DomainFormModalProp
           <Switch
             label={t('admin.domains.singleTeam')}
             {...domainForm.getInputProps('singleTeam', { type: 'checkbox' })}
+          />
+
+          <Switch
+            label={t('admin.domains.enableGpxPlanner')}
+            description={t('admin.domains.enableGpxPlannerHint')}
+            {...domainForm.getInputProps('enableGpxPlanner', { type: 'checkbox' })}
           />
           <Textarea
             label={t('admin.domains.androidFingerprints')}

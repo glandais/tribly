@@ -41,6 +41,9 @@ abstract class AdminTeamDto with _$AdminTeamDto {
     /// Whether team admins can add members
     required bool addMemberAllowed,
 
+    /// Whether the interactive route planner is open to this team
+    required bool enableRoutePlanner,
+
     /// Is team soft-deleted
     required bool deleted,
 

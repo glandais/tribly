@@ -402,6 +402,7 @@ components:
       - name
       - baseUrl
       - singleTeam
+      - enableGpxPlanner
       - active
       - teamCount
       - userCount
@@ -424,6 +425,9 @@ components:
         singleTeam:
           type: boolean
           description: Whether domain is single-team mode
+        enableGpxPlanner:
+          type: boolean
+          description: Whether the interactive planner is open in the GPX tools
         androidFingerprints:
           type: string
           description: "Android app SHA-256 certificate fingerprints for passkey origin\
@@ -525,6 +529,7 @@ components:
       - visibilityEditable
       - joinable
       - addMemberAllowed
+      - enableRoutePlanner
       properties:
         visibilityEditable:
           type: boolean
@@ -541,6 +546,11 @@ components:
           description: Whether team admins can add members
           examples:
           - false
+        enableRoutePlanner:
+          type: boolean
+          description: Whether the interactive route planner is open to this team
+          examples:
+          - false
     AdminTeamDto:
       description: Admin team view with domain info
       type: object
@@ -554,6 +564,7 @@ components:
       - visibilityEditable
       - joinable
       - addMemberAllowed
+      - enableRoutePlanner
       - deleted
       - memberCount
       - createdAt
@@ -588,6 +599,9 @@ components:
         addMemberAllowed:
           type: boolean
           description: Whether team admins can add members
+        enableRoutePlanner:
+          type: boolean
+          description: Whether the interactive route planner is open to this team
         deleted:
           type: boolean
           description: Is team soft-deleted
@@ -1114,6 +1128,7 @@ components:
       - webAuthnRpId
       - appName
       - singleTeam
+      - enableGpxPlanner
       - mapStyles
       - tileServerBaseUrl
       - defaultCenter
@@ -1127,6 +1142,11 @@ components:
         singleTeam:
           type: boolean
           description: Single team mode - team creation disabled
+        enableGpxPlanner:
+          type: boolean
+          description: "Whether the interactive planner is open in the team-independent\
+            \ GPX tools. When false the tools still accept a .gpx upload, only drawing\
+            \ from scratch is closed. Platform-admin only, per domain."
         pinnedTeamSlug:
           type: string
           description: "Slug of the team the site is pinned to (dedicated hostname\
@@ -1224,6 +1244,9 @@ components:
         singleTeam:
           type: boolean
           description: Whether domain is single-team mode
+        enableGpxPlanner:
+          type: boolean
+          description: Whether the interactive planner is open in the GPX tools
         androidFingerprints:
           type: string
           description: "Android app SHA-256 certificate fingerprints for passkey origin\
@@ -1514,6 +1537,7 @@ components:
       - FILE_TOO_LARGE
       - TOO_MANY_TEAM_PAGES
       - GPX_EMPTY
+      - ROUTE_PLANNER_DISABLED
       - INVALID_FORMAT
       - RENTAL_PERIOD_MISSING
       - STATUS_INVALID
@@ -3540,6 +3564,7 @@ components:
       - visibilityEditable
       - joinable
       - addMemberAllowed
+      - enableRoutePlanner
       - memberCount
       - upcomingRideCount
       - routeCount
@@ -3604,6 +3629,12 @@ components:
         addMemberAllowed:
           type: boolean
           description: Whether team admins can add members
+        enableRoutePlanner:
+          type: boolean
+          description: "Whether the interactive route planner is open to this team.\
+            \ Unlike enableRoutes it never hides the routes section: when false the\
+            \ track can still be imported or replaced from a GPX file, only drawing\
+            \ is closed. Platform-admin only."
         memberCount:
           type: integer
           format: int64
@@ -4225,6 +4256,9 @@ components:
         singleTeam:
           type: boolean
           description: Whether domain is single-team mode
+        enableGpxPlanner:
+          type: boolean
+          description: Whether the interactive planner is open in the GPX tools
         androidFingerprints:
           type: string
           description: "Android app SHA-256 certificate fingerprints for passkey origin\
@@ -13096,7 +13130,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 2.1.0
+  version: 2.2.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

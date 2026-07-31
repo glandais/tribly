@@ -92,6 +92,14 @@ public class Team extends BaseEntity {
   @Column(name = "add_member_allowed", nullable = false)
   private boolean addMemberAllowed = false;
 
+  /**
+   * Whether the interactive route planner (draw a track on the map) is open to this team. Off by
+   * default and platform-admin only: unlike {@code enableRoutes}, it does not hide the routes
+   * section — GPX import, replacement and download stay available when it is false.
+   */
+  @Column(name = "enable_route_planner", nullable = false)
+  private boolean enableRoutePlanner = false;
+
   @Column(name = "deleted", nullable = false)
   private boolean deleted = false;
 

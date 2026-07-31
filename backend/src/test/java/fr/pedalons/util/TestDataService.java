@@ -259,6 +259,18 @@ public class TestDataService {
   }
 
   @Transactional
+  public void setTeamEnableRoutePlanner(Team team, boolean enabled) {
+    Team managed = teamRepository.findById(team.getId());
+    managed.setEnableRoutePlanner(enabled);
+  }
+
+  @Transactional
+  public void setDomainEnableGpxPlanner(Domain domain, boolean enabled) {
+    Domain managed = domainRepository.findById(domain.getId());
+    managed.setEnableGpxPlanner(enabled);
+  }
+
+  @Transactional
   public void setTeamVisibility(Team team, Visibility visibility) {
     Team managed = teamRepository.findById(team.getId());
     managed.setVisibility(visibility);

@@ -20,4 +20,9 @@ public record AdminTeamAttributesRequest(
             description = "Whether team admins can add members",
             examples = "false",
             required = true)
-        boolean addMemberAllowed) {}
+        boolean addMemberAllowed,
+    @Schema(
+            description = "Whether the interactive route planner is open to this team",
+            examples = "false",
+            required = true)
+        boolean enableRoutePlanner) {}

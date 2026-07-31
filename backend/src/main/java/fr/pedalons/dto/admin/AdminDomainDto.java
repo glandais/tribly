@@ -16,6 +16,10 @@ public record AdminDomainDto(
     @Schema(description = "Base URL for the domain", required = true) String baseUrl,
     @Schema(description = "Whether domain is single-team mode", required = true) boolean singleTeam,
     @Schema(
+            description = "Whether the interactive planner is open in the GPX tools",
+            required = true)
+        boolean enableGpxPlanner,
+    @Schema(
             description =
                 "Android app SHA-256 certificate fingerprints for passkey origin verification"
                     + " (comma-separated, colon-hex format)")
@@ -32,6 +36,7 @@ public record AdminDomainDto(
         domain.getName(),
         domain.getBaseUrl(),
         domain.isSingleTeam(),
+        domain.isEnableGpxPlanner(),
         domain.getAndroidFingerprints(),
         domain.isActive(),
         teamCount,

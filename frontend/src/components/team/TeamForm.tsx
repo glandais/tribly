@@ -43,6 +43,7 @@ interface TeamFormProps {
     visibilityEditable?: boolean
     joinable?: boolean
     addMemberAllowed?: boolean
+    enableRoutePlanner?: boolean
   }
   onSuccess: (team: TeamDetailDto) => void
   create: boolean
@@ -66,6 +67,9 @@ export function TeamForm({
   )
   const [joinable, setJoinable] = useState(initialValues.joinable ?? false)
   const [addMemberAllowed, setAddMemberAllowed] = useState(initialValues.addMemberAllowed ?? false)
+  const [enableRoutePlanner, setEnableRoutePlanner] = useState(
+    initialValues.enableRoutePlanner ?? false
+  )
 
   const createMutation = useCreateTeam()
   const updateMutation = useUpdateTeam()
@@ -111,7 +115,10 @@ export function TeamForm({
             queryClient.setQueryData(getGetTeamQueryKey(team.slug), team)
             if (isPlatformAdmin && teamId) {
               adminAttrsMutation.mutate(
-                { teamId, data: { visibilityEditable, joinable, addMemberAllowed } },
+                {
+                  teamId,
+                  data: { visibilityEditable, joinable, addMemberAllowed, enableRoutePlanner },
+                },
                 {
                   onSuccess: () => {
                     queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(team.slug) })
@@ -285,6 +292,13 @@ export function TeamForm({
                 checked={addMemberAllowed}
                 disabled={!isPlatformAdmin || !teamId}
                 onChange={(e) => setAddMemberAllowed(e.currentTarget.checked)}
+              />
+              <Switch
+                label={t('teams.settings.platformAdmin.enableRoutePlanner')}
+                description={t('teams.settings.platformAdmin.enableRoutePlannerHint')}
+                checked={enableRoutePlanner}
+                disabled={!isPlatformAdmin || !teamId}
+                onChange={(e) => setEnableRoutePlanner(e.currentTarget.checked)}
               />
             </Stack>
           </>

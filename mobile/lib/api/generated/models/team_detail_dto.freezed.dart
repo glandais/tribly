@@ -28,7 +28,8 @@ mixin _$TeamDetailDto {
  bool get enableRoutes;/// Whether visibility is editable by team admins
  bool get visibilityEditable;/// Whether any domain user can join this team
  bool get joinable;/// Whether team admins can add members
- bool get addMemberAllowed;/// Number of team members
+ bool get addMemberAllowed;/// Whether the interactive route planner is open to this team. Unlike enableRoutes it never hides the routes section: when false the track can still be imported or replaced from a GPX file, only drawing is closed. Platform-admin only.
+ bool get enableRoutePlanner;/// Number of team members
  int get memberCount;/// Rides of this team dated in the future that the caller may open. Follows the same visibility rules as the ride listing, so it never announces more than the caller can actually see.
  int get upcomingRideCount;/// Routes of this team the caller may open, under the same visibility rules as the route listing.
  int get routeCount;/// Team creation timestamp
@@ -50,16 +51,16 @@ $TeamDetailDtoCopyWith<TeamDetailDto> get copyWith => _$TeamDetailDtoCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeamDetailDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.about, about) || other.about == about)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.enableTrips, enableTrips) || other.enableTrips == enableTrips)&&(identical(other.enableAds, enableAds) || other.enableAds == enableAds)&&(identical(other.enablePosts, enablePosts) || other.enablePosts == enablePosts)&&(identical(other.enableRides, enableRides) || other.enableRides == enableRides)&&(identical(other.enableRoutes, enableRoutes) || other.enableRoutes == enableRoutes)&&(identical(other.visibilityEditable, visibilityEditable) || other.visibilityEditable == visibilityEditable)&&(identical(other.joinable, joinable) || other.joinable == joinable)&&(identical(other.addMemberAllowed, addMemberAllowed) || other.addMemberAllowed == addMemberAllowed)&&(identical(other.memberCount, memberCount) || other.memberCount == memberCount)&&(identical(other.upcomingRideCount, upcomingRideCount) || other.upcomingRideCount == upcomingRideCount)&&(identical(other.routeCount, routeCount) || other.routeCount == routeCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.excerpt, excerpt) || other.excerpt == excerpt)&&(identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl)&&const DeepCollectionEquality().equals(other.pages, pages)&&(identical(other.role, role) || other.role == role)&&(identical(other.geometry, geometry) || other.geometry == geometry));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeamDetailDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.about, about) || other.about == about)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.enableTrips, enableTrips) || other.enableTrips == enableTrips)&&(identical(other.enableAds, enableAds) || other.enableAds == enableAds)&&(identical(other.enablePosts, enablePosts) || other.enablePosts == enablePosts)&&(identical(other.enableRides, enableRides) || other.enableRides == enableRides)&&(identical(other.enableRoutes, enableRoutes) || other.enableRoutes == enableRoutes)&&(identical(other.visibilityEditable, visibilityEditable) || other.visibilityEditable == visibilityEditable)&&(identical(other.joinable, joinable) || other.joinable == joinable)&&(identical(other.addMemberAllowed, addMemberAllowed) || other.addMemberAllowed == addMemberAllowed)&&(identical(other.enableRoutePlanner, enableRoutePlanner) || other.enableRoutePlanner == enableRoutePlanner)&&(identical(other.memberCount, memberCount) || other.memberCount == memberCount)&&(identical(other.upcomingRideCount, upcomingRideCount) || other.upcomingRideCount == upcomingRideCount)&&(identical(other.routeCount, routeCount) || other.routeCount == routeCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.excerpt, excerpt) || other.excerpt == excerpt)&&(identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl)&&const DeepCollectionEquality().equals(other.pages, pages)&&(identical(other.role, role) || other.role == role)&&(identical(other.geometry, geometry) || other.geometry == geometry));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,name,slug,about,visibility,enableTrips,enableAds,enablePosts,enableRides,enableRoutes,visibilityEditable,joinable,addMemberAllowed,memberCount,upcomingRideCount,routeCount,createdAt,excerpt,logoUrl,const DeepCollectionEquality().hash(pages),role,geometry]);
+int get hashCode => Object.hashAll([runtimeType,id,name,slug,about,visibility,enableTrips,enableAds,enablePosts,enableRides,enableRoutes,visibilityEditable,joinable,addMemberAllowed,enableRoutePlanner,memberCount,upcomingRideCount,routeCount,createdAt,excerpt,logoUrl,const DeepCollectionEquality().hash(pages),role,geometry]);
 
 @override
 String toString() {
-  return 'TeamDetailDto(id: $id, name: $name, slug: $slug, about: $about, visibility: $visibility, enableTrips: $enableTrips, enableAds: $enableAds, enablePosts: $enablePosts, enableRides: $enableRides, enableRoutes: $enableRoutes, visibilityEditable: $visibilityEditable, joinable: $joinable, addMemberAllowed: $addMemberAllowed, memberCount: $memberCount, upcomingRideCount: $upcomingRideCount, routeCount: $routeCount, createdAt: $createdAt, excerpt: $excerpt, logoUrl: $logoUrl, pages: $pages, role: $role, geometry: $geometry)';
+  return 'TeamDetailDto(id: $id, name: $name, slug: $slug, about: $about, visibility: $visibility, enableTrips: $enableTrips, enableAds: $enableAds, enablePosts: $enablePosts, enableRides: $enableRides, enableRoutes: $enableRoutes, visibilityEditable: $visibilityEditable, joinable: $joinable, addMemberAllowed: $addMemberAllowed, enableRoutePlanner: $enableRoutePlanner, memberCount: $memberCount, upcomingRideCount: $upcomingRideCount, routeCount: $routeCount, createdAt: $createdAt, excerpt: $excerpt, logoUrl: $logoUrl, pages: $pages, role: $role, geometry: $geometry)';
 }
 
 
@@ -70,7 +71,7 @@ abstract mixin class $TeamDetailDtoCopyWith<$Res>  {
   factory $TeamDetailDtoCopyWith(TeamDetailDto value, $Res Function(TeamDetailDto) _then) = _$TeamDetailDtoCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String slug, MediaDto about, String visibility, bool enableTrips, bool enableAds, bool enablePosts, bool enableRides, bool enableRoutes, bool visibilityEditable, bool joinable, bool addMemberAllowed, int memberCount, int upcomingRideCount, int routeCount, String createdAt, String? excerpt, String? logoUrl, List<TeamPageSummaryDto>? pages, String? role, TeamDetailDtoGeometry? geometry
+ String id, String name, String slug, MediaDto about, String visibility, bool enableTrips, bool enableAds, bool enablePosts, bool enableRides, bool enableRoutes, bool visibilityEditable, bool joinable, bool addMemberAllowed, bool enableRoutePlanner, int memberCount, int upcomingRideCount, int routeCount, String createdAt, String? excerpt, String? logoUrl, List<TeamPageSummaryDto>? pages, String? role, TeamDetailDtoGeometry? geometry
 });
 
 
@@ -87,7 +88,7 @@ class _$TeamDetailDtoCopyWithImpl<$Res>
 
 /// Create a copy of TeamDetailDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? slug = null,Object? about = null,Object? visibility = null,Object? enableTrips = null,Object? enableAds = null,Object? enablePosts = null,Object? enableRides = null,Object? enableRoutes = null,Object? visibilityEditable = null,Object? joinable = null,Object? addMemberAllowed = null,Object? memberCount = null,Object? upcomingRideCount = null,Object? routeCount = null,Object? createdAt = null,Object? excerpt = freezed,Object? logoUrl = freezed,Object? pages = freezed,Object? role = freezed,Object? geometry = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? slug = null,Object? about = null,Object? visibility = null,Object? enableTrips = null,Object? enableAds = null,Object? enablePosts = null,Object? enableRides = null,Object? enableRoutes = null,Object? visibilityEditable = null,Object? joinable = null,Object? addMemberAllowed = null,Object? enableRoutePlanner = null,Object? memberCount = null,Object? upcomingRideCount = null,Object? routeCount = null,Object? createdAt = null,Object? excerpt = freezed,Object? logoUrl = freezed,Object? pages = freezed,Object? role = freezed,Object? geometry = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -102,6 +103,7 @@ as bool,enableRoutes: null == enableRoutes ? _self.enableRoutes : enableRoutes /
 as bool,visibilityEditable: null == visibilityEditable ? _self.visibilityEditable : visibilityEditable // ignore: cast_nullable_to_non_nullable
 as bool,joinable: null == joinable ? _self.joinable : joinable // ignore: cast_nullable_to_non_nullable
 as bool,addMemberAllowed: null == addMemberAllowed ? _self.addMemberAllowed : addMemberAllowed // ignore: cast_nullable_to_non_nullable
+as bool,enableRoutePlanner: null == enableRoutePlanner ? _self.enableRoutePlanner : enableRoutePlanner // ignore: cast_nullable_to_non_nullable
 as bool,memberCount: null == memberCount ? _self.memberCount : memberCount // ignore: cast_nullable_to_non_nullable
 as int,upcomingRideCount: null == upcomingRideCount ? _self.upcomingRideCount : upcomingRideCount // ignore: cast_nullable_to_non_nullable
 as int,routeCount: null == routeCount ? _self.routeCount : routeCount // ignore: cast_nullable_to_non_nullable
@@ -217,10 +219,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String slug,  MediaDto about,  String visibility,  bool enableTrips,  bool enableAds,  bool enablePosts,  bool enableRides,  bool enableRoutes,  bool visibilityEditable,  bool joinable,  bool addMemberAllowed,  int memberCount,  int upcomingRideCount,  int routeCount,  String createdAt,  String? excerpt,  String? logoUrl,  List<TeamPageSummaryDto>? pages,  String? role,  TeamDetailDtoGeometry? geometry)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String slug,  MediaDto about,  String visibility,  bool enableTrips,  bool enableAds,  bool enablePosts,  bool enableRides,  bool enableRoutes,  bool visibilityEditable,  bool joinable,  bool addMemberAllowed,  bool enableRoutePlanner,  int memberCount,  int upcomingRideCount,  int routeCount,  String createdAt,  String? excerpt,  String? logoUrl,  List<TeamPageSummaryDto>? pages,  String? role,  TeamDetailDtoGeometry? geometry)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TeamDetailDto() when $default != null:
-return $default(_that.id,_that.name,_that.slug,_that.about,_that.visibility,_that.enableTrips,_that.enableAds,_that.enablePosts,_that.enableRides,_that.enableRoutes,_that.visibilityEditable,_that.joinable,_that.addMemberAllowed,_that.memberCount,_that.upcomingRideCount,_that.routeCount,_that.createdAt,_that.excerpt,_that.logoUrl,_that.pages,_that.role,_that.geometry);case _:
+return $default(_that.id,_that.name,_that.slug,_that.about,_that.visibility,_that.enableTrips,_that.enableAds,_that.enablePosts,_that.enableRides,_that.enableRoutes,_that.visibilityEditable,_that.joinable,_that.addMemberAllowed,_that.enableRoutePlanner,_that.memberCount,_that.upcomingRideCount,_that.routeCount,_that.createdAt,_that.excerpt,_that.logoUrl,_that.pages,_that.role,_that.geometry);case _:
   return orElse();
 
 }
@@ -238,10 +240,10 @@ return $default(_that.id,_that.name,_that.slug,_that.about,_that.visibility,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String slug,  MediaDto about,  String visibility,  bool enableTrips,  bool enableAds,  bool enablePosts,  bool enableRides,  bool enableRoutes,  bool visibilityEditable,  bool joinable,  bool addMemberAllowed,  int memberCount,  int upcomingRideCount,  int routeCount,  String createdAt,  String? excerpt,  String? logoUrl,  List<TeamPageSummaryDto>? pages,  String? role,  TeamDetailDtoGeometry? geometry)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String slug,  MediaDto about,  String visibility,  bool enableTrips,  bool enableAds,  bool enablePosts,  bool enableRides,  bool enableRoutes,  bool visibilityEditable,  bool joinable,  bool addMemberAllowed,  bool enableRoutePlanner,  int memberCount,  int upcomingRideCount,  int routeCount,  String createdAt,  String? excerpt,  String? logoUrl,  List<TeamPageSummaryDto>? pages,  String? role,  TeamDetailDtoGeometry? geometry)  $default,) {final _that = this;
 switch (_that) {
 case _TeamDetailDto():
-return $default(_that.id,_that.name,_that.slug,_that.about,_that.visibility,_that.enableTrips,_that.enableAds,_that.enablePosts,_that.enableRides,_that.enableRoutes,_that.visibilityEditable,_that.joinable,_that.addMemberAllowed,_that.memberCount,_that.upcomingRideCount,_that.routeCount,_that.createdAt,_that.excerpt,_that.logoUrl,_that.pages,_that.role,_that.geometry);case _:
+return $default(_that.id,_that.name,_that.slug,_that.about,_that.visibility,_that.enableTrips,_that.enableAds,_that.enablePosts,_that.enableRides,_that.enableRoutes,_that.visibilityEditable,_that.joinable,_that.addMemberAllowed,_that.enableRoutePlanner,_that.memberCount,_that.upcomingRideCount,_that.routeCount,_that.createdAt,_that.excerpt,_that.logoUrl,_that.pages,_that.role,_that.geometry);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -258,10 +260,10 @@ return $default(_that.id,_that.name,_that.slug,_that.about,_that.visibility,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String slug,  MediaDto about,  String visibility,  bool enableTrips,  bool enableAds,  bool enablePosts,  bool enableRides,  bool enableRoutes,  bool visibilityEditable,  bool joinable,  bool addMemberAllowed,  int memberCount,  int upcomingRideCount,  int routeCount,  String createdAt,  String? excerpt,  String? logoUrl,  List<TeamPageSummaryDto>? pages,  String? role,  TeamDetailDtoGeometry? geometry)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String slug,  MediaDto about,  String visibility,  bool enableTrips,  bool enableAds,  bool enablePosts,  bool enableRides,  bool enableRoutes,  bool visibilityEditable,  bool joinable,  bool addMemberAllowed,  bool enableRoutePlanner,  int memberCount,  int upcomingRideCount,  int routeCount,  String createdAt,  String? excerpt,  String? logoUrl,  List<TeamPageSummaryDto>? pages,  String? role,  TeamDetailDtoGeometry? geometry)?  $default,) {final _that = this;
 switch (_that) {
 case _TeamDetailDto() when $default != null:
-return $default(_that.id,_that.name,_that.slug,_that.about,_that.visibility,_that.enableTrips,_that.enableAds,_that.enablePosts,_that.enableRides,_that.enableRoutes,_that.visibilityEditable,_that.joinable,_that.addMemberAllowed,_that.memberCount,_that.upcomingRideCount,_that.routeCount,_that.createdAt,_that.excerpt,_that.logoUrl,_that.pages,_that.role,_that.geometry);case _:
+return $default(_that.id,_that.name,_that.slug,_that.about,_that.visibility,_that.enableTrips,_that.enableAds,_that.enablePosts,_that.enableRides,_that.enableRoutes,_that.visibilityEditable,_that.joinable,_that.addMemberAllowed,_that.enableRoutePlanner,_that.memberCount,_that.upcomingRideCount,_that.routeCount,_that.createdAt,_that.excerpt,_that.logoUrl,_that.pages,_that.role,_that.geometry);case _:
   return null;
 
 }
@@ -273,7 +275,7 @@ return $default(_that.id,_that.name,_that.slug,_that.about,_that.visibility,_tha
 @JsonSerializable()
 
 class _TeamDetailDto implements TeamDetailDto {
-  const _TeamDetailDto({required this.id, required this.name, required this.slug, required this.about, required this.visibility, required this.enableTrips, required this.enableAds, required this.enablePosts, required this.enableRides, required this.enableRoutes, required this.visibilityEditable, required this.joinable, required this.addMemberAllowed, required this.memberCount, required this.upcomingRideCount, required this.routeCount, required this.createdAt, this.excerpt, this.logoUrl, final  List<TeamPageSummaryDto>? pages, this.role, this.geometry}): _pages = pages;
+  const _TeamDetailDto({required this.id, required this.name, required this.slug, required this.about, required this.visibility, required this.enableTrips, required this.enableAds, required this.enablePosts, required this.enableRides, required this.enableRoutes, required this.visibilityEditable, required this.joinable, required this.addMemberAllowed, required this.enableRoutePlanner, required this.memberCount, required this.upcomingRideCount, required this.routeCount, required this.createdAt, this.excerpt, this.logoUrl, final  List<TeamPageSummaryDto>? pages, this.role, this.geometry}): _pages = pages;
   factory _TeamDetailDto.fromJson(Map<String, dynamic> json) => _$TeamDetailDtoFromJson(json);
 
 /// Team ID (TSID)
@@ -302,6 +304,8 @@ class _TeamDetailDto implements TeamDetailDto {
 @override final  bool joinable;
 /// Whether team admins can add members
 @override final  bool addMemberAllowed;
+/// Whether the interactive route planner is open to this team. Unlike enableRoutes it never hides the routes section: when false the track can still be imported or replaced from a GPX file, only drawing is closed. Platform-admin only.
+@override final  bool enableRoutePlanner;
 /// Number of team members
 @override final  int memberCount;
 /// Rides of this team dated in the future that the caller may open. Follows the same visibility rules as the ride listing, so it never announces more than the caller can actually see.
@@ -343,16 +347,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeamDetailDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.about, about) || other.about == about)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.enableTrips, enableTrips) || other.enableTrips == enableTrips)&&(identical(other.enableAds, enableAds) || other.enableAds == enableAds)&&(identical(other.enablePosts, enablePosts) || other.enablePosts == enablePosts)&&(identical(other.enableRides, enableRides) || other.enableRides == enableRides)&&(identical(other.enableRoutes, enableRoutes) || other.enableRoutes == enableRoutes)&&(identical(other.visibilityEditable, visibilityEditable) || other.visibilityEditable == visibilityEditable)&&(identical(other.joinable, joinable) || other.joinable == joinable)&&(identical(other.addMemberAllowed, addMemberAllowed) || other.addMemberAllowed == addMemberAllowed)&&(identical(other.memberCount, memberCount) || other.memberCount == memberCount)&&(identical(other.upcomingRideCount, upcomingRideCount) || other.upcomingRideCount == upcomingRideCount)&&(identical(other.routeCount, routeCount) || other.routeCount == routeCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.excerpt, excerpt) || other.excerpt == excerpt)&&(identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl)&&const DeepCollectionEquality().equals(other._pages, _pages)&&(identical(other.role, role) || other.role == role)&&(identical(other.geometry, geometry) || other.geometry == geometry));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeamDetailDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.about, about) || other.about == about)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.enableTrips, enableTrips) || other.enableTrips == enableTrips)&&(identical(other.enableAds, enableAds) || other.enableAds == enableAds)&&(identical(other.enablePosts, enablePosts) || other.enablePosts == enablePosts)&&(identical(other.enableRides, enableRides) || other.enableRides == enableRides)&&(identical(other.enableRoutes, enableRoutes) || other.enableRoutes == enableRoutes)&&(identical(other.visibilityEditable, visibilityEditable) || other.visibilityEditable == visibilityEditable)&&(identical(other.joinable, joinable) || other.joinable == joinable)&&(identical(other.addMemberAllowed, addMemberAllowed) || other.addMemberAllowed == addMemberAllowed)&&(identical(other.enableRoutePlanner, enableRoutePlanner) || other.enableRoutePlanner == enableRoutePlanner)&&(identical(other.memberCount, memberCount) || other.memberCount == memberCount)&&(identical(other.upcomingRideCount, upcomingRideCount) || other.upcomingRideCount == upcomingRideCount)&&(identical(other.routeCount, routeCount) || other.routeCount == routeCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.excerpt, excerpt) || other.excerpt == excerpt)&&(identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl)&&const DeepCollectionEquality().equals(other._pages, _pages)&&(identical(other.role, role) || other.role == role)&&(identical(other.geometry, geometry) || other.geometry == geometry));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,name,slug,about,visibility,enableTrips,enableAds,enablePosts,enableRides,enableRoutes,visibilityEditable,joinable,addMemberAllowed,memberCount,upcomingRideCount,routeCount,createdAt,excerpt,logoUrl,const DeepCollectionEquality().hash(_pages),role,geometry]);
+int get hashCode => Object.hashAll([runtimeType,id,name,slug,about,visibility,enableTrips,enableAds,enablePosts,enableRides,enableRoutes,visibilityEditable,joinable,addMemberAllowed,enableRoutePlanner,memberCount,upcomingRideCount,routeCount,createdAt,excerpt,logoUrl,const DeepCollectionEquality().hash(_pages),role,geometry]);
 
 @override
 String toString() {
-  return 'TeamDetailDto(id: $id, name: $name, slug: $slug, about: $about, visibility: $visibility, enableTrips: $enableTrips, enableAds: $enableAds, enablePosts: $enablePosts, enableRides: $enableRides, enableRoutes: $enableRoutes, visibilityEditable: $visibilityEditable, joinable: $joinable, addMemberAllowed: $addMemberAllowed, memberCount: $memberCount, upcomingRideCount: $upcomingRideCount, routeCount: $routeCount, createdAt: $createdAt, excerpt: $excerpt, logoUrl: $logoUrl, pages: $pages, role: $role, geometry: $geometry)';
+  return 'TeamDetailDto(id: $id, name: $name, slug: $slug, about: $about, visibility: $visibility, enableTrips: $enableTrips, enableAds: $enableAds, enablePosts: $enablePosts, enableRides: $enableRides, enableRoutes: $enableRoutes, visibilityEditable: $visibilityEditable, joinable: $joinable, addMemberAllowed: $addMemberAllowed, enableRoutePlanner: $enableRoutePlanner, memberCount: $memberCount, upcomingRideCount: $upcomingRideCount, routeCount: $routeCount, createdAt: $createdAt, excerpt: $excerpt, logoUrl: $logoUrl, pages: $pages, role: $role, geometry: $geometry)';
 }
 
 
@@ -363,7 +367,7 @@ abstract mixin class _$TeamDetailDtoCopyWith<$Res> implements $TeamDetailDtoCopy
   factory _$TeamDetailDtoCopyWith(_TeamDetailDto value, $Res Function(_TeamDetailDto) _then) = __$TeamDetailDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String slug, MediaDto about, String visibility, bool enableTrips, bool enableAds, bool enablePosts, bool enableRides, bool enableRoutes, bool visibilityEditable, bool joinable, bool addMemberAllowed, int memberCount, int upcomingRideCount, int routeCount, String createdAt, String? excerpt, String? logoUrl, List<TeamPageSummaryDto>? pages, String? role, TeamDetailDtoGeometry? geometry
+ String id, String name, String slug, MediaDto about, String visibility, bool enableTrips, bool enableAds, bool enablePosts, bool enableRides, bool enableRoutes, bool visibilityEditable, bool joinable, bool addMemberAllowed, bool enableRoutePlanner, int memberCount, int upcomingRideCount, int routeCount, String createdAt, String? excerpt, String? logoUrl, List<TeamPageSummaryDto>? pages, String? role, TeamDetailDtoGeometry? geometry
 });
 
 
@@ -380,7 +384,7 @@ class __$TeamDetailDtoCopyWithImpl<$Res>
 
 /// Create a copy of TeamDetailDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? slug = null,Object? about = null,Object? visibility = null,Object? enableTrips = null,Object? enableAds = null,Object? enablePosts = null,Object? enableRides = null,Object? enableRoutes = null,Object? visibilityEditable = null,Object? joinable = null,Object? addMemberAllowed = null,Object? memberCount = null,Object? upcomingRideCount = null,Object? routeCount = null,Object? createdAt = null,Object? excerpt = freezed,Object? logoUrl = freezed,Object? pages = freezed,Object? role = freezed,Object? geometry = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? slug = null,Object? about = null,Object? visibility = null,Object? enableTrips = null,Object? enableAds = null,Object? enablePosts = null,Object? enableRides = null,Object? enableRoutes = null,Object? visibilityEditable = null,Object? joinable = null,Object? addMemberAllowed = null,Object? enableRoutePlanner = null,Object? memberCount = null,Object? upcomingRideCount = null,Object? routeCount = null,Object? createdAt = null,Object? excerpt = freezed,Object? logoUrl = freezed,Object? pages = freezed,Object? role = freezed,Object? geometry = freezed,}) {
   return _then(_TeamDetailDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -395,6 +399,7 @@ as bool,enableRoutes: null == enableRoutes ? _self.enableRoutes : enableRoutes /
 as bool,visibilityEditable: null == visibilityEditable ? _self.visibilityEditable : visibilityEditable // ignore: cast_nullable_to_non_nullable
 as bool,joinable: null == joinable ? _self.joinable : joinable // ignore: cast_nullable_to_non_nullable
 as bool,addMemberAllowed: null == addMemberAllowed ? _self.addMemberAllowed : addMemberAllowed // ignore: cast_nullable_to_non_nullable
+as bool,enableRoutePlanner: null == enableRoutePlanner ? _self.enableRoutePlanner : enableRoutePlanner // ignore: cast_nullable_to_non_nullable
 as bool,memberCount: null == memberCount ? _self.memberCount : memberCount // ignore: cast_nullable_to_non_nullable
 as int,upcomingRideCount: null == upcomingRideCount ? _self.upcomingRideCount : upcomingRideCount // ignore: cast_nullable_to_non_nullable
 as int,routeCount: null == routeCount ? _self.routeCount : routeCount // ignore: cast_nullable_to_non_nullable

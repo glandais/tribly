@@ -32,7 +32,7 @@ class AdminTeamResourceTest extends AbstractResourceTest {
   @Test
   void updateTeamAttributes_asAdmin_shouldSucceed() {
     String teamId = TsidUtils.toString(team1.getId());
-    AdminTeamAttributesRequest request = new AdminTeamAttributesRequest(true, true, true);
+    AdminTeamAttributesRequest request = new AdminTeamAttributesRequest(true, true, true, true);
 
     given()
         .auth()
@@ -45,13 +45,14 @@ class AdminTeamResourceTest extends AbstractResourceTest {
         .statusCode(200)
         .body("visibilityEditable", equalTo(true))
         .body("joinable", equalTo(true))
-        .body("addMemberAllowed", equalTo(true));
+        .body("addMemberAllowed", equalTo(true))
+        .body("enableRoutePlanner", equalTo(true));
   }
 
   @Test
   void updateTeamAttributes_asNonAdmin_shouldReturn403() {
     String teamId = TsidUtils.toString(team1.getId());
-    AdminTeamAttributesRequest request = new AdminTeamAttributesRequest(true, true, true);
+    AdminTeamAttributesRequest request = new AdminTeamAttributesRequest(true, true, true, true);
 
     given()
         .auth()
@@ -68,7 +69,7 @@ class AdminTeamResourceTest extends AbstractResourceTest {
   void updateTeamAttributes_withUnknownId_shouldReturn404() {
     // TSID for Long value 1 — valid format but never matches a real team
     String nonExistentId = TsidUtils.toString(1L);
-    AdminTeamAttributesRequest request = new AdminTeamAttributesRequest(false, false, false);
+    AdminTeamAttributesRequest request = new AdminTeamAttributesRequest(false, false, false, false);
 
     given()
         .auth()
@@ -91,7 +92,7 @@ class AdminTeamResourceTest extends AbstractResourceTest {
         .auth()
         .oauth2(platformAdminToken())
         .contentType("application/json")
-        .body(new AdminTeamAttributesRequest(true, true, true))
+        .body(new AdminTeamAttributesRequest(true, true, true, true))
         .when()
         .patch("/api/admin/teams/" + teamId + "/attributes")
         .then()
@@ -107,13 +108,45 @@ class AdminTeamResourceTest extends AbstractResourceTest {
         .statusCode(200)
         .body("visibilityEditable", equalTo(true))
         .body("joinable", equalTo(true))
-        .body("addMemberAllowed", equalTo(true));
+        .body("addMemberAllowed", equalTo(true))
+        .body("enableRoutePlanner", equalTo(true));
+  }
+
+  /**
+   * The planner flag is platform-admin territory: it must not ride in on the team's own update
+   * payload, which a team admin controls.
+   */
+  @Test
+  void updateTeam_asTeamAdmin_shouldNotChangeEnableRoutePlanner() {
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .contentType("application/json")
+        .body(
+            """
+            {
+              "name": "Team 1",
+              "media": {"markdown": "", "assets": {"images": [], "attachments": []}},
+              "visibility": "PUBLIC",
+              "enableTrips": true,
+              "enableAds": true,
+              "enablePosts": true,
+              "enableRides": true,
+              "enableRoutes": true,
+              "enableRoutePlanner": true
+            }
+            """)
+        .when()
+        .put("/api/teams/" + team1.getSlug())
+        .then()
+        .statusCode(200)
+        .body("enableRoutePlanner", equalTo(false));
   }
 
   @Test
   void updateTeamAttributes_unauthenticated_shouldReturn401() {
     String teamId = TsidUtils.toString(team1.getId());
-    AdminTeamAttributesRequest request = new AdminTeamAttributesRequest(true, true, true);
+    AdminTeamAttributesRequest request = new AdminTeamAttributesRequest(true, true, true, true);
 
     given()
         .contentType("application/json")

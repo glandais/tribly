@@ -54,6 +54,13 @@ public record TeamDetailDto(
         boolean joinable,
     @Schema(description = "Whether team admins can add members", required = true)
         boolean addMemberAllowed,
+    @Schema(
+            description =
+                "Whether the interactive route planner is open to this team. Unlike enableRoutes it"
+                    + " never hides the routes section: when false the track can still be imported"
+                    + " or replaced from a GPX file, only drawing is closed. Platform-admin only.",
+            required = true)
+        boolean enableRoutePlanner,
     @Schema(description = "Number of team members", required = true) long memberCount,
     @Schema(
             description =
@@ -110,6 +117,7 @@ public record TeamDetailDto(
         team.isVisibilityEditable(),
         team.isJoinable(),
         team.isAddMemberAllowed(),
+        team.isEnableRoutePlanner(),
         teamAndRole.memberCount(),
         stats.upcomingRideCount(),
         stats.routeCount(),

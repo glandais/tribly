@@ -4,6 +4,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 import fr.pedalons.api.AbstractResourceTest;
+import fr.pedalons.common.GeoPoint;
 import fr.pedalons.common.TsidUtils;
 import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.domain.ride.RideGroup;
@@ -20,6 +21,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.ws.rs.core.MediaType;
 import java.io.File;
 import java.time.Instant;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -274,6 +276,124 @@ class RouteResourceTest extends AbstractResourceTest {
         .post("/api/teams/" + team1Slug + "/routes")
         .then()
         .statusCode(400);
+  }
+
+  // ==================== Route planner toggle ====================
+
+  /** Two points near Lyon: enough for the planner path, cheap enough not to matter. */
+  private static List<GeoPoint> plannerPoints() {
+    return List.of(new GeoPoint(4.8357, 45.7640), new GeoPoint(4.8500, 45.7700));
+  }
+
+  @Test
+  void createRoute_withPoints_whenPlannerDisabled_shouldReturn400() {
+    RouteRequest route =
+        new RouteRequest(
+            "Drawn Route",
+            MediaDto.builder().build(),
+            SurfaceType.GRAVEL,
+            Visibility.PUBLIC,
+            plannerPoints());
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .multiPart("route", route, MediaType.APPLICATION_JSON)
+        .when()
+        .post("/api/teams/" + team1Slug + "/routes")
+        .then()
+        .statusCode(400)
+        .body("code", equalTo("ROUTE_PLANNER_DISABLED"));
+  }
+
+  @Test
+  void createRoute_withPoints_whenPlannerEnabled_shouldSucceed() {
+    dataService.setTeamEnableRoutePlanner(team1, true);
+
+    RouteRequest route =
+        new RouteRequest(
+            "Drawn Route",
+            MediaDto.builder().build(),
+            SurfaceType.GRAVEL,
+            Visibility.PUBLIC,
+            plannerPoints());
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .multiPart("route", route, MediaType.APPLICATION_JSON)
+        .when()
+        .post("/api/teams/" + team1Slug + "/routes")
+        .then()
+        .statusCode(201)
+        .body("name", equalTo("Drawn Route"));
+  }
+
+  /** The toggle is about drawing only: importing a file must stay open. */
+  @Test
+  void createRoute_withGpxFile_whenPlannerDisabled_shouldSucceed() {
+    File gpxFile = new File("src/test/resources/example.gpx");
+
+    RouteRequest route =
+        new RouteRequest(
+            "Imported Route",
+            MediaDto.builder().build(),
+            SurfaceType.GRAVEL,
+            Visibility.PUBLIC,
+            null);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .multiPart("route", route, MediaType.APPLICATION_JSON)
+        .multiPart("gpxFile", gpxFile, "application/gpx+xml")
+        .when()
+        .post("/api/teams/" + team1Slug + "/routes")
+        .then()
+        .statusCode(201);
+  }
+
+  @Test
+  void updateRoute_withPoints_whenPlannerDisabled_shouldReturn400() {
+    Route existing = dataService.createRoute(team1, user1, "Existing Route");
+
+    RouteRequest route =
+        new RouteRequest(
+            "Existing Route",
+            MediaDto.builder().build(),
+            SurfaceType.GRAVEL,
+            Visibility.PUBLIC,
+            plannerPoints());
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .multiPart("route", route, MediaType.APPLICATION_JSON)
+        .when()
+        .put("/api/teams/" + team1Slug + "/routes/" + existing.getSlug())
+        .then()
+        .statusCode(400)
+        .body("code", equalTo("ROUTE_PLANNER_DISABLED"));
+  }
+
+  /** Track frozen, metadata still editable. */
+  @Test
+  void updateRoute_metadataOnly_whenPlannerDisabled_shouldSucceed() {
+    Route existing = dataService.createRoute(team1, user1, "Existing Route");
+
+    RouteRequest route =
+        new RouteRequest(
+            "Renamed Route", MediaDto.builder().build(), SurfaceType.ROAD, Visibility.PUBLIC, null);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .multiPart("route", route, MediaType.APPLICATION_JSON)
+        .when()
+        .put("/api/teams/" + team1Slug + "/routes/" + existing.getSlug())
+        .then()
+        .statusCode(200)
+        .body("name", equalTo("Renamed Route"));
   }
 
   @Test

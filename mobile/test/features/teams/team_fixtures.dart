@@ -35,6 +35,7 @@ TeamDetailDto fixtureTeam({
   visibilityEditable: true,
   joinable: joinable,
   addMemberAllowed: true,
+  enableRoutePlanner: false,
   memberCount: memberCount,
   upcomingRideCount: 3,
   routeCount: 12,

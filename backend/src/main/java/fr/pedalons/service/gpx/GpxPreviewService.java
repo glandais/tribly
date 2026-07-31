@@ -174,7 +174,18 @@ public class GpxPreviewService {
    */
   @Logged
   public GpxPreviewDto createPreviewFromPoints(String name, List<GeoPoint> points) {
+    checkPlannerAllowed();
     return toDto(create(gpxProcessingService.fromPoints(name, points), name));
+  }
+
+  /**
+   * Refuse a drawn track when the domain's planner is closed. Uploading a {@code .gpx} to the tools,
+   * reading and exporting stay open — the flag governs drawing only.
+   */
+  private void checkPlannerAllowed() {
+    if (!pedalonsContext.getDomain().isEnableGpxPlanner()) {
+      throw new BusinessException(ErrorCode.ROUTE_PLANNER_DISABLED);
+    }
   }
 
   /**
@@ -198,6 +209,7 @@ public class GpxPreviewService {
     if (gpxPath != null) {
       gpx = gpxProcessingService.parseGpx(gpxPath);
     } else if (points != null && !points.isEmpty()) {
+      checkPlannerAllowed();
       gpx = gpxProcessingService.fromPoints(name, points);
     }
 

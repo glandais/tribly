@@ -68,9 +68,11 @@ export function RouteEditor({
     validateInputOnChange: true,
   })
 
-  const canUsePlanner = isCreateMode || !!initialTrack
+  // Drawing is a per-team feature the platform admin opens; when it is closed the GPX file input
+  // is the only source, and the backend refuses a payload carrying planner points anyway.
+  const canUsePlanner = team.enableRoutePlanner && (isCreateMode || !!initialTrack)
   const [sourceMode, setSourceMode] = useState<RouteSourceMode>(
-    !isCreateMode && initialTrack ? 'planner' : 'gpx'
+    canUsePlanner && !isCreateMode ? 'planner' : 'gpx'
   )
 
   const name = form.values.name

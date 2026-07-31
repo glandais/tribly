@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Alert, Box, Button, FileInput, Group, Stack, Text, TextInput } from '@mantine/core'
 import type { GeoPoint } from '@/api/dto'
 import { RoutePlanner } from '../planner/RoutePlanner'
+import { isGpxPlannerEnabled } from '@/config/appConfig'
 
 type SourceMode = 'gpx' | 'planner'
 
@@ -36,7 +37,8 @@ export function GpxPreviewEditor({
   const { t } = useTranslation()
 
   const [name, setName] = useState(initialName)
-  const canUsePlanner = create || !!initialTrack
+  // Same rule as RouteEditor, one level up: the domain decides whether drawing is open at all.
+  const canUsePlanner = isGpxPlannerEnabled() && (create || !!initialTrack)
   const [sourceMode, setSourceMode] = useState<SourceMode>(canUsePlanner ? 'planner' : 'gpx')
   const [gpxFile, setGpxFile] = useState<File | null>(null)
   const [plannerPoints, setPlannerPoints] = useState<GeoPoint[]>([])

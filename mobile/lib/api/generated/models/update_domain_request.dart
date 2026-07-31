@@ -20,6 +20,9 @@ abstract class UpdateDomainRequest with _$UpdateDomainRequest {
     /// Whether domain is single-team mode
     bool? singleTeam,
 
+    /// Whether the interactive planner is open in the GPX tools
+    bool? enableGpxPlanner,
+
     /// Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)
     String? androidFingerprints,
   }) = _UpdateDomainRequest;

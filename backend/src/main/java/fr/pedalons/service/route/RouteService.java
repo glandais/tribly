@@ -263,6 +263,7 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
     if (gpxPath == null && (routePoints == null || routePoints.isEmpty())) {
       throw new BusinessException(ErrorCode.GPX_EMPTY);
     }
+    checkPlannerAllowed(team, gpxPath, routePoints);
 
     String slug = slugService.generateSlug(request.name(), team.getId(), routeRepository);
 
@@ -305,6 +306,22 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
     }
   }
 
+  /**
+   * Refuse a drawn track when the team's planner is closed.
+   *
+   * <p>The two sources are told apart the same way the processing below does it: a {@code gpxPath}
+   * means an imported file and always wins, so points only matter when no file came with the
+   * request. This deliberately lives here and not in {@code RouteAccessChecker} — the checker only
+   * ever sees the team slug and the entity slug, never the payload, so it cannot distinguish a
+   * drawing from an import.
+   */
+  private void checkPlannerAllowed(
+      Team team, @Nullable Path gpxPath, @Nullable List<GeoPoint> points) {
+    if (gpxPath == null && points != null && !points.isEmpty() && !team.isEnableRoutePlanner()) {
+      throw new BusinessException(ErrorCode.ROUTE_PLANNER_DISABLED);
+    }
+  }
+
   private static WindDirection getWindDirection(TrackMetadata metadata) {
     WindDirection windDirection = metadata.windDirection();
     if (windDirection == null) {
@@ -324,6 +341,7 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
     Route route = findBySlug(team, slug);
 
     validateVisibility(team, request);
+    checkPlannerAllowed(team, gpxPath, request.points());
 
     // Update basic metadata
     route.setName(request.name());

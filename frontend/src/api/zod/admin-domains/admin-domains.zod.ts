@@ -23,6 +23,9 @@ export const ListDomainsResponse = zod
             name: zod.string().describe('Domain display name'),
             baseUrl: zod.string().describe('Base URL for the domain'),
             singleTeam: zod.boolean().describe('Whether domain is single-team mode'),
+            enableGpxPlanner: zod
+              .boolean()
+              .describe('Whether the interactive planner is open in the GPX tools'),
             androidFingerprints: zod
               .string()
               .optional()
@@ -76,6 +79,10 @@ export const CreateDomainBody = zod
       .regex(createDomainBodyBaseUrlRegExp)
       .describe('Base URL for the domain'),
     singleTeam: zod.boolean().optional().describe('Whether domain is single-team mode'),
+    enableGpxPlanner: zod
+      .boolean()
+      .optional()
+      .describe('Whether the interactive planner is open in the GPX tools'),
     androidFingerprints: zod
       .string()
       .max(createDomainBodyAndroidFingerprintsMax)
@@ -93,6 +100,9 @@ export const CreateDomainResponse = zod
     name: zod.string().describe('Domain display name'),
     baseUrl: zod.string().describe('Base URL for the domain'),
     singleTeam: zod.boolean().describe('Whether domain is single-team mode'),
+    enableGpxPlanner: zod
+      .boolean()
+      .describe('Whether the interactive planner is open in the GPX tools'),
     androidFingerprints: zod
       .string()
       .optional()
@@ -147,6 +157,10 @@ export const UpdateDomainBody = zod
       .regex(updateDomainBodyBaseUrlRegExp)
       .describe('Base URL for the domain'),
     singleTeam: zod.boolean().optional().describe('Whether domain is single-team mode'),
+    enableGpxPlanner: zod
+      .boolean()
+      .optional()
+      .describe('Whether the interactive planner is open in the GPX tools'),
     androidFingerprints: zod
       .string()
       .max(updateDomainBodyAndroidFingerprintsMax)
@@ -164,6 +178,9 @@ export const UpdateDomainResponse = zod
     name: zod.string().describe('Domain display name'),
     baseUrl: zod.string().describe('Base URL for the domain'),
     singleTeam: zod.boolean().describe('Whether domain is single-team mode'),
+    enableGpxPlanner: zod
+      .boolean()
+      .describe('Whether the interactive planner is open in the GPX tools'),
     androidFingerprints: zod
       .string()
       .optional()
@@ -192,6 +209,9 @@ export const GetDomainResponse = zod
     name: zod.string().describe('Domain display name'),
     baseUrl: zod.string().describe('Base URL for the domain'),
     singleTeam: zod.boolean().describe('Whether domain is single-team mode'),
+    enableGpxPlanner: zod
+      .boolean()
+      .describe('Whether the interactive planner is open in the GPX tools'),
     androidFingerprints: zod
       .string()
       .optional()
@@ -534,6 +554,9 @@ export const ToggleDomainActiveResponse = zod
     name: zod.string().describe('Domain display name'),
     baseUrl: zod.string().describe('Base URL for the domain'),
     singleTeam: zod.boolean().describe('Whether domain is single-team mode'),
+    enableGpxPlanner: zod
+      .boolean()
+      .describe('Whether the interactive planner is open in the GPX tools'),
     androidFingerprints: zod
       .string()
       .optional()

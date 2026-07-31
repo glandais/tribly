@@ -38,7 +38,7 @@ import 'clients/trips_client.dart';
 import 'clients/trip_comments_client.dart';
 import 'clients/server_version_client.dart';
 
-/// Pedalons API `v2.1.0`.
+/// Pedalons API `v2.2.0`.
 ///
 /// API for Pedalons Cycling Team Management Platform.
 class PedalonsApiClient {
@@ -51,7 +51,7 @@ class PedalonsApiClient {
   final Dio _dio;
   final String? _baseUrl;
 
-  static String get version => '2.1.0';
+  static String get version => '2.2.0';
 
   AdminDomainsClient? _adminDomains;
   AdminSocialClient? _adminSocial;

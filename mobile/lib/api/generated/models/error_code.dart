@@ -54,6 +54,8 @@ enum ErrorCode {
   tooManyTeamPages('TOO_MANY_TEAM_PAGES'),
   @JsonValue('GPX_EMPTY')
   gpxEmpty('GPX_EMPTY'),
+  @JsonValue('ROUTE_PLANNER_DISABLED')
+  routePlannerDisabled('ROUTE_PLANNER_DISABLED'),
   @JsonValue('INVALID_FORMAT')
   invalidFormat('INVALID_FORMAT'),
   @JsonValue('RENTAL_PERIOD_MISSING')

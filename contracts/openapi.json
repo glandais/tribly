@@ -397,7 +397,7 @@
       "AdminDomainDto" : {
         "description" : "Admin domain view with statistics",
         "type" : "object",
-        "required" : [ "id", "domain", "name", "baseUrl", "singleTeam", "active", "teamCount", "userCount", "createdAt" ],
+        "required" : [ "id", "domain", "name", "baseUrl", "singleTeam", "enableGpxPlanner", "active", "teamCount", "userCount", "createdAt" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -419,6 +419,10 @@
           "singleTeam" : {
             "type" : "boolean",
             "description" : "Whether domain is single-team mode"
+          },
+          "enableGpxPlanner" : {
+            "type" : "boolean",
+            "description" : "Whether the interactive planner is open in the GPX tools"
           },
           "androidFingerprints" : {
             "type" : "string",
@@ -529,7 +533,7 @@
       "AdminTeamAttributesRequest" : {
         "description" : "Platform admin request to update team governance attributes",
         "type" : "object",
-        "required" : [ "visibilityEditable", "joinable", "addMemberAllowed" ],
+        "required" : [ "visibilityEditable", "joinable", "addMemberAllowed", "enableRoutePlanner" ],
         "properties" : {
           "visibilityEditable" : {
             "type" : "boolean",
@@ -545,13 +549,18 @@
             "type" : "boolean",
             "description" : "Whether team admins can add members",
             "examples" : [ false ]
+          },
+          "enableRoutePlanner" : {
+            "type" : "boolean",
+            "description" : "Whether the interactive route planner is open to this team",
+            "examples" : [ false ]
           }
         }
       },
       "AdminTeamDto" : {
         "description" : "Admin team view with domain info",
         "type" : "object",
-        "required" : [ "id", "name", "slug", "domainId", "domainName", "visibility", "visibilityEditable", "joinable", "addMemberAllowed", "deleted", "memberCount", "createdAt" ],
+        "required" : [ "id", "name", "slug", "domainId", "domainName", "visibility", "visibilityEditable", "joinable", "addMemberAllowed", "enableRoutePlanner", "deleted", "memberCount", "createdAt" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -590,6 +599,10 @@
           "addMemberAllowed" : {
             "type" : "boolean",
             "description" : "Whether team admins can add members"
+          },
+          "enableRoutePlanner" : {
+            "type" : "boolean",
+            "description" : "Whether the interactive route planner is open to this team"
           },
           "deleted" : {
             "type" : "boolean",
@@ -1168,7 +1181,7 @@
       "ConfigDto" : {
         "description" : "Application configuration",
         "type" : "object",
-        "required" : [ "webAuthnRpId", "appName", "singleTeam", "mapStyles", "tileServerBaseUrl", "defaultCenter" ],
+        "required" : [ "webAuthnRpId", "appName", "singleTeam", "enableGpxPlanner", "mapStyles", "tileServerBaseUrl", "defaultCenter" ],
         "properties" : {
           "webAuthnRpId" : {
             "type" : "string",
@@ -1181,6 +1194,10 @@
           "singleTeam" : {
             "type" : "boolean",
             "description" : "Single team mode - team creation disabled"
+          },
+          "enableGpxPlanner" : {
+            "type" : "boolean",
+            "description" : "Whether the interactive planner is open in the team-independent GPX tools. When false the tools still accept a .gpx upload, only drawing from scratch is closed. Platform-admin only, per domain."
           },
           "pinnedTeamSlug" : {
             "type" : "string",
@@ -1281,6 +1298,10 @@
           "singleTeam" : {
             "type" : "boolean",
             "description" : "Whether domain is single-team mode"
+          },
+          "enableGpxPlanner" : {
+            "type" : "boolean",
+            "description" : "Whether the interactive planner is open in the GPX tools"
           },
           "androidFingerprints" : {
             "type" : "string",
@@ -1567,7 +1588,7 @@
       },
       "ErrorCode" : {
         "type" : "string",
-        "enum" : [ "BAD_REQUEST", "NOT_FOUND", "UNAUTHORIZED", "FORBIDDEN", "INTERNAL_ERROR", "UNKNOWN", "VALIDATION", "BUSINESS_RULE", "LAST_ADMIN", "ALREADY_REGISTERED", "NOT_REGISTERED", "INVALID_SLUG", "SLUG_TAKEN", "USER_NOT_SYNCED", "GROUP_FULL", "INVALID_VISIBILITY", "PUBLIC_TRIP_PRIVATE_ROUTE", "GPX_FAILURE", "FILE_REQUIRED", "FILE_TYPE_REJECTED", "FILE_DETECTION_FAILED", "FILE_TOO_LARGE", "TOO_MANY_TEAM_PAGES", "GPX_EMPTY", "INVALID_FORMAT", "RENTAL_PERIOD_MISSING", "STATUS_INVALID", "PUBLIC_RIDE_PRIVATE_ROUTE", "INVALID_CREDENTIALS", "EMAIL_NOT_VERIFIED", "EMAIL_ALREADY_EXISTS", "TOKEN_INVALID", "TOKEN_EXPIRED", "SESSION_EXPIRED", "PASSWORD_NOT_SET", "PASSKEY_NOT_FOUND", "USER_NOT_FOUND", "DOMAIN_NOT_FOUND", "TEAM_NOT_FOUND", "TEAM_CREATION_DISABLED", "USER_TEAM_LIMIT_REACHED", "TEAM_JOIN_NOT_ALLOWED", "TEAM_ADD_MEMBER_NOT_ALLOWED", "GPS_SERVICE_ALREADY_CONNECTED", "GPS_SERVICE_NOT_CONNECTED", "GPS_SERVICE_NOT_CONFIGURED", "GPS_INVALID_STATE", "GPS_STATE_EXPIRED", "GPX_NOT_FOUND", "AUTHORIZATION_PENDING", "GPS_CREDENTIAL_ALREADY_EXISTS", "GPS_TOKEN_EXCHANGE_FAILED", "ENCRYPTION_FAILED", "DECRYPTION_FAILED", "DOMAIN_ALIAS_NOT_FOUND", "DOMAIN_ALIAS_HOSTNAME_EXISTS", "DOMAIN_ALIAS_TEAM_MISMATCH", "SOCIAL_SERVICE_NOT_CONFIGURED", "SOCIAL_INVALID_STATE", "SOCIAL_IDENTITY_ALREADY_LINKED", "SOCIAL_LOGIN_CODE_INVALID", "SOCIAL_NO_ACCOUNT", "SOCIAL_LAST_LOGIN_METHOD", "EXPORT_IN_PROGRESS", "EXPORT_RATE_LIMITED", "RIDE_GROUP_LEADER_NOT_MEMBER", "AD_CONTACT_SELF", "AD_CONTACT_OPTED_OUT", "AD_CONTACT_RATE_LIMITED", "AD_CONTACT_DELIVERY_FAILED" ]
+        "enum" : [ "BAD_REQUEST", "NOT_FOUND", "UNAUTHORIZED", "FORBIDDEN", "INTERNAL_ERROR", "UNKNOWN", "VALIDATION", "BUSINESS_RULE", "LAST_ADMIN", "ALREADY_REGISTERED", "NOT_REGISTERED", "INVALID_SLUG", "SLUG_TAKEN", "USER_NOT_SYNCED", "GROUP_FULL", "INVALID_VISIBILITY", "PUBLIC_TRIP_PRIVATE_ROUTE", "GPX_FAILURE", "FILE_REQUIRED", "FILE_TYPE_REJECTED", "FILE_DETECTION_FAILED", "FILE_TOO_LARGE", "TOO_MANY_TEAM_PAGES", "GPX_EMPTY", "ROUTE_PLANNER_DISABLED", "INVALID_FORMAT", "RENTAL_PERIOD_MISSING", "STATUS_INVALID", "PUBLIC_RIDE_PRIVATE_ROUTE", "INVALID_CREDENTIALS", "EMAIL_NOT_VERIFIED", "EMAIL_ALREADY_EXISTS", "TOKEN_INVALID", "TOKEN_EXPIRED", "SESSION_EXPIRED", "PASSWORD_NOT_SET", "PASSKEY_NOT_FOUND", "USER_NOT_FOUND", "DOMAIN_NOT_FOUND", "TEAM_NOT_FOUND", "TEAM_CREATION_DISABLED", "USER_TEAM_LIMIT_REACHED", "TEAM_JOIN_NOT_ALLOWED", "TEAM_ADD_MEMBER_NOT_ALLOWED", "GPS_SERVICE_ALREADY_CONNECTED", "GPS_SERVICE_NOT_CONNECTED", "GPS_SERVICE_NOT_CONFIGURED", "GPS_INVALID_STATE", "GPS_STATE_EXPIRED", "GPX_NOT_FOUND", "AUTHORIZATION_PENDING", "GPS_CREDENTIAL_ALREADY_EXISTS", "GPS_TOKEN_EXCHANGE_FAILED", "ENCRYPTION_FAILED", "DECRYPTION_FAILED", "DOMAIN_ALIAS_NOT_FOUND", "DOMAIN_ALIAS_HOSTNAME_EXISTS", "DOMAIN_ALIAS_TEAM_MISMATCH", "SOCIAL_SERVICE_NOT_CONFIGURED", "SOCIAL_INVALID_STATE", "SOCIAL_IDENTITY_ALREADY_LINKED", "SOCIAL_LOGIN_CODE_INVALID", "SOCIAL_NO_ACCOUNT", "SOCIAL_LAST_LOGIN_METHOD", "EXPORT_IN_PROGRESS", "EXPORT_RATE_LIMITED", "RIDE_GROUP_LEADER_NOT_MEMBER", "AD_CONTACT_SELF", "AD_CONTACT_OPTED_OUT", "AD_CONTACT_RATE_LIMITED", "AD_CONTACT_DELIVERY_FAILED" ]
       },
       "ErrorDetails" : {
         "oneOf" : [ {
@@ -3692,7 +3713,7 @@
       "TeamDetailDto" : {
         "description" : "Detailed team information",
         "type" : "object",
-        "required" : [ "id", "name", "slug", "about", "visibility", "enableTrips", "enableAds", "enablePosts", "enableRides", "enableRoutes", "visibilityEditable", "joinable", "addMemberAllowed", "memberCount", "upcomingRideCount", "routeCount", "createdAt" ],
+        "required" : [ "id", "name", "slug", "about", "visibility", "enableTrips", "enableAds", "enablePosts", "enableRides", "enableRoutes", "visibilityEditable", "joinable", "addMemberAllowed", "enableRoutePlanner", "memberCount", "upcomingRideCount", "routeCount", "createdAt" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -3763,6 +3784,10 @@
           "addMemberAllowed" : {
             "type" : "boolean",
             "description" : "Whether team admins can add members"
+          },
+          "enableRoutePlanner" : {
+            "type" : "boolean",
+            "description" : "Whether the interactive route planner is open to this team. Unlike enableRoutes it never hides the routes section: when false the track can still be imported or replaced from a GPX file, only drawing is closed. Platform-admin only."
           },
           "memberCount" : {
             "type" : "integer",
@@ -4407,6 +4432,10 @@
           "singleTeam" : {
             "type" : "boolean",
             "description" : "Whether domain is single-team mode"
+          },
+          "enableGpxPlanner" : {
+            "type" : "boolean",
+            "description" : "Whether the interactive planner is open in the GPX tools"
           },
           "androidFingerprints" : {
             "type" : "string",
@@ -16886,7 +16915,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "2.1.0",
+    "version" : "2.2.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

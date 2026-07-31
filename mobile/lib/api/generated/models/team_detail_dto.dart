@@ -57,6 +57,9 @@ abstract class TeamDetailDto with _$TeamDetailDto {
     /// Whether team admins can add members
     required bool addMemberAllowed,
 
+    /// Whether the interactive route planner is open to this team. Unlike enableRoutes it never hides the routes section: when false the track can still be imported or replaced from a GPX file, only drawing is closed. Platform-admin only.
+    required bool enableRoutePlanner,
+
     /// Number of team members
     required int memberCount,
 

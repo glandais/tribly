@@ -15,6 +15,13 @@ public record ConfigDto(
         boolean singleTeam,
     @Schema(
             description =
+                "Whether the interactive planner is open in the team-independent GPX tools. When"
+                    + " false the tools still accept a .gpx upload, only drawing from scratch is"
+                    + " closed. Platform-admin only, per domain.",
+            required = true)
+        boolean enableGpxPlanner,
+    @Schema(
+            description =
                 "Slug of the team the site is pinned to (dedicated hostname / alias). Null on a"
                     + " regular multi-team domain. When set, the app roots on this team.")
         @Nullable String pinnedTeamSlug,

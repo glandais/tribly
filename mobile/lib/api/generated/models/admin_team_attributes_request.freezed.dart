@@ -18,7 +18,8 @@ mixin _$AdminTeamAttributesRequest {
 /// Whether team admins can change visibility
  bool get visibilityEditable;/// Whether any domain user can join this public team
  bool get joinable;/// Whether team admins can add members
- bool get addMemberAllowed;
+ bool get addMemberAllowed;/// Whether the interactive route planner is open to this team
+ bool get enableRoutePlanner;
 /// Create a copy of AdminTeamAttributesRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -31,16 +32,16 @@ $AdminTeamAttributesRequestCopyWith<AdminTeamAttributesRequest> get copyWith => 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminTeamAttributesRequest&&(identical(other.visibilityEditable, visibilityEditable) || other.visibilityEditable == visibilityEditable)&&(identical(other.joinable, joinable) || other.joinable == joinable)&&(identical(other.addMemberAllowed, addMemberAllowed) || other.addMemberAllowed == addMemberAllowed));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminTeamAttributesRequest&&(identical(other.visibilityEditable, visibilityEditable) || other.visibilityEditable == visibilityEditable)&&(identical(other.joinable, joinable) || other.joinable == joinable)&&(identical(other.addMemberAllowed, addMemberAllowed) || other.addMemberAllowed == addMemberAllowed)&&(identical(other.enableRoutePlanner, enableRoutePlanner) || other.enableRoutePlanner == enableRoutePlanner));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,visibilityEditable,joinable,addMemberAllowed);
+int get hashCode => Object.hash(runtimeType,visibilityEditable,joinable,addMemberAllowed,enableRoutePlanner);
 
 @override
 String toString() {
-  return 'AdminTeamAttributesRequest(visibilityEditable: $visibilityEditable, joinable: $joinable, addMemberAllowed: $addMemberAllowed)';
+  return 'AdminTeamAttributesRequest(visibilityEditable: $visibilityEditable, joinable: $joinable, addMemberAllowed: $addMemberAllowed, enableRoutePlanner: $enableRoutePlanner)';
 }
 
 
@@ -51,7 +52,7 @@ abstract mixin class $AdminTeamAttributesRequestCopyWith<$Res>  {
   factory $AdminTeamAttributesRequestCopyWith(AdminTeamAttributesRequest value, $Res Function(AdminTeamAttributesRequest) _then) = _$AdminTeamAttributesRequestCopyWithImpl;
 @useResult
 $Res call({
- bool visibilityEditable, bool joinable, bool addMemberAllowed
+ bool visibilityEditable, bool joinable, bool addMemberAllowed, bool enableRoutePlanner
 });
 
 
@@ -68,11 +69,12 @@ class _$AdminTeamAttributesRequestCopyWithImpl<$Res>
 
 /// Create a copy of AdminTeamAttributesRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? visibilityEditable = null,Object? joinable = null,Object? addMemberAllowed = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? visibilityEditable = null,Object? joinable = null,Object? addMemberAllowed = null,Object? enableRoutePlanner = null,}) {
   return _then(_self.copyWith(
 visibilityEditable: null == visibilityEditable ? _self.visibilityEditable : visibilityEditable // ignore: cast_nullable_to_non_nullable
 as bool,joinable: null == joinable ? _self.joinable : joinable // ignore: cast_nullable_to_non_nullable
 as bool,addMemberAllowed: null == addMemberAllowed ? _self.addMemberAllowed : addMemberAllowed // ignore: cast_nullable_to_non_nullable
+as bool,enableRoutePlanner: null == enableRoutePlanner ? _self.enableRoutePlanner : enableRoutePlanner // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -158,10 +160,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool visibilityEditable,  bool joinable,  bool addMemberAllowed)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool visibilityEditable,  bool joinable,  bool addMemberAllowed,  bool enableRoutePlanner)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AdminTeamAttributesRequest() when $default != null:
-return $default(_that.visibilityEditable,_that.joinable,_that.addMemberAllowed);case _:
+return $default(_that.visibilityEditable,_that.joinable,_that.addMemberAllowed,_that.enableRoutePlanner);case _:
   return orElse();
 
 }
@@ -179,10 +181,10 @@ return $default(_that.visibilityEditable,_that.joinable,_that.addMemberAllowed);
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool visibilityEditable,  bool joinable,  bool addMemberAllowed)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool visibilityEditable,  bool joinable,  bool addMemberAllowed,  bool enableRoutePlanner)  $default,) {final _that = this;
 switch (_that) {
 case _AdminTeamAttributesRequest():
-return $default(_that.visibilityEditable,_that.joinable,_that.addMemberAllowed);case _:
+return $default(_that.visibilityEditable,_that.joinable,_that.addMemberAllowed,_that.enableRoutePlanner);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +201,10 @@ return $default(_that.visibilityEditable,_that.joinable,_that.addMemberAllowed);
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool visibilityEditable,  bool joinable,  bool addMemberAllowed)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool visibilityEditable,  bool joinable,  bool addMemberAllowed,  bool enableRoutePlanner)?  $default,) {final _that = this;
 switch (_that) {
 case _AdminTeamAttributesRequest() when $default != null:
-return $default(_that.visibilityEditable,_that.joinable,_that.addMemberAllowed);case _:
+return $default(_that.visibilityEditable,_that.joinable,_that.addMemberAllowed,_that.enableRoutePlanner);case _:
   return null;
 
 }
@@ -214,7 +216,7 @@ return $default(_that.visibilityEditable,_that.joinable,_that.addMemberAllowed);
 @JsonSerializable()
 
 class _AdminTeamAttributesRequest implements AdminTeamAttributesRequest {
-  const _AdminTeamAttributesRequest({required this.visibilityEditable, required this.joinable, required this.addMemberAllowed});
+  const _AdminTeamAttributesRequest({required this.visibilityEditable, required this.joinable, required this.addMemberAllowed, required this.enableRoutePlanner});
   factory _AdminTeamAttributesRequest.fromJson(Map<String, dynamic> json) => _$AdminTeamAttributesRequestFromJson(json);
 
 /// Whether team admins can change visibility
@@ -223,6 +225,8 @@ class _AdminTeamAttributesRequest implements AdminTeamAttributesRequest {
 @override final  bool joinable;
 /// Whether team admins can add members
 @override final  bool addMemberAllowed;
+/// Whether the interactive route planner is open to this team
+@override final  bool enableRoutePlanner;
 
 /// Create a copy of AdminTeamAttributesRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -237,16 +241,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminTeamAttributesRequest&&(identical(other.visibilityEditable, visibilityEditable) || other.visibilityEditable == visibilityEditable)&&(identical(other.joinable, joinable) || other.joinable == joinable)&&(identical(other.addMemberAllowed, addMemberAllowed) || other.addMemberAllowed == addMemberAllowed));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminTeamAttributesRequest&&(identical(other.visibilityEditable, visibilityEditable) || other.visibilityEditable == visibilityEditable)&&(identical(other.joinable, joinable) || other.joinable == joinable)&&(identical(other.addMemberAllowed, addMemberAllowed) || other.addMemberAllowed == addMemberAllowed)&&(identical(other.enableRoutePlanner, enableRoutePlanner) || other.enableRoutePlanner == enableRoutePlanner));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,visibilityEditable,joinable,addMemberAllowed);
+int get hashCode => Object.hash(runtimeType,visibilityEditable,joinable,addMemberAllowed,enableRoutePlanner);
 
 @override
 String toString() {
-  return 'AdminTeamAttributesRequest(visibilityEditable: $visibilityEditable, joinable: $joinable, addMemberAllowed: $addMemberAllowed)';
+  return 'AdminTeamAttributesRequest(visibilityEditable: $visibilityEditable, joinable: $joinable, addMemberAllowed: $addMemberAllowed, enableRoutePlanner: $enableRoutePlanner)';
 }
 
 
@@ -257,7 +261,7 @@ abstract mixin class _$AdminTeamAttributesRequestCopyWith<$Res> implements $Admi
   factory _$AdminTeamAttributesRequestCopyWith(_AdminTeamAttributesRequest value, $Res Function(_AdminTeamAttributesRequest) _then) = __$AdminTeamAttributesRequestCopyWithImpl;
 @override @useResult
 $Res call({
- bool visibilityEditable, bool joinable, bool addMemberAllowed
+ bool visibilityEditable, bool joinable, bool addMemberAllowed, bool enableRoutePlanner
 });
 
 
@@ -274,11 +278,12 @@ class __$AdminTeamAttributesRequestCopyWithImpl<$Res>
 
 /// Create a copy of AdminTeamAttributesRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? visibilityEditable = null,Object? joinable = null,Object? addMemberAllowed = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? visibilityEditable = null,Object? joinable = null,Object? addMemberAllowed = null,Object? enableRoutePlanner = null,}) {
   return _then(_AdminTeamAttributesRequest(
 visibilityEditable: null == visibilityEditable ? _self.visibilityEditable : visibilityEditable // ignore: cast_nullable_to_non_nullable
 as bool,joinable: null == joinable ? _self.joinable : joinable // ignore: cast_nullable_to_non_nullable
 as bool,addMemberAllowed: null == addMemberAllowed ? _self.addMemberAllowed : addMemberAllowed // ignore: cast_nullable_to_non_nullable
+as bool,enableRoutePlanner: null == enableRoutePlanner ? _self.enableRoutePlanner : enableRoutePlanner // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }

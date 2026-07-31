@@ -13,6 +13,8 @@ public record UpdateDomainRequest(
     @NotBlank @Size(max = 500) @Schema(description = "Base URL for the domain", required = true)
         String baseUrl,
     @Schema(description = "Whether domain is single-team mode") boolean singleTeam,
+    @Schema(description = "Whether the interactive planner is open in the GPX tools")
+        boolean enableGpxPlanner,
     @Size(max = 1000)
         @Schema(
             description =

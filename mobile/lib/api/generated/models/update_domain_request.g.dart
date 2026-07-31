@@ -11,6 +11,7 @@ _UpdateDomainRequest _$UpdateDomainRequestFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String,
       baseUrl: json['baseUrl'] as String,
       singleTeam: json['singleTeam'] as bool?,
+      enableGpxPlanner: json['enableGpxPlanner'] as bool?,
       androidFingerprints: json['androidFingerprints'] as String?,
     );
 
@@ -20,5 +21,6 @@ Map<String, dynamic> _$UpdateDomainRequestToJson(
   'name': instance.name,
   'baseUrl': instance.baseUrl,
   'singleTeam': instance.singleTeam,
+  'enableGpxPlanner': instance.enableGpxPlanner,
   'androidFingerprints': instance.androidFingerprints,
 };

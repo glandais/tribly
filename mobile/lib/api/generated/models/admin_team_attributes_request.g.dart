@@ -12,6 +12,7 @@ _AdminTeamAttributesRequest _$AdminTeamAttributesRequestFromJson(
   visibilityEditable: json['visibilityEditable'] as bool,
   joinable: json['joinable'] as bool,
   addMemberAllowed: json['addMemberAllowed'] as bool,
+  enableRoutePlanner: json['enableRoutePlanner'] as bool,
 );
 
 Map<String, dynamic> _$AdminTeamAttributesRequestToJson(
@@ -20,4 +21,5 @@ Map<String, dynamic> _$AdminTeamAttributesRequestToJson(
   'visibilityEditable': instance.visibilityEditable,
   'joinable': instance.joinable,
   'addMemberAllowed': instance.addMemberAllowed,
+  'enableRoutePlanner': instance.enableRoutePlanner,
 };

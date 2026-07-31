@@ -59,6 +59,57 @@ class GpxPreviewResourceTest extends AbstractResourceTest {
         .body("tracks", not(empty()));
   }
 
+  // ==================== Planner toggle (domain-level) ====================
+
+  private static final String FROM_POINTS_BODY =
+      """
+      {"name": "Drawn preview", "points": [{"lng": 4.8357, "lat": 45.7640},
+       {"lng": 4.8500, "lat": 45.7700}]}
+      """;
+
+  @Test
+  void createPreviewFromPoints_whenPlannerDisabled_shouldReturn400() {
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(FROM_POINTS_BODY)
+        .when()
+        .post("/api/gpx-previews/from-points")
+        .then()
+        .statusCode(400)
+        .body("code", equalTo("ROUTE_PLANNER_DISABLED"));
+  }
+
+  @Test
+  void createPreviewFromPoints_whenPlannerEnabled_shouldSucceed() {
+    dataService.setDomainEnableGpxPlanner(domain, true);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(FROM_POINTS_BODY)
+        .when()
+        .post("/api/gpx-previews/from-points")
+        .then()
+        .statusCode(201)
+        .body("name", equalTo("Drawn preview"));
+  }
+
+  /** The toggle closes drawing only: uploading a file stays open. */
+  @Test
+  void createPreview_fromFile_whenPlannerDisabled_shouldSucceed() {
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .multiPart("gpxFile", EXAMPLE_GPX, "application/gpx+xml")
+        .when()
+        .post("/api/gpx-previews")
+        .then()
+        .statusCode(201);
+  }
+
   @Test
   void createPreview_withoutAuth_shouldReturn401() {
     given()

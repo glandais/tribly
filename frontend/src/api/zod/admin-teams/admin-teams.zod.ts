@@ -30,6 +30,9 @@ export const AdminListTeamsResponse = zod
               .describe('Whether visibility is editable by team admins'),
             joinable: zod.boolean().describe('Whether any domain user can join this team'),
             addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
+            enableRoutePlanner: zod
+              .boolean()
+              .describe('Whether the interactive route planner is open to this team'),
             deleted: zod.boolean().describe('Is team soft-deleted'),
             memberCount: zod.number().describe('Number of members'),
             createdAt: zod.iso.datetime({ offset: true }).describe('Team creation timestamp'),
@@ -62,6 +65,9 @@ export const AdminGetTeamResponse = zod
     visibilityEditable: zod.boolean().describe('Whether visibility is editable by team admins'),
     joinable: zod.boolean().describe('Whether any domain user can join this team'),
     addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
+    enableRoutePlanner: zod
+      .boolean()
+      .describe('Whether the interactive route planner is open to this team'),
     deleted: zod.boolean().describe('Is team soft-deleted'),
     memberCount: zod.number().describe('Number of members'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Team creation timestamp'),
@@ -81,6 +87,9 @@ export const AdminUpdateTeamAttributesBody = zod
     visibilityEditable: zod.boolean().describe('Whether team admins can change visibility'),
     joinable: zod.boolean().describe('Whether any domain user can join this public team'),
     addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
+    enableRoutePlanner: zod
+      .boolean()
+      .describe('Whether the interactive route planner is open to this team'),
   })
   .describe('Platform admin request to update team governance attributes')
 
@@ -95,6 +104,9 @@ export const AdminUpdateTeamAttributesResponse = zod
     visibilityEditable: zod.boolean().describe('Whether visibility is editable by team admins'),
     joinable: zod.boolean().describe('Whether any domain user can join this team'),
     addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
+    enableRoutePlanner: zod
+      .boolean()
+      .describe('Whether the interactive route planner is open to this team'),
     deleted: zod.boolean().describe('Is team soft-deleted'),
     memberCount: zod.number().describe('Number of members'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Team creation timestamp'),
@@ -120,6 +132,9 @@ export const AdminToggleTeamDeletedResponse = zod
     visibilityEditable: zod.boolean().describe('Whether visibility is editable by team admins'),
     joinable: zod.boolean().describe('Whether any domain user can join this team'),
     addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
+    enableRoutePlanner: zod
+      .boolean()
+      .describe('Whether the interactive route planner is open to this team'),
     deleted: zod.boolean().describe('Is team soft-deleted'),
     memberCount: zod.number().describe('Number of members'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Team creation timestamp'),

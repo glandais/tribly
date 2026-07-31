@@ -39,6 +39,13 @@ public class Domain {
   @Nullable
   private String androidFingerprints;
 
+  /**
+   * Whether the interactive planner is open in the team-independent GPX tools. Off by default and
+   * platform-admin only; uploading a .gpx to the tools stays available when it is false.
+   */
+  @Column(name = "enable_gpx_planner", nullable = false)
+  private boolean enableGpxPlanner = false;
+
   @Column(name = "active", nullable = false)
   private boolean active = true;
 

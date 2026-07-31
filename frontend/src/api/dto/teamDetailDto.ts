@@ -41,6 +41,8 @@ export interface TeamDetailDto {
   joinable: boolean
   /** Whether team admins can add members */
   addMemberAllowed: boolean
+  /** Whether the interactive route planner is open to this team. Unlike enableRoutes it never hides the routes section: when false the track can still be imported or replaced from a GPX file, only drawing is closed. Platform-admin only. */
+  enableRoutePlanner: boolean
   /** Number of team members */
   memberCount: number
   /** Rides of this team dated in the future that the caller may open. Follows the same visibility rules as the ride listing, so it never announces more than the caller can actually see. */

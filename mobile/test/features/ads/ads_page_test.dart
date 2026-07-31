@@ -62,6 +62,7 @@ const TeamDetailDto _team = TeamDetailDto(
   visibilityEditable: true,
   joinable: true,
   addMemberAllowed: true,
+  enableRoutePlanner: false,
   memberCount: 40,
   upcomingRideCount: 3,
   routeCount: 12,

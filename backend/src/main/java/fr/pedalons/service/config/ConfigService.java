@@ -53,6 +53,9 @@ public class ConfigService {
         site.effectiveHost(),
         site.effectiveName(),
         site.singleTeam(),
+        // Read off the parent domain, not the alias: the flag governs the GPX tools, which are
+        // team-independent and so belong to whoever owns the users.
+        site.domain().isEnableGpxPlanner(),
         siteTeam.map(Team::getSlug).orElse(null),
         mapStyles(),
         mapConfig.tileServerBaseUrl(),

@@ -22,6 +22,10 @@ public record AdminTeamDto(
         boolean joinable,
     @Schema(description = "Whether team admins can add members", required = true)
         boolean addMemberAllowed,
+    @Schema(
+            description = "Whether the interactive route planner is open to this team",
+            required = true)
+        boolean enableRoutePlanner,
     @Schema(description = "Is team soft-deleted", required = true) boolean deleted,
     @Schema(description = "Number of members", required = true) long memberCount,
     @Schema(description = "Team creation timestamp", required = true) Instant createdAt) {
@@ -37,6 +41,7 @@ public record AdminTeamDto(
         team.isVisibilityEditable(),
         team.isJoinable(),
         team.isAddMemberAllowed(),
+        team.isEnableRoutePlanner(),
         team.isDeleted(),
         memberCount,
         team.getCreatedAt());

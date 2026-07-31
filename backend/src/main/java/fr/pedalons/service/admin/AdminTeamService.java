@@ -64,6 +64,7 @@ public class AdminTeamService {
     team.setVisibilityEditable(request.visibilityEditable());
     team.setJoinable(request.joinable());
     team.setAddMemberAllowed(request.addMemberAllowed());
+    team.setEnableRoutePlanner(request.enableRoutePlanner());
     teamRepository.persist(team);
     long memberCount = userTeamRepository.count("team.id = ?1", team.getId());
     return AdminTeamDto.from(team, memberCount);

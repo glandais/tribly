@@ -8,4 +8,6 @@ export interface AdminTeamAttributesRequest {
   joinable: boolean
   /** Whether team admins can add members */
   addMemberAllowed: boolean
+  /** Whether the interactive route planner is open to this team */
+  enableRoutePlanner: boolean
 }

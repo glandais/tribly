@@ -23,6 +23,9 @@ abstract class ConfigDto with _$ConfigDto {
     /// Single team mode - team creation disabled
     required bool singleTeam,
 
+    /// Whether the interactive planner is open in the team-independent GPX tools. When false the tools still accept a .gpx upload, only drawing from scratch is closed. Platform-admin only, per domain.
+    required bool enableGpxPlanner,
+
     /// Basemaps the clients may offer, in switcher order. Served rather than compiled in, so a tile provider can change without a client release.
     required List<MapStyleDto> mapStyles,
 

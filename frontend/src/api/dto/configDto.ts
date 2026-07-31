@@ -11,6 +11,8 @@ export interface ConfigDto {
   appName: string
   /** Single team mode - team creation disabled */
   singleTeam: boolean
+  /** Whether the interactive planner is open in the team-independent GPX tools. When false the tools still accept a .gpx upload, only drawing from scratch is closed. Platform-admin only, per domain. */
+  enableGpxPlanner: boolean
   /** Slug of the team the site is pinned to (dedicated hostname / alias). Null on a regular multi-team domain. When set, the app roots on this team. */
   pinnedTeamSlug?: string
   /** Basemaps the clients may offer, in switcher order. Served rather than compiled in, so a tile provider can change without a client release. */

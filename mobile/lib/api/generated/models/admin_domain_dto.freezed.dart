@@ -20,7 +20,8 @@ mixin _$AdminDomainDto {
  String get domain;/// Domain display name
  String get name;/// Base URL for the domain
  String get baseUrl;/// Whether domain is single-team mode
- bool get singleTeam;/// Whether domain is active
+ bool get singleTeam;/// Whether the interactive planner is open in the GPX tools
+ bool get enableGpxPlanner;/// Whether domain is active
  bool get active;/// Number of teams in this domain
  int get teamCount;/// Number of users in this domain
  int get userCount;/// Domain creation timestamp
@@ -38,16 +39,16 @@ $AdminDomainDtoCopyWith<AdminDomainDto> get copyWith => _$AdminDomainDtoCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminDomainDto&&(identical(other.id, id) || other.id == id)&&(identical(other.domain, domain) || other.domain == domain)&&(identical(other.name, name) || other.name == name)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam)&&(identical(other.active, active) || other.active == active)&&(identical(other.teamCount, teamCount) || other.teamCount == teamCount)&&(identical(other.userCount, userCount) || other.userCount == userCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.androidFingerprints, androidFingerprints) || other.androidFingerprints == androidFingerprints));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminDomainDto&&(identical(other.id, id) || other.id == id)&&(identical(other.domain, domain) || other.domain == domain)&&(identical(other.name, name) || other.name == name)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam)&&(identical(other.enableGpxPlanner, enableGpxPlanner) || other.enableGpxPlanner == enableGpxPlanner)&&(identical(other.active, active) || other.active == active)&&(identical(other.teamCount, teamCount) || other.teamCount == teamCount)&&(identical(other.userCount, userCount) || other.userCount == userCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.androidFingerprints, androidFingerprints) || other.androidFingerprints == androidFingerprints));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,domain,name,baseUrl,singleTeam,active,teamCount,userCount,createdAt,androidFingerprints);
+int get hashCode => Object.hash(runtimeType,id,domain,name,baseUrl,singleTeam,enableGpxPlanner,active,teamCount,userCount,createdAt,androidFingerprints);
 
 @override
 String toString() {
-  return 'AdminDomainDto(id: $id, domain: $domain, name: $name, baseUrl: $baseUrl, singleTeam: $singleTeam, active: $active, teamCount: $teamCount, userCount: $userCount, createdAt: $createdAt, androidFingerprints: $androidFingerprints)';
+  return 'AdminDomainDto(id: $id, domain: $domain, name: $name, baseUrl: $baseUrl, singleTeam: $singleTeam, enableGpxPlanner: $enableGpxPlanner, active: $active, teamCount: $teamCount, userCount: $userCount, createdAt: $createdAt, androidFingerprints: $androidFingerprints)';
 }
 
 
@@ -58,7 +59,7 @@ abstract mixin class $AdminDomainDtoCopyWith<$Res>  {
   factory $AdminDomainDtoCopyWith(AdminDomainDto value, $Res Function(AdminDomainDto) _then) = _$AdminDomainDtoCopyWithImpl;
 @useResult
 $Res call({
- String id, String domain, String name, String baseUrl, bool singleTeam, bool active, int teamCount, int userCount, String createdAt, String? androidFingerprints
+ String id, String domain, String name, String baseUrl, bool singleTeam, bool enableGpxPlanner, bool active, int teamCount, int userCount, String createdAt, String? androidFingerprints
 });
 
 
@@ -75,13 +76,14 @@ class _$AdminDomainDtoCopyWithImpl<$Res>
 
 /// Create a copy of AdminDomainDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? domain = null,Object? name = null,Object? baseUrl = null,Object? singleTeam = null,Object? active = null,Object? teamCount = null,Object? userCount = null,Object? createdAt = null,Object? androidFingerprints = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? domain = null,Object? name = null,Object? baseUrl = null,Object? singleTeam = null,Object? enableGpxPlanner = null,Object? active = null,Object? teamCount = null,Object? userCount = null,Object? createdAt = null,Object? androidFingerprints = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,domain: null == domain ? _self.domain : domain // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,baseUrl: null == baseUrl ? _self.baseUrl : baseUrl // ignore: cast_nullable_to_non_nullable
 as String,singleTeam: null == singleTeam ? _self.singleTeam : singleTeam // ignore: cast_nullable_to_non_nullable
+as bool,enableGpxPlanner: null == enableGpxPlanner ? _self.enableGpxPlanner : enableGpxPlanner // ignore: cast_nullable_to_non_nullable
 as bool,active: null == active ? _self.active : active // ignore: cast_nullable_to_non_nullable
 as bool,teamCount: null == teamCount ? _self.teamCount : teamCount // ignore: cast_nullable_to_non_nullable
 as int,userCount: null == userCount ? _self.userCount : userCount // ignore: cast_nullable_to_non_nullable
@@ -172,10 +174,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String domain,  String name,  String baseUrl,  bool singleTeam,  bool active,  int teamCount,  int userCount,  String createdAt,  String? androidFingerprints)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String domain,  String name,  String baseUrl,  bool singleTeam,  bool enableGpxPlanner,  bool active,  int teamCount,  int userCount,  String createdAt,  String? androidFingerprints)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AdminDomainDto() when $default != null:
-return $default(_that.id,_that.domain,_that.name,_that.baseUrl,_that.singleTeam,_that.active,_that.teamCount,_that.userCount,_that.createdAt,_that.androidFingerprints);case _:
+return $default(_that.id,_that.domain,_that.name,_that.baseUrl,_that.singleTeam,_that.enableGpxPlanner,_that.active,_that.teamCount,_that.userCount,_that.createdAt,_that.androidFingerprints);case _:
   return orElse();
 
 }
@@ -193,10 +195,10 @@ return $default(_that.id,_that.domain,_that.name,_that.baseUrl,_that.singleTeam,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String domain,  String name,  String baseUrl,  bool singleTeam,  bool active,  int teamCount,  int userCount,  String createdAt,  String? androidFingerprints)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String domain,  String name,  String baseUrl,  bool singleTeam,  bool enableGpxPlanner,  bool active,  int teamCount,  int userCount,  String createdAt,  String? androidFingerprints)  $default,) {final _that = this;
 switch (_that) {
 case _AdminDomainDto():
-return $default(_that.id,_that.domain,_that.name,_that.baseUrl,_that.singleTeam,_that.active,_that.teamCount,_that.userCount,_that.createdAt,_that.androidFingerprints);case _:
+return $default(_that.id,_that.domain,_that.name,_that.baseUrl,_that.singleTeam,_that.enableGpxPlanner,_that.active,_that.teamCount,_that.userCount,_that.createdAt,_that.androidFingerprints);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -213,10 +215,10 @@ return $default(_that.id,_that.domain,_that.name,_that.baseUrl,_that.singleTeam,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String domain,  String name,  String baseUrl,  bool singleTeam,  bool active,  int teamCount,  int userCount,  String createdAt,  String? androidFingerprints)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String domain,  String name,  String baseUrl,  bool singleTeam,  bool enableGpxPlanner,  bool active,  int teamCount,  int userCount,  String createdAt,  String? androidFingerprints)?  $default,) {final _that = this;
 switch (_that) {
 case _AdminDomainDto() when $default != null:
-return $default(_that.id,_that.domain,_that.name,_that.baseUrl,_that.singleTeam,_that.active,_that.teamCount,_that.userCount,_that.createdAt,_that.androidFingerprints);case _:
+return $default(_that.id,_that.domain,_that.name,_that.baseUrl,_that.singleTeam,_that.enableGpxPlanner,_that.active,_that.teamCount,_that.userCount,_that.createdAt,_that.androidFingerprints);case _:
   return null;
 
 }
@@ -228,7 +230,7 @@ return $default(_that.id,_that.domain,_that.name,_that.baseUrl,_that.singleTeam,
 @JsonSerializable()
 
 class _AdminDomainDto implements AdminDomainDto {
-  const _AdminDomainDto({required this.id, required this.domain, required this.name, required this.baseUrl, required this.singleTeam, required this.active, required this.teamCount, required this.userCount, required this.createdAt, this.androidFingerprints});
+  const _AdminDomainDto({required this.id, required this.domain, required this.name, required this.baseUrl, required this.singleTeam, required this.enableGpxPlanner, required this.active, required this.teamCount, required this.userCount, required this.createdAt, this.androidFingerprints});
   factory _AdminDomainDto.fromJson(Map<String, dynamic> json) => _$AdminDomainDtoFromJson(json);
 
 /// Domain ID (TSID)
@@ -241,6 +243,8 @@ class _AdminDomainDto implements AdminDomainDto {
 @override final  String baseUrl;
 /// Whether domain is single-team mode
 @override final  bool singleTeam;
+/// Whether the interactive planner is open in the GPX tools
+@override final  bool enableGpxPlanner;
 /// Whether domain is active
 @override final  bool active;
 /// Number of teams in this domain
@@ -265,16 +269,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminDomainDto&&(identical(other.id, id) || other.id == id)&&(identical(other.domain, domain) || other.domain == domain)&&(identical(other.name, name) || other.name == name)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam)&&(identical(other.active, active) || other.active == active)&&(identical(other.teamCount, teamCount) || other.teamCount == teamCount)&&(identical(other.userCount, userCount) || other.userCount == userCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.androidFingerprints, androidFingerprints) || other.androidFingerprints == androidFingerprints));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminDomainDto&&(identical(other.id, id) || other.id == id)&&(identical(other.domain, domain) || other.domain == domain)&&(identical(other.name, name) || other.name == name)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam)&&(identical(other.enableGpxPlanner, enableGpxPlanner) || other.enableGpxPlanner == enableGpxPlanner)&&(identical(other.active, active) || other.active == active)&&(identical(other.teamCount, teamCount) || other.teamCount == teamCount)&&(identical(other.userCount, userCount) || other.userCount == userCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.androidFingerprints, androidFingerprints) || other.androidFingerprints == androidFingerprints));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,domain,name,baseUrl,singleTeam,active,teamCount,userCount,createdAt,androidFingerprints);
+int get hashCode => Object.hash(runtimeType,id,domain,name,baseUrl,singleTeam,enableGpxPlanner,active,teamCount,userCount,createdAt,androidFingerprints);
 
 @override
 String toString() {
-  return 'AdminDomainDto(id: $id, domain: $domain, name: $name, baseUrl: $baseUrl, singleTeam: $singleTeam, active: $active, teamCount: $teamCount, userCount: $userCount, createdAt: $createdAt, androidFingerprints: $androidFingerprints)';
+  return 'AdminDomainDto(id: $id, domain: $domain, name: $name, baseUrl: $baseUrl, singleTeam: $singleTeam, enableGpxPlanner: $enableGpxPlanner, active: $active, teamCount: $teamCount, userCount: $userCount, createdAt: $createdAt, androidFingerprints: $androidFingerprints)';
 }
 
 
@@ -285,7 +289,7 @@ abstract mixin class _$AdminDomainDtoCopyWith<$Res> implements $AdminDomainDtoCo
   factory _$AdminDomainDtoCopyWith(_AdminDomainDto value, $Res Function(_AdminDomainDto) _then) = __$AdminDomainDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String domain, String name, String baseUrl, bool singleTeam, bool active, int teamCount, int userCount, String createdAt, String? androidFingerprints
+ String id, String domain, String name, String baseUrl, bool singleTeam, bool enableGpxPlanner, bool active, int teamCount, int userCount, String createdAt, String? androidFingerprints
 });
 
 
@@ -302,13 +306,14 @@ class __$AdminDomainDtoCopyWithImpl<$Res>
 
 /// Create a copy of AdminDomainDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? domain = null,Object? name = null,Object? baseUrl = null,Object? singleTeam = null,Object? active = null,Object? teamCount = null,Object? userCount = null,Object? createdAt = null,Object? androidFingerprints = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? domain = null,Object? name = null,Object? baseUrl = null,Object? singleTeam = null,Object? enableGpxPlanner = null,Object? active = null,Object? teamCount = null,Object? userCount = null,Object? createdAt = null,Object? androidFingerprints = freezed,}) {
   return _then(_AdminDomainDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,domain: null == domain ? _self.domain : domain // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,baseUrl: null == baseUrl ? _self.baseUrl : baseUrl // ignore: cast_nullable_to_non_nullable
 as String,singleTeam: null == singleTeam ? _self.singleTeam : singleTeam // ignore: cast_nullable_to_non_nullable
+as bool,enableGpxPlanner: null == enableGpxPlanner ? _self.enableGpxPlanner : enableGpxPlanner // ignore: cast_nullable_to_non_nullable
 as bool,active: null == active ? _self.active : active // ignore: cast_nullable_to_non_nullable
 as bool,teamCount: null == teamCount ? _self.teamCount : teamCount // ignore: cast_nullable_to_non_nullable
 as int,userCount: null == userCount ? _self.userCount : userCount // ignore: cast_nullable_to_non_nullable

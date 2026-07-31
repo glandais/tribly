@@ -9,6 +9,11 @@ export const GetConfigResponse = zod
     webAuthnRpId: zod.string().describe('WebAuthn Relying Party ID (effective host)'),
     appName: zod.string().describe('Application name'),
     singleTeam: zod.boolean().describe('Single team mode - team creation disabled'),
+    enableGpxPlanner: zod
+      .boolean()
+      .describe(
+        'Whether the interactive planner is open in the team-independent GPX tools. When false the tools still accept a .gpx upload, only drawing from scratch is closed. Platform-admin only, per domain.'
+      ),
     pinnedTeamSlug: zod
       .string()
       .optional()
