@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/config/config_provider.dart';
+import '../../../../core/config/map_style_options.dart';
 import '../../../../core/pdl/pdl.dart';
 import '../../../../core/preferences/user_preferences_provider.dart';
 import '../../../../core/theme/pdl_colors.dart';
@@ -98,9 +99,6 @@ class _RoutesMapViewState extends ConsumerState<RoutesMapView> {
     final AsyncValue<ResolvedMapStyle?> style = ref.watch(
       mapStyleProvider(brightness),
     );
-    final AsyncValue<List<MapStyleDto>> styles = ref
-        .watch(appConfigProvider)
-        .whenData((ConfigDto config) => config.mapStyles);
     final AsyncValue<PdlMapBox?> bounds = ref.watch(
       routeBoundsProvider(_framingFilters),
     );
@@ -125,10 +123,7 @@ class _RoutesMapViewState extends ConsumerState<RoutesMapView> {
             chooseBackground: 'map.background'.tr(),
             backgroundSheetTitle: 'map.background'.tr(),
           ),
-          styles: <PdlMapStyleOption>[
-            for (final MapStyleDto s in styles.value ?? const <MapStyleDto>[])
-              PdlMapStyleOption(id: s.id, label: s.label),
-          ],
+          styles: servedMapStyleOptions(ref),
           selectedStyleId: resolved.style.id,
           onStyleSelected: (String id) =>
               ref.read(mapStyleIdProvider.notifier).select(id),

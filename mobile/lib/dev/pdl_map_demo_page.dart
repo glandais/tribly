@@ -25,6 +25,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../api/generated/export.dart';
 import '../core/config/config_provider.dart';
+import '../core/config/map_style_options.dart';
 import '../core/pdl/map/pdl_map.dart';
 import '../core/pdl/map/pdl_map_buttons.dart';
 import '../core/pdl/map/pdl_map_controller.dart';
@@ -52,8 +53,6 @@ class _PdlMapDemoPageState extends ConsumerState<PdlMapDemoPage> {
         .watch(mapStyleProvider(brightness))
         .value;
     final MapCenterDto? center = ref.watch(defaultCenterProvider).value;
-    final List<MapStyleDto> served =
-        ref.watch(appConfigProvider).value?.mapStyles ?? const <MapStyleDto>[];
 
     if (style == null) {
       return Scaffold(
@@ -77,10 +76,7 @@ class _PdlMapDemoPageState extends ConsumerState<PdlMapDemoPage> {
                 chooseBackground: 'Choisir le fond',
                 backgroundSheetTitle: 'Fond de carte',
               ),
-              styles: <PdlMapStyleOption>[
-                for (final MapStyleDto s in served)
-                  PdlMapStyleOption(id: s.id, label: s.label),
-              ],
+              styles: servedMapStyleOptions(ref),
               selectedStyleId: style.style.id,
               onStyleSelected: (String id) =>
                   ref.read(mapStyleIdProvider.notifier).select(id),

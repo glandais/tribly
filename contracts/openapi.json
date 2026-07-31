@@ -2066,7 +2066,7 @@
       "MapStyleDto" : {
         "type" : "object",
         "description" : "A basemap style the clients may offer",
-        "required" : [ "id", "label", "url" ],
+        "required" : [ "id", "label", "group", "url" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -2076,9 +2076,13 @@
             "type" : "string",
             "description" : "Human-readable label for the style switcher"
           },
+          "group" : {
+            "type" : "string",
+            "description" : "Section the switcher should list this style under — 'vector', 'satellite' or 'raster'. Clients group consecutive styles sharing a value and localise the heading themselves; an unknown value is rendered as its own section rather than dropped."
+          },
           "url" : {
             "type" : "string",
-            "description" : "URL of the MapLibre style document to load in light mode (or at all times when darkVariant is null)"
+            "description" : "URL of the MapLibre style document to load in light mode (or at all times when darkVariant is null). Either a third-party style document or, for a raster basemap the server wraps itself, a URL on /api/map/styles/{id}.json."
           },
           "darkVariant" : {
             "type" : "string",
@@ -8664,6 +8668,38 @@
         "security" : [ {
           "SecurityScheme" : [ "user" ]
         } ]
+      }
+    },
+    "/api/map/styles/{id}.json" : {
+      "get" : {
+        "summary" : "Get a generated map style",
+        "description" : "Returns the MapLibre style document for a raster basemap whose provider serves tiles only. The URL is the one already carried by MapStyleDto.url — clients hand it to the map engine rather than building it themselves.",
+        "operationId" : "getStyle",
+        "tags" : [ "Configuration" ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The MapLibre style document",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "description" : "A MapLibre GL style specification document",
+                  "type" : "object"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "No generated style with this id"
+          }
+        }
       }
     },
     "/api/publications" : {
@@ -17037,7 +17073,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "2.3.1",
+    "version" : "2.4.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

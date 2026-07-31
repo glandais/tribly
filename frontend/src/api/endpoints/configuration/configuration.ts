@@ -11,7 +11,7 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query'
 
-import type { ConfigDto } from '../../dto'
+import type { ConfigDto, GetStyle200 } from '../../dto'
 
 import { axiosMutator } from '../../../lib/axiosInstance.ts'
 import type { ErrorType } from '../../../lib/axiosInstance.ts'
@@ -152,6 +152,137 @@ export const prefetchGetConfigQuery = async <
   }
 ): Promise<QueryClient> => {
   const queryOptions = getGetConfigQueryOptions(options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
+ * Returns the MapLibre style document for a raster basemap whose provider serves tiles only. The URL is the one already carried by MapStyleDto.url — clients hand it to the map engine rather than building it themselves.
+ * @summary Get a generated map style
+ */
+export const getStyle = (
+  id: string,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<GetStyle200>(
+    { url: `/api/map/styles/${id}.json`, method: 'GET', signal },
+    options
+  )
+}
+
+export const getGetStyleQueryKey = (id: string) => {
+  return [`/api/map/styles/${id}.json`] as const
+}
+
+export const getGetStyleQueryOptions = <
+  TData = Awaited<ReturnType<typeof getStyle>>,
+  TError = ErrorType<void>,
+>(
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStyle>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getGetStyleQueryKey(id)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getStyle>>> = ({ signal }) =>
+    getStyle(id, requestOptions, signal)
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: id !== null && id !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getStyle>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+}
+
+export type GetStyleQueryResult = NonNullable<Awaited<ReturnType<typeof getStyle>>>
+export type GetStyleQueryError = ErrorType<void>
+
+export function useGetStyle<TData = Awaited<ReturnType<typeof getStyle>>, TError = ErrorType<void>>(
+  id: string,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStyle>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStyle>>,
+          TError,
+          Awaited<ReturnType<typeof getStyle>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStyle<TData = Awaited<ReturnType<typeof getStyle>>, TError = ErrorType<void>>(
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStyle>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStyle>>,
+          TError,
+          Awaited<ReturnType<typeof getStyle>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStyle<TData = Awaited<ReturnType<typeof getStyle>>, TError = ErrorType<void>>(
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStyle>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get a generated map style
+ */
+
+export function useGetStyle<TData = Awaited<ReturnType<typeof getStyle>>, TError = ErrorType<void>>(
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStyle>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetStyleQueryOptions(id, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Get a generated map style
+ */
+export const prefetchGetStyleQuery = async <
+  TData = Awaited<ReturnType<typeof getStyle>>,
+  TError = ErrorType<void>,
+>(
+  queryClient: QueryClient,
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStyle>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetStyleQueryOptions(id, options)
 
   await queryClient.prefetchQuery(queryOptions)
 

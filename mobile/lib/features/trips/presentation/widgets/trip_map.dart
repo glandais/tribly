@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../core/config/config_provider.dart';
+import '../../../../core/config/map_style_options.dart';
 import '../../../../core/pdl/pdl.dart';
 import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_icons.dart';
@@ -82,12 +83,7 @@ class TripMap extends ConsumerWidget {
                     backgroundSheetTitle: 'map.background'.tr(),
                   ),
                   topScrim: false,
-                  styles: <PdlMapStyleOption>[
-                    for (final MapStyleDto s
-                        in ref.watch(appConfigProvider).value?.mapStyles ??
-                            const <MapStyleDto>[])
-                      PdlMapStyleOption(id: s.id, label: s.label),
-                  ],
+                  styles: servedMapStyleOptions(ref),
                   selectedStyleId: resolved.style.id,
                   onStyleSelected: (String id) =>
                       ref.read(mapStyleIdProvider.notifier).select(id),

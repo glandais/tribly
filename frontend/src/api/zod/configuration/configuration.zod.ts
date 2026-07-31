@@ -26,10 +26,15 @@ export const GetConfigResponse = zod
           .object({
             id: zod.string().describe("Stable style identifier, e.g. 'colorful'"),
             label: zod.string().describe('Human-readable label for the style switcher'),
+            group: zod
+              .string()
+              .describe(
+                "Section the switcher should list this style under — 'vector', 'satellite' or 'raster'. Clients group consecutive styles sharing a value and localise the heading themselves; an unknown value is rendered as its own section rather than dropped."
+              ),
             url: zod
               .string()
               .describe(
-                'URL of the MapLibre style document to load in light mode (or at all times when darkVariant is null)'
+                'URL of the MapLibre style document to load in light mode (or at all times when darkVariant is null). Either a third-party style document or, for a raster basemap the server wraps itself, a URL on \/api\/map\/styles\/{id}.json.'
               ),
             darkVariant: zod
               .string()
@@ -65,3 +70,15 @@ export const GetConfigResponse = zod
       ),
   })
   .describe('Application configuration')
+
+/**
+ * Returns the MapLibre style document for a raster basemap whose provider serves tiles only. The URL is the one already carried by MapStyleDto.url — clients hand it to the map engine rather than building it themselves.
+ * @summary Get a generated map style
+ */
+export const GetStyleParams = zod.object({
+  id: zod.string(),
+})
+
+export const GetStyleResponse = zod
+  .looseObject({})
+  .describe('A MapLibre GL style specification document')

@@ -21,7 +21,7 @@ export const PedalonsMap = forwardRef<MapRef, PedalonsMapProps>(
     },
     ref
   ) => {
-    const { styleId, setStyleId, style, terrain3d, setTerrain3d, hillshade, setHillshade } =
+    const { styleId, styles, setStyleId, style, terrain3d, setTerrain3d, hillshade, setHillshade } =
       useMapStyle()
 
     return (
@@ -36,6 +36,7 @@ export const PedalonsMap = forwardRef<MapRef, PedalonsMapProps>(
         <Terrain3D terrain={terrain3d} hillshade={hillshade} />
         <MapStyleSwitcher
           position={mapStyleSwitcherPosition}
+          styles={styles}
           currentStyleId={styleId}
           onStyleChange={setStyleId}
           terrain3d={terrain3d}

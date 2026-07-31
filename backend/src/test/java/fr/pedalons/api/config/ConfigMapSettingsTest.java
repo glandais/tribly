@@ -40,6 +40,75 @@ class ConfigMapSettingsTest extends AbstractResourceTest {
   }
 
   @Test
+  void getConfig_shouldGroupTheBasemapsForTheSwitcher() {
+    // Every style names its section, so a client can render headings without a table of its own.
+    given()
+        .when()
+        .get("/api/config")
+        .then()
+        .statusCode(200)
+        .body("mapStyles.group", everyItem(not(emptyOrNullString())))
+        .body("mapStyles.group", hasItems("vector", "satellite", "raster"));
+  }
+
+  @Test
+  void getConfig_shouldPointRasterBasemapsAtTheGeneratedStyleEndpoint() {
+    // A raster provider serves tiles and no style.json — the server wraps it, and that is what
+    // lets a client which only knows how to take a style URL render a satellite or CyclOSM fond.
+    given()
+        .when()
+        .get("/api/config")
+        .then()
+        .statusCode(200)
+        .body("mapStyles.find { it.id == 'cyclosm' }.url", endsWith("/api/map/styles/cyclosm.json"))
+        .body("mapStyles.find { it.id == 'cyclosm' }.url", startsWith("http"))
+        // A raster basemap is an aerial or a printed map: it has no night rendering to switch to.
+        .body("mapStyles.find { it.id == 'cyclosm' }.darkVariant", is(nullValue()));
+  }
+
+  @Test
+  void getStyle_shouldRenderAOneLayerRasterStyle() {
+    given()
+        .when()
+        .get("/api/map/styles/cyclosm.json")
+        .then()
+        .statusCode(200)
+        .body("version", equalTo(8))
+        .body("layers", hasSize(1))
+        .body("layers[0].type", equalTo("raster"))
+        .body("layers[0].source", equalTo("raster"))
+        .body("sources.raster.type", equalTo("raster"))
+        // Three subdomains: MapLibre has no {s} token, so each is declared as its own template.
+        .body("sources.raster.tiles", hasSize(3))
+        .body("sources.raster.tiles[0]", containsString("{z}"))
+        .body("sources.raster.maxzoom", equalTo(17))
+        .body("sources.raster.attribution", containsString("CyclOSM"));
+  }
+
+  @Test
+  void getStyle_shouldCarryTheProvidersShallowestZoom() {
+    // SCAN 25 starts at z6; without minzoom a world-zoom map fires a wall of 404s.
+    given()
+        .when()
+        .get("/api/map/styles/ign-scan25.json")
+        .then()
+        .statusCode(200)
+        .body("sources.raster.minzoom", equalTo(6))
+        .body("sources.raster.maxzoom", equalTo(16));
+  }
+
+  @Test
+  void getStyle_forAHostedVectorStyle_shouldBe404() {
+    // `colorful` is served by VersaTiles, not generated here: the endpoint must not invent one.
+    given().when().get("/api/map/styles/colorful.json").then().statusCode(404);
+  }
+
+  @Test
+  void getStyle_forAnUnknownId_shouldBe404() {
+    given().when().get("/api/map/styles/does-not-exist.json").then().statusCode(404);
+  }
+
+  @Test
   void getConfig_shouldServeTheTileHostAndADefaultCamera() {
     given()
         .when()

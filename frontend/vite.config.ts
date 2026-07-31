@@ -68,7 +68,6 @@ export default defineConfig(({ mode }) => {
               id.includes('node_modules/maplibre-gl/') ||
               id.includes('node_modules/maplibre-theme/') ||
               id.includes('node_modules/react-map-gl/') ||
-              id.includes('node_modules/@versatiles/') ||
               id.includes('node_modules/geokdbush/') ||
               id.includes('node_modules/kdbush/')
             ) {

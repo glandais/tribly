@@ -1,14 +1,21 @@
 import { create } from 'zustand'
-import { MAP_STYLES, type MapStyleId } from '@/components/map/mapStyles'
+import { type MapStyleId } from '@/components/map/mapStyles'
 
 const STYLE_KEY = 'pedalons-map-style'
 const TERRAIN_KEY = 'pedalons-map-terrain3d'
 const HILLSHADE_KEY = 'pedalons-map-hillshade'
 
+/**
+ * The remembered pick, unvalidated.
+ *
+ * It used to be checked against the compiled-in table; the table is now served, and the store is
+ * read before the config arrives. `useMapStyle` does the falling back — an id that has left the
+ * contract resolves to the first served basemap there, and is kept in localStorage in case the
+ * server serves it again.
+ */
 function getSavedStyleId(): MapStyleId | null {
   if (typeof window === 'undefined') return null
-  const saved = localStorage.getItem(STYLE_KEY) as MapStyleId | null
-  return saved && MAP_STYLES[saved] ? saved : null
+  return localStorage.getItem(STYLE_KEY)
 }
 
 interface MapStyleState {
