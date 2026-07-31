@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
-import '../../../../api/pedalons_api_client.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/pdl/pdl.dart';
 import '../../../../core/theme/enum_colors.dart';
@@ -17,7 +16,6 @@ import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/share_link.dart';
-import '../../../../core/widgets/authenticated_image.dart';
 import '../../../../core/widgets/markdown_content.dart';
 import '../../../../core/widgets/media_attachments.dart';
 import '../../../comments/data/comment_repository.dart';
@@ -117,9 +115,21 @@ class _PostDetailContent extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.bg,
+      appBar: PdlAppBar(
+        // Pas de titre : le corps porte déjà le nom en 22/700, juste
+        // dessous. Le répéter en 17 dans la barre le dit deux fois.
+        onBack: () => context.pop(),
+        backSemanticLabel: 'common.back'.tr(),
+        actions: <Widget>[
+          PdlAppBarAction(
+            icon: PdlIcons.share,
+            semanticLabel: 'routes.share'.tr(),
+            onPressed: () => unawaited(_share(context)),
+          ),
+        ],
+      ),
       body: CustomScrollView(
         slivers: <Widget>[
-          SliverToBoxAdapter(child: _Cover(post: post)),
           SliverPadding(
             padding: const EdgeInsets.all(PdlSpacing.section),
             sliver: SliverList.list(
@@ -194,6 +204,12 @@ class _PostDetailContent extends ConsumerWidget {
   }
 
   /// Ligne d'équipe, titre multi-ligne, badges, date longue.
+  Future<void> _share(BuildContext context) => shareAppLink(
+    context,
+    title: post.name,
+    path: Paths.post(post.team.slug, post.slug),
+  );
+
   Widget _identity(BuildContext context) {
     final PdlColors c = context.pdl;
     final PdlTypography t = context.pdlText;
@@ -238,100 +254,6 @@ class _PostDetailContent extends ConsumerWidget {
       ],
     );
   }
-}
-
-/// La couverture : 208 px de 16:9, zoomable en plein écran, app bar en
-/// surimpression avec le partage.
-class _Cover extends ConsumerWidget {
-  const _Cover({required this.post});
-
-  final PostDto post;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final String? url = post.thumbnailUrl;
-
-    final Widget media = url == null
-        ? PdlCardMedia(
-            tone: PdlMediaTone.post,
-            icon: PdlIcons.post,
-            height: PdlMetrics.media16x9,
-          )
-        : GestureDetector(
-            onTap: () => _openFullScreen(context, ref, url),
-            child: Semantics(
-              button: true,
-              label: 'posts.openCover'.tr(),
-              child: AuthenticatedImage(
-                imageUrl: url,
-                size: 1080,
-                width: double.infinity,
-                height: PdlMetrics.media16x9,
-                fit: BoxFit.cover,
-                placeholder: const PdlSkeleton(
-                  width: double.infinity,
-                  height: PdlMetrics.media16x9,
-                ),
-              ),
-            ),
-          );
-
-    return SizedBox(
-      height: PdlMetrics.media16x9,
-      child: Stack(
-        fit: StackFit.expand,
-        children: <Widget>[
-          media,
-          const Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: PdlScrim.top(height: 96),
-          ),
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: SafeArea(
-              bottom: false,
-              child: PdlAppBar(
-                variant: PdlAppBarVariant.overlay,
-                onBack: () => context.pop(),
-                backSemanticLabel: 'common.back'.tr(),
-                actions: <Widget>[
-                  PdlAppBarAction(
-                    icon: PdlIcons.share,
-                    semanticLabel: 'routes.share'.tr(),
-                    onPressed: () => unawaited(_share(context)),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _openFullScreen(BuildContext context, WidgetRef ref, String url) {
-    final ImageProvider? provider = AuthenticatedDecorationImage.fromUrl(
-      url,
-      ref.read(accessTokenHolderProvider),
-      size: 1920,
-    );
-    if (provider == null) return;
-    PdlImageViewer.show(
-      context,
-      imageProvider: provider,
-      closeSemanticLabel: 'links.imageClose'.tr(),
-    );
-  }
-
-  Future<void> _share(BuildContext context) => shareAppLink(
-    context,
-    title: post.name,
-    path: Paths.post(post.team.slug, post.slug),
-  );
 }
 
 /// Une pièce jointe.

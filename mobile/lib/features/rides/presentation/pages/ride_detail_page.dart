@@ -28,9 +28,6 @@ import '../widgets/ride_elevation_section.dart';
 import '../widgets/ride_groups_map.dart';
 import '../widgets/ride_groups_section.dart';
 
-/// Hauteur du hero cartographique : l'aperçu statique multi-tracés.
-const double _kHeroHeight = 210;
-
 /// L'écran 12 — détail d'une sortie et inscription à un groupe.
 ///
 /// Réécrit intégralement. De la v1 il ne reste rien : ni l'`AlertDialog` de
@@ -39,8 +36,10 @@ const double _kHeroHeight = 210;
 /// parcours de `participants[]`, ni le `SnackBar` que la barre d'onglets
 /// masquait.
 ///
-/// Huit sections, dans l'ordre : hero, identité, bandeaux, méta, carte et
-/// profil, groupes, description, commentaires.
+/// Sept sections, dans l'ordre : identité, bandeaux, méta, carte et profil,
+/// groupes, description, commentaires. **Pas de hero** : la vignette statique
+/// du tracé doublait la carte interactive qui la suit de deux blocs, et
+/// coûtait 210 px de haut avant la première information.
 class RideDetailPage extends ConsumerStatefulWidget {
   const RideDetailPage({
     super.key,
@@ -127,8 +126,19 @@ class _RideDetailContent extends ConsumerWidget {
         ref.read(selectedRideGroupProvider(rideKey).notifier).state = id;
 
     return PdlScreenScaffold(
+      appBar: PdlAppBar(
+        title: ride.name,
+        onBack: () => context.pop(),
+        backSemanticLabel: 'common.back'.tr(),
+        actions: <Widget>[
+          PdlAppBarAction(
+            icon: PdlIcons.share,
+            semanticLabel: 'routes.share'.tr(),
+            onPressed: () => _share(context),
+          ),
+        ],
+      ),
       slivers: <Widget>[
-        SliverToBoxAdapter(child: _hero(context, ref)),
         SliverToBoxAdapter(child: _identity(context)),
         if (ride.isCancelled)
           SliverToBoxAdapter(
@@ -203,55 +213,6 @@ class _RideDetailContent extends ConsumerWidget {
           ),
         const SliverToBoxAdapter(child: SizedBox(height: PdlSpacing.section)),
       ],
-    );
-  }
-
-  // ── 1 · Hero ────────────────────────────────────────────────────────────
-  /// L'aperçu statique multi-tracés est la **vignette servie par le serveur** :
-  /// une seconde instance MapLibre au-dessus de la carte interactive coûterait
-  /// une vue native de plus pour une image fixe.
-  Widget _hero(BuildContext context, WidgetRef ref) {
-    final String? url = Theme.of(context).brightness == Brightness.dark
-        ? (ride.thumbnailDarkUrl ?? ride.thumbnailLightUrl)
-        : (ride.thumbnailLightUrl ?? ride.thumbnailDarkUrl);
-
-    return SizedBox(
-      height: _kHeroHeight,
-      child: Stack(
-        fit: StackFit.expand,
-        children: <Widget>[
-          PdlCardMedia(
-            tone: PdlMediaTone.ride,
-            height: _kHeroHeight,
-            imageUrl: url,
-            icon: PdlIcons.ride,
-            borderRadius: BorderRadius.zero,
-          ),
-          const PdlScrim(edge: PdlScrimEdge.top),
-          const PdlScrim(edge: PdlScrimEdge.bottom),
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: SafeArea(
-              bottom: false,
-              child: PdlAppBar(
-                variant: PdlAppBarVariant.overlay,
-                title: ride.name,
-                onBack: () => context.pop(),
-                backSemanticLabel: 'common.back'.tr(),
-                actions: <Widget>[
-                  PdlAppBarAction(
-                    icon: PdlIcons.share,
-                    semanticLabel: 'routes.share'.tr(),
-                    onPressed: () => _share(context),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -516,7 +477,7 @@ class _RideDetailContent extends ConsumerWidget {
 
 // ────────────────────────────────────────────────────── chargement, erreur
 
-/// Squelette **structuré** : le hero puis quatre blocs, pas un rond qui tourne.
+/// Squelette **structuré** : les blocs de la page, pas un rond qui tourne.
 ///
 /// Le brief §5 en demande cinq sur une liste ; sur un détail, ce sont les
 /// blocs réels qui se dessinent en gris, ce qui annonce la forme de la page.
@@ -532,10 +493,6 @@ class _RideDetailSkeleton extends StatelessWidget {
       ),
       body: ListView(
         children: <Widget>[
-          const PdlSkeleton(
-            height: _kHeroHeight,
-            borderRadius: BorderRadius.zero,
-          ),
           Padding(
             padding: const EdgeInsets.all(PdlSpacing.section),
             child: Column(

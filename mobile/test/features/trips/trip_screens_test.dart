@@ -229,9 +229,17 @@ void main() {
       WidgetTester tester,
     ) async {
       await openTrip(tester, fixtureTrip());
-      await tester.drag(find.byType(CustomScrollView), const Offset(0, -1400));
-      await tester.pump();
-      await tester.pump();
+      // Défiler **jusqu'à** les cartes, et non d'une distance magique : celle
+      // d'avant valait la hauteur du hero, et le jour où il a disparu elle
+      // emmenait la liste au-delà des étapes, dans les commentaires.
+      for (
+        int i = 0;
+        i < 12 && find.byType(StageCard).evaluate().isEmpty;
+        i++
+      ) {
+        await tester.drag(find.byType(CustomScrollView), const Offset(0, -300));
+        await tester.pump();
+      }
 
       expect(find.byType(StageCard), findsWidgets);
     });

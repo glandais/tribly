@@ -29,9 +29,6 @@ import '../widgets/trip_elevation.dart';
 import '../widgets/trip_map.dart';
 import '../widgets/trip_summary_card.dart';
 
-/// Hauteur du hero : la vignette statique du tracé global.
-const double _kTripHeroHeight = 210;
-
 /// L'écran 24 — le voyage.
 ///
 /// De la v1 il reste la liste d'étapes et la description ; tout le reste est
@@ -88,8 +85,29 @@ class _TripDetailContent extends ConsumerWidget {
     );
 
     return PdlScreenScaffold(
+      appBar: PdlAppBar(
+        title: trip.name,
+        onBack: () => context.pop(),
+        backSemanticLabel: 'common.back'.tr(),
+        actions: <Widget>[
+          // Aucun endpoint ICS par publication (§5.2) : « Ajouter à mon
+          // calendrier » ouvre l'abonnement d'équipe de l'écran 22, qui porte
+          // le voyage parmi ses événements. Un non-membre n'a pas ce
+          // calendrier — le bouton disparaît plutôt que d'échouer.
+          if (isMember == true)
+            PdlAppBarAction(
+              icon: PdlIcons.date,
+              semanticLabel: 'trips.addToCalendar'.tr(),
+              onPressed: () => _openCalendarSubscription(context),
+            ),
+          PdlAppBarAction(
+            icon: PdlIcons.share,
+            semanticLabel: 'routes.share'.tr(),
+            onPressed: () => _share(context),
+          ),
+        ],
+      ),
       slivers: <Widget>[
-        SliverToBoxAdapter(child: _hero(context, isMember)),
         SliverToBoxAdapter(child: _identity(context)),
         if (trip.isCancelled)
           SliverToBoxAdapter(
@@ -255,67 +273,6 @@ class _TripDetailContent extends ConsumerWidget {
               size: PdlButtonSize.sm,
               onPressed: trip.registered ? controller.leave : controller.join,
             ),
-    );
-  }
-
-  // ── 1 · Hero ────────────────────────────────────────────────────────────
-  /// La vignette servie par le serveur, sous deux voiles. Aucun texte n'est
-  /// posé sur la tuile sans voile (F-DE-1) : le titre de la barre est blanc sur
-  /// le voile haut, pas sur l'image.
-  Widget _hero(BuildContext context, bool? isMember) {
-    final String? url = Theme.of(context).brightness == Brightness.dark
-        ? (trip.thumbnailDarkUrl ?? trip.thumbnailLightUrl)
-        : (trip.thumbnailLightUrl ?? trip.thumbnailDarkUrl);
-
-    return SizedBox(
-      height: _kTripHeroHeight,
-      child: Stack(
-        fit: StackFit.expand,
-        children: <Widget>[
-          PdlCardMedia(
-            tone: PdlMediaTone.trip,
-            height: _kTripHeroHeight,
-            imageUrl: url,
-            icon: PdlIcons.trip,
-            borderRadius: BorderRadius.zero,
-          ),
-          const PdlScrim(edge: PdlScrimEdge.top),
-          const PdlScrim(edge: PdlScrimEdge.bottom),
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: SafeArea(
-              bottom: false,
-              child: PdlAppBar(
-                variant: PdlAppBarVariant.overlay,
-                title: trip.name,
-                onBack: () => context.pop(),
-                backSemanticLabel: 'common.back'.tr(),
-                actions: <Widget>[
-                  // Aucun endpoint ICS par publication (§5.2) : « Ajouter à mon
-                  // calendrier » ouvre l'abonnement d'équipe de l'écran 22, qui
-                  // porte le voyage parmi ses événements. Un non-membre n'a pas
-                  // ce calendrier — le bouton disparaît plutôt que d'échouer.
-                  if (isMember == true)
-                    PdlAppBarAction(
-                      icon: PdlIcons.date,
-                      variant: PdlAppBarVariant.overlay,
-                      semanticLabel: 'trips.addToCalendar'.tr(),
-                      onPressed: () => _openCalendarSubscription(context),
-                    ),
-                  PdlAppBarAction(
-                    icon: PdlIcons.share,
-                    variant: PdlAppBarVariant.overlay,
-                    semanticLabel: 'routes.share'.tr(),
-                    onPressed: () => _share(context),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -506,10 +463,6 @@ class _TripDetailSkeleton extends StatelessWidget {
       ),
       body: ListView(
         children: <Widget>[
-          const PdlSkeleton(
-            height: _kTripHeroHeight,
-            borderRadius: BorderRadius.zero,
-          ),
           Padding(
             padding: const EdgeInsets.all(PdlSpacing.section),
             child: Column(

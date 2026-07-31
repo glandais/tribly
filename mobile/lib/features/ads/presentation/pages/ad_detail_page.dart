@@ -3,7 +3,6 @@ import 'package:flutter/material.dart' hide Visibility;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../api/generated/export.dart';
-import '../../../../api/pedalons_api_client.dart';
 import '../../../../core/pdl/pdl.dart';
 import '../../../../core/theme/enum_colors.dart';
 import '../../../../core/theme/pdl_colors.dart';
@@ -12,7 +11,6 @@ import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
-import '../../../../core/widgets/authenticated_image.dart';
 import '../../../../core/widgets/markdown_content.dart';
 import '../../../../core/widgets/media_attachments.dart';
 import '../../../../core/widgets/team_banner.dart';
@@ -21,9 +19,6 @@ import '../../../auth/providers/auth_provider.dart';
 import '../../data/ad_repository.dart';
 import '../widgets/ad_contact_sheet.dart';
 import '../widgets/ad_location_map.dart';
-
-/// Hauteur de la galerie du détail.
-const double _kGalleryHeight = 260;
 
 final adDetailProvider =
     FutureProvider.family<AdDto, ({String teamSlug, String adSlug})>((
@@ -132,9 +127,14 @@ class _AdDetailContentState extends ConsumerState<_AdDetailContent> {
 
     return Scaffold(
       backgroundColor: c.bg,
+      appBar: PdlAppBar(
+        // Pas de titre : le corps porte déjà le nom en 22/700, juste
+        // dessous. Le répéter en 17 dans la barre le dit deux fois.
+        onBack: () => Navigator.of(context).maybePop(),
+        backSemanticLabel: 'ads.title'.tr(),
+      ),
       body: CustomScrollView(
         slivers: <Widget>[
-          SliverToBoxAdapter(child: _Gallery(ad: ad)),
           SliverPadding(
             padding: const EdgeInsets.all(PdlSpacing.section),
             sliver: SliverList.list(
@@ -237,133 +237,6 @@ class _AdDetailContentState extends ConsumerState<_AdDetailContent> {
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-/// La galerie : balayage horizontal sur `images[]`, points de position, et
-/// l'appui ouvre le plein écran zoomable.
-///
-/// L'app bar est posée **par-dessus** en variante `overlay` : la première
-/// image d'une annonce est ce qui la fait ouvrir, elle a droit à toute la
-/// largeur.
-class _Gallery extends ConsumerStatefulWidget {
-  const _Gallery({required this.ad});
-
-  final AdDto ad;
-
-  @override
-  ConsumerState<_Gallery> createState() => _GalleryState();
-}
-
-class _GalleryState extends ConsumerState<_Gallery> {
-  final PageController _controller = PageController();
-  int _index = 0;
-
-  List<String> get _images => widget.ad.images;
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _openFullScreen(int index) {
-    final String? token = ref.read(accessTokenHolderProvider);
-    final ImageProvider? provider = AuthenticatedDecorationImage.fromUrl(
-      _images[index],
-      token,
-      // La plus grande variante, pas la vignette de la galerie étirée sur
-      // toute la dalle.
-      size: 1920,
-    );
-    if (provider == null) return;
-    PdlImageViewer.show(
-      context,
-      imageProvider: provider,
-      closeSemanticLabel: 'links.imageClose'.tr(),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final Widget media = _images.isEmpty
-        ? PdlCardMedia(
-            tone: PdlMediaTone.ad,
-            icon: PdlIcons.ad,
-            height: _kGalleryHeight,
-          )
-        : PageView.builder(
-            controller: _controller,
-            itemCount: _images.length,
-            onPageChanged: (int index) => setState(() => _index = index),
-            itemBuilder: (BuildContext context, int index) => GestureDetector(
-              onTap: () => _openFullScreen(index),
-              child: Semantics(
-                button: true,
-                label: 'ads.detail.openImage'.tr(
-                  namedArgs: <String, String>{
-                    'index': '${index + 1}',
-                    'count': '${_images.length}',
-                  },
-                ),
-                child: AuthenticatedImage(
-                  imageUrl: _images[index],
-                  size: 1080,
-                  width: double.infinity,
-                  height: _kGalleryHeight,
-                  fit: BoxFit.cover,
-                  placeholder: const PdlSkeleton(
-                    width: double.infinity,
-                    height: _kGalleryHeight,
-                  ),
-                ),
-              ),
-            ),
-          );
-
-    return SizedBox(
-      height: _kGalleryHeight,
-      child: Stack(
-        fit: StackFit.expand,
-        children: <Widget>[
-          media,
-          // Le voile n'est pas décoratif : sans lui, la flèche de retour
-          // blanche disparaît sur une photo claire.
-          const Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: PdlScrim.top(height: 96),
-          ),
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: SafeArea(
-              bottom: false,
-              child: PdlAppBar(
-                variant: PdlAppBarVariant.overlay,
-                onBack: () => Navigator.of(context).maybePop(),
-                backSemanticLabel: 'ads.title'.tr(),
-              ),
-            ),
-          ),
-          if (_images.length > 1)
-            Positioned(
-              bottom: 12,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: PdlGalleryDots(
-                  count: _images.length,
-                  index: _index,
-                  semanticLabel: 'ads.detail.gallery'.tr(),
-                ),
-              ),
-            ),
         ],
       ),
     );
