@@ -99,8 +99,15 @@ jeton ICS. Thème clair et compte `gaby` pas repassés en revue depuis.
       aucun débordement.
 - [ ] **Pièces jointes** — sur chacun des huit écrans à `MediaDto` (sortie, publication, annonce,
       parcours, voyage, étape, page d'équipe, « à propos ») : le bloc apparaît **avec** un fichier
-      et disparaît sans, le bouton ouvre bien le fichier, et un contenu qui ne porte qu'une pièce
-      jointe sans texte affiche quand même le bloc (l'« à propos » ne doit plus se déclarer vide).
+      et disparaît sans, et un contenu qui ne porte qu'une pièce jointe sans texte affiche quand
+      même le bloc (l'« à propos » ne doit plus se déclarer vide).
+- [ ] **Une image jointe se regarde dans l'app** — le tap ouvre la visionneuse zoomable, pas le
+      navigateur ; le sous-titre porte « 1920 × 1080 » quand `imageDimensions` est là ; le bouton
+      rapporte **l'originale** et ouvre la feuille de partage. À vérifier sur un contenu **visible
+      des seuls membres** : c'est le cas où l'ancien `openLink` tombait sur un 403, l'autorisation
+      de `/api/download/…` étant celle du contenu porteur. Un fichier volumineux (>10 Mo) : le
+      bandeau « Téléchargement en cours… » reste visible et l'échec réseau donne un bandeau rouge,
+      jamais une feuille de partage vide.
 - [ ] **Performance** — liste de 200 items : rester au-dessus de 55 fps. Si le `BackdropFilter` des
       barres épinglées coûte trop cher, le repli est **un seul jeton** (`PdlMotion.blurToolbar = 0`,
       surface opaque), aucun écran à rouvrir.

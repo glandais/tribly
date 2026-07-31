@@ -1007,6 +1007,8 @@
   },
   "media": {
     "attachments": "Pièces jointes",
-    "openAttachment": "Ouvrir {file}"
+    "downloadOriginal": "Télécharger l’originale de {file}",
+    "downloadAttachment": "Télécharger {file}",
+    "downloading": "Téléchargement en cours…"
   }
 }

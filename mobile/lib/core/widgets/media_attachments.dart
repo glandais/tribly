@@ -1,16 +1,22 @@
-import 'dart:async';
-
+import 'package:dio/dio.dart' show Dio;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../api/generated/export.dart';
+import '../../api/pedalons_api_client.dart';
 import '../pdl/pdl.dart';
+import '../theme/pdl_colors.dart';
 import '../theme/pdl_icons.dart';
 import '../theme/pdl_tokens.dart';
-import '../utils/link_launcher.dart';
+import '../theme/pdl_typography.dart';
+import '../utils/api_error_handler.dart';
+import 'authenticated_image.dart';
 
 /// Les fichiers joints à un contenu — facture, notice, fiche technique, road
-/// book —, avec de quoi les ouvrir.
+/// book —, avec de quoi les regarder et de quoi les emporter.
 ///
 /// Un seul rendu pour les huit écrans qui portent un `MediaDto` : sortie,
 /// publication, annonce, parcours, voyage, étape, page d'équipe et « à propos ».
@@ -24,7 +30,15 @@ import '../utils/link_launcher.dart';
 ///
 /// `attachments` n'arrive qu'en vue complète : une liste chargée en `COMPACT`
 /// ne le porte pas, ce qui est voulu — une carte ne montre pas de fichiers.
-class MediaAttachments extends StatelessWidget {
+///
+/// **Le téléchargement passe par le `Dio` authentifié, jamais par le
+/// navigateur.** `AssetDto.url` sort sur `/api/download/{visibilité}/…`, et
+/// l'autorisation y est celle du contenu porteur : pour une équipe, une sortie
+/// ou une annonce visibles des seuls membres, une requête sans jeton est
+/// refusée. Confier l'URL au système ouvrirait un onglet sur une erreur 403.
+/// Le fichier est donc rapporté ici, puis remis au système — le même chemin que
+/// l'export GPX d'un parcours.
+class MediaAttachments extends ConsumerStatefulWidget {
   const MediaAttachments({
     super.key,
     required this.attachments,
@@ -37,50 +51,171 @@ class MediaAttachments extends StatelessWidget {
   final double spacingBefore;
 
   @override
+  ConsumerState<MediaAttachments> createState() => _MediaAttachmentsState();
+}
+
+class _MediaAttachmentsState extends ConsumerState<MediaAttachments> {
+  /// L'identifiant du fichier en cours de rapatriement, nul au repos.
+  String? _busyId;
+
+  Object? _error;
+
+  @override
   Widget build(BuildContext context) {
+    final List<AssetDto> attachments = widget.attachments;
     if (attachments.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        SizedBox(height: spacingBefore),
+        SizedBox(height: widget.spacingBefore),
         PdlSectionHeader(title: 'media.attachments'.tr()),
+        // Un bandeau, pas un `SnackBar` : posé en bas d'écran il passerait sous
+        // la barre d'onglets, comme pour les exports d'un parcours.
+        if (_error != null) ...<Widget>[
+          PdlBanner(
+            tone: PdlBannerTone.danger,
+            message: getErrorMessage(_error!),
+            onDismiss: () => setState(() => _error = null),
+            dismissSemanticLabel: 'common.close'.tr(),
+          ),
+          const SizedBox(height: PdlSpacing.chipGap),
+        ],
+        if (_busyId != null) ...<Widget>[
+          PdlBanner(
+            tone: PdlBannerTone.info,
+            message: 'media.downloading'.tr(),
+          ),
+          const SizedBox(height: PdlSpacing.chipGap),
+        ],
         for (int i = 0; i < attachments.length; i++)
           _AttachmentRow(
             asset: attachments[i],
             showDivider: i < attachments.length - 1,
+            onDownload: () => _download(attachments[i]),
           ),
       ],
     );
   }
+
+  /// Rapporte le fichier d'origine, puis le remet au système.
+  ///
+  /// Le partage est ce que la plateforme offre de plus proche d'un
+  /// « enregistrer » : il mène à Fichiers, à une autre application, ou à un
+  /// envoi. Un chemin dans un dossier temporaire, lui, ne mènerait nulle part.
+  Future<void> _download(AssetDto asset) async {
+    if (_busyId != null) return;
+    setState(() {
+      _busyId = asset.id;
+      _error = null;
+    });
+    try {
+      final Dio dio = ref.read(dioProvider);
+      final String path =
+          '${(await getTemporaryDirectory()).path}/${asset.fileName}';
+      await dio.download(asset.url, path);
+      if (!mounted) return;
+      await SharePlus.instance.share(
+        ShareParams(
+          files: <XFile>[XFile(path)],
+          sharePositionOrigin: _origin(),
+        ),
+      );
+    } catch (error) {
+      if (mounted) setState(() => _error = error);
+    } finally {
+      if (mounted) setState(() => _busyId = null);
+    }
+  }
+
+  /// L'ancre de la feuille de partage, qu'un iPad exige.
+  Rect _origin() {
+    final RenderBox? box = context.findRenderObject() as RenderBox?;
+    return box == null ? Rect.zero : box.localToGlobal(Offset.zero) & box.size;
+  }
 }
 
-/// Une ligne de fichier, ouverte par le système.
+/// Une ligne de fichier.
 ///
-/// `AssetDto` ne porte pas de taille : on affiche l'extension seule plutôt
-/// qu'un poids inventé. Une pièce jointe qui est une image a sa vignette, ce
-/// qui évite d'ouvrir un fichier pour savoir lequel c'est.
-class _AttachmentRow extends StatelessWidget {
-  const _AttachmentRow({required this.asset, required this.showDivider});
+/// **Une image se regarde dans l'application**, pas dans le navigateur : le
+/// serveur en sert des variantes redimensionnées par `imageUrl`, la visionneuse
+/// est zoomable, et sortir de l'app pour voir une photo qu'on vient d'y charger
+/// n'a pas de sens. Le bouton reste là pour ce que la visionneuse ne donne
+/// pas : **le fichier d'origine**, dans sa définition entière.
+///
+/// Un fichier qui n'est pas une image n'a rien à afficher : sa ligne n'est pas
+/// tapable, et seul son bouton agit.
+///
+/// `AssetDto` ne porte pas de poids ; `imageDimensions` est donc le seul fait
+/// utile en sous-titre — « 1920 × 1080 » aide à choisir sans ouvrir, un poids
+/// inventé ne le ferait pas.
+class _AttachmentRow extends ConsumerWidget {
+  const _AttachmentRow({
+    required this.asset,
+    required this.showDivider,
+    required this.onDownload,
+  });
 
   final AssetDto asset;
   final bool showDivider;
+  final VoidCallback onDownload;
+
+  bool get _isImage => asset.imageUrl != null;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return PdlAttachmentRow(
       name: asset.fileName,
       type: _extension(asset.fileName) ?? asset.contentType,
       thumbnailUrl: asset.imageUrl,
-      icon: asset.imageUrl == null ? PdlIcons.attachment : PdlIcons.image,
-      onAction: () => unawaited(openLink(context, asset.url)),
-      // **Le libellé nomme le fichier** : « Ouvrir » répété douze fois dans un
-      // lecteur d'écran ne permet pas de choisir.
-      actionSemanticLabel: 'media.openAttachment'.tr(
-        namedArgs: <String, String>{'file': asset.fileName},
-      ),
+      subtitle: _dimensions,
+      icon: _isImage ? PdlIcons.image : PdlIcons.attachment,
+      onTap: _isImage ? () => _view(context, ref) : null,
+      onAction: onDownload,
+      // **Le libellé nomme le fichier** : « Télécharger » répété douze fois
+      // dans un lecteur d'écran ne permet pas de choisir. Et il dit
+      // *l'originale* sur une image, puisque la ligne en montre déjà une
+      // variante réduite et que la visionneuse en montre une autre.
+      actionSemanticLabel:
+          (_isImage ? 'media.downloadOriginal' : 'media.downloadAttachment').tr(
+            namedArgs: <String, String>{'file': asset.fileName},
+          ),
       showDivider: showDivider,
+    );
+  }
+
+  /// « 1920 × 1080 », ou rien : le contrat rend les deux côtés nullables
+  /// séparément, et une moitié de dimension ne se montre pas.
+  String? get _dimensions {
+    final int? width = asset.imageDimensions?.width;
+    final int? height = asset.imageDimensions?.height;
+    if (width == null || height == null) return null;
+    return '$width × $height';
+  }
+
+  void _view(BuildContext context, WidgetRef ref) {
+    final ImageProvider? provider = AuthenticatedDecorationImage.fromUrl(
+      asset.imageUrl,
+      ref.read(accessTokenHolderProvider),
+      // La plus grande variante : la visionneuse zoome, donc la vignette de la
+      // ligne étirée sur toute la dalle se verrait.
+      size: 1920,
+    );
+    if (provider == null) return;
+    PdlImageViewer.show(
+      context,
+      imageProvider: provider,
+      closeSemanticLabel: 'links.imageClose'.tr(),
+      // La légende nomme le fichier : plusieurs photos se suivent souvent, et
+      // rien d'autre à l'écran ne dit laquelle est ouverte. Elle se pose sur le
+      // voile sombre de la visionneuse, dans les deux thèmes — d'où `onPrimary`
+      // et non la couleur de texte courante, qui disparaîtrait en clair.
+      caption: Text(
+        asset.fileName,
+        textAlign: TextAlign.center,
+        style: context.pdlText.sub.copyWith(color: context.pdl.onPrimary),
+      ),
     );
   }
 

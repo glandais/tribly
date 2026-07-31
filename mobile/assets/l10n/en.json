@@ -1007,6 +1007,8 @@
   },
   "media": {
     "attachments": "Attachments",
-    "openAttachment": "Open {file}"
+    "downloadOriginal": "Download the original of {file}",
+    "downloadAttachment": "Download {file}",
+    "downloading": "Downloading…"
   }
 }
