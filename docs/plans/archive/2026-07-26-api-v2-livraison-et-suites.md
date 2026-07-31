@@ -3,6 +3,12 @@
 Document de référence du chantier « API v2 » mené en réponse au §3 de
 [`docs/audit-ux/BRIEF.md`](../../audit-ux/BRIEF.md).
 
+**Ce document s'arrête volontairement au contrat `1.5.0`** et n'est pas tenu à jour au-delà : il garde
+le *pourquoi* de la livraison qu'il décrit, pas l'état courant du contrat. Pour tout ce qui a suivi —
+`1.5.1` (mode compact qui rogne les assets au lieu de les vider), `1.6.0` (`teamSlug` sur
+`GET /api/users/search`), `2.0.0` (suppression de `simplify`/`points`/`…/elevation-profile`, §4.5 de
+[`docs/NEXT.md`](../NEXT.md)) et les versions suivantes — voir `docs/NEXT.md` et l'historique git.
+
 - **Contrat** : `1.2.0` → `1.3.0` (le lot API v2), puis `1.3.0` → `1.4.0` (le relais de contact
   d'annonce, §1.13), puis `1.4.0` → `1.5.0` (le meneur de groupe, §1.14). Trois MINOR : aucun
   retrait, aucun renommage, aucun changement de type.
