@@ -12,13 +12,15 @@ library;
 
 import 'package:flutter/foundation.dart';
 
-/// Nombre de barres visé par l'agrégation.
+/// Nombre de tranches visé par l'agrégation.
 ///
 /// Le profil est dérivé de la géométrie stockée, soit des centaines à des
-/// milliers de sommets ; les dessiner tous sur 402 pt donnerait des barres d'un
-/// pixel et un histogramme illisible. 76 barres à gap 1 px tiennent exactement
-/// la largeur d'un écran de téléphone.
-const int kElevationBarTarget = 76;
+/// milliers de sommets : les peindre tous ferait autant de changements de
+/// couleur que de pixels, et une pente par sommet est de toute façon du bruit.
+/// 160 tranches sur les ~400 pt d'un écran de téléphone donnent une silhouette
+/// lisse — deux à trois pixels par tranche — tout en gardant une pente moyennée
+/// sur une longueur qui veut dire quelque chose.
+const int kElevationBarTarget = 160;
 
 /// Un point de profil : distance cumulée et altitude, toutes deux en mètres.
 ///
@@ -50,7 +52,7 @@ class ElevationPoint {
   String toString() => 'ElevationPoint($distance m, $elevation m, $grade %)';
 }
 
-/// Une barre de l'histogramme : une tranche de distance, une altitude, une
+/// Une tranche du profil : des bornes de distance, une altitude, une
 /// pente moyenne.
 @immutable
 class ElevationBar {
@@ -118,10 +120,10 @@ class ElevationReading {
   int get hashCode => Object.hash(distance, elevation, grade);
 }
 
-/// Un profil prêt à peindre : les points source, et leur agrégation en barres.
+/// Un profil prêt à peindre : les points source, et leur agrégation en tranches.
 ///
 /// L'objet est **immuable et partagé par identité** : `shouldRepaint` du
-/// painter des barres compare `identical`, donc reconstruire le même profil à
+/// painter de l'aire compare `identical`, donc reconstruire le même profil à
 /// chaque frame le repeindrait. Construisez-le une fois, gardez-le.
 @immutable
 class ElevationSamples {
@@ -259,15 +261,27 @@ class ElevationSamples {
 
   /// Hauteur relative d'une barre, dans `[0.10, 0.94]`.
   ///
-  /// Le plancher de 10 % est voulu : une barre de hauteur nulle au point le
-  /// plus bas ferait un trou dans l'histogramme, pas une vallée.
-  double normalizedHeight(ElevationBar bar) {
+  /// Le plancher de 10 % est voulu : une hauteur nulle au point le plus bas
+  /// ferait un trou dans le profil, pas une vallée.
+  double normalizedHeight(ElevationBar bar) =>
+      normalizedElevation(bar.elevation);
+
+  /// Hauteur relative d'une altitude quelconque, dans `[0.10, 0.94]`.
+  ///
+  /// L'aire remplie a besoin d'une hauteur **aux bornes** des tranches, pas
+  /// seulement à leur centre : c'est ce qui rend la ligne continue d'une
+  /// tranche à la suivante.
+  double normalizedElevation(double elevation) {
     final double range = maxElevation - minElevation;
     final double t = range <= 0
         ? 0.0
-        : ((bar.elevation - minElevation) / range).clamp(0.0, 1.0);
+        : ((elevation - minElevation) / range).clamp(0.0, 1.0);
     return 0.10 + (0.94 - 0.10) * t;
   }
+
+  /// Altitude interpolée à l'abscisse [distance], en mètres.
+  double elevationAt(double distance) =>
+      points.isEmpty ? 0 : _interpolate(points, distance);
 
   /// Ce qu'affiche l'info-bulle à l'abscisse [distance].
   ///

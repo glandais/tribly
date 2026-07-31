@@ -1841,7 +1841,7 @@ class _Caption extends StatelessWidget {
 /// Profil de démonstration : 300 points, une bosse et une descente, de quoi
 /// balayer toute l'échelle de pente.
 ///
-/// Construit **une fois** et gardé : le painter des barres compare son profil
+/// Construit **une fois** et gardé : le painter de l'aire compare son profil
 /// par identité, le reconstruire à chaque `build` le ferait repeindre.
 final ElevationSamples _demoProfile = ElevationSamples.fromPoints(
   <ElevationPoint>[

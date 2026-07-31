@@ -146,8 +146,10 @@ void main() {
       expect(samples.totalDistance, index.totalDistance);
       expect(samples.minElevation, 100);
       expect(samples.maxElevation, 100 + 99 * 10);
-      // 99 segments : le plafond de barres n'est plus le facteur limitant.
-      expect(samples.bars, hasLength(kElevationBarTarget));
+      // 99 segments pour 160 tranches visées : c'est la géométrie qui borne,
+      // pas la cible — on n'invente pas de résolution.
+      expect(samples.bars, hasLength(99));
+      expect(99, lessThan(kElevationBarTarget));
     });
 
     test('sans altitude, pas d\'échantillons', () {

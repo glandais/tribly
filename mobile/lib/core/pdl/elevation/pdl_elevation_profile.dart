@@ -6,7 +6,7 @@ import '../../theme/pdl_tokens.dart';
 import '../../theme/pdl_typography.dart';
 import '../pdl_button.dart';
 import '../pdl_skeleton.dart';
-import 'elevation_bars_painter.dart';
+import 'elevation_area_painter.dart';
 import 'elevation_cursor_painter.dart';
 import 'elevation_samples.dart';
 
@@ -20,7 +20,7 @@ typedef ElevationAxisLabel =
 /// Le libellé de l'info-bulle : « 28,7 km · 74 m · 4,1 % ».
 typedef ElevationTipLabel = String Function(ElevationReading reading);
 
-/// Le profil altimétrique : un histogramme colorisé par pente, un réticule et
+/// Le profil altimétrique : une aire remplie colorisée par pente, un réticule et
 /// une info-bulle.
 ///
 /// **Peinture maison, deux couches** (§1.3.1 du plan). Le painter du bas ne
@@ -28,7 +28,7 @@ typedef ElevationTipLabel = String Function(ElevationReading reading);
 /// painter du haut écoute un `ValueListenable<double?>` et ne dessine que le
 /// trait et la bulle. Chacun est isolé dans son `RepaintBoundary`, sans quoi
 /// la peinture du réticule remonterait jusqu'à la première frontière commune
-/// et redescendrait repeindre les barres.
+/// et redescendrait repeindre l'aire.
 ///
 /// **`cursorDistance` n'est pas un provider.** C'est un `ValueNotifier` qui vit
 /// dans le `State` de l'écran, partagé tel quel avec la carte : on ne
@@ -73,7 +73,7 @@ class PdlElevationProfile extends StatefulWidget {
   /// Échec du **seul** profil : une ligne discrète et un « Réessayer ».
   ///
   /// Jamais un écran d'erreur global — la fiche du parcours reste lisible sans
-  /// son histogramme.
+  /// son profil.
   const PdlElevationProfile.failed({
     super.key,
     required String this.label,
@@ -138,7 +138,7 @@ class _PdlElevationProfileState extends State<PdlElevationProfile> {
     widget.onCursorChanged?.call(distance);
   }
 
-  /// La boîte de l'histogramme, dont la géométrie sert à convertir un pointeur
+  /// La boîte du graphique, dont la géométrie sert à convertir un pointeur
   /// en distance.
   ///
   /// Le repère vient de la boîte elle-même et non d'un `LayoutBuilder` : un
@@ -236,7 +236,7 @@ class _PdlElevationProfileState extends State<PdlElevationProfile> {
                       child: CustomPaint(
                         isComplex: true,
                         willChange: false,
-                        painter: ElevationBarsPainter(
+                        painter: ElevationAreaPainter(
                           samples: samples,
                           neutralColor: slopeNeutral,
                           slopeColorOf: slopeColor,

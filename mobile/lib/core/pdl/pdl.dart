@@ -71,7 +71,7 @@ export 'pdl_sheet.dart';
 export 'pdl_stage_rail.dart';
 
 // ── Briques techniques ──────────────────────────────────────────────────────
-export 'elevation/elevation_bars_painter.dart';
+export 'elevation/elevation_area_painter.dart';
 export 'elevation/elevation_cursor_painter.dart';
 export 'elevation/elevation_samples.dart';
 export 'elevation/pdl_elevation_profile.dart';

@@ -9,7 +9,7 @@ import 'elevation_samples.dart';
 /// repeint seul quand elle change. Le `CustomPaint` du dessous n'est pas
 /// invalidé : c'est la raison d'être des deux couches.
 ///
-/// Publique pour la même raison que `ElevationBarsPainter` : les bornes de
+/// Publique pour la même raison que `ElevationAreaPainter` : les bornes de
 /// l'info-bulle se vérifient en appelant `paint` sur un canvas d'essai.
 class ElevationCursorPainter extends CustomPainter {
   ElevationCursorPainter({

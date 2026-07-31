@@ -2,7 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pedalons/core/pdl/elevation/elevation_bars_painter.dart';
+import 'package:pedalons/core/pdl/elevation/elevation_area_painter.dart';
 import 'package:pedalons/core/pdl/elevation/elevation_cursor_painter.dart';
 import 'package:pedalons/core/pdl/elevation/elevation_samples.dart';
 import 'package:pedalons/core/pdl/elevation/pdl_elevation_profile.dart';
@@ -40,6 +40,13 @@ class _RecordingCanvas implements ui.Canvas {
   final List<(ui.RRect, Color)> rrects = <(ui.RRect, Color)>[];
   final List<(ui.Rect, Color)> rects = <(ui.Rect, Color)>[];
 
+  /// Un segment de la ligne de crête : ses deux extrémités et sa couleur.
+  final List<(Offset, Offset, Color)> lines = <(Offset, Offset, Color)>[];
+
+  /// Les aplats sous la ligne : seule leur couleur nous intéresse, la
+  /// silhouette se vérifie sur les segments.
+  final List<Color> fills = <Color>[];
+
   @override
   void drawRRect(ui.RRect rrect, ui.Paint paint) =>
       rrects.add((rrect, paint.color));
@@ -48,31 +55,48 @@ class _RecordingCanvas implements ui.Canvas {
   void drawRect(ui.Rect rect, ui.Paint paint) => rects.add((rect, paint.color));
 
   @override
+  void drawLine(Offset p1, Offset p2, ui.Paint paint) =>
+      lines.add((p1, p2, paint.color));
+
+  @override
+  void drawPath(ui.Path path, ui.Paint paint) => fills.add(paint.color);
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('ElevationBarsPainter', () {
-    test('colorise chaque barre par sa propre pente', () {
+  group('ElevationAreaPainter', () {
+    test('colorise chaque tranche par sa propre pente', () {
       final ElevationSamples samples = _synthetic();
       final _RecordingCanvas canvas = _RecordingCanvas();
 
-      ElevationBarsPainter(
+      ElevationAreaPainter(
         samples: samples,
         neutralColor: slopeNeutral,
         slopeColorOf: slopeColor,
       ).paint(canvas, const Size(380, 110));
 
-      expect(canvas.rrects, hasLength(samples.bars.length));
+      // Une ligne de crête et un aplat par tranche.
+      expect(canvas.lines, hasLength(samples.bars.length));
+      expect(canvas.fills, hasLength(samples.bars.length));
       expect(samples.bars.length, kElevationBarTarget);
 
       // Pente 0 → teinte 85 (vert), pente ≥ 18 % → teinte 255 (violet).
       expect(samples.bars.first.grade, closeTo(0, 1e-9));
       expect(samples.bars.last.grade, closeTo(20, 1e-9));
-      expect(HSLColor.fromColor(canvas.rrects.first.$2).hue, closeTo(85, 1.5));
-      expect(HSLColor.fromColor(canvas.rrects.last.$2).hue, closeTo(255, 1.5));
+      expect(HSLColor.fromColor(canvas.lines.first.$3).hue, closeTo(85, 1.5));
+      expect(HSLColor.fromColor(canvas.lines.last.$3).hue, closeTo(255, 1.5));
+
+      // L'aplat est la même teinte, en translucide : c'est la ligne qui porte
+      // la lecture.
+      expect(
+        HSLColor.fromColor(canvas.fills.first).hue,
+        closeTo(HSLColor.fromColor(canvas.lines.first.$3).hue, 1e-6),
+      );
+      expect(canvas.fills.first.a, lessThan(canvas.lines.first.$3.a));
     });
 
     test('une pente inconnue tombe sur slopeNeutral', () {
@@ -83,7 +107,7 @@ void main() {
           ], targetBars: 1);
       final _RecordingCanvas canvas = _RecordingCanvas();
 
-      ElevationBarsPainter(
+      ElevationAreaPainter(
         samples: samples,
         neutralColor: slopeNeutral,
         slopeColorOf: slopeColor,
@@ -91,34 +115,37 @@ void main() {
 
       // Comparaison sur l'entier ARGB : `Paint.color` fait un aller-retour en
       // flottants, deux couleurs identiques à l'œil n'y sont pas `==`.
-      expect(canvas.rrects.single.$2.toARGB32(), slopeNeutral.toARGB32());
+      expect(canvas.lines.single.$3.toARGB32(), slopeNeutral.toARGB32());
     });
 
-    test(
-      'les barres sont jointives à 1 px de gouttière et alignées en bas',
-      () {
-        final ElevationSamples samples = _synthetic(count: 5);
-        final _RecordingCanvas canvas = _RecordingCanvas();
-        const Size size = Size(101, 110);
+    test('la silhouette est continue et couvre toute la largeur', () {
+      final ElevationSamples samples = _synthetic(count: 5);
+      final _RecordingCanvas canvas = _RecordingCanvas();
+      const Size size = Size(101, 110);
 
-        ElevationBarsPainter(
-          samples: samples,
-          neutralColor: slopeNeutral,
-          slopeColorOf: slopeColor,
-        ).paint(canvas, size);
+      ElevationAreaPainter(
+        samples: samples,
+        neutralColor: slopeNeutral,
+        slopeColorOf: slopeColor,
+      ).paint(canvas, size);
 
-        final int n = samples.bars.length;
-        final double barWidth = (size.width - (n - 1)) / n;
-        expect(canvas.rrects.first.$1.left, closeTo(0, 1e-9));
-        expect(canvas.rrects.first.$1.width, closeTo(barWidth, 1e-9));
-        expect(canvas.rrects.last.$1.right, closeTo(size.width, 1e-9));
-        for (final (ui.RRect r, Color _) in canvas.rrects) {
-          expect(r.bottom, closeTo(size.height, 1e-9));
-          expect(r.tlRadiusY, 1);
-          expect(r.blRadiusY, 0);
-        }
-      },
-    );
+      expect(canvas.lines.first.$1.dx, closeTo(0, 1e-9));
+      expect(canvas.lines.last.$2.dx, closeTo(size.width, 1e-9));
+
+      // Chaque segment repart exactement d'où le précédent s'arrête : c'est ce
+      // qui distingue une aire d'un histogramme, et ce qu'une altitude prise au
+      // centre des tranches casserait.
+      for (int i = 1; i < canvas.lines.length; i++) {
+        expect(canvas.lines[i].$1.dx, closeTo(canvas.lines[i - 1].$2.dx, 1e-9));
+        expect(canvas.lines[i].$1.dy, closeTo(canvas.lines[i - 1].$2.dy, 1e-9));
+      }
+
+      // Et rien ne sort de la boîte.
+      for (final (Offset a, Offset b, Color _) in canvas.lines) {
+        expect(a.dy, inInclusiveRange(0, size.height));
+        expect(b.dy, inInclusiveRange(0, size.height));
+      }
+    });
   });
 
   group('ElevationCursorPainter', () {
@@ -225,7 +252,7 @@ void main() {
       );
       await tester.pump();
 
-      final int before = ElevationBarsPainter.debugPaintCount;
+      final int before = ElevationAreaPainter.debugPaintCount;
       expect(before, greaterThan(0));
 
       final TestGesture gesture = await tester.startGesture(
@@ -245,8 +272,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 200));
       expect(cursor.value, held);
 
-      // …sans qu'une seule barre ait été repeinte.
-      expect(ElevationBarsPainter.debugPaintCount, before);
+      // …sans que l'aire ait été repeinte une seule fois.
+      expect(ElevationAreaPainter.debugPaintCount, before);
     });
 
     testWidgets('un tap sous la boîte efface le réticule', (
