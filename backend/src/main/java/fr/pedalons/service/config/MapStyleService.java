@@ -2,6 +2,7 @@ package fr.pedalons.service.config;
 
 import fr.pedalons.common.exception.NotFoundException;
 import fr.pedalons.dto.config.MapStyleDto;
+import fr.pedalons.service.security.annotation.Public;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
@@ -68,7 +69,12 @@ public class MapStyleService {
    * <p>Modelled as a {@code Map} rather than a record tree because the target is the MapLibre style
    * specification, not our API: typing a dozen records against someone else's schema would buy
    * nothing and would have to follow their versions.
+   *
+   * <p>{@code @Public} for the same reason {@code ConfigService.getConfig()} is: this is deployment
+   * configuration, identical for every visitor, and it is fetched by the map engine itself — MapLibre
+   * takes a URL and issues its own request, carrying none of our headers.
    */
+  @Public
   public Map<String, Object> generatedStyle(String id) {
     MapConfig.Raster raster =
         mapConfig.styles().stream()
