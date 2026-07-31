@@ -124,32 +124,44 @@ class PdlButton extends StatelessWidget {
     final double iconSize = isText ? 16 : 18;
     final String shownLabel = loading ? (loadingLabel ?? label) : label;
 
-    final Widget content = Row(
-      mainAxisSize: fullWidth ? MainAxisSize.max : MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        if (loading) ...<Widget>[
-          SizedBox(
-            width: iconSize,
-            height: iconSize,
-            child: CircularProgressIndicator(strokeWidth: 2, color: foreground),
-          ),
-          SizedBox(width: isText ? 5 : 8),
-        ] else if (icon != null) ...<Widget>[
-          Icon(icon, size: iconSize, color: foreground),
-          SizedBox(width: isText ? 5 : 8),
-        ],
-        Flexible(
-          child: Text(
-            shownLabel,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: baseStyle.copyWith(color: foreground),
-          ),
-        ),
-      ],
-    );
+    // Un bouton sans libellé — device, partage — n'est pas un bouton texte
+    // avec une icône devant : c'est une icône seule. Lui garder la
+    // même rangée [icône, gouttière, `Text` vide] la décentrait, le `Text`
+    // vide occupant quand même un créneau que la rangée centrait avec le
+    // reste. Carré, sans gouttière, l'icône y est seule au milieu.
+    final bool iconOnly = !loading && icon != null && shownLabel.isEmpty;
+
+    final Widget content = iconOnly
+        ? Icon(icon, size: iconSize, color: foreground)
+        : Row(
+            mainAxisSize: fullWidth ? MainAxisSize.max : MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              if (loading) ...<Widget>[
+                SizedBox(
+                  width: iconSize,
+                  height: iconSize,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: foreground,
+                  ),
+                ),
+                SizedBox(width: isText ? 5 : 8),
+              ] else if (icon != null) ...<Widget>[
+                Icon(icon, size: iconSize, color: foreground),
+                SizedBox(width: isText ? 5 : 8),
+              ],
+              Flexible(
+                child: Text(
+                  shownLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: baseStyle.copyWith(color: foreground),
+                ),
+              ),
+            ],
+          );
 
     return Semantics(
       button: true,
@@ -172,12 +184,16 @@ class PdlButton extends StatelessWidget {
           child: ConstrainedBox(
             constraints: BoxConstraints(
               minHeight: PdlMetrics.tapTarget,
-              minWidth: fullWidth ? double.infinity : 0,
+              minWidth: iconOnly
+                  ? PdlMetrics.tapTarget
+                  : (fullWidth ? double.infinity : 0),
             ),
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: horizontal),
-              child: content,
-            ),
+            child: iconOnly
+                ? Center(child: content)
+                : Padding(
+                    padding: EdgeInsets.symmetric(horizontal: horizontal),
+                    child: content,
+                  ),
           ),
         ),
       ),

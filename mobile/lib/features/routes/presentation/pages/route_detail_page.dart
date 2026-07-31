@@ -126,9 +126,17 @@ class _RouteDetailPageState extends ConsumerState<RouteDetailPage> {
             },
             headerBuilder: (BuildContext context, double extent) =>
                 RouteSheetHeader(route: route, extent: extent),
-            footer: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 22),
-              child: RouteDownloadActions(route: route),
+            footer: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  16,
+                  10,
+                  16,
+                  PdlSpacing.chipGap,
+                ),
+                child: RouteDownloadActions(route: route),
+              ),
             ),
             bodyBuilder: (BuildContext context, ScrollController controller) =>
                 _sheetBody(route, cursor, controller),
