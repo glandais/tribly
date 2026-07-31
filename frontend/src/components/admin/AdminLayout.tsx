@@ -1,6 +1,6 @@
 import { Link, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Container, Group, Title, Anchor, Box } from '@mantine/core'
+import { Container, Group, Title, Anchor, Box, Stack } from '@mantine/core'
 import {
   IconArrowLeft,
   IconDashboard,
@@ -57,24 +57,27 @@ export function AdminLayout({ currentTab, children }: AdminLayoutProps) {
 
   return (
     <Container size="xl" py="xl">
-      {/* Header with back link */}
-      <Box>
-        <Anchor component={Link} to={paths.home()} c="dimmed" size="sm">
-          <Group gap={4}>
-            <IconArrowLeft size={16} />
-            {t('admin.backToApp')}
-          </Group>
-        </Anchor>
-        <Title order={2} mt="xs">
-          {t('admin.title')}
-        </Title>
-      </Box>
+      {/* Same vertical rhythm as HomeLayout/TeamLayout, which wrap their nav row in a Stack */}
+      <Stack>
+        {/* Header with back link */}
+        <Box>
+          <Anchor component={Link} to={paths.home()} c="dimmed" size="sm">
+            <Group gap={4}>
+              <IconArrowLeft size={16} />
+              {t('admin.backToApp')}
+            </Group>
+          </Anchor>
+          <Title order={2} mt="xs">
+            {t('admin.title')}
+          </Title>
+        </Box>
 
-      {/* Admin Navigation */}
-      <NavButtons items={tabs} currentId={currentTab} />
+        {/* Admin Navigation */}
+        <NavButtons items={tabs} currentId={currentTab} label={t('nav.landmark.admin')} />
 
-      {/* Page Content */}
-      <Box>{children}</Box>
+        {/* Page Content */}
+        <Box>{children}</Box>
+      </Stack>
     </Container>
   )
 }

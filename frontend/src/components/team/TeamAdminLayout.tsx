@@ -1,6 +1,6 @@
 import { Link, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Container, Group, Title, Anchor, Box } from '@mantine/core'
+import { Container, Group, Title, Anchor, Box, Stack } from '@mantine/core'
 import {
   IconArrowLeft,
   IconCalendarRepeat,
@@ -73,24 +73,31 @@ export function TeamAdminLayout({ team, currentTab, children }: TeamAdminLayoutP
 
   return (
     <Container size="xl" py="xl">
-      {/* Header with back link */}
-      <Box>
-        <Anchor component={Link} to={paths.team(team.slug)} c="dimmed" size="sm">
-          <Group gap={4}>
-            <IconArrowLeft size={16} />
-            {t('teams.admin.backToTeam', { teamName: team.name })}
-          </Group>
-        </Anchor>
-        <Title order={2} mt="xs">
-          {t('teams.admin.title')}
-        </Title>
-      </Box>
+      {/* Same vertical rhythm as HomeLayout/TeamLayout, which wrap their nav row in a Stack */}
+      <Stack>
+        {/* Header with back link */}
+        <Box>
+          <Anchor component={Link} to={paths.team(team.slug)} c="dimmed" size="sm">
+            <Group gap={4}>
+              <IconArrowLeft size={16} />
+              {t('teams.admin.backToTeam', { teamName: team.name })}
+            </Group>
+          </Anchor>
+          <Title order={2} mt="xs">
+            {t('teams.admin.title')}
+          </Title>
+        </Box>
 
-      {/* Admin Navigation */}
-      <NavButtons items={visibleTabs} currentId={currentTab} />
+        {/* Admin Navigation */}
+        <NavButtons
+          items={visibleTabs}
+          currentId={currentTab}
+          label={t('nav.landmark.teamAdmin')}
+        />
 
-      {/* Page Content */}
-      <Box>{children}</Box>
+        {/* Page Content */}
+        <Box>{children}</Box>
+      </Stack>
     </Container>
   )
 }

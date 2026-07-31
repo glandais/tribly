@@ -114,7 +114,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
       </Group>
 
       {/* Team Navigation */}
-      <NavButtons items={tabs} currentId={currentTab} />
+      <NavButtons items={tabs} currentId={currentTab} label={t('nav.landmark.team')} />
 
       {/* Page Content */}
       <div>{children}</div>
