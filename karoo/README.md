@@ -19,12 +19,14 @@ Hammerhead Karoo extension for syncing routes from Pédalons directly to your de
 
 ### From APK
 
-1. Download the latest APK from releases
+1. Download `pedalons.apk` from the [latest release](https://github.com/glandais/tribly/releases?q=karoo) —
+   releases are tagged `karoo.X.Y.Z` and built automatically by
+   `.github/workflows/karoo-release.yml`
 2. Enable ADB on your Karoo (Settings > Advanced > Developer Options)
 3. Connect via USB or WiFi ADB
 4. Install:
    ```bash
-   adb install -r app-release.apk
+   adb install -r pedalons.apk
    ```
 
 ### From Source
