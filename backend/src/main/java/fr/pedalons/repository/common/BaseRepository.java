@@ -63,6 +63,15 @@ public interface BaseRepository<T> extends PanacheRepository<T> {
     throw new NonUniqueResultException("Query returned more than one result");
   }
 
+  /**
+   * Every row matching {@code pedalonsQuery}, with no {@code LIMIT} applied — {@code page}/{@code
+   * size} on the query that built it are silently ignored. Only reach for this when the caller
+   * genuinely wants every match (the ICS calendar feed, a GDPR export). A caller that wants a
+   * bounded result must use {@link #getPage} — e.g. {@link TeamEntityRepository#find}, not {@link
+   * TeamEntityRepository#findAll} — or it will read the whole table thinking {@code size(...)}
+   * bounded it. That exact mistake sent 2600+ rows through a Karoo API response capped at 100KB
+   * ({@code DeviceRouteService}, 2026-08).
+   */
   default List<T> findAll(PedalonsQuery pedalonsQuery) {
     PanacheQuery<T> panacheQuery = find(pedalonsQuery.getStringQuery(), pedalonsQuery.getParams());
     return panacheQuery.list();

@@ -48,6 +48,16 @@ public class DeviceRouteService {
 
   private static final int LATEST_ROUTES_PER_TEAM = 10;
 
+  /**
+   * Karoo System Service caps HTTP responses at 100KB (see karoo/CLAUDE.md). Per-team limits alone
+   * don't bound the response: a user in many teams, or with one very active team, can still blow
+   * past that cap once every membership's rides and routes are concatenated. These caps apply to
+   * the merged, sorted lists so the payload stays bounded regardless of team count.
+   */
+  private static final int MAX_RIDES_IN_RESPONSE = 20;
+
+  private static final int MAX_ROUTES_IN_RESPONSE = 20;
+
   @Inject PedalonsQueryContext pedalonsContext;
   @Inject UserTeamRepository userTeamRepository;
   @Inject RideRepository rideRepository;
@@ -113,7 +123,14 @@ public class DeviceRouteService {
     List<DeviceRouteDto> routes =
         allRoutes.stream().map(RouteWithDistance::dto).collect(Collectors.toList());
 
-    return DeviceRoutesResponse.builder().rides(allRides).routes(routes).build();
+    List<DeviceRideDto> boundedRides =
+        allRides.size() > MAX_RIDES_IN_RESPONSE
+            ? allRides.subList(0, MAX_RIDES_IN_RESPONSE)
+            : allRides;
+    List<DeviceRouteDto> boundedRoutes =
+        routes.size() > MAX_ROUTES_IN_RESPONSE ? routes.subList(0, MAX_ROUTES_IN_RESPONSE) : routes;
+
+    return DeviceRoutesResponse.builder().rides(boundedRides).routes(boundedRoutes).build();
   }
 
   /**
@@ -148,7 +165,10 @@ public class DeviceRouteService {
             .platformAdmin(false)
             .build();
 
-    List<Ride> rides = rideRepository.findAll(query);
+    // find(), not findAll(): findAll() ignores page/size entirely (it's meant for callers that
+    // genuinely want every match, e.g. the ICS calendar feed), so it would silently return every
+    // ride in the window instead of respecting size(50) above.
+    List<Ride> rides = rideRepository.find(query).items();
 
     List<Ride> publishedRides =
         rides.stream().filter(r -> r.getStatus() == Status.PUBLISHED).toList();
@@ -242,7 +262,9 @@ public class DeviceRouteService {
             .platformAdmin(false)
             .build();
 
-    List<Route> routes = routeRepository.findAll(query);
+    // find(), not findAll(): see the comment in getRidesWithEntries — findAll() would ignore
+    // size(LATEST_ROUTES_PER_TEAM) and return every published route on the team.
+    List<Route> routes = routeRepository.find(query).items();
 
     return routes.stream()
         .filter(r -> r.getStatus() == Status.PUBLISHED)

@@ -124,6 +124,13 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
     return findOne(pedalonsQuery);
   }
 
+  /**
+   * Every row matching {@code query}, with no {@code LIMIT} applied. {@code query.page()}/{@code
+   * query.size()} are built into {@code query} but never read here — see {@link
+   * BaseRepository#findAll(PedalonsQuery)}. If the caller wants a bounded list, use {@link #find}
+   * instead, and take {@code .items()} off the returned {@link
+   * fr.pedalons.dto.common.PedalonsPage}.
+   */
   default List<T> findAll(Q query) {
     PedalonsQuery pedalonsQuery = getPedalonsQuery(query, true);
     return findAll(pedalonsQuery);
