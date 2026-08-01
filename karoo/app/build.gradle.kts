@@ -25,8 +25,8 @@ android {
         // Karoo is Android 12 -> targetSdk must be 32
         //noinspection ExpiredTargetSdkVersion
         targetSdk = 32
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = System.getenv("KAROO_VERSION_CODE")?.toIntOrNull() ?: 1
+        versionName = System.getenv("KAROO_VERSION_NAME") ?: "1.0.0"
     }
 
     signingConfigs {

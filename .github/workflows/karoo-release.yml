@@ -1,0 +1,66 @@
+name: Karoo Release
+
+on:
+  push:
+    tags: ['karoo.*']
+
+jobs:
+  release:
+    name: Build and release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Parse version from tag
+        id: version
+        run: |
+          TAG="${GITHUB_REF_NAME#karoo.}"
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$TAG"
+          CODE=$((MAJOR * 10000 + MINOR * 100 + PATCH))
+          echo "name=$TAG" >> "$GITHUB_OUTPUT"
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Decode keystore
+        working-directory: ./karoo
+        run: echo "${{ secrets.KAROO_KEYSTORE_BASE64 }}" | base64 -d > release.keystore
+
+      - name: Write keystore.properties
+        working-directory: ./karoo
+        run: |
+          cat > keystore.properties <<EOF
+          storeFile=release.keystore
+          storePassword=${{ secrets.KAROO_KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.KAROO_KEY_ALIAS }}
+          keyPassword=${{ secrets.KAROO_KEY_PASSWORD }}
+          EOF
+
+      - name: Build signed release APK
+        working-directory: ./karoo
+        env:
+          USERNAME: ${{ secrets.GPR_USER }}
+          TOKEN: ${{ secrets.GPR_KEY }}
+          KAROO_VERSION_NAME: ${{ steps.version.outputs.name }}
+          KAROO_VERSION_CODE: ${{ steps.version.outputs.code }}
+        run: ./gradlew assembleRelease
+
+      - name: Clean up keystore
+        if: always()
+        working-directory: ./karoo
+        run: rm -f release.keystore keystore.properties
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: karoo/app/build/outputs/apk/release/app-release.apk
+          generate_release_notes: true

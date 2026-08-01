@@ -93,6 +93,23 @@ gpruser=YOUR_GITHUB_USERNAME
 gprkey=YOUR_GITHUB_TOKEN
 ```
 
+## Release
+
+Pushing a tag matching `karoo.X.Y.Z` (e.g. `karoo.1.2.3`) triggers
+`.github/workflows/karoo-release.yml`, which builds a signed release APK and publishes it
+as a GitHub Release (see [PUBLISH.md](PUBLISH.md)). `versionCode`/`versionName` are
+derived from the tag at build time (`major*10000 + minor*100 + patch`), not from
+`app/build.gradle.kts` — the hardcoded `1`/`1.0.0` there only apply to local builds.
+
+```bash
+git tag karoo.1.2.3
+git push origin karoo.1.2.3
+```
+
+Signing secrets (`KAROO_KEYSTORE_BASE64`, `KAROO_KEYSTORE_PASSWORD`, `KAROO_KEY_ALIAS`,
+`KAROO_KEY_PASSWORD`) live in the repo's GitHub Actions secrets, alongside `GPR_USER`/
+`GPR_KEY` used for GitHub Packages auth.
+
 ## API Endpoints Used
 
 | Endpoint | Purpose |
