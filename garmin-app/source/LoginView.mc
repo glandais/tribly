@@ -76,7 +76,7 @@ class LoginView extends WatchUi.View {
             layout.draw(
                 dc,
                 centerX,
-                Graphics.FONT_NUMBER_HOT,
+                Graphics.FONT_LARGE,
                 _userCode,
                 null,
                 Graphics.COLOR_WHITE
