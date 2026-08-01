@@ -207,6 +207,11 @@ class _AboutCard extends ConsumerWidget {
             showDivider: true,
           ),
           PdlSettingRow(
+            title: 'profile.apps'.tr(),
+            onTap: () => context.push(Paths.apps()),
+            showDivider: true,
+          ),
+          PdlSettingRow(
             title: 'profile.privacy'.tr(),
             onTap: () => context.push(Paths.privacy()),
             showDivider: true,

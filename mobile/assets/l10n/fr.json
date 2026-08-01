@@ -723,6 +723,7 @@
     "language": "Langue",
     "version": "Version",
     "serverVersion": "Version du serveur",
+    "apps": "Applications",
     "privacy": "Politique de confidentialité",
     "terms": "Conditions d'utilisation",
     "theme": "Thème",
@@ -809,6 +810,40 @@
       "delete": "Supprimer le compte",
       "deleteTitle": "Voulez-vous vraiment supprimer votre compte ?",
       "deleteMessage": "Cette action est irréversible. Vos inscriptions, vos commentaires et votre profil seront définitivement supprimés."
+    }
+  },
+  "apps": {
+    "title": "Applications",
+    "subtitle": "Suivez vos sorties partout : montre GPS, téléphone ou navigateur.",
+    "karoo": {
+      "title": "Karoo",
+      "description": "Suivez vos sorties directement sur votre Hammerhead Karoo.",
+      "download": "Télécharger l'APK"
+    },
+    "mobile": {
+      "title": "Application mobile",
+      "description": "L'application mobile arrive bientôt."
+    },
+    "garmin": {
+      "title": "Garmin",
+      "description": "L'application compagnon Garmin arrive bientôt."
+    },
+    "status": {
+      "available": "Disponible",
+      "comingSoon": "Bientôt disponible"
+    },
+    "signup": {
+      "title": "Devenir testeur·se",
+      "subtitle": "Laissez votre email pour être averti·e dès qu'une bêta ouvre, sur n'importe laquelle de ces applications.",
+      "emailLabel": "Email",
+      "submit": "S'inscrire",
+      "validation": {
+        "email": "Email invalide"
+      },
+      "sent": {
+        "title": "Inscription enregistrée",
+        "message": "Merci ! On vous recontacte dès qu'une bêta ouvre."
+      }
     }
   },
   "dialog": {

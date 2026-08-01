@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/apps/presentation/pages/apps_page.dart';
 import '../features/auth/presentation/pages/forgot_password_page.dart';
 import '../features/auth/presentation/pages/login_page.dart';
 import '../features/auth/presentation/pages/reset_password_page.dart';
@@ -77,6 +78,7 @@ String _allRoutesAncestor(Map<String, String> p, String locale) =>
 final List<_DeepLinkHierarchy> _deepLinkHierarchies = [
   // Standalone pages outside any shell: without an ancestor they would be the
   // only entry in the stack, leaving no way back into the app.
+  _DeepLinkHierarchy(patterns: PathVariants.apps(), ancestors: [_homeAncestor]),
   _DeepLinkHierarchy(
     patterns: PathVariants.privacy(),
     ancestors: [_homeAncestor],
@@ -219,6 +221,7 @@ final Set<String> _authAdjacentPaths = <String>{
   ...PathVariants.resetPassword().values,
   ...PathVariants.privacy().values,
   ...PathVariants.terms().values,
+  ...PathVariants.apps().values,
 };
 
 final Set<String> _loginPaths = PathVariants.login().values.toSet();
@@ -582,6 +585,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
+
+      // Companion apps page (outside shell, accessible without auth)
+      ..._perLocale(PathVariants.apps(), (ctx, st) => const AppsPage()),
 
       // Legal pages (outside shell, accessible without auth)
       ..._perLocale(

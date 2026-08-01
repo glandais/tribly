@@ -4,6 +4,7 @@
 
 import 'package:dio/dio.dart' hide Headers;
 
+import 'clients/admin_beta_signups_client.dart';
 import 'clients/admin_domains_client.dart';
 import 'clients/admin_social_client.dart';
 import 'clients/admin_teams_client.dart';
@@ -11,6 +12,7 @@ import 'clients/admin_users_client.dart';
 import 'clients/authentication_client.dart';
 import 'clients/passkeys_client.dart';
 import 'clients/strava_authentication_client.dart';
+import 'clients/beta_signups_client.dart';
 import 'clients/calendar_client.dart';
 import 'clients/configuration_client.dart';
 import 'clients/device_user_client.dart';
@@ -41,7 +43,7 @@ import 'clients/trip_comments_client.dart';
 import 'clients/tiles_client.dart';
 import 'clients/server_version_client.dart';
 
-/// Pedalons API `v3.0.0`.
+/// Pedalons API `v3.1.0`.
 ///
 /// API for Pedalons Cycling Team Management Platform.
 class PedalonsApiClient {
@@ -54,8 +56,9 @@ class PedalonsApiClient {
   final Dio _dio;
   final String? _baseUrl;
 
-  static String get version => '3.0.0';
+  static String get version => '3.1.0';
 
+  AdminBetaSignupsClient? _adminBetaSignups;
   AdminDomainsClient? _adminDomains;
   AdminSocialClient? _adminSocial;
   AdminTeamsClient? _adminTeams;
@@ -63,6 +66,7 @@ class PedalonsApiClient {
   AuthenticationClient? _authentication;
   PasskeysClient? _passkeys;
   StravaAuthenticationClient? _stravaAuthentication;
+  BetaSignupsClient? _betaSignups;
   CalendarClient? _calendar;
   ConfigurationClient? _configuration;
   DeviceUserClient? _deviceUser;
@@ -93,6 +97,9 @@ class PedalonsApiClient {
   TilesClient? _tiles;
   ServerVersionClient? _serverVersion;
 
+  AdminBetaSignupsClient get adminBetaSignups =>
+      _adminBetaSignups ??= AdminBetaSignupsClient(_dio, baseUrl: _baseUrl);
+
   AdminDomainsClient get adminDomains =>
       _adminDomains ??= AdminDomainsClient(_dio, baseUrl: _baseUrl);
 
@@ -116,6 +123,9 @@ class PedalonsApiClient {
         _dio,
         baseUrl: _baseUrl,
       );
+
+  BetaSignupsClient get betaSignups =>
+      _betaSignups ??= BetaSignupsClient(_dio, baseUrl: _baseUrl);
 
   CalendarClient get calendar =>
       _calendar ??= CalendarClient(_dio, baseUrl: _baseUrl);

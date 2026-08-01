@@ -43,6 +43,12 @@ export const paths = {
   },
   deviceVerifyGarmin: () => '/garmin',
   deviceVerifyKaroo: () => '/karoo',
+  apps: () => {
+    switch (getCurrentLocale()) {
+      case 'fr': return '/applications'
+      default: return '/apps'
+    }
+  },
   privacy: () => {
     switch (getCurrentLocale()) {
       case 'fr': return '/confidentialite'
@@ -375,6 +381,7 @@ export const pathVariants = {
   completeAccount: (): Record<Locale, string> => ({ en: '/complete-account', fr: '/completer-le-compte' }),
   deviceVerifyGarmin: (): Record<Locale, string> => ({ en: '/garmin', fr: '/garmin' }),
   deviceVerifyKaroo: (): Record<Locale, string> => ({ en: '/karoo', fr: '/karoo' }),
+  apps: (): Record<Locale, string> => ({ en: '/apps', fr: '/applications' }),
   privacy: (): Record<Locale, string> => ({ en: '/privacy', fr: '/confidentialite' }),
   terms: (): Record<Locale, string> => ({ en: '/terms', fr: '/cgu' }),
   profile: (): Record<Locale, string> => ({ en: '/profile', fr: '/profil' }),

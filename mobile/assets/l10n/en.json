@@ -723,6 +723,7 @@
     "language": "Language",
     "version": "Version",
     "serverVersion": "Server version",
+    "apps": "Apps",
     "privacy": "Privacy policy",
     "terms": "Terms of use",
     "theme": "Theme",
@@ -809,6 +810,40 @@
       "delete": "Delete the account",
       "deleteTitle": "Do you really want to delete your account?",
       "deleteMessage": "This cannot be undone. Your registrations, your comments and your profile will be permanently deleted."
+    }
+  },
+  "apps": {
+    "title": "Apps",
+    "subtitle": "Track your rides anywhere: GPS watch, phone or browser.",
+    "karoo": {
+      "title": "Karoo",
+      "description": "Track your rides directly on your Hammerhead Karoo.",
+      "download": "Download the APK"
+    },
+    "mobile": {
+      "title": "Mobile app",
+      "description": "The mobile app is coming soon."
+    },
+    "garmin": {
+      "title": "Garmin",
+      "description": "The Garmin companion app is coming soon."
+    },
+    "status": {
+      "available": "Available",
+      "comingSoon": "Coming soon"
+    },
+    "signup": {
+      "title": "Become a tester",
+      "subtitle": "Leave your email to be notified as soon as a beta opens, for any of these apps.",
+      "emailLabel": "Email",
+      "submit": "Sign up",
+      "validation": {
+        "email": "Invalid email"
+      },
+      "sent": {
+        "title": "Sign-up recorded",
+        "message": "Thanks! We'll get in touch as soon as a beta opens."
+      }
     }
   },
   "dialog": {

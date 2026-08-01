@@ -266,6 +266,12 @@ export function Layout() {
             <Text c="dimmed" size="sm">
               ·
             </Text>
+            <Anchor component={Link} to={paths.apps()} c="dimmed" size="sm">
+              {t('footer.apps')}
+            </Anchor>
+            <Text c="dimmed" size="sm">
+              ·
+            </Text>
             <Anchor component={Link} to={paths.privacy()} c="dimmed" size="sm">
               {t('footer.privacy')}
             </Anchor>

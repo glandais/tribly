@@ -3,6 +3,7 @@
 // ignore_for_file: type=lint, unused_import, invalid_annotation_target, unnecessary_import
 
 // Clients
+export 'clients/admin_beta_signups_client.dart';
 export 'clients/admin_domains_client.dart';
 export 'clients/admin_social_client.dart';
 export 'clients/admin_teams_client.dart';
@@ -10,6 +11,7 @@ export 'clients/admin_users_client.dart';
 export 'clients/authentication_client.dart';
 export 'clients/passkeys_client.dart';
 export 'clients/strava_authentication_client.dart';
+export 'clients/beta_signups_client.dart';
 export 'clients/calendar_client.dart';
 export 'clients/configuration_client.dart';
 export 'clients/device_user_client.dart';
@@ -65,6 +67,9 @@ export 'models/asset_type_request.dart';
 export 'models/assets_dto.dart';
 export 'models/assign_platform_role_request.dart';
 export 'models/auth_response.dart';
+export 'models/beta_signup_dto.dart';
+export 'models/beta_signup_list_response.dart';
+export 'models/beta_signup_request.dart';
 export 'models/bounds_dto.dart';
 export 'models/calendar_event_dto.dart';
 export 'models/calendar_event_type.dart';

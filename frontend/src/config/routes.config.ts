@@ -27,6 +27,7 @@ import {
   routeMeta,
   adMeta,
   gpxPreviewMeta,
+  appsMeta,
 } from './routeMeta'
 import { PUBLICATION_PAGE_SIZE } from '@/hooks/filters/publicationFilters'
 import { TEAM_PAGE_SIZE } from '@/hooks/filters/teamFilters'
@@ -232,6 +233,7 @@ const PrivacyPolicyPage = lazy(() =>
 const TermsOfServicePage = lazy(() =>
   import('../pages/legal/TermsOfServicePage').then((m) => ({ default: m.TermsOfServicePage }))
 )
+const AppsPage = lazy(() => import('../pages/apps/AppsPage').then((m) => ({ default: m.AppsPage })))
 
 export const routesConfig: RoutesConfig = [
   // === Home ===
@@ -333,6 +335,17 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'gpx-tools-view',
     breadcrumb: { type: 'static', i18nKey: tRegister('gpxTools.edit.title') },
+  },
+
+  // === Apps ===
+  {
+    id: 'apps',
+    paths: pathVariants.apps(),
+    component: AppsPage,
+    auth: 'public',
+    parentId: null,
+    breadcrumb: { type: 'static', i18nKey: tRegister('apps.title') },
+    meta: appsMeta,
   },
 
   // === Legal Routes ===

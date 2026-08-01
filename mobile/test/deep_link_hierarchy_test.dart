@@ -40,6 +40,7 @@ class _LinkCase {
 /// Every entry of `_deepLinkHierarchies`, in the same order.
 final List<_LinkCase> _cases = [
   // Standalone pages outside any shell → back to home.
+  _LinkCase('apps', PathVariants.apps(), [PathVariants.home()]),
   _LinkCase('privacy', PathVariants.privacy(), [PathVariants.home()]),
   _LinkCase('terms', PathVariants.terms(), [PathVariants.home()]),
   _LinkCase('deviceVerifyGarmin', PathVariants.deviceVerifyGarmin(), [

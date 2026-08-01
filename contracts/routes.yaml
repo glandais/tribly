@@ -105,6 +105,15 @@ routes:
     mobile: true
     deeplink: true
 
+  # --- Apps ---
+  - id: apps
+    path:
+      en: /apps
+      fr: /applications
+    web: true
+    mobile: true
+    deeplink: true
+
   # --- Legal ---
   - id: privacy
     path:

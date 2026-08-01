@@ -59,6 +59,8 @@
                 <data android:path="/nouveau-mot-de-passe" />
                 <data android:path="/garmin" />
                 <data android:path="/karoo" />
+                <data android:path="/apps" />
+                <data android:path="/applications" />
                 <data android:path="/privacy" />
                 <data android:path="/confidentialite" />
                 <data android:path="/terms" />
