@@ -301,9 +301,20 @@ private fun MainScreen(
                 is NavState.Home -> {
                     val response = routesResponse
                     if (response != null) {
+                        val routesFirst = response.rides.isEmpty()
                         when (selectedIndex) {
-                            0 -> navigateTo(NavState.RideList(response.rides))
-                            1 -> navigateTo(NavState.RouteList(response.routes))
+                            0 ->
+                                if (routesFirst) {
+                                    navigateTo(NavState.RouteList(response.routes))
+                                } else {
+                                    navigateTo(NavState.RideList(response.rides))
+                                }
+                            1 ->
+                                if (routesFirst) {
+                                    navigateTo(NavState.RideList(response.rides))
+                                } else {
+                                    navigateTo(NavState.RouteList(response.routes))
+                                }
                         }
                     }
                 }
@@ -722,27 +733,33 @@ private fun HomeScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(vertical = 8.dp),
             ) {
-                // Rides entry
-                item {
+                val ridesItem: @Composable () -> Unit = {
                     HomeMenuItem(
                         title = stringResource(R.string.nav_rides),
                         subtitle = stringResource(R.string.rides_count, ridesCount),
-                        isSelected = selectedIndex == 0,
+                        isSelected = selectedIndex == if (ridesCount == 0) 1 else 0,
                         isEmpty = ridesCount == 0,
                         emptyText = stringResource(R.string.no_rides),
                         onClick = onSelectRides,
                     )
                 }
-                // Routes entry
-                item {
+                val routesItem: @Composable () -> Unit = {
                     HomeMenuItem(
                         title = stringResource(R.string.nav_routes),
                         subtitle = stringResource(R.string.routes_count, routesCount),
-                        isSelected = selectedIndex == 1,
+                        isSelected = selectedIndex == if (ridesCount == 0) 0 else 1,
                         isEmpty = routesCount == 0,
                         emptyText = stringResource(R.string.no_routes),
                         onClick = onSelectRoutes,
                     )
+                }
+                if (ridesCount == 0) {
+                    // Put Routes first when there are no rides to show
+                    item { routesItem() }
+                    item { ridesItem() }
+                } else {
+                    item { ridesItem() }
+                    item { routesItem() }
                 }
             }
         }
