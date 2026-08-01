@@ -960,7 +960,9 @@ private fun RideEntriesScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(vertical = 8.dp),
             ) {
-                itemsIndexed(ride.entries, key = { _, entry -> entry.routeSlug }) { index, entry ->
+                itemsIndexed(ride.entries, key = { index, entry -> "$index-${entry.routeSlug}" }) {
+                    index,
+                    entry ->
                     val isSelected = index == selectedIndex
                     val borderModifier =
                         if (isSelected) {
