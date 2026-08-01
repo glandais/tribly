@@ -107,7 +107,7 @@ export function MarkdownEditor({
 
   // Sync external value changes to editor
   useEffect(() => {
-    if (editor) {
+    if (editor && !editor.isDestroyed) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const storage = editor.storage as any
       const currentMarkdown = storage.markdown?.getMarkdown?.() || ''
@@ -124,7 +124,9 @@ export function MarkdownEditor({
 
   // Update editable state when disabled changes
   useEffect(() => {
-    editor?.setEditable(!disabled)
+    if (editor && !editor.isDestroyed) {
+      editor.setEditable(!disabled)
+    }
   }, [disabled, editor])
 
   return (
