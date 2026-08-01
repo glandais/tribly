@@ -71,7 +71,7 @@ class PedalonsView extends WatchUi.View {
             if (rides.size() == 0) {
                 ridesSublabel = WatchUi.loadResource(Rez.Strings.NoRides);
             }
-            menu.addItem(new WatchUi.MenuItem(ridesLabel, ridesSublabel, "rides", {}));
+            var ridesItem = new WatchUi.MenuItem(ridesLabel, ridesSublabel, "rides", {});
 
             // Routes entry
             var routesLabel = WatchUi.loadResource(Rez.Strings.Routes);
@@ -79,7 +79,16 @@ class PedalonsView extends WatchUi.View {
             if (routes.size() == 0) {
                 routesSublabel = WatchUi.loadResource(Rez.Strings.NoRoutes);
             }
-            menu.addItem(new WatchUi.MenuItem(routesLabel, routesSublabel, "routes", {}));
+            var routesItem = new WatchUi.MenuItem(routesLabel, routesSublabel, "routes", {});
+
+            // Put Routes first when there are no rides to show
+            if (rides.size() == 0) {
+                menu.addItem(routesItem);
+                menu.addItem(ridesItem);
+            } else {
+                menu.addItem(ridesItem);
+                menu.addItem(routesItem);
+            }
 
             // Logout entry
             menu.addItem(
