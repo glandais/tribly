@@ -33,16 +33,22 @@ jobs:
 
       - name: Decode keystore
         working-directory: ./karoo
-        run: echo "${{ secrets.KAROO_KEYSTORE_BASE64 }}" | base64 -d > release.keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KAROO_KEYSTORE_BASE64 }}
+        run: echo "$KEYSTORE_BASE64" | base64 -d > release.keystore
 
       - name: Write keystore.properties
         working-directory: ./karoo
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KAROO_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KAROO_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KAROO_KEY_PASSWORD }}
         run: |
           cat > keystore.properties <<EOF
-          storeFile=release.keystore
-          storePassword=${{ secrets.KAROO_KEYSTORE_PASSWORD }}
-          keyAlias=${{ secrets.KAROO_KEY_ALIAS }}
-          keyPassword=${{ secrets.KAROO_KEY_PASSWORD }}
+          storeFile=$(pwd)/release.keystore
+          storePassword=$KEYSTORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
           EOF
 
       - name: Build signed release APK
