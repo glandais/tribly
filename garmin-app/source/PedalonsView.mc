@@ -81,6 +81,16 @@ class PedalonsView extends WatchUi.View {
             }
             menu.addItem(new WatchUi.MenuItem(routesLabel, routesSublabel, "routes", {}));
 
+            // Logout entry
+            menu.addItem(
+                new WatchUi.MenuItem(
+                    WatchUi.loadResource(Rez.Strings.Logout),
+                    null,
+                    "logout",
+                    {}
+                )
+            );
+
             WatchUi.switchToView(
                 menu,
                 new HomeMenuDelegate(rides, routes, _apiClient, _formatUtils),

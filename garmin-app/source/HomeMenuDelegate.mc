@@ -1,3 +1,4 @@
+using Toybox.Application;
 using Toybox.WatchUi;
 using Toybox.System;
 
@@ -89,6 +90,12 @@ class HomeMenuDelegate extends WatchUi.Menu2InputDelegate {
                 new StandaloneRouteMenuDelegate(_routes, _apiClient),
                 WatchUi.SLIDE_LEFT
             );
+        } else if (id.equals("logout")) {
+            var app = Application.getApp();
+            app.getAuthManager().clearTokens();
+
+            var viewPair = app.showLoginView();
+            WatchUi.switchToView(viewPair[0], viewPair[1], WatchUi.SLIDE_IMMEDIATE);
         }
     }
 
