@@ -7,12 +7,13 @@ import {
   IconWorld,
   IconUsers,
   IconBuildingCommunity,
+  IconMailFast,
 } from '@tabler/icons-react'
 import { paths } from '@/config/paths'
 import { NavButtons, type NavButtonItem } from '../common/NavButtons'
 import { useAuthStore, selectIsPlatformAdmin } from '@/store/authStore'
 
-export type AdminTab = 'dashboard' | 'domains' | 'teams' | 'users'
+export type AdminTab = 'dashboard' | 'domains' | 'teams' | 'users' | 'beta-signups'
 
 interface AdminLayoutProps {
   currentTab: AdminTab
@@ -52,6 +53,12 @@ export function AdminLayout({ currentTab, children }: AdminLayoutProps) {
       path: paths.adminUsers(),
       label: t('admin.tabs.users'),
       icon: IconUsers,
+    },
+    {
+      id: 'beta-signups',
+      path: paths.adminBetaSignups(),
+      label: t('admin.tabs.betaSignups'),
+      icon: IconMailFast,
     },
   ]
 

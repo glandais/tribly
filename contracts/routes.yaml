@@ -579,3 +579,8 @@ routes:
       en: /platform/users
       fr: /plateforme/utilisateurs
     web: true
+  - id: adminBetaSignups
+    path:
+      en: /platform/beta-signups
+      fr: /plateforme/inscriptions-beta
+    web: true

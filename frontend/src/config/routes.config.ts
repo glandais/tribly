@@ -227,6 +227,11 @@ const AdminTeamsPage = lazy(() =>
 const AdminUsersPage = lazy(() =>
   import('../pages/admin/AdminUsersPage').then((m) => ({ default: m.AdminUsersPage }))
 )
+const AdminBetaSignupsPage = lazy(() =>
+  import('../pages/admin/AdminBetaSignupsPage').then((m) => ({
+    default: m.AdminBetaSignupsPage,
+  }))
+)
 const PrivacyPolicyPage = lazy(() =>
   import('../pages/legal/PrivacyPolicyPage').then((m) => ({ default: m.PrivacyPolicyPage }))
 )
@@ -906,5 +911,13 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('admin.tabs.users') },
+  },
+  {
+    id: 'admin-beta-signups',
+    paths: pathVariants.adminBetaSignups(),
+    component: AdminBetaSignupsPage,
+    auth: 'authenticated',
+    parentId: 'admin',
+    breadcrumb: { type: 'static', i18nKey: tRegister('admin.tabs.betaSignups') },
   },
 ]
