@@ -7,6 +7,7 @@ import fr.pedalons.dto.beta.BetaSignupRequest;
 import fr.pedalons.dto.common.PedalonsPage;
 import fr.pedalons.repository.beta.BetaSignupRepository;
 import fr.pedalons.service.security.DomainResolver;
+import fr.pedalons.service.security.annotation.Admin;
 import fr.pedalons.service.security.annotation.Public;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -36,6 +37,7 @@ public class BetaSignupService {
     betaSignupRepository.persist(new BetaSignup(email, domainResolver.getDomainId()));
   }
 
+  @Admin
   public PedalonsPage<BetaSignupDto> listSignups(int page, int size) {
     PedalonsPage<BetaSignup> result = betaSignupRepository.findPage(page, size);
     return new PedalonsPage<>(result.items().stream().map(this::toDto).toList(), result.total());
