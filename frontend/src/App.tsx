@@ -4,7 +4,7 @@ import { useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { getGetConfigQueryKey } from './api/endpoints/configuration/configuration'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
 import { buildRoutes } from './config/RouteGenerator'
-import { useAuthStore } from './store/authStore'
+import { useAuthStore, wasHydratedFromSSR } from './store/authStore'
 import { useAuth } from './hooks/useAuth'
 import { prefetchCommonRoutes } from './lib/prefetch'
 import { getPinnedHistory } from './config/pinnedHistory'
@@ -72,15 +72,19 @@ function AuthEffects() {
     initialize()
   }, [initialize])
 
-  // Everything fetched before initialize() resolved is the ANONYMOUS view: the SSR-dehydrated
-  // cache is rendered without cookies or Authorization, and client queries that fire during
-  // hydration race the /api/auth/refresh round-trip. Both land in the cache as fresh (staleTime
-  // 3 min), so member-only fields stay missing long after the session is known — a route's
-  // `team.role` (no Edit/Delete buttons), a preview's `owned`, and so on. Refetch the active
-  // queries once, as soon as the session turns out to be authenticated.
+  // Repair pass for the case where the session only becomes known AFTER the first paint: the
+  // dehydrated cache was then rendered anonymously and client queries that fired during hydration
+  // raced the /api/auth/refresh round-trip. Both land in the cache as fresh (staleTime 3 min), so
+  // member-only fields would stay missing long after the session is known — a route's `team.role`
+  // (no Edit/Delete buttons), a preview's `owned`, and so on.
+  //
+  // It does NOT run when the server already rendered with the session: the cache then holds the
+  // authenticated view from the start, and invalidating would throw away every prefetch the SSR
+  // just paid for. That skip is the main reason SSR became session-aware at all.
   useEffect(() => {
     if (!isInitialized || !isAuthenticated || revalidatedRef.current) return
     revalidatedRef.current = true
+    if (wasHydratedFromSSR()) return
     const configKey = getGetConfigQueryKey()
     void queryClient.invalidateQueries({
       // The domain config is auth-independent and is seeded synchronously at bootstrap — refetching

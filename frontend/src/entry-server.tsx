@@ -16,7 +16,9 @@ import { makeQueryClient } from './lib/queryClient'
 import { createServerI18n, supportedLanguages } from './i18n'
 import { requestContext, type SsrRequestStore } from './lib/requestContext'
 import { setStoreGetter } from './lib/ssrContext'
+import { resolveSsrSession } from './lib/ssrSession'
 import { getConfig, getGetConfigQueryKey } from './api/endpoints/configuration/configuration'
+import { getGetMeQueryKey } from './api/endpoints/users/users'
 import { getPinnedTeamSlug } from './config/appConfig'
 import { toRouter, toBrowser } from './config/pinnedHistory'
 import type { Locale } from './config/paths'
@@ -38,23 +40,41 @@ export async function render(url: string, headers: Record<string, string> = {}) 
     console.warn(`[SSR] Unsupported language "${requestedLang}", falling back to "fr"`)
   }
 
-  const store: SsrRequestStore = { headers, locale, config: undefined }
+  const store: SsrRequestStore = { headers, locale, config: undefined, auth: undefined }
 
   return requestContext.run(store, async () => {
     const queryClient = makeQueryClient({ isServer: true })
     try {
       const i18nInstance = await createServerI18n(locale)
 
-      // Per-request config: anonymous, tenant-resolved from the forwarded headers. It must land in
-      // the store BEFORE buildRoutes so isSingleTeam()/getPinnedTeamSlug() see it, and in the
-      // dehydrated state so the client reuses it instead of re-fetching. Failure is non-fatal.
-      try {
-        store.config = await queryClient.fetchQuery({
-          queryKey: getGetConfigQueryKey(),
-          queryFn: () => getConfig(),
-        })
-      } catch (err) {
-        console.error('[SSR] Failed to load config:', err)
+      // Two independent lookups, run concurrently so the session costs no extra serial round-trip:
+      //
+      // - the per-request config, tenant-resolved from the forwarded headers. It must land in the
+      //   store BEFORE buildRoutes so isSingleTeam()/getPinnedTeamSlug() see it, and in the
+      //   dehydrated state so the client reuses it instead of re-fetching.
+      // - the visitor's session, if the request carried a refresh_token cookie. Everything the
+      //   route loaders prefetch below then goes out authenticated.
+      //
+      // The config request goes out before the session is known, i.e. anonymously. That is correct:
+      // the domain config is auth-independent (App.tsx excludes it from the post-login refetch for
+      // exactly that reason). Both failures are non-fatal — a failed session simply renders the
+      // page anonymously, as it always did.
+      const [configResult, session] = await Promise.all([
+        queryClient
+          .fetchQuery({ queryKey: getGetConfigQueryKey(), queryFn: () => getConfig() })
+          .catch((err) => {
+            console.error('[SSR] Failed to load config:', err)
+            return undefined
+          }),
+        resolveSsrSession(headers),
+      ])
+      store.config = configResult
+      store.auth = session
+
+      // /api/auth/refresh already returned the user, so seed the /me cache with it rather than
+      // letting useAuth() fetch the same record again right after hydration.
+      if (session?.user) {
+        queryClient.setQueryData(getGetMeQueryKey(), session.user)
       }
 
       const routes = buildRoutes(queryClient)
@@ -135,7 +155,10 @@ export async function render(url: string, headers: Record<string, string> = {}) 
 
       const dehydratedState = dehydrate(queryClient)
 
-      return { html, dehydratedState, statusCode, lang: locale, head }
+      // The session travels to the client so its first render matches this markup exactly (and so
+      // it can skip the boot-time /api/auth/refresh). server.js serialises it into a response that
+      // is Cache-Control: no-store and Vary: Cookie — both are load-bearing, not cosmetic.
+      return { html, dehydratedState, auth: store.auth, statusCode, lang: locale, head }
     } catch (err) {
       console.error(`[SSR] render failed for ${url}:`, err)
       throw err

@@ -3,7 +3,7 @@
 // Off-server (client bundle), the getter stays the default and every accessor returns undefined.
 import type { Locale } from '@/config/paths.generated'
 import type { ConfigDto } from '@/api/dto'
-import type { SsrRequestStore } from './requestContext'
+import type { SsrAuthSnapshot, SsrRequestStore } from './requestContext'
 
 type StoreGetter = () => SsrRequestStore | undefined
 
@@ -23,4 +23,13 @@ export function getSSRLocale(): Locale | undefined {
 
 export function getSSRConfig(): ConfigDto | undefined {
   return _getStore()?.config
+}
+
+/**
+ * The session for the request currently being rendered, or undefined for an anonymous render.
+ * This is the ONLY way server-side code may reach auth state — reading or writing the Zustand
+ * singleton on the server would leak one visitor's session into another's page.
+ */
+export function getSSRAuth(): SsrAuthSnapshot | undefined {
+  return _getStore()?.auth
 }

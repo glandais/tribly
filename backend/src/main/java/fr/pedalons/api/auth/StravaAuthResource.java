@@ -7,6 +7,7 @@ import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.dto.social.request.StravaSessionRequest;
 import fr.pedalons.dto.social.response.StravaAuthUrlResponse;
+import fr.pedalons.service.auth.RefreshTokenCookieFactory;
 import fr.pedalons.service.social.StravaAuthService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
@@ -16,10 +17,8 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -34,19 +33,10 @@ import org.jspecify.annotations.Nullable;
 @Tag(name = "Strava Authentication", description = "Login with Strava and account recovery/binding")
 public class StravaAuthResource {
 
-  private static final String REFRESH_TOKEN_COOKIE = "refresh_token";
   private static final String CALLBACK_LANDING = "/strava/callback";
 
   @Inject StravaAuthService stravaAuthService;
-
-  @ConfigProperty(name = "pedalons.auth.refresh-token.expiry-days", defaultValue = "30")
-  int refreshTokenExpiryDays;
-
-  @ConfigProperty(name = "pedalons.auth.cookie.secure", defaultValue = "true")
-  boolean cookieSecure;
-
-  @ConfigProperty(name = "pedalons.auth.cookie.same-site", defaultValue = "strict")
-  String cookieSameSite;
+  @Inject RefreshTokenCookieFactory refreshTokenCookies;
 
   @GET
   @Path("/login-url")
@@ -154,7 +144,7 @@ public class StravaAuthResource {
 
     AuthResult result = stravaAuthService.exchangeLoginCode(request.code(), userAgent, ipAddress);
     return Response.ok(result.response())
-        .cookie(createRefreshTokenCookie(result.refreshToken()))
+        .cookie(refreshTokenCookies.issue(result.refreshToken()))
         .build();
   }
 
@@ -188,29 +178,6 @@ public class StravaAuthResource {
                     + CALLBACK_LANDING
                     + "?strava_error="
                     + reason))
-        .build();
-  }
-
-  private NewCookie.SameSite parsedSameSite() {
-    try {
-      return NewCookie.SameSite.valueOf(cookieSameSite.toUpperCase());
-    } catch (IllegalArgumentException e) {
-      throw new IllegalStateException(
-          "Invalid pedalons.auth.cookie.same-site value: '"
-              + cookieSameSite
-              + "'. Valid values: STRICT, LAX, NONE",
-          e);
-    }
-  }
-
-  private NewCookie createRefreshTokenCookie(String refreshToken) {
-    return new NewCookie.Builder(REFRESH_TOKEN_COOKIE)
-        .value(refreshToken)
-        .path("/api")
-        .maxAge(refreshTokenExpiryDays * 24 * 60 * 60)
-        .httpOnly(true)
-        .secure(cookieSecure)
-        .sameSite(parsedSameSite())
         .build();
   }
 

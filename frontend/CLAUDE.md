@@ -128,8 +128,9 @@ Lists request `view=COMPACT` where they only need `excerpt` + `thumbnailUrl`; in
 
 Hard invariants — keep these when touching SSR-reachable code:
 
-- **Anonymous & stateless SSR**: the server never forwards cookies or `Authorization` to the backend — only `X-Forwarded-Host`, `X-Forwarded-Proto`, `Accept-Language`. Authenticated content client-renders after hydration.
-- **Per-request isolation**: per-request `QueryClient`, per-request i18next instance (`createServerI18n`), request data threaded via `AsyncLocalStorage` (`lib/requestContext`). No module-level mutable per-request state reachable during SSR.
+- **Session-aware, but nothing shared between requests**: a document request carrying a `refresh_token` cookie is rendered as that visitor (one `POST /api/auth/refresh`, then `Authorization: Bearer` on every prefetch — the raw cookie is never relayed). The session lives *only* in `SsrRequestStore.auth`; `useAuthStore.setState()` throws on the server because the Zustand store is a module singleton shared by all concurrent renders. Reading auth server-side goes through `getSSRAuth()`.
+- **The rendered HTML is per-visitor**: `Cache-Control: no-store` + `Vary: Cookie`, and it embeds a 15-minute access token. Never introduce HTML caching. Failure to resolve a session is non-fatal and renders the page anonymously, byte-identical to before.
+- **Per-request isolation**: per-request `QueryClient`, per-request i18next instance (`createServerI18n`), request data threaded via `AsyncLocalStorage` (`lib/requestContext`). No module-level mutable per-request state reachable during SSR — `scripts/ssr-session-isolation.mjs` is the check that this still holds.
 - **No module-top-level browser globals** in code eagerly imported by `entry-server` (config/, lib/, i18n/, stores, Layout). Guard any `window`/`document`/`localStorage`/`navigator` at module scope with `typeof window === 'undefined'`. Inside functions/hooks/effects is fine (runs client-side only). Lazy chunks (maps/GPX) are only a concern if a public prefetched route imports them.
 
 ### Link previews (Open Graph / Twitter)

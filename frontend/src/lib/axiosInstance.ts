@@ -4,7 +4,7 @@ import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import type { ErrorResponse } from '../api/dto'
 import { ApiClientError, parseRetryAfter } from './apiError'
-import { getSSRHeaders } from './ssrContext'
+import { getSSRAuth, getSSRHeaders } from './ssrContext'
 
 const isServer = typeof window === 'undefined'
 
@@ -41,10 +41,12 @@ const processQueue = (error: unknown | null, token: string | null = null) => {
   failedQueue = []
 }
 
-// Request interceptor: on server, forward only tenant-routing and language headers from the
-// incoming SSR request (via ssrContext) and return early — SSR is anonymous and stateless, so
-// cookies/Authorization are never forwarded and the Zustand/i18next singletons (shared across
-// concurrent requests) are never read there. On client, attach JWT and Accept-Language.
+// Request interceptor: on server, forward tenant-routing and language headers plus the bearer token
+// minted for THIS request, all read from the per-request store (ssrContext) — never from the
+// Zustand/i18next singletons, which are shared across concurrent renders. The raw Cookie header is
+// deliberately not relayed: the backend's cookie fallback only covers @PermitAll endpoints, whereas
+// a bearer token authenticates every endpoint exactly as the browser does, so the server and the
+// client see identical DTOs. On client, attach JWT and Accept-Language.
 AXIOS_INSTANCE.interceptors.request.use(
   (config) => {
     if (isServer) {
@@ -56,6 +58,10 @@ AXIOS_INSTANCE.interceptors.request.use(
         if (proto) config.headers['X-Forwarded-Proto'] = proto
         const lang = reqHeaders['accept-language']
         if (lang) config.headers['Accept-Language'] = lang
+      }
+      const ssrAuth = getSSRAuth()
+      if (ssrAuth) {
+        config.headers.Authorization = `Bearer ${ssrAuth.accessToken}`
       }
       return config
     }

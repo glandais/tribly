@@ -1,0 +1,70 @@
+// SSR-only module: reads process.env and talks to the backend directly. Imported from
+// entry-server.tsx only — never from code that ends up in the client bundle.
+import type { SsrAuthSnapshot } from './requestContext'
+
+const REFRESH_TOKEN_COOKIE = 'refresh_token'
+
+/** Cap on the extra round-trip: a slow or wedged backend must not hold the whole document. */
+const TIMEOUT_MS = 3_000
+
+/**
+ * Exchange the incoming `refresh_token` cookie for an access token, so the rest of the render can
+ * call the API as the visitor rather than anonymously.
+ *
+ * One call per document request, and only when a cookie is actually present. The result is a bearer
+ * token used for every prefetch — the raw cookie is never relayed, because the backend's cookie
+ * fallback only authenticates `@PermitAll` endpoints while a bearer token behaves exactly like the
+ * browser's, which is what keeps server-rendered DTOs identical to the client's.
+ *
+ * Any failure returns undefined and the page renders anonymously, exactly as it did before SSR
+ * became session-aware. A revoked or expired token is the normal case here, not an incident.
+ *
+ * Note on migration: sessions created before the cookie moved to `path=/` are invisible here (the
+ * browser does not send them on a document request). Those renders stay anonymous until the client's
+ * own `/api/auth/refresh` call re-issues the cookie on the new path — from the next navigation on,
+ * SSR sees it. No reconnection required.
+ */
+export async function resolveSsrSession(
+  headers: Record<string, string>
+): Promise<SsrAuthSnapshot | undefined> {
+  const cookie = headers['cookie']
+  if (!cookie || !new RegExp(`(?:^|;\\s*)${REFRESH_TOKEN_COOKIE}=`).test(cookie)) {
+    return undefined
+  }
+
+  const baseUrl = process.env.API_BASE_URL || 'http://localhost:8080'
+  const outbound: Record<string, string> = { Cookie: cookie }
+  // The tenant must resolve server-side too, otherwise the session looks up against no domain.
+  const host = headers['x-forwarded-host'] || headers['host']
+  if (host) outbound['X-Forwarded-Host'] = host
+  const proto = headers['x-forwarded-proto']
+  if (proto) outbound['X-Forwarded-Proto'] = proto
+
+  try {
+    const response = await fetch(`${baseUrl}/api/auth/refresh`, {
+      method: 'POST',
+      headers: outbound,
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    })
+
+    if (!response.ok) {
+      // 401/403 just means "no usable session" — expected, not worth a log line.
+      if (response.status !== 401 && response.status !== 403) {
+        console.warn(`[SSR] Session refresh returned ${response.status}, rendering anonymously`)
+      }
+      return undefined
+    }
+
+    const data = await response.json()
+    if (!data?.accessToken) return undefined
+
+    return {
+      accessToken: data.accessToken,
+      user: data.user ?? null,
+      hasPasskeys: data.hasPasskeys ?? false,
+    }
+  } catch (err) {
+    console.error('[SSR] Session refresh failed, rendering anonymously:', err)
+    return undefined
+  }
+}

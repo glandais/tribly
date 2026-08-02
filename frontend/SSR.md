@@ -13,16 +13,69 @@ mode** (`createStaticHandler` → `handler.query()` → `StaticRouterProvider`) 
 per-request `AsyncLocalStorage` scope, prefetches route data into a per-request
 `QueryClient` (Orval-generated `prefetchXxxQuery` declared as `prefetch` in
 `routes.config.ts`), renders with React's **static prerender API**, and returns
-`{ html, dehydratedState, statusCode, lang }`. `server.js` injects those into
-`index.html` (`<!--ssr-outlet-->`, `<!--ssr-state-->`, `<html lang>`).
-`src/entry-client.tsx` hydrates the query cache, seeds the app config, and calls
-`hydrateRoot`. SSR is **anonymous**: no cookies or `Authorization` ever reach the backend
-from the server; authenticated content renders client-side after hydration.
+`{ html, dehydratedState, auth, statusCode, lang }`. `server.js` injects those into
+`index.html` (`<!--ssr-outlet-->`, `<!--ssr-state-->`, `<!--ssr-auth-->`, `<html lang>`).
+`src/entry-client.tsx` hydrates the query cache, adopts the session, seeds the app config,
+and calls `hydrateRoot`. SSR is **session-aware** — see the next section.
 
 Deliberate non-choices: React Router framework mode (no retrofit path for a declarative
 SPA), TanStack Start (full router migration), Vike (replaces a working ~150-line server),
 streaming (complicates React Query dehydration for no SEO gain), Vite Environment API
 (still experimental; we use `ssrLoadModule`).
+
+## Session-aware SSR
+
+SSR used to be strictly anonymous. It no longer is: a document request carrying a
+`refresh_token` cookie is rendered as that visitor — correct header and nav on the first
+paint, and prefetched data already filtered by their rights, instead of an anonymous page
+that gets thrown away and refetched wholesale after hydration.
+
+How one request flows:
+
+1. `server.js` passes all single-value request headers, cookie included, to `render()`.
+2. `resolveSsrSession()` (`lib/ssrSession.ts`) exchanges the cookie for a 15-minute access
+   token via **one** `POST /api/auth/refresh`, run concurrently with the `/api/config`
+   prefetch so it costs no serial round-trip. 3 s timeout; any failure (no cookie, revoked
+   token, backend down) yields `undefined` and the page renders anonymously as before.
+3. The result lands in `SsrRequestStore.auth`, i.e. in AsyncLocalStorage.
+4. `axiosInstance`'s server branch attaches `Authorization: Bearer` from there, so every
+   prefetch is authenticated **exactly like the browser's**. The raw cookie is deliberately
+   *not* relayed: the backend's cookie fallback only covers `@PermitAll` endpoints, so
+   server-rendered DTOs would differ from the client's on anything stricter.
+5. `useAuthStore` reads the same store on the server (see the next paragraph), so `Layout`,
+   `useNavItems` and every `isAuthenticated` branch render the real state.
+6. `server.js` serialises the session to `window.__AUTH_STATE__`; `entry-client` calls
+   `hydrateAuthFromSSR()` **before** `hydrateRoot`, so the first client render matches the
+   markup. `AuthEffects` then skips both the boot `/api/auth/refresh` and the global
+   post-login `invalidateQueries` — skipping that invalidation is the whole point.
+
+**The Zustand store is a module singleton shared by every concurrent render.** Writing a
+session into it on the server would serve that session to whoever else is mid-render at the
+same instant. So `useAuthStore` is a wrapper: on the server it applies the selector to a
+snapshot built from `getSSRAuth()`, and `setState` throws. Any new module-level mutable
+state reachable during SSR reintroduces the same hazard —
+`scripts/ssr-session-isolation.mjs` is the check that catches it.
+
+Consequences worth knowing:
+
+- **The HTML is per-visitor.** The response is `Cache-Control: no-store` + `Vary: Cookie`,
+  and that is now a security requirement, not a convenience. Never add HTML caching.
+- **The access token ships in the markup.** Same token that already crosses the wire in
+  `/auth/refresh`'s JSON body, and an XSS could fetch one anyway — but it is a real widening
+  of where it lives, and it is why the cache headers above are non-negotiable.
+- **Anonymous renders are byte-identical to before**, so bots, SEO and link previews are
+  untouched.
+- **Guarded routes**: with no session the store keeps `isLoading: true`, so `ProtectedRoute`
+  stays on its loading branch exactly as it used to — no server-side redirect to `/login`.
+  With a session, `authenticated` routes now render for real. One rough edge: a logged-in
+  visitor loading `/login` gets an empty route outlet (`<Navigate>` is a no-op under a static
+  router) until hydration redirects them; today's behaviour was a loading page.
+- **Migration**: sessions issued before the cookie moved to `path=/` are invisible to SSR.
+  The client's own `/api/auth/refresh` re-issues the cookie on the new path, so those
+  sessions start rendering server-side from the next navigation. No reconnection.
+
+Backend side: `RefreshTokenCookieFactory` owns the cookie (`path=/`, `SameSite=Lax`), and
+`CrossSiteRequestFilter` compensates for the loss of `SameSite=Strict` as a CSRF defence.
 
 ## Finding 1 — `renderToString` renders every lazy page as its fallback
 
@@ -126,8 +179,9 @@ same deal for a stored language vs `Accept-Language`.)
   Verify: load the page, check the network tab for an immediate duplicate request.
 - **`node:async_hooks` must not leak into the client bundle**: `lib/requestContext.ts`
   (SSR-only) is bridged through the client-safe `lib/ssrContext.ts` getters
-  (`getSSRHeaders/getSSRLocale/getSSRConfig`); only `entry-server.tsx` may import
-  `requestContext`.
+  (`getSSRHeaders/getSSRLocale/getSSRConfig/getSSRAuth`); only `entry-server.tsx` and
+  `lib/ssrSession.ts` may import `requestContext` for anything but its types. Verify with
+  `grep -rl async_hooks dist/client/` → no match.
 - **i18next option rename**: synchronous init is `initAsync: false`, not
   `initImmediate: false` (typecheck catches it).
 - **Third-party libs that read `window` at module load crash the route's boundary**: first
@@ -147,9 +201,21 @@ curl -s -H 'Accept-Language: fr' http://localhost:8090/ | grep -c 'mantine-Loade
 curl -s http://localhost:8090/ | grep -c '<!--\$[?!]-->'                                   # 0 (no pending/errored boundaries)
 curl -s http://localhost:8090/equipes/<slug> | grep '<title>'                              # real content, not fallback
 curl -so /dev/null -w '%{http_code}' http://localhost:8090/nonexistent                     # 404
-curl -s -H 'Cookie: refresh_token=X' http://localhost:8090/profil | grep -c 'X'           # 0 (no auth leakage)
+
+# Session-aware SSR. A junk cookie must render anonymously and embed no session:
+curl -s -H 'Cookie: refresh_token=junk' http://localhost:8090/ | grep -c '__AUTH_STATE__'  # 0
+# A real one must render the visitor's name into the header, not the login button:
+curl -s -H "Cookie: refresh_token=$TOKEN" http://localhost:8090/ | grep -c '__AUTH_STATE__' # 1
+# And the response must never be cacheable:
+curl -sI http://localhost:8090/ | grep -iE 'cache-control|vary'   # no-store + Vary: Cookie
+
+# The one check static analysis cannot replace — concurrent renders must not cross sessions:
+node scripts/ssr-session-isolation.mjs --url http://localhost:8090 \
+  --session "$TOKEN_A" --session "$TOKEN_B"
 ```
 
 Then load `/` in a browser **with a stored dark scheme and a logged-in session** and check
 the console for `[hydration]` errors — the worst mismatches only reproduce with
-client-persisted state present.
+client-persisted state present. On that same load the network tab should show **no**
+`POST /api/auth/refresh` at boot and no burst of refetches right after hydration; either
+one means the session did not survive into the client.

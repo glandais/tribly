@@ -135,7 +135,7 @@ async function createServer() {
         return
       }
 
-      const { html: appHtml, dehydratedState, lang, head } = result
+      const { html: appHtml, dehydratedState, auth, lang, head } = result
 
       // Escape '<' to prevent XSS via </script> injection in inline JSON
       let stateScript = ''
@@ -148,9 +148,23 @@ async function createServer() {
         // Continue without SSR state — client will refetch
       }
 
+      // The session the page was rendered with, so the client's first render matches the markup.
+      // It carries a 15-minute access token: this response must never be cached or shared, which is
+      // what the Cache-Control/Vary headers below enforce.
+      let authScript = ''
+      try {
+        authScript = auth
+          ? `<script>window.__AUTH_STATE__=${JSON.stringify(auth).replace(/</g, '\\u003c')}</script>`
+          : ''
+      } catch (serErr) {
+        console.error(`[SSR] Failed to serialize auth state for "${url}":`, serErr)
+        // Continue without it — the client falls back to its own /api/auth/refresh at boot
+      }
+
       let finalHtml = currentTemplate
         .replace('<!--ssr-outlet-->', appHtml)
         .replace('<!--ssr-state-->', stateScript)
+        .replace('<!--ssr-auth-->', authScript)
         .replace('<!--ssr-head-->', head || '')
 
       // The SSR-built link-preview block (injected above) owns the dynamic <title>. index.html also
@@ -167,7 +181,15 @@ async function createServer() {
 
       res
         .status(result.statusCode || 200)
-        .set({ 'Content-Type': 'text/html', 'Cache-Control': 'no-store' })
+        .set({
+          'Content-Type': 'text/html',
+          // The markup is rendered for whoever sent the cookie: it embeds their name, their access
+          // token and their view of the data. no-store keeps it out of every cache; Vary states the
+          // dependency for anything that might ignore that. Do not add HTML caching here — it would
+          // serve one visitor's page to another.
+          'Cache-Control': 'no-store',
+          Vary: 'Cookie',
+        })
         .send(finalHtml)
     } catch (e) {
       if (!isProduction && vite) {

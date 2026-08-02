@@ -9,11 +9,15 @@ import { fetchAppConfig, seedAppConfig } from './config/appConfig'
 import { getGetConfigQueryKey } from './api/endpoints/configuration/configuration'
 import i18n, { i18nReady } from './i18n'
 import type { ConfigDto } from './api/dto'
+import { hydrateAuthFromSSR } from './store/authStore'
+import type { SsrAuthSnapshot } from './lib/requestContext'
 import './index.css'
 
 declare global {
   interface Window {
     __REACT_QUERY_STATE__?: DehydratedState
+    /** The session the server rendered with, when the request carried one. */
+    __AUTH_STATE__?: SsrAuthSnapshot
     /** Injected by StaticRouterProvider in the SSR markup. */
     __staticRouterHydrationData?: HydrationState
   }
@@ -30,6 +34,13 @@ async function bootstrap() {
   // read config synchronously via getAppConfig(), so the config must already be present here.
   if (dehydratedState) {
     hydrate(queryClient, dehydratedState)
+  }
+
+  // Adopt the server's session before anything renders. Without this the first client render would
+  // be anonymous while the markup is not, which is a hydration mismatch on every page — and the app
+  // would re-fetch a session it already has.
+  if (window.__AUTH_STATE__) {
+    hydrateAuthFromSSR(window.__AUTH_STATE__)
   }
 
   // The config drives single-team rooting and the pinned-team history, so it must be resolvable

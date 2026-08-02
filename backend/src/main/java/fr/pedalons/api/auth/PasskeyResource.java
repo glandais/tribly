@@ -8,6 +8,7 @@ import fr.pedalons.dto.auth.response.PasskeyDto;
 import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.service.auth.AuthService;
 import fr.pedalons.service.auth.PasskeyService;
+import fr.pedalons.service.auth.RefreshTokenCookieFactory;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -16,11 +17,9 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.Map;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -35,19 +34,9 @@ import org.jspecify.annotations.Nullable;
 @Tag(name = "Passkeys", description = "WebAuthn passkey management")
 public class PasskeyResource {
 
-  private static final String REFRESH_TOKEN_COOKIE = "refresh_token";
-
   @Inject PasskeyService passkeyService;
   @Inject AuthService authService;
-
-  @ConfigProperty(name = "pedalons.auth.refresh-token.expiry-days", defaultValue = "30")
-  int refreshTokenExpiryDays;
-
-  @ConfigProperty(name = "pedalons.auth.cookie.secure", defaultValue = "true")
-  boolean cookieSecure;
-
-  @ConfigProperty(name = "pedalons.auth.cookie.same-site", defaultValue = "strict")
-  String cookieSameSite;
+  @Inject RefreshTokenCookieFactory refreshTokenCookies;
 
   @GET
   @Path("/registration-options")
@@ -130,7 +119,7 @@ public class PasskeyResource {
 
     AuthResult result = authService.authenticateWithPasskey(response, userAgent, ipAddress);
     return Response.ok(result.response())
-        .cookie(createRefreshTokenCookie(result.refreshToken()))
+        .cookie(refreshTokenCookies.issue(result.refreshToken()))
         .build();
   }
 
@@ -172,17 +161,6 @@ public class PasskeyResource {
   public Response deletePasskey(@PathParam("id") String id) {
     passkeyService.deletePasskey(TsidUtils.toLong(id));
     return Response.noContent().build();
-  }
-
-  private NewCookie createRefreshTokenCookie(String refreshToken) {
-    return new NewCookie.Builder(REFRESH_TOKEN_COOKIE)
-        .value(refreshToken)
-        .path("/api")
-        .maxAge(refreshTokenExpiryDays * 24 * 60 * 60)
-        .httpOnly(true)
-        .secure(cookieSecure)
-        .sameSite(NewCookie.SameSite.valueOf(cookieSameSite.toUpperCase()))
-        .build();
   }
 
   private String getClientIp(@Nullable String forwardedFor, @Nullable String realIp) {

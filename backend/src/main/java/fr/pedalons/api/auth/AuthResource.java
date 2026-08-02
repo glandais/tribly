@@ -13,6 +13,7 @@ import fr.pedalons.dto.auth.response.MessageResponse;
 import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.dto.social.request.EmailChangeRequest;
 import fr.pedalons.service.auth.AuthService;
+import fr.pedalons.service.auth.RefreshTokenCookieFactory;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -21,9 +22,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -38,18 +37,10 @@ import org.jspecify.annotations.Nullable;
 @Tag(name = "Authentication", description = "User authentication operations")
 public class AuthResource {
 
-  private static final String REFRESH_TOKEN_COOKIE = "refresh_token";
+  private static final String REFRESH_TOKEN_COOKIE = RefreshTokenCookieFactory.REFRESH_TOKEN_COOKIE;
 
   @Inject AuthService authService;
-
-  @ConfigProperty(name = "pedalons.auth.refresh-token.expiry-days", defaultValue = "30")
-  int refreshTokenExpiryDays;
-
-  @ConfigProperty(name = "pedalons.auth.cookie.secure", defaultValue = "true")
-  boolean cookieSecure;
-
-  @ConfigProperty(name = "pedalons.auth.cookie.same-site", defaultValue = "strict")
-  String cookieSameSite;
+  @Inject RefreshTokenCookieFactory refreshTokenCookies;
 
   @POST
   @Path("/register")
@@ -98,7 +89,7 @@ public class AuthResource {
 
     AuthResult result = authService.verifyEmail(request.token(), userAgent, ipAddress);
     return Response.ok(result.response())
-        .cookie(createRefreshTokenCookie(result.refreshToken()))
+        .cookie(refreshTokenCookies.issue(result.refreshToken()))
         .build();
   }
 
@@ -144,7 +135,7 @@ public class AuthResource {
     AuthResult result =
         authService.verifyOtp(request.email(), request.code(), userAgent, ipAddress);
     return Response.ok(result.response())
-        .cookie(createRefreshTokenCookie(result.refreshToken()))
+        .cookie(refreshTokenCookies.issue(result.refreshToken()))
         .build();
   }
 
@@ -173,7 +164,7 @@ public class AuthResource {
     AuthResult result =
         authService.loginWithPassword(request.email(), request.password(), userAgent, ipAddress);
     return Response.ok(result.response())
-        .cookie(createRefreshTokenCookie(result.refreshToken()))
+        .cookie(refreshTokenCookies.issue(result.refreshToken()))
         .build();
   }
 
@@ -222,7 +213,7 @@ public class AuthResource {
     AuthResult result =
         authService.resetPassword(request.token(), request.newPassword(), userAgent, ipAddress);
     return Response.ok(result.response())
-        .cookie(createRefreshTokenCookie(result.refreshToken()))
+        .cookie(refreshTokenCookies.issue(result.refreshToken()))
         .build();
   }
 
@@ -249,16 +240,21 @@ public class AuthResource {
       @HeaderParam("X-Forwarded-For") @Nullable String forwardedFor,
       @HeaderParam("X-Real-IP") @Nullable String realIp) {
     // Cookie (web) or header (mobile) — cookie takes priority
-    String refreshToken =
-        (refreshTokenCookie != null && !refreshTokenCookie.isBlank())
-            ? refreshTokenCookie
-            : refreshTokenHeader;
+    boolean fromCookie = refreshTokenCookie != null && !refreshTokenCookie.isBlank();
+    String refreshToken = fromCookie ? refreshTokenCookie : refreshTokenHeader;
     if (refreshToken == null || refreshToken.isBlank()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
 
     AuthResponse authResponse = authService.refreshToken(refreshToken);
-    return Response.ok(authResponse).build();
+    Response.ResponseBuilder response = Response.ok(authResponse);
+    if (fromCookie) {
+      // Re-issue on path=/ and drop any leftover path=/api cookie. The token itself is unchanged
+      // (refresh does not rotate it); this is what migrates a pre-existing session to the new path
+      // without forcing a reconnection.
+      response.cookie(refreshTokenCookies.issue(refreshToken));
+    }
+    return response.build();
   }
 
   @POST
@@ -301,7 +297,7 @@ public class AuthResource {
             ? refreshTokenCookie
             : refreshTokenHeader;
     authService.logout(refreshToken);
-    return Response.noContent().cookie(deleteRefreshTokenCookie()).build();
+    return Response.noContent().cookie(refreshTokenCookies.revoke()).build();
   }
 
   @POST
@@ -319,41 +315,7 @@ public class AuthResource {
   })
   public Response logoutAll() {
     authService.logoutAll();
-    return Response.noContent().cookie(deleteRefreshTokenCookie()).build();
-  }
-
-  private NewCookie.SameSite parsedSameSite() {
-    try {
-      return NewCookie.SameSite.valueOf(cookieSameSite.toUpperCase());
-    } catch (IllegalArgumentException e) {
-      throw new IllegalStateException(
-          "Invalid pedalons.auth.cookie.same-site value: '"
-              + cookieSameSite
-              + "'. Valid values: STRICT, LAX, NONE",
-          e);
-    }
-  }
-
-  private NewCookie createRefreshTokenCookie(String refreshToken) {
-    return new NewCookie.Builder(REFRESH_TOKEN_COOKIE)
-        .value(refreshToken)
-        .path("/api")
-        .maxAge(refreshTokenExpiryDays * 24 * 60 * 60)
-        .httpOnly(true)
-        .secure(cookieSecure)
-        .sameSite(parsedSameSite())
-        .build();
-  }
-
-  private NewCookie deleteRefreshTokenCookie() {
-    return new NewCookie.Builder(REFRESH_TOKEN_COOKIE)
-        .value("")
-        .path("/api")
-        .maxAge(0)
-        .httpOnly(true)
-        .secure(cookieSecure)
-        .sameSite(parsedSameSite())
-        .build();
+    return Response.noContent().cookie(refreshTokenCookies.revoke()).build();
   }
 
   private String getClientIp(@Nullable String forwardedFor, @Nullable String realIp) {

@@ -133,9 +133,11 @@ jeton ICS. Thème clair et compte `gaby` pas repassés en revue depuis.
 - [ ] Les 5 écrans qui affichent le tracé complet d'un parcours : détail de parcours, carte plein
       écran de parcours et d'étape (les 4 via `useGetRoute`), carte de groupe d'une sortie (via
       `useRoutesBulk` sans `geometry:false`, `RoutesMapView.tsx`).
-- [ ] « Ma prochaine sortie », badge `Inscrit` et « Mes participations » se rendent **après
-      hydratation** : le SSR est anonyme. Vérifier qu'aucun de ces blocs n'apparaît dans le HTML
-      initial (`curl` la page) et qu'ils ne clignotent pas à l'hydratation.
+- [ ] « Ma prochaine sortie », badge `Inscrit` et « Mes participations » se rendent désormais
+      **dans le HTML initial** pour une requête porteuse d'un cookie de session (SSR authentifié,
+      cf. `frontend/SSR.md`). Vérifier avec `curl -H "Cookie: refresh_token=$TOKEN"` que ces blocs
+      sont présents, qu'ils sont **absents** sans cookie, et qu'ils ne clignotent pas à
+      l'hydratation (aucune erreur `[hydration]` en console).
 - [ ] Modale « Contacter le vendeur » : les quatre issues, brouillon **conservé** sur 429 et 500,
       et pas de double message (l'`Alert` de la modale **plus** le toast global — les quatre clés
       `errors.api.AD_CONTACT_*` doivent exister en `fr` et `en`). Le succès et
