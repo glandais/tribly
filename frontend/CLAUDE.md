@@ -9,6 +9,9 @@ See also the root `../CLAUDE.md` for full-stack context (backend, mobile, karoo,
 ```bash
 pnpm dev                           # SPA dev server (localhost:5173, proxies /api to :8080)
 pnpm dev:ssr                       # SSR dev server (node server.js, localhost:3000, Vite middleware mode)
+                                    # proxies /api to $API_BASE_URL (default localhost:8080) — if no
+                                    # local backend is running, start it with
+                                    # API_BASE_URL=https://staging.pedalons.fr pnpm dev:ssr
 pnpm build                         # Dual build: dist/client (browser) + dist/server (entry-server.js), no type checking
 pnpm typecheck                     # Type checking via tsgo (typescript-go)
 pnpm generate-api                  # Regenerate API client from ../contracts/openapi.json
