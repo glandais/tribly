@@ -52,11 +52,12 @@ const defaultState: AuthState = {
 }
 
 function authStateFromSnapshot(snapshot: SsrAuthSnapshot) {
+  const isAuthenticated = snapshot.accessToken !== null
   return {
     accessToken: snapshot.accessToken,
     user: snapshot.user,
     hasPasskeys: snapshot.hasPasskeys,
-    isAuthenticated: true,
+    isAuthenticated,
     isInitialized: true,
     isLoading: false,
   }
@@ -184,13 +185,14 @@ function ssrAuthState(): AuthStore {
   if (!snapshot) {
     return { ...actions, ...defaultState }
   }
+  const isAuthenticated = snapshot.accessToken !== null
   return {
     ...actions,
     ...defaultState,
     accessToken: snapshot.accessToken,
     user: snapshot.user,
     hasPasskeys: snapshot.hasPasskeys,
-    isAuthenticated: true,
+    isAuthenticated,
     isInitialized: true,
     isLoading: false,
   }

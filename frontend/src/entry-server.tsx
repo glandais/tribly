@@ -56,7 +56,9 @@ export async function render(url: string, headers: Record<string, string> = {}) 
       // - /api/version, rendered by Layout's footer on every page (not a route-specific
       //   prefetch(), since Layout wraps the whole app rather than one route).
       // - the visitor's session, if the request carried a refresh_token cookie. Everything the
-      //   route loaders prefetch below then goes out authenticated.
+      //   route loaders prefetch below then goes out authenticated. If there is no valid session,
+      //   we still populate __AUTH_STATE__ with an anonymous session so the client knows the page
+      //   was rendered anonymously and doesn't attempt a fresh /api/auth/refresh.
       //
       // The config and version requests go out before the session is known, i.e. anonymously. That
       // is correct: both are auth-independent (App.tsx excludes config from the post-login refetch
@@ -77,7 +79,11 @@ export async function render(url: string, headers: Record<string, string> = {}) 
         resolveSsrSession(headers),
       ])
       store.config = configResult
-      store.auth = session
+      store.auth = session ?? {
+        accessToken: null,
+        user: null,
+        hasPasskeys: false,
+      }
 
       // /api/auth/refresh already returned the user, so seed the /me cache with it rather than
       // letting useAuth() fetch the same record again right after hydration.

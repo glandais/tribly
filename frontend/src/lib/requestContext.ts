@@ -6,12 +6,11 @@ import type { Locale } from '@/config/paths.generated'
 import type { ConfigDto, UserDto } from '@/api/dto'
 
 /**
- * The session resolved for this request, from the incoming `refresh_token` cookie. Absent when the
- * request carried no cookie or the refresh was rejected — in which case the render is anonymous,
- * exactly as it was before SSR became session-aware.
+ * The session resolved for this request, from the incoming `refresh_token` cookie. When there is
+ * no cookie or the refresh was rejected, this represents an anonymous session with accessToken: null.
  */
 export interface SsrAuthSnapshot {
-  accessToken: string
+  accessToken: string | null
   user: UserDto | null
   hasPasskeys: boolean
 }

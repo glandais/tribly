@@ -60,7 +60,7 @@ AXIOS_INSTANCE.interceptors.request.use(
         if (lang) config.headers['Accept-Language'] = lang
       }
       const ssrAuth = getSSRAuth()
-      if (ssrAuth) {
+      if (ssrAuth && ssrAuth.accessToken) {
         config.headers.Authorization = `Bearer ${ssrAuth.accessToken}`
       }
       return config
