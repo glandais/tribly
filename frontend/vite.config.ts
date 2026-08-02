@@ -54,15 +54,6 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(__dirname, './src'),
       },
     },
-    optimizeDeps: {
-      // maplibre-gl loads its tile-processing code from a separate maplibre-gl-worker.mjs file,
-      // located relative to its own import.meta.url at runtime. Vite's dependency pre-bundling
-      // flattens it into .vite/deps/maplibre-gl.js without emitting that worker file alongside
-      // it, so the worker 404s and every map renders its basemap as a blank/black canvas with no
-      // console error. Excluding it from pre-bundling serves it straight from node_modules, where
-      // the worker file actually sits next to it.
-      exclude: ['maplibre-gl'],
-    },
     build: {
       rolldownOptions: {
         output: {

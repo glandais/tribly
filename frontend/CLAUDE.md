@@ -118,6 +118,7 @@ Lists request `view=COMPACT` where they only need `excerpt` + `thumbnailUrl`; in
 - Manual chunk splitting in `vite.config.ts` (map-vendor, editor-vendor, mantine-vendor, etc.)
 - Dev proxy: `/api` → `http://localhost:8080` with `X-Forwarded-Host` for multi-tenancy
 - **Dual build output**: `pnpm build` runs Vite twice — client bundle → `dist/client/` (with `index.html` containing `<!--ssr-outlet-->` / `<!--ssr-state-->` placeholders), SSR bundle → `dist/server/entry-server.js`. The Docker runtime image runs `node server.js` (Express) and serves both. There is no separate nginx step.
+- **MapLibre worker**: `src/components/map/setupMaplibreWorker.ts` calls `setWorkerUrl()` with a `maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url` import, and every component that constructs a `Map` imports it for its side effect. maplibre-gl otherwise resolves its worker via `new URL('./maplibre-gl-worker.mjs', import.meta.url)` *inside its own bundled module* — a dynamic expression Rollup can't trace, and one that points at the wrong place once bundled into `map-vendor` anyway. `?worker&url` is Vite's documented fix: it bundles the worker (and the sibling `maplibre-gl-shared.mjs` it imports) into one self-contained chunk. Don't reach for `optimizeDeps.exclude` or a manual copy-the-worker-file plugin instead — both were tried and failed (dev-only fix, or a 404 on the untracked sibling file).
 
 ### SSR (server-side rendering)
 
