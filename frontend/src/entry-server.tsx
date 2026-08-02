@@ -18,6 +18,7 @@ import { requestContext, type SsrRequestStore } from './lib/requestContext'
 import { setStoreGetter } from './lib/ssrContext'
 import { resolveSsrSession } from './lib/ssrSession'
 import { getConfig, getGetConfigQueryKey } from './api/endpoints/configuration/configuration'
+import { getVersion, getGetVersionQueryKey } from './api/endpoints/server-version/server-version'
 import { getGetMeQueryKey } from './api/endpoints/users/users'
 import { getPinnedTeamSlug } from './config/appConfig'
 import { toRouter, toBrowser } from './config/pinnedHistory'
@@ -47,24 +48,31 @@ export async function render(url: string, headers: Record<string, string> = {}) 
     try {
       const i18nInstance = await createServerI18n(locale)
 
-      // Two independent lookups, run concurrently so the session costs no extra serial round-trip:
+      // Three independent lookups, run concurrently so the session costs no extra serial round-trip:
       //
       // - the per-request config, tenant-resolved from the forwarded headers. It must land in the
       //   store BEFORE buildRoutes so isSingleTeam()/getPinnedTeamSlug() see it, and in the
       //   dehydrated state so the client reuses it instead of re-fetching.
+      // - /api/version, rendered by Layout's footer on every page (not a route-specific
+      //   prefetch(), since Layout wraps the whole app rather than one route).
       // - the visitor's session, if the request carried a refresh_token cookie. Everything the
       //   route loaders prefetch below then goes out authenticated.
       //
-      // The config request goes out before the session is known, i.e. anonymously. That is correct:
-      // the domain config is auth-independent (App.tsx excludes it from the post-login refetch for
-      // exactly that reason). Both failures are non-fatal — a failed session simply renders the
-      // page anonymously, as it always did.
-      const [configResult, session] = await Promise.all([
+      // The config and version requests go out before the session is known, i.e. anonymously. That
+      // is correct: both are auth-independent (App.tsx excludes config from the post-login refetch
+      // for exactly that reason). All three failures are non-fatal — a failed fetch simply lets the
+      // client refetch after hydration, and a failed session renders the page anonymously.
+      const [configResult, , session] = await Promise.all([
         queryClient
           .fetchQuery({ queryKey: getGetConfigQueryKey(), queryFn: () => getConfig() })
           .catch((err) => {
             console.error('[SSR] Failed to load config:', err)
             return undefined
+          }),
+        queryClient
+          .fetchQuery({ queryKey: getGetVersionQueryKey(), queryFn: () => getVersion() })
+          .catch((err) => {
+            console.error('[SSR] Failed to load version:', err)
           }),
         resolveSsrSession(headers),
       ])
