@@ -1,5 +1,6 @@
 package fr.pedalons.service.auth;
 
+import fr.pedalons.service.security.annotation.Public;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.core.NewCookie;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -41,6 +42,7 @@ public class RefreshTokenCookieFactory {
    * browser would send two same-named cookies on {@code /api/*} and {@code @CookieParam} would pick
    * one arbitrarily.
    */
+  @Public
   public NewCookie[] issue(String refreshToken) {
     // Removal first, real cookie last: browsers key cookies by name+path+domain so order is
     // irrelevant to them, but clients that index by name alone (RestAssured, some HTTP libraries)
@@ -49,6 +51,7 @@ public class RefreshTokenCookieFactory {
   }
 
   /** The cookies to emit when ending a session — both paths, so nothing survives a logout. */
+  @Public
   public NewCookie[] revoke() {
     return new NewCookie[] {legacyRemoval(), build("", PATH, 0)};
   }
