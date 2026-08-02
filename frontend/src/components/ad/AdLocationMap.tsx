@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import Map, { Layer, Source } from 'react-map-gl/maplibre'
-import maplibregl from 'maplibre-gl'
+import * as maplibregl from 'maplibre-gl'
 import { Box, Paper, Text } from '@mantine/core'
 import { useMapStyle } from '@/hooks/useMapStyle'
 import type { AdDtoLocationGeometry } from '@/api/dto'

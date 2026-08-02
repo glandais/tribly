@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
 import Map, { Source, Layer } from 'react-map-gl/maplibre'
-import maplibregl from 'maplibre-gl'
+import * as maplibregl from 'maplibre-gl'
 import type { MapRef } from 'react-map-gl/maplibre'
 import { ActionIcon, Box, Stack } from '@mantine/core'
 import { IconPlus, IconMinus } from '@tabler/icons-react'
