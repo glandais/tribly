@@ -155,6 +155,36 @@ jobs:
             echo "No test directory found, skipping tests"
           fi
 
+      - name: Build Android app bundle
+        working-directory: ./mobile
+        run: flutter build appbundle --release
+
+  mobile-ios:
+    name: Mobile (iOS build)
+    needs: [changes]
+    if: needs.changes.outputs.mobile == 'true'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        working-directory: ./mobile
+        run: flutter pub get
+
+      - name: Run code generation
+        working-directory: ./mobile
+        run: dart run build_runner build
+
+      - name: Build iOS app (unsigned)
+        working-directory: ./mobile
+        run: flutter build ios --release --no-codesign
+
   karoo:
     name: Karoo Extension
     needs: [changes]
