@@ -91,6 +91,13 @@ export function HomePage() {
   // Frozen per mount: a `from` recomputed on every render would change the query key
   // continuously and defeat the cache.
   const nowIso = useMemo(() => new Date().toISOString(), [])
+  /*
+  const nowIso = useMemo(() => {
+    const startOfDay = new Date()
+    startOfDay.setHours(startOfDay.getHours(), 0, 0, 0)
+    return startOfDay.toISOString()
+  }, [])
+  */
 
   const apiParams = useMemo(
     () => ({

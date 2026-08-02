@@ -31,6 +31,7 @@ import {
 } from './routeMeta'
 import { PUBLICATION_PAGE_SIZE } from '@/hooks/filters/publicationFilters'
 import { TEAM_PAGE_SIZE } from '@/hooks/filters/teamFilters'
+import { useAuthStore } from '@/store/authStore'
 
 // Lazy load page components for code splitting
 const HomePage = lazy(() => import('../pages/home/HomePage').then((m) => ({ default: m.HomePage })))
@@ -255,7 +256,19 @@ export const routesConfig: RoutesConfig = [
     // filters are set (search/type/minRole all undefined, page 0). Undefined values are dropped by
     // the query-key hash, so { page, size } byte-matches the component's params object.
     prefetch: async (queryClient) => {
-      await prefetchListAllPublicationsQuery(queryClient, { page: 0, size: PUBLICATION_PAGE_SIZE })
+      if (useAuthStore.getState().isAuthenticated) {
+      } else {
+        await prefetchListAllPublicationsQuery(queryClient, {
+          page: 0,
+          size: PUBLICATION_PAGE_SIZE,
+          view: 'COMPACT',
+        })
+        await prefetchListAllPublicationsQuery(queryClient, {
+          page: 1,
+          size: PUBLICATION_PAGE_SIZE,
+          view: 'COMPACT',
+        })
+      }
     },
     meta: homeMeta,
   },
