@@ -1,7 +1,7 @@
 import { forwardRef } from 'react'
 import Map, { NavigationControl } from 'react-map-gl/maplibre'
 import type { MapProps, MapRef } from 'react-map-gl/maplibre'
-import maplibregl from 'maplibre-gl'
+import * as maplibregl from 'maplibre-gl'
 import { Terrain3D } from './Terrain3D'
 import { MapStyleSwitcher } from './MapStyleSwitcher'
 import { useMapStyle } from '@/hooks/useMapStyle'
