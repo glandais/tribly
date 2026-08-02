@@ -9,7 +9,7 @@ plugins {
 }
 
 dependencies {
-    implementation("com.google.android.material:material:1.13.0")
+    implementation("com.google.android.material:material:1.14.0")
 }
 
 // Load key.properties for release signing
