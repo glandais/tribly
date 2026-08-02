@@ -1,4 +1,3 @@
-import { Suspense } from 'react'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { Navigate, type RouteObject } from 'react-router-dom'
 import type { QueryClient } from '@tanstack/react-query'
@@ -10,7 +9,6 @@ import { Layout } from '../components/common/Layout'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { paths } from './paths'
 import { isSingleTeam } from './appConfig'
-import { Loader } from '@mantine/core'
 
 function wrapWithAuth(element: React.ReactNode, auth: AuthRequirement): React.ReactNode {
   switch (auth) {
@@ -72,9 +70,7 @@ function buildRoutesForConfig(config: RouteConfig, queryClient: QueryClient): Ro
     wrapWithAuth(
       // Per-route boundary: a crash in one page shows an error block instead of a blank app.
       <ErrorBoundary>
-        <Suspense fallback={<Loader />}>
-          <Component />
-        </Suspense>
+        <Component />
       </ErrorBoundary>,
       config.auth
     )
