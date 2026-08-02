@@ -21,28 +21,29 @@ function currentRouteName(router: Router): string {
 const SETTLE_DEBOUNCE_MS = 300
 
 /**
- * Logs, in a single console.warn per page arrival, the queries that got fetched on the client but
- * weren't already in the cache when the page "arrived" — either from the SSR-dehydrated state
- * (first load) or from the route's `prefetch()` (client-side navigation). Those are gaps in a
- * route's `prefetch()` declaration in routes.config.ts: the data is fetched anyway, just after the
- * first paint instead of before it.
+ * Logs, in a single console.warn, the queries that got fetched on the client during the very first
+ * page load but weren't already in the SSR-dehydrated cache. Those are gaps in that route's
+ * `prefetch()` declaration in routes.config.ts: the data is fetched anyway, just after the first
+ * paint instead of before it.
  *
- * The watch window reopens on every navigation.state -> 'idle' transition (prefetch() just
- * resolved) and closes once queryClient.isFetching() has stayed at 0 for SETTLE_DEBOUNCE_MS (the
- * page has settled) — so fetches from later user interaction (pagination, opening a modal) aren't
- * flagged unless they themselves trigger a router navigation. Misses accumulate over the window and
- * are logged together when it closes, rather than one console.warn per query.
+ * First load only: the watch window closes once queryClient.isFetching() has stayed at 0 for
+ * SETTLE_DEBOUNCE_MS (the page has settled), and the whole thing disarms for good the moment a
+ * route change starts — no re-arming on client-side navigation.
  */
 export function installPrefetchAudit(queryClient: QueryClient, router: Router): void {
-  let coveredHashes = new Set(
+  const coveredHashes = new Set(
     queryClient
       .getQueryCache()
       .getAll()
       .map((q) => q.queryHash)
   )
-  let windowOpen = true
+  let active = true
   let closeTimer: ReturnType<typeof setTimeout> | undefined
-  let missed: string[] = []
+  const missed: string[] = []
+  // Assigned right after subscribing, below — declared as no-ops first so `disarm` never hits a
+  // "used before initialization" if a subscribe() call were ever to notify synchronously.
+  let unsubscribeCache = () => {}
+  let unsubscribeRouter = () => {}
 
   function flush() {
     if (missed.length === 0) return
@@ -51,16 +52,24 @@ export function installPrefetchAudit(queryClient: QueryClient, router: Router): 
         `${missed.length} ${missed.length > 1 ? 'queries' : 'query'} fetched after page load, ` +
         `not covered by route prefetch: ${missed.join(', ')}`
     )
-    missed = []
+  }
+
+  function disarm() {
+    active = false
+    if (closeTimer) {
+      clearTimeout(closeTimer)
+      closeTimer = undefined
+    }
+    unsubscribeCache()
+    unsubscribeRouter()
   }
 
   function scheduleSettleCheck() {
-    if (!windowOpen) return
+    if (!active) return
     if (queryClient.isFetching() === 0) {
       closeTimer ??= setTimeout(() => {
-        windowOpen = false
-        closeTimer = undefined
         flush()
+        disarm()
       }, SETTLE_DEBOUNCE_MS)
     } else if (closeTimer) {
       clearTimeout(closeTimer)
@@ -68,8 +77,8 @@ export function installPrefetchAudit(queryClient: QueryClient, router: Router): 
     }
   }
 
-  queryClient.getQueryCache().subscribe((event) => {
-    if (windowOpen && event.type === 'updated' && event.action.type === 'fetch') {
+  unsubscribeCache = queryClient.getQueryCache().subscribe((event) => {
+    if (event.type === 'updated' && event.action.type === 'fetch') {
       const hash = event.query.queryHash
       if (!coveredHashes.has(hash)) {
         coveredHashes.add(hash)
@@ -79,26 +88,13 @@ export function installPrefetchAudit(queryClient: QueryClient, router: Router): 
     scheduleSettleCheck()
   })
 
-  router.subscribe((state) => {
-    if (state.navigation.state === 'idle') {
-      if (closeTimer) {
-        clearTimeout(closeTimer)
-        closeTimer = undefined
-      }
-      flush()
-      coveredHashes = new Set(
-        queryClient
-          .getQueryCache()
-          .getAll()
-          .map((q) => q.queryHash)
-      )
-      windowOpen = true
-      scheduleSettleCheck()
-    }
+  // Any route change — even before the first load has settled — disarms the detector for good; it
+  // never speaks for a page it didn't watch from the very start.
+  unsubscribeRouter = router.subscribe((state) => {
+    if (state.navigation.state !== 'idle') disarm()
   })
 
-  // Also cover the very first page load: no navigation event fires for it (the router starts
-  // already "idle" via hydrationData), so nothing would otherwise arm the close timer if the page
-  // turns out to have zero post-load fetches.
+  // Also cover the case where the first page load turns out to have zero post-load fetches: no
+  // cache event would otherwise ever arm the close timer.
   scheduleSettleCheck()
 }
