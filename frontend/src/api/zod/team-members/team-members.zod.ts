@@ -12,13 +12,13 @@ export const getMembersQueryPageDefault = 0
 export const getMembersQuerySizeDefault = 50
 
 export const GetMembersQueryParams = zod.object({
-  page: zod.number().default(getMembersQueryPageDefault).describe('Page number'),
+  page: zod.int().default(getMembersQueryPageDefault).describe('Page number'),
   role: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']).optional().describe('Filter by role'),
   search: zod
     .string()
     .optional()
     .describe('Search by display name. Also matches the e-mail address, for administrators only.'),
-  size: zod.number().default(getMembersQuerySizeDefault).describe('Page size'),
+  size: zod.int().default(getMembersQuerySizeDefault).describe('Page size'),
 })
 
 export const GetMembersResponse = zod
@@ -59,9 +59,9 @@ export const GetMembersResponse = zod
           .describe('Team member information')
       )
       .describe('List of members'),
-    total: zod.number().describe('Total number of members'),
-    page: zod.number().describe('Current page number'),
-    size: zod.number().describe('Page size'),
+    total: zod.int().describe('Total number of members'),
+    page: zod.int().describe('Current page number'),
+    size: zod.int().describe('Page size'),
   })
   .describe('Paginated member list response')
 

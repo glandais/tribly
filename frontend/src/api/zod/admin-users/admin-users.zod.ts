@@ -10,9 +10,9 @@ export const listUsersQuerySizeDefault = 20
 export const ListUsersQueryParams = zod.object({
   adminOnly: zod.boolean().optional().describe('Show only platform admins'),
   domainId: zod.string().optional().describe('Filter by domain ID'),
-  page: zod.number().default(listUsersQueryPageDefault).describe('Page number (0-indexed)'),
+  page: zod.int().default(listUsersQueryPageDefault).describe('Page number (0-indexed)'),
   search: zod.string().optional().describe('Search by email or name'),
-  size: zod.number().default(listUsersQuerySizeDefault).describe('Page size'),
+  size: zod.int().default(listUsersQuerySizeDefault).describe('Page size'),
 })
 
 export const ListUsersResponse = zod
@@ -40,9 +40,9 @@ export const ListUsersResponse = zod
           .describe('Admin user view with domain info')
       )
       .describe('List of users'),
-    total: zod.number().describe('Total number of users'),
-    page: zod.number().describe('Current page number'),
-    size: zod.number().describe('Page size'),
+    total: zod.int().describe('Total number of users'),
+    page: zod.int().describe('Current page number'),
+    size: zod.int().describe('Page size'),
   })
   .describe('Paginated admin user list response')
 

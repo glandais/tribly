@@ -16,7 +16,7 @@ export const ListAllPublicationsQueryParams = zod.object({
     .describe(
       'Only publications from teams where the user has at least this role. Yields nothing for an anonymous visitor.'
     ),
-  page: zod.number().default(listAllPublicationsQueryPageDefault).describe('Page number'),
+  page: zod.int().default(listAllPublicationsQueryPageDefault).describe('Page number'),
   participating: zod
     .boolean()
     .default(listAllPublicationsQueryParticipatingDefault)
@@ -24,7 +24,7 @@ export const ListAllPublicationsQueryParams = zod.object({
       'Only publications the current user is registered to (rides and trips). Yields nothing for an anonymous visitor.'
     ),
   search: zod.string().optional().describe('Search by name\/markdown'),
-  size: zod.number().default(listAllPublicationsQuerySizeDefault).describe('Page size'),
+  size: zod.int().default(listAllPublicationsQuerySizeDefault).describe('Page size'),
   status: zod
     .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
     .optional()
@@ -77,8 +77,8 @@ export const ListAllPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -95,8 +95,8 @@ export const ListAllPublicationsResponse = zod
                               imageUrl: zod.string().optional().describe('image template url'),
                               imageDimensions: zod
                                 .object({
-                                  width: zod.number().optional(),
-                                  height: zod.number().optional(),
+                                  width: zod.int().optional(),
+                                  height: zod.int().optional(),
                                 })
                                 .optional()
                                 .describe('image dimensions'),
@@ -113,8 +113,8 @@ export const ListAllPublicationsResponse = zod
                               imageUrl: zod.string().optional().describe('image template url'),
                               imageDimensions: zod
                                 .object({
-                                  width: zod.number().optional(),
-                                  height: zod.number().optional(),
+                                  width: zod.int().optional(),
+                                  height: zod.int().optional(),
                                 })
                                 .optional()
                                 .describe('image dimensions'),
@@ -130,8 +130,8 @@ export const ListAllPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -147,8 +147,8 @@ export const ListAllPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -164,8 +164,8 @@ export const ListAllPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -181,8 +181,8 @@ export const ListAllPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -198,8 +198,8 @@ export const ListAllPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -232,8 +232,8 @@ export const ListAllPublicationsResponse = zod
                   .optional()
                   .describe('Creation timestamp'),
                 routeSlug: zod.string().optional().describe('Route slug'),
-                participantCount: zod.number().describe('Number of participants'),
-                groupCount: zod.number().describe('Number of groups'),
+                participantCount: zod.int().describe('Number of participants'),
+                groupCount: zod.int().describe('Number of groups'),
                 groups: zod
                   .array(
                     zod
@@ -243,8 +243,8 @@ export const ListAllPublicationsResponse = zod
                         time: zod.string().optional(),
                         routeSlug: zod.string().optional().describe('Route slug'),
                         averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
-                        maxParticipants: zod.number().optional().describe('Maximum participants'),
-                        countParticipants: zod.number().describe('Current number of participants'),
+                        maxParticipants: zod.int().optional().describe('Maximum participants'),
+                        countParticipants: zod.int().describe('Current number of participants'),
                         participants: zod
                           .array(
                             zod
@@ -256,7 +256,7 @@ export const ListAllPublicationsResponse = zod
                               .describe('Public user information (limited fields)')
                           )
                           .describe('Participants, empty if not access'),
-                        sortOrder: zod.number().describe('Sort order'),
+                        sortOrder: zod.int().describe('Sort order'),
                         registered: zod
                           .boolean()
                           .describe(
@@ -368,7 +368,7 @@ export const ListAllPublicationsResponse = zod
                     'Whether every group of the ride has reached its capacity. False when the ride has no group, or when at least one group has no maxParticipants.'
                   ),
                 commentCount: zod
-                  .number()
+                  .int()
                   .optional()
                   .describe(
                     'Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -405,8 +405,8 @@ export const ListAllPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -423,8 +423,8 @@ export const ListAllPublicationsResponse = zod
                               imageUrl: zod.string().optional().describe('image template url'),
                               imageDimensions: zod
                                 .object({
-                                  width: zod.number().optional(),
-                                  height: zod.number().optional(),
+                                  width: zod.int().optional(),
+                                  height: zod.int().optional(),
                                 })
                                 .optional()
                                 .describe('image dimensions'),
@@ -441,8 +441,8 @@ export const ListAllPublicationsResponse = zod
                               imageUrl: zod.string().optional().describe('image template url'),
                               imageDimensions: zod
                                 .object({
-                                  width: zod.number().optional(),
-                                  height: zod.number().optional(),
+                                  width: zod.int().optional(),
+                                  height: zod.int().optional(),
                                 })
                                 .optional()
                                 .describe('image dimensions'),
@@ -458,8 +458,8 @@ export const ListAllPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -475,8 +475,8 @@ export const ListAllPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -492,8 +492,8 @@ export const ListAllPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -509,8 +509,8 @@ export const ListAllPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -526,8 +526,8 @@ export const ListAllPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -567,7 +567,7 @@ export const ListAllPublicationsResponse = zod
                   .describe('Creation timestamp'),
                 deleted: zod.boolean().describe('Whether the post is soft-deleted'),
                 commentCount: zod
-                  .number()
+                  .int()
                   .optional()
                   .describe(
                     'Number of comments, replies included. Absent when the caller may not read the comments of this post — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -604,8 +604,8 @@ export const ListAllPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -622,8 +622,8 @@ export const ListAllPublicationsResponse = zod
                               imageUrl: zod.string().optional().describe('image template url'),
                               imageDimensions: zod
                                 .object({
-                                  width: zod.number().optional(),
-                                  height: zod.number().optional(),
+                                  width: zod.int().optional(),
+                                  height: zod.int().optional(),
                                 })
                                 .optional()
                                 .describe('image dimensions'),
@@ -640,8 +640,8 @@ export const ListAllPublicationsResponse = zod
                               imageUrl: zod.string().optional().describe('image template url'),
                               imageDimensions: zod
                                 .object({
-                                  width: zod.number().optional(),
-                                  height: zod.number().optional(),
+                                  width: zod.int().optional(),
+                                  height: zod.int().optional(),
                                 })
                                 .optional()
                                 .describe('image dimensions'),
@@ -657,8 +657,8 @@ export const ListAllPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -674,8 +674,8 @@ export const ListAllPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -691,8 +691,8 @@ export const ListAllPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -708,8 +708,8 @@ export const ListAllPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -725,8 +725,8 @@ export const ListAllPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -765,8 +765,8 @@ export const ListAllPublicationsResponse = zod
                   .optional()
                   .describe('Creation timestamp'),
                 routeSlug: zod.string().optional().describe('Route slug'),
-                participantCount: zod.number().describe('Number of participants'),
-                stageCount: zod.number().describe('Number of stages'),
+                participantCount: zod.int().describe('Number of participants'),
+                stageCount: zod.int().describe('Number of stages'),
                 totalDistance: zod
                   .number()
                   .optional()
@@ -819,8 +819,8 @@ export const ListAllPublicationsResponse = zod
                                           .describe('image template url'),
                                         imageDimensions: zod
                                           .object({
-                                            width: zod.number().optional(),
-                                            height: zod.number().optional(),
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
                                           })
                                           .optional()
                                           .describe('image dimensions'),
@@ -840,8 +840,8 @@ export const ListAllPublicationsResponse = zod
                                             .describe('image template url'),
                                           imageDimensions: zod
                                             .object({
-                                              width: zod.number().optional(),
-                                              height: zod.number().optional(),
+                                              width: zod.int().optional(),
+                                              height: zod.int().optional(),
                                             })
                                             .optional()
                                             .describe('image dimensions'),
@@ -861,8 +861,8 @@ export const ListAllPublicationsResponse = zod
                                             .describe('image template url'),
                                           imageDimensions: zod
                                             .object({
-                                              width: zod.number().optional(),
-                                              height: zod.number().optional(),
+                                              width: zod.int().optional(),
+                                              height: zod.int().optional(),
                                             })
                                             .optional()
                                             .describe('image dimensions'),
@@ -881,8 +881,8 @@ export const ListAllPublicationsResponse = zod
                                           .describe('image template url'),
                                         imageDimensions: zod
                                           .object({
-                                            width: zod.number().optional(),
-                                            height: zod.number().optional(),
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
                                           })
                                           .optional()
                                           .describe('image dimensions'),
@@ -901,8 +901,8 @@ export const ListAllPublicationsResponse = zod
                                           .describe('image template url'),
                                         imageDimensions: zod
                                           .object({
-                                            width: zod.number().optional(),
-                                            height: zod.number().optional(),
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
                                           })
                                           .optional()
                                           .describe('image dimensions'),
@@ -921,8 +921,8 @@ export const ListAllPublicationsResponse = zod
                                           .describe('image template url'),
                                         imageDimensions: zod
                                           .object({
-                                            width: zod.number().optional(),
-                                            height: zod.number().optional(),
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
                                           })
                                           .optional()
                                           .describe('image dimensions'),
@@ -941,8 +941,8 @@ export const ListAllPublicationsResponse = zod
                                           .describe('image template url'),
                                         imageDimensions: zod
                                           .object({
-                                            width: zod.number().optional(),
-                                            height: zod.number().optional(),
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
                                           })
                                           .optional()
                                           .describe('image dimensions'),
@@ -961,8 +961,8 @@ export const ListAllPublicationsResponse = zod
                                           .describe('image template url'),
                                         imageDimensions: zod
                                           .object({
-                                            width: zod.number().optional(),
-                                            height: zod.number().optional(),
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
                                           })
                                           .optional()
                                           .describe('image dimensions'),
@@ -999,7 +999,7 @@ export const ListAllPublicationsResponse = zod
                               .describe('Creation timestamp'),
                             deleted: zod.boolean().describe('Whether the route is soft-deleted'),
                             commentCount: zod
-                              .number()
+                              .int()
                               .optional()
                               .describe(
                                 'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -1064,8 +1064,8 @@ export const ListAllPublicationsResponse = zod
                                       .describe('image template url'),
                                     imageDimensions: zod
                                       .object({
-                                        width: zod.number().optional(),
-                                        height: zod.number().optional(),
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
                                       })
                                       .optional()
                                       .describe('image dimensions'),
@@ -1085,8 +1085,8 @@ export const ListAllPublicationsResponse = zod
                                         .describe('image template url'),
                                       imageDimensions: zod
                                         .object({
-                                          width: zod.number().optional(),
-                                          height: zod.number().optional(),
+                                          width: zod.int().optional(),
+                                          height: zod.int().optional(),
                                         })
                                         .optional()
                                         .describe('image dimensions'),
@@ -1106,8 +1106,8 @@ export const ListAllPublicationsResponse = zod
                                         .describe('image template url'),
                                       imageDimensions: zod
                                         .object({
-                                          width: zod.number().optional(),
-                                          height: zod.number().optional(),
+                                          width: zod.int().optional(),
+                                          height: zod.int().optional(),
                                         })
                                         .optional()
                                         .describe('image dimensions'),
@@ -1126,8 +1126,8 @@ export const ListAllPublicationsResponse = zod
                                       .describe('image template url'),
                                     imageDimensions: zod
                                       .object({
-                                        width: zod.number().optional(),
-                                        height: zod.number().optional(),
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
                                       })
                                       .optional()
                                       .describe('image dimensions'),
@@ -1146,8 +1146,8 @@ export const ListAllPublicationsResponse = zod
                                       .describe('image template url'),
                                     imageDimensions: zod
                                       .object({
-                                        width: zod.number().optional(),
-                                        height: zod.number().optional(),
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
                                       })
                                       .optional()
                                       .describe('image dimensions'),
@@ -1166,8 +1166,8 @@ export const ListAllPublicationsResponse = zod
                                       .describe('image template url'),
                                     imageDimensions: zod
                                       .object({
-                                        width: zod.number().optional(),
-                                        height: zod.number().optional(),
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
                                       })
                                       .optional()
                                       .describe('image dimensions'),
@@ -1186,8 +1186,8 @@ export const ListAllPublicationsResponse = zod
                                       .describe('image template url'),
                                     imageDimensions: zod
                                       .object({
-                                        width: zod.number().optional(),
-                                        height: zod.number().optional(),
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
                                       })
                                       .optional()
                                       .describe('image dimensions'),
@@ -1206,8 +1206,8 @@ export const ListAllPublicationsResponse = zod
                                       .describe('image template url'),
                                     imageDimensions: zod
                                       .object({
-                                        width: zod.number().optional(),
-                                        height: zod.number().optional(),
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
                                       })
                                       .optional()
                                       .describe('image dimensions'),
@@ -1218,14 +1218,14 @@ export const ListAllPublicationsResponse = zod
                               .describe('Assets'),
                           })
                           .describe('Stage media'),
-                        sortOrder: zod.number().describe('Sort order'),
+                        sortOrder: zod.int().describe('Sort order'),
                         stageIndex: zod
-                          .number()
+                          .int()
                           .describe(
                             "Position of this stage among the trip's live stages, 1-based — the 'Day 2' of a stage header. Unlike sortOrder, which is a persisted rank that may have gaps, this is a rank a client can print."
                           ),
                         stageCount: zod
-                          .number()
+                          .int()
                           .describe(
                             "How many live stages the trip has — the '\/ 5' of 'Day 2 \/ 5'."
                           ),
@@ -1259,7 +1259,7 @@ export const ListAllPublicationsResponse = zod
                     'Whether the current user is registered for this trip. False if anonymous.'
                   ),
                 commentCount: zod
-                  .number()
+                  .int()
                   .optional()
                   .describe(
                     'Number of comments, replies included. Absent when the caller may not read the comments of this trip — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -1277,9 +1277,9 @@ export const ListAllPublicationsResponse = zod
           .describe('Publication data')
       )
       .describe('List of publications'),
-    total: zod.number().describe('Total number of publications'),
-    page: zod.number().describe('Current page number'),
-    size: zod.number().describe('Page size'),
+    total: zod.int().describe('Total number of publications'),
+    page: zod.int().describe('Current page number'),
+    size: zod.int().describe('Page size'),
   })
   .describe('Paginated publication list response')
 
@@ -1316,7 +1316,7 @@ export const CountAllPublicationsQueryParams = zod.object({
 
 export const CountAllPublicationsResponse = zod
   .object({
-    total: zod.number().describe('Total number of matching items'),
+    total: zod.int().describe('Total number of matching items'),
   })
   .describe('Number of items matching a filter set')
 
@@ -1334,7 +1334,7 @@ export const listPublicationsQuerySizeDefault = 20
 
 export const ListPublicationsQueryParams = zod.object({
   from: zod.string().optional().describe('Start date filter (ISO format)'),
-  page: zod.number().default(listPublicationsQueryPageDefault).describe('Page number'),
+  page: zod.int().default(listPublicationsQueryPageDefault).describe('Page number'),
   participating: zod
     .boolean()
     .default(listPublicationsQueryParticipatingDefault)
@@ -1342,7 +1342,7 @@ export const ListPublicationsQueryParams = zod.object({
       'Only publications the current user is registered to (rides and trips). Yields nothing for an anonymous visitor.'
     ),
   search: zod.string().optional().describe('Search by name\/markdown'),
-  size: zod.number().default(listPublicationsQuerySizeDefault).describe('Page size'),
+  size: zod.int().default(listPublicationsQuerySizeDefault).describe('Page size'),
   status: zod
     .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
     .optional()
@@ -1395,8 +1395,8 @@ export const ListPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -1413,8 +1413,8 @@ export const ListPublicationsResponse = zod
                               imageUrl: zod.string().optional().describe('image template url'),
                               imageDimensions: zod
                                 .object({
-                                  width: zod.number().optional(),
-                                  height: zod.number().optional(),
+                                  width: zod.int().optional(),
+                                  height: zod.int().optional(),
                                 })
                                 .optional()
                                 .describe('image dimensions'),
@@ -1431,8 +1431,8 @@ export const ListPublicationsResponse = zod
                               imageUrl: zod.string().optional().describe('image template url'),
                               imageDimensions: zod
                                 .object({
-                                  width: zod.number().optional(),
-                                  height: zod.number().optional(),
+                                  width: zod.int().optional(),
+                                  height: zod.int().optional(),
                                 })
                                 .optional()
                                 .describe('image dimensions'),
@@ -1448,8 +1448,8 @@ export const ListPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -1465,8 +1465,8 @@ export const ListPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -1482,8 +1482,8 @@ export const ListPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -1499,8 +1499,8 @@ export const ListPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -1516,8 +1516,8 @@ export const ListPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -1550,8 +1550,8 @@ export const ListPublicationsResponse = zod
                   .optional()
                   .describe('Creation timestamp'),
                 routeSlug: zod.string().optional().describe('Route slug'),
-                participantCount: zod.number().describe('Number of participants'),
-                groupCount: zod.number().describe('Number of groups'),
+                participantCount: zod.int().describe('Number of participants'),
+                groupCount: zod.int().describe('Number of groups'),
                 groups: zod
                   .array(
                     zod
@@ -1561,8 +1561,8 @@ export const ListPublicationsResponse = zod
                         time: zod.string().optional(),
                         routeSlug: zod.string().optional().describe('Route slug'),
                         averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
-                        maxParticipants: zod.number().optional().describe('Maximum participants'),
-                        countParticipants: zod.number().describe('Current number of participants'),
+                        maxParticipants: zod.int().optional().describe('Maximum participants'),
+                        countParticipants: zod.int().describe('Current number of participants'),
                         participants: zod
                           .array(
                             zod
@@ -1574,7 +1574,7 @@ export const ListPublicationsResponse = zod
                               .describe('Public user information (limited fields)')
                           )
                           .describe('Participants, empty if not access'),
-                        sortOrder: zod.number().describe('Sort order'),
+                        sortOrder: zod.int().describe('Sort order'),
                         registered: zod
                           .boolean()
                           .describe(
@@ -1686,7 +1686,7 @@ export const ListPublicationsResponse = zod
                     'Whether every group of the ride has reached its capacity. False when the ride has no group, or when at least one group has no maxParticipants.'
                   ),
                 commentCount: zod
-                  .number()
+                  .int()
                   .optional()
                   .describe(
                     'Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -1723,8 +1723,8 @@ export const ListPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -1741,8 +1741,8 @@ export const ListPublicationsResponse = zod
                               imageUrl: zod.string().optional().describe('image template url'),
                               imageDimensions: zod
                                 .object({
-                                  width: zod.number().optional(),
-                                  height: zod.number().optional(),
+                                  width: zod.int().optional(),
+                                  height: zod.int().optional(),
                                 })
                                 .optional()
                                 .describe('image dimensions'),
@@ -1759,8 +1759,8 @@ export const ListPublicationsResponse = zod
                               imageUrl: zod.string().optional().describe('image template url'),
                               imageDimensions: zod
                                 .object({
-                                  width: zod.number().optional(),
-                                  height: zod.number().optional(),
+                                  width: zod.int().optional(),
+                                  height: zod.int().optional(),
                                 })
                                 .optional()
                                 .describe('image dimensions'),
@@ -1776,8 +1776,8 @@ export const ListPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -1793,8 +1793,8 @@ export const ListPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -1810,8 +1810,8 @@ export const ListPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -1827,8 +1827,8 @@ export const ListPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -1844,8 +1844,8 @@ export const ListPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -1885,7 +1885,7 @@ export const ListPublicationsResponse = zod
                   .describe('Creation timestamp'),
                 deleted: zod.boolean().describe('Whether the post is soft-deleted'),
                 commentCount: zod
-                  .number()
+                  .int()
                   .optional()
                   .describe(
                     'Number of comments, replies included. Absent when the caller may not read the comments of this post — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -1922,8 +1922,8 @@ export const ListPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -1940,8 +1940,8 @@ export const ListPublicationsResponse = zod
                               imageUrl: zod.string().optional().describe('image template url'),
                               imageDimensions: zod
                                 .object({
-                                  width: zod.number().optional(),
-                                  height: zod.number().optional(),
+                                  width: zod.int().optional(),
+                                  height: zod.int().optional(),
                                 })
                                 .optional()
                                 .describe('image dimensions'),
@@ -1958,8 +1958,8 @@ export const ListPublicationsResponse = zod
                               imageUrl: zod.string().optional().describe('image template url'),
                               imageDimensions: zod
                                 .object({
-                                  width: zod.number().optional(),
-                                  height: zod.number().optional(),
+                                  width: zod.int().optional(),
+                                  height: zod.int().optional(),
                                 })
                                 .optional()
                                 .describe('image dimensions'),
@@ -1975,8 +1975,8 @@ export const ListPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -1992,8 +1992,8 @@ export const ListPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -2009,8 +2009,8 @@ export const ListPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -2026,8 +2026,8 @@ export const ListPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -2043,8 +2043,8 @@ export const ListPublicationsResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -2083,8 +2083,8 @@ export const ListPublicationsResponse = zod
                   .optional()
                   .describe('Creation timestamp'),
                 routeSlug: zod.string().optional().describe('Route slug'),
-                participantCount: zod.number().describe('Number of participants'),
-                stageCount: zod.number().describe('Number of stages'),
+                participantCount: zod.int().describe('Number of participants'),
+                stageCount: zod.int().describe('Number of stages'),
                 totalDistance: zod
                   .number()
                   .optional()
@@ -2137,8 +2137,8 @@ export const ListPublicationsResponse = zod
                                           .describe('image template url'),
                                         imageDimensions: zod
                                           .object({
-                                            width: zod.number().optional(),
-                                            height: zod.number().optional(),
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
                                           })
                                           .optional()
                                           .describe('image dimensions'),
@@ -2158,8 +2158,8 @@ export const ListPublicationsResponse = zod
                                             .describe('image template url'),
                                           imageDimensions: zod
                                             .object({
-                                              width: zod.number().optional(),
-                                              height: zod.number().optional(),
+                                              width: zod.int().optional(),
+                                              height: zod.int().optional(),
                                             })
                                             .optional()
                                             .describe('image dimensions'),
@@ -2179,8 +2179,8 @@ export const ListPublicationsResponse = zod
                                             .describe('image template url'),
                                           imageDimensions: zod
                                             .object({
-                                              width: zod.number().optional(),
-                                              height: zod.number().optional(),
+                                              width: zod.int().optional(),
+                                              height: zod.int().optional(),
                                             })
                                             .optional()
                                             .describe('image dimensions'),
@@ -2199,8 +2199,8 @@ export const ListPublicationsResponse = zod
                                           .describe('image template url'),
                                         imageDimensions: zod
                                           .object({
-                                            width: zod.number().optional(),
-                                            height: zod.number().optional(),
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
                                           })
                                           .optional()
                                           .describe('image dimensions'),
@@ -2219,8 +2219,8 @@ export const ListPublicationsResponse = zod
                                           .describe('image template url'),
                                         imageDimensions: zod
                                           .object({
-                                            width: zod.number().optional(),
-                                            height: zod.number().optional(),
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
                                           })
                                           .optional()
                                           .describe('image dimensions'),
@@ -2239,8 +2239,8 @@ export const ListPublicationsResponse = zod
                                           .describe('image template url'),
                                         imageDimensions: zod
                                           .object({
-                                            width: zod.number().optional(),
-                                            height: zod.number().optional(),
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
                                           })
                                           .optional()
                                           .describe('image dimensions'),
@@ -2259,8 +2259,8 @@ export const ListPublicationsResponse = zod
                                           .describe('image template url'),
                                         imageDimensions: zod
                                           .object({
-                                            width: zod.number().optional(),
-                                            height: zod.number().optional(),
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
                                           })
                                           .optional()
                                           .describe('image dimensions'),
@@ -2279,8 +2279,8 @@ export const ListPublicationsResponse = zod
                                           .describe('image template url'),
                                         imageDimensions: zod
                                           .object({
-                                            width: zod.number().optional(),
-                                            height: zod.number().optional(),
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
                                           })
                                           .optional()
                                           .describe('image dimensions'),
@@ -2317,7 +2317,7 @@ export const ListPublicationsResponse = zod
                               .describe('Creation timestamp'),
                             deleted: zod.boolean().describe('Whether the route is soft-deleted'),
                             commentCount: zod
-                              .number()
+                              .int()
                               .optional()
                               .describe(
                                 'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -2382,8 +2382,8 @@ export const ListPublicationsResponse = zod
                                       .describe('image template url'),
                                     imageDimensions: zod
                                       .object({
-                                        width: zod.number().optional(),
-                                        height: zod.number().optional(),
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
                                       })
                                       .optional()
                                       .describe('image dimensions'),
@@ -2403,8 +2403,8 @@ export const ListPublicationsResponse = zod
                                         .describe('image template url'),
                                       imageDimensions: zod
                                         .object({
-                                          width: zod.number().optional(),
-                                          height: zod.number().optional(),
+                                          width: zod.int().optional(),
+                                          height: zod.int().optional(),
                                         })
                                         .optional()
                                         .describe('image dimensions'),
@@ -2424,8 +2424,8 @@ export const ListPublicationsResponse = zod
                                         .describe('image template url'),
                                       imageDimensions: zod
                                         .object({
-                                          width: zod.number().optional(),
-                                          height: zod.number().optional(),
+                                          width: zod.int().optional(),
+                                          height: zod.int().optional(),
                                         })
                                         .optional()
                                         .describe('image dimensions'),
@@ -2444,8 +2444,8 @@ export const ListPublicationsResponse = zod
                                       .describe('image template url'),
                                     imageDimensions: zod
                                       .object({
-                                        width: zod.number().optional(),
-                                        height: zod.number().optional(),
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
                                       })
                                       .optional()
                                       .describe('image dimensions'),
@@ -2464,8 +2464,8 @@ export const ListPublicationsResponse = zod
                                       .describe('image template url'),
                                     imageDimensions: zod
                                       .object({
-                                        width: zod.number().optional(),
-                                        height: zod.number().optional(),
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
                                       })
                                       .optional()
                                       .describe('image dimensions'),
@@ -2484,8 +2484,8 @@ export const ListPublicationsResponse = zod
                                       .describe('image template url'),
                                     imageDimensions: zod
                                       .object({
-                                        width: zod.number().optional(),
-                                        height: zod.number().optional(),
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
                                       })
                                       .optional()
                                       .describe('image dimensions'),
@@ -2504,8 +2504,8 @@ export const ListPublicationsResponse = zod
                                       .describe('image template url'),
                                     imageDimensions: zod
                                       .object({
-                                        width: zod.number().optional(),
-                                        height: zod.number().optional(),
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
                                       })
                                       .optional()
                                       .describe('image dimensions'),
@@ -2524,8 +2524,8 @@ export const ListPublicationsResponse = zod
                                       .describe('image template url'),
                                     imageDimensions: zod
                                       .object({
-                                        width: zod.number().optional(),
-                                        height: zod.number().optional(),
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
                                       })
                                       .optional()
                                       .describe('image dimensions'),
@@ -2536,14 +2536,14 @@ export const ListPublicationsResponse = zod
                               .describe('Assets'),
                           })
                           .describe('Stage media'),
-                        sortOrder: zod.number().describe('Sort order'),
+                        sortOrder: zod.int().describe('Sort order'),
                         stageIndex: zod
-                          .number()
+                          .int()
                           .describe(
                             "Position of this stage among the trip's live stages, 1-based — the 'Day 2' of a stage header. Unlike sortOrder, which is a persisted rank that may have gaps, this is a rank a client can print."
                           ),
                         stageCount: zod
-                          .number()
+                          .int()
                           .describe(
                             "How many live stages the trip has — the '\/ 5' of 'Day 2 \/ 5'."
                           ),
@@ -2577,7 +2577,7 @@ export const ListPublicationsResponse = zod
                     'Whether the current user is registered for this trip. False if anonymous.'
                   ),
                 commentCount: zod
-                  .number()
+                  .int()
                   .optional()
                   .describe(
                     'Number of comments, replies included. Absent when the caller may not read the comments of this trip — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -2595,9 +2595,9 @@ export const ListPublicationsResponse = zod
           .describe('Publication data')
       )
       .describe('List of publications'),
-    total: zod.number().describe('Total number of publications'),
-    page: zod.number().describe('Current page number'),
-    size: zod.number().describe('Page size'),
+    total: zod.int().describe('Total number of publications'),
+    page: zod.int().describe('Current page number'),
+    size: zod.int().describe('Page size'),
   })
   .describe('Paginated publication list response')
 
@@ -2632,6 +2632,6 @@ export const CountPublicationsQueryParams = zod.object({
 
 export const CountPublicationsResponse = zod
   .object({
-    total: zod.number().describe('Total number of matching items'),
+    total: zod.int().describe('Total number of matching items'),
   })
   .describe('Number of items matching a filter set')

@@ -61,7 +61,7 @@ export const CreateStravaSessionBody = zod
 export const CreateStravaSessionResponse = zod
   .object({
     accessToken: zod.string().optional().describe('JWT access token'),
-    expiresIn: zod.number().optional().describe('Token expiry in seconds'),
+    expiresIn: zod.int().optional().describe('Token expiry in seconds'),
     user: zod
       .object({
         id: zod.string().describe('User ID (TSID)'),

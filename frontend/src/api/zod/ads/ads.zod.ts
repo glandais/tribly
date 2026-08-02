@@ -29,9 +29,9 @@ export const ListAdsQueryParams = zod.object({
     .describe(
       'Search radius in metres around nearLat\/nearLon (default 25000, capped at 500000). Ads with no location are excluded when a centre is given.'
     ),
-  page: zod.number().default(listAdsQueryPageDefault).describe('Page number'),
+  page: zod.int().default(listAdsQueryPageDefault).describe('Page number'),
   search: zod.string().optional().describe('Search by name\/description'),
-  size: zod.number().default(listAdsQuerySizeDefault).describe('Page size'),
+  size: zod.int().default(listAdsQuerySizeDefault).describe('Page size'),
   sortBy: zod
     .enum(['DATE_TIME', 'PRICE', 'NAME'])
     .optional()
@@ -79,8 +79,8 @@ export const ListAdsResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -97,8 +97,8 @@ export const ListAdsResponse = zod
                           imageUrl: zod.string().optional().describe('image template url'),
                           imageDimensions: zod
                             .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
+                              width: zod.int().optional(),
+                              height: zod.int().optional(),
                             })
                             .optional()
                             .describe('image dimensions'),
@@ -115,8 +115,8 @@ export const ListAdsResponse = zod
                           imageUrl: zod.string().optional().describe('image template url'),
                           imageDimensions: zod
                             .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
+                              width: zod.int().optional(),
+                              height: zod.int().optional(),
                             })
                             .optional()
                             .describe('image dimensions'),
@@ -132,8 +132,8 @@ export const ListAdsResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -149,8 +149,8 @@ export const ListAdsResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -166,8 +166,8 @@ export const ListAdsResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -183,8 +183,8 @@ export const ListAdsResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -200,8 +200,8 @@ export const ListAdsResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -264,9 +264,9 @@ export const ListAdsResponse = zod
           .describe('Ad data')
       )
       .describe('List of ads'),
-    total: zod.number().describe('Total number of ads'),
-    page: zod.number().describe('Current page number'),
-    size: zod.number().describe('Page size'),
+    total: zod.int().describe('Total number of ads'),
+    page: zod.int().describe('Current page number'),
+    size: zod.int().describe('Page size'),
   })
   .describe('Paginated ad list response')
 
@@ -305,8 +305,8 @@ export const CreateAdBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -323,8 +323,8 @@ export const CreateAdBody = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -341,8 +341,8 @@ export const CreateAdBody = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -358,8 +358,8 @@ export const CreateAdBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -375,8 +375,8 @@ export const CreateAdBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -392,8 +392,8 @@ export const CreateAdBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -409,8 +409,8 @@ export const CreateAdBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -426,8 +426,8 @@ export const CreateAdBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -489,8 +489,8 @@ export const CreateAdResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -507,8 +507,8 @@ export const CreateAdResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -525,8 +525,8 @@ export const CreateAdResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -542,8 +542,8 @@ export const CreateAdResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -559,8 +559,8 @@ export const CreateAdResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -576,8 +576,8 @@ export const CreateAdResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -593,8 +593,8 @@ export const CreateAdResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -610,8 +610,8 @@ export const CreateAdResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -703,7 +703,7 @@ export const CountAdsQueryParams = zod.object({
 
 export const CountAdsResponse = zod
   .object({
-    total: zod.number().describe('Total number of matching items'),
+    total: zod.int().describe('Total number of matching items'),
   })
   .describe('Number of items matching a filter set')
 
@@ -743,8 +743,8 @@ export const UpdateAdBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -761,8 +761,8 @@ export const UpdateAdBody = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -779,8 +779,8 @@ export const UpdateAdBody = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -796,8 +796,8 @@ export const UpdateAdBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -813,8 +813,8 @@ export const UpdateAdBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -830,8 +830,8 @@ export const UpdateAdBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -847,8 +847,8 @@ export const UpdateAdBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -864,8 +864,8 @@ export const UpdateAdBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -927,8 +927,8 @@ export const UpdateAdResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -945,8 +945,8 @@ export const UpdateAdResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -963,8 +963,8 @@ export const UpdateAdResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -980,8 +980,8 @@ export const UpdateAdResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -997,8 +997,8 @@ export const UpdateAdResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1014,8 +1014,8 @@ export const UpdateAdResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1031,8 +1031,8 @@ export const UpdateAdResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1048,8 +1048,8 @@ export const UpdateAdResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1147,8 +1147,8 @@ export const GetAdResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1165,8 +1165,8 @@ export const GetAdResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1183,8 +1183,8 @@ export const GetAdResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1200,8 +1200,8 @@ export const GetAdResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1217,8 +1217,8 @@ export const GetAdResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1234,8 +1234,8 @@ export const GetAdResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1251,8 +1251,8 @@ export const GetAdResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1268,8 +1268,8 @@ export const GetAdResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1407,8 +1407,8 @@ export const GetAdEditResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1425,8 +1425,8 @@ export const GetAdEditResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1443,8 +1443,8 @@ export const GetAdEditResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1460,8 +1460,8 @@ export const GetAdEditResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1477,8 +1477,8 @@ export const GetAdEditResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1494,8 +1494,8 @@ export const GetAdEditResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1511,8 +1511,8 @@ export const GetAdEditResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1528,8 +1528,8 @@ export const GetAdEditResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1612,8 +1612,8 @@ export const ChangeAdSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1630,8 +1630,8 @@ export const ChangeAdSlugResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1648,8 +1648,8 @@ export const ChangeAdSlugResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1665,8 +1665,8 @@ export const ChangeAdSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1682,8 +1682,8 @@ export const ChangeAdSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1699,8 +1699,8 @@ export const ChangeAdSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1716,8 +1716,8 @@ export const ChangeAdSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1733,8 +1733,8 @@ export const ChangeAdSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1832,8 +1832,8 @@ export const UndeleteAdResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1850,8 +1850,8 @@ export const UndeleteAdResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1868,8 +1868,8 @@ export const UndeleteAdResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1885,8 +1885,8 @@ export const UndeleteAdResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1902,8 +1902,8 @@ export const UndeleteAdResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1919,8 +1919,8 @@ export const UndeleteAdResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1936,8 +1936,8 @@ export const UndeleteAdResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1953,8 +1953,8 @@ export const UndeleteAdResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),

@@ -11,7 +11,7 @@ export const MintResponse = zod
       .datetime({ offset: true })
       .describe('Absolute expiry instant (ISO 8601), for logs and diagnostics'),
     expiresIn: zod
-      .number()
+      .int()
       .describe(
         'Seconds until expiry, measured at issuance. Schedule renewal on this, not on expiresAt: it is immune to a device clock that drifts.'
       ),

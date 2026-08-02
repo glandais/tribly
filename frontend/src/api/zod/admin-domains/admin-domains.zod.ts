@@ -8,8 +8,8 @@ export const listDomainsQueryPageDefault = 0
 export const listDomainsQuerySizeDefault = 20
 
 export const ListDomainsQueryParams = zod.object({
-  page: zod.number().default(listDomainsQueryPageDefault).describe('Page number (0-indexed)'),
-  size: zod.number().default(listDomainsQuerySizeDefault).describe('Page size'),
+  page: zod.int().default(listDomainsQueryPageDefault).describe('Page number (0-indexed)'),
+  size: zod.int().default(listDomainsQuerySizeDefault).describe('Page size'),
 })
 
 export const ListDomainsResponse = zod
@@ -33,16 +33,16 @@ export const ListDomainsResponse = zod
                 'Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)'
               ),
             active: zod.boolean().describe('Whether domain is active'),
-            teamCount: zod.number().describe('Number of teams in this domain'),
-            userCount: zod.number().describe('Number of users in this domain'),
+            teamCount: zod.int().describe('Number of teams in this domain'),
+            userCount: zod.int().describe('Number of users in this domain'),
             createdAt: zod.iso.datetime({ offset: true }).describe('Domain creation timestamp'),
           })
           .describe('Admin domain view with statistics')
       )
       .describe('List of domains'),
-    total: zod.number().describe('Total number of domains'),
-    page: zod.number().describe('Current page number'),
-    size: zod.number().describe('Page size'),
+    total: zod.int().describe('Total number of domains'),
+    page: zod.int().describe('Current page number'),
+    size: zod.int().describe('Page size'),
   })
   .describe('Paginated admin domain list response')
 
@@ -110,8 +110,8 @@ export const CreateDomainResponse = zod
         'Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)'
       ),
     active: zod.boolean().describe('Whether domain is active'),
-    teamCount: zod.number().describe('Number of teams in this domain'),
-    userCount: zod.number().describe('Number of users in this domain'),
+    teamCount: zod.int().describe('Number of teams in this domain'),
+    userCount: zod.int().describe('Number of users in this domain'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Domain creation timestamp'),
   })
   .describe('Admin domain view with statistics')
@@ -122,9 +122,9 @@ export const CreateDomainResponse = zod
  */
 export const GetStatsResponse = zod
   .object({
-    totalDomains: zod.number().describe('Total number of domains'),
-    totalTeams: zod.number().describe('Total number of teams'),
-    totalUsers: zod.number().describe('Total number of users'),
+    totalDomains: zod.int().describe('Total number of domains'),
+    totalTeams: zod.int().describe('Total number of teams'),
+    totalUsers: zod.int().describe('Total number of users'),
   })
   .describe('Admin dashboard statistics')
 
@@ -188,8 +188,8 @@ export const UpdateDomainResponse = zod
         'Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)'
       ),
     active: zod.boolean().describe('Whether domain is active'),
-    teamCount: zod.number().describe('Number of teams in this domain'),
-    userCount: zod.number().describe('Number of users in this domain'),
+    teamCount: zod.int().describe('Number of teams in this domain'),
+    userCount: zod.int().describe('Number of users in this domain'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Domain creation timestamp'),
   })
   .describe('Admin domain view with statistics')
@@ -219,8 +219,8 @@ export const GetDomainResponse = zod
         'Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)'
       ),
     active: zod.boolean().describe('Whether domain is active'),
-    teamCount: zod.number().describe('Number of teams in this domain'),
-    userCount: zod.number().describe('Number of users in this domain'),
+    teamCount: zod.int().describe('Number of teams in this domain'),
+    userCount: zod.int().describe('Number of users in this domain'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Domain creation timestamp'),
   })
   .describe('Admin domain view with statistics')
@@ -564,8 +564,8 @@ export const ToggleDomainActiveResponse = zod
         'Android app SHA-256 certificate fingerprints for passkey origin verification (comma-separated, colon-hex format)'
       ),
     active: zod.boolean().describe('Whether domain is active'),
-    teamCount: zod.number().describe('Number of teams in this domain'),
-    userCount: zod.number().describe('Number of users in this domain'),
+    teamCount: zod.int().describe('Number of teams in this domain'),
+    userCount: zod.int().describe('Number of users in this domain'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Domain creation timestamp'),
   })
   .describe('Admin domain view with statistics')

@@ -28,8 +28,8 @@ export const DeviceResponse = zod
     userCode: zod.string().describe("User code to display (e.g., 'ABCD12')"),
     verificationUri: zod.string().describe('Verification URL for user to visit'),
     verificationUriComplete: zod.string().describe('Verification URL with user code embedded'),
-    expiresIn: zod.number().describe('Code expiry in seconds'),
-    interval: zod.number().describe('Minimum polling interval in seconds'),
+    expiresIn: zod.int().describe('Code expiry in seconds'),
+    interval: zod.int().describe('Minimum polling interval in seconds'),
   })
   .describe('Device code response (RFC 8628)')
 
@@ -54,7 +54,7 @@ export const DeviceTokenResponse = zod
   .object({
     accessToken: zod.string().describe('Access token'),
     tokenType: zod.string().describe("Token type (always 'Bearer')"),
-    expiresIn: zod.number().describe('Token expiry in seconds'),
+    expiresIn: zod.int().describe('Token expiry in seconds'),
     refreshToken: zod.string().optional().describe('Refresh token'),
   })
   .describe('Device OAuth token response')

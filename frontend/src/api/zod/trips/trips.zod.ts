@@ -37,8 +37,8 @@ export const CreateTripBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -55,8 +55,8 @@ export const CreateTripBody = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -73,8 +73,8 @@ export const CreateTripBody = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -90,8 +90,8 @@ export const CreateTripBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -107,8 +107,8 @@ export const CreateTripBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -124,8 +124,8 @@ export const CreateTripBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -141,8 +141,8 @@ export const CreateTripBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -158,8 +158,8 @@ export const CreateTripBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -207,8 +207,8 @@ export const CreateTripBody = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -225,8 +225,8 @@ export const CreateTripBody = zod
                           imageUrl: zod.string().optional().describe('image template url'),
                           imageDimensions: zod
                             .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
+                              width: zod.int().optional(),
+                              height: zod.int().optional(),
                             })
                             .optional()
                             .describe('image dimensions'),
@@ -243,8 +243,8 @@ export const CreateTripBody = zod
                           imageUrl: zod.string().optional().describe('image template url'),
                           imageDimensions: zod
                             .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
+                              width: zod.int().optional(),
+                              height: zod.int().optional(),
                             })
                             .optional()
                             .describe('image dimensions'),
@@ -260,8 +260,8 @@ export const CreateTripBody = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -277,8 +277,8 @@ export const CreateTripBody = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -294,8 +294,8 @@ export const CreateTripBody = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -311,8 +311,8 @@ export const CreateTripBody = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -328,8 +328,8 @@ export const CreateTripBody = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -377,8 +377,8 @@ export const CreateTripResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -395,8 +395,8 @@ export const CreateTripResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -413,8 +413,8 @@ export const CreateTripResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -430,8 +430,8 @@ export const CreateTripResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -447,8 +447,8 @@ export const CreateTripResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -464,8 +464,8 @@ export const CreateTripResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -481,8 +481,8 @@ export const CreateTripResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -498,8 +498,8 @@ export const CreateTripResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -528,8 +528,8 @@ export const CreateTripResponse = zod
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
     createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
     routeSlug: zod.string().optional().describe('Route slug'),
-    participantCount: zod.number().describe('Number of participants'),
-    stageCount: zod.number().describe('Number of stages'),
+    participantCount: zod.int().describe('Number of participants'),
+    stageCount: zod.int().describe('Number of stages'),
     totalDistance: zod
       .number()
       .optional()
@@ -579,8 +579,8 @@ export const CreateTripResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -597,8 +597,8 @@ export const CreateTripResponse = zod
                               imageUrl: zod.string().optional().describe('image template url'),
                               imageDimensions: zod
                                 .object({
-                                  width: zod.number().optional(),
-                                  height: zod.number().optional(),
+                                  width: zod.int().optional(),
+                                  height: zod.int().optional(),
                                 })
                                 .optional()
                                 .describe('image dimensions'),
@@ -615,8 +615,8 @@ export const CreateTripResponse = zod
                               imageUrl: zod.string().optional().describe('image template url'),
                               imageDimensions: zod
                                 .object({
-                                  width: zod.number().optional(),
-                                  height: zod.number().optional(),
+                                  width: zod.int().optional(),
+                                  height: zod.int().optional(),
                                 })
                                 .optional()
                                 .describe('image dimensions'),
@@ -632,8 +632,8 @@ export const CreateTripResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -649,8 +649,8 @@ export const CreateTripResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -666,8 +666,8 @@ export const CreateTripResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -683,8 +683,8 @@ export const CreateTripResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -700,8 +700,8 @@ export const CreateTripResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -734,7 +734,7 @@ export const CreateTripResponse = zod
                 createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
                 deleted: zod.boolean().describe('Whether the route is soft-deleted'),
                 commentCount: zod
-                  .number()
+                  .int()
                   .optional()
                   .describe(
                     'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -796,8 +796,8 @@ export const CreateTripResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -814,8 +814,8 @@ export const CreateTripResponse = zod
                           imageUrl: zod.string().optional().describe('image template url'),
                           imageDimensions: zod
                             .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
+                              width: zod.int().optional(),
+                              height: zod.int().optional(),
                             })
                             .optional()
                             .describe('image dimensions'),
@@ -832,8 +832,8 @@ export const CreateTripResponse = zod
                           imageUrl: zod.string().optional().describe('image template url'),
                           imageDimensions: zod
                             .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
+                              width: zod.int().optional(),
+                              height: zod.int().optional(),
                             })
                             .optional()
                             .describe('image dimensions'),
@@ -849,8 +849,8 @@ export const CreateTripResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -866,8 +866,8 @@ export const CreateTripResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -883,8 +883,8 @@ export const CreateTripResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -900,8 +900,8 @@ export const CreateTripResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -917,8 +917,8 @@ export const CreateTripResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -929,14 +929,14 @@ export const CreateTripResponse = zod
                   .describe('Assets'),
               })
               .describe('Stage media'),
-            sortOrder: zod.number().describe('Sort order'),
+            sortOrder: zod.int().describe('Sort order'),
             stageIndex: zod
-              .number()
+              .int()
               .describe(
                 "Position of this stage among the trip's live stages, 1-based — the 'Day 2' of a stage header. Unlike sortOrder, which is a persisted rank that may have gaps, this is a rank a client can print."
               ),
             stageCount: zod
-              .number()
+              .int()
               .describe("How many live stages the trip has — the '\/ 5' of 'Day 2 \/ 5'."),
           })
           .describe('Trip stage information')
@@ -966,7 +966,7 @@ export const CreateTripResponse = zod
       .boolean()
       .describe('Whether the current user is registered for this trip. False if anonymous.'),
     commentCount: zod
-      .number()
+      .int()
       .optional()
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this trip — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -1012,8 +1012,8 @@ export const UpdateTripBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1030,8 +1030,8 @@ export const UpdateTripBody = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1048,8 +1048,8 @@ export const UpdateTripBody = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1065,8 +1065,8 @@ export const UpdateTripBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1082,8 +1082,8 @@ export const UpdateTripBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1099,8 +1099,8 @@ export const UpdateTripBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1116,8 +1116,8 @@ export const UpdateTripBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1133,8 +1133,8 @@ export const UpdateTripBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1182,8 +1182,8 @@ export const UpdateTripBody = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -1200,8 +1200,8 @@ export const UpdateTripBody = zod
                           imageUrl: zod.string().optional().describe('image template url'),
                           imageDimensions: zod
                             .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
+                              width: zod.int().optional(),
+                              height: zod.int().optional(),
                             })
                             .optional()
                             .describe('image dimensions'),
@@ -1218,8 +1218,8 @@ export const UpdateTripBody = zod
                           imageUrl: zod.string().optional().describe('image template url'),
                           imageDimensions: zod
                             .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
+                              width: zod.int().optional(),
+                              height: zod.int().optional(),
                             })
                             .optional()
                             .describe('image dimensions'),
@@ -1235,8 +1235,8 @@ export const UpdateTripBody = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -1252,8 +1252,8 @@ export const UpdateTripBody = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -1269,8 +1269,8 @@ export const UpdateTripBody = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -1286,8 +1286,8 @@ export const UpdateTripBody = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -1303,8 +1303,8 @@ export const UpdateTripBody = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -1352,8 +1352,8 @@ export const UpdateTripResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1370,8 +1370,8 @@ export const UpdateTripResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1388,8 +1388,8 @@ export const UpdateTripResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1405,8 +1405,8 @@ export const UpdateTripResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1422,8 +1422,8 @@ export const UpdateTripResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1439,8 +1439,8 @@ export const UpdateTripResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1456,8 +1456,8 @@ export const UpdateTripResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1473,8 +1473,8 @@ export const UpdateTripResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1503,8 +1503,8 @@ export const UpdateTripResponse = zod
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
     createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
     routeSlug: zod.string().optional().describe('Route slug'),
-    participantCount: zod.number().describe('Number of participants'),
-    stageCount: zod.number().describe('Number of stages'),
+    participantCount: zod.int().describe('Number of participants'),
+    stageCount: zod.int().describe('Number of stages'),
     totalDistance: zod
       .number()
       .optional()
@@ -1554,8 +1554,8 @@ export const UpdateTripResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -1572,8 +1572,8 @@ export const UpdateTripResponse = zod
                               imageUrl: zod.string().optional().describe('image template url'),
                               imageDimensions: zod
                                 .object({
-                                  width: zod.number().optional(),
-                                  height: zod.number().optional(),
+                                  width: zod.int().optional(),
+                                  height: zod.int().optional(),
                                 })
                                 .optional()
                                 .describe('image dimensions'),
@@ -1590,8 +1590,8 @@ export const UpdateTripResponse = zod
                               imageUrl: zod.string().optional().describe('image template url'),
                               imageDimensions: zod
                                 .object({
-                                  width: zod.number().optional(),
-                                  height: zod.number().optional(),
+                                  width: zod.int().optional(),
+                                  height: zod.int().optional(),
                                 })
                                 .optional()
                                 .describe('image dimensions'),
@@ -1607,8 +1607,8 @@ export const UpdateTripResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -1624,8 +1624,8 @@ export const UpdateTripResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -1641,8 +1641,8 @@ export const UpdateTripResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -1658,8 +1658,8 @@ export const UpdateTripResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -1675,8 +1675,8 @@ export const UpdateTripResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -1709,7 +1709,7 @@ export const UpdateTripResponse = zod
                 createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
                 deleted: zod.boolean().describe('Whether the route is soft-deleted'),
                 commentCount: zod
-                  .number()
+                  .int()
                   .optional()
                   .describe(
                     'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -1771,8 +1771,8 @@ export const UpdateTripResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -1789,8 +1789,8 @@ export const UpdateTripResponse = zod
                           imageUrl: zod.string().optional().describe('image template url'),
                           imageDimensions: zod
                             .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
+                              width: zod.int().optional(),
+                              height: zod.int().optional(),
                             })
                             .optional()
                             .describe('image dimensions'),
@@ -1807,8 +1807,8 @@ export const UpdateTripResponse = zod
                           imageUrl: zod.string().optional().describe('image template url'),
                           imageDimensions: zod
                             .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
+                              width: zod.int().optional(),
+                              height: zod.int().optional(),
                             })
                             .optional()
                             .describe('image dimensions'),
@@ -1824,8 +1824,8 @@ export const UpdateTripResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -1841,8 +1841,8 @@ export const UpdateTripResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -1858,8 +1858,8 @@ export const UpdateTripResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -1875,8 +1875,8 @@ export const UpdateTripResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -1892,8 +1892,8 @@ export const UpdateTripResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -1904,14 +1904,14 @@ export const UpdateTripResponse = zod
                   .describe('Assets'),
               })
               .describe('Stage media'),
-            sortOrder: zod.number().describe('Sort order'),
+            sortOrder: zod.int().describe('Sort order'),
             stageIndex: zod
-              .number()
+              .int()
               .describe(
                 "Position of this stage among the trip's live stages, 1-based — the 'Day 2' of a stage header. Unlike sortOrder, which is a persisted rank that may have gaps, this is a rank a client can print."
               ),
             stageCount: zod
-              .number()
+              .int()
               .describe("How many live stages the trip has — the '\/ 5' of 'Day 2 \/ 5'."),
           })
           .describe('Trip stage information')
@@ -1941,7 +1941,7 @@ export const UpdateTripResponse = zod
       .boolean()
       .describe('Whether the current user is registered for this trip. False if anonymous.'),
     commentCount: zod
-      .number()
+      .int()
       .optional()
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this trip — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -1988,8 +1988,8 @@ export const GetTripResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2006,8 +2006,8 @@ export const GetTripResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -2024,8 +2024,8 @@ export const GetTripResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -2041,8 +2041,8 @@ export const GetTripResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2058,8 +2058,8 @@ export const GetTripResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2075,8 +2075,8 @@ export const GetTripResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2092,8 +2092,8 @@ export const GetTripResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2109,8 +2109,8 @@ export const GetTripResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2139,8 +2139,8 @@ export const GetTripResponse = zod
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
     createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
     routeSlug: zod.string().optional().describe('Route slug'),
-    participantCount: zod.number().describe('Number of participants'),
-    stageCount: zod.number().describe('Number of stages'),
+    participantCount: zod.int().describe('Number of participants'),
+    stageCount: zod.int().describe('Number of stages'),
     totalDistance: zod
       .number()
       .optional()
@@ -2190,8 +2190,8 @@ export const GetTripResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -2208,8 +2208,8 @@ export const GetTripResponse = zod
                               imageUrl: zod.string().optional().describe('image template url'),
                               imageDimensions: zod
                                 .object({
-                                  width: zod.number().optional(),
-                                  height: zod.number().optional(),
+                                  width: zod.int().optional(),
+                                  height: zod.int().optional(),
                                 })
                                 .optional()
                                 .describe('image dimensions'),
@@ -2226,8 +2226,8 @@ export const GetTripResponse = zod
                               imageUrl: zod.string().optional().describe('image template url'),
                               imageDimensions: zod
                                 .object({
-                                  width: zod.number().optional(),
-                                  height: zod.number().optional(),
+                                  width: zod.int().optional(),
+                                  height: zod.int().optional(),
                                 })
                                 .optional()
                                 .describe('image dimensions'),
@@ -2243,8 +2243,8 @@ export const GetTripResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -2260,8 +2260,8 @@ export const GetTripResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -2277,8 +2277,8 @@ export const GetTripResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -2294,8 +2294,8 @@ export const GetTripResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -2311,8 +2311,8 @@ export const GetTripResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -2345,7 +2345,7 @@ export const GetTripResponse = zod
                 createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
                 deleted: zod.boolean().describe('Whether the route is soft-deleted'),
                 commentCount: zod
-                  .number()
+                  .int()
                   .optional()
                   .describe(
                     'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -2407,8 +2407,8 @@ export const GetTripResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -2425,8 +2425,8 @@ export const GetTripResponse = zod
                           imageUrl: zod.string().optional().describe('image template url'),
                           imageDimensions: zod
                             .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
+                              width: zod.int().optional(),
+                              height: zod.int().optional(),
                             })
                             .optional()
                             .describe('image dimensions'),
@@ -2443,8 +2443,8 @@ export const GetTripResponse = zod
                           imageUrl: zod.string().optional().describe('image template url'),
                           imageDimensions: zod
                             .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
+                              width: zod.int().optional(),
+                              height: zod.int().optional(),
                             })
                             .optional()
                             .describe('image dimensions'),
@@ -2460,8 +2460,8 @@ export const GetTripResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -2477,8 +2477,8 @@ export const GetTripResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -2494,8 +2494,8 @@ export const GetTripResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -2511,8 +2511,8 @@ export const GetTripResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -2528,8 +2528,8 @@ export const GetTripResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -2540,14 +2540,14 @@ export const GetTripResponse = zod
                   .describe('Assets'),
               })
               .describe('Stage media'),
-            sortOrder: zod.number().describe('Sort order'),
+            sortOrder: zod.int().describe('Sort order'),
             stageIndex: zod
-              .number()
+              .int()
               .describe(
                 "Position of this stage among the trip's live stages, 1-based — the 'Day 2' of a stage header. Unlike sortOrder, which is a persisted rank that may have gaps, this is a rank a client can print."
               ),
             stageCount: zod
-              .number()
+              .int()
               .describe("How many live stages the trip has — the '\/ 5' of 'Day 2 \/ 5'."),
           })
           .describe('Trip stage information')
@@ -2577,7 +2577,7 @@ export const GetTripResponse = zod
       .boolean()
       .describe('Whether the current user is registered for this trip. False if anonymous.'),
     commentCount: zod
-      .number()
+      .int()
       .optional()
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this trip — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -2677,8 +2677,8 @@ export const ChangeTripSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2695,8 +2695,8 @@ export const ChangeTripSlugResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -2713,8 +2713,8 @@ export const ChangeTripSlugResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -2730,8 +2730,8 @@ export const ChangeTripSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2747,8 +2747,8 @@ export const ChangeTripSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2764,8 +2764,8 @@ export const ChangeTripSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2781,8 +2781,8 @@ export const ChangeTripSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2798,8 +2798,8 @@ export const ChangeTripSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2828,8 +2828,8 @@ export const ChangeTripSlugResponse = zod
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
     createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
     routeSlug: zod.string().optional().describe('Route slug'),
-    participantCount: zod.number().describe('Number of participants'),
-    stageCount: zod.number().describe('Number of stages'),
+    participantCount: zod.int().describe('Number of participants'),
+    stageCount: zod.int().describe('Number of stages'),
     totalDistance: zod
       .number()
       .optional()
@@ -2879,8 +2879,8 @@ export const ChangeTripSlugResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -2897,8 +2897,8 @@ export const ChangeTripSlugResponse = zod
                               imageUrl: zod.string().optional().describe('image template url'),
                               imageDimensions: zod
                                 .object({
-                                  width: zod.number().optional(),
-                                  height: zod.number().optional(),
+                                  width: zod.int().optional(),
+                                  height: zod.int().optional(),
                                 })
                                 .optional()
                                 .describe('image dimensions'),
@@ -2915,8 +2915,8 @@ export const ChangeTripSlugResponse = zod
                               imageUrl: zod.string().optional().describe('image template url'),
                               imageDimensions: zod
                                 .object({
-                                  width: zod.number().optional(),
-                                  height: zod.number().optional(),
+                                  width: zod.int().optional(),
+                                  height: zod.int().optional(),
                                 })
                                 .optional()
                                 .describe('image dimensions'),
@@ -2932,8 +2932,8 @@ export const ChangeTripSlugResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -2949,8 +2949,8 @@ export const ChangeTripSlugResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -2966,8 +2966,8 @@ export const ChangeTripSlugResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -2983,8 +2983,8 @@ export const ChangeTripSlugResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -3000,8 +3000,8 @@ export const ChangeTripSlugResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -3034,7 +3034,7 @@ export const ChangeTripSlugResponse = zod
                 createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
                 deleted: zod.boolean().describe('Whether the route is soft-deleted'),
                 commentCount: zod
-                  .number()
+                  .int()
                   .optional()
                   .describe(
                     'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -3096,8 +3096,8 @@ export const ChangeTripSlugResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -3114,8 +3114,8 @@ export const ChangeTripSlugResponse = zod
                           imageUrl: zod.string().optional().describe('image template url'),
                           imageDimensions: zod
                             .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
+                              width: zod.int().optional(),
+                              height: zod.int().optional(),
                             })
                             .optional()
                             .describe('image dimensions'),
@@ -3132,8 +3132,8 @@ export const ChangeTripSlugResponse = zod
                           imageUrl: zod.string().optional().describe('image template url'),
                           imageDimensions: zod
                             .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
+                              width: zod.int().optional(),
+                              height: zod.int().optional(),
                             })
                             .optional()
                             .describe('image dimensions'),
@@ -3149,8 +3149,8 @@ export const ChangeTripSlugResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -3166,8 +3166,8 @@ export const ChangeTripSlugResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -3183,8 +3183,8 @@ export const ChangeTripSlugResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -3200,8 +3200,8 @@ export const ChangeTripSlugResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -3217,8 +3217,8 @@ export const ChangeTripSlugResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -3229,14 +3229,14 @@ export const ChangeTripSlugResponse = zod
                   .describe('Assets'),
               })
               .describe('Stage media'),
-            sortOrder: zod.number().describe('Sort order'),
+            sortOrder: zod.int().describe('Sort order'),
             stageIndex: zod
-              .number()
+              .int()
               .describe(
                 "Position of this stage among the trip's live stages, 1-based — the 'Day 2' of a stage header. Unlike sortOrder, which is a persisted rank that may have gaps, this is a rank a client can print."
               ),
             stageCount: zod
-              .number()
+              .int()
               .describe("How many live stages the trip has — the '\/ 5' of 'Day 2 \/ 5'."),
           })
           .describe('Trip stage information')
@@ -3266,7 +3266,7 @@ export const ChangeTripSlugResponse = zod
       .boolean()
       .describe('Whether the current user is registered for this trip. False if anonymous.'),
     commentCount: zod
-      .number()
+      .int()
       .optional()
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this trip — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -3313,8 +3313,8 @@ export const UndeleteTripResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -3331,8 +3331,8 @@ export const UndeleteTripResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -3349,8 +3349,8 @@ export const UndeleteTripResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -3366,8 +3366,8 @@ export const UndeleteTripResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -3383,8 +3383,8 @@ export const UndeleteTripResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -3400,8 +3400,8 @@ export const UndeleteTripResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -3417,8 +3417,8 @@ export const UndeleteTripResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -3434,8 +3434,8 @@ export const UndeleteTripResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -3464,8 +3464,8 @@ export const UndeleteTripResponse = zod
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
     createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
     routeSlug: zod.string().optional().describe('Route slug'),
-    participantCount: zod.number().describe('Number of participants'),
-    stageCount: zod.number().describe('Number of stages'),
+    participantCount: zod.int().describe('Number of participants'),
+    stageCount: zod.int().describe('Number of stages'),
     totalDistance: zod
       .number()
       .optional()
@@ -3515,8 +3515,8 @@ export const UndeleteTripResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -3533,8 +3533,8 @@ export const UndeleteTripResponse = zod
                               imageUrl: zod.string().optional().describe('image template url'),
                               imageDimensions: zod
                                 .object({
-                                  width: zod.number().optional(),
-                                  height: zod.number().optional(),
+                                  width: zod.int().optional(),
+                                  height: zod.int().optional(),
                                 })
                                 .optional()
                                 .describe('image dimensions'),
@@ -3551,8 +3551,8 @@ export const UndeleteTripResponse = zod
                               imageUrl: zod.string().optional().describe('image template url'),
                               imageDimensions: zod
                                 .object({
-                                  width: zod.number().optional(),
-                                  height: zod.number().optional(),
+                                  width: zod.int().optional(),
+                                  height: zod.int().optional(),
                                 })
                                 .optional()
                                 .describe('image dimensions'),
@@ -3568,8 +3568,8 @@ export const UndeleteTripResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -3585,8 +3585,8 @@ export const UndeleteTripResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -3602,8 +3602,8 @@ export const UndeleteTripResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -3619,8 +3619,8 @@ export const UndeleteTripResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -3636,8 +3636,8 @@ export const UndeleteTripResponse = zod
                             imageUrl: zod.string().optional().describe('image template url'),
                             imageDimensions: zod
                               .object({
-                                width: zod.number().optional(),
-                                height: zod.number().optional(),
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
                               })
                               .optional()
                               .describe('image dimensions'),
@@ -3670,7 +3670,7 @@ export const UndeleteTripResponse = zod
                 createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
                 deleted: zod.boolean().describe('Whether the route is soft-deleted'),
                 commentCount: zod
-                  .number()
+                  .int()
                   .optional()
                   .describe(
                     'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -3732,8 +3732,8 @@ export const UndeleteTripResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -3750,8 +3750,8 @@ export const UndeleteTripResponse = zod
                           imageUrl: zod.string().optional().describe('image template url'),
                           imageDimensions: zod
                             .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
+                              width: zod.int().optional(),
+                              height: zod.int().optional(),
                             })
                             .optional()
                             .describe('image dimensions'),
@@ -3768,8 +3768,8 @@ export const UndeleteTripResponse = zod
                           imageUrl: zod.string().optional().describe('image template url'),
                           imageDimensions: zod
                             .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
+                              width: zod.int().optional(),
+                              height: zod.int().optional(),
                             })
                             .optional()
                             .describe('image dimensions'),
@@ -3785,8 +3785,8 @@ export const UndeleteTripResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -3802,8 +3802,8 @@ export const UndeleteTripResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -3819,8 +3819,8 @@ export const UndeleteTripResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -3836,8 +3836,8 @@ export const UndeleteTripResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -3853,8 +3853,8 @@ export const UndeleteTripResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -3865,14 +3865,14 @@ export const UndeleteTripResponse = zod
                   .describe('Assets'),
               })
               .describe('Stage media'),
-            sortOrder: zod.number().describe('Sort order'),
+            sortOrder: zod.int().describe('Sort order'),
             stageIndex: zod
-              .number()
+              .int()
               .describe(
                 "Position of this stage among the trip's live stages, 1-based — the 'Day 2' of a stage header. Unlike sortOrder, which is a persisted rank that may have gaps, this is a rank a client can print."
               ),
             stageCount: zod
-              .number()
+              .int()
               .describe("How many live stages the trip has — the '\/ 5' of 'Day 2 \/ 5'."),
           })
           .describe('Trip stage information')
@@ -3902,7 +3902,7 @@ export const UndeleteTripResponse = zod
       .boolean()
       .describe('Whether the current user is registered for this trip. False if anonymous.'),
     commentCount: zod
-      .number()
+      .int()
       .optional()
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this trip — comments are members-only, so an outsider is told nothing, not even zero.'

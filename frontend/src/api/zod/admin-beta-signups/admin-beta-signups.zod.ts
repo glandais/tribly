@@ -8,8 +8,8 @@ export const listBetaSignupsQueryPageDefault = 0
 export const listBetaSignupsQuerySizeDefault = 20
 
 export const ListBetaSignupsQueryParams = zod.object({
-  page: zod.number().default(listBetaSignupsQueryPageDefault).describe('Page number (0-indexed)'),
-  size: zod.number().default(listBetaSignupsQuerySizeDefault).describe('Page size'),
+  page: zod.int().default(listBetaSignupsQueryPageDefault).describe('Page number (0-indexed)'),
+  size: zod.int().default(listBetaSignupsQuerySizeDefault).describe('Page size'),
 })
 
 export const ListBetaSignupsResponse = zod
@@ -27,8 +27,8 @@ export const ListBetaSignupsResponse = zod
           .describe('A beta program sign-up, as seen by an admin')
       )
       .describe('List of sign-ups'),
-    total: zod.number().describe('Total number of sign-ups'),
-    page: zod.number().describe('Current page number'),
-    size: zod.number().describe('Page size'),
+    total: zod.int().describe('Total number of sign-ups'),
+    page: zod.int().describe('Current page number'),
+    size: zod.int().describe('Page size'),
   })
   .describe('Paginated beta sign-up list response')

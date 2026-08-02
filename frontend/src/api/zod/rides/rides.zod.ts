@@ -41,8 +41,8 @@ export const CreateRideBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -59,8 +59,8 @@ export const CreateRideBody = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -77,8 +77,8 @@ export const CreateRideBody = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -94,8 +94,8 @@ export const CreateRideBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -111,8 +111,8 @@ export const CreateRideBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -128,8 +128,8 @@ export const CreateRideBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -145,8 +145,8 @@ export const CreateRideBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -162,8 +162,8 @@ export const CreateRideBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -202,7 +202,7 @@ export const CreateRideBody = zod
               .optional()
               .describe('Average speed in km\/h'),
             maxParticipants: zod
-              .number()
+              .int()
               .gt(createRideBodyGroupsItemMaxParticipantsExclusiveMin)
               .optional()
               .describe('Maximum participants'),
@@ -250,8 +250,8 @@ export const CreateRideResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -268,8 +268,8 @@ export const CreateRideResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -286,8 +286,8 @@ export const CreateRideResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -303,8 +303,8 @@ export const CreateRideResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -320,8 +320,8 @@ export const CreateRideResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -337,8 +337,8 @@ export const CreateRideResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -354,8 +354,8 @@ export const CreateRideResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -371,8 +371,8 @@ export const CreateRideResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -395,8 +395,8 @@ export const CreateRideResponse = zod
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
     createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
     routeSlug: zod.string().optional().describe('Route slug'),
-    participantCount: zod.number().describe('Number of participants'),
-    groupCount: zod.number().describe('Number of groups'),
+    participantCount: zod.int().describe('Number of participants'),
+    groupCount: zod.int().describe('Number of groups'),
     groups: zod
       .array(
         zod
@@ -406,8 +406,8 @@ export const CreateRideResponse = zod
             time: zod.string().optional(),
             routeSlug: zod.string().optional().describe('Route slug'),
             averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
-            maxParticipants: zod.number().optional().describe('Maximum participants'),
-            countParticipants: zod.number().describe('Current number of participants'),
+            maxParticipants: zod.int().optional().describe('Maximum participants'),
+            countParticipants: zod.int().describe('Current number of participants'),
             participants: zod
               .array(
                 zod
@@ -419,7 +419,7 @@ export const CreateRideResponse = zod
                   .describe('Public user information (limited fields)')
               )
               .describe('Participants, empty if not access'),
-            sortOrder: zod.number().describe('Sort order'),
+            sortOrder: zod.int().describe('Sort order'),
             registered: zod
               .boolean()
               .describe(
@@ -523,7 +523,7 @@ export const CreateRideResponse = zod
         'Whether every group of the ride has reached its capacity. False when the ride has no group, or when at least one group has no maxParticipants.'
       ),
     commentCount: zod
-      .number()
+      .int()
       .optional()
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -573,8 +573,8 @@ export const UpdateRideBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -591,8 +591,8 @@ export const UpdateRideBody = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -609,8 +609,8 @@ export const UpdateRideBody = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -626,8 +626,8 @@ export const UpdateRideBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -643,8 +643,8 @@ export const UpdateRideBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -660,8 +660,8 @@ export const UpdateRideBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -677,8 +677,8 @@ export const UpdateRideBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -694,8 +694,8 @@ export const UpdateRideBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -734,7 +734,7 @@ export const UpdateRideBody = zod
               .optional()
               .describe('Average speed in km\/h'),
             maxParticipants: zod
-              .number()
+              .int()
               .gt(updateRideBodyGroupsItemMaxParticipantsExclusiveMin)
               .optional()
               .describe('Maximum participants'),
@@ -782,8 +782,8 @@ export const UpdateRideResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -800,8 +800,8 @@ export const UpdateRideResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -818,8 +818,8 @@ export const UpdateRideResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -835,8 +835,8 @@ export const UpdateRideResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -852,8 +852,8 @@ export const UpdateRideResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -869,8 +869,8 @@ export const UpdateRideResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -886,8 +886,8 @@ export const UpdateRideResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -903,8 +903,8 @@ export const UpdateRideResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -927,8 +927,8 @@ export const UpdateRideResponse = zod
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
     createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
     routeSlug: zod.string().optional().describe('Route slug'),
-    participantCount: zod.number().describe('Number of participants'),
-    groupCount: zod.number().describe('Number of groups'),
+    participantCount: zod.int().describe('Number of participants'),
+    groupCount: zod.int().describe('Number of groups'),
     groups: zod
       .array(
         zod
@@ -938,8 +938,8 @@ export const UpdateRideResponse = zod
             time: zod.string().optional(),
             routeSlug: zod.string().optional().describe('Route slug'),
             averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
-            maxParticipants: zod.number().optional().describe('Maximum participants'),
-            countParticipants: zod.number().describe('Current number of participants'),
+            maxParticipants: zod.int().optional().describe('Maximum participants'),
+            countParticipants: zod.int().describe('Current number of participants'),
             participants: zod
               .array(
                 zod
@@ -951,7 +951,7 @@ export const UpdateRideResponse = zod
                   .describe('Public user information (limited fields)')
               )
               .describe('Participants, empty if not access'),
-            sortOrder: zod.number().describe('Sort order'),
+            sortOrder: zod.int().describe('Sort order'),
             registered: zod
               .boolean()
               .describe(
@@ -1055,7 +1055,7 @@ export const UpdateRideResponse = zod
         'Whether every group of the ride has reached its capacity. False when the ride has no group, or when at least one group has no maxParticipants.'
       ),
     commentCount: zod
-      .number()
+      .int()
       .optional()
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -1102,8 +1102,8 @@ export const GetRideResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1120,8 +1120,8 @@ export const GetRideResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1138,8 +1138,8 @@ export const GetRideResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1155,8 +1155,8 @@ export const GetRideResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1172,8 +1172,8 @@ export const GetRideResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1189,8 +1189,8 @@ export const GetRideResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1206,8 +1206,8 @@ export const GetRideResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1223,8 +1223,8 @@ export const GetRideResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1247,8 +1247,8 @@ export const GetRideResponse = zod
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
     createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
     routeSlug: zod.string().optional().describe('Route slug'),
-    participantCount: zod.number().describe('Number of participants'),
-    groupCount: zod.number().describe('Number of groups'),
+    participantCount: zod.int().describe('Number of participants'),
+    groupCount: zod.int().describe('Number of groups'),
     groups: zod
       .array(
         zod
@@ -1258,8 +1258,8 @@ export const GetRideResponse = zod
             time: zod.string().optional(),
             routeSlug: zod.string().optional().describe('Route slug'),
             averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
-            maxParticipants: zod.number().optional().describe('Maximum participants'),
-            countParticipants: zod.number().describe('Current number of participants'),
+            maxParticipants: zod.int().optional().describe('Maximum participants'),
+            countParticipants: zod.int().describe('Current number of participants'),
             participants: zod
               .array(
                 zod
@@ -1271,7 +1271,7 @@ export const GetRideResponse = zod
                   .describe('Public user information (limited fields)')
               )
               .describe('Participants, empty if not access'),
-            sortOrder: zod.number().describe('Sort order'),
+            sortOrder: zod.int().describe('Sort order'),
             registered: zod
               .boolean()
               .describe(
@@ -1375,7 +1375,7 @@ export const GetRideResponse = zod
         'Whether every group of the ride has reached its capacity. False when the ride has no group, or when at least one group has no maxParticipants.'
       ),
     commentCount: zod
-      .number()
+      .int()
       .optional()
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -1477,8 +1477,8 @@ export const ChangeRideSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1495,8 +1495,8 @@ export const ChangeRideSlugResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1513,8 +1513,8 @@ export const ChangeRideSlugResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1530,8 +1530,8 @@ export const ChangeRideSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1547,8 +1547,8 @@ export const ChangeRideSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1564,8 +1564,8 @@ export const ChangeRideSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1581,8 +1581,8 @@ export const ChangeRideSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1598,8 +1598,8 @@ export const ChangeRideSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1622,8 +1622,8 @@ export const ChangeRideSlugResponse = zod
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
     createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
     routeSlug: zod.string().optional().describe('Route slug'),
-    participantCount: zod.number().describe('Number of participants'),
-    groupCount: zod.number().describe('Number of groups'),
+    participantCount: zod.int().describe('Number of participants'),
+    groupCount: zod.int().describe('Number of groups'),
     groups: zod
       .array(
         zod
@@ -1633,8 +1633,8 @@ export const ChangeRideSlugResponse = zod
             time: zod.string().optional(),
             routeSlug: zod.string().optional().describe('Route slug'),
             averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
-            maxParticipants: zod.number().optional().describe('Maximum participants'),
-            countParticipants: zod.number().describe('Current number of participants'),
+            maxParticipants: zod.int().optional().describe('Maximum participants'),
+            countParticipants: zod.int().describe('Current number of participants'),
             participants: zod
               .array(
                 zod
@@ -1646,7 +1646,7 @@ export const ChangeRideSlugResponse = zod
                   .describe('Public user information (limited fields)')
               )
               .describe('Participants, empty if not access'),
-            sortOrder: zod.number().describe('Sort order'),
+            sortOrder: zod.int().describe('Sort order'),
             registered: zod
               .boolean()
               .describe(
@@ -1750,7 +1750,7 @@ export const ChangeRideSlugResponse = zod
         'Whether every group of the ride has reached its capacity. False when the ride has no group, or when at least one group has no maxParticipants.'
       ),
     commentCount: zod
-      .number()
+      .int()
       .optional()
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -1797,8 +1797,8 @@ export const UndeleteRideResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1815,8 +1815,8 @@ export const UndeleteRideResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1833,8 +1833,8 @@ export const UndeleteRideResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1850,8 +1850,8 @@ export const UndeleteRideResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1867,8 +1867,8 @@ export const UndeleteRideResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1884,8 +1884,8 @@ export const UndeleteRideResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1901,8 +1901,8 @@ export const UndeleteRideResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1918,8 +1918,8 @@ export const UndeleteRideResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1942,8 +1942,8 @@ export const UndeleteRideResponse = zod
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
     createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
     routeSlug: zod.string().optional().describe('Route slug'),
-    participantCount: zod.number().describe('Number of participants'),
-    groupCount: zod.number().describe('Number of groups'),
+    participantCount: zod.int().describe('Number of participants'),
+    groupCount: zod.int().describe('Number of groups'),
     groups: zod
       .array(
         zod
@@ -1953,8 +1953,8 @@ export const UndeleteRideResponse = zod
             time: zod.string().optional(),
             routeSlug: zod.string().optional().describe('Route slug'),
             averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
-            maxParticipants: zod.number().optional().describe('Maximum participants'),
-            countParticipants: zod.number().describe('Current number of participants'),
+            maxParticipants: zod.int().optional().describe('Maximum participants'),
+            countParticipants: zod.int().describe('Current number of participants'),
             participants: zod
               .array(
                 zod
@@ -1966,7 +1966,7 @@ export const UndeleteRideResponse = zod
                   .describe('Public user information (limited fields)')
               )
               .describe('Participants, empty if not access'),
-            sortOrder: zod.number().describe('Sort order'),
+            sortOrder: zod.int().describe('Sort order'),
             registered: zod
               .boolean()
               .describe(
@@ -2070,7 +2070,7 @@ export const UndeleteRideResponse = zod
         'Whether every group of the ride has reached its capacity. False when the ride has no group, or when at least one group has no maxParticipants.'
       ),
     commentCount: zod
-      .number()
+      .int()
       .optional()
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.'

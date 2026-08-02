@@ -11,7 +11,7 @@ export const ListTripCommentsParams = zod.object({
 
 export const ListTripCommentsQueryParams = zod.object({
   page: zod
-    .number()
+    .int()
     .optional()
     .describe(
       'Page number (0-indexed). Omit both page and size to get the whole comment tree, as before this endpoint took parameters.'
@@ -22,7 +22,7 @@ export const ListTripCommentsQueryParams = zod.object({
     .describe(
       'Load only the replies of this comment (TSID) instead of the top-level comments. Use it to expand one thread without re-reading the others.'
     ),
-  size: zod.number().optional().describe('Page size, capped at 100 (default 20)'),
+  size: zod.int().optional().describe('Page size, capped at 100 (default 20)'),
   sort: zod
     .enum(['ASC', 'DESC'])
     .optional()
@@ -48,7 +48,7 @@ export const ListTripCommentsResponse = zod
             parentId: zod.string().optional().describe('Parent comment ID (for replies)'),
             replies: zod.array(zod.unknown()).describe('Replies to this comment'),
             replyCount: zod
-              .number()
+              .int()
               .describe(
                 'How many replies this comment has. Equal to replies.size() when the whole thread is embedded; a client that loads threads on demand uses it to decide whether ?parentId= is worth a call. Always 0 on a reply — threading is one level deep.'
               ),
@@ -56,15 +56,15 @@ export const ListTripCommentsResponse = zod
           .describe('Comment data')
       )
       .describe('List of comments (top-level only, with nested replies)'),
-    total: zod.number().describe('Total count including replies'),
+    total: zod.int().describe('Total count including replies'),
     itemTotal: zod
-      .number()
+      .int()
       .describe(
         'How many items exist in the mode that was asked for: top-level comments normally, or replies of the requested parentId. This is what page\/size iterate over.'
       ),
-    page: zod.number().describe('Page number of items (0-indexed)'),
+    page: zod.int().describe('Page number of items (0-indexed)'),
     size: zod
-      .number()
+      .int()
       .describe(
         'Page size applied to items. Equals itemTotal when the caller passed no pagination parameter, since the whole tree is then returned.'
       ),
@@ -109,7 +109,7 @@ export const CreateTripCommentResponse = zod
     parentId: zod.string().optional().describe('Parent comment ID (for replies)'),
     replies: zod.array(zod.unknown()).describe('Replies to this comment'),
     replyCount: zod
-      .number()
+      .int()
       .describe(
         'How many replies this comment has. Equal to replies.size() when the whole thread is embedded; a client that loads threads on demand uses it to decide whether ?parentId= is worth a call. Always 0 on a reply — threading is one level deep.'
       ),

@@ -22,9 +22,9 @@ export const ListPlacesQueryParams = zod.object({
     .boolean()
     .default(listPlacesQueryFilterStartDefault)
     .describe('Filter to start places only'),
-  page: zod.number().default(listPlacesQueryPageDefault).describe('Page number'),
+  page: zod.int().default(listPlacesQueryPageDefault).describe('Page number'),
   search: zod.string().optional().describe('Search by name or address'),
-  size: zod.number().default(listPlacesQuerySizeDefault).describe('Page size'),
+  size: zod.int().default(listPlacesQuerySizeDefault).describe('Page size'),
 })
 
 export const ListPlacesResponse = zod
@@ -48,9 +48,9 @@ export const ListPlacesResponse = zod
         })
       )
       .describe('List of places'),
-    total: zod.number().describe('Total number of places'),
-    page: zod.number().describe('Current page number'),
-    size: zod.number().describe('Page size'),
+    total: zod.int().describe('Total number of places'),
+    page: zod.int().describe('Current page number'),
+    size: zod.int().describe('Page size'),
   })
   .describe('Paginated place list response')
 

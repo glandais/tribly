@@ -14,7 +14,7 @@ export const ListPagesResponseItem = zod
     title: zod.string().describe('Page title'),
     slug: zod.string().describe('Page URL slug'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
-    order: zod.number().describe('Page order'),
+    order: zod.int().describe('Page order'),
     deleted: zod.boolean().describe('Whether the page is soft-deleted'),
   })
   .describe('Team page summary for listings')
@@ -54,8 +54,8 @@ export const CreatePageBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -72,8 +72,8 @@ export const CreatePageBody = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -90,8 +90,8 @@ export const CreatePageBody = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -107,8 +107,8 @@ export const CreatePageBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -124,8 +124,8 @@ export const CreatePageBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -141,8 +141,8 @@ export const CreatePageBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -158,8 +158,8 @@ export const CreatePageBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -175,8 +175,8 @@ export const CreatePageBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -220,8 +220,8 @@ export const CreatePageResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -238,8 +238,8 @@ export const CreatePageResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -256,8 +256,8 @@ export const CreatePageResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -273,8 +273,8 @@ export const CreatePageResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -290,8 +290,8 @@ export const CreatePageResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -307,8 +307,8 @@ export const CreatePageResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -324,8 +324,8 @@ export const CreatePageResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -341,8 +341,8 @@ export const CreatePageResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -354,7 +354,7 @@ export const CreatePageResponse = zod
       })
       .describe('Page content'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
-    order: zod.number().describe('Page order'),
+    order: zod.int().describe('Page order'),
     deleted: zod.boolean().describe('Whether the page is soft-deleted'),
   })
   .describe('Team page detail')
@@ -379,7 +379,7 @@ export const ReorderPagesResponseItem = zod
     title: zod.string().describe('Page title'),
     slug: zod.string().describe('Page URL slug'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
-    order: zod.number().describe('Page order'),
+    order: zod.int().describe('Page order'),
     deleted: zod.boolean().describe('Whether the page is soft-deleted'),
   })
   .describe('Team page summary for listings')
@@ -420,8 +420,8 @@ export const UpdatePageBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -438,8 +438,8 @@ export const UpdatePageBody = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -456,8 +456,8 @@ export const UpdatePageBody = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -473,8 +473,8 @@ export const UpdatePageBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -490,8 +490,8 @@ export const UpdatePageBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -507,8 +507,8 @@ export const UpdatePageBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -524,8 +524,8 @@ export const UpdatePageBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -541,8 +541,8 @@ export const UpdatePageBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -586,8 +586,8 @@ export const UpdatePageResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -604,8 +604,8 @@ export const UpdatePageResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -622,8 +622,8 @@ export const UpdatePageResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -639,8 +639,8 @@ export const UpdatePageResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -656,8 +656,8 @@ export const UpdatePageResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -673,8 +673,8 @@ export const UpdatePageResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -690,8 +690,8 @@ export const UpdatePageResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -707,8 +707,8 @@ export const UpdatePageResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -720,7 +720,7 @@ export const UpdatePageResponse = zod
       })
       .describe('Page content'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
-    order: zod.number().describe('Page order'),
+    order: zod.int().describe('Page order'),
     deleted: zod.boolean().describe('Whether the page is soft-deleted'),
   })
   .describe('Team page detail')
@@ -763,8 +763,8 @@ export const GetPageResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -781,8 +781,8 @@ export const GetPageResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -799,8 +799,8 @@ export const GetPageResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -816,8 +816,8 @@ export const GetPageResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -833,8 +833,8 @@ export const GetPageResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -850,8 +850,8 @@ export const GetPageResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -867,8 +867,8 @@ export const GetPageResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -884,8 +884,8 @@ export const GetPageResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -897,7 +897,7 @@ export const GetPageResponse = zod
       })
       .describe('Page content'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
-    order: zod.number().describe('Page order'),
+    order: zod.int().describe('Page order'),
     deleted: zod.boolean().describe('Whether the page is soft-deleted'),
   })
   .describe('Team page detail')
@@ -965,8 +965,8 @@ export const ChangePageSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -983,8 +983,8 @@ export const ChangePageSlugResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1001,8 +1001,8 @@ export const ChangePageSlugResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1018,8 +1018,8 @@ export const ChangePageSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1035,8 +1035,8 @@ export const ChangePageSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1052,8 +1052,8 @@ export const ChangePageSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1069,8 +1069,8 @@ export const ChangePageSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1086,8 +1086,8 @@ export const ChangePageSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1099,7 +1099,7 @@ export const ChangePageSlugResponse = zod
       })
       .describe('Page content'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
-    order: zod.number().describe('Page order'),
+    order: zod.int().describe('Page order'),
     deleted: zod.boolean().describe('Whether the page is soft-deleted'),
   })
   .describe('Team page detail')
@@ -1142,8 +1142,8 @@ export const UndeletePageResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1160,8 +1160,8 @@ export const UndeletePageResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1178,8 +1178,8 @@ export const UndeletePageResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1195,8 +1195,8 @@ export const UndeletePageResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1212,8 +1212,8 @@ export const UndeletePageResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1229,8 +1229,8 @@ export const UndeletePageResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1246,8 +1246,8 @@ export const UndeletePageResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1263,8 +1263,8 @@ export const UndeletePageResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1276,7 +1276,7 @@ export const UndeletePageResponse = zod
       })
       .describe('Page content'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
-    order: zod.number().describe('Page order'),
+    order: zod.int().describe('Page order'),
     deleted: zod.boolean().describe('Whether the page is soft-deleted'),
   })
   .describe('Team page detail')

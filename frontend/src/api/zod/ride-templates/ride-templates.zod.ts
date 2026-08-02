@@ -12,9 +12,9 @@ export const listTemplatesQueryPageDefault = 0
 export const listTemplatesQuerySizeDefault = 20
 
 export const ListTemplatesQueryParams = zod.object({
-  page: zod.number().default(listTemplatesQueryPageDefault).describe('Page number'),
+  page: zod.int().default(listTemplatesQueryPageDefault).describe('Page number'),
   search: zod.string().optional().describe('Search by name'),
-  size: zod.number().default(listTemplatesQuerySizeDefault).describe('Page size'),
+  size: zod.int().default(listTemplatesQuerySizeDefault).describe('Page size'),
 })
 
 export const ListTemplatesResponse = zod
@@ -43,7 +43,7 @@ export const ListTemplatesResponse = zod
             status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Default status'),
             createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
             updatedAt: zod.iso.datetime({ offset: true }).describe('Last update timestamp'),
-            groupCount: zod.number().describe('Number of groups'),
+            groupCount: zod.int().describe('Number of groups'),
             groups: zod
               .array(
                 zod
@@ -52,8 +52,8 @@ export const ListTemplatesResponse = zod
                     name: zod.string().describe('Group name'),
                     time: zod.string().optional(),
                     averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
-                    maxParticipants: zod.number().optional().describe('Maximum participants'),
-                    sortOrder: zod.number().describe('Sort order'),
+                    maxParticipants: zod.int().optional().describe('Maximum participants'),
+                    sortOrder: zod.int().describe('Sort order'),
                   })
                   .describe('Ride template group information')
               )
@@ -62,9 +62,9 @@ export const ListTemplatesResponse = zod
           .describe('Ride template response')
       )
       .describe('List of templates'),
-    total: zod.number().describe('Total number of templates'),
-    page: zod.number().describe('Current page number'),
-    size: zod.number().describe('Page size'),
+    total: zod.int().describe('Total number of templates'),
+    page: zod.int().describe('Current page number'),
+    size: zod.int().describe('Page size'),
   })
   .describe('Paginated ride template list response')
 
@@ -109,7 +109,7 @@ export const CreateTemplateBody = zod
               .describe('Group name'),
             time: zod.string().optional(),
             averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
-            maxParticipants: zod.number().optional().describe('Maximum participants'),
+            maxParticipants: zod.int().optional().describe('Maximum participants'),
           })
           .describe('Ride template group request')
       )
@@ -137,7 +137,7 @@ export const CreateTemplateResponse = zod
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Default status'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     updatedAt: zod.iso.datetime({ offset: true }).describe('Last update timestamp'),
-    groupCount: zod.number().describe('Number of groups'),
+    groupCount: zod.int().describe('Number of groups'),
     groups: zod
       .array(
         zod
@@ -146,8 +146,8 @@ export const CreateTemplateResponse = zod
             name: zod.string().describe('Group name'),
             time: zod.string().optional(),
             averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
-            maxParticipants: zod.number().optional().describe('Maximum participants'),
-            sortOrder: zod.number().describe('Sort order'),
+            maxParticipants: zod.int().optional().describe('Maximum participants'),
+            sortOrder: zod.int().describe('Sort order'),
           })
           .describe('Ride template group information')
       )
@@ -197,7 +197,7 @@ export const UpdateTemplateBody = zod
               .describe('Group name'),
             time: zod.string().optional(),
             averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
-            maxParticipants: zod.number().optional().describe('Maximum participants'),
+            maxParticipants: zod.int().optional().describe('Maximum participants'),
           })
           .describe('Ride template group request')
       )
@@ -225,7 +225,7 @@ export const UpdateTemplateResponse = zod
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Default status'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     updatedAt: zod.iso.datetime({ offset: true }).describe('Last update timestamp'),
-    groupCount: zod.number().describe('Number of groups'),
+    groupCount: zod.int().describe('Number of groups'),
     groups: zod
       .array(
         zod
@@ -234,8 +234,8 @@ export const UpdateTemplateResponse = zod
             name: zod.string().describe('Group name'),
             time: zod.string().optional(),
             averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
-            maxParticipants: zod.number().optional().describe('Maximum participants'),
-            sortOrder: zod.number().describe('Sort order'),
+            maxParticipants: zod.int().optional().describe('Maximum participants'),
+            sortOrder: zod.int().describe('Sort order'),
           })
           .describe('Ride template group information')
       )
@@ -272,7 +272,7 @@ export const GetTemplateResponse = zod
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Default status'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     updatedAt: zod.iso.datetime({ offset: true }).describe('Last update timestamp'),
-    groupCount: zod.number().describe('Number of groups'),
+    groupCount: zod.int().describe('Number of groups'),
     groups: zod
       .array(
         zod
@@ -281,8 +281,8 @@ export const GetTemplateResponse = zod
             name: zod.string().describe('Group name'),
             time: zod.string().optional(),
             averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
-            maxParticipants: zod.number().optional().describe('Maximum participants'),
-            sortOrder: zod.number().describe('Sort order'),
+            maxParticipants: zod.int().optional().describe('Maximum participants'),
+            sortOrder: zod.int().describe('Sort order'),
           })
           .describe('Ride template group information')
       )

@@ -23,8 +23,8 @@ export const UploadAssetResponse = zod.object({
   imageUrl: zod.string().optional().describe('image template url'),
   imageDimensions: zod
     .object({
-      width: zod.number().optional(),
-      height: zod.number().optional(),
+      width: zod.int().optional(),
+      height: zod.int().optional(),
     })
     .optional()
     .describe('image dimensions'),

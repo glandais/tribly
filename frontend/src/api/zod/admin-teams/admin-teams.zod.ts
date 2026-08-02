@@ -9,8 +9,8 @@ export const adminListTeamsQuerySizeDefault = 20
 
 export const AdminListTeamsQueryParams = zod.object({
   domainId: zod.string().optional().describe('Filter by domain ID'),
-  page: zod.number().default(adminListTeamsQueryPageDefault).describe('Page number (0-indexed)'),
-  size: zod.number().default(adminListTeamsQuerySizeDefault).describe('Page size'),
+  page: zod.int().default(adminListTeamsQueryPageDefault).describe('Page number (0-indexed)'),
+  size: zod.int().default(adminListTeamsQuerySizeDefault).describe('Page size'),
 })
 
 export const AdminListTeamsResponse = zod
@@ -34,15 +34,15 @@ export const AdminListTeamsResponse = zod
               .boolean()
               .describe('Whether the interactive route planner is open to this team'),
             deleted: zod.boolean().describe('Is team soft-deleted'),
-            memberCount: zod.number().describe('Number of members'),
+            memberCount: zod.int().describe('Number of members'),
             createdAt: zod.iso.datetime({ offset: true }).describe('Team creation timestamp'),
           })
           .describe('Admin team view with domain info')
       )
       .describe('List of teams'),
-    total: zod.number().describe('Total number of teams'),
-    page: zod.number().describe('Current page number'),
-    size: zod.number().describe('Page size'),
+    total: zod.int().describe('Total number of teams'),
+    page: zod.int().describe('Current page number'),
+    size: zod.int().describe('Page size'),
   })
   .describe('Paginated admin team list response')
 
@@ -69,7 +69,7 @@ export const AdminGetTeamResponse = zod
       .boolean()
       .describe('Whether the interactive route planner is open to this team'),
     deleted: zod.boolean().describe('Is team soft-deleted'),
-    memberCount: zod.number().describe('Number of members'),
+    memberCount: zod.int().describe('Number of members'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Team creation timestamp'),
   })
   .describe('Admin team view with domain info')
@@ -108,7 +108,7 @@ export const AdminUpdateTeamAttributesResponse = zod
       .boolean()
       .describe('Whether the interactive route planner is open to this team'),
     deleted: zod.boolean().describe('Is team soft-deleted'),
-    memberCount: zod.number().describe('Number of members'),
+    memberCount: zod.int().describe('Number of members'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Team creation timestamp'),
   })
   .describe('Admin team view with domain info')
@@ -136,7 +136,7 @@ export const AdminToggleTeamDeletedResponse = zod
       .boolean()
       .describe('Whether the interactive route planner is open to this team'),
     deleted: zod.boolean().describe('Is team soft-deleted'),
-    memberCount: zod.number().describe('Number of members'),
+    memberCount: zod.int().describe('Number of members'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Team creation timestamp'),
   })
   .describe('Admin team view with domain info')

@@ -82,7 +82,7 @@ export const LoginWithPasswordBody = zod
 export const LoginWithPasswordResponse = zod
   .object({
     accessToken: zod.string().optional().describe('JWT access token'),
-    expiresIn: zod.number().optional().describe('Token expiry in seconds'),
+    expiresIn: zod.int().optional().describe('Token expiry in seconds'),
     user: zod
       .object({
         id: zod.string().describe('User ID (TSID)'),
@@ -229,7 +229,7 @@ export const VerifyOtpBody = zod
 export const VerifyOtpResponse = zod
   .object({
     accessToken: zod.string().optional().describe('JWT access token'),
-    expiresIn: zod.number().optional().describe('Token expiry in seconds'),
+    expiresIn: zod.int().optional().describe('Token expiry in seconds'),
     user: zod
       .object({
         id: zod.string().describe('User ID (TSID)'),
@@ -321,7 +321,7 @@ export const RefreshHeader = zod.object({
 export const RefreshResponse = zod
   .object({
     accessToken: zod.string().optional().describe('JWT access token'),
-    expiresIn: zod.number().optional().describe('Token expiry in seconds'),
+    expiresIn: zod.int().optional().describe('Token expiry in seconds'),
     user: zod
       .object({
         id: zod.string().describe('User ID (TSID)'),
@@ -479,7 +479,7 @@ export const ResetPasswordBody = zod
 export const ResetPasswordResponse = zod
   .object({
     accessToken: zod.string().optional().describe('JWT access token'),
-    expiresIn: zod.number().optional().describe('Token expiry in seconds'),
+    expiresIn: zod.int().optional().describe('Token expiry in seconds'),
     user: zod
       .object({
         id: zod.string().describe('User ID (TSID)'),
@@ -584,7 +584,7 @@ export const VerifyEmailBody = zod
 export const VerifyEmailResponse = zod
   .object({
     accessToken: zod.string().optional().describe('JWT access token'),
-    expiresIn: zod.number().optional().describe('Token expiry in seconds'),
+    expiresIn: zod.int().optional().describe('Token expiry in seconds'),
     user: zod
       .object({
         id: zod.string().describe('User ID (TSID)'),

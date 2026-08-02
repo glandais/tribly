@@ -70,7 +70,7 @@ export const GetConfigResponse = zod
             'URL of a TileJSON document describing raster-DEM tiles. The document declares the encoding; the clients do not.'
           ),
         maxZoom: zod
-          .number()
+          .int()
           .describe(
             'Deepest zoom the provider renders. Honoured by the web, which sets it on the source; the mobile SDKs take their zoom range from the TileJSON instead.'
           ),

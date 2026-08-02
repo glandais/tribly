@@ -12,8 +12,8 @@ export const listInvitationsQueryPageDefault = 0
 export const listInvitationsQuerySizeDefault = 20
 
 export const ListInvitationsQueryParams = zod.object({
-  page: zod.number().default(listInvitationsQueryPageDefault).describe('Page number'),
-  size: zod.number().default(listInvitationsQuerySizeDefault).describe('Page size'),
+  page: zod.int().default(listInvitationsQueryPageDefault).describe('Page number'),
+  size: zod.int().default(listInvitationsQuerySizeDefault).describe('Page size'),
   status: zod
     .enum(['PENDING', 'ACCEPTED', 'REVOKED', 'EXPIRED'])
     .optional()
@@ -51,9 +51,9 @@ export const ListInvitationsResponse = zod
           .describe('A pending or settled invitation to join a team')
       )
       .describe('Invitations'),
-    total: zod.number().describe('Total number of invitations'),
-    page: zod.number().describe('Current page (0-indexed)'),
-    size: zod.number().describe('Page size'),
+    total: zod.int().describe('Total number of invitations'),
+    page: zod.int().describe('Current page (0-indexed)'),
+    size: zod.int().describe('Page size'),
   })
   .describe("Paginated list of a team's invitations")
 

@@ -15,9 +15,9 @@ export const ListTeamsQueryParams = zod.object({
       'Keep only teams that accept a join request from any domain user (true), or only those that do not (false). Omitted keeps both. A filter on top of the visibility rules, never instead of them.'
     ),
   minRole: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']).optional().describe('Minimum role in team'),
-  page: zod.number().default(listTeamsQueryPageDefault).describe('Page number (0-indexed)'),
+  page: zod.int().default(listTeamsQueryPageDefault).describe('Page number (0-indexed)'),
   search: zod.string().optional().describe('Search query to filter teams by name'),
-  size: zod.number().default(listTeamsQuerySizeDefault).describe('Page size'),
+  size: zod.int().default(listTeamsQuerySizeDefault).describe('Page size'),
 })
 
 export const ListTeamsResponse = zod
@@ -43,8 +43,8 @@ export const ListTeamsResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -61,8 +61,8 @@ export const ListTeamsResponse = zod
                           imageUrl: zod.string().optional().describe('image template url'),
                           imageDimensions: zod
                             .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
+                              width: zod.int().optional(),
+                              height: zod.int().optional(),
                             })
                             .optional()
                             .describe('image dimensions'),
@@ -79,8 +79,8 @@ export const ListTeamsResponse = zod
                           imageUrl: zod.string().optional().describe('image template url'),
                           imageDimensions: zod
                             .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
+                              width: zod.int().optional(),
+                              height: zod.int().optional(),
                             })
                             .optional()
                             .describe('image dimensions'),
@@ -96,8 +96,8 @@ export const ListTeamsResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -113,8 +113,8 @@ export const ListTeamsResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -130,8 +130,8 @@ export const ListTeamsResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -147,8 +147,8 @@ export const ListTeamsResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -164,8 +164,8 @@ export const ListTeamsResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -198,7 +198,7 @@ export const ListTeamsResponse = zod
                     visibility: zod
                       .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
                       .describe('Visibility level'),
-                    order: zod.number().describe('Page order'),
+                    order: zod.int().describe('Page order'),
                     deleted: zod.boolean().describe('Whether the page is soft-deleted'),
                   })
                   .describe('Team page summary for listings')
@@ -228,14 +228,14 @@ export const ListTeamsResponse = zod
               .describe(
                 'Whether the interactive route planner is open to this team. Unlike enableRoutes it never hides the routes section: when false the track can still be imported or replaced from a GPX file, only drawing is closed. Platform-admin only.'
               ),
-            memberCount: zod.number().describe('Number of team members'),
+            memberCount: zod.int().describe('Number of team members'),
             upcomingRideCount: zod
-              .number()
+              .int()
               .describe(
                 'Rides of this team dated in the future that the caller may open. Follows the same visibility rules as the ride listing, so it never announces more than the caller can actually see.'
               ),
             routeCount: zod
-              .number()
+              .int()
               .describe(
                 'Routes of this team the caller may open, under the same visibility rules as the route listing.'
               ),
@@ -255,9 +255,9 @@ export const ListTeamsResponse = zod
           .describe('Detailed team information')
       )
       .describe('List of teams'),
-    total: zod.number().describe('Total number of teams'),
-    page: zod.number().describe('Current page number'),
-    size: zod.number().describe('Page size'),
+    total: zod.int().describe('Total number of teams'),
+    page: zod.int().describe('Current page number'),
+    size: zod.int().describe('Page size'),
   })
   .describe('Paginated team list response')
 
@@ -291,8 +291,8 @@ export const CreateTeamBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -309,8 +309,8 @@ export const CreateTeamBody = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -327,8 +327,8 @@ export const CreateTeamBody = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -344,8 +344,8 @@ export const CreateTeamBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -361,8 +361,8 @@ export const CreateTeamBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -378,8 +378,8 @@ export const CreateTeamBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -395,8 +395,8 @@ export const CreateTeamBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -412,8 +412,8 @@ export const CreateTeamBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -464,8 +464,8 @@ export const CreateTeamResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -482,8 +482,8 @@ export const CreateTeamResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -500,8 +500,8 @@ export const CreateTeamResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -517,8 +517,8 @@ export const CreateTeamResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -534,8 +534,8 @@ export const CreateTeamResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -551,8 +551,8 @@ export const CreateTeamResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -568,8 +568,8 @@ export const CreateTeamResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -585,8 +585,8 @@ export const CreateTeamResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -619,7 +619,7 @@ export const CreateTeamResponse = zod
             visibility: zod
               .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
               .describe('Visibility level'),
-            order: zod.number().describe('Page order'),
+            order: zod.int().describe('Page order'),
             deleted: zod.boolean().describe('Whether the page is soft-deleted'),
           })
           .describe('Team page summary for listings')
@@ -647,14 +647,14 @@ export const CreateTeamResponse = zod
       .describe(
         'Whether the interactive route planner is open to this team. Unlike enableRoutes it never hides the routes section: when false the track can still be imported or replaced from a GPX file, only drawing is closed. Platform-admin only.'
       ),
-    memberCount: zod.number().describe('Number of team members'),
+    memberCount: zod.int().describe('Number of team members'),
     upcomingRideCount: zod
-      .number()
+      .int()
       .describe(
         'Rides of this team dated in the future that the caller may open. Follows the same visibility rules as the ride listing, so it never announces more than the caller can actually see.'
       ),
     routeCount: zod
-      .number()
+      .int()
       .describe(
         'Routes of this team the caller may open, under the same visibility rules as the route listing.'
       ),
@@ -707,8 +707,8 @@ export const UpdateTeamBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -725,8 +725,8 @@ export const UpdateTeamBody = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -743,8 +743,8 @@ export const UpdateTeamBody = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -760,8 +760,8 @@ export const UpdateTeamBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -777,8 +777,8 @@ export const UpdateTeamBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -794,8 +794,8 @@ export const UpdateTeamBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -811,8 +811,8 @@ export const UpdateTeamBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -828,8 +828,8 @@ export const UpdateTeamBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -880,8 +880,8 @@ export const UpdateTeamResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -898,8 +898,8 @@ export const UpdateTeamResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -916,8 +916,8 @@ export const UpdateTeamResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -933,8 +933,8 @@ export const UpdateTeamResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -950,8 +950,8 @@ export const UpdateTeamResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -967,8 +967,8 @@ export const UpdateTeamResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -984,8 +984,8 @@ export const UpdateTeamResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1001,8 +1001,8 @@ export const UpdateTeamResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1035,7 +1035,7 @@ export const UpdateTeamResponse = zod
             visibility: zod
               .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
               .describe('Visibility level'),
-            order: zod.number().describe('Page order'),
+            order: zod.int().describe('Page order'),
             deleted: zod.boolean().describe('Whether the page is soft-deleted'),
           })
           .describe('Team page summary for listings')
@@ -1063,14 +1063,14 @@ export const UpdateTeamResponse = zod
       .describe(
         'Whether the interactive route planner is open to this team. Unlike enableRoutes it never hides the routes section: when false the track can still be imported or replaced from a GPX file, only drawing is closed. Platform-admin only.'
       ),
-    memberCount: zod.number().describe('Number of team members'),
+    memberCount: zod.int().describe('Number of team members'),
     upcomingRideCount: zod
-      .number()
+      .int()
       .describe(
         'Rides of this team dated in the future that the caller may open. Follows the same visibility rules as the ride listing, so it never announces more than the caller can actually see.'
       ),
     routeCount: zod
-      .number()
+      .int()
       .describe(
         'Routes of this team the caller may open, under the same visibility rules as the route listing.'
       ),
@@ -1116,8 +1116,8 @@ export const GetTeamResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1134,8 +1134,8 @@ export const GetTeamResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1152,8 +1152,8 @@ export const GetTeamResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1169,8 +1169,8 @@ export const GetTeamResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1186,8 +1186,8 @@ export const GetTeamResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1203,8 +1203,8 @@ export const GetTeamResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1220,8 +1220,8 @@ export const GetTeamResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1237,8 +1237,8 @@ export const GetTeamResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1271,7 +1271,7 @@ export const GetTeamResponse = zod
             visibility: zod
               .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
               .describe('Visibility level'),
-            order: zod.number().describe('Page order'),
+            order: zod.int().describe('Page order'),
             deleted: zod.boolean().describe('Whether the page is soft-deleted'),
           })
           .describe('Team page summary for listings')
@@ -1299,14 +1299,14 @@ export const GetTeamResponse = zod
       .describe(
         'Whether the interactive route planner is open to this team. Unlike enableRoutes it never hides the routes section: when false the track can still be imported or replaced from a GPX file, only drawing is closed. Platform-admin only.'
       ),
-    memberCount: zod.number().describe('Number of team members'),
+    memberCount: zod.int().describe('Number of team members'),
     upcomingRideCount: zod
-      .number()
+      .int()
       .describe(
         'Rides of this team dated in the future that the caller may open. Follows the same visibility rules as the ride listing, so it never announces more than the caller can actually see.'
       ),
     routeCount: zod
-      .number()
+      .int()
       .describe(
         'Routes of this team the caller may open, under the same visibility rules as the route listing.'
       ),
@@ -1376,8 +1376,8 @@ export const ChangeTeamSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1394,8 +1394,8 @@ export const ChangeTeamSlugResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1412,8 +1412,8 @@ export const ChangeTeamSlugResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1429,8 +1429,8 @@ export const ChangeTeamSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1446,8 +1446,8 @@ export const ChangeTeamSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1463,8 +1463,8 @@ export const ChangeTeamSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1480,8 +1480,8 @@ export const ChangeTeamSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1497,8 +1497,8 @@ export const ChangeTeamSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1531,7 +1531,7 @@ export const ChangeTeamSlugResponse = zod
             visibility: zod
               .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
               .describe('Visibility level'),
-            order: zod.number().describe('Page order'),
+            order: zod.int().describe('Page order'),
             deleted: zod.boolean().describe('Whether the page is soft-deleted'),
           })
           .describe('Team page summary for listings')
@@ -1559,14 +1559,14 @@ export const ChangeTeamSlugResponse = zod
       .describe(
         'Whether the interactive route planner is open to this team. Unlike enableRoutes it never hides the routes section: when false the track can still be imported or replaced from a GPX file, only drawing is closed. Platform-admin only.'
       ),
-    memberCount: zod.number().describe('Number of team members'),
+    memberCount: zod.int().describe('Number of team members'),
     upcomingRideCount: zod
-      .number()
+      .int()
       .describe(
         'Rides of this team dated in the future that the caller may open. Follows the same visibility rules as the ride listing, so it never announces more than the caller can actually see.'
       ),
     routeCount: zod
-      .number()
+      .int()
       .describe(
         'Routes of this team the caller may open, under the same visibility rules as the route listing.'
       ),

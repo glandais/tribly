@@ -8,8 +8,8 @@ export const listMyPreviewsQueryPageDefault = 0
 export const listMyPreviewsQuerySizeDefault = 20
 
 export const ListMyPreviewsQueryParams = zod.object({
-  page: zod.number().default(listMyPreviewsQueryPageDefault).describe('Zero-based page number'),
-  size: zod.number().default(listMyPreviewsQuerySizeDefault).describe('Page size'),
+  page: zod.int().default(listMyPreviewsQueryPageDefault).describe('Zero-based page number'),
+  size: zod.int().default(listMyPreviewsQuerySizeDefault).describe('Page size'),
 })
 
 export const ListMyPreviewsResponse = zod
@@ -29,9 +29,9 @@ export const ListMyPreviewsResponse = zod
           .describe('Summary of an analysed GPX file, for listing')
       )
       .describe('List of GPX previews'),
-    total: zod.number().describe('Total number of previews'),
-    page: zod.number().describe('Current page number'),
-    size: zod.number().describe('Page size'),
+    total: zod.int().describe('Total number of previews'),
+    page: zod.int().describe('Current page number'),
+    size: zod.int().describe('Page size'),
   })
   .describe('Paginated GPX preview list response')
 
@@ -75,11 +75,9 @@ export const CreatePreviewResponse = zod
               .array(
                 zod
                   .object({
-                    startDistance: zod
-                      .number()
-                      .describe('Start distance from route start in meters'),
-                    endDistance: zod.number().describe('End distance from route start in meters'),
-                    elevationGain: zod.number().describe('Elevation gain in meters'),
+                    startDistance: zod.int().describe('Start distance from route start in meters'),
+                    endDistance: zod.int().describe('End distance from route start in meters'),
+                    elevationGain: zod.int().describe('Elevation gain in meters'),
                     averageGradient: zod.number().describe('Average gradient percentage'),
                     maxGradient: zod.number().describe('Maximum gradient percentage'),
                     category: zod
@@ -91,12 +89,12 @@ export const CreatePreviewResponse = zod
                         zod
                           .object({
                             startDistance: zod
-                              .number()
+                              .int()
                               .describe('Start distance from route start in meters'),
                             endDistance: zod
-                              .number()
+                              .int()
                               .describe('End distance from route start in meters'),
-                            elevationGain: zod.number().describe('Elevation gain in meters'),
+                            elevationGain: zod.int().describe('Elevation gain in meters'),
                             grade: zod.number().describe('Gradient percentage'),
                           })
                           .describe('Climb part information')
@@ -187,11 +185,9 @@ export const CreatePreviewFromPointsResponse = zod
               .array(
                 zod
                   .object({
-                    startDistance: zod
-                      .number()
-                      .describe('Start distance from route start in meters'),
-                    endDistance: zod.number().describe('End distance from route start in meters'),
-                    elevationGain: zod.number().describe('Elevation gain in meters'),
+                    startDistance: zod.int().describe('Start distance from route start in meters'),
+                    endDistance: zod.int().describe('End distance from route start in meters'),
+                    elevationGain: zod.int().describe('Elevation gain in meters'),
                     averageGradient: zod.number().describe('Average gradient percentage'),
                     maxGradient: zod.number().describe('Maximum gradient percentage'),
                     category: zod
@@ -203,12 +199,12 @@ export const CreatePreviewFromPointsResponse = zod
                         zod
                           .object({
                             startDistance: zod
-                              .number()
+                              .int()
                               .describe('Start distance from route start in meters'),
                             endDistance: zod
-                              .number()
+                              .int()
                               .describe('End distance from route start in meters'),
-                            elevationGain: zod.number().describe('Elevation gain in meters'),
+                            elevationGain: zod.int().describe('Elevation gain in meters'),
                             grade: zod.number().describe('Gradient percentage'),
                           })
                           .describe('Climb part information')
@@ -307,11 +303,9 @@ export const UpdatePreviewResponse = zod
               .array(
                 zod
                   .object({
-                    startDistance: zod
-                      .number()
-                      .describe('Start distance from route start in meters'),
-                    endDistance: zod.number().describe('End distance from route start in meters'),
-                    elevationGain: zod.number().describe('Elevation gain in meters'),
+                    startDistance: zod.int().describe('Start distance from route start in meters'),
+                    endDistance: zod.int().describe('End distance from route start in meters'),
+                    elevationGain: zod.int().describe('Elevation gain in meters'),
                     averageGradient: zod.number().describe('Average gradient percentage'),
                     maxGradient: zod.number().describe('Maximum gradient percentage'),
                     category: zod
@@ -323,12 +317,12 @@ export const UpdatePreviewResponse = zod
                         zod
                           .object({
                             startDistance: zod
-                              .number()
+                              .int()
                               .describe('Start distance from route start in meters'),
                             endDistance: zod
-                              .number()
+                              .int()
                               .describe('End distance from route start in meters'),
-                            elevationGain: zod.number().describe('Elevation gain in meters'),
+                            elevationGain: zod.int().describe('Elevation gain in meters'),
                             grade: zod.number().describe('Gradient percentage'),
                           })
                           .describe('Climb part information')
@@ -398,11 +392,9 @@ export const GetPreviewResponse = zod
               .array(
                 zod
                   .object({
-                    startDistance: zod
-                      .number()
-                      .describe('Start distance from route start in meters'),
-                    endDistance: zod.number().describe('End distance from route start in meters'),
-                    elevationGain: zod.number().describe('Elevation gain in meters'),
+                    startDistance: zod.int().describe('Start distance from route start in meters'),
+                    endDistance: zod.int().describe('End distance from route start in meters'),
+                    elevationGain: zod.int().describe('Elevation gain in meters'),
                     averageGradient: zod.number().describe('Average gradient percentage'),
                     maxGradient: zod.number().describe('Maximum gradient percentage'),
                     category: zod
@@ -414,12 +406,12 @@ export const GetPreviewResponse = zod
                         zod
                           .object({
                             startDistance: zod
-                              .number()
+                              .int()
                               .describe('Start distance from route start in meters'),
                             endDistance: zod
-                              .number()
+                              .int()
                               .describe('End distance from route start in meters'),
-                            elevationGain: zod.number().describe('Elevation gain in meters'),
+                            elevationGain: zod.int().describe('Elevation gain in meters'),
                             grade: zod.number().describe('Gradient percentage'),
                           })
                           .describe('Climb part information')
@@ -512,8 +504,8 @@ export const CreateRouteFromPreviewBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -530,8 +522,8 @@ export const CreateRouteFromPreviewBody = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -548,8 +540,8 @@ export const CreateRouteFromPreviewBody = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -565,8 +557,8 @@ export const CreateRouteFromPreviewBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -582,8 +574,8 @@ export const CreateRouteFromPreviewBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -599,8 +591,8 @@ export const CreateRouteFromPreviewBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -616,8 +608,8 @@ export const CreateRouteFromPreviewBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -633,8 +625,8 @@ export const CreateRouteFromPreviewBody = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -690,8 +682,8 @@ export const CreateRouteFromPreviewResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -708,8 +700,8 @@ export const CreateRouteFromPreviewResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -726,8 +718,8 @@ export const CreateRouteFromPreviewResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -743,8 +735,8 @@ export const CreateRouteFromPreviewResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -760,8 +752,8 @@ export const CreateRouteFromPreviewResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -777,8 +769,8 @@ export const CreateRouteFromPreviewResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -794,8 +786,8 @@ export const CreateRouteFromPreviewResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -811,8 +803,8 @@ export const CreateRouteFromPreviewResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -845,7 +837,7 @@ export const CreateRouteFromPreviewResponse = zod
     createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     deleted: zod.boolean().describe('Whether the route is soft-deleted'),
     commentCount: zod
-      .number()
+      .int()
       .optional()
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'

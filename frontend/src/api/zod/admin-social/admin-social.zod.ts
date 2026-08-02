@@ -10,6 +10,6 @@ export const BackfillStravaIdentitiesQueryParams = zod.object({
 
 export const BackfillStravaIdentitiesResponse = zod
   .object({
-    identitiesCreated: zod.number().describe('Number of identity rows created'),
+    identitiesCreated: zod.int().describe('Number of identity rows created'),
   })
   .describe('Result of a social-identity backfill')

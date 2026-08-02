@@ -29,9 +29,9 @@ export const ListAllRoutesQueryParams = zod.object({
     .enum(['START', 'END', 'START_OR_END'])
     .optional()
     .describe('Search near START, END, or START_OR_END (default)'),
-  page: zod.number().default(listAllRoutesQueryPageDefault).describe('Page number (0-indexed)'),
+  page: zod.int().default(listAllRoutesQueryPageDefault).describe('Page number (0-indexed)'),
   search: zod.string().optional().describe('Search by name\/markdown'),
-  size: zod.number().default(listAllRoutesQuerySizeDefault).describe('Page size'),
+  size: zod.int().default(listAllRoutesQuerySizeDefault).describe('Page size'),
   sortBy: zod
     .enum(['DISTANCE', 'ELEVATION_GAIN', 'HILLINESS', 'DATE_TIME'])
     .optional()
@@ -95,8 +95,8 @@ export const ListAllRoutesResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -113,8 +113,8 @@ export const ListAllRoutesResponse = zod
                           imageUrl: zod.string().optional().describe('image template url'),
                           imageDimensions: zod
                             .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
+                              width: zod.int().optional(),
+                              height: zod.int().optional(),
                             })
                             .optional()
                             .describe('image dimensions'),
@@ -131,8 +131,8 @@ export const ListAllRoutesResponse = zod
                           imageUrl: zod.string().optional().describe('image template url'),
                           imageDimensions: zod
                             .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
+                              width: zod.int().optional(),
+                              height: zod.int().optional(),
                             })
                             .optional()
                             .describe('image dimensions'),
@@ -148,8 +148,8 @@ export const ListAllRoutesResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -165,8 +165,8 @@ export const ListAllRoutesResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -182,8 +182,8 @@ export const ListAllRoutesResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -199,8 +199,8 @@ export const ListAllRoutesResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -216,8 +216,8 @@ export const ListAllRoutesResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -250,7 +250,7 @@ export const ListAllRoutesResponse = zod
             createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
             deleted: zod.boolean().describe('Whether the route is soft-deleted'),
             commentCount: zod
-              .number()
+              .int()
               .optional()
               .describe(
                 'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -259,9 +259,9 @@ export const ListAllRoutesResponse = zod
           .describe('Route summary data')
       )
       .describe('List of routes'),
-    total: zod.number().describe('Total number of routes'),
-    page: zod.number().describe('Current page number'),
-    size: zod.number().describe('Page size'),
+    total: zod.int().describe('Total number of routes'),
+    page: zod.int().describe('Current page number'),
+    size: zod.int().describe('Page size'),
   })
   .describe('Paginated route list response')
 
@@ -373,7 +373,7 @@ export const CountAllRoutesQueryParams = zod.object({
 
 export const CountAllRoutesResponse = zod
   .object({
-    total: zod.number().describe('Total number of matching items'),
+    total: zod.int().describe('Total number of matching items'),
   })
   .describe('Number of items matching a filter set')
 
@@ -382,9 +382,9 @@ export const CountAllRoutesResponse = zod
  * @summary All routes vector tile
  */
 export const AllRoutesTileParams = zod.object({
-  x: zod.number().describe('Tile column'),
-  y: zod.number().describe('Tile row'),
-  z: zod.number().describe('Zoom level'),
+  x: zod.int().describe('Tile column'),
+  y: zod.int().describe('Tile row'),
+  z: zod.int().describe('Zoom level'),
 })
 
 export const AllRoutesTileQueryParams = zod.object({
@@ -464,9 +464,9 @@ export const ListRoutesQueryParams = zod.object({
     .enum(['START', 'END', 'START_OR_END'])
     .optional()
     .describe('Search near START, END, or START_OR_END (default)'),
-  page: zod.number().default(listRoutesQueryPageDefault).describe('Page number (0-indexed)'),
+  page: zod.int().default(listRoutesQueryPageDefault).describe('Page number (0-indexed)'),
   search: zod.string().optional().describe('Search by name\/markdown'),
-  size: zod.number().default(listRoutesQuerySizeDefault).describe('Page size'),
+  size: zod.int().default(listRoutesQuerySizeDefault).describe('Page size'),
   sortBy: zod
     .enum(['DISTANCE', 'ELEVATION_GAIN', 'HILLINESS', 'DATE_TIME'])
     .optional()
@@ -530,8 +530,8 @@ export const ListRoutesResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -548,8 +548,8 @@ export const ListRoutesResponse = zod
                           imageUrl: zod.string().optional().describe('image template url'),
                           imageDimensions: zod
                             .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
+                              width: zod.int().optional(),
+                              height: zod.int().optional(),
                             })
                             .optional()
                             .describe('image dimensions'),
@@ -566,8 +566,8 @@ export const ListRoutesResponse = zod
                           imageUrl: zod.string().optional().describe('image template url'),
                           imageDimensions: zod
                             .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
+                              width: zod.int().optional(),
+                              height: zod.int().optional(),
                             })
                             .optional()
                             .describe('image dimensions'),
@@ -583,8 +583,8 @@ export const ListRoutesResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -600,8 +600,8 @@ export const ListRoutesResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -617,8 +617,8 @@ export const ListRoutesResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -634,8 +634,8 @@ export const ListRoutesResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -651,8 +651,8 @@ export const ListRoutesResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -685,7 +685,7 @@ export const ListRoutesResponse = zod
             createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
             deleted: zod.boolean().describe('Whether the route is soft-deleted'),
             commentCount: zod
-              .number()
+              .int()
               .optional()
               .describe(
                 'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -694,9 +694,9 @@ export const ListRoutesResponse = zod
           .describe('Route summary data')
       )
       .describe('List of routes'),
-    total: zod.number().describe('Total number of routes'),
-    page: zod.number().describe('Current page number'),
-    size: zod.number().describe('Page size'),
+    total: zod.int().describe('Total number of routes'),
+    page: zod.int().describe('Current page number'),
+    size: zod.int().describe('Page size'),
   })
   .describe('Paginated route list response')
 
@@ -736,8 +736,8 @@ export const CreateRouteBody = zod.object({
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -754,8 +754,8 @@ export const CreateRouteBody = zod.object({
                     imageUrl: zod.string().optional().describe('image template url'),
                     imageDimensions: zod
                       .object({
-                        width: zod.number().optional(),
-                        height: zod.number().optional(),
+                        width: zod.int().optional(),
+                        height: zod.int().optional(),
                       })
                       .optional()
                       .describe('image dimensions'),
@@ -772,8 +772,8 @@ export const CreateRouteBody = zod.object({
                     imageUrl: zod.string().optional().describe('image template url'),
                     imageDimensions: zod
                       .object({
-                        width: zod.number().optional(),
-                        height: zod.number().optional(),
+                        width: zod.int().optional(),
+                        height: zod.int().optional(),
                       })
                       .optional()
                       .describe('image dimensions'),
@@ -789,8 +789,8 @@ export const CreateRouteBody = zod.object({
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -806,8 +806,8 @@ export const CreateRouteBody = zod.object({
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -823,8 +823,8 @@ export const CreateRouteBody = zod.object({
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -840,8 +840,8 @@ export const CreateRouteBody = zod.object({
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -857,8 +857,8 @@ export const CreateRouteBody = zod.object({
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -917,8 +917,8 @@ export const CreateRouteResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -935,8 +935,8 @@ export const CreateRouteResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -953,8 +953,8 @@ export const CreateRouteResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -970,8 +970,8 @@ export const CreateRouteResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -987,8 +987,8 @@ export const CreateRouteResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1004,8 +1004,8 @@ export const CreateRouteResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1021,8 +1021,8 @@ export const CreateRouteResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1038,8 +1038,8 @@ export const CreateRouteResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1072,7 +1072,7 @@ export const CreateRouteResponse = zod
     createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     deleted: zod.boolean().describe('Whether the route is soft-deleted'),
     commentCount: zod
-      .number()
+      .int()
       .optional()
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -1196,8 +1196,8 @@ export const GetRoutesBulkResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -1214,8 +1214,8 @@ export const GetRoutesBulkResponse = zod
                           imageUrl: zod.string().optional().describe('image template url'),
                           imageDimensions: zod
                             .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
+                              width: zod.int().optional(),
+                              height: zod.int().optional(),
                             })
                             .optional()
                             .describe('image dimensions'),
@@ -1232,8 +1232,8 @@ export const GetRoutesBulkResponse = zod
                           imageUrl: zod.string().optional().describe('image template url'),
                           imageDimensions: zod
                             .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
+                              width: zod.int().optional(),
+                              height: zod.int().optional(),
                             })
                             .optional()
                             .describe('image dimensions'),
@@ -1249,8 +1249,8 @@ export const GetRoutesBulkResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -1266,8 +1266,8 @@ export const GetRoutesBulkResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -1283,8 +1283,8 @@ export const GetRoutesBulkResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -1300,8 +1300,8 @@ export const GetRoutesBulkResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -1317,8 +1317,8 @@ export const GetRoutesBulkResponse = zod
                         imageUrl: zod.string().optional().describe('image template url'),
                         imageDimensions: zod
                           .object({
-                            width: zod.number().optional(),
-                            height: zod.number().optional(),
+                            width: zod.int().optional(),
+                            height: zod.int().optional(),
                           })
                           .optional()
                           .describe('image dimensions'),
@@ -1374,12 +1374,12 @@ export const GetRoutesBulkResponse = zod
                         zod
                           .object({
                             startDistance: zod
-                              .number()
+                              .int()
                               .describe('Start distance from route start in meters'),
                             endDistance: zod
-                              .number()
+                              .int()
                               .describe('End distance from route start in meters'),
-                            elevationGain: zod.number().describe('Elevation gain in meters'),
+                            elevationGain: zod.int().describe('Elevation gain in meters'),
                             averageGradient: zod.number().describe('Average gradient percentage'),
                             maxGradient: zod.number().describe('Maximum gradient percentage'),
                             category: zod
@@ -1391,14 +1391,12 @@ export const GetRoutesBulkResponse = zod
                                 zod
                                   .object({
                                     startDistance: zod
-                                      .number()
+                                      .int()
                                       .describe('Start distance from route start in meters'),
                                     endDistance: zod
-                                      .number()
+                                      .int()
                                       .describe('End distance from route start in meters'),
-                                    elevationGain: zod
-                                      .number()
-                                      .describe('Elevation gain in meters'),
+                                    elevationGain: zod.int().describe('Elevation gain in meters'),
                                     grade: zod.number().describe('Gradient percentage'),
                                   })
                                   .describe('Climb part information')
@@ -1431,7 +1429,7 @@ export const GetRoutesBulkResponse = zod
               .describe('Waypoints'),
             deleted: zod.boolean().describe('Whether the route is soft-deleted'),
             commentCount: zod
-              .number()
+              .int()
               .optional()
               .describe(
                 'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -1498,7 +1496,7 @@ export const CountRoutesQueryParams = zod.object({
 
 export const CountRoutesResponse = zod
   .object({
-    total: zod.number().describe('Total number of matching items'),
+    total: zod.int().describe('Total number of matching items'),
   })
   .describe('Number of items matching a filter set')
 
@@ -1508,9 +1506,9 @@ export const CountRoutesResponse = zod
  */
 export const RoutesTileParams = zod.object({
   teamSlug: zod.string().describe('Team URL slug'),
-  x: zod.number().describe('Tile column'),
-  y: zod.number().describe('Tile row'),
-  z: zod.number().describe('Zoom level'),
+  x: zod.int().describe('Tile column'),
+  y: zod.int().describe('Tile row'),
+  z: zod.int().describe('Zoom level'),
 })
 
 export const RoutesTileQueryParams = zod.object({
@@ -1594,8 +1592,8 @@ export const UpdateRouteBody = zod.object({
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1612,8 +1610,8 @@ export const UpdateRouteBody = zod.object({
                     imageUrl: zod.string().optional().describe('image template url'),
                     imageDimensions: zod
                       .object({
-                        width: zod.number().optional(),
-                        height: zod.number().optional(),
+                        width: zod.int().optional(),
+                        height: zod.int().optional(),
                       })
                       .optional()
                       .describe('image dimensions'),
@@ -1630,8 +1628,8 @@ export const UpdateRouteBody = zod.object({
                     imageUrl: zod.string().optional().describe('image template url'),
                     imageDimensions: zod
                       .object({
-                        width: zod.number().optional(),
-                        height: zod.number().optional(),
+                        width: zod.int().optional(),
+                        height: zod.int().optional(),
                       })
                       .optional()
                       .describe('image dimensions'),
@@ -1647,8 +1645,8 @@ export const UpdateRouteBody = zod.object({
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1664,8 +1662,8 @@ export const UpdateRouteBody = zod.object({
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1681,8 +1679,8 @@ export const UpdateRouteBody = zod.object({
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1698,8 +1696,8 @@ export const UpdateRouteBody = zod.object({
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1715,8 +1713,8 @@ export const UpdateRouteBody = zod.object({
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1775,8 +1773,8 @@ export const UpdateRouteResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1793,8 +1791,8 @@ export const UpdateRouteResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1811,8 +1809,8 @@ export const UpdateRouteResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -1828,8 +1826,8 @@ export const UpdateRouteResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1845,8 +1843,8 @@ export const UpdateRouteResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1862,8 +1860,8 @@ export const UpdateRouteResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1879,8 +1877,8 @@ export const UpdateRouteResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1896,8 +1894,8 @@ export const UpdateRouteResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1930,7 +1928,7 @@ export const UpdateRouteResponse = zod
     createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     deleted: zod.boolean().describe('Whether the route is soft-deleted'),
     commentCount: zod
-      .number()
+      .int()
       .optional()
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -1976,8 +1974,8 @@ export const GetRouteResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -1994,8 +1992,8 @@ export const GetRouteResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -2012,8 +2010,8 @@ export const GetRouteResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -2029,8 +2027,8 @@ export const GetRouteResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2046,8 +2044,8 @@ export const GetRouteResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2063,8 +2061,8 @@ export const GetRouteResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2080,8 +2078,8 @@ export const GetRouteResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2097,8 +2095,8 @@ export const GetRouteResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2153,11 +2151,9 @@ export const GetRouteResponse = zod
               .array(
                 zod
                   .object({
-                    startDistance: zod
-                      .number()
-                      .describe('Start distance from route start in meters'),
-                    endDistance: zod.number().describe('End distance from route start in meters'),
-                    elevationGain: zod.number().describe('Elevation gain in meters'),
+                    startDistance: zod.int().describe('Start distance from route start in meters'),
+                    endDistance: zod.int().describe('End distance from route start in meters'),
+                    elevationGain: zod.int().describe('Elevation gain in meters'),
                     averageGradient: zod.number().describe('Average gradient percentage'),
                     maxGradient: zod.number().describe('Maximum gradient percentage'),
                     category: zod
@@ -2169,12 +2165,12 @@ export const GetRouteResponse = zod
                         zod
                           .object({
                             startDistance: zod
-                              .number()
+                              .int()
                               .describe('Start distance from route start in meters'),
                             endDistance: zod
-                              .number()
+                              .int()
                               .describe('End distance from route start in meters'),
-                            elevationGain: zod.number().describe('Elevation gain in meters'),
+                            elevationGain: zod.int().describe('Elevation gain in meters'),
                             grade: zod.number().describe('Gradient percentage'),
                           })
                           .describe('Climb part information')
@@ -2205,7 +2201,7 @@ export const GetRouteResponse = zod
       .describe('Waypoints'),
     deleted: zod.boolean().describe('Whether the route is soft-deleted'),
     commentCount: zod
-      .number()
+      .int()
       .optional()
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -2276,8 +2272,8 @@ export const ChangeRouteSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2294,8 +2290,8 @@ export const ChangeRouteSlugResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -2312,8 +2308,8 @@ export const ChangeRouteSlugResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -2329,8 +2325,8 @@ export const ChangeRouteSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2346,8 +2342,8 @@ export const ChangeRouteSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2363,8 +2359,8 @@ export const ChangeRouteSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2380,8 +2376,8 @@ export const ChangeRouteSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2397,8 +2393,8 @@ export const ChangeRouteSlugResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2453,11 +2449,9 @@ export const ChangeRouteSlugResponse = zod
               .array(
                 zod
                   .object({
-                    startDistance: zod
-                      .number()
-                      .describe('Start distance from route start in meters'),
-                    endDistance: zod.number().describe('End distance from route start in meters'),
-                    elevationGain: zod.number().describe('Elevation gain in meters'),
+                    startDistance: zod.int().describe('Start distance from route start in meters'),
+                    endDistance: zod.int().describe('End distance from route start in meters'),
+                    elevationGain: zod.int().describe('Elevation gain in meters'),
                     averageGradient: zod.number().describe('Average gradient percentage'),
                     maxGradient: zod.number().describe('Maximum gradient percentage'),
                     category: zod
@@ -2469,12 +2463,12 @@ export const ChangeRouteSlugResponse = zod
                         zod
                           .object({
                             startDistance: zod
-                              .number()
+                              .int()
                               .describe('Start distance from route start in meters'),
                             endDistance: zod
-                              .number()
+                              .int()
                               .describe('End distance from route start in meters'),
-                            elevationGain: zod.number().describe('Elevation gain in meters'),
+                            elevationGain: zod.int().describe('Elevation gain in meters'),
                             grade: zod.number().describe('Gradient percentage'),
                           })
                           .describe('Climb part information')
@@ -2505,7 +2499,7 @@ export const ChangeRouteSlugResponse = zod
       .describe('Waypoints'),
     deleted: zod.boolean().describe('Whether the route is soft-deleted'),
     commentCount: zod
-      .number()
+      .int()
       .optional()
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
@@ -2551,8 +2545,8 @@ export const UndeleteRouteResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2569,8 +2563,8 @@ export const UndeleteRouteResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -2587,8 +2581,8 @@ export const UndeleteRouteResponse = zod
                   imageUrl: zod.string().optional().describe('image template url'),
                   imageDimensions: zod
                     .object({
-                      width: zod.number().optional(),
-                      height: zod.number().optional(),
+                      width: zod.int().optional(),
+                      height: zod.int().optional(),
                     })
                     .optional()
                     .describe('image dimensions'),
@@ -2604,8 +2598,8 @@ export const UndeleteRouteResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2621,8 +2615,8 @@ export const UndeleteRouteResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2638,8 +2632,8 @@ export const UndeleteRouteResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2655,8 +2649,8 @@ export const UndeleteRouteResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2672,8 +2666,8 @@ export const UndeleteRouteResponse = zod
                 imageUrl: zod.string().optional().describe('image template url'),
                 imageDimensions: zod
                   .object({
-                    width: zod.number().optional(),
-                    height: zod.number().optional(),
+                    width: zod.int().optional(),
+                    height: zod.int().optional(),
                   })
                   .optional()
                   .describe('image dimensions'),
@@ -2728,11 +2722,9 @@ export const UndeleteRouteResponse = zod
               .array(
                 zod
                   .object({
-                    startDistance: zod
-                      .number()
-                      .describe('Start distance from route start in meters'),
-                    endDistance: zod.number().describe('End distance from route start in meters'),
-                    elevationGain: zod.number().describe('Elevation gain in meters'),
+                    startDistance: zod.int().describe('Start distance from route start in meters'),
+                    endDistance: zod.int().describe('End distance from route start in meters'),
+                    elevationGain: zod.int().describe('Elevation gain in meters'),
                     averageGradient: zod.number().describe('Average gradient percentage'),
                     maxGradient: zod.number().describe('Maximum gradient percentage'),
                     category: zod
@@ -2744,12 +2736,12 @@ export const UndeleteRouteResponse = zod
                         zod
                           .object({
                             startDistance: zod
-                              .number()
+                              .int()
                               .describe('Start distance from route start in meters'),
                             endDistance: zod
-                              .number()
+                              .int()
                               .describe('End distance from route start in meters'),
-                            elevationGain: zod.number().describe('Elevation gain in meters'),
+                            elevationGain: zod.int().describe('Elevation gain in meters'),
                             grade: zod.number().describe('Gradient percentage'),
                           })
                           .describe('Climb part information')
@@ -2780,7 +2772,7 @@ export const UndeleteRouteResponse = zod
       .describe('Waypoints'),
     deleted: zod.boolean().describe('Whether the route is soft-deleted'),
     commentCount: zod
-      .number()
+      .int()
       .optional()
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
