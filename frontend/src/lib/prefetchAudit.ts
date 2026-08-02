@@ -3,6 +3,15 @@ import type { RouterProvider } from 'react-router-dom'
 
 type Router = Parameters<typeof RouterProvider>[0]['router']
 
+// RouteGenerator.tsx stamps routes.config.ts's own `id` onto `handle.routeId` — the RouteObject's
+// own `id` can't be reused for this: React Router requires it unique per object, and each locale
+// variant of a route is a separate object sharing one config id.
+function currentRouteName(router: Router): string {
+  const routeId = (router.state.matches.at(-1)?.route.handle as { routeId?: string } | undefined)
+    ?.routeId
+  return routeId ?? router.state.location.pathname
+}
+
 // Different components mount (and start fetching) across separate React commits/effects rather
 // than all at once, so queryClient.isFetching() can dip to 0 for a moment between two waves of
 // fetches on the same page — e.g. an already-covered query finishing its own background revalidation
@@ -12,15 +21,17 @@ type Router = Parameters<typeof RouterProvider>[0]['router']
 const SETTLE_DEBOUNCE_MS = 300
 
 /**
- * Logs queries that get fetched on the client but weren't already in the cache when the page
- * "arrived" — either from the SSR-dehydrated state (first load) or from the route's `prefetch()`
- * (client-side navigation). Those are gaps in a route's `prefetch()` declaration in
- * routes.config.ts: the data is fetched anyway, just after the first paint instead of before it.
+ * Logs, in a single console.warn per page arrival, the queries that got fetched on the client but
+ * weren't already in the cache when the page "arrived" — either from the SSR-dehydrated state
+ * (first load) or from the route's `prefetch()` (client-side navigation). Those are gaps in a
+ * route's `prefetch()` declaration in routes.config.ts: the data is fetched anyway, just after the
+ * first paint instead of before it.
  *
  * The watch window reopens on every navigation.state -> 'idle' transition (prefetch() just
  * resolved) and closes once queryClient.isFetching() has stayed at 0 for SETTLE_DEBOUNCE_MS (the
  * page has settled) — so fetches from later user interaction (pagination, opening a modal) aren't
- * flagged unless they themselves trigger a router navigation.
+ * flagged unless they themselves trigger a router navigation. Misses accumulate over the window and
+ * are logged together when it closes, rather than one console.warn per query.
  */
 export function installPrefetchAudit(queryClient: QueryClient, router: Router): void {
   let coveredHashes = new Set(
@@ -31,6 +42,17 @@ export function installPrefetchAudit(queryClient: QueryClient, router: Router): 
   )
   let windowOpen = true
   let closeTimer: ReturnType<typeof setTimeout> | undefined
+  let missed: string[] = []
+
+  function flush() {
+    if (missed.length === 0) return
+    console.warn(
+      `[prefetch-audit] route "${currentRouteName(router)}" (${router.state.location.pathname}): ` +
+        `${missed.length} ${missed.length > 1 ? 'queries' : 'query'} fetched after page load, ` +
+        `not covered by route prefetch: ${missed.join(', ')}`
+    )
+    missed = []
+  }
 
   function scheduleSettleCheck() {
     if (!windowOpen) return
@@ -38,6 +60,7 @@ export function installPrefetchAudit(queryClient: QueryClient, router: Router): 
       closeTimer ??= setTimeout(() => {
         windowOpen = false
         closeTimer = undefined
+        flush()
       }, SETTLE_DEBOUNCE_MS)
     } else if (closeTimer) {
       clearTimeout(closeTimer)
@@ -50,10 +73,7 @@ export function installPrefetchAudit(queryClient: QueryClient, router: Router): 
       const hash = event.query.queryHash
       if (!coveredHashes.has(hash)) {
         coveredHashes.add(hash)
-        console.warn(
-          `[prefetch-audit] "${router.state.location.pathname}": query fetched after page load, ` +
-            `not covered by route prefetch ${JSON.stringify(event.query.queryKey)}`
-        )
+        missed.push(JSON.stringify(event.query.queryKey))
       }
     }
     scheduleSettleCheck()
@@ -65,6 +85,7 @@ export function installPrefetchAudit(queryClient: QueryClient, router: Router): 
         clearTimeout(closeTimer)
         closeTimer = undefined
       }
+      flush()
       coveredHashes = new Set(
         queryClient
           .getQueryCache()

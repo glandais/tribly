@@ -84,9 +84,14 @@ function buildRoutesForConfig(config: RouteConfig, queryClient: QueryClient): Ro
   const loader = config.prefetch && !gated ? makeLoader(config, queryClient) : undefined
 
   // Expose the route's SSR meta() (link previews) on `handle` so the static handler's matched leaf
-  // carries it — entry-server reads leafMatch.route.handle.meta after the loaders have run. Gated
-  // redirects render no page, so they carry no meta.
-  const handle = !gated && config.meta ? { meta: config.meta } : undefined
+  // carries it — entry-server reads leafMatch.route.handle.meta after the loaders have run. `routeId`
+  // rides along the same mechanism to identify the matched route (routes.config.ts's own `id`,
+  // stable across locale variants — RouteObject.id itself can't be reused for that, React Router
+  // requires it unique per object and each locale variant is a separate object). Gated redirects
+  // render no page, so they carry no handle.
+  const handle = gated
+    ? undefined
+    : { routeId: config.id, ...(config.meta && { meta: config.meta }) }
 
   if (config.index) {
     return [{ index: true, element, loader, handle }]
