@@ -257,18 +257,18 @@ export const routesConfig: RoutesConfig = [
     // the query-key hash, so { page, size } byte-matches the component's params object.
     prefetch: async (queryClient) => {
       if (useAuthStore.getState().isAuthenticated) {
-      } else {
-        await prefetchListAllPublicationsQuery(queryClient, {
-          page: 0,
-          size: PUBLICATION_PAGE_SIZE,
-          view: 'COMPACT',
-        })
-        await prefetchListAllPublicationsQuery(queryClient, {
-          page: 1,
-          size: PUBLICATION_PAGE_SIZE,
-          view: 'COMPACT',
-        })
+        return
       }
+      await prefetchListAllPublicationsQuery(queryClient, {
+        page: 0,
+        size: PUBLICATION_PAGE_SIZE,
+        view: 'COMPACT',
+      })
+      await prefetchListAllPublicationsQuery(queryClient, {
+        page: 1,
+        size: PUBLICATION_PAGE_SIZE,
+        view: 'COMPACT',
+      })
     },
     meta: homeMeta,
   },
