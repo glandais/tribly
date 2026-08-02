@@ -91,10 +91,10 @@ admin, edit, and transient utility routes carry no `meta` and unfurl with site-w
 
 ## Invariants — keep these when touching link-preview code
 
-- **`meta()` builders only READ the cache and never throw.** They run after `prefetch`; a
-  missing entity (anonymous SSR got no data — private/404) returns `undefined` and
-  `buildMetaTags` emits site-wide defaults. `entry-server` wraps the call in try/catch as a
-  backstop, but a throwing builder is a bug.
+- **`meta()` builders only READ the cache and never throw.** They run after `prefetch`; a missing
+  entity, or a private one the visitor's session doesn't grant — crawlers and other anonymous SSR
+  renders included — returns `undefined` and `buildMetaTags` emits site-wide defaults.
+  `entry-server` wraps the call in try/catch as a backstop, but a throwing builder is a bug.
 - **Anything a builder reads must be `prefetch`ed on the same route.** No extra fetches in
   `meta()`; if the data isn't in the QueryClient, the card silently degrades to defaults.
 - **Never add a `<meta>`/`<title>` React component to the tree.** React 19 would hoist it,

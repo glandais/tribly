@@ -1,8 +1,9 @@
 // Per-route Open Graph / Twitter `meta()` builders, co-located here (referenced from
 // routes.config.ts) to keep the route table readable. Each runs during SSR AFTER the route's
 // prefetch has populated the per-request QueryClient, so it only READS the cache — zero extra
-// fetches. A missing/private entity (anonymous SSR got no data) returns undefined, and
-// buildMetaTags then emits site-wide defaults. Builders must never throw.
+// fetches. A missing entity, or a private one the visitor's session doesn't grant (including
+// crawlers and other anonymous SSR renders), returns undefined, and buildMetaTags then emits
+// site-wide defaults. Builders must never throw.
 import type {
   AdDto,
   GpxPreviewDto,
