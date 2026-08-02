@@ -1,0 +1,3 @@
+Pédalons est la plateforme des clubs et groupes cyclistes pour organiser leurs sorties, partager leurs parcours, coordonner leurs événements et fédérer leur communauté.
+
+Chaque club dispose de son propre espace : sorties avec groupes d'allure, parcours GPX consultables sur la carte, profil d'élévation, calendrier des événements et publications pour garder tout le monde informé.

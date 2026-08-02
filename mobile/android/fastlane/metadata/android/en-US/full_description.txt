@@ -1,1 +1,3 @@
-Pedalons est une plateforme cycliste multi-tenant destinée aux clubs et groupes pour organiser des sorties, partager des parcours, coordonner des événements et fédérer une communauté.
+Pédalons is the platform for cycling clubs and groups to organize their rides, share their routes, coordinate their events and bring their community together.
+
+Each club gets its own space: rides with pace groups, GPX routes viewable on the map, elevation profiles, an event calendar and posts to keep everyone in the loop.

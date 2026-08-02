@@ -11,6 +11,11 @@ contradiction.
 Listing copy and screenshots live elsewhere and are not duplicated here:
 `mobile/android/fastlane/metadata/` (Play) and App Store Connect (iOS).
 
+**TODO**: `android/fastlane/metadata/android/en-US/images/phoneScreenshots/` currently reuses the
+`fr-FR` screenshots as a placeholder (French UI copy, dev seed data — "Bonjour, Gaby!", "Publi
+test"). Retake them from a clean English-locale device/simulator before the English listing goes
+live.
+
 ## Rule
 
 `data-safety.md`, `mobile/ios/Runner/PrivacyInfo.xcprivacy`, the two store forms, and
