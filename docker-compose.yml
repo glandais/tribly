@@ -2,43 +2,49 @@ services:
   # Reverse proxy
   traefik:
     image: traefik:v3.7
-    container_name: ${ENV_NAME}-traefik
-    restart: unless-stopped
     networks:
       - pedalons
     ports:
-      # Loopback uniquement : le TLS est termine par Caddy sur l'hote.
-      - "127.0.0.1:${HTTP_PORT:-8090}:80"
+      # Routing-mesh (ingress) publishing: reachable on every interface of the host, not just
+      # loopback. Restrict $HTTP_PORT to localhost with a host firewall rule (ufw/iptables) to keep
+      # the "only this host's Caddy can reach it" guarantee that `127.0.0.1:...` used to give for free
+      # — see README.md's Deployment section.
+      - "${HTTP_PORT:-8090}:80"
     command:
       - "--api.dashboard=false"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
+      # Swarm mode needs the dedicated Swarm provider, not the plain Docker provider: it watches
+      # Swarm *services*, not containers, and reads their `deploy.labels`, not container `labels`.
+      - "--providers.swarm.endpoint=unix:///var/run/docker.sock"
+      - "--providers.swarm.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.web.forwardedHeaders.insecure=true"
       - "--log.level=WARN"
       - "--accesslog=true"
       - "--accesslog.filepath=/var/log/traefik/access.log"
-      - "--providers.docker.constraints=Label(`traefik.stack`,`${ENV_NAME}`)"
-      # backend est attache a deux reseaux : sans ce reglage le provider Docker choisit une IP au
+      - "--providers.swarm.constraints=Label(`traefik.stack`,`${ENV_NAME}`)"
+      # backend est attache a deux reseaux : sans ce reglage le provider Swarm choisit une IP au
       # hasard entre les deux, et une IP `pedalons-shared` -- que traefik ne joint pas -- donne des
       # 502 sur /api.
-      - "--providers.docker.network=${ENV_NAME}-net"
+      - "--providers.swarm.network=${ENV_NAME}-net"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    labels:
-      - "traefik.enable=false"
+    deploy:
+      restart_policy:
+        condition: any
+      # Only a manager node can reach the Swarm API over the socket above.
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - "traefik.enable=false"
 
   backend:
     image: pedalons-backend:${ENV_NAME}
-    container_name: ${ENV_NAME}-backend
-    restart: unless-stopped
     user: "${PUID:-1000}:${PGID:-1000}"
     networks:
       - pedalons
       # valhalla + tileserver vivent dans la stack pedalons-shared (docker-compose.shared.yml).
       - shared
-    env_file:
-      - .env
     environment:
       ERROR_LOG_DETAILS: "false"
       # Restated from .env with :? so a missing value stops `up` instead of booting a broken Domain.
@@ -47,104 +53,110 @@ services:
       PEDALONS_BOOTSTRAP_BASE_URL: ${PEDALONS_BOOTSTRAP_BASE_URL:?set it in .env}
       PEDALONS_BOOTSTRAP_ADMIN_EMAIL: ${PEDALONS_BOOTSTRAP_ADMIN_EMAIL:?set it in .env}
       PEDALONS_BOOTSTRAP_ADMIN_DISPLAY_NAME: ${PEDALONS_BOOTSTRAP_ADMIN_DISPLAY_NAME:?set it in .env}
+      # `docker stack deploy` ignores `env_file:` entirely, so every value backend used to pick up
+      # from .env that way is restated here explicitly. The CLI still substitutes ${VAR} from .env
+      # at deploy time -- only the env_file: directive itself is unsupported.
+      DATA_CACHE_PATH: ${DATA_CACHE_PATH}
+      IMGPROXY_URL: ${IMGPROXY_URL}
+      VALHALLA_URL: ${VALHALLA_URL}
+      TILESERVER_URL: ${TILESERVER_URL}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      STORAGE_BUCKET: ${STORAGE_BUCKET}
+      STRAVA_BASE_URL: ${STRAVA_BASE_URL}
+      STRAVA_CLIENT_ID: ${STRAVA_CLIENT_ID}
+      STRAVA_CLIENT_SECRET: ${STRAVA_CLIENT_SECRET}
+      STRAVA_CALLBACK_BASE_URL: ${STRAVA_CALLBACK_BASE_URL}
+      SOCIAL_PLACEHOLDER_EMAIL_DOMAIN: ${SOCIAL_PLACEHOLDER_EMAIL_DOMAIN}
+      QUARKUS_MAILER_FROM: ${QUARKUS_MAILER_FROM}
+      QUARKUS_MAILER_HOST: ${QUARKUS_MAILER_HOST}
+      QUARKUS_MAILER_PORT: ${QUARKUS_MAILER_PORT}
+      QUARKUS_MAILER_USERNAME: ${QUARKUS_MAILER_USERNAME}
+      QUARKUS_MAILER_START_TLS: ${QUARKUS_MAILER_START_TLS}
+    # Sensitive values: mounted as files under /run/secrets/<target> and picked up by the
+    # smallrye-config-source-file-system source (application.properties,
+    # smallrye.config.source.file.locations=/run/secrets) instead of sitting in `environment:`.
+    # Must exist before the first `docker stack deploy` -- see scripts/create-secrets.sh.
+    secrets:
+      - source: postgres_password
+        target: POSTGRES_PASSWORD
+      - source: minio_secret_key
+        target: MINIO_SECRET_KEY
+      - source: brevo_api_key
+        target: BREVO_API_KEY
+      - source: encryption_key
+        target: ENCRYPTION_KEY
+      - source: quarkus_mailer_password
+        target: QUARKUS_MAILER_PASSWORD
     volumes:
       - ./data/storage:/mnt/storage
       - ./data/keys:/mnt/keys:ro
       # gpx2web's tile + elevation cache (DATA_CACHE_PATH). Shared with backend-restore, and kept
       # outside the container so it outlives `down`.
       - ./data/cache:/mnt/cache
-    labels:
-      - "traefik.enable=true"
-      - "traefik.stack=${ENV_NAME}"
-      - "traefik.http.routers.quarkus.rule=PathPrefix(`/api`)"
-      - "traefik.http.routers.quarkus.priority=100"
-      - "traefik.http.services.quarkus.loadbalancer.server.port=8080"
-
-  backend-restore:
-    image: pedalons-backend:${ENV_NAME}
-    container_name: ${ENV_NAME}-backend-restore
-    profiles:
-      - restore
-    restart: "no"
-    user: "${PUID:-1000}:${PGID:-1000}"
-    networks:
-      - pedalons
-      - shared
-    depends_on:
-      postgres:
-        condition: service_healthy
-    env_file:
-      - .env
-    environment:
-      ERROR_LOG_DETAILS: "false"
-      # Writes into this Domain — same values as the backend service, from .env.
-      PEDALONS_BOOTSTRAP_DOMAIN: ${PEDALONS_BOOTSTRAP_DOMAIN:?set it in .env}
-      PEDALONS_BOOTSTRAP_DOMAIN_NAME: ${PEDALONS_BOOTSTRAP_DOMAIN_NAME:?set it in .env}
-      PEDALONS_BOOTSTRAP_BASE_URL: ${PEDALONS_BOOTSTRAP_BASE_URL:?set it in .env}
-      PEDALONS_BOOTSTRAP_ADMIN_EMAIL: ${PEDALONS_BOOTSTRAP_ADMIN_EMAIL:?set it in .env}
-      PEDALONS_BOOTSTRAP_ADMIN_DISPLAY_NAME: ${PEDALONS_BOOTSTRAP_ADMIN_DISPLAY_NAME:?set it in .env}
-      PEDALONS_MIGRATION_BIKETEAM_ENABLED: "true"
-      # Unset: migrate every biketeam team. Set to a team id to migrate just that one.
-      # PEDALONS_MIGRATION_BIKETEAM_TEAM_ID: "n-peloton"
-      PEDALONS_MIGRATION_BIKETEAM_DATA_DIR: "/mnt/biketeam/production/data"
-      # A mail domain, not a hostname: biketeam users with no email get strava_<id>@<this>.
-      PEDALONS_MIGRATION_BIKETEAM_PLACEHOLDER_EMAIL_DOMAIN: "pedalons.fr"
-      BIKETEAM_DB_URL: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/biketeam_import
-      BIKETEAM_DB_USER: ${POSTGRES_USER}
-      BIKETEAM_DB_PASSWORD: ${POSTGRES_PASSWORD}
-    volumes:
-      - ./data/storage:/mnt/storage
-      - ./data/keys:/mnt/keys:ro
-      - ./data/cache:/mnt/cache
-      - ../biketeam-backup:/mnt/biketeam:ro
-    labels:
-      - "traefik.enable=false"
+    deploy:
+      restart_policy:
+        condition: any
+      # Read by Traefik's Swarm provider, which looks at service (deploy) labels, not container
+      # labels -- putting these under the service's own `labels:` silently drops all routing.
+      labels:
+        - "traefik.enable=true"
+        - "traefik.stack=${ENV_NAME}"
+        - "traefik.http.routers.quarkus.rule=PathPrefix(`/api`)"
+        - "traefik.http.routers.quarkus.priority=100"
+        - "traefik.http.services.quarkus.loadbalancer.server.port=8080"
 
   frontend:
     image: pedalons-frontend:${ENV_NAME}
-    container_name: ${ENV_NAME}-frontend
-    restart: unless-stopped
     networks:
       - pedalons
     environment:
       API_BASE_URL: http://${ENV_NAME}-backend:8080
-    labels:
-      - "traefik.enable=true"
-      - "traefik.stack=${ENV_NAME}"
-      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
-      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
-      - "traefik.http.routers.frontend.priority=1"
+    deploy:
+      restart_policy:
+        condition: any
+      labels:
+        - "traefik.enable=true"
+        - "traefik.stack=${ENV_NAME}"
+        - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
+        - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+        - "traefik.http.routers.frontend.priority=1"
 
   postgres:
     image: postgis/postgis:17-3.5-alpine
-    container_name: ${ENV_NAME}-postgres
-    restart: unless-stopped
     networks:
       - pedalons
-    # Loopback-only: lets scripts/biketeam_restore.sh reach the DB from the host
-    # without exposing it beyond this machine.
+    # Loopback-only, via `mode: host` (bypasses the routing mesh): lets
+    # scripts/biketeam_restore.sh reach the DB from the host without exposing raw Postgres --
+    # guarded only by a password -- on every interface the way the routing mesh would.
     ports:
-      - "127.0.0.1:${POSTGRES_HOST_PORT:-5432}:5432"
+      - target: 5432
+        published: ${POSTGRES_HOST_PORT:-5432}
+        host_ip: 127.0.0.1
+        mode: host
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD_FILE: /run/secrets/POSTGRES_PASSWORD
       POSTGRES_DB: ${POSTGRES_DB}
+    secrets:
+      - source: postgres_password
+        target: POSTGRES_PASSWORD
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      restart_policy:
+        condition: any
 
   imgproxy:
     image: ghcr.io/imgproxy/imgproxy:v4.0.12
-    container_name: ${ENV_NAME}-imgproxy
-    restart: unless-stopped
     networks:
       - pedalons
-    depends_on:
-      - minio
     environment:
       IMGPROXY_AUTO_WEBP: "true"
       IMGPROXY_AUTO_AVIF: "true"
@@ -155,20 +167,19 @@ services:
       IMGPROXY_USE_ETAG: "true"
       IMGPROXY_USE_S3: "true"
       AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
+      # imgproxy has no file-based secret support (unlike backend/postgres), so this stays a plain
+      # value from .env -- no regression vs. today, just not improved by the secrets move.
       AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
       IMGPROXY_S3_ENDPOINT: http://minio:9000
       AWS_REGION: us-east-1
+    deploy:
+      restart_policy:
+        condition: any
 
   varnish:
     image: varnish:9.0.3
-    container_name: ${ENV_NAME}-varnish
-    restart: unless-stopped
     networks:
       - pedalons
-    # varnishd resolves the VCL's backend host at compile time: started before imgproxy, it dies on
-    # "could not be resolved to an IP address" and only recovers through the restart policy.
-    depends_on:
-      - imgproxy
     volumes:
       - "./services/varnish/varnish.vcl:/etc/varnish/default.vcl"
     tmpfs:
@@ -177,12 +188,16 @@ services:
     environment:
       - VARNISH_SIZE=20G
     command: "-p default_ttl=86400"
+    deploy:
+      # varnishd resolves the VCL's backend host at compile time: swarm gives no startup-order
+      # guarantee (depends_on is ignored by `docker stack deploy`), so a task started before imgproxy
+      # dies on "could not be resolved to an IP address" and only recovers through the restart policy.
+      restart_policy:
+        condition: any
 
   minio:
     image: minio/minio:RELEASE.2025-01-20T14-49-07Z
-    container_name: ${ENV_NAME}-minio
     command: server /data --console-address ":9001"
-    restart: unless-stopped
     networks:
       - pedalons
     environment:
@@ -190,18 +205,41 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     volumes:
       - minio_data:/data
+    deploy:
+      restart_policy:
+        condition: any
 
 volumes:
   postgres_data:
   minio_data:
 
 networks:
-  # Nom explicite : traefik en a besoin pour --providers.docker.network, qui ne peut pas deviner le
-  # nom derive du projet compose.
+  # Nom explicite : traefik en a besoin pour --providers.swarm.network, qui ne peut pas deviner le
+  # nom derive de la stack. `attachable: true` : docker-compose.restore.yml's backend-restore joins
+  # this network as a plain container, not a swarm service.
   pedalons:
     name: ${ENV_NAME}-net
-  # Fourni par docker-compose.shared.yml (valhalla, tileserver). `up` echoue tant que la stack
-  # partagee n'a pas ete demarree, plutot que de creer un reseau vide.
+    driver: overlay
+    attachable: true
+  # Fourni par docker-compose.shared.yml (valhalla, tileserver). `docker stack deploy` echoue tant
+  # que la stack partagee n'a pas ete demarree, plutot que de creer un reseau vide.
   shared:
     name: pedalons-shared
+    external: true
+
+secrets:
+  postgres_password:
+    name: ${ENV_NAME}_postgres_password
+    external: true
+  minio_secret_key:
+    name: ${ENV_NAME}_minio_secret_key
+    external: true
+  brevo_api_key:
+    name: ${ENV_NAME}_brevo_api_key
+    external: true
+  encryption_key:
+    name: ${ENV_NAME}_encryption_key
+    external: true
+  quarkus_mailer_password:
+    name: ${ENV_NAME}_quarkus_mailer_password
     external: true

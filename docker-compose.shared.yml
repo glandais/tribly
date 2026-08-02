@@ -7,7 +7,7 @@
 # Cette stack est prealable aux stacks d'environnement : elle cree le reseau `pedalons-shared`, que
 # docker-compose.yml declare en `external`. Demarrage :
 #
-#   docker compose -f docker-compose.shared.yml up -d
+#   docker stack deploy -c docker-compose.shared.yml pedalons-shared
 #
 # Les noms de services `valhalla` et `tileserver` sont les alias DNS sur ce reseau : VALHALLA_URL et
 # TILESERVER_URL des .env d'environnement restent inchanges.
@@ -19,8 +19,6 @@ name: pedalons-shared
 services:
   valhalla:
     image: ghcr.io/valhalla/valhalla-scripted:latest
-    container_name: pedalons-shared-valhalla
-    restart: unless-stopped
     networks:
       - shared
     volumes:
@@ -34,16 +32,24 @@ services:
       build_time_zones: "True"
       server_threads: "4"
       serve_tiles: "True"
+    deploy:
+      restart_policy:
+        condition: any
 
   tileserver:
     image: maptiler/tileserver-gl:v5.6.0
-    container_name: pedalons-shared-tileserver
-    restart: unless-stopped
     networks:
       - shared
     volumes:
       - ./data/tileserver:/data
+    deploy:
+      restart_policy:
+        condition: any
 
 networks:
+  # `attachable: true` lets a plain (non-swarm-service) container -- docker-compose.restore.yml's
+  # backend-restore -- join this overlay network too.
   shared:
     name: pedalons-shared
+    driver: overlay
+    attachable: true

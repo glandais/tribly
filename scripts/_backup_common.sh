@@ -95,13 +95,28 @@ list_complete_snapshots() {
 latest_complete_snapshot() { list_complete_snapshots | tail -1; }
 
 # --- docker -----------------------------------------------------------------
+#
+# Swarm services have no fixed container name (`container_name:` is invalid under `docker stack
+# deploy`, and a task's container churns on every restart/rescheduling anyway). Every place that
+# used to address "${ENV_NAME}-postgres" etc. by name now resolves the current task container
+# through its Swarm service label instead.
+
+# $1 = service key as it appears in docker-compose.yml, e.g. "postgres" or "minio". Prints the
+# running task's container id, or nothing if none is running.
+swarm_container_id() {
+  docker ps -q --filter "label=com.docker.swarm.service.name=${ENV_NAME}_$1" | head -n1
+}
 
 require_container() {
-  docker inspect "$1" >/dev/null 2>&1 || die "container $1 not found — is the stack up?"
+  local id
+  id="$(swarm_container_id "$1")"
+  [[ -n "$id" ]] || die "no running task for service $1 (stack ${ENV_NAME}) — is the stack up?"
+  printf '%s' "$id"
 }
 
 # Image a container runs, or "absent" when the container is not there. `docker inspect -f` still
 # emits a newline when it fails, so a bare `|| echo absent` yields an empty line *and* the fallback.
+# Takes a container id (from require_container/swarm_container_id), not a name.
 image_of() {
   local image
   image="$(docker inspect -f '{{.Config.Image}}' "$1" 2>/dev/null || true)"
@@ -113,10 +128,12 @@ image_of() {
 # hosts (~/prod, ~/staging, /home/pedalons/prod...). Using .Source also means a bind mount works as
 # well as the named volume. Reading it needs root — the backup runs from root's crontab.
 minio_mountpoint() {
-  local path
-  path="$(docker inspect "${ENV_NAME}-minio" \
+  local id path
+  id="$(swarm_container_id minio)"
+  [[ -n "$id" ]] || die "no running task for service minio (stack ${ENV_NAME})"
+  path="$(docker inspect "$id" \
     --format '{{range .Mounts}}{{if eq .Destination "/data"}}{{.Source}}{{end}}{{end}}')"
-  [[ -n "$path" ]] || die "could not resolve what backs /data in ${ENV_NAME}-minio"
+  [[ -n "$path" ]] || die "could not resolve what backs /data in the minio container"
   [[ -d "$path" ]] || die "minio data directory not readable: $path (run as root?)"
   printf '%s' "$path"
 }

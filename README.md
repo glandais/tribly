@@ -170,10 +170,14 @@ pedalons/
 
 ## Deployment
 
-A host runs **one shared stack** plus **one stack per environment**, each from its own checkout
-(`~/shared`, `~/prod`, `~/staging`) with its own `.env`. Caddy terminates TLS on the host and
-reverse-proxies each hostname to that environment's traefik, published on loopback only
-(`HTTP_PORT`: 8090 for prod, 8089 for staging).
+Each host runs a single-node **Docker Swarm** (`docker swarm init`, done once), with **one shared
+stack** plus **one stack per environment** deployed via `docker stack deploy`, each from its own
+checkout (`~/shared`, `~/prod`, `~/staging`) with its own `.env`. Caddy terminates TLS on the host
+and reverse-proxies each hostname to that environment's traefik (`HTTP_PORT`: 8090 for prod, 8089
+for staging) — published through Swarm's routing mesh, which means it is reachable on **every**
+interface of the host, not loopback-only the way a plain `docker compose` port publish would be.
+Restrict it to `127.0.0.1` with a host firewall rule (`ufw`/`iptables`); the compose file can no
+longer express that boundary on its own.
 
 `docker-compose.shared.yml` holds the services that carry no application data and are read-only:
 `valhalla` (17 GB of OSM routing tiles) and `tileserver` (server-side raster rendering, ~1.8 GB
@@ -182,17 +186,43 @@ resident). One instance serves every environment. It owns the `pedalons-shared` 
 `docker-compose.yml` holds everything that must stay isolated per environment: traefik, backend,
 frontend, postgres, minio, imgproxy and varnish. Its `backend` also joins `pedalons-shared` to reach
 the two shared services — under the same hostnames as before, since `valhalla` and `tileserver` are
-their compose service names.
+their compose service names. `docker-compose.restore.yml` holds the Biketeam migration job
+(`backend-restore`): a one-shot, run-to-completion task doesn't fit a Swarm service, so it stays a
+plain Compose service run directly against the engine, attached to the same (Swarm-owned,
+`attachable: true`) overlay networks.
+
+Sensitive values (`POSTGRES_PASSWORD`, `MINIO_SECRET_KEY`, `BREVO_API_KEY`, `ENCRYPTION_KEY`,
+`QUARKUS_MAILER_PASSWORD`) are Docker secrets, not plain environment variables: `docker stack
+deploy` ignores `env_file:` entirely, and these five specifically get mounted as files under
+`/run/secrets/` and read from there by the backend (`smallrye-config-source-file-system`) or,
+for Postgres, via `POSTGRES_PASSWORD_FILE`. **They must exist before the first deploy** —
+`docker stack deploy` fails outright on a missing external secret, unlike `.env` which is read on
+demand:
+
+```bash
+cd ~/prod && ./scripts/create-secrets.sh
+```
+
+Secrets are immutable once created — see the header of `scripts/create-secrets.sh` for the
+rotation procedure (new versioned secret name, update the `secrets:` block, redeploy).
 
 Start the shared stack **first**: `pedalons-shared` is declared `external` in `docker-compose.yml`, so
 an environment fails to come up until it exists.
 
 ```bash
 # once per host
-cd ~/shared && docker compose -f docker-compose.shared.yml up -d
+docker swarm init
+cd ~/shared && docker stack deploy -c docker-compose.shared.yml pedalons-shared
 
-# then each environment
-cd ~/prod && ./build.sh && docker compose up -d --remove-orphans
+# once per environment, before its first deploy
+cd ~/prod && ./scripts/create-secrets.sh
+
+# then each environment, every deploy — docker stack deploy reconciles in place, no
+# --remove-orphans equivalent needed: it prunes services removed from the file on its own
+cd ~/prod && ./build.sh && docker stack deploy -c docker-compose.yml "$ENV_NAME"
+
+# teardown — never removes volumes; see "Changing an environment's network topology" below
+docker stack rm "$ENV_NAME"
 ```
 
 Two services stay per-environment on purpose, even though they look shareable:
@@ -234,23 +264,25 @@ docker run --rm -v /home/pedalons:/h alpine \
 
 ### Changing an environment's network topology
 
-Renaming or re-declaring a network makes compose (v5.3.1) drop the old one and create the new one
-*during* the run, then fail on `network X was found but has incorrect label
-com.docker.compose.network` — it labels the network with the map key but validates against the
-resolved name. The run aborts halfway and can leave a container attached to **no network**, which
-then fails with a misleading DNS error rather than an obvious one. So for any such change, do not
-rely on a single `up -d`:
+Under plain `docker compose` (v5.3.1), renaming or re-declaring a network made compose drop the old
+one and create the new one *during* the run, then fail on `network X was found but has incorrect
+label com.docker.compose.network` — it labels the network with the map key but validates against the
+resolved name, aborting halfway with a container attached to **no network**. This caveat predates the
+move to Swarm and has **not been re-verified** under `docker stack deploy` — its network reconciliation
+is a different code path and may or may not reproduce the same failure. Until it's been tested, treat
+any topology change (renaming a network, changing its driver) as risky and do it via a full
+`stack rm` + `stack deploy` rather than trusting a single `stack deploy` to reconcile it live:
 
 ```bash
-docker compose down --remove-orphans   # never -v: it drops the postgres and minio volumes
-docker compose up -d
+docker stack rm "$ENV_NAME"   # never followed by a volume rm — that drops postgres and minio data
+docker stack deploy -c docker-compose.yml "$ENV_NAME"
 ```
 
 After an aborted run, check what a container is actually attached to before believing its logs:
 
 ```bash
 docker inspect <container> --format '{{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{end}}'
-docker compose up -d --force-recreate <service>
+docker service update --force "${ENV_NAME}_<service>"
 ```
 ## Backup and restore
 
@@ -395,15 +427,18 @@ scripts/restore.sh --snapshot 2026-07-24T031500Z
 ```
 
 The restore pulls the snapshot to a local directory and verifies its checksums **before** touching
-anything, then runs `docker compose down -v` — it drops the current postgres and minio volumes and
-repopulates them. It refuses a snapshot with no `COMPLETE` marker, and refuses one from another
-`ENV_NAME` unless `--force`.
+anything, then runs `docker stack rm` + `docker volume rm` — it drops the current postgres and
+minio volumes — before redeploying the stack and repopulating them. It refuses a snapshot with no
+`COMPLETE` marker, and refuses one from another `ENV_NAME` unless `--force`.
 
-It needs only `rsync` and `docker`, no root: objects go back through `docker cp`, which also hands
-them to the container as `root:root` — the user MinIO runs as. Writing into
-`/var/lib/docker/volumes` directly would stamp them with the restoring account's uid.
+It needs `rsync` and `docker`, no root: MinIO objects go into a short-lived helper container that
+mounts the `minio_data` volume directly (Swarm has no true stop/start, only scale-to-0, which
+leaves no running container for a plain `docker cp`), and it hands them over as `root:root` — the
+user MinIO runs as. Writing into `/var/lib/docker/volumes` directly would stamp them with the
+restoring account's uid.
 
-On a **new host**, the order matters — you need `.env` before anything else can read its own config:
+On a **new host**, the order matters — you need `.env` and the Docker secrets before anything else
+can read its own config:
 
 ```bash
 git clone <repo> ~/prod && cd ~/prod
@@ -413,8 +448,9 @@ BACKUP_REMOTE=pedalonsbackup@10.10.0.2 BACKUP_REMOTE_PATH=/ \
 BACKUP_SSH_KEY=/root/.ssh/id_pedalons_backup \
   scripts/restore.sh --secrets-only
 
-# 2. the shared stack (see Deployment), then the images
-cd ~/shared && docker compose -f docker-compose.shared.yml up -d
+# 2. Docker secrets, the shared stack (see Deployment), then the images
+./scripts/create-secrets.sh
+cd ~/shared && docker stack deploy -c docker-compose.shared.yml pedalons-shared
 cd ~/prod && ./build.sh            # at the commit recorded in MANIFEST
 
 # 3. the data
@@ -435,7 +471,8 @@ FlywayValidateException: Detected applied migration not resolved locally: 26.
 
 The restore itself succeeded in that case — the data is in place and the script correctly refuses to
 report success, since `/api/config` never answers 200. Rebuild at the MANIFEST's commit
-(`./build.sh`) and `docker compose up -d`; nothing needs to be restored again.
+(`./build.sh`) and `docker stack deploy -c docker-compose.yml "$ENV_NAME"`; nothing needs to be
+restored again.
 
 #### Restore drill from another machine
 
@@ -530,12 +567,12 @@ cd frontend && pnpm lint
 
 ## Running SQL
 
-Two different PostgreSQL containers exist depending on how you run Pedalons. Check which one you have with `docker ps` before running anything.
+Two different PostgreSQL setups exist depending on how you run Pedalons. Check which one you have with `docker ps` before running anything.
 
 | Setup | Compose file | Container | Credentials |
 |-------|--------------|-----------|-------------|
 | Local dev | `backend/docker-compose.yml` | `pedalons-dev-postgres` | Hardcoded (`pedalons` / `pedalons`) |
-| Deployed stack | `docker-compose.yml` (root) | `pedalons-postgres` | From `.env` (not versioned) |
+| Deployed stack | `docker-compose.yml` (root), run via `docker stack deploy` | task of the `${ENV_NAME}_postgres` Swarm service — no fixed name | From `.env` (not versioned) |
 
 **Local dev** — the port is published on `127.0.0.1:5432`, so any client works:
 
@@ -543,15 +580,20 @@ Two different PostgreSQL containers exist depending on how you run Pedalons. Che
 docker exec -it pedalons-dev-postgres psql -U pedalons -d pedalons
 ```
 
-**Deployed stack** — no port is published, so go through the container. Read the credentials from the container's own environment rather than typing them, which keeps secrets out of your shell history:
+**Deployed stack** — a Swarm service has no fixed container name (and it can churn on restart), so resolve the running task first via its service label. Read the credentials from the container's own environment rather than typing them, which keeps secrets out of your shell history:
 
 ```bash
+POSTGRES_CID="$(docker ps -q --filter "label=com.docker.swarm.service.name=${ENV_NAME}_postgres" | head -n1)"
+
 # Interactive session
-docker exec -it pedalons-postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
+docker exec -it "$POSTGRES_CID" sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
 
 # One-off statement
-docker exec pedalons-postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c "SELECT domain, name, active FROM domains;"'
+docker exec "$POSTGRES_CID" sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c "SELECT domain, name, active FROM domains;"'
 ```
+
+The `127.0.0.1:${POSTGRES_HOST_PORT:-5432}` publish (`mode: host`, kept loopback-only on purpose —
+see `docker-compose.yml`) also works for any client, same as local dev.
 
 Use `-v ON_ERROR_STOP=1` for anything that writes: without it `psql` reports the error and carries on to the next statement, so a failed migration script looks like it succeeded.
 

@@ -88,6 +88,10 @@ data/keys/*
 !data/keys/.gitkeep
 !data/keys/*.sh
 
+# Docker secret values, written by scripts/create-secrets.sh for docker-compose.restore.yml
+data/secrets/*
+!data/secrets/.gitkeep
+
 # mkcert certificates for local HTTPS development
 frontend/*.pem
 
