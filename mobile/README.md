@@ -104,6 +104,20 @@ flutter test
 flutter analyze
 ```
 
+## Release Builds
+
+`flutter build appbundle`/`flutter build apk` always prefer the JDK bundled with the latest Android
+Studio install over `JAVA_HOME` — exporting `JAVA_HOME` alone has no effect on the JDK Gradle runs
+with. If Android Studio ships a JDK newer than what the Gradle/AGP version in `android/` supports
+(e.g. JDK 25), the build fails with a cryptic error whose message is just the JDK version number
+(e.g. `25.0.2`). Force Flutter to use a specific JDK instead:
+
+```bash
+flutter config --jdk-dir="$(/usr/libexec/java_home -v 21)"
+```
+
+This is a persistent Flutter setting (not per-shell), so it only needs to be run once per machine.
+
 ## Code Generation
 
 After modifying models or when the backend API changes:

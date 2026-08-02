@@ -3,6 +3,8 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
+./clean.sh
+
 # Use the Homebrew Ruby (which carries the bundler version pinned in the
 # fastlane Gemfile.lock) instead of the macOS system Ruby 2.6.
 if command -v brew >/dev/null 2>&1; then
@@ -15,6 +17,10 @@ perl -i -pe 's/^(version:\s*\d+\.\d+\.\d+\+)(\d+)\s*$/$1 . ($2 + 1) . "\n"/e' pu
 NEW_VERSION=$(grep -E '^version:' pubspec.yaml | awk '{print $2}')
 echo ">>> Building $NEW_VERSION"
 
+git add pubspec.yaml
+git commit -m "chore(mobile): bump build number to $NEW_VERSION"
+git push
+
 flutter build ios --release --no-codesign
 (cd ios && bundle check || bundle install)
 (cd ios && bundle exec fastlane beta --verbose)
@@ -24,3 +30,6 @@ export PATH="$JAVA_HOME/bin:$PATH"
 flutter build appbundle --release
 (cd android && bundle check || bundle install)
 (cd android && bundle exec fastlane internal --verbose)
+
+# Stop the Gradle daemon spawned for this build so it doesn't linger holding JDK 21.
+(cd android && ./gradlew --stop)
