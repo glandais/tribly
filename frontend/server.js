@@ -26,11 +26,17 @@ async function createServer() {
 
   // API proxy — must be before Vite middleware. In prod, traefik routes /api
   // straight to the backend and this never runs.
+  //
+  // Mounted at the root with pathFilter (not app.use('/api', ...)): Express's path-mount form
+  // strips the '/api' prefix from req.url before the middleware sees it, and http-proxy-middleware
+  // v4 (unlike v2/v3) no longer restores it — every request silently proxied to
+  // "<target>/<path-without-/api>" instead of "<target>/api/<path>", 404ing against a real
+  // upstream (or just failing to connect against one that isn't listening on that empty path).
   app.use(
-    '/api',
     createProxyMiddleware({
       target: apiTarget,
       changeOrigin: true,
+      pathFilter: '/api',
       on: {
         proxyReq: (proxyReq, req) => {
           const host = req.headers.host || req.headers[':authority'] || 'localhost'

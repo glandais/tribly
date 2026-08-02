@@ -36,9 +36,10 @@ async function bootstrap() {
     hydrate(queryClient, dehydratedState)
   }
 
-  // Adopt the server's session before anything renders. Without this the first client render would
-  // be anonymous while the markup is not, which is a hydration mismatch on every page — and the app
-  // would re-fetch a session it already has.
+  // The store's initial state is already seeded from window.__AUTH_STATE__ at module load (see
+  // authStore.ts — that's what the first hydration render actually reads). This call just records
+  // that fact via wasHydratedFromSSR(), so AuthEffects skips the post-hydration cache invalidation
+  // it would otherwise run to repair an anonymous-then-authenticated render.
   if (window.__AUTH_STATE__) {
     hydrateAuthFromSSR(window.__AUTH_STATE__)
   }

@@ -6,6 +6,14 @@ import type { SsrAuthSnapshot } from '@/lib/requestContext'
 
 const isServer = typeof window === 'undefined'
 
+declare global {
+  interface Window {
+    /** The session the server rendered with, when the request carried one. Set by an inline
+     * script in the HTML, before any module script (including this one) runs. */
+    __AUTH_STATE__?: SsrAuthSnapshot
+  }
+}
+
 export interface AuthState {
   user: UserDto | null
   accessToken: string | null
@@ -32,7 +40,7 @@ export interface AuthActions {
 
 export type AuthStore = AuthState & AuthActions
 
-const initialState: AuthState = {
+const defaultState: AuthState = {
   user: null,
   accessToken: null,
   hasPasskeys: false,
@@ -42,6 +50,34 @@ const initialState: AuthState = {
   isLoading: true,
   error: null,
 }
+
+function authStateFromSnapshot(snapshot: SsrAuthSnapshot) {
+  return {
+    accessToken: snapshot.accessToken,
+    user: snapshot.user,
+    hasPasskeys: snapshot.hasPasskeys,
+    isAuthenticated: true,
+    isInitialized: true,
+    isLoading: false,
+  }
+}
+
+/**
+ * Zustand's `useSyncExternalStore` server-snapshot is `getInitialState()` — frozen to whatever was
+ * passed to `create()` below, forever, regardless of any later `setState()` call. React reads it
+ * (not `getState()`) specifically for the first client render during hydration, so by the time
+ * `hydrateAuthFromSSR()` used to run (an imperative `setState()` early in entry-client.tsx, but
+ * still after this module evaluates), it was already too late for that first render: the store's
+ * frozen `getInitialState()` was still the anonymous default, producing a hydration mismatch on
+ * every authenticated visit. The session must be in the state passed to `create()` itself — read
+ * here, synchronously, at module load. `window.__AUTH_STATE__` is set by an inline script that runs
+ * before any module script (per the HTML spec), so it is already present by the time this
+ * (imported, hence deferred-module-executed) code runs.
+ */
+const initialState: AuthState =
+  !isServer && window.__AUTH_STATE__
+    ? { ...defaultState, ...authStateFromSnapshot(window.__AUTH_STATE__) }
+    : defaultState
 
 const authStore = create<AuthStore>()((set, get) => ({
   ...initialState,
@@ -120,7 +156,7 @@ const authStore = create<AuthStore>()((set, get) => ({
       console.error('Logout failed:', error)
     }
 
-    set({ ...initialState, isInitialized: true, isLoading: false })
+    set({ ...defaultState, isInitialized: true, isLoading: false })
     window.location.href = paths.login()
   },
 
@@ -146,11 +182,11 @@ function ssrAuthState(): AuthStore {
   const snapshot = getSSRAuth()
   const actions = authStore.getState()
   if (!snapshot) {
-    return { ...actions, ...initialState }
+    return { ...actions, ...defaultState }
   }
   return {
     ...actions,
-    ...initialState,
+    ...defaultState,
     accessToken: snapshot.accessToken,
     user: snapshot.user,
     hasPasskeys: snapshot.hasPasskeys,
@@ -200,13 +236,10 @@ export const useAuthStore: UseAuthStore = Object.assign(
 )
 
 /**
- * Seed the client store from the session the server rendered with, before `hydrateRoot`.
- *
- * This is what makes the first client render byte-identical to the server markup — without it the
- * client would start anonymous and React would report a hydration mismatch on every page. It also
- * means the boot-time `POST /api/auth/refresh` and the post-hydration global invalidation are no
- * longer needed: the session is already known and the dehydrated cache already holds the
- * authenticated view.
+ * Marks that this client hydrated markup the server already rendered with the session — the store's
+ * `initialState` above was seeded from `window.__AUTH_STATE__` directly, so by the time this runs
+ * the state is already correct. This call is now just a record of that fact for
+ * {@link wasHydratedFromSSR}, plus a defensive re-assertion of the same state.
  */
 let hydratedFromSSR = false
 
@@ -220,14 +253,7 @@ export function wasHydratedFromSSR(): boolean {
 
 export function hydrateAuthFromSSR(snapshot: SsrAuthSnapshot): void {
   hydratedFromSSR = true
-  authStore.setState({
-    accessToken: snapshot.accessToken,
-    user: snapshot.user,
-    hasPasskeys: snapshot.hasPasskeys,
-    isAuthenticated: true,
-    isInitialized: true,
-    isLoading: false,
-  })
+  authStore.setState(authStateFromSnapshot(snapshot))
 }
 
 export const selectUser = (state: AuthStore) => state.user

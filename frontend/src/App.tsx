@@ -7,6 +7,7 @@ import { buildRoutes } from './config/RouteGenerator'
 import { useAuthStore, wasHydratedFromSSR } from './store/authStore'
 import { useAuth } from './hooks/useAuth'
 import { prefetchCommonRoutes } from './lib/prefetch'
+import { installPrefetchAudit } from './lib/prefetchAudit'
 import { getPinnedHistory } from './config/pinnedHistory'
 
 const isServer = typeof window === 'undefined'
@@ -37,6 +38,7 @@ function getRouter(queryClient: QueryClient): AppRouter {
     router = pinned
       ? UNSAFE_createRouter({ routes, history: pinned, hydrationData }).initialize()
       : createBrowserRouter(routes, { hydrationData })
+    installPrefetchAudit(queryClient, router)
   }
   return router
 }
