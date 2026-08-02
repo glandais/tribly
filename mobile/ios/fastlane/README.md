@@ -23,6 +23,14 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 Push a new beta build to TestFlight. Run `flutter build ios --release --no-codesign` from the project root first. Build number comes from pubspec.yaml.
 
+### ios release
+
+```sh
+[bundle exec] fastlane ios release
+```
+
+Promote the TestFlight build matching the current pubspec.yaml version to the App Store version in App Store Connect. Run `beta` for that exact version first — this lane does not build or upload a binary. Metadata and screenshots stay untouched (managed by hand in App Store Connect, see store-metadata/README.md) and the version is left unsubmitted so you can review it in App Store Connect before submitting for review.
+
 ----
 
 This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.

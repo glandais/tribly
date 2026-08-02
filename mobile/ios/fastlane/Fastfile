@@ -28,4 +28,21 @@ platform :ios do
     )
     upload_to_testflight(skip_waiting_for_build_processing: true)
   end
+
+  desc "Promote the TestFlight build matching the current pubspec.yaml version to the App Store version in App Store Connect. Run `beta` for that exact version first — this lane does not build or upload a binary. Metadata and screenshots stay untouched (managed by hand in App Store Connect, see store-metadata/README.md) and the version is left unsubmitted so you can review it in App Store Connect before submitting for review."
+  lane :release do
+    version_line = File.read("../../pubspec.yaml")[/^version:\s*(\S+)/, 1]
+    app_version, build_number = version_line.split("+")
+
+    upload_to_app_store(
+      app_version: app_version,
+      build_number: build_number,
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      skip_metadata: true,
+      submit_for_review: false,
+      automatic_release: false,
+      force: true
+    )
+  end
 end
