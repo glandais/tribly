@@ -12,6 +12,7 @@ import {
   getListTeamsQueryKey,
 } from '@/api/endpoints/teams/teams'
 import { prefetchListMyParticipationsQuery } from '@/api/endpoints/users/users'
+import { prefetchListMyInvitationsQuery } from '@/api/endpoints/invitations/invitations'
 import { prefetchGetRideQuery } from '@/api/endpoints/rides/rides'
 import { prefetchGetTripQuery } from '@/api/endpoints/trips/trips'
 import { prefetchGetPostQuery } from '@/api/endpoints/posts/posts'
@@ -510,10 +511,28 @@ export const routesConfig: RoutesConfig = [
     navGroup: 'home',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.title') },
     hideWhenSingleTeam: true,
-    // Anonymous first page. Matches TeamListPage's initial useListTeams key when no URL filters are
-    // set (search/minRole undefined, page 0).
+    // Matches TeamListPage's initial useListTeams key when no URL filters are set (search
+    // undefined, page 0). Signed in, the list's `minRole` depends on team membership (see
+    // useMembershipDefault) — replicated here so the resolved variant, not a guess, lands in the
+    // cache. Without this, a signed-in visitor's real first query misses the SSR cache and
+    // refetches after hydration (member: wrong shape cached; non-member: the optimistic
+    // "member" default used while the probe is loading fires one fetch, then correcting to
+    // "all" fires a second) — hydrating with the resolved probe result upfront skips that
+    // optimistic guess entirely.
     prefetch: async (queryClient) => {
-      await prefetchListTeamsQuery(queryClient, { page: 0, size: TEAM_PAGE_SIZE })
+      let minRole: MinRole | undefined
+      if (useAuthStore.getState().isAuthenticated) {
+        await prefetchListMyInvitationsQuery(queryClient)
+
+        const membershipParams = { minRole: MinRole.MEMBER, page: 0, size: 1 }
+        await prefetchListTeamsQuery(queryClient, membershipParams)
+        const teams = queryClient.getQueryData<TeamListResponse>(
+          getListTeamsQueryKey(membershipParams)
+        )
+        minRole = teams && teams.total > 0 ? MinRole.MEMBER : undefined
+      }
+      await prefetchListTeamsQuery(queryClient, { minRole, page: 0, size: TEAM_PAGE_SIZE })
+      await prefetchListTeamsQuery(queryClient, { minRole, page: 1, size: TEAM_PAGE_SIZE })
     },
     meta: teamsMeta,
   },
