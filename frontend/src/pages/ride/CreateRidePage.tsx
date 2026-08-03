@@ -7,7 +7,7 @@ import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { IconCopy } from '@tabler/icons-react'
 import { Container, Stack, Group, Title, Text, Button } from '@mantine/core'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
+import { useCreateRideFormData } from '@/pages/ride/rideFormData'
 import { useCreateRide } from '../../api/endpoints/rides/rides'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { Status } from '@/api/dto'
@@ -23,9 +23,8 @@ export function CreateRidePage() {
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
+  const { team: teamQuery } = useCreateRideFormData(teamSlug)
+  const { data: team, isLoading: isLoadingTeam } = teamQuery
 
   const createMutation = useCreateRide()
 

@@ -123,6 +123,19 @@ Every screen whose prefetch had something to share now has one:
 | `pages/post/postDetailData.ts` | `post-detail` | two-phase prefetch (comments for the child) |
 | `pages/route/routeDetailData.ts` | `route-detail`, `route-map` | team+route pair, usages, comments, GPS services |
 | `pages/auth/profileData.ts` | `profile` | the participation-count params and their shared hour boundary |
+| `pages/calendar/calendarData.ts` | `calendar` | `getInitialCalendarRange()`, the range the hook seeds itself with |
+| `pages/team/teamMembersData.ts` | `team-members` | member filters, the pending-invitations params |
+| `pages/team/teamPlacesData.ts` | `team-admin-places` | the place filters `PlaceList` reads |
+| `pages/ridetemplate/rideTemplateListData.ts` | `ride-templates` | ride-template filters |
+| `pages/ride/rideFormData.ts` | `ride-new`, `ride-edit` | the two `PlaceAutocomplete` param sets the form mounts |
+
+The admin screens keep the `teamScopedPrefetch(...)` wrapper in `routes.config.ts` — the auth gate and the
+team query are shared by ~15 routes, so the companion exports only the screen-specific part.
+
+**Known limitation, deliberately preserved**: those admin lists prefetch `someFiltersSchema.parse({})` — the
+*default* list, ignoring the URL's filters, unlike the public lists which go through `readUrlFilters`. Each
+companion says so in its docblock. It is a prefetch gap, not a divergence: page and prefetch still agree on
+the default list, and a filtered URL simply refetches after hydration.
 
 ## When not to reach for it
 

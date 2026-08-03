@@ -20,22 +20,15 @@ import {
 } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
-  useListTemplates,
   useDeleteTemplate,
   getListTemplatesQueryKey,
-  listTemplates,
 } from '@/api/endpoints/ride-templates/ride-templates'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamAdminLayout } from '../../components/team/TeamAdminLayout'
 import { Pagination } from '../../components/common/Pagination'
-import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
-import { useUrlFilters } from '../../hooks/useUrlFilters'
 import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
 import { useScrollToListTop } from '../../hooks/useScrollToListTop'
-import {
-  rideTemplateFiltersSchema,
-  rideTemplateFiltersAlias,
-} from '../../hooks/filters/rideTemplateFilters'
+import { useRideTemplateListData } from './rideTemplateListData'
 import { SearchInput } from '../../components/common/SearchInput'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { MarkdownDisplay } from '../../components/common/MarkdownDisplay'
@@ -50,10 +43,8 @@ export function RideTemplateListPage() {
   const queryClient = useQueryClient()
   const [templateToDelete, setTemplateToDelete] = useState<RideTemplateDto | null>(null)
 
-  const { filters, setFilters } = useUrlFilters({
-    schema: rideTemplateFiltersSchema,
-    alias: rideTemplateFiltersAlias,
-  })
+  const { filters, setFilters, templates, totalPages } = useRideTemplateListData(teamSlug)
+  const { data: templatesData, isLoading: isLoadingTemplates } = templates
   const commitSearch = useCallback(
     (value: string) => setFilters({ search: value || undefined }),
     [setFilters]
@@ -64,26 +55,7 @@ export function RideTemplateListPage() {
   const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },
   })
-  const { data: templatesData, isLoading: isLoadingTemplates } = useListTemplates(
-    teamSlug!,
-    filters
-  )
   const deleteMutation = useDeleteTemplate()
-
-  const prefetchPage = useCallback(
-    (prefetchPageNum: number) => ({
-      queryKey: getListTemplatesQueryKey(teamSlug!, { ...filters, page: prefetchPageNum }),
-      queryFn: () => listTemplates(teamSlug!, { ...filters, page: prefetchPageNum }),
-    }),
-    [teamSlug, filters]
-  )
-
-  const { totalPages } = usePaginatedQuery({
-    page: filters.page,
-    pageSize: filters.size,
-    totalItems: templatesData?.total ?? 0,
-    prefetchPage,
-  })
 
   useCanonicalPath(team ? paths.rideTemplates(team.slug) : undefined)
 

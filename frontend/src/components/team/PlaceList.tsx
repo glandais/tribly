@@ -27,7 +27,7 @@ import {
 import { useScrollToListTop } from '../../hooks/useScrollToListTop'
 import { useUrlFilters } from '../../hooks/useUrlFilters'
 import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
-import { placeFiltersSchema, placeFiltersAlias } from '../../hooks/filters/placeFilters'
+import { placeListFilterOptions } from '../../pages/team/teamPlacesData'
 import { ConfirmDialog } from '../common/ConfirmDialog'
 import { SearchInput } from '../common/SearchInput'
 import { PlaceForm } from './PlaceForm'
@@ -41,10 +41,7 @@ interface PlaceListProps {
 export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const { filters, setFilters } = useUrlFilters({
-    schema: placeFiltersSchema,
-    alias: placeFiltersAlias,
-  })
+  const { filters, setFilters } = useUrlFilters(placeListFilterOptions)
   const commitSearch = useCallback(
     (value: string) => setFilters({ search: value || undefined }),
     [setFilters]

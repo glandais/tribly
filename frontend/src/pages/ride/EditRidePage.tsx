@@ -5,13 +5,12 @@ import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { Container, Stack, Title, Text } from '@mantine/core'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
-  useGetRide,
   useUpdateRide,
   useChangeRideSlug,
   getGetRideQueryKey,
 } from '../../api/endpoints/rides/rides'
+import { useEditRideFormData } from '@/pages/ride/rideFormData'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { RideEditor } from '../../components/ride/RideEditor'
@@ -23,12 +22,9 @@ export function EditRidePage() {
   const { teamSlug, rideSlug } = useParams<{ teamSlug: string; rideSlug: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
-  const { data: ride, isLoading: isLoadingRide } = useGetRide(teamSlug!, rideSlug!, {
-    query: { enabled: !!teamSlug && !!rideSlug },
-  })
+  const { team: teamQuery, ride: rideQuery } = useEditRideFormData(teamSlug, rideSlug)
+  const { data: team, isLoading: isLoadingTeam } = teamQuery
+  const { data: ride, isLoading: isLoadingRide } = rideQuery
 
   const updateMutation = useUpdateRide()
   const changeSlugMutation = useChangeRideSlug()

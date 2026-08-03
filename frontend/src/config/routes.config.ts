@@ -3,9 +3,6 @@ import type { RoutesConfig, RouteParams } from './routes.types'
 import { pathVariants } from './paths'
 import { tRegister } from '@/lib/i18nUtils'
 import { prefetchGetTeamQuery } from '@/api/endpoints/teams/teams'
-import { prefetchGetEventsQuery } from '@/api/endpoints/calendar/calendar'
-import { getInitialCalendarRange } from '@/hooks/useCalendarDateRange'
-import { prefetchGetRideQuery } from '@/api/endpoints/rides/rides'
 import { prefetchGetTripQuery } from '@/api/endpoints/trips/trips'
 import { prefetchGetPostQuery } from '@/api/endpoints/posts/posts'
 import { prefetchGetRouteQuery } from '@/api/endpoints/routes/routes'
@@ -16,21 +13,17 @@ import { prefetchStageDetail } from '@/pages/trip/stageDetailData'
 import { prefetchPostDetail } from '@/pages/post/postDetailData'
 import { prefetchRouteDetail, prefetchRouteMap } from '@/pages/route/routeDetailData'
 import { prefetchUserProfile } from '@/pages/auth/profileData'
+import { prefetchCalendar } from '@/pages/calendar/calendarData'
+import { prefetchTeamPlaces } from '@/pages/team/teamPlacesData'
+import { prefetchTeamMembers } from '@/pages/team/teamMembersData'
+import { prefetchRideTemplateList } from '@/pages/ridetemplate/rideTemplateListData'
+import { prefetchCreateRideForm, prefetchEditRideForm } from '@/pages/ride/rideFormData'
 import { prefetchHomeFeed } from '@/pages/home/homeFeedData'
 import { prefetchTeamList } from '@/pages/team/teamListData'
 import { prefetchPublicationList } from '@/pages/publication/publicationListData'
 import { prefetchAdList } from '@/pages/ad/adListData'
 import { prefetchAllRouteList, prefetchAllRoutesMap } from '@/pages/route/allRouteListData'
 import { prefetchGetPageQuery, prefetchListPagesQuery } from '@/api/endpoints/team-pages/team-pages'
-import { prefetchListPlacesQuery } from '@/api/endpoints/places/places'
-import { prefetchGetMembersQuery } from '@/api/endpoints/team-members/team-members'
-import { prefetchListInvitationsQuery } from '@/api/endpoints/team-invitations/team-invitations'
-import { prefetchListTemplatesQuery } from '@/api/endpoints/ride-templates/ride-templates'
-import { placeFiltersSchema } from '@/hooks/filters/placeFilters'
-import { teamMemberFiltersSchema } from '@/hooks/filters/teamMemberFilters'
-import { rideTemplateFiltersSchema } from '@/hooks/filters/rideTemplateFilters'
-import { placeAutocompleteParams } from '@/components/common/placeAutocompleteParams'
-import { InvitationStatus } from '@/api/dto'
 import { prefetchGetAdQuery } from '@/api/endpoints/ads/ads'
 import { prefetchGetPreviewQuery } from '@/api/endpoints/gpx-previews/gpx-previews'
 import {
@@ -49,17 +42,6 @@ import {
 } from './routeMeta'
 import { useAuthStore } from '@/store/authStore'
 import type { QueryClient } from '@tanstack/react-query'
-
-/**
- * The two `PlaceAutocomplete` fields a ride form mounts (start and end), each querying its own
- * filtered place list before the visitor touches anything.
- */
-async function prefetchRideFormPlaces(queryClient: QueryClient, teamSlug: string) {
-  await Promise.all([
-    prefetchListPlacesQuery(queryClient, teamSlug, placeAutocompleteParams({ filterStart: true })),
-    prefetchListPlacesQuery(queryClient, teamSlug, placeAutocompleteParams({ filterEnd: true })),
-  ])
-}
 
 /**
  * `prefetch` for an authenticated, team-scoped screen — every form and admin page under
@@ -530,10 +512,7 @@ export const routesConfig: RoutesConfig = [
     // CalendarPage's first events query, keyed on the same `getInitialCalendarRange()` the hook
     // seeds its state with. FullCalendar re-queries its own visible grid right after mount; that
     // second range depends on the viewport and can't be known here, so it stays a client fetch.
-    prefetch: async (queryClient) => {
-      if (!useAuthStore.getState().isAuthenticated) return
-      await prefetchGetEventsQuery(queryClient, getInitialCalendarRange())
-    },
+    prefetch: (queryClient) => prefetchCalendar(queryClient),
   },
 
   // === Team Routes ===
@@ -636,9 +615,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'team-admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.tabs.places') },
-    prefetch: teamScopedPrefetch((qc, p) =>
-      prefetchListPlacesQuery(qc, p.teamSlug!, placeFiltersSchema.parse({}))
-    ),
+    prefetch: teamScopedPrefetch((qc, p) => prefetchTeamPlaces(qc, p.teamSlug!)),
   },
   {
     id: 'team-admin-pages',
@@ -676,12 +653,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'team-admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.tabs.members') },
-    prefetch: teamScopedPrefetch((qc, p) =>
-      Promise.all([
-        prefetchGetMembersQuery(qc, p.teamSlug!, teamMemberFiltersSchema.parse({})),
-        prefetchListInvitationsQuery(qc, p.teamSlug!, { status: InvitationStatus.PENDING }),
-      ])
-    ),
+    prefetch: teamScopedPrefetch((qc, p) => prefetchTeamMembers(qc, p.teamSlug!)),
   },
   {
     id: 'team-settings',
@@ -702,7 +674,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'team-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('rides.create.title') },
-    prefetch: teamScopedPrefetch((qc, p) => prefetchRideFormPlaces(qc, p.teamSlug!)),
+    prefetch: teamScopedPrefetch((qc, p) => prefetchCreateRideForm(qc, p.teamSlug!)),
     showBackLink: true,
   },
   {
@@ -723,12 +695,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'ride-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('actions.edit') },
-    prefetch: teamScopedPrefetch((qc, p) =>
-      Promise.all([
-        prefetchGetRideQuery(qc, p.teamSlug!, p.rideSlug!),
-        prefetchRideFormPlaces(qc, p.teamSlug!),
-      ])
-    ),
+    prefetch: teamScopedPrefetch((qc, p) => prefetchEditRideForm(qc, p.teamSlug!, p.rideSlug!)),
     showBackLink: true,
   },
 
@@ -740,9 +707,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'team-admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.tabs.rideTemplates') },
-    prefetch: teamScopedPrefetch((qc, p) =>
-      prefetchListTemplatesQuery(qc, p.teamSlug!, rideTemplateFiltersSchema.parse({}))
-    ),
+    prefetch: teamScopedPrefetch((qc, p) => prefetchRideTemplateList(qc, p.teamSlug!)),
   },
   {
     id: 'ride-template-new',

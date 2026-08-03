@@ -21,11 +21,9 @@ import {
 } from '@mantine/core'
 import { useGetTeam, getGetTeamQueryKey } from '@/api/endpoints/teams/teams'
 import {
-  useGetMembers,
   useUpdateMemberRole,
   useRemoveMember,
   getGetMembersQueryKey,
-  getMembers,
 } from '@/api/endpoints/team-members/team-members'
 import {
   useInvite,
@@ -40,14 +38,9 @@ import { TeamInvitationList } from '../../components/team/TeamInvitationList'
 import { SearchInput } from '../../components/common/SearchInput'
 import { TeamRole } from '@/api/dto'
 import { Pagination } from '../../components/common/Pagination'
-import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
-import { useUrlFilters } from '../../hooks/useUrlFilters'
 import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
 import { useScrollToListTop } from '../../hooks/useScrollToListTop'
-import {
-  teamMemberFiltersSchema,
-  teamMemberFiltersAlias,
-} from '../../hooks/filters/teamMemberFilters'
+import { useTeamMembersData } from './teamMembersData'
 
 export function TeamMembersPage() {
   const { t } = useTranslation()
@@ -58,10 +51,8 @@ export function TeamMembersPage() {
   const [selectedRole, setSelectedRole] = useState<TeamRole>(TeamRole.MEMBER)
   const [inviteEmail, setInviteEmail] = useState('')
 
-  const { filters, setFilters } = useUrlFilters({
-    schema: teamMemberFiltersSchema,
-    alias: teamMemberFiltersAlias,
-  })
+  const { filters, setFilters, members, totalPages } = useTeamMembersData(teamSlug)
+  const { data: membersData, isLoading: isLoadingMembers } = members
   const commitSearch = useCallback(
     (value: string) => setFilters({ search: value || undefined }),
     [setFilters]
@@ -71,24 +62,6 @@ export function TeamMembersPage() {
 
   const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },
-  })
-  const { data: membersData, isLoading: isLoadingMembers } = useGetMembers(teamSlug!, filters, {
-    query: { enabled: !!teamSlug },
-  })
-
-  const prefetchPage = useCallback(
-    (prefetchPageNum: number) => ({
-      queryKey: getGetMembersQueryKey(teamSlug!, { ...filters, page: prefetchPageNum }),
-      queryFn: () => getMembers(teamSlug!, { ...filters, page: prefetchPageNum }),
-    }),
-    [teamSlug, filters]
-  )
-
-  const { totalPages } = usePaginatedQuery({
-    page: filters.page,
-    pageSize: filters.size,
-    totalItems: membersData?.total ?? 0,
-    prefetchPage,
   })
 
   const updateRoleMutation = useUpdateMemberRole()
