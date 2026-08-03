@@ -116,8 +116,9 @@ list route resolves its filters from it (`readUrlFilters`), prefetching the page
 `usePaginatedQuery` reads. Verified with the crawler on nine filtered URLs across `home`, `teams`,
 `routes`, `allRoutes`, `allRoutesMap`: all `covered`.
 
-The one that stays `gaps` is `ads?p=1`, for the unrelated reason in entry 8 — the endpoint answers
-401 to an anonymous SSR request, so nothing gets cached to begin with.
+The one that stayed `gaps` was `ads?p=1`, for an unrelated reason: the endpoint answers 401 to an
+anonymous SSR request, so nothing got cached to begin with. `ads`/`ad-detail` are now
+`auth: 'authenticated'`, matching the API — crawl them as a member.
 
 ### 3. `TeamCalendarPage` repeats the unstable-date pattern
 
@@ -190,14 +191,6 @@ Newly reachable now that `admin` logs in — five routes, every one of them fetc
 Lowest priority of the three: these are internal screens with a handful of users, and SEO doesn't
 apply. Listed so the inventory is honest, not because it's urgent.
 
-### 8. Ads are declared public but the API requires membership
-
-`ads` and `ad-detail` are `auth: 'public'` in `routes.config.ts`, yet an anonymous visitor takes
-6 × 401 on `/teams/{slug}/classifieds` and 3 × 401 on the detail. The knock-on effect is the one
-the crawler flags: the server-side `prefetchGetAdQuery` gets a 401, caches nothing, and the client
-refetches the ad it was supposed to receive pre-filled. Either the endpoint should serve anonymous
-readers, or the route shouldn't claim to be public — the current pair is the worst of both.
-
 ## Known false positives
 
 - **`apps` failing for an authenticated user** — collateral from the `CompleteAccountPage` render
@@ -209,5 +202,8 @@ readers, or the route shouldn't claim to be public — the current pair is the w
   pageerrors — until that changes, distrust any single failure that directly follows a
   runaway-loop page.
 - **`user2`'s 403s on `teamCalendar`, `ads`, `ad`** — `user2` is not a member of `n-peloton`, so
-  those are the API refusing correctly, not a defect. Worth pointing those routes at a team
-  `user2` belongs to, otherwise the crawl audits an error page.
+  those were the API refusing correctly, not a defect. All three are member-only
+  (`auth: 'authenticated'` plus a team-role check server-side) and are now crawled as `user1` only,
+  the one crawl user who belongs to that team — otherwise the run audits an error page. Same trap
+  for any future member-scoped route: restrict its `users:` or point `params.teamSlug` at a team
+  the user belongs to.

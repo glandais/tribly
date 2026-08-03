@@ -5,7 +5,6 @@
 // crawlers and other anonymous SSR renders), returns undefined, and buildMetaTags then emits
 // site-wide defaults. Builders must never throw.
 import type {
-  AdDto,
   GpxPreviewDto,
   PostDto,
   RouteDetailDto,
@@ -33,7 +32,6 @@ import { getGetTripQueryKey } from '@/api/endpoints/trips/trips'
 import { getGetPostQueryKey } from '@/api/endpoints/posts/posts'
 import { getGetRouteQueryKey } from '@/api/endpoints/routes/routes'
 import { getGetPageQueryKey } from '@/api/endpoints/team-pages/team-pages'
-import { getGetAdQueryKey } from '@/api/endpoints/ads/ads'
 import { getGetPreviewQueryKey } from '@/api/endpoints/gpx-previews/gpx-previews'
 
 // Re-export so routes.config.ts imports its meta wiring from one module.
@@ -340,54 +338,8 @@ export const routeMeta: RouteMetaFn = (ctx) => {
   }
 }
 
-/** Format an ad price the same way AdDetailPage does (EUR, resolved locale, rental suffix). */
-function formatPrice(ad: AdDto, ctx: RouteMetaContext): string {
-  if (ad.price == null) return ctx.t('ads.detail.priceNegotiable')
-  const formatted = new Intl.NumberFormat(ctx.locale === 'en' ? 'en-GB' : 'fr-FR', {
-    style: 'currency',
-    currency: 'EUR',
-  }).format(ad.price)
-  if (ad.adType === 'RENTAL' && ad.rentalPeriod) {
-    const period = ctx
-      .t(`ads.rentalPeriod.${ad.rentalPeriod satisfies 'DAY' | 'WEEK' | 'MONTH'}`)
-      .toLowerCase()
-    return `${formatted} / ${period}`
-  }
-  return formatted
-}
-
-// === ad-detail ==============================================================================
-export const adMeta: RouteMetaFn = (ctx) => {
-  const ad = ctx.queryClient.getQueryData<AdDto>(
-    getGetAdQueryKey(ctx.params.teamSlug!, ctx.params.adSlug!)
-  )
-  if (!ad) return undefined
-  const team = ctx.queryClient.getQueryData<TeamDetailDto>(getGetTeamQueryKey(ctx.params.teamSlug!))
-  const teamName = ad.team?.name ?? appNameOf(ctx)
-  const price = formatPrice(ad, ctx)
-  const alt = `${ad.name} — ${price}`
-
-  const stripped = stripMarkdown(ad.media?.markdown ?? '')
-  const description = stripped
-    ? truncate(stripped, 180)
-    : joinFacets([
-        ctx.t(`ads.adType.${ad.adType satisfies 'SALE' | 'RENTAL' | 'WANTED'}`),
-        price,
-        ad.locationDescription,
-        teamName,
-      ])
-
-  return {
-    type: 'product',
-    title: truncate(`${truncate(ad.name, 45)} — ${price}`, 65),
-    description,
-    image:
-      imgFromAssets(ctx.origin, ad.media?.assets, alt) ??
-      imgFromAsset(ctx.origin, team?.about?.assets?.logo, alt) ??
-      defaultImage(ctx.origin, appNameOf(ctx)),
-    product: ad.price != null ? { priceAmount: String(ad.price), priceCurrency: 'EUR' } : undefined,
-  }
-}
+// No ad builder: `ad-detail` is a member-only route (the ad API is `@RolesAllowed("user")`), and
+// every unfurl crawler is anonymous — there is no cache for a builder to read. See LINK_PREVIEW.md.
 
 // === gpx-tools-view =========================================================================
 export const gpxPreviewMeta: RouteMetaFn = (ctx) => {

@@ -44,7 +44,6 @@ import {
   stageMeta,
   postMeta,
   routeMeta,
-  adMeta,
   gpxPreviewMeta,
   appsMeta,
 } from './routeMeta'
@@ -599,7 +598,9 @@ export const routesConfig: RoutesConfig = [
     id: 'team-calendar',
     paths: pathVariants.teamCalendar(':teamSlug'),
     component: TeamCalendarPage,
-    auth: 'public',
+    // Member-only server-side: `@PermitAll` on TeamCalendarResource only lets the token-authed ICS
+    // feed through, while `CalendarAccessChecker` LIST requires a signed-in user *and* a team role.
+    auth: 'authenticated',
     parentId: 'team-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('calendar.title') },
   },
@@ -927,7 +928,9 @@ export const routesConfig: RoutesConfig = [
     id: 'ads',
     paths: pathVariants.ads(':teamSlug'),
     component: AdListPage,
-    auth: 'public',
+    // The whole ad API is `@RolesAllowed("user")` and the tab only shows to members — a public
+    // route here just rendered a shell that 401s.
+    auth: 'authenticated',
     parentId: 'team-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('ads.title') },
     // AdListPage reads the team plus its first two, unfiltered ad pages — matches its query key
@@ -948,7 +951,7 @@ export const routesConfig: RoutesConfig = [
     id: 'ad-detail',
     paths: pathVariants.ad(':teamSlug', ':adSlug'),
     component: AdDetailPage,
-    auth: 'public',
+    auth: 'authenticated',
     parentId: 'ads',
     breadcrumb: { type: 'dynamic', entity: 'ad' },
     prefetch: async (queryClient, params) => {
@@ -957,7 +960,8 @@ export const routesConfig: RoutesConfig = [
         prefetchGetAdQuery(queryClient, params.teamSlug!, params.adSlug!),
       ])
     },
-    meta: adMeta,
+    // No `meta`: a member-only page has no link preview to build — every unfurl crawler is
+    // anonymous, so the prefetch it would read from answers 401. See LINK_PREVIEW.md.
   },
   {
     id: 'ad-edit',

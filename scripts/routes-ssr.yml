@@ -117,7 +117,10 @@ routes:
     users: [user1, user2, admin]
   - id: team
   - id: teamAbout
+  # Member-only (`auth: 'authenticated'`, and the access checker wants a team role): `user1` is the
+  # only crawl user who belongs to the team in `params`.
   - id: teamCalendar
+    users: [user1]
   # `gaby` is the team whose pages/admin user1 owns.
   - id: teamPage
     params:
@@ -195,10 +198,15 @@ routes:
     users: [user1]
 
   # --- Ads (needs an adSlug in `params`) ---
+  # Member-only, all four: the ad API is @RolesAllowed("user") and the routes are
+  # `auth: 'authenticated'`. Anonymous lands on the login redirect, and `user2` isn't a member of
+  # `n-peloton` — either one audits a page that isn't the ad screen.
   - id: ads
+    users: [user1]
   - id: adNew
     users: [user1]
   - id: ad
+    users: [user1]
   - id: adEdit
     users: [user1]
 
