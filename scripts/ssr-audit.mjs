@@ -9,7 +9,7 @@
 //   node scripts/ssr-audit.mjs --sync                   # add missing route ids/params, drop stale ones
 //   node scripts/ssr-audit.mjs --list                   # print the route/user/URL list, visit nothing
 //   node scripts/ssr-audit.mjs [--url http://host] [--config path] [--out path] [--no-skip]
-//                               [--screenshots dir]
+//                               [--screenshots dir] [--login-timeout ms]
 //
 // Every route/user check saves a full-page screenshot to <screenshots>/<userId>-<routeId>.png
 // (default screenshots dir: <out>-screenshots/).
@@ -35,6 +35,9 @@ class ConfigError extends Error {}
 const CONTRACT_ROUTES_PATH = path.join(repoRoot, 'contracts', 'routes.yaml')
 const DEFAULT_CONFIG_PATH = path.join(scriptDir, 'routes-ssr.yml')
 const SETTLE_TIMEOUT_MS = 8000
+// A cold dev server compiles the login route on the first request, and the POST /auth/login round
+// trip lands on a backend that may itself be warming up — 10s timed out on a perfectly good login.
+const DEFAULT_LOGIN_TIMEOUT_MS = 60000
 
 // ---------- CLI args ----------
 
@@ -51,6 +54,10 @@ const baseUrl = (opt('url', process.env.SSR_AUDIT_URL || 'http://localhost:8090'
   ''
 )
 const noSkip = flag('no-skip')
+const loginTimeoutMs = Number(opt('login-timeout', DEFAULT_LOGIN_TIMEOUT_MS))
+if (!Number.isFinite(loginTimeoutMs) || loginTimeoutMs <= 0) {
+  throw new Error(`--login-timeout must be a positive number of ms, got "${opt('login-timeout')}"`)
+}
 
 // ---------- contracts/routes.yaml ----------
 
@@ -311,10 +318,13 @@ async function login(page, loginPath, user, password) {
   await page.locator('button[type="submit"]').first().click()
   try {
     await page.waitForFunction((prev) => window.location.href !== prev, before, {
-      timeout: 10000,
+      timeout: loginTimeoutMs,
     })
   } catch {
-    throw new Error(`login as "${user.id}" did not redirect away from ${loginPath} within 10s`)
+    throw new Error(
+      `login as "${user.id}" did not redirect away from ${loginPath} within ` +
+        `${Math.round(loginTimeoutMs / 1000)}s (raise it with --login-timeout <ms>)`
+    )
   }
 }
 
