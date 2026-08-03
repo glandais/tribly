@@ -43,6 +43,7 @@ export default defineConfig(({ mode, command }) => {
   // must not carry the prefetch-audit console.warn into production.
   const rootEnv = loadEnv(mode, path.resolve(import.meta.dirname, '..'), 'FRONTEND_')
   const prefetchAuditEnabled = command === 'serve' && rootEnv.FRONTEND_PREFETCH_AUDIT === 'true'
+  console.log(`[vite.config.ts] FRONTEND_PREFETCH_AUDIT=${rootEnv.FRONTEND_PREFETCH_AUDIT} (prefetch-audit enabled: ${prefetchAuditEnabled})`)
 
   return {
     define: {
