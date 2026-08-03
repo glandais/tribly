@@ -1,7 +1,6 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { keepPreviousData } from '@tanstack/react-query'
 import { IconPlus, IconSearchOff, IconTag } from '@tabler/icons-react'
 import {
   Button,
@@ -15,18 +14,10 @@ import {
   Box,
   Space,
 } from '@mantine/core'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
-import { useListAds, listAds, getListAdsQueryKey } from '../../api/endpoints/ads/ads'
-import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
-import { useUrlFilters } from '../../hooks/useUrlFilters'
+import { useAdListData } from './adListData'
 import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
 import { useScrollToListTop } from '../../hooks/useScrollToListTop'
-import {
-  adFiltersSchema,
-  adFiltersAlias,
-  isAdFiltered,
-  adApiParams,
-} from '../../hooks/filters/adFilters'
+import { isAdFiltered } from '../../hooks/filters/adFilters'
 import { AdCard, AdCardSkeleton } from '../../components/ad'
 import {
   AD_SORT_OPTIONS,
@@ -47,10 +38,10 @@ export function AdListPage() {
   const { t } = useTranslation()
   const { teamSlug } = useParams<{ teamSlug: string }>()
 
-  const { filters, setFilters } = useUrlFilters({
-    schema: adFiltersSchema,
-    alias: adFiltersAlias,
-  })
+  const { filters, setFilters, team, ads, totalPages } = useAdListData(teamSlug)
+  const { data: teamData, isLoading: isLoadingTeam } = team
+  const { data: adsResponse, isLoading: isLoadingAds, isFetching } = ads
+
   const commitSearch = useCallback(
     (value: string) => setFilters({ search: value || undefined }),
     [setFilters]
@@ -58,48 +49,18 @@ export function AdListPage() {
   const [search, setSearch] = useDebouncedSearch(filters.search ?? '', commitSearch)
   const { listTopRef, scrollToListTop } = useScrollToListTop()
 
-  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
-  // A card needs `excerpt`, `thumbnailUrl` and `images`, all of which COMPACT keeps — it only
-  // drops the markdown body, the attachments and every picture past the first.
-  const apiParams = useMemo(() => adApiParams(filters), [filters])
-
-  const {
-    data: adsResponse,
-    isLoading: isLoadingAds,
-    isFetching,
-  } = useListAds(teamSlug!, apiParams, {
-    query: { enabled: !!teamSlug, placeholderData: keepPreviousData },
-  })
-
-  const prefetchPage = useCallback(
-    (prefetchPageNum: number) => ({
-      queryKey: getListAdsQueryKey(teamSlug!, { ...apiParams, page: prefetchPageNum }),
-      queryFn: () => listAds(teamSlug!, { ...apiParams, page: prefetchPageNum }),
-    }),
-    [teamSlug, apiParams]
-  )
-
-  const { totalPages } = usePaginatedQuery({
-    page: filters.page,
-    pageSize: filters.size,
-    totalItems: adsResponse?.total ?? 0,
-    prefetchPage,
-  })
-
-  useCanonicalPath(team ? paths.ads(team.slug) : undefined)
+  useCanonicalPath(teamData ? paths.ads(teamData.slug) : undefined)
 
   if (isLoadingTeam) {
     return <LoadingPage message={t('loading')} />
   }
 
-  if (!team) {
+  if (!teamData) {
     return <Navigate to={paths.teams()} replace />
   }
 
-  const isMember = !!team.role
-  const ads = adsResponse?.ads || []
+  const isMember = !!teamData.role
+  const adsList = adsResponse?.ads || []
   const hasFiltersOrSearch = isAdFiltered(filters)
   // The sort survives: clearing brings the list back into view, it does not reorder what the
   // reader chose to read.
@@ -115,7 +76,7 @@ export function AdListPage() {
   }
 
   return (
-    <TeamLayout team={team} currentTab="ads">
+    <TeamLayout team={teamData} currentTab="ads">
       {/* Header */}
       <Group justify="space-between" align="center" wrap="wrap">
         <Title order={2}>{t('ads.title')}</Title>
@@ -214,7 +175,7 @@ export function AdListPage() {
             <AdCardSkeleton key={i} />
           ))}
         </SimpleGrid>
-      ) : ads.length === 0 ? (
+      ) : adsList.length === 0 ? (
         <EmptyState
           variant={hasFiltersOrSearch ? 'filtered' : 'absolute'}
           icon={hasFiltersOrSearch ? <IconSearchOff size={48} /> : <IconTag size={48} />}
@@ -236,7 +197,7 @@ export function AdListPage() {
             spacing="lg"
             style={{ opacity: isFetching ? 0.5 : 1 }}
           >
-            {ads.map((ad) => (
+            {adsList.map((ad) => (
               <AdCard key={ad.id} ad={ad} />
             ))}
           </SimpleGrid>

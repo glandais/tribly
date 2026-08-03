@@ -1,8 +1,7 @@
 import { useEffect } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useGetRoute } from '@/api/endpoints/routes/routes'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
+import { useRouteMapData } from './routeDetailData'
 import { RouteFullscreenView } from '@/components/route/RouteFullscreenView'
 import { LoadingPage } from '@/components/common/LoadingSpinner'
 import { paths } from '@/config/paths'
@@ -19,12 +18,9 @@ export function RouteFullscreenMapPage() {
   const { t } = useTranslation()
   const appName = useAppName()
 
-  const { data: team } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
-  const { data: route, isLoading } = useGetRoute(teamSlug!, routeSlug!, {
-    query: { enabled: !!teamSlug && !!routeSlug },
-  })
+  const { team: teamQuery, route: routeQuery } = useRouteMapData(teamSlug, routeSlug)
+  const { data: team } = teamQuery
+  const { data: route, isLoading } = routeQuery
 
   useCanonicalPath(team && route ? paths.routeMap(team.slug, route.slug) : undefined)
 

@@ -18,14 +18,13 @@ import {
   Box,
   Loader,
 } from '@mantine/core'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
-  useGetPost,
   useUpdatePost,
   useDeletePost,
   useUndeletePost,
   getGetPostQueryKey,
 } from '../../api/endpoints/posts/posts'
+import { usePostDetailData } from './postDetailData'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { Status } from '../../api/dto'
 import { QueryStateBoundary } from '../../components/common/QueryStateBoundary'
@@ -57,15 +56,9 @@ export function PostDetailPage() {
   const [showUncancelConfirm, setShowUncancelConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
-  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
-  const {
-    data: post,
-    isLoading: isLoadingPost,
-    error,
-    refetch,
-  } = useGetPost(teamSlug!, postSlug!, { query: { enabled: !!teamSlug && !!postSlug } })
+  const { team: teamQuery, post: postQuery } = usePostDetailData(teamSlug, postSlug)
+  const { data: team, isLoading: isLoadingTeam } = teamQuery
+  const { data: post, isLoading: isLoadingPost, error, refetch } = postQuery
 
   const updateMutation = useUpdatePost()
   const deleteMutation = useDeletePost()

@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Box,
@@ -15,55 +15,34 @@ import {
 import { IconNews, IconSearchOff } from '@tabler/icons-react'
 import { isSingleTeam } from '../../config/appConfig'
 import type { RideDto } from '../../api/dto'
-import {
-  useListAllPublications,
-  listAllPublications,
-  getListAllPublicationsQueryKey,
-} from '../../api/endpoints/publications/publications'
 import { PublicationCard, PublicationCardSkeleton } from '../../components/card'
 import { EmptyState } from '../../components/common/EmptyState'
 import { Pagination } from '../../components/common/Pagination'
 import { ResultCount } from '../../components/common/ResultCount'
-import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
-import { useUrlFilters } from '../../hooks/useUrlFilters'
 import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
-import { useMembershipDefault } from '../../hooks/useMembershipDefault'
 import { useScrollToListTop } from '../../hooks/useScrollToListTop'
 import { useAuth } from '../../hooks/useAuth'
-import {
-  publicationApiParams,
-  type PublicationFilterValue,
-  type PublicationScopeValue,
+import type {
+  PublicationFilterValue,
+  PublicationScopeValue,
 } from '../../hooks/filters/publicationFilters'
-import {
-  makeHomeFiltersSchema,
-  homeFiltersAlias,
-  homeFiltersAlwaysSerialize,
-} from '../../hooks/filters/homeFilters'
-import { membershipToMinRole, type MembershipFilterValue } from '../../hooks/filters/membership'
+import type { MembershipFilterValue } from '../../hooks/filters/membership'
 import { SearchInput } from '../../components/common/SearchInput'
 import { HomeLayout } from '../../components/home/HomeLayout'
 import { NextRideCard } from '../../components/home/NextRideCard'
 import { PublicationScopeControl } from '../../components/home/PublicationScopeControl'
-import { useMyParticipations } from '../../hooks/useMyParticipations'
 import { useAppName } from '../../hooks/useAppName'
-import { hourAlignedNowIso } from '../../utils/nowIso'
-import { NEXT_RIDE_PARAMS } from './nextRideParams'
+import { useHomeFeedData } from './homeFeedData'
 
 export function HomePage() {
   const { t } = useTranslation()
   const appName = useAppName()
   const { isAuthenticated } = useAuth()
 
-  const membershipDefault = useMembershipDefault()
-  const schema = useMemo(() => makeHomeFiltersSchema(membershipDefault), [membershipDefault])
   const { listTopRef, scrollToListTop } = useScrollToListTop()
 
-  const { filters, setFilters } = useUrlFilters({
-    schema,
-    alias: homeFiltersAlias,
-    alwaysSerialize: homeFiltersAlwaysSerialize,
-  })
+  const { membershipDefault, filters, setFilters, publications, totalPages, participations } =
+    useHomeFeedData()
   const commitSearch = useCallback(
     (value: string) => setFilters({ search: value || undefined }),
     [setFilters]
@@ -88,41 +67,13 @@ export function HomePage() {
   }, [setSearch, setFilters, membershipDefault])
 
   // `filter` and `membership` are the page's own values; the API wants a PublicationType and a
-  // MinRole.
-  // Hour-aligned and frozen per mount: a `from` that changed on every render, or that disagreed
-  // with the SSR prefetch computed a few hundred ms earlier, would defeat the query cache.
-  const nowIso = useMemo(() => hourAlignedNowIso(), [])
-
-  const apiParams = useMemo(
-    () => ({
-      ...publicationApiParams(filters, nowIso),
-      minRole: membershipToMinRole[filters.membership],
-    }),
-    [filters, nowIso]
-  )
-
-  const { data: publicationsData, isLoading, isError } = useListAllPublications(apiParams)
-
-  const prefetchPage = useCallback(
-    (prefetchPageNum: number) => ({
-      queryKey: getListAllPublicationsQueryKey({ ...apiParams, page: prefetchPageNum }),
-      queryFn: () => listAllPublications({ ...apiParams, page: prefetchPageNum }),
-    }),
-    [apiParams]
-  )
-
-  const { totalPages } = usePaginatedQuery({
-    page: filters.page,
-    pageSize: filters.size,
-    totalItems: publicationsData?.total ?? 0,
-    prefetchPage,
-  })
+  // MinRole — projected inside `useHomeFeedData` via `publicationApiParams`.
+  const { data: publicationsData, isLoading, isError } = publications
 
   // "Ma prochaine sortie" — authenticated-only. Prefetched by the route for a session-carrying
   // SSR request (see routes.config.ts), so it's already in the initial HTML for a signed-in
   // visitor rather than rendering after hydration.
-  const { data: participations } = useMyParticipations({ from: nowIso, ...NEXT_RIDE_PARAMS })
-  const nextRide = participations?.publications?.find(
+  const nextRide = participations.data?.publications?.find(
     (p): p is RideDto => p.type === 'RIDE' && (p as RideDto).registered
   )
 

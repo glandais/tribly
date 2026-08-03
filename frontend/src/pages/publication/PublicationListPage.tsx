@@ -1,14 +1,8 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { IconPlus, IconNews, IconChevronDown, IconSearchOff } from '@tabler/icons-react'
 import { Button, Menu, Select, Stack, Group, Title, Box, SimpleGrid } from '@mantine/core'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
-import {
-  useListPublications,
-  listPublications,
-  getListPublicationsQueryKey,
-} from '../../api/endpoints/publications/publications'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { PublicationCard, PublicationCardSkeleton } from '../../components/card'
 import { TeamLayout } from '../../components/team/TeamLayout'
@@ -16,29 +10,19 @@ import { EmptyState } from '../../components/common/EmptyState'
 import { Pagination } from '../../components/common/Pagination'
 import { ResultCount } from '../../components/common/ResultCount'
 import { PublicationScopeControl } from '../../components/home/PublicationScopeControl'
-import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
-import { useUrlFilters } from '../../hooks/useUrlFilters'
 import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
 import { useScrollToListTop } from '../../hooks/useScrollToListTop'
-import {
-  publicationFiltersSchema,
-  publicationFiltersAlias,
-  publicationApiParams,
-  type PublicationFilterValue,
-} from '../../hooks/filters/publicationFilters'
+import { type PublicationFilterValue } from '../../hooks/filters/publicationFilters'
 import { SearchInput } from '../../components/common/SearchInput'
 import { paths } from '@/config/paths'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
-import { hourAlignedNowIso } from '../../utils/nowIso'
+import { usePublicationListData } from './publicationListData'
 
 export function PublicationListPage() {
   const { t } = useTranslation()
   const { teamSlug } = useParams<{ teamSlug: string }>()
 
-  const { filters, setFilters } = useUrlFilters({
-    schema: publicationFiltersSchema,
-    alias: publicationFiltersAlias,
-  })
+  const { filters, setFilters, team, publications, totalPages } = usePublicationListData(teamSlug)
   const commitSearch = useCallback(
     (value: string) => setFilters({ search: value || undefined }),
     [setFilters]
@@ -46,59 +30,32 @@ export function PublicationListPage() {
   const [search, setSearch] = useDebouncedSearch(filters.search ?? '', commitSearch)
   const { listTopRef, scrollToListTop } = useScrollToListTop()
 
-  // Hour-aligned and frozen per mount so `from` does not change the query key on every render.
-  const nowIso = useMemo(() => hourAlignedNowIso(), [])
+  const { data: teamData, isLoading: isLoadingTeam } = team
+  const { data: publicationsData, isLoading: isLoadingPublications } = publications
 
-  // `filter` is the page's own value; the API wants a PublicationType.
-  const apiParams = useMemo(() => publicationApiParams(filters, nowIso), [filters, nowIso])
-
-  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
-  const { data: publicationsData, isLoading: isLoadingPublications } = useListPublications(
-    teamSlug!,
-    apiParams,
-    { query: { enabled: !!teamSlug } }
-  )
-
-  const prefetchPage = useCallback(
-    (prefetchPageNum: number) => ({
-      queryKey: getListPublicationsQueryKey(teamSlug!, { ...apiParams, page: prefetchPageNum }),
-      queryFn: () => listPublications(teamSlug!, { ...apiParams, page: prefetchPageNum }),
-    }),
-    [teamSlug, apiParams]
-  )
-
-  const { totalPages } = usePaginatedQuery({
-    page: filters.page,
-    pageSize: filters.size,
-    totalItems: publicationsData?.total ?? 0,
-    prefetchPage,
-  })
-
-  useCanonicalPath(team ? paths.team(team.slug) : undefined)
+  useCanonicalPath(teamData ? paths.team(teamData.slug) : undefined)
 
   if (isLoadingTeam) {
     return <LoadingPage message={t('teams.publications.list.title')} />
   }
 
-  if (!team) {
+  if (!teamData) {
     return <Navigate to={paths.teams()} replace />
   }
 
-  const canCreate = team.role === 'ADMIN' || team.role === 'ORGANIZER'
+  const canCreate = teamData.role === 'ADMIN' || teamData.role === 'ORGANIZER'
 
   const createMenuItems = [
-    ...(team.enableRides && team.enableRoutes
+    ...(teamData.enableRides && teamData.enableRoutes
       ? [{ path: paths.rideNew(teamSlug!), label: t('rides.create.title') }]
       : []),
-    ...(team.enablePosts
+    ...(teamData.enablePosts
       ? [{ path: paths.postNew(teamSlug!), label: t('posts.create.title') }]
       : []),
-    ...(team.enableTrips && team.enableRoutes
+    ...(teamData.enableTrips && teamData.enableRoutes
       ? [{ path: paths.tripNew(teamSlug!), label: t('trips.create.title') }]
       : []),
-    ...(team.enableRoutes
+    ...(teamData.enableRoutes
       ? [{ path: paths.routeNew(teamSlug!), label: t('routes.create.title') }]
       : []),
   ]
@@ -115,7 +72,7 @@ export function PublicationListPage() {
   }
 
   return (
-    <TeamLayout team={team} currentTab="publications">
+    <TeamLayout team={teamData} currentTab="publications">
       <Stack gap="lg">
         <Group justify="space-between" align="center" wrap="wrap">
           <Title order={2}>{t('teams.publications.list.title')}</Title>
@@ -174,13 +131,13 @@ export function PublicationListPage() {
               }}
               data={[
                 { value: 'all', label: t('teams.publications.list.filter.all') },
-                ...(team?.enableRides && team?.enableRoutes
+                ...(teamData?.enableRides && teamData?.enableRoutes
                   ? [{ value: 'ride', label: t('teams.publications.list.filter.ride') }]
                   : []),
-                ...(team?.enablePosts
+                ...(teamData?.enablePosts
                   ? [{ value: 'post', label: t('teams.publications.list.filter.post') }]
                   : []),
-                ...(team?.enableTrips && team?.enableRoutes
+                ...(teamData?.enableTrips && teamData?.enableRoutes
                   ? [{ value: 'trip', label: t('teams.publications.list.filter.trip') }]
                   : []),
               ]}

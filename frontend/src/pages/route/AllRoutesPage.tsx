@@ -1,21 +1,5 @@
-import { useCallback, useMemo } from 'react'
-import { keepPreviousData } from '@tanstack/react-query'
 import { Box, Group, Stack } from '@mantine/core'
-import {
-  useListAllRoutes,
-  listAllRoutes,
-  getListAllRoutesQueryKey,
-} from '@/api/endpoints/routes/routes'
-import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
-import { useRouteFilters } from '../../hooks/useRouteFilters'
-import { useMembershipDefault } from '../../hooks/useMembershipDefault'
-import {
-  makeAllRouteFiltersSchema,
-  resolveRouteDensity,
-  allRouteFiltersAlias,
-  allRouteFiltersAlwaysSerialize,
-  allRouteApiParams,
-} from '../../hooks/filters/routeFilters'
+import { useAllRouteListData } from './allRouteListData'
 import { isSingleTeam } from '../../config/appConfig'
 import { MembershipSelect } from '../../components/common/MembershipSelect'
 import { HomeLayout } from '../../components/home/HomeLayout'
@@ -27,9 +11,6 @@ import { RouteDeadEnd } from '@/components/route/RouteDeadEnd'
 import { RouteViewToggle } from '../../components/route/RouteViewToggle'
 
 export function AllRoutesPage() {
-  const membershipDefault = useMembershipDefault()
-  const schema = useMemo(() => makeAllRouteFiltersSchema(membershipDefault), [membershipDefault])
-
   const {
     filters,
     setFilters,
@@ -39,39 +20,12 @@ export function AllRoutesPage() {
     handlePageChange,
     hasFiltersOrSearch,
     clearFilters,
-    pageSize,
-  } = useRouteFilters({
-    schema,
-    alias: allRouteFiltersAlias,
-    alwaysSerialize: allRouteFiltersAlwaysSerialize,
-  })
+    routes,
+    density,
+    totalPages,
+  } = useAllRouteListData()
 
-  const apiParams = useMemo(() => allRouteApiParams(filters), [filters])
-
-  const {
-    data: routesData,
-    isLoading,
-    isError,
-  } = useListAllRoutes(apiParams, {
-    query: { placeholderData: keepPreviousData },
-  })
-
-  const density = resolveRouteDensity(filters.density, routesData?.total)
-
-  const prefetchPage = useCallback(
-    (prefetchPageNum: number) => ({
-      queryKey: getListAllRoutesQueryKey({ ...apiParams, page: prefetchPageNum }),
-      queryFn: () => listAllRoutes({ ...apiParams, page: prefetchPageNum }),
-    }),
-    [apiParams]
-  )
-
-  const { totalPages } = usePaginatedQuery({
-    page: filters.page,
-    pageSize,
-    totalItems: routesData?.total ?? 0,
-    prefetchPage,
-  })
+  const { data: routesData, isLoading, isError } = routes
 
   return (
     <HomeLayout currentTab="routes">

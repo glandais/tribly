@@ -1,22 +1,12 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { paths } from '../../config/paths'
 import { IconPlus, IconSearchOff, IconUsersGroup } from '@tabler/icons-react'
-import { useListTeams, listTeams, getListTeamsQueryKey } from '@/api/endpoints/teams/teams'
 import { useAuth } from '../../hooks/useAuth'
 import { getAppConfig } from '../../config/appConfig'
-import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
-import { useUrlFilters } from '../../hooks/useUrlFilters'
 import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
-import { useMembershipDefault } from '../../hooks/useMembershipDefault'
 import { useScrollToListTop } from '../../hooks/useScrollToListTop'
-import {
-  makeTeamFiltersSchema,
-  teamFiltersAlias,
-  teamFiltersAlwaysSerialize,
-  teamApiParams,
-} from '../../hooks/filters/teamFilters'
 import type { MembershipFilterValue } from '../../hooks/filters/membership'
 import { TeamCard, TeamCardSkeleton } from '../../components/card'
 import { EmptyState } from '../../components/common/EmptyState'
@@ -25,19 +15,20 @@ import { SearchInput } from '../../components/common/SearchInput'
 import { HomeLayout } from '../../components/home/HomeLayout'
 import { PendingInvitationsBanner } from '../../components/team/PendingInvitationsBanner'
 import { Select, Box, Group, Title, Text, Stack, Button, SimpleGrid, Alert } from '@mantine/core'
+import { useTeamListData } from './teamListData'
 
 export function TeamListPage() {
   const { t } = useTranslation()
   const { isAuthenticated } = useAuth()
   const config = getAppConfig()
 
-  const membershipDefault = useMembershipDefault()
-  const schema = useMemo(() => makeTeamFiltersSchema(membershipDefault), [membershipDefault])
-  const { filters, setFilters } = useUrlFilters({
-    schema,
-    alias: teamFiltersAlias,
-    alwaysSerialize: teamFiltersAlwaysSerialize,
-  })
+  const {
+    membershipDefault,
+    filters,
+    setFilters,
+    teams: teamsQuery,
+    totalPages,
+  } = useTeamListData()
   const commitSearch = useCallback(
     (value: string) => setFilters({ search: value || undefined }),
     [setFilters]
@@ -45,24 +36,7 @@ export function TeamListPage() {
   const [search, setSearch] = useDebouncedSearch(filters.search ?? '', commitSearch)
   const { listTopRef, scrollToListTop } = useScrollToListTop()
 
-  const apiParams = useMemo(() => teamApiParams(filters), [filters])
-
-  const { data: teamsData, isLoading, error } = useListTeams(apiParams)
-
-  const prefetchPage = useCallback(
-    (prefetchPageNum: number) => ({
-      queryKey: getListTeamsQueryKey({ ...apiParams, page: prefetchPageNum }),
-      queryFn: () => listTeams({ ...apiParams, page: prefetchPageNum }),
-    }),
-    [apiParams]
-  )
-
-  const { totalPages } = usePaginatedQuery({
-    page: filters.page,
-    pageSize: filters.size,
-    totalItems: teamsData?.total ?? 0,
-    prefetchPage,
-  })
+  const { data: teamsData, isLoading, error } = teamsQuery
 
   const teams = teamsData?.teams
   const hasTeams = (teamsData?.total ?? 0) > 0

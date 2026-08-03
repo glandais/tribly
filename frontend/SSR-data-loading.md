@@ -61,8 +61,18 @@ prefetch: (queryClient, params, url) => prefetchRouteList(queryClient, params.te
   mounts (comments, GPS export options). Say so in the docblock, so the asymmetry reads as
   deliberate rather than as an oversight.
 - **Shared prefetch primitives live in `config/prefetchHelpers.ts`** (`prefetchPageWindow`,
-  `prefetchMemberComments`, `prefetchRoutesBulkChunked`), not in `routes.config.ts` — a companion
-  importing them back from `routes.config.ts` would be a cycle.
+  `prefetchMemberComments`, `prefetchRoutesBulkChunked`, `resolveMembershipDefault`), not in
+  `routes.config.ts` — a companion importing them back from `routes.config.ts` would be a cycle.
+
+Two shapes fall out of the rules rather than being exceptions to them:
+
+- **One module, two routes** when a screen has a sibling view over the same data — a list and its
+  map (`allRouteListData.ts` serves `all-routes` and `all-routes-map`), a detail page and its
+  fullscreen map (`routeDetailData.ts` serves `route-detail` and `route-map`). One filter/params
+  derivation, one hook per view, one prefetch per route.
+- **Prefetch-only**, when the page itself owns no query and only mounts children that do
+  (`profileData.ts`: `UserProfilePage` renders `MyParticipations`, which queries the counts). Export
+  the shared params and the prefetch; adding a hook nobody calls would be noise.
 
 ## The two shapes, worked
 
@@ -94,6 +104,25 @@ The hook returns the filter state as `useRouteFilters` gives it (the panel needs
 the query results; `prefetchRouteList` prefetches `prefetchPageWindow(routeApiParams(filters), …)`
 — the page the URL asks for **plus the neighbours** `usePaginatedQuery` fetches ahead on the
 client. A filtered link (`?q=gravel&p=2&sort=DISTANCE`) must server-render *that* list.
+
+## Where they are
+
+Every screen whose prefetch had something to share now has one:
+
+| Companion | Route id(s) | What it shares |
+|---|---|---|
+| `pages/home/homeFeedData.ts` | `home` | membership-defaulted filter schema, `publicationApiParams`, the `hourAlignedNowIso()` boundary |
+| `pages/team/teamListData.ts` | `teams` | membership-defaulted filter schema, `teamApiParams`, page window |
+| `pages/publication/publicationListData.ts` | `team-detail` | publication filters + `view`, the `hourAlignedNowIso()` boundary |
+| `pages/route/routeListData.ts` | `routes` | route filters schema/alias, page window |
+| `pages/route/allRouteListData.ts` | `all-routes`, `all-routes-map` | cross-team filters + `minRole` projection |
+| `pages/ad/adListData.ts` | `ads` | ad filters schema/alias, page window |
+| `pages/ride/rideDetailData.ts` | `ride-detail` | `rideRouteSlugs`, two-phase prefetch |
+| `pages/trip/tripDetailData.ts` | `trip-detail` | `tripRouteSlugs`, two-phase prefetch |
+| `pages/trip/stageDetailData.ts` | `stage-detail` | `stageRouteSlug` (the stage's route, looked up inside the trip) |
+| `pages/post/postDetailData.ts` | `post-detail` | two-phase prefetch (comments for the child) |
+| `pages/route/routeDetailData.ts` | `route-detail`, `route-map` | team+route pair, usages, comments, GPS services |
+| `pages/auth/profileData.ts` | `profile` | the participation-count params and their shared hour boundary |
 
 ## When not to reach for it
 

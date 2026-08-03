@@ -1,9 +1,16 @@
 import type { QueryClient } from '@tanstack/react-query'
-import { getGetTeamQueryKey } from '@/api/endpoints/teams/teams'
+import {
+  getGetTeamQueryKey,
+  getListTeamsQueryKey,
+  prefetchListTeamsQuery,
+} from '@/api/endpoints/teams/teams'
 import { prefetchGetRoutesBulkQuery } from '@/api/endpoints/routes/routes'
 import { ROUTES_BULK_MAX_SLUGS } from '@/hooks/useRoutesBulk'
 import { COMMENT_LIST_OPTIONS } from '@/hooks/useComments'
-import type { SortDirection, TeamDetailDto, GetRoutesBulkParams } from '@/api/dto'
+import type { MembershipFilterValue } from '@/hooks/filters/membership'
+import { useAuthStore } from '@/store/authStore'
+import { MinRole } from '@/api/dto'
+import type { SortDirection, TeamDetailDto, TeamListResponse, GetRoutesBulkParams } from '@/api/dto'
 
 /**
  * The prefetch primitives shared by `routes.config.ts` and the pages' own data companions (e.g.
@@ -36,6 +43,24 @@ export async function prefetchMemberComments(
       listComments(teamSlug, entitySlug, { page: pageParam, ...COMMENT_LIST_OPTIONS }),
     initialPageParam: 0,
   })
+}
+
+/**
+ * Mirrors `useMembershipDefault` exactly, probe included: signed in with at least one team, the
+ * cross-team listings default to `member`; anonymous, or signed in with no team, to `all`.
+ *
+ * Returns the page's own filter value rather than a `MinRole`, because that is what feeds the
+ * filter schema — the default only applies when the URL doesn't spell `membership` out, and a
+ * shared link generally does (`MEMBERSHIP_ALWAYS_SERIALIZE`).
+ */
+export async function resolveMembershipDefault(
+  queryClient: QueryClient
+): Promise<MembershipFilterValue> {
+  if (!useAuthStore.getState().isAuthenticated) return 'all'
+  const membershipParams = { minRole: MinRole.MEMBER, page: 0, size: 1 }
+  await prefetchListTeamsQuery(queryClient, membershipParams)
+  const teams = queryClient.getQueryData<TeamListResponse>(getListTeamsQueryKey(membershipParams))
+  return teams && teams.total > 0 ? 'member' : 'all'
 }
 
 /**

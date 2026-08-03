@@ -2,39 +2,25 @@ import { lazy } from 'react'
 import type { RoutesConfig, RouteParams } from './routes.types'
 import { pathVariants } from './paths'
 import { tRegister } from '@/lib/i18nUtils'
-import {
-  prefetchListAllPublicationsQuery,
-  prefetchListPublicationsQuery,
-} from '@/api/endpoints/publications/publications'
-import {
-  prefetchListTeamsQuery,
-  prefetchGetTeamQuery,
-  getListTeamsQueryKey,
-} from '@/api/endpoints/teams/teams'
-import { prefetchListMyParticipationsQuery } from '@/api/endpoints/users/users'
+import { prefetchGetTeamQuery } from '@/api/endpoints/teams/teams'
 import { prefetchGetEventsQuery } from '@/api/endpoints/calendar/calendar'
-import { PARTICIPATION_COUNT_PARAMS } from '@/components/profile/participationCountParams'
 import { getInitialCalendarRange } from '@/hooks/useCalendarDateRange'
-import { prefetchListMyInvitationsQuery } from '@/api/endpoints/invitations/invitations'
 import { prefetchGetRideQuery } from '@/api/endpoints/rides/rides'
-import { prefetchGetTripQuery, getGetTripQueryKey } from '@/api/endpoints/trips/trips'
-import {
-  listTripComments,
-  getListTripCommentsQueryKey,
-} from '@/api/endpoints/trip-comments/trip-comments'
+import { prefetchGetTripQuery } from '@/api/endpoints/trips/trips'
 import { prefetchGetPostQuery } from '@/api/endpoints/posts/posts'
-import {
-  listPostComments,
-  getListPostCommentsQueryKey,
-} from '@/api/endpoints/post-comments/post-comments'
-import { prefetchGetRouteQuery, prefetchGetRouteUsagesQuery } from '@/api/endpoints/routes/routes'
-import {
-  prefetchMemberComments,
-  prefetchPageWindow,
-  prefetchRoutesBulkChunked,
-} from './prefetchHelpers'
+import { prefetchGetRouteQuery } from '@/api/endpoints/routes/routes'
 import { prefetchRideDetail } from '@/pages/ride/rideDetailData'
 import { prefetchRouteList } from '@/pages/route/routeListData'
+import { prefetchTripDetail } from '@/pages/trip/tripDetailData'
+import { prefetchStageDetail } from '@/pages/trip/stageDetailData'
+import { prefetchPostDetail } from '@/pages/post/postDetailData'
+import { prefetchRouteDetail, prefetchRouteMap } from '@/pages/route/routeDetailData'
+import { prefetchUserProfile } from '@/pages/auth/profileData'
+import { prefetchHomeFeed } from '@/pages/home/homeFeedData'
+import { prefetchTeamList } from '@/pages/team/teamListData'
+import { prefetchPublicationList } from '@/pages/publication/publicationListData'
+import { prefetchAdList } from '@/pages/ad/adListData'
+import { prefetchAllRouteList, prefetchAllRoutesMap } from '@/pages/route/allRouteListData'
 import { prefetchGetPageQuery, prefetchListPagesQuery } from '@/api/endpoints/team-pages/team-pages'
 import { prefetchListPlacesQuery } from '@/api/endpoints/places/places'
 import { prefetchGetMembersQuery } from '@/api/endpoints/team-members/team-members'
@@ -45,17 +31,8 @@ import { teamMemberFiltersSchema } from '@/hooks/filters/teamMemberFilters'
 import { rideTemplateFiltersSchema } from '@/hooks/filters/rideTemplateFilters'
 import { placeAutocompleteParams } from '@/components/common/placeAutocompleteParams'
 import { InvitationStatus } from '@/api/dto'
-import { prefetchGetAdQuery, prefetchListAdsQuery } from '@/api/endpoints/ads/ads'
+import { prefetchGetAdQuery } from '@/api/endpoints/ads/ads'
 import { prefetchGetPreviewQuery } from '@/api/endpoints/gpx-previews/gpx-previews'
-import {
-  prefetchListAllRoutesQuery,
-  prefetchGetAllRoutesBoundsQuery,
-} from '@/api/endpoints/routes/routes'
-import { prefetchGetAvailableServicesQuery } from '@/api/endpoints/gps-services/gps-services'
-import {
-  listRouteComments,
-  getListRouteCommentsQueryKey,
-} from '@/api/endpoints/route-comments/route-comments'
 import {
   homeMeta,
   teamsMeta,
@@ -71,62 +48,8 @@ import {
   gpxPreviewMeta,
   appsMeta,
 } from './routeMeta'
-import {
-  publicationApiParams,
-  publicationFiltersSchema,
-  publicationFiltersAlias,
-} from '@/hooks/filters/publicationFilters'
-import { readUrlFilters } from '@/hooks/useUrlFilters'
-import { makeHomeFiltersSchema, homeFiltersAlias } from '@/hooks/filters/homeFilters'
-import { makeTeamFiltersSchema, teamFiltersAlias, teamApiParams } from '@/hooks/filters/teamFilters'
-import {
-  makeAllRouteFiltersSchema,
-  allRouteFiltersAlias,
-  allRouteApiParams,
-} from '@/hooks/filters/routeFilters'
-import { adFiltersSchema, adFiltersAlias, adApiParams } from '@/hooks/filters/adFilters'
-import { membershipToMinRole, type MembershipFilterValue } from '@/hooks/filters/membership'
 import { useAuthStore } from '@/store/authStore'
-import { MinRole, type TeamListResponse, type TripDto } from '@/api/dto'
-import { hourAlignedNowIso } from '@/utils/nowIso'
-import { NEXT_RIDE_PARAMS } from '@/pages/home/nextRideParams'
 import type { QueryClient } from '@tanstack/react-query'
-
-/**
- * `RoutesMapView` on the trip page loads every stage's route via `useRoutesBulk`, keyed off the
- * trip's own `routeSlug` (single-stage trips) or its stages' route slugs — data already sitting in
- * the trip query just prefetched above. Mirrors `useRoutesBulk`'s dedup/sort exactly so the query
- * key matches.
- */
-async function prefetchTripRoutesBulk(
-  queryClient: QueryClient,
-  teamSlug: string,
-  tripSlug: string
-) {
-  const trip = queryClient.getQueryData<TripDto>(getGetTripQueryKey(teamSlug, tripSlug))
-  if (!trip) return
-
-  const slugs = trip.routeSlug
-    ? [trip.routeSlug]
-    : (trip.stages ?? []).flatMap((stage) => (stage.route?.slug ? [stage.route.slug] : []))
-  await prefetchRoutesBulkChunked(queryClient, teamSlug, slugs)
-}
-
-/**
- * Mirrors `useMembershipDefault` exactly, probe included: signed in with at least one team, the
- * cross-team listings default to `member`; anonymous, or signed in with no team, to `all`.
- *
- * Returns the page's own filter value rather than a `MinRole`, because that is what feeds the
- * filter schema — the default only applies when the URL doesn't spell `membership` out, and a
- * shared link generally does (`MEMBERSHIP_ALWAYS_SERIALIZE`).
- */
-async function resolveMembershipDefault(queryClient: QueryClient): Promise<MembershipFilterValue> {
-  if (!useAuthStore.getState().isAuthenticated) return 'all'
-  const membershipParams = { minRole: MinRole.MEMBER, page: 0, size: 1 }
-  await prefetchListTeamsQuery(queryClient, membershipParams)
-  const teams = queryClient.getQueryData<TeamListResponse>(getListTeamsQueryKey(membershipParams))
-  return teams && teams.total > 0 ? 'member' : 'all'
-}
 
 /**
  * The two `PlaceAutocomplete` fields a ride form mounts (start and end), each querying its own
@@ -386,24 +309,7 @@ export const routesConfig: RoutesConfig = [
     // Resolves the feed the URL actually asks for, filters and page included, the same way
     // HomePage does: the membership probe of `useMembershipDefault` feeds the schema's default,
     // the query string overrides it, and `publicationApiParams` projects the result.
-    prefetch: async (queryClient, _params, url) => {
-      const membershipDefault = await resolveMembershipDefault(queryClient)
-      if (useAuthStore.getState().isAuthenticated) {
-        await prefetchListMyParticipationsQuery(queryClient, {
-          from: hourAlignedNowIso(),
-          ...NEXT_RIDE_PARAMS,
-        })
-      }
-      const filters = readUrlFilters(url.searchParams, {
-        schema: makeHomeFiltersSchema(membershipDefault),
-        alias: homeFiltersAlias,
-      })
-      const feedParams = {
-        ...publicationApiParams(filters, hourAlignedNowIso()),
-        minRole: membershipToMinRole[filters.membership],
-      }
-      await prefetchPageWindow(feedParams, (p) => prefetchListAllPublicationsQuery(queryClient, p))
-    },
+    prefetch: (queryClient, _params, url) => prefetchHomeFeed(queryClient, url),
     meta: homeMeta,
   },
   {
@@ -418,15 +324,7 @@ export const routesConfig: RoutesConfig = [
     // in, the list's `minRole` depends on team membership (see useMembershipDefault) —
     // replicated here so the resolved variant, not a guess, lands in the cache (same pattern as
     // the `home` and `teams` routes).
-    prefetch: async (queryClient, _params, url) => {
-      const filters = readUrlFilters(url.searchParams, {
-        schema: makeAllRouteFiltersSchema(await resolveMembershipDefault(queryClient)),
-        alias: allRouteFiltersAlias,
-      })
-      await prefetchPageWindow(allRouteApiParams(filters), (p) =>
-        prefetchListAllRoutesQuery(queryClient, p)
-      )
-    },
+    prefetch: (queryClient, _params, url) => prefetchAllRouteList(queryClient, url),
   },
   {
     id: 'all-routes-map',
@@ -438,15 +336,7 @@ export const routesConfig: RoutesConfig = [
     breadcrumb: { type: 'static', i18nKey: tRegister('routes.view.map') },
     // Matches AllRoutesMapPage's initial useGetAllRoutesBounds key when no URL filters are set —
     // same minRole resolution as `all-routes` above.
-    prefetch: async (queryClient, _params, url) => {
-      const filters = readUrlFilters(url.searchParams, {
-        schema: makeAllRouteFiltersSchema(await resolveMembershipDefault(queryClient)),
-        alias: allRouteFiltersAlias,
-      })
-      await prefetchGetAllRoutesBoundsQuery(queryClient, {
-        minRole: membershipToMinRole[filters.membership],
-      })
-    },
+    prefetch: (queryClient, _params, url) => prefetchAllRoutesMap(queryClient, url),
   },
 
   // === GPX Tools Routes ===
@@ -628,17 +518,7 @@ export const routesConfig: RoutesConfig = [
     // component's own `hourAlignedNowIso()` boundary, which is the whole reason this can be
     // prefetched at all — the raw `new Date()` it used before never matched the SSR key.
     // The section's paged queries are deliberately left out: they only fire once opened.
-    prefetch: async (queryClient) => {
-      if (!useAuthStore.getState().isAuthenticated) return
-      const now = hourAlignedNowIso()
-      await Promise.all([
-        prefetchListMyParticipationsQuery(queryClient, {
-          from: now,
-          ...PARTICIPATION_COUNT_PARAMS,
-        }),
-        prefetchListMyParticipationsQuery(queryClient, { to: now, ...PARTICIPATION_COUNT_PARAMS }),
-      ])
-    },
+    prefetch: (queryClient) => prefetchUserProfile(queryClient),
   },
   {
     id: 'calendar',
@@ -675,18 +555,7 @@ export const routesConfig: RoutesConfig = [
     // "member" default used while the probe is loading fires one fetch, then correcting to
     // "all" fires a second) — hydrating with the resolved probe result upfront skips that
     // optimistic guess entirely.
-    prefetch: async (queryClient, _params, url) => {
-      if (useAuthStore.getState().isAuthenticated) {
-        await prefetchListMyInvitationsQuery(queryClient)
-      }
-      const filters = readUrlFilters(url.searchParams, {
-        schema: makeTeamFiltersSchema(await resolveMembershipDefault(queryClient)),
-        alias: teamFiltersAlias,
-      })
-      await prefetchPageWindow(teamApiParams(filters), (p) =>
-        prefetchListTeamsQuery(queryClient, p)
-      )
-    },
+    prefetch: (queryClient, _params, url) => prefetchTeamList(queryClient, url),
     meta: teamsMeta,
   },
   {
@@ -710,21 +579,8 @@ export const routesConfig: RoutesConfig = [
     // PublicationListPage reads the team plus its first two, unfiltered publications pages.
     // Matches PublicationListPage's query key exactly (including `view`) — a mismatch here (e.g.
     // a missing `view`) makes the real query miss the SSR cache and refetch after hydration.
-    prefetch: async (queryClient, params, url) => {
-      await Promise.all([
-        prefetchGetTeamQuery(queryClient, params.teamSlug!),
-        prefetchPageWindow(
-          publicationApiParams(
-            readUrlFilters(url.searchParams, {
-              schema: publicationFiltersSchema,
-              alias: publicationFiltersAlias,
-            }),
-            hourAlignedNowIso()
-          ),
-          (p) => prefetchListPublicationsQuery(queryClient, params.teamSlug!, p)
-        ),
-      ])
-    },
+    prefetch: (queryClient, params, url) =>
+      prefetchPublicationList(queryClient, params.teamSlug!, url),
     meta: teamDetailMeta,
   },
   {
@@ -927,24 +783,8 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: 'team-detail',
     breadcrumb: { type: 'dynamic', entity: 'trip' },
-    prefetch: async (queryClient, params) => {
-      const teamSlug = params.teamSlug!
-      const tripSlug = params.tripSlug!
-      await Promise.all([
-        prefetchGetTeamQuery(queryClient, teamSlug),
-        prefetchGetTripQuery(queryClient, teamSlug, tripSlug),
-      ])
-      await Promise.all([
-        prefetchMemberComments(
-          queryClient,
-          teamSlug,
-          tripSlug,
-          listTripComments,
-          getListTripCommentsQueryKey
-        ),
-        prefetchTripRoutesBulk(queryClient, teamSlug, tripSlug),
-      ])
-    },
+    prefetch: (queryClient, params) =>
+      prefetchTripDetail(queryClient, params.teamSlug!, params.tripSlug!),
     meta: tripMeta,
   },
   {
@@ -968,24 +808,8 @@ export const routesConfig: RoutesConfig = [
     // `stageSlug` within the trip's own stages to find its route — same lookup here, once the
     // trip is in cache. GPS export options are authenticated-only, resolved the same way as
     // route-detail's own prefetch above.
-    prefetch: async (queryClient, params) => {
-      const teamSlug = params.teamSlug!
-      const tripSlug = params.tripSlug!
-      await Promise.all([
-        prefetchGetTeamQuery(queryClient, teamSlug),
-        prefetchGetTripQuery(queryClient, teamSlug, tripSlug),
-      ])
-      const trip = queryClient.getQueryData<TripDto>(getGetTripQueryKey(teamSlug, tripSlug))
-      const routeSlug = trip?.stages?.find((s) => s.slug === params.stageSlug)?.route?.slug
-      await Promise.all([
-        routeSlug
-          ? prefetchGetRouteQuery(queryClient, teamSlug, routeSlug)
-          : Promise.resolve(queryClient),
-        useAuthStore.getState().isAuthenticated
-          ? prefetchGetAvailableServicesQuery(queryClient)
-          : Promise.resolve(queryClient),
-      ])
-    },
+    prefetch: (queryClient, params) =>
+      prefetchStageDetail(queryClient, params.teamSlug!, params.tripSlug!, params.stageSlug!),
     meta: stageMeta,
   },
   {
@@ -1017,21 +841,8 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: 'team-detail',
     breadcrumb: { type: 'dynamic', entity: 'post' },
-    prefetch: async (queryClient, params) => {
-      const teamSlug = params.teamSlug!
-      const postSlug = params.postSlug!
-      await Promise.all([
-        prefetchGetTeamQuery(queryClient, teamSlug),
-        prefetchGetPostQuery(queryClient, teamSlug, postSlug),
-      ])
-      await prefetchMemberComments(
-        queryClient,
-        teamSlug,
-        postSlug,
-        listPostComments,
-        getListPostCommentsQueryKey
-      )
-    },
+    prefetch: (queryClient, params) =>
+      prefetchPostDetail(queryClient, params.teamSlug!, params.postSlug!),
     meta: postMeta,
   },
   {
@@ -1084,25 +895,8 @@ export const routesConfig: RoutesConfig = [
     // Comments are member-only (RouteDetailPage's `isMember`, from the team's `role`) and GPS
     // export options are authenticated-only — both resolved from data already being prefetched
     // here, so this replicates the page's own gating instead of guessing.
-    prefetch: async (queryClient, params) => {
-      const teamSlug = params.teamSlug!
-      const routeSlug = params.routeSlug!
-      await Promise.all([
-        prefetchGetTeamQuery(queryClient, teamSlug),
-        prefetchGetRouteQuery(queryClient, teamSlug, routeSlug),
-        prefetchGetRouteUsagesQuery(queryClient, teamSlug, routeSlug),
-        useAuthStore.getState().isAuthenticated
-          ? prefetchGetAvailableServicesQuery(queryClient)
-          : Promise.resolve(queryClient),
-      ])
-      await prefetchMemberComments(
-        queryClient,
-        teamSlug,
-        routeSlug,
-        listRouteComments,
-        getListRouteCommentsQueryKey
-      )
-    },
+    prefetch: (queryClient, params) =>
+      prefetchRouteDetail(queryClient, params.teamSlug!, params.routeSlug!),
     meta: routeMeta,
   },
   {
@@ -1113,12 +907,8 @@ export const routesConfig: RoutesConfig = [
     layout: 'bare',
     parentId: 'route-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('map.fullscreen.title') },
-    prefetch: async (queryClient, params) => {
-      await Promise.all([
-        prefetchGetTeamQuery(queryClient, params.teamSlug!),
-        prefetchGetRouteQuery(queryClient, params.teamSlug!, params.routeSlug!),
-      ])
-    },
+    prefetch: (queryClient, params) =>
+      prefetchRouteMap(queryClient, params.teamSlug!, params.routeSlug!),
     meta: routeMeta,
   },
   {
@@ -1142,18 +932,7 @@ export const routesConfig: RoutesConfig = [
     breadcrumb: { type: 'static', i18nKey: tRegister('ads.title') },
     // AdListPage reads the team plus its first two, unfiltered ad pages — matches its query key
     // exactly (including `view`), same pattern as the publications and routes lists above.
-    prefetch: async (queryClient, params, url) => {
-      const filters = readUrlFilters(url.searchParams, {
-        schema: adFiltersSchema,
-        alias: adFiltersAlias,
-      })
-      await Promise.all([
-        prefetchGetTeamQuery(queryClient, params.teamSlug!),
-        prefetchPageWindow(adApiParams(filters), (p) =>
-          prefetchListAdsQuery(queryClient, params.teamSlug!, p)
-        ),
-      ])
-    },
+    prefetch: (queryClient, params, url) => prefetchAdList(queryClient, params.teamSlug!, url),
   },
   {
     id: 'ad-new',

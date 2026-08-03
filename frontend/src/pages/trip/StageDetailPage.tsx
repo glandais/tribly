@@ -13,9 +13,7 @@ import {
   Anchor,
 } from '@mantine/core'
 import { IconCalendar, IconMapPin, IconPencil } from '@tabler/icons-react'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
-import { useGetTrip } from '../../api/endpoints/trips/trips'
-import { useGetRoute } from '../../api/endpoints/routes/routes'
+import { useStageDetailData } from './stageDetailData'
 import { RouteDetailView } from '../../components/route/RouteDetailView'
 import { paths } from '../../config/paths'
 import { useAuth } from '../../hooks/useAuth'
@@ -43,26 +41,15 @@ export function StageDetailPage() {
   }>()
   useAuth() // For authentication context
 
-  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
   const {
-    data: trip,
-    isLoading: isLoadingTrip,
-    error,
-    refetch,
-  } = useGetTrip(teamSlug!, tripSlug!, {
-    query: { enabled: !!teamSlug && !!tripSlug },
-  })
+    team: { data: team, isLoading: isLoadingTeam },
+    trip: { data: trip, isLoading: isLoadingTrip, error, refetch },
+    route: { data: route, isLoading: isLoadingRoute },
+    routeSlug,
+  } = useStageDetailData(teamSlug, tripSlug, stageSlug)
 
-  // Find stage and its route slug (derived before hooks to maintain consistent hook order)
+  // Find stage (derived from the trip already in cache)
   const stage = trip?.stages?.find((s) => s.slug === stageSlug)
-  const routeSlug = stage?.route?.slug
-
-  // Fetch route if stage has one
-  const { data: route, isLoading: isLoadingRoute } = useGetRoute(teamSlug!, routeSlug ?? '', {
-    query: { enabled: !!teamSlug && !!routeSlug },
-  })
 
   useCanonicalPath(
     team && trip && stageSlug ? paths.stage(team.slug, trip.slug, stageSlug) : undefined

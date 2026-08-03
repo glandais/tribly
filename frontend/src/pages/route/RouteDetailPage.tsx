@@ -6,9 +6,9 @@ import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { paths } from '../../config/paths'
 import { Box, Button, Group, Stack, Title } from '@mantine/core'
-import { useGetRoute, useDeleteRoute, useUndeleteRoute } from '@/api/endpoints/routes/routes'
+import { useDeleteRoute, useUndeleteRoute } from '@/api/endpoints/routes/routes'
 import { invalidateRouteQueries } from '@/lib/routeCacheInvalidation'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
+import { useRouteDetailData } from './routeDetailData'
 import { RouteDetailView } from '../../components/route/RouteDetailView'
 import { RouteUsages } from '../../components/route/RouteUsages'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
@@ -25,17 +25,9 @@ export function RouteDetailPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const { data: team, isLoading: teamLoading } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
-  const {
-    data: route,
-    isLoading: routeLoading,
-    error,
-    refetch,
-  } = useGetRoute(teamSlug!, routeSlug!, {
-    query: { enabled: !!teamSlug && !!routeSlug },
-  })
+  const { team: teamQuery, route: routeQuery } = useRouteDetailData(teamSlug, routeSlug)
+  const { data: team, isLoading: teamLoading } = teamQuery
+  const { data: route, isLoading: routeLoading, error, refetch } = routeQuery
   const deleteRouteMutation = useDeleteRoute()
   const undeleteRouteMutation = useUndeleteRoute()
 

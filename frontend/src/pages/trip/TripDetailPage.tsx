@@ -36,9 +36,7 @@ import {
   Skeleton,
   Loader,
 } from '@mantine/core'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
-  useGetTrip,
   useUpdateTrip,
   useDeleteTrip,
   useUndeleteTrip,
@@ -46,6 +44,7 @@ import {
   useLeaveTrip,
   getGetTripQueryKey,
 } from '../../api/endpoints/trips/trips'
+import { useTripDetailData } from './tripDetailData'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { Status } from '@/api/dto'
 import { useAuth } from '../../hooks/useAuth'
@@ -89,17 +88,9 @@ export function TripDetailPage() {
 
   const queryClient = useQueryClient()
   const navigate = useNavigate()
-  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
-  const {
-    data: trip,
-    isLoading: isLoadingTrip,
-    error,
-    refetch,
-  } = useGetTrip(teamSlug!, tripSlug!, {
-    query: { enabled: !!teamSlug && !!tripSlug },
-  })
+  const { team: teamQuery, trip: tripQuery } = useTripDetailData(teamSlug, tripSlug)
+  const { data: team, isLoading: isLoadingTeam } = teamQuery
+  const { data: trip, isLoading: isLoadingTrip, error, refetch } = tripQuery
 
   const updateMutation = useUpdateTrip()
   const deleteMutation = useDeleteTrip()
