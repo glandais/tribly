@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { PublicationType } from '@/api/dto'
+import { ListViewMode, PublicationType } from '@/api/dto'
 import { COMMON_ALIAS, pageField, searchField, sizeField } from './common'
 
 export const PUBLICATION_PAGE_SIZE = 12
@@ -45,3 +45,35 @@ export const publicationFiltersSchema = z.object({
 })
 
 export const publicationFiltersAlias = { ...COMMON_ALIAS, filter: 'type', scope: 'w' } as const
+
+/**
+ * Projects the page's filters onto the list endpoint's params — the one place the two publication
+ * lists (home feed, team feed) and their route `prefetch`es all go through.
+ *
+ * It exists because the prefetch has to produce a **byte-identical query key**, and it used to
+ * rebuild the params by hand: `{ minRole, page, size, view }`. That worked only as long as the
+ * defaults happened to project to nothing extra. Change `scope`'s default to `upcoming` and the
+ * pages would start sending `from` while the prefetches wouldn't — the SSR cache silently missing
+ * on the two most visited routes of the app, with nothing failing anywhere.
+ *
+ * `view` is always COMPACT here: a feed card draws a title, an excerpt and a picture, never the
+ * markdown body or the attachments of twelve publications.
+ */
+export function publicationApiParams(
+  filters: z.infer<typeof publicationFiltersSchema>,
+  nowIso: string
+) {
+  return {
+    search: filters.search,
+    page: filters.page,
+    size: filters.size,
+    type: publicationFilterToType[filters.filter],
+    ...publicationScopeToParams(filters.scope, nowIso),
+    view: ListViewMode.COMPACT,
+  }
+}
+
+/** The params a bare URL produces — what a route `prefetch` must fill the cache with. */
+export function defaultPublicationApiParams(nowIso: string) {
+  return publicationApiParams(publicationFiltersSchema.parse({}), nowIso)
+}

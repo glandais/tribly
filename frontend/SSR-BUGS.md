@@ -23,31 +23,100 @@ uncaught `pageerror`), **prefetch gaps** (`[prefetch-audit]` — a query the pag
 that the route's `prefetch` didn't cover) and any other console error. `--list` shows what it
 would visit without launching a browser.
 
+**Read the `Prefetch` column, not just `RAS`.** Each check ends in one of four verdicts:
+
+| Verdict | Meaning |
+| --- | --- |
+| `covered` | measured, everything the page fetched was already in the SSR cache |
+| `gaps` | measured, the listed queries were not |
+| `discarded` | **not measured** — the route redirected before the page's audit could settle |
+| `timeout` | **not measured** — no verdict within the crawler's settle window |
+
+`RAS` only ever means "nothing crashed". A `discarded`/`timeout` check says nothing at all about
+prefetch coverage, and the report groups those under "Not measured" for that reason. This is also
+why `routes-ssr.yml` pins `locale: fr`: crawling the `en` path of a route that has a `fr` one
+makes the app redirect to its canonical URL on load, which discards the verdict.
+
 ## Last run
 
-2026-08-03, **staging** (`https://staging.pedalons.fr`, production build) — 125 checks, 25 with
-issues, 100 clean.
+2026-08-03 18:51Z, **staging** (production build) — 167 checks, **0 login failures**, 62 with
+issues (62 prefetch, 7 console-error, 1 hydration). Verdicts: **98 covered, 62 gaps, 7 not
+measured**.
 
-`user1` logged in this time (60s timeout), which covered the whole team-admin surface —
-`teamAdmin*`, `teamSettings`, `rideNew/Edit`, `rideTemplate*`, `tripNew/Edit`, `post*`,
-`routeNew/Edit`, `adNew/Edit`: **all clean**. That surface had never been visited before.
+First trustworthy run. The two previous ones understated the problem badly:
 
-**Coverage hole**: `admin` still fails to log in, and at 60s it is no longer plausibly a timeout —
-so `/platform/*` remains unvisited. Check the credentials in `ADMIN_PASSWORD` first; the crawler
-reports "did not redirect" identically for a wrong password and for a slow one.
+- `admin` never logged in, so `/platform/*` was invisible. That was never a credential problem —
+  the crawler clicked submit before React had hydrated and the click went nowhere, which is why a
+  *different* user failed in each run.
+- the crawl requested the **English** paths while the app serves French, so every route with a
+  `fr` variant redirected on load, the page's own audit discarded its verdict, and the check was
+  filed as `RAS` **without having measured anything**. `locale: fr` in `routes-ssr.yml` fixes it;
+  the crawler now separates `covered` / `gaps` / `discarded` / `timeout` and prints a "Not
+  measured" section, so this can't silently happen again.
 
-Staging runs a production React build, so its hydration errors are minified (`#418` = mismatch,
-`#185` = update loop) with no component diff. That's the expected trade: run the build for the
-inventory, re-run a failing route against `pnpm dev:ssr` when you need the tree.
+That is where the jump from 33 to 62 comes from: not a regression, previously-blind routes.
 
-Two entries of this list were fixed locally before this run but **not deployed** — staging's
-bundle still carries `navigate(paths.home(), { replace: true })` (checked in the deployed
-sourcemap), so `completeAccount` (#185, 1280–1481 pageerrors) and `profile` (#418, in the
-`UserProfilePage` chunk) reappearing here is expected, not a regression.
+The 7 still not measured redirect legitimately on load: `completeAccount` (×3 — the redirect *is*
+the known bug), `gpxToolsNew` (×3), `teamAdmin/user1`.
+
+**The SEO-critical surface is clean**: `home`, `teams`, `team`, `teamAbout`, `teamPage`, `ride`,
+`trip`, `stage`, `post`, `routes`, `route`, `routeMap`, `allRoutes`, `allRoutesMap`, `apps`,
+`privacy`, `terms`, `gpxToolsMap` all report `covered` for all four users. Everything below is
+either an authenticated screen or a public page no crawler ranks.
+
+Staging runs a production React build, so hydration errors are minified (`#418` = mismatch, with
+`args[]` naming what mismatched; `#185` = update loop) and carry no component diff. That's the
+expected trade: run the build for the inventory, re-run a failing route against `pnpm dev:ssr`
+when you need the tree.
+
+The two fixes committed before this run were **not deployed** to staging — nothing about
+`completeAccount` or `profile`'s passkey mismatch in this list is a regression.
 
 ## Open
 
-### 1. Routes with no `prefetch` at all
+### 1. Team-scoped form and admin pages — *fixed, awaiting a run*
+
+The 20 routes under `/teams/{slug}/…` now go through `teamScopedPrefetch()` in
+`routes.config.ts`: the team itself plus, where the page has one, its own entity (`ride-edit`,
+`trip-edit`, `post-edit`, `route-edit`, `ad-edit`, `team-admin-page-edit`) or its list
+(`team-admin-places`, `team-admin-pages`, `team-members` + pending invitations, `ride-templates`,
+`ride-new`/`ride-edit`'s two place autocompletes).
+
+Two things worth not undoing:
+
+- list params come from the page's **own filter schema** (`placeFiltersSchema.parse({})` and
+  friends) and place-autocomplete params from a shared `placeAutocompleteParams()`. Hand-copying
+  the params out of a crawler report also produces a matching key — right up until someone changes
+  a page size, at which point the prefetch silently becomes dead weight again.
+- the helper returns early for an anonymous request: these routes render a redirect, not a page.
+
+The existing prefetches were reviewed under the same angle and three hand-copied param sets became
+shared derivations — see SSR.md Finding 5. They all matched at the time; the point was that they
+matched *by coincidence of defaults*, which is not a property anyone maintains on purpose.
+
+Still fetched after paint on these routes, and left alone on purpose: `tripNew`/`tripEdit`'s
+`routes?page=0&size=20`. That query belongs to `RoutePickerModal`, which runs it even while the
+modal is closed — gating it on `isOpen` removes the request outright, which beats prefetching a
+list most visitors never open. Worth doing, but it's a component fix, not a prefetch one.
+
+### 2. `TeamCalendarPage` repeats the unstable-date pattern
+
+`teamCalendar` fetches `/api/teams/{slug}`, `calendar/events` **and** `calendar/token` after paint,
+with the same `from`/`to` window `CalendarPage` had. It escaped the earlier fix only because the
+crawler never measured it (it was in the redirect blind spot). Give it `getInitialCalendarRange()`
+and a `prefetch`, exactly like `calendar`.
+
+Two of its checks show `from: …T18:00:00Z` and `…T19:00:00Z` for different users — the hour
+boundary crossed mid-run, i.e. the documented once-an-hour miss of `hourAlignedNow()`, not a
+defect.
+
+### 3. Fullscreen map pages have no `prefetch`
+
+`stageMap` (team + trip + the stage's route) and `routesMap` (team + `routes/bounds`) fetch
+everything client-side, while their non-map siblings `stage` and `routesMap`'s parent are clean.
+Public routes, unlike the two entries above.
+
+### 4. Routes with no `prefetch` at all
 
 Each of these refetches on the client what SSR could have embedded:
 
@@ -71,7 +140,37 @@ in the browser, so no prefetch could ever have matched them. Both now derive the
 paged queries fire only when a section is opened, and FullCalendar re-queries its visible grid,
 a range that depends on the viewport and can't be computed server-side.
 
-### 2. Ads are declared public but the API requires membership
+### 5. `CalendarView` formats event times outside `useFormattedDate` — text mismatch on `/calendar`
+
+React #418 with `args[]=text` (a text-content mismatch) on `/calendar`, for `user1` only.
+
+`useEffectiveTimezone()` (`utils/dateFormat.ts`) resolves to `UTC` on the server whenever the user
+has no `timezone` preference — and it is NULL for all three staging accounts — while the browser
+resolves to its own zone. `FormattedDate`/`FormattedDateTime` exist precisely to absorb that with
+`suppressHydrationWarning`, but `CalendarView.tsx` formats straight to a text node with dayjs
+(`dayjs(dto.start).tz(tz).format('HH:mm')`, line 149, and the `YYYY-MM-DD HH:mm:ss` event
+start/end above it). Server writes UTC, client writes Europe/Paris, React reports a mismatch.
+
+Only `user1` trips it because only `user1` has events on the first paint — the other two render an
+empty calendar and so have no time text to disagree about. That's the general shape of this class
+of bug: it shows up only for the account whose data reaches the failing branch.
+
+### 6. `/platform/*` has no `prefetch` at all
+
+Newly reachable now that `admin` logs in — five routes, every one of them fetching after paint:
+
+| Route | Fetched after hydration |
+| --- | --- |
+| `admin` | `admin/domains/stats` |
+| `adminDomains` | `admin/domains?page=0&size=20` |
+| `adminTeams` | `admin/domains?page=0&size=100`, `admin/teams?page=0&size=20` |
+| `adminUsers` | `admin/domains?page=0&size=100`, `admin/users?page=0&size=20` |
+| `adminBetaSignups` | `admin/beta-signups?page=0&size=20` |
+
+Lowest priority of the three: these are internal screens with a handful of users, and SEO doesn't
+apply. Listed so the inventory is honest, not because it's urgent.
+
+### 7. Ads are declared public but the API requires membership
 
 `ads` and `ad-detail` are `auth: 'public'` in `routes.config.ts`, yet an anonymous visitor takes
 6 × 401 on `/teams/{slug}/classifieds` and 3 × 401 on the detail. The knock-on effect is the one

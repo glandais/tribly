@@ -25,7 +25,8 @@ import {
   deleteRouteComment,
   getListRouteCommentsQueryKey,
 } from '../api/endpoints/route-comments/route-comments'
-import type { CommentDto, CommentListResponse, CommentRequest, SortDirection } from '@/api/dto'
+import { SortDirection } from '@/api/dto'
+import type { CommentDto, CommentListResponse, CommentRequest } from '@/api/dto'
 
 // Re-export types for convenience
 export type { CommentDto, CommentListResponse, CommentRequest }
@@ -34,6 +35,20 @@ export type EntityType = 'rides' | 'posts' | 'trips' | 'routes'
 
 /** Top-level comments per request. The contract caps `size` at 100. */
 export const COMMENT_PAGE_SIZE = 20
+
+/**
+ * The options `CommentSection` mounts with — and therefore the ones the route `prefetch`es in
+ * `routes.config.ts` must reproduce, since both end up in the query key (`{ size, sort }`).
+ *
+ * Exported so neither side can hold its own copy: the prefetch used to spell out
+ * `{ size: COMMENT_PAGE_SIZE, sort: SortDirection.DESC }` in four places, and flipping the
+ * section to ASC would have quietly turned all four into dead cache entries — the page refetching
+ * on hydration, with nothing failing.
+ */
+export const COMMENT_LIST_OPTIONS = {
+  size: COMMENT_PAGE_SIZE,
+  sort: SortDirection.DESC,
+} as const
 
 interface CommentPageParams {
   page?: number

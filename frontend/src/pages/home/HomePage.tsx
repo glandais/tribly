@@ -14,7 +14,7 @@ import {
 } from '@mantine/core'
 import { IconNews, IconSearchOff } from '@tabler/icons-react'
 import { isSingleTeam } from '../../config/appConfig'
-import { ListViewMode, Status, type RideDto } from '../../api/dto'
+import type { RideDto } from '../../api/dto'
 import {
   useListAllPublications,
   listAllPublications,
@@ -31,8 +31,7 @@ import { useMembershipDefault } from '../../hooks/useMembershipDefault'
 import { useScrollToListTop } from '../../hooks/useScrollToListTop'
 import { useAuth } from '../../hooks/useAuth'
 import {
-  publicationFilterToType,
-  publicationScopeToParams,
+  publicationApiParams,
   type PublicationFilterValue,
   type PublicationScopeValue,
 } from '../../hooks/filters/publicationFilters'
@@ -49,6 +48,7 @@ import { PublicationScopeControl } from '../../components/home/PublicationScopeC
 import { useMyParticipations } from '../../hooks/useMyParticipations'
 import { useAppName } from '../../hooks/useAppName'
 import { hourAlignedNowIso } from '../../utils/nowIso'
+import { NEXT_RIDE_PARAMS } from './nextRideParams'
 
 export function HomePage() {
   const { t } = useTranslation()
@@ -95,15 +95,8 @@ export function HomePage() {
 
   const apiParams = useMemo(
     () => ({
-      search: filters.search,
-      page: filters.page,
-      size: filters.size,
-      type: publicationFilterToType[filters.filter],
+      ...publicationApiParams(filters, nowIso),
       minRole: membershipToMinRole[filters.membership],
-      ...publicationScopeToParams(filters.scope, nowIso),
-      // The feed card draws a title, an excerpt and a picture — it has no use for the full
-      // markdown body nor for the attachments, GPX and FIT of twelve publications.
-      view: ListViewMode.COMPACT,
     }),
     [filters, nowIso]
   )
@@ -128,12 +121,7 @@ export function HomePage() {
   // "Ma prochaine sortie" — authenticated-only. Prefetched by the route for a session-carrying
   // SSR request (see routes.config.ts), so it's already in the initial HTML for a signed-in
   // visitor rather than rendering after hydration.
-  const { data: participations } = useMyParticipations({
-    from: nowIso,
-    status: Status.PUBLISHED,
-    size: 5,
-    view: ListViewMode.COMPACT,
-  })
+  const { data: participations } = useMyParticipations({ from: nowIso, ...NEXT_RIDE_PARAMS })
   const nextRide = participations?.publications?.find(
     (p): p is RideDto => p.type === 'RIDE' && (p as RideDto).registered
   )

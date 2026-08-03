@@ -186,9 +186,18 @@ just pays one harmless extra render with the same value. `useComputedColorScheme
   URLs. `entry-server` maps a leaf match of `path: '*'` to `statusCode: 404`.
 - **Server `QueryClient` `gcTime` must not be 0** (TanStack-documented dehydration
   footgun) — we use 2000 ms (`lib/queryClient.ts`).
-- **Prefetch params must byte-match the page hook's query key** (e.g. HomePage's
-  `{ page: 0, size: 12 }`), or the dehydrated entry is dead weight and the page refetches.
-  Verify: load the page, check the network tab for an immediate duplicate request.
+- **Prefetch params must byte-match the page hook's query key**, or the dehydrated entry is dead
+  weight and the page refetches — silently, since nothing errors. So **derive them, never copy
+  them**: a `prefetch` that spells out `{ page: 0, size: 12, view: 'COMPACT' }` is correct exactly
+  until someone edits the page, and no test fails when it stops being. Each list already has a
+  single source of truth to call instead — its filter schema (`placeFiltersSchema.parse({})` is
+  literally what `useUrlFilters` seeds itself with), a shared params builder
+  (`publicationApiParams`, `placeAutocompleteParams`) or a shared constant (`COMMENT_LIST_OPTIONS`,
+  `NEXT_RIDE_PARAMS`, `PARTICIPATION_COUNT_PARAMS`). When one has to live in its own tiny module,
+  it is because `routes.config.ts` is eagerly imported by both entries and must not drag a lazy
+  page component into the main bundle.
+  Verify with `scripts/ssr-audit.mjs` (see [SSR-BUGS.md](SSR-BUGS.md)) rather than the network tab:
+  it reports the exact query keys that were fetched after hydration.
 - **`node:async_hooks` must not leak into the client bundle**: `lib/requestContext.ts`
   (SSR-only) is bridged through the client-safe `lib/ssrContext.ts` getters
   (`getSSRHeaders/getSSRLocale/getSSRConfig/getSSRAuth`); only `entry-server.tsx` and

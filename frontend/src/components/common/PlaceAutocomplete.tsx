@@ -5,6 +5,7 @@ import { Group, Text, ActionIcon, Paper, Box } from '@mantine/core'
 import { IconMapPin, IconX } from '@tabler/icons-react'
 import { Autocomplete } from './Autocomplete'
 import { useListPlaces, useGetPlace } from '../../api/endpoints/places/places'
+import { placeAutocompleteParams } from './placeAutocompleteParams'
 import type { PlaceDetailDto } from '@/api/dto'
 
 interface PlaceAutocompleteProps {
@@ -33,12 +34,10 @@ export function PlaceAutocomplete({
   })
   const selectedPlace = value ? selectedPlaceData : undefined
 
-  const { data: placesData } = useListPlaces(teamSlug, {
-    search: debouncedQuery || undefined,
-    filterStart: filterStart || undefined,
-    filterEnd: filterEnd || undefined,
-    size: 20,
-  })
+  const { data: placesData } = useListPlaces(
+    teamSlug,
+    placeAutocompleteParams({ filterStart, filterEnd, search: debouncedQuery })
+  )
   const filteredPlaces = placesData?.places ?? []
 
   const handleQueryChange = useCallback((newQuery: string) => {

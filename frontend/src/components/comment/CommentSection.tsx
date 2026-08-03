@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, Paper, Title, Stack, Center, Loader } from '@mantine/core'
-import { SortDirection } from '@/api/dto'
 import { IconMessageCircle } from '@tabler/icons-react'
 import { EmptyState } from '../common/EmptyState'
 import {
   useComments,
   useCreateComment,
   useDeleteComment,
+  COMMENT_LIST_OPTIONS,
   type EntityType,
 } from '../../hooks/useComments'
 import { CommentItem } from './CommentItem'
@@ -36,7 +36,7 @@ export function CommentSection({
     teamSlug,
     entityType,
     entitySlug,
-    { sort: SortDirection.DESC }
+    COMMENT_LIST_OPTIONS
   )
 
   // `total` counts replies too — that is the number the heading has always shown.

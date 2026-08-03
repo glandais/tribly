@@ -1,5 +1,4 @@
 import { useCallback, useMemo } from 'react'
-import { ListViewMode } from '@/api/dto'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { IconPlus, IconNews, IconChevronDown, IconSearchOff } from '@tabler/icons-react'
@@ -24,8 +23,7 @@ import { useScrollToListTop } from '../../hooks/useScrollToListTop'
 import {
   publicationFiltersSchema,
   publicationFiltersAlias,
-  publicationFilterToType,
-  publicationScopeToParams,
+  publicationApiParams,
   type PublicationFilterValue,
 } from '../../hooks/filters/publicationFilters'
 import { SearchInput } from '../../components/common/SearchInput'
@@ -52,17 +50,7 @@ export function PublicationListPage() {
   const nowIso = useMemo(() => hourAlignedNowIso(), [])
 
   // `filter` is the page's own value; the API wants a PublicationType.
-  const apiParams = useMemo(
-    () => ({
-      search: filters.search,
-      page: filters.page,
-      size: filters.size,
-      type: publicationFilterToType[filters.filter],
-      ...publicationScopeToParams(filters.scope, nowIso),
-      view: ListViewMode.COMPACT,
-    }),
-    [filters, nowIso]
-  )
+  const apiParams = useMemo(() => publicationApiParams(filters, nowIso), [filters, nowIso])
 
   const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },

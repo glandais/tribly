@@ -1,5 +1,5 @@
 import { lazy } from 'react'
-import type { RoutesConfig } from './routes.types'
+import type { RoutesConfig, RouteParams } from './routes.types'
 import { pathVariants } from './paths'
 import { tRegister } from '@/lib/i18nUtils'
 import {
@@ -38,7 +38,16 @@ import {
   prefetchGetRoutesBulkQuery,
 } from '@/api/endpoints/routes/routes'
 import { ROUTES_BULK_MAX_SLUGS } from '@/hooks/useRoutesBulk'
-import { prefetchGetPageQuery } from '@/api/endpoints/team-pages/team-pages'
+import { prefetchGetPageQuery, prefetchListPagesQuery } from '@/api/endpoints/team-pages/team-pages'
+import { prefetchListPlacesQuery } from '@/api/endpoints/places/places'
+import { prefetchGetMembersQuery } from '@/api/endpoints/team-members/team-members'
+import { prefetchListInvitationsQuery } from '@/api/endpoints/team-invitations/team-invitations'
+import { prefetchListTemplatesQuery } from '@/api/endpoints/ride-templates/ride-templates'
+import { placeFiltersSchema } from '@/hooks/filters/placeFilters'
+import { teamMemberFiltersSchema } from '@/hooks/filters/teamMemberFilters'
+import { rideTemplateFiltersSchema } from '@/hooks/filters/rideTemplateFilters'
+import { placeAutocompleteParams } from '@/components/common/placeAutocompleteParams'
+import { InvitationStatus } from '@/api/dto'
 import { prefetchGetAdQuery, prefetchListAdsQuery } from '@/api/endpoints/ads/ads'
 import { prefetchGetPreviewQuery } from '@/api/endpoints/gpx-previews/gpx-previews'
 import {
@@ -51,7 +60,7 @@ import {
   listRouteComments,
   getListRouteCommentsQueryKey,
 } from '@/api/endpoints/route-comments/route-comments'
-import { COMMENT_PAGE_SIZE } from '@/hooks/useComments'
+import { COMMENT_LIST_OPTIONS } from '@/hooks/useComments'
 import {
   homeMeta,
   teamsMeta,
@@ -67,7 +76,7 @@ import {
   gpxPreviewMeta,
   appsMeta,
 } from './routeMeta'
-import { PUBLICATION_PAGE_SIZE } from '@/hooks/filters/publicationFilters'
+import { defaultPublicationApiParams } from '@/hooks/filters/publicationFilters'
 import { TEAM_PAGE_SIZE } from '@/hooks/filters/teamFilters'
 import { ROUTE_PAGE_SIZE } from '@/hooks/filters/routeFilters'
 import { AD_PAGE_SIZE } from '@/hooks/filters/adFilters'
@@ -79,7 +88,6 @@ import { DEFAULT_AD_SORT_BY, DEFAULT_AD_SORT_DIR } from '@/components/ad/adSortO
 import { useAuthStore } from '@/store/authStore'
 import {
   MinRole,
-  Status,
   SortDirection,
   type TeamListResponse,
   type TeamDetailDto,
@@ -88,6 +96,7 @@ import {
   type GetRoutesBulkParams,
 } from '@/api/dto'
 import { hourAlignedNowIso } from '@/utils/nowIso'
+import { NEXT_RIDE_PARAMS } from '@/pages/home/nextRideParams'
 import type { QueryClient } from '@tanstack/react-query'
 
 /**
@@ -110,16 +119,9 @@ async function prefetchMemberComments(
   if (!team?.role) return
 
   await queryClient.prefetchInfiniteQuery({
-    queryKey: [
-      ...getQueryKey(teamSlug, entitySlug),
-      { size: COMMENT_PAGE_SIZE, sort: SortDirection.DESC },
-    ],
+    queryKey: [...getQueryKey(teamSlug, entitySlug), COMMENT_LIST_OPTIONS],
     queryFn: ({ pageParam }: { pageParam: number }) =>
-      listComments(teamSlug, entitySlug, {
-        page: pageParam,
-        size: COMMENT_PAGE_SIZE,
-        sort: SortDirection.DESC,
-      }),
+      listComments(teamSlug, entitySlug, { page: pageParam, ...COMMENT_LIST_OPTIONS }),
     initialPageParam: 0,
   })
 }
@@ -194,6 +196,42 @@ async function resolveAllRoutesMinRole(queryClient: QueryClient): Promise<MinRol
   await prefetchListTeamsQuery(queryClient, membershipParams)
   const teams = queryClient.getQueryData<TeamListResponse>(getListTeamsQueryKey(membershipParams))
   return teams && teams.total > 0 ? MinRole.MEMBER : undefined
+}
+
+/**
+ * The two `PlaceAutocomplete` fields a ride form mounts (start and end), each querying its own
+ * filtered place list before the visitor touches anything.
+ */
+async function prefetchRideFormPlaces(queryClient: QueryClient, teamSlug: string) {
+  await Promise.all([
+    prefetchListPlacesQuery(queryClient, teamSlug, placeAutocompleteParams({ filterStart: true })),
+    prefetchListPlacesQuery(queryClient, teamSlug, placeAutocompleteParams({ filterEnd: true })),
+  ])
+}
+
+/**
+ * `prefetch` for an authenticated, team-scoped screen — every form and admin page under
+ * `/teams/{slug}/…`.
+ *
+ * They all render the team's name (breadcrumb, layout header) yet none of them used to prefetch
+ * it, so `GET /api/teams/{slug}` was the single most repeated gap the crawler found: ~20 routes
+ * fetching the same already-cacheable object after the first paint. `extra` adds whatever else the
+ * page reads — pass the same `prefetchXxxQuery` its read-only sibling route uses, so the query key
+ * matches by construction rather than by hand-copying params.
+ *
+ * Skipped entirely for an anonymous request: these routes render a redirect, not a page, so the
+ * fetch would be wasted (and the API call pointless) before the guard sends the visitor away.
+ */
+function teamScopedPrefetch(
+  extra?: (queryClient: QueryClient, params: RouteParams) => Promise<unknown>
+): (queryClient: QueryClient, params: RouteParams) => Promise<void> {
+  return async (queryClient, params) => {
+    if (!useAuthStore.getState().isAuthenticated) return
+    await Promise.all([
+      prefetchGetTeamQuery(queryClient, params.teamSlug!),
+      extra ? extra(queryClient, params) : Promise.resolve(),
+    ])
+  }
 }
 
 // Lazy load page components for code splitting
@@ -431,23 +469,12 @@ export const routesConfig: RoutesConfig = [
 
         await prefetchListMyParticipationsQuery(queryClient, {
           from: hourAlignedNowIso(),
-          status: Status.PUBLISHED,
-          size: 5,
-          view: 'COMPACT',
+          ...NEXT_RIDE_PARAMS,
         })
       }
-      await prefetchListAllPublicationsQuery(queryClient, {
-        minRole,
-        page: 0,
-        size: PUBLICATION_PAGE_SIZE,
-        view: 'COMPACT',
-      })
-      await prefetchListAllPublicationsQuery(queryClient, {
-        minRole,
-        page: 1,
-        size: PUBLICATION_PAGE_SIZE,
-        view: 'COMPACT',
-      })
+      const feedParams = { ...defaultPublicationApiParams(hourAlignedNowIso()), minRole }
+      await prefetchListAllPublicationsQuery(queryClient, { ...feedParams, page: 0 })
+      await prefetchListAllPublicationsQuery(queryClient, { ...feedParams, page: 1 })
     },
     meta: homeMeta,
   },
@@ -760,14 +787,12 @@ export const routesConfig: RoutesConfig = [
       await Promise.all([
         prefetchGetTeamQuery(queryClient, params.teamSlug!),
         prefetchListPublicationsQuery(queryClient, params.teamSlug!, {
+          ...defaultPublicationApiParams(hourAlignedNowIso()),
           page: 0,
-          size: PUBLICATION_PAGE_SIZE,
-          view: 'COMPACT',
         }),
         prefetchListPublicationsQuery(queryClient, params.teamSlug!, {
+          ...defaultPublicationApiParams(hourAlignedNowIso()),
           page: 1,
-          size: PUBLICATION_PAGE_SIZE,
-          view: 'COMPACT',
         }),
       ])
     },
@@ -816,6 +841,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'team-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.title') },
+    prefetch: teamScopedPrefetch(),
   },
   {
     id: 'team-admin-places',
@@ -824,6 +850,9 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'team-admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.tabs.places') },
+    prefetch: teamScopedPrefetch((qc, p) =>
+      prefetchListPlacesQuery(qc, p.teamSlug!, placeFiltersSchema.parse({}))
+    ),
   },
   {
     id: 'team-admin-pages',
@@ -832,6 +861,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'team-admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.tabs.pages') },
+    prefetch: teamScopedPrefetch((qc, p) => prefetchListPagesQuery(qc, p.teamSlug!)),
   },
   {
     id: 'team-admin-page-new',
@@ -840,6 +870,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'team-admin-pages',
     breadcrumb: { type: 'static', i18nKey: tRegister('actions.new') },
+    prefetch: teamScopedPrefetch(),
     showBackLink: true,
   },
   {
@@ -849,6 +880,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'team-admin-pages',
     breadcrumb: { type: 'dynamic', entity: 'teamPage' },
+    prefetch: teamScopedPrefetch((qc, p) => prefetchGetPageQuery(qc, p.teamSlug!, p.pageSlug!)),
     showBackLink: true,
   },
   {
@@ -858,6 +890,12 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'team-admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.tabs.members') },
+    prefetch: teamScopedPrefetch((qc, p) =>
+      Promise.all([
+        prefetchGetMembersQuery(qc, p.teamSlug!, teamMemberFiltersSchema.parse({})),
+        prefetchListInvitationsQuery(qc, p.teamSlug!, { status: InvitationStatus.PENDING }),
+      ])
+    ),
   },
   {
     id: 'team-settings',
@@ -866,6 +904,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'team-admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.tabs.settings') },
+    prefetch: teamScopedPrefetch(),
   },
 
   // === Ride Routes ===
@@ -877,6 +916,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'team-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('rides.create.title') },
+    prefetch: teamScopedPrefetch((qc, p) => prefetchRideFormPlaces(qc, p.teamSlug!)),
     showBackLink: true,
   },
   {
@@ -916,6 +956,12 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'ride-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('actions.edit') },
+    prefetch: teamScopedPrefetch((qc, p) =>
+      Promise.all([
+        prefetchGetRideQuery(qc, p.teamSlug!, p.rideSlug!),
+        prefetchRideFormPlaces(qc, p.teamSlug!),
+      ])
+    ),
     showBackLink: true,
   },
 
@@ -927,6 +973,9 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'team-admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.tabs.rideTemplates') },
+    prefetch: teamScopedPrefetch((qc, p) =>
+      prefetchListTemplatesQuery(qc, p.teamSlug!, rideTemplateFiltersSchema.parse({}))
+    ),
   },
   {
     id: 'ride-template-new',
@@ -935,6 +984,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'ride-templates',
     breadcrumb: { type: 'static', i18nKey: tRegister('actions.new') },
+    prefetch: teamScopedPrefetch(),
     showBackLink: true,
   },
   {
@@ -944,6 +994,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'ride-templates',
     breadcrumb: { type: 'dynamic', entity: 'rideTemplate' },
+    prefetch: teamScopedPrefetch(),
     showBackLink: true,
   },
 
@@ -956,6 +1007,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'team-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('trips.create.title') },
+    prefetch: teamScopedPrefetch(),
     showBackLink: true,
   },
   {
@@ -992,6 +1044,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'trip-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('actions.edit') },
+    prefetch: teamScopedPrefetch((qc, p) => prefetchGetTripQuery(qc, p.teamSlug!, p.tripSlug!)),
     showBackLink: true,
   },
   {
@@ -1044,6 +1097,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'team-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('posts.create.title') },
+    prefetch: teamScopedPrefetch(),
     showBackLink: true,
   },
   {
@@ -1077,6 +1131,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'post-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('actions.edit') },
+    prefetch: teamScopedPrefetch((qc, p) => prefetchGetPostQuery(qc, p.teamSlug!, p.postSlug!)),
     showBackLink: true,
   },
 
@@ -1120,6 +1175,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'routes',
     breadcrumb: { type: 'static', i18nKey: tRegister('actions.new') },
+    prefetch: teamScopedPrefetch(),
     showBackLink: true,
   },
   {
@@ -1176,6 +1232,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'route-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('actions.edit') },
+    prefetch: teamScopedPrefetch((qc, p) => prefetchGetRouteQuery(qc, p.teamSlug!, p.routeSlug!)),
     showBackLink: true,
   },
 
@@ -1210,6 +1267,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'ads',
     breadcrumb: { type: 'static', i18nKey: tRegister('ads.create.title') },
+    prefetch: teamScopedPrefetch(),
     showBackLink: true,
   },
   {
@@ -1234,6 +1292,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'ad-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('actions.edit') },
+    prefetch: teamScopedPrefetch((qc, p) => prefetchGetAdQuery(qc, p.teamSlug!, p.adSlug!)),
     showBackLink: true,
   },
 
