@@ -10,6 +10,8 @@ import { useMyParticipations } from '../../hooks/useMyParticipations'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { ListViewMode } from '@/api/dto'
 import type { ListMyParticipationsParams } from '@/api/dto'
+import { hourAlignedNowIso } from '@/utils/nowIso'
+import { PARTICIPATION_COUNT_PARAMS } from './participationCountParams'
 
 const PAGE_SIZE = 6
 
@@ -90,12 +92,13 @@ export function MyParticipations() {
   const { isAuthenticated } = useAuth()
   const [opened, setOpened] = useState<SectionId | null>(null)
 
-  // Frozen at mount so the two windows stay complementary and the query keys stable.
-  const now = useMemo(() => new Date().toISOString(), [])
+  // Frozen at mount so the two windows stay complementary, and hour-aligned so the server's
+  // prefetch and the client's first render produce the *same* key — a raw `new Date()` here
+  // differs by milliseconds between the two and never hits the SSR cache.
+  const now = useMemo(() => hourAlignedNowIso(), [])
 
-  const countParams = { size: 1, view: ListViewMode.COMPACT } as const
-  const { data: upcomingCount } = useMyParticipations({ from: now, ...countParams })
-  const { data: historyCount } = useMyParticipations({ to: now, ...countParams })
+  const { data: upcomingCount } = useMyParticipations({ from: now, ...PARTICIPATION_COUNT_PARAMS })
+  const { data: historyCount } = useMyParticipations({ to: now, ...PARTICIPATION_COUNT_PARAMS })
 
   // Anonymous visitors get no shell at all — the hook is disabled for them anyway.
   if (!isAuthenticated) return null

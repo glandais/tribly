@@ -25,11 +25,25 @@ would visit without launching a browser.
 
 ## Last run
 
-2026-08-03, dev SSR server on :3000 — 67 checks, 15 with issues.
+2026-08-03, **staging** (`https://staging.pedalons.fr`, production build) — 125 checks, 25 with
+issues, 100 clean.
 
-**Coverage hole**: `user1` and `admin` failed to log in (the form never redirected within 10s), so
-every team-admin route and all of `/platform/*` went unvisited. Only `anonymous` (30 checks) and
-`user2` (37) actually ran. The list below is therefore a floor, not a total.
+`user1` logged in this time (60s timeout), which covered the whole team-admin surface —
+`teamAdmin*`, `teamSettings`, `rideNew/Edit`, `rideTemplate*`, `tripNew/Edit`, `post*`,
+`routeNew/Edit`, `adNew/Edit`: **all clean**. That surface had never been visited before.
+
+**Coverage hole**: `admin` still fails to log in, and at 60s it is no longer plausibly a timeout —
+so `/platform/*` remains unvisited. Check the credentials in `ADMIN_PASSWORD` first; the crawler
+reports "did not redirect" identically for a wrong password and for a slow one.
+
+Staging runs a production React build, so its hydration errors are minified (`#418` = mismatch,
+`#185` = update loop) with no component diff. That's the expected trade: run the build for the
+inventory, re-run a failing route against `pnpm dev:ssr` when you need the tree.
+
+Two entries of this list were fixed locally before this run but **not deployed** — staging's
+bundle still carries `navigate(paths.home(), { replace: true })` (checked in the deployed
+sourcemap), so `completeAccount` (#185, 1280–1481 pageerrors) and `profile` (#418, in the
+`UserProfilePage` chunk) reappearing here is expected, not a regression.
 
 ## Open
 
@@ -39,15 +53,23 @@ Each of these refetches on the client what SSR could have embedded:
 
 | Route | Fetched after hydration |
 | --- | --- |
-| `profile` | `users/me/participations` (×2), `auth/passkeys`, `gps/available`, `users/me/export` |
-| `calendar` | `calendar/token`, `calendar/events` (×2) |
+| `profile` | `auth/passkeys`, `gps/available`, `users/me/export` |
+| `calendar` | `calendar/token` |
 | `deviceVerifyGarmin`, `deviceVerifyKaroo` | `gps/available` |
 | `gpxToolsView` | `gps/available` (the preview itself *is* prefetched) |
 | `gpxToolsList` | `gpx-previews?page=0&size=12` |
+| `gpxToolsEdit` | `gpx-previews/{previewId}` |
 | `teamsNew` | `teams?page=0&size=1` |
 
 `gps/available` accounts for three of them and `route-detail`/`ride-detail` already prefetch it
 behind `isAuthenticated` — copy that, don't invent a second pattern.
+
+The date-filtered queries of `profile` and `calendar` are **now prefetched**: they used a raw
+`new Date()`, whose millisecond precision put a different value in the query key on the server and
+in the browser, so no prefetch could ever have matched them. Both now derive their window from
+`hourAlignedNow()` (`utils/nowIso.ts`). Two client-only fetches remain by design — `MyParticipations`'
+paged queries fire only when a section is opened, and FullCalendar re-queries its visible grid,
+a range that depends on the viewport and can't be computed server-side.
 
 ### 2. Ads are declared public but the API requires membership
 
@@ -59,12 +81,14 @@ readers, or the route shouldn't claim to be public — the current pair is the w
 
 ## Known false positives
 
-- **`apps` failing for `user2`** — collateral from the `CompleteAccountPage` render loop (since
-  fixed). It is the route crawled right after `completeAccount`, whose `setState` loop was still
-  spinning when the next `goto` fired, so it inherited 227 pageerrors and a navigation timeout.
-  `apps` is clean for `anonymous`. The crawler
-  only recycles its page when `goto` itself throws, not when a page merely floods pageerrors —
-  until that changes, distrust any single failure that directly follows a runaway-loop page.
+- **`apps` failing for an authenticated user** — collateral from the `CompleteAccountPage` render
+  loop (fixed locally, not yet deployed). It is the route crawled right after `completeAccount`,
+  whose `setState` loop was still spinning when the next `goto` fired, so it inherits the
+  pageerrors and a navigation timeout. Reproduced identically for `user1` and `user2` on staging,
+  while `apps` is clean for `anonymous` — the failure follows the *previous route*, not the page.
+  The crawler only recycles its page when `goto` itself throws, not when a page merely floods
+  pageerrors — until that changes, distrust any single failure that directly follows a
+  runaway-loop page.
 - **`user2`'s 403s on `teamCalendar`, `ads`, `ad`** — `user2` is not a member of `n-peloton`, so
   those are the API refusing correctly, not a defect. Worth pointing those routes at a team
   `user2` belongs to, otherwise the crawl audits an error page.

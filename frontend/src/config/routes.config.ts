@@ -13,6 +13,9 @@ import {
   getGetTeamQueryKey,
 } from '@/api/endpoints/teams/teams'
 import { prefetchListMyParticipationsQuery } from '@/api/endpoints/users/users'
+import { prefetchGetEventsQuery } from '@/api/endpoints/calendar/calendar'
+import { PARTICIPATION_COUNT_PARAMS } from '@/components/profile/participationCountParams'
+import { getInitialCalendarRange } from '@/hooks/useCalendarDateRange'
 import { prefetchListMyInvitationsQuery } from '@/api/endpoints/invitations/invitations'
 import { prefetchGetRideQuery, getGetRideQueryKey } from '@/api/endpoints/rides/rides'
 import { prefetchGetTripQuery, getGetTripQueryKey } from '@/api/endpoints/trips/trips'
@@ -664,6 +667,21 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('nav.profile') },
+    // The two counts `MyParticipations` puts on its closed accordion controls. They share the
+    // component's own `hourAlignedNowIso()` boundary, which is the whole reason this can be
+    // prefetched at all — the raw `new Date()` it used before never matched the SSR key.
+    // The section's paged queries are deliberately left out: they only fire once opened.
+    prefetch: async (queryClient) => {
+      if (!useAuthStore.getState().isAuthenticated) return
+      const now = hourAlignedNowIso()
+      await Promise.all([
+        prefetchListMyParticipationsQuery(queryClient, {
+          from: now,
+          ...PARTICIPATION_COUNT_PARAMS,
+        }),
+        prefetchListMyParticipationsQuery(queryClient, { to: now, ...PARTICIPATION_COUNT_PARAMS }),
+      ])
+    },
   },
   {
     id: 'calendar',
@@ -673,6 +691,13 @@ export const routesConfig: RoutesConfig = [
     parentId: null,
     navGroup: 'home',
     breadcrumb: { type: 'static', i18nKey: tRegister('calendar.title') },
+    // CalendarPage's first events query, keyed on the same `getInitialCalendarRange()` the hook
+    // seeds its state with. FullCalendar re-queries its own visible grid right after mount; that
+    // second range depends on the viewport and can't be known here, so it stays a client fetch.
+    prefetch: async (queryClient) => {
+      if (!useAuthStore.getState().isAuthenticated) return
+      await prefetchGetEventsQuery(queryClient, getInitialCalendarRange())
+    },
   },
 
   // === Team Routes ===
