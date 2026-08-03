@@ -31,14 +31,23 @@ function requestLogger(): PluginOption {
   }
 }
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command }) => {
   // API proxy target: from .env (VITE_API_TARGET) or prod by default
   const env = loadEnv(mode, import.meta.dirname, '')
   const apiTarget = env.VITE_API_TARGET || 'https://www.pedalons.fr'
   const apiUrl = new URL(apiTarget)
   const isHttps = apiUrl.protocol === 'https:'
 
+  // FRONTEND_PREFETCH_AUDIT lives in the root .env (docker-compose's), not frontend/.env, so read
+  // it from there. Only ever wired up for `vite serve` (pnpm dev / pnpm dev:ssr) — a built bundle
+  // must not carry the prefetch-audit console.warn into production.
+  const rootEnv = loadEnv(mode, path.resolve(import.meta.dirname, '..'), 'FRONTEND_')
+  const prefetchAuditEnabled = command === 'serve' && rootEnv.FRONTEND_PREFETCH_AUDIT === 'true'
+
   return {
+    define: {
+      'import.meta.env.VITE_PREFETCH_AUDIT': JSON.stringify(prefetchAuditEnabled),
+    },
     plugins: [
       requestLogger(),
       react(),

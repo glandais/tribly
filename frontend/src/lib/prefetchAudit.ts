@@ -21,16 +21,17 @@ function currentRouteName(router: Router): string {
 const SETTLE_DEBOUNCE_MS = 5000
 
 /**
- * Logs, in a single console.warn, the queries that got fetched on the client during the very first
- * page load but weren't already in the SSR-dehydrated cache. Those are gaps in that route's
- * `prefetch()` declaration in routes.config.ts: the data is fetched anyway, just after the first
- * paint instead of before it.
+ * Logs, once per first page load, whether any queries got fetched on the client that weren't
+ * already in the SSR-dehydrated cache: a console.warn listing the gaps, or a console.info that
+ * everything was covered. A gap is a hole in that route's `prefetch()` declaration in
+ * routes.config.ts — the data is fetched anyway, just after the first paint instead of before it.
  *
  * First load only: the watch window closes once queryClient.isFetching() has stayed at 0 for
  * SETTLE_DEBOUNCE_MS (the page has settled), and the whole thing disarms for good the moment a
  * route change starts — no re-arming on client-side navigation.
  */
 export function installPrefetchAudit(queryClient: QueryClient, router: Router): void {
+  const initialLocation = router.state.location
   const coveredHashes = new Set(
     queryClient
       .getQueryCache()
@@ -41,7 +42,13 @@ export function installPrefetchAudit(queryClient: QueryClient, router: Router): 
   const missed: string[] = []
 
   function flush() {
-    if (missed.length === 0) return
+    if (missed.length === 0) {
+      console.info(
+        `[prefetch-audit] route "${currentRouteName(router)}" (${router.state.location.pathname}): ` +
+          `all queries were covered by route prefetch`
+      )
+      return
+    }
     console.warn(
       `[prefetch-audit] route "${currentRouteName(router)}" (${router.state.location.pathname}): ` +
         `${missed.length} ${missed.length > 1 ? 'queries' : 'query'} fetched after page load, ` +
@@ -65,7 +72,17 @@ export function installPrefetchAudit(queryClient: QueryClient, router: Router): 
       closeTimer = undefined
     }
     unsubscribeCache()
+    unsubscribeRouter()
   }
+
+  const unsubscribeRouter = router.subscribe((state) => {
+    if (state.location !== initialLocation) {
+      console.info(
+        `[prefetch-audit] route "${currentRouteName(router)}" changed before settling — discarding`
+      )
+      disarm()
+    }
+  })
 
   closeTimer = setTimeout(() => {
     disarm()

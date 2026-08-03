@@ -38,7 +38,9 @@ function getRouter(queryClient: QueryClient): AppRouter {
     router = pinned
       ? UNSAFE_createRouter({ routes, history: pinned, hydrationData }).initialize()
       : createBrowserRouter(routes, { hydrationData })
-    installPrefetchAudit(queryClient, router)
+    if (import.meta.env.VITE_PREFETCH_AUDIT === true) {
+      installPrefetchAudit(queryClient, router)
+    }
   }
   return router
 }
