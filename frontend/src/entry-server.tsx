@@ -197,7 +197,21 @@ export async function render(url: string, headers: Record<string, string> = {}) 
       // The session travels to the client so its first render matches this markup exactly (and so
       // it can skip the boot-time /api/auth/refresh). server.js serialises it into a response that
       // is Cache-Control: no-store and Vary: Cookie — both are load-bearing, not cosmetic.
-      return { html, dehydratedState, auth: store.auth, statusCode, lang: locale, head }
+      //
+      // themePreference also lets server.js set data-mantine-color-scheme on <html> directly: a
+      // signed-in visitor's explicit LIGHT/DARK preference is already known here, so the page
+      // doesn't need to wait for index.html's pre-hydration script to derive it from
+      // localStorage/matchMedia (which know nothing about this visitor and briefly render the
+      // wrong scheme before React corrects it on hydration).
+      return {
+        html,
+        dehydratedState,
+        auth: store.auth,
+        statusCode,
+        lang: locale,
+        head,
+        themePreference,
+      }
     } catch (err) {
       console.error(`[SSR] render failed for ${url}:`, err)
       throw err

@@ -141,7 +141,7 @@ async function createServer() {
         return
       }
 
-      const { html: appHtml, dehydratedState, auth, lang, head } = result
+      const { html: appHtml, dehydratedState, auth, lang, head, themePreference } = result
 
       // Escape '<' to prevent XSS via </script> injection in inline JSON
       let stateScript = ''
@@ -183,6 +183,18 @@ async function createServer() {
       // Reflect the request-resolved language on the root <html> element.
       if (lang) {
         finalHtml = finalHtml.replace('<html lang="en">', `<html lang="${lang}">`)
+      }
+
+      // A signed-in visitor's explicit LIGHT/DARK theme is already known at render time — set it
+      // directly on <html> so it's there before index.html's pre-hydration script even runs, instead
+      // of that script deriving it from this browser's localStorage/matchMedia (which don't know
+      // this visitor and can briefly disagree with the SSR markup). 'auto' is left alone: that
+      // script's existing localStorage/matchMedia resolution is still correct for it.
+      if (themePreference === 'light' || themePreference === 'dark') {
+        finalHtml = finalHtml.replace(
+          /<html lang="([^"]*)">/,
+          `<html lang="$1" data-mantine-color-scheme="${themePreference}">`
+        )
       }
 
       res

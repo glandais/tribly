@@ -25,8 +25,13 @@
       resolved to the OS preference here (mirroring @mantine/core's ColorSchemeScript). Writing the
       literal "auto" leaves every --mantine-color-* variable undefined → a flash of light styling
       until MantineProvider re-resolves it on hydration.
+
+      server.js already sets this attribute on <html> for a signed-in visitor's explicit LIGHT/DARK
+      preference (resolved server-side, not from this browser's storage) — skip re-deriving it from
+      localStorage/matchMedia in that case, since those know nothing about that visitor and can
+      briefly disagree with the SSR markup.
     -->
-    <script>(function(){try{var s=localStorage.getItem('mantine-color-scheme-value')||'auto';if(s==='auto'){s=('matchMedia'in window&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-mantine-color-scheme',s);}catch(e){document.documentElement.setAttribute('data-mantine-color-scheme','light');}})();</script>
+    <script>(function(){try{if(document.documentElement.getAttribute('data-mantine-color-scheme'))return;var s=localStorage.getItem('mantine-color-scheme-value')||'auto';if(s==='auto'){s=('matchMedia'in window&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-mantine-color-scheme',s);}catch(e){document.documentElement.setAttribute('data-mantine-color-scheme','light');}})();</script>
   </head>
   <body>
     <div id="root"><!--ssr-outlet--></div>
