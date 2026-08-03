@@ -10,6 +10,7 @@ import {
   prefetchListTeamsQuery,
   prefetchGetTeamQuery,
   getListTeamsQueryKey,
+  getGetTeamQueryKey,
 } from '@/api/endpoints/teams/teams'
 import { prefetchListMyParticipationsQuery } from '@/api/endpoints/users/users'
 import { prefetchListMyInvitationsQuery } from '@/api/endpoints/invitations/invitations'
@@ -21,6 +22,12 @@ import { prefetchGetPageQuery } from '@/api/endpoints/team-pages/team-pages'
 import { prefetchGetAdQuery } from '@/api/endpoints/ads/ads'
 import { prefetchGetPreviewQuery } from '@/api/endpoints/gpx-previews/gpx-previews'
 import { prefetchListAllRoutesQuery, prefetchListRoutesQuery } from '@/api/endpoints/routes/routes'
+import { prefetchGetAvailableServicesQuery } from '@/api/endpoints/gps-services/gps-services'
+import {
+  listRouteComments,
+  getListRouteCommentsQueryKey,
+} from '@/api/endpoints/route-comments/route-comments'
+import { COMMENT_PAGE_SIZE } from '@/hooks/useComments'
 import {
   homeMeta,
   teamsMeta,
@@ -44,7 +51,13 @@ import {
   DEFAULT_ROUTE_SORT_DIR,
 } from '@/components/route/routeFilterDefaults'
 import { useAuthStore } from '@/store/authStore'
-import { MinRole, Status, type TeamListResponse } from '@/api/dto'
+import {
+  MinRole,
+  Status,
+  SortDirection,
+  type TeamListResponse,
+  type TeamDetailDto,
+} from '@/api/dto'
 import { hourAlignedNowIso } from '@/utils/nowIso'
 
 // Lazy load page components for code splitting
@@ -910,12 +923,37 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: 'routes',
     breadcrumb: { type: 'dynamic', entity: 'route' },
+    // Comments are member-only (RouteDetailPage's `isMember`, from the team's `role`) and GPS
+    // export options are authenticated-only — both resolved from data already being prefetched
+    // here, so this replicates the page's own gating instead of guessing.
     prefetch: async (queryClient, params) => {
+      const teamSlug = params.teamSlug!
+      const routeSlug = params.routeSlug!
       await Promise.all([
-        prefetchGetTeamQuery(queryClient, params.teamSlug!),
-        prefetchGetRouteQuery(queryClient, params.teamSlug!, params.routeSlug!),
-        prefetchGetRouteUsagesQuery(queryClient, params.teamSlug!, params.routeSlug!),
+        prefetchGetTeamQuery(queryClient, teamSlug),
+        prefetchGetRouteQuery(queryClient, teamSlug, routeSlug),
+        prefetchGetRouteUsagesQuery(queryClient, teamSlug, routeSlug),
+        useAuthStore.getState().isAuthenticated
+          ? prefetchGetAvailableServicesQuery(queryClient)
+          : Promise.resolve(queryClient),
       ])
+
+      const team = queryClient.getQueryData<TeamDetailDto>(getGetTeamQueryKey(teamSlug))
+      if (team?.role) {
+        await queryClient.prefetchInfiniteQuery({
+          queryKey: [
+            ...getListRouteCommentsQueryKey(teamSlug, routeSlug),
+            { size: COMMENT_PAGE_SIZE, sort: SortDirection.DESC },
+          ],
+          queryFn: ({ pageParam }: { pageParam: number }) =>
+            listRouteComments(teamSlug, routeSlug, {
+              page: pageParam,
+              size: COMMENT_PAGE_SIZE,
+              sort: SortDirection.DESC,
+            }),
+          initialPageParam: 0,
+        })
+      }
     },
     meta: routeMeta,
   },
