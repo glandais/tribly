@@ -10,19 +10,14 @@ import {
   prefetchListTeamsQuery,
   prefetchGetTeamQuery,
   getListTeamsQueryKey,
-  getGetTeamQueryKey,
 } from '@/api/endpoints/teams/teams'
 import { prefetchListMyParticipationsQuery } from '@/api/endpoints/users/users'
 import { prefetchGetEventsQuery } from '@/api/endpoints/calendar/calendar'
 import { PARTICIPATION_COUNT_PARAMS } from '@/components/profile/participationCountParams'
 import { getInitialCalendarRange } from '@/hooks/useCalendarDateRange'
 import { prefetchListMyInvitationsQuery } from '@/api/endpoints/invitations/invitations'
-import { prefetchGetRideQuery, getGetRideQueryKey } from '@/api/endpoints/rides/rides'
+import { prefetchGetRideQuery } from '@/api/endpoints/rides/rides'
 import { prefetchGetTripQuery, getGetTripQueryKey } from '@/api/endpoints/trips/trips'
-import {
-  listRideComments,
-  getListRideCommentsQueryKey,
-} from '@/api/endpoints/ride-comments/ride-comments'
 import {
   listTripComments,
   getListTripCommentsQueryKey,
@@ -32,12 +27,9 @@ import {
   listPostComments,
   getListPostCommentsQueryKey,
 } from '@/api/endpoints/post-comments/post-comments'
-import {
-  prefetchGetRouteQuery,
-  prefetchGetRouteUsagesQuery,
-  prefetchGetRoutesBulkQuery,
-} from '@/api/endpoints/routes/routes'
-import { ROUTES_BULK_MAX_SLUGS } from '@/hooks/useRoutesBulk'
+import { prefetchGetRouteQuery, prefetchGetRouteUsagesQuery } from '@/api/endpoints/routes/routes'
+import { prefetchMemberComments, prefetchRoutesBulkChunked } from './prefetchHelpers'
+import { prefetchRideDetail } from '@/pages/ride/rideDetailData'
 import { prefetchGetPageQuery, prefetchListPagesQuery } from '@/api/endpoints/team-pages/team-pages'
 import { prefetchListPlacesQuery } from '@/api/endpoints/places/places'
 import { prefetchGetMembersQuery } from '@/api/endpoints/team-members/team-members'
@@ -60,7 +52,6 @@ import {
   listRouteComments,
   getListRouteCommentsQueryKey,
 } from '@/api/endpoints/route-comments/route-comments'
-import { COMMENT_LIST_OPTIONS } from '@/hooks/useComments'
 import {
   homeMeta,
   teamsMeta,
@@ -95,64 +86,10 @@ import {
 import { adFiltersSchema, adFiltersAlias, adApiParams } from '@/hooks/filters/adFilters'
 import { membershipToMinRole, type MembershipFilterValue } from '@/hooks/filters/membership'
 import { useAuthStore } from '@/store/authStore'
-import {
-  MinRole,
-  SortDirection,
-  type TeamListResponse,
-  type TeamDetailDto,
-  type TripDto,
-  type RideDto,
-  type GetRoutesBulkParams,
-} from '@/api/dto'
+import { MinRole, type TeamListResponse, type TripDto } from '@/api/dto'
 import { hourAlignedNowIso } from '@/utils/nowIso'
 import { NEXT_RIDE_PARAMS } from '@/pages/home/nextRideParams'
 import type { QueryClient } from '@tanstack/react-query'
-
-/**
- * Comments are member-only on rides/trips/posts/routes (each detail page's own `isMember`, from
- * the team's `role`) — resolved from the team query prefetched just before calling this, same
- * shape `useComments` builds. Skipped entirely for a non-member, matching what the page renders.
- */
-async function prefetchMemberComments(
-  queryClient: QueryClient,
-  teamSlug: string,
-  entitySlug: string,
-  listComments: (
-    teamSlug: string,
-    entitySlug: string,
-    params: { page: number; size: number; sort: SortDirection }
-  ) => Promise<unknown>,
-  getQueryKey: (teamSlug: string, entitySlug: string) => readonly unknown[]
-) {
-  const team = queryClient.getQueryData<TeamDetailDto>(getGetTeamQueryKey(teamSlug))
-  if (!team?.role) return
-
-  await queryClient.prefetchInfiniteQuery({
-    queryKey: [...getQueryKey(teamSlug, entitySlug), COMMENT_LIST_OPTIONS],
-    queryFn: ({ pageParam }: { pageParam: number }) =>
-      listComments(teamSlug, entitySlug, { page: pageParam, ...COMMENT_LIST_OPTIONS }),
-    initialPageParam: 0,
-  })
-}
-
-/** Mirrors `useRoutesBulk`'s own chunking against `ROUTES_BULK_MAX_SLUGS` so the query keys match. */
-async function prefetchRoutesBulkChunked(
-  queryClient: QueryClient,
-  teamSlug: string,
-  slugs: string[],
-  params?: Omit<GetRoutesBulkParams, 'slug'>
-) {
-  const dedupedSlugs = Array.from(new Set(slugs)).sort()
-  if (dedupedSlugs.length === 0) return
-
-  await Promise.all(
-    Array.from({ length: Math.ceil(dedupedSlugs.length / ROUTES_BULK_MAX_SLUGS) }, (_, i) =>
-      dedupedSlugs.slice(i * ROUTES_BULK_MAX_SLUGS, (i + 1) * ROUTES_BULK_MAX_SLUGS)
-    ).map((slugChunk) =>
-      prefetchGetRoutesBulkQuery(queryClient, teamSlug, { ...params, slug: slugChunk })
-    )
-  )
-}
 
 /**
  * `RoutesMapView` on the trip page loads every stage's route via `useRoutesBulk`, keyed off the
@@ -171,25 +108,6 @@ async function prefetchTripRoutesBulk(
   const slugs = trip.routeSlug
     ? [trip.routeSlug]
     : (trip.stages ?? []).flatMap((stage) => (stage.route?.slug ? [stage.route.slug] : []))
-  await prefetchRoutesBulkChunked(queryClient, teamSlug, slugs)
-}
-
-/**
- * RideDetailPage's own `useRoutesBulk` (group asset links) and `RoutesMapView`'s (the map) share
- * this exact slug set and params — the ride's own `routeSlug` plus every group's (falling back to
- * the ride's route when a group has none) — so a single prefetch covers both call sites' cache.
- */
-async function prefetchRideRoutesBulk(
-  queryClient: QueryClient,
-  teamSlug: string,
-  rideSlug: string
-) {
-  const ride = queryClient.getQueryData<RideDto>(getGetRideQueryKey(teamSlug, rideSlug))
-  if (!ride) return
-
-  const slugs = (ride.groups ?? [])
-    .map((g) => g.routeSlug || ride.routeSlug)
-    .filter((s): s is string => !!s)
   await prefetchRoutesBulkChunked(queryClient, teamSlug, slugs)
 }
 
@@ -950,27 +868,8 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: 'team-detail',
     breadcrumb: { type: 'dynamic', entity: 'ride' },
-    prefetch: async (queryClient, params) => {
-      const teamSlug = params.teamSlug!
-      const rideSlug = params.rideSlug!
-      await Promise.all([
-        prefetchGetTeamQuery(queryClient, teamSlug),
-        prefetchGetRideQuery(queryClient, teamSlug, rideSlug),
-      ])
-      await Promise.all([
-        prefetchMemberComments(
-          queryClient,
-          teamSlug,
-          rideSlug,
-          listRideComments,
-          getListRideCommentsQueryKey
-        ),
-        prefetchRideRoutesBulk(queryClient, teamSlug, rideSlug),
-        useAuthStore.getState().isAuthenticated
-          ? prefetchGetAvailableServicesQuery(queryClient)
-          : Promise.resolve(queryClient),
-      ])
-    },
+    prefetch: (queryClient, params) =>
+      prefetchRideDetail(queryClient, params.teamSlug!, params.rideSlug!),
     meta: rideMeta,
   },
   {

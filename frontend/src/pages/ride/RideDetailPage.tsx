@@ -29,9 +29,7 @@ import {
   Skeleton,
   Loader,
 } from '@mantine/core'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
-  useGetRide,
   useUpdateRide,
   useDeleteRide,
   useUndeleteRide,
@@ -40,9 +38,9 @@ import {
   getGetRideQueryKey,
 } from '../../api/endpoints/rides/rides'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
-import { useRoutesBulk } from '@/hooks/useRoutesBulk'
+import { useRideDetailData } from './rideDetailData'
 import { Status } from '@/api/dto'
-import type { RideDto, RouteDetailDto } from '@/api/dto'
+import type { RideDto } from '@/api/dto'
 import { ApiClientError } from '@/lib/apiError'
 import { useAuth } from '../../hooks/useAuth'
 import { EmptyState } from '../../components/common/EmptyState'
@@ -87,17 +85,11 @@ export function RideDetailPage() {
   const [showUncancelConfirm, setShowUncancelConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
-  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
   const {
-    data: ride,
-    isLoading: isLoadingRide,
-    error,
-    refetch,
-  } = useGetRide(teamSlug!, rideSlug!, {
-    query: { enabled: !!teamSlug && !!rideSlug },
-  })
+    team: { data: team, isLoading: isLoadingTeam },
+    ride: { data: ride, isLoading: isLoadingRide, error, refetch },
+    routesBySlug: groupRoutesBySlug,
+  } = useRideDetailData(teamSlug, rideSlug)
 
   const queryClient = useQueryClient()
   const navigate = useNavigate()
@@ -129,32 +121,6 @@ export function RideDetailPage() {
 
     return items
   }, [ride, t])
-
-  // One bulk request for every group's (or the ride's) route, instead of each `RideGroupCard`
-  // fetching its own on first hover — groups frequently share the ride's route. The key string
-  // is memoized on the slugs' own values so the request stays stable across unrelated renders.
-  const groupRouteSlugsKey = (ride?.groups ?? [])
-    .map((g) => g.routeSlug || ride?.routeSlug)
-    .filter((s): s is string => !!s)
-    .sort()
-    .join(',')
-  const groupRouteSlugs = useMemo(
-    () => (groupRouteSlugsKey ? Array.from(new Set(groupRouteSlugsKey.split(','))) : []),
-    [groupRouteSlugsKey]
-  )
-  // No `geometry: false` here: RoutesMapView (rendered alongside, on the same non-empty
-  // `mapItems` condition) fetches this exact slug set with full geometry anyway, so asking for
-  // metadata only would just add a second, redundant request instead of sharing its cache entry.
-  const { data: groupRoutesBulk } = useRoutesBulk(teamSlug!, {
-    slug: groupRouteSlugs,
-  })
-  const groupRoutesBySlug = useMemo(() => {
-    const map = new Map<string, RouteDetailDto>()
-    for (const route of groupRoutesBulk?.routes ?? []) {
-      map.set(route.slug, route)
-    }
-    return map
-  }, [groupRoutesBulk])
 
   useCanonicalPath(team && ride ? paths.ride(team.slug, ride.slug) : undefined)
 
