@@ -28,9 +28,11 @@ import {
 import { useAuthStore } from '@/store/authStore'
 import { ConfirmDialog } from '../common/ConfirmDialog'
 import { useEffect } from 'react'
+import { useFormattedDate } from '@/utils/dateFormat'
 
 export function PasskeyManager() {
   const { t } = useTranslation()
+  const { formatDate } = useFormattedDate()
   const queryClient = useQueryClient()
   const setHasPasskeys = useAuthStore((state) => state.setHasPasskeys)
 
@@ -145,7 +147,7 @@ export function PasskeyManager() {
                     <Text size="xs" c="dimmed">
                       {t('passkeys.lastUsed', {
                         date: passkey.lastUsedAt
-                          ? new Date(passkey.lastUsedAt).toLocaleDateString()
+                          ? formatDate(passkey.lastUsedAt)
                           : t('passkeys.never'),
                       })}
                     </Text>

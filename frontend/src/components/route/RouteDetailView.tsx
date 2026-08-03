@@ -12,6 +12,7 @@ import { RouteMapView } from './RouteMapView'
 import { useUnits } from '@/hooks/useUnits'
 import { useGpsConnections } from '@/hooks/useGpsConnections'
 import { useAuth } from '@/hooks/useAuth'
+import { FormattedDate } from '@/components/common/FormattedDate'
 
 interface RouteDetailViewProps {
   route: RouteDetailDto
@@ -181,7 +182,7 @@ export function RouteDetailView({
             )}
           </Badge>
           <Text size="sm" c="dimmed">
-            {t('routes.detail.info.createdAt')}: {new Date(route.createdAt).toLocaleDateString()}
+            {t('routes.detail.info.createdAt')}: <FormattedDate date={route.createdAt} />
           </Text>
         </Group>
       )}

@@ -7,10 +7,11 @@ import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamLayout } from '../../components/team/TeamLayout'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
+import { FormattedDate } from '../../components/common/FormattedDate'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
 export function TeamAboutPage() {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const { teamSlug } = useParams<{ teamSlug: string }>()
 
   const { data: team, isLoading } = useGetTeam(teamSlug!, {
@@ -105,11 +106,7 @@ export function TeamAboutPage() {
                       {t('teams.detail.about.created')}
                     </Text>
                     <Text size="lg" fw={500}>
-                      {new Date(team.createdAt).toLocaleDateString(i18n.language, {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                      })}
+                      <FormattedDate date={team.createdAt} />
                     </Text>
                   </Stack>
                 </Group>

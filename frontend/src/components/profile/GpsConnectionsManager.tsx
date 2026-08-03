@@ -15,6 +15,7 @@ import { IconLink, IconUnlink, IconDevices } from '@tabler/icons-react'
 import { useGpsConnections } from '@/hooks/useGpsConnections'
 import { ConfirmDialog } from '../common/ConfirmDialog'
 import type { GpsServiceType } from '@/api/dto'
+import { useFormattedDate } from '@/utils/dateFormat'
 
 // All known GPS services with their icons
 const GPS_SERVICE_ICONS: Record<GpsServiceType, React.ReactNode> = {
@@ -25,6 +26,7 @@ const GPS_SERVICE_ICONS: Record<GpsServiceType, React.ReactNode> = {
 
 export function GpsConnectionsManager() {
   const { t } = useTranslation()
+  const { formatDate } = useFormattedDate()
   const {
     availableServices,
     isLoadingAvailable,
@@ -89,7 +91,7 @@ export function GpsConnectionsManager() {
                       {connected && connection && (
                         <Text size="xs" c="dimmed">
                           {t('gps.connectedSince', {
-                            date: new Date(connection.connectedAt).toLocaleDateString(),
+                            date: formatDate(connection.connectedAt),
                           })}
                         </Text>
                       )}
