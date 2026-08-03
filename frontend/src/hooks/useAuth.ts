@@ -2,8 +2,10 @@ import { useCallback, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
+import { useMantineColorScheme } from '@mantine/core'
 import { useAuthStore } from '../store/authStore'
 import { usePreferencesStore, hydrateAnonymousPreferences } from '../store/preferencesStore'
+import { mapThemePreference } from '../lib/theme'
 import {
   useGetMe,
   useUpdateMe,
@@ -50,6 +52,7 @@ export function useAuth() {
 
   // Sync preferences from server
   const syncFromServer = usePreferencesStore((state) => state.syncFromServer)
+  const { colorScheme, setColorScheme } = useMantineColorScheme()
 
   // Update store when backend user is fetched
   useEffect(() => {
@@ -57,7 +60,21 @@ export function useAuth() {
       setUser(backendUser)
       setLoading(false)
       syncFromServer(backendUser.unitSystem)
+
+      // Reconciles a page that rendered anonymously (e.g. an expired access token) and turned out
+      // to be an authenticated visitor once /api/auth/refresh + /me resolved — the same role
+      // syncFromServer plays for unitSystem above. A page already rendered with the right value
+      // (the common case: SSR/module-load already derived it from the session) is a same-value
+      // no-op here.
+      const serverColorScheme = mapThemePreference(backendUser.theme)
+      if (serverColorScheme !== colorScheme) {
+        setColorScheme(serverColorScheme)
+      }
+      if (backendUser.language && backendUser.language !== i18next.language) {
+        void i18next.changeLanguage(backendUser.language)
+      }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [backendUser, setUser, setLoading, syncFromServer])
 
   const updateProfileMutation = useUpdateMe({

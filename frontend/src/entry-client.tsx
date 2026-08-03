@@ -11,6 +11,7 @@ import i18n, { i18nReady } from './i18n'
 import type { ConfigDto } from './api/dto'
 import { hydrateAuthFromSSR } from './store/authStore'
 import type { SsrAuthSnapshot } from './lib/requestContext'
+import { mapThemePreference } from './lib/theme'
 import './index.css'
 
 declare global {
@@ -22,6 +23,16 @@ declare global {
     __staticRouterHydrationData?: HydrationState
   }
 }
+
+/**
+ * Mirrors preferencesStore.ts's `initialUnitSystem`: `window.__AUTH_STATE__` is set by an inline
+ * script that runs before this module, so an authenticated visitor's theme is already known here,
+ * synchronously, letting the first client render match the server markup. Anonymous visitors keep
+ * `'auto'` — the existing localStorage/prefers-color-scheme resolution is unaffected.
+ */
+const initialColorScheme = window.__AUTH_STATE__?.user
+  ? mapThemePreference(window.__AUTH_STATE__.user.theme)
+  : 'auto'
 
 async function bootstrap() {
   // The initial client render must match the server markup, so i18n has to be ready first.
@@ -64,7 +75,7 @@ async function bootstrap() {
 
   const app = (
     <StrictMode>
-      <AppProviders i18n={i18n} queryClient={queryClient}>
+      <AppProviders i18n={i18n} queryClient={queryClient} defaultColorScheme={initialColorScheme}>
         <App queryClient={queryClient} />
       </AppProviders>
     </StrictMode>

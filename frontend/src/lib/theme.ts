@@ -1,4 +1,12 @@
-import { createTheme, virtualColor } from '@mantine/core'
+import { createTheme, virtualColor, type MantineColorScheme } from '@mantine/core'
+import type { ThemePreference } from '@/api/dto'
+
+/** Maps the backend's `ThemePreference` (SYSTEM/LIGHT/DARK) to Mantine's own scheme type. */
+export function mapThemePreference(theme: ThemePreference | null | undefined): MantineColorScheme {
+  if (theme === 'LIGHT') return 'light'
+  if (theme === 'DARK') return 'dark'
+  return 'auto'
+}
 
 export const theme = createTheme({
   primaryColor: 'primary',

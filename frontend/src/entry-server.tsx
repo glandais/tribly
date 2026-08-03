@@ -25,29 +25,35 @@ import { toRouter, toBrowser } from './config/pinnedHistory'
 import type { Locale } from './config/paths'
 import { buildMetaTags, type RouteMeta, type RouteMetaContext, type RouteMetaFn } from './lib/seo'
 import type { RouteParams } from './config/routes.types'
+import { mapThemePreference } from './lib/theme'
 
 // Bridge the SSR per-request store (AsyncLocalStorage) to the client-safe getter used by
 // axiosInstance / appConfig / locale-context. Called once at module load.
 setStoreGetter(() => requestContext.getStore())
 
 export async function render(url: string, headers: Record<string, string> = {}) {
-  // Resolve the request locale from Accept-Language (first token, language part only).
+  // Resolve the request locale from Accept-Language (first token, language part only). This is
+  // only the fallback: an authenticated visitor's stored `language` preference (resolved below,
+  // once the session is known) takes priority over it.
   const acceptLanguage = headers['accept-language'] || 'fr'
   const requestedLang = acceptLanguage.split(',')[0].split('-')[0].toLowerCase() || 'fr'
-  const locale: Locale = (supportedLanguages as readonly string[]).includes(requestedLang)
+  const headerLocale: Locale = (supportedLanguages as readonly string[]).includes(requestedLang)
     ? (requestedLang as Locale)
     : 'fr'
-  if (locale !== requestedLang) {
+  if (headerLocale !== requestedLang) {
     console.warn(`[SSR] Unsupported language "${requestedLang}", falling back to "fr"`)
   }
 
-  const store: SsrRequestStore = { headers, locale, config: undefined, auth: undefined }
+  const store: SsrRequestStore = {
+    headers,
+    locale: headerLocale,
+    config: undefined,
+    auth: undefined,
+  }
 
   return requestContext.run(store, async () => {
     const queryClient = makeQueryClient({ isServer: true })
     try {
-      const i18nInstance = await createServerI18n(locale)
-
       // Three independent lookups, run concurrently so the session costs no extra serial round-trip:
       //
       // - the per-request config, tenant-resolved from the forwarded headers. It must land in the
@@ -85,11 +91,26 @@ export async function render(url: string, headers: Record<string, string> = {}) 
         hasPasskeys: false,
       }
 
+      // Prefer the signed-in visitor's stored language over Accept-Language, now that the session
+      // is known. store.locale is read live by getSSRLocale() (locale-context.ts), so mutating it
+      // here — before routing/rendering start — is enough; nothing has consumed it yet.
+      const userLanguage = session?.user?.language
+      const locale: Locale =
+        userLanguage && (supportedLanguages as readonly string[]).includes(userLanguage)
+          ? (userLanguage as Locale)
+          : headerLocale
+      store.locale = locale
+      const i18nInstance = await createServerI18n(locale)
+
       // /api/auth/refresh already returned the user, so seed the /me cache with it rather than
       // letting useAuth() fetch the same record again right after hydration.
       if (session?.user) {
         queryClient.setQueryData(getGetMeQueryKey(), session.user)
       }
+
+      // The signed-in visitor's stored theme, so the very first render (server and client) already
+      // matches it instead of the anonymous 'auto' default — see AppProviders.tsx.
+      const themePreference = mapThemePreference(store.auth.user?.theme)
 
       const routes = buildRoutes(queryClient)
       const handler = createStaticHandler(routes)
@@ -159,7 +180,11 @@ export async function render(url: string, headers: Record<string, string> = {}) 
 
       const html = await renderAppToString(
         <React.StrictMode>
-          <AppProviders i18n={i18nInstance} queryClient={queryClient}>
+          <AppProviders
+            i18n={i18nInstance}
+            queryClient={queryClient}
+            defaultColorScheme={themePreference}
+          >
             <AppFrame>
               <StaticRouterProvider router={router} context={context} />
             </AppFrame>
