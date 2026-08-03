@@ -919,12 +919,26 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: 'trip-detail',
     breadcrumb: { type: 'dynamic', entity: 'stage' },
-    // StageDetailPage reads the team and the parent trip; the stage's route is derived from trip
-    // data (unknown slug at prefetch time), so it is left to client-side fetching.
+    // StageDetailPage reads the team and the parent trip, then looks up the stage by
+    // `stageSlug` within the trip's own stages to find its route — same lookup here, once the
+    // trip is in cache. GPS export options are authenticated-only, resolved the same way as
+    // route-detail's own prefetch above.
     prefetch: async (queryClient, params) => {
+      const teamSlug = params.teamSlug!
+      const tripSlug = params.tripSlug!
       await Promise.all([
-        prefetchGetTeamQuery(queryClient, params.teamSlug!),
-        prefetchGetTripQuery(queryClient, params.teamSlug!, params.tripSlug!),
+        prefetchGetTeamQuery(queryClient, teamSlug),
+        prefetchGetTripQuery(queryClient, teamSlug, tripSlug),
+      ])
+      const trip = queryClient.getQueryData<TripDto>(getGetTripQueryKey(teamSlug, tripSlug))
+      const routeSlug = trip?.stages?.find((s) => s.slug === params.stageSlug)?.route?.slug
+      await Promise.all([
+        routeSlug
+          ? prefetchGetRouteQuery(queryClient, teamSlug, routeSlug)
+          : Promise.resolve(queryClient),
+        useAuthStore.getState().isAuthenticated
+          ? prefetchGetAvailableServicesQuery(queryClient)
+          : Promise.resolve(queryClient),
       ])
     },
     meta: stageMeta,
