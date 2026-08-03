@@ -142,11 +142,11 @@ export function RideDetailPage() {
     () => (groupRouteSlugsKey ? Array.from(new Set(groupRouteSlugsKey.split(','))) : []),
     [groupRouteSlugsKey]
   )
+  // No `geometry: false` here: RoutesMapView (rendered alongside, on the same non-empty
+  // `mapItems` condition) fetches this exact slug set with full geometry anyway, so asking for
+  // metadata only would just add a second, redundant request instead of sharing its cache entry.
   const { data: groupRoutesBulk } = useRoutesBulk(teamSlug!, {
-    // Only the GPX/FIT asset links are used — ask for no geometry at all rather than
-    // downloading each group's track to throw it away.
     slug: groupRouteSlugs,
-    geometry: false,
   })
   const groupRoutesBySlug = useMemo(() => {
     const map = new Map<string, RouteDetailDto>()

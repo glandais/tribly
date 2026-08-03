@@ -14,7 +14,7 @@ import {
 } from '@/api/endpoints/teams/teams'
 import { prefetchListMyParticipationsQuery } from '@/api/endpoints/users/users'
 import { prefetchListMyInvitationsQuery } from '@/api/endpoints/invitations/invitations'
-import { prefetchGetRideQuery } from '@/api/endpoints/rides/rides'
+import { prefetchGetRideQuery, getGetRideQueryKey } from '@/api/endpoints/rides/rides'
 import { prefetchGetTripQuery, getGetTripQueryKey } from '@/api/endpoints/trips/trips'
 import {
   listRideComments,
@@ -81,6 +81,8 @@ import {
   type TeamListResponse,
   type TeamDetailDto,
   type TripDto,
+  type RideDto,
+  type GetRoutesBulkParams,
 } from '@/api/dto'
 import { hourAlignedNowIso } from '@/utils/nowIso'
 import type { QueryClient } from '@tanstack/react-query'
@@ -119,11 +121,30 @@ async function prefetchMemberComments(
   })
 }
 
+/** Mirrors `useRoutesBulk`'s own chunking against `ROUTES_BULK_MAX_SLUGS` so the query keys match. */
+async function prefetchRoutesBulkChunked(
+  queryClient: QueryClient,
+  teamSlug: string,
+  slugs: string[],
+  params?: Omit<GetRoutesBulkParams, 'slug'>
+) {
+  const dedupedSlugs = Array.from(new Set(slugs)).sort()
+  if (dedupedSlugs.length === 0) return
+
+  await Promise.all(
+    Array.from({ length: Math.ceil(dedupedSlugs.length / ROUTES_BULK_MAX_SLUGS) }, (_, i) =>
+      dedupedSlugs.slice(i * ROUTES_BULK_MAX_SLUGS, (i + 1) * ROUTES_BULK_MAX_SLUGS)
+    ).map((slugChunk) =>
+      prefetchGetRoutesBulkQuery(queryClient, teamSlug, { ...params, slug: slugChunk })
+    )
+  )
+}
+
 /**
  * `RoutesMapView` on the trip page loads every stage's route via `useRoutesBulk`, keyed off the
  * trip's own `routeSlug` (single-stage trips) or its stages' route slugs — data already sitting in
- * the trip query just prefetched above. Mirrors `useRoutesBulk`'s dedup/sort/chunk exactly so the
- * query key matches.
+ * the trip query just prefetched above. Mirrors `useRoutesBulk`'s dedup/sort exactly so the query
+ * key matches.
  */
 async function prefetchTripRoutesBulk(
   queryClient: QueryClient,
@@ -136,14 +157,26 @@ async function prefetchTripRoutesBulk(
   const slugs = trip.routeSlug
     ? [trip.routeSlug]
     : (trip.stages ?? []).flatMap((stage) => (stage.route?.slug ? [stage.route.slug] : []))
-  const dedupedSlugs = Array.from(new Set(slugs)).sort()
-  if (dedupedSlugs.length === 0) return
+  await prefetchRoutesBulkChunked(queryClient, teamSlug, slugs)
+}
 
-  await Promise.all(
-    Array.from({ length: Math.ceil(dedupedSlugs.length / ROUTES_BULK_MAX_SLUGS) }, (_, i) =>
-      dedupedSlugs.slice(i * ROUTES_BULK_MAX_SLUGS, (i + 1) * ROUTES_BULK_MAX_SLUGS)
-    ).map((slugChunk) => prefetchGetRoutesBulkQuery(queryClient, teamSlug, { slug: slugChunk }))
-  )
+/**
+ * RideDetailPage's own `useRoutesBulk` (group asset links) and `RoutesMapView`'s (the map) share
+ * this exact slug set and params — the ride's own `routeSlug` plus every group's (falling back to
+ * the ride's route when a group has none) — so a single prefetch covers both call sites' cache.
+ */
+async function prefetchRideRoutesBulk(
+  queryClient: QueryClient,
+  teamSlug: string,
+  rideSlug: string
+) {
+  const ride = queryClient.getQueryData<RideDto>(getGetRideQueryKey(teamSlug, rideSlug))
+  if (!ride) return
+
+  const slugs = (ride.groups ?? [])
+    .map((g) => g.routeSlug || ride.routeSlug)
+    .filter((s): s is string => !!s)
+  await prefetchRoutesBulkChunked(queryClient, teamSlug, slugs)
 }
 
 /**
@@ -835,13 +868,19 @@ export const routesConfig: RoutesConfig = [
         prefetchGetTeamQuery(queryClient, teamSlug),
         prefetchGetRideQuery(queryClient, teamSlug, rideSlug),
       ])
-      await prefetchMemberComments(
-        queryClient,
-        teamSlug,
-        rideSlug,
-        listRideComments,
-        getListRideCommentsQueryKey
-      )
+      await Promise.all([
+        prefetchMemberComments(
+          queryClient,
+          teamSlug,
+          rideSlug,
+          listRideComments,
+          getListRideCommentsQueryKey
+        ),
+        prefetchRideRoutesBulk(queryClient, teamSlug, rideSlug),
+        useAuthStore.getState().isAuthenticated
+          ? prefetchGetAvailableServicesQuery(queryClient)
+          : Promise.resolve(queryClient),
+      ])
     },
     meta: rideMeta,
   },
