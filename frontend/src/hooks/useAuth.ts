@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { useAuthStore } from '../store/authStore'
-import { usePreferencesStore } from '../store/preferencesStore'
+import { usePreferencesStore, hydrateAnonymousPreferences } from '../store/preferencesStore'
 import {
   useGetMe,
   useUpdateMe,
@@ -34,6 +34,9 @@ export function useAuth() {
   // Initialize auth state on mount
   useEffect(() => {
     initialize()
+    // Only affects an anonymously-rendered visitor with a locally-stored preference — a no-op
+    // otherwise. See preferencesStore.ts for why this can't run at module load instead.
+    hydrateAnonymousPreferences()
   }, [initialize])
 
   // Fetch current user from backend when authenticated
