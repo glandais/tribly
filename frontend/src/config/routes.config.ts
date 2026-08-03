@@ -20,6 +20,7 @@ import { prefetchGetRouteQuery } from '@/api/endpoints/routes/routes'
 import { prefetchGetPageQuery } from '@/api/endpoints/team-pages/team-pages'
 import { prefetchGetAdQuery } from '@/api/endpoints/ads/ads'
 import { prefetchGetPreviewQuery } from '@/api/endpoints/gpx-previews/gpx-previews'
+import { prefetchListAllRoutesQuery } from '@/api/endpoints/routes/routes'
 import {
   homeMeta,
   teamsMeta,
@@ -37,6 +38,11 @@ import {
 } from './routeMeta'
 import { PUBLICATION_PAGE_SIZE } from '@/hooks/filters/publicationFilters'
 import { TEAM_PAGE_SIZE } from '@/hooks/filters/teamFilters'
+import { ROUTE_PAGE_SIZE } from '@/hooks/filters/routeFilters'
+import {
+  DEFAULT_ROUTE_SORT_BY,
+  DEFAULT_ROUTE_SORT_DIR,
+} from '@/components/route/routeFilterDefaults'
 import { useAuthStore } from '@/store/authStore'
 import { MinRole, Status, type TeamListResponse } from '@/api/dto'
 import { hourAlignedNowIso } from '@/utils/nowIso'
@@ -304,6 +310,30 @@ export const routesConfig: RoutesConfig = [
     parentId: null,
     navGroup: 'home',
     breadcrumb: { type: 'static', i18nKey: tRegister('nav.routes') },
+    // Matches AllRoutesPage's initial useListAllRoutes key when no URL filters are set. Signed
+    // in, the list's `minRole` depends on team membership (see useMembershipDefault) —
+    // replicated here so the resolved variant, not a guess, lands in the cache (same pattern as
+    // the `home` and `teams` routes).
+    prefetch: async (queryClient) => {
+      let minRole: MinRole | undefined
+      if (useAuthStore.getState().isAuthenticated) {
+        const membershipParams = { minRole: MinRole.MEMBER, page: 0, size: 1 }
+        await prefetchListTeamsQuery(queryClient, membershipParams)
+        const teams = queryClient.getQueryData<TeamListResponse>(
+          getListTeamsQueryKey(membershipParams)
+        )
+        minRole = teams && teams.total > 0 ? MinRole.MEMBER : undefined
+      }
+      const routeParams = {
+        minRole,
+        sortBy: DEFAULT_ROUTE_SORT_BY,
+        sortDir: DEFAULT_ROUTE_SORT_DIR,
+        size: ROUTE_PAGE_SIZE,
+        view: 'COMPACT' as const,
+      }
+      await prefetchListAllRoutesQuery(queryClient, { ...routeParams, page: 0 })
+      await prefetchListAllRoutesQuery(queryClient, { ...routeParams, page: 1 })
+    },
   },
   {
     id: 'all-routes-map',
