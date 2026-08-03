@@ -99,7 +99,27 @@ Still fetched after paint on these routes, and left alone on purpose: `tripNew`/
 modal is closed — gating it on `isOpen` removes the request outright, which beats prefetching a
 list most visitors never open. Worth doing, but it's a component fix, not a prefetch one.
 
-### 2. `TeamCalendarPage` repeats the unstable-date pattern
+### 2. Filtered URLs server-rendered an empty list — *fixed, verified*
+
+`makeLoader` had the request in hand but passed only the path params to `prefetch`, so every list
+route prefetched its **default** variant whatever the URL asked for. A link carrying filters —
+the one thing URL filters exist for — rendered with no content at all:
+
+```
+/equipes/n-peloton/parcours       12 cards in the HTML
+/equipes/n-peloton/parcours?p=5    0        (now 12)
+/equipes/n-peloton/parcours?q=ride 0        (now 12)
+```
+
+…and shipped a dehydrated cache entry the page never read. `prefetch` now takes the URL and each
+list route resolves its filters from it (`readUrlFilters`), prefetching the page window
+`usePaginatedQuery` reads. Verified with the crawler on nine filtered URLs across `home`, `teams`,
+`routes`, `allRoutes`, `allRoutesMap`: all `covered`.
+
+The one that stays `gaps` is `ads?p=1`, for the unrelated reason in entry 8 — the endpoint answers
+401 to an anonymous SSR request, so nothing gets cached to begin with.
+
+### 3. `TeamCalendarPage` repeats the unstable-date pattern
 
 `teamCalendar` fetches `/api/teams/{slug}`, `calendar/events` **and** `calendar/token` after paint,
 with the same `from`/`to` window `CalendarPage` had. It escaped the earlier fix only because the
@@ -110,13 +130,13 @@ Two of its checks show `from: …T18:00:00Z` and `…T19:00:00Z` for different u
 boundary crossed mid-run, i.e. the documented once-an-hour miss of `hourAlignedNow()`, not a
 defect.
 
-### 3. Fullscreen map pages have no `prefetch`
+### 4. Fullscreen map pages have no `prefetch`
 
 `stageMap` (team + trip + the stage's route) and `routesMap` (team + `routes/bounds`) fetch
 everything client-side, while their non-map siblings `stage` and `routesMap`'s parent are clean.
 Public routes, unlike the two entries above.
 
-### 4. Routes with no `prefetch` at all
+### 5. Routes with no `prefetch` at all
 
 Each of these refetches on the client what SSR could have embedded:
 
@@ -140,7 +160,7 @@ in the browser, so no prefetch could ever have matched them. Both now derive the
 paged queries fire only when a section is opened, and FullCalendar re-queries its visible grid,
 a range that depends on the viewport and can't be computed server-side.
 
-### 5. `CalendarView` formats event times outside `useFormattedDate` — text mismatch on `/calendar`
+### 6. `CalendarView` formats event times outside `useFormattedDate` — text mismatch on `/calendar`
 
 React #418 with `args[]=text` (a text-content mismatch) on `/calendar`, for `user1` only.
 
@@ -155,7 +175,7 @@ Only `user1` trips it because only `user1` has events on the first paint — the
 empty calendar and so have no time text to disagree about. That's the general shape of this class
 of bug: it shows up only for the account whose data reaches the failing branch.
 
-### 6. `/platform/*` has no `prefetch` at all
+### 7. `/platform/*` has no `prefetch` at all
 
 Newly reachable now that `admin` logs in — five routes, every one of them fetching after paint:
 
@@ -170,7 +190,7 @@ Newly reachable now that `admin` logs in — five routes, every one of them fetc
 Lowest priority of the three: these are internal screens with a handful of users, and SEO doesn't
 apply. Listed so the inventory is honest, not because it's urgent.
 
-### 7. Ads are declared public but the API requires membership
+### 8. Ads are declared public but the API requires membership
 
 `ads` and `ad-detail` are `auth: 'public'` in `routes.config.ts`, yet an anonymous visitor takes
 6 × 401 on `/teams/{slug}/classifieds` and 3 × 401 on the detail. The knock-on effect is the one

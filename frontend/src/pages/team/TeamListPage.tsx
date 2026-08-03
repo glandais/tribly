@@ -15,8 +15,9 @@ import {
   makeTeamFiltersSchema,
   teamFiltersAlias,
   teamFiltersAlwaysSerialize,
+  teamApiParams,
 } from '../../hooks/filters/teamFilters'
-import { membershipToMinRole, type MembershipFilterValue } from '../../hooks/filters/membership'
+import type { MembershipFilterValue } from '../../hooks/filters/membership'
 import { TeamCard, TeamCardSkeleton } from '../../components/card'
 import { EmptyState } from '../../components/common/EmptyState'
 import { Pagination } from '../../components/common/Pagination'
@@ -44,15 +45,7 @@ export function TeamListPage() {
   const [search, setSearch] = useDebouncedSearch(filters.search ?? '', commitSearch)
   const { listTopRef, scrollToListTop } = useScrollToListTop()
 
-  const apiParams = useMemo(
-    () => ({
-      search: filters.search,
-      page: filters.page,
-      size: filters.size,
-      minRole: membershipToMinRole[filters.membership],
-    }),
-    [filters]
-  )
+  const apiParams = useMemo(() => teamApiParams(filters), [filters])
 
   const { data: teamsData, isLoading, error } = useListTeams(apiParams)
 

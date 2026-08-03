@@ -76,15 +76,24 @@ import {
   gpxPreviewMeta,
   appsMeta,
 } from './routeMeta'
-import { defaultPublicationApiParams } from '@/hooks/filters/publicationFilters'
-import { TEAM_PAGE_SIZE } from '@/hooks/filters/teamFilters'
-import { ROUTE_PAGE_SIZE } from '@/hooks/filters/routeFilters'
-import { AD_PAGE_SIZE } from '@/hooks/filters/adFilters'
 import {
-  DEFAULT_ROUTE_SORT_BY,
-  DEFAULT_ROUTE_SORT_DIR,
-} from '@/components/route/routeFilterDefaults'
-import { DEFAULT_AD_SORT_BY, DEFAULT_AD_SORT_DIR } from '@/components/ad/adSortOptions'
+  publicationApiParams,
+  publicationFiltersSchema,
+  publicationFiltersAlias,
+} from '@/hooks/filters/publicationFilters'
+import { readUrlFilters } from '@/hooks/useUrlFilters'
+import { makeHomeFiltersSchema, homeFiltersAlias } from '@/hooks/filters/homeFilters'
+import { makeTeamFiltersSchema, teamFiltersAlias, teamApiParams } from '@/hooks/filters/teamFilters'
+import {
+  routeFiltersSchema,
+  routeFiltersAlias,
+  routeApiParams,
+  makeAllRouteFiltersSchema,
+  allRouteFiltersAlias,
+  allRouteApiParams,
+} from '@/hooks/filters/routeFilters'
+import { adFiltersSchema, adFiltersAlias, adApiParams } from '@/hooks/filters/adFilters'
+import { membershipToMinRole, type MembershipFilterValue } from '@/hooks/filters/membership'
 import { useAuthStore } from '@/store/authStore'
 import {
   MinRole,
@@ -185,17 +194,33 @@ async function prefetchRideRoutesBulk(
 }
 
 /**
- * Mirrors `useMembershipDefault`: signed in with at least one team, the cross-team route pages
- * default to `minRole: MEMBER`; anonymous, or signed in with no team, they default to unfiltered.
- * Shared by `all-routes` and `all-routes-map` so both prefetch the same resolved variant instead
- * of the unfiltered one the anonymous case would otherwise cache.
+ * Mirrors `useMembershipDefault` exactly, probe included: signed in with at least one team, the
+ * cross-team listings default to `member`; anonymous, or signed in with no team, to `all`.
+ *
+ * Returns the page's own filter value rather than a `MinRole`, because that is what feeds the
+ * filter schema — the default only applies when the URL doesn't spell `membership` out, and a
+ * shared link generally does (`MEMBERSHIP_ALWAYS_SERIALIZE`).
  */
-async function resolveAllRoutesMinRole(queryClient: QueryClient): Promise<MinRole | undefined> {
-  if (!useAuthStore.getState().isAuthenticated) return undefined
+async function resolveMembershipDefault(queryClient: QueryClient): Promise<MembershipFilterValue> {
+  if (!useAuthStore.getState().isAuthenticated) return 'all'
   const membershipParams = { minRole: MinRole.MEMBER, page: 0, size: 1 }
   await prefetchListTeamsQuery(queryClient, membershipParams)
   const teams = queryClient.getQueryData<TeamListResponse>(getListTeamsQueryKey(membershipParams))
-  return teams && teams.total > 0 ? MinRole.MEMBER : undefined
+  return teams && teams.total > 0 ? 'member' : 'all'
+}
+
+/**
+ * A list route prefetches the window `usePaginatedQuery` reads: the page the URL asks for, plus
+ * the neighbours it fetches ahead on the client (next, and previous when there is one). Leaving
+ * one out doesn't lose the data, it just moves the round trip back after hydration — which is
+ * exactly what the crawler reports as a gap.
+ */
+async function prefetchPageWindow<P extends { page: number }>(
+  params: P,
+  run: (pageParams: P) => Promise<unknown>
+) {
+  const pages = [params.page, params.page + 1, ...(params.page > 0 ? [params.page - 1] : [])]
+  await Promise.all(pages.map((page) => run({ ...params, page })))
 }
 
 /**
@@ -453,28 +478,26 @@ export const routesConfig: RoutesConfig = [
     index: true,
     navGroup: 'home',
     breadcrumb: { type: 'static', i18nKey: tRegister('home.tabs.feed') },
-    // Matches HomePage's initial query keys when no URL filters are set (search/type all
-    // undefined, page 0) — undefined values are dropped by the query-key hash, so these params
-    // byte-match the component's. Signed in, the feed's `minRole` depends on team membership
-    // (see `useMembershipDefault`), so that probe is replicated here first.
-    prefetch: async (queryClient) => {
-      let minRole: MinRole | undefined
+    // Resolves the feed the URL actually asks for, filters and page included, the same way
+    // HomePage does: the membership probe of `useMembershipDefault` feeds the schema's default,
+    // the query string overrides it, and `publicationApiParams` projects the result.
+    prefetch: async (queryClient, _params, url) => {
+      const membershipDefault = await resolveMembershipDefault(queryClient)
       if (useAuthStore.getState().isAuthenticated) {
-        const membershipParams = { minRole: MinRole.MEMBER, page: 0, size: 1 }
-        await prefetchListTeamsQuery(queryClient, membershipParams)
-        const teams = queryClient.getQueryData<TeamListResponse>(
-          getListTeamsQueryKey(membershipParams)
-        )
-        minRole = teams && teams.total > 0 ? MinRole.MEMBER : undefined
-
         await prefetchListMyParticipationsQuery(queryClient, {
           from: hourAlignedNowIso(),
           ...NEXT_RIDE_PARAMS,
         })
       }
-      const feedParams = { ...defaultPublicationApiParams(hourAlignedNowIso()), minRole }
-      await prefetchListAllPublicationsQuery(queryClient, { ...feedParams, page: 0 })
-      await prefetchListAllPublicationsQuery(queryClient, { ...feedParams, page: 1 })
+      const filters = readUrlFilters(url.searchParams, {
+        schema: makeHomeFiltersSchema(membershipDefault),
+        alias: homeFiltersAlias,
+      })
+      const feedParams = {
+        ...publicationApiParams(filters, hourAlignedNowIso()),
+        minRole: membershipToMinRole[filters.membership],
+      }
+      await prefetchPageWindow(feedParams, (p) => prefetchListAllPublicationsQuery(queryClient, p))
     },
     meta: homeMeta,
   },
@@ -490,17 +513,14 @@ export const routesConfig: RoutesConfig = [
     // in, the list's `minRole` depends on team membership (see useMembershipDefault) —
     // replicated here so the resolved variant, not a guess, lands in the cache (same pattern as
     // the `home` and `teams` routes).
-    prefetch: async (queryClient) => {
-      const minRole = await resolveAllRoutesMinRole(queryClient)
-      const routeParams = {
-        minRole,
-        sortBy: DEFAULT_ROUTE_SORT_BY,
-        sortDir: DEFAULT_ROUTE_SORT_DIR,
-        size: ROUTE_PAGE_SIZE,
-        view: 'COMPACT' as const,
-      }
-      await prefetchListAllRoutesQuery(queryClient, { ...routeParams, page: 0 })
-      await prefetchListAllRoutesQuery(queryClient, { ...routeParams, page: 1 })
+    prefetch: async (queryClient, _params, url) => {
+      const filters = readUrlFilters(url.searchParams, {
+        schema: makeAllRouteFiltersSchema(await resolveMembershipDefault(queryClient)),
+        alias: allRouteFiltersAlias,
+      })
+      await prefetchPageWindow(allRouteApiParams(filters), (p) =>
+        prefetchListAllRoutesQuery(queryClient, p)
+      )
     },
   },
   {
@@ -513,9 +533,14 @@ export const routesConfig: RoutesConfig = [
     breadcrumb: { type: 'static', i18nKey: tRegister('routes.view.map') },
     // Matches AllRoutesMapPage's initial useGetAllRoutesBounds key when no URL filters are set —
     // same minRole resolution as `all-routes` above.
-    prefetch: async (queryClient) => {
-      const minRole = await resolveAllRoutesMinRole(queryClient)
-      await prefetchGetAllRoutesBoundsQuery(queryClient, { minRole })
+    prefetch: async (queryClient, _params, url) => {
+      const filters = readUrlFilters(url.searchParams, {
+        schema: makeAllRouteFiltersSchema(await resolveMembershipDefault(queryClient)),
+        alias: allRouteFiltersAlias,
+      })
+      await prefetchGetAllRoutesBoundsQuery(queryClient, {
+        minRole: membershipToMinRole[filters.membership],
+      })
     },
   },
 
@@ -745,20 +770,17 @@ export const routesConfig: RoutesConfig = [
     // "member" default used while the probe is loading fires one fetch, then correcting to
     // "all" fires a second) — hydrating with the resolved probe result upfront skips that
     // optimistic guess entirely.
-    prefetch: async (queryClient) => {
-      let minRole: MinRole | undefined
+    prefetch: async (queryClient, _params, url) => {
       if (useAuthStore.getState().isAuthenticated) {
         await prefetchListMyInvitationsQuery(queryClient)
-
-        const membershipParams = { minRole: MinRole.MEMBER, page: 0, size: 1 }
-        await prefetchListTeamsQuery(queryClient, membershipParams)
-        const teams = queryClient.getQueryData<TeamListResponse>(
-          getListTeamsQueryKey(membershipParams)
-        )
-        minRole = teams && teams.total > 0 ? MinRole.MEMBER : undefined
       }
-      await prefetchListTeamsQuery(queryClient, { minRole, page: 0, size: TEAM_PAGE_SIZE })
-      await prefetchListTeamsQuery(queryClient, { minRole, page: 1, size: TEAM_PAGE_SIZE })
+      const filters = readUrlFilters(url.searchParams, {
+        schema: makeTeamFiltersSchema(await resolveMembershipDefault(queryClient)),
+        alias: teamFiltersAlias,
+      })
+      await prefetchPageWindow(teamApiParams(filters), (p) =>
+        prefetchListTeamsQuery(queryClient, p)
+      )
     },
     meta: teamsMeta,
   },
@@ -783,17 +805,19 @@ export const routesConfig: RoutesConfig = [
     // PublicationListPage reads the team plus its first two, unfiltered publications pages.
     // Matches PublicationListPage's query key exactly (including `view`) — a mismatch here (e.g.
     // a missing `view`) makes the real query miss the SSR cache and refetch after hydration.
-    prefetch: async (queryClient, params) => {
+    prefetch: async (queryClient, params, url) => {
       await Promise.all([
         prefetchGetTeamQuery(queryClient, params.teamSlug!),
-        prefetchListPublicationsQuery(queryClient, params.teamSlug!, {
-          ...defaultPublicationApiParams(hourAlignedNowIso()),
-          page: 0,
-        }),
-        prefetchListPublicationsQuery(queryClient, params.teamSlug!, {
-          ...defaultPublicationApiParams(hourAlignedNowIso()),
-          page: 1,
-        }),
+        prefetchPageWindow(
+          publicationApiParams(
+            readUrlFilters(url.searchParams, {
+              schema: publicationFiltersSchema,
+              alias: publicationFiltersAlias,
+            }),
+            hourAlignedNowIso()
+          ),
+          (p) => prefetchListPublicationsQuery(queryClient, params.teamSlug!, p)
+        ),
       ])
     },
     meta: teamDetailMeta,
@@ -1146,17 +1170,16 @@ export const routesConfig: RoutesConfig = [
     breadcrumb: { type: 'static', i18nKey: tRegister('nav.routes') },
     // RouteListPage reads the team plus its first two, unfiltered route pages — no
     // team-membership dependency here, unlike the cross-team route list.
-    prefetch: async (queryClient, params) => {
-      const routeParams = {
-        sortBy: DEFAULT_ROUTE_SORT_BY,
-        sortDir: DEFAULT_ROUTE_SORT_DIR,
-        size: ROUTE_PAGE_SIZE,
-        view: 'COMPACT' as const,
-      }
+    prefetch: async (queryClient, params, url) => {
+      const filters = readUrlFilters(url.searchParams, {
+        schema: routeFiltersSchema,
+        alias: routeFiltersAlias,
+      })
       await Promise.all([
         prefetchGetTeamQuery(queryClient, params.teamSlug!),
-        prefetchListRoutesQuery(queryClient, params.teamSlug!, { ...routeParams, page: 0 }),
-        prefetchListRoutesQuery(queryClient, params.teamSlug!, { ...routeParams, page: 1 }),
+        prefetchPageWindow(routeApiParams(filters), (p) =>
+          prefetchListRoutesQuery(queryClient, params.teamSlug!, p)
+        ),
       ])
     },
   },
@@ -1246,17 +1269,16 @@ export const routesConfig: RoutesConfig = [
     breadcrumb: { type: 'static', i18nKey: tRegister('ads.title') },
     // AdListPage reads the team plus its first two, unfiltered ad pages — matches its query key
     // exactly (including `view`), same pattern as the publications and routes lists above.
-    prefetch: async (queryClient, params) => {
-      const adParams = {
-        sortBy: DEFAULT_AD_SORT_BY,
-        sortDir: DEFAULT_AD_SORT_DIR,
-        size: AD_PAGE_SIZE,
-        view: 'COMPACT' as const,
-      }
+    prefetch: async (queryClient, params, url) => {
+      const filters = readUrlFilters(url.searchParams, {
+        schema: adFiltersSchema,
+        alias: adFiltersAlias,
+      })
       await Promise.all([
         prefetchGetTeamQuery(queryClient, params.teamSlug!),
-        prefetchListAdsQuery(queryClient, params.teamSlug!, { ...adParams, page: 0 }),
-        prefetchListAdsQuery(queryClient, params.teamSlug!, { ...adParams, page: 1 }),
+        prefetchPageWindow(adApiParams(filters), (p) =>
+          prefetchListAdsQuery(queryClient, params.teamSlug!, p)
+        ),
       ])
     },
   },

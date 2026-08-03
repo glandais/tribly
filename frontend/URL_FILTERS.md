@@ -53,6 +53,29 @@ const [search, setSearch] = useDebouncedSearch(filters.search ?? '', commitSearc
 - **`setFilters(patch)` merges and resets `page`** unless the patch sets `page` itself. **`replaceFilters(next)` replaces everything**, omitted keys falling back to their default. A "clear filters" button that omits the keys it wants cleared needs `replaceFilters` — with `setFilters` those keys would be merged back in.
 - **Every write is `{ replace: true }`.** Push is reserved for navigating to a detail page. Otherwise eight keystrokes would bury the previous page under eight history entries.
 - **A filter value the page maps to something else stays in its own form in the URL.** `PublicationListPage` keeps `all|ride|post|trip` in the schema and converts to `PublicationType` in the page, so URLs stay readable.
+- **The mapping from filters to API params lives next to the schema, not in the page.** `routeApiParams`, `adApiParams`, `teamApiParams`, `publicationApiParams` — because the route's `prefetch` has to produce the *same* params, and a copy in `routes.config.ts` drifts the day someone edits the page. Same reason `readUrlFilters` is exported from the hook: the alias mapping and the empty-param rule must be applied identically on both sides.
+
+## SSR: the prefetch reads the query string too
+
+A list route's `prefetch` receives the request URL as its third argument and resolves the filters
+with `readUrlFilters(url.searchParams, { schema, alias })`, then prefetches the window
+`usePaginatedQuery` reads (the requested page, the next, and the previous when there is one).
+
+This is not an optimisation, it is what makes a filtered link work at all. Before it, `?p=5` or
+`?q=col` server-rendered an **empty list**: the prefetch always filled the default variant, the
+page read a different query key, and the content only appeared after hydration — on links whose
+entire purpose is being shared. Verify with `scripts/ssr-audit.mjs` (a `path:` entry in
+`routes-ssr.yml` may carry a query string) or with
+`curl -s '…/parcours?p=5' | grep -c 'href="/equipes/…/parcours/'`.
+
+Two consequences when adding a filter:
+
+- a **context-dependent default** must be resolved the same way in the prefetch as in the page.
+  `resolveMembershipDefault` in `routes.config.ts` mirrors `useMembershipDefault`, probe included,
+  and feeds the schema factory — otherwise the URL's `role=all` would be read against a `member`
+  default and produce a different key.
+- **presentation-only fields must not reach the API** on either side (`density`), which is exactly
+  what the shared `…ApiParams` builder guarantees.
 
 ## The membership filter
 

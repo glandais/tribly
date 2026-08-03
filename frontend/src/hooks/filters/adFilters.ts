@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { AdSortBy, AdType, SortDirection } from '@/api/dto'
+import { AdSortBy, AdType, ListViewMode, SortDirection } from '@/api/dto'
 import { DEFAULT_AD_SORT_BY, DEFAULT_AD_SORT_DIR } from '@/components/ad/adSortOptions'
 import { COMMON_ALIAS, optionalNumberField, pageField, searchField, sizeField } from './common'
 
@@ -39,4 +39,12 @@ export function isAdFiltered(filters: AdFilters): boolean {
     filters.minPrice !== undefined ||
     filters.maxPrice !== undefined
   )
+}
+
+/**
+ * Projects an ad list's filters onto the endpoint's params. Shared with the `ads` route's
+ * `prefetch`, which resolves the same filters out of the request's query string.
+ */
+export function adApiParams(filters: AdFilters) {
+  return { ...filters, view: ListViewMode.COMPACT }
 }

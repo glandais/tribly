@@ -116,8 +116,12 @@ export interface RouteConfig {
    * implementations must tolerate 401/403 responses. The loader adapter (see RouteGenerator) catches
    * all errors, so a failed prefetch never blocks the render; components fall back to their own
    * loading/error states.
+   *
+   * `url` carries the query string: a list page whose filters live there (`useUrlFilters`) must
+   * prefetch the variant the URL asks for, not the default one — read it back with
+   * `readUrlFilters(url.searchParams, …)` so the page and the prefetch resolve it identically.
    */
-  prefetch?: (queryClient: QueryClient, params: RouteParams) => Promise<void>
+  prefetch?: (queryClient: QueryClient, params: RouteParams, url: URL) => Promise<void>
 
   /**
    * Optional server-side link-preview (Open Graph / Twitter) descriptor. Invoked in entry-server

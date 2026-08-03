@@ -21,7 +21,12 @@ import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { useUrlFilters } from '../../hooks/useUrlFilters'
 import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
 import { useScrollToListTop } from '../../hooks/useScrollToListTop'
-import { adFiltersSchema, adFiltersAlias, isAdFiltered } from '../../hooks/filters/adFilters'
+import {
+  adFiltersSchema,
+  adFiltersAlias,
+  isAdFiltered,
+  adApiParams,
+} from '../../hooks/filters/adFilters'
 import { AdCard, AdCardSkeleton } from '../../components/ad'
 import {
   AD_SORT_OPTIONS,
@@ -35,7 +40,7 @@ import { ResultCount } from '../../components/common/ResultCount'
 import { SearchInput } from '../../components/common/SearchInput'
 import { TeamLayout } from '../../components/team/TeamLayout'
 import { paths } from '@/config/paths'
-import { AdType, ListViewMode } from '../../api/dto'
+import { AdType } from '../../api/dto'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
 export function AdListPage() {
@@ -58,7 +63,7 @@ export function AdListPage() {
   })
   // A card needs `excerpt`, `thumbnailUrl` and `images`, all of which COMPACT keeps — it only
   // drops the markdown body, the attachments and every picture past the first.
-  const apiParams = useMemo(() => ({ ...filters, view: ListViewMode.COMPACT }), [filters])
+  const apiParams = useMemo(() => adApiParams(filters), [filters])
 
   const {
     data: adsResponse,

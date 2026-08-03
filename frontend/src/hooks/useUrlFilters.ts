@@ -27,6 +27,27 @@ export interface UseUrlFiltersResult<S extends AnyFiltersSchema> {
 }
 
 /**
+ * The filters a query string resolves to — the same reading the hook does, exposed so a route's
+ * `prefetch` can fill the cache for the URL that was actually requested.
+ *
+ * Not duplicated on the prefetch side: the alias mapping (`p`, `q`, `w`…) and the
+ * empty-param-is-an-absent-param rule below have to be applied identically, or a shared link with
+ * filters would prefetch one variant and render another.
+ */
+export function readUrlFilters<S extends AnyFiltersSchema>(
+  params: URLSearchParams,
+  { schema, alias }: Pick<UseUrlFiltersOptions<S>, 'schema' | 'alias'>
+): z.infer<S> {
+  const raw: Record<string, string> = {}
+  for (const apiKey of Object.keys(schema.shape)) {
+    const value = params.get((alias as Record<string, string> | undefined)?.[apiKey] ?? apiKey)
+    // An empty param is an absent param: `z.coerce.number()` turns '' into 0.
+    if (value !== null && value !== '') raw[apiKey] = value
+  }
+  return schema.parse(raw) as z.infer<S>
+}
+
+/**
  * Binds a page's filters to the query string, making them survive navigation
  * and shareable as a link.
  *
@@ -52,16 +73,8 @@ export function useUrlFilters<S extends AnyFiltersSchema>({
   )
 
   const read = useCallback(
-    (params: URLSearchParams): z.infer<S> => {
-      const raw: Record<string, string> = {}
-      for (const apiKey of keys) {
-        const value = params.get(toUrlKey(apiKey))
-        // An empty param is an absent param: `z.coerce.number()` turns '' into 0.
-        if (value !== null && value !== '') raw[apiKey] = value
-      }
-      return schema.parse(raw) as z.infer<S>
-    },
-    [keys, schema, toUrlKey]
+    (params: URLSearchParams): z.infer<S> => readUrlFilters(params, { schema, alias }),
+    [schema, alias]
   )
 
   const serialize = useCallback(

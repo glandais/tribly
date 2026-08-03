@@ -1,5 +1,4 @@
 import { useCallback, useMemo } from 'react'
-import { ListViewMode } from '@/api/dto'
 import { keepPreviousData } from '@tanstack/react-query'
 import { Box, Group, Stack } from '@mantine/core'
 import {
@@ -15,8 +14,8 @@ import {
   resolveRouteDensity,
   allRouteFiltersAlias,
   allRouteFiltersAlwaysSerialize,
+  allRouteApiParams,
 } from '../../hooks/filters/routeFilters'
-import { membershipToMinRole } from '../../hooks/filters/membership'
 import { isSingleTeam } from '../../config/appConfig'
 import { MembershipSelect } from '../../components/common/MembershipSelect'
 import { HomeLayout } from '../../components/home/HomeLayout'
@@ -47,17 +46,7 @@ export function AllRoutesPage() {
     alwaysSerialize: allRouteFiltersAlwaysSerialize,
   })
 
-  // `membership` is the page's own value; the API wants a MinRole.
-  const apiParams = useMemo(() => {
-    const { membership, ...rest } = filters
-    const params = {
-      ...rest,
-      minRole: membershipToMinRole[membership],
-      view: ListViewMode.COMPACT,
-    }
-    delete params.density
-    return params
-  }, [filters])
+  const apiParams = useMemo(() => allRouteApiParams(filters), [filters])
 
   const {
     data: routesData,

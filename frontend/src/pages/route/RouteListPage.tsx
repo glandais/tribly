@@ -1,5 +1,4 @@
 import { useCallback, useMemo } from 'react'
-import { ListViewMode } from '@/api/dto'
 import { Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { keepPreviousData } from '@tanstack/react-query'
@@ -16,6 +15,7 @@ import {
   resolveRouteDensity,
   routeFiltersSchema,
   routeFiltersAlias,
+  routeApiParams,
 } from '../../hooks/filters/routeFilters'
 import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
 import { RouteListContent } from '../../components/route/RouteListContent'
@@ -45,12 +45,7 @@ export function RouteListPage() {
   const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },
   })
-  // `density` is presentation: it must never reach the API.
-  const apiParams = useMemo(() => {
-    const params = { ...filters, view: ListViewMode.COMPACT }
-    delete params.density
-    return params
-  }, [filters])
+  const apiParams = useMemo(() => routeApiParams(filters), [filters])
 
   const { data: routesData, isLoading: isLoadingRoutes } = useListRoutes(teamSlug!, apiParams, {
     query: { enabled: !!teamSlug, placeholderData: keepPreviousData },

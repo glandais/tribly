@@ -1,5 +1,12 @@
 import { z } from 'zod'
-import { Hilliness, SurfaceType, WindDirection, RouteSortBy, SortDirection } from '@/api/dto'
+import {
+  Hilliness,
+  ListViewMode,
+  SurfaceType,
+  WindDirection,
+  RouteSortBy,
+  SortDirection,
+} from '@/api/dto'
 import {
   DEFAULT_ROUTE_SORT_BY,
   DEFAULT_ROUTE_SORT_DIR,
@@ -9,6 +16,7 @@ import {
   MEMBERSHIP_ALIAS,
   MEMBERSHIP_ALWAYS_SERIALIZE,
   membershipField,
+  membershipToMinRole,
   type MembershipFilterValue,
 } from './membership'
 
@@ -73,3 +81,31 @@ export const makeAllRouteFiltersSchema = (defaultMembership: MembershipFilterVal
 export const allRouteFiltersAlias = { ...routeFiltersAlias, ...MEMBERSHIP_ALIAS } as const
 
 export const allRouteFiltersAlwaysSerialize = MEMBERSHIP_ALWAYS_SERIALIZE
+
+/**
+ * Projects a team route list's filters onto the endpoint's params: `density` is presentation and
+ * must never reach the API, `view` is always COMPACT (a card draws a name, a distance and a
+ * thumbnail).
+ *
+ * Shared with the `routes` route's `prefetch`, which resolves the same filters out of the request's
+ * query string — a link carrying `?q=col` has to prefetch *that* list, not the default one.
+ */
+export function routeApiParams(filters: RouteFilters) {
+  const rest = { ...filters, view: ListViewMode.COMPACT }
+  delete rest.density
+  return rest
+}
+
+export type AllRouteFilters = z.infer<ReturnType<typeof makeAllRouteFiltersSchema>>
+
+/** Same, for the cross-team list: `membership` is the page's own value, the API wants a MinRole. */
+export function allRouteApiParams(filters: AllRouteFilters) {
+  const { membership, ...withDensity } = filters
+  const rest = {
+    ...withDensity,
+    minRole: membershipToMinRole[membership],
+    view: ListViewMode.COMPACT,
+  }
+  delete rest.density
+  return rest
+}

@@ -41,7 +41,11 @@ function makeLoader(config: RouteConfig, queryClient: QueryClient) {
       Object.entries(params).filter((entry): entry is [string, string] => entry[1] !== undefined)
     )
     try {
-      await config.prefetch!(queryClient, definedParams as RouteParams)
+      // The query string matters as much as the path params: a list page reached with filters
+      // (`?p=5`, `?q=col`) reads a different query key than the unfiltered default, so a prefetch
+      // blind to it fills the cache with an entry the page never looks at — and the visitor gets
+      // an empty list in the HTML. Shared links are exactly the case URL filters exist for.
+      await config.prefetch!(queryClient, definedParams as RouteParams, new URL(request.url))
     } catch (err) {
       const isExpected =
         Axios.isAxiosError(err) && [401, 403, 404].includes(err.response?.status ?? 0)
