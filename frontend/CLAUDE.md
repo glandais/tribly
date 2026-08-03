@@ -155,6 +155,7 @@ Public pages unfurl into rich social/messaging cards via server-rendered OG/Twit
 - **Never set link-preview tags via a React component** — add a `meta()` to `routes.config.ts` instead. See [LINK_PREVIEW.md](LINK_PREVIEW.md).
 - **Never use `confirm()` or custom modals for confirmations** — use `ConfirmDialog`.
 - **Never use `useComputedColorScheme` outside `ColorSchemeSwitcher.tsx`** — for a themed asset URL, computed color, or conditional className, use `useResolvedColorScheme()` (`src/hooks/useResolvedColorScheme.ts`) instead; it resolves correctly at hydration time for anonymous/auto-theme visitors instead of after a delayed post-mount effect. See SSR.md Finding 4.
+- **Never format a date with a raw `new Date(...).toLocaleDateString()`/`toLocaleString()`/`Intl.DateTimeFormat`** — go through `useFormattedDate()` (`src/utils/dateFormat.ts`), or the `<FormattedDate>`/`<FormattedDateTime>` components when the result renders as its own text node (they add the right `suppressHydrationWarning`). A raw call defaults to the *server process's* timezone during SSR, not the visitor's, and ignores the signed-in user's `timezone` preference on the client.
 - **Never use SVG for icons** — use `@tabler/icons-react`.
 - **Mantine UI exclusively** — check https://mantine.dev/llms.txt for docs.
 - **Templated i18n keys require type annotations**: `t(\`status.\${x satisfies 'DRAFT' | 'PUBLISHED'}\`)` (validated by `pnpm i18n:lint`).
