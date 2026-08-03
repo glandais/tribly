@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Layer, Popup, Source } from 'react-map-gl/maplibre'
 import type { MapLayerMouseEvent, MapRef } from 'react-map-gl/maplibre'
-import { Anchor, Box, Group, Stack, Text, useComputedColorScheme } from '@mantine/core'
+import { Anchor, Box, Group, Stack, Text } from '@mantine/core'
 import type { BoundsDto } from '@/api/dto'
 import { paths } from '@/config/paths'
 import { useMapHeight } from '@/hooks/useResponsive'
 import { useUnits } from '@/hooks/useUnits'
+import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 import { PedalonsMap } from '../map/PedalonsMap'
 import {
   DEFAULT_MAP_VIEW,
@@ -50,7 +51,7 @@ export interface RoutesTileMapProps {
 
 export function RoutesTileMap({ tilesUrl, bounds }: RoutesTileMapProps) {
   const { distance, elevation } = useUnits()
-  const colorScheme = useComputedColorScheme('light')
+  const colorScheme = useResolvedColorScheme()
   // A dedicated map page can afford more room than the maps embedded in detail pages.
   const mapHeight = useMapHeight('fullscreen')
 

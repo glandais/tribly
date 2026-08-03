@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { NodeViewWrapper, type NodeViewProps } from '@tiptap/react'
-import { Group, Text, Box, Button, Image, useComputedColorScheme } from '@mantine/core'
+import { Group, Text, Box, Button, Image } from '@mantine/core'
 import { IconPhoto } from '@tabler/icons-react'
 import {
   IMAGE_SIZES,
@@ -11,6 +11,7 @@ import {
   resolveAssetImageUrl,
 } from '@/lib/assetMarkdown'
 import { getOverlayBg } from '@/lib/colors'
+import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 import { useAssetImages } from './AssetImagesContext'
 
 const SIZE_LABELS: Record<ImageSize, string> = {
@@ -22,7 +23,7 @@ const SIZE_LABELS: Record<ImageSize, string> = {
 
 export function AssetNodeView({ node, updateAttributes, selected }: NodeViewProps) {
   const { t } = useTranslation()
-  const colorScheme = useComputedColorScheme('light')
+  const colorScheme = useResolvedColorScheme()
   const images = useAssetImages()
 
   const assetId = node.attrs.id as string

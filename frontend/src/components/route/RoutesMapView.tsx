@@ -16,9 +16,10 @@ import {
   TooltipItem,
 } from 'chart.js'
 import { useTranslation } from 'react-i18next'
-import { Box, Center, Text, Paper, useComputedColorScheme, useMantineTheme } from '@mantine/core'
+import { Box, Center, Text, Paper, useMantineTheme } from '@mantine/core'
 import { useMapHeight } from '@/hooks/useResponsive'
 import { useRoutesBulk } from '@/hooks/useRoutesBulk'
+import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 import type { RouteDetailDto } from '@/api/dto'
 import { StartMarker, EndMarker } from '../map/MapMarkers'
 import { calculateBounds, routeToGeoJSON } from '../map/mapUtils'
@@ -80,7 +81,7 @@ export function RoutesMapView({
 }: RoutesMapViewProps) {
   const { t } = useTranslation()
   const mapHeight = useMapHeight(variant)
-  const colorScheme = useComputedColorScheme('light')
+  const colorScheme = useResolvedColorScheme()
   const theme = useMantineTheme()
   const { config, distance, formatDistance, elevation } = useUnits()
   const mapRef = useRef<MapRef>(null)

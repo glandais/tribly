@@ -1,7 +1,8 @@
 import { Marker } from 'react-map-gl/maplibre'
-import { Box, Text, useComputedColorScheme } from '@mantine/core'
+import { Box, Text } from '@mantine/core'
 import { getOverlayBg } from '@/lib/colors'
 import { computeKmMarkers } from './mapUtils'
+import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 
 interface MarkerProps {
   longitude: number
@@ -64,7 +65,7 @@ interface KmMarkerProps extends MarkerProps {
 }
 
 export function KmMarker({ longitude, latitude, label }: KmMarkerProps) {
-  const colorScheme = useComputedColorScheme('light')
+  const colorScheme = useResolvedColorScheme()
   const labelColor = colorScheme === 'dark' ? 'var(--mantine-color-gray-0)' : '#000000'
 
   return (
@@ -111,7 +112,7 @@ interface WaypointMarkerProps extends MarkerProps {
 }
 
 export function WaypointMarker({ longitude, latitude, name }: WaypointMarkerProps) {
-  const colorScheme = useComputedColorScheme('light')
+  const colorScheme = useResolvedColorScheme()
   const labelBg = getOverlayBg(colorScheme)
 
   return (

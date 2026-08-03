@@ -3,10 +3,11 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import type { MapRef } from 'react-map-gl/maplibre'
 import { IconArrowsMaximize } from '@tabler/icons-react'
-import { ActionIcon, Box, Center, Paper, Text, useComputedColorScheme } from '@mantine/core'
+import { ActionIcon, Box, Center, Paper, Text } from '@mantine/core'
 import type { RouteDetailDto } from '@/api/dto'
 import { useMapHeight } from '@/hooks/useResponsive'
 import { getOverlayBg } from '@/lib/colors'
+import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 import { RouteTrackMap } from './RouteTrackMap'
 import { ElevationChart } from './ElevationChart'
 
@@ -28,7 +29,7 @@ interface RouteMapViewProps {
 
 export function RouteMapView({ route, fullscreenPath }: RouteMapViewProps) {
   const { t } = useTranslation()
-  const colorScheme = useComputedColorScheme('light')
+  const colorScheme = useResolvedColorScheme()
   const mapHeight = useMapHeight('full')
   const [hoveredPointIndex, setHoveredPointIndex] = useState<number>(-1)
   const mapRef = useRef<MapRef>(null)

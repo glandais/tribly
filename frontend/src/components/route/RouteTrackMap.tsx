@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import { Source, Layer, MapRef, MapMouseEvent } from 'react-map-gl/maplibre'
 import type { PaddingOptions } from 'maplibre-gl'
-import { Box, useComputedColorScheme } from '@mantine/core'
+import { Box } from '@mantine/core'
 import {
   StartMarker,
   EndMarker,
@@ -17,6 +17,7 @@ import {
 } from '../map/mapUtils'
 import { PedalonsMap } from '../map/PedalonsMap'
 import { useHideTrackKey } from '@/hooks/useHideTrackKey'
+import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 import type { MappableRoute } from './RouteMapView'
 // maplibre-gl CSS is provided by maplibre-theme in index.css
 
@@ -48,7 +49,7 @@ export function RouteTrackMap({
   onMoveEnd,
   children,
 }: RouteTrackMapProps) {
-  const colorScheme = useComputedColorScheme('light')
+  const colorScheme = useResolvedColorScheme()
 
   // Press "h" to hide the trace and its markers, revealing the basemap underneath
   const trackHidden = useHideTrackKey()

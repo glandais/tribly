@@ -1,5 +1,5 @@
-import { useComputedColorScheme } from '@mantine/core'
 import { useGetConfig } from '@/api/endpoints/configuration/configuration'
+import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 import {
   resolveMapStyle,
   styleUrlFor,
@@ -23,7 +23,7 @@ const NO_STYLES: MapStyle[] = []
  * one per basemap-and-scheme.
  */
 export function useMapStyle() {
-  const colorScheme = useComputedColorScheme('light')
+  const colorScheme = useResolvedColorScheme()
   const { data: config } = useGetConfig()
   const styles = config?.mapStyles ?? NO_STYLES
   // Served like the basemaps, and undefined when the deployment configures no provider — the relief

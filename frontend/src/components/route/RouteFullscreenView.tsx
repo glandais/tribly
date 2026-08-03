@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { IconArrowLeft, IconArrowUp, IconArrowDown, IconRoute } from '@tabler/icons-react'
-import { ActionIcon, Box, Center, Group, Text, useComputedColorScheme } from '@mantine/core'
+import { ActionIcon, Box, Center, Group, Text } from '@mantine/core'
 import { getOverlayBg } from '@/lib/colors'
 import { useUnits } from '@/hooks/useUnits'
+import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 import { useMapChartZoomSync } from '@/hooks/useMapChartZoomSync'
 import { RouteTrackMap } from './RouteTrackMap'
 import { ElevationChart } from './ElevationChart'
@@ -32,7 +33,7 @@ interface RouteFullscreenViewProps {
  */
 export function RouteFullscreenView({ route, title, backTo }: RouteFullscreenViewProps) {
   const { t } = useTranslation()
-  const colorScheme = useComputedColorScheme('light')
+  const colorScheme = useResolvedColorScheme()
   const { distance, elevation } = useUnits()
   const [hoveredPointIndex, setHoveredPointIndex] = useState<number>(-1)
 

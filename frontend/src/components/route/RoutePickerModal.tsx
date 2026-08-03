@@ -13,7 +13,6 @@ import {
   Loader,
   Modal,
   Box,
-  useComputedColorScheme,
 } from '@mantine/core'
 import { useListRoutes } from '@/api/endpoints/routes/routes'
 import type { RouteDto } from '@/api/dto'
@@ -22,6 +21,7 @@ import { Pagination } from '../common/Pagination'
 import { useScrollToListTopWithinContainer } from '@/hooks/useScrollToListTop'
 import { SearchInput } from '../common/SearchInput'
 import { useUnits } from '@/hooks/useUnits'
+import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 
 interface RoutePickerModalProps {
   isOpen: boolean
@@ -44,7 +44,7 @@ export function RoutePickerModal({
 }: RoutePickerModalProps) {
   const { t } = useTranslation()
   const { distance, elevation } = useUnits()
-  const colorScheme = useComputedColorScheme('light')
+  const colorScheme = useResolvedColorScheme()
   const [page, setPage] = useState(0)
   const { listTopRef, scrollToListTop } = useScrollToListTopWithinContainer()
   const [search, setSearch] = useState('')

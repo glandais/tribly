@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next'
 import { IconMap, IconArrowUp, IconMessageCircle } from '@tabler/icons-react'
 import { useUnits } from '@/hooks/useUnits'
-import { Group, Image, Box, useComputedColorScheme } from '@mantine/core'
+import { Group, Image, Box } from '@mantine/core'
 import type { RouteDto } from '@/api/dto'
+import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 import { Card, CardContent, CardTitle, CardDescription, CardTeamLink } from './common'
 import { SurfaceBadge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from './common'
 import { EntityLogo } from '../common/EntityLogo'
@@ -16,7 +17,7 @@ interface RouteCardProps {
 export function RouteCard({ route, showTeam }: RouteCardProps) {
   const { t } = useTranslation()
   const { distance, elevation } = useUnits()
-  const colorScheme = useComputedColorScheme('light')
+  const colorScheme = useResolvedColorScheme()
   // A compact row carries the themed variants (contract 1.5.1); `thumbnailUrl` stays the
   // fallback for a route that only ever had the collapsed one.
   const themedThumbnail =

@@ -9,8 +9,9 @@ import {
   MarkerDragEvent,
 } from 'react-map-gl/maplibre'
 import { IconTrash } from '@tabler/icons-react'
-import { ActionIcon, Box, Group, Loader, Stack, Text, useComputedColorScheme } from '@mantine/core'
+import { ActionIcon, Box, Group, Loader, Stack, Text } from '@mantine/core'
 import { PedalonsMap } from '../map/PedalonsMap'
+import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 import { KmMarkersLayer } from '../map/MapMarkers'
 import { UndoRedoControl } from './UndoRedoControl'
 import { RouterProfileSelector } from './RouterProfileSelector'
@@ -41,7 +42,7 @@ interface RoutePlannerProps {
 export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: RoutePlannerProps) {
   const { t } = useTranslation()
   const { distance, elevation } = useUnits()
-  const colorScheme = useComputedColorScheme('light')
+  const colorScheme = useResolvedColorScheme()
   const mapRef = useRef<MapRef>(null)
   const mapContainerRef = useRef<HTMLDivElement>(null)
 

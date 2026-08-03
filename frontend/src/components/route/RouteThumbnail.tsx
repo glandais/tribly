@@ -1,7 +1,7 @@
 import { Image, Box } from '@mantine/core'
-import { useComputedColorScheme } from '@mantine/core'
 import { IconRoute } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
+import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 
 interface RouteThumbnailProps {
   thumbnailLightUrl?: string
@@ -25,7 +25,7 @@ export function RouteThumbnail({
   size = 'sm',
 }: RouteThumbnailProps) {
   const { t } = useTranslation()
-  const colorScheme = useComputedColorScheme('light')
+  const colorScheme = useResolvedColorScheme()
 
   // Pick the right thumbnail based on color scheme, with fallback to legacy
   const selectedUrl = (colorScheme === 'dark' ? thumbnailDarkUrl : thumbnailLightUrl) ?? fallbackUrl

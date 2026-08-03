@@ -1,13 +1,14 @@
 import { useTranslation } from 'react-i18next'
-import { ActionIcon, Box, useMantineColorScheme, useComputedColorScheme } from '@mantine/core'
+import { ActionIcon, Box, useMantineColorScheme } from '@mantine/core'
 import { IconSun, IconMoon } from '@tabler/icons-react'
 import { useUpdateMyPreferences } from '@/api/endpoints/users/users'
 import { useAuthStore, selectIsAuthenticated } from '@/store/authStore'
+import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 
 export function ColorSchemeSwitcher() {
   const { t } = useTranslation()
   const { setColorScheme } = useMantineColorScheme()
-  const computedColorScheme = useComputedColorScheme('light')
+  const computedColorScheme = useResolvedColorScheme()
   const isAuthenticated = useAuthStore(selectIsAuthenticated)
   const mutation = useUpdateMyPreferences()
 

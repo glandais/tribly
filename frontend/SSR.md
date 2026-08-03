@@ -150,21 +150,19 @@ in localStorage got a hydration mismatch. Two traps inside the trap:
 - The classic `const [mounted, setMounted] = useState(false); useEffect(() => setMounted(true))`
   gate is rejected by our lint (`react-hooks/set-state-in-effect`).
 
-The pattern that works and lints clean (see `ColorSchemeSwitcher.tsx`):
+For a pure CSS-hidden icon swap (nothing else differs), `lightHidden`/`darkHidden` props
+sidestep the whole problem — they compile to `[data-mantine-color-scheme]` selectors, so the
+browser applies the right one the instant `index.html`'s pre-hydration script (or `server.js`,
+for a signed-in visitor's explicit theme) sets that attribute, before React ever mounts.
 
-```tsx
-const hydrated = useSyncExternalStore(
-  () => () => {},   // never notifies
-  () => true,       // client snapshot
-  () => false       // server snapshot — also used for the hydration render
-)
-// render the server's default until `hydrated`, then the real value
-```
-
-Apply this to any render output derived from localStorage / matchMedia / other
-client-persisted state. (Accepted cosmetic consequence of anonymous SSR: a brief
-post-hydration swap for users whose stored preference differs from the server default —
-same deal for a stored language vs `Accept-Language`.)
+For anything else that needs the resolved scheme *as a JS value* — a different asset URL, a
+computed color, a conditional className — use **`useResolvedColorScheme()`**
+(`src/hooks/useResolvedColorScheme.ts`) instead of `useComputedColorScheme`. It reads the same
+`data-mantine-color-scheme` attribute via `useSyncExternalStore`, so React's built-in
+server/client snapshot mismatch handling applies the real value at hydration time rather than
+after a delayed effect — no extra render, no extra network request for the wrong asset.
+`useComputedColorScheme` should not appear anywhere outside this hook and
+`ColorSchemeSwitcher.tsx` itself.
 
 ## Finding 5 — assorted sharp edges
 

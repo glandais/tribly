@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next'
 import { IconArrowsMaximize, IconArrowUp } from '@tabler/icons-react'
-import { Paper, Group, Text, Image, Stack, Loader, useComputedColorScheme } from '@mantine/core'
+import { Paper, Group, Text, Image, Stack, Loader } from '@mantine/core'
 import { useGetRoute } from '@/api/endpoints/routes/routes'
 import { useUnits } from '@/hooks/useUnits'
+import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 
 interface RoutePreviewProps {
   routeSlug: string
@@ -12,7 +13,7 @@ interface RoutePreviewProps {
 export function RoutePreview({ routeSlug, teamSlug }: RoutePreviewProps) {
   const { t } = useTranslation()
   const { distance, elevation } = useUnits()
-  const colorScheme = useComputedColorScheme('light')
+  const colorScheme = useResolvedColorScheme()
   const { data: route, isLoading } = useGetRoute(teamSlug, routeSlug)
 
   if (isLoading)

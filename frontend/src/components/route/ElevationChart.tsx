@@ -19,10 +19,11 @@ import {
   ScriptableLineSegmentContext,
 } from 'chart.js'
 import { useTranslation } from 'react-i18next'
-import { useComputedColorScheme, useMantineTheme } from '@mantine/core'
+import { useMantineTheme } from '@mantine/core'
 import { NEUTRAL_COLOR, getColorFromGradient, getPointClimbGradient } from '../map/mapUtils'
 import { useUnits } from '../../hooks/useUnits'
 import { getOverlayBg } from '@/lib/colors'
+import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 import type { MappableRoute } from './RouteMapView'
 
 // Register the shared Chart.js building blocks (line chart with fill + tooltip).
@@ -100,7 +101,7 @@ export interface ElevationChartProps {
 export const ElevationChart = forwardRef<ElevationChartHandle, ElevationChartProps>(
   function ElevationChart({ route, hoveredPointIndex, onHoverPoint, filled = true, zoom }, ref) {
     const { t } = useTranslation()
-    const colorScheme = useComputedColorScheme('light')
+    const colorScheme = useResolvedColorScheme()
     const theme = useMantineTheme()
     const { config, distance: distanceFormat, elevation, formatDistance } = useUnits()
     const chartRef = useRef<ChartJS<'line'>>(null)
