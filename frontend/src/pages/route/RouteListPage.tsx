@@ -1,22 +1,12 @@
-import { useCallback, useMemo } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { keepPreviousData } from '@tanstack/react-query'
 import { paths } from '../../config/paths'
 import { IconPlus } from '@tabler/icons-react'
 import { Button, Group, Stack, Title } from '@mantine/core'
-import { useListRoutes, listRoutes, getListRoutesQueryKey } from '@/api/endpoints/routes/routes'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamLayout } from '../../components/team/TeamLayout'
-import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
-import { useRouteFilters } from '../../hooks/useRouteFilters'
-import {
-  resolveRouteDensity,
-  routeFiltersSchema,
-  routeFiltersAlias,
-  routeApiParams,
-} from '../../hooks/filters/routeFilters'
+import { useRouteListData } from './routeListData'
+import { resolveRouteDensity } from '../../hooks/filters/routeFilters'
 import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
 import { RouteListContent } from '../../components/route/RouteListContent'
 import { ResultCount } from '@/components/common/ResultCount'
@@ -39,34 +29,12 @@ export function RouteListPage() {
     handlePageChange,
     hasFiltersOrSearch,
     clearFilters,
-    pageSize,
-  } = useRouteFilters({ schema: routeFiltersSchema, alias: routeFiltersAlias })
-
-  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
-  const apiParams = useMemo(() => routeApiParams(filters), [filters])
-
-  const { data: routesData, isLoading: isLoadingRoutes } = useListRoutes(teamSlug!, apiParams, {
-    query: { enabled: !!teamSlug, placeholderData: keepPreviousData },
-  })
+    team: { data: team, isLoading: isLoadingTeam },
+    routes: { data: routesData, isLoading: isLoadingRoutes },
+    totalPages,
+  } = useRouteListData(teamSlug)
 
   const density = resolveRouteDensity(filters.density, routesData?.total)
-
-  const prefetchPage = useCallback(
-    (prefetchPageNum: number) => ({
-      queryKey: getListRoutesQueryKey(teamSlug!, { ...apiParams, page: prefetchPageNum }),
-      queryFn: () => listRoutes(teamSlug!, { ...apiParams, page: prefetchPageNum }),
-    }),
-    [teamSlug, apiParams]
-  )
-
-  const { totalPages } = usePaginatedQuery({
-    page: filters.page,
-    pageSize,
-    totalItems: routesData?.total ?? 0,
-    prefetchPage,
-  })
 
   useCanonicalPath(team ? paths.routes(team.slug) : undefined)
 

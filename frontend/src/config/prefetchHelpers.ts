@@ -38,6 +38,20 @@ export async function prefetchMemberComments(
   })
 }
 
+/**
+ * A list route prefetches the window `usePaginatedQuery` reads: the page the URL asks for, plus
+ * the neighbours it fetches ahead on the client (next, and previous when there is one). Leaving
+ * one out doesn't lose the data, it just moves the round trip back after hydration — which is
+ * exactly what the crawler reports as a gap.
+ */
+export async function prefetchPageWindow<P extends { page: number }>(
+  params: P,
+  run: (pageParams: P) => Promise<unknown>
+) {
+  const pages = [params.page, params.page + 1, ...(params.page > 0 ? [params.page - 1] : [])]
+  await Promise.all(pages.map((page) => run({ ...params, page })))
+}
+
 /** Mirrors `useRoutesBulk`'s own chunking against `ROUTES_BULK_MAX_SLUGS` so the query keys match. */
 export async function prefetchRoutesBulkChunked(
   queryClient: QueryClient,

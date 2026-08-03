@@ -28,8 +28,13 @@ import {
   getListPostCommentsQueryKey,
 } from '@/api/endpoints/post-comments/post-comments'
 import { prefetchGetRouteQuery, prefetchGetRouteUsagesQuery } from '@/api/endpoints/routes/routes'
-import { prefetchMemberComments, prefetchRoutesBulkChunked } from './prefetchHelpers'
+import {
+  prefetchMemberComments,
+  prefetchPageWindow,
+  prefetchRoutesBulkChunked,
+} from './prefetchHelpers'
 import { prefetchRideDetail } from '@/pages/ride/rideDetailData'
+import { prefetchRouteList } from '@/pages/route/routeListData'
 import { prefetchGetPageQuery, prefetchListPagesQuery } from '@/api/endpoints/team-pages/team-pages'
 import { prefetchListPlacesQuery } from '@/api/endpoints/places/places'
 import { prefetchGetMembersQuery } from '@/api/endpoints/team-members/team-members'
@@ -44,7 +49,6 @@ import { prefetchGetAdQuery, prefetchListAdsQuery } from '@/api/endpoints/ads/ad
 import { prefetchGetPreviewQuery } from '@/api/endpoints/gpx-previews/gpx-previews'
 import {
   prefetchListAllRoutesQuery,
-  prefetchListRoutesQuery,
   prefetchGetAllRoutesBoundsQuery,
 } from '@/api/endpoints/routes/routes'
 import { prefetchGetAvailableServicesQuery } from '@/api/endpoints/gps-services/gps-services'
@@ -76,9 +80,6 @@ import { readUrlFilters } from '@/hooks/useUrlFilters'
 import { makeHomeFiltersSchema, homeFiltersAlias } from '@/hooks/filters/homeFilters'
 import { makeTeamFiltersSchema, teamFiltersAlias, teamApiParams } from '@/hooks/filters/teamFilters'
 import {
-  routeFiltersSchema,
-  routeFiltersAlias,
-  routeApiParams,
   makeAllRouteFiltersSchema,
   allRouteFiltersAlias,
   allRouteApiParams,
@@ -125,20 +126,6 @@ async function resolveMembershipDefault(queryClient: QueryClient): Promise<Membe
   await prefetchListTeamsQuery(queryClient, membershipParams)
   const teams = queryClient.getQueryData<TeamListResponse>(getListTeamsQueryKey(membershipParams))
   return teams && teams.total > 0 ? 'member' : 'all'
-}
-
-/**
- * A list route prefetches the window `usePaginatedQuery` reads: the page the URL asks for, plus
- * the neighbours it fetches ahead on the client (next, and previous when there is one). Leaving
- * one out doesn't lose the data, it just moves the round trip back after hydration — which is
- * exactly what the crawler reports as a gap.
- */
-async function prefetchPageWindow<P extends { page: number }>(
-  params: P,
-  run: (pageParams: P) => Promise<unknown>
-) {
-  const pages = [params.page, params.page + 1, ...(params.page > 0 ? [params.page - 1] : [])]
-  await Promise.all(pages.map((page) => run({ ...params, page })))
 }
 
 /**
@@ -1067,20 +1054,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: 'team-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('nav.routes') },
-    // RouteListPage reads the team plus its first two, unfiltered route pages — no
-    // team-membership dependency here, unlike the cross-team route list.
-    prefetch: async (queryClient, params, url) => {
-      const filters = readUrlFilters(url.searchParams, {
-        schema: routeFiltersSchema,
-        alias: routeFiltersAlias,
-      })
-      await Promise.all([
-        prefetchGetTeamQuery(queryClient, params.teamSlug!),
-        prefetchPageWindow(routeApiParams(filters), (p) =>
-          prefetchListRoutesQuery(queryClient, params.teamSlug!, p)
-        ),
-      ])
-    },
+    prefetch: (queryClient, params, url) => prefetchRouteList(queryClient, params.teamSlug!, url),
   },
   {
     id: 'routes-map',
