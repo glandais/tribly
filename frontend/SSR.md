@@ -202,6 +202,44 @@ just pays one harmless extra render with the same value. `useComputedColorScheme
   actually used (see `useZoomPlugin` in `ElevationChart.tsx`). Any new dependency reachable
   from a public route's chunk can reintroduce this — the curl sweep below catches it.
 
+## Finding 6 — `navigate()` during render *throws* on the server
+
+A redirect written the obvious way is an SSR crash, not a redirect:
+
+```tsx
+if (user && !user.requiresEmail) {
+  navigate(paths.home(), { replace: true })   // ← in the component body
+  return null
+}
+```
+
+Under `StaticRouterProvider` the navigator is `getStatelessNavigator()`, whose every method
+is a `throw`: *"You cannot use navigator.replace() on the server because it is a stateless
+environment."* So this renders fine in the SPA, and on the server it throws inside the route
+— straight into Finding 2's silent Suspense fallback. On the client it is *also* wrong, for a
+different reason: updating the router while rendering another component gives `Cannot update a
+component (RouterProvider) while rendering a different component`, then an endless re-render
+loop (each render re-navigates — 291 pageerrors before the crawler gave up).
+
+Rule: **never call `navigate()` from a render body.** Return `<Navigate to={…} replace />`
+instead, which navigates from a `useEffect`.
+
+Consequences of `<Navigate>` worth knowing, both benign here:
+
+- It is a **no-op during SSR** — effects don't run, the component renders `null`, and the
+  redirect happens after hydration. The server does not emit a 3xx and the visitor sees an
+  empty page for one paint. React Router says so itself with a dev-only warning
+  (*"`<Navigate>` must not be used on the initial render in a `<StaticRouter>`. This is a
+  no-op"*), which is invisible in a production build.
+- A **real server-side redirect** would have to come from `handler.query()` returning a
+  `Response` (`entry-server.tsx:139` maps its `Location` back to browser space), i.e. from a
+  React Router *loader*. This app has no loaders — data comes from `prefetch` in
+  `routes.config.ts`, which has no redirect channel. Introducing one for a guard page isn't
+  worth it; know that the option doesn't exist today rather than looking for it.
+
+Found by `scripts/ssr-audit.mjs` on `/complete-account`; the open list is in
+[SSR-BUGS.md](SSR-BUGS.md).
+
 ## Verifying SSR end-to-end
 
 Static checks pass ≠ SSR works — every finding above survived typecheck, lint, tests and

@@ -36,7 +36,12 @@ export function PasskeyManager() {
   const queryClient = useQueryClient()
   const setHasPasskeys = useAuthStore((state) => state.setHasPasskeys)
 
-  const [isSupported] = useState(() => isPasskeySupported())
+  // Resolved after mount, never during render: `isPasskeySupported()` reads `window`, so seeding
+  // state with it makes the server take the "not supported" branch and the client the other one —
+  // a hydration mismatch on /profile. Same shape as LoginPage's `passkeySupported`, except `null`
+  // means "not resolved yet" and renders nothing: defaulting to `false` would flash "your browser
+  // doesn't support passkeys" at every visitor whose browser does.
+  const [isSupported, setIsSupported] = useState<boolean | null>(null)
   const [hasPlatformAuth, setHasPlatformAuth] = useState(false)
   const [isRegistering, setIsRegistering] = useState(false)
   const [registerError, setRegisterError] = useState<string | null>(null)
@@ -48,6 +53,7 @@ export function PasskeyManager() {
   const deletePasskeyMutation = useDeletePasskey()
 
   useEffect(() => {
+    setIsSupported(isPasskeySupported())
     isPlatformAuthenticatorAvailable().then(setHasPlatformAuth)
   }, [])
 
@@ -92,6 +98,8 @@ export function PasskeyManager() {
       }
     )
   }
+
+  if (isSupported === null) return null
 
   if (!isSupported) {
     return (

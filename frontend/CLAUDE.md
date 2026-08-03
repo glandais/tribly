@@ -127,6 +127,9 @@ Lists request `view=COMPACT` where they only need `excerpt` + `thumbnailUrl`; in
 
 `server.js` (Express) renders public pages on the server via the static prerender API (`react-dom/static`, NOT `renderToString` — lazy route pages would render as their Suspense fallback) and hydrates on the client. Entry points: `src/entry-server.tsx` (`render(url, headers)`) and `src/entry-client.tsx` (hydrate). React Router runs in **library mode** (`createStaticHandler`/`createStaticRouter`, not framework mode); Vite uses `ssrLoadModule` in dev (no Environment API).
 
+Currently-known SSR defects (and the crawler that finds them, `scripts/ssr-audit.mjs`) are listed
+in [SSR-BUGS.md](SSR-BUGS.md) — check it before reporting one.
+
 **Before changing SSR-reachable code, read [SSR.md](SSR.md)** — it documents the architecture and the non-obvious failure modes (lazy pages vs renderToString, silent Suspense-swallowed crashes, useId tree parity via `AppProviders`/`AppFrame`, localStorage-derived render state, and the curl checks that actually catch regressions).
 
 Hard invariants — keep these when touching SSR-reachable code:

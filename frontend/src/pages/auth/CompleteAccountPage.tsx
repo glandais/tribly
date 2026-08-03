@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
@@ -30,10 +30,12 @@ export function CompleteAccountPage() {
     },
   })
 
-  // Already has a real email — nothing to complete.
+  // Already has a real email — nothing to complete. `<Navigate>` and not a bare `navigate()` call:
+  // navigating from the render body updates the router *while rendering this component*, which
+  // React answers with "Cannot update a component while rendering a different component" and then
+  // an endless re-render loop (each render re-navigates). Caught by scripts/ssr-audit.mjs.
   if (user && !user.requiresEmail) {
-    navigate(paths.home(), { replace: true })
-    return null
+    return <Navigate to={paths.home()} replace />
   }
 
   const handleSubmit = async (values: { email: string }) => {
