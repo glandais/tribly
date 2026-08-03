@@ -48,6 +48,7 @@ import { NextRideCard } from '../../components/home/NextRideCard'
 import { PublicationScopeControl } from '../../components/home/PublicationScopeControl'
 import { useMyParticipations } from '../../hooks/useMyParticipations'
 import { useAppName } from '../../hooks/useAppName'
+import { hourAlignedNowIso } from '../../utils/nowIso'
 
 export function HomePage() {
   const { t } = useTranslation()
@@ -88,16 +89,9 @@ export function HomePage() {
 
   // `filter` and `membership` are the page's own values; the API wants a PublicationType and a
   // MinRole.
-  // Frozen per mount: a `from` recomputed on every render would change the query key
-  // continuously and defeat the cache.
-  const nowIso = useMemo(() => new Date().toISOString(), [])
-  /*
-  const nowIso = useMemo(() => {
-    const startOfDay = new Date()
-    startOfDay.setHours(startOfDay.getHours(), 0, 0, 0)
-    return startOfDay.toISOString()
-  }, [])
-  */
+  // Hour-aligned and frozen per mount: a `from` that changed on every render, or that disagreed
+  // with the SSR prefetch computed a few hundred ms earlier, would defeat the query cache.
+  const nowIso = useMemo(() => hourAlignedNowIso(), [])
 
   const apiParams = useMemo(
     () => ({
@@ -131,8 +125,9 @@ export function HomePage() {
     prefetchPage,
   })
 
-  // "Ma prochaine sortie" — authenticated-only, so it renders after hydration and
-  // is deliberately absent from the route's prefetch (SSR carries no credential).
+  // "Ma prochaine sortie" — authenticated-only. Prefetched by the route for a session-carrying
+  // SSR request (see routes.config.ts), so it's already in the initial HTML for a signed-in
+  // visitor rather than rendering after hydration.
   const { data: participations } = useMyParticipations({
     from: nowIso,
     status: Status.PUBLISHED,

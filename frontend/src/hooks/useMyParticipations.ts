@@ -5,10 +5,10 @@ import { useAuth } from './useAuth'
 /**
  * Thin facade on `GET /api/users/me/participations`.
  *
- * A plain `useQuery`, not a suspense one, so even when SSR resolves the visitor's session (see
- * SSR.md) this doesn't block the prerender — it never fires server-side, and the blocks it feeds
- * render after hydration. Callers must not put it in a route `prefetch`: that's the mechanism that
- * actually gets data into the SSR markup, and this hook was never wired into one.
+ * A plain `useQuery`, not a suspense one, so it never blocks the prerender itself. For a
+ * session-carrying SSR request, callers whose route `prefetch` populated the query cache with a
+ * byte-matching key (see the `home` route in `routes.config.ts`) get the data in the initial HTML;
+ * otherwise it renders after hydration, same as an anonymous visitor.
  */
 export function useMyParticipations(params: ListMyParticipationsParams, enabled = true) {
   const { isAuthenticated } = useAuth()

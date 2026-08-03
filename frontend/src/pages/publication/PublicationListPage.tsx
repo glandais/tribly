@@ -31,6 +31,7 @@ import {
 import { SearchInput } from '../../components/common/SearchInput'
 import { paths } from '@/config/paths'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
+import { hourAlignedNowIso } from '../../utils/nowIso'
 
 export function PublicationListPage() {
   const { t } = useTranslation()
@@ -47,8 +48,8 @@ export function PublicationListPage() {
   const [search, setSearch] = useDebouncedSearch(filters.search ?? '', commitSearch)
   const { listTopRef, scrollToListTop } = useScrollToListTop()
 
-  // Frozen per mount so `from` does not change the query key on every render.
-  const nowIso = useMemo(() => new Date().toISOString(), [])
+  // Hour-aligned and frozen per mount so `from` does not change the query key on every render.
+  const nowIso = useMemo(() => hourAlignedNowIso(), [])
 
   // `filter` is the page's own value; the API wants a PublicationType.
   const apiParams = useMemo(

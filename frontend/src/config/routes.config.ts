@@ -6,7 +6,12 @@ import {
   prefetchListAllPublicationsQuery,
   prefetchListPublicationsQuery,
 } from '@/api/endpoints/publications/publications'
-import { prefetchListTeamsQuery, prefetchGetTeamQuery } from '@/api/endpoints/teams/teams'
+import {
+  prefetchListTeamsQuery,
+  prefetchGetTeamQuery,
+  getListTeamsQueryKey,
+} from '@/api/endpoints/teams/teams'
+import { prefetchListMyParticipationsQuery } from '@/api/endpoints/users/users'
 import { prefetchGetRideQuery } from '@/api/endpoints/rides/rides'
 import { prefetchGetTripQuery } from '@/api/endpoints/trips/trips'
 import { prefetchGetPostQuery } from '@/api/endpoints/posts/posts'
@@ -32,6 +37,8 @@ import {
 import { PUBLICATION_PAGE_SIZE } from '@/hooks/filters/publicationFilters'
 import { TEAM_PAGE_SIZE } from '@/hooks/filters/teamFilters'
 import { useAuthStore } from '@/store/authStore'
+import { MinRole, Status, type TeamListResponse } from '@/api/dto'
+import { hourAlignedNowIso } from '@/utils/nowIso'
 
 // Lazy load page components for code splitting
 const HomePage = lazy(() => import('../pages/home/HomePage').then((m) => ({ default: m.HomePage })))
@@ -252,19 +259,35 @@ export const routesConfig: RoutesConfig = [
     index: true,
     navGroup: 'home',
     breadcrumb: { type: 'static', i18nKey: tRegister('home.tabs.feed') },
-    // Anonymous first page. Matches HomePage's initial useListAllPublications key when no URL
-    // filters are set (search/type/minRole all undefined, page 0). Undefined values are dropped by
-    // the query-key hash, so { page, size } byte-matches the component's params object.
+    // Matches HomePage's initial query keys when no URL filters are set (search/type all
+    // undefined, page 0) — undefined values are dropped by the query-key hash, so these params
+    // byte-match the component's. Signed in, the feed's `minRole` depends on team membership
+    // (see `useMembershipDefault`), so that probe is replicated here first.
     prefetch: async (queryClient) => {
+      let minRole: MinRole | undefined
       if (useAuthStore.getState().isAuthenticated) {
-        return
+        const membershipParams = { minRole: MinRole.MEMBER, page: 0, size: 1 }
+        await prefetchListTeamsQuery(queryClient, membershipParams)
+        const teams = queryClient.getQueryData<TeamListResponse>(
+          getListTeamsQueryKey(membershipParams)
+        )
+        minRole = teams && teams.total > 0 ? MinRole.MEMBER : undefined
+
+        await prefetchListMyParticipationsQuery(queryClient, {
+          from: hourAlignedNowIso(),
+          status: Status.PUBLISHED,
+          size: 5,
+          view: 'COMPACT',
+        })
       }
       await prefetchListAllPublicationsQuery(queryClient, {
+        minRole,
         page: 0,
         size: PUBLICATION_PAGE_SIZE,
         view: 'COMPACT',
       })
       await prefetchListAllPublicationsQuery(queryClient, {
+        minRole,
         page: 1,
         size: PUBLICATION_PAGE_SIZE,
         view: 'COMPACT',
