@@ -17,6 +17,10 @@ import { prefetchListMyInvitationsQuery } from '@/api/endpoints/invitations/invi
 import { prefetchGetRideQuery } from '@/api/endpoints/rides/rides'
 import { prefetchGetTripQuery } from '@/api/endpoints/trips/trips'
 import { prefetchGetPostQuery } from '@/api/endpoints/posts/posts'
+import {
+  listPostComments,
+  getListPostCommentsQueryKey,
+} from '@/api/endpoints/post-comments/post-comments'
 import { prefetchGetRouteQuery, prefetchGetRouteUsagesQuery } from '@/api/endpoints/routes/routes'
 import { prefetchGetPageQuery } from '@/api/endpoints/team-pages/team-pages'
 import { prefetchGetAdQuery } from '@/api/endpoints/ads/ads'
@@ -856,11 +860,32 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: 'team-detail',
     breadcrumb: { type: 'dynamic', entity: 'post' },
+    // Comments are member-only (PostDetailPage's `isMember`, from the team's `role`) — resolved
+    // from the team prefetched just above, same pattern as route-detail.
     prefetch: async (queryClient, params) => {
+      const teamSlug = params.teamSlug!
+      const postSlug = params.postSlug!
       await Promise.all([
-        prefetchGetTeamQuery(queryClient, params.teamSlug!),
-        prefetchGetPostQuery(queryClient, params.teamSlug!, params.postSlug!),
+        prefetchGetTeamQuery(queryClient, teamSlug),
+        prefetchGetPostQuery(queryClient, teamSlug, postSlug),
       ])
+
+      const team = queryClient.getQueryData<TeamDetailDto>(getGetTeamQueryKey(teamSlug))
+      if (team?.role) {
+        await queryClient.prefetchInfiniteQuery({
+          queryKey: [
+            ...getListPostCommentsQueryKey(teamSlug, postSlug),
+            { size: COMMENT_PAGE_SIZE, sort: SortDirection.DESC },
+          ],
+          queryFn: ({ pageParam }: { pageParam: number }) =>
+            listPostComments(teamSlug, postSlug, {
+              page: pageParam,
+              size: COMMENT_PAGE_SIZE,
+              sort: SortDirection.DESC,
+            }),
+          initialPageParam: 0,
+        })
+      }
     },
     meta: postMeta,
   },
