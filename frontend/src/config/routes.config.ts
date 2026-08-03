@@ -38,7 +38,11 @@ import { ROUTES_BULK_MAX_SLUGS } from '@/hooks/useRoutesBulk'
 import { prefetchGetPageQuery } from '@/api/endpoints/team-pages/team-pages'
 import { prefetchGetAdQuery, prefetchListAdsQuery } from '@/api/endpoints/ads/ads'
 import { prefetchGetPreviewQuery } from '@/api/endpoints/gpx-previews/gpx-previews'
-import { prefetchListAllRoutesQuery, prefetchListRoutesQuery } from '@/api/endpoints/routes/routes'
+import {
+  prefetchListAllRoutesQuery,
+  prefetchListRoutesQuery,
+  prefetchGetAllRoutesBoundsQuery,
+} from '@/api/endpoints/routes/routes'
 import { prefetchGetAvailableServicesQuery } from '@/api/endpoints/gps-services/gps-services'
 import {
   listRouteComments,
@@ -140,6 +144,20 @@ async function prefetchTripRoutesBulk(
       dedupedSlugs.slice(i * ROUTES_BULK_MAX_SLUGS, (i + 1) * ROUTES_BULK_MAX_SLUGS)
     ).map((slugChunk) => prefetchGetRoutesBulkQuery(queryClient, teamSlug, { slug: slugChunk }))
   )
+}
+
+/**
+ * Mirrors `useMembershipDefault`: signed in with at least one team, the cross-team route pages
+ * default to `minRole: MEMBER`; anonymous, or signed in with no team, they default to unfiltered.
+ * Shared by `all-routes` and `all-routes-map` so both prefetch the same resolved variant instead
+ * of the unfiltered one the anonymous case would otherwise cache.
+ */
+async function resolveAllRoutesMinRole(queryClient: QueryClient): Promise<MinRole | undefined> {
+  if (!useAuthStore.getState().isAuthenticated) return undefined
+  const membershipParams = { minRole: MinRole.MEMBER, page: 0, size: 1 }
+  await prefetchListTeamsQuery(queryClient, membershipParams)
+  const teams = queryClient.getQueryData<TeamListResponse>(getListTeamsQueryKey(membershipParams))
+  return teams && teams.total > 0 ? MinRole.MEMBER : undefined
 }
 
 // Lazy load page components for code splitting
@@ -410,15 +428,7 @@ export const routesConfig: RoutesConfig = [
     // replicated here so the resolved variant, not a guess, lands in the cache (same pattern as
     // the `home` and `teams` routes).
     prefetch: async (queryClient) => {
-      let minRole: MinRole | undefined
-      if (useAuthStore.getState().isAuthenticated) {
-        const membershipParams = { minRole: MinRole.MEMBER, page: 0, size: 1 }
-        await prefetchListTeamsQuery(queryClient, membershipParams)
-        const teams = queryClient.getQueryData<TeamListResponse>(
-          getListTeamsQueryKey(membershipParams)
-        )
-        minRole = teams && teams.total > 0 ? MinRole.MEMBER : undefined
-      }
+      const minRole = await resolveAllRoutesMinRole(queryClient)
       const routeParams = {
         minRole,
         sortBy: DEFAULT_ROUTE_SORT_BY,
@@ -438,6 +448,12 @@ export const routesConfig: RoutesConfig = [
     parentId: 'all-routes',
     navGroup: 'home',
     breadcrumb: { type: 'static', i18nKey: tRegister('routes.view.map') },
+    // Matches AllRoutesMapPage's initial useGetAllRoutesBounds key when no URL filters are set —
+    // same minRole resolution as `all-routes` above.
+    prefetch: async (queryClient) => {
+      const minRole = await resolveAllRoutesMinRole(queryClient)
+      await prefetchGetAllRoutesBoundsQuery(queryClient, { minRole })
+    },
   },
 
   // === GPX Tools Routes ===
