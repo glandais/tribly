@@ -39,93 +39,67 @@ makes the app redirect to its canonical URL on load, which discards the verdict.
 
 ## Last run
 
-2026-08-03 18:51Z, **staging** (production build) — 167 checks, **0 login failures**, 62 with
-issues (62 prefetch, 7 console-error, 1 hydration). Verdicts: **98 covered, 62 gaps, 7 not
-measured**.
+2026-08-03 21:19Z, **local production build on :3000** — 158 checks, **0 login failures**,
+**42 with issues** (42 prefetch, 1 hydration). Verdicts: **109 covered, 42 gaps, 7 not measured**.
 
-First trustworthy run. The two previous ones understated the problem badly:
+Down from 62 gaps in the 18:51Z staging run. What closed: every team-scoped list and admin screen
+(`teamMembers`, `teamAdminPlaces`, `teamAdminPages`, `rideTemplates` (list), `teamAdminPageEdit`,
+`ad`, `adNew`, `teamSettings`, `postNew`/`postEdit`, `routeNew`/`routeEdit`, `teamPage`,
+`teamAbout`…), plus the filtered-URL fix confirmed. Nothing regressed.
 
-- `admin` never logged in, so `/platform/*` was invisible. That was never a credential problem —
-  the crawler clicked submit before React had hydrated and the click went nowhere, which is why a
-  *different* user failed in each run.
-- the crawl requested the **English** paths while the app serves French, so every route with a
-  `fr` variant redirected on load, the page's own audit discarded its verdict, and the check was
-  filed as `RAS` **without having measured anything**. `locale: fr` in `routes-ssr.yml` fixes it;
-  the crawler now separates `covered` / `gaps` / `discarded` / `timeout` and prints a "Not
-  measured" section, so this can't silently happen again.
-
-That is where the jump from 33 to 62 comes from: not a regression, previously-blind routes.
+**Structural change worth knowing before fixing anything below**: every route's `prefetch` now
+lives in a **companion module** next to its page (`pages/<domain>/<screen>Data.ts`), read as hooks
+by the page and as a `Promise.all` by `routes.config.ts` — see
+[SSR-data-loading.md](SSR-data-loading.md). Closing a gap means editing that module, and a route
+with no companion at all (`stageMap`, `routesMap`, `teamCalendar`, `gpxToolsList`, `gpxToolsEdit`,
+`teamsNew`, `/platform/*`, `deviceVerify*`) means writing one — not adding a `prefetchXxxQuery`
+call to `routes.config.ts`.
 
 The 7 still not measured redirect legitimately on load: `completeAccount` (×3 — the redirect *is*
 the known bug), `gpxToolsNew` (×3), `teamAdmin/user1`.
 
 **The SEO-critical surface is clean**: `home`, `teams`, `team`, `teamAbout`, `teamPage`, `ride`,
-`trip`, `stage`, `post`, `routes`, `route`, `routeMap`, `allRoutes`, `allRoutesMap`, `apps`,
-`privacy`, `terms`, `gpxToolsMap` all report `covered` for all four users. Everything below is
-either an authenticated screen or a public page no crawler ranks.
+`trip`, `stage`, `post`, `routes`, `route`, `routeMap`, `allRoutes`, `allRoutesMap`, `ads`, `ad`,
+`apps`, `privacy`, `terms`, `gpxToolsMap` all report `covered` for all four users. Everything below
+is either an authenticated screen or a public page no crawler ranks.
 
-Staging runs a production React build, so hydration errors are minified (`#418` = mismatch, with
-`args[]` naming what mismatched; `#185` = update loop) and carry no component diff. That's the
-expected trade: run the build for the inventory, re-run a failing route against `pnpm dev:ssr`
-when you need the tree.
-
-The two fixes committed before this run were **not deployed** to staging — nothing about
-`completeAccount` or `profile`'s passkey mismatch in this list is a regression.
+A production React build minifies hydration errors (`#418` = mismatch, with `args[]` naming what
+mismatched; `#185` = update loop) and carries no component diff. That's the expected trade: run the
+build for the inventory, re-run a failing route against `pnpm dev:ssr` when you need the tree.
 
 ## Open
 
-### 1. Team-scoped form and admin pages — *fixed, awaiting a run*
+### 1. Two screens fetch an entity their route never primes
 
-The 20 routes under `/teams/{slug}/…` now go through `teamScopedPrefetch()` in
-`routes.config.ts`: the team itself plus, where the page has one, its own entity (`ride-edit`,
-`trip-edit`, `post-edit`, `route-edit`, `ad-edit`, `team-admin-page-edit`) or its list
-(`team-admin-places`, `team-admin-pages`, `team-members` + pending invitations, `ride-templates`,
-`ride-new`/`ride-edit`'s two place autocompletes).
+Both were found while migrating to companion modules, left alone there because a refactor is not
+the place to change what is fetched, and **confirmed by this run**:
 
-Two things worth not undoing:
+- **`adEdit`** — the page reads `/classifieds/{slug}/edit` (`useGetAdEdit`) while its prefetch
+  primes `/classifieds/{slug}` (`getAd`). Two different endpoints, so two different keys: the
+  prefetched entry is dead weight and the edit form fetches on the client. Fix in
+  `pages/ad/adFormData.ts` — make `prefetchEditAdForm` prime the same endpoint the hook reads, and
+  check whether the plain `getAd` entry is worth keeping at all.
+- **`rideTemplateEdit`** — renders the template but the route prefetches only the team (bare
+  `teamScopedPrefetch()`). Add the template to `pages/ridetemplate/rideTemplateFormData.ts` and
+  wire the route through it, which turns the screen out of the "team-only" special case.
 
-- list params come from the page's **own filter schema** (`placeFiltersSchema.parse({})` and
-  friends) and place-autocomplete params from a shared `placeAutocompleteParams()`. Hand-copying
-  the params out of a crawler report also produces a matching key — right up until someone changes
-  a page size, at which point the prefetch silently becomes dead weight again.
-- the helper returns early for an anonymous request: these routes render a redirect, not a page.
+### 2. Form pickers fetch lists nobody opened
 
-The existing prefetches were reviewed under the same angle and three hand-copied param sets became
-shared derivations — see SSR.md Finding 5. They all matched at the time; the point was that they
-matched *by coincidence of defaults*, which is not a property anyone maintains on purpose.
+`rideNew` (`routes?page=0&size=20`, `ride-templates?page=0&size=20`), `rideEdit` (the same routes
+list, `places/{id}`, `routes/bulk?geometry=false`), `tripNew`/`tripEdit` (the routes list).
 
-Still fetched after paint on these routes, and left alone on purpose: `tripNew`/`tripEdit`'s
-`routes?page=0&size=20`. That query belongs to `RoutePickerModal`, which runs it even while the
-modal is closed — gating it on `isOpen` removes the request outright, which beats prefetching a
-list most visitors never open. Worth doing, but it's a component fix, not a prefetch one.
-
-### 2. Filtered URLs server-rendered an empty list — *fixed, verified*
-
-`makeLoader` had the request in hand but passed only the path params to `prefetch`, so every list
-route prefetched its **default** variant whatever the URL asked for. A link carrying filters —
-the one thing URL filters exist for — rendered with no content at all:
-
-```
-/equipes/n-peloton/parcours       12 cards in the HTML
-/equipes/n-peloton/parcours?p=5    0        (now 12)
-/equipes/n-peloton/parcours?q=ride 0        (now 12)
-```
-
-…and shipped a dehydrated cache entry the page never read. `prefetch` now takes the URL and each
-list route resolves its filters from it (`readUrlFilters`), prefetching the page window
-`usePaginatedQuery` reads. Verified with the crawler on nine filtered URLs across `home`, `teams`,
-`routes`, `allRoutes`, `allRoutesMap`: all `covered`.
-
-The one that stayed `gaps` was `ads?p=1`, for an unrelated reason: the endpoint answers 401 to an
-anonymous SSR request, so nothing got cached to begin with. `ads`/`ad-detail` are now
-`auth: 'authenticated'`, matching the API — crawl them as a member.
+These belong to `RoutePickerModal` and its siblings, which query **while still closed**. Gating
+them on `isOpen` removes the request outright, which beats prefetching a list most visitors never
+open. Worth doing, but it is a component fix, not a prefetch one — do not "fix" it by adding these
+to the form companions.
 
 ### 3. `TeamCalendarPage` repeats the unstable-date pattern
 
-`teamCalendar` fetches `/api/teams/{slug}`, `calendar/events` **and** `calendar/token` after paint,
-with the same `from`/`to` window `CalendarPage` had. It escaped the earlier fix only because the
-crawler never measured it (it was in the redirect blind spot). Give it `getInitialCalendarRange()`
-and a `prefetch`, exactly like `calendar`.
+`teamCalendar` fetches `/api/teams/{slug}`, `calendar/events` (twice — its own wide range **and**
+FullCalendar's visible grid) and `calendar/token` after paint. It escaped the earlier fix only
+because the crawler never measured it (it was in the redirect blind spot). Give it a companion
+next to `pages/calendar/calendarData.ts` keyed on `getInitialCalendarRange()`, exactly like
+`calendar`.
 
 Two of its checks show `from: …T18:00:00Z` and `…T19:00:00Z` for different users — the hour
 boundary crossed mid-run, i.e. the documented once-an-hour miss of `hourAlignedNow()`, not a
@@ -137,7 +111,7 @@ defect.
 everything client-side, while their non-map siblings `stage` and `routesMap`'s parent are clean.
 Public routes, unlike the two entries above.
 
-### 5. Routes with no `prefetch` at all
+### 5. Queries no route primes
 
 Each of these refetches on the client what SSR could have embedded:
 
@@ -152,7 +126,15 @@ Each of these refetches on the client what SSR could have embedded:
 | `teamsNew` | `teams?page=0&size=1` |
 
 `gps/available` accounts for three of them and `route-detail`/`ride-detail` already prefetch it
-behind `isAuthenticated` — copy that, don't invent a second pattern.
+behind `isAuthenticated` — copy that, don't invent a second pattern. `profile`, `calendar` and
+`gpxToolsView` already have a companion to add it to; the other four need one.
+
+Not visible in this run but the same class of gap: the **admin lists prime
+`someFiltersSchema.parse({})`** — the default list, ignoring the URL's filters — where the public
+lists go through `readUrlFilters(url.searchParams, …)`. The crawler only visits their default URL,
+so it reports them `covered`. Each companion says so in its docblock (`teamMembersData`,
+`teamPlacesData`, `rideTemplateListData`); fixing it means threading `url` into their prefetch the
+way `routeListData` does.
 
 The date-filtered queries of `profile` and `calendar` are **now prefetched**: they used a raw
 `new Date()`, whose millisecond precision put a different value in the query key on the server and
@@ -163,7 +145,8 @@ a range that depends on the viewport and can't be computed server-side.
 
 ### 6. `CalendarView` formats event times outside `useFormattedDate` — text mismatch on `/calendar`
 
-React #418 with `args[]=text` (a text-content mismatch) on `/calendar`, for `user1` only.
+React #418 with `args[]=text` (a text-content mismatch) on `/calendar`, for `user1` only — the one
+hydration issue in the whole run, unchanged since 18:51Z.
 
 `useEffectiveTimezone()` (`utils/dateFormat.ts`) resolves to `UTC` on the server whenever the user
 has no `timezone` preference — and it is NULL for all three staging accounts — while the browser
@@ -174,11 +157,12 @@ start/end above it). Server writes UTC, client writes Europe/Paris, React report
 
 Only `user1` trips it because only `user1` has events on the first paint — the other two render an
 empty calendar and so have no time text to disagree about. That's the general shape of this class
-of bug: it shows up only for the account whose data reaches the failing branch.
+of bug: it shows up only for the account whose data reaches the failing branch, so a run where it
+disappears proves nothing about the fix.
 
 ### 7. `/platform/*` has no `prefetch` at all
 
-Newly reachable now that `admin` logs in — five routes, every one of them fetching after paint:
+Five routes, every one of them fetching after paint (unchanged since the previous run):
 
 | Route | Fetched after hydration |
 | --- | --- |
@@ -188,7 +172,7 @@ Newly reachable now that `admin` logs in — five routes, every one of them fetc
 | `adminUsers` | `admin/domains?page=0&size=100`, `admin/users?page=0&size=20` |
 | `adminBetaSignups` | `admin/beta-signups?page=0&size=20` |
 
-Lowest priority of the three: these are internal screens with a handful of users, and SEO doesn't
+Lowest priority in this list: these are internal screens with a handful of users, and SEO doesn't
 apply. Listed so the inventory is honest, not because it's urgent.
 
 ## Known false positives
@@ -207,3 +191,8 @@ apply. Listed so the inventory is honest, not because it's urgent.
   the one crawl user who belongs to that team — otherwise the run audits an error page. Same trap
   for any future member-scoped route: restrict its `users:` or point `params.teamSlug` at a team
   the user belongs to.
+- **`calendar`'s second `calendar/events` window, and `teamCalendar`'s** — FullCalendar re-queries
+  its own visible grid right after mount, over a range that depends on the viewport. That second
+  window is not computable server-side, so it will be reported as a gap on every run, forever. The
+  *first* range (`getInitialCalendarRange()`) is the one that must stay `covered`. Same for
+  `MyParticipations`' paged queries on `profile`: they fire only when a section is opened.
