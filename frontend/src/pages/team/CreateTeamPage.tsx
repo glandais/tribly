@@ -7,13 +7,13 @@ import { TeamForm } from '../../components/team/TeamForm'
 import { TeamDetailDto, Visibility } from '@/api/dto'
 import { defaultMedia } from '@/lib/apiUtils'
 import { getAppConfig } from '../../config/appConfig'
-import { useListTeams } from '@/api/endpoints/teams/teams'
+import { useTeamFormData } from './teamFormData'
 
 export function CreateTeamPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const config = getAppConfig()
-  const { data: teamsData } = useListTeams({ page: 0, size: 1 })
+  const { data: teamsData } = useTeamFormData()
 
   useEffect(() => {
     if (config?.singleTeam && teamsData && teamsData.total > 0) {

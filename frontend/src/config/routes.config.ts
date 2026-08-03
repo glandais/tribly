@@ -11,7 +11,20 @@ import { prefetchPostDetail } from '@/pages/post/postDetailData'
 import { prefetchRouteDetail, prefetchRouteMap } from '@/pages/route/routeDetailData'
 import { prefetchUserProfile } from '@/pages/auth/profileData'
 import { prefetchCalendar } from '@/pages/calendar/calendarData'
-import { prefetchGpxPreview } from '@/pages/gpxtool/gpxPreviewData'
+import { prefetchGpxPreview, prefetchGpxPreviewView } from '@/pages/gpxtool/gpxPreviewData'
+import { prefetchGpxPreviewList } from '@/pages/gpxtool/gpxPreviewListData'
+import { prefetchGpxPreviewForm } from '@/pages/gpxtool/gpxPreviewFormData'
+import { prefetchTeamCalendar } from '@/pages/calendar/teamCalendarData'
+import { prefetchRoutesMap } from '@/pages/route/routesMapData'
+import { prefetchStageMap } from '@/pages/trip/stageMapData'
+import { prefetchTeamForm } from '@/pages/team/teamFormData'
+import { prefetchDeviceVerify } from '@/pages/device/deviceVerifyData'
+import { prefetchEditRideTemplateForm } from '@/pages/ridetemplate/rideTemplateFormData'
+import { prefetchAdminDashboard } from '@/pages/admin/adminDashboardData'
+import { prefetchAdminDomains } from '@/pages/admin/adminDomainsData'
+import { prefetchAdminTeams } from '@/pages/admin/adminTeamsData'
+import { prefetchAdminUsers } from '@/pages/admin/adminUsersData'
+import { prefetchAdminBetaSignups } from '@/pages/admin/adminBetaSignupsData'
 import { prefetchTeamAbout } from '@/pages/team/teamAboutData'
 import { prefetchTeamPage } from '@/pages/team/teamPageData'
 import { prefetchTeamPagesAdmin } from '@/pages/team/teamPagesAdminData'
@@ -61,13 +74,13 @@ import type { QueryClient } from '@tanstack/react-query'
  * fetch would be wasted (and the API call pointless) before the guard sends the visitor away.
  */
 function teamScopedPrefetch(
-  extra?: (queryClient: QueryClient, params: RouteParams) => Promise<unknown>
-): (queryClient: QueryClient, params: RouteParams) => Promise<void> {
-  return async (queryClient, params) => {
+  extra?: (queryClient: QueryClient, params: RouteParams, url: URL) => Promise<unknown>
+): (queryClient: QueryClient, params: RouteParams, url: URL) => Promise<void> {
+  return async (queryClient, params, url) => {
     if (!useAuthStore.getState().isAuthenticated) return
     await Promise.all([
       prefetchGetTeamQuery(queryClient, params.teamSlug!),
-      extra ? extra(queryClient, params) : Promise.resolve(),
+      extra ? extra(queryClient, params, url) : Promise.resolve(),
     ])
   }
 }
@@ -340,6 +353,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'gpx-tools',
     breadcrumb: { type: 'static', i18nKey: tRegister('gpxTools.listFiles.title') },
+    prefetch: (queryClient, _params, url) => prefetchGpxPreviewList(queryClient, url),
   },
   {
     id: 'gpx-tools-new',
@@ -358,7 +372,7 @@ export const routesConfig: RoutesConfig = [
     parentId: 'gpx-tools',
     breadcrumb: { type: 'static', i18nKey: tRegister('gpxTools.preview.title') },
     // Public/anonymous endpoint — prefetches fine under stateless SSR, and feeds gpxPreviewMeta.
-    prefetch: (queryClient, params) => prefetchGpxPreview(queryClient, params.previewId!),
+    prefetch: (queryClient, params) => prefetchGpxPreviewView(queryClient, params.previewId!),
     meta: gpxPreviewMeta,
   },
   {
@@ -382,6 +396,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'gpx-tools-view',
     breadcrumb: { type: 'static', i18nKey: tRegister('gpxTools.edit.title') },
+    prefetch: (queryClient, params) => prefetchGpxPreviewForm(queryClient, params.previewId!),
   },
 
   // === Apps ===
@@ -429,6 +444,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('device.title') },
+    prefetch: (queryClient) => prefetchDeviceVerify(queryClient),
   },
   {
     id: 'device-verify-karoo',
@@ -437,6 +453,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('device.title') },
+    prefetch: (queryClient) => prefetchDeviceVerify(queryClient),
   },
   {
     id: 'verify-email',
@@ -543,6 +560,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'teams',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.create.title') },
+    prefetch: (queryClient) => prefetchTeamForm(queryClient),
     showBackLink: true,
     hideWhenSingleTeam: true,
   },
@@ -580,6 +598,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'team-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('calendar.title') },
+    prefetch: (queryClient, params) => prefetchTeamCalendar(queryClient, params.teamSlug!),
   },
   {
     id: 'team-page',
@@ -609,7 +628,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'team-admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.tabs.places') },
-    prefetch: teamScopedPrefetch((qc, p) => prefetchTeamPlaces(qc, p.teamSlug!)),
+    prefetch: teamScopedPrefetch((qc, p, url) => prefetchTeamPlaces(qc, p.teamSlug!, url)),
   },
   {
     id: 'team-admin-pages',
@@ -647,7 +666,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'team-admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.tabs.members') },
-    prefetch: teamScopedPrefetch((qc, p) => prefetchTeamMembers(qc, p.teamSlug!)),
+    prefetch: teamScopedPrefetch((qc, p, url) => prefetchTeamMembers(qc, p.teamSlug!, url)),
   },
   {
     id: 'team-settings',
@@ -701,7 +720,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'team-admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.tabs.rideTemplates') },
-    prefetch: teamScopedPrefetch((qc, p) => prefetchRideTemplateList(qc, p.teamSlug!)),
+    prefetch: teamScopedPrefetch((qc, p, url) => prefetchRideTemplateList(qc, p.teamSlug!, url)),
   },
   {
     id: 'ride-template-new',
@@ -720,7 +739,9 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'ride-templates',
     breadcrumb: { type: 'dynamic', entity: 'rideTemplate' },
-    prefetch: teamScopedPrefetch(),
+    prefetch: teamScopedPrefetch((qc, p) =>
+      prefetchEditRideTemplateForm(qc, p.teamSlug!, p.templateSlug!)
+    ),
     showBackLink: true,
   },
 
@@ -780,6 +801,8 @@ export const routesConfig: RoutesConfig = [
     layout: 'bare',
     parentId: 'stage-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('map.fullscreen.title') },
+    prefetch: (queryClient, params) =>
+      prefetchStageMap(queryClient, params.teamSlug!, params.tripSlug!, params.stageSlug!),
   },
 
   // === Post Routes ===
@@ -834,6 +857,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: 'routes',
     breadcrumb: { type: 'static', i18nKey: tRegister('routes.view.map') },
+    prefetch: (queryClient, params, url) => prefetchRoutesMap(queryClient, params.teamSlug!, url),
   },
   {
     id: 'route-new',
@@ -937,6 +961,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('admin.title') },
+    prefetch: (queryClient) => prefetchAdminDashboard(queryClient),
   },
   {
     id: 'admin-domains',
@@ -945,6 +970,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('admin.tabs.domains') },
+    prefetch: (queryClient) => prefetchAdminDomains(queryClient),
   },
   {
     id: 'admin-teams',
@@ -953,6 +979,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('admin.tabs.teams') },
+    prefetch: (queryClient) => prefetchAdminTeams(queryClient),
   },
   {
     id: 'admin-users',
@@ -961,6 +988,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('admin.tabs.users') },
+    prefetch: (queryClient) => prefetchAdminUsers(queryClient),
   },
   {
     id: 'admin-beta-signups',
@@ -969,5 +997,6 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('admin.tabs.betaSignups') },
+    prefetch: (queryClient) => prefetchAdminBetaSignups(queryClient),
   },
 ]

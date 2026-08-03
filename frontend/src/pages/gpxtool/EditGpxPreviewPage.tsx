@@ -4,14 +4,11 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Stack, Text, Title } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import type { GeoPoint } from '@/api/dto'
-import {
-  getGetPreviewQueryKey,
-  useGetPreview,
-  useUpdatePreview,
-} from '@/api/endpoints/gpx-previews/gpx-previews'
+import { getGetPreviewQueryKey, useUpdatePreview } from '@/api/endpoints/gpx-previews/gpx-previews'
 import { GpxPreviewEditor } from '@/components/gpxtool/GpxPreviewEditor'
 import { LoadingPage } from '@/components/common/LoadingSpinner'
 import { paths } from '@/config/paths'
+import { useGpxPreviewFormData } from './gpxPreviewFormData'
 
 export function EditGpxPreviewPage() {
   const { previewId } = useParams<{ previewId: string }>()
@@ -19,9 +16,7 @@ export function EditGpxPreviewPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const { data: preview, isLoading } = useGetPreview(previewId!, {
-    query: { enabled: !!previewId },
-  })
+  const { data: preview, isLoading } = useGpxPreviewFormData(previewId)
   const updateMutation = useUpdatePreview()
 
   if (isLoading) {

@@ -1,14 +1,12 @@
 import { useEffect } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
-import { useGetTrip } from '@/api/endpoints/trips/trips'
-import { useGetRoute } from '@/api/endpoints/routes/routes'
 import { RouteFullscreenView } from '@/components/route/RouteFullscreenView'
 import { LoadingPage } from '@/components/common/LoadingSpinner'
 import { paths } from '@/config/paths'
 import { useAppName } from '@/hooks/useAppName'
 import { useCanonicalPath } from '@/hooks/useCanonicalPath'
+import { useStageMapData } from './stageMapData'
 
 /**
  * Fullscreen map for a trip stage's route (`.../map`). Bare layout (no AppShell), so it owns its own
@@ -24,20 +22,14 @@ export function StageFullscreenMapPage() {
   const { t } = useTranslation()
   const appName = useAppName()
 
-  const { data: team } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
-  const { data: trip, isLoading: isLoadingTrip } = useGetTrip(teamSlug!, tripSlug!, {
-    query: { enabled: !!teamSlug && !!tripSlug },
-  })
+  const {
+    team: { data: team },
+    trip: { data: trip, isLoading: isLoadingTrip },
+    route: { data: route, isLoading: isLoadingRoute },
+    routeSlug,
+  } = useStageMapData(teamSlug, tripSlug, stageSlug)
 
-  // Find stage and its route slug (derived before hooks to maintain consistent hook order)
   const stage = trip?.stages?.find((s) => s.slug === stageSlug)
-  const routeSlug = stage?.route?.slug
-
-  const { data: route, isLoading: isLoadingRoute } = useGetRoute(teamSlug!, routeSlug ?? '', {
-    query: { enabled: !!teamSlug && !!routeSlug },
-  })
 
   useCanonicalPath(
     team && trip && stageSlug ? paths.stageMap(team.slug, trip.slug, stageSlug) : undefined

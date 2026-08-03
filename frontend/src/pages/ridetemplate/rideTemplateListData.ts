@@ -7,11 +7,12 @@ import {
   prefetchListTemplatesQuery,
 } from '@/api/endpoints/ride-templates/ride-templates'
 import { usePaginatedQuery } from '@/hooks/usePaginatedQuery'
-import { useUrlFilters } from '@/hooks/useUrlFilters'
+import { useUrlFilters, readUrlFilters } from '@/hooks/useUrlFilters'
 import {
   rideTemplateFiltersSchema,
   rideTemplateFiltersAlias,
 } from '@/hooks/filters/rideTemplateFilters'
+import { prefetchPageWindow } from '@/config/prefetchHelpers'
 
 /**
  * The one description of what the team's ride-template list reads, consumed two ways:
@@ -24,12 +25,10 @@ import {
  * `rideTemplateFiltersSchema` maps directly onto `ListTemplatesParams` (search/page/size) — no
  * separate params builder, unlike the route list's `routeApiParams`.
  *
- * Known gap, not fixed here: the prefetch primes `rideTemplateFiltersSchema.parse({})` — the
- * *default* filters — rather than reading the request's query string, so it only covers the
- * default list; a filtered URL (`?q=…&p=2`) refetches on the client after hydration. It also
- * prefetches only the requested page, not the neighbours `usePaginatedQuery` fetches ahead
- * client-side (unlike `pages/route/routeListData.ts`'s `prefetchPageWindow`) — matches today's
- * behaviour, not flagged as a fix here.
+ * The prefetch reads the request's query string through the same `rideTemplateListFilterOptions`
+ * the page's `useUrlFilters` uses, via `readUrlFilters`, then primes the page the URL asks for plus
+ * the neighbours `usePaginatedQuery` fetches ahead — same shape as `routeListData.ts`'s
+ * `prefetchPageWindow`. A filtered URL (`?q=…&p=2`) now server-renders that list.
  */
 
 /** The schema/alias pair the page reads the URL through. */
@@ -68,14 +67,14 @@ export function useRideTemplateListData(teamSlug?: string) {
 }
 
 /**
- * Server-side counterpart of {@link useRideTemplateListData}. Prefetches the *default* filters
- * (see docblock above) — not the request's query string — matching the route's current
- * `rideTemplateFiltersSchema.parse({})` call.
+ * Server-side counterpart of {@link useRideTemplateListData}: the same filters, read from the
+ * request's query string instead of the router's, through the same schema and alias.
  */
 export async function prefetchRideTemplateList(
   queryClient: QueryClient,
-  teamSlug: string
+  teamSlug: string,
+  url: URL
 ): Promise<void> {
-  const filters = rideTemplateFiltersSchema.parse({})
-  await prefetchListTemplatesQuery(queryClient, teamSlug, filters)
+  const filters = readUrlFilters(url.searchParams, rideTemplateListFilterOptions)
+  await prefetchPageWindow(filters, (p) => prefetchListTemplatesQuery(queryClient, teamSlug, p))
 }

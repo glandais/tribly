@@ -1,6 +1,6 @@
 import type { QueryClient } from '@tanstack/react-query'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
-import { useGetAdEdit, prefetchGetAdQuery } from '@/api/endpoints/ads/ads'
+import { useGetAdEdit, prefetchGetAdEditQuery } from '@/api/endpoints/ads/ads'
 
 /**
  * The one description of what `CreateAdPage` and `EditAdPage` read, consumed two ways: the pages
@@ -44,15 +44,18 @@ export function useEditAdFormData(teamSlug?: string, adSlug?: string) {
 
 /**
  * Server-side counterpart of {@link useEditAdFormData}'s ad-specific data (the team itself comes
- * from the `teamScopedPrefetch` wrapper). Moved here verbatim from `routes.config.ts`, which called
- * `prefetchGetAdQuery` — not `prefetchGetAdEditQuery`, even though the page reads `useGetAdEdit`.
- * Kept as-is to preserve existing behaviour; the mismatch predates this module and is a candidate
- * fix on its own, not something to change silently here.
+ * from the `teamScopedPrefetch` wrapper). Primes `prefetchGetAdEditQuery`, matching the
+ * `useGetAdEdit` call the page actually reads — `routes.config.ts` used to call
+ * `prefetchGetAdQuery` here, which built the `getAd` key instead of the `getAdEdit` one `EditAdPage`
+ * reads, so the prefetched entry was dead weight and the form fetched again after hydration. Nothing
+ * on this route reads the plain `getAd` shape (no breadcrumb here — `ad-edit`'s is static, and the
+ * dynamic `ad` breadcrumb belongs to the parent `ad-detail` route, which primes it independently), so
+ * there is no reason to keep both.
  */
 export async function prefetchEditAdForm(
   queryClient: QueryClient,
   teamSlug: string,
   adSlug: string
 ): Promise<void> {
-  await prefetchGetAdQuery(queryClient, teamSlug, adSlug)
+  await prefetchGetAdEditQuery(queryClient, teamSlug, adSlug)
 }

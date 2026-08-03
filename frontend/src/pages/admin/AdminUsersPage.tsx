@@ -19,7 +19,7 @@ import { IconUsers, IconShieldCheck, IconShieldOff } from '@tabler/icons-react'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { SearchInput } from '@/components/common/SearchInput'
 import { Pagination } from '@/components/common/Pagination'
-import { useListUsers, useAssignPlatformRole } from '@/api/endpoints/admin-users/admin-users'
+import { useAssignPlatformRole } from '@/api/endpoints/admin-users/admin-users'
 import { useListDomains } from '@/api/endpoints/admin-domains/admin-domains'
 import type { AdminUserDto } from '@/api/dto'
 import { useAuth } from '@/hooks/useAuth'
@@ -28,6 +28,8 @@ import { useDebouncedSearch } from '@/hooks/useDebouncedSearch'
 import { useScrollToListTop } from '@/hooks/useScrollToListTop'
 import { adminUserFiltersSchema, adminUserFiltersAlias } from '@/hooks/filters/adminFilters'
 import { FormattedDate } from '@/components/common/FormattedDate'
+import { useAdminUsersData } from './adminUsersData'
+import { ADMIN_DOMAIN_FILTER_PARAMS } from './adminTeamsData'
 
 export function AdminUsersPage() {
   const { t } = useTranslation()
@@ -44,11 +46,8 @@ export function AdminUsersPage() {
   const [search, setSearch] = useDebouncedSearch(filters.search ?? '', commitSearch)
   const { listTopRef, scrollToListTop } = useScrollToListTop()
 
-  const { data: domainsData } = useListDomains({ page: 0, size: 100 })
-  const { data, isLoading, error } = useListUsers({
-    ...filters,
-    adminOnly: filters.adminOnly || undefined,
-  })
+  const { data: domainsData } = useListDomains(ADMIN_DOMAIN_FILTER_PARAMS)
+  const { data, isLoading, error } = useAdminUsersData(filters)
   const assignRoleMutation = useAssignPlatformRole()
 
   const handleTogglePlatformAdmin = (userId: string, currentRole: string | null | undefined) => {

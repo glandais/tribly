@@ -1,6 +1,7 @@
 import type { QueryClient } from '@tanstack/react-query'
 import { prefetchListPlacesQuery } from '@/api/endpoints/places/places'
 import { placeFiltersSchema, placeFiltersAlias } from '@/hooks/filters/placeFilters'
+import { readUrlFilters } from '@/hooks/useUrlFilters'
 
 /**
  * Server-side counterpart of the places list `PlaceList` renders under `team-admin-places`.
@@ -11,10 +12,11 @@ import { placeFiltersSchema, placeFiltersAlias } from '@/hooks/filters/placeFilt
  * below). Keep both sides pointed at that one export, or a filters change on one side silently
  * stops matching the other's query key.
  *
- * The prefetch only ever primes the **default** filters (`placeFiltersSchema.parse({})`) — it does
- * not read the request URL's query string. A link that adds `?search=…` or `?p=1` still renders
- * correctly, just after a client refetch instead of from the dehydrated cache. That gap is shared
- * with the other admin list screens and is left as-is here.
+ * The prefetch reads the request's query string through that same `placeListFilterOptions`, via
+ * `readUrlFilters`, so a link that adds `?search=…` or `?p=1` now server-renders that list instead
+ * of the default one. `PlaceList` computes `totalPages` itself and never calls `usePaginatedQuery`
+ * — it doesn't fetch neighbouring pages — so only the single requested page is primed here, unlike
+ * `routeListData.ts`'s `prefetchPageWindow`.
  */
 export const placeListFilterOptions = {
   schema: placeFiltersSchema,
@@ -23,7 +25,9 @@ export const placeListFilterOptions = {
 
 export async function prefetchTeamPlaces(
   queryClient: QueryClient,
-  teamSlug: string
+  teamSlug: string,
+  url: URL
 ): Promise<void> {
-  await prefetchListPlacesQuery(queryClient, teamSlug, placeFiltersSchema.parse({}))
+  const filters = readUrlFilters(url.searchParams, placeListFilterOptions)
+  await prefetchListPlacesQuery(queryClient, teamSlug, filters)
 }

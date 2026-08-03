@@ -1,42 +1,28 @@
-import { useMemo, useState } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Group, Stack, Title } from '@mantine/core'
-import { useGetRoutesBounds } from '@/api/endpoints/routes/routes'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { paths } from '../../config/paths'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamLayout } from '../../components/team/TeamLayout'
-import { teamRoutesTilesUrl, toRouteTileFilters } from '../../components/map/mapConstants'
 import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
 import { RoutesTileMap } from '../../components/route/RoutesTileMap'
 import { RouteViewToggle } from '../../components/route/RouteViewToggle'
-import { routeFiltersSchema, routeFiltersAlias } from '../../hooks/filters/routeFilters'
-import { useRouteFilters } from '../../hooks/useRouteFilters'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
+import { useRoutesMapData } from './routesMapData'
 
 export function RoutesMapPage() {
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const { t } = useTranslation()
 
-  const { filters, filtersOpen, setFiltersOpen, handleFiltersChange } = useRouteFilters({
-    schema: routeFiltersSchema,
-    alias: routeFiltersAlias,
-  })
-
-  const { data: team, isLoading } = useGetTeam(teamSlug!, { query: { enabled: !!teamSlug } })
-
-  const tilesUrl = useMemo(
-    () => (team ? teamRoutesTilesUrl(team.slug, toRouteTileFilters(filters)) : undefined),
-    [team, filters]
-  )
-
-  // Frozen at mount, so narrowing the filters reframes nothing and asks the server nothing. The
-  // list/map toggle is a navigation, hence a remount, hence a fresh extent.
-  const [initialFilters] = useState(() => toRouteTileFilters(filters))
-  const { data: routeBounds } = useGetRoutesBounds(teamSlug!, initialFilters, {
-    query: { enabled: !!teamSlug },
-  })
+  const {
+    filters,
+    filtersOpen,
+    setFiltersOpen,
+    handleFiltersChange,
+    team: { data: team, isLoading },
+    tilesUrl,
+    bounds: { data: routeBounds },
+  } = useRoutesMapData(teamSlug)
 
   useCanonicalPath(team ? paths.routesMap(team.slug) : undefined)
 

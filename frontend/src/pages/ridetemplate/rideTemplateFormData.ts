@@ -1,5 +1,9 @@
+import type { QueryClient } from '@tanstack/react-query'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
-import { useGetTemplate } from '@/api/endpoints/ride-templates/ride-templates'
+import {
+  useGetTemplate,
+  prefetchGetTemplateQuery,
+} from '@/api/endpoints/ride-templates/ride-templates'
 
 /**
  * `CreateRideTemplatePage` and `EditRideTemplatePage` read nothing beyond the team (and, for the
@@ -10,12 +14,11 @@ import { useGetTemplate } from '@/api/endpoints/ride-templates/ride-templates'
  * and the route's prefetch stay discoverable in one place, per the project's "always a companion"
  * convention.
  *
- * `useEditRideTemplateFormData`'s template query is a known **prefetch gap**, not fixed here: the
- * `ride-template-edit` route only prefetches the team, never `GET /api/teams/{teamSlug}/ride-
- * templates/{templateSlug}`, so the template always refetches client-side after hydration. Adding
- * that prefetch is out of scope for this migration — flagged for the orchestrator rather than
- * silently fixed, since fixing it would change `routes.config.ts` behaviour beyond a mechanical
- * move.
+ * `EditRideTemplatePage` leaves that team-only special case: its template query is primed by
+ * {@link prefetchEditRideTemplateForm}, wrapped in `teamScopedPrefetch` on `ride-template-edit` in
+ * `routes.config.ts` next to the team fetch. It calls the same generated `prefetchGetTemplateQuery`
+ * — same `teamSlug`/`templateSlug` params, same order — `useEditRideTemplateFormData` builds via
+ * `useGetTemplate`, so the primed cache entry and the client read share one key.
  */
 
 /** Every query `CreateRideTemplatePage` itself owns — just the team. */
@@ -39,4 +42,17 @@ export function useEditRideTemplateFormData(
     query: { enabled: !!teamSlug && !!templateSlug },
   })
   return { team, template }
+}
+
+/**
+ * Primes the template query `EditRideTemplatePage` reads via `useEditRideTemplateFormData` — the
+ * gap closed on `ride-template-edit`. Wrapped in `teamScopedPrefetch` in `routes.config.ts`, next
+ * to the team fetch that wrapper already covers.
+ */
+export async function prefetchEditRideTemplateForm(
+  queryClient: QueryClient,
+  teamSlug: string,
+  templateSlug: string
+) {
+  await prefetchGetTemplateQuery(queryClient, teamSlug, templateSlug)
 }

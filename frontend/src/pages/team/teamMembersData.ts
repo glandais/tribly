@@ -9,18 +9,19 @@ import {
 import { prefetchListInvitationsQuery } from '@/api/endpoints/team-invitations/team-invitations'
 import { InvitationStatus } from '@/api/dto'
 import { teamMemberFiltersSchema, teamMemberFiltersAlias } from '@/hooks/filters/teamMemberFilters'
-import { useUrlFilters } from '@/hooks/useUrlFilters'
+import { useUrlFilters, readUrlFilters } from '@/hooks/useUrlFilters'
 import { usePaginatedQuery } from '@/hooks/usePaginatedQuery'
+import { prefetchPageWindow } from '@/config/prefetchHelpers'
 
 /**
  * `team-members` admin screen: the member list the page owns, plus the pending-invitations query
  * `TeamInvitationList` (a child it always mounts) owns. Both sides share the filter schema/alias
  * pair and the invitation params so the prefetch and the hooks land on the same query keys.
  *
- * KNOWN GAP, left as-is on purpose: the prefetch calls `teamMemberFiltersSchema.parse({})` — the
- * *default* filters — rather than reading the URL's query string. A link into a filtered member
- * list (`?search=…` or `?role=ADMIN`) server-renders the unfiltered list and refetches after
- * hydration. A separate audit will decide whether to fix this; don't fix it here.
+ * The prefetch reads the request's query string through the same `teamMemberFilterOptions` the
+ * page's `useUrlFilters` uses, then primes the page the URL asks for plus the neighbours
+ * `usePaginatedQuery` fetches ahead — same shape as `routeListData.ts`'s `prefetchRouteList`. A
+ * link into a filtered member list (`?search=…` or `?role=ADMIN`) now server-renders that list.
  */
 export const teamMemberFilterOptions = {
   schema: teamMemberFiltersSchema,
@@ -58,9 +59,14 @@ export function useTeamMembersData(teamSlug?: string) {
   return { filters, setFilters, members, totalPages }
 }
 
-export async function prefetchTeamMembers(queryClient: QueryClient, teamSlug: string) {
+export async function prefetchTeamMembers(
+  queryClient: QueryClient,
+  teamSlug: string,
+  url: URL
+): Promise<void> {
+  const filters = readUrlFilters(url.searchParams, teamMemberFilterOptions)
   await Promise.all([
-    prefetchGetMembersQuery(queryClient, teamSlug, teamMemberFiltersSchema.parse({})),
+    prefetchPageWindow(filters, (p) => prefetchGetMembersQuery(queryClient, teamSlug, p)),
     // Prefetched here because `TeamInvitationList` — a child the page always mounts — owns this
     // query itself; the page's own hooks never touch it.
     prefetchListInvitationsQuery(queryClient, teamSlug, pendingInvitationsParams),

@@ -16,14 +16,12 @@ import {
 import { IconBuildingCommunity, IconToggleLeft, IconToggleRight } from '@tabler/icons-react'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { Pagination } from '@/components/common/Pagination'
-import {
-  useAdminListTeams,
-  useAdminToggleTeamDeleted,
-} from '@/api/endpoints/admin-teams/admin-teams'
+import { useAdminToggleTeamDeleted } from '@/api/endpoints/admin-teams/admin-teams'
 import { useListDomains } from '@/api/endpoints/admin-domains/admin-domains'
 import { useUrlFilters } from '@/hooks/useUrlFilters'
 import { useScrollToListTop } from '@/hooks/useScrollToListTop'
 import { adminTeamFiltersSchema, adminTeamFiltersAlias } from '@/hooks/filters/adminFilters'
+import { useAdminTeamsData, ADMIN_DOMAIN_FILTER_PARAMS } from './adminTeamsData'
 import type { AdminTeamDto, Visibility } from '@/api/dto'
 
 export function AdminTeamsPage() {
@@ -35,8 +33,8 @@ export function AdminTeamsPage() {
   })
   const { listTopRef, scrollToListTop } = useScrollToListTop()
 
-  const { data: domainsData } = useListDomains({ page: 0, size: 100 })
-  const { data, isLoading, error } = useAdminListTeams(filters)
+  const { data: domainsData } = useListDomains(ADMIN_DOMAIN_FILTER_PARAMS)
+  const { data, isLoading, error } = useAdminTeamsData(filters)
   const toggleMutation = useAdminToggleTeamDeleted()
 
   const handleToggleDeleted = (teamId: string) => {

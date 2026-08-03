@@ -1,29 +1,21 @@
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { keepPreviousData, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { IconArrowDown, IconArrowUp, IconMapSearch, IconTrash } from '@tabler/icons-react'
 import { Button, Card, Group, Skeleton, Stack, Text, Title } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import type { GpxPreviewSummaryDto } from '@/api/dto'
 import {
   getListMyPreviewsQueryKey,
-  listMyPreviews,
   useDeletePreview,
-  useListMyPreviews,
 } from '@/api/endpoints/gpx-previews/gpx-previews'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { Pagination } from '@/components/common/Pagination'
 import { paths } from '@/config/paths'
-import {
-  GPX_PREVIEW_PAGE_SIZE,
-  gpxPreviewFiltersAlias,
-  gpxPreviewFiltersSchema,
-} from '@/hooks/filters/gpxPreviewFilters'
-import { usePaginatedQuery } from '@/hooks/usePaginatedQuery'
 import { useUnits } from '@/hooks/useUnits'
-import { useUrlFilters } from '@/hooks/useUrlFilters'
 import { useFormattedDate } from '@/utils/dateFormat'
+import { useGpxPreviewListData } from './gpxPreviewListData'
 
 /**
  * Lists the current user's still-available GPX previews (uploaded through the GPX tools page and not
@@ -32,29 +24,8 @@ import { useFormattedDate } from '@/utils/dateFormat'
 export function MyGpxPreviewsPage() {
   const { t } = useTranslation()
 
-  const { filters, setFilters } = useUrlFilters({
-    schema: gpxPreviewFiltersSchema,
-    alias: gpxPreviewFiltersAlias,
-  })
-
-  const { data, isLoading } = useListMyPreviews(filters, {
-    query: { placeholderData: keepPreviousData },
-  })
-
-  const prefetchPage = useCallback(
-    (page: number) => ({
-      queryKey: getListMyPreviewsQueryKey({ ...filters, page }),
-      queryFn: () => listMyPreviews({ ...filters, page }),
-    }),
-    [filters]
-  )
-
-  const { totalPages } = usePaginatedQuery({
-    page: filters.page,
-    pageSize: GPX_PREVIEW_PAGE_SIZE,
-    totalItems: data?.total ?? 0,
-    prefetchPage,
-  })
+  const { filters, setFilters, previews: previewsQuery, totalPages } = useGpxPreviewListData()
+  const { data, isLoading } = previewsQuery
 
   const previews = data?.previews ?? []
 
