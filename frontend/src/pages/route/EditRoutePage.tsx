@@ -6,12 +6,12 @@ import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { paths } from '../../config/paths'
 import { Box, Skeleton, Stack, Text, Title } from '@mantine/core'
-import { useGetRoute, useUpdateRoute, useChangeRouteSlug } from '@/api/endpoints/routes/routes'
+import { useUpdateRoute, useChangeRouteSlug } from '@/api/endpoints/routes/routes'
 import { invalidateRouteQueries } from '@/lib/routeCacheInvalidation'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { SurfaceType, RouteRequest } from '@/api/dto'
 import { LoadingPage } from '@/components/common/LoadingSpinner'
 import { RouteEditor } from '@/components/route/RouteEditor'
+import { useEditRouteFormData } from './routeFormData'
 
 export function EditRoutePage() {
   const { teamSlug, routeSlug } = useParams<{ teamSlug: string; routeSlug: string }>()
@@ -19,12 +19,9 @@ export function EditRoutePage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
-  const { data: route, isLoading } = useGetRoute(teamSlug!, routeSlug!, {
-    query: { enabled: !!teamSlug && !!routeSlug },
-  })
+  const { team: teamQuery, route: routeQuery } = useEditRouteFormData(teamSlug, routeSlug)
+  const { data: team, isLoading: isLoadingTeam } = teamQuery
+  const { data: route, isLoading } = routeQuery
   const updateRouteMutation = useUpdateRoute()
   const changeSlugMutation = useChangeRouteSlug()
 

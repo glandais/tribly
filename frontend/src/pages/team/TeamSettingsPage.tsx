@@ -8,12 +8,12 @@ import i18next from 'i18next'
 import { paths } from '../../config/paths'
 import { Box, Button, Center, Stack, Text, Title } from '@mantine/core'
 import {
-  useGetTeam,
   useDeleteTeam,
   useChangeTeamSlug,
   getListTeamsQueryKey,
   getGetTeamQueryKey,
 } from '@/api/endpoints/teams/teams'
+import { useTeamSettingsData } from './teamSettingsData'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { TeamForm } from '../../components/team/TeamForm'
@@ -26,13 +26,7 @@ export function TeamSettingsPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const {
-    data: team,
-    isLoading,
-    error,
-  } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
+  const { data: team, isLoading, error } = useTeamSettingsData(teamSlug)
   const deleteMutation = useDeleteTeam()
   const changeSlugMutation = useChangeTeamSlug()
 

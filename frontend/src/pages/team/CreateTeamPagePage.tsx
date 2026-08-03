@@ -3,20 +3,19 @@ import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { paths } from '../../config/paths'
 import { Box, Paper, Title } from '@mantine/core'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamAdminLayout } from '../../components/team/TeamAdminLayout'
 import { TeamPageForm } from '../../components/team/TeamPageForm'
 import { defaultMedia } from '@/lib/apiUtils'
 import { Visibility } from '@/api/dto'
+import { useCreateTeamPageFormData } from './teamPageFormData'
 
 export function CreateTeamPagePage() {
   const { t } = useTranslation()
   const { teamSlug } = useParams<{ teamSlug: string }>()
 
-  const { data: team, isLoading } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
+  const { team: teamQuery } = useCreateTeamPageFormData(teamSlug)
+  const { data: team, isLoading } = teamQuery
 
   useCanonicalPath(team ? paths.teamAdminPageNew(team.slug) : undefined)
 

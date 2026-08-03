@@ -4,7 +4,6 @@ import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { Container, Stack, Title } from '@mantine/core'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { useCreateAd, getListAdsQueryKey } from '../../api/endpoints/ads/ads'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { AdEditor } from '../../components/ad/AdEditor'
@@ -12,15 +11,15 @@ import { defaultMedia } from '@/lib/apiUtils'
 import { paths } from '@/config/paths'
 import { AdRequest, AdType, Status } from '../../api/dto'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
+import { useCreateAdFormData } from './adFormData'
 
 export function CreateAdPage() {
   const { t } = useTranslation()
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
+  const { team: teamQuery } = useCreateAdFormData(teamSlug)
+  const { data: team, isLoading: isLoadingTeam } = teamQuery
 
   const createMutation = useCreateAd()
 

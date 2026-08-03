@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import { Container, Stack, Text, Title } from '@mantine/core'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
   useCreateTemplate,
   getListTemplatesQueryKey,
@@ -13,14 +12,13 @@ import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { RideTemplateEditor } from '../../components/ridetemplate/RideTemplateEditor'
 import { Status, RideTemplateRequest } from '@/api/dto'
 import { paths } from '@/config/paths'
+import { useCreateRideTemplateFormData } from './rideTemplateFormData'
 
 export function CreateRideTemplatePage() {
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
+  const { data: team, isLoading: isLoadingTeam } = useCreateRideTemplateFormData(teamSlug)
 
   const createMutation = useCreateTemplate()
   const { t } = useTranslation()

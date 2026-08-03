@@ -5,31 +5,27 @@ import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { Container, Stack, Title } from '@mantine/core'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
   useUpdateAd,
   useChangeAdSlug,
   getListAdsQueryKey,
   getGetAdQueryKey,
-  useGetAdEdit,
   getGetAdEditQueryKey,
 } from '../../api/endpoints/ads/ads'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { AdEditor } from '../../components/ad/AdEditor'
 import { paths } from '@/config/paths'
 import { AdRequest } from '@/api/dto'
+import { useEditAdFormData } from './adFormData'
 
 export function EditAdPage() {
   const { t } = useTranslation()
   const { teamSlug, adSlug } = useParams<{ teamSlug: string; adSlug: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
-  const { data: ad, isLoading: isLoadingAd } = useGetAdEdit(teamSlug!, adSlug!, {
-    query: { enabled: !!teamSlug && !!adSlug },
-  })
+  const { team: teamQuery, ad: adQuery } = useEditAdFormData(teamSlug, adSlug)
+  const { data: team, isLoading: isLoadingTeam } = teamQuery
+  const { data: ad, isLoading: isLoadingAd } = adQuery
 
   const updateMutation = useUpdateAd()
   const changeSlugMutation = useChangeAdSlug()

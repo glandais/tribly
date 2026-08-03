@@ -6,9 +6,7 @@ import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { paths } from '../../config/paths'
 import { Container, Stack, Title, Text } from '@mantine/core'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
-  useGetTrip,
   useUpdateTrip,
   useChangeTripSlug,
   getGetTripQueryKey,
@@ -17,18 +15,16 @@ import { getListPublicationsQueryKey } from '../../api/endpoints/publications/pu
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TripEditor } from '../../components/trip/TripEditor'
 import { TripRequest } from '@/api/dto'
+import { useEditTripFormData } from './tripFormData'
 
 export function EditTripPage() {
   const { t } = useTranslation()
   const { teamSlug, tripSlug } = useParams<{ teamSlug: string; tripSlug: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
-  const { data: trip, isLoading: isLoadingTrip } = useGetTrip(teamSlug!, tripSlug!, {
-    query: { enabled: !!teamSlug && !!tripSlug },
-  })
+  const { team: teamQuery, trip: tripQuery } = useEditTripFormData(teamSlug, tripSlug)
+  const { data: team, isLoading: isLoadingTeam } = teamQuery
+  const { data: trip, isLoading: isLoadingTrip } = tripQuery
 
   const updateMutation = useUpdateTrip()
   const changeSlugMutation = useChangeTripSlug()

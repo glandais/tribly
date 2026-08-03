@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { paths } from '../../config/paths'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
+import { useTeamAdminData } from './teamAdminData'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { useTranslation } from 'react-i18next'
 
@@ -10,9 +10,7 @@ export function TeamAdminPage() {
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const navigate = useNavigate()
 
-  const { data: team, isLoading } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
+  const { data: team, isLoading } = useTeamAdminData(teamSlug)
 
   useEffect(() => {
     if (isLoading) return

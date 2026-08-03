@@ -5,9 +5,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import { Container, Stack, Text, Title } from '@mantine/core'
 import { paths } from '../../config/paths'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
-  useGetTemplate,
   useUpdateTemplate,
   getGetTemplateQueryKey,
   getListTemplatesQueryKey,
@@ -15,21 +13,18 @@ import {
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { RideTemplateEditor } from '../../components/ridetemplate/RideTemplateEditor'
 import { RideTemplateRequest } from '@/api/dto'
+import { useEditRideTemplateFormData } from './rideTemplateFormData'
 
 export function EditRideTemplatePage() {
   const { teamSlug, templateSlug } = useParams<{ teamSlug: string; templateSlug: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
-  const { data: template, isLoading: isLoadingTemplate } = useGetTemplate(
-    teamSlug!,
-    templateSlug!,
-    {
-      query: { enabled: !!teamSlug && !!templateSlug },
-    }
+  const { team: teamQuery, template: templateQuery } = useEditRideTemplateFormData(
+    teamSlug,
+    templateSlug
   )
+  const { data: team, isLoading: isLoadingTeam } = teamQuery
+  const { data: template, isLoading: isLoadingTemplate } = templateQuery
 
   const updateMutation = useUpdateTemplate()
   const { t } = useTranslation()

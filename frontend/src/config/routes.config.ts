@@ -3,9 +3,6 @@ import type { RoutesConfig, RouteParams } from './routes.types'
 import { pathVariants } from './paths'
 import { tRegister } from '@/lib/i18nUtils'
 import { prefetchGetTeamQuery } from '@/api/endpoints/teams/teams'
-import { prefetchGetTripQuery } from '@/api/endpoints/trips/trips'
-import { prefetchGetPostQuery } from '@/api/endpoints/posts/posts'
-import { prefetchGetRouteQuery } from '@/api/endpoints/routes/routes'
 import { prefetchRideDetail } from '@/pages/ride/rideDetailData'
 import { prefetchRouteList } from '@/pages/route/routeListData'
 import { prefetchTripDetail } from '@/pages/trip/tripDetailData'
@@ -14,6 +11,16 @@ import { prefetchPostDetail } from '@/pages/post/postDetailData'
 import { prefetchRouteDetail, prefetchRouteMap } from '@/pages/route/routeDetailData'
 import { prefetchUserProfile } from '@/pages/auth/profileData'
 import { prefetchCalendar } from '@/pages/calendar/calendarData'
+import { prefetchGpxPreview } from '@/pages/gpxtool/gpxPreviewData'
+import { prefetchTeamAbout } from '@/pages/team/teamAboutData'
+import { prefetchTeamPage } from '@/pages/team/teamPageData'
+import { prefetchTeamPagesAdmin } from '@/pages/team/teamPagesAdminData'
+import { prefetchEditTeamPageForm } from '@/pages/team/teamPageFormData'
+import { prefetchEditTripForm } from '@/pages/trip/tripFormData'
+import { prefetchEditPostForm } from '@/pages/post/postFormData'
+import { prefetchEditRouteForm } from '@/pages/route/routeFormData'
+import { prefetchAdDetail } from '@/pages/ad/adDetailData'
+import { prefetchEditAdForm } from '@/pages/ad/adFormData'
 import { prefetchTeamPlaces } from '@/pages/team/teamPlacesData'
 import { prefetchTeamMembers } from '@/pages/team/teamMembersData'
 import { prefetchRideTemplateList } from '@/pages/ridetemplate/rideTemplateListData'
@@ -23,9 +30,6 @@ import { prefetchTeamList } from '@/pages/team/teamListData'
 import { prefetchPublicationList } from '@/pages/publication/publicationListData'
 import { prefetchAdList } from '@/pages/ad/adListData'
 import { prefetchAllRouteList, prefetchAllRoutesMap } from '@/pages/route/allRouteListData'
-import { prefetchGetPageQuery, prefetchListPagesQuery } from '@/api/endpoints/team-pages/team-pages'
-import { prefetchGetAdQuery } from '@/api/endpoints/ads/ads'
-import { prefetchGetPreviewQuery } from '@/api/endpoints/gpx-previews/gpx-previews'
 import {
   homeMeta,
   teamsMeta,
@@ -354,9 +358,7 @@ export const routesConfig: RoutesConfig = [
     parentId: 'gpx-tools',
     breadcrumb: { type: 'static', i18nKey: tRegister('gpxTools.preview.title') },
     // Public/anonymous endpoint — prefetches fine under stateless SSR, and feeds gpxPreviewMeta.
-    prefetch: async (queryClient, params) => {
-      await prefetchGetPreviewQuery(queryClient, params.previewId!)
-    },
+    prefetch: (queryClient, params) => prefetchGpxPreview(queryClient, params.previewId!),
     meta: gpxPreviewMeta,
   },
   {
@@ -369,9 +371,7 @@ export const routesConfig: RoutesConfig = [
     parentId: 'gpx-tools-view',
     breadcrumb: { type: 'static', i18nKey: tRegister('map.fullscreen.title') },
     // Public/anonymous endpoint — prefetches fine under stateless SSR, and feeds gpxPreviewMeta.
-    prefetch: async (queryClient, params) => {
-      await prefetchGetPreviewQuery(queryClient, params.previewId!)
-    },
+    prefetch: (queryClient, params) => prefetchGpxPreview(queryClient, params.previewId!),
     meta: gpxPreviewMeta,
   },
   {
@@ -568,9 +568,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: 'team-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.detail.tabs.about') },
-    prefetch: async (queryClient, params) => {
-      await prefetchGetTeamQuery(queryClient, params.teamSlug!)
-    },
+    prefetch: (queryClient, params) => prefetchTeamAbout(queryClient, params.teamSlug!),
     meta: teamAboutMeta,
   },
   {
@@ -590,12 +588,8 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: 'team-detail',
     breadcrumb: { type: 'dynamic', entity: 'teamPage' },
-    prefetch: async (queryClient, params) => {
-      await Promise.all([
-        prefetchGetTeamQuery(queryClient, params.teamSlug!),
-        prefetchGetPageQuery(queryClient, params.teamSlug!, params.pageSlug!),
-      ])
-    },
+    prefetch: (queryClient, params) =>
+      prefetchTeamPage(queryClient, params.teamSlug!, params.pageSlug!),
     meta: teamPageMeta,
   },
   // === Team Admin Routes ===
@@ -624,7 +618,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'team-admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.tabs.pages') },
-    prefetch: teamScopedPrefetch((qc, p) => prefetchListPagesQuery(qc, p.teamSlug!)),
+    prefetch: teamScopedPrefetch((qc, p) => prefetchTeamPagesAdmin(qc, p.teamSlug!)),
   },
   {
     id: 'team-admin-page-new',
@@ -643,7 +637,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'team-admin-pages',
     breadcrumb: { type: 'dynamic', entity: 'teamPage' },
-    prefetch: teamScopedPrefetch((qc, p) => prefetchGetPageQuery(qc, p.teamSlug!, p.pageSlug!)),
+    prefetch: teamScopedPrefetch((qc, p) => prefetchEditTeamPageForm(qc, p.teamSlug!, p.pageSlug!)),
     showBackLink: true,
   },
   {
@@ -760,7 +754,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'trip-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('actions.edit') },
-    prefetch: teamScopedPrefetch((qc, p) => prefetchGetTripQuery(qc, p.teamSlug!, p.tripSlug!)),
+    prefetch: teamScopedPrefetch((qc, p) => prefetchEditTripForm(qc, p.teamSlug!, p.tripSlug!)),
     showBackLink: true,
   },
   {
@@ -818,7 +812,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'post-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('actions.edit') },
-    prefetch: teamScopedPrefetch((qc, p) => prefetchGetPostQuery(qc, p.teamSlug!, p.postSlug!)),
+    prefetch: teamScopedPrefetch((qc, p) => prefetchEditPostForm(qc, p.teamSlug!, p.postSlug!)),
     showBackLink: true,
   },
 
@@ -884,7 +878,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'route-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('actions.edit') },
-    prefetch: teamScopedPrefetch((qc, p) => prefetchGetRouteQuery(qc, p.teamSlug!, p.routeSlug!)),
+    prefetch: teamScopedPrefetch((qc, p) => prefetchEditRouteForm(qc, p.teamSlug!, p.routeSlug!)),
     showBackLink: true,
   },
 
@@ -919,12 +913,8 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'ads',
     breadcrumb: { type: 'dynamic', entity: 'ad' },
-    prefetch: async (queryClient, params) => {
-      await Promise.all([
-        prefetchGetTeamQuery(queryClient, params.teamSlug!),
-        prefetchGetAdQuery(queryClient, params.teamSlug!, params.adSlug!),
-      ])
-    },
+    prefetch: (queryClient, params) =>
+      prefetchAdDetail(queryClient, params.teamSlug!, params.adSlug!),
     // No `meta`: a member-only page has no link preview to build — every unfurl crawler is
     // anonymous, so the prefetch it would read from answers 401. See LINK_PREVIEW.md.
   },
@@ -935,7 +925,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'ad-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('actions.edit') },
-    prefetch: teamScopedPrefetch((qc, p) => prefetchGetAdQuery(qc, p.teamSlug!, p.adSlug!)),
+    prefetch: teamScopedPrefetch((qc, p) => prefetchEditAdForm(qc, p.teamSlug!, p.adSlug!)),
     showBackLink: true,
   },
 

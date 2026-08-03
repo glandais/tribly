@@ -26,9 +26,8 @@ import {
   Text,
   Title,
 } from '@mantine/core'
-import { useGetTeam, getGetTeamQueryKey } from '@/api/endpoints/teams/teams'
+import { getGetTeamQueryKey } from '@/api/endpoints/teams/teams'
 import {
-  useListPages,
   useDeletePage,
   useUndeletePage,
   useReorderPages,
@@ -38,6 +37,7 @@ import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamAdminLayout } from '../../components/team/TeamAdminLayout'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { VisibilityBadge } from '../../components/card/common'
+import { useTeamPagesAdminData } from './teamPagesAdminData'
 import type { TeamPageSummaryDto } from '@/api/dto'
 
 const MAX_ADDITIONAL_PAGES = 3
@@ -49,12 +49,9 @@ export function TeamPagesAdminPage() {
   const [pageToDelete, setPageToDelete] = useState<TeamPageSummaryDto | null>(null)
   const [draggedItem, setDraggedItem] = useState<TeamPageSummaryDto | null>(null)
 
-  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
-  const { data: pages, isLoading: isLoadingPages } = useListPages(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
+  const { team: teamQuery, pages: pagesQuery } = useTeamPagesAdminData(teamSlug)
+  const { data: team, isLoading: isLoadingTeam } = teamQuery
+  const { data: pages, isLoading: isLoadingPages } = pagesQuery
   const deleteMutation = useDeletePage()
   const undeleteMutation = useUndeletePage()
   const reorderMutation = useReorderPages()

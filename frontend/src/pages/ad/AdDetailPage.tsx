@@ -30,9 +30,7 @@ import {
   Badge,
   Loader,
 } from '@mantine/core'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
-  useGetAd,
   useUpdateAd,
   useDeleteAd,
   useUndeleteAd,
@@ -53,6 +51,7 @@ import { FormattedDateTime } from '../../components/common/FormattedDate'
 import { paths } from '@/config/paths'
 import { AdType, RentalPeriod, Status } from '../../api/dto'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
+import { useAdDetailData } from './adDetailData'
 
 const statusColors: Record<Status, 'gray' | 'green' | 'red'> = {
   [Status.DRAFT]: 'gray',
@@ -82,15 +81,9 @@ export function AdDetailPage() {
   const [contactOutcome, setContactOutcome] = useState<AdContactOutcome | null>(null)
   const { user } = useAuth()
 
-  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
-  const {
-    data: ad,
-    isLoading: isLoadingAd,
-    error,
-    refetch,
-  } = useGetAd(teamSlug!, adSlug!, { query: { enabled: !!teamSlug && !!adSlug } })
+  const { team: teamQuery, ad: adQuery } = useAdDetailData(teamSlug, adSlug)
+  const { data: team, isLoading: isLoadingTeam } = teamQuery
+  const { data: ad, isLoading: isLoadingAd, error, refetch } = adQuery
 
   useCanonicalPath(team && ad ? paths.ad(team.slug, ad.slug) : undefined)
 

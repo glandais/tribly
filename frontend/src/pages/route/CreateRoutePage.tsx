@@ -6,13 +6,13 @@ import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { paths } from '../../config/paths'
 import { Stack, Text, Title } from '@mantine/core'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { RouteEditor } from '../../components/route/RouteEditor'
 import { useCreateRoute } from '@/api/endpoints/routes/routes'
 import { SurfaceType, RouteRequest } from '@/api/dto'
 import { defaultMedia } from '@/lib/apiUtils'
 import { invalidateRouteQueries } from '@/lib/routeCacheInvalidation'
+import { useCreateRouteFormData } from './routeFormData'
 
 export function CreateRoutePage() {
   const { teamSlug } = useParams<{ teamSlug: string }>()
@@ -20,9 +20,7 @@ export function CreateRoutePage() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
 
-  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
+  const { data: team, isLoading: isLoadingTeam } = useCreateRouteFormData(teamSlug)
   const createRouteMutation = useCreateRoute()
 
   useCanonicalPath(team ? paths.routeNew(team.slug) : undefined)

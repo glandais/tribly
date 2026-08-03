@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { IconUsers, IconCalendar, IconBike, IconMap } from '@tabler/icons-react'
 import { Box, Group, Paper, SimpleGrid, Stack, Text, Title, UnstyledButton } from '@mantine/core'
 import { paths } from '../../config/paths'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
+import { useTeamAboutData } from './teamAboutData'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamLayout } from '../../components/team/TeamLayout'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
@@ -14,9 +14,7 @@ export function TeamAboutPage() {
   const { t } = useTranslation()
   const { teamSlug } = useParams<{ teamSlug: string }>()
 
-  const { data: team, isLoading } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
+  const { data: team, isLoading } = useTeamAboutData(teamSlug)
 
   useCanonicalPath(team ? paths.teamAbout(team.slug) : undefined)
 

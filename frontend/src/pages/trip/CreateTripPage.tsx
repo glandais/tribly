@@ -6,22 +6,21 @@ import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { paths } from '../../config/paths'
 import { Container, Stack, Title, Text } from '@mantine/core'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { useCreateTrip } from '../../api/endpoints/trips/trips'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { Status, TripRequest } from '@/api/dto'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TripEditor } from '../../components/trip/TripEditor'
 import { defaultMedia } from '@/lib/apiUtils'
+import { useCreateTripFormData } from './tripFormData'
 
 export function CreateTripPage() {
   const { t } = useTranslation()
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
+  const { team: teamQuery } = useCreateTripFormData(teamSlug)
+  const { data: team, isLoading: isLoadingTeam } = teamQuery
 
   const createMutation = useCreateTrip()
 

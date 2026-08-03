@@ -4,9 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import { Container, Stack, Title } from '@mantine/core'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
-  useGetPost,
   useUpdatePost,
   useChangePostSlug,
   getGetPostQueryKey,
@@ -16,18 +14,17 @@ import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { PostEditor } from '../../components/post/PostEditor'
 import { paths } from '@/config/paths'
 import { PostRequest } from '@/api/dto'
+import { useEditPostFormData } from './postFormData'
 
 export function EditPostPage() {
   const { t } = useTranslation()
   const { teamSlug, postSlug } = useParams<{ teamSlug: string; postSlug: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
-  const { data: post, isLoading: isLoadingPost } = useGetPost(teamSlug!, postSlug!, {
-    query: { enabled: !!teamSlug && !!postSlug },
-  })
+  const {
+    team: { data: team, isLoading: isLoadingTeam },
+    post: { data: post, isLoading: isLoadingPost },
+  } = useEditPostFormData(teamSlug, postSlug)
 
   const updateMutation = useUpdatePost()
   const changeSlugMutation = useChangePostSlug()

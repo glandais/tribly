@@ -107,7 +107,10 @@ client. A filtered link (`?q=gravel&p=2&sort=DISTANCE`) must server-render *that
 
 ## Where they are
 
-Every screen whose prefetch had something to share now has one:
+**Every route with a `prefetch` has a companion** — including the ones whose prefetch is a single
+generated call. That is a deliberate call for homogeneity over economy: what a screen loads is worth
+one predictable place to look, and a one-line module today is what stops the next query from being
+added to the page and forgotten in the prefetch. Don't reintroduce the exception.
 
 | Companion | Route id(s) | What it shares |
 |---|---|---|
@@ -128,21 +131,55 @@ Every screen whose prefetch had something to share now has one:
 | `pages/team/teamPlacesData.ts` | `team-admin-places` | the place filters `PlaceList` reads |
 | `pages/ridetemplate/rideTemplateListData.ts` | `ride-templates` | ride-template filters |
 | `pages/ride/rideFormData.ts` | `ride-new`, `ride-edit` | the two `PlaceAutocomplete` param sets the form mounts |
+| `pages/gpxtool/gpxPreviewData.ts` | `gpx-tools-view`, `gpx-tools-map` | the preview query (public: the unguessable id *is* the credential) |
+| `pages/team/teamAboutData.ts` | `team-about` | the team query |
+| `pages/team/teamPageData.ts` | `team-page` | team + page pair |
+| `pages/team/teamAdminData.ts` | `team-admin` | the team query (no prefetch — see below) |
+| `pages/team/teamSettingsData.ts` | `team-settings` | idem |
+| `pages/team/teamPagesAdminData.ts` | `team-admin-pages` | the pages list |
+| `pages/team/teamPageFormData.ts` | `team-admin-page-new`, `team-admin-page-edit` | the page being edited |
+| `pages/trip/tripFormData.ts` | `trip-new`, `trip-edit` | the trip being edited |
+| `pages/post/postFormData.ts` | `post-new`, `post-edit` | the post being edited |
+| `pages/route/routeFormData.ts` | `route-new`, `route-edit` | the route being edited |
+| `pages/ad/adFormData.ts` | `ad-new`, `ad-edit` | the ad being edited |
+| `pages/ad/adDetailData.ts` | `ad-detail` | team + ad pair |
+| `pages/ridetemplate/rideTemplateFormData.ts` | `ride-template-new`, `ride-template-edit` | team, and the template being edited |
+
+`routes.config.ts` imports exactly one generated function now — `prefetchGetTeamQuery`, for
+`teamScopedPrefetch`. Anything else it needs comes from a companion.
 
 The admin screens keep the `teamScopedPrefetch(...)` wrapper in `routes.config.ts` — the auth gate and the
 team query are shared by ~15 routes, so the companion exports only the screen-specific part.
+
+**The team-only screen** (`team-admin`, `team-settings`, and every `…-new` form) reads nothing but the team,
+and its route is a bare `teamScopedPrefetch()`. Its companion exports the **hook only, no `prefetch`
+function**: the wrapper already primes that exact key, and a companion prefetching it again would write the
+same key twice. The docblock says where the prefetch side lives, so the module is still the one place to
+look. See `teamAdminData.ts`.
 
 **Known limitation, deliberately preserved**: those admin lists prefetch `someFiltersSchema.parse({})` — the
 *default* list, ignoring the URL's filters, unlike the public lists which go through `readUrlFilters`. Each
 companion says so in its docblock. It is a prefetch gap, not a divergence: page and prefetch still agree on
 the default list, and a filtered URL simply refetches after hydration.
 
-## When not to reach for it
+## Adding a route
 
-A route whose prefetch is one call with no derivation (`teamScopedPrefetch()`,
-`prefetchGetPostQuery`) does not need a module — the generated `prefetchXxxQuery` already *is* the
-single source of truth. Add a companion when there is something to share: a derivation, a filter
-schema/alias pair, a params builder, or a multi-phase sequence.
+Write the companion first, then the route entry. Even if the screen reads one thing:
+`use<Screen>Data` next to `prefetch<Screen>`, and `prefetch: (qc, params) => prefetch<Screen>(…)` (or
+`teamScopedPrefetch((qc, p) => prefetch<Screen>(qc, p.teamSlug!))` under `/teams/{slug}/…`). A route entry
+that calls a generated `prefetchXxxQuery` directly is the shape this file exists to prevent — the exception
+that used to be documented here was removed on purpose.
+
+## Two known gaps, deliberately left
+
+Neither is a page/prefetch divergence — both sides agree; they are simply things the prefetch does not
+cover. Left alone so a refactor stays a refactor; the SSR audit is what should rule on them.
+
+- The admin lists prime `someFiltersSchema.parse({})`, the **default** list, ignoring the URL's filters
+  (unlike the public lists, which go through `readUrlFilters`).
+- `ride-template-edit` renders the template but its route prefetches only the team, and `ad-edit`'s page
+  reads `useGetAdEdit` while its prefetch primes `getAd` — a different key. Both are called out in their
+  companion's docblock.
 
 ## Verifying
 

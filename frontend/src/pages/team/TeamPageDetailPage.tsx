@@ -3,22 +3,18 @@ import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { paths } from '../../config/paths'
 import { Box, Group, Paper, Text, Title } from '@mantine/core'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
-import { useGetPage } from '@/api/endpoints/team-pages/team-pages'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamLayout } from '../../components/team/TeamLayout'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { VisibilityBadge } from '../../components/card/common'
+import { useTeamPageData } from './teamPageData'
 
 export function TeamPageDetailPage() {
   const { teamSlug, pageSlug } = useParams<{ teamSlug: string; pageSlug: string }>()
 
-  const { data: team, isLoading: isTeamLoading } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
-  const { data: page, isLoading: isPageLoading } = useGetPage(teamSlug!, pageSlug!, {
-    query: { enabled: !!teamSlug && !!pageSlug },
-  })
+  const { team: teamQuery, page: pageQuery } = useTeamPageData(teamSlug, pageSlug)
+  const { data: team, isLoading: isTeamLoading } = teamQuery
+  const { data: page, isLoading: isPageLoading } = pageQuery
 
   const { t } = useTranslation()
 

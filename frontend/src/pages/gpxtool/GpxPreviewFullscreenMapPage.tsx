@@ -1,12 +1,12 @@
 import { useEffect } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useGetPreview } from '@/api/endpoints/gpx-previews/gpx-previews'
 import { RouteFullscreenView } from '@/components/route/RouteFullscreenView'
 import { LoadingPage } from '@/components/common/LoadingSpinner'
 import { paths } from '@/config/paths'
 import { useAppName } from '@/hooks/useAppName'
 import { useCanonicalPath } from '@/hooks/useCanonicalPath'
+import { useGpxPreviewData } from '@/pages/gpxtool/gpxPreviewData'
 
 /**
  * Fullscreen map for an analysed GPX preview (`.../map`). Bare layout (no AppShell), so it owns its
@@ -18,9 +18,7 @@ export function GpxPreviewFullscreenMapPage() {
   const { t } = useTranslation()
   const appName = useAppName()
 
-  const { data: preview, isLoading } = useGetPreview(previewId!, {
-    query: { enabled: !!previewId },
-  })
+  const { data: preview, isLoading } = useGpxPreviewData(previewId)
 
   useCanonicalPath(preview ? paths.gpxToolsMap(preview.id) : undefined)
 

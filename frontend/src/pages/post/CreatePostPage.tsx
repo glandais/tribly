@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import { Container, Stack, Title } from '@mantine/core'
-import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { useCreatePost } from '../../api/endpoints/posts/posts'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
@@ -12,15 +11,16 @@ import { PostEditor } from '../../components/post/PostEditor'
 import { defaultMedia } from '@/lib/apiUtils'
 import { paths } from '@/config/paths'
 import { PostRequest, Status } from '../../api/dto'
+import { useCreatePostFormData } from './postFormData'
 
 export function CreatePostPage() {
   const { t } = useTranslation()
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
-  })
+  const {
+    team: { data: team, isLoading: isLoadingTeam },
+  } = useCreatePostFormData(teamSlug)
 
   const createMutation = useCreatePost()
 
