@@ -32,6 +32,28 @@ const YAML = frontendReq('yaml')
 /** A problem in routes-ssr.yml — printed as-is, with no stack trace to bury it. */
 class ConfigError extends Error {}
 
+/**
+ * Run-progress logging, stamped `HH:MM:SS.mmmZ` in **UTC** — the same clock `docker logs
+ * --timestamps` prints, so a crawler line can be lined up with the server's own output without
+ * doing timezone arithmetic in your head. The date is printed once, in the run header.
+ * `--verify`/`--sync`/`--list` are one-shot command output and stay unstamped.
+ */
+function stamp() {
+  return `${new Date().toISOString().slice(11, 23)}Z`
+}
+
+function logRun(message) {
+  console.log(`${stamp()} ${message}`)
+}
+
+function warnRun(message) {
+  console.warn(`${stamp()} ${message}`)
+}
+
+function errorRun(message) {
+  console.error(`${stamp()} ${message}`)
+}
+
 const CONTRACT_ROUTES_PATH = path.join(repoRoot, 'contracts', 'routes.yaml')
 const DEFAULT_CONFIG_PATH = path.join(scriptDir, 'routes-ssr.yml')
 const SETTLE_TIMEOUT_MS = 8000
@@ -120,7 +142,8 @@ const CONFIG_HEADER_COMMENT = ` SSR audit input — who to crawl every web route
  routes:
    id:     must match an id in contracts/routes.yaml
    users:  list of user ids to crawl this route as. Omit (or null) for every user — use it to
-           restrict an authenticated-only or admin-only route.
+           restrict an authenticated-only or admin-only route. An id absent from \`users\` is
+           logged once and skipped, so commenting a user out doesn't mean editing every route.
    params: optional { name: value } overriding \`params\` for this route only (e.g. a team the
            test user actually administers).
    locale: optional per-route override of the top-level \`locale\`.
@@ -286,15 +309,24 @@ function resolveRouteUrl(route, contractRoute, config) {
   return { url }
 }
 
-function usersForRoute(route, config, userById) {
+/**
+ * A `users:` entry naming someone absent from `users` is simply not crawled — commenting a user
+ * out to skip their whole pass is a normal thing to do, and it shouldn't force editing every route
+ * that mentions them. Unknown ids are collected into `unknownUsers` so the run still says so once,
+ * instead of silently testing less than it looks like it does.
+ */
+function usersForRoute(route, config, userById, unknownUsers) {
   if (route.users === undefined || route.users === null) return config.users
   if (!Array.isArray(route.users)) {
     throw new Error(`route "${route.id}": \`users\` must be a list of user ids (or null for all)`)
   }
-  return route.users.map((id) => {
+  return route.users.flatMap((id) => {
     const user = userById.get(id)
-    if (!user) throw new Error(`route "${route.id}": unknown user "${id}"`)
-    return user
+    if (!user) {
+      unknownUsers.add(id)
+      return []
+    }
+    return [user]
   })
 }
 
@@ -310,12 +342,58 @@ function resolvePassword(user) {
   return password
 }
 
+/**
+ * "Did not redirect" is the symptom of a slow server, a wrong password and a form that never
+ * submitted alike — so the API answer is captured alongside it. Without that, a rejected
+ * credential and a timeout are indistinguishable in the report, and the coverage hole they leave
+ * (every route of that user) looks the same either way.
+ */
+const LOGIN_CLICK_ATTEMPTS = 4
+const LOGIN_CLICK_WAIT_MS = 5000
+
+/**
+ * Submits the form and returns the `/api/auth/login` response.
+ *
+ * The click is **retried**, because the button is clickable long before React has hydrated: the
+ * markup is server-rendered, so Playwright's actionability checks pass on a form whose `onSubmit`
+ * isn't attached yet, and the click is swallowed with no request at all. That race is what made
+ * logins fail seemingly at random — a different user in each run, and never the same one twice —
+ * and no amount of `--login-timeout` fixes it, since nothing is ever in flight to wait for.
+ */
+async function submitLoginForm(page, before) {
+  for (let attempt = 0; attempt < LOGIN_CLICK_ATTEMPTS; attempt++) {
+    // A retry must never fire once the app has moved on: a slow-but-successful login navigates
+    // away, the submit button no longer exists, and clicking again would time out and report a
+    // failure for a session that actually opened.
+    if (page.url() !== before) return null
+
+    const response = page
+      .waitForResponse((r) => r.url().includes('/api/auth/login'), {
+        timeout: LOGIN_CLICK_WAIT_MS,
+      })
+      .catch(() => null)
+    try {
+      await page.locator('button[type="submit"]').first().click({ timeout: LOGIN_CLICK_WAIT_MS })
+    } catch {
+      return await response
+    }
+    const settled = await response
+    if (settled) return settled
+  }
+  return null
+}
+
 async function login(page, loginPath, user, password) {
   await page.goto(`${baseUrl}${loginPath}`, { waitUntil: 'domcontentloaded' })
+  // Best-effort hydration barrier so the first click is usually the one that counts; the retry
+  // above is what actually guarantees it.
+  await page.waitForLoadState('networkidle').catch(() => {})
+
   await page.locator('input[name="email"]').fill(user.login)
   await page.locator('input[name="password"]').fill(password)
+
   const before = page.url()
-  await page.locator('button[type="submit"]').first().click()
+  const apiResponse = await submitLoginForm(page, before)
   try {
     await page.waitForFunction((prev) => window.location.href !== prev, before, {
       timeout: loginTimeoutMs,
@@ -323,14 +401,43 @@ async function login(page, loginPath, user, password) {
   } catch {
     throw new Error(
       `login as "${user.id}" did not redirect away from ${loginPath} within ` +
-        `${Math.round(loginTimeoutMs / 1000)}s (raise it with --login-timeout <ms>)`
+        `${Math.round(loginTimeoutMs / 1000)}s — ${await describeLoginResponse(apiResponse)}`
     )
   }
 }
 
+async function describeLoginResponse(response) {
+  if (!response) {
+    return (
+      `no POST /api/auth/login response after ${LOGIN_CLICK_ATTEMPTS} submit attempts — the form ` +
+      'is not wired to anything (page never hydrates? selector changed?)'
+    )
+  }
+  if (response.ok()) {
+    return `POST /api/auth/login answered ${response.status()}, so the credentials are fine and ` +
+      'something after the redirect is stuck (raise --login-timeout)'
+  }
+  const body = await response.text().catch(() => '')
+  return `POST /api/auth/login answered ${response.status()}: ${body.slice(0, 300)}`
+}
+
 /** Any of the three lines installPrefetchAudit() ever logs — the settle/disarm signal. */
-function isPrefetchAuditSettleLine(text) {
-  return text.startsWith('[prefetch-audit] route')
+/**
+ * What the page's own prefetch audit concluded, from the single line it logs before disarming.
+ *
+ * `discarded` is the one that matters: `installPrefetchAudit` gives up the moment the route
+ * changes, so a page that redirects on load (a canonical-path fix, an auth guard) is **never
+ * measured**. It used to be indistinguishable from a clean page — same "settled" signal, same
+ * empty issue list, and the check landed in the report as RAS. Whole swathes of a crawl can be
+ * unmeasured that way; a run that requests the `en` paths against a French-serving host redirects
+ * every single one of them.
+ */
+function classifyPrefetchAuditLine(text) {
+  if (!text.startsWith('[prefetch-audit] route')) return null
+  if (text.includes('changed before settling')) return 'discarded'
+  if (text.includes('not covered by route prefetch')) return 'gaps'
+  if (text.includes('all queries were covered')) return 'covered'
+  return 'other'
 }
 
 function classifyConsoleMessage(message) {
@@ -393,10 +500,10 @@ function makeIssueCollector() {
  */
 async function auditRoute(page, url, screenshotPath) {
   const collector = makeIssueCollector()
-  let settled = false
+  let verdict = null
 
   const onConsole = (message) => {
-    if (isPrefetchAuditSettleLine(message.text())) settled = true
+    verdict = classifyPrefetchAuditLine(message.text()) ?? verdict
     const classified = classifyConsoleMessage(message)
     if (classified) collector.add(classified.category, classified.text)
   }
@@ -410,7 +517,7 @@ async function auditRoute(page, url, screenshotPath) {
   try {
     await page.goto(url, { waitUntil: 'domcontentloaded' })
     const deadline = Date.now() + SETTLE_TIMEOUT_MS
-    while (!settled && Date.now() < deadline) {
+    while (!verdict && Date.now() < deadline) {
       await new Promise((resolve) => setTimeout(resolve, 200))
     }
     try {
@@ -426,20 +533,28 @@ async function auditRoute(page, url, screenshotPath) {
     page.off('pageerror', onPageError)
   }
 
-  return { issues: collector.list(), settled, crashed }
+  return { issues: collector.list(), verdict: verdict ?? 'timeout', crashed }
+}
+
+/** One-line explanation of a verdict that isn't an actual measurement. */
+const VERDICT_NOTE = {
+  discarded: 'not measured — the route redirected before the audit could settle',
+  timeout: `not measured — no [prefetch-audit] verdict within ${SETTLE_TIMEOUT_MS / 1000}s`,
+  other: 'unrecognised [prefetch-audit] line',
 }
 
 /** Throws on the first config problem found, listing every one of them — fix them all in one pass. */
 function buildWorkItems(config, contractById) {
   const items = []
   const errors = []
+  const unknownUsers = new Set()
   const userById = new Map(config.users.map((u) => [u.id, u]))
   let skipped = 0
 
   for (const route of config.routes) {
     let users
     try {
-      users = usersForRoute(route, config, userById)
+      users = usersForRoute(route, config, userById, unknownUsers)
     } catch (err) {
       errors.push(err.message)
       continue
@@ -465,6 +580,11 @@ function buildWorkItems(config, contractById) {
         '\n\nFill in the missing `params` values, or mark the route `skip:` with a reason.'
     )
   }
+  if (unknownUsers.size > 0) {
+    warnRun(
+      `Ignored ${unknownUsers.size} unknown user id(s) in routes[].users: ${[...unknownUsers].join(', ')}`
+    )
+  }
   return { items, skipped }
 }
 
@@ -474,26 +594,47 @@ function buildMarkdownReport({
   results,
   loginFailures,
   skipped,
-  everSettled,
 }) {
+  const measured = results.filter((r) => r.verdict === 'covered' || r.verdict === 'gaps')
+  const unmeasured = results.filter((r) => !measured.includes(r))
   const lines = [
     `# SSR audit report`,
     ``,
     `Generated ${generatedAt} against ${baseUrl}.`,
     ``,
     `- ${results.length} route/user checks run`,
+    `- ${measured.length} check(s) actually measured for prefetch coverage`,
+    `- ${unmeasured.length} check(s) NOT measured (see below)`,
     `- ${skipped} route/user checks skipped (\`skip\`)`,
     `- ${loginFailures.length} login failure(s)`,
     `- ${results.filter((r) => r.issues.length > 0).length} check(s) with issues`,
     ``,
   ]
-  if (!everSettled) {
+  if (measured.length === 0) {
     lines.push(
-      '> No `[prefetch-audit]` settle signal was ever observed — is `FRONTEND_PREFETCH_AUDIT=true` ' +
-        'set on the target? Every check below fell back to the 8s timeout, so prefetch gaps may be ' +
-        'under-reported.',
+      '> Not one check produced a `[prefetch-audit]` verdict — is `FRONTEND_PREFETCH_AUDIT=true` ' +
+        'set on the target (at **build** time for a production bundle)? Prefetch gaps are entirely ' +
+        'unreported below.',
       ''
     )
+  }
+  if (unmeasured.length > 0) {
+    const byVerdict = new Map()
+    for (const r of unmeasured) {
+      if (!byVerdict.has(r.verdict)) byVerdict.set(r.verdict, [])
+      byVerdict.get(r.verdict).push(`${r.routeId}/${r.userId}`)
+    }
+    lines.push('## Not measured', '')
+    lines.push(
+      'Hydration errors and console errors below are still valid for these — only their prefetch',
+      'coverage is unknown. A `RAS` here means "nothing crashed", not "everything was prefetched".',
+      ''
+    )
+    for (const [verdict, checks] of byVerdict) {
+      lines.push(`- **${verdict}** (${checks.length}) — ${VERDICT_NOTE[verdict] ?? ''}`)
+      lines.push(`  ${checks.join(', ')}`)
+    }
+    lines.push('')
   }
   if (loginFailures.length > 0) {
     lines.push('## Login failures', '')
@@ -525,10 +666,15 @@ function buildMarkdownReport({
     lines.push('No issues found.', '')
   }
 
-  lines.push('## All checks', '', '| Route | User | Status | Screenshot |', '| --- | --- | --- | --- |')
+  lines.push(
+    '## All checks',
+    '',
+    '| Route | User | Status | Prefetch | Screenshot |',
+    '| --- | --- | --- | --- | --- |'
+  )
   for (const r of results) {
     const status = r.issues.length === 0 ? 'RAS' : `FAIL (${r.issues.length})`
-    lines.push(`| ${r.routeId} | ${r.userId} | ${status} | \`${r.screenshot}\` |`)
+    lines.push(`| ${r.routeId} | ${r.userId} | ${status} | ${r.verdict} | \`${r.screenshot}\` |`)
   }
   lines.push('')
 
@@ -562,9 +708,12 @@ async function runAudit() {
   const { chromium } = frontendReq('playwright')
   const browser = await chromium.launch()
 
+  logRun(
+    `Run started ${generatedAt} against ${baseUrl} — ${items.length} check(s), times below are UTC`
+  )
+
   const results = []
   const loginFailures = []
-  let everSettled = false
 
   try {
     for (const user of config.users) {
@@ -576,11 +725,11 @@ async function runAudit() {
 
       if (user.login) {
         try {
-          console.log(`[${user.id}] login as ${user.login}…`)
+          logRun(`[${user.id}] login as ${user.login}…`)
           const password = resolvePassword(user)
           await login(page, config.loginPath, user, password)
         } catch (err) {
-          console.error(`[login] ${user.id}: ${err.message}`)
+          errorRun(`[login] ${user.id}: ${err.message}`)
           loginFailures.push({ userId: user.id, error: err.message })
           await context.close()
           continue
@@ -592,16 +741,15 @@ async function runAudit() {
         const screenshotPath = path.join(screenshotsDir, `${user.id}-${route.id}.png`)
         // Printed *before* the goto: a route that hangs or crashes the page is otherwise silent
         // until the 8s settle timeout, with nothing saying which one is stuck.
-        console.log(`[${user.id} ${index + 1}/${userItems.length}] ${route.id} — ${fullUrl}`)
-        const { issues, settled, crashed } = await auditRoute(page, fullUrl, screenshotPath)
-        if (settled) everSettled = true
+        logRun(`[${user.id} ${index + 1}/${userItems.length}] ${route.id} — ${fullUrl}`)
+        const { issues, verdict, crashed } = await auditRoute(page, fullUrl, screenshotPath)
         if (issues.length === 0) {
-          console.log(`      RAS`)
+          logRun(`      RAS (prefetch: ${verdict})`)
         } else {
-          console.warn(`      FAIL — ${issues.length} distinct issue(s)`)
+          warnRun(`      FAIL — ${issues.length} distinct issue(s) (prefetch: ${verdict})`)
           for (const issue of issues) {
             const countSuffix = issue.count > 1 ? ` (x${issue.count})` : ''
-            console.warn(`        [${issue.category}]${countSuffix} ${issue.text}`)
+            warnRun(`        [${issue.category}]${countSuffix} ${issue.text}`)
           }
         }
         results.push({
@@ -609,6 +757,7 @@ async function runAudit() {
           userId: user.id,
           url,
           issues,
+          verdict,
           screenshot: path.relative(repoRoot, screenshotPath),
         })
 
@@ -627,13 +776,13 @@ async function runAudit() {
     await browser.close()
   }
 
-  const report = { generatedAt, baseUrl, results, loginFailures, skipped, everSettled }
+  const report = { generatedAt, baseUrl, results, loginFailures, skipped }
   const markdown = buildMarkdownReport(report)
 
   writeFileSync(`${outBase}.json`, JSON.stringify(report, null, 2))
   writeFileSync(`${outBase}.md`, markdown)
-  console.log(`\nReport written to ${outBase}.json / ${outBase}.md`)
-  console.log(`Screenshots written to ${path.relative(repoRoot, screenshotsDir)}/`)
+  logRun(`Report written to ${outBase}.json / ${outBase}.md`)
+  logRun(`Screenshots written to ${path.relative(repoRoot, screenshotsDir)}/`)
 
   const failing = results.filter((r) => r.issues.length > 0)
   if (failing.length > 0 || loginFailures.length > 0) {

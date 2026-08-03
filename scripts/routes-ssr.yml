@@ -22,7 +22,8 @@
 # routes:
 #   id:     must match an id in contracts/routes.yaml
 #   users:  list of user ids to crawl this route as. Omit (or null) for every user — use it to
-#           restrict an authenticated-only or admin-only route.
+#           restrict an authenticated-only or admin-only route. An id absent from `users` is
+#           logged once and skipped, so commenting a user out doesn't mean editing every route.
 #   params: optional { name: value } overriding `params` for this route only (e.g. a team the
 #           test user actually administers).
 #   locale: optional per-route override of the top-level `locale`.
@@ -33,7 +34,11 @@
 #           and visits it anyway.
 
 loginPath: /login
-locale: en
+# French, because that's the language the app serves by default: request the `en` path of a route
+# that has a `fr` one and the page redirects to the canonical French URL on load, the prefetch
+# audit sees a route change and discards its verdict, and the check is reported without ever
+# having measured anything. Crawl the URLs the app would actually produce.
+locale: fr
 
 params:
   previewId: a281dbae-6bc5-46d1-acbe-6b91dc042587
@@ -42,7 +47,7 @@ params:
   rideSlug: raymond-ride-288
   templateSlug: n-peloton
   tripSlug: np-550
-  stageSlug: mardi
+  stageSlug: lundi
   postSlug: annulation-du-ride-1
   routeSlug: rr288long
   adSlug: velo-broce
