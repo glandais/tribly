@@ -157,11 +157,25 @@ for a signed-in visitor's explicit theme) sets that attribute, before React ever
 
 For anything else that needs the resolved scheme *as a JS value* — a different asset URL, a
 computed color, a conditional className — use **`useResolvedColorScheme()`**
-(`src/hooks/useResolvedColorScheme.ts`) instead of `useComputedColorScheme`. It reads the same
-`data-mantine-color-scheme` attribute via `useSyncExternalStore`, so React's built-in
-server/client snapshot mismatch handling applies the real value at hydration time rather than
-after a delayed effect — no extra render, no extra network request for the wrong asset.
-`useComputedColorScheme` should not appear anywhere outside this hook and
+(`src/hooks/useResolvedColorScheme.ts`) instead of `useComputedColorScheme` **and** instead of
+`useMantineColorScheme().colorScheme`. That second one looks safe for a concrete (non-`'auto'`)
+value — no `matchMedia`/effect involved — but it isn't: Mantine's own state initializes from
+`localStorage` synchronously on the client's first render, so a visitor with an explicit stored
+theme already has the real value on their *first hydration render*, before React's own snapshot
+machinery gets a say. That's a genuine hydration mismatch against the server (which always
+assumes `'light'` for an anonymous/`'auto'` visitor) — and React's hydration commit deliberately
+does **not** patch a mismatched `src`/`href` (only warns, to avoid an unwanted refetch). Nothing
+else then forces a second, *non-hydration* render, so the wrong asset sticks forever — not a
+brief flash, a permanent wrong thumbnail/basemap/color for exactly the visitors this fix targets.
+Confirmed live: an anonymous visitor with `mantine-color-scheme-value: dark` in `localStorage`
+got the light route thumbnail on every reload, forever, until this hook stopped trusting
+`ctx.colorScheme` and routed every case — `'auto'` or concrete — through
+`useSyncExternalStore` reading the DOM attribute instead. Its server snapshot (`'light'`) makes
+the first hydration render deliberately match what the server assumed (nothing to skip), and its
+built-in mismatch check then schedules a genuine follow-up **update** shortly after mount, which
+does patch `src` correctly. A signed-in visitor whose server-rendered theme was already right
+just pays one harmless extra render with the same value. `useComputedColorScheme` and
+`useMantineColorScheme().colorScheme` should not appear anywhere outside this hook and
 `ColorSchemeSwitcher.tsx` itself.
 
 ## Finding 5 — assorted sharp edges
