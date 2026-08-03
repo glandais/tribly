@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react'
+import { createContext, useContext, useSyncExternalStore } from 'react'
 
 function subscribe(callback: () => void) {
   const observer = new MutationObserver(callback)
@@ -15,9 +15,12 @@ function getSnapshot(): 'light' | 'dark' {
     : 'light'
 }
 
-function getServerSnapshot(): 'light' | 'dark' {
-  return 'light'
-}
+/**
+ * The concrete scheme `entry-server.tsx` resolved for this request/render — 'dark' for a signed-in
+ * visitor whose stored preference is DARK, 'light' otherwise (LIGHT, SYSTEM, or anonymous). Provided
+ * by `AppProviders` so it's identical on the server and on the client's first hydration render.
+ */
+export const SsrColorSchemeContext = createContext<'light' | 'dark'>('light')
 
 /**
  * SSR-safe replacement for `useComputedColorScheme('light')` wherever the resolved value picks a
@@ -26,20 +29,21 @@ function getServerSnapshot(): 'light' | 'dark' {
  * Always goes through `useSyncExternalStore` reading `data-mantine-color-scheme` — never
  * `useMantineColorScheme()`'s `colorScheme` directly, even for a concrete (non-'auto') value.
  * Mantine's own context state initializes from `localStorage` synchronously on the client's very
- * first render, so a visitor with an explicit stored theme (not just 'auto') already has the real
- * value on their first hydration render — mismatching the server, which always assumes 'light' for
- * an anonymous/auto visitor. That would be a normal hydration mismatch, except React's hydration
- * commit deliberately skips patching `src`/`href` on mismatch (to avoid an unwanted refetch) and
- * only warns — so if that first render is trusted, the wrong asset sticks forever, since nothing
- * else forces a second, *non-hydration* render to correct it.
+ * first render, so an anonymous visitor whose *browser* has a stored preference (never seen by the
+ * server) already has that value on their first hydration render — mismatching the server, which
+ * always assumes 'light' for that case. That would be a normal hydration mismatch, except React's
+ * hydration commit deliberately skips patching `src`/`href` on mismatch (to avoid an unwanted
+ * refetch) and only warns — so if that first render is trusted, the wrong asset sticks forever,
+ * since nothing else forces a second, *non-hydration* render to correct it.
  *
- * Routing through `useSyncExternalStore` avoids this: its server snapshot ('light') makes the
- * first hydration render deliberately match what the server actually assumed, so there's nothing
- * to skip, and its built-in snapshot-mismatch check then schedules a genuine follow-up update
- * (not a hydration commit) shortly after mount — which does patch `src` correctly. For a signed-in
- * visitor whose server-rendered theme was already correct, this costs one harmless extra render
- * with the same value.
+ * The `getServerSnapshot` passed to `useSyncExternalStore` comes from `SsrColorSchemeContext`
+ * rather than a hardcoded 'light': for a signed-in visitor with an explicit DARK preference, the
+ * server already rendered dark (see `entry-server.tsx`'s `themePreference`), so the first hydration
+ * render must assume dark too — hardcoding 'light' here would make that first paint wrong (a visible
+ * flash) even though nothing needed correcting. The DOM-attribute snapshot mismatch check still
+ * schedules a genuine follow-up render shortly after mount to catch the anonymous/browser-only case.
  */
 export function useResolvedColorScheme(): 'light' | 'dark' {
-  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
+  const ssrColorScheme = useContext(SsrColorSchemeContext)
+  return useSyncExternalStore(subscribe, getSnapshot, () => ssrColorScheme)
 }
