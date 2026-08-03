@@ -31,7 +31,7 @@ function requestLogger(): PluginOption {
   }
 }
 
-export default defineConfig(({ mode, command }) => {
+export default defineConfig(({ mode }) => {
   // API proxy target: from .env (VITE_API_TARGET) or prod by default
   const env = loadEnv(mode, import.meta.dirname, '')
   const apiTarget = env.VITE_API_TARGET || 'https://www.pedalons.fr'
@@ -39,11 +39,14 @@ export default defineConfig(({ mode, command }) => {
   const isHttps = apiUrl.protocol === 'https:'
 
   // FRONTEND_PREFETCH_AUDIT lives in the root .env (docker-compose's), not frontend/.env, so read
-  // it from there. Only ever wired up for `vite serve` (pnpm dev / pnpm dev:ssr) — a built bundle
-  // must not carry the prefetch-audit console.warn into production.
+  // it from there — in a docker build the build context is frontend/ only, so this finds nothing
+  // there either; build.sh forwards it as a build-arg instead (see Dockerfile). Opt-in on any
+  // environment, including a built/staging bundle, to catch prefetch gaps that only show up there.
   const rootEnv = loadEnv(mode, path.resolve(import.meta.dirname, '..'), 'FRONTEND_')
-  const prefetchAuditEnabled = command === 'serve' && rootEnv.FRONTEND_PREFETCH_AUDIT === 'true'
-  console.log(`[vite.config.ts] FRONTEND_PREFETCH_AUDIT=${rootEnv.FRONTEND_PREFETCH_AUDIT} (prefetch-audit enabled: ${prefetchAuditEnabled})`)
+  const prefetchAuditEnabled = rootEnv.FRONTEND_PREFETCH_AUDIT === 'true'
+  console.log(
+    `[vite.config.ts] FRONTEND_PREFETCH_AUDIT=${rootEnv.FRONTEND_PREFETCH_AUDIT} (prefetch audit ${prefetchAuditEnabled ? 'enabled' : 'disabled'})`
+  )
 
   return {
     define: {

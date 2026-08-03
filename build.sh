@@ -33,6 +33,7 @@ build_frontend() {
   cp "$ROOT"/privacy/*.md src/assets/legal/
   docker build --progress=plain \
     --build-arg VITE_BUILD_SOURCEMAP="${FRONTEND_SOURCEMAP:-false}" \
+    --build-arg FRONTEND_PREFETCH_AUDIT="${FRONTEND_PREFETCH_AUDIT:-false}" \
     -t "pedalons-frontend:$ENV_NAME" .
   rm -rf src/assets/legal
 }

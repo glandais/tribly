@@ -39,6 +39,12 @@ COPY . .
 ARG VITE_BUILD_SOURCEMAP=false
 ENV VITE_BUILD_SOURCEMAP=$VITE_BUILD_SOURCEMAP
 
+# The build context is frontend/ only, so vite.config.ts's loadEnv() of the root .env finds nothing
+# in here — forward it as a build-arg instead (vite's loadEnv also merges matching process.env vars).
+# Opt-in per environment, same as VITE_BUILD_SOURCEMAP above — see build.sh.
+ARG FRONTEND_PREFETCH_AUDIT=false
+ENV FRONTEND_PREFETCH_AUDIT=$FRONTEND_PREFETCH_AUDIT
+
 # Build client + server bundles (dist/client + dist/server)
 RUN pnpm build
 
