@@ -20,7 +20,7 @@ import { prefetchGetRouteQuery } from '@/api/endpoints/routes/routes'
 import { prefetchGetPageQuery } from '@/api/endpoints/team-pages/team-pages'
 import { prefetchGetAdQuery } from '@/api/endpoints/ads/ads'
 import { prefetchGetPreviewQuery } from '@/api/endpoints/gpx-previews/gpx-previews'
-import { prefetchListAllRoutesQuery } from '@/api/endpoints/routes/routes'
+import { prefetchListAllRoutesQuery, prefetchListRoutesQuery } from '@/api/endpoints/routes/routes'
 import {
   homeMeta,
   teamsMeta,
@@ -870,6 +870,21 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: 'team-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('nav.routes') },
+    // RouteListPage reads the team plus its first two, unfiltered route pages — no
+    // team-membership dependency here, unlike the cross-team route list.
+    prefetch: async (queryClient, params) => {
+      const routeParams = {
+        sortBy: DEFAULT_ROUTE_SORT_BY,
+        sortDir: DEFAULT_ROUTE_SORT_DIR,
+        size: ROUTE_PAGE_SIZE,
+        view: 'COMPACT' as const,
+      }
+      await Promise.all([
+        prefetchGetTeamQuery(queryClient, params.teamSlug!),
+        prefetchListRoutesQuery(queryClient, params.teamSlug!, { ...routeParams, page: 0 }),
+        prefetchListRoutesQuery(queryClient, params.teamSlug!, { ...routeParams, page: 1 }),
+      ])
+    },
   },
   {
     id: 'routes-map',
