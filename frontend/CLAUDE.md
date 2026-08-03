@@ -132,6 +132,8 @@ in [SSR-BUGS.md](SSR-BUGS.md) — check it before reporting one.
 
 **Before changing SSR-reachable code, read [SSR.md](SSR.md)** — it documents the architecture and the non-obvious failure modes (lazy pages vs renderToString, silent Suspense-swallowed crashes, useId tree parity via `AppProviders`/`AppFrame`, localStorage-derived render state, and the curl checks that actually catch regressions).
 
+**Before adding or editing a route's `prefetch`, read [SSR-data-loading.md](SSR-data-loading.md)** — a screen's data is declared once, in a companion module next to the page (`pages/ride/rideDetailData.ts`, `pages/route/routeListData.ts`), read as hooks by the page and as a `Promise.all` by `routes.config.ts`. Describing it twice doesn't break anything visibly: it just yields a different query key, so the client refetches after hydration and only `scripts/ssr-audit.mjs` notices.
+
 Hard invariants — keep these when touching SSR-reachable code:
 
 - **Session-aware, but nothing shared between requests**: a document request carrying a `refresh_token` cookie is rendered as that visitor (one `POST /api/auth/refresh`, then `Authorization: Bearer` on every prefetch — the raw cookie is never relayed). The session lives *only* in `SsrRequestStore.auth`; `useAuthStore.setState()` throws on the server because the Zustand store is a module singleton shared by all concurrent renders. Reading auth server-side goes through `getSSRAuth()`.
@@ -152,6 +154,7 @@ Public pages unfurl into rich social/messaging cards via server-rendered OG/Twit
 ## Key Rules
 
 - **Never hold list filters, search or pagination in `useState`** — they belong in the query string via `useUrlFilters`, so they survive back-navigation and are shareable. See [URL_FILTERS.md](URL_FILTERS.md).
+- **Never describe a screen's data twice** — the page's hooks and the route's `prefetch` share one companion module (`pages/<domain>/<screen>Data.ts`); derive params, never copy them. See [SSR-data-loading.md](SSR-data-loading.md).
 - **Never edit `src/api/`** — it's generated. Run `pnpm generate-api` after backend OpenAPI changes.
 - **Never edit `paths.generated.ts`** — edit `../contracts/routes.yaml` and run `pnpm generate-routes`. See [../APP_LINKS.md](../APP_LINKS.md).
 - **Never hard-code links** — use `paths.xxx()` from `config/paths.ts` (locale-aware).

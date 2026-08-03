@@ -195,7 +195,10 @@ just pays one harmless extra render with the same value. `useComputedColorScheme
   (`publicationApiParams`, `placeAutocompleteParams`) or a shared constant (`COMMENT_LIST_OPTIONS`,
   `NEXT_RIDE_PARAMS`, `PARTICIPATION_COUNT_PARAMS`). When one has to live in its own tiny module,
   it is because `routes.config.ts` is eagerly imported by both entries and must not drag a lazy
-  page component into the main bundle.
+  page component into the main bundle. A screen with more than one thing to share (a derivation, a
+  filter schema/alias pair, a multi-phase sequence) gets a **data companion module** instead —
+  the pattern, its rules and how to verify it are in
+  [SSR-data-loading.md](SSR-data-loading.md).
   Verify with `scripts/ssr-audit.mjs` (see [SSR-BUGS.md](SSR-BUGS.md)) rather than the network tab:
   it reports the exact query keys that were fetched after hydration.
 - **`node:async_hooks` must not leak into the client bundle**: `lib/requestContext.ts`
