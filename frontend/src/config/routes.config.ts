@@ -584,13 +584,21 @@ export const routesConfig: RoutesConfig = [
     parentId: 'teams',
     navGroup: 'team',
     breadcrumb: { type: 'dynamic', entity: 'team' },
-    // PublicationListPage reads the team plus its first, unfiltered publications page.
+    // PublicationListPage reads the team plus its first two, unfiltered publications pages.
+    // Matches PublicationListPage's query key exactly (including `view`) — a mismatch here (e.g.
+    // a missing `view`) makes the real query miss the SSR cache and refetch after hydration.
     prefetch: async (queryClient, params) => {
       await Promise.all([
         prefetchGetTeamQuery(queryClient, params.teamSlug!),
         prefetchListPublicationsQuery(queryClient, params.teamSlug!, {
           page: 0,
           size: PUBLICATION_PAGE_SIZE,
+          view: 'COMPACT',
+        }),
+        prefetchListPublicationsQuery(queryClient, params.teamSlug!, {
+          page: 1,
+          size: PUBLICATION_PAGE_SIZE,
+          view: 'COMPACT',
         }),
       ])
     },
