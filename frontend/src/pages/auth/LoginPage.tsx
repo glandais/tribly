@@ -44,7 +44,11 @@ export function LoginPage() {
 
   const [mode, setMode] = useState<Mode>('login')
   const [isLoading, setIsLoading] = useState(false)
-  const [passkeySupported] = useState(() => browserSupportsWebAuthn())
+  const [passkeySupported, setPasskeySupported] = useState(false)
+
+  useEffect(() => {
+    setPasskeySupported(browserSupportsWebAuthn())
+  }, [])
 
   const loginForm = useForm({
     initialValues: { email: '', password: '' },
