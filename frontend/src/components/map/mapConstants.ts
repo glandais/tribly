@@ -38,8 +38,12 @@ export const toRouteTileFilters = (filters: RouteFilters): RouteTileFilters => (
  * Same-origin requests carry the session cookie instead, which the backend falls back to — the
  * same mechanism that authenticates secured images. Hence absolute, same-origin URLs.
  */
-const tilesUrl = (path: string, filters?: RouteTileFilters) =>
-  `${window.location.origin}${path}${tilesQuery(filters)}`
+const tilesUrl = (path: string, filters?: RouteTileFilters) => {
+  // MapLibre only reads/fetches this URL after client-side hydration, so an SSR render never needs
+  // it resolved — a relative path is enough to avoid touching `window` on the server.
+  const origin = typeof window === 'undefined' ? '' : window.location.origin
+  return `${origin}${path}${tilesQuery(filters)}`
+}
 
 /** The `{z}/{x}/{y}` placeholders live in the path, so a query string appends cleanly. */
 const tilesQuery = (filters?: RouteTileFilters) => {
