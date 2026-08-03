@@ -1,30 +1,15 @@
-import { useSyncExternalStore } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActionIcon, useMantineColorScheme, useComputedColorScheme } from '@mantine/core'
+import { ActionIcon, Box, useMantineColorScheme, useComputedColorScheme } from '@mantine/core'
 import { IconSun, IconMoon } from '@tabler/icons-react'
 import { useUpdateMyPreferences } from '@/api/endpoints/users/users'
 import { useAuthStore, selectIsAuthenticated } from '@/store/authStore'
 
-const emptySubscribe = () => () => {}
-
 export function ColorSchemeSwitcher() {
   const { t } = useTranslation()
-  const { colorScheme, setColorScheme } = useMantineColorScheme()
+  const { setColorScheme } = useMantineColorScheme()
   const computedColorScheme = useComputedColorScheme('light')
   const isAuthenticated = useAuthStore(selectIsAuthenticated)
   const mutation = useUpdateMyPreferences()
-  // Only 'auto' (anonymous visitors, or a SYSTEM preference) risks a hydration mismatch: its
-  // resolution depends on localStorage/matchMedia, which the server can't see, so the first
-  // client render must match the server's always-light guess and only pick up the real scheme
-  // once mounted. An explicit LIGHT/DARK preference is already known server-side (AppProviders'
-  // defaultColorScheme) and matches from the very first render — gating it the same way would
-  // just flash the wrong icon for every signed-in visitor on every page load.
-  const hydrated = useSyncExternalStore(
-    emptySubscribe,
-    () => true,
-    () => false
-  )
-  const needsHydrationGuard = colorScheme === 'auto'
 
   const toggleColorScheme = () => {
     const colorScheme = computedColorScheme === 'dark' ? 'light' : 'dark'
@@ -44,11 +29,14 @@ export function ColorSchemeSwitcher() {
       size="md"
       aria-label={t('nav.colorScheme')}
     >
-      {(hydrated || !needsHydrationGuard) && computedColorScheme === 'dark' ? (
-        <IconSun size={18} />
-      ) : (
-        <IconMoon size={18} />
-      )}
+      {/* lightHidden/darkHidden are pure CSS (:root[data-mantine-color-scheme] selectors), shown
+          or hidden the instant the attribute is set — before hydration, before any React state.
+          A JS-computed icon (e.g. gated on a `hydrated` flag) would flash the wrong one for
+          anonymous visitors, since the attribute is only known once the client resolves
+          localStorage/matchMedia, which happens before React ever renders but after the server's
+          always-light guess. */}
+      <Box component={IconSun} size={18} lightHidden />
+      <Box component={IconMoon} size={18} darkHidden />
     </ActionIcon>
   )
 }
