@@ -36,7 +36,7 @@ import {
 } from '@/api/endpoints/routes/routes'
 import { ROUTES_BULK_MAX_SLUGS } from '@/hooks/useRoutesBulk'
 import { prefetchGetPageQuery } from '@/api/endpoints/team-pages/team-pages'
-import { prefetchGetAdQuery } from '@/api/endpoints/ads/ads'
+import { prefetchGetAdQuery, prefetchListAdsQuery } from '@/api/endpoints/ads/ads'
 import { prefetchGetPreviewQuery } from '@/api/endpoints/gpx-previews/gpx-previews'
 import { prefetchListAllRoutesQuery, prefetchListRoutesQuery } from '@/api/endpoints/routes/routes'
 import { prefetchGetAvailableServicesQuery } from '@/api/endpoints/gps-services/gps-services'
@@ -63,10 +63,12 @@ import {
 import { PUBLICATION_PAGE_SIZE } from '@/hooks/filters/publicationFilters'
 import { TEAM_PAGE_SIZE } from '@/hooks/filters/teamFilters'
 import { ROUTE_PAGE_SIZE } from '@/hooks/filters/routeFilters'
+import { AD_PAGE_SIZE } from '@/hooks/filters/adFilters'
 import {
   DEFAULT_ROUTE_SORT_BY,
   DEFAULT_ROUTE_SORT_DIR,
 } from '@/components/route/routeFilterDefaults'
+import { DEFAULT_AD_SORT_BY, DEFAULT_AD_SORT_DIR } from '@/components/ad/adSortOptions'
 import { useAuthStore } from '@/store/authStore'
 import {
   MinRole,
@@ -1105,6 +1107,21 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: 'team-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('ads.title') },
+    // AdListPage reads the team plus its first two, unfiltered ad pages — matches its query key
+    // exactly (including `view`), same pattern as the publications and routes lists above.
+    prefetch: async (queryClient, params) => {
+      const adParams = {
+        sortBy: DEFAULT_AD_SORT_BY,
+        sortDir: DEFAULT_AD_SORT_DIR,
+        size: AD_PAGE_SIZE,
+        view: 'COMPACT' as const,
+      }
+      await Promise.all([
+        prefetchGetTeamQuery(queryClient, params.teamSlug!),
+        prefetchListAdsQuery(queryClient, params.teamSlug!, { ...adParams, page: 0 }),
+        prefetchListAdsQuery(queryClient, params.teamSlug!, { ...adParams, page: 1 }),
+      ])
+    },
   },
   {
     id: 'ad-new',
