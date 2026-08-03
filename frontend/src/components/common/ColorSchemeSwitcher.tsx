@@ -9,19 +9,22 @@ const emptySubscribe = () => () => {}
 
 export function ColorSchemeSwitcher() {
   const { t } = useTranslation()
-  const { setColorScheme } = useMantineColorScheme()
+  const { colorScheme, setColorScheme } = useMantineColorScheme()
   const computedColorScheme = useComputedColorScheme('light')
   const isAuthenticated = useAuthStore(selectIsAuthenticated)
   const mutation = useUpdateMyPreferences()
-  // The server doesn't know the user's scheme (localStorage), so it always renders the moon
-  // icon. During hydration React uses the server snapshot (false), so the first client render
-  // matches the markup; right after, it re-renders with the real scheme — no hydration mismatch
-  // for users with a stored dark scheme.
+  // Only 'auto' (anonymous visitors, or a SYSTEM preference) risks a hydration mismatch: its
+  // resolution depends on localStorage/matchMedia, which the server can't see, so the first
+  // client render must match the server's always-light guess and only pick up the real scheme
+  // once mounted. An explicit LIGHT/DARK preference is already known server-side (AppProviders'
+  // defaultColorScheme) and matches from the very first render — gating it the same way would
+  // just flash the wrong icon for every signed-in visitor on every page load.
   const hydrated = useSyncExternalStore(
     emptySubscribe,
     () => true,
     () => false
   )
+  const needsHydrationGuard = colorScheme === 'auto'
 
   const toggleColorScheme = () => {
     const colorScheme = computedColorScheme === 'dark' ? 'light' : 'dark'
@@ -41,7 +44,11 @@ export function ColorSchemeSwitcher() {
       size="md"
       aria-label={t('nav.colorScheme')}
     >
-      {hydrated && computedColorScheme === 'dark' ? <IconSun size={18} /> : <IconMoon size={18} />}
+      {(hydrated || !needsHydrationGuard) && computedColorScheme === 'dark' ? (
+        <IconSun size={18} />
+      ) : (
+        <IconMoon size={18} />
+      )}
     </ActionIcon>
   )
 }
