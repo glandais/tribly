@@ -46,7 +46,11 @@ export default defineConfig(({ mode, command }) => {
 
   return {
     define: {
-      'import.meta.env.VITE_PREFETCH_AUDIT': JSON.stringify(prefetchAuditEnabled),
+      // A plain global, not an `import.meta.env.*` key — those get merged into Vite's own client-env
+      // object and come out serialized differently between the dev-server transform and the
+      // build/Rollup one (string vs boolean). A bare identifier define is a straight textual
+      // substitution in both, so __PREFETCH_AUDIT_ENABLED__ stays the same boolean everywhere.
+      __PREFETCH_AUDIT_ENABLED__: JSON.stringify(prefetchAuditEnabled),
     },
     plugins: [
       requestLogger(),
