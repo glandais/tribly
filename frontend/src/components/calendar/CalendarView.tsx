@@ -10,9 +10,15 @@ import type {
 } from '@mantine/schedule'
 import { Box, Image, LoadingOverlay, Stack, Text, Tooltip } from '@mantine/core'
 import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
 import { paths } from '@/config/paths'
 import { useUnits } from '@/hooks/useUnits'
+import { useEffectiveTimezone } from '@/utils/dateFormat'
 import type { CalendarEventDto, CalendarEventType } from '@/api/dto'
+
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
 interface CalendarViewProps {
   events: CalendarEventDto[]
@@ -70,6 +76,7 @@ export function CalendarView({
   const navigate = useNavigate()
   const { t, i18n } = useTranslation()
   const { distance: formatDistance, elevation: formatElevation } = useUnits()
+  const { timezone: tz } = useEffectiveTimezone()
 
   const labels = useMemo<ScheduleLabelsOverride>(
     () => ({
@@ -110,12 +117,14 @@ export function CalendarView({
       events.map((event) => ({
         id: event.id,
         title: event.title,
-        start: dayjs(event.start).format('YYYY-MM-DD HH:mm:ss'),
-        end: dayjs(event.end ?? event.start).format('YYYY-MM-DD HH:mm:ss'),
+        start: dayjs(event.start).tz(tz).format('YYYY-MM-DD HH:mm:ss'),
+        end: dayjs(event.end ?? event.start)
+          .tz(tz)
+          .format('YYYY-MM-DD HH:mm:ss'),
         color: EVENT_COLORS[event.type],
         payload: { dto: event } satisfies CalendarEventPayload,
       })),
-    [events]
+    [events, tz]
   )
 
   const eventMap = useMemo(() => new Map(events.map((e) => [String(e.id), e])), [events])
@@ -137,12 +146,12 @@ export function CalendarView({
     (dto: CalendarEventDto): string =>
       [
         dto.teamName,
-        dto.allDay ? t('calendar.schedule.allDay') : dayjs(dto.start).format('HH:mm'),
+        dto.allDay ? t('calendar.schedule.allDay') : dayjs(dto.start).tz(tz).format('HH:mm'),
         dto.startPlaceName ?? null,
       ]
         .filter(Boolean)
         .join(SEPARATOR),
-    [t]
+    [t, tz]
   )
 
   /** "Inscrit" / "Inscrit · Groupe A", empty when the user is not registered. */

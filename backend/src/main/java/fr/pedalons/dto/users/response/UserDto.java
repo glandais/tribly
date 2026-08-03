@@ -35,6 +35,12 @@ public record UserDto(
                 "Preferred language as a BCP-47 tag. Null means the user never chose one; the"
                     + " client then follows the device or the domain.")
         String language,
+    @Nullable
+        @Schema(
+            description =
+                "Preferred IANA timezone (e.g. 'Europe/Paris'). Null means the user never chose"
+                    + " one; the client then follows the browser.")
+        String timezone,
     @Schema(
             description =
                 "Whether team members may reach this user through the classified-ad relay. True"
@@ -77,6 +83,7 @@ public record UserDto(
         user.getUnitSystem(),
         user.getTheme(),
         user.getLanguage(),
+        user.getTimezone(),
         user.isContactableByMembers(),
         user.getPlatformRole(),
         user.isEmailVerified(),

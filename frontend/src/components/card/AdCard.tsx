@@ -5,7 +5,7 @@ import { Card, CardContent, CardTitle, CardDescription, CardImage } from './comm
 import { TypeBadge, StatusBadge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from './common'
 import { TYPE_COLORS } from './common'
 import { EntityLogo } from '../common/EntityLogo'
-import { useFormattedDate } from '../../utils/dateFormat'
+import { FormattedDateTime } from '../common/FormattedDate'
 import { paths } from '@/config/paths'
 import { AdDto, AdType, RentalPeriod } from '@/api/dto'
 
@@ -22,9 +22,6 @@ interface AdCardProps {
 
 export function AdCard({ ad }: AdCardProps) {
   const { t } = useTranslation()
-  const { formatDateTime } = useFormattedDate()
-
-  const formattedDate = formatDateTime(ad.createdAt)
 
   const formatPrice = (price: number | undefined, adType: AdType, rentalPeriod?: RentalPeriod) => {
     if (price === undefined || price === null) {
@@ -81,7 +78,9 @@ export function AdCard({ ad }: AdCardProps) {
           <Stat icon={<IconCurrencyEuro size={16} />}>
             {formatPrice(ad.price, ad.adType, ad.rentalPeriod)}
           </Stat>
-          <Stat icon={<IconCalendar size={16} />}>{formattedDate}</Stat>
+          <Stat icon={<IconCalendar size={16} />}>
+            <FormattedDateTime date={ad.createdAt} />
+          </Stat>
           {ad.locationDescription && (
             <Stat icon={<IconMapPin size={16} />}>{ad.locationDescription}</Stat>
           )}

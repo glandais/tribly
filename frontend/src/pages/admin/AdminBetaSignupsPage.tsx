@@ -11,10 +11,10 @@ import {
   adminBetaSignupFiltersAlias,
 } from '@/hooks/filters/adminFilters'
 import type { BetaSignupDto } from '@/api/dto'
-import { formatDate } from '@/utils/dateFormat'
+import { FormattedDate } from '@/components/common/FormattedDate'
 
 export function AdminBetaSignupsPage() {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
 
   const { filters, setFilters } = useUrlFilters({
     schema: adminBetaSignupFiltersSchema,
@@ -59,7 +59,7 @@ export function AdminBetaSignupsPage() {
                       </Table.Td>
                       <Table.Td>
                         <Text size="sm" c="dimmed">
-                          {formatDate(signup.createdAt, i18n.language)}
+                          <FormattedDate date={signup.createdAt} />
                         </Text>
                       </Table.Td>
                     </Table.Tr>

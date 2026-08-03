@@ -33,7 +33,7 @@ export function TeamMemberList({
   isRemoving = false,
 }: TeamMemberListProps) {
   const { t } = useTranslation()
-  const { formatDate } = useFormattedDate()
+  const { formatDate, isGuessedTimezone } = useFormattedDate()
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null)
   const [selectedRole, setSelectedRole] = useState<TeamRole>(TeamRole.MEMBER)
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
@@ -120,7 +120,7 @@ export function TeamMemberList({
                         </Text>
                       )}
                     </Group>
-                    <Text size="xs" c="dimmed">
+                    <Text size="xs" c="dimmed" suppressHydrationWarning={isGuessedTimezone}>
                       {t('teams.detail.members.joined', {
                         date: formatDate(member.joinedAt) || t('unknown'),
                       })}

@@ -1,6 +1,8 @@
 package fr.pedalons.service.user;
 
+import fr.pedalons.common.exception.BadRequestException;
 import fr.pedalons.domain.user.User;
+import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.dto.gps.response.GpsServiceConnectionDto;
 import fr.pedalons.dto.social.response.SocialIdentityDto;
 import fr.pedalons.dto.users.request.UpdateUserRequest;
@@ -16,6 +18,8 @@ import fr.pedalons.service.security.annotation.Logged;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import java.time.DateTimeException;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -84,6 +88,15 @@ public class UserService {
     String language = request.language();
     if (language != null) {
       user.setLanguage(language);
+    }
+    String timezone = request.timezone();
+    if (timezone != null) {
+      try {
+        ZoneId.of(timezone);
+      } catch (DateTimeException e) {
+        throw new BadRequestException(ErrorCode.INVALID_TIMEZONE, e);
+      }
+      user.setTimezone(timezone);
     }
     Boolean contactable = request.contactableByMembers();
     if (contactable != null) {

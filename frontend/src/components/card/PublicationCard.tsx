@@ -11,7 +11,7 @@ import { Card, CardContent, CardTitle, CardDescription, CardImage, CardTeamLink 
 import { TypeBadge, StatusBadge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from './common'
 import { EntityLogo } from '../common/EntityLogo'
 import { UserAvatarGroup } from '../common/UserAvatar'
-import { useFormattedDate } from '../../utils/dateFormat'
+import { FormattedDateTime } from '../common/FormattedDate'
 import { paths } from '@/config/paths'
 import { PublicationCardProgress } from './PublicationCardProgress'
 import { RouteThumbnail } from '../route/RouteThumbnail'
@@ -29,7 +29,6 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
     publication.type === 'RIDE' || publication.type === 'TRIP'
       ? ((publication as RideDto | TripDto).registered ?? false)
       : false
-  const { formatDateTime } = useFormattedDate()
 
   // Get the appropriate path based on publication type
   const getPublicationPath = () => {
@@ -60,7 +59,7 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
     }
   }
 
-  const formattedDate = formatDateTime(publication.dateTime)
+  const formattedDate = <FormattedDateTime date={publication.dateTime} />
 
   // Render stats based on publication type
   const renderStats = () => {

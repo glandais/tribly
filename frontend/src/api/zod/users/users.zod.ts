@@ -51,6 +51,12 @@ export const UpdateMeResponse = zod
       .describe(
         'Preferred language as a BCP-47 tag. Null means the user never chose one; the client then follows the device or the domain.'
       ),
+    timezone: zod
+      .string()
+      .optional()
+      .describe(
+        "Preferred IANA timezone (e.g. 'Europe\/Paris'). Null means the user never chose one; the client then follows the browser."
+      ),
     contactableByMembers: zod
       .boolean()
       .describe(
@@ -123,6 +129,12 @@ export const GetMeResponse = zod
       .optional()
       .describe(
         'Preferred language as a BCP-47 tag. Null means the user never chose one; the client then follows the device or the domain.'
+      ),
+    timezone: zod
+      .string()
+      .optional()
+      .describe(
+        "Preferred IANA timezone (e.g. 'Europe\/Paris'). Null means the user never chose one; the client then follows the browser."
       ),
     contactableByMembers: zod
       .boolean()
@@ -207,6 +219,12 @@ export const UploadAvatarResponse = zod
       .describe(
         'Preferred language as a BCP-47 tag. Null means the user never chose one; the client then follows the device or the domain.'
       ),
+    timezone: zod
+      .string()
+      .optional()
+      .describe(
+        "Preferred IANA timezone (e.g. 'Europe\/Paris'). Null means the user never chose one; the client then follows the browser."
+      ),
     contactableByMembers: zod
       .boolean()
       .describe(
@@ -279,6 +297,12 @@ export const DeleteAvatarResponse = zod
       .optional()
       .describe(
         'Preferred language as a BCP-47 tag. Null means the user never chose one; the client then follows the device or the domain.'
+      ),
+    timezone: zod
+      .string()
+      .optional()
+      .describe(
+        "Preferred IANA timezone (e.g. 'Europe\/Paris'). Null means the user never chose one; the client then follows the browser."
       ),
     contactableByMembers: zod
       .boolean()
@@ -1675,6 +1699,7 @@ export const updateMyPreferencesBodyLanguageMax = 10
 export const updateMyPreferencesBodyLanguageRegExp = new RegExp(
   '^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$'
 )
+export const updateMyPreferencesBodyTimezoneMax = 40
 
 export const UpdateMyPreferencesBody = zod
   .object({
@@ -1694,6 +1719,13 @@ export const UpdateMyPreferencesBody = zod
       .optional()
       .describe(
         "Preferred language as a BCP-47 tag ('fr', 'en', 'fr-CA'). Omit or send null to leave it unchanged. Not validated against the set of translations the app ships: a client asking for a language nobody has translated yet falls back on its own, which is better than a 400 the day a translation lands."
+      ),
+    timezone: zod
+      .string()
+      .max(updateMyPreferencesBodyTimezoneMax)
+      .optional()
+      .describe(
+        "Preferred IANA timezone (e.g. 'Europe\/Paris'). Omit or send null to leave it unchanged. Validated against the JDK's own timezone database, not a regex."
       ),
     contactableByMembers: zod
       .boolean()
@@ -1726,6 +1758,12 @@ export const UpdateMyPreferencesResponse = zod
       .optional()
       .describe(
         'Preferred language as a BCP-47 tag. Null means the user never chose one; the client then follows the device or the domain.'
+      ),
+    timezone: zod
+      .string()
+      .optional()
+      .describe(
+        "Preferred IANA timezone (e.g. 'Europe\/Paris'). Null means the user never chose one; the client then follows the browser."
       ),
     contactableByMembers: zod
       .boolean()

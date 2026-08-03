@@ -3,7 +3,7 @@ import { IconCalendar } from '@tabler/icons-react'
 import { Box, Group, SimpleGrid, Skeleton, Stack, Text, Title } from '@mantine/core'
 import { Card, CardContent, CardTitle, TypeBadge, Stat } from '../card/common'
 import { useGetRouteUsages } from '@/api/endpoints/routes/routes'
-import { useFormattedDate } from '../../utils/dateFormat'
+import { FormattedDateTime } from '../common/FormattedDate'
 import { paths } from '@/config/paths'
 import type { RouteUsageDto } from '@/api/dto'
 
@@ -14,7 +14,6 @@ interface RouteUsagesProps {
 
 export function RouteUsages({ teamSlug, routeSlug }: RouteUsagesProps) {
   const { t } = useTranslation()
-  const { formatDateTime } = useFormattedDate()
 
   const { data, isLoading } = useGetRouteUsages(teamSlug, routeSlug, {
     query: { enabled: !!teamSlug && !!routeSlug },
@@ -76,7 +75,9 @@ export function RouteUsages({ teamSlug, routeSlug }: RouteUsagesProps) {
                   <TypeBadge type={usage.type}>{typeLabel(usage)}</TypeBadge>
                 </Group>
                 <Stack gap={4} mt="auto">
-                  <Stat icon={<IconCalendar size={16} />}>{formatDateTime(usage.dateTime)}</Stat>
+                  <Stat icon={<IconCalendar size={16} />}>
+                    <FormattedDateTime date={usage.dateTime} />
+                  </Stat>
                   {hint && (
                     <Text size="sm" c="dimmed">
                       {hint}

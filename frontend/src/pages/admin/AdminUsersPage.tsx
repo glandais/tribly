@@ -27,10 +27,10 @@ import { useUrlFilters } from '@/hooks/useUrlFilters'
 import { useDebouncedSearch } from '@/hooks/useDebouncedSearch'
 import { useScrollToListTop } from '@/hooks/useScrollToListTop'
 import { adminUserFiltersSchema, adminUserFiltersAlias } from '@/hooks/filters/adminFilters'
-import { formatDate } from '@/utils/dateFormat'
+import { FormattedDate } from '@/components/common/FormattedDate'
 
 export function AdminUsersPage() {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const { user: currentUser } = useAuth()
 
   const { filters, setFilters } = useUrlFilters({
@@ -149,7 +149,7 @@ export function AdminUsersPage() {
                       </Table.Td>
                       <Table.Td>
                         <Text size="sm" c="dimmed">
-                          {formatDate(user.createdAt, i18n.language)}
+                          <FormattedDate date={user.createdAt} />
                         </Text>
                       </Table.Td>
                       <Table.Td ta="center">

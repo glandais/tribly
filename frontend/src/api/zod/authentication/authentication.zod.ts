@@ -109,6 +109,12 @@ export const LoginWithPasswordResponse = zod
           .describe(
             'Preferred language as a BCP-47 tag. Null means the user never chose one; the client then follows the device or the domain.'
           ),
+        timezone: zod
+          .string()
+          .optional()
+          .describe(
+            "Preferred IANA timezone (e.g. 'Europe\/Paris'). Null means the user never chose one; the client then follows the browser."
+          ),
         contactableByMembers: zod
           .boolean()
           .describe(
@@ -256,6 +262,12 @@ export const VerifyOtpResponse = zod
           .describe(
             'Preferred language as a BCP-47 tag. Null means the user never chose one; the client then follows the device or the domain.'
           ),
+        timezone: zod
+          .string()
+          .optional()
+          .describe(
+            "Preferred IANA timezone (e.g. 'Europe\/Paris'). Null means the user never chose one; the client then follows the browser."
+          ),
         contactableByMembers: zod
           .boolean()
           .describe(
@@ -347,6 +359,12 @@ export const RefreshResponse = zod
           .optional()
           .describe(
             'Preferred language as a BCP-47 tag. Null means the user never chose one; the client then follows the device or the domain.'
+          ),
+        timezone: zod
+          .string()
+          .optional()
+          .describe(
+            "Preferred IANA timezone (e.g. 'Europe\/Paris'). Null means the user never chose one; the client then follows the browser."
           ),
         contactableByMembers: zod
           .boolean()
@@ -506,6 +524,12 @@ export const ResetPasswordResponse = zod
           .describe(
             'Preferred language as a BCP-47 tag. Null means the user never chose one; the client then follows the device or the domain.'
           ),
+        timezone: zod
+          .string()
+          .optional()
+          .describe(
+            "Preferred IANA timezone (e.g. 'Europe\/Paris'). Null means the user never chose one; the client then follows the browser."
+          ),
         contactableByMembers: zod
           .boolean()
           .describe(
@@ -610,6 +634,12 @@ export const VerifyEmailResponse = zod
           .optional()
           .describe(
             'Preferred language as a BCP-47 tag. Null means the user never chose one; the client then follows the device or the domain.'
+          ),
+        timezone: zod
+          .string()
+          .optional()
+          .describe(
+            "Preferred IANA timezone (e.g. 'Europe\/Paris'). Null means the user never chose one; the client then follows the browser."
           ),
         contactableByMembers: zod
           .boolean()

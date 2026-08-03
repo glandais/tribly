@@ -21,6 +21,7 @@ import { ConfirmDialog } from '../common/ConfirmDialog'
 import { paths } from '@/config/paths'
 import { useUnits } from '@/hooks/useUnits'
 import { useFormattedDate } from '@/utils/dateFormat'
+import { FormattedDateTime } from '../common/FormattedDate'
 
 interface NextRideCardProps {
   ride: RideDto
@@ -35,7 +36,7 @@ interface NextRideCardProps {
 export function NextRideCard({ ride }: NextRideCardProps) {
   const { t } = useTranslation()
   const { distance, elevation } = useUnits()
-  const { formatDateTime, formatRelative } = useFormattedDate()
+  const { formatRelative } = useFormattedDate()
   const queryClient = useQueryClient()
   const leaveMutation = useLeaveGroup()
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
@@ -80,7 +81,9 @@ export function NextRideCard({ ride }: NextRideCardProps) {
         </Title>
 
         <Stack gap={6} mt={4}>
-          <Stat icon={<IconCalendar size={16} />}>{formatDateTime(ride.dateTime)}</Stat>
+          <Stat icon={<IconCalendar size={16} />}>
+            <FormattedDateTime date={ride.dateTime} />
+          </Stat>
           {group && (
             <Stat icon={<IconClock size={16} />}>
               {group.time

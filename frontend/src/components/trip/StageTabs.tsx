@@ -4,7 +4,7 @@ import { ScrollArea, Tabs, Stack, Text } from '@mantine/core'
 import { useMediaQuery } from '@mantine/hooks'
 import { IconHome } from '@tabler/icons-react'
 import type { TripDto } from '@/api/dto'
-import { useFormattedDate } from '../../utils/dateFormat'
+import { FormattedDate } from '../common/FormattedDate'
 import { paths } from '@/config/paths'
 import { EntityLogo } from '../common/EntityLogo'
 
@@ -17,7 +17,6 @@ interface StageTabsProps {
 export function StageTabs({ trip, teamSlug, currentTab }: StageTabsProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { formatDate } = useFormattedDate()
   // Below the two-column breakpoint the vertical rail pushed the stage content off screen —
   // a ten-day trip stacked ten tabs before any content. `getInitialValueInEffect` keeps the
   // first client render identical to the SSR one, so hydration stays in parity.
@@ -61,7 +60,7 @@ export function StageTabs({ trip, teamSlug, currentTab }: StageTabsProps) {
                   {stage.name}
                 </Text>
                 <Text size="xs" opacity={0.7}>
-                  {formatDate(stage.dateTime)}
+                  <FormattedDate date={stage.dateTime} />
                 </Text>
               </Stack>
             </Tabs.Tab>

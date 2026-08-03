@@ -13,7 +13,7 @@ import {
 } from '@/api/endpoints/team-invitations/team-invitations'
 import { InvitationStatus, type TeamInvitationDto } from '@/api/dto'
 import { ConfirmDialog } from '../common/ConfirmDialog'
-import { formatDate } from '../../utils/dateFormat'
+import { FormattedDate } from '../common/FormattedDate'
 
 interface TeamInvitationListProps {
   teamSlug: string
@@ -28,7 +28,7 @@ interface TeamInvitationListProps {
  * This list is where that typo becomes visible, and the revoke button is how it gets undone.
  */
 export function TeamInvitationList({ teamSlug }: TeamInvitationListProps) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [toRevoke, setToRevoke] = useState<TeamInvitationDto | null>(null)
 
@@ -109,7 +109,9 @@ export function TeamInvitationList({ teamSlug }: TeamInvitationListProps) {
                   <Badge variant="light">{t(`roles.${invitation.role}`)}</Badge>
                 </Table.Td>
                 <Table.Td>{invitation.invitedBy.displayName}</Table.Td>
-                <Table.Td>{formatDate(invitation.expiresAt, i18n.language)}</Table.Td>
+                <Table.Td>
+                  <FormattedDate date={invitation.expiresAt} />
+                </Table.Td>
                 <Table.Td>
                   <Group gap="xs" justify="flex-end" wrap="nowrap">
                     <Tooltip label={t('teams.invitations.resend')}>

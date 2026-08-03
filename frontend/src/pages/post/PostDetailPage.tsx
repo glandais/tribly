@@ -36,6 +36,7 @@ import { EntityLogo } from '../../components/common/EntityLogo'
 import { CommentSection } from '../../components/comment'
 import { TeamContextBanner } from '../../components/team/TeamContextBanner'
 import { useFormattedDate } from '../../utils/dateFormat'
+import { FormattedDateTime } from '../../components/common/FormattedDate'
 import { paths } from '@/config/paths'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
@@ -47,7 +48,7 @@ const statusColors: Record<Status, 'gray' | 'green' | 'red'> = {
 
 export function PostDetailPage() {
   const { t } = useTranslation()
-  const { formatDateTime } = useFormattedDate()
+  const { formatDateTime, isGuessedTimezone } = useFormattedDate()
   const { teamSlug, postSlug } = useParams<{ teamSlug: string; postSlug: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -100,7 +101,7 @@ export function PostDetailPage() {
   const isOrganizer = team?.role === 'ORGANIZER'
   const canEdit = isAdmin || isOrganizer
 
-  const formattedDate = formatDateTime(post.dateTime)
+  const formattedDate = <FormattedDateTime date={post.dateTime} />
 
   const invalidatePosts = () => {
     queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
@@ -270,7 +271,11 @@ export function PostDetailPage() {
           {post.status === Status.DRAFT && post.publishAt && (
             <Group gap="xs" mt="sm">
               <IconCalendar size={16} color="var(--mantine-color-yellow-text)" />
-              <Text size="sm" c="var(--mantine-color-yellow-text)">
+              <Text
+                size="sm"
+                c="var(--mantine-color-yellow-text)"
+                suppressHydrationWarning={isGuessedTimezone}
+              >
                 {t('posts.detail.scheduledPublish', {
                   date: formatDateTime(post.publishAt),
                 })}

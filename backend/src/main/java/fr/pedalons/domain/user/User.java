@@ -55,6 +55,10 @@ public class User extends BaseEntity {
   @Column(name = "language", length = 10)
   private @Nullable String language;
 
+  /** IANA timezone ID ("Europe/Paris"). Null means "follow the client / the browser". */
+  @Column(name = "timezone", length = 40)
+  private @Nullable String timezone;
+
   /**
    * Whether team members may reach this user through the classified-ad relay.
    *

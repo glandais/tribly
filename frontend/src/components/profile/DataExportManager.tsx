@@ -13,7 +13,7 @@ import { UserExportStatus } from '@/api/dto'
  */
 export function DataExportManager() {
   const { t } = useTranslation()
-  const { formatDateTime } = useFormattedDate()
+  const { formatDateTime, isGuessedTimezone } = useFormattedDate()
   const { latestExport, isLoading, requestExport, isRequesting, isExporting } = useDataExport()
 
   const status = latestExport?.status
@@ -36,7 +36,7 @@ export function DataExportManager() {
       </Text>
 
       {!isLoading && status === UserExportStatus.READY && latestExport?.expiresAt && (
-        <Text size="sm">
+        <Text size="sm" suppressHydrationWarning={isGuessedTimezone}>
           {t('profile.dataExport.ready', {
             date: formatDateTime(latestExport.expiresAt),
           })}

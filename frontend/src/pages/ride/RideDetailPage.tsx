@@ -58,6 +58,7 @@ const RoutesMapView = lazy(() =>
   import('../../components/route/RoutesMapView').then((m) => ({ default: m.RoutesMapView }))
 )
 import { useFormattedDate } from '../../utils/dateFormat'
+import { FormattedDateTime } from '../../components/common/FormattedDate'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
 import { CommentSection } from '../../components/comment'
@@ -73,7 +74,7 @@ const statusColors: Record<Status, string> = {
 
 export function RideDetailPage() {
   const { t } = useTranslation()
-  const { formatDateTime } = useFormattedDate()
+  const { formatDateTime, isGuessedTimezone } = useFormattedDate()
   const { teamSlug, rideSlug } = useParams<{ teamSlug: string; rideSlug: string }>()
   const { isAuthenticated } = useAuth()
   const [joiningGroupId, setJoiningGroupId] = useState<string | null>(null)
@@ -190,7 +191,7 @@ export function RideDetailPage() {
   const canJoinRide =
     isMember && ride.status === Status.PUBLISHED && !ride.registered && !isPast && !ride.full
 
-  const formattedDate = formatDateTime(ride.dateTime)
+  const formattedDate = <FormattedDateTime date={ride.dateTime} />
 
   const handlePublish = () => {
     updateMutation.mutate(
@@ -433,7 +434,11 @@ export function RideDetailPage() {
         {ride.status === Status.DRAFT && ride.publishAt && (
           <Group mt="xs" gap="xs">
             <IconCalendar size={16} color="var(--mantine-color-yellow-text)" />
-            <Text size="sm" c="var(--mantine-color-yellow-text)">
+            <Text
+              size="sm"
+              c="var(--mantine-color-yellow-text)"
+              suppressHydrationWarning={isGuessedTimezone}
+            >
               {t('rides.detail.scheduledPublish', {
                 date: formatDateTime(ride.publishAt),
               })}

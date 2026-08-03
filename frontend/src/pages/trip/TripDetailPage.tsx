@@ -62,6 +62,7 @@ const RoutesMapView = lazy(() =>
 )
 import type { MapRouteItem } from '../../components/route/RoutesMapView'
 import { useFormattedDate } from '../../utils/dateFormat'
+import { FormattedDateTime } from '../../components/common/FormattedDate'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
 import { CommentSection } from '../../components/comment'
@@ -75,7 +76,7 @@ const statusColors: Record<Status, 'gray' | 'green' | 'red'> = {
 
 export function TripDetailPage() {
   const { t } = useTranslation()
-  const { formatDateTime } = useFormattedDate()
+  const { formatDateTime, isGuessedTimezone } = useFormattedDate()
   const { teamSlug, tripSlug } = useParams<{ teamSlug: string; tripSlug: string }>()
   const { isAuthenticated, user } = useAuth()
   const [highlightedStageId, setHighlightedStageId] = useState<string | null>(null)
@@ -161,7 +162,7 @@ export function TripDetailPage() {
     user && trip.participants ? trip.participants.some((p) => p.id === user.id) : false
   const canJoinTrip = isMember && trip.status === Status.PUBLISHED && !hasJoined
 
-  const formattedDate = formatDateTime(trip.dateTime)
+  const formattedDate = <FormattedDateTime date={trip.dateTime} />
 
   const handlePublish = () => {
     updateMutation.mutate(
@@ -368,7 +369,11 @@ export function TripDetailPage() {
         {trip.status === Status.DRAFT && trip.publishAt && (
           <Group mt="sm" gap="xs">
             <IconCalendar size={16} color="var(--mantine-color-yellow-text)" />
-            <Text size="sm" c="var(--mantine-color-yellow-text)">
+            <Text
+              size="sm"
+              c="var(--mantine-color-yellow-text)"
+              suppressHydrationWarning={isGuessedTimezone}
+            >
               {t('trips.detail.scheduledPublish', {
                 date: formatDateTime(trip.publishAt),
               })}
@@ -413,7 +418,7 @@ export function TripDetailPage() {
           {trip.endDate && (
             <Group gap="xs">
               <IconCalendarCheck size={16} />
-              <Text size="sm" c="dimmed">
+              <Text size="sm" c="dimmed" suppressHydrationWarning={isGuessedTimezone}>
                 {t('trips.detail.endDate', { date: formatDateTime(trip.endDate) })}
               </Text>
             </Group>

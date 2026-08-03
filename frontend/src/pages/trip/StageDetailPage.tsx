@@ -24,7 +24,7 @@ import { DetailPageSkeleton } from '../../components/common/DetailPageSkeleton'
 import { TripLayout } from '../../components/trip/TripLayout'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
-import { useFormattedDate } from '../../utils/dateFormat'
+import { FormattedDateTime } from '../../components/common/FormattedDate'
 import { Status } from '@/api/dto'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
@@ -36,7 +36,6 @@ const statusColors: Record<Status, 'gray' | 'green' | 'red'> = {
 
 export function StageDetailPage() {
   const { t } = useTranslation()
-  const { formatDateTime } = useFormattedDate()
   const { teamSlug, tripSlug, stageSlug } = useParams<{
     teamSlug: string
     tripSlug: string
@@ -183,7 +182,7 @@ export function StageDetailPage() {
                 <Group gap="xs" mt="xs">
                   <IconCalendar size={16} />
                   <Text size="sm" c="dimmed">
-                    {formatDateTime(stage.dateTime)}
+                    <FormattedDateTime date={stage.dateTime} />
                   </Text>
                 </Group>
               </Box>

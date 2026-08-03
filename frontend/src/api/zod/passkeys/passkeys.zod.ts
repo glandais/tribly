@@ -57,6 +57,12 @@ export const AuthenticateResponse = zod
           .describe(
             'Preferred language as a BCP-47 tag. Null means the user never chose one; the client then follows the device or the domain.'
           ),
+        timezone: zod
+          .string()
+          .optional()
+          .describe(
+            "Preferred IANA timezone (e.g. 'Europe\/Paris'). Null means the user never chose one; the client then follows the browser."
+          ),
         contactableByMembers: zod
           .boolean()
           .describe(

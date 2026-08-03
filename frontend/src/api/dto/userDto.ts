@@ -25,6 +25,8 @@ export interface UserDto {
   theme?: ThemePreference
   /** Preferred language as a BCP-47 tag. Null means the user never chose one; the client then follows the device or the domain. */
   language?: string
+  /** Preferred IANA timezone (e.g. 'Europe/Paris'). Null means the user never chose one; the client then follows the browser. */
+  timezone?: string
   /** Whether team members may reach this user through the classified-ad relay. True unless they explicitly opted out, so an account that predates the preference is contactable. */
   contactableByMembers: boolean
   /** Platform role (null if regular user) */

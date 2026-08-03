@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { IconArrowsMaximize, IconArrowUp, IconCalendar, IconMapPin } from '@tabler/icons-react'
 import { Paper, Group, Text, UnstyledButton, Badge, Box } from '@mantine/core'
 import type { TripStageDto } from '@/api/dto'
-import { useFormattedDate } from '../../utils/dateFormat'
+import { FormattedDateTime } from '../common/FormattedDate'
 import { useUnits } from '@/hooks/useUnits'
 import { MediaDisplay } from '../common/MediaDisplay'
 import { EntityLogo } from '../common/EntityLogo'
@@ -27,7 +27,6 @@ export function TripStageCard({
   isHighlighted = false,
 }: TripStageCardProps) {
   const { t } = useTranslation()
-  const { formatDateTime } = useFormattedDate()
   const { distance, elevation } = useUnits()
   const navigate = useNavigate()
 
@@ -66,7 +65,7 @@ export function TripStageCard({
         <Group gap={4} wrap="nowrap" style={{ flexShrink: 0 }}>
           <IconCalendar size={16} color="var(--mantine-color-dimmed)" />
           <Text size="sm" c="dimmed">
-            {formatDateTime(stage.dateTime)}
+            <FormattedDateTime date={stage.dateTime} />
           </Text>
         </Group>
       </Group>

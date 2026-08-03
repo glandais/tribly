@@ -49,7 +49,7 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
 import { TeamContextBanner } from '../../components/team/TeamContextBanner'
-import { useFormattedDate } from '../../utils/dateFormat'
+import { FormattedDateTime } from '../../components/common/FormattedDate'
 import { paths } from '@/config/paths'
 import { AdType, RentalPeriod, Status } from '../../api/dto'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
@@ -68,7 +68,6 @@ const adTypeColors: Record<AdType, 'primary' | 'grape' | 'yellow'> = {
 
 export function AdDetailPage() {
   const { t } = useTranslation()
-  const { formatDateTime } = useFormattedDate()
   const { teamSlug, adSlug } = useParams<{ teamSlug: string; adSlug: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -134,7 +133,7 @@ export function AdDetailPage() {
   // For now, backend handles authorization, frontend shows edit for all members
   const canEdit = isAdmin || !!team?.role
 
-  const formattedDate = formatDateTime(ad.createdAt)
+  const formattedDate = <FormattedDateTime date={ad.createdAt} />
 
   const formatPrice = (price: number | undefined, adType: AdType, rentalPeriod?: RentalPeriod) => {
     if (price === undefined || price === null) {

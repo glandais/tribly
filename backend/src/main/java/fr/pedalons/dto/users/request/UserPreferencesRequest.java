@@ -45,6 +45,14 @@ public record UserPreferencesRequest(
     @Nullable
         @Schema(
             description =
+                "Preferred IANA timezone (e.g. 'Europe/Paris'). Omit or send null to leave it"
+                    + " unchanged. Validated against the JDK's own timezone database, not a regex.",
+            examples = "Europe/Paris")
+        @Size(max = 40)
+        String timezone,
+    @Nullable
+        @Schema(
+            description =
                 "Whether team members may reach you through the classified-ad relay. Omit or send"
                     + " null to leave it unchanged. Setting it to false stops the relay from"
                     + " delivering to you; your ads stay visible, they simply stop being"
