@@ -16,7 +16,7 @@ import { prefetchListMyInvitationsQuery } from '@/api/endpoints/invitations/invi
 import { prefetchGetRideQuery } from '@/api/endpoints/rides/rides'
 import { prefetchGetTripQuery } from '@/api/endpoints/trips/trips'
 import { prefetchGetPostQuery } from '@/api/endpoints/posts/posts'
-import { prefetchGetRouteQuery } from '@/api/endpoints/routes/routes'
+import { prefetchGetRouteQuery, prefetchGetRouteUsagesQuery } from '@/api/endpoints/routes/routes'
 import { prefetchGetPageQuery } from '@/api/endpoints/team-pages/team-pages'
 import { prefetchGetAdQuery } from '@/api/endpoints/ads/ads'
 import { prefetchGetPreviewQuery } from '@/api/endpoints/gpx-previews/gpx-previews'
@@ -914,6 +914,7 @@ export const routesConfig: RoutesConfig = [
       await Promise.all([
         prefetchGetTeamQuery(queryClient, params.teamSlug!),
         prefetchGetRouteQuery(queryClient, params.teamSlug!, params.routeSlug!),
+        prefetchGetRouteUsagesQuery(queryClient, params.teamSlug!, params.routeSlug!),
       ])
     },
     meta: routeMeta,
