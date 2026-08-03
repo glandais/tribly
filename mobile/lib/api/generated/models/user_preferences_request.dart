@@ -23,6 +23,9 @@ abstract class UserPreferencesRequest with _$UserPreferencesRequest {
     /// Preferred language as a BCP-47 tag ('fr', 'en', 'fr-CA'). Omit or send null to leave it unchanged. Not validated against the set of translations the app ships: a client asking for a language nobody has translated yet falls back on its own, which is better than a 400 the day a translation lands.
     String? language,
 
+    /// Preferred IANA timezone (e.g. 'Europe/Paris'). Omit or send null to leave it unchanged. Validated against the JDK's own timezone database, not a regex.
+    String? timezone,
+
     /// Whether team members may reach you through the classified-ad relay. Omit or send null to leave it unchanged. Setting it to false stops the relay from delivering to you; your ads stay visible, they simply stop being answerable.
     bool? contactableByMembers,
   }) = _UserPreferencesRequest;

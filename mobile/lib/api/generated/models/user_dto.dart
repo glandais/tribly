@@ -51,6 +51,9 @@ abstract class UserDto with _$UserDto {
     /// Preferred language as a BCP-47 tag. Null means the user never chose one; the client then follows the device or the domain.
     String? language,
 
+    /// Preferred IANA timezone (e.g. 'Europe/Paris'). Null means the user never chose one; the client then follows the browser.
+    String? timezone,
+
     /// Platform role (null if regular user)
     String? platformRole,
 

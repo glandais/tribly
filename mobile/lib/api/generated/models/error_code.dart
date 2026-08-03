@@ -58,6 +58,8 @@ enum ErrorCode {
   routePlannerDisabled('ROUTE_PLANNER_DISABLED'),
   @JsonValue('INVALID_FORMAT')
   invalidFormat('INVALID_FORMAT'),
+  @JsonValue('INVALID_TIMEZONE')
+  invalidTimezone('INVALID_TIMEZONE'),
   @JsonValue('RENTAL_PERIOD_MISSING')
   rentalPeriodMissing('RENTAL_PERIOD_MISSING'),
   @JsonValue('STATUS_INVALID')
