@@ -15,7 +15,7 @@ import {
 import { prefetchListMyParticipationsQuery } from '@/api/endpoints/users/users'
 import { prefetchListMyInvitationsQuery } from '@/api/endpoints/invitations/invitations'
 import { prefetchGetRideQuery } from '@/api/endpoints/rides/rides'
-import { prefetchGetTripQuery } from '@/api/endpoints/trips/trips'
+import { prefetchGetTripQuery, getGetTripQueryKey } from '@/api/endpoints/trips/trips'
 import {
   listRideComments,
   getListRideCommentsQueryKey,
@@ -29,7 +29,12 @@ import {
   listPostComments,
   getListPostCommentsQueryKey,
 } from '@/api/endpoints/post-comments/post-comments'
-import { prefetchGetRouteQuery, prefetchGetRouteUsagesQuery } from '@/api/endpoints/routes/routes'
+import {
+  prefetchGetRouteQuery,
+  prefetchGetRouteUsagesQuery,
+  prefetchGetRoutesBulkQuery,
+} from '@/api/endpoints/routes/routes'
+import { ROUTES_BULK_MAX_SLUGS } from '@/hooks/useRoutesBulk'
 import { prefetchGetPageQuery } from '@/api/endpoints/team-pages/team-pages'
 import { prefetchGetAdQuery } from '@/api/endpoints/ads/ads'
 import { prefetchGetPreviewQuery } from '@/api/endpoints/gpx-previews/gpx-previews'
@@ -69,6 +74,7 @@ import {
   SortDirection,
   type TeamListResponse,
   type TeamDetailDto,
+  type TripDto,
 } from '@/api/dto'
 import { hourAlignedNowIso } from '@/utils/nowIso'
 import type { QueryClient } from '@tanstack/react-query'
@@ -105,6 +111,33 @@ async function prefetchMemberComments(
       }),
     initialPageParam: 0,
   })
+}
+
+/**
+ * `RoutesMapView` on the trip page loads every stage's route via `useRoutesBulk`, keyed off the
+ * trip's own `routeSlug` (single-stage trips) or its stages' route slugs — data already sitting in
+ * the trip query just prefetched above. Mirrors `useRoutesBulk`'s dedup/sort/chunk exactly so the
+ * query key matches.
+ */
+async function prefetchTripRoutesBulk(
+  queryClient: QueryClient,
+  teamSlug: string,
+  tripSlug: string
+) {
+  const trip = queryClient.getQueryData<TripDto>(getGetTripQueryKey(teamSlug, tripSlug))
+  if (!trip) return
+
+  const slugs = trip.routeSlug
+    ? [trip.routeSlug]
+    : (trip.stages ?? []).flatMap((stage) => (stage.route?.slug ? [stage.route.slug] : []))
+  const dedupedSlugs = Array.from(new Set(slugs)).sort()
+  if (dedupedSlugs.length === 0) return
+
+  await Promise.all(
+    Array.from({ length: Math.ceil(dedupedSlugs.length / ROUTES_BULK_MAX_SLUGS) }, (_, i) =>
+      dedupedSlugs.slice(i * ROUTES_BULK_MAX_SLUGS, (i + 1) * ROUTES_BULK_MAX_SLUGS)
+    ).map((slugChunk) => prefetchGetRoutesBulkQuery(queryClient, teamSlug, { slug: slugChunk }))
+  )
 }
 
 // Lazy load page components for code splitting
@@ -857,13 +890,16 @@ export const routesConfig: RoutesConfig = [
         prefetchGetTeamQuery(queryClient, teamSlug),
         prefetchGetTripQuery(queryClient, teamSlug, tripSlug),
       ])
-      await prefetchMemberComments(
-        queryClient,
-        teamSlug,
-        tripSlug,
-        listTripComments,
-        getListTripCommentsQueryKey
-      )
+      await Promise.all([
+        prefetchMemberComments(
+          queryClient,
+          teamSlug,
+          tripSlug,
+          listTripComments,
+          getListTripCommentsQueryKey
+        ),
+        prefetchTripRoutesBulk(queryClient, teamSlug, tripSlug),
+      ])
     },
     meta: tripMeta,
   },
