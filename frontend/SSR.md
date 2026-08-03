@@ -202,9 +202,10 @@ just pays one harmless extra render with the same value. `useComputedColorScheme
   actually used (see `useZoomPlugin` in `ElevationChart.tsx`). Any new dependency reachable
   from a public route's chunk can reintroduce this — the curl sweep below catches it.
 
-## Finding 6 — `navigate()` during render *throws* on the server
+## Finding 6 — `navigate()` during render is a silent no-op, then an infinite loop
 
-A redirect written the obvious way is an SSR crash, not a redirect:
+A redirect written the obvious way never redirects on the server, and melts down on the
+client:
 
 ```tsx
 if (user && !user.requiresEmail) {
@@ -213,24 +214,39 @@ if (user && !user.requiresEmail) {
 }
 ```
 
-Under `StaticRouterProvider` the navigator is `getStatelessNavigator()`, whose every method
-is a `throw`: *"You cannot use navigator.replace() on the server because it is a stateless
-environment."* So this renders fine in the SPA, and on the server it throws inside the route
-— straight into Finding 2's silent Suspense fallback. On the client it is *also* wrong, for a
-different reason: updating the router while rendering another component gives `Cannot update a
-component (RouterProvider) while rendering a different component`, then an endless re-render
-loop (each render re-navigates — 291 pageerrors before the crawler gave up).
+`createStaticRouter`/`StaticRouterProvider` is a **data router**, so `useNavigate()` resolves
+to `useNavigateStable()`, which guards on a ref set by a layout effect:
+
+```js
+warning(activeRef.current, navigateEffectWarning)   // "You should call navigate() in a
+if (!activeRef.current) return                      //  React.useEffect(), not when your
+await router.navigate(to, …)                        //  component is first rendered."
+```
+
+Effects never run during SSR, so `activeRef` stays `false` and the call **returns before
+touching the router**: no redirect, no crash, just that one line in the server log. (The
+`getStatelessNavigator()` methods that *do* throw — *"You cannot use navigator.replace() on
+the server"* — belong to the non-data `StaticRouter`, which this app doesn't use. And
+`warning()` is not gated on `NODE_ENV` in react-router 7, which is why the line shows up on a
+production server too.)
+
+The client is where it gets expensive, and it's a delayed fuse: the **first** render no-ops
+the same way, the layout effect flips `activeRef` to `true`, and the next re-render — the one
+where `useAuth()` finally resolves the user — actually calls `router.navigate()` *from a
+render body*. That's `Cannot update a component (RouterProvider) while rendering a different
+component`, and each resulting render navigates again: 291 pageerrors before the crawler gave
+up, and the page stayed unresponsive long enough to poison the next route it crawled.
 
 Rule: **never call `navigate()` from a render body.** Return `<Navigate to={…} replace />`
 instead, which navigates from a `useEffect`.
 
 Consequences of `<Navigate>` worth knowing, both benign here:
 
-- It is a **no-op during SSR** — effects don't run, the component renders `null`, and the
-  redirect happens after hydration. The server does not emit a 3xx and the visitor sees an
-  empty page for one paint. React Router says so itself with a dev-only warning
+- It is a **no-op during SSR** for the same reason — effects don't run, the component renders
+  `null`, and the redirect happens after hydration. The server does not emit a 3xx and the
+  visitor sees an empty page for one paint. React Router says so itself
   (*"`<Navigate>` must not be used on the initial render in a `<StaticRouter>`. This is a
-  no-op"*), which is invisible in a production build.
+  no-op"*).
 - A **real server-side redirect** would have to come from `handler.query()` returning a
   `Response` (`entry-server.tsx:139` maps its `Location` back to browser space), i.e. from a
   React Router *loader*. This app has no loaders — data comes from `prefetch` in
