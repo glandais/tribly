@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useLayoutEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Group, Text, Box, Center, Image, Loader } from '@mantine/core'
 import { IconPhoto } from '@tabler/icons-react'
@@ -26,10 +26,20 @@ export function AssetImage({
   const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
+  const imgRef = useRef<HTMLImageElement>(null)
 
   const url = useMemo(() => resolveAssetImageUrl(assetId, images, size), [assetId, images, size])
 
   const sizeStyle = getImageSizeStyle(size)
+
+  // SSR renders the <img> already pointing at its final src, so the browser can finish loading it
+  // before React hydrates and attaches onLoad — the native load event fires and is missed, leaving
+  // the loader stuck forever. Catch that case on mount by checking the already-loaded image.
+  useLayoutEffect(() => {
+    if (imgRef.current?.complete) {
+      setIsLoading(false)
+    }
+  }, [url])
 
   // Missing image (asset not found in images array)
   if (!url) {
@@ -77,6 +87,7 @@ export function AssetImage({
         </Center>
       )}
       <Image
+        ref={imgRef}
         src={url}
         alt={altText}
         w={sizeStyle.w}
