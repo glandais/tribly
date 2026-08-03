@@ -35,6 +35,10 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm-store \
 # above is dependency-only, so editing source never busts the install layers.
 COPY . .
 
+# Sourcemaps are opt-in per environment (staging: true, prod: false/unset) — see build.sh.
+ARG VITE_BUILD_SOURCEMAP=false
+ENV VITE_BUILD_SOURCEMAP=$VITE_BUILD_SOURCEMAP
+
 # Build client + server bundles (dist/client + dist/server)
 RUN pnpm build
 

@@ -55,6 +55,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
+      sourcemap: process.env.VITE_BUILD_SOURCEMAP === 'true',
       rolldownOptions: {
         output: {
           // Order matters: specific checks MUST come before broad ones

@@ -31,7 +31,9 @@ build_frontend() {
   cd "$ROOT/frontend"
   mkdir -p src/assets/legal
   cp "$ROOT"/privacy/*.md src/assets/legal/
-  docker build --progress=plain -t "pedalons-frontend:$ENV_NAME" .
+  docker build --progress=plain \
+    --build-arg VITE_BUILD_SOURCEMAP="${FRONTEND_SOURCEMAP:-false}" \
+    -t "pedalons-frontend:$ENV_NAME" .
   rm -rf src/assets/legal
 }
 
