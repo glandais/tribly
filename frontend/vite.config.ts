@@ -6,8 +6,8 @@ import fs from 'fs'
 
 // Load mkcert certificates if available (for Garmin simulator HTTPS testing)
 function loadHttpsCerts() {
-  const certPath = path.resolve(__dirname, 'localhost+2.pem')
-  const keyPath = path.resolve(__dirname, 'localhost+2-key.pem')
+  const certPath = path.resolve(import.meta.dirname, 'localhost+2.pem')
+  const keyPath = path.resolve(import.meta.dirname, 'localhost+2-key.pem')
   if (fs.existsSync(certPath) && fs.existsSync(keyPath)) {
     return {
       cert: fs.readFileSync(certPath),
@@ -33,7 +33,7 @@ function requestLogger(): PluginOption {
 
 export default defineConfig(({ mode }) => {
   // API proxy target: from .env (VITE_API_TARGET) or prod by default
-  const env = loadEnv(mode, __dirname, '')
+  const env = loadEnv(mode, import.meta.dirname, '')
   const apiTarget = env.VITE_API_TARGET || 'https://www.pedalons.fr'
   const apiUrl = new URL(apiTarget)
   const isHttps = apiUrl.protocol === 'https:'
@@ -51,7 +51,7 @@ export default defineConfig(({ mode }) => {
     ],
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, './src'),
+        '@': path.resolve(import.meta.dirname, './src'),
       },
     },
     build: {
