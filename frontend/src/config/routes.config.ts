@@ -16,6 +16,14 @@ import { prefetchListMyParticipationsQuery } from '@/api/endpoints/users/users'
 import { prefetchListMyInvitationsQuery } from '@/api/endpoints/invitations/invitations'
 import { prefetchGetRideQuery } from '@/api/endpoints/rides/rides'
 import { prefetchGetTripQuery } from '@/api/endpoints/trips/trips'
+import {
+  listRideComments,
+  getListRideCommentsQueryKey,
+} from '@/api/endpoints/ride-comments/ride-comments'
+import {
+  listTripComments,
+  getListTripCommentsQueryKey,
+} from '@/api/endpoints/trip-comments/trip-comments'
 import { prefetchGetPostQuery } from '@/api/endpoints/posts/posts'
 import {
   listPostComments,
@@ -63,6 +71,41 @@ import {
   type TeamDetailDto,
 } from '@/api/dto'
 import { hourAlignedNowIso } from '@/utils/nowIso'
+import type { QueryClient } from '@tanstack/react-query'
+
+/**
+ * Comments are member-only on rides/trips/posts/routes (each detail page's own `isMember`, from
+ * the team's `role`) — resolved from the team query prefetched just before calling this, same
+ * shape `useComments` builds. Skipped entirely for a non-member, matching what the page renders.
+ */
+async function prefetchMemberComments(
+  queryClient: QueryClient,
+  teamSlug: string,
+  entitySlug: string,
+  listComments: (
+    teamSlug: string,
+    entitySlug: string,
+    params: { page: number; size: number; sort: SortDirection }
+  ) => Promise<unknown>,
+  getQueryKey: (teamSlug: string, entitySlug: string) => readonly unknown[]
+) {
+  const team = queryClient.getQueryData<TeamDetailDto>(getGetTeamQueryKey(teamSlug))
+  if (!team?.role) return
+
+  await queryClient.prefetchInfiniteQuery({
+    queryKey: [
+      ...getQueryKey(teamSlug, entitySlug),
+      { size: COMMENT_PAGE_SIZE, sort: SortDirection.DESC },
+    ],
+    queryFn: ({ pageParam }: { pageParam: number }) =>
+      listComments(teamSlug, entitySlug, {
+        page: pageParam,
+        size: COMMENT_PAGE_SIZE,
+        sort: SortDirection.DESC,
+      }),
+    initialPageParam: 0,
+  })
+}
 
 // Lazy load page components for code splitting
 const HomePage = lazy(() => import('../pages/home/HomePage').then((m) => ({ default: m.HomePage })))
@@ -735,10 +778,19 @@ export const routesConfig: RoutesConfig = [
     parentId: 'team-detail',
     breadcrumb: { type: 'dynamic', entity: 'ride' },
     prefetch: async (queryClient, params) => {
+      const teamSlug = params.teamSlug!
+      const rideSlug = params.rideSlug!
       await Promise.all([
-        prefetchGetTeamQuery(queryClient, params.teamSlug!),
-        prefetchGetRideQuery(queryClient, params.teamSlug!, params.rideSlug!),
+        prefetchGetTeamQuery(queryClient, teamSlug),
+        prefetchGetRideQuery(queryClient, teamSlug, rideSlug),
       ])
+      await prefetchMemberComments(
+        queryClient,
+        teamSlug,
+        rideSlug,
+        listRideComments,
+        getListRideCommentsQueryKey
+      )
     },
     meta: rideMeta,
   },
@@ -799,10 +851,19 @@ export const routesConfig: RoutesConfig = [
     parentId: 'team-detail',
     breadcrumb: { type: 'dynamic', entity: 'trip' },
     prefetch: async (queryClient, params) => {
+      const teamSlug = params.teamSlug!
+      const tripSlug = params.tripSlug!
       await Promise.all([
-        prefetchGetTeamQuery(queryClient, params.teamSlug!),
-        prefetchGetTripQuery(queryClient, params.teamSlug!, params.tripSlug!),
+        prefetchGetTeamQuery(queryClient, teamSlug),
+        prefetchGetTripQuery(queryClient, teamSlug, tripSlug),
       ])
+      await prefetchMemberComments(
+        queryClient,
+        teamSlug,
+        tripSlug,
+        listTripComments,
+        getListTripCommentsQueryKey
+      )
     },
     meta: tripMeta,
   },
@@ -860,8 +921,6 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: 'team-detail',
     breadcrumb: { type: 'dynamic', entity: 'post' },
-    // Comments are member-only (PostDetailPage's `isMember`, from the team's `role`) — resolved
-    // from the team prefetched just above, same pattern as route-detail.
     prefetch: async (queryClient, params) => {
       const teamSlug = params.teamSlug!
       const postSlug = params.postSlug!
@@ -869,23 +928,13 @@ export const routesConfig: RoutesConfig = [
         prefetchGetTeamQuery(queryClient, teamSlug),
         prefetchGetPostQuery(queryClient, teamSlug, postSlug),
       ])
-
-      const team = queryClient.getQueryData<TeamDetailDto>(getGetTeamQueryKey(teamSlug))
-      if (team?.role) {
-        await queryClient.prefetchInfiniteQuery({
-          queryKey: [
-            ...getListPostCommentsQueryKey(teamSlug, postSlug),
-            { size: COMMENT_PAGE_SIZE, sort: SortDirection.DESC },
-          ],
-          queryFn: ({ pageParam }: { pageParam: number }) =>
-            listPostComments(teamSlug, postSlug, {
-              page: pageParam,
-              size: COMMENT_PAGE_SIZE,
-              sort: SortDirection.DESC,
-            }),
-          initialPageParam: 0,
-        })
-      }
+      await prefetchMemberComments(
+        queryClient,
+        teamSlug,
+        postSlug,
+        listPostComments,
+        getListPostCommentsQueryKey
+      )
     },
     meta: postMeta,
   },
@@ -962,23 +1011,13 @@ export const routesConfig: RoutesConfig = [
           ? prefetchGetAvailableServicesQuery(queryClient)
           : Promise.resolve(queryClient),
       ])
-
-      const team = queryClient.getQueryData<TeamDetailDto>(getGetTeamQueryKey(teamSlug))
-      if (team?.role) {
-        await queryClient.prefetchInfiniteQuery({
-          queryKey: [
-            ...getListRouteCommentsQueryKey(teamSlug, routeSlug),
-            { size: COMMENT_PAGE_SIZE, sort: SortDirection.DESC },
-          ],
-          queryFn: ({ pageParam }: { pageParam: number }) =>
-            listRouteComments(teamSlug, routeSlug, {
-              page: pageParam,
-              size: COMMENT_PAGE_SIZE,
-              sort: SortDirection.DESC,
-            }),
-          initialPageParam: 0,
-        })
-      }
+      await prefetchMemberComments(
+        queryClient,
+        teamSlug,
+        routeSlug,
+        listRouteComments,
+        getListRouteCommentsQueryKey
+      )
     },
     meta: routeMeta,
   },
