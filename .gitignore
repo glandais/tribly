@@ -25,6 +25,11 @@ pnpm-debug.log*
 package-lock.json  # Using pnpm, not npm
 *.tsbuildinfo      # TypeScript incremental build cache
 
+# scripts/ssr-audit.mjs output
+ssr-audit-report-*.json
+ssr-audit-report-*.md
+ssr-audit-report-*-screenshots/
+
 # Environment files
 .env
 .env.local

@@ -1,0 +1,210 @@
+# SSR audit input — who to crawl every web route as, and what to look for.
+# Verified/synced against contracts/routes.yaml (entries with web !== false) by
+# `node scripts/ssr-audit.mjs --verify` / `--sync`. Never hand-edit paths.generated.ts from
+# this file, or the other way around — the two are unrelated.
+#
+# URLs are NOT written here: each route's path template comes from contracts/routes.yaml and the
+# script interpolates its `{param}` placeholders from `params` below. A route left with an
+# unresolved placeholder fails the run at startup, before the browser opens — use `skip:` for a
+# route that genuinely can't be covered.
+#
+# loginPath: path to the login form (default /login)
+# locale:    which locale's template to take from contracts/routes.yaml (default en)
+#
+# params:  { name: value } — every `{name}` used by any web route template. `--sync` adds new
+#          ones as null; a null left in place fails the run.
+#
+# users:
+#   id:          short id, reused by routes[].users
+#   login:       email — omit for an anonymous user (no login step)
+#   passwordEnv: name of the env var holding the password (required when `login` is set)
+#
+# routes:
+#   id:     must match an id in contracts/routes.yaml
+#   users:  list of user ids to crawl this route as. Omit (or null) for every user — use it to
+#           restrict an authenticated-only or admin-only route.
+#   params: optional { name: value } overriding `params` for this route only (e.g. a team the
+#           test user actually administers).
+#   locale: optional per-route override of the top-level `locale`.
+#   path:   optional escape hatch — a literal path used verbatim, bypassing the template (query
+#           strings, one-off cases). Prefer `params`.
+#   skip:   optional — true, or a string explaining why, to exclude the route without deleting it.
+#           A skipped route still counts as covered for --verify/--sync. --no-skip overrides this
+#           and visits it anyway.
+
+loginPath: /login
+locale: en
+
+params:
+  previewId: a281dbae-6bc5-46d1-acbe-6b91dc042587
+  teamSlug: n-peloton
+  pageSlug: faq
+  rideSlug: raymond-ride-288
+  templateSlug: n-peloton
+  tripSlug: np-550
+  stageSlug: mardi
+  postSlug: annulation-du-ride-1
+  routeSlug: rr288long
+  adSlug: velo-broce
+
+users:
+  - id: anonymous
+  - id: user1
+    login: gabriel.landais@gmail.com
+    passwordEnv: USER1_PASSWORD
+  - id: user2
+    login: gabriel.landais+2@gmail.com
+    passwordEnv: USER2_PASSWORD
+  - id: admin
+    login: contact@pedalons.fr
+    passwordEnv: ADMIN_PASSWORD
+
+routes:
+  # --- Public ---
+  - id: home
+  - id: login
+    # A signed-in visitor is bounced by <UnauthenticatedRoute>; the redirect, not the form, is
+    # what the anonymous crawl is here to render.
+    users: [anonymous]
+  - id: verifyEmail
+  - id: invitation
+  - id: forgotPassword
+    users: [anonymous]
+  - id: resetPassword
+  - id: stravaCallback
+  - id: completeAccount
+    users: [user1, user2, admin]
+  - id: apps
+  - id: privacy
+  - id: terms
+  - id: allRoutes
+  - id: allRoutesMap
+
+  # --- Device verification ---
+  - id: deviceVerifyGarmin
+    users: [user1, user2, admin]
+  - id: deviceVerifyKaroo
+    users: [user1, user2, admin]
+
+  # --- User tabs ---
+  - id: profile
+    users: [user1, user2, admin]
+  - id: calendar
+    users: [user1, user2, admin]
+
+  # --- GPX tools ---
+  - id: gpxTools
+    users: [user1, user2, admin]
+  - id: gpxToolsList
+    users: [user1, user2, admin]
+  - id: gpxToolsNew
+    users: [user1, user2, admin]
+  # Shareable by id: public on purpose.
+  - id: gpxToolsView
+  - id: gpxToolsMap
+  # Owner-only; user1 owns the preview above.
+  - id: gpxToolsEdit
+    users: [user1]
+
+  # --- Teams ---
+  - id: teams
+  - id: teamsNew
+    users: [user1, user2, admin]
+  - id: team
+  - id: teamAbout
+  - id: teamCalendar
+  # `gaby` is the team whose pages/admin user1 owns.
+  - id: teamPage
+    params:
+      teamSlug: gaby
+
+  # --- Team admin (user1 is the admin of `gaby`) ---
+  - id: teamAdmin
+    users: [user1]
+    params:
+      teamSlug: gaby
+  - id: teamAdminPlaces
+    users: [user1]
+    params:
+      teamSlug: gaby
+  - id: teamAdminPages
+    users: [user1]
+    params:
+      teamSlug: gaby
+  - id: teamAdminPageNew
+    users: [user1]
+    params:
+      teamSlug: gaby
+  - id: teamAdminPageEdit
+    users: [user1]
+    params:
+      teamSlug: gaby
+  - id: teamAdminMembers
+    users: [user1]
+    params:
+      teamSlug: gaby
+  - id: teamSettings
+    users: [user1]
+    params:
+      teamSlug: gaby
+
+  # --- Rides ---
+  - id: rideNew
+    users: [user1]
+  - id: ride
+  - id: rideEdit
+    users: [user1]
+
+  # --- Ride templates ---
+  - id: rideTemplates
+    users: [user1]
+  - id: rideTemplateNew
+    users: [user1]
+  - id: rideTemplateEdit
+    users: [user1]
+
+  # --- Trips (needs a tripSlug/stageSlug in `params`) ---
+  - id: tripNew
+    users: [user1]
+  - id: trip
+  - id: tripEdit
+    users: [user1]
+  - id: stage
+  - id: stageMap
+
+  # --- Posts (needs a postSlug in `params`) ---
+  - id: postNew
+    users: [user1]
+  - id: post
+  - id: postEdit
+    users: [user1]
+
+  # --- Team routes (needs a routeSlug in `params`) ---
+  - id: routes
+  - id: routesMap
+  - id: routeNew
+    users: [user1]
+  - id: route
+  - id: routeMap
+  - id: routeEdit
+    users: [user1]
+
+  # --- Ads (needs an adSlug in `params`) ---
+  - id: ads
+  - id: adNew
+    users: [user1]
+  - id: ad
+  - id: adEdit
+    users: [user1]
+
+  # --- Platform admin ---
+  - id: admin
+    users: [admin]
+  - id: adminDomains
+    users: [admin]
+  - id: adminTeams
+    users: [admin]
+  - id: adminUsers
+    users: [admin]
+  - id: adminBetaSignups
+    users: [admin]
