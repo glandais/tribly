@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Stack,
@@ -50,7 +50,12 @@ export function AdminDomainsPage() {
   const { data, isLoading, error } = useListDomains(filters)
   const toggleMutation = useToggleDomainActive()
 
-  const currentHostname = window.location.hostname
+  // Empty on the server and on the client's first render (so the two match); filled in right
+  // after mount, since `window` doesn't exist during SSR.
+  const [currentHostname, setCurrentHostname] = useState('')
+  useEffect(() => {
+    setCurrentHostname(window.location.hostname)
+  }, [])
 
   const handleToggleActive = (domainId: string) => {
     toggleMutation.mutate(
