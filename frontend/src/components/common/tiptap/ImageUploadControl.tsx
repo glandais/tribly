@@ -25,10 +25,14 @@ export function ImageUploadControl({ onImageUpload, isUploading }: ImageUploadCo
     const result = await onImageUpload(file)
     if (result) {
       const altText = result.fileName.replace(/\.[^/.]+$/, '') // Remove extension
+      // Insert *after* the selection, never over it: an asset node is an atom, and inserting one
+      // leaves it selected. `insertContent` replaces the selection, so a second upload would
+      // silently swap out the image the first one just added.
+      const insertPos = editor.state.selection.to
       editor
         .chain()
         .focus()
-        .insertContent({
+        .insertContentAt(insertPos, {
           type: 'asset',
           attrs: {
             id: result.id,

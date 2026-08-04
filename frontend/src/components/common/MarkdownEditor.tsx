@@ -20,12 +20,17 @@ import './tiptap/tiptap.css'
 function debounce<T extends (...args: Parameters<T>) => void>(
   fn: T,
   delay: number
-): (...args: Parameters<T>) => void {
+): ((...args: Parameters<T>) => void) & { cancel: () => void } {
   let timeoutId: ReturnType<typeof setTimeout> | null = null
-  return (...args: Parameters<T>) => {
+  const debounced = (...args: Parameters<T>) => {
     if (timeoutId) clearTimeout(timeoutId)
     timeoutId = setTimeout(() => fn(...args), delay)
   }
+  debounced.cancel = () => {
+    if (timeoutId) clearTimeout(timeoutId)
+    timeoutId = null
+  }
+  return debounced
 }
 
 export interface MarkdownEditorProps {
@@ -55,21 +60,41 @@ export function MarkdownEditor({
 }: MarkdownEditorProps) {
   const { t } = useTranslation()
 
-  // Track if we're updating from external value change
-  const isExternalUpdate = useRef(false)
+  // The debounced writer must never capture `onChange`: the parent rebuilds that callback on every
+  // render, over a `value` snapshot taken at that render. An image upload writes `assets` first and
+  // only then inserts the node, so a debounce holding the pre-upload callback fires 150 ms later and
+  // writes the stale `assets` back — markdown pointing at one asset, `assets.images` at another.
+  // Going through a ref keeps a single timer that always calls the freshest callback.
+  const onChangeRef = useRef(onChange)
+  useEffect(() => {
+    onChangeRef.current = onChange
+  }, [onChange])
+
+  // Last markdown this editor produced. The value coming back down after our own edit is not an
+  // external change, and re-applying it with setContent would drop the node we just inserted.
+  const lastEmitted = useRef(value)
+  // True between an editor edit and the moment the debounce hands it to the parent. During that
+  // window `value` is one edit behind on purpose — an image upload re-renders the parent inside it
+  // (it writes `assets` immediately) and the stale markdown must not be pushed back into the editor.
+  const hasPendingEdit = useRef(false)
 
   // Debounced onChange to avoid performance issues during typing
   const debouncedOnChange = useMemo(
-    () => debounce((markdown: string) => onChange?.(markdown), 150),
-    [onChange]
+    () =>
+      debounce((markdown: string) => {
+        hasPendingEdit.current = false
+        onChangeRef.current?.(markdown)
+      }, 150),
+    []
   )
 
-  // Wrapper that checks if we should skip the update
+  useEffect(() => () => debouncedOnChange.cancel(), [debouncedOnChange])
+
   const handleEditorChange = useCallback(
     (markdown: string) => {
-      if (!isExternalUpdate.current) {
-        debouncedOnChange(markdown)
-      }
+      lastEmitted.current = markdown
+      hasPendingEdit.current = true
+      debouncedOnChange(markdown)
     },
     [debouncedOnChange]
   )
@@ -107,20 +132,18 @@ export function MarkdownEditor({
 
   // Sync external value changes to editor
   useEffect(() => {
-    if (editor && !editor.isDestroyed) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const storage = editor.storage as any
-      const currentMarkdown = storage.markdown?.getMarkdown?.() || ''
-      if (value !== currentMarkdown) {
-        isExternalUpdate.current = true
-        editor.commands.setContent(markdownToEditor(value))
-        // Reset flag after a short delay to allow the update to complete
-        setTimeout(() => {
-          isExternalUpdate.current = false
-        }, 50)
-      }
-    }
-  }, [value, editor])
+    if (!editor || editor.isDestroyed) return
+    // Our own edit echoing back — the editor already holds it.
+    if (value === lastEmitted.current) return
+    // An edit of ours is still queued; `value` predates it.
+    if (hasPendingEdit.current) return
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const storage = editor.storage as any
+    const currentMarkdown = storage.markdown?.getMarkdown?.() || ''
+    if (value === currentMarkdown) return
+    lastEmitted.current = value
+    editor.commands.setContent(markdownToEditor(value), { emitUpdate: false })
+  }, [value, editor, debouncedOnChange])
 
   // Update editable state when disabled changes
   useEffect(() => {

@@ -38,8 +38,13 @@ export function MediaEditor({
   const [imageUploading, setImageUploading] = useState(false)
   const [imageError, setImageError] = useState<string | null>(null)
 
+  // Uploads resolve asynchronously, after `value` has possibly moved on. Reading the render-time
+  // snapshot there would drop whatever was typed meanwhile — go through the latest value instead.
+  const valueRef = useRef(value)
+  valueRef.current = value
+
   const handleMarkdownChange = (markdown: string) => {
-    onChange({ ...value, markdown })
+    onChange({ ...valueRef.current, markdown })
   }
 
   const handleImageUpload = async (
@@ -52,9 +57,10 @@ export function MediaEditor({
 
     try {
       const asset = await uploadAsset(teamSlug, { file }, { assetType: 'IMAGE' })
+      const current = valueRef.current
       onChange({
-        ...value,
-        assets: { ...value.assets, images: [...value.assets.images, asset] },
+        ...current,
+        assets: { ...current.assets, images: [...current.assets.images, asset] },
       })
       return { id: asset.id, fileName: asset.fileName }
     } catch {
@@ -74,7 +80,8 @@ export function MediaEditor({
 
     try {
       const asset = await uploadAsset(teamSlug, { file }, { assetType: 'LOGO' })
-      onChange({ ...value, assets: { ...value.assets, logo: asset } })
+      const current = valueRef.current
+      onChange({ ...current, assets: { ...current.assets, logo: asset } })
     } catch {
       setLogoError(t('error.loading'))
     } finally {
@@ -100,18 +107,23 @@ export function MediaEditor({
         const asset = await uploadAsset(teamSlug, { file }, { assetType: 'ATTACHMENT' })
         newAttachments.push(asset)
       }
+      const current = valueRef.current
       onChange({
-        ...value,
-        assets: { ...value.assets, attachments: [...value.assets.attachments, ...newAttachments] },
+        ...current,
+        assets: {
+          ...current.assets,
+          attachments: [...current.assets.attachments, ...newAttachments],
+        },
       })
     } catch {
       // Add any successfully uploaded files before the error
       if (newAttachments.length > 0) {
+        const current = valueRef.current
         onChange({
-          ...value,
+          ...current,
           assets: {
-            ...value.assets,
-            attachments: [...value.assets.attachments, ...newAttachments],
+            ...current.assets,
+            attachments: [...current.assets.attachments, ...newAttachments],
           },
         })
       }
