@@ -5,6 +5,15 @@
 @import 'maplibre-theme/icons.default.css';
 @import 'maplibre-theme/classic.css';
 
+/* MapLibre's canvas carries tabindex=0, so clicking the map focuses it — silently, since a
+   pointer-acquired focus isn't `:focus-visible`. The *next* key press flips the browser into
+   keyboard modality and the ring appears retroactively around the whole map, which the "h"
+   hide-track shortcut triggered every single time. The map's controls are separate buttons and
+   keep their own focus ring, so tabbing to the map region is still visible. */
+.maplibregl-canvas:focus-visible {
+  outline: none;
+}
+
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   font-synthesis: none;
