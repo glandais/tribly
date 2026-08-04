@@ -1,0 +1,42 @@
+# Workstation-only overlay for docker-compose.yml. Never deployed: docker-compose.yml is the
+# deployment file and stays free of dev tooling, so this one carries what only a laptop wants.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.local.yml up -d
+#
+# A local .env sets COMPOSE_FILE to that pair, so plain `docker compose up -d` picks it up here and
+# nowhere else — a deployed .env has no COMPOSE_FILE and reads docker-compose.yml alone.
+services:
+  # The stack runs the %prod Quarkus profile, where pedalons.email.brevo.enabled=true sends through
+  # the Brevo *API* and QUARKUS_MAILER_* is ignored. The local .env sets
+  # PEDALONS_EMAIL_BREVO_ENABLED=false to fall back to SMTP — which lands here, and goes no further.
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: ${ENV_NAME}-mailhog
+    restart: unless-stopped
+    networks:
+      - pedalons
+    ports:
+      # SMTP (1025) stays unpublished: the backend reaches it over the compose network, and leaving
+      # the port free lets the dev stack's own mailhog (backend/docker-compose.yml) bind it.
+      - "127.0.0.1:8025:8025"
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: ${ENV_NAME}-pgadmin
+    restart: unless-stopped
+    networks:
+      - pedalons
+    ports:
+      - "127.0.0.1:5050:80"
+    environment:
+      # pgAdmin validates this address and refuses reserved TLDs, `.local` included. It is a local
+      # login, never mailed to.
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@pedalons.fr}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+volumes:
+  pgadmin_data:

@@ -50,10 +50,35 @@ Three invariants that cut across modules, each of which a plausible-looking chan
 
 ## Infrastructure
 
+There are **two** compose files at play locally, and they cannot run at the same time — both publish
+postgres on `127.0.0.1:5432`.
+
 ```bash
-docker compose up -d               # PostgreSQL + imgproxy + valhalla
-docker compose --profile tools up  # + pgAdmin + Mailhog
+# Backing services only, for `mvn quarkus:dev` + `pnpm dev`. Postgres, imgproxy,
+# valhalla, tileserver, minio, mailhog (UI on :8025).
+docker compose -f backend/docker-compose.yml up -d
+
+# The whole application, from the built images.
+docker compose up -d
 ```
+
+`docker-compose.yml` **is the deployment file** — keep dev tooling out of it. What a workstation
+needs on top lives in `docker-compose.local.yml` (mailhog on :8025, pgAdmin on :5050), and the local
+`.env` sets `COMPOSE_FILE=docker-compose.yml:docker-compose.local.yml` so a plain `docker compose`
+command picks up both. A deployed `.env` has no `COMPOSE_FILE` and reads `docker-compose.yml` alone.
+
+The full stack needs `docker-compose.shared.yml` up first (valhalla + tileserver on the external
+`pedalons-shared` network) and images built by `./build.sh`, which tags them `:${ENV_NAME}`.
+
+**`ENV_NAME` names the stack** — containers, network, image tags, and the `${ENV_NAME}-minio` the
+backup scripts inspect. Keep it `tribly-local` on a workstation: a local stack called `…-prod` is
+indistinguishable from the real one in `docker ps` and to `scripts/restore.sh`.
+
+**A local stack must not be able to send mail.** The containers run the `%prod` Quarkus profile,
+where `pedalons.email.brevo.enabled=true` sends through the Brevo *API* and `QUARKUS_MAILER_*` is
+ignored entirely. A local `.env` therefore sets `PEDALONS_EMAIL_BREVO_ENABLED=false` and points the
+SMTP fallback at `mailhog:1025`. This is not cosmetic: after a biketeam migration the local database
+holds thousands of real member addresses, and one OTP or team invitation is enough to reach them.
 
 Deployed hosts are laid out differently: one shared stack (`docker-compose.shared.yml` — valhalla and
 tileserver, on the `pedalons-shared` network) plus one `docker-compose.yml` stack per environment.
