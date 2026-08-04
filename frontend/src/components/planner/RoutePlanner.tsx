@@ -11,6 +11,7 @@ import {
 import { IconTrash } from '@tabler/icons-react'
 import { ActionIcon, Box, Group, Loader, Skeleton, Stack, Text } from '@mantine/core'
 import { PedalonsMap } from '../map/PedalonsMap'
+import { HideTrackControl } from '../map/HideTrackControl'
 import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 import { useDefaultMapView } from '@/hooks/useDefaultMapView'
 import { KmMarkersLayer } from '../map/MapMarkers'
@@ -69,7 +70,7 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
   const defaultView = useDefaultMapView()
 
   // Press "h" to hide the trace and its markers, revealing the basemap underneath
-  const trackHidden = useHideTrackKey()
+  const [trackHidden, toggleTrackHidden] = useHideTrackKey()
 
   // Calculate initial view state from track bounds, team location, or the server's default centre.
   // Null while none of the three is known yet — the map waits rather than opening somewhere wrong.
@@ -566,6 +567,8 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
               onUndo={undo}
               onRedo={redo}
             />
+
+            <HideTrackControl hidden={trackHidden} onToggle={toggleTrackHidden} />
 
             <RouterProfileSelector
               position="bottom-left"

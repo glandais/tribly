@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 /**
  * Toggles a "hidden" boolean each time the user presses the "h" key, letting map
@@ -7,9 +7,14 @@ import { useEffect, useState } from 'react'
  * Ignores the key when a modifier is held or when focus is in an editable field
  * (input/textarea/select/contenteditable), so it never clashes with typing or
  * browser/OS shortcuts.
+ *
+ * Returns the state and the same toggle, so a map control (`HideTrackControl`)
+ * and the shortcut drive one shared state instead of two competing ones.
  */
-export function useHideTrackKey(): boolean {
+export function useHideTrackKey(): [hidden: boolean, toggle: () => void] {
   const [hidden, setHidden] = useState(false)
+
+  const toggle = useCallback(() => setHidden((prev) => !prev), [])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -25,11 +30,11 @@ export function useHideTrackKey(): boolean {
       ) {
         return
       }
-      setHidden((prev) => !prev)
+      toggle()
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
+  }, [toggle])
 
-  return hidden
+  return [hidden, toggle]
 }

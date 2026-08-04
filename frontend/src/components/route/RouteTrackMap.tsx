@@ -16,6 +16,7 @@ import {
   createGradientLineFeatures,
 } from '../map/mapUtils'
 import { PedalonsMap } from '../map/PedalonsMap'
+import { HideTrackControl } from '../map/HideTrackControl'
 import { useHideTrackKey } from '@/hooks/useHideTrackKey'
 import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 import type { MappableRoute } from './RouteMapView'
@@ -52,7 +53,7 @@ export function RouteTrackMap({
   const colorScheme = useResolvedColorScheme()
 
   // Press "h" to hide the trace and its markers, revealing the basemap underneath
-  const trackHidden = useHideTrackKey()
+  const [trackHidden, toggleTrackHidden] = useHideTrackKey()
 
   // Flatten all track points from multiple tracks
   const trackPoints = useMemo(
@@ -133,6 +134,8 @@ export function RouteTrackMap({
         onMoveStart={onMoveStart}
         onMoveEnd={onMoveEnd}
       >
+        <HideTrackControl hidden={trackHidden} onToggle={toggleTrackHidden} />
+
         {!trackHidden && (
           <>
             {/* Gradient-colored route line */}

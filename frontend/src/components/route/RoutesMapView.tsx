@@ -24,6 +24,8 @@ import type { RouteDetailDto } from '@/api/dto'
 import { StartMarker, EndMarker } from '../map/MapMarkers'
 import { calculateBounds, getElevationAxisBounds, routeToGeoJSON } from '../map/mapUtils'
 import { PedalonsMap } from '../map/PedalonsMap'
+import { HideTrackControl } from '../map/HideTrackControl'
+import { useHideTrackKey } from '@/hooks/useHideTrackKey'
 import { useUnits } from '../../hooks/useUnits'
 import { getOverlayBg } from '@/lib/colors'
 // maplibre-gl CSS is provided by maplibre-theme in index.css
@@ -100,6 +102,9 @@ export function RoutesMapView({
   )
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null)
   const [cursor, setCursor] = useState<string>('grab')
+
+  // Press "h" (or the map control) to hide the traces and their markers, revealing the basemap
+  const [tracksHidden, toggleTracksHidden] = useHideTrackKey()
 
   // One bulk request for every distinct route slug on the screen, instead of one `getRoute`
   // per item (several ride groups, or every stage of a trip, often share the same route).
@@ -408,40 +413,46 @@ export function RoutesMapView({
           onClick={handleClick}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
-          interactiveLayerIds={interactiveLayerIds}
+          interactiveLayerIds={tracksHidden ? [] : interactiveLayerIds}
         >
-          {/* Render all routes */}
-          {routeGeoJSONs.map((route) => {
-            const isHighlighted = highlightedRoute?.itemId === route.itemId
+          <HideTrackControl hidden={tracksHidden} onToggle={toggleTracksHidden} />
 
-            return (
-              <Source
-                key={`source-${route.itemId}`}
-                id={`route-${route.itemId}`}
-                type="geojson"
-                data={route.geojson}
-              >
-                <Layer
-                  id={`line-${route.itemId}`}
-                  type="line"
-                  paint={{
-                    'line-color': route.color,
-                    'line-width': isHighlighted ? 8 : 5,
-                    'line-opacity': isHighlighted ? 0.9 : 0.5,
-                  }}
-                />
-              </Source>
-            )
-          })}
+          {tracksHidden ? null : (
+            <>
+              {/* Render all routes */}
+              {routeGeoJSONs.map((route) => {
+                const isHighlighted = highlightedRoute?.itemId === route.itemId
 
-          {/* Start marker (first route's first point) */}
-          <StartMarker
-            longitude={routesData[0].trackPoints[0][0]}
-            latitude={routesData[0].trackPoints[0][1]}
-          />
+                return (
+                  <Source
+                    key={`source-${route.itemId}`}
+                    id={`route-${route.itemId}`}
+                    type="geojson"
+                    data={route.geojson}
+                  >
+                    <Layer
+                      id={`line-${route.itemId}`}
+                      type="line"
+                      paint={{
+                        'line-color': route.color,
+                        'line-width': isHighlighted ? 8 : 5,
+                        'line-opacity': isHighlighted ? 0.9 : 0.5,
+                      }}
+                    />
+                  </Source>
+                )
+              })}
 
-          {/* End marker (last route's last point) */}
-          <EndMarker longitude={endPoint[0]} latitude={endPoint[1]} />
+              {/* Start marker (first route's first point) */}
+              <StartMarker
+                longitude={routesData[0].trackPoints[0][0]}
+                latitude={routesData[0].trackPoints[0][1]}
+              />
+
+              {/* End marker (last route's last point) */}
+              <EndMarker longitude={endPoint[0]} latitude={endPoint[1]} />
+            </>
+          )}
         </PedalonsMap>
 
         {/* Elevation chart overlay */}

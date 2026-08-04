@@ -514,6 +514,8 @@
   "map.fullscreen.title": "Map",
   "map.noRoutes": "No routes available",
   "map.noTrackData": "No track data available for this route",
+  "map.hideTrack.hide": "Hide the track (H)",
+  "map.hideTrack.show": "Show the track (H)",
   "map.styles.group.raster": "Scan / Raster",
   "map.styles.group.satellite": "Satellite",
   "map.styles.group.vector": "Vector",

@@ -514,6 +514,8 @@
   "map.fullscreen.title": "Carte",
   "map.noRoutes": "Aucun parcours disponible",
   "map.noTrackData": "Aucune donnée de tracé disponible pour ce parcours",
+  "map.hideTrack.hide": "Masquer la trace (H)",
+  "map.hideTrack.show": "Afficher la trace (H)",
   "map.styles.group.raster": "Scan / Raster",
   "map.styles.group.satellite": "Satellite",
   "map.styles.group.vector": "Vectoriel",
