@@ -103,6 +103,7 @@ class TripMap extends ConsumerWidget {
                   mapBuilder: (BuildContext context) => PdlMap(
                     hillshade: servedHillshade(context, ref),
                     styleUrl: resolved.url,
+                    credit: servedMapCredit(resolved),
                     tracks: mapTracks,
                     start: _point(stages.first.startPlace),
                     end: _point(stages.last.endPlace),

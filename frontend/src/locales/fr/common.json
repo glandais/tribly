@@ -409,6 +409,7 @@
   "footer.terms": "Conditions d'utilisation",
   "footer.version": "v{{version}} ({{commit}})",
   "footer.versionShort": "v{{version}}",
+  "geocoder.attribution": "Adresses © les contributeurs OpenStreetMap, via Nominatim",
   "geocoder.clear": "Supprimer la localisation",
   "geocoder.label": "Localisation",
   "geocoder.noResults": "Aucune adresse trouvée",

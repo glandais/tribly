@@ -76,6 +76,7 @@ export 'elevation/elevation_cursor_painter.dart';
 export 'elevation/elevation_samples.dart';
 export 'elevation/pdl_elevation_profile.dart';
 export 'map/pdl_map.dart';
+export 'map/pdl_map_attribution.dart';
 export 'map/pdl_map_buttons.dart';
 export 'map/pdl_map_camera.dart';
 export 'map/pdl_map_controller.dart';

@@ -1,17 +1,23 @@
 import { describe, it, expect } from 'vitest'
 import { groupStyles, isKnownGroup, resolveMapStyle, styleUrlFor, type MapStyle } from './mapStyles'
 
-const style = (id: string, group: string, darkVariant?: string): MapStyle => ({
+const style = (
+  id: string,
+  group: string,
+  darkVariant?: string,
+  attribution?: string
+): MapStyle => ({
   id,
   label: id,
   group,
   url: `https://tiles.example/${id}.json`,
   ...(darkVariant ? { darkVariant } : {}),
+  ...(attribution ? { attribution } : {}),
 })
 
 const SERVED: MapStyle[] = [
   style('colorful', 'vector', 'https://tiles.example/eclipse.json'),
-  style('ign-vector', 'vector'),
+  style('ign-vector', 'vector', undefined, '<a href="https://www.ign.fr/">IGN</a>'),
   style('ign-satellite', 'satellite'),
   style('cyclosm', 'raster'),
 ]
@@ -25,6 +31,15 @@ describe('resolveMapStyle', () => {
 
   it('renders nothing rather than an invented style when nothing is served yet', () => {
     expect(resolveMapStyle([], 'colorful')).toBeUndefined()
+  })
+
+  it('carries the served attribution through to the resolved style', () => {
+    // `MapAttribution` reads it off the resolved style and passes it as `customAttribution`. It is
+    // set only where the provider's own style document declares none — IGN's PLAN.IGN — so losing
+    // it in resolution would leave that one basemap uncredited, and only that one, which is
+    // precisely the kind of gap nobody notices.
+    expect(resolveMapStyle(SERVED, 'ign-vector')?.attribution).toContain('IGN')
+    expect(resolveMapStyle(SERVED, 'colorful')?.attribution).toBeUndefined()
   })
 })
 

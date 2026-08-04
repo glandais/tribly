@@ -409,6 +409,7 @@
   "footer.terms": "Terms of Service",
   "footer.version": "v{{version}} ({{commit}})",
   "footer.versionShort": "v{{version}}",
+  "geocoder.attribution": "Addresses © OpenStreetMap contributors, via Nominatim",
   "geocoder.clear": "Clear location",
   "geocoder.label": "Location",
   "geocoder.noResults": "No addresses found",

@@ -193,6 +193,7 @@ class _RoutesMapViewState extends ConsumerState<RoutesMapView>
       mapBuilder: (BuildContext context) => PdlMap(
         hillshade: servedHillshade(context, ref),
         styleUrl: resolved.url,
+        credit: servedMapCredit(resolved),
         controller: _controller,
         massTileUrl: _tileUrl,
         massTileColor: c.mapTrack,

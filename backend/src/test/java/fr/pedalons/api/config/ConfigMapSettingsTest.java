@@ -67,6 +67,29 @@ class ConfigMapSettingsTest extends AbstractResourceTest {
   }
 
   @Test
+  void getConfig_shouldCarryTheAttributionOnlyWhereTheStyleDocumentHasNone() {
+    // `attribution` is ADDITIVE: a client shows it on top of what the map engine reads from the
+    // style document. Filling it in for a provider that already credits itself would double the
+    // credit on every map — so the invariant worth guarding is not "it is set" but "it is set
+    // exactly where the document is silent".
+    //
+    // IGN's PLAN.IGN/standard.json declares no attribution at all, and neither does the TMS
+    // metadata.json it points at: without this field that basemap renders uncredited.
+    given()
+        .when()
+        .get("/api/config")
+        .then()
+        .statusCode(200)
+        .body("mapStyles.find { it.id == 'ign-vector' }.attribution", containsString("IGN"))
+        // VersaTiles puts "© OpenStreetMap contributors" on its own source; a second copy here
+        // would show twice, since deduplication would need a byte-for-byte match on a string a
+        // third party owns.
+        .body("mapStyles.find { it.id == 'colorful' }.attribution", is(nullValue()))
+        // Same for a raster basemap: its credit is on the source of the wrapper we generate.
+        .body("mapStyles.find { it.id == 'cyclosm' }.attribution", is(nullValue()));
+  }
+
+  @Test
   void getStyle_shouldRenderAOneLayerRasterStyle() {
     given()
         .when()

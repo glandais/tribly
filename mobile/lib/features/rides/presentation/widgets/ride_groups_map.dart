@@ -119,8 +119,15 @@ class RideGroupsMap extends ConsumerWidget {
         selectedStyleId: style.value?.style.id,
         onStyleSelected: (String id) =>
             ref.read(mapStyleIdProvider.notifier).select(id),
-        mapBuilder: (BuildContext context) =>
-            _map(context, styleUrl, tracks, selected, extent, ref),
+        mapBuilder: (BuildContext context) => _map(
+          context,
+          styleUrl,
+          servedMapCredit(style.value),
+          tracks,
+          selected,
+          extent,
+          ref,
+        ),
       ),
     );
   }
@@ -128,6 +135,7 @@ class RideGroupsMap extends ConsumerWidget {
   Widget _map(
     BuildContext context,
     String styleUrl,
+    PdlMapCredit credit,
     List<PdlMapTrack> tracks,
     RideGroupDto? selected,
     BoundsDto? extent,
@@ -142,6 +150,7 @@ class RideGroupsMap extends ConsumerWidget {
 
     return PdlMap(
       styleUrl: styleUrl,
+      credit: credit,
       hillshade: servedHillshade(context, ref),
       interactive: fullscreen,
       tracks: tracks,

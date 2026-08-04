@@ -116,6 +116,7 @@ class _PdlMapDemoPageState extends ConsumerState<PdlMapDemoPage> {
               mapBuilder: (BuildContext context) => PdlMap(
                 hillshade: servedHillshade(context, ref),
                 styleUrl: style.url,
+                credit: servedMapCredit(style),
                 tracks: _tracks,
                 selectedTrackId: _selected,
                 onTrackSelected: (String? id) => setState(() => _selected = id),

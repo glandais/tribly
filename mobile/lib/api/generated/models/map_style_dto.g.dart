@@ -12,6 +12,7 @@ _MapStyleDto _$MapStyleDtoFromJson(Map<String, dynamic> json) => _MapStyleDto(
   group: json['group'] as String,
   url: json['url'] as String,
   darkVariant: json['darkVariant'] as String?,
+  attribution: json['attribution'] as String?,
 );
 
 Map<String, dynamic> _$MapStyleDtoToJson(_MapStyleDto instance) =>
@@ -21,4 +22,5 @@ Map<String, dynamic> _$MapStyleDtoToJson(_MapStyleDto instance) =>
       'group': instance.group,
       'url': instance.url,
       'darkVariant': instance.darkVariant,
+      'attribution': instance.attribution,
     };

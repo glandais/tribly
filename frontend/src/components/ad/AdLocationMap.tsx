@@ -4,6 +4,7 @@ import Map, { Layer, Source } from 'react-map-gl/maplibre'
 import * as maplibregl from 'maplibre-gl'
 import '@/components/map/setupMaplibreWorker'
 import { Box, Paper, Text } from '@mantine/core'
+import { MapAttribution } from '@/components/map/MapAttribution'
 import { useMapStyle } from '@/hooks/useMapStyle'
 import type { AdDtoLocationGeometry } from '@/api/dto'
 
@@ -86,6 +87,9 @@ export function AdLocationMap({ geometry }: AdLocationMapProps) {
             interactive={false}
             attributionControl={false}
           >
+            {/* The map does not pan, but it still shows someone else's tiles: the credit is owed
+                whatever the interaction model. Collapsed, at 200 px there is no room for the text. */}
+            <MapAttribution compact />
             <Source id="ad-sector" type="geojson" data={circle}>
               <Layer
                 id="ad-sector-fill"

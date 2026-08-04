@@ -5,6 +5,7 @@ import 'package:maplibre/maplibre.dart';
 import '../../theme/pdl_colors.dart';
 import '../../theme/pdl_tokens.dart';
 import '../../theme/pdl_typography.dart';
+import 'pdl_map_attribution.dart';
 import 'pdl_map_controller.dart';
 
 /// La carte Pédalons.
@@ -27,6 +28,7 @@ class PdlMap extends StatefulWidget {
   const PdlMap({
     super.key,
     required this.styleUrl,
+    required this.credit,
     this.controller,
     this.tracks = const <PdlMapTrack>[],
     this.waypoints = const <PdlMapPoint>[],
@@ -52,6 +54,12 @@ class PdlMap extends StatefulWidget {
 
   /// L'URL du style de fond, **toujours** fournie par l'appelant.
   final String styleUrl;
+
+  /// Le crédit dû aux fournisseurs du fond. **Obligatoire, et volontairement**
+  /// : l'app a longtemps n'en affiché aucun, parce que rien n'obligeait un
+  /// écran à y penser. Un paramètre requis fait échouer la compilation d'une
+  /// carte sans crédit, ce qu'aucune relecture ne garantit.
+  final PdlMapCredit credit;
 
   /// Gabarit d'URL des tuiles vectorielles de masse, ou `null` pour n'en poser
   /// aucune. Une chaîne, jamais un DTO : voir
@@ -443,6 +451,9 @@ class _PdlMapState extends State<PdlMap> {
             ],
           ),
         ...widget.overlays,
+        // En dernier : le crédit se lit par-dessus les voiles et les commandes
+        // que l'écran ajoute, jamais dessous.
+        PdlMapAttribution(credit: widget.credit),
       ],
     );
   }

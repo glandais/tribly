@@ -986,6 +986,7 @@
     "background": "Map background",
     "chooseBackground": "Choose map background",
     "hillshade": "Hillshading",
+    "attribution": "Map credits",
     "styleGroup": {
       "vector": "Maps",
       "satellite": "Satellite",

@@ -145,6 +145,7 @@ class _RouteMapState extends ConsumerState<RouteMap> {
         hillshade: servedHillshade(context, ref),
         controller: _controller,
         styleUrl: resolved.url,
+        credit: servedMapCredit(resolved),
         onMapTapped: widget.onMapTapped == null
             ? null
             : (double lon, double lat) =>

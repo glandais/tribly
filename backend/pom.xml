@@ -224,6 +224,12 @@
             <artifactId>quarkus-rest-client-jackson</artifactId>
         </dependency>
 
+        <!-- Caching of third-party lookups (geocoding) -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-cache</artifactId>
+        </dependency>
+
         <!-- Container -->
         <dependency>
             <groupId>io.quarkus</groupId>

@@ -1825,6 +1825,30 @@ components:
         lat:
           type: number
           format: double
+    GeocodeResultDto:
+      description: A place matching a geocoding query
+      type: object
+      required:
+      - id
+      - displayName
+      - lat
+      - lon
+      properties:
+        id:
+          type: string
+          description: "Opaque identifier of the result, stable enough to key a list\
+            \ on"
+        displayName:
+          type: string
+          description: Full human-readable name of the place
+        lat:
+          type: number
+          format: double
+          description: Latitude in degrees (WGS 84)
+        lon:
+          type: number
+          format: double
+          description: Longitude in degrees (WGS 84)
     GpsOAuthUrlResponse:
       description: OAuth authorization URL response
       type: object
@@ -2212,6 +2236,15 @@ components:
           description: URL of the style document to load instead of 'url' when the
             client renders in dark mode. Null when the style has no dark counterpart
             — the client then keeps using 'url'.
+        attribution:
+          type: string
+          description: "Credit the style document does not declare itself, to be displayed\
+            \ IN ADDITION to the attribution the map engine derives from that document\
+            \ — not instead of it. Null for a style that credits itself (most of them)\
+            \ and for a raster basemap, whose credit is already on the source of the\
+            \ wrapper served at /api/map/styles/{id}.json. Non-null only where the\
+            \ provider ships no attribution at all, which would otherwise render the\
+            \ basemap uncredited."
     MapTerrainDto:
       type: object
       description: The elevation source used to shade the relief
@@ -4920,6 +4953,8 @@ tags:
   description: GPS device integration operations
 - name: GPX previews
   description: Analyse a GPX file outside of any team
+- name: Geocode
+  description: "Address lookup, proxied to OpenStreetMap Nominatim"
 - name: Invitations
   description: Redeem a team invitation
 - name: Passkeys
@@ -7112,6 +7147,37 @@ paths:
             application/zip:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/geocode/search:
+    get:
+      summary: Search places by name
+      description: "Returns at most 5 places matching the query, or an empty list\
+        \ when the query is shorter than 3 characters or the provider is unreachable.\
+        \ Results come from OpenStreetMap via Nominatim: a client displaying them\
+        \ must credit '© OpenStreetMap contributors'."
+      operationId: searchPlaces
+      tags:
+      - Geocode
+      parameters:
+      - name: q
+        in: query
+        schema:
+          type: string
+      responses:
+        "200":
+          description: "Matching places, possibly empty"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GeocodeResultDto"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
   /api/gps/available:
     get:
       summary: Get available GPS services
@@ -14013,7 +14079,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 3.3.0
+  version: 3.4.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

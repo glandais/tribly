@@ -7,6 +7,7 @@ import 'package:maplibre/maplibre.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../core/config/config_provider.dart';
+import '../../../../core/config/map_style_options.dart';
 import '../../../../core/pdl/pdl.dart';
 import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_tokens.dart';
@@ -94,6 +95,7 @@ class AdLocationMap extends ConsumerWidget {
                       children: <Widget>[
                         PdlMap(
                           styleUrl: style.url,
+                          credit: servedMapCredit(style),
                           initialCenter: PdlMapPoint(lon: _lon, lat: _lat),
                           initialZoom: _zoom,
                           // La carte illustre, elle ne s'explore pas : la

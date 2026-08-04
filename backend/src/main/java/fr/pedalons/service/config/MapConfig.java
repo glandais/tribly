@@ -79,6 +79,20 @@ public interface MapConfig {
 
     /** The tile source, for a raster basemap. Mutually exclusive with {@link #url()}. */
     Optional<Raster> raster();
+
+    /**
+     * The credit the style document does <em>not</em> declare itself, to be shown <em>in addition
+     * to</em> whatever the map engine derives from that document.
+     *
+     * <p>Deliberately additive rather than authoritative, because the two cannot be reconciled: a
+     * client shows the engine's attribution no matter what, and suppressing a duplicate would take
+     * a byte-for-byte match with a string a third party owns. So this is empty for a style that
+     * credits itself — VersaTiles puts {@code © OpenStreetMap contributors} on its source — and
+     * empty for a raster basemap, whose credit lives in {@link Raster#attribution()} of the wrapper
+     * this server generates. It exists for the case that has neither: IGN's {@code PLAN.IGN}
+     * document carries no attribution at all, so that fond was rendering uncredited.
+     */
+    Optional<String> attribution();
   }
 
   /** An XYZ raster source the server wraps into a one-layer MapLibre style. */

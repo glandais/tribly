@@ -5,6 +5,7 @@ import type { MapProps, MapRef } from 'react-map-gl/maplibre'
 import * as maplibregl from 'maplibre-gl'
 import './setupMaplibreWorker'
 import { Terrain3D } from './Terrain3D'
+import { MapAttribution } from './MapAttribution'
 import { MapStyleSwitcher } from './MapStyleSwitcher'
 import { useMapStyle } from '@/hooks/useMapStyle'
 
@@ -51,9 +52,13 @@ export const PedalonsMap = forwardRef<MapRef, PedalonsMapProps>(({ children, ...
       mapStyle={style}
       locale={locale}
       style={{ width: '100%', height: '100%' }}
+      // Off as a map *option*, on as a child: `MapAttribution` has to rebuild the control when the
+      // basemap changes, which the built-in one — constructed once with the map — cannot do.
+      attributionControl={false}
       {...props}
     >
       <NavigationControl position="top-left" />
+      <MapAttribution />
       <Terrain3D source={terrainSource} terrain={terrain3d} hillshade={hillshade} />
       <MapStyleSwitcher
         styles={styles}

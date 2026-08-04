@@ -986,6 +986,7 @@
     "background": "Fond de carte",
     "chooseBackground": "Choisir le fond de carte",
     "hillshade": "Ombrage du relief",
+    "attribution": "Crédits cartographiques",
     "styleGroup": {
       "vector": "Plans",
       "satellite": "Satellite",

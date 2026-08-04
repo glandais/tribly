@@ -19,6 +19,7 @@ import 'clients/device_user_client.dart';
 import 'clients/device_o_auth_client.dart';
 import 'clients/device_routes_client.dart';
 import 'clients/users_client.dart';
+import 'clients/geocode_client.dart';
 import 'clients/gps_services_client.dart';
 import 'clients/gpx_previews_client.dart';
 import 'clients/invitations_client.dart';
@@ -43,7 +44,7 @@ import 'clients/trip_comments_client.dart';
 import 'clients/tiles_client.dart';
 import 'clients/server_version_client.dart';
 
-/// Pedalons API `v3.3.0`.
+/// Pedalons API `v3.4.0`.
 ///
 /// API for Pedalons Cycling Team Management Platform.
 class PedalonsApiClient {
@@ -56,7 +57,7 @@ class PedalonsApiClient {
   final Dio _dio;
   final String? _baseUrl;
 
-  static String get version => '3.3.0';
+  static String get version => '3.4.0';
 
   AdminBetaSignupsClient? _adminBetaSignups;
   AdminDomainsClient? _adminDomains;
@@ -73,6 +74,7 @@ class PedalonsApiClient {
   DeviceOAuthClient? _deviceOAuth;
   DeviceRoutesClient? _deviceRoutes;
   UsersClient? _users;
+  GeocodeClient? _geocode;
   GpsServicesClient? _gpsServices;
   GpxPreviewsClient? _gpxPreviews;
   InvitationsClient? _invitations;
@@ -143,6 +145,9 @@ class PedalonsApiClient {
       _deviceRoutes ??= DeviceRoutesClient(_dio, baseUrl: _baseUrl);
 
   UsersClient get users => _users ??= UsersClient(_dio, baseUrl: _baseUrl);
+
+  GeocodeClient get geocode =>
+      _geocode ??= GeocodeClient(_dio, baseUrl: _baseUrl);
 
   GpsServicesClient get gpsServices =>
       _gpsServices ??= GpsServicesClient(_dio, baseUrl: _baseUrl);

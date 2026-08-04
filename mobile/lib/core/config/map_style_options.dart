@@ -25,6 +25,17 @@ List<PdlMapStyleOption> servedMapStyleOptions(
     ),
 ];
 
+/// Le crédit à passer à `PdlMap`, pour le fond résolu.
+///
+/// L'essentiel vient du document de style et `PdlMapAttribution` le lit tout
+/// seul ; ce qui se décide ici, c'est le complément servi
+/// (`MapStyleDto.attribution`, non nul pour le seul fond dont le fournisseur ne
+/// déclare rien) et l'intitulé localisé, que `core/pdl` ne saurait pas traduire.
+PdlMapCredit servedMapCredit(ResolvedMapStyle? style) => PdlMapCredit(
+  toggleLabel: 'map.attribution'.tr(),
+  extra: style?.style.attribution,
+);
+
 /// L'ombrage du relief à passer à `PdlMap`, ou `null` — pas de source servie,
 /// ou interrupteur éteint.
 ///

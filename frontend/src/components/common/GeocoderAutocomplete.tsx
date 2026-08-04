@@ -2,27 +2,20 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Paper, Text, Box, Group, ActionIcon } from '@mantine/core'
 import { IconMapPin, IconX } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
-import { useQuery } from '@tanstack/react-query'
+import { useSearchPlaces } from '@/api/endpoints/geocode/geocode'
 import { Autocomplete } from './Autocomplete'
-import type { GeoJsonPoint } from '@/api/dto'
+import type { GeocodeResultDto, GeoJsonPoint } from '@/api/dto'
 
-interface NominatimResult {
-  place_id: number
-  display_name: string
-  lat: string
-  lon: string
-  boundingbox: string[]
-}
-
-async function searchNominatim(query: string, signal: AbortSignal): Promise<NominatimResult[]> {
-  const response = await fetch(
-    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`,
-    {
-      signal,
-    }
-  )
-  return response.json()
-}
+/**
+ * Address lookup, via `GET /api/geocode/search`.
+ *
+ * This component used to `fetch` nominatim.openstreetmap.org straight from the browser, which no
+ * amount of front-end care could make compliant: the usage policy requires an identifying
+ * `User-Agent`, and that is a header `fetch` is forbidden to set. The server sends it, and caches
+ * what it gets back. What is left for this component is the other half of the policy — the visible
+ * credit under the results.
+ */
+const NO_RESULTS: GeocodeResultDto[] = []
 
 export interface GeocoderAutocompleteProps {
   value?: GeoJsonPoint | null
@@ -58,13 +51,15 @@ export function GeocoderAutocomplete({
     return () => clearTimeout(timer)
   }, [query])
 
-  // Use React Query for fetching
-  const { data: results = [], isFetching: isLoading } = useQuery({
-    queryKey: ['nominatim', debouncedQuery],
-    queryFn: ({ signal }) => searchNominatim(debouncedQuery, signal),
-    enabled: debouncedQuery.length >= 3,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-  })
+  const { data: results = NO_RESULTS, isFetching: isLoading } = useSearchPlaces(
+    { q: debouncedQuery },
+    {
+      query: {
+        enabled: debouncedQuery.length >= 3,
+        staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+      },
+    }
+  )
 
   // Filter results based on query length
   const filteredResults = useMemo(
@@ -77,12 +72,12 @@ export function GeocoderAutocomplete({
   }, [])
 
   const handleSelect = useCallback(
-    (result: NominatimResult) => {
+    (result: GeocodeResultDto) => {
       onChange({
         type: 'Point',
-        coordinates: [parseFloat(result.lon), parseFloat(result.lat)],
+        coordinates: [result.lon, result.lat],
       })
-      setSelectedName(result.display_name)
+      setSelectedName(result.displayName)
       setQuery('')
     },
     [onChange]
@@ -95,11 +90,11 @@ export function GeocoderAutocomplete({
   }, [onChange])
 
   const renderItem = useCallback(
-    (result: NominatimResult) => (
+    (result: GeocodeResultDto) => (
       <Group gap="xs" wrap="nowrap">
         <IconMapPin size={14} style={{ flexShrink: 0 }} />
         <Text size="sm" ta="left" truncate style={{ flex: 1 }}>
-          {result.display_name}
+          {result.displayName}
         </Text>
       </Group>
     ),
@@ -159,23 +154,29 @@ export function GeocoderAutocomplete({
   }
 
   return (
-    <Autocomplete<NominatimResult>
-      items={filteredResults}
-      isLoading={isLoading}
-      onQueryChange={handleQueryChange}
-      onSelect={handleSelect}
-      renderItem={renderItem}
-      getItemKey={(result) => result.place_id}
-      placeholder={placeholder ?? t('geocoder.placeholder')}
-      noResultsMessage={t('geocoder.noResults')}
-      minChars={3}
-      clearOnSelect={true}
-      label={label}
-      description={description}
-      error={error}
-      required={required}
-      disabled={disabled}
-      leftSection={<IconMapPin size={16} />}
-    />
+    <Box>
+      <Autocomplete<GeocodeResultDto>
+        items={filteredResults}
+        isLoading={isLoading}
+        onQueryChange={handleQueryChange}
+        onSelect={handleSelect}
+        renderItem={renderItem}
+        getItemKey={(result) => result.id}
+        placeholder={placeholder ?? t('geocoder.placeholder')}
+        noResultsMessage={t('geocoder.noResults')}
+        minChars={3}
+        clearOnSelect={true}
+        label={label}
+        description={description}
+        error={error}
+        required={required}
+        disabled={disabled}
+        leftSection={<IconMapPin size={16} />}
+      />
+      {/* The other half of the Nominatim usage policy, the half a proxy cannot cover for us. */}
+      <Text size="xs" c="dimmed" mt={4}>
+        {t('geocoder.attribution')}
+      </Text>
+    </Box>
   )
 }

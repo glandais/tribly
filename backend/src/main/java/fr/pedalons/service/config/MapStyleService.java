@@ -59,7 +59,8 @@ public class MapStyleService {
                     style.label(),
                     style.group(),
                     style.url().orElseGet(() -> generatedStyleUrl(baseUrl, style.id())),
-                    style.darkVariant().filter(url -> !url.isBlank()).orElse(null)))
+                    style.darkVariant().filter(url -> !url.isBlank()).orElse(null),
+                    style.attribution().filter(text -> !text.isBlank()).orElse(null)))
         .toList();
   }
 

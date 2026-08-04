@@ -20,7 +20,8 @@ mixin _$MapStyleDto {
  String get label;/// Section the switcher should list this style under — 'vector', 'satellite' or 'raster'. Clients group consecutive styles sharing a value and localise the heading themselves; an unknown value is rendered as its own section rather than dropped.
  String get group;/// URL of the MapLibre style document to load in light mode (or at all times when darkVariant is null). Either a third-party style document or, for a raster basemap the server wraps itself, a URL on /api/map/styles/{id}.json.
  String get url;/// URL of the style document to load instead of 'url' when the client renders in dark mode. Null when the style has no dark counterpart — the client then keeps using 'url'.
- String? get darkVariant;
+ String? get darkVariant;/// Credit the style document does not declare itself, to be displayed IN ADDITION to the attribution the map engine derives from that document — not instead of it. Null for a style that credits itself (most of them) and for a raster basemap, whose credit is already on the source of the wrapper served at /api/map/styles/{id}.json. Non-null only where the provider ships no attribution at all, which would otherwise render the basemap uncredited.
+ String? get attribution;
 /// Create a copy of MapStyleDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -33,16 +34,16 @@ $MapStyleDtoCopyWith<MapStyleDto> get copyWith => _$MapStyleDtoCopyWithImpl<MapS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MapStyleDto&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.group, group) || other.group == group)&&(identical(other.url, url) || other.url == url)&&(identical(other.darkVariant, darkVariant) || other.darkVariant == darkVariant));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MapStyleDto&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.group, group) || other.group == group)&&(identical(other.url, url) || other.url == url)&&(identical(other.darkVariant, darkVariant) || other.darkVariant == darkVariant)&&(identical(other.attribution, attribution) || other.attribution == attribution));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,label,group,url,darkVariant);
+int get hashCode => Object.hash(runtimeType,id,label,group,url,darkVariant,attribution);
 
 @override
 String toString() {
-  return 'MapStyleDto(id: $id, label: $label, group: $group, url: $url, darkVariant: $darkVariant)';
+  return 'MapStyleDto(id: $id, label: $label, group: $group, url: $url, darkVariant: $darkVariant, attribution: $attribution)';
 }
 
 
@@ -53,7 +54,7 @@ abstract mixin class $MapStyleDtoCopyWith<$Res>  {
   factory $MapStyleDtoCopyWith(MapStyleDto value, $Res Function(MapStyleDto) _then) = _$MapStyleDtoCopyWithImpl;
 @useResult
 $Res call({
- String id, String label, String group, String url, String? darkVariant
+ String id, String label, String group, String url, String? darkVariant, String? attribution
 });
 
 
@@ -70,13 +71,14 @@ class _$MapStyleDtoCopyWithImpl<$Res>
 
 /// Create a copy of MapStyleDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? label = null,Object? group = null,Object? url = null,Object? darkVariant = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? label = null,Object? group = null,Object? url = null,Object? darkVariant = freezed,Object? attribution = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String,group: null == group ? _self.group : group // ignore: cast_nullable_to_non_nullable
 as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,darkVariant: freezed == darkVariant ? _self.darkVariant : darkVariant // ignore: cast_nullable_to_non_nullable
+as String?,attribution: freezed == attribution ? _self.attribution : attribution // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -162,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String label,  String group,  String url,  String? darkVariant)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String label,  String group,  String url,  String? darkVariant,  String? attribution)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MapStyleDto() when $default != null:
-return $default(_that.id,_that.label,_that.group,_that.url,_that.darkVariant);case _:
+return $default(_that.id,_that.label,_that.group,_that.url,_that.darkVariant,_that.attribution);case _:
   return orElse();
 
 }
@@ -183,10 +185,10 @@ return $default(_that.id,_that.label,_that.group,_that.url,_that.darkVariant);ca
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String label,  String group,  String url,  String? darkVariant)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String label,  String group,  String url,  String? darkVariant,  String? attribution)  $default,) {final _that = this;
 switch (_that) {
 case _MapStyleDto():
-return $default(_that.id,_that.label,_that.group,_that.url,_that.darkVariant);case _:
+return $default(_that.id,_that.label,_that.group,_that.url,_that.darkVariant,_that.attribution);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -203,10 +205,10 @@ return $default(_that.id,_that.label,_that.group,_that.url,_that.darkVariant);ca
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String label,  String group,  String url,  String? darkVariant)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String label,  String group,  String url,  String? darkVariant,  String? attribution)?  $default,) {final _that = this;
 switch (_that) {
 case _MapStyleDto() when $default != null:
-return $default(_that.id,_that.label,_that.group,_that.url,_that.darkVariant);case _:
+return $default(_that.id,_that.label,_that.group,_that.url,_that.darkVariant,_that.attribution);case _:
   return null;
 
 }
@@ -218,7 +220,7 @@ return $default(_that.id,_that.label,_that.group,_that.url,_that.darkVariant);ca
 @JsonSerializable()
 
 class _MapStyleDto implements MapStyleDto {
-  const _MapStyleDto({required this.id, required this.label, required this.group, required this.url, this.darkVariant});
+  const _MapStyleDto({required this.id, required this.label, required this.group, required this.url, this.darkVariant, this.attribution});
   factory _MapStyleDto.fromJson(Map<String, dynamic> json) => _$MapStyleDtoFromJson(json);
 
 /// Stable style identifier, e.g. 'colorful'
@@ -231,6 +233,8 @@ class _MapStyleDto implements MapStyleDto {
 @override final  String url;
 /// URL of the style document to load instead of 'url' when the client renders in dark mode. Null when the style has no dark counterpart — the client then keeps using 'url'.
 @override final  String? darkVariant;
+/// Credit the style document does not declare itself, to be displayed IN ADDITION to the attribution the map engine derives from that document — not instead of it. Null for a style that credits itself (most of them) and for a raster basemap, whose credit is already on the source of the wrapper served at /api/map/styles/{id}.json. Non-null only where the provider ships no attribution at all, which would otherwise render the basemap uncredited.
+@override final  String? attribution;
 
 /// Create a copy of MapStyleDto
 /// with the given fields replaced by the non-null parameter values.
@@ -245,16 +249,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MapStyleDto&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.group, group) || other.group == group)&&(identical(other.url, url) || other.url == url)&&(identical(other.darkVariant, darkVariant) || other.darkVariant == darkVariant));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MapStyleDto&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.group, group) || other.group == group)&&(identical(other.url, url) || other.url == url)&&(identical(other.darkVariant, darkVariant) || other.darkVariant == darkVariant)&&(identical(other.attribution, attribution) || other.attribution == attribution));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,label,group,url,darkVariant);
+int get hashCode => Object.hash(runtimeType,id,label,group,url,darkVariant,attribution);
 
 @override
 String toString() {
-  return 'MapStyleDto(id: $id, label: $label, group: $group, url: $url, darkVariant: $darkVariant)';
+  return 'MapStyleDto(id: $id, label: $label, group: $group, url: $url, darkVariant: $darkVariant, attribution: $attribution)';
 }
 
 
@@ -265,7 +269,7 @@ abstract mixin class _$MapStyleDtoCopyWith<$Res> implements $MapStyleDtoCopyWith
   factory _$MapStyleDtoCopyWith(_MapStyleDto value, $Res Function(_MapStyleDto) _then) = __$MapStyleDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String label, String group, String url, String? darkVariant
+ String id, String label, String group, String url, String? darkVariant, String? attribution
 });
 
 
@@ -282,13 +286,14 @@ class __$MapStyleDtoCopyWithImpl<$Res>
 
 /// Create a copy of MapStyleDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? label = null,Object? group = null,Object? url = null,Object? darkVariant = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? label = null,Object? group = null,Object? url = null,Object? darkVariant = freezed,Object? attribution = freezed,}) {
   return _then(_MapStyleDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String,group: null == group ? _self.group : group // ignore: cast_nullable_to_non_nullable
 as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,darkVariant: freezed == darkVariant ? _self.darkVariant : darkVariant // ignore: cast_nullable_to_non_nullable
+as String?,attribution: freezed == attribution ? _self.attribution : attribution // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
