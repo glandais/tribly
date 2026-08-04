@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from 'react'
 import { formatDistanceToNow, parseISO } from 'date-fns'
 import { formatInTimeZone } from 'date-fns-tz'
 import { fr } from 'date-fns/locale/fr'
@@ -7,16 +8,24 @@ import { useTranslation } from 'react-i18next'
 import i18n from '../i18n'
 import { useAuthStore, selectUser } from '../store/authStore'
 
-const isServer = typeof window === 'undefined'
-
 // Deterministic value used when a visitor's real timezone truly cannot be known: an anonymous SSR
-// render, or a signed-in user who never set one during SSR. Arbitrary but must be stable, since
-// it's what the server commits to in the markup — the client then renders its own best guess
-// (the stored preference, or else the browser's zone), and any resulting text difference is
-// accepted and marked via `FormattedDate`/`FormattedDateTime`'s `suppressHydrationWarning`, rather
-// than deferred to a post-hydration correction the way `hydrateAnonymousPreferences` handles
-// unitSystem/theme/language.
+// render, or a signed-in user who never set one. Arbitrary but must be stable, since it's what the
+// server commits to in the markup.
 const SERVER_FALLBACK_TIMEZONE = 'UTC'
+
+// The browser's zone, delivered as an external store so the *hydration* render still reads
+// `SERVER_FALLBACK_TIMEZONE` (`getServerSnapshot`) and React re-renders with the real zone right
+// after — the same post-hydration correction `hydrateAnonymousPreferences` performs for
+// unitSystem/theme/language.
+//
+// Returning the browser's zone directly during hydration is the trap this replaces: the text
+// differs from the server's, and `suppressHydrationWarning` does not *patch* a mismatched text
+// node, it only silences the warning — so the server's UTC text stayed on screen until some
+// unrelated re-render, and every SSR-rendered date read an hour or two off for any visitor without
+// a `timezone` preference.
+const subscribeToNothing = () => () => {}
+const getBrowserTimezone = () => Intl.DateTimeFormat().resolvedOptions().timeZone
+const getServerTimezone = () => SERVER_FALLBACK_TIMEZONE
 
 /**
  * The timezone to render dates/times in, and whether it's a guess rather than the visitor's own
@@ -26,9 +35,13 @@ const SERVER_FALLBACK_TIMEZONE = 'UTC'
  */
 export function useEffectiveTimezone(): { timezone: string; isGuessed: boolean } {
   const user = useAuthStore(selectUser)
+  const browserTimezone = useSyncExternalStore(
+    subscribeToNothing,
+    getBrowserTimezone,
+    getServerTimezone
+  )
   if (user?.timezone) return { timezone: user.timezone, isGuessed: false }
-  if (isServer) return { timezone: SERVER_FALLBACK_TIMEZONE, isGuessed: true }
-  return { timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, isGuessed: true }
+  return { timezone: browserTimezone, isGuessed: true }
 }
 
 // Locale map for quick access
