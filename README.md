@@ -28,19 +28,56 @@ Multi-tenant web platform for cycling teams to organize rides, trips, manage GPX
 ```bash
 git clone git@github.com:glandais/tribly.git
 cd tribly
-
-# Copy environment template
 cp .env.example .env
 ```
 
-### Environment Variables
+### The `.env`, on a workstation and on a server
 
-Required environment variables for production:
+There is **one** `.env`, never committed, and one template for both uses. Compose reads it, and
+`docker-compose.yml` hands the whole file to the backend container through `env_file` — which is why
+anything that has no business inside the application has no business in it either (the `BACKUP_*`
+settings live in `/root/pedalons-backup.env` instead, see [Backup and restore](#backup-and-restore)).
 
-| Variable | Description |
-|----------|-------------|
-| `ENCRYPTION_KEY` | Base64-encoded 32-byte key for token encryption (generate with `openssl rand -base64 32`) |
+A workstation and a deployment differ in six keys, and only those:
 
+| Key | Deployment | Workstation |
+|---|---|---|
+| `ENV_NAME` | `pedalons-prod`, `pedalons-staging` | `tribly-local` |
+| `COMPOSE_FILE` | *unset* — `docker-compose.yml` alone | `docker-compose.yml:docker-compose.local.yml` |
+| `PEDALONS_EMAIL_BREVO_ENABLED` | *unset*, so `true`: sends through the Brevo API | `false` |
+| `QUARKUS_MAILER_*` | the Brevo SMTP relay | `mailhog` / `1025`, TLS and login `DISABLED` |
+| `PEDALONS_BOOTSTRAP_DOMAIN` / `_BASE_URL` | the public hostname, `https://…` | `localhost` / `http://localhost:8090` |
+| `HTTP_PORT` | 8090 prod, 8089 staging, behind Caddy | anything free |
+
+Two of those are not a matter of taste. **`ENV_NAME` names the stack** — containers, network, image
+tags, and the `${ENV_NAME}-minio` the backup scripts inspect; a local stack called `…-prod` is
+indistinguishable from the real one in `docker ps` and to `scripts/restore.sh`. And **a local stack
+must not be able to send mail**, for reasons worth reading before the first `up`:
+[Running the full stack locally](#running-the-full-stack-locally).
+
+`COMPOSE_FILE` is what turns the checkout into a workstation. The overlay it adds carries mailhog,
+the valhalla and tileserver a server instead gets from the shared stack, the loopback ports
+`mvn quarkus:dev` and `pnpm dev` talk to, and an `app` profile on `backend`/`frontend`/`traefik` so a
+plain `docker compose up -d` starts the backing services alone. `source scripts/dev-env.sh` then
+feeds this same file's `POSTGRES_*` / `MINIO_*` to the dev backend — no second set of credentials to
+keep in sync.
+
+**Fill in before the first `up`:**
+
+| Key | |
+|---|---|
+| `POSTGRES_PASSWORD` | any value; the database is created with it on first start |
+| `MINIO_ROOT_PASSWORD` and `MINIO_SECRET_KEY` | must be **equal** — the second is how the backend authenticates against the first. Same for `MINIO_ROOT_USER` / `MINIO_ACCESS_KEY` |
+| `ENCRYPTION_KEY` | `openssl rand -base64 32`. Encrypts the stored GPS-service tokens: change it later and they stop decrypting |
+| `BREVO_API_KEY` | required even locally, even with Brevo disabled — the `%prod` profile expands it at startup, so a placeholder does |
+| `PEDALONS_BOOTSTRAP_ADMIN_EMAIL` | your address. The account is created without a password; first login is by OTP or passkey |
+
+**Everything else in `.env.example` has a working default**, so a workstation `.env` can be shorter
+than the template: `PUID`/`PGID` (1000:1000), `POSTGRES_HOST_PORT` (5432), `FRONTEND_SOURCEMAP`
+(false), `STRAVA_*` (blank hides the "Continue with Strava" button),
+`SOCIAL_PLACEHOLDER_EMAIL_DOMAIN`, `QUARKUS_MAILER_USERNAME`/`_PASSWORD` (unread when the login is
+`DISABLED`), and `VALHALLA_TILE_URLS` — whose default builds France, and whose every change costs a
+rebuild of several hours.
 
 ### 2. Install and configure mkcert
 
@@ -73,25 +110,37 @@ mkcert localhost 127.0.0.1 192.168.50.20
 ### 3. Start Infrastructure
 
 ```bash
-# Start dev services (PostgreSQL, MinIO, imgproxy, valhalla, tileserver, mailhog)
-cd backend
+# PostgreSQL, MinIO, imgproxy, varnish, valhalla, tileserver, mailhog
 docker compose up -d
 
 # Wait for PostgreSQL to be ready
-docker compose exec postgres pg_isready -U pedalons
+docker compose exec postgres pg_isready -U "$POSTGRES_USER"
 ```
 
-`backend/docker-compose.yml` holds the backing services alone — the ones `mvn quarkus:dev` and
-`pnpm dev` talk to. It is **not** the root `docker-compose.yml`, which runs the whole application
-from built images, and the two cannot run at once: both publish postgres on `127.0.0.1:5432`. See
-[Running the full stack locally](#running-the-full-stack-locally) for that one.
+One stack serves both workflows. `docker-compose.yml` is the deployment file; the workstation
+overlay `docker-compose.local.yml` adds mailhog, folds in the valhalla and tileserver of
+`docker-compose.shared.yml`, and publishes on loopback the ports `mvn quarkus:dev` and `pnpm dev`
+talk to — imgproxy on 38080, valhalla on 8002, tileserver on 18080, MinIO on 9000, SMTP on 1025.
+
+The command above starts the backing services **only**: the overlay puts `backend`, `frontend` and
+`traefik` behind an `app` profile, since in dev those three are what you are replacing. Add
+`--profile app` (or `COMPOSE_PROFILES=app` in `.env`) to run the whole application from the built
+images — see [Running the full stack locally](#running-the-full-stack-locally). A deployment reads
+`docker-compose.yml` alone, where the three carry no profile and always start.
 
 ### 4. Start Backend
 
 ```bash
 cd backend
+source ../scripts/dev-env.sh   # postgres + MinIO credentials, from the same .env the stack reads
 ./mvnw quarkus:dev
 ```
+
+`dev-env.sh` exports those five values and nothing else — on purpose. Quarkus reads environment
+variables at a higher ordinal than `application.properties`, so sourcing the whole `.env` would
+override the `%dev` bootstrap domain (`localhost`, which is the WebAuthn origin of dev passkeys)
+with the stack's own. If the `.env` still holds the `.env.example` credentials, the `%dev` defaults
+already match and the `source` is a no-op.
 
 Backend available at:
 - API: http://localhost:8080/api
@@ -125,7 +174,7 @@ tenant from the `Host` header, so browsing through a *second* hostname — a LAN
 own `domains` row. Open a `psql` prompt on the dev database:
 
 ```bash
-docker exec -it pedalons-dev-postgres psql -U pedalons -d pedalons
+docker exec -it "${ENV_NAME}-postgres" sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
 ```
 
 Then insert a domain matching the host you browse the frontend with:
@@ -180,7 +229,8 @@ tribly/
 ├── scripts/          # Utility scripts
 ├── data/             # Runtime data (segments, tileserver, keys)
 ├── docker-compose.yml         # One deployed environment (prod, staging, ...)
-├── docker-compose.local.yml   # Workstation overlay: mailhog, pgAdmin. Never deployed
+├── docker-compose.local.yml   # Workstation overlay: mailhog, the shared services, the
+│                              #   loopback ports dev mode needs. Never deployed
 └── docker-compose.shared.yml  # Services shared by every environment on the host
 ```
 
@@ -244,14 +294,24 @@ wherever they run, and there `pedalons.email.brevo.enabled=true` sends through t
 migration the local database holds thousands of real member addresses, and one OTP or team
 invitation is enough to reach them.
 
-`COMPOSE_FILE` makes a plain `docker compose` command pick up the overlay — mailhog and pgAdmin
-(http://127.0.0.1:5050) — here and nowhere else. A deployed `.env` has no `COMPOSE_FILE` and reads
-`docker-compose.yml` alone, which is why the overlay is a separate file rather than a profile.
+`COMPOSE_FILE` makes a plain `docker compose` command pick up the overlay here and nowhere else. A
+deployed `.env` has no `COMPOSE_FILE` and reads `docker-compose.yml` alone, which is why the overlay
+is a separate file rather than a profile. What it adds: mailhog (http://127.0.0.1:8025); valhalla
+and tileserver, `extends`-ed from `docker-compose.shared.yml`; and the loopback ports
+[dev mode](#3-start-infrastructure) talks to.
+
+**No shared stack on a workstation.** A host runs one for several environments; a laptop has one, so
+the overlay pulls those two services into it and redeclares the `shared` network as an ordinary
+project network (`${ENV_NAME}-shared`) instead of the `external` `pedalons-shared`. Nothing to start
+beforehand:
 
 ```bash
-cd ~/shared && docker compose -f docker-compose.shared.yml up -d   # still required
-cd ~/code/tribly && ./build.sh && docker compose up -d
+cd ~/code/tribly && ./build.sh && docker compose --profile app up -d
 ```
+
+`--profile app` is what pulls in `backend`, `frontend` and `traefik`; without it the overlay starts
+the backing services alone, which is what [dev mode](#3-start-infrastructure) wants. Put
+`COMPOSE_PROFILES=app` in the `.env` if this machine mostly runs the full stack.
 
 ### Redacting credentials from access logs
 
@@ -586,22 +646,11 @@ committing, and include its output in the commit.
 
 ## Running SQL
 
-Two different PostgreSQL containers exist depending on how you run Pedalons. Check which one you have with `docker ps` before running anything.
-
-| Setup | Compose file | Container | Credentials |
-|-------|--------------|-----------|-------------|
-| Local dev | `backend/docker-compose.yml` | `pedalons-dev-postgres` | Hardcoded (`pedalons` / `pedalons_dev_password`) |
-| Full stack | `docker-compose.yml` (root) | `${ENV_NAME}-postgres` — `tribly-prod-postgres`, `tribly-local-postgres`, … | From `.env` (not versioned) |
-
-**Local dev** — the port is published on `127.0.0.1:5432`, so any client works:
-
-```bash
-docker exec -it pedalons-dev-postgres psql -U pedalons -d pedalons
-```
-
-**Full stack** — the container name follows `ENV_NAME`, so read it from `docker ps` rather than
-assuming. Read the credentials from the container's own environment too, which keeps secrets out of
-your shell history:
+One PostgreSQL container, whichever way you run Pedalons: `${ENV_NAME}-postgres` —
+`tribly-prod-postgres`, `tribly-local-postgres`, … Its credentials come from `.env`, which is not
+versioned. The container name follows `ENV_NAME`, so read it from `docker ps` rather than assuming,
+and read the credentials from the container's own environment, which keeps secrets out of your shell
+history:
 
 ```bash
 # Interactive session
@@ -611,9 +660,10 @@ docker exec -it "${ENV_NAME}-postgres" sh -c 'psql -U "$POSTGRES_USER" -d "$POST
 docker exec "${ENV_NAME}-postgres" sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c "SELECT domain, name, active FROM domains;"'
 ```
 
-This stack does publish `127.0.0.1:${POSTGRES_HOST_PORT:-5432}` — that is how
-`scripts/biketeam_restore.sh` reaches it from the host — which is also why it cannot run alongside
-the dev services above.
+It also publishes `127.0.0.1:${POSTGRES_HOST_PORT:-5432}` — that is how `scripts/biketeam_restore.sh`
+and `mvn quarkus:dev` reach it from the host, and how any client of yours can. **The stack ships no
+SQL browser**: pick your own — psql, pgAdmin, DBeaver, the database panel of your IDE — and point it
+at `localhost:5432` with the `.env` credentials. Nothing to declare in compose for that.
 
 Use `-v ON_ERROR_STOP=1` for anything that writes: without it `psql` reports the error and carries on to the next statement, so a failed migration script looks like it succeeded.
 

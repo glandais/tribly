@@ -5,6 +5,21 @@
 #
 # A local .env sets COMPOSE_FILE to that pair, so plain `docker compose up -d` picks it up here and
 # nowhere else — a deployed .env has no COMPOSE_FILE and reads docker-compose.yml alone.
+#
+# Four things a deployment does not want:
+#
+#   1. mailhog. No SQL client here: postgres is published on the loopback, so bring your own —
+#      psql, pgAdmin, DBeaver, an IDE. See "Running SQL" in README.md.
+#   2. valhalla and tileserver, pulled from docker-compose.shared.yml with `extends`. A host runs
+#      that stack once and shares it between every environment; a workstation has one environment,
+#      so it runs one stack instead of two — and the `shared` network becomes an ordinary project
+#      network (see the bottom of this file) instead of one that must exist beforehand.
+#   3. the host ports `mvn quarkus:dev` and `pnpm dev` talk to. A deployed backend reaches every
+#      service over the compose network and publishes none of them; the %dev profile runs outside
+#      Docker and expects imgproxy on 38080, valhalla on 8002, tileserver on 18080, MinIO on 9000
+#      and SMTP on 1025. Postgres is already published by docker-compose.yml (POSTGRES_HOST_PORT).
+#   4. an `app` profile on backend/frontend/traefik, so that a plain `up` starts the backing services
+#      alone — see the comment on those three below.
 services:
   # The stack runs the %prod Quarkus profile, where pedalons.email.brevo.enabled=true sends through
   # the Brevo *API* and QUARKUS_MAILER_* is ignored. The local .env sets
@@ -16,27 +31,56 @@ services:
     networks:
       - pedalons
     ports:
-      # SMTP (1025) stays unpublished: the backend reaches it over the compose network, and leaving
-      # the port free lets the dev stack's own mailhog (backend/docker-compose.yml) bind it.
-      - "127.0.0.1:8025:8025"
+      - "127.0.0.1:1025:1025" # SMTP, for the backend in dev mode
+      - "127.0.0.1:8025:8025" # Web UI
 
-  pgadmin:
-    image: dpage/pgadmin4:9.17
-    container_name: ${ENV_NAME}-pgadmin
-    restart: unless-stopped
-    networks:
-      - pedalons
+  # Image, volumes and the tile_urls whose every change costs a multi-hour rebuild all come from the
+  # shared file — only the container name and the published port are ours.
+  valhalla:
+    extends:
+      file: docker-compose.shared.yml
+      service: valhalla
+    container_name: ${ENV_NAME}-valhalla
     ports:
-      - "127.0.0.1:5050:80"
-    environment:
-      # pgAdmin validates this address and refuses reserved TLDs, `.local` included. It is a local
-      # login, never mailed to.
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@pedalons.fr}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
-      PGADMIN_CONFIG_SERVER_MODE: "False"
-      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
+      - "127.0.0.1:8002:8002"
 
-volumes:
-  pgadmin_data:
+  tileserver:
+    extends:
+      file: docker-compose.shared.yml
+      service: tileserver
+    container_name: ${ENV_NAME}-tileserver
+    ports:
+      - "127.0.0.1:18080:8080"
+
+  # On a deployed host these three are the point of the stack and always start. On a workstation the
+  # common case is the opposite — `mvn quarkus:dev` and `pnpm dev` replace them, and want only the
+  # services below — so here they move behind a profile. `docker compose up -d` then brings up the
+  # backing services alone, and the full stack needs the profile named:
+  #
+  #   docker compose --profile app up -d          # or COMPOSE_PROFILES=app in .env
+  #
+  # `down`, `ps -a` and `logs` still see them: profiles gate what starts, not what belongs to the
+  # project. Adding a profile is an override-only change, so a deployment keeps starting everything.
+  backend:
+    profiles: [app]
+  frontend:
+    profiles: [app]
+  traefik:
+    profiles: [app]
+
+  imgproxy:
+    ports:
+      - "127.0.0.1:38080:8080"
+
+  minio:
+    ports:
+      - "127.0.0.1:9000:9000" # S3 API
+      - "127.0.0.1:9001:9001" # Console UI
+
+networks:
+  # docker-compose.yml declares this one `external`, so a deployed environment refuses to start
+  # until the shared stack has created it. Here valhalla and tileserver belong to *this* project, so
+  # the network is ours to create — and there is no shared stack on a workstation to create it.
+  shared:
+    name: ${ENV_NAME}-shared
+    external: false

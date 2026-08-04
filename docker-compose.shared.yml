@@ -9,6 +9,9 @@
 #
 #   docker compose -f docker-compose.shared.yml up -d
 #
+# Sur un poste de travail, on ne la lance pas : docker-compose.local.yml reprend ces deux services
+# via `extends` et redeclare le reseau en reseau de projet, pour n'avoir qu'une seule stack.
+#
 # Les noms de services `valhalla` et `tileserver` sont les alias DNS sur ce reseau : VALHALLA_URL et
 # TILESERVER_URL des .env d'environnement restent inchanges.
 #

@@ -1,5 +1,7 @@
 package fr.pedalons.util;
 
+import static java.util.stream.Collectors.joining;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -15,8 +17,9 @@ import java.util.regex.Pattern;
  * to date, so test images never drift from the rest of the stack.
  *
  * <ul>
- *   <li>{@link #compose(String)} reads the {@code image:} tag from {@code docker-compose.yml}
- *       (Dependabot {@code docker-compose} ecosystem).
+ *   <li>{@link #compose(String)} reads the {@code image:} tag from the deployment compose files
+ *       (Dependabot {@code docker-compose} ecosystem). Paths are relative to the Maven basedir, so
+ *       they climb out of {@code backend/} to the repository root.
  *   <li>{@link #s3mockVersion()} reads the version of the {@code s3mock-testcontainers} Maven
  *       dependency (Dependabot {@code maven} ecosystem), filtered into a classpath resource at build
  *       time. S3Mock has no docker-compose entry because production uses MinIO, not S3Mock.
@@ -24,19 +27,32 @@ import java.util.regex.Pattern;
  */
 public final class ContainerImages {
 
-  private static final Path COMPOSE_FILE = Path.of("docker-compose.yml");
+  // valhalla and tileserver live in the shared file, everything else in the environment one.
+  private static final List<Path> COMPOSE_FILES =
+      List.of(Path.of("../docker-compose.yml"), Path.of("../docker-compose.shared.yml"));
   private static final Pattern SERVICE = Pattern.compile("^ {2}([\\w-]+):\\s*$");
   private static final Pattern IMAGE = Pattern.compile("^\\s+image:\\s*(\\S+)\\s*$");
 
   private ContainerImages() {}
 
-  /** Returns the {@code image:} value declared for {@code service} in docker-compose.yml. */
+  /** Returns the {@code image:} value declared for {@code service} in the compose files. */
   public static String compose(String service) {
+    for (Path file : COMPOSE_FILES) {
+      String image = imageIn(file, service);
+      if (image != null) {
+        return image;
+      }
+    }
+    throw new IllegalStateException(
+        "No image found for service '" + service + "' in " + absolutePaths());
+  }
+
+  private static String imageIn(Path file, String service) {
     List<String> lines;
     try {
-      lines = Files.readAllLines(COMPOSE_FILE);
+      lines = Files.readAllLines(file);
     } catch (IOException e) {
-      throw new UncheckedIOException("Cannot read " + COMPOSE_FILE.toAbsolutePath(), e);
+      throw new UncheckedIOException("Cannot read " + file.toAbsolutePath(), e);
     }
     boolean inService = false;
     for (String line : lines) {
@@ -52,8 +68,11 @@ public final class ContainerImages {
         }
       }
     }
-    throw new IllegalStateException(
-        "No image found for service '" + service + "' in " + COMPOSE_FILE.toAbsolutePath());
+    return null;
+  }
+
+  private static String absolutePaths() {
+    return COMPOSE_FILES.stream().map(p -> p.toAbsolutePath().toString()).collect(joining(", "));
   }
 
   /** Returns the S3Mock image version, matched to the s3mock-testcontainers Maven dependency. */

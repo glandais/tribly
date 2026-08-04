@@ -23,25 +23,36 @@ Quarkus REST API backend for the Pedalons cycling team management platform.
 
 ### 1. Start infrastructure
 
+The backing services live in the repository-root stack — `docker-compose.yml` plus the workstation
+overlay `docker-compose.local.yml`, which is what publishes the loopback ports below. See
+[Development Setup](../README.md#development-setup) for the `.env` a workstation needs.
+
 ```bash
-docker compose up -d
+cd .. && docker compose up -d
 ```
 
-This starts:
+`backend`, `frontend` and `traefik` sit behind an `app` profile in the overlay, so this starts the
+backing services alone — which is what dev mode wants. They provide:
 
 | Service | Port | Purpose |
 |---------|------|---------|
 | PostgreSQL + PostGIS | 5432 | Database |
 | MinIO | 9000 (API), 9001 (console) | S3-compatible object storage |
 | imgproxy | 38080 | Image transformation |
-| valhalla | 17777 | Cycling route engine |
+| valhalla | 8002 | Cycling route engine |
+| tileserver | 18080 | Server-side raster map rendering |
 | Mailhog | 1025 (SMTP), 8025 (web) | Email testing |
 
 ### 2. Start the backend
 
 ```bash
+source ../scripts/dev-env.sh   # postgres + MinIO credentials, from the .env the stack reads
 mvn quarkus:dev
 ```
+
+`dev-env.sh` exports those five values and nothing else: Quarkus reads environment variables above
+`application.properties`, so sourcing the whole `.env` would replace the `%dev` bootstrap domain
+(`localhost`, the WebAuthn origin of dev passkeys) with the stack's own.
 
 The API is available at http://localhost:8080/api with Swagger UI at http://localhost:8080/q/swagger-ui.
 
@@ -51,7 +62,7 @@ Quarkus dev mode provides live reload — code changes are reflected automatical
 
 The platform is multi-tenant by HTTP domain. You need at least one domain entry to use the app.
 
-Open a `psql` prompt on the dev database started by `docker compose up -d`:
+Open a `psql` prompt on the database started by `docker compose up -d`:
 
 ```bash
 docker exec -it pedalons-dev-postgres psql -U pedalons -d pedalons
@@ -147,7 +158,9 @@ The API covers these functional areas:
 
 Configuration uses Quarkus profiles (`%dev`, `%test`, `%prod`) in `application.properties`.
 
-**Dev defaults** are provided — no `.env` file needed for local development with `docker compose up`.
+**Dev defaults** match `.env.example`, so a stack left at those credentials needs no export at all.
+A stack with its own `POSTGRES_*` / `MINIO_*` values needs `source ../scripts/dev-env.sh` first —
+`%dev` reads them from the environment, defaulting to the `.env.example` ones.
 
 **Production** requires environment variables:
 

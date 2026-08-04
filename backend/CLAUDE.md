@@ -7,7 +7,8 @@ See also the root [../CLAUDE.md](../CLAUDE.md) for full-stack context.
 ## Commands
 
 ```bash
-mvn quarkus:dev                    # Dev mode (requires docker-compose up)
+source ../scripts/dev-env.sh       # stack credentials (postgres, MinIO) — before quarkus:dev
+mvn quarkus:dev                    # Dev mode (requires the root `docker compose up -d`)
 mvn test                           # All tests (uses TestContainers for PostgreSQL + MinIO)
 mvn test -Dtest=RideResourceTest   # Single test class
 mvn test -Dtest="RideResourceTest#testCreateRide"  # Single test method

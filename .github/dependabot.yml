@@ -152,21 +152,6 @@ updates:
       prefix: "deps(docker-compose)"
       include: "scope"
 
-  # Docker Compose dependencies (backend)
-  - package-ecosystem: "docker-compose"
-    directory: "/backend"
-    schedule:
-      interval: "weekly"
-      day: "tuesday"
-      time: "10:00"
-      timezone: "Europe/Paris"
-    open-pull-requests-limit: 3
-    assignees:
-      - "glandais"
-    commit-message:
-      prefix: "deps(docker-compose)"
-      include: "scope"
-
   # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"

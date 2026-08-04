@@ -50,25 +50,34 @@ Three invariants that cut across modules, each of which a plausible-looking chan
 
 ## Infrastructure
 
-There are **two** compose files at play locally, and they cannot run at the same time — both publish
-postgres on `127.0.0.1:5432`.
+**One** stack serves both workflows on a workstation — there is no separate dev compose file.
 
 ```bash
-# Backing services only, for `mvn quarkus:dev` + `pnpm dev`. Postgres, imgproxy,
-# valhalla, tileserver, minio, mailhog (UI on :8025).
-docker compose -f backend/docker-compose.yml up -d
-
-# The whole application, from the built images.
+# Backing services only, for `mvn quarkus:dev` + `pnpm dev`.
 docker compose up -d
+
+# The whole application, from the images built by ./build.sh.
+docker compose --profile app up -d
 ```
 
 `docker-compose.yml` **is the deployment file** — keep dev tooling out of it. What a workstation
-needs on top lives in `docker-compose.local.yml` (mailhog on :8025, pgAdmin on :5050), and the local
-`.env` sets `COMPOSE_FILE=docker-compose.yml:docker-compose.local.yml` so a plain `docker compose`
-command picks up both. A deployed `.env` has no `COMPOSE_FILE` and reads `docker-compose.yml` alone.
+needs on top lives in `docker-compose.local.yml`, and the local `.env` sets
+`COMPOSE_FILE=docker-compose.yml:docker-compose.local.yml` so a plain `docker compose` command picks
+up both. A deployed `.env` has no `COMPOSE_FILE` and reads `docker-compose.yml` alone. The overlay
+carries four things: mailhog (:8025 — and no SQL browser, deliberately: postgres is on :5432, bring
+the client you like); valhalla and tileserver, `extends`-ed from
+`docker-compose.shared.yml` so a laptop runs one stack rather than two — which is also why it
+redeclares the `shared` network as a plain project network instead of the `external`
+`pedalons-shared`; the loopback ports the out-of-Docker dev backend expects (imgproxy 38080, valhalla
+8002, tileserver 18080, MinIO 9000, SMTP 1025 — postgres is already published by
+`POSTGRES_HOST_PORT`); and an `app` profile on `backend`/`frontend`/`traefik`, which is why a plain
+`up` starts the backing services alone. Adding a profile is override-only, so a deployment still
+starts all three by default.
 
-The full stack needs `docker-compose.shared.yml` up first (valhalla + tileserver on the external
-`pedalons-shared` network) and images built by `./build.sh`, which tags them `:${ENV_NAME}`.
+**The dev backend needs the stack's credentials**: `source scripts/dev-env.sh` before
+`mvn quarkus:dev`. It exports the postgres/MinIO values from `.env` and nothing else — Quarkus reads
+env vars above `application.properties`, so the full file would override the `%dev` bootstrap domain
+(`localhost`, the WebAuthn origin of dev passkeys).
 
 **`ENV_NAME` names the stack** — containers, network, image tags, and the `${ENV_NAME}-minio` the
 backup scripts inspect. Keep it `tribly-local` on a workstation: a local stack called `…-prod` is
@@ -123,4 +132,3 @@ prettier-plugin-monkeyc). `format.sh` fails loudly if a toolchain is missing rat
 | Backend API | http://localhost:8080/api |
 | Swagger UI | http://localhost:8080/q/swagger-ui |
 | Frontend | http://localhost:5173 |
-| pgAdmin | http://localhost:5050 |
