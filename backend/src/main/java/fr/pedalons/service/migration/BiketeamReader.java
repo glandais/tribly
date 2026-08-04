@@ -259,6 +259,18 @@ public class BiketeamReader {
                 rs.getString(10)));
   }
 
+  /**
+   * Biketeam's single free-form team page, held in {@code team_configuration.markdown_page} and
+   * served by its {@code FAQController} at {@code /{teamId}/faq}. Already Markdown, unlike {@code
+   * team_description}.
+   */
+  public @Nullable String findTeamMarkdownPage(String teamId) {
+    return one(
+        "SELECT markdown_page FROM team_configuration WHERE team_id = ?",
+        ps -> ps.setString(1, teamId),
+        rs -> rs.getString(1));
+  }
+
   public List<BtUser> findUsersByIds(List<String> ids) {
     if (ids.isEmpty()) {
       return List.of();

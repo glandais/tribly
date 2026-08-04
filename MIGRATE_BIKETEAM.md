@@ -190,7 +190,7 @@ update right after each insert.
 
 | tribly | biketeam source |
 |---|---|
-| `Team.createdAt` (and its about page) | `team.created_at` (a date → midnight Paris) |
+| `Team.createdAt` (and its about page, and its FAQ page) | `team.created_at` (a date → midnight Paris) |
 | `Route.createdAt` and `dateTime` | `map.posted_at` (a date; biketeam has no finer timestamp) |
 | `Ride` / `Trip` / `Post` `.createdAt` | their `published_at` |
 | `Ride.dateTime` | `ride.date` + earliest group meeting time |
@@ -204,6 +204,34 @@ collapse onto the migration timestamp.
 
 Places, users, memberships and participations carry no date in biketeam, so theirs is the
 migration time.
+
+## Team pages
+
+Biketeam had exactly two pieces of free-form team prose, and tribly's `TeamPage` takes both:
+
+| biketeam | tribly |
+|---|---|
+| `team_description` (presentation + contact details) | the team's **about** page, rendered to markdown |
+| `team_configuration.markdown_page` | an **additional** page titled *FAQ* |
+
+`markdown_page` is what biketeam's `FAQController` served at `/{teamId}/faq`, under that fixed
+title — the schema has no other page table and no per-page title, so *FAQ* is the whole of it. Six
+teams of the 2026-07 dump have one (`n-peloton`, `audax-lavallois`, `mollet_qui_pique`,
+`la_petite_amicale_du`, `tomacla`, `malika`); the other 181 get no additional page.
+
+The column already holds Markdown, so it is copied across as-is — only CRLF is normalised, with
+none of the hard-break rewriting `team_description` needs. It lands at
+`/equipes/{team}/pages/faq`, published, at the team's own visibility, dated to the team's creation
+like the about page.
+
+Written through `TeamPageRepository` rather than `TeamPageService.createPage`: that path enforces a
+three-additional-pages cap. Biketeam can never supply more than one, but the cap counts pages an
+earlier run already created. Replays match on the `TEAM_PAGE` mapping keyed `<teamId>:faq` — the
+bare `<teamId>` is the about page — and refresh the markdown in place.
+
+**Internal links are not rewritten.** `n-peloton`'s page links to
+`https://www.prendslaroue.fr/n-peloton/faq#equipement` and to its old home page; those stay pointing
+at biketeam and have to be fixed by hand, or by the team, once the old site goes away.
 
 ## Team logos
 

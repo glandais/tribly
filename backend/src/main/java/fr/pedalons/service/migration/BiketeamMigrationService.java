@@ -53,6 +53,7 @@ import fr.pedalons.repository.ride.RideRepository;
 import fr.pedalons.repository.ridetemplate.RideTemplateGroupRepository;
 import fr.pedalons.repository.ridetemplate.RideTemplateRepository;
 import fr.pedalons.repository.route.RouteRepository;
+import fr.pedalons.repository.team.TeamPageRepository;
 import fr.pedalons.repository.team.TeamRepository;
 import fr.pedalons.repository.team.UserTeamRepository;
 import fr.pedalons.repository.trip.TripParticipationRepository;
@@ -61,6 +62,7 @@ import fr.pedalons.repository.user.UserRepository;
 import fr.pedalons.service.asset.AssetService;
 import fr.pedalons.service.asset.response.AssetWithFile;
 import fr.pedalons.service.bootstrap.BootstrapService;
+import fr.pedalons.service.common.SlugService;
 import fr.pedalons.service.place.PlaceService;
 import fr.pedalons.service.post.PostService;
 import fr.pedalons.service.ride.RideService;
@@ -139,6 +141,15 @@ public class BiketeamMigrationService {
   private static final String T_COMMENT = "COMMENT";
   private static final String T_ASSET = "ASSET";
 
+  /**
+   * Mapping key of the FAQ page. {@link #T_TEAM_PAGE} keyed on the bare team id already means that
+   * team's about page, and both are minted from the same source row.
+   */
+  private static final String FAQ_PAGE_KEY_SUFFIX = ":faq";
+
+  /** Biketeam had no title for its markdown page — its navbar and template both say "FAQ". */
+  private static final String FAQ_PAGE_NAME = "FAQ";
+
   /** MD5 of biketeam's placeholder team logo — see {@link #isPlaceholderLogo}. */
   private static final Set<String> PLACEHOLDER_LOGO_MD5 =
       Set.of(
@@ -170,6 +181,9 @@ public class BiketeamMigrationService {
   @Inject TripParticipationRepository tripParticipationRepository;
   @Inject RideTemplateRepository rideTemplateRepository;
   @Inject RideTemplateGroupRepository rideTemplateGroupRepository;
+  @Inject TeamPageRepository teamPageRepository;
+
+  @Inject SlugService slugService;
 
   @Inject PlaceService placeService;
   @Inject RouteService routeService;
@@ -250,6 +264,7 @@ public class BiketeamMigrationService {
     // No membership for the migration admin: each team gets its own admins from user_role.
     Team team = ensureTargetTeam(domain, admin, btTeam);
     migrateTeamDescription(team, sourceTeam);
+    migrateTeamPage(team, admin, btTeam);
     migrateTeamLogo(team, sourceTeam);
 
     Map<String, Long> userIds = migrateUsers(domain, sourceTeam);
@@ -344,6 +359,56 @@ public class BiketeamMigrationService {
     teamRepository.persist(managed);
     mapRepo.upsert(T_TEAM_PAGE, sourceTeam, about.getId());
     LOG.infof("Migrated team description into the about page of '%s'", managed.getSlug());
+  }
+
+  // ─── Team FAQ page ────────────────────────────────────────────────────────
+
+  /**
+   * Biketeam gave a team exactly one free-form page — {@code team_configuration.markdown_page},
+   * served by its {@code FAQController} at {@code /{teamId}/faq} under the fixed title "FAQ". There
+   * is no second page type in the schema, so this is the whole of it: it becomes one additional
+   * {@link TeamPage} named {@value #FAQ_PAGE_NAME}, alongside the about page that carries the team
+   * description.
+   *
+   * <p>The content is already Markdown, so no {@link #biketeamToMarkdown} pass — only line-ending
+   * normalisation. Written through the repository rather than {@code TeamPageService.createPage},
+   * which would refuse anything past its three-additional-pages cap; biketeam can never supply more
+   * than one, but the cap counts what earlier runs left behind.
+   */
+  @Transactional
+  protected void migrateTeamPage(Team team, User admin, BiketeamReader.BtTeam btTeam) {
+    String sourceTeam = btTeam.id();
+    String markdown = normalizeNewlines(reader.findTeamMarkdownPage(sourceTeam));
+    if (markdown.isBlank()) {
+      return;
+    }
+    Team managed = teamRepository.findByIdOptional(team.getId()).orElseThrow();
+    String key = sourceTeam + FAQ_PAGE_KEY_SUFFIX;
+    Long mapped = mapRepo.findTriblyId(T_TEAM_PAGE, key);
+    TeamPage page =
+        mapped == null ? null : teamPageRepository.findByIdOptional(mapped).orElse(null);
+    boolean created = page == null;
+    if (created) {
+      String slug = slugService.generateSlug(FAQ_PAGE_NAME, managed.getId(), teamPageRepository);
+      page =
+          TeamPage.createAdditionalPage(
+              admin,
+              managed,
+              FAQ_PAGE_NAME,
+              slug,
+              contentVisibility(managed.getVisibility()),
+              teamPageRepository.getNextPageOrder(managed.getId()));
+      page.setDateTime(atParis(btTeam.createdAt(), null));
+    }
+    page.setMarkdown(markdown);
+    page.setStatus(Status.PUBLISHED);
+    page.setVisibility(contentVisibility(managed.getVisibility()));
+    teamPageRepository.persistAndFlush(page);
+    mapRepo.upsert(T_TEAM_PAGE, key, page.getId());
+    if (created) {
+      backdate("team_entities", page.getId(), atParis(btTeam.createdAt(), null));
+    }
+    LOG.infof("Migrated the FAQ page of team '%s'", managed.getSlug());
   }
 
   // ─── Team logo ────────────────────────────────────────────────────────────
@@ -1625,8 +1690,12 @@ public class BiketeamMigrationService {
    * and leave existing paragraph breaks ({@code \n\n}) untouched.
    */
   private static String biketeamToMarkdown(@Nullable String s) {
+    return normalizeNewlines(s).replaceAll("(?<!\\n)\\n(?!\\n)", "  \n");
+  }
+
+  /** For source columns that already hold Markdown and need no line-break rewriting. */
+  private static String normalizeNewlines(@Nullable String s) {
     if (s == null || s.isEmpty()) return "";
-    String normalized = s.replace("\r\n", "\n").replace("\r", "\n");
-    return normalized.replaceAll("(?<!\\n)\\n(?!\\n)", "  \n");
+    return s.replace("\r\n", "\n").replace("\r", "\n");
   }
 }
