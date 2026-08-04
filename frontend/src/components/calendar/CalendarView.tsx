@@ -228,10 +228,10 @@ export function CalendarView({
         return button
       }
 
-      // `c="inherit"` is load-bearing: Mantine's Tooltip inverts its own colours per scheme
-      // (dark surface + white text in light mode, light surface + black text in dark mode),
-      // while `Text` defaults to `--mantine-color-text` — the opposite value in both. Without
-      // it the label renders dark-on-dark in light mode and light-on-light in dark mode.
+      // This tooltip is a card (thumbnail + several lines), not a one-line label, so it is
+      // restyled as a surface that *follows* the scheme instead of inverting it — Mantine's
+      // default would paint a light box in dark mode. `c="inherit"` keeps every line on the
+      // tooltip's own colour rather than each `Text` re-resolving `--mantine-color-text`.
       const tooltip = (
         <Stack gap={4}>
           {thumbnail ? (
@@ -262,7 +262,26 @@ export function CalendarView({
       )
 
       return (
-        <Tooltip label={tooltip} withArrow multiline w={220} openDelay={250} position="top">
+        <Tooltip
+          label={tooltip}
+          withArrow
+          multiline
+          w={220}
+          openDelay={250}
+          position="top"
+          styles={{
+            tooltip: {
+              backgroundColor: 'var(--mantine-color-body)',
+              color: 'var(--mantine-color-text)',
+              border: '1px solid var(--mantine-color-default-border)',
+              boxShadow: 'var(--mantine-shadow-md)',
+            },
+            arrow: {
+              backgroundColor: 'var(--mantine-color-body)',
+              border: '1px solid var(--mantine-color-default-border)',
+            },
+          }}
+        >
           {button}
         </Tooltip>
       )
