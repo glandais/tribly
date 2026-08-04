@@ -151,18 +151,22 @@ export function RouteDetailPage() {
         />
       </Box>
 
-      {/* Where this route is used (rides & trips) — visible to all, results already access-filtered */}
-      <RouteUsages teamSlug={teamSlug!} routeSlug={routeSlug!} />
-
       {/* Comments Section - only visible to team members */}
       {isMember && (
-        <CommentSection
-          teamSlug={teamSlug!}
-          entityType="routes"
-          entitySlug={routeSlug!}
-          isOrganizer={!!canEdit}
-        />
+        <Box mt="xl">
+          <CommentSection
+            teamSlug={teamSlug!}
+            entityType="routes"
+            entitySlug={routeSlug!}
+            isOrganizer={!!canEdit}
+          />
+        </Box>
       )}
+
+      {/* Where this route is used (rides & trips) — visible to all, results already access-filtered.
+          Last on the page: it's navigation away from the route, after its own discussion. Its own
+          `mt="xl"` carries the gap from whatever precedes it. */}
+      <RouteUsages teamSlug={teamSlug!} routeSlug={routeSlug!} />
     </Box>
   )
 }
