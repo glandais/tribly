@@ -10,7 +10,7 @@ services:
   # the Brevo *API* and QUARKUS_MAILER_* is ignored. The local .env sets
   # PEDALONS_EMAIL_BREVO_ENABLED=false to fall back to SMTP — which lands here, and goes no further.
   mailhog:
-    image: mailhog/mailhog:latest
+    image: mailhog/mailhog:v1.0.1
     container_name: ${ENV_NAME}-mailhog
     restart: unless-stopped
     networks:
@@ -21,7 +21,7 @@ services:
       - "127.0.0.1:8025:8025"
 
   pgadmin:
-    image: dpage/pgadmin4:latest
+    image: dpage/pgadmin4:9.17
     container_name: ${ENV_NAME}-pgadmin
     restart: unless-stopped
     networks:
