@@ -154,8 +154,18 @@ export function MarkdownEditor({
               borderBottom: '1px solid var(--mantine-color-default-border)',
               borderRadius: 'var(--mantine-radius-xl) var(--mantine-radius-xl) 0 0',
             },
+            // The content box reserves its height inline, NOT from `tiptap.css`. Two independent
+            // things arrive after the first paint: the editor itself (`useEditor` returns null
+            // until it is created, so there is no `.ProseMirror` in the DOM) and the page chunk's
+            // stylesheet. With the min-height in the stylesheet, either one missing collapses the
+            // zone to 0 px — measured: 150 px with the rule, 0 px without it. An inline style is
+            // part of the markup, so the box is the right size from the very first frame.
             content: {
               borderRadius: '0 0 var(--mantine-radius-xl) var(--mantine-radius-xl)',
+              minHeight,
+              maxHeight,
+              overflowY: 'auto',
+              resize: 'vertical',
             },
           }}
         >

@@ -1,12 +1,9 @@
 /* Tiptap Editor Custom Styles */
 
-/* Content area styling */
-.tiptap-editor .mantine-RichTextEditor-content {
-  min-height: var(--tiptap-min-height, 200px);
-  max-height: var(--tiptap-max-height, 1024px);
-  overflow-y: auto;
-  resize: vertical;
-}
+/* The content box's own height (min/max, overflow, resize) is set inline in MarkdownEditor.tsx:
+   this stylesheet arrives with the page chunk, and until it does a rule here would leave the
+   editor 0 px tall. Only the inner ProseMirror — which does not exist before the editor is
+   created, so it cannot hold the reservation — is styled from here. */
 
 .tiptap-editor .mantine-RichTextEditor-content .ProseMirror {
   padding: 1.25rem 1.5rem;
