@@ -39,15 +39,16 @@ makes the app redirect to its canonical URL on load, which discards the verdict.
 
 ## Last run
 
-2026-08-03 21:57Z, **local production build on :3000** — 158 checks, **0 login failures**,
-**9 with issues** (9 prefetch, 2 hydration). Verdicts: **142 covered, 9 gaps, 7 not measured**.
+2026-08-03 22:35Z, **local production build on :3000** — 158 checks, **0 login failures**,
+**4 with issues** (4 prefetch, 2 hydration). Verdicts: **147 covered, 4 gaps, 7 not measured**.
 
-62 → 42 → **9** across three runs. This one measures the fixes for everything the 21:19Z run found:
-the fullscreen maps, `teamCalendar`, `gps/available`, `profile`, the gpx tools, `teamsNew`, the five
-`/platform/*` screens and `rideTemplateEdit` all report `covered`. Of the nine that remain, **six are
-the two things this file says should stay** (four form-picker checks, two FullCalendar visible
-grids), one is a fix that moved its own gap by one key (§1), and the two hydration issues are one
-`CalendarView` defect on two screens (§4).
+62 → 42 → 9 → **4** across four runs, and **the four are the documented false positive**:
+FullCalendar's visible grid, whose range depends on the viewport and cannot be computed
+server-side, on `calendar` (×3 users) and `teamCalendar` (×1). Every real prefetch gap is closed —
+`adEdit`'s two ad shapes, the form pickers, `rideEdit`'s current selections, all confirmed here.
+
+What is left in this file is **one defect** (§1, the `CalendarView` hydration mismatch, `user1` on
+both calendars) and the false positives. Nothing else on 158 checks.
 
 **Structural change worth knowing before fixing anything below**: every route with a `prefetch` now
 has a **companion module** next to its page (`pages/<domain>/<screen>Data.ts`), read as hooks by the
@@ -58,11 +59,8 @@ means writing one, never adding a `prefetchXxxQuery` call to `routes.config.ts`.
 The 7 still not measured redirect legitimately on load: `completeAccount` (×3 — the redirect *is*
 the known bug), `gpxToolsNew` (×3), `teamAdmin/user1`.
 
-**The SEO-critical surface is clean**, and so is every authenticated screen except the entries
-below: the public pages (`home`, `teams`, `team`, `teamAbout`, `teamPage`, `ride`, `trip`, `stage`,
-`stageMap`, `post`, `routes`, `route`, `routeMap`, `routesMap`, `allRoutes`, `allRoutesMap`, `ads`,
-`ad`, `apps`, `privacy`, `terms`, `gpxTools*`), `profile`, both calendars' own range, `/platform/*`,
-and every team admin and form screen all report `covered`.
+**Every measured route reports `covered`** — public, authenticated, admin and form screens alike.
+The only queries still fetched after hydration anywhere are the two calendars' viewport grids.
 
 A production React build minifies hydration errors (`#418` = mismatch, with `args[]` naming what
 mismatched; `#185` = update loop) and carries no component diff. That's the expected trade: run the
@@ -70,61 +68,14 @@ build for the inventory, re-run a failing route against `pnpm dev:ssr` when you 
 
 ## Open
 
-### 1. `adEdit` needs **both** ad shapes — *fixed, awaiting a run*
+### 1. `CalendarView` formats event times outside `useFormattedDate` — text mismatch on `/calendar`
 
-A two-run story worth keeping, because the trap generalises.
+React #418 with `args[]=text` (a text-content mismatch) on `/calendar` and on
+`/equipes/{slug}/calendrier`, both for `user1` — **the only defect this file still has open**, and
+the two hydration issues of the 22:35Z run.
 
-The 21:19Z run showed the page reading `/classifieds/{slug}/edit` (`useGetAdEdit`) while the route
-primed `/classifieds/{slug}` (`getAd`) — different endpoints, different keys, prefetched entry dead
-weight. Swapping one for the other closed that gap and opened its mirror image: this run reports
-`/classifieds/{slug}` fetched after paint.
-
-Because the **breadcrumb trail renders the parent crumb**. `ad-edit`'s own crumb is static, but its
-parent `ad-detail` carries `breadcrumb: { type: 'dynamic', entity: 'ad' }`, and `useBreadcrumbData`
-fires `useGetAd` on *any* route whose params carry an `adSlug`. So an edit screen reads its parent's
-entity even when its own form doesn't. `prefetchEditAdForm` now primes both.
-
-Generalises to every `…-edit` route under a dynamic-breadcrumb parent — ride, post, trip, route,
-team page, ride template all already prime the parent's entity because their form happens to read
-the same shape. `ad` was the one where the two shapes differ, which is why only it broke.
-
-### 2. Form pickers fetched lists nobody opened — *fixed, awaiting a run*
-
-`RoutePickerModal` (`routes?page=0&size=20`, on `rideNew`/`rideEdit`/`tripNew`/`tripEdit`) and
-`RideTemplatePickerModal` (`ride-templates?page=0&size=20`, on `rideNew`) query **while still
-closed**: the editors mount them for the whole form session, and only `Modal`'s *rendering* is
-conditional, not the hooks above it. Both queries are now `enabled: isOpen` — the request is gone,
-not moved, which beats prefetching a list most visitors never open.
-
-Watch the loading branch if you touch this again: with `enabled: false` the query is `pending` but
-not `fetching`, so `isLoading` is **false** and the modal would flash its empty state for one frame
-on opening. Both now branch on `isPending`, which stays true until the first data arrives.
-
-### 3. `rideEdit` fetched the form's current selections — *fixed, awaiting a run*
-
-Not the pickers: `places/{id}` (`PlaceAutocomplete`'s lookup of the place already chosen) and
-`routes/bulk?geometry=false` (`RideEditor`'s summary of each group's route). Both render on the
-first paint, so unlike the pickers they were genuine prefetch candidates. `prefetchEditRideForm`
-now runs a second phase off the ride it just primed: `rideFormPlaceIds` and
-`rideFormGroupRouteSlugs`, both exported from `pages/ride/rideFormData.ts`.
-
-`rideFormGroupRouteSlugs` is **not** `rideRouteSlugs` from `rideDetailData.ts`, and the two must not
-be merged: the editor lists each group's own route with no fallback to the ride's, and asks for
-`geometry: false`. Either difference alone changes the key.
-
-`TripEditor` has the same two shapes (a `PlaceAutocomplete`, a `useRoutesBulk` with
-`geometry: false` over its stages) and `tripEdit` prefetches neither — but the crawler has **never
-seen those queries fire** there, on any run, which means they are behind something the first paint
-doesn't render (collapsed stage panels), or the crawled trip has no stage routes. Don't prefetch on
-the strength of the symmetry: crawl a trip that has stage routes first, and only add what the report
-then names.
-
-### 4. `CalendarView` formats event times outside `useFormattedDate` — text mismatch on `/calendar`
-
-React #418 with `args[]=text` (a text-content mismatch) on `/calendar`, and now on
-`/equipes/{slug}/calendrier` as well — both for `user1`, the two hydration issues in this run. The
-spread to `teamCalendar` is a **consequence of fixing its prefetch**: the page renders its events
-server-side now, so it finally has time text to disagree about. One defect, two screens.
+The spread to `teamCalendar` was a **consequence of fixing its prefetch**: the page renders its
+events server-side now, so it finally has time text to disagree about. One defect, two screens.
 
 `useEffectiveTimezone()` (`utils/dateFormat.ts`) resolves to `UTC` on the server whenever the user
 has no `timezone` preference — and it is NULL for all three staging accounts — while the browser
@@ -138,6 +89,17 @@ other two render an empty calendar and so have no time text to disagree about. T
 shape of this class of bug: it shows up only for the account whose data reaches the failing branch,
 so a run where it disappears proves nothing about the fix. It is also why fixing a *prefetch* can
 surface it somewhere new, as `teamCalendar` just did.
+
+### 2. `TripEditor`'s selections may be an unmeasured gap
+
+`TripEditor` renders a `PlaceAutocomplete` and a `useRoutesBulk` with `geometry: false` over its
+stages — the same two shapes `rideEdit` was fixed for — and `tripEdit` prefetches neither. But the
+crawler has **never seen those queries fire** there, on any run, so either they sit behind something
+the first paint doesn't render (collapsed stage panels), or the crawled trip has no stage routes.
+
+Don't prefetch on the strength of the symmetry: that primes keys nobody reads. Point
+`routes-ssr.yml`'s `tripEdit` params at a trip that *has* stage routes, re-crawl, and add only what
+the report then names.
 
 ## Known false positives
 
