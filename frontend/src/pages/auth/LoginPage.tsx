@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation, Trans } from 'react-i18next'
 import { useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
@@ -215,7 +216,7 @@ export function LoginPage() {
                   leftSection={<IconLock size={16} />}
                   {...loginForm.getInputProps('password')}
                 />
-                <Anchor component={Link} to={paths.forgotPassword()} size="sm" ta="right">
+                <Anchor component={PrefetchLink} to={paths.forgotPassword()} size="sm" ta="right">
                   {t('auth.login.forgotPassword')}
                 </Anchor>
                 <Button type="submit" fullWidth loading={isLoading}>

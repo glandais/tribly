@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { useSearchParams, Link, useNavigate } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import { IconCheck, IconX, IconMail, IconFingerprint } from '@tabler/icons-react'
 import { Center, Paper, Stack, Title, Text, Button, Loader } from '@mantine/core'
@@ -142,7 +143,7 @@ export function VerifyEmailPage() {
             />
             <Title order={2}>{t('auth.verifyEmail.success.title')}</Title>
             <Text c="dimmed">{t('auth.verifyEmail.success.message')}</Text>
-            <Button component={Link} to={paths.home()} fullWidth>
+            <Button component={PrefetchLink} to={paths.home()} fullWidth>
               {t('auth.verifyEmail.success.continue')}
             </Button>
           </Stack>
@@ -163,7 +164,7 @@ export function VerifyEmailPage() {
                 {t('auth.verifyEmail.expired.resend')}
               </Button>
             )}
-            <Button component={Link} to={paths.login()} variant="light" fullWidth>
+            <Button component={PrefetchLink} to={paths.login()} variant="light" fullWidth>
               {t('auth.verifyEmail.success.login')}
             </Button>
           </Stack>
@@ -175,7 +176,7 @@ export function VerifyEmailPage() {
             <IconX size={48} style={{ margin: '0 auto' }} color="var(--mantine-color-red-6)" />
             <Title order={2}>{t('auth.verifyEmail.error.title')}</Title>
             <Text c="dimmed">{t('auth.verifyEmail.error.message')}</Text>
-            <Button component={Link} to={paths.login()} fullWidth>
+            <Button component={PrefetchLink} to={paths.login()} fullWidth>
               {t('auth.verifyEmail.success.login')}
             </Button>
           </Stack>

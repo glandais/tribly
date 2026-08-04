@@ -1,5 +1,6 @@
 import { useState, useMemo, lazy, Suspense } from 'react'
-import { Link, useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import dayjs from 'dayjs'
@@ -336,7 +337,7 @@ export function RideDetailPage() {
           {canEdit && (
             <Button.Group>
               <Button
-                component={Link}
+                component={PrefetchLink}
                 to={paths.rideEdit(teamSlug!, rideSlug!)}
                 variant="outline"
                 leftSection={<IconPencil size={16} />}
@@ -532,7 +533,7 @@ export function RideDetailPage() {
         <Alert color="yellow" variant="light" mb="lg">
           <Text>
             {t('rides.detail.nonMember.message')}{' '}
-            <Anchor component={Link} to={paths.team(teamSlug!)} fw={500}>
+            <Anchor component={PrefetchLink} to={paths.team(teamSlug!)} fw={500}>
               {t('rides.detail.nonMember.viewTeam')}
             </Anchor>
           </Text>
@@ -543,7 +544,7 @@ export function RideDetailPage() {
         <Alert color="blue" variant="light" mb="lg">
           <Text>
             {t('rides.detail.notAuthenticated.message')}{' '}
-            <Anchor component={Link} to="/login" fw={500}>
+            <Anchor component={PrefetchLink} to="/login" fw={500}>
               {t('rides.detail.notAuthenticated.signIn')}
             </Anchor>
           </Text>

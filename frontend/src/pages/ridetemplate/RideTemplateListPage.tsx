@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
-import { Link, Navigate, useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
@@ -98,7 +99,7 @@ export function RideTemplateListPage() {
           <Title order={2}>{t('rideTemplates.list.title')}</Title>
           {canManage && (
             <Button
-              component={Link}
+              component={PrefetchLink}
               to={paths.rideTemplateNew(teamSlug!)}
               leftSection={<IconPlus size={16} />}
             >
@@ -174,7 +175,7 @@ export function RideTemplateListPage() {
                     {canManage && (
                       <Group gap="xs" ml="md">
                         <ActionIcon
-                          component={Link}
+                          component={PrefetchLink}
                           to={paths.rideTemplateEdit(teamSlug!, template.slug)}
                           variant="subtle"
                           color="gray"
@@ -224,7 +225,7 @@ export function RideTemplateListPage() {
                   </Text>
                 )}
                 {canManage && !search && (
-                  <Button component={Link} to={paths.rideTemplateNew(teamSlug!)} mt="sm">
+                  <Button component={PrefetchLink} to={paths.rideTemplateNew(teamSlug!)} mt="sm">
                     {t('rideTemplates.create.title')}
                   </Button>
                 )}

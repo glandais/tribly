@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { Button, Center, Stack, Text, Title } from '@mantine/core'
 import { IconMoodEmpty } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { isAxiosError } from 'axios'
 import { ApiClientError } from '@/lib/apiError'
 import { ErrorMessage } from './ErrorBoundary'
@@ -93,7 +93,7 @@ export function QueryStateBoundary({
             {notFound?.message ?? t('query.notFound.message')}
           </Text>
           {notFound?.backTo && (
-            <Button component={Link} to={notFound.backTo} variant="light">
+            <Button component={PrefetchLink} to={notFound.backTo} variant="light">
               {notFound.backLabel ?? t('errors.notFound.backHome')}
             </Button>
           )}

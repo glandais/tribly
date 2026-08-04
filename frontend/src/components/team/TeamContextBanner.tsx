@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import { Group, Paper, Text, UnstyledButton } from '@mantine/core'
 import type { MantineSpacing } from '@mantine/core'
@@ -30,7 +30,7 @@ export function TeamContextBanner({ team, mb = 'lg' }: TeamContextBannerProps) {
   return (
     <Paper withBorder radius="md" p="xs" mb={mb}>
       <UnstyledButton
-        component={Link}
+        component={PrefetchLink}
         to={paths.team(team.slug)}
         aria-label={t('teams.contextBanner.goToTeam', { name: team.name })}
         w="100%"

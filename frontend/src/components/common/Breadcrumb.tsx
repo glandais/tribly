@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import { Breadcrumbs, Anchor, Text, Group, Menu, Box, ActionIcon } from '@mantine/core'
 import { IconChevronLeft, IconDots } from '@tabler/icons-react'
@@ -39,7 +39,7 @@ export function Breadcrumb({ items, showBackLink = false }: BreadcrumbProps) {
     <Fragment key={key}>
       <Group gap={4}>
         {item.path && !isLast ? (
-          <Anchor component={Link} to={item.path} size="sm">
+          <Anchor component={PrefetchLink} to={item.path} size="sm">
             {item.label}
           </Anchor>
         ) : (
@@ -58,7 +58,7 @@ export function Breadcrumb({ items, showBackLink = false }: BreadcrumbProps) {
             <Menu.Dropdown>
               {item.subItems.map((subItem, bIndex) =>
                 subItem.path ? (
-                  <Menu.Item key={bIndex} component={Link} to={subItem.path}>
+                  <Menu.Item key={bIndex} component={PrefetchLink} to={subItem.path}>
                     {subItem.label}
                   </Menu.Item>
                 ) : (
@@ -80,7 +80,7 @@ export function Breadcrumb({ items, showBackLink = false }: BreadcrumbProps) {
         {/* Explicit back link — replaces the trail entirely when a page asks for it */}
         {previousItem && previousItem.path && (
           <Anchor
-            component={Link}
+            component={PrefetchLink}
             to={previousItem.path}
             c="dimmed"
             size="sm"

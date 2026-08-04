@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import { Center, Stack, Title, Text, Anchor } from '@mantine/core'
 
@@ -11,7 +11,7 @@ export function NotFoundPage() {
         <Text size="lg" c="dimmed">
           {t('notFound.message')}
         </Text>
-        <Anchor component={Link} to="/" fw={500}>
+        <Anchor component={PrefetchLink} to="/" fw={500}>
           {t('errors.notFound.backHome')}
         </Anchor>
       </Stack>

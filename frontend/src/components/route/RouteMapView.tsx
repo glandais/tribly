@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import type { MapRef } from 'react-map-gl/maplibre'
 import { IconArrowsMaximize } from '@tabler/icons-react'
 import { ActionIcon, Box, Center, Paper, Text } from '@mantine/core'
@@ -64,7 +64,7 @@ export function RouteMapView({ route, fullscreenPath }: RouteMapViewProps) {
           {fullscreenPath && (
             <Box pos="absolute" top={8} right={56} style={{ zIndex: 10 }}>
               <ActionIcon
-                component={Link}
+                component={PrefetchLink}
                 to={fullscreenPath}
                 variant="default"
                 size="lg"

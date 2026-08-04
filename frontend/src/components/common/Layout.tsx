@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Outlet, Link, useLocation, useNavigationType } from 'react-router-dom'
+import { Outlet, useLocation, useNavigationType } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import {
   AppShell,
@@ -89,7 +90,7 @@ export function Layout() {
       <AppShell.Header>
         <Container size="lg" h="100%">
           <Group h="100%" justify="space-between">
-            <Anchor component={Link} to="/" underline="never">
+            <Anchor component={PrefetchLink} to="/" underline="never">
               <Text size="xl" fw={700} c="primary">
                 {appName}
               </Text>
@@ -122,14 +123,14 @@ export function Layout() {
                   <Menu.Dropdown>
                     <Menu.Item
                       leftSection={<IconUser size={14} />}
-                      component={Link}
+                      component={PrefetchLink}
                       to={paths.profile()}
                     >
                       {t('nav.profile')}
                     </Menu.Item>
                     <Menu.Item
                       leftSection={<IconMapSearch size={14} />}
-                      component={Link}
+                      component={PrefetchLink}
                       to={paths.gpxTools()}
                     >
                       {t('gpxTools.title')}
@@ -137,7 +138,7 @@ export function Layout() {
                     {isPlatformAdmin && (
                       <Menu.Item
                         leftSection={<IconShield size={14} />}
-                        component={Link}
+                        component={PrefetchLink}
                         to={paths.admin()}
                       >
                         {t('nav.admin')}
@@ -154,7 +155,7 @@ export function Layout() {
                   </Menu.Dropdown>
                 </Menu>
               ) : (
-                <Button component={Link} to="/login">
+                <Button component={PrefetchLink} to="/login">
                   {t('nav.signIn')}
                 </Button>
               )}
@@ -174,7 +175,7 @@ export function Layout() {
           <Divider />
           {isAuthenticated ? (
             <>
-              <UnstyledButton component={Link} to={paths.profile()} onClick={close}>
+              <UnstyledButton component={PrefetchLink} to={paths.profile()} onClick={close}>
                 <Group>
                   <Avatar
                     src={user?.avatarUrl}
@@ -191,7 +192,7 @@ export function Layout() {
               <Button
                 variant="subtle"
                 leftSection={<IconMapSearch size={16} />}
-                component={Link}
+                component={PrefetchLink}
                 to={paths.gpxTools()}
                 onClick={close}
               >
@@ -201,7 +202,7 @@ export function Layout() {
                 <Button
                   variant="subtle"
                   leftSection={<IconShield size={16} />}
-                  component={Link}
+                  component={PrefetchLink}
                   to={paths.admin()}
                   onClick={close}
                 >
@@ -221,7 +222,7 @@ export function Layout() {
               </Button>
             </>
           ) : (
-            <Button component={Link} to="/login" onClick={close}>
+            <Button component={PrefetchLink} to="/login" onClick={close}>
               {t('nav.signIn')}
             </Button>
           )}
@@ -242,7 +243,12 @@ export function Layout() {
             >
               <Group justify="space-between" align="center" wrap="wrap">
                 <Text size="sm">{t('auth.completeAccount.banner.message')}</Text>
-                <Button size="xs" color="orange" component={Link} to={paths.completeAccount()}>
+                <Button
+                  size="xs"
+                  color="orange"
+                  component={PrefetchLink}
+                  to={paths.completeAccount()}
+                >
                   {t('auth.completeAccount.banner.action')}
                 </Button>
               </Group>
@@ -266,19 +272,19 @@ export function Layout() {
             <Text c="dimmed" size="sm">
               ·
             </Text>
-            <Anchor component={Link} to={paths.apps()} c="dimmed" size="sm">
+            <Anchor component={PrefetchLink} to={paths.apps()} c="dimmed" size="sm">
               {t('footer.apps')}
             </Anchor>
             <Text c="dimmed" size="sm">
               ·
             </Text>
-            <Anchor component={Link} to={paths.privacy()} c="dimmed" size="sm">
+            <Anchor component={PrefetchLink} to={paths.privacy()} c="dimmed" size="sm">
               {t('footer.privacy')}
             </Anchor>
             <Text c="dimmed" size="sm">
               ·
             </Text>
-            <Anchor component={Link} to={paths.terms()} c="dimmed" size="sm">
+            <Anchor component={PrefetchLink} to={paths.terms()} c="dimmed" size="sm">
               {t('footer.terms')}
             </Anchor>
             {version && (

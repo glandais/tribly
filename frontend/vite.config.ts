@@ -71,6 +71,15 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(import.meta.dirname, './src'),
       },
     },
+    test: {
+      // jsdom for everything: component tests need a DOM, and the pure-logic tests don't care.
+      // `src/test/setup.ts` supplies what jsdom lacks and Mantine requires (matchMedia,
+      // ResizeObserver, IntersectionObserver) — it existed before this block and was never loaded.
+      environment: 'jsdom',
+      // @testing-library/jest-dom extends a global `expect`, so it needs the globals.
+      globals: true,
+      setupFiles: ['./src/test/setup.ts'],
+    },
     build: {
       sourcemap: process.env.VITE_BUILD_SOURCEMAP === 'true',
       rolldownOptions: {

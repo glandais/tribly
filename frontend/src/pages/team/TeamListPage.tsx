@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { Link } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import { paths } from '../../config/paths'
 import { IconPlus, IconSearchOff, IconUsersGroup } from '@tabler/icons-react'
@@ -49,7 +49,7 @@ export function TeamListPage() {
   }
 
   const createTeamButton = canCreateTeam ? (
-    <Button component={Link} to={paths.teamsNew()} leftSection={<IconPlus size={20} />}>
+    <Button component={PrefetchLink} to={paths.teamsNew()} leftSection={<IconPlus size={20} />}>
       {t('teams.create.title')}
     </Button>
   ) : null

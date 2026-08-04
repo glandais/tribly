@@ -129,6 +129,14 @@
         "DisposableStack": "readonly",
         "SuppressedError": "readonly"
       }
+    },
+    {
+      "files": [
+        "**/*.test.{ts,tsx}"
+      ],
+      "rules": {
+        "i18next/no-literal-string": "off"
+      }
     }
   ]
 }

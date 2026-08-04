@@ -1,4 +1,5 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useForm } from '@mantine/form'
 import { zodFormValidator } from '@/lib/formUtils'
 import { useTranslation } from 'react-i18next'
@@ -316,7 +317,7 @@ export function TeamForm({
         <Group justify="flex-end" pt="md">
           <Button
             variant="default"
-            component={Link}
+            component={PrefetchLink}
             to={create ? paths.teams() : paths.team(teamSlug!)}
           >
             {t('actions.cancelAction')}

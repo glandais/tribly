@@ -30,7 +30,21 @@ const SETTLE_DEBOUNCE_MS = 5000
  * SETTLE_DEBOUNCE_MS (the page has settled), and the whole thing disarms for good the moment a
  * route change starts — no re-arming on client-side navigation.
  */
+let auditWindowOpen = false
+
+/**
+ * True while the audit is still watching the first page load. `lib/prefetch.ts` suppresses link
+ * prefetching during that window: a hover fetches ANOTHER route's queries, which the audit would
+ * count as a gap in the current route's `prefetch()` — a false gap is worse than a missed warm-up,
+ * since the whole value of the audit is that its warnings are trustworthy. The window is at most a
+ * few seconds and only exists in audit builds.
+ */
+export function isPrefetchAuditWindowOpen(): boolean {
+  return auditWindowOpen
+}
+
 export function installPrefetchAudit(queryClient: QueryClient, router: Router): void {
+  auditWindowOpen = true
   const initialLocation = router.state.location
   const coveredHashes = new Set(
     queryClient
@@ -67,6 +81,7 @@ export function installPrefetchAudit(queryClient: QueryClient, router: Router): 
   })
 
   function disarm() {
+    auditWindowOpen = false
     if (closeTimer) {
       clearTimeout(closeTimer)
       closeTimer = undefined

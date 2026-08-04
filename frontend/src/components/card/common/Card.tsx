@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { ReactNode } from 'react'
 import { Paper, Title, Box, Text } from '@mantine/core'
 import { MarkdownDisplay } from '../../common/MarkdownDisplay'
@@ -12,7 +12,7 @@ interface CardProps {
 export function Card({ to, children }: CardProps) {
   return (
     <Paper
-      component={Link}
+      component={PrefetchLink}
       to={to}
       withBorder
       radius="md"

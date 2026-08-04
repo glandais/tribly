@@ -1,4 +1,5 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import { IconArrowsMaximize, IconArrowUp, IconCalendar, IconMapPin } from '@tabler/icons-react'
 import { Paper, Group, Text, UnstyledButton, Badge, Box } from '@mantine/core'
@@ -32,7 +33,7 @@ export function TripStageCard({
 
   return (
     <Paper
-      component={Link}
+      component={PrefetchLink}
       to={paths.stage(teamSlug, tripSlug, stage.slug)}
       withBorder
       p="md"

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import {
   IconBolt,
@@ -229,7 +229,7 @@ export function RideGroupCard({
       {effectiveRouteSlug && (
         <Group mt="sm" gap="xs">
           <Anchor
-            component={Link}
+            component={PrefetchLink}
             to={paths.route(teamSlug, effectiveRouteSlug)}
             size="xs"
             c="dimmed"

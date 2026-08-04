@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import { useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
@@ -42,7 +42,7 @@ export function ForgotPasswordPage() {
             <IconMail size={48} style={{ margin: '0 auto' }} color="var(--mantine-color-green-6)" />
             <Title order={2}>{t('auth.forgotPassword.sent.title')}</Title>
             <Text c="dimmed">{t('auth.forgotPassword.sent.checkEmail')}</Text>
-            <Anchor component={Link} to={paths.login()} size="sm">
+            <Anchor component={PrefetchLink} to={paths.login()} size="sm">
               <IconArrowLeft size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
               {t('auth.forgotPassword.backToLogin')}
             </Anchor>
@@ -75,7 +75,7 @@ export function ForgotPasswordPage() {
             </Stack>
           </form>
 
-          <Anchor component={Link} to={paths.login()} size="sm" ta="center">
+          <Anchor component={PrefetchLink} to={paths.login()} size="sm" ta="center">
             <IconArrowLeft size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
             {t('auth.forgotPassword.backToLogin')}
           </Anchor>

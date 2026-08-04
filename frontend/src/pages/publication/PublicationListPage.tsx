@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
-import { Link, Navigate, useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import { IconPlus, IconNews, IconChevronDown, IconSearchOff } from '@tabler/icons-react'
 import { Button, Menu, Select, Stack, Group, Title, Box, SimpleGrid } from '@mantine/core'
@@ -80,7 +81,7 @@ export function PublicationListPage() {
             {canCreate && primaryCreate && (
               <Button.Group>
                 <Button
-                  component={Link}
+                  component={PrefetchLink}
                   to={primaryCreate.path}
                   leftSection={<IconPlus size={16} />}
                 >
@@ -95,7 +96,7 @@ export function PublicationListPage() {
                     </Menu.Target>
                     <Menu.Dropdown>
                       {createMenuItems.map((item) => (
-                        <Menu.Item key={item.path} component={Link} to={item.path}>
+                        <Menu.Item key={item.path} component={PrefetchLink} to={item.path}>
                           {item.label}
                         </Menu.Item>
                       ))}

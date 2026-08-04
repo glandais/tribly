@@ -1,9 +1,9 @@
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { Navigate, type RouteObject } from 'react-router-dom'
 import type { QueryClient } from '@tanstack/react-query'
-import Axios from 'axios'
 import { routesConfig } from './routes.config'
-import type { RouteConfig, AuthRequirement, RouteParams } from './routes.types'
+import { runRoutePrefetch } from './runRoutePrefetch'
+import type { RouteConfig, AuthRequirement } from './routes.types'
 import { AuthenticatedRoute, UnauthenticatedRoute } from '../components/auth/ProtectedRoute'
 import { Layout } from '../components/common/Layout'
 import { NotFoundPage } from '../pages/NotFoundPage'
@@ -23,10 +23,10 @@ function wrapWithAuth(element: React.ReactNode, auth: AuthRequirement): React.Re
 }
 
 /**
- * Wrap a route's prefetch into a React Router loader. Runs in both environments; anonymous on the
- * server and pre-auth on the client, so 401/403/404 are expected and only warned. Any other error
- * is logged but swallowed — the loader always resolves to null so the render proceeds and each
- * component handles its own loading/error state.
+ * Wrap a route's prefetch into a React Router loader. The running and the error handling live in
+ * `runRoutePrefetch`, shared with the hover path (`lib/prefetch.ts`) so a link and the navigation it
+ * leads to fetch exactly the same thing. The loader always resolves to null: a failed prefetch never
+ * blocks the render.
  */
 function makeLoader(config: RouteConfig, queryClient: QueryClient) {
   return async ({
@@ -36,25 +36,7 @@ function makeLoader(config: RouteConfig, queryClient: QueryClient) {
     request: Request
     params: Record<string, string | undefined>
   }) => {
-    // Filter out undefined values so prefetch functions receive guaranteed strings.
-    const definedParams = Object.fromEntries(
-      Object.entries(params).filter((entry): entry is [string, string] => entry[1] !== undefined)
-    )
-    try {
-      // The query string matters as much as the path params: a list page reached with filters
-      // (`?p=5`, `?q=col`) reads a different query key than the unfiltered default, so a prefetch
-      // blind to it fills the cache with an entry the page never looks at — and the visitor gets
-      // an empty list in the HTML. Shared links are exactly the case URL filters exist for.
-      await config.prefetch!(queryClient, definedParams as RouteParams, new URL(request.url))
-    } catch (err) {
-      const isExpected =
-        Axios.isAxiosError(err) && [401, 403, 404].includes(err.response?.status ?? 0)
-      const logFn = isExpected ? console.warn : console.error
-      logFn(
-        `[SSR] prefetch failed for route "${config.id}" url="${request.url}" params=${JSON.stringify(definedParams)}:`,
-        err
-      )
-    }
+    await runRoutePrefetch(config, queryClient, params, new URL(request.url), 'loader')
     return null
   }
 }

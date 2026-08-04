@@ -1,4 +1,5 @@
-import { Link, useParams, Navigate } from 'react-router-dom'
+import { useParams, Navigate } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import {
   Container,
@@ -125,7 +126,7 @@ export function StageDetailPage() {
             />
             <Box>
               <Anchor
-                component={Link}
+                component={PrefetchLink}
                 to={paths.trip(teamSlug!, tripSlug!)}
                 c="dimmed"
                 size="sm"
@@ -144,7 +145,7 @@ export function StageDetailPage() {
 
           {canEdit && (
             <Button
-              component={Link}
+              component={PrefetchLink}
               to={paths.tripEdit(teamSlug!, tripSlug!)}
               variant="outline"
               leftSection={<IconPencil size={16} />}
@@ -217,7 +218,7 @@ export function StageDetailPage() {
               <Group justify="space-between" mb="md">
                 <Title order={3}>{route.name}</Title>
                 <Button
-                  component={Link}
+                  component={PrefetchLink}
                   to={paths.route(teamSlug!, route.slug)}
                   variant="subtle"
                   size="sm"

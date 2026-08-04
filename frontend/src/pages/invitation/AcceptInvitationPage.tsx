@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { useSearchParams, useNavigate, useLocation, Link } from 'react-router-dom'
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import { IconCheck, IconX, IconUsers, IconLogin } from '@tabler/icons-react'
 import { Alert, Button, Center, Group, Loader, Paper, Stack, Text, Title } from '@mantine/core'
@@ -107,7 +108,7 @@ export function AcceptInvitationPage() {
                 ? t('errors.api.' + failureCode)
                 : t('invitations.accept.unavailableBody')}
             </Text>
-            <Button component={Link} to={paths.teams()} variant="default">
+            <Button component={PrefetchLink} to={paths.teams()} variant="default">
               {t('invitations.accept.backToTeams')}
             </Button>
           </Stack>
@@ -173,7 +174,7 @@ export function AcceptInvitationPage() {
               </Text>
               <Group justify="center">
                 <Button
-                  component={Link}
+                  component={PrefetchLink}
                   to={paths.login()}
                   state={{ from: location }}
                   leftSection={<IconLogin size={16} />}

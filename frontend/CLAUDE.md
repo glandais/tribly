@@ -158,6 +158,7 @@ Public pages unfurl into rich social/messaging cards via server-rendered OG/Twit
 - **Never edit `src/api/`** — it's generated. Run `pnpm generate-api` after backend OpenAPI changes.
 - **Never edit `paths.generated.ts`** — edit `../contracts/routes.yaml` and run `pnpm generate-routes`. See [../APP_LINKS.md](../APP_LINKS.md).
 - **Never hard-code links** — use `paths.xxx()` from `config/paths.ts` (locale-aware).
+- **Never import `Link` from `react-router-dom`** — use `<PrefetchLink>` (`components/common/PrefetchLink.tsx`), including as `component={PrefetchLink}` on Mantine's polymorphic components. On hover/focus it warms both the destination's chunk *and* the `prefetch()` its route declares, through the same `runRoutePrefetch` the router loader uses — React Router's own `prefetch` prop is a silent no-op in library mode. Pass `prefetch="viewport"` (chunk only) or `"none"` where intent prefetching isn't wanted.
 - **Never set link-preview tags via a React component** — add a `meta()` to `routes.config.ts` instead. See [LINK_PREVIEW.md](LINK_PREVIEW.md).
 - **Never use `confirm()` or custom modals for confirmations** — use `ConfirmDialog`.
 - **Never use `useComputedColorScheme` outside `ColorSchemeSwitcher.tsx`** — for a themed asset URL, computed color, or conditional className, use `useResolvedColorScheme()` (`src/hooks/useResolvedColorScheme.ts`) instead; it resolves correctly at hydration time for anonymous/auto-theme visitors instead of after a delayed post-mount effect. See SSR.md Finding 4.

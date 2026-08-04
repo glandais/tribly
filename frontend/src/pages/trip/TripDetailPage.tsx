@@ -1,5 +1,6 @@
 import { useState, useMemo, lazy, Suspense } from 'react'
-import { Link, useParams, Navigate, useNavigate } from 'react-router-dom'
+import { useParams, Navigate, useNavigate } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
@@ -295,7 +296,7 @@ export function TripDetailPage() {
             {canEdit && (
               <Button.Group>
                 <Button
-                  component={Link}
+                  component={PrefetchLink}
                   to={paths.tripEdit(teamSlug!, tripSlug!)}
                   variant="outline"
                   leftSection={<IconPencil size={16} />}
@@ -489,7 +490,7 @@ export function TripDetailPage() {
             <Alert color="yellow" variant="light">
               <Text>
                 {t('trips.detail.nonMember.message')}{' '}
-                <Anchor component={Link} to={paths.team(teamSlug!)} fw={500}>
+                <Anchor component={PrefetchLink} to={paths.team(teamSlug!)} fw={500}>
                   {t('trips.detail.nonMember.viewTeam')}
                 </Anchor>
               </Text>
@@ -500,7 +501,7 @@ export function TripDetailPage() {
             <Alert color="blue" variant="light">
               <Text>
                 {t('trips.detail.notAuthenticated.message')}{' '}
-                <Anchor component={Link} to="/login" fw={500}>
+                <Anchor component={PrefetchLink} to="/login" fw={500}>
                   {t('trips.detail.notAuthenticated.signIn')}
                 </Anchor>
               </Text>

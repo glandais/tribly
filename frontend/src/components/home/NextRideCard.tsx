@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
@@ -122,7 +122,7 @@ export function NextRideCard({ ride }: NextRideCardProps) {
         )}
 
         <Group gap="xs" mt="xs">
-          <Button component={Link} to={ridePath} style={{ flex: 1 }}>
+          <Button component={PrefetchLink} to={ridePath} style={{ flex: 1 }}>
             {t('home.nextRide.view')}
           </Button>
           {ride.registeredGroupId && (

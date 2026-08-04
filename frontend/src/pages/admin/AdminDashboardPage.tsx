@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { Stack, SimpleGrid, Paper, Text, Group, ThemeIcon, Skeleton, Anchor } from '@mantine/core'
 import { IconWorld, IconBuildingCommunity, IconUsers, IconArrowRight } from '@tabler/icons-react'
 import { AdminLayout } from '@/components/admin/AdminLayout'
@@ -35,7 +35,7 @@ function StatCard({ title, value, icon, link, linkLabel, isLoading }: StatCardPr
           {icon}
         </ThemeIcon>
       </Group>
-      <Anchor component={Link} to={link} mt="md">
+      <Anchor component={PrefetchLink} to={link} mt="md">
         <Group gap={4}>
           <Text size="sm">{linkLabel}</Text>
           <IconArrowRight size={14} />

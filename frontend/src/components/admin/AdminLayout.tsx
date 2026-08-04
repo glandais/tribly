@@ -1,4 +1,5 @@
-import { Link, Navigate } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import { Container, Group, Title, Anchor, Box, Stack } from '@mantine/core'
 import {
@@ -68,7 +69,7 @@ export function AdminLayout({ currentTab, children }: AdminLayoutProps) {
       <Stack>
         {/* Header with back link */}
         <Box>
-          <Anchor component={Link} to={paths.home()} c="dimmed" size="sm">
+          <Anchor component={PrefetchLink} to={paths.home()} c="dimmed" size="sm">
             <Group gap={4}>
               <IconArrowLeft size={16} />
               {t('admin.backToApp')}

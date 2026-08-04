@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import { Box, Group, Paper, Stack, Text } from '@mantine/core'
 import { IconArrowUp, IconChevronRight, IconMap } from '@tabler/icons-react'
@@ -27,7 +27,7 @@ export function RouteRow({ route, compact = false }: RouteRowProps) {
 
   return (
     <Paper
-      component={Link}
+      component={PrefetchLink}
       to={paths.route(route.team.slug, route.slug)}
       withBorder
       radius="md"

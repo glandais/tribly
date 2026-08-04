@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { Group, UnstyledButton, Text, ScrollArea, Box } from '@mantine/core'
 import type { TablerIcon } from '@tabler/icons-react'
 
@@ -110,7 +110,7 @@ export function NavButtons({ items, currentId, label }: NavButtonsProps) {
             return (
               <Box component="li" key={item.id} style={{ display: 'flex' }}>
                 <UnstyledButton
-                  component={Link}
+                  component={PrefetchLink}
                   to={item.path}
                   ref={isActive ? activeRef : undefined}
                   aria-current={isActive ? 'page' : undefined}

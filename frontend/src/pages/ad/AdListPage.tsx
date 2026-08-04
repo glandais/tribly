@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
-import { Link, Navigate, useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import { IconPlus, IconSearchOff, IconTag } from '@tabler/icons-react'
 import {
@@ -81,7 +82,11 @@ export function AdListPage() {
       <Group justify="space-between" align="center" wrap="wrap">
         <Title order={2}>{t('ads.title')}</Title>
         {isMember && (
-          <Button component={Link} to={paths.adNew(teamSlug!)} leftSection={<IconPlus size={20} />}>
+          <Button
+            component={PrefetchLink}
+            to={paths.adNew(teamSlug!)}
+            leftSection={<IconPlus size={20} />}
+          >
             {t('ads.list.createAd')}
           </Button>
         )}

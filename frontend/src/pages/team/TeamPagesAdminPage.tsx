@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Link, useParams, Navigate } from 'react-router-dom'
+import { useParams, Navigate } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
@@ -171,7 +172,7 @@ export function TeamPagesAdminPage() {
           </Box>
           {canAddMore && (
             <Button
-              component={Link}
+              component={PrefetchLink}
               to={paths.teamAdminPageNew(teamSlug!)}
               leftSection={<IconPlus size={16} />}
             >
@@ -219,7 +220,7 @@ export function TeamPagesAdminPage() {
                   </Group>
                   <Group gap="xs" ml="md">
                     <ActionIcon
-                      component={Link}
+                      component={PrefetchLink}
                       to={paths.teamAdminPageEdit(teamSlug!, page.slug)}
                       variant="subtle"
                       color="gray"
@@ -261,7 +262,7 @@ export function TeamPagesAdminPage() {
                 </Title>
                 <Text c="dimmed">{t('teams.pages.empty.description')}</Text>
                 <Button
-                  component={Link}
+                  component={PrefetchLink}
                   to={paths.teamAdminPageNew(teamSlug!)}
                   leftSection={<IconPlus size={16} />}
                   mt="md"

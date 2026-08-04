@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Link, useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
@@ -200,7 +201,7 @@ export function PostDetailPage() {
             {canEdit && (
               <Button.Group>
                 <Button
-                  component={Link}
+                  component={PrefetchLink}
                   to={paths.postEdit(teamSlug!, postSlug!)}
                   variant="outline"
                   leftSection={<IconPencil size={16} />}

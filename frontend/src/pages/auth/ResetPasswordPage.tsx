@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Link, useSearchParams, useNavigate } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import { useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
@@ -36,10 +37,10 @@ export function ResetPasswordPage() {
             <IconX size={48} style={{ margin: '0 auto' }} color="var(--mantine-color-red-6)" />
             <Title order={2}>{t('auth.resetPassword.error.title')}</Title>
             <Text c="dimmed">{t('auth.resetPassword.error.message')}</Text>
-            <Button component={Link} to={paths.forgotPassword()} fullWidth>
+            <Button component={PrefetchLink} to={paths.forgotPassword()} fullWidth>
               {t('auth.resetPassword.error.requestNew')}
             </Button>
-            <Anchor component={Link} to={paths.login()} size="sm">
+            <Anchor component={PrefetchLink} to={paths.login()} size="sm">
               <IconArrowLeft size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
               {t('auth.forgotPassword.backToLogin')}
             </Anchor>
@@ -103,7 +104,7 @@ export function ResetPasswordPage() {
             </Stack>
           </form>
 
-          <Anchor component={Link} to={paths.login()} size="sm" ta="center">
+          <Anchor component={PrefetchLink} to={paths.login()} size="sm" ta="center">
             <IconArrowLeft size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
             {t('auth.forgotPassword.backToLogin')}
           </Anchor>

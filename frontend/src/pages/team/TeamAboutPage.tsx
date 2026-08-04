@@ -1,4 +1,5 @@
-import { Link, Navigate, useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import { IconUsers, IconCalendar, IconBike, IconMap } from '@tabler/icons-react'
 import { Box, Group, Paper, SimpleGrid, Stack, Text, Title, UnstyledButton } from '@mantine/core'
@@ -62,7 +63,7 @@ export function TeamAboutPage() {
                 </Stack>
               </Group>
 
-              <UnstyledButton component={Link} to={paths.team(team.slug)}>
+              <UnstyledButton component={PrefetchLink} to={paths.team(team.slug)}>
                 <Group gap="sm">
                   <Box style={{ flexShrink: 0 }}>
                     <IconBike size={20} color="var(--mantine-color-dimmed)" />
@@ -78,7 +79,7 @@ export function TeamAboutPage() {
                 </Group>
               </UnstyledButton>
 
-              <UnstyledButton component={Link} to={paths.routes(team.slug)}>
+              <UnstyledButton component={PrefetchLink} to={paths.routes(team.slug)}>
                 <Group gap="sm">
                   <Box style={{ flexShrink: 0 }}>
                     <IconMap size={20} color="var(--mantine-color-dimmed)" />

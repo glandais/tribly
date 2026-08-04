@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useQueryClient } from '@tanstack/react-query'
 import { IconArrowDown, IconArrowUp, IconMapSearch, IconTrash } from '@tabler/icons-react'
 import { Button, Card, Group, Skeleton, Stack, Text, Title } from '@mantine/core'
@@ -46,7 +46,7 @@ export function MyGpxPreviewsPage() {
         <Card withBorder padding="lg">
           <Stack align="center" gap="sm">
             <Text c="dimmed">{t('gpxTools.listFiles.empty')}</Text>
-            <Button component={Link} to={paths.gpxTools()} variant="default">
+            <Button component={PrefetchLink} to={paths.gpxTools()} variant="default">
               {t('gpxTools.viewFile.submit')}
             </Button>
           </Stack>
@@ -111,7 +111,7 @@ function PreviewRow({ preview }: PreviewRowProps) {
 
         <Group gap="xs">
           <Button
-            component={Link}
+            component={PrefetchLink}
             to={paths.gpxToolsView(preview.id)}
             variant="default"
             size="sm"

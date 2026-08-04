@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { IconArrowLeft, IconArrowUp, IconArrowDown, IconRoute } from '@tabler/icons-react'
 import { ActionIcon, Box, Center, Group, Text } from '@mantine/core'
 import { getOverlayBg } from '@/lib/colors'
@@ -81,7 +81,7 @@ export function RouteFullscreenView({ route, title, backTo }: RouteFullscreenVie
         }}
       >
         <ActionIcon
-          component={Link}
+          component={PrefetchLink}
           to={backTo}
           variant="subtle"
           size="lg"

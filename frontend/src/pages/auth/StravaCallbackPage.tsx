@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { useSearchParams, Link, useNavigate } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import { IconX, IconBrandStrava } from '@tabler/icons-react'
 import { Center, Paper, Stack, Title, Text, Button, Loader } from '@mantine/core'
@@ -67,7 +68,7 @@ export function StravaCallbackPage() {
             <IconX size={48} style={{ margin: '0 auto' }} color="var(--mantine-color-red-6)" />
             <Title order={2}>{t('auth.strava.errors.title')}</Title>
             <Text c="dimmed">{errorMessage}</Text>
-            <Button component={Link} to={paths.login()} fullWidth>
+            <Button component={PrefetchLink} to={paths.login()} fullWidth>
               {t('auth.strava.backToLogin')}
             </Button>
           </Stack>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { Stack, Group, Title, Button, Box } from '@mantine/core'
@@ -104,7 +105,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
               )}
 
               {isOrganizer && (
-                <Button variant="default" component={Link} to={paths.teamAdmin(team.slug)}>
+                <Button variant="default" component={PrefetchLink} to={paths.teamAdmin(team.slug)}>
                   {t('teams.detail.actions.admin')}
                 </Button>
               )}
