@@ -63,7 +63,9 @@ function loadRoutes() {
     }
     for (const locale of Object.keys(normalized.path)) {
       if (!LOCALES.includes(locale)) {
-        throw new Error(`route ${normalized.id}: unknown locale "${locale}" — allowed: ${LOCALES.join(', ')}`)
+        throw new Error(
+          `route ${normalized.id}: unknown locale "${locale}" — allowed: ${LOCALES.join(', ')}`
+        )
       }
       for (const param of normalized.params) {
         if (!normalized.path[locale].includes(`{${param.name}}`)) {
@@ -128,7 +130,10 @@ function generatePathsTs(routes) {
     const uniqueLocales = new Set(Object.values(map))
     if (uniqueLocales.size === 1) {
       const template = map[DEFAULT_LOCALE]
-      const body = route.params.length === 0 ? `'${template}'` : `\`${fillTemplate(template, route.params, paramSlotTs)}\``
+      const body =
+        route.params.length === 0
+          ? `'${template}'`
+          : `\`${fillTemplate(template, route.params, paramSlotTs)}\``
       lines.push(`  ${route.id}: (${sig}) => ${body},`)
     } else {
       lines.push(`  ${route.id}: (${sig}) => {`)
@@ -136,11 +141,17 @@ function generatePathsTs(routes) {
       for (const locale of LOCALES) {
         if (locale === DEFAULT_LOCALE) continue
         const template = map[locale]
-        const body = route.params.length === 0 ? `'${template}'` : `\`${fillTemplate(template, route.params, paramSlotTs)}\``
+        const body =
+          route.params.length === 0
+            ? `'${template}'`
+            : `\`${fillTemplate(template, route.params, paramSlotTs)}\``
         lines.push(`      case '${locale}': return ${body}`)
       }
       const enTemplate = map[DEFAULT_LOCALE]
-      const enBody = route.params.length === 0 ? `'${enTemplate}'` : `\`${fillTemplate(enTemplate, route.params, paramSlotTs)}\``
+      const enBody =
+        route.params.length === 0
+          ? `'${enTemplate}'`
+          : `\`${fillTemplate(enTemplate, route.params, paramSlotTs)}\``
       lines.push(`      default: return ${enBody}`)
       lines.push('    }')
       lines.push('  },')
@@ -156,7 +167,10 @@ function generatePathsTs(routes) {
     const map = localePathMap(route)
     const entries = LOCALES.map((locale) => {
       const template = map[locale]
-      const body = route.params.length === 0 ? `'${template}'` : `\`${fillTemplate(template, route.params, paramSlotTs)}\``
+      const body =
+        route.params.length === 0
+          ? `'${template}'`
+          : `\`${fillTemplate(template, route.params, paramSlotTs)}\``
       return `${locale}: ${body}`
     })
     lines.push(`  ${route.id}: (${sig}): Record<Locale, string> => ({ ${entries.join(', ')} }),`)
@@ -185,7 +199,10 @@ function generatePathsDart(routes) {
     const uniqueLocales = new Set(Object.values(map))
     if (uniqueLocales.size === 1) {
       const template = map[DEFAULT_LOCALE]
-      const body = route.params.length === 0 ? `'${template}'` : `'${fillTemplate(template, route.params, paramSlotDart)}'`
+      const body =
+        route.params.length === 0
+          ? `'${template}'`
+          : `'${fillTemplate(template, route.params, paramSlotDart)}'`
       lines.push(`  static String ${route.mobileName}(${sig}) => ${body};`)
     } else {
       lines.push(`  static String ${route.mobileName}(${sig}) {`)
@@ -193,12 +210,18 @@ function generatePathsDart(routes) {
       for (const locale of LOCALES) {
         if (locale === DEFAULT_LOCALE) continue
         const template = map[locale]
-        const body = route.params.length === 0 ? `'${template}'` : `'${fillTemplate(template, route.params, paramSlotDart)}'`
+        const body =
+          route.params.length === 0
+            ? `'${template}'`
+            : `'${fillTemplate(template, route.params, paramSlotDart)}'`
         lines.push(`      case '${locale}':`)
         lines.push(`        return ${body};`)
       }
       const enTemplate = map[DEFAULT_LOCALE]
-      const enBody = route.params.length === 0 ? `'${enTemplate}'` : `'${fillTemplate(enTemplate, route.params, paramSlotDart)}'`
+      const enBody =
+        route.params.length === 0
+          ? `'${enTemplate}'`
+          : `'${fillTemplate(enTemplate, route.params, paramSlotDart)}'`
       lines.push('      default:')
       lines.push(`        return ${enBody};`)
       lines.push('    }')
@@ -217,10 +240,15 @@ function generatePathsDart(routes) {
     const map = localePathMap(route)
     const entries = LOCALES.map((locale) => {
       const template = map[locale]
-      const body = route.params.length === 0 ? `'${template}'` : `'${fillTemplate(template, route.params, paramSlotDart)}'`
+      const body =
+        route.params.length === 0
+          ? `'${template}'`
+          : `'${fillTemplate(template, route.params, paramSlotDart)}'`
       return `'${locale}': ${body}`
     })
-    lines.push(`  static Map<String, String> ${route.mobileName}(${sig}) => {${entries.join(', ')}};`)
+    lines.push(
+      `  static Map<String, String> ${route.mobileName}(${sig}) => {${entries.join(', ')}};`
+    )
   }
   lines.push('}')
   lines.push('')
@@ -302,7 +330,9 @@ function injectIntoManifest(routes) {
   const beginIdx = content.indexOf(MARKER_BEGIN)
   const endIdx = content.indexOf(MARKER_END)
   if (beginIdx === -1 || endIdx === -1) {
-    throw new Error(`AndroidManifest.xml is missing deeplink markers (${MARKER_BEGIN} / ${MARKER_END})`)
+    throw new Error(
+      `AndroidManifest.xml is missing deeplink markers (${MARKER_BEGIN} / ${MARKER_END})`
+    )
   }
   const lineStart = content.lastIndexOf('\n', beginIdx) + 1
   const indent = content.slice(lineStart, beginIdx)

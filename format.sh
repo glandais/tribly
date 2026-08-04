@@ -4,7 +4,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-ALL_MODULES=(backend frontend mobile karoo garmin-app)
+ALL_MODULES=(backend frontend mobile karoo garmin-app scripts)
 
 usage() {
   local joined
@@ -75,6 +75,23 @@ format_garmin_app() (
     prettier --plugin="$plugin/$entry" --write "source/**/*.mc"'
 )
 
+format_scripts() (
+  banner scripts
+  need pnpm scripts
+  # The repo's Node tooling (scripts/*.mjs) has no package.json of its own — it borrows
+  # frontend's prettier, the same one that formats frontend/*.mjs, so the two agree.
+  # Shell scripts are left alone: there is no formatter for them here, and picking one
+  # would rewrite every backup script for no gain.
+  cd "$ROOT/frontend"
+  [ -d node_modules ] ||
+    { echo "format.sh: frontend/node_modules is missing — run 'pnpm install' first" >&2; exit 1; }
+  # --config explicitly: prettier resolves its config from each *file's* directory, not the CWD,
+  # and scripts/ has no .prettierrc above it. Without this the whole directory is rewritten to
+  # prettier's defaults (semicolons, double quotes, 80 columns) — the opposite of the repo's style.
+  pnpm --config.verify-deps-before-run=false exec prettier \
+    --config .prettierrc --write --no-cache --log-level warn "../scripts/**/*.{mjs,js}"
+)
+
 format_module() {
   case "$1" in
     backend) format_backend ;;
@@ -82,6 +99,7 @@ format_module() {
     mobile) format_mobile ;;
     karoo) format_karoo ;;
     garmin-app) format_garmin_app ;;
+    scripts) format_scripts ;;
     *) echo "format.sh: unknown module '$1'" >&2; usage ;;
   esac
 }

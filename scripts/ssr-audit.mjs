@@ -440,8 +440,10 @@ async function describeLoginResponse(response) {
     )
   }
   if (response.ok()) {
-    return `POST /api/auth/login answered ${response.status()}, so the credentials are fine and ` +
+    return (
+      `POST /api/auth/login answered ${response.status()}, so the credentials are fine and ` +
       'something after the redirect is stuck (raise --login-timeout)'
+    )
   }
   const body = await response.text().catch(() => '')
   return `POST /api/auth/login answered ${response.status()}: ${body.slice(0, 300)}`
@@ -712,13 +714,7 @@ function buildWorkItems(config, contractById) {
   return { items, skipped }
 }
 
-function buildMarkdownReport({
-  generatedAt,
-  baseUrl,
-  results,
-  loginFailures,
-  skipped,
-}) {
+function buildMarkdownReport({ generatedAt, baseUrl, results, loginFailures, skipped }) {
   const measured = results.filter((r) => r.verdict === 'covered' || r.verdict === 'gaps')
   const unmeasured = results.filter((r) => !measured.includes(r))
   const lines = [
