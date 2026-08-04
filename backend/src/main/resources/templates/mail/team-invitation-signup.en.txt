@@ -1,0 +1,15 @@
+{#fragment id=subject rendered=false}{params.inviterName} invites you to join {params.teamName}{/fragment}
+Hello,
+
+{params.inviterName} invites you to join the team "{params.teamName}" on {params.appName}, the app that brings together your club's rides, routes and calendar.
+
+You do not have an account yet: create one from the link below, then accept the invitation.
+
+{params.invitationUrl}
+
+You only become a member once you have accepted: creating an account does not enrol you.
+
+This invitation expires in {params.expiresInDays} days. If you would rather not join this team, simply ignore this email: no account will be created.
+
+Best regards,
+The {params.appName} team

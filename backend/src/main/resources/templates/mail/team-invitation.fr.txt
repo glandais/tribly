@@ -1,0 +1,15 @@
+{#fragment id=subject rendered=false}{params.inviterName} vous invite à rejoindre {params.teamName}{/fragment}
+Bonjour,
+
+{params.inviterName} vous invite à rejoindre l'équipe « {params.teamName} » sur {params.appName}.
+
+Votre compte {params.appName} existe déjà : connectez-vous et acceptez l'invitation via le lien ci-dessous.
+
+{params.invitationUrl}
+
+Vous n'êtes membre de cette équipe qu'une fois l'invitation acceptée : tant que vous ne cliquez pas, rien ne change pour votre compte.
+
+Cette invitation expire dans {params.expiresInDays} jours. Si vous ne souhaitez pas rejoindre cette équipe, ignorez simplement cet e-mail.
+
+Cordialement,
+L'équipe {params.appName}

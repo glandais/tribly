@@ -1,0 +1,8 @@
+{#include "mail/base.en.html"}
+{#content}
+<p>Hello {params.displayName},</p>
+<p>Your {params.appName} personal data export is ready ({params.fileSize}). You can download it using the link below:</p>
+<p><a href="{params.downloadUrl}">{params.downloadUrl}</a></p>
+<p>This link is personal: anyone who obtains it can download your data. It expires on {params.expiresAt}, after which the file is deleted from our servers and you will need to request a new export.</p>
+{/content}
+{/include}

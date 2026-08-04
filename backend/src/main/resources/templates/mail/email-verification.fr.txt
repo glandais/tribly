@@ -1,0 +1,13 @@
+{#fragment id=subject rendered=false}Confirmez votre adresse email - {params.appName}{/fragment}
+Bonjour {params.displayName},
+
+Bienvenue sur {params.appName} ! Veuillez confirmer votre adresse email en cliquant sur le lien ci-dessous :
+
+{params.verifyUrl}
+
+Ce lien expirera dans 24 heures.
+
+Si vous n'avez pas créé de compte, vous pouvez ignorer cet email.
+
+Cordialement,
+L'équipe {params.appName}

@@ -2,11 +2,14 @@ package fr.pedalons.infrastructure.email;
 
 import io.quarkus.mailer.Mail;
 import io.quarkus.mailer.Mailer;
+import io.quarkus.qute.Engine;
+import io.quarkus.qute.Template;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jspecify.annotations.Nullable;
@@ -28,6 +31,9 @@ public class EmailService {
   public static final String TEAM_INVITATION = "team-invitation";
 
   public static final String TEAM_INVITATION_SIGNUP = "team-invitation-signup";
+
+  /** The languages {@code templates/mail} is translated into; anything else falls back to French. */
+  private static final Set<String> TEMPLATE_LANGUAGES = Set.of("fr", "en");
 
   @ConfigProperty(name = "pedalons.email.brevo.enabled", defaultValue = "false")
   boolean brevoEnabled;
@@ -81,6 +87,8 @@ public class EmailService {
 
   @Inject Mailer mailer;
 
+  @Inject Engine engine;
+
   public void sendEmail(
       String toEmail, String templateName, String language, Map<String, Object> params) {
     sendEmail(toEmail, templateName, language, params, null);
@@ -103,7 +111,7 @@ public class EmailService {
     if (brevoEnabled) {
       sendViaBrevo(toEmail, templateName, language, params, replyTo);
     } else {
-      sendViaSMTP(toEmail, templateName, params, replyTo);
+      sendViaSMTP(toEmail, templateName, language, params, replyTo);
     }
   }
 
@@ -195,200 +203,36 @@ public class EmailService {
     };
   }
 
+  /**
+   * Renders the local mirror of the Brevo templates. Both files are named after the same key the
+   * Brevo branch resolves an ID from, so the two paths cannot drift apart silently; the subject
+   * lives in a hidden fragment of the {@code .txt} file rather than the {@code .html} one because
+   * Qute escapes everything in an HTML template, and these subjects interpolate user-chosen names.
+   */
   private void sendViaSMTP(
-      String toEmail, String templateName, Map<String, Object> params, @Nullable String replyTo) {
-    String subject;
-    String body;
-    switch (templateName) {
-      case EMAIL_VERIFICATION -> {
-        String displayName = (String) params.get("displayName");
-        String appName = (String) params.get("appName");
-        String verifyUrl = (String) params.get("verifyUrl");
-        subject = "Confirmez votre adresse email - " + appName;
-        body =
-            """
-            Bonjour %s,
+      String toEmail,
+      String templateName,
+      String language,
+      Map<String, Object> params,
+      @Nullable String replyTo) {
+    String lang = TEMPLATE_LANGUAGES.contains(language) ? language : "fr";
+    String path = "mail/" + templateName + "." + lang;
 
-            Bienvenue sur %s ! Veuillez confirmer votre adresse email en cliquant sur le lien ci-dessous :
-
-            %s
-
-            Ce lien expirera dans 24 heures.
-
-            Si vous n'avez pas créé de compte, vous pouvez ignorer cet email.
-
-            Cordialement,
-            L'équipe %s
-            """
-                .formatted(displayName, appName, verifyUrl, appName);
-      }
-      case OTP -> {
-        String appName = (String) params.get("appName");
-        String code = (String) params.get("code");
-        subject = "Votre code de connexion - " + appName;
-        body =
-            """
-            Bonjour,
-
-            Votre code de connexion à %s est :
-
-                %s
-
-            Ce code expire dans 5 minutes et ne peut être utilisé qu'une seule fois.
-
-            Si vous n'avez pas demandé ce code, vous pouvez ignorer cet email.
-
-            Cordialement,
-            L'équipe %s
-            """
-                .formatted(appName, code, appName);
-      }
-      case PASSWORD_RESET -> {
-        String appName = (String) params.get("appName");
-        String resetUrl = (String) params.get("resetUrl");
-        subject = "Réinitialisation de votre mot de passe - " + appName;
-        body =
-            """
-            Bonjour,
-
-            Vous avez demandé la réinitialisation de votre mot de passe pour %s. \
-            Cliquez sur le lien ci-dessous pour choisir un nouveau mot de passe :
-
-            %s
-
-            Ce lien expire dans 1 heure et ne peut être utilisé qu'une seule fois.
-
-            Si vous n'avez pas demandé cette réinitialisation, vous pouvez ignorer cet email.
-
-            Cordialement,
-            L'équipe %s
-            """
-                .formatted(appName, resetUrl, appName);
-      }
-      case DATA_EXPORT -> {
-        String appName = (String) params.get("appName");
-        String displayName = (String) params.get("displayName");
-        String downloadUrl = (String) params.get("downloadUrl");
-        String expiresAt = (String) params.get("expiresAt");
-        String fileSize = (String) params.get("fileSize");
-        subject = "Votre export de données est prêt - " + appName;
-        body =
-            """
-            Bonjour %s,
-
-            L'export de vos données personnelles %s est prêt (%s). \
-            Vous pouvez le télécharger via le lien ci-dessous :
-
-            %s
-
-            Ce lien est personnel : toute personne qui l'obtient peut télécharger vos données. \
-            Il expire le %s, après quoi le fichier est supprimé de nos serveurs et vous devrez \
-            demander un nouvel export.
-
-            Cordialement,
-            L'équipe %s
-            """
-                .formatted(displayName, appName, fileSize, downloadUrl, expiresAt, appName);
-      }
-      case AD_CONTACT -> {
-        String appName = (String) params.get("appName");
-        String recipientName = (String) params.get("recipientName");
-        String senderName = (String) params.get("senderName");
-        String adName = (String) params.get("adName");
-        String adUrl = (String) params.get("adUrl");
-        String message = (String) params.get("message");
-        subject = "%s vous écrit au sujet de « %s »".formatted(senderName, adName);
-        body =
-            """
-            Bonjour %s,
-
-            %s vous a écrit au sujet de votre annonce « %s » sur %s :
-
-            %s
-
-            Vous pouvez répondre directement à cet e-mail : votre réponse partira vers l'adresse \
-            de %s. Votre propre adresse ne lui a pas été communiquée.
-
-            L'annonce : %s
-
-            Si vous ne souhaitez plus être contacté de cette façon, désactivez l'option dans \
-            votre profil.
-
-            Cordialement,
-            L'équipe %s
-            """
-                .formatted(
-                    recipientName,
-                    senderName,
-                    adName,
-                    appName,
-                    message,
-                    senderName,
-                    adUrl,
-                    appName);
-      }
-      case TEAM_INVITATION -> {
-        String appName = (String) params.get("appName");
-        String inviterName = (String) params.get("inviterName");
-        String teamName = (String) params.get("teamName");
-        String invitationUrl = (String) params.get("invitationUrl");
-        String expiresInDays = (String) params.get("expiresInDays");
-        subject = "%s vous invite à rejoindre %s".formatted(inviterName, teamName);
-        body =
-            """
-            Bonjour,
-
-            %s vous invite à rejoindre l'équipe « %s » sur %s.
-
-            Votre compte %s existe déjà : connectez-vous et acceptez l'invitation via le lien \
-            ci-dessous.
-
-            %s
-
-            Vous n'êtes membre de cette équipe qu'une fois l'invitation acceptée : tant que vous \
-            ne cliquez pas, rien ne change pour votre compte.
-
-            Cette invitation expire dans %s jours. Si vous ne souhaitez pas rejoindre cette \
-            équipe, ignorez simplement cet e-mail.
-
-            Cordialement,
-            L'équipe %s
-            """
-                .formatted(
-                    inviterName, teamName, appName, appName, invitationUrl, expiresInDays, appName);
-      }
-      case TEAM_INVITATION_SIGNUP -> {
-        String appName = (String) params.get("appName");
-        String inviterName = (String) params.get("inviterName");
-        String teamName = (String) params.get("teamName");
-        String invitationUrl = (String) params.get("invitationUrl");
-        String expiresInDays = (String) params.get("expiresInDays");
-        subject = "%s vous invite à rejoindre %s".formatted(inviterName, teamName);
-        body =
-            """
-            Bonjour,
-
-            %s vous invite à rejoindre l'équipe « %s » sur %s.
-
-            Vous n'avez pas encore de compte : créez-le via le lien ci-dessous, puis acceptez \
-            l'invitation.
-
-            %s
-
-            Vous n'êtes membre de cette équipe qu'une fois l'invitation acceptée : créer un \
-            compte ne vous y inscrit pas.
-
-            Cette invitation expire dans %s jours. Si vous ne souhaitez pas rejoindre cette \
-            équipe, ignorez simplement cet e-mail : aucun compte ne sera créé.
-
-            Cordialement,
-            L'équipe %s
-            """
-                .formatted(inviterName, teamName, appName, invitationUrl, expiresInDays, appName);
-      }
-      default -> throw new IllegalArgumentException("Unknown template: " + templateName);
+    // The suffix is explicit: quarkus.qute.suffixes would otherwise resolve "mail/otp.fr" to the
+    // .html file and the .txt sibling would be unreachable.
+    Template textTemplate = engine.getTemplate(path + ".txt");
+    Template htmlTemplate = engine.getTemplate(path + ".html");
+    if (textTemplate == null || htmlTemplate == null) {
+      throw new IllegalArgumentException("Unknown template: " + templateName + " / " + language);
     }
-    Mail mail = Mail.withText(toEmail, subject, body);
+
+    // strip(): the newline that follows the hidden subject fragment is still part of the body.
+    String subject = textTemplate.getFragment("subject").data("params", params).render().strip();
+    String text = textTemplate.data("params", params).render().strip() + "\n";
+    String html = htmlTemplate.data("params", params).render();
+
+    // Both parts, so plain-text readers and spam filters each get something.
+    Mail mail = Mail.withHtml(toEmail, subject, html).setText(text);
     if (replyTo != null) {
       mail.setReplyTo(replyTo);
     }

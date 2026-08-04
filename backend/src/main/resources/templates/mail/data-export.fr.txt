@@ -1,0 +1,11 @@
+{#fragment id=subject rendered=false}Votre export de données est prêt - {params.appName}{/fragment}
+Bonjour {params.displayName},
+
+L'export de vos données personnelles {params.appName} est prêt ({params.fileSize}). Vous pouvez le télécharger via le lien ci-dessous :
+
+{params.downloadUrl}
+
+Ce lien est personnel : toute personne qui l'obtient peut télécharger vos données. Il expire le {params.expiresAt}, après quoi le fichier est supprimé de nos serveurs et vous devrez demander un nouvel export.
+
+Cordialement,
+L'équipe {params.appName}

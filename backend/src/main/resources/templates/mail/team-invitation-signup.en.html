@@ -1,0 +1,10 @@
+{#include "mail/base.en.html"}
+{#content}
+<p>Hello,</p>
+<p>{params.inviterName} invites you to join the team &ldquo;{params.teamName}&rdquo; on {params.appName}, the app that brings together your club's rides, routes and calendar.</p>
+<p>You do not have an account yet: create one from the link below, then accept the invitation.</p>
+<p><a href="{params.invitationUrl}">Create my account and join the team</a></p>
+<p>You only become a member once you have accepted: creating an account does not enrol you.</p>
+<p>This invitation expires in {params.expiresInDays} days. If you would rather not join this team, simply ignore this email: no account will be created.</p>
+{/content}
+{/include}

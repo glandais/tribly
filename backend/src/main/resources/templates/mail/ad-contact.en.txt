@@ -1,0 +1,15 @@
+{#fragment id=subject rendered=false}{params.senderName} wrote to you about "{params.adName}"{/fragment}
+Hello {params.recipientName},
+
+{params.senderName} wrote to you about your ad "{params.adName}" on {params.appName}:
+
+{params.message}
+
+You can reply directly to this email: your reply goes to {params.senderName}'s address. Your own address has not been shared with them.
+
+The ad: {params.adUrl}
+
+If you no longer want to be contacted this way, turn the option off in your profile.
+
+Best regards,
+The {params.appName} team

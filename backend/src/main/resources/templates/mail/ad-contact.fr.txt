@@ -1,0 +1,15 @@
+{#fragment id=subject rendered=false}{params.senderName} vous écrit au sujet de « {params.adName} »{/fragment}
+Bonjour {params.recipientName},
+
+{params.senderName} vous a écrit au sujet de votre annonce « {params.adName} » sur {params.appName} :
+
+{params.message}
+
+Vous pouvez répondre directement à cet e-mail : votre réponse partira vers l'adresse de {params.senderName}. Votre propre adresse ne lui a pas été communiquée.
+
+L'annonce : {params.adUrl}
+
+Si vous ne souhaitez plus être contacté de cette façon, désactivez l'option dans votre profil.
+
+Cordialement,
+L'équipe {params.appName}

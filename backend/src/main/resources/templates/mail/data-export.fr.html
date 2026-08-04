@@ -1,0 +1,8 @@
+{#include "mail/base.fr.html"}
+{#content}
+<p>Bonjour {params.displayName},</p>
+<p>L'export de vos données personnelles {params.appName} est prêt ({params.fileSize}). Vous pouvez le télécharger via le lien ci-dessous&nbsp;:</p>
+<p><a href="{params.downloadUrl}">{params.downloadUrl}</a></p>
+<p>Ce lien est personnel&nbsp;: toute personne qui l'obtient peut télécharger vos données. Il expire le {params.expiresAt}, après quoi le fichier est supprimé de nos serveurs et vous devrez demander un nouvel export.</p>
+{/content}
+{/include}

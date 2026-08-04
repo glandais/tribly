@@ -1,0 +1,11 @@
+{#fragment id=subject rendered=false}Your data export is ready - {params.appName}{/fragment}
+Hello {params.displayName},
+
+Your {params.appName} personal data export is ready ({params.fileSize}). You can download it using the link below:
+
+{params.downloadUrl}
+
+This link is personal: anyone who obtains it can download your data. It expires on {params.expiresAt}, after which the file is deleted from our servers and you will need to request a new export.
+
+Best regards,
+The {params.appName} team
