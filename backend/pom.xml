@@ -225,6 +225,12 @@
             <artifactId>quarkus-container-image-jib</artifactId>
         </dependency>
 
+        <!-- Reads Docker/Swarm secrets mounted as files (e.g. /run/secrets) as config properties -->
+        <dependency>
+            <groupId>io.smallrye.config</groupId>
+            <artifactId>smallrye-config-source-file-system</artifactId>
+        </dependency>
+
         <!-- Testing -->
         <dependency>
             <groupId>io.quarkus</groupId>

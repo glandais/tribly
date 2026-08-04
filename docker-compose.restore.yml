@@ -1,0 +1,79 @@
+# The Biketeam migration is a one-shot, run-to-completion job -- a poor fit for a Swarm service, and
+# `profiles:` (how it used to stay opt-in inside docker-compose.yml) doesn't exist in Swarm mode.
+# Kept as an ordinary Compose service instead, run directly against the Docker engine:
+#
+#   docker compose -f docker-compose.restore.yml run --rm backend-restore
+#
+# It joins the same overlay networks as the Swarm-managed stack -- possible only because both
+# `${ENV_NAME}-net` (docker-compose.yml) and `pedalons-shared` (docker-compose.shared.yml) are
+# declared `attachable: true`, letting a plain container attach to a Swarm-owned network.
+services:
+  backend-restore:
+    image: pedalons-backend:${ENV_NAME}
+    restart: "no"
+    user: "${PUID:-1000}:${PGID:-1000}"
+    networks:
+      - pedalons
+      - shared
+    environment:
+      ERROR_LOG_DETAILS: "false"
+      # Writes into this Domain — same values as the backend service, from .env.
+      PEDALONS_BOOTSTRAP_DOMAIN: ${PEDALONS_BOOTSTRAP_DOMAIN:?set it in .env}
+      PEDALONS_BOOTSTRAP_DOMAIN_NAME: ${PEDALONS_BOOTSTRAP_DOMAIN_NAME:?set it in .env}
+      PEDALONS_BOOTSTRAP_BASE_URL: ${PEDALONS_BOOTSTRAP_BASE_URL:?set it in .env}
+      PEDALONS_BOOTSTRAP_ADMIN_EMAIL: ${PEDALONS_BOOTSTRAP_ADMIN_EMAIL:?set it in .env}
+      PEDALONS_BOOTSTRAP_ADMIN_DISPLAY_NAME: ${PEDALONS_BOOTSTRAP_ADMIN_DISPLAY_NAME:?set it in .env}
+      PEDALONS_MIGRATION_BIKETEAM_ENABLED: "true"
+      # Unset: migrate every biketeam team. Set to a team id to migrate just that one.
+      # PEDALONS_MIGRATION_BIKETEAM_TEAM_ID: "n-peloton"
+      PEDALONS_MIGRATION_BIKETEAM_DATA_DIR: "/mnt/biketeam/production/data"
+      # A mail domain, not a hostname: biketeam users with no email get strava_<id>@<this>.
+      PEDALONS_MIGRATION_BIKETEAM_PLACEHOLDER_EMAIL_DOMAIN: "pedalons.fr"
+      BIKETEAM_DB_URL: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/biketeam_import
+      BIKETEAM_DB_USER: ${POSTGRES_USER}
+      DATA_CACHE_PATH: ${DATA_CACHE_PATH}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      STORAGE_BUCKET: ${STORAGE_BUCKET}
+    # `docker compose run` (unlike `docker stack deploy`) is happy with file-backed local secrets --
+    # no Swarm secret store needed here. scripts/create-secrets.sh writes the same plaintext values
+    # to ./data/secrets/ for this file to pick up, so both entry points read from a single source.
+    secrets:
+      - source: postgres_password
+        target: POSTGRES_PASSWORD
+      # Same value, mounted a second time under the property name the biketeam datasource expects.
+      - source: postgres_password
+        target: BIKETEAM_DB_PASSWORD
+      - source: minio_secret_key
+        target: MINIO_SECRET_KEY
+      - source: brevo_api_key
+        target: BREVO_API_KEY
+      - source: encryption_key
+        target: ENCRYPTION_KEY
+      - source: quarkus_mailer_password
+        target: QUARKUS_MAILER_PASSWORD
+    volumes:
+      - ./data/storage:/mnt/storage
+      - ./data/keys:/mnt/keys:ro
+      - ./data/cache:/mnt/cache
+      - ../biketeam-backup:/mnt/biketeam:ro
+
+networks:
+  pedalons:
+    name: ${ENV_NAME}-net
+    external: true
+  shared:
+    name: pedalons-shared
+    external: true
+
+secrets:
+  postgres_password:
+    file: ./data/secrets/postgres_password
+  minio_secret_key:
+    file: ./data/secrets/minio_secret_key
+  brevo_api_key:
+    file: ./data/secrets/brevo_api_key
+  encryption_key:
+    file: ./data/secrets/encryption_key
+  quarkus_mailer_password:
+    file: ./data/secrets/quarkus_mailer_password
