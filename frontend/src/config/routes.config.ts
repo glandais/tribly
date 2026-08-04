@@ -319,8 +319,8 @@ export const routesConfig: RoutesConfig = [
     navGroup: 'home',
     breadcrumb: { type: 'static', i18nKey: tRegister('calendar.title') },
     // CalendarPage's first events query, keyed on the same `getInitialCalendarRange()` the hook
-    // seeds its state with. FullCalendar re-queries its own visible grid right after mount; that
-    // second range depends on the viewport and can't be known here, so it stays a client fetch.
+    // seeds its state with. The window is wider than any single view on purpose, so the visible
+    // grid `CalendarView` reports on mount — and every step within six months — is served from it.
     prefetch: (queryClient) => prefetchCalendar(queryClient),
   },
 

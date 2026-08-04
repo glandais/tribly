@@ -141,10 +141,9 @@ export default defineConfig(({ mode }) => {
               return 'editor-vendor'
             }
 
-            // === CALENDAR (FullCalendar - check before react) ===
-            if (id.includes('node_modules/@fullcalendar/')) {
-              return 'calendar-vendor'
-            }
+            // (No calendar chunk: the calendar is `@mantine/schedule`, which belongs to
+            // mantine-vendor below. The `@fullcalendar/` rule that used to sit here matched
+            // nothing once the migration landed.)
 
             // === CHARTS (check before react - react-chartjs-2 must not fall to react) ===
             if (

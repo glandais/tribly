@@ -56,14 +56,21 @@ makes the app redirect to its canonical URL on load, which discards the verdict.
 fire the query §2 suspected. That gap is now closed (`prefetchEditTripForm` prefetches the stage
 routes bulk), **re-crawled and confirmed `covered`**.
 
-The **4 remaining gaps are the documented false positive**: FullCalendar's visible grid, whose
-range depends on the viewport and cannot be computed server-side, on `calendar` (×3 users) and
-`teamCalendar` (×1). Every real prefetch gap is closed — `adEdit`'s two ad shapes, the form
+The **4 remaining gaps were filed as a false positive and were not one** — see the entry below:
+they were the calendar throwing its own prefetch away on mount, on `calendar` (×3 users) and
+`teamCalendar` (×1). **Fixed, and re-crawled at 09:38Z on the two routes as `user1`: both `RAS
+(prefetch: covered)`.** Every other prefetch gap is closed — `adEdit`'s two ad shapes, the form
 pickers, `rideEdit`'s current selections, `tripEdit`'s stage routes.
 
+One caveat on that re-crawl, because it is the trap this file exists to name: it ran on the **4th**
+of the month, and the window/grid containment it verifies also held on the 4th with the *rolling*
+window that preceded the fix. What it measures is that the bail-out works at all; that it works on
+the 27th is `useCalendarDateRange.test.ts`'s job, not the crawler's. A green crawl dates from the
+day it ran.
+
 Two things this run changed about the open list: the old §2 (`TripEditor`'s suspected gap) is
-**deleted**, fixed and verified; and §1 did **not** reproduce, but stays anyway — see its entry for
-why that is not evidence of a fix. §1 is once again the only open defect.
+**deleted**, fixed and verified; and the old §1 (the calendar's time-text mismatch) was rewritten
+once it turned out the fix had already landed before the run — see §1 for what is actually left.
 
 The run's sixth issue, `gpxToolsMap`'s two `console-error: Tn`, was investigated and could not be
 reproduced or identified — see the entry below, which records what the dead end cost and why
@@ -79,7 +86,8 @@ The 7 still not measured redirect legitimately on load: `completeAccount` (×3 �
 the known bug), `gpxToolsNew` (×3), `teamAdmin/user1`.
 
 **Every measured route reports `covered`** — public, authenticated, admin and form screens alike.
-The only queries still fetched after hydration anywhere are the two calendars' viewport grids.
+The only queries still fetched after hydration anywhere were the two calendars', and the 09:38Z
+re-crawl of those two routes reports them `covered`.
 
 A production React build minifies hydration errors (`#418` = mismatch, with `args[]` naming what
 mismatched; `#185` = update loop) and carries no component diff. That's the expected trade: run the
@@ -87,34 +95,32 @@ build for the inventory, re-run a failing route against `pnpm dev:ssr` when you 
 
 ## Open
 
-### 1. `CalendarView` formats event times outside `useFormattedDate` — text mismatch on `/calendar`
+### 1. A calendar without a `timezone` preference renders the wrong *day*, then corrects itself
 
-React #418 with `args[]=text` (a text-content mismatch) on `/calendar` and on
-`/equipes/{slug}/calendrier`, both for `user1`.
+What is left of the old "`CalendarView` formats event times outside `useFormattedDate`" entry. The
+two **hydration mismatches** it described are closed; a **visible correction** is not.
 
-**The 2026-08-04 run did not reproduce it — the entry stays anyway.** Nothing was fixed:
-`CalendarView.tsx` still formats straight to a text node with dayjs, unchanged. The likely reason
-it went quiet is environmental, not structural — the mismatch needs the server and the browser to
-*disagree* about the zone, so it disappears the moment the crawled account has a `timezone`
-preference set (`15a4d7b4` added that preference; the staging accounts had NULL when this was
-written). A null timezone on any account brings it straight back. This is the last paragraph of
-this entry turned on itself.
+**Closed — do not re-investigate:**
 
-The spread to `teamCalendar` was a **consequence of fixing its prefetch**: the page renders its
-events server-side now, so it finally has time text to disagree about. One defect, two screens.
+- *The time-text mismatch (React #418, `args[]=text`, `user1`, both calendars).* `f925468f` moved
+  `useEffectiveTimezone()` behind `useSyncExternalStore` with a `getServerSnapshot` of `UTC`, so
+  the hydration render reads UTC on **both** sides and `dayjs(...).tz(tz)` matches by construction.
+  That commit landed at 06:34Z, *before* the 07:28Z run — so "it did not reproduce" was the fix
+  working, not the environmental luck the previous version of this entry guessed at. Note that
+  `CalendarView` still formats with dayjs rather than `useFormattedDate`, and that is correct here:
+  `@mantine/schedule` wants `'YYYY-MM-DD HH:mm:ss'` *positioning* strings, not display text.
+- *The month-grid mismatch.* `CalendarView` seeded its current date from a raw `dayjs()`, which is
+  the server process's zone during SSR and the browser's on the client: between midnight and the
+  local offset on the 1st of a month, the server painted the previous month's grid and the client
+  the next one. Now seeded from `hourAlignedNow()` in the effective zone, which both sides agree on.
 
-`useEffectiveTimezone()` (`utils/dateFormat.ts`) resolves to `UTC` on the server whenever the user
-has no `timezone` preference — and it is NULL for all three staging accounts — while the browser
-resolves to its own zone. `FormattedDate`/`FormattedDateTime` exist precisely to absorb that with
-`suppressHydrationWarning`, but `CalendarView.tsx` formats straight to a text node with dayjs
-(`dayjs(dto.start).tz(tz).format('HH:mm')`, line 149, and the `YYYY-MM-DD HH:mm:ss` event
-start/end above it). Server writes UTC, client writes Europe/Paris, React reports a mismatch.
-
-Only `user1` trips it, on either screen, because only `user1` has events on the first paint — the
-other two render an empty calendar and so have no time text to disagree about. That's the general
-shape of this class of bug: it shows up only for the account whose data reaches the failing branch,
-so a run where it disappears proves nothing about the fix. It is also why fixing a *prefetch* can
-surface it somewhere new, as `teamCalendar` just did.
+**Open, and by design rather than by accident:** for a visitor with no `timezone` preference the
+server has no way to know their zone, so it commits to UTC — an event at 00:30 Paris time is
+rendered by the server in the *previous day's* cell, and moves one cell when the post-hydration
+re-render supplies the real zone. Not an error React can report, and not fixable server-side
+without a zone hint; setting a `timezone` preference removes it entirely. The honest fixes are
+either to accept it (current choice) or to stop rendering the grid server-side for visitors whose
+zone is guessed — which costs the whole point of prefetching it.
 
 ## Known false positives
 
@@ -149,8 +155,21 @@ surface it somewhere new, as `teamCalendar` just did.
   the one crawl user who belongs to that team — otherwise the run audits an error page. Same trap
   for any future member-scoped route: restrict its `users:` or point `params.teamSlug` at a team
   the user belongs to.
-- **`calendar`'s second `calendar/events` window, and `teamCalendar`'s** — FullCalendar re-queries
-  its own visible grid right after mount, over a range that depends on the viewport. That second
-  window is not computable server-side, so it will be reported as a gap on every run, forever. The
-  *first* range (`getInitialCalendarRange()`) is the one that must stay `covered`. Same for
-  `MyParticipations`' paged queries on `profile`: they fire only when a section is opened.
+- **`MyParticipations`' paged queries on `profile`** — they fire only when a section is opened, so
+  they cannot be prefetched and will be reported on every run.
+- **~~`calendar`'s second `calendar/events` window, and `teamCalendar`'s~~ — this was not a false
+  positive, and the entry stays as a warning about how it was misread.** It was filed as
+  "FullCalendar re-queries its own visible grid over a range that depends on the viewport, so it is
+  not computable server-side". Every clause was wrong: FullCalendar had already been replaced by
+  `@mantine/schedule`, nothing was re-querying *itself*, and the range came from
+  `CalendarView`'s own mount effect — `getVisibleRange(date, view)`, a pure function of two pieces
+  of state, with no viewport input at all. The effect reported that range unconditionally, so the
+  prefetched window was replaced one render after hydration: the server ran a seven-month query,
+  the grid it painted blanked under the loading overlay, and the refetch showed up here. Fixed by
+  having `useCalendarDateRange` bail out when the newly visible range is already inside the loaded
+  one — which also required snapping that window to month boundaries, since a rolling
+  `now - 1 month` starts *after* the grid's first Monday for the last days of every month (40 days
+  a year) and would have left the bail-out missing there (`useCalendarDateRange.test.ts` is the
+  guard, and the reason that number is measured rather than guessed). **The lesson worth keeping: "depends on the viewport" is a claim to verify against the
+  component, not a category to file a gap under** — a range that a mount effect computes from state
+  is always reproducible server-side.

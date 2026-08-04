@@ -15,6 +15,8 @@ import timezone from 'dayjs/plugin/timezone'
 import { paths } from '@/config/paths'
 import { useUnits } from '@/hooks/useUnits'
 import { useEffectiveTimezone } from '@/utils/dateFormat'
+import { hourAlignedNow } from '@/utils/nowIso'
+import { getVisibleRange } from '@/components/calendar/calendarRange'
 import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 import type { CalendarEventDto, CalendarEventType } from '@/api/dto'
 
@@ -62,23 +64,6 @@ function getPayloadDto(event: ScheduleEventData): CalendarEventDto | undefined {
   return (event.payload as CalendarEventPayload | undefined)?.dto
 }
 
-function getVisibleRange(date: string, view: ScheduleViewLevel): { start: Date; end: Date } {
-  const d = dayjs(date)
-  if (view === 'year') {
-    return { start: d.startOf('year').toDate(), end: d.endOf('year').toDate() }
-  }
-  if (view === 'month') {
-    const firstOfMonth = d.startOf('month')
-    // firstDayOfWeek=1 (Monday): (day()+6)%7 gives Mon=0..Sun=6
-    const daysFromMonday = (firstOfMonth.day() + 6) % 7
-    const startOfGrid = firstOfMonth.subtract(daysFromMonday, 'day')
-    // Schedule always renders 6 weeks (42 days)
-    const endOfGrid = startOfGrid.add(42, 'day').subtract(1, 'millisecond')
-    return { start: startOfGrid.toDate(), end: endOfGrid.toDate() }
-  }
-  return { start: d.startOf('month').toDate(), end: d.endOf('month').toDate() }
-}
-
 export function CalendarView({
   events,
   isLoading,
@@ -117,7 +102,14 @@ export function CalendarView({
   )
 
   const [view, setView] = useState<ScheduleViewLevel>('month')
-  const [date, setDate] = useState(dayjs().format('YYYY-MM-DD'))
+  // "Today" in the *visitor's* zone, from the same hour-aligned instant the query keys use, not
+  // from a raw `dayjs()`. A raw call reads the server process's zone during SSR (UTC in the
+  // container) and the browser's on the client: between midnight and the local offset on the 1st
+  // of a month the server renders July's grid while the client renders August's — a whole-subtree
+  // hydration mismatch, plus a `highlightToday` cell in the wrong place. `tz` is `UTC` on the
+  // server and again on the hydration render (`useEffectiveTimezone`'s server snapshot), or the
+  // user's own preference on both sides when they have one, so the two agree either way.
+  const [date, setDate] = useState(() => dayjs(hourAlignedNow()).tz(tz).format('YYYY-MM-DD'))
 
   useEffect(() => {
     const { start, end } = getVisibleRange(date, view)

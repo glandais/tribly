@@ -6,9 +6,9 @@ import { useAuthStore } from '@/store/authStore'
 /**
  * Server-side counterpart of `CalendarPage`'s first events query, keyed on the same
  * `getInitialCalendarRange()` `useCalendarDateRange` seeds its state with — the only reason that
- * first query is prefetchable at all. FullCalendar re-queries its own visible grid right after
- * mount; that second range depends on the viewport and can't be known here, so it stays a client
- * fetch.
+ * first query is prefetchable at all. `CalendarView` reports its visible grid right after mount,
+ * but that range is contained in this one and `handleDateRangeChange` bails out rather than
+ * re-keying the query, so this prefetch is what the page renders from and keeps rendering from.
  *
  * Also primes `useGetToken`, the query `IcsFeedSettings` fires on mount: `CalendarPage` renders it
  * unconditionally at the bottom of the page, not behind a disclosure or accordion the visitor has
@@ -21,8 +21,8 @@ import { useAuthStore } from '@/store/authStore'
  * same way `profileData.ts` does.
  *
  * `TeamCalendarPage` (route `team-calendar`) queries the team-scoped sibling endpoint
- * (`useGetTeamEvents`) through the same `useCalendarDateRange` hook, but that route has no
- * `prefetch` today — left alone here; not in scope for this module.
+ * (`useGetTeamEvents`) through the same `useCalendarDateRange` hook; its own prefetch lives in
+ * `teamCalendarData.ts`, which has to gate on team membership as well as on a session.
  */
 export async function prefetchCalendar(queryClient: QueryClient): Promise<void> {
   if (!useAuthStore.getState().isAuthenticated) return

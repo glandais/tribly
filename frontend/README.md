@@ -75,7 +75,7 @@ This produces React Query hooks, TypeScript DTOs, and Zod schemas in `src/api/`.
 
 | Concern | Library |
 |---------|---------|
-| UI Components | [Mantine](https://mantine.dev/) 8 |
+| UI Components | [Mantine](https://mantine.dev/) 9 |
 | Routing | React Router 7 |
 | Server State | TanStack React Query 5 |
 | Client State | Zustand 5 |
@@ -83,7 +83,7 @@ This produces React Query hooks, TypeScript DTOs, and Zod schemas in `src/api/`.
 | Rich Text | Tiptap 3 |
 | Maps | MapLibre GL + react-map-gl |
 | Charts | Chart.js + react-chartjs-2 |
-| Calendar | FullCalendar 7 |
+| Calendar | @mantine/schedule 9 |
 | i18n | i18next (French default) |
 | Icons | @tabler/icons-react |
 

@@ -17,9 +17,8 @@ import type { TeamDetailDto } from '@/api/dto'
  *
  * Keyed the same way `calendarData.ts` keys the personal calendar: `getInitialCalendarRange()` is
  * what `useCalendarDateRange` seeds its state with, so the first `useGetTeamEvents` call and the
- * prefetch land on the same query key. FullCalendar's own re-query of its visible grid, right after
- * mount, depends on the viewport and can't be reproduced here — it stays a client-only fetch,
- * exactly like the personal calendar's second window.
+ * prefetch land on the same query key — and the visible grid `CalendarView` reports on mount falls
+ * inside that window, so it does not re-key the query.
  *
  * The route is `auth: 'authenticated'` but the API beneath it is member-only
  * (`CalendarAccessChecker` needs a team role, not just a session — see the route comment in
