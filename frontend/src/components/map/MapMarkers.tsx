@@ -13,8 +13,8 @@ export function StartMarker({ longitude, latitude }: MarkerProps) {
   return (
     <Marker longitude={longitude} latitude={latitude} anchor="center">
       <Box
-        w={24}
-        h={24}
+        w={16}
+        h={16}
         bg="var(--mantine-color-green-filled)"
         style={{
           borderRadius: '50%',
@@ -30,8 +30,8 @@ export function EndMarker({ longitude, latitude }: MarkerProps) {
   return (
     <Marker longitude={longitude} latitude={latitude} anchor="center">
       <Box
-        w={24}
-        h={24}
+        w={16}
+        h={16}
         bg="var(--mantine-color-red-filled)"
         style={{
           borderRadius: '50%',
@@ -47,8 +47,8 @@ export function HoverMarker({ longitude, latitude }: MarkerProps) {
   return (
     <Marker longitude={longitude} latitude={latitude} anchor="center">
       <Box
-        w={16}
-        h={16}
+        w={24}
+        h={24}
         bg="var(--mantine-color-blue-filled)"
         style={{
           borderRadius: '50%',
