@@ -63,13 +63,18 @@ export function RoutePickerModal({
 
   const {
     data: routesResponse,
-    isLoading,
+    isPending,
     error,
   } = useListRoutes(
     teamSlug,
     { page, size: pageSize, search: debouncedSearch || undefined },
     {
-      query: { placeholderData: keepPreviousData },
+      // The editors mount this modal for the whole edit session, closed. Without `enabled` it
+      // queried the team's route list on every ride and trip form load — a list most visitors
+      // never open, and the one query the SSR audit kept reporting on `rideNew`/`rideEdit`/
+      // `tripNew`/`tripEdit`. Prefetching it would have been the wrong fix: the right one is not
+      // to ask at all until the visitor opens the picker.
+      query: { placeholderData: keepPreviousData, enabled: isOpen },
     }
   )
 
@@ -100,7 +105,7 @@ export function RoutePickerModal({
         />
         {onCreateNew && <Button onClick={onCreateNew}>{t('routes.create.title')}</Button>}
       </Group>
-      {isLoading ? (
+      {isPending ? (
         <Center py="xl">
           <Stack align="center">
             <Loader />

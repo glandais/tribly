@@ -1,6 +1,6 @@
 import type { QueryClient } from '@tanstack/react-query'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
-import { useGetAdEdit, prefetchGetAdEditQuery } from '@/api/endpoints/ads/ads'
+import { useGetAdEdit, prefetchGetAdEditQuery, prefetchGetAdQuery } from '@/api/endpoints/ads/ads'
 
 /**
  * The one description of what `CreateAdPage` and `EditAdPage` read, consumed two ways: the pages
@@ -44,18 +44,22 @@ export function useEditAdFormData(teamSlug?: string, adSlug?: string) {
 
 /**
  * Server-side counterpart of {@link useEditAdFormData}'s ad-specific data (the team itself comes
- * from the `teamScopedPrefetch` wrapper). Primes `prefetchGetAdEditQuery`, matching the
- * `useGetAdEdit` call the page actually reads — `routes.config.ts` used to call
- * `prefetchGetAdQuery` here, which built the `getAd` key instead of the `getAdEdit` one `EditAdPage`
- * reads, so the prefetched entry was dead weight and the form fetched again after hydration. Nothing
- * on this route reads the plain `getAd` shape (no breadcrumb here — `ad-edit`'s is static, and the
- * dynamic `ad` breadcrumb belongs to the parent `ad-detail` route, which primes it independently), so
- * there is no reason to keep both.
+ * from the `teamScopedPrefetch` wrapper).
+ *
+ * **Both ad shapes, and both are needed.** `getAdEdit` is what the form reads; `routes.config.ts`
+ * used to prime `getAd` alone, a different key, so the prefetched entry was dead weight and the form
+ * fetched again after hydration. Priming only `getAdEdit` then moved the gap rather than closing it:
+ * this route's breadcrumb trail renders its **parent** `ad-detail` crumb, whose dynamic `ad` entity
+ * makes `useBreadcrumbData` call `useGetAd` on every route that carries an `adSlug` — the edit page
+ * included. The crawler caught exactly that on the run after the first fix.
  */
 export async function prefetchEditAdForm(
   queryClient: QueryClient,
   teamSlug: string,
   adSlug: string
 ): Promise<void> {
-  await prefetchGetAdEditQuery(queryClient, teamSlug, adSlug)
+  await Promise.all([
+    prefetchGetAdEditQuery(queryClient, teamSlug, adSlug),
+    prefetchGetAdQuery(queryClient, teamSlug, adSlug),
+  ])
 }

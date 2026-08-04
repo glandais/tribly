@@ -58,7 +58,7 @@ export function RideTemplatePickerModal({
 
   const {
     data: templatesResponse,
-    isLoading,
+    isPending,
     error,
   } = useListTemplates(
     teamSlug,
@@ -67,7 +67,9 @@ export function RideTemplatePickerModal({
       page,
       size: pageSize,
     },
-    { query: { placeholderData: keepPreviousData } }
+    // Mounted closed for the whole form session — see `RoutePickerModal` for why this is gated
+    // rather than prefetched.
+    { query: { placeholderData: keepPreviousData, enabled: isOpen } }
   )
 
   const totalPages = Math.ceil((templatesResponse?.total ?? 0) / pageSize)
@@ -100,7 +102,7 @@ export function RideTemplatePickerModal({
           fullWidth
         />
       </Box>
-      {isLoading ? (
+      {isPending ? (
         <Center py="xl">
           <Stack align="center" gap="xs">
             <Loader />

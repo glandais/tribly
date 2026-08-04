@@ -1,8 +1,10 @@
 import type { QueryClient } from '@tanstack/react-query'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
-import { useGetRide, prefetchGetRideQuery } from '@/api/endpoints/rides/rides'
-import { prefetchListPlacesQuery } from '@/api/endpoints/places/places'
+import { useGetRide, prefetchGetRideQuery, getGetRideQueryKey } from '@/api/endpoints/rides/rides'
+import { prefetchListPlacesQuery, prefetchGetPlaceQuery } from '@/api/endpoints/places/places'
 import { placeAutocompleteParams } from '@/components/common/placeAutocompleteParams'
+import { prefetchRoutesBulkChunked } from '@/config/prefetchHelpers'
+import type { RideDto } from '@/api/dto'
 
 /**
  * The one description of what `CreateRidePage` and `EditRidePage` read, consumed two ways: the
@@ -34,6 +36,29 @@ export async function prefetchRideFormPlaces(queryClient: QueryClient, teamSlug:
     prefetchListPlacesQuery(queryClient, teamSlug, placeAutocompleteParams({ filterStart: true })),
     prefetchListPlacesQuery(queryClient, teamSlug, placeAutocompleteParams({ filterEnd: true })),
   ])
+}
+
+/**
+ * The places the edit form already has selected — `RideEditor` seeds `startPlaceId`/`endPlaceId`
+ * from the ride, and each `PlaceAutocomplete` looks its own up by id to render a name rather than
+ * an id. Nothing to open, nothing to click: both fire on the first paint.
+ */
+export function rideFormPlaceIds(ride: RideDto | undefined): string[] {
+  return [ride?.startPlace?.id, ride?.endPlace?.id].filter((id): id is string => !!id)
+}
+
+/**
+ * The routes the edit form summarises, one row per group — `RideEditor`'s own `useRoutesBulk`,
+ * deduped and **sorted** because the array goes into the query key.
+ *
+ * Deliberately not `rideRouteSlugs` from `rideDetailData.ts`: the editor lists each group's own
+ * route with no fallback to the ride's, and asks for `geometry: false` (only the name, distance and
+ * elevation gain are shown). Both differences change the key — the same slugs with geometry would
+ * prime an entry this screen never reads.
+ */
+export function rideFormGroupRouteSlugs(ride: RideDto | undefined): string[] {
+  const slugs = (ride?.groups ?? []).map((g) => g.routeSlug).filter((s): s is string => !!s)
+  return Array.from(new Set(slugs)).sort()
 }
 
 /**
@@ -69,8 +94,13 @@ export function useEditRideFormData(teamSlug?: string, rideSlug?: string) {
 /**
  * Server-side counterpart of {@link useEditRideFormData}'s ride-form-specific data (the team itself
  * comes from the `teamScopedPrefetch` wrapper). Covers more than the hook the same way
- * {@link prefetchCreateRideForm} does: the ride-form's two `PlaceAutocomplete` fields, on top of the
- * ride itself which `EditRidePage` does own.
+ * {@link prefetchCreateRideForm} does: everything `RideEditor` and its children read on the first
+ * paint, on top of the ride itself which `EditRidePage` does own.
+ *
+ * Two phases, because the second depends on the first: the form's current selections — the two
+ * chosen places, and each group's route — are only knowable once the ride is in cache. They are
+ * what the crawler reported on `rideEdit` after the pickers were gated: not lists waiting for a
+ * click, but the values the form renders straight away.
  */
 export async function prefetchEditRideForm(
   queryClient: QueryClient,
@@ -80,5 +110,15 @@ export async function prefetchEditRideForm(
   await Promise.all([
     prefetchGetRideQuery(queryClient, teamSlug, rideSlug),
     prefetchRideFormPlaces(queryClient, teamSlug),
+  ])
+
+  const ride = queryClient.getQueryData<RideDto>(getGetRideQueryKey(teamSlug, rideSlug))
+  await Promise.all([
+    ...rideFormPlaceIds(ride).map((placeId) =>
+      prefetchGetPlaceQuery(queryClient, teamSlug, placeId)
+    ),
+    prefetchRoutesBulkChunked(queryClient, teamSlug, rideFormGroupRouteSlugs(ride), {
+      geometry: false,
+    }),
   ])
 }
