@@ -13,6 +13,8 @@ import {
   Filler,
   ChartOptions,
   ChartData,
+  ChartEvent,
+  ActiveElement,
   TooltipItem,
 } from 'chart.js'
 import { useTranslation } from 'react-i18next'
@@ -21,8 +23,15 @@ import { useMapHeight } from '@/hooks/useResponsive'
 import { useRoutesBulk } from '@/hooks/useRoutesBulk'
 import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 import type { RouteDetailDto } from '@/api/dto'
-import { StartMarker, EndMarker } from '../map/MapMarkers'
-import { calculateBounds, getElevationAxisBounds, routeToGeoJSON } from '../map/mapUtils'
+import { StartMarker, EndMarker, HoverMarker } from '../map/MapMarkers'
+import {
+  calculateBounds,
+  distance as haversineDistance,
+  findNearestPoint,
+  getElevationAxisBounds,
+  routeToGeoJSON,
+} from '../map/mapUtils'
+import { crosshairPlugin, type ChartWithCrosshair } from './chartCrosshair'
 import { PedalonsMap } from '../map/PedalonsMap'
 import { HideTrackControl } from '../map/HideTrackControl'
 import { useHideTrackKey } from '@/hooks/useHideTrackKey'
@@ -97,6 +106,7 @@ export function RoutesMapView({
       text: colorScheme === 'dark' ? theme.colors.dark[0] : theme.colors.dark[7],
       grid: colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[3],
       background: getOverlayBg(colorScheme, true),
+      crosshair: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
     }),
     [colorScheme, theme.colors.dark, theme.colors.gray]
   )
@@ -105,6 +115,11 @@ export function RoutesMapView({
 
   // Press "h" (or the map control) to hide the traces and their markers, revealing the basemap
   const [tracksHidden, toggleTracksHidden] = useHideTrackKey()
+
+  // Position cursor shared by the map and the profile, as an index into the *highlighted* route's
+  // points. -1 = nothing hovered.
+  const [hoveredPointIndex, setHoveredPointIndex] = useState(-1)
+  const chartRef = useRef<ChartJS<'line'>>(null)
 
   // One bulk request for every distinct route slug on the screen, instead of one `getRoute`
   // per item (several ride groups, or every stage of a trip, often share the same route).
@@ -243,6 +258,56 @@ export function RoutesMapView({
     }
   }, [onItemHover, selectedRouteId])
 
+  // Move the position cursor along the highlighted route, within a tolerance proportional to the
+  // viewport (same rule as the single-route map) so it snaps only when the pointer is near it.
+  const handleMapMouseMove = useCallback(
+    (event: MapMouseEvent) => {
+      const points = highlightedRoute?.trackPoints
+      if (!mapRef.current || !points || points.length === 0 || tracksHidden) return
+
+      const bounds = mapRef.current.getBounds()
+      const sw = bounds.getSouthWest()
+      const ne = bounds.getNorthEast()
+      const mapViewSize = haversineDistance(sw.lng, sw.lat, ne.lng, ne.lat)
+
+      const nearestIndex = findNearestPoint(
+        points,
+        event.lngLat.lat,
+        event.lngLat.lng,
+        mapViewSize / 20.0
+      )
+      setHoveredPointIndex(nearestIndex)
+    },
+    [highlightedRoute, tracksHidden]
+  )
+
+  const clearHoveredPoint = useCallback(() => setHoveredPointIndex(-1), [])
+
+  // A cursor held on the previous route's geometry would land anywhere on the new one
+  useEffect(() => {
+    setHoveredPointIndex(-1)
+  }, [highlightedRoute?.itemId])
+
+  // Map → profile: mirror the cursor as a crosshair + tooltip on the chart (profile → map goes the
+  // other way, through the chart's own `onHover`).
+  useEffect(() => {
+    const chart = chartRef.current as ChartWithCrosshair | null
+    if (!chart) return
+
+    const point = hoveredPointIndex >= 0 ? chart.getDatasetMeta(0).data[hoveredPointIndex] : null
+    if (point) {
+      chart.crosshair = { x: point.x, color: chartColors.crosshair }
+      chart.tooltip?.setActiveElements([{ datasetIndex: 0, index: hoveredPointIndex }], {
+        x: point.x,
+        y: point.y,
+      })
+    } else {
+      chart.crosshair = null
+      chart.tooltip?.setActiveElements([], { x: 0, y: 0 })
+    }
+    chart.update()
+  }, [hoveredPointIndex, chartColors.crosshair])
+
   // Create GeoJSON data for each route
   const routeGeoJSONs = useMemo(() => {
     return routesData.map((route) => ({
@@ -354,6 +419,11 @@ export function RoutesMapView({
           },
         },
       },
+      // Profile → map: the marker follows the point under the pointer, and leaving the strip
+      // (Chart.js reports no active element) drops it.
+      onHover: (_event: ChartEvent, activeElements: ActiveElement[]) => {
+        setHoveredPointIndex(activeElements.length > 0 ? activeElements[0].index : -1)
+      },
       animation: { duration: 0 },
     }),
     [chartColors, highlightedRoute, config, distance, elevation, yBounds]
@@ -385,6 +455,9 @@ export function RoutesMapView({
     )
   }
 
+  const hoveredPoint =
+    hoveredPointIndex >= 0 ? (highlightedRoute?.trackPoints[hoveredPointIndex] ?? null) : null
+
   // End marker: always use last route's last point
   const lastRoute = routesData[routesData.length - 1]
   const endPoint = lastRoute.trackPoints[lastRoute.trackPoints.length - 1]
@@ -415,6 +488,8 @@ export function RoutesMapView({
           onClick={handleClick}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
+          onMouseMove={handleMapMouseMove}
+          onMouseOut={clearHoveredPoint}
           interactiveLayerIds={tracksHidden ? [] : interactiveLayerIds}
         >
           <HideTrackControl hidden={tracksHidden} onToggle={toggleTracksHidden} />
@@ -453,6 +528,11 @@ export function RoutesMapView({
 
               {/* End marker (last route's last point) */}
               <EndMarker longitude={endPoint[0]} latitude={endPoint[1]} />
+
+              {/* Position cursor, shared with the elevation profile */}
+              {hoveredPoint && (
+                <HoverMarker longitude={hoveredPoint[0]} latitude={hoveredPoint[1]} />
+              )}
             </>
           )}
         </PedalonsMap>
@@ -467,7 +547,14 @@ export function RoutesMapView({
           shadow="lg"
           style={{ zIndex: 1000, pointerEvents: 'auto', backgroundColor: chartColors.background }}
         >
-          {chartData && <Line data={chartData} options={chartOptions} />}
+          {chartData && (
+            <Line
+              ref={chartRef}
+              data={chartData}
+              options={chartOptions}
+              plugins={[crosshairPlugin]}
+            />
+          )}
         </Paper>
       </Box>
     </Box>

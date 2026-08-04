@@ -26,6 +26,7 @@ import {
   getElevationAxisBounds,
   getPointClimbGradient,
 } from '../map/mapUtils'
+import { crosshairPlugin, type ChartWithCrosshair } from './chartCrosshair'
 import { useUnits } from '../../hooks/useUnits'
 import { getOverlayBg } from '@/lib/colors'
 import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
@@ -54,31 +55,6 @@ function useZoomPlugin(enabled: boolean): Plugin<'line'> | null {
     }
   }, [enabled, plugin])
   return plugin
-}
-
-// Extended chart type with crosshair property
-type ChartWithCrosshair = ChartJS<'line'> & { crosshair?: { x: number; color?: string } | null }
-
-// Crosshair plugin for Chart.js - color is set dynamically via chart.crosshair.color
-const crosshairPlugin: Plugin<'line'> = {
-  id: 'crosshair',
-  afterDraw: (chart) => {
-    const chartWithCrosshair = chart as ChartWithCrosshair
-    if (chartWithCrosshair.crosshair?.x) {
-      const ctx = chart.ctx
-      const x = chartWithCrosshair.crosshair.x
-      const yAxis = chart.scales.y
-
-      ctx.save()
-      ctx.beginPath()
-      ctx.moveTo(x, yAxis.top)
-      ctx.lineTo(x, yAxis.bottom)
-      ctx.lineWidth = 1
-      ctx.strokeStyle = chartWithCrosshair.crosshair.color || 'rgba(0, 0, 0, 0.3)'
-      ctx.stroke()
-      ctx.restore()
-    }
-  },
 }
 
 /** Imperative controls for driving the chart x-range from a parent (used by the zoom-sync hook). */
