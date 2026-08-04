@@ -1,4 +1,4 @@
-import { lazy } from 'react'
+import { pages } from './pageComponents'
 import type { RoutesConfig, RouteParams } from './routes.types'
 import { pathVariants } from './paths'
 import { tRegister } from '@/lib/i18nUtils'
@@ -85,220 +85,12 @@ function teamScopedPrefetch(
   }
 }
 
-// Lazy load page components for code splitting
-const HomePage = lazy(() => import('../pages/home/HomePage').then((m) => ({ default: m.HomePage })))
-const LoginPage = lazy(() =>
-  import('../pages/auth/LoginPage').then((m) => ({ default: m.LoginPage }))
-)
-const DeviceVerifyPage = lazy(() =>
-  import('../pages/device/DeviceVerifyPage').then((m) => ({ default: m.DeviceVerifyPage }))
-)
-const VerifyEmailPage = lazy(() =>
-  import('../pages/auth/VerifyEmailPage').then((m) => ({ default: m.VerifyEmailPage }))
-)
-const AcceptInvitationPage = lazy(() =>
-  import('../pages/invitation/AcceptInvitationPage').then((m) => ({
-    default: m.AcceptInvitationPage,
-  }))
-)
-const ForgotPasswordPage = lazy(() =>
-  import('../pages/auth/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage }))
-)
-const ResetPasswordPage = lazy(() =>
-  import('../pages/auth/ResetPasswordPage').then((m) => ({ default: m.ResetPasswordPage }))
-)
-const StravaCallbackPage = lazy(() =>
-  import('../pages/auth/StravaCallbackPage').then((m) => ({ default: m.StravaCallbackPage }))
-)
-const CompleteAccountPage = lazy(() =>
-  import('../pages/auth/CompleteAccountPage').then((m) => ({ default: m.CompleteAccountPage }))
-)
-const UserProfilePage = lazy(() =>
-  import('../pages/auth/UserProfilePage').then((m) => ({ default: m.UserProfilePage }))
-)
-const TeamListPage = lazy(() =>
-  import('../pages/team/TeamListPage').then((m) => ({ default: m.TeamListPage }))
-)
-const CreateTeamPage = lazy(() =>
-  import('../pages/team/CreateTeamPage').then((m) => ({ default: m.CreateTeamPage }))
-)
-const PublicationListPage = lazy(() =>
-  import('../pages/publication/PublicationListPage').then((m) => ({
-    default: m.PublicationListPage,
-  }))
-)
-const TeamMembersPage = lazy(() =>
-  import('../pages/team/TeamMembersPage').then((m) => ({ default: m.TeamMembersPage }))
-)
-const TeamSettingsPage = lazy(() =>
-  import('../pages/team/TeamSettingsPage').then((m) => ({ default: m.TeamSettingsPage }))
-)
-const TeamAdminPage = lazy(() =>
-  import('../pages/team/TeamAdminPage').then((m) => ({ default: m.TeamAdminPage }))
-)
-const TeamPlacesPage = lazy(() =>
-  import('../pages/team/TeamPlacesPage').then((m) => ({ default: m.TeamPlacesPage }))
-)
-const TeamAboutPage = lazy(() =>
-  import('../pages/team/TeamAboutPage').then((m) => ({ default: m.TeamAboutPage }))
-)
-const TeamPageDetailPage = lazy(() =>
-  import('../pages/team/TeamPageDetailPage').then((m) => ({ default: m.TeamPageDetailPage }))
-)
-const TeamPagesAdminPage = lazy(() =>
-  import('../pages/team/TeamPagesAdminPage').then((m) => ({ default: m.TeamPagesAdminPage }))
-)
-const CreateTeamPagePage = lazy(() =>
-  import('../pages/team/CreateTeamPagePage').then((m) => ({ default: m.CreateTeamPagePage }))
-)
-const EditTeamPagePage = lazy(() =>
-  import('../pages/team/EditTeamPagePage').then((m) => ({ default: m.EditTeamPagePage }))
-)
-const RideDetailPage = lazy(() =>
-  import('../pages/ride/RideDetailPage').then((m) => ({ default: m.RideDetailPage }))
-)
-const CreateRidePage = lazy(() =>
-  import('../pages/ride/CreateRidePage').then((m) => ({ default: m.CreateRidePage }))
-)
-const EditRidePage = lazy(() =>
-  import('../pages/ride/EditRidePage').then((m) => ({ default: m.EditRidePage }))
-)
-const RideTemplateListPage = lazy(() =>
-  import('../pages/ridetemplate/RideTemplateListPage').then((m) => ({
-    default: m.RideTemplateListPage,
-  }))
-)
-const CreateRideTemplatePage = lazy(() =>
-  import('../pages/ridetemplate/CreateRideTemplatePage').then((m) => ({
-    default: m.CreateRideTemplatePage,
-  }))
-)
-const EditRideTemplatePage = lazy(() =>
-  import('../pages/ridetemplate/EditRideTemplatePage').then((m) => ({
-    default: m.EditRideTemplatePage,
-  }))
-)
-const TripDetailPage = lazy(() =>
-  import('../pages/trip/TripDetailPage').then((m) => ({ default: m.TripDetailPage }))
-)
-const CreateTripPage = lazy(() =>
-  import('../pages/trip/CreateTripPage').then((m) => ({ default: m.CreateTripPage }))
-)
-const EditTripPage = lazy(() =>
-  import('../pages/trip/EditTripPage').then((m) => ({ default: m.EditTripPage }))
-)
-const StageDetailPage = lazy(() =>
-  import('../pages/trip/StageDetailPage').then((m) => ({ default: m.StageDetailPage }))
-)
-const StageFullscreenMapPage = lazy(() =>
-  import('../pages/trip/StageFullscreenMapPage').then((m) => ({
-    default: m.StageFullscreenMapPage,
-  }))
-)
-const PostDetailPage = lazy(() =>
-  import('../pages/post/PostDetailPage').then((m) => ({ default: m.PostDetailPage }))
-)
-const CreatePostPage = lazy(() =>
-  import('../pages/post/CreatePostPage').then((m) => ({ default: m.CreatePostPage }))
-)
-const EditPostPage = lazy(() =>
-  import('../pages/post/EditPostPage').then((m) => ({ default: m.EditPostPage }))
-)
-const RouteListPage = lazy(() =>
-  import('../pages/route/RouteListPage').then((m) => ({ default: m.RouteListPage }))
-)
-const RouteDetailPage = lazy(() =>
-  import('../pages/route/RouteDetailPage').then((m) => ({ default: m.RouteDetailPage }))
-)
-const RouteFullscreenMapPage = lazy(() =>
-  import('../pages/route/RouteFullscreenMapPage').then((m) => ({
-    default: m.RouteFullscreenMapPage,
-  }))
-)
-const CreateRoutePage = lazy(() =>
-  import('../pages/route/CreateRoutePage').then((m) => ({ default: m.CreateRoutePage }))
-)
-const EditRoutePage = lazy(() =>
-  import('../pages/route/EditRoutePage').then((m) => ({ default: m.EditRoutePage }))
-)
-const AllRoutesMapPage = lazy(() =>
-  import('../pages/route/AllRoutesMapPage').then((m) => ({ default: m.AllRoutesMapPage }))
-)
-const GpxToolsPage = lazy(() =>
-  import('../pages/gpxtool/GpxToolsPage').then((m) => ({ default: m.GpxToolsPage }))
-)
-const CreateGpxPreviewPage = lazy(() =>
-  import('../pages/gpxtool/CreateGpxPreviewPage').then((m) => ({ default: m.CreateGpxPreviewPage }))
-)
-const MyGpxPreviewsPage = lazy(() =>
-  import('../pages/gpxtool/MyGpxPreviewsPage').then((m) => ({ default: m.MyGpxPreviewsPage }))
-)
-const GpxPreviewPage = lazy(() =>
-  import('../pages/gpxtool/GpxPreviewPage').then((m) => ({ default: m.GpxPreviewPage }))
-)
-const GpxPreviewFullscreenMapPage = lazy(() =>
-  import('../pages/gpxtool/GpxPreviewFullscreenMapPage').then((m) => ({
-    default: m.GpxPreviewFullscreenMapPage,
-  }))
-)
-const EditGpxPreviewPage = lazy(() =>
-  import('../pages/gpxtool/EditGpxPreviewPage').then((m) => ({ default: m.EditGpxPreviewPage }))
-)
-const RoutesMapPage = lazy(() =>
-  import('../pages/route/RoutesMapPage').then((m) => ({ default: m.RoutesMapPage }))
-)
-const AllRoutesPage = lazy(() =>
-  import('../pages/route/AllRoutesPage').then((m) => ({ default: m.AllRoutesPage }))
-)
-const CalendarPage = lazy(() =>
-  import('../pages/calendar/CalendarPage').then((m) => ({ default: m.CalendarPage }))
-)
-const TeamCalendarPage = lazy(() =>
-  import('../pages/calendar/TeamCalendarPage').then((m) => ({ default: m.TeamCalendarPage }))
-)
-const AdListPage = lazy(() =>
-  import('../pages/ad/AdListPage').then((m) => ({ default: m.AdListPage }))
-)
-const AdDetailPage = lazy(() =>
-  import('../pages/ad/AdDetailPage').then((m) => ({ default: m.AdDetailPage }))
-)
-const CreateAdPage = lazy(() =>
-  import('../pages/ad/CreateAdPage').then((m) => ({ default: m.CreateAdPage }))
-)
-const EditAdPage = lazy(() =>
-  import('../pages/ad/EditAdPage').then((m) => ({ default: m.EditAdPage }))
-)
-const AdminDashboardPage = lazy(() =>
-  import('../pages/admin/AdminDashboardPage').then((m) => ({ default: m.AdminDashboardPage }))
-)
-const AdminDomainsPage = lazy(() =>
-  import('../pages/admin/AdminDomainsPage').then((m) => ({ default: m.AdminDomainsPage }))
-)
-const AdminTeamsPage = lazy(() =>
-  import('../pages/admin/AdminTeamsPage').then((m) => ({ default: m.AdminTeamsPage }))
-)
-const AdminUsersPage = lazy(() =>
-  import('../pages/admin/AdminUsersPage').then((m) => ({ default: m.AdminUsersPage }))
-)
-const AdminBetaSignupsPage = lazy(() =>
-  import('../pages/admin/AdminBetaSignupsPage').then((m) => ({
-    default: m.AdminBetaSignupsPage,
-  }))
-)
-const PrivacyPolicyPage = lazy(() =>
-  import('../pages/legal/PrivacyPolicyPage').then((m) => ({ default: m.PrivacyPolicyPage }))
-)
-const TermsOfServicePage = lazy(() =>
-  import('../pages/legal/TermsOfServicePage').then((m) => ({ default: m.TermsOfServicePage }))
-)
-const AppsPage = lazy(() => import('../pages/apps/AppsPage').then((m) => ({ default: m.AppsPage })))
-
 export const routesConfig: RoutesConfig = [
   // === Home ===
   {
     id: 'home',
     paths: pathVariants.home(),
-    component: HomePage,
+    component: pages.HomePage,
     auth: 'public',
     parentId: null,
     index: true,
@@ -313,7 +105,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'all-routes',
     paths: pathVariants.allRoutes(),
-    component: AllRoutesPage,
+    component: pages.AllRoutesPage,
     auth: 'public',
     parentId: null,
     navGroup: 'home',
@@ -327,7 +119,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'all-routes-map',
     paths: pathVariants.allRoutesMap(),
-    component: AllRoutesMapPage,
+    component: pages.AllRoutesMapPage,
     auth: 'public',
     parentId: 'all-routes',
     navGroup: 'home',
@@ -341,7 +133,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'gpx-tools',
     paths: pathVariants.gpxTools(),
-    component: GpxToolsPage,
+    component: pages.GpxToolsPage,
     auth: 'authenticated',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('gpxTools.title') },
@@ -349,7 +141,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'gpx-tools-list',
     paths: pathVariants.gpxToolsList(),
-    component: MyGpxPreviewsPage,
+    component: pages.MyGpxPreviewsPage,
     auth: 'authenticated',
     parentId: 'gpx-tools',
     breadcrumb: { type: 'static', i18nKey: tRegister('gpxTools.listFiles.title') },
@@ -358,7 +150,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'gpx-tools-new',
     paths: pathVariants.gpxToolsNew(),
-    component: CreateGpxPreviewPage,
+    component: pages.CreateGpxPreviewPage,
     auth: 'authenticated',
     parentId: 'gpx-tools',
     breadcrumb: { type: 'static', i18nKey: tRegister('gpxTools.createFromScratch.title') },
@@ -366,7 +158,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'gpx-tools-view',
     paths: pathVariants.gpxToolsView(':previewId'),
-    component: GpxPreviewPage,
+    component: pages.GpxPreviewPage,
     // The link is shareable: holding the unguessable id is enough to view it.
     auth: 'public',
     parentId: 'gpx-tools',
@@ -378,7 +170,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'gpx-tools-map',
     paths: pathVariants.gpxToolsMap(':previewId'),
-    component: GpxPreviewFullscreenMapPage,
+    component: pages.GpxPreviewFullscreenMapPage,
     // The link is shareable: holding the unguessable id is enough to view it.
     auth: 'public',
     layout: 'bare',
@@ -391,7 +183,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'gpx-tools-edit',
     paths: pathVariants.gpxToolsEdit(':previewId'),
-    component: EditGpxPreviewPage,
+    component: pages.EditGpxPreviewPage,
     // Editing is owner-only; the page itself redirects non-owners to the read view.
     auth: 'authenticated',
     parentId: 'gpx-tools-view',
@@ -403,7 +195,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'apps',
     paths: pathVariants.apps(),
-    component: AppsPage,
+    component: pages.AppsPage,
     auth: 'public',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('apps.title') },
@@ -414,7 +206,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'privacy',
     paths: pathVariants.privacy(),
-    component: PrivacyPolicyPage,
+    component: pages.PrivacyPolicyPage,
     auth: 'public',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('legal.privacy.title') },
@@ -422,7 +214,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'terms',
     paths: pathVariants.terms(),
-    component: TermsOfServicePage,
+    component: pages.TermsOfServicePage,
     auth: 'public',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('legal.terms.title') },
@@ -432,7 +224,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'login',
     paths: pathVariants.login(),
-    component: LoginPage,
+    component: pages.LoginPage,
     auth: 'unauthenticated',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('auth.login.title') },
@@ -440,7 +232,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'device-verify-garmin',
     paths: pathVariants.deviceVerifyGarmin(),
-    component: DeviceVerifyPage,
+    component: pages.DeviceVerifyPage,
     auth: 'authenticated',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('device.title') },
@@ -449,7 +241,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'device-verify-karoo',
     paths: pathVariants.deviceVerifyKaroo(),
-    component: DeviceVerifyPage,
+    component: pages.DeviceVerifyPage,
     auth: 'authenticated',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('device.title') },
@@ -458,7 +250,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'verify-email',
     paths: pathVariants.verifyEmail(),
-    component: VerifyEmailPage,
+    component: pages.VerifyEmailPage,
     auth: 'public',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('auth.verifyEmail.title') },
@@ -468,7 +260,7 @@ export const routesConfig: RoutesConfig = [
     // anyone signs in, or a signed-out invitee lands on a bare login form with no explanation.
     id: 'invitation',
     paths: pathVariants.invitation(),
-    component: AcceptInvitationPage,
+    component: pages.AcceptInvitationPage,
     auth: 'public',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('invitations.accept.pageTitle') },
@@ -476,7 +268,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'forgot-password',
     paths: pathVariants.forgotPassword(),
-    component: ForgotPasswordPage,
+    component: pages.ForgotPasswordPage,
     auth: 'unauthenticated',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('auth.forgotPassword.title') },
@@ -484,7 +276,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'reset-password',
     paths: pathVariants.resetPassword(),
-    component: ResetPasswordPage,
+    component: pages.ResetPasswordPage,
     auth: 'public',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('auth.resetPassword.title') },
@@ -492,7 +284,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'strava-callback',
     paths: pathVariants.stravaCallback(),
-    component: StravaCallbackPage,
+    component: pages.StravaCallbackPage,
     auth: 'public',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('auth.strava.title') },
@@ -500,7 +292,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'complete-account',
     paths: pathVariants.completeAccount(),
-    component: CompleteAccountPage,
+    component: pages.CompleteAccountPage,
     auth: 'authenticated',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('auth.completeAccount.title') },
@@ -508,7 +300,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'profile',
     paths: pathVariants.profile(),
-    component: UserProfilePage,
+    component: pages.UserProfilePage,
     auth: 'authenticated',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('nav.profile') },
@@ -521,7 +313,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'calendar',
     paths: pathVariants.calendar(),
-    component: CalendarPage,
+    component: pages.CalendarPage,
     auth: 'authenticated',
     parentId: null,
     navGroup: 'home',
@@ -536,7 +328,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'teams',
     paths: pathVariants.teams(),
-    component: TeamListPage,
+    component: pages.TeamListPage,
     auth: 'public',
     parentId: null,
     navGroup: 'home',
@@ -556,7 +348,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'teams-new',
     paths: pathVariants.teamsNew(),
-    component: CreateTeamPage,
+    component: pages.CreateTeamPage,
     auth: 'authenticated',
     parentId: 'teams',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.create.title') },
@@ -567,7 +359,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'team-detail',
     paths: pathVariants.team(':teamSlug'),
-    component: PublicationListPage,
+    component: pages.PublicationListPage,
     auth: 'public',
     parentId: 'teams',
     navGroup: 'team',
@@ -582,7 +374,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'team-about',
     paths: pathVariants.teamAbout(':teamSlug'),
-    component: TeamAboutPage,
+    component: pages.TeamAboutPage,
     auth: 'public',
     parentId: 'team-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.detail.tabs.about') },
@@ -592,7 +384,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'team-calendar',
     paths: pathVariants.teamCalendar(':teamSlug'),
-    component: TeamCalendarPage,
+    component: pages.TeamCalendarPage,
     // Member-only server-side: `@PermitAll` on TeamCalendarResource only lets the token-authed ICS
     // feed through, while `CalendarAccessChecker` LIST requires a signed-in user *and* a team role.
     auth: 'authenticated',
@@ -603,7 +395,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'team-page',
     paths: pathVariants.teamPage(':teamSlug', ':pageSlug'),
-    component: TeamPageDetailPage,
+    component: pages.TeamPageDetailPage,
     auth: 'public',
     parentId: 'team-detail',
     breadcrumb: { type: 'dynamic', entity: 'teamPage' },
@@ -615,7 +407,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'team-admin',
     paths: pathVariants.teamAdmin(':teamSlug'),
-    component: TeamAdminPage,
+    component: pages.TeamAdminPage,
     auth: 'authenticated',
     parentId: 'team-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.title') },
@@ -624,7 +416,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'team-admin-places',
     paths: pathVariants.teamAdminPlaces(':teamSlug'),
-    component: TeamPlacesPage,
+    component: pages.TeamPlacesPage,
     auth: 'authenticated',
     parentId: 'team-admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.tabs.places') },
@@ -633,7 +425,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'team-admin-pages',
     paths: pathVariants.teamAdminPages(':teamSlug'),
-    component: TeamPagesAdminPage,
+    component: pages.TeamPagesAdminPage,
     auth: 'authenticated',
     parentId: 'team-admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.tabs.pages') },
@@ -642,7 +434,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'team-admin-page-new',
     paths: pathVariants.teamAdminPageNew(':teamSlug'),
-    component: CreateTeamPagePage,
+    component: pages.CreateTeamPagePage,
     auth: 'authenticated',
     parentId: 'team-admin-pages',
     breadcrumb: { type: 'static', i18nKey: tRegister('actions.new') },
@@ -652,7 +444,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'team-admin-page-edit',
     paths: pathVariants.teamAdminPageEdit(':teamSlug', ':pageSlug'),
-    component: EditTeamPagePage,
+    component: pages.EditTeamPagePage,
     auth: 'authenticated',
     parentId: 'team-admin-pages',
     breadcrumb: { type: 'dynamic', entity: 'teamPage' },
@@ -662,7 +454,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'team-members',
     paths: pathVariants.teamAdminMembers(':teamSlug'),
-    component: TeamMembersPage,
+    component: pages.TeamMembersPage,
     auth: 'authenticated',
     parentId: 'team-admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.tabs.members') },
@@ -671,7 +463,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'team-settings',
     paths: pathVariants.teamSettings(':teamSlug'),
-    component: TeamSettingsPage,
+    component: pages.TeamSettingsPage,
     auth: 'authenticated',
     parentId: 'team-admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.tabs.settings') },
@@ -683,7 +475,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'ride-new',
     paths: pathVariants.rideNew(':teamSlug'),
-    component: CreateRidePage,
+    component: pages.CreateRidePage,
     auth: 'authenticated',
     parentId: 'team-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('rides.create.title') },
@@ -693,7 +485,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'ride-detail',
     paths: pathVariants.ride(':teamSlug', ':rideSlug'),
-    component: RideDetailPage,
+    component: pages.RideDetailPage,
     auth: 'public',
     parentId: 'team-detail',
     breadcrumb: { type: 'dynamic', entity: 'ride' },
@@ -704,7 +496,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'ride-edit',
     paths: pathVariants.rideEdit(':teamSlug', ':rideSlug'),
-    component: EditRidePage,
+    component: pages.EditRidePage,
     auth: 'authenticated',
     parentId: 'ride-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('actions.edit') },
@@ -716,7 +508,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'ride-templates',
     paths: pathVariants.rideTemplates(':teamSlug'),
-    component: RideTemplateListPage,
+    component: pages.RideTemplateListPage,
     auth: 'authenticated',
     parentId: 'team-admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.tabs.rideTemplates') },
@@ -725,7 +517,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'ride-template-new',
     paths: pathVariants.rideTemplateNew(':teamSlug'),
-    component: CreateRideTemplatePage,
+    component: pages.CreateRideTemplatePage,
     auth: 'authenticated',
     parentId: 'ride-templates',
     breadcrumb: { type: 'static', i18nKey: tRegister('actions.new') },
@@ -735,7 +527,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'ride-template-edit',
     paths: pathVariants.rideTemplateEdit(':teamSlug', ':templateSlug'),
-    component: EditRideTemplatePage,
+    component: pages.EditRideTemplatePage,
     auth: 'authenticated',
     parentId: 'ride-templates',
     breadcrumb: { type: 'dynamic', entity: 'rideTemplate' },
@@ -750,7 +542,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'trip-new',
     paths: pathVariants.tripNew(':teamSlug'),
-    component: CreateTripPage,
+    component: pages.CreateTripPage,
     auth: 'authenticated',
     parentId: 'team-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('trips.create.title') },
@@ -760,7 +552,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'trip-detail',
     paths: pathVariants.trip(':teamSlug', ':tripSlug'),
-    component: TripDetailPage,
+    component: pages.TripDetailPage,
     auth: 'public',
     parentId: 'team-detail',
     breadcrumb: { type: 'dynamic', entity: 'trip' },
@@ -771,7 +563,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'trip-edit',
     paths: pathVariants.tripEdit(':teamSlug', ':tripSlug'),
-    component: EditTripPage,
+    component: pages.EditTripPage,
     auth: 'authenticated',
     parentId: 'trip-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('actions.edit') },
@@ -781,7 +573,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'stage-detail',
     paths: pathVariants.stage(':teamSlug', ':tripSlug', ':stageSlug'),
-    component: StageDetailPage,
+    component: pages.StageDetailPage,
     auth: 'public',
     parentId: 'trip-detail',
     breadcrumb: { type: 'dynamic', entity: 'stage' },
@@ -796,7 +588,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'stage-map',
     paths: pathVariants.stageMap(':teamSlug', ':tripSlug', ':stageSlug'),
-    component: StageFullscreenMapPage,
+    component: pages.StageFullscreenMapPage,
     auth: 'public',
     layout: 'bare',
     parentId: 'stage-detail',
@@ -810,7 +602,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'post-new',
     paths: pathVariants.postNew(':teamSlug'),
-    component: CreatePostPage,
+    component: pages.CreatePostPage,
     auth: 'authenticated',
     parentId: 'team-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('posts.create.title') },
@@ -820,7 +612,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'post-detail',
     paths: pathVariants.post(':teamSlug', ':postSlug'),
-    component: PostDetailPage,
+    component: pages.PostDetailPage,
     auth: 'public',
     parentId: 'team-detail',
     breadcrumb: { type: 'dynamic', entity: 'post' },
@@ -831,7 +623,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'post-edit',
     paths: pathVariants.postEdit(':teamSlug', ':postSlug'),
-    component: EditPostPage,
+    component: pages.EditPostPage,
     auth: 'authenticated',
     parentId: 'post-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('actions.edit') },
@@ -844,7 +636,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'routes',
     paths: pathVariants.routes(':teamSlug'),
-    component: RouteListPage,
+    component: pages.RouteListPage,
     auth: 'public',
     parentId: 'team-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('nav.routes') },
@@ -853,7 +645,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'routes-map',
     paths: pathVariants.routesMap(':teamSlug'),
-    component: RoutesMapPage,
+    component: pages.RoutesMapPage,
     auth: 'public',
     parentId: 'routes',
     breadcrumb: { type: 'static', i18nKey: tRegister('routes.view.map') },
@@ -862,7 +654,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'route-new',
     paths: pathVariants.routeNew(':teamSlug'),
-    component: CreateRoutePage,
+    component: pages.CreateRoutePage,
     auth: 'authenticated',
     parentId: 'routes',
     breadcrumb: { type: 'static', i18nKey: tRegister('actions.new') },
@@ -872,7 +664,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'route-detail',
     paths: pathVariants.route(':teamSlug', ':routeSlug'),
-    component: RouteDetailPage,
+    component: pages.RouteDetailPage,
     auth: 'public',
     parentId: 'routes',
     breadcrumb: { type: 'dynamic', entity: 'route' },
@@ -886,7 +678,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'route-map',
     paths: pathVariants.routeMap(':teamSlug', ':routeSlug'),
-    component: RouteFullscreenMapPage,
+    component: pages.RouteFullscreenMapPage,
     auth: 'public',
     layout: 'bare',
     parentId: 'route-detail',
@@ -898,7 +690,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'route-edit',
     paths: pathVariants.routeEdit(':teamSlug', ':routeSlug'),
-    component: EditRoutePage,
+    component: pages.EditRoutePage,
     auth: 'authenticated',
     parentId: 'route-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('actions.edit') },
@@ -910,7 +702,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'ads',
     paths: pathVariants.ads(':teamSlug'),
-    component: AdListPage,
+    component: pages.AdListPage,
     // The whole ad API is `@RolesAllowed("user")` and the tab only shows to members — a public
     // route here just rendered a shell that 401s.
     auth: 'authenticated',
@@ -923,7 +715,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'ad-new',
     paths: pathVariants.adNew(':teamSlug'),
-    component: CreateAdPage,
+    component: pages.CreateAdPage,
     auth: 'authenticated',
     parentId: 'ads',
     breadcrumb: { type: 'static', i18nKey: tRegister('ads.create.title') },
@@ -933,7 +725,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'ad-detail',
     paths: pathVariants.ad(':teamSlug', ':adSlug'),
-    component: AdDetailPage,
+    component: pages.AdDetailPage,
     auth: 'authenticated',
     parentId: 'ads',
     breadcrumb: { type: 'dynamic', entity: 'ad' },
@@ -945,7 +737,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'ad-edit',
     paths: pathVariants.adEdit(':teamSlug', ':adSlug'),
-    component: EditAdPage,
+    component: pages.EditAdPage,
     auth: 'authenticated',
     parentId: 'ad-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('actions.edit') },
@@ -957,7 +749,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'admin',
     paths: pathVariants.admin(),
-    component: AdminDashboardPage,
+    component: pages.AdminDashboardPage,
     auth: 'authenticated',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('admin.title') },
@@ -966,7 +758,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'admin-domains',
     paths: pathVariants.adminDomains(),
-    component: AdminDomainsPage,
+    component: pages.AdminDomainsPage,
     auth: 'authenticated',
     parentId: 'admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('admin.tabs.domains') },
@@ -975,7 +767,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'admin-teams',
     paths: pathVariants.adminTeams(),
-    component: AdminTeamsPage,
+    component: pages.AdminTeamsPage,
     auth: 'authenticated',
     parentId: 'admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('admin.tabs.teams') },
@@ -984,7 +776,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'admin-users',
     paths: pathVariants.adminUsers(),
-    component: AdminUsersPage,
+    component: pages.AdminUsersPage,
     auth: 'authenticated',
     parentId: 'admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('admin.tabs.users') },
@@ -993,7 +785,7 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'admin-beta-signups',
     paths: pathVariants.adminBetaSignups(),
-    component: AdminBetaSignupsPage,
+    component: pages.AdminBetaSignupsPage,
     auth: 'authenticated',
     parentId: 'admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('admin.tabs.betaSignups') },

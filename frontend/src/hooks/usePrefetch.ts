@@ -6,13 +6,13 @@ import { prefetchRoute, getPrefetchHandlers, type RouteKey } from '../lib/prefet
  *
  * Usage:
  * ```tsx
- * const { prefetch, handlers } = usePrefetch('teamDetail')
+ * const { prefetch, handlers } = usePrefetch('PublicationListPage')
  *
  * // Method 1: Use handlers on any element
  * <Link to={...} {...handlers}>Team</Link>
  *
  * // Method 2: Call prefetch manually
- * <button onMouseEnter={() => prefetch('rideDetail')}>View Ride</button>
+ * <button onMouseEnter={() => prefetch('RideDetailPage')}>View Ride</button>
  * ```
  */
 export function usePrefetch(defaultRoute?: RouteKey) {

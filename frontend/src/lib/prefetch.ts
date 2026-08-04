@@ -8,65 +8,13 @@
  * reducing perceived latency when they actually navigate.
  */
 
-// Route import functions - must match routes.config.ts lazy imports
-const routeImports = {
-  // Home & Discovery
-  home: () => import('../pages/home/HomePage'),
-  allRoutes: () => import('../pages/route/AllRoutesPage'),
+import { pages, type PageKey } from '@/config/pageComponents'
 
-  // Auth
-  login: () => import('../pages/auth/LoginPage'),
-  profile: () => import('../pages/auth/UserProfilePage'),
-
-  // Team
-  teams: () => import('../pages/team/TeamListPage'),
-  teamCreate: () => import('../pages/team/CreateTeamPage'),
-  teamDetail: () => import('../pages/publication/PublicationListPage'),
-  teamAbout: () => import('../pages/team/TeamAboutPage'),
-  teamPage: () => import('../pages/team/TeamPageDetailPage'),
-  teamAdmin: () => import('../pages/team/TeamAdminPage'),
-  teamAdminMembers: () => import('../pages/team/TeamMembersPage'),
-  teamSettings: () => import('../pages/team/TeamSettingsPage'),
-  teamPlaces: () => import('../pages/team/TeamPlacesPage'),
-  teamPages: () => import('../pages/team/TeamPagesAdminPage'),
-  teamPageCreate: () => import('../pages/team/CreateTeamPagePage'),
-  teamPageEdit: () => import('../pages/team/EditTeamPagePage'),
-
-  // Rides
-  rideDetail: () => import('../pages/ride/RideDetailPage'),
-  rideCreate: () => import('../pages/ride/CreateRidePage'),
-  rideEdit: () => import('../pages/ride/EditRidePage'),
-
-  // Ride Templates
-  rideTemplates: () => import('../pages/ridetemplate/RideTemplateListPage'),
-  rideTemplateCreate: () => import('../pages/ridetemplate/CreateRideTemplatePage'),
-  rideTemplateEdit: () => import('../pages/ridetemplate/EditRideTemplatePage'),
-
-  // Trips
-  tripDetail: () => import('../pages/trip/TripDetailPage'),
-  tripCreate: () => import('../pages/trip/CreateTripPage'),
-  tripEdit: () => import('../pages/trip/EditTripPage'),
-  stageDetail: () => import('../pages/trip/StageDetailPage'),
-
-  // Posts
-  postDetail: () => import('../pages/post/PostDetailPage'),
-  postCreate: () => import('../pages/post/CreatePostPage'),
-  postEdit: () => import('../pages/post/EditPostPage'),
-
-  // Routes
-  routes: () => import('../pages/route/RouteListPage'),
-  routeDetail: () => import('../pages/route/RouteDetailPage'),
-  routeCreate: () => import('../pages/route/CreateRoutePage'),
-  routeEdit: () => import('../pages/route/EditRoutePage'),
-
-  // Ads
-  ads: () => import('../pages/ad/AdListPage'),
-  adDetail: () => import('../pages/ad/AdDetailPage'),
-  adCreate: () => import('../pages/ad/CreateAdPage'),
-  adEdit: () => import('../pages/ad/EditAdPage'),
-} as const
-
-export type RouteKey = keyof typeof routeImports
+/**
+ * A page to prefetch, named by its export (`'RideDetailPage'`). The list is `config/pageComponents.ts`
+ * itself — the same `import()` the router lazy-loads, never a second copy of it here.
+ */
+export type RouteKey = PageKey
 
 // Track which routes have been prefetched to avoid duplicate requests
 const prefetchedRoutes = new Set<RouteKey>()
@@ -86,7 +34,7 @@ export function prefetchRoute(route: RouteKey): void {
   const schedulePreload = window.requestIdleCallback || ((cb: () => void) => setTimeout(cb, 1))
 
   schedulePreload(() => {
-    routeImports[route]().catch(() => {
+    pages[route].preload().catch(() => {
       // Remove from set if prefetch fails, allowing retry
       prefetchedRoutes.delete(route)
     })
@@ -117,11 +65,11 @@ export function getPrefetchHandlers(route: RouteKey) {
 export function prefetchCommonRoutes(): void {
   // These are the most commonly visited routes
   const commonRoutes: RouteKey[] = [
-    'teams',
-    'teamDetail',
-    'rideDetail',
-    'routeDetail',
-    'postDetail',
+    'TeamListPage',
+    'PublicationListPage',
+    'RideDetailPage',
+    'RouteDetailPage',
+    'PostDetailPage',
   ]
 
   // Delay prefetching to not compete with initial page load
