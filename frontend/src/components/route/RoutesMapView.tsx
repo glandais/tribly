@@ -233,13 +233,15 @@ export function RoutesMapView({
     setCursor('pointer')
   }, [])
 
-  // Handle mouse leave
+  // Handle mouse leave. Falls back to the *clicked* route rather than to nothing: a click is a
+  // deliberate selection, and this map keeps rendering it highlighted, so clearing the parent's
+  // highlight here would leave the trace lit on the map and the matching card dimmed beside it.
   const handleMouseLeave = useCallback(() => {
     setCursor('grab')
     if (onItemHover) {
-      onItemHover(null)
+      onItemHover(selectedRouteId)
     }
-  }, [onItemHover])
+  }, [onItemHover, selectedRouteId])
 
   // Create GeoJSON data for each route
   const routeGeoJSONs = useMemo(() => {
