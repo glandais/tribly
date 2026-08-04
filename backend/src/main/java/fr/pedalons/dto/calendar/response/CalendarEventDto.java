@@ -15,6 +15,12 @@ import org.jspecify.annotations.Nullable;
  * two "me" fields, {@code registered} and {@code groupName}. Every added component is nullable or
  * defaulted, so a client built against the ten-field shape keeps working.
  *
+ * <p>The thumbnail is exposed three ways on purpose: the two themed variants, and {@code
+ * thumbnailUrl}, which is one of them. The server cannot know the colour scheme the caller renders
+ * in, so collapsing the pair here would hand a dark-mode calendar a light map tile — but a client
+ * that shows one picture and has no theme (the ICS feed's consumers, a future widget) should not
+ * have to implement the fallback itself.
+ *
  * <p>Because {@code registered} and {@code groupName} answer "am <em>I</em> signed up?", any
  * response carrying this DTO is specific to the caller and must not be stored by a shared cache.
  */
@@ -48,9 +54,23 @@ public record CalendarEventDto(
     @Nullable
         @Schema(
             description =
-                "Thumbnail image URL template (contains a {size} placeholder). Falls back to the"
-                    + " route's thumbnail when the ride or stage has none of its own.")
+                "Thumbnail image URL template (contains a {size} placeholder), light variant"
+                    + " preferred. Falls back to the route's thumbnail when the ride or stage has"
+                    + " none of its own. For a client that renders one picture and does not follow"
+                    + " a colour scheme; prefer thumbnailLightUrl/thumbnailDarkUrl otherwise.")
         String thumbnailUrl,
+    @Nullable
+        @Schema(
+            description =
+                "Light-scheme thumbnail image URL template (contains a {size} placeholder). Null"
+                    + " when the event's picture exists only in a dark variant.")
+        String thumbnailLightUrl,
+    @Nullable
+        @Schema(
+            description =
+                "Dark-scheme thumbnail image URL template (contains a {size} placeholder). Null"
+                    + " when the event's picture exists only in a light variant.")
+        String thumbnailDarkUrl,
     @Schema(
             description =
                 "Whether the current user is registered to this ride, or to the trip this stage"

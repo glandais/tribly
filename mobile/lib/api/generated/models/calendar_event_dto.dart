@@ -60,8 +60,14 @@ abstract class CalendarEventDto with _$CalendarEventDto {
     /// Total elevation gain in meters of the attached route, null when there is no route
     double? elevationGain,
 
-    /// Thumbnail image URL template (contains a {size} placeholder). Falls back to the route's thumbnail when the ride or stage has none of its own.
+    /// Thumbnail image URL template (contains a {size} placeholder), light variant preferred. Falls back to the route's thumbnail when the ride or stage has none of its own. For a client that renders one picture and does not follow a colour scheme; prefer thumbnailLightUrl/thumbnailDarkUrl otherwise.
     String? thumbnailUrl,
+
+    /// Light-scheme thumbnail image URL template (contains a {size} placeholder). Null when the event's picture exists only in a dark variant.
+    String? thumbnailLightUrl,
+
+    /// Dark-scheme thumbnail image URL template (contains a {size} placeholder). Null when the event's picture exists only in a light variant.
+    String? thumbnailDarkUrl,
 
     /// Name of the ride group the current user joined. Null when not registered, and always null for trip stages, which have no groups.
     String? groupName,

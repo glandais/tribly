@@ -15,6 +15,7 @@ import timezone from 'dayjs/plugin/timezone'
 import { paths } from '@/config/paths'
 import { useUnits } from '@/hooks/useUnits'
 import { useEffectiveTimezone } from '@/utils/dateFormat'
+import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 import type { CalendarEventDto, CalendarEventType } from '@/api/dto'
 
 dayjs.extend(utc)
@@ -87,6 +88,7 @@ export function CalendarView({
   const { t, i18n } = useTranslation()
   const { distance: formatDistance, elevation: formatElevation } = useUnits()
   const { timezone: tz } = useEffectiveTimezone()
+  const colorScheme = useResolvedColorScheme()
 
   const labels = useMemo<ScheduleLabelsOverride>(
     () => ({
@@ -208,7 +210,12 @@ export function CalendarView({
     (event, props) => {
       const dto = getPayloadDto(event)
       const isPast = dayjs(event.end ?? event.start).isBefore(dayjs())
-      const thumbnail = dto?.thumbnailUrl?.replace('{size}', '128')
+      // Themed variants are separate assets (contract 3.3.0) — the map tile is rendered per
+      // scheme server-side, so it cannot be derived from the other one. `thumbnailUrl` stays the
+      // fallback for an event whose picture only ever existed in the opposite variant.
+      const themedThumbnail =
+        colorScheme === 'dark' ? dto?.thumbnailDarkUrl : dto?.thumbnailLightUrl
+      const thumbnail = (themedThumbnail ?? dto?.thumbnailUrl)?.replace('{size}', '128')
       const metrics = dto ? buildMetrics(dto) : ''
       const registration = dto ? buildRegistration(dto) : ''
 
@@ -268,7 +275,7 @@ export function CalendarView({
         </Tooltip>
       )
     },
-    [buildMetrics, buildRegistration, buildSummary, t]
+    [buildMetrics, buildRegistration, buildSummary, colorScheme, t]
   )
 
   const handleEventClick = useCallback(

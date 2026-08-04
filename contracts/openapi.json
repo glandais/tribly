@@ -1024,7 +1024,15 @@
           },
           "thumbnailUrl" : {
             "type" : "string",
-            "description" : "Thumbnail image URL template (contains a {size} placeholder). Falls back to the route's thumbnail when the ride or stage has none of its own."
+            "description" : "Thumbnail image URL template (contains a {size} placeholder), light variant preferred. Falls back to the route's thumbnail when the ride or stage has none of its own. For a client that renders one picture and does not follow a colour scheme; prefer thumbnailLightUrl/thumbnailDarkUrl otherwise."
+          },
+          "thumbnailLightUrl" : {
+            "type" : "string",
+            "description" : "Light-scheme thumbnail image URL template (contains a {size} placeholder). Null when the event's picture exists only in a dark variant."
+          },
+          "thumbnailDarkUrl" : {
+            "type" : "string",
+            "description" : "Dark-scheme thumbnail image URL template (contains a {size} placeholder). Null when the event's picture exists only in a light variant."
           },
           "registered" : {
             "type" : "boolean",
@@ -17959,7 +17967,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "3.2.0",
+    "version" : "3.3.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

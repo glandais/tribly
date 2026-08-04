@@ -32,8 +32,12 @@ export interface CalendarEventDto {
   distance?: number
   /** Total elevation gain in meters of the attached route, null when there is no route */
   elevationGain?: number
-  /** Thumbnail image URL template (contains a {size} placeholder). Falls back to the route's thumbnail when the ride or stage has none of its own. */
+  /** Thumbnail image URL template (contains a {size} placeholder), light variant preferred. Falls back to the route's thumbnail when the ride or stage has none of its own. For a client that renders one picture and does not follow a colour scheme; prefer thumbnailLightUrl/thumbnailDarkUrl otherwise. */
   thumbnailUrl?: string
+  /** Light-scheme thumbnail image URL template (contains a {size} placeholder). Null when the event's picture exists only in a dark variant. */
+  thumbnailLightUrl?: string
+  /** Dark-scheme thumbnail image URL template (contains a {size} placeholder). Null when the event's picture exists only in a light variant. */
+  thumbnailDarkUrl?: string
   /** Whether the current user is registered to this ride, or to the trip this stage belongs to. False for an anonymous caller. */
   registered: boolean
   /** Name of the ride group the current user joined. Null when not registered, and always null for trip stages, which have no groups. */

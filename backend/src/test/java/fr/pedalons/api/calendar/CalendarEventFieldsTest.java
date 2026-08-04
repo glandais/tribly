@@ -1,9 +1,11 @@
 package fr.pedalons.api.calendar;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 import fr.pedalons.api.AbstractResourceTest;
+import fr.pedalons.common.TsidUtils;
 import fr.pedalons.domain.place.Place;
 import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.domain.ride.Ride;
@@ -17,8 +19,10 @@ import fr.pedalons.enums.AssetType;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.Visibility;
 import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.path.json.JsonPath;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -54,6 +58,27 @@ class CalendarEventFieldsTest extends AbstractResourceTest {
 
   private String rideEvent(String field) {
     return "events.find { it.entitySlug == 'sortie-dimanche' }." + field;
+  }
+
+  /**
+   * The whole ride event as a map. Needed where an assertion is about a key being <em>absent</em>
+   * (Jackson is NON_NULL, so an absent value is an absent key) or where two of its fields are
+   * compared to each other — neither of which a single GPath can express.
+   */
+  private Map<String, Object> rideEventFields(JsonPath response) {
+    return response.getMap("events.find { it.entitySlug == 'sortie-dimanche' }");
+  }
+
+  private JsonPath getEvents() {
+    return given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .when()
+        .get(EVENTS)
+        .then()
+        .statusCode(200)
+        .extract()
+        .jsonPath();
   }
 
   // ==================== Render payload ====================
@@ -138,8 +163,52 @@ class CalendarEventFieldsTest extends AbstractResourceTest {
         .then()
         .statusCode(200)
         .body(
-            rideEvent("thumbnailUrl"),
-            not(containsString(fr.pedalons.common.TsidUtils.toString(routeThumb.getId()))));
+            rideEvent("thumbnailUrl"), not(containsString(TsidUtils.toString(routeThumb.getId()))));
+  }
+
+  @Test
+  void getEvents_shouldExposeBothThemedThumbnailVariants() {
+    dataService.attachAsset(ride, user1, AssetType.RIDE_THUMBNAIL_LIGHT, "ride-light.png");
+    var dark = dataService.attachAsset(ride, user1, AssetType.RIDE_THUMBNAIL_DARK, "ride-dark.png");
+
+    JsonPath response = getEvents();
+    String lightUrl = response.getString(rideEvent("thumbnailLightUrl"));
+    String darkUrl = response.getString(rideEvent("thumbnailDarkUrl"));
+
+    assertThat(lightUrl, endsWith("/{size}"));
+    assertThat(darkUrl, containsString(TsidUtils.toString(dark.getId())));
+    // Two genuinely different assets — the whole reason for exposing both.
+    assertThat(darkUrl, not(equalTo(lightUrl)));
+    // The collapsed field keeps its old meaning: light preferred.
+    assertThat(response.getString(rideEvent("thumbnailUrl")), equalTo(lightUrl));
+  }
+
+  @Test
+  void getEvents_withOnlyADarkThumbnail_shouldOmitTheLightVariantAndCollapseToDark() {
+    dataService.attachAsset(ride, user1, AssetType.RIDE_THUMBNAIL_DARK, "ride-dark.png");
+
+    JsonPath response = getEvents();
+    String darkUrl = response.getString(rideEvent("thumbnailDarkUrl"));
+
+    assertThat(rideEventFields(response), not(hasKey("thumbnailLightUrl")));
+    assertThat(darkUrl, endsWith("/{size}"));
+    assertThat(response.getString(rideEvent("thumbnailUrl")), equalTo(darkUrl));
+  }
+
+  /**
+   * The fallback is per entity, not per variant: a ride carrying only a light picture of its own
+   * must not borrow the route's dark one, or the same event would show two different images
+   * depending on the visitor's theme.
+   */
+  @Test
+  void getEvents_withOwnLightThumbnail_shouldNotBorrowTheRoutesDarkVariant() {
+    dataService.attachAsset(route, user1, AssetType.ROUTE_THUMBNAIL_DARK, "route-dark.png");
+    dataService.attachAsset(ride, user1, AssetType.RIDE_THUMBNAIL_LIGHT, "ride-light.png");
+
+    JsonPath response = getEvents();
+
+    assertThat(response.getString(rideEvent("thumbnailLightUrl")), endsWith("/{size}"));
+    assertThat(rideEventFields(response), not(hasKey("thumbnailDarkUrl")));
   }
 
   // ==================== "Me" fields ====================

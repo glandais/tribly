@@ -27,6 +27,7 @@ import fr.pedalons.repository.common.PublicationQuery;
 import fr.pedalons.repository.ride.RideGroupRepository;
 import fr.pedalons.repository.team.UserTeamRepository;
 import fr.pedalons.service.asset.ThumbnailLookup;
+import fr.pedalons.service.asset.ThumbnailLookup.ThemedThumbnail;
 import fr.pedalons.service.common.ParticipationLookup;
 import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.service.security.PedalonsQueryContext;
@@ -207,7 +208,8 @@ public class CalendarService {
         participationLookup.forPublications(user.getId(), ids(rides), ids(trips));
     Map<Long, String> groupNames =
         rideGroupRepository.findNamesByIds(participations.registeredGroupIdByRideId().values());
-    Map<Long, String> thumbnails = thumbnailLookup.forTeamEntities(thumbnailIds(rides, stages));
+    Map<Long, ThemedThumbnail> thumbnails =
+        thumbnailLookup.forTeamEntities(thumbnailIds(rides, stages));
 
     List<CalendarEventDto> events = new ArrayList<>(rides.size() + stages.size());
     for (Ride ride : rides) {
@@ -244,14 +246,24 @@ public class CalendarService {
     return ids;
   }
 
-  private static @Nullable String thumbnailUrl(
-      Map<Long, String> thumbnails, Long entityId, @Nullable Route route) {
-    String own = thumbnails.get(entityId);
+  /**
+   * The event's thumbnail variants: its own if it has any, else the route's.
+   *
+   * <p>The fallback is per <em>entity</em>, not per variant. Falling back variant by variant would
+   * let an outing with only a light picture of its own be rendered in dark mode with the route's
+   * map instead — two different images for the same event, depending on the visitor's theme.
+   */
+  private static ThemedThumbnail thumbnails(
+      Map<Long, ThemedThumbnail> thumbnails, Long entityId, @Nullable Route route) {
+    ThemedThumbnail own = thumbnails.get(entityId);
     if (own != null) {
       return own;
     }
-    return route != null ? thumbnails.get(route.getId()) : null;
+    ThemedThumbnail fromRoute = route != null ? thumbnails.get(route.getId()) : null;
+    return fromRoute != null ? fromRoute : NO_THUMBNAIL;
   }
+
+  private static final ThemedThumbnail NO_THUMBNAIL = new ThemedThumbnail(null, null);
 
   /**
    * The ICS feeds authenticate through a calendar token rather than a session, so god mode is read
@@ -282,11 +294,12 @@ public class CalendarService {
       Ride ride,
       UserParticipations participations,
       Map<Long, String> groupNames,
-      Map<Long, String> thumbnails) {
+      Map<Long, ThemedThumbnail> thumbnails) {
     Team team = ride.getTeam();
     Route route = ride.getRoute();
     Place start = ride.getStart();
     Long registeredGroupId = participations.registeredGroupId(ride.getId());
+    ThemedThumbnail rideThumbnails = thumbnails(thumbnails, ride.getId(), route);
     return new CalendarEventDto(
         TsidUtils.toString(ride.getId()),
         ride.getName(),
@@ -301,18 +314,21 @@ public class CalendarService {
         start != null ? start.getName() : null,
         route != null ? route.getDistance() : null,
         route != null ? route.getElevationGain() : null,
-        thumbnailUrl(thumbnails, ride.getId(), route),
+        rideThumbnails.collapsed(),
+        rideThumbnails.light(),
+        rideThumbnails.dark(),
         registeredGroupId != null,
         registeredGroupId != null ? groupNames.get(registeredGroupId) : null,
         ride.getStatus());
   }
 
   private CalendarEventDto toCalendarEvent(
-      TripStage stage, UserParticipations participations, Map<Long, String> thumbnails) {
+      TripStage stage, UserParticipations participations, Map<Long, ThemedThumbnail> thumbnails) {
     Team team = stage.getTeam();
     Trip trip = stage.getTrip();
     Route route = stage.getRoute();
     Place start = stage.getStartPlace();
+    ThemedThumbnail stageThumbnails = thumbnails(thumbnails, stage.getId(), route);
     return new CalendarEventDto(
         TsidUtils.toString(stage.getId()),
         stage.getName(),
@@ -327,7 +343,9 @@ public class CalendarService {
         start != null ? start.getName() : null,
         route != null ? route.getDistance() : null,
         route != null ? route.getElevationGain() : null,
-        thumbnailUrl(thumbnails, stage.getId(), route),
+        stageThumbnails.collapsed(),
+        stageThumbnails.light(),
+        stageThumbnails.dark(),
         // A stage is not joined on its own: the registration lives on the parent trip, and trips
         // have no groups, hence no group name to report.
         participations.isRegisteredToTrip(trip.getId()),
