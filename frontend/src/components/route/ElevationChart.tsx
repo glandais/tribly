@@ -20,7 +20,12 @@ import {
 } from 'chart.js'
 import { useTranslation } from 'react-i18next'
 import { useMantineTheme } from '@mantine/core'
-import { NEUTRAL_COLOR, getColorFromGradient, getPointClimbGradient } from '../map/mapUtils'
+import {
+  NEUTRAL_COLOR,
+  getColorFromGradient,
+  getElevationAxisBounds,
+  getPointClimbGradient,
+} from '../map/mapUtils'
 import { useUnits } from '../../hooks/useUnits'
 import { getOverlayBg } from '@/lib/colors'
 import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
@@ -134,6 +139,13 @@ export const ElevationChart = forwardRef<ElevationChartHandle, ElevationChartPro
       [route.tracks]
     )
     const climbs = useMemo(() => route.tracks.flatMap((track) => track.climbs), [route.tracks])
+
+    // Computed over the whole route, never the zoom window: an axis that rescales under a pan
+    // gesture makes the profile look like it's breathing.
+    const yBounds = useMemo(
+      () => getElevationAxisBounds(trackPoints.map((p) => p[2])),
+      [trackPoints]
+    )
 
     // Displayed x-range, null = full route extent. Held in state (not just mutated on the chart
     // instance) so re-renders that reapply the options — hover updates, theme changes — keep the
@@ -321,6 +333,8 @@ export const ElevationChart = forwardRef<ElevationChartHandle, ElevationChartPro
           },
           y: {
             display: true,
+            min: yBounds?.min,
+            max: yBounds?.max,
             title: {
               display: true,
               text: `Elevation (${config.elevationUnit})`,
@@ -328,6 +342,9 @@ export const ElevationChart = forwardRef<ElevationChartHandle, ElevationChartPro
             },
             ticks: {
               color: chartColors.text,
+              // The bounds are the route's raw min/max (-0.5 m…), never round numbers — let
+              // Chart.js label only the round ticks it picks inside the range.
+              includeBounds: false,
             },
             grid: {
               color: chartColors.grid,
@@ -364,6 +381,7 @@ export const ElevationChart = forwardRef<ElevationChartHandle, ElevationChartPro
         zoomEnabled,
         route.distance,
         xRange,
+        yBounds,
         t,
       ]
     )

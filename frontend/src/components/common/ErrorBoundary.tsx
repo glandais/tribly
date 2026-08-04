@@ -60,7 +60,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         <Translation ns="common">
           {(t) => (
             <Center
-              mih={this.props.variant === 'inline' ? undefined : '100vh'}
+              // `dvh` for the same reason as `body` in index.css: on iOS `100vh` overshoots the
+              // visible area by the browser chrome, making a full-page error screen scroll.
+              mih={this.props.variant === 'inline' ? undefined : '100dvh'}
               py={this.props.variant === 'inline' ? 'xl' : undefined}
               bg="var(--mantine-color-body)"
             >

@@ -113,6 +113,34 @@ export function distance(lng1: number, lat1: number, lng2: number, lat2: number)
   return R * c
 }
 
+/**
+ * Bounds for an elevation chart's y axis, anchored on the route's real min/max.
+ *
+ * Chart.js's auto-scaling rounds the axis outward to whole tick steps: a Loire-valley route
+ * spanning -0.5 m to 106 m gets an axis of -20 m to 120 m, so a fifth of the strip renders empty
+ * below sea level. Pinning the bounds to the data gives that height back to the profile —
+ * Chart.js still picks round tick *labels* inside the range, only the ends stop being padded.
+ *
+ * Returns null when there is no elevation data, in which case leave the axis to Chart.js.
+ */
+export function getElevationAxisBounds(elevations: number[]): { min: number; max: number } | null {
+  let min = Infinity
+  let max = -Infinity
+  for (const ele of elevations) {
+    if (!Number.isFinite(ele)) continue
+    if (ele < min) min = ele
+    if (ele > max) max = ele
+  }
+  if (min === Infinity) return null
+
+  // A dead-flat route would collapse the axis to a single value; give it something to draw in.
+  const span = max - min
+  if (span < 1) return { min: min - 5, max: max + 5 }
+
+  // Only the top gets a sliver of padding, so the summit's 2px stroke isn't clipped by the frame.
+  return { min, max: max + span * 0.03 }
+}
+
 // Returns km marker interval based on total distance
 export function getKmMarkerInterval(distanceKm: number): number {
   if (distanceKm < 10) return 1

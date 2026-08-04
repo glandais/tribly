@@ -26,7 +26,13 @@
 body {
   margin: 0;
   min-width: 320px;
+  /* `dvh`, not `vh`: on iOS Safari `100vh` is the *large* viewport — the height the page would
+     have if the address bar and tab bar were hidden. The body was therefore always taller than
+     what the visitor could actually see, so even a page sized to fill the screen exactly
+     (`RouteFullscreenView`'s `100dvh`) scrolled, revealing dead space under the elevation strip.
+     `vh` first as a fallback for browsers without `dvh` (pre-Safari 15.4). */
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 /* Responsive layout utilities */

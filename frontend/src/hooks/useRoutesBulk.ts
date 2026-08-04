@@ -70,7 +70,11 @@ export function useRoutesBulk(
   const slugChunks = useMemo(() => chunk(slugs, ROUTES_BULK_MAX_SLUGS), [slugs])
   const enabled = (options?.enabled ?? true) && slugChunks.length > 0
 
-  const queries = useQueries({
+  // Merging happens inside `combine` rather than in the component body so `data` keeps a stable
+  // identity across renders that didn't change any chunk's result. Built inline, it was a fresh
+  // object every render, and every consumer memo keyed on it (route lists, map bounds) re-ran —
+  // `RoutesMapView` re-framed its map on each parent re-render, throwing away the user's zoom.
+  const { data, isLoading, isFetching, error, failedChunks } = useQueries({
     queries: slugChunks.map((slugChunk) => {
       const chunkParams: GetRoutesBulkParams = { ...restParams, slug: slugChunk }
       return {
@@ -79,29 +83,32 @@ export function useRoutesBulk(
         placeholderData: keepPreviousData,
       }
     }),
+    combine: (results) => ({
+      data:
+        results.length > 0
+          ? ({
+              routes: results.flatMap((q) => q.data?.routes ?? []),
+              extent: mergeExtents(results.map((q) => q.data?.extent)),
+            } satisfies RoutesBulkResult)
+          : undefined,
+      isLoading: results.some((q) => q.isLoading),
+      isFetching: results.some((q) => q.isFetching),
+      error: results.find((q) => q.error)?.error,
+      // Which *chunk* failed; mapped back to slugs below, where `slugChunks` is in scope without
+      // making `combine` close over a value react-query doesn't track.
+      failedChunks: results.map((q) => !!q.error),
+    }),
   })
-
-  const isLoading = queries.some((q) => q.isLoading)
-  const isFetching = queries.some((q) => q.isFetching)
-  const error = queries.find((q) => q.error)?.error
-
-  const data: RoutesBulkResult | undefined =
-    queries.length > 0
-      ? {
-          routes: queries.flatMap((q) => q.data?.routes ?? []),
-          extent: mergeExtents(queries.map((q) => q.data?.extent)),
-        }
-      : undefined
 
   const failedSlugs = useMemo(() => {
     const failed = new Set<string>()
     slugChunks.forEach((slugChunk, i) => {
-      if (queries[i]?.error) {
+      if (failedChunks[i]) {
         for (const slug of slugChunk) failed.add(slug)
       }
     })
     return failed
-  }, [slugChunks, queries])
+  }, [slugChunks, failedChunks])
 
   return { data, isLoading, isFetching, error, failedSlugs }
 }

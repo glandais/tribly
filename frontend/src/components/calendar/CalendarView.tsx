@@ -40,9 +40,19 @@ interface CalendarEventPayload {
   [key: PropertyKey]: unknown
 }
 
+/**
+ * Mantine palette *names*, not hex values — same hues as before (`blue`/`green` are the shades the
+ * literals `#228be6`/`#40c057` came from), but they survive dark mode.
+ *
+ * `@mantine/schedule` runs this through `theme.variantColorResolver` with the `light` variant. Given
+ * a name it resolves to `--mantine-color-blue-light` / `-light-color`, which are defined per colour
+ * scheme. Given a raw hex it can only blend `rgba(hex, 0.1)` for the background and keep the hex as
+ * the text colour — a pair computed for a white surface, which in dark mode painted mid-blue text on
+ * a near-transparent tint and made every event unreadable.
+ */
 const EVENT_COLORS: Record<CalendarEventType, string> = {
-  RIDE: '#228be6',
-  TRIP_STAGE: '#40c057',
+  RIDE: 'blue',
+  TRIP_STAGE: 'green',
 }
 
 const SEPARATOR = ' · '

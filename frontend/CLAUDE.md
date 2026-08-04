@@ -26,7 +26,7 @@ pnpm i18n:extract                  # Extract new keys from t() and tRegister() c
 
 ## Stack
 
-TypeScript 7 (native `tsgo` compiler, via the `typescript` package), React 19, Vite, Mantine UI 8, React Router 7, TanStack React Query 5, Zustand 5, Zod 4, Orval (API codegen), i18next, MapLibre GL, Tiptap (rich text), Chart.js, FullCalendar.
+TypeScript 7 (native `tsgo` compiler, via the `typescript` package), React 19, Vite, Mantine UI 9, React Router 7, TanStack React Query 5, Zustand 5, Zod 4, Orval (API codegen), i18next, MapLibre GL, Tiptap (rich text), Chart.js, `@mantine/schedule` (calendar).
 
 ## Architecture
 
@@ -165,6 +165,7 @@ Public pages unfurl into rich social/messaging cards via server-rendered OG/Twit
 - **Never format a date with a raw `new Date(...).toLocaleDateString()`/`toLocaleString()`/`Intl.DateTimeFormat`** — go through `useFormattedDate()` (`src/utils/dateFormat.ts`), or the `<FormattedDate>`/`<FormattedDateTime>` components when the result renders as its own text node (they add the right `suppressHydrationWarning`). A raw call defaults to the *server process's* timezone during SSR, not the visitor's, and ignores the signed-in user's `timezone` preference on the client.
 - **Never use SVG for icons** — use `@tabler/icons-react`.
 - **Mantine UI exclusively** — check https://mantine.dev/llms.txt for docs.
+- **A calendar event's `color` is a Mantine palette *name*, never a hex** (`components/calendar/CalendarView.tsx`) — `@mantine/schedule` runs it through `theme.variantColorResolver`, which resolves a name to the scheme-aware `--mantine-color-<name>-light` pair and can only blend a raw hex into `rgba(hex, 0.1)` over white. A hex looks right in light mode and renders the event unreadable in dark. Same reflex for any Mantine `color` prop.
 - **Templated i18n keys require type annotations**: `t(\`status.\${x satisfies 'DRAFT' | 'PUBLISHED'}\`)` (validated by `pnpm i18n:lint`).
 - **Frontend config comes from `/api/config` endpoint**, not `.env` files.
 - **Logos**: `TeamAvatar` (with initials fallback) vs `EntityLogo` (no fallback).

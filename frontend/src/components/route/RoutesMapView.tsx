@@ -22,7 +22,7 @@ import { useRoutesBulk } from '@/hooks/useRoutesBulk'
 import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 import type { RouteDetailDto } from '@/api/dto'
 import { StartMarker, EndMarker } from '../map/MapMarkers'
-import { calculateBounds, routeToGeoJSON } from '../map/mapUtils'
+import { calculateBounds, getElevationAxisBounds, routeToGeoJSON } from '../map/mapUtils'
 import { PedalonsMap } from '../map/PedalonsMap'
 import { useUnits } from '../../hooks/useUnits'
 import { getOverlayBg } from '@/lib/colors'
@@ -174,12 +174,17 @@ export function RoutesMapView({
     setIsMapLoaded(true)
   }, [])
 
-  // Fit bounds when both map is loaded and routes are available
+  // Frame the map ONCE per route set. After that the camera belongs to the visitor: hovering or
+  // clicking a trace re-renders this component, and re-running fitBounds there would snap their
+  // zoom back to the whole-ride extent mid-inspection. A genuinely different set of routes
+  // (`dedupedSlugsKey`) is the only thing that earns a new frame.
+  const framedSlugsKeyRef = useRef<string | null>(null)
   useEffect(() => {
-    if (isMapLoaded) {
-      fitBoundsToRoutes()
-    }
-  }, [isMapLoaded, fitBoundsToRoutes])
+    if (!isMapLoaded || routesData.length === 0) return
+    if (framedSlugsKeyRef.current === dedupedSlugsKey) return
+    framedSlugsKeyRef.current = dedupedSlugsKey
+    fitBoundsToRoutes()
+  }, [isMapLoaded, dedupedSlugsKey, routesData, fitBoundsToRoutes])
 
   // Derive highlighted route from props or selected state
   const highlightedRoute = useMemo(() => {
@@ -263,6 +268,14 @@ export function RoutesMapView({
       }
     : null
 
+  const yBounds = useMemo(
+    () =>
+      highlightedRoute
+        ? getElevationAxisBounds(highlightedRoute.trackPoints.map((p) => p[2]))
+        : null,
+    [highlightedRoute]
+  )
+
   const chartOptions: ChartOptions<'line'> = useMemo(
     () => ({
       responsive: true,
@@ -315,6 +328,8 @@ export function RoutesMapView({
         },
         y: {
           display: true,
+          min: yBounds?.min,
+          max: yBounds?.max,
           title: {
             display: true,
             text: `Elevation (${config.elevationUnit})`,
@@ -322,6 +337,9 @@ export function RoutesMapView({
           },
           ticks: {
             color: chartColors.text,
+            // The bounds are the route's raw min/max, never round numbers — let Chart.js label
+            // only the round ticks it picks inside the range.
+            includeBounds: false,
           },
           grid: {
             color: chartColors.grid,
@@ -330,7 +348,7 @@ export function RoutesMapView({
       },
       animation: { duration: 0 },
     }),
-    [chartColors, highlightedRoute, config, distance, elevation]
+    [chartColors, highlightedRoute, config, distance, elevation, yBounds]
   )
 
   if (isLoading) {
