@@ -21,7 +21,7 @@ export function RoutesMapPage() {
     handleFiltersChange,
     team: { data: team, isLoading },
     tilesUrl,
-    bounds: { data: routeBounds },
+    bounds,
   } = useRoutesMapData(teamSlug)
 
   useCanonicalPath(team ? paths.routesMap(team.slug) : undefined)
@@ -52,7 +52,11 @@ export function RoutesMapPage() {
           showSort={false}
         />
 
-        <RoutesTileMap tilesUrl={tilesUrl} bounds={routeBounds?.bounds} />
+        <RoutesTileMap
+          tilesUrl={tilesUrl}
+          bounds={bounds.data?.bounds}
+          boundsPending={bounds.isLoading}
+        />
       </Stack>
     </TeamLayout>
   )

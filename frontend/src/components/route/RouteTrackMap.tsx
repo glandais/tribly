@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { Source, Layer, MapRef, MapMouseEvent } from 'react-map-gl/maplibre'
 import type { PaddingOptions } from 'maplibre-gl'
 import { Box } from '@mantine/core'
@@ -64,25 +64,24 @@ export function RouteTrackMap({
   // Create gradient line GeoJSON
   const lineFeatures = useMemo(() => createGradientLineFeatures(route.tracks), [route.tracks])
 
-  const fitToBounds = useCallback(() => {
-    if (mapRef.current && trackPoints.length > 0) {
-      const bounds = calculateBounds(trackPoints)
-      mapRef.current.fitBounds(bounds, {
-        padding: fitPadding,
-        duration: 300,
-      })
-    }
-  }, [trackPoints, fitPadding, mapRef])
+  // The track is already in hand on the first render — the parent doesn't mount this without one —
+  // so the map opens on it via `initialViewState` instead of snapping to it after `onLoad`.
+  const bounds = useMemo(
+    () => (trackPoints.length > 0 ? calculateBounds(trackPoints) : null),
+    [trackPoints]
+  )
 
-  // Fit bounds when map is first loaded
-  const handleMapLoad = useCallback(() => {
-    fitToBounds()
-  }, [fitToBounds])
-
-  // Re-center when route changes (e.g. switching trip stages)
+  // Re-center when the route changes (e.g. switching trip stages), which keeps the map mounted so
+  // `initialViewState` no longer applies. Skipped on mount, where it would fight the initial frame.
+  const framedRef = useRef(false)
   useEffect(() => {
-    fitToBounds()
-  }, [fitToBounds])
+    if (!bounds) return
+    if (!framedRef.current) {
+      framedRef.current = true
+      return
+    }
+    mapRef.current?.fitBounds(bounds, { padding: fitPadding, duration: 300 })
+  }, [bounds, fitPadding, mapRef])
 
   // Handle mouse move for nearest point detection
   const handleMouseMove = useCallback(
@@ -126,11 +125,9 @@ export function RouteTrackMap({
         ref={mapRef}
         mapStyleSwitcherPosition="top-right"
         initialViewState={{
-          longitude: trackPoints[0][0],
-          latitude: trackPoints[0][1],
-          zoom: 11,
+          bounds: bounds ?? undefined,
+          fitBoundsOptions: { padding: fitPadding },
         }}
-        onLoad={handleMapLoad}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         onMoveStart={onMoveStart}

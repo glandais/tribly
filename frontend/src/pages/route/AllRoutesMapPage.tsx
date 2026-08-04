@@ -38,7 +38,11 @@ export function AllRoutesMapPage() {
           showSort={false}
         />
 
-        <RoutesTileMap tilesUrl={tilesUrl} bounds={bounds.data?.bounds} />
+        <RoutesTileMap
+          tilesUrl={tilesUrl}
+          bounds={bounds.data?.bounds}
+          boundsPending={bounds.isLoading}
+        />
       </Stack>
     </HomeLayout>
   )

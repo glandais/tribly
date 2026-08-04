@@ -45,6 +45,9 @@ const ROUTE_COLORS = [
   '#e3a209',
 ]
 
+/** Chart overlay is 150px at the top-right; the extra top padding keeps the trace clear of it. */
+const ROUTES_FIT_PADDING = { top: 170, bottom: 50, left: 50, right: 50 } as const
+
 // Minimal interface RideGroupDto satisfies directly; a trip stage carries the whole RouteDto,
 // so TripDetailPage narrows it down to the slug.
 export interface MapRouteItem {
@@ -97,7 +100,6 @@ export function RoutesMapView({
   )
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null)
   const [cursor, setCursor] = useState<string>('grab')
-  const [isMapLoaded, setIsMapLoaded] = useState(false)
 
   // One bulk request for every distinct route slug on the screen, instead of one `getRoute`
   // per item (several ride groups, or every stage of a trip, often share the same route).
@@ -150,41 +152,40 @@ export function RoutesMapView({
     [itemsWithRoutes, routesBySlug]
   )
 
-  // Fit bounds when map is loaded AND routes are available. Prefer the server-computed
-  // `extent` (built from the same decimated geometry actually returned) over recomputing it
-  // client-side from `routesData`.
-  const fitBoundsToRoutes = useCallback(() => {
-    if (mapRef.current && routesData.length > 0) {
-      const bounds = bulkData?.extent
-        ? ([
-            [bulkData.extent.minLon, bulkData.extent.minLat],
-            [bulkData.extent.maxLon, bulkData.extent.maxLat],
-          ] satisfies LngLatBoundsLike)
-        : calculateBounds(routesData.flatMap((r) => r.trackPoints))
-      // Chart overlay is 150px at top-right, add top padding to keep route visible
-      mapRef.current.fitBounds(bounds, {
-        padding: { top: 170, bottom: 50, left: 50, right: 50 },
-        duration: 0,
-      })
-    }
+  // The extent to open on. Prefer the server-computed `extent` (built from the same decimated
+  // geometry actually returned) over recomputing it client-side from `routesData`. Available on the
+  // very first render that has routes — `useRoutesBulk` reports `isLoading` until every chunk has
+  // landed — so the map is framed by `initialViewState` and never has to snap afterwards.
+  const routesBounds = useMemo<LngLatBoundsLike | null>(() => {
+    if (routesData.length === 0) return null
+    return bulkData?.extent
+      ? ([
+          [bulkData.extent.minLon, bulkData.extent.minLat],
+          [bulkData.extent.maxLon, bulkData.extent.maxLat],
+        ] satisfies LngLatBoundsLike)
+      : calculateBounds(routesData.flatMap((r) => r.trackPoints))
   }, [routesData, bulkData])
 
-  // Handle map load
-  const handleMapLoad = useCallback(() => {
-    setIsMapLoaded(true)
-  }, [])
+  const fitBoundsToRoutes = useCallback(() => {
+    if (mapRef.current && routesBounds) {
+      mapRef.current.fitBounds(routesBounds, { padding: ROUTES_FIT_PADDING, duration: 0 })
+    }
+  }, [routesBounds])
 
-  // Frame the map ONCE per route set. After that the camera belongs to the visitor: hovering or
-  // clicking a trace re-renders this component, and re-running fitBounds there would snap their
-  // zoom back to the whole-ride extent mid-inspection. A genuinely different set of routes
-  // (`dedupedSlugsKey`) is the only thing that earns a new frame.
+  // Frame the map ONCE per route set. The first frame is `initialViewState`'s doing, so this only
+  // catches a *later* change of route set (`keepPreviousData` keeps the map mounted across one).
+  // After that the camera belongs to the visitor: hovering or clicking a trace re-renders this
+  // component, and re-running fitBounds there would snap their zoom back to the whole-ride extent
+  // mid-inspection.
   const framedSlugsKeyRef = useRef<string | null>(null)
   useEffect(() => {
-    if (!isMapLoaded || routesData.length === 0) return
+    if (routesData.length === 0) return
+    const firstFrame = framedSlugsKeyRef.current === null
     if (framedSlugsKeyRef.current === dedupedSlugsKey) return
     framedSlugsKeyRef.current = dedupedSlugsKey
-    fitBoundsToRoutes()
-  }, [isMapLoaded, dedupedSlugsKey, routesData, fitBoundsToRoutes])
+    // The mount is already framed by `initialViewState` — refitting would only fight it.
+    if (!firstFrame) fitBoundsToRoutes()
+  }, [dedupedSlugsKey, routesData, fitBoundsToRoutes])
 
   // Derive highlighted route from props or selected state
   const highlightedRoute = useMemo(() => {
@@ -400,12 +401,10 @@ export function RoutesMapView({
         <PedalonsMap
           ref={mapRef}
           initialViewState={{
-            longitude: routesData[0].trackPoints[0][0],
-            latitude: routesData[0].trackPoints[0][1],
-            zoom: 11,
+            bounds: routesBounds ?? undefined,
+            fitBoundsOptions: { padding: ROUTES_FIT_PADDING },
           }}
           cursor={cursor}
-          onLoad={handleMapLoad}
           onClick={handleClick}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
