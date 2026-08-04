@@ -591,6 +591,8 @@
   "planner.profile.MTB": "VTT",
   "planner.profile.RUN_HIKE": "Course / Rando",
   "planner.profile.label": "Profil",
+  "planner.undo": "Annuler (Ctrl+Z)",
+  "planner.redo": "Rétablir (Ctrl+Maj+Z)",
   "posts.create.dateTimeHint": "Date et heure de la publication",
   "posts.create.dateTimeLabel": "Date et heure",
   "posts.create.descriptionPlaceholder": "Décrivez votre publication...",

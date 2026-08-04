@@ -31,7 +31,12 @@ interface RouteTrackMapProps {
   fitPadding?: number | PaddingOptions
   onMoveStart?: () => void
   onMoveEnd?: () => void
-  /** Overlays (chart, action buttons) absolutely positioned on top of the map. */
+  /**
+   * Map controls (`MapControlGroup`). Rendered *inside* the map, where `useControl` can reach the
+   * map context — unlike `children`, which sits outside it.
+   */
+  controls?: React.ReactNode
+  /** Overlays (the elevation chart) absolutely positioned on top of the map. */
   children?: React.ReactNode
 }
 
@@ -48,6 +53,7 @@ export function RouteTrackMap({
   fitPadding = 50,
   onMoveStart,
   onMoveEnd,
+  controls,
   children,
 }: RouteTrackMapProps) {
   const colorScheme = useResolvedColorScheme()
@@ -124,7 +130,6 @@ export function RouteTrackMap({
     >
       <PedalonsMap
         ref={mapRef}
-        mapStyleSwitcherPosition="top-right"
         initialViewState={{
           bounds: bounds ?? undefined,
           fitBoundsOptions: { padding: fitPadding },
@@ -135,6 +140,7 @@ export function RouteTrackMap({
         onMoveEnd={onMoveEnd}
       >
         <HideTrackControl hidden={trackHidden} onToggle={toggleTrackHidden} />
+        {controls}
 
         {!trackHidden && (
           <>

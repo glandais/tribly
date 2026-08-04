@@ -5,6 +5,50 @@
 @import 'maplibre-theme/icons.default.css';
 @import 'maplibre-theme/classic.css';
 
+/* A link inside a map control group (the fullscreen action) must be indistinguishable from the
+   buttons around it, and maplibre-theme only styles `button`. Mirrors its
+   `.maplibregl-ctrl-group button` rules against the same variables. */
+.maplibregl-ctrl-group > a {
+  align-items: center;
+  color: var(--ml-c-icon-1);
+  cursor: pointer;
+  display: flex;
+  height: 29px;
+  justify-content: center;
+  width: 29px;
+}
+
+.maplibregl-ctrl-group > a:hover {
+  background-color: var(--ml-c-bg-2);
+}
+
+.maplibregl-ctrl-group > a:active {
+  background-color: var(--ml-c-bg-3);
+}
+
+.maplibregl-ctrl-group > a svg {
+  height: 22.5px;
+  width: 22.5px;
+}
+
+.maplibregl-ctrl-group > a + a,
+.maplibregl-ctrl-group > a + button,
+.maplibregl-ctrl-group > button + a {
+  border-top: 1px solid var(--ml-c-bg-3);
+}
+
+.maplibregl-ctrl-group > a:first-child {
+  border-radius: var(--ml-ctrl-border-radius) var(--ml-ctrl-border-radius) 0 0;
+}
+
+.maplibregl-ctrl-group > a:last-child {
+  border-radius: 0 0 var(--ml-ctrl-border-radius) var(--ml-ctrl-border-radius);
+}
+
+.maplibregl-ctrl-group > a:only-child {
+  border-radius: inherit;
+}
+
 /* MapLibre's canvas carries tabindex=0, so clicking the map focuses it — silently, since a
    pointer-acquired focus isn't `:focus-visible`. The *next* key press flips the browser into
    keyboard modality and the ring appears retroactively around the whole map, which the "h"

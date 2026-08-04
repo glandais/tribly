@@ -1,9 +1,9 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { PrefetchLink } from '@/components/common/PrefetchLink'
 import type { MapRef } from 'react-map-gl/maplibre'
 import { IconArrowsMaximize } from '@tabler/icons-react'
-import { ActionIcon, Box, Center, Paper, Text } from '@mantine/core'
+import { Box, Center, Paper, Text } from '@mantine/core'
+import { MapControlButton, MapControlGroup } from '@/components/map/MapControl'
 import type { RouteDetailDto } from '@/api/dto'
 import { useMapHeight } from '@/hooks/useResponsive'
 import { getOverlayBg } from '@/lib/colors'
@@ -59,25 +59,19 @@ export function RouteMapView({ route, fullscreenPath }: RouteMapViewProps) {
           hoveredPointIndex={hoveredPointIndex}
           onHoverPoint={setHoveredPointIndex}
           fitPadding={EMBEDDED_FIT_PADDING}
+          // Fullscreen action, in the control column with the zoom and basemap buttons
+          controls={
+            fullscreenPath && (
+              <MapControlGroup>
+                <MapControlButton
+                  label={t('map.fullscreen.open')}
+                  icon={<IconArrowsMaximize size={20} />}
+                  to={fullscreenPath}
+                />
+              </MapControlGroup>
+            )
+          }
         >
-          {/* Fullscreen action, following the MapStyleSwitcher absolute-position pattern */}
-          {fullscreenPath && (
-            <Box pos="absolute" top={8} right={56} style={{ zIndex: 10 }}>
-              <ActionIcon
-                component={PrefetchLink}
-                to={fullscreenPath}
-                variant="default"
-                size="lg"
-                radius="md"
-                aria-label={t('map.fullscreen.open')}
-                title={t('map.fullscreen.open')}
-                style={{ boxShadow: 'var(--mantine-shadow-lg)' }}
-              >
-                <IconArrowsMaximize size={20} />
-              </ActionIcon>
-            </Box>
-          )}
-
           {/* Elevation chart overlay */}
           <Box
             pos="absolute"

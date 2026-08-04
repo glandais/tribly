@@ -591,6 +591,8 @@
   "planner.profile.MTB": "MTB",
   "planner.profile.RUN_HIKE": "Run / Hike",
   "planner.profile.label": "Profile",
+  "planner.undo": "Undo (Ctrl+Z)",
+  "planner.redo": "Redo (Ctrl+Shift+Z)",
   "posts.create.dateTimeHint": "Date and time of the post",
   "posts.create.dateTimeLabel": "Date and Time",
   "posts.create.descriptionPlaceholder": "Describe your post...",

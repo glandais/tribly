@@ -550,7 +550,6 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
         ) : (
           <PedalonsMap
             ref={mapRef}
-            mapStyleSwitcherPosition="top-right"
             initialViewState={initialViewState}
             onClick={handleMapClick}
             onMouseDown={handleMapMouseDown}
@@ -560,18 +559,11 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
             interactiveLayerIds={routeGeoJson ? ['route-line'] : []}
             cursor={draggingGhost ? 'grabbing' : hoverPoint ? 'pointer' : 'crosshair'}
           >
-            <UndoRedoControl
-              position="top-left"
-              canUndo={canUndo}
-              canRedo={canRedo}
-              onUndo={undo}
-              onRedo={redo}
-            />
+            <UndoRedoControl canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo} />
 
             <HideTrackControl hidden={trackHidden} onToggle={toggleTrackHidden} />
 
             <RouterProfileSelector
-              position="bottom-left"
               currentProfile={routerProfile}
               onProfileChange={setRouterProfile}
             />
