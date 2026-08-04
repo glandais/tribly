@@ -92,12 +92,7 @@ class PedalonsView extends WatchUi.View {
 
             // Logout entry
             menu.addItem(
-                new WatchUi.MenuItem(
-                    WatchUi.loadResource(Rez.Strings.Logout),
-                    null,
-                    "logout",
-                    {}
-                )
+                new WatchUi.MenuItem(WatchUi.loadResource(Rez.Strings.Logout), null, "logout", {})
             );
 
             WatchUi.switchToView(

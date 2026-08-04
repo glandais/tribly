@@ -12,6 +12,19 @@ the bulk of a run's rendering. Delete it only to reclaim disk.
 
 # Backup data
 
+`scripts/biketeam_fetch.sh` does the whole fetch-and-restore: rsync of the production directory,
+`pg_dump` on the remote host, rsync of the dump, then `biketeam_restore.sh`.
+
+./scripts/biketeam_fetch.sh
+
+The remote postgres password is read from the `.env` that comes with the production directory, so
+nothing has to be typed. `--skip-files` redoes only the dump (the data directory is the slow part),
+`--skip-db` only the files, `--no-restore` stops after fetching. `--dest` moves the export
+elsewhere; it defaults to `../biketeam-backup`, next to the checkout, which is what the
+`backend-restore` service mounts.
+
+That is the same sequence as, by hand:
+
 rsync -avz biketeam@main.tomacla.info:/home/biketeam/production ../biketeam-backup/
 
 cat ../biketeam-backup/production/.env | grep POSTGRES_PASSWORD

@@ -73,14 +73,7 @@ class LoginView extends WatchUi.View {
                 Graphics.COLOR_WHITE
             );
             layout.skip(10);
-            layout.draw(
-                dc,
-                centerX,
-                Graphics.FONT_LARGE,
-                _userCode,
-                null,
-                Graphics.COLOR_WHITE
-            );
+            layout.draw(dc, centerX, Graphics.FONT_LARGE, _userCode, null, Graphics.COLOR_WHITE);
             layout.draw(dc, centerX, Graphics.FONT_TINY, _statusText, null, Graphics.COLOR_BLUE);
         } else {
             var layout = new VerticalLayout(centerY - 30, 60);
