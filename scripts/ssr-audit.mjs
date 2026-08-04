@@ -56,6 +56,29 @@ function errorRun(message) {
 
 const CONTRACT_ROUTES_PATH = path.join(repoRoot, 'contracts', 'routes.yaml')
 const DEFAULT_CONFIG_PATH = path.join(scriptDir, 'routes-ssr.yml')
+
+/**
+ * Optional local file holding the crawl accounts' passwords — the `passwordEnv` vars named in
+ * `routes-ssr.yml` (`USER1_PASSWORD=…`, one per line). Gitignored, and it must stay that way.
+ *
+ * Loaded so a run is just `node scripts/ssr-audit.mjs --url …` instead of a command line with three
+ * secrets in it, which is how they end up in shell history. Absence is not an error: CI and
+ * one-off runs still pass them through the real environment.
+ */
+const USERS_ENV_PATH = path.join(scriptDir, '.env.users')
+
+function loadUsersEnvFile() {
+  try {
+    // Node gives the surrounding environment precedence over the file, so an explicitly exported
+    // password still wins — the file is a default, not an override.
+    process.loadEnvFile(USERS_ENV_PATH)
+    return true
+  } catch (err) {
+    if (err.code === 'ENOENT') return false
+    warnRun(`ignoring ${path.relative(repoRoot, USERS_ENV_PATH)}: ${err.message}`)
+    return false
+  }
+}
 const SETTLE_TIMEOUT_MS = 8000
 // A cold dev server compiles the login route on the first request, and the POST /auth/login round
 // trip lands on a backend that may itself be warming up — 10s timed out on a perfectly good login.
@@ -337,7 +360,10 @@ function resolvePassword(user) {
   }
   const password = process.env[user.passwordEnv]
   if (!password) {
-    throw new Error(`user "${user.id}": env var ${user.passwordEnv} is not set`)
+    throw new Error(
+      `user "${user.id}": env var ${user.passwordEnv} is not set — export it, or put it in ` +
+        `${path.relative(repoRoot, USERS_ENV_PATH)} (gitignored, one KEY=value per line)`
+    )
   }
   return password
 }
@@ -454,6 +480,88 @@ function classifyConsoleMessage(message) {
   return null
 }
 
+/**
+ * A `message.text()` that carries no information of its own.
+ *
+ * Two shapes, both from `console.error(someObject)` rather than a string. Playwright renders an
+ * Error as `Name: message` (or its stack) — so a bare `Tn` means an Error subclass whose **message
+ * was empty**, minified to an identifier that says nothing. Any other object renders as
+ * `JSHandle@object`.
+ *
+ * `gpxToolsMap` reported exactly `Tn` twice on 2026-08-04 and could not be diagnosed at all:
+ * minified class names are chunk-local (`map-vendor` and the maplibre worker chunk each define
+ * their own `Tn`), so the name doesn't even identify the class. What survives minification is the
+ * error's **own properties** — that's what {@link resolveConsoleText} goes after.
+ */
+function isOpaqueConsoleText(text) {
+  const trimmed = text.trim()
+  if (trimmed.includes('JSHandle@')) return true
+  // First line only: Playwright may append stack frames under the name, and `Tn\n    at foo.js:1`
+  // is exactly as uninformative as a bare `Tn`. A real message lands on that first line
+  // (`Tn: AJAXError: Not Found (404): …`), which is what makes it worth keeping as-is.
+  const [firstLine = ''] = trimmed.split('\n')
+  return /^[A-Za-z_$][\w$]*$/.test(firstLine.trim())
+}
+
+/** How many stack frames to keep — enough to locate the throw, not enough to flood the report. */
+const ERROR_STACK_FRAMES = 3
+
+/**
+ * The real text behind a console message, reaching into its arguments when {@link
+ * isOpaqueConsoleText} says `text()` threw the useful part away.
+ *
+ * Costs a round trip per opaque message, so it only runs for messages already classified as an
+ * issue — never for the page's ordinary logging. Never throws: the handles belong to a page that
+ * may have navigated or been recycled by the time this resolves, and an unreachable handle just
+ * means falling back to the opaque text we already had.
+ */
+async function resolveConsoleText(message, fallback) {
+  if (!isOpaqueConsoleText(fallback)) return fallback
+  for (const arg of message.args()) {
+    try {
+      const described = await arg.evaluate((value, frames) => {
+        if (value instanceof Error) {
+          // An Error only reaches this branch when Playwright had nothing to render but the
+          // constructor name — i.e. an **empty message**, which is also the case where the
+          // message alone would tell us nothing. The payload is in the own properties: an
+          // AJAXError-shaped object carries `status`/`url`, a fetch wrapper its request. Those
+          // survive minification, unlike the class name.
+          const own = {}
+          for (const key of Object.getOwnPropertyNames(value)) {
+            if (key === 'stack' || key === 'message') continue
+            const prop = value[key]
+            if (prop === undefined || typeof prop === 'function') continue
+            own[key] = typeof prop === 'object' && prop !== null ? '[object]' : prop
+          }
+          const head = [
+            value.constructor?.name || value.name || 'Error',
+            value.message || '(empty message)',
+          ].join(': ')
+          const props = Object.keys(own).length ? ` ${JSON.stringify(own)}` : ''
+          const stack = (value.stack ?? '')
+            .split('\n')
+            .filter((line) => /^\s+at\s/.test(line))
+            .slice(0, frames)
+            .map((line) => line.trim())
+          return `${head}${props}${stack.length ? `\n${stack.join('\n')}` : ''}`
+        }
+        if (value && typeof value === 'object') {
+          try {
+            return JSON.stringify(value)
+          } catch {
+            return null // circular, or otherwise not serialisable
+          }
+        }
+        return null
+      }, ERROR_STACK_FRAMES)
+      if (described) return described
+    } catch {
+      // Handle disposed with its page — keep looking through the remaining args.
+    }
+  }
+  return fallback
+}
+
 const MAX_DISTINCT_ISSUES = 20
 
 /**
@@ -502,10 +610,21 @@ async function auditRoute(page, url, screenshotPath) {
   const collector = makeIssueCollector()
   let verdict = null
 
+  // `resolveConsoleText` needs a round trip to the page, but Playwright's `console` listener is
+  // synchronous — so each issue is added by a promise parked here and awaited before the caller
+  // reads the collector. Handles stay alive until then, which is why this is drained inside the
+  // route's own audit rather than left dangling for the next `goto` to invalidate.
+  const pendingIssues = []
   const onConsole = (message) => {
     verdict = classifyPrefetchAuditLine(message.text()) ?? verdict
     const classified = classifyConsoleMessage(message)
-    if (classified) collector.add(classified.category, classified.text)
+    if (!classified) return
+    pendingIssues.push(
+      resolveConsoleText(message, classified.text).then(
+        (text) => collector.add(classified.category, text),
+        () => collector.add(classified.category, classified.text)
+      )
+    )
   }
   const onPageError = (error) => {
     collector.add('hydration', `pageerror: ${error.message}`)
@@ -532,6 +651,11 @@ async function auditRoute(page, url, screenshotPath) {
     page.off('console', onConsole)
     page.off('pageerror', onPageError)
   }
+
+  // After `off`, so nothing new arrives, but before `list()`: an issue whose text is still being
+  // resolved has not been counted yet. `allSettled` because every rejection already fell back to
+  // the opaque text in the handler above.
+  await Promise.allSettled(pendingIssues)
 
   return { issues: collector.list(), verdict: verdict ?? 'timeout', crashed }
 }
@@ -693,9 +817,13 @@ function runList() {
 }
 
 async function runAudit() {
+  const loadedUsersEnv = loadUsersEnvFile()
   const config = loadConfig()
   if (config.users.length === 0) {
     throw new ConfigError(`${path.relative(repoRoot, configPath)} defines no users`)
+  }
+  if (loadedUsersEnv) {
+    logRun(`Loaded crawl passwords from ${path.relative(repoRoot, USERS_ENV_PATH)}`)
   }
   const contractById = new Map(loadContractRoutes().map((r) => [r.id, r]))
   const { items, skipped } = buildWorkItems(config, contractById)

@@ -13,9 +13,17 @@ it a third time.
 
 ```bash
 # a built SSR server on :3000 (or :8090), started with FRONTEND_PREFETCH_AUDIT=true
-USER1_PASSWORD=… USER2_PASSWORD=… ADMIN_PASSWORD=… \
-  node scripts/ssr-audit.mjs --url http://localhost:3000
+node scripts/ssr-audit.mjs --url http://localhost:3000
 ```
+
+The crawl accounts' passwords come from `scripts/.env.users` (`USER1_PASSWORD=…`, one per line),
+which is **gitignored and must stay that way**. Exported environment variables still take
+precedence, so CI and one-off runs can pass them in the old way; the file only saves putting three
+secrets on a command line, where shell history keeps them.
+
+`--config` takes an alternative route list, which is how you re-check a single route in seconds
+instead of re-running all 158 — copy `scripts/routes-ssr.yml`'s header and give it one `routes:`
+entry.
 
 The crawler visits every web route of `contracts/routes.yaml` as each user declared in
 `scripts/routes-ssr.yml` and reports three things: **hydration mismatches** (`[hydration]`, or an
@@ -39,16 +47,27 @@ makes the app redirect to its canonical URL on load, which discards the verdict.
 
 ## Last run
 
-2026-08-03 22:35Z, **local production build on :3000** — 158 checks, **0 login failures**,
-**4 with issues** (4 prefetch, 2 hydration). Verdicts: **147 covered, 4 gaps, 7 not measured**.
+2026-08-04 07:28Z, **local production build on :3000 against the staging API** — 158 checks,
+**0 login failures**, **6 with issues** (5 prefetch, 1 console error). Verdicts: **146 covered,
+5 gaps, 7 not measured**.
 
-62 → 42 → 9 → **4** across four runs, and **the four are the documented false positive**:
-FullCalendar's visible grid, whose range depends on the viewport and cannot be computed
-server-side, on `calendar` (×3 users) and `teamCalendar` (×1). Every real prefetch gap is closed —
-`adEdit`'s two ad shapes, the form pickers, `rideEdit`'s current selections, all confirmed here.
+62 → 42 → 9 → 4 → **5** across five runs, and the count went *up* for a good reason: pointing
+`routes-ssr.yml`'s `tripSlug` at a trip whose stages actually have routes finally made `tripEdit`
+fire the query §2 suspected. That gap is now closed (`prefetchEditTripForm` prefetches the stage
+routes bulk), **re-crawled and confirmed `covered`**.
 
-What is left in this file is **one defect** (§1, the `CalendarView` hydration mismatch, `user1` on
-both calendars) and the false positives. Nothing else on 158 checks.
+The **4 remaining gaps are the documented false positive**: FullCalendar's visible grid, whose
+range depends on the viewport and cannot be computed server-side, on `calendar` (×3 users) and
+`teamCalendar` (×1). Every real prefetch gap is closed — `adEdit`'s two ad shapes, the form
+pickers, `rideEdit`'s current selections, `tripEdit`'s stage routes.
+
+Two things this run changed about the open list: the old §2 (`TripEditor`'s suspected gap) is
+**deleted**, fixed and verified; and §1 did **not** reproduce, but stays anyway — see its entry for
+why that is not evidence of a fix. §1 is once again the only open defect.
+
+The run's sixth issue, `gpxToolsMap`'s two `console-error: Tn`, was investigated and could not be
+reproduced or identified — see the entry below, which records what the dead end cost and why
+grepping the bundle for a minified class name is not the way out of it.
 
 **Structural change worth knowing before fixing anything below**: every route with a `prefetch` now
 has a **companion module** next to its page (`pages/<domain>/<screen>Data.ts`), read as hooks by the
@@ -71,8 +90,15 @@ build for the inventory, re-run a failing route against `pnpm dev:ssr` when you 
 ### 1. `CalendarView` formats event times outside `useFormattedDate` — text mismatch on `/calendar`
 
 React #418 with `args[]=text` (a text-content mismatch) on `/calendar` and on
-`/equipes/{slug}/calendrier`, both for `user1` — **the only defect this file still has open**, and
-the two hydration issues of the 22:35Z run.
+`/equipes/{slug}/calendrier`, both for `user1`.
+
+**The 2026-08-04 run did not reproduce it — the entry stays anyway.** Nothing was fixed:
+`CalendarView.tsx` still formats straight to a text node with dayjs, unchanged. The likely reason
+it went quiet is environmental, not structural — the mismatch needs the server and the browser to
+*disagree* about the zone, so it disappears the moment the crawled account has a `timezone`
+preference set (`15a4d7b4` added that preference; the staging accounts had NULL when this was
+written). A null timezone on any account brings it straight back. This is the last paragraph of
+this entry turned on itself.
 
 The spread to `teamCalendar` was a **consequence of fixing its prefetch**: the page renders its
 events server-side now, so it finally has time text to disagree about. One defect, two screens.
@@ -90,19 +116,25 @@ shape of this class of bug: it shows up only for the account whose data reaches 
 so a run where it disappears proves nothing about the fix. It is also why fixing a *prefetch* can
 surface it somewhere new, as `teamCalendar` just did.
 
-### 2. `TripEditor`'s selections may be an unmeasured gap
-
-`TripEditor` renders a `PlaceAutocomplete` and a `useRoutesBulk` with `geometry: false` over its
-stages — the same two shapes `rideEdit` was fixed for — and `tripEdit` prefetches neither. But the
-crawler has **never seen those queries fire** there, on any run, so either they sit behind something
-the first paint doesn't render (collapsed stage panels), or the crawled trip has no stage routes.
-
-Don't prefetch on the strength of the symmetry: that primes keys nobody reads. Point
-`routes-ssr.yml`'s `tripEdit` params at a trip that *has* stage routes, re-crawl, and add only what
-the report then names.
-
 ## Known false positives
 
+- **`gpxToolsMap`'s two `console-error: Tn`** (2026-08-04) — **not reproducible, and the run that
+  saw it could not identify it.** Not a prefetch gap (the check was `covered`) and not visibly
+  broken: the run's own screenshot shows the page fully rendered — track, tiles, elevation profile,
+  stats. It did not reproduce in 5 `pnpm dev:ssr` attempts, standalone and replaying `user1`'s exact
+  gpx sequence (including the redirecting `gpxToolsNew` before it, to rule out the run-order trap
+  below), nor as `anonymous`, `user2` or `admin`.
+  **Do not try to identify a minified class name from the bundle** — that was tried and it doesn't
+  work. Minified names are **chunk-local**: `map-vendor` and the maplibre worker chunk each define
+  their own `Tn`, so the name identifies nothing on its own. It is tempting to land on `map-vendor`'s
+  `Tn=class extends Error{…super(\`AJAXError: ${t} (${e}): ${n}\`)…}` and call it a tile fetch
+  failure; that inference is **wrong on its own evidence**, because Playwright renders an Error as
+  `Name: message` — `AJAXError: …` would have been printed. A *bare* `Tn` means an Error subclass
+  whose **message was empty**, which that class can never produce.
+  `scripts/ssr-audit.mjs` has since been fixed to reach into the error's own properties, so a repeat
+  will report `Tn: (empty message) {"status":…,"url":…}` with stack frames instead of a dead end.
+  **Re-open this as a real defect if it comes back with that detail** — until then there is nothing
+  actionable, only a page that renders correctly.
 - **`apps` failing for an authenticated user** — collateral from the `CompleteAccountPage` render
   loop (fixed locally, not yet deployed). It is the route crawled right after `completeAccount`,
   whose `setState` loop was still spinning when the next `goto` fired, so it inherits the

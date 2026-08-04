@@ -1,5 +1,7 @@
 import { useGetTeam } from '@/api/endpoints/teams/teams'
-import { useGetTrip, prefetchGetTripQuery } from '@/api/endpoints/trips/trips'
+import { useGetTrip, prefetchGetTripQuery, getGetTripQueryKey } from '@/api/endpoints/trips/trips'
+import { prefetchRoutesBulkChunked } from '@/config/prefetchHelpers'
+import type { TripDto } from '@/api/dto'
 import type { QueryClient } from '@tanstack/react-query'
 
 /**
@@ -44,8 +46,31 @@ export function useEditTripFormData(teamSlug?: string, tripSlug?: string) {
 }
 
 /**
+ * The routes the edit form summarises, one row per stage — `TripEditor`'s own `useRoutesBulk`,
+ * deduped and **sorted** because the array goes into the query key.
+ *
+ * Read off `stage.route.slug` (the resolved `RouteDto` a `TripStageDto` carries), not off a
+ * `routeSlug` field: that one only exists on the `StageRequest` the form edits, projected by
+ * `EditTripPage`. `geometry: false` for the same reason as the ride form — the stage rows show only
+ * name, distance and elevation gain, and geometry would change the key anyway.
+ */
+export function tripFormStageRouteSlugs(trip: TripDto | undefined): string[] {
+  const slugs = (trip?.stages ?? []).map((s) => s.route?.slug).filter((s): s is string => !!s)
+  return Array.from(new Set(slugs)).sort()
+}
+
+/**
  * Server-side counterpart of {@link useEditTripFormData}'s trip-form-specific data (the team itself
  * comes from the `teamScopedPrefetch` wrapper).
+ *
+ * Two phases, because the second depends on the first: the stages — and so the routes they point at
+ * — are only knowable once the trip is in cache. This is the gap `scripts/ssr-audit.mjs` reported on
+ * `tripEdit` once `routes-ssr.yml` was pointed at a trip whose stages actually have routes; before
+ * that the query never fired and prefetching it on the symmetry with `rideEdit` would have primed a
+ * key nobody read.
+ *
+ * `TripEditor`'s two `PlaceAutocomplete` fields per stage are deliberately NOT covered: the crawler
+ * has never seen them query on the first paint. Add them if and when a report names them.
  */
 export async function prefetchEditTripForm(
   queryClient: QueryClient,
@@ -53,4 +78,9 @@ export async function prefetchEditTripForm(
   tripSlug: string
 ) {
   await prefetchGetTripQuery(queryClient, teamSlug, tripSlug)
+
+  const trip = queryClient.getQueryData<TripDto>(getGetTripQueryKey(teamSlug, tripSlug))
+  await prefetchRoutesBulkChunked(queryClient, teamSlug, tripFormStageRouteSlugs(trip), {
+    geometry: false,
+  })
 }

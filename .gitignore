@@ -99,3 +99,6 @@ frontend/*.pem
 .playwright-mcp
 .superdesign
 .superpowers
+
+# Crawl account passwords for scripts/ssr-audit.mjs — never commit
+scripts/.env.users
