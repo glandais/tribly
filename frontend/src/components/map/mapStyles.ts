@@ -58,7 +58,26 @@ export function resolveMapStyle(
  * showing it.
  */
 export function styleUrlFor(style: MapStyle, dark: boolean): string {
-  return dark && style.darkVariant ? style.darkVariant : style.url
+  return sameOriginIfApi(dark && style.darkVariant ? style.darkVariant : style.url)
+}
+
+/**
+ * The basemaps the server wraps itself are served as ABSOLUTE URLs on the tenant's `baseUrl`
+ * (`MapStyleService.generatedStyleUrl`), because the mobile and device clients have no origin to
+ * resolve a path against. The web client does, and must use it: an absolute URL bypasses the dev
+ * proxy, so the browser fetches the style straight from the API host and it is refused as
+ * cross-origin — the style silently fails to load and the map keeps the previous basemap.
+ *
+ * Third-party style URLs (IGN, versatiles…) are left alone; they are meant to be cross-origin and
+ * serve the CORS headers for it.
+ */
+function sameOriginIfApi(url: string): string {
+  try {
+    const parsed = new URL(url, 'http://localhost')
+    return parsed.pathname.startsWith('/api/') ? parsed.pathname + parsed.search : url
+  } catch {
+    return url
+  }
 }
 
 /** The served basemaps grouped for the switcher, in served order — the server does the sorting. */
