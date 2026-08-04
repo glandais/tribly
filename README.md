@@ -4,8 +4,8 @@ Multi-tenant web platform for cycling teams to organize rides, trips, manage GPX
 
 ## Tech Stack
 
-- **Backend**: Java 21, Quarkus 3.31.x, PostgreSQL 17 with PostGIS
-- **Frontend**: TypeScript 5.9, React 19, Vite 7, Mantine UI 8
+- **Backend**: Java 21, Quarkus 3.38.x, PostgreSQL 17 with PostGIS
+- **Frontend**: TypeScript 7 (tsgo), React 19, Vite 8, Mantine UI 9
 - **Mobile**: Flutter, Dart, Riverpod 3
 - **Karoo**: Kotlin, Jetpack Compose, ktor-client-karoo
 - **Garmin**: Monkey C, Connect IQ SDK
@@ -18,16 +18,16 @@ Multi-tenant web platform for cycling teams to organize rides, trips, manage GPX
 
 - Java 21+
 - Maven 3.9+
-- Node.js 20+
-- pnpm 10+
+- Node.js 22+ (Vite 8 requires ^20.19 or >=22.12)
+- pnpm — the version is pinned by `packageManager` in `frontend/package.json`; `corepack enable` honours it
 - Docker 24+
 - Docker Compose 2.20+
 
-### Clone and Setup
+### 1. Clone and Setup
 
 ```bash
-git clone https://github.com/glandais/pedalons.git
-cd pedalons
+git clone git@github.com:glandais/tribly.git
+cd tribly
 
 # Copy environment template
 cp .env.example .env
@@ -42,7 +42,7 @@ Required environment variables for production:
 | `ENCRYPTION_KEY` | Base64-encoded 32-byte key for token encryption (generate with `openssl rand -base64 32`) |
 
 
-### Install and configure mkcert
+### 2. Install and configure mkcert
 
 ```bash
 # Windows (chocolatey)
@@ -70,7 +70,7 @@ mkcert localhost 127.0.0.1 192.168.50.20
 ```
 
 
-### 2. Start Infrastructure
+### 3. Start Infrastructure
 
 ```bash
 # Start dev services (PostgreSQL, MinIO, imgproxy, valhalla, tileserver, mailhog)
@@ -81,7 +81,12 @@ docker compose up -d
 docker compose exec postgres pg_isready -U pedalons
 ```
 
-### 3. Start Backend
+`backend/docker-compose.yml` holds the backing services alone — the ones `mvn quarkus:dev` and
+`pnpm dev` talk to. It is **not** the root `docker-compose.yml`, which runs the whole application
+from built images, and the two cannot run at once: both publish postgres on `127.0.0.1:5432`. See
+[Running the full stack locally](#running-the-full-stack-locally) for that one.
+
+### 4. Start Backend
 
 ```bash
 cd backend
@@ -115,7 +120,9 @@ The admin is created with `password_hash = NULL` — first login is via OTP or p
 
 #### SQL
 
-Nothing works until at least one domain exists — every request resolves its tenant from the `Host` header. Open a `psql` prompt on the dev database:
+Bootstrapping covers the domain you configured; nothing else resolves. Every request finds its
+tenant from the `Host` header, so browsing through a *second* hostname — a LAN IP, say — needs its
+own `domains` row. Open a `psql` prompt on the dev database:
 
 ```bash
 docker exec -it pedalons-dev-postgres psql -U pedalons -d pedalons
@@ -141,7 +148,7 @@ VALUES (
 
 See [Running SQL](#running-sql) for the deployed stack, and [Bootstrapping a new deployment](#bootstrapping-a-new-deployment) for what to do next.
 
-### Start Frontend
+### 5. Start Frontend
 
 ```bash
 cd frontend
@@ -151,11 +158,19 @@ pnpm dev
 
 Frontend available at https://localhost:5173
 
+The dev server proxies `/api` to **staging** (`https://staging.pedalons.fr`) unless
+`VITE_API_TARGET` says otherwise, so front-end work needs no local backend at all. Point it at the
+one you just started to work against local data:
+
+```bash
+echo 'VITE_API_TARGET=http://localhost:8080' >> frontend/.env
+```
+
 ## Project Structure
 
 ```
-pedalons/
-├── backend/          # Quarkus backend (Java 21)
+tribly/
+├── backend/          # Quarkus backend (Java 21) — also holds the dev-services compose
 ├── frontend/         # React 19 SPA (Mantine UI)
 ├── mobile/           # Flutter mobile app (iOS/Android)
 ├── karoo/            # Hammerhead Karoo extension (Kotlin/Compose)
@@ -165,6 +180,7 @@ pedalons/
 ├── scripts/          # Utility scripts
 ├── data/             # Runtime data (segments, tileserver, keys)
 ├── docker-compose.yml         # One deployed environment (prod, staging, ...)
+├── docker-compose.local.yml   # Workstation overlay: mailhog, pgAdmin. Never deployed
 └── docker-compose.shared.yml  # Services shared by every environment on the host
 ```
 
@@ -203,6 +219,39 @@ Two services stay per-environment on purpose, even though they look shareable:
   with no write-then-rename, guarded only by an in-JVM lock. Two backends sharing the directory can
   read a truncated file and cache it permanently. Keep it at `/mnt/cache`: pointed at `/tmp` it lives
   inside the container and is re-downloaded in full on every restart.
+
+### Running the full stack locally
+
+The same `docker-compose.yml`, on a workstation — for testing a build, or for running the biketeam
+migration (see [MIGRATE_BIKETEAM.md](MIGRATE_BIKETEAM.md)). Two things must differ from a deployment,
+and both live in the local `.env`:
+
+```bash
+ENV_NAME=tribly-local
+COMPOSE_FILE=docker-compose.yml:docker-compose.local.yml
+PEDALONS_EMAIL_BREVO_ENABLED=false
+QUARKUS_MAILER_HOST=mailhog       # + the rest of the block in .env.example
+```
+
+**`ENV_NAME` names the stack** — the containers, the network, the image tags `build.sh` produces,
+and the `${ENV_NAME}-minio` that `backup.sh` inspects. A local stack called `…-prod` is
+indistinguishable from the real one in `docker ps` and to the backup scripts.
+
+**A local stack must not be able to send mail.** The containers run the `%prod` Quarkus profile
+wherever they run, and there `pedalons.email.brevo.enabled=true` sends through the Brevo *API* —
+`QUARKUS_MAILER_*` is not even read. Disabling it falls back to SMTP, pointed at the mailhog of
+`docker-compose.local.yml` (UI on http://127.0.0.1:8025). This is not hygiene: after a biketeam
+migration the local database holds thousands of real member addresses, and one OTP or team
+invitation is enough to reach them.
+
+`COMPOSE_FILE` makes a plain `docker compose` command pick up the overlay — mailhog and pgAdmin
+(http://127.0.0.1:5050) — here and nowhere else. A deployed `.env` has no `COMPOSE_FILE` and reads
+`docker-compose.yml` alone, which is why the overlay is a separate file rather than a profile.
+
+```bash
+cd ~/shared && docker compose -f docker-compose.shared.yml up -d   # still required
+cd ~/code/tribly && ./build.sh && docker compose up -d
+```
 
 ### Redacting credentials from access logs
 
@@ -521,6 +570,10 @@ cd frontend && pnpm test
 ### Code Quality
 
 ```bash
+# Format every module (Spotless, Prettier, dart format, ktfmt, prettier-plugin-monkeyc)
+./format.sh
+./format.sh mobile          # or one module: backend|frontend|mobile|karoo|garmin-app
+
 # Backend linting
 cd backend && ./mvnw checkstyle:check
 
@@ -528,14 +581,17 @@ cd backend && ./mvnw checkstyle:check
 cd frontend && pnpm lint
 ```
 
+`format.sh` fails loudly when a toolchain is missing rather than skipping the module. Run it before
+committing, and include its output in the commit.
+
 ## Running SQL
 
 Two different PostgreSQL containers exist depending on how you run Pedalons. Check which one you have with `docker ps` before running anything.
 
 | Setup | Compose file | Container | Credentials |
 |-------|--------------|-----------|-------------|
-| Local dev | `backend/docker-compose.yml` | `pedalons-dev-postgres` | Hardcoded (`pedalons` / `pedalons`) |
-| Deployed stack | `docker-compose.yml` (root) | `pedalons-postgres` | From `.env` (not versioned) |
+| Local dev | `backend/docker-compose.yml` | `pedalons-dev-postgres` | Hardcoded (`pedalons` / `pedalons_dev_password`) |
+| Full stack | `docker-compose.yml` (root) | `${ENV_NAME}-postgres` — `tribly-prod-postgres`, `tribly-local-postgres`, … | From `.env` (not versioned) |
 
 **Local dev** — the port is published on `127.0.0.1:5432`, so any client works:
 
@@ -543,15 +599,21 @@ Two different PostgreSQL containers exist depending on how you run Pedalons. Che
 docker exec -it pedalons-dev-postgres psql -U pedalons -d pedalons
 ```
 
-**Deployed stack** — no port is published, so go through the container. Read the credentials from the container's own environment rather than typing them, which keeps secrets out of your shell history:
+**Full stack** — the container name follows `ENV_NAME`, so read it from `docker ps` rather than
+assuming. Read the credentials from the container's own environment too, which keeps secrets out of
+your shell history:
 
 ```bash
 # Interactive session
-docker exec -it pedalons-postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
+docker exec -it "${ENV_NAME}-postgres" sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
 
 # One-off statement
-docker exec pedalons-postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c "SELECT domain, name, active FROM domains;"'
+docker exec "${ENV_NAME}-postgres" sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c "SELECT domain, name, active FROM domains;"'
 ```
+
+This stack does publish `127.0.0.1:${POSTGRES_HOST_PORT:-5432}` — that is how
+`scripts/biketeam_restore.sh` reaches it from the host — which is also why it cannot run alongside
+the dev services above.
 
 Use `-v ON_ERROR_STOP=1` for anything that writes: without it `psql` reports the error and carries on to the next statement, so a failed migration script looks like it succeeded.
 

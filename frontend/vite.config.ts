@@ -32,7 +32,7 @@ function requestLogger(): PluginOption {
 }
 
 export default defineConfig(({ mode }) => {
-  // API proxy target: from .env (VITE_API_TARGET) or prod by default
+  // API proxy target: from .env (VITE_API_TARGET) or staging by default
   const env = loadEnv(mode, import.meta.dirname, '')
   const apiTarget = env.VITE_API_TARGET || 'https://staging.pedalons.fr'
   const apiUrl = new URL(apiTarget)
