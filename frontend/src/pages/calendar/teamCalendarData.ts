@@ -1,4 +1,4 @@
-import type { QueryClient } from '@tanstack/react-query'
+import { keepPreviousData, type QueryClient } from '@tanstack/react-query'
 import { useGetTeam, prefetchGetTeamQuery, getGetTeamQueryKey } from '@/api/endpoints/teams/teams'
 import {
   useGetTeamEvents,
@@ -32,10 +32,13 @@ export function useTeamCalendarData(teamSlug?: string) {
 
   const team = useGetTeam(teamSlug!, { query: { enabled: !!teamSlug } })
 
+  // `keepPreviousData`, like `CalendarPage`: leaving the loaded window re-keys the query, and the
+  // page would otherwise empty its grid under the overlay while the new window loads. Read the
+  // result as `isFetching`, not `isLoading` — with previous data in hand `isLoading` stays false.
   const events = useGetTeamEvents(
     teamSlug!,
     { from: dateRange.from, to: dateRange.to },
-    { query: { enabled: !!teamSlug, staleTime: 1000 * 60 * 5 } }
+    { query: { enabled: !!teamSlug, staleTime: 1000 * 60 * 5, placeholderData: keepPreviousData } }
   )
 
   return { team, events, dateRange, handleDateRangeChange }

@@ -301,6 +301,10 @@ export function CalendarView({
         locale={i18n.language}
         labels={labels}
         renderEventBody={renderEventBody}
+        // Without this, `Schedule` renders `desktopContent` only and `mobileMonthViewProps` below
+        // is dead: a phone got the desktop month grid. The switch is pure CSS (both trees render,
+        // one is hidden), so it costs no media query and no hydration hazard.
+        layout="responsive"
         monthViewProps={{ firstDayOfWeek: 1, renderEvent }}
         weekViewProps={{ renderEvent }}
         dayViewProps={{ renderEvent }}

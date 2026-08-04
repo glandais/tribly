@@ -15,7 +15,7 @@ export function TeamCalendarPage(): React.ReactElement {
 
   const { team, events, handleDateRangeChange } = useTeamCalendarData(teamSlug)
   const { data: teamData, isLoading: isLoadingTeam } = team
-  const { data: eventsData, isLoading: isLoadingEvents } = events
+  const { data: eventsData, isFetching: isFetchingEvents } = events
 
   useCanonicalPath(teamData ? paths.teamCalendar(teamData.slug) : undefined)
 
@@ -34,7 +34,7 @@ export function TeamCalendarPage(): React.ReactElement {
 
         <CalendarView
           events={eventsData?.events ?? []}
-          isLoading={isLoadingEvents}
+          isLoading={isFetchingEvents}
           onDateRangeChange={handleDateRangeChange}
         />
 

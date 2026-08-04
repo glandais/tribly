@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { keepPreviousData } from '@tanstack/react-query'
 import { Title, Group } from '@mantine/core'
 import { useGetEvents } from '@/api/endpoints/calendar/calendar'
 import { CalendarView } from '@/components/calendar/CalendarView'
@@ -10,9 +11,13 @@ export function CalendarPage(): React.ReactElement {
   const { t } = useTranslation()
   const { dateRange, handleDateRangeChange } = useCalendarDateRange()
 
-  const { data: eventsData, isLoading: isLoadingEvents } = useGetEvents(
+  // `keepPreviousData` + `isFetching`: leaving the loaded window (a year view, a distant jump)
+  // re-keys the query, and without it `events` would fall back to `[]` and empty the grid under
+  // the overlay. The previous month's events stay on screen, dimmed by the overlay, until the new
+  // ones arrive.
+  const { data: eventsData, isFetching: isFetchingEvents } = useGetEvents(
     { from: dateRange.from, to: dateRange.to },
-    { query: { staleTime: 1000 * 60 * 5 } }
+    { query: { staleTime: 1000 * 60 * 5, placeholderData: keepPreviousData } }
   )
 
   return (
@@ -23,7 +28,7 @@ export function CalendarPage(): React.ReactElement {
 
       <CalendarView
         events={eventsData?.events ?? []}
-        isLoading={isLoadingEvents}
+        isLoading={isFetchingEvents}
         onDateRangeChange={handleDateRangeChange}
       />
 
