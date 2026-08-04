@@ -195,6 +195,7 @@ update right after each insert.
 | `Ride` / `Trip` / `Post` `.createdAt` | their `published_at` |
 | `Ride.dateTime` | `ride.date` + earliest group meeting time |
 | `Trip.dateTime` | `trip.start_date` + `meeting_time` |
+| `TripStage.dateTime` | `trip_stage.date` + **an invented time** — see below |
 | `Post.dateTime` | `publication.published_at` |
 | `Comment.createdAt` | `message.published_at` |
 
@@ -204,6 +205,31 @@ collapse onto the migration timestamp.
 
 Places, users, memberships and participations carry no date in biketeam, so theirs is the
 migration time.
+
+### Trip stage departures
+
+`trip_stage` holds a bare `date` and no time at all — a biketeam trip's only time is
+`trip.meeting_time`, the rendezvous of the whole trip. Tribly's `TripStage.dateTime` is an `Instant`
+that `TripStageCard` and `StageDetailPage` both render down to the minute, so leaving it at the
+day's start would print "à 00:00" on every migrated stage.
+
+The **first** stage therefore takes `trip.meeting_time`, which is precisely what that column meant,
+and the **later** ones get **8:00** — a convention for a departure on the road, not a claim about
+the source, which says nothing on the subject. Stages arrive sorted by biketeam's own comparator
+(date, then name), so index 0 really is the first day.
+
+### Timezones
+
+Biketeam stored time-of-day as `time without time zone` (`ride_group.meeting_time`,
+`trip.meeting_time`) and business dates as bare `date`, resolving both against
+`team_configuration.timezone` at render time (`Team.getZoneId()`). The migration hardcodes
+`Europe/Paris` instead, and that is exact for the 2026-07 dump: 186 of the 187 teams are on
+`Europe/Paris`, and the one that isn't — `allonsrouler974`, on `Indian/Reunion` — has zero rides,
+zero trips, zero routes and zero posts, so no date is read through it. Revisit the constant if a
+later dump has a populated team outside Paris.
+
+Only the four `published_at` columns (`ride`, `trip`, `publication`, `message`) are true instants,
+stored `timestamp with time zone`; those need no zone and are copied straight across.
 
 ## Team pages
 

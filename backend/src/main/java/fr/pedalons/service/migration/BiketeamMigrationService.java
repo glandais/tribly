@@ -150,6 +150,9 @@ public class BiketeamMigrationService {
   /** Biketeam had no title for its markdown page — its navbar and template both say "FAQ". */
   private static final String FAQ_PAGE_NAME = "FAQ";
 
+  /** Departure of every trip stage but the first — see {@link #stageDeparture}. */
+  private static final LocalTime LATER_STAGE_DEPARTURE = LocalTime.of(8, 0);
+
   /** MD5 of biketeam's placeholder team logo — see {@link #isPlaceholderLogo}. */
   private static final Set<String> PLACEHOLDER_LOGO_MD5 =
       Set.of(
@@ -1240,12 +1243,13 @@ public class BiketeamMigrationService {
             ? Set.of()
             : existing.getStages().stream().map(TripStage::getId).collect(Collectors.toSet());
     List<StageRequest> stageRequests = new ArrayList<>();
-    for (BiketeamReader.BtTripStage s : stages) {
+    for (int i = 0; i < stages.size(); i++) {
+      BiketeamReader.BtTripStage s = stages.get(i);
       stageRequests.add(
           StageRequest.builder()
               .id(existingStageId(s.id(), liveStageIds))
               .name(s.name())
-              .dateTime(atParis(s.date(), null))
+              .dateTime(atParis(s.date(), stageDeparture(i, bt.meetingTime())))
               .routeSlug(routeSlugFromBiketeamId(routeIds, s.mapId()))
               .startPlaceId(null)
               .endPlaceId(null)
@@ -1570,6 +1574,25 @@ public class BiketeamMigrationService {
     LocalDate d = date != null ? date : LocalDate.now(PARIS);
     LocalTime t = time != null ? time : LocalTime.MIDNIGHT;
     return d.atTime(t).atZone(PARIS).toInstant();
+  }
+
+  /**
+   * Departure time of a trip stage. Biketeam's {@code trip_stage} carries a bare {@code date} and no
+   * time at all — its only time is {@code trip.meeting_time}, the rendezvous of the whole trip —
+   * whereas tribly's {@code TripStage.dateTime} is an {@code Instant} that {@code TripStageCard} and
+   * {@code StageDetailPage} both render down to the minute. Left unset every stage would read
+   * "00:00".
+   *
+   * <p>So the first stage takes the trip's meeting time, which is exactly what it meant, and the
+   * later ones get 8am — a plain convention for a departure on the road, not a claim about the
+   * source data, which holds nothing on the subject. Stages arrive sorted by biketeam's own
+   * comparator (date, then name), so index 0 is the first day.
+   */
+  private static LocalTime stageDeparture(int index, @Nullable LocalTime meetingTime) {
+    if (index == 0 && meetingTime != null) {
+      return meetingTime;
+    }
+    return LATER_STAGE_DEPARTURE;
   }
 
   private static @Nullable LocalTime earliestMeetingTime(List<BiketeamReader.BtRideGroup> groups) {
