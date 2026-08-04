@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import type { LngLatBoundsLike } from 'maplibre-gl'
-import { Source, Layer, MapRef, MapMouseEvent } from 'react-map-gl/maplibre'
+import { Source, Layer, MapRef, MapMouseEvent, FullscreenControl } from 'react-map-gl/maplibre'
 import { Line } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -493,6 +493,10 @@ export function RoutesMapView({
           interactiveLayerIds={tracksHidden ? [] : interactiveLayerIds}
         >
           <HideTrackControl hidden={tracksHidden} onToggle={toggleTracksHidden} />
+
+          {/* Room to tell a dozen overlaid traces apart. Fullscreens the map container only, so the
+              elevation overlay — a sibling of the map, not a child — stays out of it. */}
+          <FullscreenControl position="top-left" />
 
           {tracksHidden ? null : (
             <>

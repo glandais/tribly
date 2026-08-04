@@ -1,4 +1,5 @@
-import { forwardRef } from 'react'
+import { forwardRef, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import Map, { NavigationControl } from 'react-map-gl/maplibre'
 import type { MapProps, MapRef } from 'react-map-gl/maplibre'
 import * as maplibregl from 'maplibre-gl'
@@ -16,6 +17,7 @@ import { useMapStyle } from '@/hooks/useMapStyle'
 type PedalonsMapProps = Omit<MapProps, 'mapLib' | 'mapStyle' | 'style'>
 
 export const PedalonsMap = forwardRef<MapRef, PedalonsMapProps>(({ children, ...props }, ref) => {
+  const { t } = useTranslation()
   const {
     styleId,
     styles,
@@ -28,11 +30,26 @@ export const PedalonsMap = forwardRef<MapRef, PedalonsMapProps>(({ children, ...
     setHillshade,
   } = useMapStyle()
 
+  // MapLibre's own controls (zoom, compass, fullscreen) label themselves in English otherwise.
+  // `locale` is a map *construction* option: switching language re-labels the next map to mount,
+  // not one already on screen. Fine for tooltips, but don't read this as reactive.
+  const locale = useMemo(
+    () => ({
+      'FullscreenControl.Enter': t('map.fullscreen.enter'),
+      'FullscreenControl.Exit': t('map.fullscreen.exit'),
+      'NavigationControl.ZoomIn': t('map.zoomIn'),
+      'NavigationControl.ZoomOut': t('map.zoomOut'),
+      'NavigationControl.ResetBearing': t('map.resetBearing'),
+    }),
+    [t]
+  )
+
   return (
     <Map
       ref={ref}
       mapLib={maplibregl}
       mapStyle={style}
+      locale={locale}
       style={{ width: '100%', height: '100%' }}
       {...props}
     >
