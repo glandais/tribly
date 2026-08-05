@@ -1,5 +1,7 @@
 import { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Badge as MantineBadge } from '@mantine/core'
+import { IconTrash } from '@tabler/icons-react'
 import {
   TYPE_COLORS,
   STATUS_COLORS,
@@ -80,6 +82,28 @@ export function StatusBadge({ status, children, icon }: StatusBadgeProps) {
   return (
     <MantineBadge color={STATUS_COLORS[status]} variant="light" size="sm" leftSection={icon}>
       {children}
+    </MantineBadge>
+  )
+}
+
+/**
+ * The "deleted" badge of a soft-deleted entity.
+ *
+ * `deleted` is not a `Status` value — it is a separate boolean the backend only
+ * returns to team admins (`IncludeDeletedService`). A deleted publication stays
+ * in an admin's feed carrying its original status, `PUBLISHED` most of the
+ * time; without this badge it is indistinguishable from a live one, which reads
+ * as "the deletion didn't work".
+ *
+ * Rendered **filled** rather than light: `CANCELLED` already owns light red and
+ * both badges can sit on the same card. Two light red pills would have to be
+ * read to be told apart.
+ */
+export function DeletedBadge() {
+  const { t } = useTranslation()
+  return (
+    <MantineBadge color="red" variant="filled" size="sm" leftSection={<IconTrash size={12} />}>
+      {t('status.DELETED')}
     </MantineBadge>
   )
 }

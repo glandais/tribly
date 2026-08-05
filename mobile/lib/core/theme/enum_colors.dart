@@ -177,12 +177,14 @@ extension PublicationTypeTone on PublicationType {
 
 // ── États dérivés côté client ───────────────────────────────────────────────
 
-/// Les deux familles de badge qu'aucune énumération du contrat ne porte.
+/// Les familles de badge qu'aucune énumération du contrat ne porte.
 ///
 /// « Inscrit » se déduit de `registered`, « Terminée » de `dateTime < now`
-/// (§5.2-18 : le statut `TERMINÉE` n'existe pas dans l'enum `Status`). Les
-/// nommer ici évite qu'un écran ne recompose la paire à la main — et donc
-/// qu'un écran se retrouve avec une autre teinte que son voisin.
+/// (§5.2-18 : le statut `TERMINÉE` n'existe pas dans l'enum `Status`),
+/// « Supprimé » du booléen `deleted` — qui est un champ à part, et non une
+/// valeur de `Status`. Les nommer ici évite qu'un écran ne recompose la paire
+/// à la main — et donc qu'un écran se retrouve avec une autre teinte que son
+/// voisin.
 abstract final class PdlDerivedTones {
   /// `.b-ins` — indigo. Inscription à une sortie ou à un groupe.
   static PdlTone registered(PdlColors c) =>
@@ -190,4 +192,18 @@ abstract final class PdlDerivedTones {
 
   /// `.b-done` — gris foncé. Sortie ou voyage terminé.
   static PdlTone done(PdlColors c) => PdlTone.pair(c.softDone, c.neutral);
+
+  /// Rouge **en aplat**. Entité soft-deleted, que le backend ne renvoie qu'aux
+  /// administrateurs de l'équipe.
+  ///
+  /// L'aplat n'est pas une coquetterie : `cancelled` occupe déjà le rouge doux
+  /// et les deux badges peuvent coexister sur la même carte. Rendus tous deux
+  /// en doux, ils seraient deux pastilles rouges qu'il faut lire pour les
+  /// distinguer — l'aplat fait ressortir celui des deux qui prime.
+  static PdlTone deleted(PdlColors c) => PdlTone(
+    fill: c.danger,
+    soft: c.softRed.background,
+    onSoft: c.softRed.foreground,
+    filledStyle: true,
+  );
 }

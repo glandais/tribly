@@ -13,6 +13,7 @@ import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/deleted_badge.dart';
 
 /// La densité « vignettes » de la parcothèque — un bandeau média de 208 px,
 /// l'équipe, le nom, deux chiffres, deux badges.
@@ -114,11 +115,12 @@ List<PdlStat> routeStats(RouteDto route, UnitSystem units) => <PdlStat>[
 ];
 
 /// Revêtement puis visibilité, dans l'ordre du §1.2 (type → statut →
-/// visibilité).
+/// visibilité) — précédés du badge « Supprimé » quand il y a lieu.
 List<Widget> routeBadges(BuildContext context, RouteDto route) {
   final SurfaceType surface = SurfaceType.fromJson(route.surfaceType);
   final Visibility visibility = Visibility.fromJson(route.visibility);
   return <Widget>[
+    ...deletedBadgeFirst(route.deleted),
     PdlBadge(
       label: 'routes.surfaceType.${route.surfaceType.toLowerCase()}'.tr(),
       tone: surface.tone(context.pdl),

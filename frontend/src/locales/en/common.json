@@ -939,6 +939,7 @@
   "status.CANCELLED": "Cancelled",
   "status.checkingAuth": "Checking authentication...",
   "status.creating": "Creating...",
+  "status.DELETED": "Deleted",
   "status.DRAFT": "Draft",
   "status.PUBLISHED": "Published",
   "status.saving": "Saving...",

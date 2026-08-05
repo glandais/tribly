@@ -1030,7 +1030,8 @@
   "status": {
     "draft": "Brouillon",
     "published": "Publié",
-    "cancelled": "Annulé"
+    "cancelled": "Annulé",
+    "deleted": "Supprimé"
   },
   "visibility": {
     "public": "Public",

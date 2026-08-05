@@ -5,7 +5,14 @@ import { Group, Image, Box } from '@mantine/core'
 import type { RouteDto } from '@/api/dto'
 import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 import { Card, CardContent, CardTitle, CardDescription, CardTeamLink } from './common'
-import { SurfaceBadge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from './common'
+import {
+  SurfaceBadge,
+  VisibilityBadge,
+  DeletedBadge,
+  Stat,
+  StatGroup,
+  CardSkeleton,
+} from './common'
 import { EntityLogo } from '../common/EntityLogo'
 import { paths } from '@/config/paths'
 
@@ -50,6 +57,9 @@ export function RouteCard({ route, showTeam }: RouteCardProps) {
         </StatGroup>
 
         <Group gap="xs">
+          {/* First in the row: deletion outranks surface and visibility, which both describe a
+              route one still believes exists. */}
+          {route.deleted && <DeletedBadge />}
           {route.surfaceType && (
             <SurfaceBadge surface={route.surfaceType}>
               {t(

@@ -8,7 +8,15 @@ import {
 } from '@tabler/icons-react'
 import { Badge, Group, Box, Stack } from '@mantine/core'
 import { Card, CardContent, CardTitle, CardDescription, CardImage, CardTeamLink } from './common'
-import { TypeBadge, StatusBadge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from './common'
+import {
+  TypeBadge,
+  StatusBadge,
+  VisibilityBadge,
+  DeletedBadge,
+  Stat,
+  StatGroup,
+  CardSkeleton,
+} from './common'
 import { EntityLogo } from '../common/EntityLogo'
 import { UserAvatarGroup } from '../common/UserAvatar'
 import { FormattedDateTime } from '../common/FormattedDate'
@@ -181,6 +189,9 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
             </Box>
           </Group>
           <Stack gap={4} align="flex-end" ml="sm">
+            {/* First in the stack: deletion outranks type, status and visibility, which all
+                describe an entity one still believes exists. */}
+            {publication.deleted && <DeletedBadge />}
             {isRegistered && (
               <Badge
                 size="sm"

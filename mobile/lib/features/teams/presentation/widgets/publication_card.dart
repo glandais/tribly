@@ -13,6 +13,7 @@ import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/deleted_badge.dart';
 import '../../../posts/domain/post_neighbours.dart';
 
 /// Les quatre hauteurs de bandeau média de la charte, **partagées**.
@@ -268,6 +269,7 @@ class _RideBody extends ConsumerWidget {
       // même pas envoyé, et l'aplatir côté client rendait des liens bruts.
       excerpt: ride.excerpt,
       badges: <Widget>[
+        ...deletedBadgeFirst(ride.deleted),
         PdlBadge(
           label: 'publicationType.ride'.tr(),
           tone: PublicationType.ride.tone(c),
@@ -352,6 +354,7 @@ class _PostBody extends StatelessWidget {
       title: post.name,
       excerpt: post.excerpt,
       badges: <Widget>[
+        ...deletedBadgeFirst(post.deleted),
         PdlBadge(
           label: 'publicationType.post'.tr(),
           tone: PublicationType.post.tone(c),
@@ -399,6 +402,7 @@ class _TripBody extends ConsumerWidget {
       title: trip.name,
       excerpt: trip.excerpt,
       badges: <Widget>[
+        ...deletedBadgeFirst(trip.deleted),
         PdlBadge(
           label: 'publicationType.trip'.tr(),
           tone: PublicationType.trip.tone(c),

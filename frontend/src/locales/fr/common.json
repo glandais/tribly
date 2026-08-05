@@ -939,6 +939,7 @@
   "status.CANCELLED": "Annulé",
   "status.checkingAuth": "Vérification de l'authentification...",
   "status.creating": "Création...",
+  "status.DELETED": "Supprimé",
   "status.DRAFT": "Brouillon",
   "status.PUBLISHED": "Publié",
   "status.saving": "Enregistrement...",
