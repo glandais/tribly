@@ -173,10 +173,28 @@ class _PdlMapHeroState extends State<PdlMapHero> {
   /// écoute [_config], qu'on ne peut donc pas libérer sous ses pieds.
   bool _fullscreenOpen = false;
 
+  /// Vrai quand une republication est déjà en attente de fin d'image.
+  bool _publishScheduled = false;
+
   @override
   void didUpdateWidget(PdlMapHero oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _config.value = widget;
+    if (!_fullscreenOpen) {
+      // Personne n'écoute : la page plein écran lira [_config] à sa poussée.
+      _config.value = widget;
+      return;
+    }
+    // Publier ici notifierait un auditeur qui vit dans **un autre sous-arbre**
+    // — la route poussée — au beau milieu de la phase de construction :
+    // `markNeedsBuild` y est interdit, et l'auditeur reste alors sur sa
+    // dernière valeur, page plein écran figée et inerte. La republication
+    // attend donc la fin de l'image.
+    if (_publishScheduled) return;
+    _publishScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((Duration _) {
+      _publishScheduled = false;
+      if (mounted) _config.value = widget;
+    });
   }
 
   @override
