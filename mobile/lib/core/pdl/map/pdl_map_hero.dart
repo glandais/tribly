@@ -75,7 +75,14 @@ class PdlMapHeroLabels {
 /// Le plein écran repasse par [mapBuilder] : la carte n'est pas déplacée dans
 /// l'arbre — MapLibre n'y survivrait pas — elle est **reconstruite** dans une
 /// route opaque.
-class PdlMapHero extends StatelessWidget {
+///
+/// Cette route suit la **configuration vivante** du hero, et non la copie prise
+/// à la poussée : le constructeur d'une `MaterialPageRoute` n'est appelé
+/// qu'une fois, si bien qu'un `mapBuilder` et un `selectedStyleId` recopiés à
+/// cet instant y resteraient figés. L'écran sous la route, lui, se reconstruit
+/// bien quand son fond change — c'est cette reconstruction que le hero
+/// republie, faute de quoi choisir un fond en plein écran ne change rien.
+class PdlMapHero extends StatefulWidget {
   const PdlMapHero({
     super.key,
     required this.mapBuilder,
@@ -137,13 +144,6 @@ class PdlMapHero extends StatelessWidget {
   /// Vrai dans la page plein écran : le bouton bascule alors en sortie.
   final bool isFullscreen;
 
-  /// Vrai quand l'ombrage du relief est proposable : une source servie, un
-  /// intitulé et de quoi prévenir l'écran.
-  bool get _hasHillshade =>
-      hillshadeEnabled != null &&
-      onHillshadeChanged != null &&
-      labels.hillshade != null;
-
   /// Vrai si le contexte est celui de la carte **plein écran**.
   ///
   /// [mapBuilder] est appelé dans les deux, et une carte encastrée dans une
@@ -157,11 +157,47 @@ class PdlMapHero extends StatelessWidget {
       false;
 
   @override
+  State<PdlMapHero> createState() => _PdlMapHeroState();
+}
+
+class _PdlMapHeroState extends State<PdlMapHero> {
+  /// La configuration courante du hero, republiée à chaque reconstruction.
+  ///
+  /// C'est le seul lien entre l'écran, qui reste monté sous la route, et la
+  /// page plein écran, qui n'est construite qu'une fois.
+  late final ValueNotifier<PdlMapHero> _config = ValueNotifier<PdlMapHero>(
+    widget,
+  );
+
+  /// Vrai tant que la page plein écran poussée d'ici est à l'écran : elle
+  /// écoute [_config], qu'on ne peut donc pas libérer sous ses pieds.
+  bool _fullscreenOpen = false;
+
+  @override
+  void didUpdateWidget(PdlMapHero oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _config.value = widget;
+  }
+
+  @override
+  void dispose() {
+    if (!_fullscreenOpen) _config.dispose();
+    super.dispose();
+  }
+
+  /// Vrai quand l'ombrage du relief est proposable : une source servie, un
+  /// intitulé et de quoi prévenir l'écran.
+  static bool _hasHillshade(PdlMapHero c) =>
+      c.hillshadeEnabled != null &&
+      c.onHillshadeChanged != null &&
+      c.labels.hillshade != null;
+
+  @override
   Widget build(BuildContext context) {
-    final Widget stack = _buildStack(context);
-    final Widget sized = height == null
+    final Widget stack = _buildStack(context, widget);
+    final Widget sized = widget.height == null
         ? stack
-        : SizedBox(height: height, child: stack);
+        : SizedBox(height: widget.height, child: stack);
 
     // Une carte est un fond sombre par nature (et un fond clair l'est aussi
     // sous le voile) : la barre système passe en clair, sans exception.
@@ -171,23 +207,28 @@ class PdlMapHero extends StatelessWidget {
     );
   }
 
-  Widget _buildStack(BuildContext context) {
+  /// Construit la pile à partir de [c], la configuration à honorer — celle du
+  /// widget en place, ou celle republiée par l'écran quand on est en plein
+  /// écran.
+  Widget _buildStack(BuildContext context, PdlMapHero c) {
+    final bool isFullscreen = widget.isFullscreen;
     final List<Widget> buttons = <Widget>[
-      if (showFullscreenButton)
+      if (c.showFullscreenButton)
         PdlMapButton(
           icon: isFullscreen ? PdlIcons.fullscreenExit : PdlIcons.fullscreen,
           semanticLabel: isFullscreen
-              ? labels.exitFullscreen
-              : labels.enterFullscreen,
+              ? c.labels.exitFullscreen
+              : c.labels.enterFullscreen,
           onPressed: () => _toggleFullscreen(context),
         ),
-      if ((styles.isNotEmpty && onStyleSelected != null) || _hasHillshade)
+      if ((c.styles.isNotEmpty && c.onStyleSelected != null) ||
+          _hasHillshade(c))
         PdlMapButton(
           icon: PdlIcons.layers,
-          semanticLabel: labels.chooseBackground,
-          onPressed: () => _openStyleSheet(context),
+          semanticLabel: c.labels.chooseBackground,
+          onPressed: () => _openStyleSheet(context, c),
         ),
-      ...extraButtons,
+      ...c.extraButtons,
     ];
 
     return Stack(
@@ -195,23 +236,23 @@ class PdlMapHero extends StatelessWidget {
       children: <Widget>[
         _PdlMapHeroScope(
           isFullscreen: isFullscreen,
-          child: Builder(builder: mapBuilder),
+          child: Builder(builder: c.mapBuilder),
         ),
-        if (topScrim)
+        if (c.topScrim)
           const Positioned(left: 0, right: 0, top: 0, child: PdlScrim.top()),
-        if (bottomScrim)
+        if (c.bottomScrim)
           const Positioned(
             left: 0,
             right: 0,
             bottom: 0,
             child: PdlScrim.bottom(),
           ),
-        if (pill != null)
+        if (c.pill != null)
           Positioned(
             left: PdlSpacing.sectionTightH,
             right: PdlSpacing.sectionTightH,
             top: PdlSpacing.sectionTightV,
-            child: Align(child: pill),
+            child: Align(child: c.pill),
           ),
         if (buttons.isNotEmpty)
           Positioned(
@@ -220,60 +261,72 @@ class PdlMapHero extends StatelessWidget {
             bottom: 0,
             child: Center(child: PdlMapButtonColumn(children: buttons)),
           ),
-        if (floatingCard != null)
+        if (c.floatingCard != null)
           Positioned(
             left: PdlSpacing.sectionTightV,
             right: PdlSpacing.sectionTightV,
             bottom: PdlSpacing.sectionTightV,
-            child: floatingCard!,
+            child: c.floatingCard!,
           ),
-        ?foreground,
+        ?c.foreground,
       ],
     );
   }
 
-  void _toggleFullscreen(BuildContext context) {
-    if (isFullscreen) {
-      Navigator.of(context).maybePop();
+  Future<void> _toggleFullscreen(BuildContext context) async {
+    if (widget.isFullscreen) {
+      await Navigator.of(context).maybePop();
       return;
     }
-    Navigator.of(context).push<void>(
+    _fullscreenOpen = true;
+    await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
         fullscreenDialog: true,
+        // La page se réabonne à la configuration vivante du hero : un fond
+        // choisi ici passe par l'écran, qui se reconstruit et republie — c'est
+        // ce qui fait arriver la nouvelle URL de style jusqu'à `mapBuilder`.
         builder: (BuildContext context) => Scaffold(
-          body: PdlMapHero(
-            mapBuilder: mapBuilder,
-            labels: labels,
-            topScrim: topScrim,
-            bottomScrim: bottomScrim,
-            styles: styles,
-            selectedStyleId: selectedStyleId,
-            onStyleSelected: onStyleSelected,
-            hillshadeEnabled: hillshadeEnabled,
-            onHillshadeChanged: onHillshadeChanged,
-            extraButtons: extraButtons,
-            isFullscreen: true,
+          body: ValueListenableBuilder<PdlMapHero>(
+            valueListenable: _config,
+            builder: (BuildContext context, PdlMapHero c, Widget? _) =>
+                PdlMapHero(
+                  mapBuilder: c.mapBuilder,
+                  labels: c.labels,
+                  topScrim: c.topScrim,
+                  bottomScrim: c.bottomScrim,
+                  styles: c.styles,
+                  selectedStyleId: c.selectedStyleId,
+                  onStyleSelected: c.onStyleSelected,
+                  hillshadeEnabled: c.hillshadeEnabled,
+                  onHillshadeChanged: c.onHillshadeChanged,
+                  extraButtons: c.extraButtons,
+                  isFullscreen: true,
+                ),
           ),
         ),
       ),
     );
+    _fullscreenOpen = false;
+    // L'écran a pu être démonté pendant que sa page plein écran vivait : la
+    // libération de [_config] lui avait alors été refusée, elle a lieu ici.
+    if (!mounted) _config.dispose();
   }
 
-  Future<void> _openStyleSheet(BuildContext context) async {
+  Future<void> _openStyleSheet(BuildContext context, PdlMapHero config) async {
     final PdlColors c = context.pdl;
     // Par `PdlSheet` et non par `showModalBottomSheet` : c'est la règle du
     // C5, et elle vaut aussi pour la bibliothèque elle-même.
     final String? picked = await PdlSheet.show<String>(
       context: context,
       builder: (BuildContext sheetContext) => PdlSheet(
-        title: labels.backgroundSheetTitle,
+        title: config.labels.backgroundSheetTitle,
         children: <Widget>[
           // **Dans l'ordre servi** : le serveur classe ses fonds, le client
           // ne re-trie pas.
           for (final (int i, PdlMapStyleOption style)
-              in styles.indexed) ...<Widget>[
+              in config.styles.indexed) ...<Widget>[
             if (style.groupLabel != null &&
-                (i == 0 || style.groupLabel != styles[i - 1].groupLabel))
+                (i == 0 || style.groupLabel != config.styles[i - 1].groupLabel))
               Padding(
                 padding: const EdgeInsets.only(top: PdlSpacing.sectionTightV),
                 child: PdlSectionHeader(title: style.groupLabel!),
@@ -281,7 +334,7 @@ class PdlMapHero extends StatelessWidget {
             PdlSettingRow(
               title: style.label,
               onTap: () => Navigator.of(sheetContext).pop(style.id),
-              trailing: style.id == selectedStyleId
+              trailing: style.id == config.selectedStyleId
                   ? Icon(PdlIcons.check, size: 20, color: c.primary)
                   : const SizedBox.shrink(),
             ),
@@ -289,16 +342,20 @@ class PdlMapHero extends StatelessWidget {
           // Le relief est un réglage **du** fond, pas un choix **de** fond : il
           // vient après la liste et, contrairement à elle, ne referme pas la
           // feuille — on veut pouvoir juger de l'ombrage puis changer de fond.
-          if (_hasHillshade)
+          if (_hasHillshade(config))
             _HillshadeRow(
-              label: labels.hillshade!,
-              initialValue: hillshadeEnabled!,
-              onChanged: onHillshadeChanged!,
+              label: config.labels.hillshade!,
+              initialValue: config.hillshadeEnabled!,
+              // Le hero peut avoir été republié pendant que la feuille est
+              // ouverte : on prévient l'écran par le rappel **courant**, pas
+              // par celui capturé à l'ouverture.
+              onChanged: (bool on) =>
+                  _config.value.onHillshadeChanged?.call(on),
             ),
         ],
       ),
     );
-    if (picked != null) onStyleSelected?.call(picked);
+    if (picked != null) _config.value.onStyleSelected?.call(picked);
   }
 }
 
