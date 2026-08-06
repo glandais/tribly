@@ -113,7 +113,11 @@ class TripMap extends ConsumerWidget {
               start: _point(stages.first.startPlace),
               end: _point(stages.last.endPlace),
               initialCenter: _defaultCenter(ref),
-              fitBox: PdlMapBox.ofTracks(mapTracks),
+              // L'emprise servie, jamais une boîte recalculée sur les sommets
+              // déjà chargés : elle arrive avec le premier lot et couvre les
+              // étapes encore en vol, là où la seconde recadrait la carte à
+              // chaque étape qui atterrissait.
+              fitBox: _fitBox(tracks.extent) ?? PdlMapBox.ofTracks(mapTracks),
               selectedTrackId: selectedStageId,
               onTrackSelected: (String? id) {
                 if (id != null) onSelect(id);
@@ -250,6 +254,17 @@ class TripMap extends ConsumerWidget {
     if (c == null || c.length < 2) return null;
     return PdlMapPoint(lon: c[0], lat: c[1], label: place!.name);
   }
+
+  /// L'emprise servie, convertie pour la carte. `null` tant que le premier lot
+  /// n'est pas revenu — le repli sur les tracés tient alors le cadrage.
+  PdlMapBox? _fitBox(BoundsDto? extent) => extent == null
+      ? null
+      : PdlMapBox(
+          minLon: extent.minLon,
+          minLat: extent.minLat,
+          maxLon: extent.maxLon,
+          maxLat: extent.maxLat,
+        );
 
   PdlMapPoint? _defaultCenter(WidgetRef ref) {
     final MapCenterDto? center = ref.watch(defaultCenterProvider).value;

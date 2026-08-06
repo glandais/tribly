@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,6 +29,7 @@ class TripTracksState {
     this.failed = const <String>{},
     this.requested = 0,
     this.total = 0,
+    this.extent,
   });
 
   /// Les géométries chargées, par `routeSlug`. **Dédoublonnées** : deux étapes
@@ -45,6 +47,15 @@ class TripTracksState {
   /// Le nombre de parcours distincts qu'ont les étapes du voyage.
   final int total;
 
+  /// L'emprise servie par `RoutesBulkResponse.extent`, **union des lots
+  /// résolus** comme le fait le frontend (`useRoutesBulk.mergeExtents`).
+  ///
+  /// C'est elle qui cadre la carte, et pas une boîte recalculée sur les
+  /// sommets chargés : elle arrive **avec le premier lot**, donc avant les
+  /// géométries, et elle couvre déjà les étapes encore en vol. Cadrer sur les
+  /// tracés connus recadrait la carte à chaque lot, étape après étape.
+  final BoundsDto? extent;
+
   bool get truncated => total > requested;
 
   bool get isLoading => geometries.length + failed.length < requested;
@@ -54,11 +65,28 @@ class TripTracksState {
     Set<String>? failed,
     int? requested,
     int? total,
+    BoundsDto? extent,
   }) => TripTracksState(
     geometries: geometries ?? this.geometries,
     failed: failed ?? this.failed,
     requested: requested ?? this.requested,
     total: total ?? this.total,
+    extent: extent ?? this.extent,
+  );
+}
+
+/// L'union de deux emprises — le pendant de `mergeExtents` du frontend.
+///
+/// Un voyage se charge par lots : le second ne doit pas rétrécir le cadrage
+/// sur ses seules étapes.
+BoundsDto? unionExtents(BoundsDto? a, BoundsDto? b) {
+  if (a == null) return b;
+  if (b == null) return a;
+  return BoundsDto(
+    minLon: math.min(a.minLon, b.minLon),
+    minLat: math.min(a.minLat, b.minLat),
+    maxLon: math.max(a.maxLon, b.maxLon),
+    maxLat: math.max(a.maxLat, b.maxLat),
   );
 }
 
@@ -133,6 +161,7 @@ class TripTracksController extends StateNotifier<TripTracksState> {
       state = state.copyWith(
         geometries: <String, RouteDetailDto>{...state.geometries, ...loaded},
         failed: <String>{...state.failed, ...missing},
+        extent: unionExtents(state.extent, response.extent),
       );
     } catch (_) {
       if (!mounted) return;

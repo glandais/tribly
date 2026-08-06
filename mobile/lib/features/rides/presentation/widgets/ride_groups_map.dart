@@ -38,12 +38,22 @@ class RideGroupsMap extends ConsumerWidget {
     required this.selectedGroupId,
     required this.onSelect,
     this.fullscreen = false,
+    this.seedExtent,
   });
 
   final RideKey rideKey;
   final RideDto ride;
   final String? selectedGroupId;
   final ValueChanged<String> onSelect;
+
+  /// L'emprise que l'écran connaissait au moment de pousser le plein écran.
+  ///
+  /// La page est une seconde instance, et le lot de géométries est
+  /// `autoDispose` : le temps qu'elle le recharge, `extent` y vaut `null` et
+  /// la carte se rabattrait sur le lieu de départ — un cadrage serré, puis un
+  /// saut jusqu'à l'emprise réelle une fraction de seconde plus tard. Cette
+  /// graine **est** l'emprise du backend, relevée un instant plus tôt.
+  final BoundsDto? seedExtent;
 
   /// Vrai dans la page plein écran, que ce widget construit lui-même : la
   /// carte y prend tout l'écran et le bouton devient une sortie. C'est **la**
@@ -92,9 +102,8 @@ class RideGroupsMap extends ConsumerWidget {
     // parcours des sommets : elle arrive **avec** le premier lot, et couvre
     // déjà tous les parcours demandés — y compris ceux dont la géométrie est
     // encore en vol.
-    final BoundsDto? extent = ref
-        .watch(rideRouteGeometriesProvider(rideKey))
-        .extent;
+    final BoundsDto? extent =
+        ref.watch(rideRouteGeometriesProvider(rideKey)).extent ?? seedExtent;
 
     final String? styleUrl = style.value?.url;
     if (styleUrl == null) {
@@ -114,6 +123,7 @@ class RideGroupsMap extends ConsumerWidget {
               selectedGroupId: selectedGroupId,
               onSelect: onSelect,
               fullscreen: true,
+              seedExtent: extent,
             ),
       labels: PdlMapHeroLabels(
         enterFullscreen: 'map.fullscreen'.tr(),

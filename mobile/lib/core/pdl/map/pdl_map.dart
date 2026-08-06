@@ -163,9 +163,10 @@ class _PdlMapState extends State<PdlMap> {
   /// during build ».
   Size? _lastSize;
 
-  /// Vrai dès le premier [MapEventIdle] : la vue native a rendu au moins une
-  /// image, donc elle a une taille — la seule condition sous laquelle
-  /// `fitBounds` fait réellement quelque chose.
+  /// Vrai dès le premier `idle` — de caméra ou de tuiles : la vue native a
+  /// rendu au moins une image, donc elle a une taille, la seule condition sous
+  /// laquelle le cadrage fait réellement quelque chose. Voir [_settle] pour
+  /// pourquoi il en faut deux.
   bool _settled = false;
 
   PdlMapController get _controller =>
@@ -349,21 +350,36 @@ class _PdlMapState extends State<PdlMap> {
       case MapEventCameraIdle():
         final PdlMapBox? box = _controller.visibleBox;
         if (box != null) widget.onCameraIdle?.call(box);
+        _settle();
       case MapEventIdle():
-        // Première image rendue : la carte est enfin mesurable. On en profite
-        // pour étalonner l'échelle — c'est le seul moment où région visible et
-        // zoom se correspondent à coup sûr — puis le cadrage mémorisé
-        // s'applique. Les `idle` suivants ne coûtent rien : `_fit` sort aussitôt
-        // quand la boîte et la marge sont déjà celles en place.
-        if (!_settled) {
-          _settled = true;
-          final Size? size = _lastSize;
-          if (size != null) _controller.calibrate(size);
-        }
-        _fit();
+        _settle();
       default:
         break;
     }
+  }
+
+  /// La carte a rendu au moins une image : elle est mesurable, on étalonne
+  /// l'échelle une fois puis on rejoue le cadrage mémorisé.
+  ///
+  /// **Deux événements y mènent, et il en faut bien deux.** `MapEventIdle`
+  /// (« plus une tuile en vol ») n'est *jamais* émis par le SDK Android : la
+  /// carte n'y produit que `MapCreated`, `StyleLoaded`, `StartMoveCamera` puis
+  /// `CameraIdle`. N'attendre que le premier laissait le cadrage mort-né sur
+  /// Android — la carte restait sur `initialCenter` au zoom 5, la France
+  /// entière, quelle que soit l'emprise servie par le backend. Le symptôme
+  /// n'avait rien d'aléatoire : il était total, et invisible en test parce que
+  /// rien de tout cela ne tourne hors d'un appareil.
+  ///
+  /// Les `idle` suivants ne coûtent rien : [_fit] sort aussitôt quand la boîte
+  /// et la marge sont déjà celles en place — c'est aussi ce qui empêche un
+  /// recadrage de ramener la caméra après un geste de l'utilisateur.
+  void _settle() {
+    if (!_settled) {
+      _settled = true;
+      final Size? size = _lastSize;
+      if (size != null) _controller.calibrate(size);
+    }
+    _fit();
   }
 
   Future<void> _onStyleLoaded(StyleController style) async {
