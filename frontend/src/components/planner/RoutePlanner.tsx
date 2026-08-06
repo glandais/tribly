@@ -161,7 +161,7 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
   } | null>(null)
 
   // Touch device detection
-  const [isTouchDevice] = useState(() => 'ontouchstart' in window)
+  const [isTouchDevice] = useState(() => typeof window !== 'undefined' && 'ontouchstart' in window)
 
   // Long-press context menu state
   const [contextMenu, setContextMenu] = useState<{
