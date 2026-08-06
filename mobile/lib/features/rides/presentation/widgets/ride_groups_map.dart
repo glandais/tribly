@@ -37,12 +37,19 @@ class RideGroupsMap extends ConsumerWidget {
     required this.ride,
     required this.selectedGroupId,
     required this.onSelect,
+    this.fullscreen = false,
   });
 
   final RideKey rideKey;
   final RideDto ride;
   final String? selectedGroupId;
   final ValueChanged<String> onSelect;
+
+  /// Vrai dans la page plein écran, que ce widget construit lui-même : la
+  /// carte y prend tout l'écran et le bouton devient une sortie. C'est **la**
+  /// raison pour laquelle le plein écran reconstruit `RideGroupsMap` au lieu
+  /// de recopier son hero — voir `PdlMapHero.fullscreenBuilder`.
+  final bool fullscreen;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -97,39 +104,49 @@ class RideGroupsMap extends ConsumerWidget {
     final List<PdlMapTrack> tracks = _tracks(geometries);
     final RideGroupDto? selected = _selectedGroup();
 
-    return SizedBox(
-      height: height,
-      child: PdlMapHero(
-        labels: PdlMapHeroLabels(
-          enterFullscreen: 'map.fullscreen'.tr(),
-          exitFullscreen: 'map.exitFullscreen'.tr(),
-          chooseBackground: 'map.background'.tr(),
-          backgroundSheetTitle: 'map.background'.tr(),
-          hillshade: 'map.hillshade'.tr(),
-        ),
-        // Encastrée dans la page, pas plein écran : rien ne la recouvre
-        // d'une barre translucide, contrairement au voile par défaut du hero
-        // (pensé pour la barre système sous laquelle glisse la carte plein
-        // écran). Même repli que `TripMap`.
-        topScrim: false,
-        styles: servedMapStyleOptions(ref),
-        hillshadeEnabled: servedHillshadeEnabled(ref),
-        onHillshadeChanged: (bool on) =>
-            ref.read(hillshadeEnabledProvider.notifier).set(on),
-        selectedStyleId: style.value?.style.id,
-        onStyleSelected: (String id) =>
-            ref.read(mapStyleIdProvider.notifier).select(id),
-        mapBuilder: (BuildContext context) => _map(
-          context,
-          styleUrl,
-          servedMapCredit(style.value),
-          tracks,
-          selected,
-          extent,
-          ref,
-        ),
+    final Widget hero = PdlMapHero(
+      isFullscreen: fullscreen,
+      fullscreenBuilder: fullscreen
+          ? null
+          : (BuildContext context) => RideGroupsMap(
+              rideKey: rideKey,
+              ride: ride,
+              selectedGroupId: selectedGroupId,
+              onSelect: onSelect,
+              fullscreen: true,
+            ),
+      labels: PdlMapHeroLabels(
+        enterFullscreen: 'map.fullscreen'.tr(),
+        exitFullscreen: 'map.exitFullscreen'.tr(),
+        chooseBackground: 'map.background'.tr(),
+        backgroundSheetTitle: 'map.background'.tr(),
+        hillshade: 'map.hillshade'.tr(),
+      ),
+      // Encastrée dans la page, pas plein écran : rien ne la recouvre
+      // d'une barre translucide, contrairement au voile par défaut du hero
+      // (pensé pour la barre système sous laquelle glisse la carte plein
+      // écran). Même repli que `TripMap`.
+      topScrim: fullscreen,
+      styles: servedMapStyleOptions(ref),
+      hillshadeEnabled: servedHillshadeEnabled(ref),
+      onHillshadeChanged: (bool on) =>
+          ref.read(hillshadeEnabledProvider.notifier).set(on),
+      selectedStyleId: style.value?.style.id,
+      onStyleSelected: (String id) =>
+          ref.read(mapStyleIdProvider.notifier).select(id),
+      mapBuilder: (BuildContext context) => _map(
+        context,
+        styleUrl,
+        servedMapCredit(style.value),
+        tracks,
+        selected,
+        extent,
+        ref,
       ),
     );
+
+    // En plein écran la carte prend la page : pas de hauteur imposée.
+    return fullscreen ? hero : SizedBox(height: height, child: hero);
   }
 
   Widget _map(

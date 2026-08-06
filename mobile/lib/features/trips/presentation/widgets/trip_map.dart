@@ -32,12 +32,19 @@ class TripMap extends ConsumerWidget {
     required this.trip,
     required this.selectedStageId,
     required this.onSelect,
+    this.fullscreen = false,
   });
 
   final TripKey tripKey;
   final TripDto trip;
   final String? selectedStageId;
   final ValueChanged<String> onSelect;
+
+  /// Vrai dans la page plein écran, que ce widget construit lui-même : la
+  /// carte y prend la page, sans titre ni légende. Le plein écran reconstruit
+  /// `TripMap` plutôt que de recopier son hero — voir
+  /// `PdlMapHero.fullscreenBuilder`.
+  final bool fullscreen;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -60,6 +67,65 @@ class TripMap extends ConsumerWidget {
     final List<PdlMapTrack> mapTracks = _tracks(stages, tracks);
     final TripStageDto? selected = _selectedStage(stages);
 
+    final Widget? hero = resolved == null
+        ? null
+        : PdlMapHero(
+            height: fullscreen ? null : _kTripMapHeight,
+            isFullscreen: fullscreen,
+            fullscreenBuilder: fullscreen
+                ? null
+                : (BuildContext context) => TripMap(
+                    tripKey: tripKey,
+                    trip: trip,
+                    selectedStageId: selectedStageId,
+                    onSelect: onSelect,
+                    fullscreen: true,
+                  ),
+            labels: PdlMapHeroLabels(
+              enterFullscreen: 'map.fullscreen'.tr(),
+              exitFullscreen: 'map.exitFullscreen'.tr(),
+              chooseBackground: 'map.chooseBackground'.tr(),
+              backgroundSheetTitle: 'map.background'.tr(),
+              hillshade: 'map.hillshade'.tr(),
+            ),
+            topScrim: false,
+            styles: servedMapStyleOptions(ref),
+            hillshadeEnabled: servedHillshadeEnabled(ref),
+            onHillshadeChanged: (bool on) =>
+                ref.read(hillshadeEnabledProvider.notifier).set(on),
+            selectedStyleId: resolved.style.id,
+            onStyleSelected: (String id) =>
+                ref.read(mapStyleIdProvider.notifier).select(id),
+            pill: selected == null
+                ? null
+                : PdlMapPill(
+                    label: _pillLabel(selected),
+                    leading: PdlColorTrack(
+                      color: multiTrackColor(selected.paletteIndex),
+                      shape: PdlColorTrackShape.legend,
+                    ),
+                  ),
+            mapBuilder: (BuildContext context) => PdlMap(
+              hillshade: servedHillshade(context, ref),
+              styleUrl: resolved.url,
+              credit: servedMapCredit(resolved),
+              tracks: mapTracks,
+              start: _point(stages.first.startPlace),
+              end: _point(stages.last.endPlace),
+              initialCenter: _defaultCenter(ref),
+              fitBox: PdlMapBox.ofTracks(mapTracks),
+              selectedTrackId: selectedStageId,
+              onTrackSelected: (String? id) {
+                if (id != null) onSelect(id);
+              },
+            ),
+          );
+
+    // La page plein écran n'est que la carte : ni titre de section, ni
+    // légende, ni avertissement de troncature — la page qui l'a poussée les
+    // porte déjà.
+    if (fullscreen) return hero ?? const SizedBox.shrink();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
@@ -69,52 +135,12 @@ class TripMap extends ConsumerWidget {
         ),
         SizedBox(
           height: _kTripMapHeight,
-          child: resolved == null
-              ? PdlSkeleton(
-                  height: _kTripMapHeight,
-                  borderRadius: PdlRadii.mdAll,
-                )
-              : PdlMapHero(
-                  height: _kTripMapHeight,
-                  labels: PdlMapHeroLabels(
-                    enterFullscreen: 'map.fullscreen'.tr(),
-                    exitFullscreen: 'map.exitFullscreen'.tr(),
-                    chooseBackground: 'map.chooseBackground'.tr(),
-                    backgroundSheetTitle: 'map.background'.tr(),
-                    hillshade: 'map.hillshade'.tr(),
-                  ),
-                  topScrim: false,
-                  styles: servedMapStyleOptions(ref),
-                  hillshadeEnabled: servedHillshadeEnabled(ref),
-                  onHillshadeChanged: (bool on) =>
-                      ref.read(hillshadeEnabledProvider.notifier).set(on),
-                  selectedStyleId: resolved.style.id,
-                  onStyleSelected: (String id) =>
-                      ref.read(mapStyleIdProvider.notifier).select(id),
-                  pill: selected == null
-                      ? null
-                      : PdlMapPill(
-                          label: _pillLabel(selected),
-                          leading: PdlColorTrack(
-                            color: multiTrackColor(selected.paletteIndex),
-                            shape: PdlColorTrackShape.legend,
-                          ),
-                        ),
-                  mapBuilder: (BuildContext context) => PdlMap(
-                    hillshade: servedHillshade(context, ref),
-                    styleUrl: resolved.url,
-                    credit: servedMapCredit(resolved),
-                    tracks: mapTracks,
-                    start: _point(stages.first.startPlace),
-                    end: _point(stages.last.endPlace),
-                    initialCenter: _defaultCenter(ref),
-                    fitBox: PdlMapBox.ofTracks(mapTracks),
-                    selectedTrackId: selectedStageId,
-                    onTrackSelected: (String? id) {
-                      if (id != null) onSelect(id);
-                    },
-                  ),
-                ),
+          child:
+              hero ??
+              PdlSkeleton(
+                height: _kTripMapHeight,
+                borderRadius: PdlRadii.mdAll,
+              ),
         ),
         if (stages.length > 1)
           Padding(

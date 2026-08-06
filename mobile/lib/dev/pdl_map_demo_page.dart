@@ -70,6 +70,9 @@ class _PdlMapDemoPageState extends ConsumerState<PdlMapDemoPage> {
           Expanded(
             flex: 3,
             child: PdlMapHero(
+              // La démo n'a pas de variante plein écran : la galerie montre le
+              // hero encastré, et une page en plus n'y apprendrait rien.
+              showFullscreenButton: false,
               labels: const PdlMapHeroLabels(
                 enterFullscreen: 'Plein écran',
                 exitFullscreen: 'Quitter le plein écran',

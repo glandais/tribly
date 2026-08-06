@@ -51,10 +51,19 @@ class RoutesMapView extends ConsumerStatefulWidget {
     super.key,
     required this.filters,
     required this.onChanged,
+    this.fullscreen = false,
   });
 
   final RouteFilters filters;
   final ValueChanged<RouteFilters> onChanged;
+
+  /// Vrai dans la page plein écran, que cette vue construit elle-même — voir
+  /// `PdlMapHero.fullscreenBuilder`. La page est une **seconde instance** :
+  /// elle reprend un jeton et cadre sur les mêmes filtres, ce que la carte
+  /// plein écran faisait déjà en repartant du `fitBox`. Elle y gagne la
+  /// pilule, la carte flottante et les commandes « autour de moi », que la
+  /// copie du hero laissait tomber sans le dire.
+  final bool fullscreen;
 
   @override
   ConsumerState<RoutesMapView> createState() => _RoutesMapViewState();
@@ -165,6 +174,14 @@ class _RoutesMapViewState extends ConsumerState<RoutesMapView>
     final PdlMapBox? fitBox = _proximityBox() ?? bounds.value;
 
     return PdlMapHero(
+      isFullscreen: widget.fullscreen,
+      fullscreenBuilder: widget.fullscreen
+          ? null
+          : (BuildContext context) => RoutesMapView(
+              filters: widget.filters,
+              onChanged: widget.onChanged,
+              fullscreen: true,
+            ),
       labels: PdlMapHeroLabels(
         enterFullscreen: 'map.fullscreen'.tr(),
         exitFullscreen: 'map.exitFullscreen'.tr(),
