@@ -12,7 +12,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-        <quarkus.platform.version>3.38.0</quarkus.platform.version>
+        <quarkus.platform.version>3.38.1</quarkus.platform.version>
         <compiler-plugin.version>3.15.0</compiler-plugin.version>
         <surefire-plugin.version>3.5.6</surefire-plugin.version>
         <!-- Keep at 1: with forkCount>1 Surefire dispatches classes one at a time and
@@ -28,8 +28,8 @@
         <magika.version>0.6.1</magika.version>
         <dependencyversion-maven-plugin.version>1.0.0</dependencyversion-maven-plugin.version>
         <geolatte-geojson.version>1.11</geolatte-geojson.version>
-        <archunit-junit5.version>1.4.2</archunit-junit5.version>
-        <webauthn4j-core.version>0.31.8.RELEASE</webauthn4j-core.version>
+        <archunit-junit5.version>1.5.0</archunit-junit5.version>
+        <webauthn4j-core.version>0.31.9.RELEASE</webauthn4j-core.version>
         <timeshape.version>2026b.29</timeshape.version>
         <s3mock-testcontainers.version>5.1.0</s3mock-testcontainers.version>
     </properties>
