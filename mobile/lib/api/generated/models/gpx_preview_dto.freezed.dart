@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'gpx_preview_dto.dart';
@@ -9,6 +9,7 @@ part of 'gpx_preview_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -79,7 +80,7 @@ class _$GpxPreviewDtoCopyWithImpl<$Res>
 /// Create a copy of GpxPreviewDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? distance = null,Object? elevationGain = null,Object? elevationLoss = null,Object? hilliness = null,Object? owned = null,Object? createdAt = null,Object? gpxUrl = null,Object? fitUrl = null,Object? tracks = null,Object? waypoints = null,Object? thumbnailUrl = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(GpxPreviewDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,distance: null == distance ? _self.distance : distance // ignore: cast_nullable_to_non_nullable
@@ -234,7 +235,7 @@ return $default(_that.id,_that.name,_that.distance,_that.elevationGain,_that.ele
 @JsonSerializable()
 
 class _GpxPreviewDto implements GpxPreviewDto {
-  const _GpxPreviewDto({required this.id, required this.name, required this.distance, required this.elevationGain, required this.elevationLoss, required this.hilliness, required this.owned, required this.createdAt, required this.gpxUrl, required this.fitUrl, required final  List<TrackDto> tracks, required final  List<WaypointDto> waypoints, this.thumbnailUrl}): _tracks = tracks,_waypoints = waypoints;
+  const _GpxPreviewDto({required this.id, required this.name, required this.distance, required this.elevationGain, required this.elevationLoss, required this.hilliness, required this.owned, required this.createdAt, required this.gpxUrl, required this.fitUrl, required  List<TrackDto> tracks, required  List<WaypointDto> waypoints, this.thumbnailUrl}): _tracks = tracks,_waypoints = waypoints;
   factory _GpxPreviewDto.fromJson(Map<String, dynamic> json) => _$GpxPreviewDtoFromJson(json);
 
 /// Public identifier used in URLs

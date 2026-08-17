@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'climb_dto.dart';
@@ -9,6 +9,7 @@ part of 'climb_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -73,7 +74,7 @@ class _$ClimbDtoCopyWithImpl<$Res>
 /// Create a copy of ClimbDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? startDistance = null,Object? endDistance = null,Object? elevationGain = null,Object? averageGradient = null,Object? maxGradient = null,Object? parts = null,Object? category = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(ClimbDto(
 startDistance: null == startDistance ? _self.startDistance : startDistance // ignore: cast_nullable_to_non_nullable
 as int,endDistance: null == endDistance ? _self.endDistance : endDistance // ignore: cast_nullable_to_non_nullable
 as int,elevationGain: null == elevationGain ? _self.elevationGain : elevationGain // ignore: cast_nullable_to_non_nullable
@@ -222,7 +223,7 @@ return $default(_that.startDistance,_that.endDistance,_that.elevationGain,_that.
 @JsonSerializable()
 
 class _ClimbDto implements ClimbDto {
-  const _ClimbDto({required this.startDistance, required this.endDistance, required this.elevationGain, required this.averageGradient, required this.maxGradient, required final  List<ClimbPartDto> parts, this.category}): _parts = parts;
+  const _ClimbDto({required this.startDistance, required this.endDistance, required this.elevationGain, required this.averageGradient, required this.maxGradient, required  List<ClimbPartDto> parts, this.category}): _parts = parts;
   factory _ClimbDto.fromJson(Map<String, dynamic> json) => _$ClimbDtoFromJson(json);
 
 /// Start distance from route start in meters

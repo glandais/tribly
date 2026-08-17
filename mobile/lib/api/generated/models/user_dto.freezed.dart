@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'user_dto.dart';
@@ -9,6 +9,7 @@ part of 'user_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -81,7 +82,7 @@ class _$UserDtoCopyWithImpl<$Res>
 /// Create a copy of UserDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? email = null,Object? displayName = null,Object? contactableByMembers = null,Object? emailVerified = null,Object? requiresEmail = null,Object? avatarUrl = freezed,Object? createdAt = freezed,Object? unitSystem = freezed,Object? theme = freezed,Object? language = freezed,Object? timezone = freezed,Object? platformRole = freezed,Object? connectedServices = freezed,Object? socialIdentities = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(UserDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
@@ -238,7 +239,7 @@ return $default(_that.id,_that.email,_that.displayName,_that.contactableByMember
 @JsonSerializable()
 
 class _UserDto implements UserDto {
-  const _UserDto({required this.id, required this.email, required this.displayName, required this.contactableByMembers, required this.emailVerified, required this.requiresEmail, this.avatarUrl, this.createdAt, this.unitSystem, this.theme, this.language, this.timezone, this.platformRole, final  List<GpsServiceConnectionDto>? connectedServices, final  List<SocialIdentityDto>? socialIdentities}): _connectedServices = connectedServices,_socialIdentities = socialIdentities;
+  const _UserDto({required this.id, required this.email, required this.displayName, required this.contactableByMembers, required this.emailVerified, required this.requiresEmail, this.avatarUrl, this.createdAt, this.unitSystem, this.theme, this.language, this.timezone, this.platformRole,  List<GpsServiceConnectionDto>? connectedServices,  List<SocialIdentityDto>? socialIdentities}): _connectedServices = connectedServices,_socialIdentities = socialIdentities;
   factory _UserDto.fromJson(Map<String, dynamic> json) => _$UserDtoFromJson(json);
 
 /// User ID (TSID)

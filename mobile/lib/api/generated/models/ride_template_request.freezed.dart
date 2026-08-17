@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'ride_template_request.dart';
@@ -9,6 +9,7 @@ part of 'ride_template_request.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -71,7 +72,7 @@ class _$RideTemplateRequestCopyWithImpl<$Res>
 /// Create a copy of RideTemplateRequest
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? markdown = null,Object? visibility = null,Object? status = null,Object? groups = null,}) {
-  return _then(_self.copyWith(
+  return _then(RideTemplateRequest(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,markdown: null == markdown ? _self.markdown : markdown // ignore: cast_nullable_to_non_nullable
 as String,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
@@ -218,7 +219,7 @@ return $default(_that.name,_that.markdown,_that.visibility,_that.status,_that.gr
 @JsonSerializable()
 
 class _RideTemplateRequest implements RideTemplateRequest {
-  const _RideTemplateRequest({required this.name, required this.markdown, required this.visibility, required this.status, required final  List<RideTemplateGroupRequest> groups}): _groups = groups;
+  const _RideTemplateRequest({required this.name, required this.markdown, required this.visibility, required this.status, required  List<RideTemplateGroupRequest> groups}): _groups = groups;
   factory _RideTemplateRequest.fromJson(Map<String, dynamic> json) => _$RideTemplateRequestFromJson(json);
 
 /// Template name

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'ride_group_dto.dart';
@@ -9,6 +9,7 @@ part of 'ride_group_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -79,7 +80,7 @@ class _$RideGroupDtoCopyWithImpl<$Res>
 /// Create a copy of RideGroupDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? countParticipants = null,Object? participants = null,Object? sortOrder = null,Object? registered = null,Object? full = null,Object? time = freezed,Object? routeSlug = freezed,Object? averageSpeed = freezed,Object? maxParticipants = freezed,Object? distance = freezed,Object? elevationGain = freezed,Object? leader = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(RideGroupDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,countParticipants: null == countParticipants ? _self.countParticipants : countParticipants // ignore: cast_nullable_to_non_nullable
@@ -247,7 +248,7 @@ return $default(_that.id,_that.name,_that.countParticipants,_that.participants,_
 @JsonSerializable()
 
 class _RideGroupDto implements RideGroupDto {
-  const _RideGroupDto({required this.id, required this.name, required this.countParticipants, required final  List<PublicUserDto> participants, required this.sortOrder, required this.registered, required this.full, this.time, this.routeSlug, this.averageSpeed, this.maxParticipants, this.distance, this.elevationGain, this.leader}): _participants = participants;
+  const _RideGroupDto({required this.id, required this.name, required this.countParticipants, required  List<PublicUserDto> participants, required this.sortOrder, required this.registered, required this.full, this.time, this.routeSlug, this.averageSpeed, this.maxParticipants, this.distance, this.elevationGain, this.leader}): _participants = participants;
   factory _RideGroupDto.fromJson(Map<String, dynamic> json) => _$RideGroupDtoFromJson(json);
 
 /// Group ID (TSID)

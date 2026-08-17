@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'publication_dto.dart';
@@ -9,6 +9,7 @@ part of 'publication_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 PublicationDto _$PublicationDtoFromJson(
@@ -287,7 +288,7 @@ return trip(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime
 @JsonSerializable()
 
 class PublicationDtoRide implements PublicationDto {
-  const PublicationDtoRide({required this.team, required this.id, required this.slug, required this.name, required this.media, required this.dateTime, required this.status, required this.visibility, required this.participantCount, required this.groupCount, required final  List<RideGroupDto> groups, required final  List<PublicUserDto> topParticipants, required this.deleted, required this.registered, required this.full, this.excerpt, this.publishAt, this.createdAt, this.routeSlug, this.startPlace, this.endPlace, this.thumbnailLightUrl, this.thumbnailDarkUrl, this.thumbnailUrl, this.registeredGroupId, this.commentCount, final  String? $type}): _groups = groups,_topParticipants = topParticipants,$type = $type ?? 'RIDE';
+  const PublicationDtoRide({required this.team, required this.id, required this.slug, required this.name, required this.media, required this.dateTime, required this.status, required this.visibility, required this.participantCount, required this.groupCount, required  List<RideGroupDto> groups, required  List<PublicUserDto> topParticipants, required this.deleted, required this.registered, required this.full, this.excerpt, this.publishAt, this.createdAt, this.routeSlug, this.startPlace, this.endPlace, this.thumbnailLightUrl, this.thumbnailDarkUrl, this.thumbnailUrl, this.registeredGroupId, this.commentCount,  String? $type}): _groups = groups,_topParticipants = topParticipants,$type = $type ?? 'RIDE';
   factory PublicationDtoRide.fromJson(Map<String, dynamic> json) => _$PublicationDtoRideFromJson(json);
 
 /// Team
@@ -492,7 +493,7 @@ $PlaceDetailDtoCopyWith<$Res>? get endPlace {
 @JsonSerializable()
 
 class PublicationDtoPost implements PublicationDto {
-  const PublicationDtoPost({required this.team, required this.id, required this.slug, required this.name, required this.media, required this.dateTime, required this.status, required this.visibility, required this.deleted, this.excerpt, this.thumbnailUrl, this.publishAt, this.createdAt, this.commentCount, final  String? $type}): $type = $type ?? 'POST';
+  const PublicationDtoPost({required this.team, required this.id, required this.slug, required this.name, required this.media, required this.dateTime, required this.status, required this.visibility, required this.deleted, this.excerpt, this.thumbnailUrl, this.publishAt, this.createdAt, this.commentCount,  String? $type}): $type = $type ?? 'POST';
   factory PublicationDtoPost.fromJson(Map<String, dynamic> json) => _$PublicationDtoPostFromJson(json);
 
 /// Team
@@ -623,7 +624,7 @@ $MediaDtoCopyWith<$Res> get media {
 @JsonSerializable()
 
 class PublicationDtoTrip implements PublicationDto {
-  const PublicationDtoTrip({required this.team, required this.id, required this.slug, required this.name, required this.media, required this.dateTime, required this.status, required this.visibility, required this.participantCount, required this.stageCount, required final  List<TripStageDto> stages, required final  List<PublicUserDto> participants, required this.deleted, required this.registered, this.excerpt, this.endDate, this.publishAt, this.createdAt, this.routeSlug, this.totalDistance, this.totalElevationGain, this.thumbnailLightUrl, this.thumbnailDarkUrl, this.thumbnailUrl, this.commentCount, final  String? $type}): _stages = stages,_participants = participants,$type = $type ?? 'TRIP';
+  const PublicationDtoTrip({required this.team, required this.id, required this.slug, required this.name, required this.media, required this.dateTime, required this.status, required this.visibility, required this.participantCount, required this.stageCount, required  List<TripStageDto> stages, required  List<PublicUserDto> participants, required this.deleted, required this.registered, this.excerpt, this.endDate, this.publishAt, this.createdAt, this.routeSlug, this.totalDistance, this.totalElevationGain, this.thumbnailLightUrl, this.thumbnailDarkUrl, this.thumbnailUrl, this.commentCount,  String? $type}): _stages = stages,_participants = participants,$type = $type ?? 'TRIP';
   factory PublicationDtoTrip.fromJson(Map<String, dynamic> json) => _$PublicationDtoTripFromJson(json);
 
 /// Team

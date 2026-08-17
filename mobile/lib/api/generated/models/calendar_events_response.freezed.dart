@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'calendar_events_response.dart';
@@ -9,6 +9,7 @@ part of 'calendar_events_response.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -67,7 +68,7 @@ class _$CalendarEventsResponseCopyWithImpl<$Res>
 /// Create a copy of CalendarEventsResponse
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? events = null,}) {
-  return _then(_self.copyWith(
+  return _then(CalendarEventsResponse(
 events: null == events ? _self.events : events // ignore: cast_nullable_to_non_nullable
 as List<CalendarEventDto>,
   ));
@@ -210,7 +211,7 @@ return $default(_that.events);case _:
 @JsonSerializable()
 
 class _CalendarEventsResponse implements CalendarEventsResponse {
-  const _CalendarEventsResponse({required final  List<CalendarEventDto> events}): _events = events;
+  const _CalendarEventsResponse({required  List<CalendarEventDto> events}): _events = events;
   factory _CalendarEventsResponse.fromJson(Map<String, dynamic> json) => _$CalendarEventsResponseFromJson(json);
 
 /// List of calendar events

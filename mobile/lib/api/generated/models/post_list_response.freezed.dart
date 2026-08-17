@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'post_list_response.dart';
@@ -9,6 +9,7 @@ part of 'post_list_response.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -70,7 +71,7 @@ class _$PostListResponseCopyWithImpl<$Res>
 /// Create a copy of PostListResponse
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? posts = null,Object? total = null,Object? page = null,Object? size = null,}) {
-  return _then(_self.copyWith(
+  return _then(PostListResponse(
 posts: null == posts ? _self.posts : posts // ignore: cast_nullable_to_non_nullable
 as List<PostDto>,total: null == total ? _self.total : total // ignore: cast_nullable_to_non_nullable
 as int,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
@@ -216,7 +217,7 @@ return $default(_that.posts,_that.total,_that.page,_that.size);case _:
 @JsonSerializable()
 
 class _PostListResponse implements PostListResponse {
-  const _PostListResponse({required final  List<PostDto> posts, required this.total, required this.page, required this.size}): _posts = posts;
+  const _PostListResponse({required  List<PostDto> posts, required this.total, required this.page, required this.size}): _posts = posts;
   factory _PostListResponse.fromJson(Map<String, dynamic> json) => _$PostListResponseFromJson(json);
 
 /// List of posts

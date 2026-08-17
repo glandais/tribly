@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'route_detail_dto.dart';
@@ -9,6 +9,7 @@ part of 'route_detail_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -83,7 +84,7 @@ class _$RouteDetailDtoCopyWithImpl<$Res>
 /// Create a copy of RouteDetailDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? team = null,Object? name = null,Object? media = null,Object? distance = null,Object? elevationGain = null,Object? elevationLoss = null,Object? surfaceType = null,Object? visibility = null,Object? createdBy = null,Object? createdAt = null,Object? updatedAt = null,Object? tracks = null,Object? waypoints = null,Object? deleted = null,Object? start = freezed,Object? end = freezed,Object? commentCount = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(RouteDetailDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String,team: null == team ? _self.team : team // ignore: cast_nullable_to_non_nullable
@@ -295,7 +296,7 @@ return $default(_that.id,_that.slug,_that.team,_that.name,_that.media,_that.dist
 @JsonSerializable()
 
 class _RouteDetailDto implements RouteDetailDto {
-  const _RouteDetailDto({required this.id, required this.slug, required this.team, required this.name, required this.media, required this.distance, required this.elevationGain, required this.elevationLoss, required this.surfaceType, required this.visibility, required this.createdBy, required this.createdAt, required this.updatedAt, required final  List<TrackDto> tracks, required final  List<WaypointDto> waypoints, required this.deleted, this.start, this.end, this.commentCount}): _tracks = tracks,_waypoints = waypoints;
+  const _RouteDetailDto({required this.id, required this.slug, required this.team, required this.name, required this.media, required this.distance, required this.elevationGain, required this.elevationLoss, required this.surfaceType, required this.visibility, required this.createdBy, required this.createdAt, required this.updatedAt, required  List<TrackDto> tracks, required  List<WaypointDto> waypoints, required this.deleted, this.start, this.end, this.commentCount}): _tracks = tracks,_waypoints = waypoints;
   factory _RouteDetailDto.fromJson(Map<String, dynamic> json) => _$RouteDetailDtoFromJson(json);
 
 /// Route ID (TSID)

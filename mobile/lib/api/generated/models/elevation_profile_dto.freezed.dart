@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'elevation_profile_dto.dart';
@@ -9,6 +9,7 @@ part of 'elevation_profile_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -73,7 +74,7 @@ class _$ElevationProfileDtoCopyWithImpl<$Res>
 /// Create a copy of ElevationProfileDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? routeId = null,Object? slug = null,Object? distance = null,Object? minElevation = null,Object? maxElevation = null,Object? samples = null,Object? points = null,}) {
-  return _then(_self.copyWith(
+  return _then(ElevationProfileDto(
 routeId: null == routeId ? _self.routeId : routeId // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String,distance: null == distance ? _self.distance : distance // ignore: cast_nullable_to_non_nullable
@@ -222,7 +223,7 @@ return $default(_that.routeId,_that.slug,_that.distance,_that.minElevation,_that
 @JsonSerializable()
 
 class _ElevationProfileDto implements ElevationProfileDto {
-  const _ElevationProfileDto({required this.routeId, required this.slug, required this.distance, required this.minElevation, required this.maxElevation, required this.samples, required final  List<ElevationPointDto> points}): _points = points;
+  const _ElevationProfileDto({required this.routeId, required this.slug, required this.distance, required this.minElevation, required this.maxElevation, required this.samples, required  List<ElevationPointDto> points}): _points = points;
   factory _ElevationProfileDto.fromJson(Map<String, dynamic> json) => _$ElevationProfileDtoFromJson(json);
 
 /// Route ID (TSID)

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'error_details.dart';
@@ -9,6 +9,7 @@ part of 'error_details.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 ErrorDetails _$ErrorDetailsFromJson(
@@ -201,7 +202,7 @@ return notFound(_that.entityType,_that.searchedBy,_that.id);case _:
 @JsonSerializable()
 
 class ErrorDetailsValidation implements ErrorDetails {
-  const ErrorDetailsValidation({required final  List<FieldError> fieldErrors, final  String? $type}): _fieldErrors = fieldErrors,$type = $type ?? 'VALIDATION';
+  const ErrorDetailsValidation({required  List<FieldError> fieldErrors,  String? $type}): _fieldErrors = fieldErrors,$type = $type ?? 'VALIDATION';
   factory ErrorDetailsValidation.fromJson(Map<String, dynamic> json) => _$ErrorDetailsValidationFromJson(json);
 
 /// Field Errors
@@ -282,7 +283,7 @@ as List<FieldError>,
 @JsonSerializable()
 
 class ErrorDetailsNotFound implements ErrorDetails {
-  const ErrorDetailsNotFound({required this.entityType, required this.searchedBy, required this.id, final  String? $type}): $type = $type ?? 'NOT_FOUND';
+  const ErrorDetailsNotFound({required this.entityType, required this.searchedBy, required this.id,  String? $type}): $type = $type ?? 'NOT_FOUND';
   factory ErrorDetailsNotFound.fromJson(Map<String, dynamic> json) => _$ErrorDetailsNotFoundFromJson(json);
 
 /// Entity type

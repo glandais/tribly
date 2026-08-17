@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'config_dto.dart';
@@ -9,6 +9,7 @@ part of 'config_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -76,7 +77,7 @@ class _$ConfigDtoCopyWithImpl<$Res>
 /// Create a copy of ConfigDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? webAuthnRpId = null,Object? appName = null,Object? singleTeam = null,Object? enableGpxPlanner = null,Object? mapStyles = null,Object? tileServerBaseUrl = null,Object? defaultCenter = null,Object? pinnedTeamSlug = freezed,Object? terrain = freezed,Object? minSupportedAppVersion = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(ConfigDto(
 webAuthnRpId: null == webAuthnRpId ? _self.webAuthnRpId : webAuthnRpId // ignore: cast_nullable_to_non_nullable
 as String,appName: null == appName ? _self.appName : appName // ignore: cast_nullable_to_non_nullable
 as String,singleTeam: null == singleTeam ? _self.singleTeam : singleTeam // ignore: cast_nullable_to_non_nullable
@@ -249,7 +250,7 @@ return $default(_that.webAuthnRpId,_that.appName,_that.singleTeam,_that.enableGp
 @JsonSerializable()
 
 class _ConfigDto implements ConfigDto {
-  const _ConfigDto({required this.webAuthnRpId, required this.appName, required this.singleTeam, required this.enableGpxPlanner, required final  List<MapStyleDto> mapStyles, required this.tileServerBaseUrl, required this.defaultCenter, this.pinnedTeamSlug, this.terrain, this.minSupportedAppVersion}): _mapStyles = mapStyles;
+  const _ConfigDto({required this.webAuthnRpId, required this.appName, required this.singleTeam, required this.enableGpxPlanner, required  List<MapStyleDto> mapStyles, required this.tileServerBaseUrl, required this.defaultCenter, this.pinnedTeamSlug, this.terrain, this.minSupportedAppVersion}): _mapStyles = mapStyles;
   factory _ConfigDto.fromJson(Map<String, dynamic> json) => _$ConfigDtoFromJson(json);
 
 /// WebAuthn Relying Party ID (effective host)

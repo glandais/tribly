@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'ride_template_dto.dart';
@@ -9,6 +9,7 @@ part of 'ride_template_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -77,7 +78,7 @@ class _$RideTemplateDtoCopyWithImpl<$Res>
 /// Create a copy of RideTemplateDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? markdown = null,Object? visibility = null,Object? status = null,Object? createdAt = null,Object? updatedAt = null,Object? groupCount = null,Object? groups = null,}) {
-  return _then(_self.copyWith(
+  return _then(RideTemplateDto(
 team: null == team ? _self.team : team // ignore: cast_nullable_to_non_nullable
 as TeamPublicationDto,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
@@ -239,7 +240,7 @@ return $default(_that.team,_that.id,_that.slug,_that.name,_that.markdown,_that.v
 @JsonSerializable()
 
 class _RideTemplateDto implements RideTemplateDto {
-  const _RideTemplateDto({required this.team, required this.id, required this.slug, required this.name, required this.markdown, required this.visibility, required this.status, required this.createdAt, required this.updatedAt, required this.groupCount, required final  List<RideTemplateGroupDto> groups}): _groups = groups;
+  const _RideTemplateDto({required this.team, required this.id, required this.slug, required this.name, required this.markdown, required this.visibility, required this.status, required this.createdAt, required this.updatedAt, required this.groupCount, required  List<RideTemplateGroupDto> groups}): _groups = groups;
   factory _RideTemplateDto.fromJson(Map<String, dynamic> json) => _$RideTemplateDtoFromJson(json);
 
 /// Team

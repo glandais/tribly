@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'device_ride_dto.dart';
@@ -9,6 +9,7 @@ part of 'device_ride_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -71,7 +72,7 @@ class _$DeviceRideDtoCopyWithImpl<$Res>
 /// Create a copy of DeviceRideDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? teamSlug = null,Object? rideSlug = null,Object? rideName = null,Object? entries = null,Object? startDateTime = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(DeviceRideDto(
 teamSlug: null == teamSlug ? _self.teamSlug : teamSlug // ignore: cast_nullable_to_non_nullable
 as String,rideSlug: null == rideSlug ? _self.rideSlug : rideSlug // ignore: cast_nullable_to_non_nullable
 as String,rideName: null == rideName ? _self.rideName : rideName // ignore: cast_nullable_to_non_nullable
@@ -218,7 +219,7 @@ return $default(_that.teamSlug,_that.rideSlug,_that.rideName,_that.entries,_that
 @JsonSerializable()
 
 class _DeviceRideDto implements DeviceRideDto {
-  const _DeviceRideDto({required this.teamSlug, required this.rideSlug, required this.rideName, required final  List<DeviceRideEntryDto> entries, this.startDateTime}): _entries = entries;
+  const _DeviceRideDto({required this.teamSlug, required this.rideSlug, required this.rideName, required  List<DeviceRideEntryDto> entries, this.startDateTime}): _entries = entries;
   factory _DeviceRideDto.fromJson(Map<String, dynamic> json) => _$DeviceRideDtoFromJson(json);
 
 /// Team slug

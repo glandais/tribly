@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'ride_template_list_response.dart';
@@ -9,6 +9,7 @@ part of 'ride_template_list_response.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -70,7 +71,7 @@ class _$RideTemplateListResponseCopyWithImpl<$Res>
 /// Create a copy of RideTemplateListResponse
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? templates = null,Object? total = null,Object? page = null,Object? size = null,}) {
-  return _then(_self.copyWith(
+  return _then(RideTemplateListResponse(
 templates: null == templates ? _self.templates : templates // ignore: cast_nullable_to_non_nullable
 as List<RideTemplateDto>,total: null == total ? _self.total : total // ignore: cast_nullable_to_non_nullable
 as int,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
@@ -216,7 +217,7 @@ return $default(_that.templates,_that.total,_that.page,_that.size);case _:
 @JsonSerializable()
 
 class _RideTemplateListResponse implements RideTemplateListResponse {
-  const _RideTemplateListResponse({required final  List<RideTemplateDto> templates, required this.total, required this.page, required this.size}): _templates = templates;
+  const _RideTemplateListResponse({required  List<RideTemplateDto> templates, required this.total, required this.page, required this.size}): _templates = templates;
   factory _RideTemplateListResponse.fromJson(Map<String, dynamic> json) => _$RideTemplateListResponseFromJson(json);
 
 /// List of templates

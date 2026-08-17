@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'publication_list_response.dart';
@@ -9,6 +9,7 @@ part of 'publication_list_response.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -70,7 +71,7 @@ class _$PublicationListResponseCopyWithImpl<$Res>
 /// Create a copy of PublicationListResponse
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? publications = null,Object? total = null,Object? page = null,Object? size = null,}) {
-  return _then(_self.copyWith(
+  return _then(PublicationListResponse(
 publications: null == publications ? _self.publications : publications // ignore: cast_nullable_to_non_nullable
 as List<PublicationDto>,total: null == total ? _self.total : total // ignore: cast_nullable_to_non_nullable
 as int,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
@@ -216,7 +217,7 @@ return $default(_that.publications,_that.total,_that.page,_that.size);case _:
 @JsonSerializable()
 
 class _PublicationListResponse implements PublicationListResponse {
-  const _PublicationListResponse({required final  List<PublicationDto> publications, required this.total, required this.page, required this.size}): _publications = publications;
+  const _PublicationListResponse({required  List<PublicationDto> publications, required this.total, required this.page, required this.size}): _publications = publications;
   factory _PublicationListResponse.fromJson(Map<String, dynamic> json) => _$PublicationListResponseFromJson(json);
 
 /// List of publications

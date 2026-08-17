@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'routes_bulk_response.dart';
@@ -9,6 +9,7 @@ part of 'routes_bulk_response.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -68,7 +69,7 @@ class _$RoutesBulkResponseCopyWithImpl<$Res>
 /// Create a copy of RoutesBulkResponse
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? routes = null,Object? extent = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(RoutesBulkResponse(
 routes: null == routes ? _self.routes : routes // ignore: cast_nullable_to_non_nullable
 as List<RouteDetailDto>,extent: freezed == extent ? _self.extent : extent // ignore: cast_nullable_to_non_nullable
 as BoundsDto?,
@@ -224,7 +225,7 @@ return $default(_that.routes,_that.extent);case _:
 @JsonSerializable()
 
 class _RoutesBulkResponse implements RoutesBulkResponse {
-  const _RoutesBulkResponse({required final  List<RouteDetailDto> routes, this.extent}): _routes = routes;
+  const _RoutesBulkResponse({required  List<RouteDetailDto> routes, this.extent}): _routes = routes;
   factory _RoutesBulkResponse.fromJson(Map<String, dynamic> json) => _$RoutesBulkResponseFromJson(json);
 
 /// Route details, one per readable requested slug
