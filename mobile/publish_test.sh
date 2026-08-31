@@ -24,22 +24,21 @@ ensure_bundler() {
   gem install bundler -v "$pinned"
 }
 
-# Get the Ruby side ready *before* the bump: a gem failure here used to abort
-# the script after the new build number had already been committed and pushed,
-# stranding that number. The Flutter builds can't move up with it — they bake
-# the version in, so they have to run after the bump.
+# Get the Ruby side ready first: a missing gem is a five-second failure, and
+# there is no reason to discover it after a four-minute build.
 (cd ios && ensure_bundler && { bundle check || bundle install; })
 (cd android && ensure_bundler && { bundle check || bundle install; })
 
 # Bump build number in pubspec.yaml (the +N suffix). Single source of truth for
 # both iOS (CFBundleVersion via $(FLUTTER_BUILD_NUMBER)) and Android (versionCode).
+# The bump itself has to happen here — both builds bake the version into the
+# artifact — but it is only committed once the two uploads have succeeded, so a
+# failed run leaves nothing behind but a dirty pubspec.yaml. The next run bumps
+# again from there rather than reusing the number: build numbers are free, and
+# TestFlight rejects a duplicate one if the run died *after* the iOS upload.
 perl -i -pe 's/^(version:\s*\d+\.\d+\.\d+\+)(\d+)\s*$/$1 . ($2 + 1) . "\n"/e' pubspec.yaml
 NEW_VERSION=$(grep -E '^version:' pubspec.yaml | awk '{print $2}')
 echo ">>> Building $NEW_VERSION"
-
-git add pubspec.yaml
-git commit -m "chore(mobile): bump build number to $NEW_VERSION"
-git push
 
 flutter build ios --release --no-codesign
 (cd ios && bundle exec fastlane beta --verbose)
@@ -51,3 +50,8 @@ flutter build appbundle --release
 
 # Stop the Gradle daemon spawned for this build so it doesn't linger holding JDK 21.
 (cd android && ./gradlew --stop)
+
+# Both uploads are through: the build number is now real, so record it.
+git add pubspec.yaml
+git commit -m "chore(mobile): bump build number to $NEW_VERSION"
+git push
