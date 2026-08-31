@@ -35,16 +35,21 @@ $PostRequestCopyWith<PostRequest> get copyWith => _$PostRequestCopyWithImpl<Post
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PostRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.publishAt, publishAt) || other.publishAt == publishAt));
+  final _this = this as PostRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PostRequest&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.media, _this.media) || other.media == _this.media)&&(identical(other.dateTime, _this.dateTime) || other.dateTime == _this.dateTime)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.visibility, _this.visibility) || other.visibility == _this.visibility)&&(identical(other.publishAt, _this.publishAt) || other.publishAt == _this.publishAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,media,dateTime,status,visibility,publishAt);
+int get hashCode {
+  final _this = this as PostRequest;
+  return Object.hash(runtimeType,_this.name,_this.media,_this.dateTime,_this.status,_this.visibility,_this.publishAt);
+}
 
 @override
 String toString() {
-  return 'PostRequest(name: $name, media: $media, dateTime: $dateTime, status: $status, visibility: $visibility, publishAt: $publishAt)';
+  final _this = this as PostRequest;
+  return 'PostRequest(name: ${_this.name}, media: ${_this.media}, dateTime: ${_this.dateTime}, status: ${_this.status}, visibility: ${_this.visibility}, publishAt: ${_this.publishAt})';
 }
 
 
@@ -259,16 +264,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PostRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.publishAt, publishAt) || other.publishAt == publishAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PostRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.publishAt, publishAt) || other.publishAt == publishAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,media,dateTime,status,visibility,publishAt);
+int get hashCode {
+    return Object.hash(runtimeType,name,media,dateTime,status,visibility,publishAt);
+}
 
 @override
 String toString() {
-  return 'PostRequest(name: $name, media: $media, dateTime: $dateTime, status: $status, visibility: $visibility, publishAt: $publishAt)';
+    return 'PostRequest(name: $name, media: $media, dateTime: $dateTime, status: $status, visibility: $visibility, publishAt: $publishAt)';
 }
 
 

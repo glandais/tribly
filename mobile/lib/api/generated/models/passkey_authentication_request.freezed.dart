@@ -30,16 +30,21 @@ $PasskeyAuthenticationRequestCopyWith<PasskeyAuthenticationRequest> get copyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PasskeyAuthenticationRequest&&(identical(other.email, email) || other.email == email));
+  final _this = this as PasskeyAuthenticationRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PasskeyAuthenticationRequest&&(identical(other.email, _this.email) || other.email == _this.email));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,email);
+int get hashCode {
+  final _this = this as PasskeyAuthenticationRequest;
+  return Object.hash(runtimeType,_this.email);
+}
 
 @override
 String toString() {
-  return 'PasskeyAuthenticationRequest(email: $email)';
+  final _this = this as PasskeyAuthenticationRequest;
+  return 'PasskeyAuthenticationRequest(email: ${_this.email})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PasskeyAuthenticationRequest&&(identical(other.email, email) || other.email == email));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PasskeyAuthenticationRequest&&(identical(other.email, email) || other.email == email));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,email);
+int get hashCode {
+    return Object.hash(runtimeType,email);
+}
 
 @override
 String toString() {
-  return 'PasskeyAuthenticationRequest(email: $email)';
+    return 'PasskeyAuthenticationRequest(email: $email)';
 }
 
 

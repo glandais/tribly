@@ -34,16 +34,21 @@ $CommentListResponseCopyWith<CommentListResponse> get copyWith => _$CommentListR
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CommentListResponse&&const DeepCollectionEquality().equals(other.items, items)&&(identical(other.total, total) || other.total == total)&&(identical(other.itemTotal, itemTotal) || other.itemTotal == itemTotal)&&(identical(other.page, page) || other.page == page)&&(identical(other.size, size) || other.size == size));
+  final _this = this as CommentListResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CommentListResponse&&const DeepCollectionEquality().equals(other.items, _this.items)&&(identical(other.total, _this.total) || other.total == _this.total)&&(identical(other.itemTotal, _this.itemTotal) || other.itemTotal == _this.itemTotal)&&(identical(other.page, _this.page) || other.page == _this.page)&&(identical(other.size, _this.size) || other.size == _this.size));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(items),total,itemTotal,page,size);
+int get hashCode {
+  final _this = this as CommentListResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.items),_this.total,_this.itemTotal,_this.page,_this.size);
+}
 
 @override
 String toString() {
-  return 'CommentListResponse(items: $items, total: $total, itemTotal: $itemTotal, page: $page, size: $size)';
+  final _this = this as CommentListResponse;
+  return 'CommentListResponse(items: ${_this.items}, total: ${_this.total}, itemTotal: ${_this.itemTotal}, page: ${_this.page}, size: ${_this.size})';
 }
 
 
@@ -253,16 +258,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CommentListResponse&&const DeepCollectionEquality().equals(other._items, _items)&&(identical(other.total, total) || other.total == total)&&(identical(other.itemTotal, itemTotal) || other.itemTotal == itemTotal)&&(identical(other.page, page) || other.page == page)&&(identical(other.size, size) || other.size == size));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CommentListResponse&&const DeepCollectionEquality().equals(other.items, _items)&&(identical(other.total, total) || other.total == total)&&(identical(other.itemTotal, itemTotal) || other.itemTotal == itemTotal)&&(identical(other.page, page) || other.page == page)&&(identical(other.size, size) || other.size == size));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_items),total,itemTotal,page,size);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_items),total,itemTotal,page,size);
+}
 
 @override
 String toString() {
-  return 'CommentListResponse(items: $items, total: $total, itemTotal: $itemTotal, page: $page, size: $size)';
+    return 'CommentListResponse(items: $items, total: $total, itemTotal: $itemTotal, page: $page, size: $size)';
 }
 
 

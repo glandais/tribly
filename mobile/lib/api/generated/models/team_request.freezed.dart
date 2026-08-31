@@ -39,16 +39,21 @@ $TeamRequestCopyWith<TeamRequest> get copyWith => _$TeamRequestCopyWithImpl<Team
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeamRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.enableTrips, enableTrips) || other.enableTrips == enableTrips)&&(identical(other.enableAds, enableAds) || other.enableAds == enableAds)&&(identical(other.enablePosts, enablePosts) || other.enablePosts == enablePosts)&&(identical(other.enableRides, enableRides) || other.enableRides == enableRides)&&(identical(other.enableRoutes, enableRoutes) || other.enableRoutes == enableRoutes)&&(identical(other.enableMemberDirectory, enableMemberDirectory) || other.enableMemberDirectory == enableMemberDirectory)&&(identical(other.geometry, geometry) || other.geometry == geometry));
+  final _this = this as TeamRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeamRequest&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.media, _this.media) || other.media == _this.media)&&(identical(other.visibility, _this.visibility) || other.visibility == _this.visibility)&&(identical(other.enableTrips, _this.enableTrips) || other.enableTrips == _this.enableTrips)&&(identical(other.enableAds, _this.enableAds) || other.enableAds == _this.enableAds)&&(identical(other.enablePosts, _this.enablePosts) || other.enablePosts == _this.enablePosts)&&(identical(other.enableRides, _this.enableRides) || other.enableRides == _this.enableRides)&&(identical(other.enableRoutes, _this.enableRoutes) || other.enableRoutes == _this.enableRoutes)&&(identical(other.enableMemberDirectory, _this.enableMemberDirectory) || other.enableMemberDirectory == _this.enableMemberDirectory)&&(identical(other.geometry, _this.geometry) || other.geometry == _this.geometry));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,media,visibility,enableTrips,enableAds,enablePosts,enableRides,enableRoutes,enableMemberDirectory,geometry);
+int get hashCode {
+  final _this = this as TeamRequest;
+  return Object.hash(runtimeType,_this.name,_this.media,_this.visibility,_this.enableTrips,_this.enableAds,_this.enablePosts,_this.enableRides,_this.enableRoutes,_this.enableMemberDirectory,_this.geometry);
+}
 
 @override
 String toString() {
-  return 'TeamRequest(name: $name, media: $media, visibility: $visibility, enableTrips: $enableTrips, enableAds: $enableAds, enablePosts: $enablePosts, enableRides: $enableRides, enableRoutes: $enableRoutes, enableMemberDirectory: $enableMemberDirectory, geometry: $geometry)';
+  final _this = this as TeamRequest;
+  return 'TeamRequest(name: ${_this.name}, media: ${_this.media}, visibility: ${_this.visibility}, enableTrips: ${_this.enableTrips}, enableAds: ${_this.enableAds}, enablePosts: ${_this.enablePosts}, enableRides: ${_this.enableRides}, enableRoutes: ${_this.enableRoutes}, enableMemberDirectory: ${_this.enableMemberDirectory}, geometry: ${_this.geometry})';
 }
 
 
@@ -287,16 +292,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeamRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.enableTrips, enableTrips) || other.enableTrips == enableTrips)&&(identical(other.enableAds, enableAds) || other.enableAds == enableAds)&&(identical(other.enablePosts, enablePosts) || other.enablePosts == enablePosts)&&(identical(other.enableRides, enableRides) || other.enableRides == enableRides)&&(identical(other.enableRoutes, enableRoutes) || other.enableRoutes == enableRoutes)&&(identical(other.enableMemberDirectory, enableMemberDirectory) || other.enableMemberDirectory == enableMemberDirectory)&&(identical(other.geometry, geometry) || other.geometry == geometry));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeamRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.enableTrips, enableTrips) || other.enableTrips == enableTrips)&&(identical(other.enableAds, enableAds) || other.enableAds == enableAds)&&(identical(other.enablePosts, enablePosts) || other.enablePosts == enablePosts)&&(identical(other.enableRides, enableRides) || other.enableRides == enableRides)&&(identical(other.enableRoutes, enableRoutes) || other.enableRoutes == enableRoutes)&&(identical(other.enableMemberDirectory, enableMemberDirectory) || other.enableMemberDirectory == enableMemberDirectory)&&(identical(other.geometry, geometry) || other.geometry == geometry));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,media,visibility,enableTrips,enableAds,enablePosts,enableRides,enableRoutes,enableMemberDirectory,geometry);
+int get hashCode {
+    return Object.hash(runtimeType,name,media,visibility,enableTrips,enableAds,enablePosts,enableRides,enableRoutes,enableMemberDirectory,geometry);
+}
 
 @override
 String toString() {
-  return 'TeamRequest(name: $name, media: $media, visibility: $visibility, enableTrips: $enableTrips, enableAds: $enableAds, enablePosts: $enablePosts, enableRides: $enableRides, enableRoutes: $enableRoutes, enableMemberDirectory: $enableMemberDirectory, geometry: $geometry)';
+    return 'TeamRequest(name: $name, media: $media, visibility: $visibility, enableTrips: $enableTrips, enableAds: $enableAds, enablePosts: $enablePosts, enableRides: $enableRides, enableRoutes: $enableRoutes, enableMemberDirectory: $enableMemberDirectory, geometry: $geometry)';
 }
 
 

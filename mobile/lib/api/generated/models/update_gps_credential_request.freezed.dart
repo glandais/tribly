@@ -32,16 +32,21 @@ $UpdateGpsCredentialRequestCopyWith<UpdateGpsCredentialRequest> get copyWith => 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateGpsCredentialRequest&&(identical(other.clientId, clientId) || other.clientId == clientId)&&(identical(other.clientSecret, clientSecret) || other.clientSecret == clientSecret)&&(identical(other.active, active) || other.active == active));
+  final _this = this as UpdateGpsCredentialRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateGpsCredentialRequest&&(identical(other.clientId, _this.clientId) || other.clientId == _this.clientId)&&(identical(other.clientSecret, _this.clientSecret) || other.clientSecret == _this.clientSecret)&&(identical(other.active, _this.active) || other.active == _this.active));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,clientId,clientSecret,active);
+int get hashCode {
+  final _this = this as UpdateGpsCredentialRequest;
+  return Object.hash(runtimeType,_this.clientId,_this.clientSecret,_this.active);
+}
 
 @override
 String toString() {
-  return 'UpdateGpsCredentialRequest(clientId: $clientId, clientSecret: $clientSecret, active: $active)';
+  final _this = this as UpdateGpsCredentialRequest;
+  return 'UpdateGpsCredentialRequest(clientId: ${_this.clientId}, clientSecret: ${_this.clientSecret}, active: ${_this.active})';
 }
 
 
@@ -238,16 +243,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateGpsCredentialRequest&&(identical(other.clientId, clientId) || other.clientId == clientId)&&(identical(other.clientSecret, clientSecret) || other.clientSecret == clientSecret)&&(identical(other.active, active) || other.active == active));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateGpsCredentialRequest&&(identical(other.clientId, clientId) || other.clientId == clientId)&&(identical(other.clientSecret, clientSecret) || other.clientSecret == clientSecret)&&(identical(other.active, active) || other.active == active));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,clientId,clientSecret,active);
+int get hashCode {
+    return Object.hash(runtimeType,clientId,clientSecret,active);
+}
 
 @override
 String toString() {
-  return 'UpdateGpsCredentialRequest(clientId: $clientId, clientSecret: $clientSecret, active: $active)';
+    return 'UpdateGpsCredentialRequest(clientId: $clientId, clientSecret: $clientSecret, active: $active)';
 }
 
 

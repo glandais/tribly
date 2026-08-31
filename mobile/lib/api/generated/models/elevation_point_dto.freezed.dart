@@ -32,16 +32,21 @@ $ElevationPointDtoCopyWith<ElevationPointDto> get copyWith => _$ElevationPointDt
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ElevationPointDto&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevation, elevation) || other.elevation == elevation)&&(identical(other.grade, grade) || other.grade == grade));
+  final _this = this as ElevationPointDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ElevationPointDto&&(identical(other.distance, _this.distance) || other.distance == _this.distance)&&(identical(other.elevation, _this.elevation) || other.elevation == _this.elevation)&&(identical(other.grade, _this.grade) || other.grade == _this.grade));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,distance,elevation,grade);
+int get hashCode {
+  final _this = this as ElevationPointDto;
+  return Object.hash(runtimeType,_this.distance,_this.elevation,_this.grade);
+}
 
 @override
 String toString() {
-  return 'ElevationPointDto(distance: $distance, elevation: $elevation, grade: $grade)';
+  final _this = this as ElevationPointDto;
+  return 'ElevationPointDto(distance: ${_this.distance}, elevation: ${_this.elevation}, grade: ${_this.grade})';
 }
 
 
@@ -238,16 +243,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ElevationPointDto&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevation, elevation) || other.elevation == elevation)&&(identical(other.grade, grade) || other.grade == grade));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ElevationPointDto&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevation, elevation) || other.elevation == elevation)&&(identical(other.grade, grade) || other.grade == grade));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,distance,elevation,grade);
+int get hashCode {
+    return Object.hash(runtimeType,distance,elevation,grade);
+}
 
 @override
 String toString() {
-  return 'ElevationPointDto(distance: $distance, elevation: $elevation, grade: $grade)';
+    return 'ElevationPointDto(distance: $distance, elevation: $elevation, grade: $grade)';
 }
 
 

@@ -32,16 +32,21 @@ $FieldErrorCopyWith<FieldError> get copyWith => _$FieldErrorCopyWithImpl<FieldEr
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is FieldError&&(identical(other.field, field) || other.field == field)&&(identical(other.message, message) || other.message == message)&&const DeepCollectionEquality().equals(other.rejectedValue, rejectedValue));
+  final _this = this as FieldError;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FieldError&&(identical(other.field, _this.field) || other.field == _this.field)&&(identical(other.message, _this.message) || other.message == _this.message)&&const DeepCollectionEquality().equals(other.rejectedValue, _this.rejectedValue));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,field,message,const DeepCollectionEquality().hash(rejectedValue));
+int get hashCode {
+  final _this = this as FieldError;
+  return Object.hash(runtimeType,_this.field,_this.message,const DeepCollectionEquality().hash(_this.rejectedValue));
+}
 
 @override
 String toString() {
-  return 'FieldError(field: $field, message: $message, rejectedValue: $rejectedValue)';
+  final _this = this as FieldError;
+  return 'FieldError(field: ${_this.field}, message: ${_this.message}, rejectedValue: ${_this.rejectedValue})';
 }
 
 
@@ -238,16 +243,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _FieldError&&(identical(other.field, field) || other.field == field)&&(identical(other.message, message) || other.message == message)&&const DeepCollectionEquality().equals(other.rejectedValue, rejectedValue));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FieldError&&(identical(other.field, field) || other.field == field)&&(identical(other.message, message) || other.message == message)&&const DeepCollectionEquality().equals(other.rejectedValue, rejectedValue));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,field,message,const DeepCollectionEquality().hash(rejectedValue));
+int get hashCode {
+    return Object.hash(runtimeType,field,message,const DeepCollectionEquality().hash(rejectedValue));
+}
 
 @override
 String toString() {
-  return 'FieldError(field: $field, message: $message, rejectedValue: $rejectedValue)';
+    return 'FieldError(field: $field, message: $message, rejectedValue: $rejectedValue)';
 }
 
 

@@ -33,16 +33,21 @@ $TeamInvitationListResponseCopyWith<TeamInvitationListResponse> get copyWith => 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeamInvitationListResponse&&const DeepCollectionEquality().equals(other.invitations, invitations)&&(identical(other.total, total) || other.total == total)&&(identical(other.page, page) || other.page == page)&&(identical(other.size, size) || other.size == size));
+  final _this = this as TeamInvitationListResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeamInvitationListResponse&&const DeepCollectionEquality().equals(other.invitations, _this.invitations)&&(identical(other.total, _this.total) || other.total == _this.total)&&(identical(other.page, _this.page) || other.page == _this.page)&&(identical(other.size, _this.size) || other.size == _this.size));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(invitations),total,page,size);
+int get hashCode {
+  final _this = this as TeamInvitationListResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.invitations),_this.total,_this.page,_this.size);
+}
 
 @override
 String toString() {
-  return 'TeamInvitationListResponse(invitations: $invitations, total: $total, page: $page, size: $size)';
+  final _this = this as TeamInvitationListResponse;
+  return 'TeamInvitationListResponse(invitations: ${_this.invitations}, total: ${_this.total}, page: ${_this.page}, size: ${_this.size})';
 }
 
 
@@ -249,16 +254,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeamInvitationListResponse&&const DeepCollectionEquality().equals(other._invitations, _invitations)&&(identical(other.total, total) || other.total == total)&&(identical(other.page, page) || other.page == page)&&(identical(other.size, size) || other.size == size));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeamInvitationListResponse&&const DeepCollectionEquality().equals(other.invitations, _invitations)&&(identical(other.total, total) || other.total == total)&&(identical(other.page, page) || other.page == page)&&(identical(other.size, size) || other.size == size));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_invitations),total,page,size);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_invitations),total,page,size);
+}
 
 @override
 String toString() {
-  return 'TeamInvitationListResponse(invitations: $invitations, total: $total, page: $page, size: $size)';
+    return 'TeamInvitationListResponse(invitations: $invitations, total: $total, page: $page, size: $size)';
 }
 
 

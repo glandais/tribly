@@ -32,16 +32,21 @@ $PublicUserDtoCopyWith<PublicUserDto> get copyWith => _$PublicUserDtoCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PublicUserDto&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl));
+  final _this = this as PublicUserDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PublicUserDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.displayName, _this.displayName) || other.displayName == _this.displayName)&&(identical(other.avatarUrl, _this.avatarUrl) || other.avatarUrl == _this.avatarUrl));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,displayName,avatarUrl);
+int get hashCode {
+  final _this = this as PublicUserDto;
+  return Object.hash(runtimeType,_this.id,_this.displayName,_this.avatarUrl);
+}
 
 @override
 String toString() {
-  return 'PublicUserDto(id: $id, displayName: $displayName, avatarUrl: $avatarUrl)';
+  final _this = this as PublicUserDto;
+  return 'PublicUserDto(id: ${_this.id}, displayName: ${_this.displayName}, avatarUrl: ${_this.avatarUrl})';
 }
 
 
@@ -238,16 +243,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PublicUserDto&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PublicUserDto&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,displayName,avatarUrl);
+int get hashCode {
+    return Object.hash(runtimeType,id,displayName,avatarUrl);
+}
 
 @override
 String toString() {
-  return 'PublicUserDto(id: $id, displayName: $displayName, avatarUrl: $avatarUrl)';
+    return 'PublicUserDto(id: $id, displayName: $displayName, avatarUrl: $avatarUrl)';
 }
 
 

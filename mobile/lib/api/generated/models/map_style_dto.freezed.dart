@@ -35,16 +35,21 @@ $MapStyleDtoCopyWith<MapStyleDto> get copyWith => _$MapStyleDtoCopyWithImpl<MapS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MapStyleDto&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.group, group) || other.group == group)&&(identical(other.url, url) || other.url == url)&&(identical(other.darkVariant, darkVariant) || other.darkVariant == darkVariant)&&(identical(other.attribution, attribution) || other.attribution == attribution));
+  final _this = this as MapStyleDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MapStyleDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.label, _this.label) || other.label == _this.label)&&(identical(other.group, _this.group) || other.group == _this.group)&&(identical(other.url, _this.url) || other.url == _this.url)&&(identical(other.darkVariant, _this.darkVariant) || other.darkVariant == _this.darkVariant)&&(identical(other.attribution, _this.attribution) || other.attribution == _this.attribution));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,label,group,url,darkVariant,attribution);
+int get hashCode {
+  final _this = this as MapStyleDto;
+  return Object.hash(runtimeType,_this.id,_this.label,_this.group,_this.url,_this.darkVariant,_this.attribution);
+}
 
 @override
 String toString() {
-  return 'MapStyleDto(id: $id, label: $label, group: $group, url: $url, darkVariant: $darkVariant, attribution: $attribution)';
+  final _this = this as MapStyleDto;
+  return 'MapStyleDto(id: ${_this.id}, label: ${_this.label}, group: ${_this.group}, url: ${_this.url}, darkVariant: ${_this.darkVariant}, attribution: ${_this.attribution})';
 }
 
 
@@ -250,16 +255,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MapStyleDto&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.group, group) || other.group == group)&&(identical(other.url, url) || other.url == url)&&(identical(other.darkVariant, darkVariant) || other.darkVariant == darkVariant)&&(identical(other.attribution, attribution) || other.attribution == attribution));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MapStyleDto&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.group, group) || other.group == group)&&(identical(other.url, url) || other.url == url)&&(identical(other.darkVariant, darkVariant) || other.darkVariant == darkVariant)&&(identical(other.attribution, attribution) || other.attribution == attribution));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,label,group,url,darkVariant,attribution);
+int get hashCode {
+    return Object.hash(runtimeType,id,label,group,url,darkVariant,attribution);
+}
 
 @override
 String toString() {
-  return 'MapStyleDto(id: $id, label: $label, group: $group, url: $url, darkVariant: $darkVariant, attribution: $attribution)';
+    return 'MapStyleDto(id: $id, label: $label, group: $group, url: $url, darkVariant: $darkVariant, attribution: $attribution)';
 }
 
 

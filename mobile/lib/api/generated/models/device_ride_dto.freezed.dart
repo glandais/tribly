@@ -34,16 +34,21 @@ $DeviceRideDtoCopyWith<DeviceRideDto> get copyWith => _$DeviceRideDtoCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceRideDto&&(identical(other.teamSlug, teamSlug) || other.teamSlug == teamSlug)&&(identical(other.rideSlug, rideSlug) || other.rideSlug == rideSlug)&&(identical(other.rideName, rideName) || other.rideName == rideName)&&const DeepCollectionEquality().equals(other.entries, entries)&&(identical(other.startDateTime, startDateTime) || other.startDateTime == startDateTime));
+  final _this = this as DeviceRideDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceRideDto&&(identical(other.teamSlug, _this.teamSlug) || other.teamSlug == _this.teamSlug)&&(identical(other.rideSlug, _this.rideSlug) || other.rideSlug == _this.rideSlug)&&(identical(other.rideName, _this.rideName) || other.rideName == _this.rideName)&&const DeepCollectionEquality().equals(other.entries, _this.entries)&&(identical(other.startDateTime, _this.startDateTime) || other.startDateTime == _this.startDateTime));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,teamSlug,rideSlug,rideName,const DeepCollectionEquality().hash(entries),startDateTime);
+int get hashCode {
+  final _this = this as DeviceRideDto;
+  return Object.hash(runtimeType,_this.teamSlug,_this.rideSlug,_this.rideName,const DeepCollectionEquality().hash(_this.entries),_this.startDateTime);
+}
 
 @override
 String toString() {
-  return 'DeviceRideDto(teamSlug: $teamSlug, rideSlug: $rideSlug, rideName: $rideName, entries: $entries, startDateTime: $startDateTime)';
+  final _this = this as DeviceRideDto;
+  return 'DeviceRideDto(teamSlug: ${_this.teamSlug}, rideSlug: ${_this.rideSlug}, rideName: ${_this.rideName}, entries: ${_this.entries}, startDateTime: ${_this.startDateTime})';
 }
 
 
@@ -253,16 +258,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceRideDto&&(identical(other.teamSlug, teamSlug) || other.teamSlug == teamSlug)&&(identical(other.rideSlug, rideSlug) || other.rideSlug == rideSlug)&&(identical(other.rideName, rideName) || other.rideName == rideName)&&const DeepCollectionEquality().equals(other._entries, _entries)&&(identical(other.startDateTime, startDateTime) || other.startDateTime == startDateTime));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceRideDto&&(identical(other.teamSlug, teamSlug) || other.teamSlug == teamSlug)&&(identical(other.rideSlug, rideSlug) || other.rideSlug == rideSlug)&&(identical(other.rideName, rideName) || other.rideName == rideName)&&const DeepCollectionEquality().equals(other.entries, _entries)&&(identical(other.startDateTime, startDateTime) || other.startDateTime == startDateTime));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,teamSlug,rideSlug,rideName,const DeepCollectionEquality().hash(_entries),startDateTime);
+int get hashCode {
+    return Object.hash(runtimeType,teamSlug,rideSlug,rideName,const DeepCollectionEquality().hash(_entries),startDateTime);
+}
 
 @override
 String toString() {
-  return 'DeviceRideDto(teamSlug: $teamSlug, rideSlug: $rideSlug, rideName: $rideName, entries: $entries, startDateTime: $startDateTime)';
+    return 'DeviceRideDto(teamSlug: $teamSlug, rideSlug: $rideSlug, rideName: $rideName, entries: $entries, startDateTime: $startDateTime)';
 }
 
 

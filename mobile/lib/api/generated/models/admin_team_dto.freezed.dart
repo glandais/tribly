@@ -42,16 +42,21 @@ $AdminTeamDtoCopyWith<AdminTeamDto> get copyWith => _$AdminTeamDtoCopyWithImpl<A
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminTeamDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.domainId, domainId) || other.domainId == domainId)&&(identical(other.domainName, domainName) || other.domainName == domainName)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.visibilityEditable, visibilityEditable) || other.visibilityEditable == visibilityEditable)&&(identical(other.joinable, joinable) || other.joinable == joinable)&&(identical(other.addMemberAllowed, addMemberAllowed) || other.addMemberAllowed == addMemberAllowed)&&(identical(other.enableRoutePlanner, enableRoutePlanner) || other.enableRoutePlanner == enableRoutePlanner)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.memberCount, memberCount) || other.memberCount == memberCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  final _this = this as AdminTeamDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminTeamDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.slug, _this.slug) || other.slug == _this.slug)&&(identical(other.domainId, _this.domainId) || other.domainId == _this.domainId)&&(identical(other.domainName, _this.domainName) || other.domainName == _this.domainName)&&(identical(other.visibility, _this.visibility) || other.visibility == _this.visibility)&&(identical(other.visibilityEditable, _this.visibilityEditable) || other.visibilityEditable == _this.visibilityEditable)&&(identical(other.joinable, _this.joinable) || other.joinable == _this.joinable)&&(identical(other.addMemberAllowed, _this.addMemberAllowed) || other.addMemberAllowed == _this.addMemberAllowed)&&(identical(other.enableRoutePlanner, _this.enableRoutePlanner) || other.enableRoutePlanner == _this.enableRoutePlanner)&&(identical(other.deleted, _this.deleted) || other.deleted == _this.deleted)&&(identical(other.memberCount, _this.memberCount) || other.memberCount == _this.memberCount)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,slug,domainId,domainName,visibility,visibilityEditable,joinable,addMemberAllowed,enableRoutePlanner,deleted,memberCount,createdAt);
+int get hashCode {
+  final _this = this as AdminTeamDto;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.slug,_this.domainId,_this.domainName,_this.visibility,_this.visibilityEditable,_this.joinable,_this.addMemberAllowed,_this.enableRoutePlanner,_this.deleted,_this.memberCount,_this.createdAt);
+}
 
 @override
 String toString() {
-  return 'AdminTeamDto(id: $id, name: $name, slug: $slug, domainId: $domainId, domainName: $domainName, visibility: $visibility, visibilityEditable: $visibilityEditable, joinable: $joinable, addMemberAllowed: $addMemberAllowed, enableRoutePlanner: $enableRoutePlanner, deleted: $deleted, memberCount: $memberCount, createdAt: $createdAt)';
+  final _this = this as AdminTeamDto;
+  return 'AdminTeamDto(id: ${_this.id}, name: ${_this.name}, slug: ${_this.slug}, domainId: ${_this.domainId}, domainName: ${_this.domainName}, visibility: ${_this.visibility}, visibilityEditable: ${_this.visibilityEditable}, joinable: ${_this.joinable}, addMemberAllowed: ${_this.addMemberAllowed}, enableRoutePlanner: ${_this.enableRoutePlanner}, deleted: ${_this.deleted}, memberCount: ${_this.memberCount}, createdAt: ${_this.createdAt})';
 }
 
 
@@ -278,16 +283,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminTeamDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.domainId, domainId) || other.domainId == domainId)&&(identical(other.domainName, domainName) || other.domainName == domainName)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.visibilityEditable, visibilityEditable) || other.visibilityEditable == visibilityEditable)&&(identical(other.joinable, joinable) || other.joinable == joinable)&&(identical(other.addMemberAllowed, addMemberAllowed) || other.addMemberAllowed == addMemberAllowed)&&(identical(other.enableRoutePlanner, enableRoutePlanner) || other.enableRoutePlanner == enableRoutePlanner)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.memberCount, memberCount) || other.memberCount == memberCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminTeamDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.domainId, domainId) || other.domainId == domainId)&&(identical(other.domainName, domainName) || other.domainName == domainName)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.visibilityEditable, visibilityEditable) || other.visibilityEditable == visibilityEditable)&&(identical(other.joinable, joinable) || other.joinable == joinable)&&(identical(other.addMemberAllowed, addMemberAllowed) || other.addMemberAllowed == addMemberAllowed)&&(identical(other.enableRoutePlanner, enableRoutePlanner) || other.enableRoutePlanner == enableRoutePlanner)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.memberCount, memberCount) || other.memberCount == memberCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,slug,domainId,domainName,visibility,visibilityEditable,joinable,addMemberAllowed,enableRoutePlanner,deleted,memberCount,createdAt);
+int get hashCode {
+    return Object.hash(runtimeType,id,name,slug,domainId,domainName,visibility,visibilityEditable,joinable,addMemberAllowed,enableRoutePlanner,deleted,memberCount,createdAt);
+}
 
 @override
 String toString() {
-  return 'AdminTeamDto(id: $id, name: $name, slug: $slug, domainId: $domainId, domainName: $domainName, visibility: $visibility, visibilityEditable: $visibilityEditable, joinable: $joinable, addMemberAllowed: $addMemberAllowed, enableRoutePlanner: $enableRoutePlanner, deleted: $deleted, memberCount: $memberCount, createdAt: $createdAt)';
+    return 'AdminTeamDto(id: $id, name: $name, slug: $slug, domainId: $domainId, domainName: $domainName, visibility: $visibility, visibilityEditable: $visibilityEditable, joinable: $joinable, addMemberAllowed: $addMemberAllowed, enableRoutePlanner: $enableRoutePlanner, deleted: $deleted, memberCount: $memberCount, createdAt: $createdAt)';
 }
 
 

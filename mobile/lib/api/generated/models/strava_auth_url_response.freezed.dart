@@ -30,16 +30,21 @@ $StravaAuthUrlResponseCopyWith<StravaAuthUrlResponse> get copyWith => _$StravaAu
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is StravaAuthUrlResponse&&(identical(other.authorizationUrl, authorizationUrl) || other.authorizationUrl == authorizationUrl));
+  final _this = this as StravaAuthUrlResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StravaAuthUrlResponse&&(identical(other.authorizationUrl, _this.authorizationUrl) || other.authorizationUrl == _this.authorizationUrl));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,authorizationUrl);
+int get hashCode {
+  final _this = this as StravaAuthUrlResponse;
+  return Object.hash(runtimeType,_this.authorizationUrl);
+}
 
 @override
 String toString() {
-  return 'StravaAuthUrlResponse(authorizationUrl: $authorizationUrl)';
+  final _this = this as StravaAuthUrlResponse;
+  return 'StravaAuthUrlResponse(authorizationUrl: ${_this.authorizationUrl})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StravaAuthUrlResponse&&(identical(other.authorizationUrl, authorizationUrl) || other.authorizationUrl == authorizationUrl));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _StravaAuthUrlResponse&&(identical(other.authorizationUrl, authorizationUrl) || other.authorizationUrl == authorizationUrl));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,authorizationUrl);
+int get hashCode {
+    return Object.hash(runtimeType,authorizationUrl);
+}
 
 @override
 String toString() {
-  return 'StravaAuthUrlResponse(authorizationUrl: $authorizationUrl)';
+    return 'StravaAuthUrlResponse(authorizationUrl: $authorizationUrl)';
 }
 
 

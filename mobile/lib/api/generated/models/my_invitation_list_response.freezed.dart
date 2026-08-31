@@ -30,16 +30,21 @@ $MyInvitationListResponseCopyWith<MyInvitationListResponse> get copyWith => _$My
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MyInvitationListResponse&&const DeepCollectionEquality().equals(other.invitations, invitations));
+  final _this = this as MyInvitationListResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MyInvitationListResponse&&const DeepCollectionEquality().equals(other.invitations, _this.invitations));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(invitations));
+int get hashCode {
+  final _this = this as MyInvitationListResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.invitations));
+}
 
 @override
 String toString() {
-  return 'MyInvitationListResponse(invitations: $invitations)';
+  final _this = this as MyInvitationListResponse;
+  return 'MyInvitationListResponse(invitations: ${_this.invitations})';
 }
 
 
@@ -237,16 +242,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MyInvitationListResponse&&const DeepCollectionEquality().equals(other._invitations, _invitations));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MyInvitationListResponse&&const DeepCollectionEquality().equals(other.invitations, _invitations));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_invitations));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_invitations));
+}
 
 @override
 String toString() {
-  return 'MyInvitationListResponse(invitations: $invitations)';
+    return 'MyInvitationListResponse(invitations: $invitations)';
 }
 
 

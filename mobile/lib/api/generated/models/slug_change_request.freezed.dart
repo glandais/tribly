@@ -30,16 +30,21 @@ $SlugChangeRequestCopyWith<SlugChangeRequest> get copyWith => _$SlugChangeReques
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SlugChangeRequest&&(identical(other.slug, slug) || other.slug == slug));
+  final _this = this as SlugChangeRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SlugChangeRequest&&(identical(other.slug, _this.slug) || other.slug == _this.slug));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,slug);
+int get hashCode {
+  final _this = this as SlugChangeRequest;
+  return Object.hash(runtimeType,_this.slug);
+}
 
 @override
 String toString() {
-  return 'SlugChangeRequest(slug: $slug)';
+  final _this = this as SlugChangeRequest;
+  return 'SlugChangeRequest(slug: ${_this.slug})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SlugChangeRequest&&(identical(other.slug, slug) || other.slug == slug));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SlugChangeRequest&&(identical(other.slug, slug) || other.slug == slug));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,slug);
+int get hashCode {
+    return Object.hash(runtimeType,slug);
+}
 
 @override
 String toString() {
-  return 'SlugChangeRequest(slug: $slug)';
+    return 'SlugChangeRequest(slug: $slug)';
 }
 
 

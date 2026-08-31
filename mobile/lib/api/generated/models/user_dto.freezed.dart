@@ -44,16 +44,21 @@ $UserDtoCopyWith<UserDto> get copyWith => _$UserDtoCopyWithImpl<UserDto>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserDto&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.contactableByMembers, contactableByMembers) || other.contactableByMembers == contactableByMembers)&&(identical(other.emailVerified, emailVerified) || other.emailVerified == emailVerified)&&(identical(other.requiresEmail, requiresEmail) || other.requiresEmail == requiresEmail)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.unitSystem, unitSystem) || other.unitSystem == unitSystem)&&(identical(other.theme, theme) || other.theme == theme)&&(identical(other.language, language) || other.language == language)&&(identical(other.timezone, timezone) || other.timezone == timezone)&&(identical(other.platformRole, platformRole) || other.platformRole == platformRole)&&const DeepCollectionEquality().equals(other.connectedServices, connectedServices)&&const DeepCollectionEquality().equals(other.socialIdentities, socialIdentities));
+  final _this = this as UserDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.email, _this.email) || other.email == _this.email)&&(identical(other.displayName, _this.displayName) || other.displayName == _this.displayName)&&(identical(other.contactableByMembers, _this.contactableByMembers) || other.contactableByMembers == _this.contactableByMembers)&&(identical(other.emailVerified, _this.emailVerified) || other.emailVerified == _this.emailVerified)&&(identical(other.requiresEmail, _this.requiresEmail) || other.requiresEmail == _this.requiresEmail)&&(identical(other.avatarUrl, _this.avatarUrl) || other.avatarUrl == _this.avatarUrl)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.unitSystem, _this.unitSystem) || other.unitSystem == _this.unitSystem)&&(identical(other.theme, _this.theme) || other.theme == _this.theme)&&(identical(other.language, _this.language) || other.language == _this.language)&&(identical(other.timezone, _this.timezone) || other.timezone == _this.timezone)&&(identical(other.platformRole, _this.platformRole) || other.platformRole == _this.platformRole)&&const DeepCollectionEquality().equals(other.connectedServices, _this.connectedServices)&&const DeepCollectionEquality().equals(other.socialIdentities, _this.socialIdentities));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,email,displayName,contactableByMembers,emailVerified,requiresEmail,avatarUrl,createdAt,unitSystem,theme,language,timezone,platformRole,const DeepCollectionEquality().hash(connectedServices),const DeepCollectionEquality().hash(socialIdentities));
+int get hashCode {
+  final _this = this as UserDto;
+  return Object.hash(runtimeType,_this.id,_this.email,_this.displayName,_this.contactableByMembers,_this.emailVerified,_this.requiresEmail,_this.avatarUrl,_this.createdAt,_this.unitSystem,_this.theme,_this.language,_this.timezone,_this.platformRole,const DeepCollectionEquality().hash(_this.connectedServices),const DeepCollectionEquality().hash(_this.socialIdentities));
+}
 
 @override
 String toString() {
-  return 'UserDto(id: $id, email: $email, displayName: $displayName, contactableByMembers: $contactableByMembers, emailVerified: $emailVerified, requiresEmail: $requiresEmail, avatarUrl: $avatarUrl, createdAt: $createdAt, unitSystem: $unitSystem, theme: $theme, language: $language, timezone: $timezone, platformRole: $platformRole, connectedServices: $connectedServices, socialIdentities: $socialIdentities)';
+  final _this = this as UserDto;
+  return 'UserDto(id: ${_this.id}, email: ${_this.email}, displayName: ${_this.displayName}, contactableByMembers: ${_this.contactableByMembers}, emailVerified: ${_this.emailVerified}, requiresEmail: ${_this.requiresEmail}, avatarUrl: ${_this.avatarUrl}, createdAt: ${_this.createdAt}, unitSystem: ${_this.unitSystem}, theme: ${_this.theme}, language: ${_this.language}, timezone: ${_this.timezone}, platformRole: ${_this.platformRole}, connectedServices: ${_this.connectedServices}, socialIdentities: ${_this.socialIdentities})';
 }
 
 
@@ -304,16 +309,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserDto&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.contactableByMembers, contactableByMembers) || other.contactableByMembers == contactableByMembers)&&(identical(other.emailVerified, emailVerified) || other.emailVerified == emailVerified)&&(identical(other.requiresEmail, requiresEmail) || other.requiresEmail == requiresEmail)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.unitSystem, unitSystem) || other.unitSystem == unitSystem)&&(identical(other.theme, theme) || other.theme == theme)&&(identical(other.language, language) || other.language == language)&&(identical(other.timezone, timezone) || other.timezone == timezone)&&(identical(other.platformRole, platformRole) || other.platformRole == platformRole)&&const DeepCollectionEquality().equals(other._connectedServices, _connectedServices)&&const DeepCollectionEquality().equals(other._socialIdentities, _socialIdentities));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserDto&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.contactableByMembers, contactableByMembers) || other.contactableByMembers == contactableByMembers)&&(identical(other.emailVerified, emailVerified) || other.emailVerified == emailVerified)&&(identical(other.requiresEmail, requiresEmail) || other.requiresEmail == requiresEmail)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.unitSystem, unitSystem) || other.unitSystem == unitSystem)&&(identical(other.theme, theme) || other.theme == theme)&&(identical(other.language, language) || other.language == language)&&(identical(other.timezone, timezone) || other.timezone == timezone)&&(identical(other.platformRole, platformRole) || other.platformRole == platformRole)&&const DeepCollectionEquality().equals(other.connectedServices, _connectedServices)&&const DeepCollectionEquality().equals(other.socialIdentities, _socialIdentities));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,email,displayName,contactableByMembers,emailVerified,requiresEmail,avatarUrl,createdAt,unitSystem,theme,language,timezone,platformRole,const DeepCollectionEquality().hash(_connectedServices),const DeepCollectionEquality().hash(_socialIdentities));
+int get hashCode {
+    return Object.hash(runtimeType,id,email,displayName,contactableByMembers,emailVerified,requiresEmail,avatarUrl,createdAt,unitSystem,theme,language,timezone,platformRole,const DeepCollectionEquality().hash(_connectedServices),const DeepCollectionEquality().hash(_socialIdentities));
+}
 
 @override
 String toString() {
-  return 'UserDto(id: $id, email: $email, displayName: $displayName, contactableByMembers: $contactableByMembers, emailVerified: $emailVerified, requiresEmail: $requiresEmail, avatarUrl: $avatarUrl, createdAt: $createdAt, unitSystem: $unitSystem, theme: $theme, language: $language, timezone: $timezone, platformRole: $platformRole, connectedServices: $connectedServices, socialIdentities: $socialIdentities)';
+    return 'UserDto(id: $id, email: $email, displayName: $displayName, contactableByMembers: $contactableByMembers, emailVerified: $emailVerified, requiresEmail: $requiresEmail, avatarUrl: $avatarUrl, createdAt: $createdAt, unitSystem: $unitSystem, theme: $theme, language: $language, timezone: $timezone, platformRole: $platformRole, connectedServices: $connectedServices, socialIdentities: $socialIdentities)';
 }
 
 

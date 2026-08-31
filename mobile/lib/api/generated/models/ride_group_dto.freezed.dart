@@ -42,16 +42,21 @@ $RideGroupDtoCopyWith<RideGroupDto> get copyWith => _$RideGroupDtoCopyWithImpl<R
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RideGroupDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.countParticipants, countParticipants) || other.countParticipants == countParticipants)&&const DeepCollectionEquality().equals(other.participants, participants)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&(identical(other.registered, registered) || other.registered == registered)&&(identical(other.full, full) || other.full == full)&&(identical(other.time, time) || other.time == time)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.averageSpeed, averageSpeed) || other.averageSpeed == averageSpeed)&&(identical(other.maxParticipants, maxParticipants) || other.maxParticipants == maxParticipants)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.leader, leader) || other.leader == leader));
+  final _this = this as RideGroupDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RideGroupDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.countParticipants, _this.countParticipants) || other.countParticipants == _this.countParticipants)&&const DeepCollectionEquality().equals(other.participants, _this.participants)&&(identical(other.sortOrder, _this.sortOrder) || other.sortOrder == _this.sortOrder)&&(identical(other.registered, _this.registered) || other.registered == _this.registered)&&(identical(other.full, _this.full) || other.full == _this.full)&&(identical(other.time, _this.time) || other.time == _this.time)&&(identical(other.routeSlug, _this.routeSlug) || other.routeSlug == _this.routeSlug)&&(identical(other.averageSpeed, _this.averageSpeed) || other.averageSpeed == _this.averageSpeed)&&(identical(other.maxParticipants, _this.maxParticipants) || other.maxParticipants == _this.maxParticipants)&&(identical(other.distance, _this.distance) || other.distance == _this.distance)&&(identical(other.elevationGain, _this.elevationGain) || other.elevationGain == _this.elevationGain)&&(identical(other.leader, _this.leader) || other.leader == _this.leader));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,countParticipants,const DeepCollectionEquality().hash(participants),sortOrder,registered,full,time,routeSlug,averageSpeed,maxParticipants,distance,elevationGain,leader);
+int get hashCode {
+  final _this = this as RideGroupDto;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.countParticipants,const DeepCollectionEquality().hash(_this.participants),_this.sortOrder,_this.registered,_this.full,_this.time,_this.routeSlug,_this.averageSpeed,_this.maxParticipants,_this.distance,_this.elevationGain,_this.leader);
+}
 
 @override
 String toString() {
-  return 'RideGroupDto(id: $id, name: $name, countParticipants: $countParticipants, participants: $participants, sortOrder: $sortOrder, registered: $registered, full: $full, time: $time, routeSlug: $routeSlug, averageSpeed: $averageSpeed, maxParticipants: $maxParticipants, distance: $distance, elevationGain: $elevationGain, leader: $leader)';
+  final _this = this as RideGroupDto;
+  return 'RideGroupDto(id: ${_this.id}, name: ${_this.name}, countParticipants: ${_this.countParticipants}, participants: ${_this.participants}, sortOrder: ${_this.sortOrder}, registered: ${_this.registered}, full: ${_this.full}, time: ${_this.time}, routeSlug: ${_this.routeSlug}, averageSpeed: ${_this.averageSpeed}, maxParticipants: ${_this.maxParticipants}, distance: ${_this.distance}, elevationGain: ${_this.elevationGain}, leader: ${_this.leader})';
 }
 
 
@@ -299,16 +304,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RideGroupDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.countParticipants, countParticipants) || other.countParticipants == countParticipants)&&const DeepCollectionEquality().equals(other._participants, _participants)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&(identical(other.registered, registered) || other.registered == registered)&&(identical(other.full, full) || other.full == full)&&(identical(other.time, time) || other.time == time)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.averageSpeed, averageSpeed) || other.averageSpeed == averageSpeed)&&(identical(other.maxParticipants, maxParticipants) || other.maxParticipants == maxParticipants)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.leader, leader) || other.leader == leader));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RideGroupDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.countParticipants, countParticipants) || other.countParticipants == countParticipants)&&const DeepCollectionEquality().equals(other.participants, _participants)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&(identical(other.registered, registered) || other.registered == registered)&&(identical(other.full, full) || other.full == full)&&(identical(other.time, time) || other.time == time)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.averageSpeed, averageSpeed) || other.averageSpeed == averageSpeed)&&(identical(other.maxParticipants, maxParticipants) || other.maxParticipants == maxParticipants)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.leader, leader) || other.leader == leader));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,countParticipants,const DeepCollectionEquality().hash(_participants),sortOrder,registered,full,time,routeSlug,averageSpeed,maxParticipants,distance,elevationGain,leader);
+int get hashCode {
+    return Object.hash(runtimeType,id,name,countParticipants,const DeepCollectionEquality().hash(_participants),sortOrder,registered,full,time,routeSlug,averageSpeed,maxParticipants,distance,elevationGain,leader);
+}
 
 @override
 String toString() {
-  return 'RideGroupDto(id: $id, name: $name, countParticipants: $countParticipants, participants: $participants, sortOrder: $sortOrder, registered: $registered, full: $full, time: $time, routeSlug: $routeSlug, averageSpeed: $averageSpeed, maxParticipants: $maxParticipants, distance: $distance, elevationGain: $elevationGain, leader: $leader)';
+    return 'RideGroupDto(id: $id, name: $name, countParticipants: $countParticipants, participants: $participants, sortOrder: $sortOrder, registered: $registered, full: $full, time: $time, routeSlug: $routeSlug, averageSpeed: $averageSpeed, maxParticipants: $maxParticipants, distance: $distance, elevationGain: $elevationGain, leader: $leader)';
 }
 
 

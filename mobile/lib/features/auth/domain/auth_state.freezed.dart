@@ -33,16 +33,21 @@ $AuthStateCopyWith<AuthState> get copyWith => _$AuthStateCopyWithImpl<AuthState>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthState&&(identical(other.user, user) || other.user == user)&&(identical(other.accessToken, accessToken) || other.accessToken == accessToken)&&(identical(other.hasPasskeys, hasPasskeys) || other.hasPasskeys == hasPasskeys)&&(identical(other.isInitialized, isInitialized) || other.isInitialized == isInitialized)&&(identical(other.isInitializing, isInitializing) || other.isInitializing == isInitializing)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.error, error) || other.error == error));
+  final _this = this as AuthState;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthState&&(identical(other.user, _this.user) || other.user == _this.user)&&(identical(other.accessToken, _this.accessToken) || other.accessToken == _this.accessToken)&&(identical(other.hasPasskeys, _this.hasPasskeys) || other.hasPasskeys == _this.hasPasskeys)&&(identical(other.isInitialized, _this.isInitialized) || other.isInitialized == _this.isInitialized)&&(identical(other.isInitializing, _this.isInitializing) || other.isInitializing == _this.isInitializing)&&(identical(other.isLoading, _this.isLoading) || other.isLoading == _this.isLoading)&&(identical(other.error, _this.error) || other.error == _this.error));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,user,accessToken,hasPasskeys,isInitialized,isInitializing,isLoading,error);
+int get hashCode {
+  final _this = this as AuthState;
+  return Object.hash(runtimeType,_this.user,_this.accessToken,_this.hasPasskeys,_this.isInitialized,_this.isInitializing,_this.isLoading,_this.error);
+}
 
 @override
 String toString() {
-  return 'AuthState(user: $user, accessToken: $accessToken, hasPasskeys: $hasPasskeys, isInitialized: $isInitialized, isInitializing: $isInitializing, isLoading: $isLoading, error: $error)';
+  final _this = this as AuthState;
+  return 'AuthState(user: ${_this.user}, accessToken: ${_this.accessToken}, hasPasskeys: ${_this.hasPasskeys}, isInitialized: ${_this.isInitialized}, isInitializing: ${_this.isInitializing}, isLoading: ${_this.isLoading}, error: ${_this.error})';
 }
 
 
@@ -260,16 +265,18 @@ _$AuthStateCopyWith<_AuthState> get copyWith => __$AuthStateCopyWithImpl<_AuthSt
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthState&&(identical(other.user, user) || other.user == user)&&(identical(other.accessToken, accessToken) || other.accessToken == accessToken)&&(identical(other.hasPasskeys, hasPasskeys) || other.hasPasskeys == hasPasskeys)&&(identical(other.isInitialized, isInitialized) || other.isInitialized == isInitialized)&&(identical(other.isInitializing, isInitializing) || other.isInitializing == isInitializing)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.error, error) || other.error == error));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthState&&(identical(other.user, user) || other.user == user)&&(identical(other.accessToken, accessToken) || other.accessToken == accessToken)&&(identical(other.hasPasskeys, hasPasskeys) || other.hasPasskeys == hasPasskeys)&&(identical(other.isInitialized, isInitialized) || other.isInitialized == isInitialized)&&(identical(other.isInitializing, isInitializing) || other.isInitializing == isInitializing)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.error, error) || other.error == error));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,user,accessToken,hasPasskeys,isInitialized,isInitializing,isLoading,error);
+int get hashCode {
+    return Object.hash(runtimeType,user,accessToken,hasPasskeys,isInitialized,isInitializing,isLoading,error);
+}
 
 @override
 String toString() {
-  return 'AuthState(user: $user, accessToken: $accessToken, hasPasskeys: $hasPasskeys, isInitialized: $isInitialized, isInitializing: $isInitializing, isLoading: $isLoading, error: $error)';
+    return 'AuthState(user: $user, accessToken: $accessToken, hasPasskeys: $hasPasskeys, isInitialized: $isInitialized, isInitializing: $isInitializing, isLoading: $isLoading, error: $error)';
 }
 
 

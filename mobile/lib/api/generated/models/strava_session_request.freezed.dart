@@ -30,16 +30,21 @@ $StravaSessionRequestCopyWith<StravaSessionRequest> get copyWith => _$StravaSess
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is StravaSessionRequest&&(identical(other.code, code) || other.code == code));
+  final _this = this as StravaSessionRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StravaSessionRequest&&(identical(other.code, _this.code) || other.code == _this.code));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,code);
+int get hashCode {
+  final _this = this as StravaSessionRequest;
+  return Object.hash(runtimeType,_this.code);
+}
 
 @override
 String toString() {
-  return 'StravaSessionRequest(code: $code)';
+  final _this = this as StravaSessionRequest;
+  return 'StravaSessionRequest(code: ${_this.code})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StravaSessionRequest&&(identical(other.code, code) || other.code == code));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _StravaSessionRequest&&(identical(other.code, code) || other.code == code));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,code);
+int get hashCode {
+    return Object.hash(runtimeType,code);
+}
 
 @override
 String toString() {
-  return 'StravaSessionRequest(code: $code)';
+    return 'StravaSessionRequest(code: $code)';
 }
 
 

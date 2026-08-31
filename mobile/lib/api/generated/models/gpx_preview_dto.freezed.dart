@@ -42,16 +42,21 @@ $GpxPreviewDtoCopyWith<GpxPreviewDto> get copyWith => _$GpxPreviewDtoCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GpxPreviewDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.elevationLoss, elevationLoss) || other.elevationLoss == elevationLoss)&&(identical(other.hilliness, hilliness) || other.hilliness == hilliness)&&(identical(other.owned, owned) || other.owned == owned)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.gpxUrl, gpxUrl) || other.gpxUrl == gpxUrl)&&(identical(other.fitUrl, fitUrl) || other.fitUrl == fitUrl)&&const DeepCollectionEquality().equals(other.tracks, tracks)&&const DeepCollectionEquality().equals(other.waypoints, waypoints)&&(identical(other.thumbnailUrl, thumbnailUrl) || other.thumbnailUrl == thumbnailUrl));
+  final _this = this as GpxPreviewDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GpxPreviewDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.distance, _this.distance) || other.distance == _this.distance)&&(identical(other.elevationGain, _this.elevationGain) || other.elevationGain == _this.elevationGain)&&(identical(other.elevationLoss, _this.elevationLoss) || other.elevationLoss == _this.elevationLoss)&&(identical(other.hilliness, _this.hilliness) || other.hilliness == _this.hilliness)&&(identical(other.owned, _this.owned) || other.owned == _this.owned)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.gpxUrl, _this.gpxUrl) || other.gpxUrl == _this.gpxUrl)&&(identical(other.fitUrl, _this.fitUrl) || other.fitUrl == _this.fitUrl)&&const DeepCollectionEquality().equals(other.tracks, _this.tracks)&&const DeepCollectionEquality().equals(other.waypoints, _this.waypoints)&&(identical(other.thumbnailUrl, _this.thumbnailUrl) || other.thumbnailUrl == _this.thumbnailUrl));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,distance,elevationGain,elevationLoss,hilliness,owned,createdAt,gpxUrl,fitUrl,const DeepCollectionEquality().hash(tracks),const DeepCollectionEquality().hash(waypoints),thumbnailUrl);
+int get hashCode {
+  final _this = this as GpxPreviewDto;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.distance,_this.elevationGain,_this.elevationLoss,_this.hilliness,_this.owned,_this.createdAt,_this.gpxUrl,_this.fitUrl,const DeepCollectionEquality().hash(_this.tracks),const DeepCollectionEquality().hash(_this.waypoints),_this.thumbnailUrl);
+}
 
 @override
 String toString() {
-  return 'GpxPreviewDto(id: $id, name: $name, distance: $distance, elevationGain: $elevationGain, elevationLoss: $elevationLoss, hilliness: $hilliness, owned: $owned, createdAt: $createdAt, gpxUrl: $gpxUrl, fitUrl: $fitUrl, tracks: $tracks, waypoints: $waypoints, thumbnailUrl: $thumbnailUrl)';
+  final _this = this as GpxPreviewDto;
+  return 'GpxPreviewDto(id: ${_this.id}, name: ${_this.name}, distance: ${_this.distance}, elevationGain: ${_this.elevationGain}, elevationLoss: ${_this.elevationLoss}, hilliness: ${_this.hilliness}, owned: ${_this.owned}, createdAt: ${_this.createdAt}, gpxUrl: ${_this.gpxUrl}, fitUrl: ${_this.fitUrl}, tracks: ${_this.tracks}, waypoints: ${_this.waypoints}, thumbnailUrl: ${_this.thumbnailUrl})';
 }
 
 
@@ -292,16 +297,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GpxPreviewDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.elevationLoss, elevationLoss) || other.elevationLoss == elevationLoss)&&(identical(other.hilliness, hilliness) || other.hilliness == hilliness)&&(identical(other.owned, owned) || other.owned == owned)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.gpxUrl, gpxUrl) || other.gpxUrl == gpxUrl)&&(identical(other.fitUrl, fitUrl) || other.fitUrl == fitUrl)&&const DeepCollectionEquality().equals(other._tracks, _tracks)&&const DeepCollectionEquality().equals(other._waypoints, _waypoints)&&(identical(other.thumbnailUrl, thumbnailUrl) || other.thumbnailUrl == thumbnailUrl));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _GpxPreviewDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.elevationLoss, elevationLoss) || other.elevationLoss == elevationLoss)&&(identical(other.hilliness, hilliness) || other.hilliness == hilliness)&&(identical(other.owned, owned) || other.owned == owned)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.gpxUrl, gpxUrl) || other.gpxUrl == gpxUrl)&&(identical(other.fitUrl, fitUrl) || other.fitUrl == fitUrl)&&const DeepCollectionEquality().equals(other.tracks, _tracks)&&const DeepCollectionEquality().equals(other.waypoints, _waypoints)&&(identical(other.thumbnailUrl, thumbnailUrl) || other.thumbnailUrl == thumbnailUrl));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,distance,elevationGain,elevationLoss,hilliness,owned,createdAt,gpxUrl,fitUrl,const DeepCollectionEquality().hash(_tracks),const DeepCollectionEquality().hash(_waypoints),thumbnailUrl);
+int get hashCode {
+    return Object.hash(runtimeType,id,name,distance,elevationGain,elevationLoss,hilliness,owned,createdAt,gpxUrl,fitUrl,const DeepCollectionEquality().hash(_tracks),const DeepCollectionEquality().hash(_waypoints),thumbnailUrl);
+}
 
 @override
 String toString() {
-  return 'GpxPreviewDto(id: $id, name: $name, distance: $distance, elevationGain: $elevationGain, elevationLoss: $elevationLoss, hilliness: $hilliness, owned: $owned, createdAt: $createdAt, gpxUrl: $gpxUrl, fitUrl: $fitUrl, tracks: $tracks, waypoints: $waypoints, thumbnailUrl: $thumbnailUrl)';
+    return 'GpxPreviewDto(id: $id, name: $name, distance: $distance, elevationGain: $elevationGain, elevationLoss: $elevationLoss, hilliness: $hilliness, owned: $owned, createdAt: $createdAt, gpxUrl: $gpxUrl, fitUrl: $fitUrl, tracks: $tracks, waypoints: $waypoints, thumbnailUrl: $thumbnailUrl)';
 }
 
 

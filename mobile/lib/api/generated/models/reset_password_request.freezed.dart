@@ -31,16 +31,21 @@ $ResetPasswordRequestCopyWith<ResetPasswordRequest> get copyWith => _$ResetPassw
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ResetPasswordRequest&&(identical(other.token, token) || other.token == token)&&(identical(other.newPassword, newPassword) || other.newPassword == newPassword));
+  final _this = this as ResetPasswordRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ResetPasswordRequest&&(identical(other.token, _this.token) || other.token == _this.token)&&(identical(other.newPassword, _this.newPassword) || other.newPassword == _this.newPassword));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,token,newPassword);
+int get hashCode {
+  final _this = this as ResetPasswordRequest;
+  return Object.hash(runtimeType,_this.token,_this.newPassword);
+}
 
 @override
 String toString() {
-  return 'ResetPasswordRequest(token: $token, newPassword: $newPassword)';
+  final _this = this as ResetPasswordRequest;
+  return 'ResetPasswordRequest(token: ${_this.token}, newPassword: ${_this.newPassword})';
 }
 
 
@@ -234,16 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ResetPasswordRequest&&(identical(other.token, token) || other.token == token)&&(identical(other.newPassword, newPassword) || other.newPassword == newPassword));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ResetPasswordRequest&&(identical(other.token, token) || other.token == token)&&(identical(other.newPassword, newPassword) || other.newPassword == newPassword));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,token,newPassword);
+int get hashCode {
+    return Object.hash(runtimeType,token,newPassword);
+}
 
 @override
 String toString() {
-  return 'ResetPasswordRequest(token: $token, newPassword: $newPassword)';
+    return 'ResetPasswordRequest(token: $token, newPassword: $newPassword)';
 }
 
 

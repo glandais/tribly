@@ -44,16 +44,21 @@ $RouteDtoCopyWith<RouteDto> get copyWith => _$RouteDtoCopyWithImpl<RouteDto>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RouteDto&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.team, team) || other.team == team)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.elevationLoss, elevationLoss) || other.elevationLoss == elevationLoss)&&(identical(other.surfaceType, surfaceType) || other.surfaceType == surfaceType)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.excerpt, excerpt) || other.excerpt == excerpt)&&(identical(other.thumbnailUrl, thumbnailUrl) || other.thumbnailUrl == thumbnailUrl)&&(identical(other.commentCount, commentCount) || other.commentCount == commentCount));
+  final _this = this as RouteDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RouteDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.slug, _this.slug) || other.slug == _this.slug)&&(identical(other.team, _this.team) || other.team == _this.team)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.media, _this.media) || other.media == _this.media)&&(identical(other.distance, _this.distance) || other.distance == _this.distance)&&(identical(other.elevationGain, _this.elevationGain) || other.elevationGain == _this.elevationGain)&&(identical(other.elevationLoss, _this.elevationLoss) || other.elevationLoss == _this.elevationLoss)&&(identical(other.surfaceType, _this.surfaceType) || other.surfaceType == _this.surfaceType)&&(identical(other.visibility, _this.visibility) || other.visibility == _this.visibility)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.deleted, _this.deleted) || other.deleted == _this.deleted)&&(identical(other.excerpt, _this.excerpt) || other.excerpt == _this.excerpt)&&(identical(other.thumbnailUrl, _this.thumbnailUrl) || other.thumbnailUrl == _this.thumbnailUrl)&&(identical(other.commentCount, _this.commentCount) || other.commentCount == _this.commentCount));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,slug,team,name,media,distance,elevationGain,elevationLoss,surfaceType,visibility,createdAt,deleted,excerpt,thumbnailUrl,commentCount);
+int get hashCode {
+  final _this = this as RouteDto;
+  return Object.hash(runtimeType,_this.id,_this.slug,_this.team,_this.name,_this.media,_this.distance,_this.elevationGain,_this.elevationLoss,_this.surfaceType,_this.visibility,_this.createdAt,_this.deleted,_this.excerpt,_this.thumbnailUrl,_this.commentCount);
+}
 
 @override
 String toString() {
-  return 'RouteDto(id: $id, slug: $slug, team: $team, name: $name, media: $media, distance: $distance, elevationGain: $elevationGain, elevationLoss: $elevationLoss, surfaceType: $surfaceType, visibility: $visibility, createdAt: $createdAt, deleted: $deleted, excerpt: $excerpt, thumbnailUrl: $thumbnailUrl, commentCount: $commentCount)';
+  final _this = this as RouteDto;
+  return 'RouteDto(id: ${_this.id}, slug: ${_this.slug}, team: ${_this.team}, name: ${_this.name}, media: ${_this.media}, distance: ${_this.distance}, elevationGain: ${_this.elevationGain}, elevationLoss: ${_this.elevationLoss}, surfaceType: ${_this.surfaceType}, visibility: ${_this.visibility}, createdAt: ${_this.createdAt}, deleted: ${_this.deleted}, excerpt: ${_this.excerpt}, thumbnailUrl: ${_this.thumbnailUrl}, commentCount: ${_this.commentCount})';
 }
 
 
@@ -304,16 +309,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RouteDto&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.team, team) || other.team == team)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.elevationLoss, elevationLoss) || other.elevationLoss == elevationLoss)&&(identical(other.surfaceType, surfaceType) || other.surfaceType == surfaceType)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.excerpt, excerpt) || other.excerpt == excerpt)&&(identical(other.thumbnailUrl, thumbnailUrl) || other.thumbnailUrl == thumbnailUrl)&&(identical(other.commentCount, commentCount) || other.commentCount == commentCount));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RouteDto&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.team, team) || other.team == team)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.elevationLoss, elevationLoss) || other.elevationLoss == elevationLoss)&&(identical(other.surfaceType, surfaceType) || other.surfaceType == surfaceType)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.excerpt, excerpt) || other.excerpt == excerpt)&&(identical(other.thumbnailUrl, thumbnailUrl) || other.thumbnailUrl == thumbnailUrl)&&(identical(other.commentCount, commentCount) || other.commentCount == commentCount));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,slug,team,name,media,distance,elevationGain,elevationLoss,surfaceType,visibility,createdAt,deleted,excerpt,thumbnailUrl,commentCount);
+int get hashCode {
+    return Object.hash(runtimeType,id,slug,team,name,media,distance,elevationGain,elevationLoss,surfaceType,visibility,createdAt,deleted,excerpt,thumbnailUrl,commentCount);
+}
 
 @override
 String toString() {
-  return 'RouteDto(id: $id, slug: $slug, team: $team, name: $name, media: $media, distance: $distance, elevationGain: $elevationGain, elevationLoss: $elevationLoss, surfaceType: $surfaceType, visibility: $visibility, createdAt: $createdAt, deleted: $deleted, excerpt: $excerpt, thumbnailUrl: $thumbnailUrl, commentCount: $commentCount)';
+    return 'RouteDto(id: $id, slug: $slug, team: $team, name: $name, media: $media, distance: $distance, elevationGain: $elevationGain, elevationLoss: $elevationLoss, surfaceType: $surfaceType, visibility: $visibility, createdAt: $createdAt, deleted: $deleted, excerpt: $excerpt, thumbnailUrl: $thumbnailUrl, commentCount: $commentCount)';
 }
 
 

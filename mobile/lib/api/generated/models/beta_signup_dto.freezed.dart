@@ -32,16 +32,21 @@ $BetaSignupDtoCopyWith<BetaSignupDto> get copyWith => _$BetaSignupDtoCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BetaSignupDto&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  final _this = this as BetaSignupDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BetaSignupDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.email, _this.email) || other.email == _this.email)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,email,createdAt);
+int get hashCode {
+  final _this = this as BetaSignupDto;
+  return Object.hash(runtimeType,_this.id,_this.email,_this.createdAt);
+}
 
 @override
 String toString() {
-  return 'BetaSignupDto(id: $id, email: $email, createdAt: $createdAt)';
+  final _this = this as BetaSignupDto;
+  return 'BetaSignupDto(id: ${_this.id}, email: ${_this.email}, createdAt: ${_this.createdAt})';
 }
 
 
@@ -238,16 +243,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BetaSignupDto&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _BetaSignupDto&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,email,createdAt);
+int get hashCode {
+    return Object.hash(runtimeType,id,email,createdAt);
+}
 
 @override
 String toString() {
-  return 'BetaSignupDto(id: $id, email: $email, createdAt: $createdAt)';
+    return 'BetaSignupDto(id: $id, email: $email, createdAt: $createdAt)';
 }
 
 

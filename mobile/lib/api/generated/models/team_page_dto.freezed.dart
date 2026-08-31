@@ -37,16 +37,21 @@ $TeamPageDtoCopyWith<TeamPageDto> get copyWith => _$TeamPageDtoCopyWithImpl<Team
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeamPageDto&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.media, media) || other.media == media)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.order, order) || other.order == order)&&(identical(other.deleted, deleted) || other.deleted == deleted));
+  final _this = this as TeamPageDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeamPageDto&&(identical(other.team, _this.team) || other.team == _this.team)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.slug, _this.slug) || other.slug == _this.slug)&&(identical(other.media, _this.media) || other.media == _this.media)&&(identical(other.visibility, _this.visibility) || other.visibility == _this.visibility)&&(identical(other.order, _this.order) || other.order == _this.order)&&(identical(other.deleted, _this.deleted) || other.deleted == _this.deleted));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,team,id,title,slug,media,visibility,order,deleted);
+int get hashCode {
+  final _this = this as TeamPageDto;
+  return Object.hash(runtimeType,_this.team,_this.id,_this.title,_this.slug,_this.media,_this.visibility,_this.order,_this.deleted);
+}
 
 @override
 String toString() {
-  return 'TeamPageDto(team: $team, id: $id, title: $title, slug: $slug, media: $media, visibility: $visibility, order: $order, deleted: $deleted)';
+  final _this = this as TeamPageDto;
+  return 'TeamPageDto(team: ${_this.team}, id: ${_this.id}, title: ${_this.title}, slug: ${_this.slug}, media: ${_this.media}, visibility: ${_this.visibility}, order: ${_this.order}, deleted: ${_this.deleted})';
 }
 
 
@@ -276,16 +281,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeamPageDto&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.media, media) || other.media == media)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.order, order) || other.order == order)&&(identical(other.deleted, deleted) || other.deleted == deleted));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeamPageDto&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.media, media) || other.media == media)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.order, order) || other.order == order)&&(identical(other.deleted, deleted) || other.deleted == deleted));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,team,id,title,slug,media,visibility,order,deleted);
+int get hashCode {
+    return Object.hash(runtimeType,team,id,title,slug,media,visibility,order,deleted);
+}
 
 @override
 String toString() {
-  return 'TeamPageDto(team: $team, id: $id, title: $title, slug: $slug, media: $media, visibility: $visibility, order: $order, deleted: $deleted)';
+    return 'TeamPageDto(team: $team, id: $id, title: $title, slug: $slug, media: $media, visibility: $visibility, order: $order, deleted: $deleted)';
 }
 
 

@@ -34,16 +34,21 @@ $MemberDtoCopyWith<MemberDto> get copyWith => _$MemberDtoCopyWithImpl<MemberDto>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MemberDto&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.user, user) || other.user == user)&&(identical(other.role, role) || other.role == role)&&(identical(other.joinedAt, joinedAt) || other.joinedAt == joinedAt));
+  final _this = this as MemberDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MemberDto&&(identical(other.team, _this.team) || other.team == _this.team)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.user, _this.user) || other.user == _this.user)&&(identical(other.role, _this.role) || other.role == _this.role)&&(identical(other.joinedAt, _this.joinedAt) || other.joinedAt == _this.joinedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,team,id,user,role,joinedAt);
+int get hashCode {
+  final _this = this as MemberDto;
+  return Object.hash(runtimeType,_this.team,_this.id,_this.user,_this.role,_this.joinedAt);
+}
 
 @override
 String toString() {
-  return 'MemberDto(team: $team, id: $id, user: $user, role: $role, joinedAt: $joinedAt)';
+  final _this = this as MemberDto;
+  return 'MemberDto(team: ${_this.team}, id: ${_this.id}, user: ${_this.user}, role: ${_this.role}, joinedAt: ${_this.joinedAt})';
 }
 
 
@@ -264,16 +269,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MemberDto&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.user, user) || other.user == user)&&(identical(other.role, role) || other.role == role)&&(identical(other.joinedAt, joinedAt) || other.joinedAt == joinedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MemberDto&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.user, user) || other.user == user)&&(identical(other.role, role) || other.role == role)&&(identical(other.joinedAt, joinedAt) || other.joinedAt == joinedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,team,id,user,role,joinedAt);
+int get hashCode {
+    return Object.hash(runtimeType,team,id,user,role,joinedAt);
+}
 
 @override
 String toString() {
-  return 'MemberDto(team: $team, id: $id, user: $user, role: $role, joinedAt: $joinedAt)';
+    return 'MemberDto(team: $team, id: $id, user: $user, role: $role, joinedAt: $joinedAt)';
 }
 
 

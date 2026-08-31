@@ -35,16 +35,21 @@ $AssetDtoCopyWith<AssetDto> get copyWith => _$AssetDtoCopyWithImpl<AssetDto>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AssetDto&&(identical(other.id, id) || other.id == id)&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.contentType, contentType) || other.contentType == contentType)&&(identical(other.url, url) || other.url == url)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.imageDimensions, imageDimensions) || other.imageDimensions == imageDimensions));
+  final _this = this as AssetDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AssetDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.fileName, _this.fileName) || other.fileName == _this.fileName)&&(identical(other.contentType, _this.contentType) || other.contentType == _this.contentType)&&(identical(other.url, _this.url) || other.url == _this.url)&&(identical(other.imageUrl, _this.imageUrl) || other.imageUrl == _this.imageUrl)&&(identical(other.imageDimensions, _this.imageDimensions) || other.imageDimensions == _this.imageDimensions));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,fileName,contentType,url,imageUrl,imageDimensions);
+int get hashCode {
+  final _this = this as AssetDto;
+  return Object.hash(runtimeType,_this.id,_this.fileName,_this.contentType,_this.url,_this.imageUrl,_this.imageDimensions);
+}
 
 @override
 String toString() {
-  return 'AssetDto(id: $id, fileName: $fileName, contentType: $contentType, url: $url, imageUrl: $imageUrl, imageDimensions: $imageDimensions)';
+  final _this = this as AssetDto;
+  return 'AssetDto(id: ${_this.id}, fileName: ${_this.fileName}, contentType: ${_this.contentType}, url: ${_this.url}, imageUrl: ${_this.imageUrl}, imageDimensions: ${_this.imageDimensions})';
 }
 
 
@@ -262,16 +267,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AssetDto&&(identical(other.id, id) || other.id == id)&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.contentType, contentType) || other.contentType == contentType)&&(identical(other.url, url) || other.url == url)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.imageDimensions, imageDimensions) || other.imageDimensions == imageDimensions));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AssetDto&&(identical(other.id, id) || other.id == id)&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.contentType, contentType) || other.contentType == contentType)&&(identical(other.url, url) || other.url == url)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.imageDimensions, imageDimensions) || other.imageDimensions == imageDimensions));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,fileName,contentType,url,imageUrl,imageDimensions);
+int get hashCode {
+    return Object.hash(runtimeType,id,fileName,contentType,url,imageUrl,imageDimensions);
+}
 
 @override
 String toString() {
-  return 'AssetDto(id: $id, fileName: $fileName, contentType: $contentType, url: $url, imageUrl: $imageUrl, imageDimensions: $imageDimensions)';
+    return 'AssetDto(id: $id, fileName: $fileName, contentType: $contentType, url: $url, imageUrl: $imageUrl, imageDimensions: $imageDimensions)';
 }
 
 

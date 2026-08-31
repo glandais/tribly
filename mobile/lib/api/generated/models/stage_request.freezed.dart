@@ -36,16 +36,21 @@ $StageRequestCopyWith<StageRequest> get copyWith => _$StageRequestCopyWithImpl<S
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is StageRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.media, media) || other.media == media)&&(identical(other.id, id) || other.id == id)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.startPlaceId, startPlaceId) || other.startPlaceId == startPlaceId)&&(identical(other.endPlaceId, endPlaceId) || other.endPlaceId == endPlaceId));
+  final _this = this as StageRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StageRequest&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.dateTime, _this.dateTime) || other.dateTime == _this.dateTime)&&(identical(other.media, _this.media) || other.media == _this.media)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.routeSlug, _this.routeSlug) || other.routeSlug == _this.routeSlug)&&(identical(other.startPlaceId, _this.startPlaceId) || other.startPlaceId == _this.startPlaceId)&&(identical(other.endPlaceId, _this.endPlaceId) || other.endPlaceId == _this.endPlaceId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,dateTime,media,id,routeSlug,startPlaceId,endPlaceId);
+int get hashCode {
+  final _this = this as StageRequest;
+  return Object.hash(runtimeType,_this.name,_this.dateTime,_this.media,_this.id,_this.routeSlug,_this.startPlaceId,_this.endPlaceId);
+}
 
 @override
 String toString() {
-  return 'StageRequest(name: $name, dateTime: $dateTime, media: $media, id: $id, routeSlug: $routeSlug, startPlaceId: $startPlaceId, endPlaceId: $endPlaceId)';
+  final _this = this as StageRequest;
+  return 'StageRequest(name: ${_this.name}, dateTime: ${_this.dateTime}, media: ${_this.media}, id: ${_this.id}, routeSlug: ${_this.routeSlug}, startPlaceId: ${_this.startPlaceId}, endPlaceId: ${_this.endPlaceId})';
 }
 
 
@@ -263,16 +268,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StageRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.media, media) || other.media == media)&&(identical(other.id, id) || other.id == id)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.startPlaceId, startPlaceId) || other.startPlaceId == startPlaceId)&&(identical(other.endPlaceId, endPlaceId) || other.endPlaceId == endPlaceId));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _StageRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.media, media) || other.media == media)&&(identical(other.id, id) || other.id == id)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.startPlaceId, startPlaceId) || other.startPlaceId == startPlaceId)&&(identical(other.endPlaceId, endPlaceId) || other.endPlaceId == endPlaceId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,dateTime,media,id,routeSlug,startPlaceId,endPlaceId);
+int get hashCode {
+    return Object.hash(runtimeType,name,dateTime,media,id,routeSlug,startPlaceId,endPlaceId);
+}
 
 @override
 String toString() {
-  return 'StageRequest(name: $name, dateTime: $dateTime, media: $media, id: $id, routeSlug: $routeSlug, startPlaceId: $startPlaceId, endPlaceId: $endPlaceId)';
+    return 'StageRequest(name: $name, dateTime: $dateTime, media: $media, id: $id, routeSlug: $routeSlug, startPlaceId: $startPlaceId, endPlaceId: $endPlaceId)';
 }
 
 

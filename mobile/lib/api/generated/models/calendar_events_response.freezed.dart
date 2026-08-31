@@ -30,16 +30,21 @@ $CalendarEventsResponseCopyWith<CalendarEventsResponse> get copyWith => _$Calend
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CalendarEventsResponse&&const DeepCollectionEquality().equals(other.events, events));
+  final _this = this as CalendarEventsResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CalendarEventsResponse&&const DeepCollectionEquality().equals(other.events, _this.events));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(events));
+int get hashCode {
+  final _this = this as CalendarEventsResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.events));
+}
 
 @override
 String toString() {
-  return 'CalendarEventsResponse(events: $events)';
+  final _this = this as CalendarEventsResponse;
+  return 'CalendarEventsResponse(events: ${_this.events})';
 }
 
 
@@ -237,16 +242,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CalendarEventsResponse&&const DeepCollectionEquality().equals(other._events, _events));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CalendarEventsResponse&&const DeepCollectionEquality().equals(other.events, _events));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_events));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_events));
+}
 
 @override
 String toString() {
-  return 'CalendarEventsResponse(events: $events)';
+    return 'CalendarEventsResponse(events: $events)';
 }
 
 

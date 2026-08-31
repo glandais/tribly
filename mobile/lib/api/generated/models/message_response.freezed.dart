@@ -30,16 +30,21 @@ $MessageResponseCopyWith<MessageResponse> get copyWith => _$MessageResponseCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MessageResponse&&(identical(other.message, message) || other.message == message));
+  final _this = this as MessageResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MessageResponse&&(identical(other.message, _this.message) || other.message == _this.message));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,message);
+int get hashCode {
+  final _this = this as MessageResponse;
+  return Object.hash(runtimeType,_this.message);
+}
 
 @override
 String toString() {
-  return 'MessageResponse(message: $message)';
+  final _this = this as MessageResponse;
+  return 'MessageResponse(message: ${_this.message})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MessageResponse&&(identical(other.message, message) || other.message == message));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MessageResponse&&(identical(other.message, message) || other.message == message));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,message);
+int get hashCode {
+    return Object.hash(runtimeType,message);
+}
 
 @override
 String toString() {
-  return 'MessageResponse(message: $message)';
+    return 'MessageResponse(message: $message)';
 }
 
 

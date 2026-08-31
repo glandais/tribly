@@ -32,16 +32,21 @@ $MapCenterDtoCopyWith<MapCenterDto> get copyWith => _$MapCenterDtoCopyWithImpl<M
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MapCenterDto&&(identical(other.lat, lat) || other.lat == lat)&&(identical(other.lon, lon) || other.lon == lon)&&(identical(other.zoom, zoom) || other.zoom == zoom));
+  final _this = this as MapCenterDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MapCenterDto&&(identical(other.lat, _this.lat) || other.lat == _this.lat)&&(identical(other.lon, _this.lon) || other.lon == _this.lon)&&(identical(other.zoom, _this.zoom) || other.zoom == _this.zoom));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,lat,lon,zoom);
+int get hashCode {
+  final _this = this as MapCenterDto;
+  return Object.hash(runtimeType,_this.lat,_this.lon,_this.zoom);
+}
 
 @override
 String toString() {
-  return 'MapCenterDto(lat: $lat, lon: $lon, zoom: $zoom)';
+  final _this = this as MapCenterDto;
+  return 'MapCenterDto(lat: ${_this.lat}, lon: ${_this.lon}, zoom: ${_this.zoom})';
 }
 
 
@@ -238,16 +243,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MapCenterDto&&(identical(other.lat, lat) || other.lat == lat)&&(identical(other.lon, lon) || other.lon == lon)&&(identical(other.zoom, zoom) || other.zoom == zoom));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MapCenterDto&&(identical(other.lat, lat) || other.lat == lat)&&(identical(other.lon, lon) || other.lon == lon)&&(identical(other.zoom, zoom) || other.zoom == zoom));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,lat,lon,zoom);
+int get hashCode {
+    return Object.hash(runtimeType,lat,lon,zoom);
+}
 
 @override
 String toString() {
-  return 'MapCenterDto(lat: $lat, lon: $lon, zoom: $zoom)';
+    return 'MapCenterDto(lat: $lat, lon: $lon, zoom: $zoom)';
 }
 
 

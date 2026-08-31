@@ -39,16 +39,21 @@ $ConfigDtoCopyWith<ConfigDto> get copyWith => _$ConfigDtoCopyWithImpl<ConfigDto>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ConfigDto&&(identical(other.webAuthnRpId, webAuthnRpId) || other.webAuthnRpId == webAuthnRpId)&&(identical(other.appName, appName) || other.appName == appName)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam)&&(identical(other.enableGpxPlanner, enableGpxPlanner) || other.enableGpxPlanner == enableGpxPlanner)&&const DeepCollectionEquality().equals(other.mapStyles, mapStyles)&&(identical(other.tileServerBaseUrl, tileServerBaseUrl) || other.tileServerBaseUrl == tileServerBaseUrl)&&(identical(other.defaultCenter, defaultCenter) || other.defaultCenter == defaultCenter)&&(identical(other.pinnedTeamSlug, pinnedTeamSlug) || other.pinnedTeamSlug == pinnedTeamSlug)&&(identical(other.terrain, terrain) || other.terrain == terrain)&&(identical(other.minSupportedAppVersion, minSupportedAppVersion) || other.minSupportedAppVersion == minSupportedAppVersion));
+  final _this = this as ConfigDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ConfigDto&&(identical(other.webAuthnRpId, _this.webAuthnRpId) || other.webAuthnRpId == _this.webAuthnRpId)&&(identical(other.appName, _this.appName) || other.appName == _this.appName)&&(identical(other.singleTeam, _this.singleTeam) || other.singleTeam == _this.singleTeam)&&(identical(other.enableGpxPlanner, _this.enableGpxPlanner) || other.enableGpxPlanner == _this.enableGpxPlanner)&&const DeepCollectionEquality().equals(other.mapStyles, _this.mapStyles)&&(identical(other.tileServerBaseUrl, _this.tileServerBaseUrl) || other.tileServerBaseUrl == _this.tileServerBaseUrl)&&(identical(other.defaultCenter, _this.defaultCenter) || other.defaultCenter == _this.defaultCenter)&&(identical(other.pinnedTeamSlug, _this.pinnedTeamSlug) || other.pinnedTeamSlug == _this.pinnedTeamSlug)&&(identical(other.terrain, _this.terrain) || other.terrain == _this.terrain)&&(identical(other.minSupportedAppVersion, _this.minSupportedAppVersion) || other.minSupportedAppVersion == _this.minSupportedAppVersion));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,webAuthnRpId,appName,singleTeam,enableGpxPlanner,const DeepCollectionEquality().hash(mapStyles),tileServerBaseUrl,defaultCenter,pinnedTeamSlug,terrain,minSupportedAppVersion);
+int get hashCode {
+  final _this = this as ConfigDto;
+  return Object.hash(runtimeType,_this.webAuthnRpId,_this.appName,_this.singleTeam,_this.enableGpxPlanner,const DeepCollectionEquality().hash(_this.mapStyles),_this.tileServerBaseUrl,_this.defaultCenter,_this.pinnedTeamSlug,_this.terrain,_this.minSupportedAppVersion);
+}
 
 @override
 String toString() {
-  return 'ConfigDto(webAuthnRpId: $webAuthnRpId, appName: $appName, singleTeam: $singleTeam, enableGpxPlanner: $enableGpxPlanner, mapStyles: $mapStyles, tileServerBaseUrl: $tileServerBaseUrl, defaultCenter: $defaultCenter, pinnedTeamSlug: $pinnedTeamSlug, terrain: $terrain, minSupportedAppVersion: $minSupportedAppVersion)';
+  final _this = this as ConfigDto;
+  return 'ConfigDto(webAuthnRpId: ${_this.webAuthnRpId}, appName: ${_this.appName}, singleTeam: ${_this.singleTeam}, enableGpxPlanner: ${_this.enableGpxPlanner}, mapStyles: ${_this.mapStyles}, tileServerBaseUrl: ${_this.tileServerBaseUrl}, defaultCenter: ${_this.defaultCenter}, pinnedTeamSlug: ${_this.pinnedTeamSlug}, terrain: ${_this.terrain}, minSupportedAppVersion: ${_this.minSupportedAppVersion})';
 }
 
 
@@ -294,16 +299,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ConfigDto&&(identical(other.webAuthnRpId, webAuthnRpId) || other.webAuthnRpId == webAuthnRpId)&&(identical(other.appName, appName) || other.appName == appName)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam)&&(identical(other.enableGpxPlanner, enableGpxPlanner) || other.enableGpxPlanner == enableGpxPlanner)&&const DeepCollectionEquality().equals(other._mapStyles, _mapStyles)&&(identical(other.tileServerBaseUrl, tileServerBaseUrl) || other.tileServerBaseUrl == tileServerBaseUrl)&&(identical(other.defaultCenter, defaultCenter) || other.defaultCenter == defaultCenter)&&(identical(other.pinnedTeamSlug, pinnedTeamSlug) || other.pinnedTeamSlug == pinnedTeamSlug)&&(identical(other.terrain, terrain) || other.terrain == terrain)&&(identical(other.minSupportedAppVersion, minSupportedAppVersion) || other.minSupportedAppVersion == minSupportedAppVersion));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ConfigDto&&(identical(other.webAuthnRpId, webAuthnRpId) || other.webAuthnRpId == webAuthnRpId)&&(identical(other.appName, appName) || other.appName == appName)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam)&&(identical(other.enableGpxPlanner, enableGpxPlanner) || other.enableGpxPlanner == enableGpxPlanner)&&const DeepCollectionEquality().equals(other.mapStyles, _mapStyles)&&(identical(other.tileServerBaseUrl, tileServerBaseUrl) || other.tileServerBaseUrl == tileServerBaseUrl)&&(identical(other.defaultCenter, defaultCenter) || other.defaultCenter == defaultCenter)&&(identical(other.pinnedTeamSlug, pinnedTeamSlug) || other.pinnedTeamSlug == pinnedTeamSlug)&&(identical(other.terrain, terrain) || other.terrain == terrain)&&(identical(other.minSupportedAppVersion, minSupportedAppVersion) || other.minSupportedAppVersion == minSupportedAppVersion));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,webAuthnRpId,appName,singleTeam,enableGpxPlanner,const DeepCollectionEquality().hash(_mapStyles),tileServerBaseUrl,defaultCenter,pinnedTeamSlug,terrain,minSupportedAppVersion);
+int get hashCode {
+    return Object.hash(runtimeType,webAuthnRpId,appName,singleTeam,enableGpxPlanner,const DeepCollectionEquality().hash(_mapStyles),tileServerBaseUrl,defaultCenter,pinnedTeamSlug,terrain,minSupportedAppVersion);
+}
 
 @override
 String toString() {
-  return 'ConfigDto(webAuthnRpId: $webAuthnRpId, appName: $appName, singleTeam: $singleTeam, enableGpxPlanner: $enableGpxPlanner, mapStyles: $mapStyles, tileServerBaseUrl: $tileServerBaseUrl, defaultCenter: $defaultCenter, pinnedTeamSlug: $pinnedTeamSlug, terrain: $terrain, minSupportedAppVersion: $minSupportedAppVersion)';
+    return 'ConfigDto(webAuthnRpId: $webAuthnRpId, appName: $appName, singleTeam: $singleTeam, enableGpxPlanner: $enableGpxPlanner, mapStyles: $mapStyles, tileServerBaseUrl: $tileServerBaseUrl, defaultCenter: $defaultCenter, pinnedTeamSlug: $pinnedTeamSlug, terrain: $terrain, minSupportedAppVersion: $minSupportedAppVersion)';
 }
 
 

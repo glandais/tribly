@@ -35,16 +35,21 @@ $TeamPageSummaryDtoCopyWith<TeamPageSummaryDto> get copyWith => _$TeamPageSummar
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeamPageSummaryDto&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.order, order) || other.order == order)&&(identical(other.deleted, deleted) || other.deleted == deleted));
+  final _this = this as TeamPageSummaryDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeamPageSummaryDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.slug, _this.slug) || other.slug == _this.slug)&&(identical(other.visibility, _this.visibility) || other.visibility == _this.visibility)&&(identical(other.order, _this.order) || other.order == _this.order)&&(identical(other.deleted, _this.deleted) || other.deleted == _this.deleted));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,slug,visibility,order,deleted);
+int get hashCode {
+  final _this = this as TeamPageSummaryDto;
+  return Object.hash(runtimeType,_this.id,_this.title,_this.slug,_this.visibility,_this.order,_this.deleted);
+}
 
 @override
 String toString() {
-  return 'TeamPageSummaryDto(id: $id, title: $title, slug: $slug, visibility: $visibility, order: $order, deleted: $deleted)';
+  final _this = this as TeamPageSummaryDto;
+  return 'TeamPageSummaryDto(id: ${_this.id}, title: ${_this.title}, slug: ${_this.slug}, visibility: ${_this.visibility}, order: ${_this.order}, deleted: ${_this.deleted})';
 }
 
 
@@ -250,16 +255,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeamPageSummaryDto&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.order, order) || other.order == order)&&(identical(other.deleted, deleted) || other.deleted == deleted));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeamPageSummaryDto&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.order, order) || other.order == order)&&(identical(other.deleted, deleted) || other.deleted == deleted));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,slug,visibility,order,deleted);
+int get hashCode {
+    return Object.hash(runtimeType,id,title,slug,visibility,order,deleted);
+}
 
 @override
 String toString() {
-  return 'TeamPageSummaryDto(id: $id, title: $title, slug: $slug, visibility: $visibility, order: $order, deleted: $deleted)';
+    return 'TeamPageSummaryDto(id: $id, title: $title, slug: $slug, visibility: $visibility, order: $order, deleted: $deleted)';
 }
 
 

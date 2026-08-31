@@ -30,16 +30,21 @@ $ReorderPagesRequestCopyWith<ReorderPagesRequest> get copyWith => _$ReorderPages
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReorderPagesRequest&&const DeepCollectionEquality().equals(other.pageIds, pageIds));
+  final _this = this as ReorderPagesRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReorderPagesRequest&&const DeepCollectionEquality().equals(other.pageIds, _this.pageIds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(pageIds));
+int get hashCode {
+  final _this = this as ReorderPagesRequest;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.pageIds));
+}
 
 @override
 String toString() {
-  return 'ReorderPagesRequest(pageIds: $pageIds)';
+  final _this = this as ReorderPagesRequest;
+  return 'ReorderPagesRequest(pageIds: ${_this.pageIds})';
 }
 
 
@@ -237,16 +242,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReorderPagesRequest&&const DeepCollectionEquality().equals(other._pageIds, _pageIds));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReorderPagesRequest&&const DeepCollectionEquality().equals(other.pageIds, _pageIds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_pageIds));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_pageIds));
+}
 
 @override
 String toString() {
-  return 'ReorderPagesRequest(pageIds: $pageIds)';
+    return 'ReorderPagesRequest(pageIds: $pageIds)';
 }
 
 

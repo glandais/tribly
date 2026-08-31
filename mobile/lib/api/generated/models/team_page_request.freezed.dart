@@ -32,16 +32,21 @@ $TeamPageRequestCopyWith<TeamPageRequest> get copyWith => _$TeamPageRequestCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeamPageRequest&&(identical(other.title, title) || other.title == title)&&(identical(other.media, media) || other.media == media)&&(identical(other.visibility, visibility) || other.visibility == visibility));
+  final _this = this as TeamPageRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeamPageRequest&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.media, _this.media) || other.media == _this.media)&&(identical(other.visibility, _this.visibility) || other.visibility == _this.visibility));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,media,visibility);
+int get hashCode {
+  final _this = this as TeamPageRequest;
+  return Object.hash(runtimeType,_this.title,_this.media,_this.visibility);
+}
 
 @override
 String toString() {
-  return 'TeamPageRequest(title: $title, media: $media, visibility: $visibility)';
+  final _this = this as TeamPageRequest;
+  return 'TeamPageRequest(title: ${_this.title}, media: ${_this.media}, visibility: ${_this.visibility})';
 }
 
 
@@ -247,16 +252,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeamPageRequest&&(identical(other.title, title) || other.title == title)&&(identical(other.media, media) || other.media == media)&&(identical(other.visibility, visibility) || other.visibility == visibility));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeamPageRequest&&(identical(other.title, title) || other.title == title)&&(identical(other.media, media) || other.media == media)&&(identical(other.visibility, visibility) || other.visibility == visibility));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,media,visibility);
+int get hashCode {
+    return Object.hash(runtimeType,title,media,visibility);
+}
 
 @override
 String toString() {
-  return 'TeamPageRequest(title: $title, media: $media, visibility: $visibility)';
+    return 'TeamPageRequest(title: $title, media: $media, visibility: $visibility)';
 }
 
 

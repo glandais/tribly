@@ -32,16 +32,21 @@ $SocialIdentityDtoCopyWith<SocialIdentityDto> get copyWith => _$SocialIdentityDt
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SocialIdentityDto&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.linkedAt, linkedAt) || other.linkedAt == linkedAt));
+  final _this = this as SocialIdentityDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SocialIdentityDto&&(identical(other.provider, _this.provider) || other.provider == _this.provider)&&(identical(other.displayName, _this.displayName) || other.displayName == _this.displayName)&&(identical(other.linkedAt, _this.linkedAt) || other.linkedAt == _this.linkedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,provider,displayName,linkedAt);
+int get hashCode {
+  final _this = this as SocialIdentityDto;
+  return Object.hash(runtimeType,_this.provider,_this.displayName,_this.linkedAt);
+}
 
 @override
 String toString() {
-  return 'SocialIdentityDto(provider: $provider, displayName: $displayName, linkedAt: $linkedAt)';
+  final _this = this as SocialIdentityDto;
+  return 'SocialIdentityDto(provider: ${_this.provider}, displayName: ${_this.displayName}, linkedAt: ${_this.linkedAt})';
 }
 
 
@@ -238,16 +243,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SocialIdentityDto&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.linkedAt, linkedAt) || other.linkedAt == linkedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SocialIdentityDto&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.linkedAt, linkedAt) || other.linkedAt == linkedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,provider,displayName,linkedAt);
+int get hashCode {
+    return Object.hash(runtimeType,provider,displayName,linkedAt);
+}
 
 @override
 String toString() {
-  return 'SocialIdentityDto(provider: $provider, displayName: $displayName, linkedAt: $linkedAt)';
+    return 'SocialIdentityDto(provider: $provider, displayName: $displayName, linkedAt: $linkedAt)';
 }
 
 

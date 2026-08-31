@@ -35,16 +35,21 @@ $UserExportDtoCopyWith<UserExportDto> get copyWith => _$UserExportDtoCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserExportDto&&(identical(other.id, id) || other.id == id)&&(identical(other.status, status) || other.status == status)&&(identical(other.requestedAt, requestedAt) || other.requestedAt == requestedAt)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.fileSize, fileSize) || other.fileSize == fileSize));
+  final _this = this as UserExportDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserExportDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.requestedAt, _this.requestedAt) || other.requestedAt == _this.requestedAt)&&(identical(other.completedAt, _this.completedAt) || other.completedAt == _this.completedAt)&&(identical(other.expiresAt, _this.expiresAt) || other.expiresAt == _this.expiresAt)&&(identical(other.fileSize, _this.fileSize) || other.fileSize == _this.fileSize));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,status,requestedAt,completedAt,expiresAt,fileSize);
+int get hashCode {
+  final _this = this as UserExportDto;
+  return Object.hash(runtimeType,_this.id,_this.status,_this.requestedAt,_this.completedAt,_this.expiresAt,_this.fileSize);
+}
 
 @override
 String toString() {
-  return 'UserExportDto(id: $id, status: $status, requestedAt: $requestedAt, completedAt: $completedAt, expiresAt: $expiresAt, fileSize: $fileSize)';
+  final _this = this as UserExportDto;
+  return 'UserExportDto(id: ${_this.id}, status: ${_this.status}, requestedAt: ${_this.requestedAt}, completedAt: ${_this.completedAt}, expiresAt: ${_this.expiresAt}, fileSize: ${_this.fileSize})';
 }
 
 
@@ -250,16 +255,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserExportDto&&(identical(other.id, id) || other.id == id)&&(identical(other.status, status) || other.status == status)&&(identical(other.requestedAt, requestedAt) || other.requestedAt == requestedAt)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.fileSize, fileSize) || other.fileSize == fileSize));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserExportDto&&(identical(other.id, id) || other.id == id)&&(identical(other.status, status) || other.status == status)&&(identical(other.requestedAt, requestedAt) || other.requestedAt == requestedAt)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.fileSize, fileSize) || other.fileSize == fileSize));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,status,requestedAt,completedAt,expiresAt,fileSize);
+int get hashCode {
+    return Object.hash(runtimeType,id,status,requestedAt,completedAt,expiresAt,fileSize);
+}
 
 @override
 String toString() {
-  return 'UserExportDto(id: $id, status: $status, requestedAt: $requestedAt, completedAt: $completedAt, expiresAt: $expiresAt, fileSize: $fileSize)';
+    return 'UserExportDto(id: $id, status: $status, requestedAt: $requestedAt, completedAt: $completedAt, expiresAt: $expiresAt, fileSize: $fileSize)';
 }
 
 

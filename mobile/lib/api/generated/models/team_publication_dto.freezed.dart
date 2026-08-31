@@ -33,16 +33,21 @@ $TeamPublicationDtoCopyWith<TeamPublicationDto> get copyWith => _$TeamPublicatio
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeamPublicationDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.visibility, visibility) || other.visibility == visibility));
+  final _this = this as TeamPublicationDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeamPublicationDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.slug, _this.slug) || other.slug == _this.slug)&&(identical(other.visibility, _this.visibility) || other.visibility == _this.visibility));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,slug,visibility);
+int get hashCode {
+  final _this = this as TeamPublicationDto;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.slug,_this.visibility);
+}
 
 @override
 String toString() {
-  return 'TeamPublicationDto(id: $id, name: $name, slug: $slug, visibility: $visibility)';
+  final _this = this as TeamPublicationDto;
+  return 'TeamPublicationDto(id: ${_this.id}, name: ${_this.name}, slug: ${_this.slug}, visibility: ${_this.visibility})';
 }
 
 
@@ -242,16 +247,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeamPublicationDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.visibility, visibility) || other.visibility == visibility));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeamPublicationDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.visibility, visibility) || other.visibility == visibility));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,slug,visibility);
+int get hashCode {
+    return Object.hash(runtimeType,id,name,slug,visibility);
+}
 
 @override
 String toString() {
-  return 'TeamPublicationDto(id: $id, name: $name, slug: $slug, visibility: $visibility)';
+    return 'TeamPublicationDto(id: $id, name: $name, slug: $slug, visibility: $visibility)';
 }
 
 

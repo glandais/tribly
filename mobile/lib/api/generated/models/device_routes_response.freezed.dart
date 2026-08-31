@@ -31,16 +31,21 @@ $DeviceRoutesResponseCopyWith<DeviceRoutesResponse> get copyWith => _$DeviceRout
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceRoutesResponse&&const DeepCollectionEquality().equals(other.rides, rides)&&const DeepCollectionEquality().equals(other.routes, routes));
+  final _this = this as DeviceRoutesResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceRoutesResponse&&const DeepCollectionEquality().equals(other.rides, _this.rides)&&const DeepCollectionEquality().equals(other.routes, _this.routes));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(rides),const DeepCollectionEquality().hash(routes));
+int get hashCode {
+  final _this = this as DeviceRoutesResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.rides),const DeepCollectionEquality().hash(_this.routes));
+}
 
 @override
 String toString() {
-  return 'DeviceRoutesResponse(rides: $rides, routes: $routes)';
+  final _this = this as DeviceRoutesResponse;
+  return 'DeviceRoutesResponse(rides: ${_this.rides}, routes: ${_this.routes})';
 }
 
 
@@ -248,16 +253,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceRoutesResponse&&const DeepCollectionEquality().equals(other._rides, _rides)&&const DeepCollectionEquality().equals(other._routes, _routes));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceRoutesResponse&&const DeepCollectionEquality().equals(other.rides, _rides)&&const DeepCollectionEquality().equals(other.routes, _routes));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_rides),const DeepCollectionEquality().hash(_routes));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_rides),const DeepCollectionEquality().hash(_routes));
+}
 
 @override
 String toString() {
-  return 'DeviceRoutesResponse(rides: $rides, routes: $routes)';
+    return 'DeviceRoutesResponse(rides: $rides, routes: $routes)';
 }
 
 

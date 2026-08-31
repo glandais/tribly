@@ -35,16 +35,21 @@ $CreateDomainRequestCopyWith<CreateDomainRequest> get copyWith => _$CreateDomain
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateDomainRequest&&(identical(other.domain, domain) || other.domain == domain)&&(identical(other.name, name) || other.name == name)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam)&&(identical(other.enableGpxPlanner, enableGpxPlanner) || other.enableGpxPlanner == enableGpxPlanner)&&(identical(other.androidFingerprints, androidFingerprints) || other.androidFingerprints == androidFingerprints));
+  final _this = this as CreateDomainRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateDomainRequest&&(identical(other.domain, _this.domain) || other.domain == _this.domain)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.baseUrl, _this.baseUrl) || other.baseUrl == _this.baseUrl)&&(identical(other.singleTeam, _this.singleTeam) || other.singleTeam == _this.singleTeam)&&(identical(other.enableGpxPlanner, _this.enableGpxPlanner) || other.enableGpxPlanner == _this.enableGpxPlanner)&&(identical(other.androidFingerprints, _this.androidFingerprints) || other.androidFingerprints == _this.androidFingerprints));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,domain,name,baseUrl,singleTeam,enableGpxPlanner,androidFingerprints);
+int get hashCode {
+  final _this = this as CreateDomainRequest;
+  return Object.hash(runtimeType,_this.domain,_this.name,_this.baseUrl,_this.singleTeam,_this.enableGpxPlanner,_this.androidFingerprints);
+}
 
 @override
 String toString() {
-  return 'CreateDomainRequest(domain: $domain, name: $name, baseUrl: $baseUrl, singleTeam: $singleTeam, enableGpxPlanner: $enableGpxPlanner, androidFingerprints: $androidFingerprints)';
+  final _this = this as CreateDomainRequest;
+  return 'CreateDomainRequest(domain: ${_this.domain}, name: ${_this.name}, baseUrl: ${_this.baseUrl}, singleTeam: ${_this.singleTeam}, enableGpxPlanner: ${_this.enableGpxPlanner}, androidFingerprints: ${_this.androidFingerprints})';
 }
 
 
@@ -250,16 +255,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateDomainRequest&&(identical(other.domain, domain) || other.domain == domain)&&(identical(other.name, name) || other.name == name)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam)&&(identical(other.enableGpxPlanner, enableGpxPlanner) || other.enableGpxPlanner == enableGpxPlanner)&&(identical(other.androidFingerprints, androidFingerprints) || other.androidFingerprints == androidFingerprints));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateDomainRequest&&(identical(other.domain, domain) || other.domain == domain)&&(identical(other.name, name) || other.name == name)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam)&&(identical(other.enableGpxPlanner, enableGpxPlanner) || other.enableGpxPlanner == enableGpxPlanner)&&(identical(other.androidFingerprints, androidFingerprints) || other.androidFingerprints == androidFingerprints));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,domain,name,baseUrl,singleTeam,enableGpxPlanner,androidFingerprints);
+int get hashCode {
+    return Object.hash(runtimeType,domain,name,baseUrl,singleTeam,enableGpxPlanner,androidFingerprints);
+}
 
 @override
 String toString() {
-  return 'CreateDomainRequest(domain: $domain, name: $name, baseUrl: $baseUrl, singleTeam: $singleTeam, enableGpxPlanner: $enableGpxPlanner, androidFingerprints: $androidFingerprints)';
+    return 'CreateDomainRequest(domain: $domain, name: $name, baseUrl: $baseUrl, singleTeam: $singleTeam, enableGpxPlanner: $enableGpxPlanner, androidFingerprints: $androidFingerprints)';
 }
 
 

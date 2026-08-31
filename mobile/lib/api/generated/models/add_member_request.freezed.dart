@@ -31,16 +31,21 @@ $AddMemberRequestCopyWith<AddMemberRequest> get copyWith => _$AddMemberRequestCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AddMemberRequest&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.role, role) || other.role == role));
+  final _this = this as AddMemberRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AddMemberRequest&&(identical(other.userId, _this.userId) || other.userId == _this.userId)&&(identical(other.role, _this.role) || other.role == _this.role));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,userId,role);
+int get hashCode {
+  final _this = this as AddMemberRequest;
+  return Object.hash(runtimeType,_this.userId,_this.role);
+}
 
 @override
 String toString() {
-  return 'AddMemberRequest(userId: $userId, role: $role)';
+  final _this = this as AddMemberRequest;
+  return 'AddMemberRequest(userId: ${_this.userId}, role: ${_this.role})';
 }
 
 
@@ -234,16 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AddMemberRequest&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.role, role) || other.role == role));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AddMemberRequest&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.role, role) || other.role == role));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,userId,role);
+int get hashCode {
+    return Object.hash(runtimeType,userId,role);
+}
 
 @override
 String toString() {
-  return 'AddMemberRequest(userId: $userId, role: $role)';
+    return 'AddMemberRequest(userId: $userId, role: $role)';
 }
 
 

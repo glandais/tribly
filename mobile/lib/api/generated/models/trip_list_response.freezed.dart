@@ -33,16 +33,21 @@ $TripListResponseCopyWith<TripListResponse> get copyWith => _$TripListResponseCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TripListResponse&&const DeepCollectionEquality().equals(other.trips, trips)&&(identical(other.total, total) || other.total == total)&&(identical(other.page, page) || other.page == page)&&(identical(other.size, size) || other.size == size));
+  final _this = this as TripListResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TripListResponse&&const DeepCollectionEquality().equals(other.trips, _this.trips)&&(identical(other.total, _this.total) || other.total == _this.total)&&(identical(other.page, _this.page) || other.page == _this.page)&&(identical(other.size, _this.size) || other.size == _this.size));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(trips),total,page,size);
+int get hashCode {
+  final _this = this as TripListResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.trips),_this.total,_this.page,_this.size);
+}
 
 @override
 String toString() {
-  return 'TripListResponse(trips: $trips, total: $total, page: $page, size: $size)';
+  final _this = this as TripListResponse;
+  return 'TripListResponse(trips: ${_this.trips}, total: ${_this.total}, page: ${_this.page}, size: ${_this.size})';
 }
 
 
@@ -249,16 +254,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TripListResponse&&const DeepCollectionEquality().equals(other._trips, _trips)&&(identical(other.total, total) || other.total == total)&&(identical(other.page, page) || other.page == page)&&(identical(other.size, size) || other.size == size));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TripListResponse&&const DeepCollectionEquality().equals(other.trips, _trips)&&(identical(other.total, total) || other.total == total)&&(identical(other.page, page) || other.page == page)&&(identical(other.size, size) || other.size == size));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_trips),total,page,size);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_trips),total,page,size);
+}
 
 @override
 String toString() {
-  return 'TripListResponse(trips: $trips, total: $total, page: $page, size: $size)';
+    return 'TripListResponse(trips: $trips, total: $total, page: $page, size: $size)';
 }
 
 

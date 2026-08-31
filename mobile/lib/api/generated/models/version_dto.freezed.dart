@@ -32,16 +32,21 @@ $VersionDtoCopyWith<VersionDto> get copyWith => _$VersionDtoCopyWithImpl<Version
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is VersionDto&&(identical(other.apiVersion, apiVersion) || other.apiVersion == apiVersion)&&(identical(other.commit, commit) || other.commit == commit)&&(identical(other.buildTime, buildTime) || other.buildTime == buildTime));
+  final _this = this as VersionDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is VersionDto&&(identical(other.apiVersion, _this.apiVersion) || other.apiVersion == _this.apiVersion)&&(identical(other.commit, _this.commit) || other.commit == _this.commit)&&(identical(other.buildTime, _this.buildTime) || other.buildTime == _this.buildTime));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,apiVersion,commit,buildTime);
+int get hashCode {
+  final _this = this as VersionDto;
+  return Object.hash(runtimeType,_this.apiVersion,_this.commit,_this.buildTime);
+}
 
 @override
 String toString() {
-  return 'VersionDto(apiVersion: $apiVersion, commit: $commit, buildTime: $buildTime)';
+  final _this = this as VersionDto;
+  return 'VersionDto(apiVersion: ${_this.apiVersion}, commit: ${_this.commit}, buildTime: ${_this.buildTime})';
 }
 
 
@@ -238,16 +243,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _VersionDto&&(identical(other.apiVersion, apiVersion) || other.apiVersion == apiVersion)&&(identical(other.commit, commit) || other.commit == commit)&&(identical(other.buildTime, buildTime) || other.buildTime == buildTime));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _VersionDto&&(identical(other.apiVersion, apiVersion) || other.apiVersion == apiVersion)&&(identical(other.commit, commit) || other.commit == commit)&&(identical(other.buildTime, buildTime) || other.buildTime == buildTime));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,apiVersion,commit,buildTime);
+int get hashCode {
+    return Object.hash(runtimeType,apiVersion,commit,buildTime);
+}
 
 @override
 String toString() {
-  return 'VersionDto(apiVersion: $apiVersion, commit: $commit, buildTime: $buildTime)';
+    return 'VersionDto(apiVersion: $apiVersion, commit: $commit, buildTime: $buildTime)';
 }
 
 

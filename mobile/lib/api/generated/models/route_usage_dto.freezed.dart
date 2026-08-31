@@ -36,16 +36,21 @@ $RouteUsageDtoCopyWith<RouteUsageDto> get copyWith => _$RouteUsageDtoCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RouteUsageDto&&(identical(other.type, type) || other.type == type)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.teamSlug, teamSlug) || other.teamSlug == teamSlug)&&(identical(other.referencedDirectly, referencedDirectly) || other.referencedDirectly == referencedDirectly)&&const DeepCollectionEquality().equals(other.viaChildNames, viaChildNames));
+  final _this = this as RouteUsageDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RouteUsageDto&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.slug, _this.slug) || other.slug == _this.slug)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.dateTime, _this.dateTime) || other.dateTime == _this.dateTime)&&(identical(other.teamSlug, _this.teamSlug) || other.teamSlug == _this.teamSlug)&&(identical(other.referencedDirectly, _this.referencedDirectly) || other.referencedDirectly == _this.referencedDirectly)&&const DeepCollectionEquality().equals(other.viaChildNames, _this.viaChildNames));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,slug,name,dateTime,teamSlug,referencedDirectly,const DeepCollectionEquality().hash(viaChildNames));
+int get hashCode {
+  final _this = this as RouteUsageDto;
+  return Object.hash(runtimeType,_this.type,_this.slug,_this.name,_this.dateTime,_this.teamSlug,_this.referencedDirectly,const DeepCollectionEquality().hash(_this.viaChildNames));
+}
 
 @override
 String toString() {
-  return 'RouteUsageDto(type: $type, slug: $slug, name: $name, dateTime: $dateTime, teamSlug: $teamSlug, referencedDirectly: $referencedDirectly, viaChildNames: $viaChildNames)';
+  final _this = this as RouteUsageDto;
+  return 'RouteUsageDto(type: ${_this.type}, slug: ${_this.slug}, name: ${_this.name}, dateTime: ${_this.dateTime}, teamSlug: ${_this.teamSlug}, referencedDirectly: ${_this.referencedDirectly}, viaChildNames: ${_this.viaChildNames})';
 }
 
 
@@ -261,16 +266,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RouteUsageDto&&(identical(other.type, type) || other.type == type)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.teamSlug, teamSlug) || other.teamSlug == teamSlug)&&(identical(other.referencedDirectly, referencedDirectly) || other.referencedDirectly == referencedDirectly)&&const DeepCollectionEquality().equals(other._viaChildNames, _viaChildNames));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RouteUsageDto&&(identical(other.type, type) || other.type == type)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.teamSlug, teamSlug) || other.teamSlug == teamSlug)&&(identical(other.referencedDirectly, referencedDirectly) || other.referencedDirectly == referencedDirectly)&&const DeepCollectionEquality().equals(other.viaChildNames, _viaChildNames));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,slug,name,dateTime,teamSlug,referencedDirectly,const DeepCollectionEquality().hash(_viaChildNames));
+int get hashCode {
+    return Object.hash(runtimeType,type,slug,name,dateTime,teamSlug,referencedDirectly,const DeepCollectionEquality().hash(_viaChildNames));
+}
 
 @override
 String toString() {
-  return 'RouteUsageDto(type: $type, slug: $slug, name: $name, dateTime: $dateTime, teamSlug: $teamSlug, referencedDirectly: $referencedDirectly, viaChildNames: $viaChildNames)';
+    return 'RouteUsageDto(type: $type, slug: $slug, name: $name, dateTime: $dateTime, teamSlug: $teamSlug, referencedDirectly: $referencedDirectly, viaChildNames: $viaChildNames)';
 }
 
 

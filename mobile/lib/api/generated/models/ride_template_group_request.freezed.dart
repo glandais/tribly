@@ -33,16 +33,21 @@ $RideTemplateGroupRequestCopyWith<RideTemplateGroupRequest> get copyWith => _$Ri
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RideTemplateGroupRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.id, id) || other.id == id)&&(identical(other.time, time) || other.time == time)&&(identical(other.averageSpeed, averageSpeed) || other.averageSpeed == averageSpeed)&&(identical(other.maxParticipants, maxParticipants) || other.maxParticipants == maxParticipants));
+  final _this = this as RideTemplateGroupRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RideTemplateGroupRequest&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.time, _this.time) || other.time == _this.time)&&(identical(other.averageSpeed, _this.averageSpeed) || other.averageSpeed == _this.averageSpeed)&&(identical(other.maxParticipants, _this.maxParticipants) || other.maxParticipants == _this.maxParticipants));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,id,time,averageSpeed,maxParticipants);
+int get hashCode {
+  final _this = this as RideTemplateGroupRequest;
+  return Object.hash(runtimeType,_this.name,_this.id,_this.time,_this.averageSpeed,_this.maxParticipants);
+}
 
 @override
 String toString() {
-  return 'RideTemplateGroupRequest(name: $name, id: $id, time: $time, averageSpeed: $averageSpeed, maxParticipants: $maxParticipants)';
+  final _this = this as RideTemplateGroupRequest;
+  return 'RideTemplateGroupRequest(name: ${_this.name}, id: ${_this.id}, time: ${_this.time}, averageSpeed: ${_this.averageSpeed}, maxParticipants: ${_this.maxParticipants})';
 }
 
 
@@ -244,16 +249,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RideTemplateGroupRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.id, id) || other.id == id)&&(identical(other.time, time) || other.time == time)&&(identical(other.averageSpeed, averageSpeed) || other.averageSpeed == averageSpeed)&&(identical(other.maxParticipants, maxParticipants) || other.maxParticipants == maxParticipants));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RideTemplateGroupRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.id, id) || other.id == id)&&(identical(other.time, time) || other.time == time)&&(identical(other.averageSpeed, averageSpeed) || other.averageSpeed == averageSpeed)&&(identical(other.maxParticipants, maxParticipants) || other.maxParticipants == maxParticipants));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,id,time,averageSpeed,maxParticipants);
+int get hashCode {
+    return Object.hash(runtimeType,name,id,time,averageSpeed,maxParticipants);
+}
 
 @override
 String toString() {
-  return 'RideTemplateGroupRequest(name: $name, id: $id, time: $time, averageSpeed: $averageSpeed, maxParticipants: $maxParticipants)';
+    return 'RideTemplateGroupRequest(name: $name, id: $id, time: $time, averageSpeed: $averageSpeed, maxParticipants: $maxParticipants)';
 }
 
 

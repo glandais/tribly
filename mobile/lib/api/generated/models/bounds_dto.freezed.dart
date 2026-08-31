@@ -33,16 +33,21 @@ $BoundsDtoCopyWith<BoundsDto> get copyWith => _$BoundsDtoCopyWithImpl<BoundsDto>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BoundsDto&&(identical(other.minLon, minLon) || other.minLon == minLon)&&(identical(other.minLat, minLat) || other.minLat == minLat)&&(identical(other.maxLon, maxLon) || other.maxLon == maxLon)&&(identical(other.maxLat, maxLat) || other.maxLat == maxLat));
+  final _this = this as BoundsDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BoundsDto&&(identical(other.minLon, _this.minLon) || other.minLon == _this.minLon)&&(identical(other.minLat, _this.minLat) || other.minLat == _this.minLat)&&(identical(other.maxLon, _this.maxLon) || other.maxLon == _this.maxLon)&&(identical(other.maxLat, _this.maxLat) || other.maxLat == _this.maxLat));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,minLon,minLat,maxLon,maxLat);
+int get hashCode {
+  final _this = this as BoundsDto;
+  return Object.hash(runtimeType,_this.minLon,_this.minLat,_this.maxLon,_this.maxLat);
+}
 
 @override
 String toString() {
-  return 'BoundsDto(minLon: $minLon, minLat: $minLat, maxLon: $maxLon, maxLat: $maxLat)';
+  final _this = this as BoundsDto;
+  return 'BoundsDto(minLon: ${_this.minLon}, minLat: ${_this.minLat}, maxLon: ${_this.maxLon}, maxLat: ${_this.maxLat})';
 }
 
 
@@ -242,16 +247,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BoundsDto&&(identical(other.minLon, minLon) || other.minLon == minLon)&&(identical(other.minLat, minLat) || other.minLat == minLat)&&(identical(other.maxLon, maxLon) || other.maxLon == maxLon)&&(identical(other.maxLat, maxLat) || other.maxLat == maxLat));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _BoundsDto&&(identical(other.minLon, minLon) || other.minLon == minLon)&&(identical(other.minLat, minLat) || other.minLat == minLat)&&(identical(other.maxLon, maxLon) || other.maxLon == maxLon)&&(identical(other.maxLat, maxLat) || other.maxLat == maxLat));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,minLon,minLat,maxLon,maxLat);
+int get hashCode {
+    return Object.hash(runtimeType,minLon,minLat,maxLon,maxLat);
+}
 
 @override
 String toString() {
-  return 'BoundsDto(minLon: $minLon, minLat: $minLat, maxLon: $maxLon, maxLat: $maxLat)';
+    return 'BoundsDto(minLon: $minLon, minLat: $minLat, maxLon: $maxLon, maxLat: $maxLat)';
 }
 
 

@@ -31,16 +31,21 @@ $CommentRequestCopyWith<CommentRequest> get copyWith => _$CommentRequestCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CommentRequest&&(identical(other.content, content) || other.content == content)&&(identical(other.parentId, parentId) || other.parentId == parentId));
+  final _this = this as CommentRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CommentRequest&&(identical(other.content, _this.content) || other.content == _this.content)&&(identical(other.parentId, _this.parentId) || other.parentId == _this.parentId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,content,parentId);
+int get hashCode {
+  final _this = this as CommentRequest;
+  return Object.hash(runtimeType,_this.content,_this.parentId);
+}
 
 @override
 String toString() {
-  return 'CommentRequest(content: $content, parentId: $parentId)';
+  final _this = this as CommentRequest;
+  return 'CommentRequest(content: ${_this.content}, parentId: ${_this.parentId})';
 }
 
 
@@ -234,16 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CommentRequest&&(identical(other.content, content) || other.content == content)&&(identical(other.parentId, parentId) || other.parentId == parentId));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CommentRequest&&(identical(other.content, content) || other.content == content)&&(identical(other.parentId, parentId) || other.parentId == parentId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,content,parentId);
+int get hashCode {
+    return Object.hash(runtimeType,content,parentId);
+}
 
 @override
 String toString() {
-  return 'CommentRequest(content: $content, parentId: $parentId)';
+    return 'CommentRequest(content: $content, parentId: $parentId)';
 }
 
 

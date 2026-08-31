@@ -33,16 +33,21 @@ $AdminDomainListResponseCopyWith<AdminDomainListResponse> get copyWith => _$Admi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminDomainListResponse&&const DeepCollectionEquality().equals(other.domains, domains)&&(identical(other.total, total) || other.total == total)&&(identical(other.page, page) || other.page == page)&&(identical(other.size, size) || other.size == size));
+  final _this = this as AdminDomainListResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminDomainListResponse&&const DeepCollectionEquality().equals(other.domains, _this.domains)&&(identical(other.total, _this.total) || other.total == _this.total)&&(identical(other.page, _this.page) || other.page == _this.page)&&(identical(other.size, _this.size) || other.size == _this.size));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(domains),total,page,size);
+int get hashCode {
+  final _this = this as AdminDomainListResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.domains),_this.total,_this.page,_this.size);
+}
 
 @override
 String toString() {
-  return 'AdminDomainListResponse(domains: $domains, total: $total, page: $page, size: $size)';
+  final _this = this as AdminDomainListResponse;
+  return 'AdminDomainListResponse(domains: ${_this.domains}, total: ${_this.total}, page: ${_this.page}, size: ${_this.size})';
 }
 
 
@@ -249,16 +254,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminDomainListResponse&&const DeepCollectionEquality().equals(other._domains, _domains)&&(identical(other.total, total) || other.total == total)&&(identical(other.page, page) || other.page == page)&&(identical(other.size, size) || other.size == size));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminDomainListResponse&&const DeepCollectionEquality().equals(other.domains, _domains)&&(identical(other.total, total) || other.total == total)&&(identical(other.page, page) || other.page == page)&&(identical(other.size, size) || other.size == size));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_domains),total,page,size);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_domains),total,page,size);
+}
 
 @override
 String toString() {
-  return 'AdminDomainListResponse(domains: $domains, total: $total, page: $page, size: $size)';
+    return 'AdminDomainListResponse(domains: $domains, total: $total, page: $page, size: $size)';
 }
 
 

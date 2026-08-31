@@ -45,16 +45,21 @@ $AdEditDtoCopyWith<AdEditDto> get copyWith => _$AdEditDtoCopyWithImpl<AdEditDto>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdEditDto&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.adType, adType) || other.adType == adType)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.createdById, createdById) || other.createdById == createdById)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.price, price) || other.price == price)&&(identical(other.rentalPeriod, rentalPeriod) || other.rentalPeriod == rentalPeriod)&&(identical(other.locationGeometry, locationGeometry) || other.locationGeometry == locationGeometry)&&(identical(other.locationDescription, locationDescription) || other.locationDescription == locationDescription));
+  final _this = this as AdEditDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdEditDto&&(identical(other.team, _this.team) || other.team == _this.team)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.slug, _this.slug) || other.slug == _this.slug)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.media, _this.media) || other.media == _this.media)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.visibility, _this.visibility) || other.visibility == _this.visibility)&&(identical(other.adType, _this.adType) || other.adType == _this.adType)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.createdById, _this.createdById) || other.createdById == _this.createdById)&&(identical(other.deleted, _this.deleted) || other.deleted == _this.deleted)&&(identical(other.price, _this.price) || other.price == _this.price)&&(identical(other.rentalPeriod, _this.rentalPeriod) || other.rentalPeriod == _this.rentalPeriod)&&(identical(other.locationGeometry, _this.locationGeometry) || other.locationGeometry == _this.locationGeometry)&&(identical(other.locationDescription, _this.locationDescription) || other.locationDescription == _this.locationDescription));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,team,id,slug,name,media,status,visibility,adType,createdAt,updatedAt,createdById,deleted,price,rentalPeriod,locationGeometry,locationDescription);
+int get hashCode {
+  final _this = this as AdEditDto;
+  return Object.hash(runtimeType,_this.team,_this.id,_this.slug,_this.name,_this.media,_this.status,_this.visibility,_this.adType,_this.createdAt,_this.updatedAt,_this.createdById,_this.deleted,_this.price,_this.rentalPeriod,_this.locationGeometry,_this.locationDescription);
+}
 
 @override
 String toString() {
-  return 'AdEditDto(team: $team, id: $id, slug: $slug, name: $name, media: $media, status: $status, visibility: $visibility, adType: $adType, createdAt: $createdAt, updatedAt: $updatedAt, createdById: $createdById, deleted: $deleted, price: $price, rentalPeriod: $rentalPeriod, locationGeometry: $locationGeometry, locationDescription: $locationDescription)';
+  final _this = this as AdEditDto;
+  return 'AdEditDto(team: ${_this.team}, id: ${_this.id}, slug: ${_this.slug}, name: ${_this.name}, media: ${_this.media}, status: ${_this.status}, visibility: ${_this.visibility}, adType: ${_this.adType}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt}, createdById: ${_this.createdById}, deleted: ${_this.deleted}, price: ${_this.price}, rentalPeriod: ${_this.rentalPeriod}, locationGeometry: ${_this.locationGeometry}, locationDescription: ${_this.locationDescription})';
 }
 
 
@@ -320,16 +325,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdEditDto&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.adType, adType) || other.adType == adType)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.createdById, createdById) || other.createdById == createdById)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.price, price) || other.price == price)&&(identical(other.rentalPeriod, rentalPeriod) || other.rentalPeriod == rentalPeriod)&&(identical(other.locationGeometry, locationGeometry) || other.locationGeometry == locationGeometry)&&(identical(other.locationDescription, locationDescription) || other.locationDescription == locationDescription));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdEditDto&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.adType, adType) || other.adType == adType)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.createdById, createdById) || other.createdById == createdById)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.price, price) || other.price == price)&&(identical(other.rentalPeriod, rentalPeriod) || other.rentalPeriod == rentalPeriod)&&(identical(other.locationGeometry, locationGeometry) || other.locationGeometry == locationGeometry)&&(identical(other.locationDescription, locationDescription) || other.locationDescription == locationDescription));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,team,id,slug,name,media,status,visibility,adType,createdAt,updatedAt,createdById,deleted,price,rentalPeriod,locationGeometry,locationDescription);
+int get hashCode {
+    return Object.hash(runtimeType,team,id,slug,name,media,status,visibility,adType,createdAt,updatedAt,createdById,deleted,price,rentalPeriod,locationGeometry,locationDescription);
+}
 
 @override
 String toString() {
-  return 'AdEditDto(team: $team, id: $id, slug: $slug, name: $name, media: $media, status: $status, visibility: $visibility, adType: $adType, createdAt: $createdAt, updatedAt: $updatedAt, createdById: $createdById, deleted: $deleted, price: $price, rentalPeriod: $rentalPeriod, locationGeometry: $locationGeometry, locationDescription: $locationDescription)';
+    return 'AdEditDto(team: $team, id: $id, slug: $slug, name: $name, media: $media, status: $status, visibility: $visibility, adType: $adType, createdAt: $createdAt, updatedAt: $updatedAt, createdById: $createdById, deleted: $deleted, price: $price, rentalPeriod: $rentalPeriod, locationGeometry: $locationGeometry, locationDescription: $locationDescription)';
 }
 
 

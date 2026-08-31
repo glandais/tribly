@@ -30,16 +30,21 @@ $DeviceUserStatusResponseCopyWith<DeviceUserStatusResponse> get copyWith => _$De
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceUserStatusResponse&&const DeepCollectionEquality().equals(other.connectedGpsServices, connectedGpsServices));
+  final _this = this as DeviceUserStatusResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceUserStatusResponse&&const DeepCollectionEquality().equals(other.connectedGpsServices, _this.connectedGpsServices));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(connectedGpsServices));
+int get hashCode {
+  final _this = this as DeviceUserStatusResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.connectedGpsServices));
+}
 
 @override
 String toString() {
-  return 'DeviceUserStatusResponse(connectedGpsServices: $connectedGpsServices)';
+  final _this = this as DeviceUserStatusResponse;
+  return 'DeviceUserStatusResponse(connectedGpsServices: ${_this.connectedGpsServices})';
 }
 
 
@@ -237,16 +242,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceUserStatusResponse&&const DeepCollectionEquality().equals(other._connectedGpsServices, _connectedGpsServices));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceUserStatusResponse&&const DeepCollectionEquality().equals(other.connectedGpsServices, _connectedGpsServices));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_connectedGpsServices));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_connectedGpsServices));
+}
 
 @override
 String toString() {
-  return 'DeviceUserStatusResponse(connectedGpsServices: $connectedGpsServices)';
+    return 'DeviceUserStatusResponse(connectedGpsServices: $connectedGpsServices)';
 }
 
 

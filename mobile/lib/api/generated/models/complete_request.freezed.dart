@@ -30,16 +30,21 @@ $CompleteRequestCopyWith<CompleteRequest> get copyWith => _$CompleteRequestCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CompleteRequest&&(identical(other.userCode, userCode) || other.userCode == userCode));
+  final _this = this as CompleteRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CompleteRequest&&(identical(other.userCode, _this.userCode) || other.userCode == _this.userCode));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,userCode);
+int get hashCode {
+  final _this = this as CompleteRequest;
+  return Object.hash(runtimeType,_this.userCode);
+}
 
 @override
 String toString() {
-  return 'CompleteRequest(userCode: $userCode)';
+  final _this = this as CompleteRequest;
+  return 'CompleteRequest(userCode: ${_this.userCode})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CompleteRequest&&(identical(other.userCode, userCode) || other.userCode == userCode));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CompleteRequest&&(identical(other.userCode, userCode) || other.userCode == userCode));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,userCode);
+int get hashCode {
+    return Object.hash(runtimeType,userCode);
+}
 
 @override
 String toString() {
-  return 'CompleteRequest(userCode: $userCode)';
+    return 'CompleteRequest(userCode: $userCode)';
 }
 
 

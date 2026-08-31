@@ -31,16 +31,21 @@ $LoginRequestCopyWith<LoginRequest> get copyWith => _$LoginRequestCopyWithImpl<L
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LoginRequest&&(identical(other.email, email) || other.email == email)&&(identical(other.password, password) || other.password == password));
+  final _this = this as LoginRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LoginRequest&&(identical(other.email, _this.email) || other.email == _this.email)&&(identical(other.password, _this.password) || other.password == _this.password));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,email,password);
+int get hashCode {
+  final _this = this as LoginRequest;
+  return Object.hash(runtimeType,_this.email,_this.password);
+}
 
 @override
 String toString() {
-  return 'LoginRequest(email: $email, password: $password)';
+  final _this = this as LoginRequest;
+  return 'LoginRequest(email: ${_this.email}, password: ${_this.password})';
 }
 
 
@@ -234,16 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LoginRequest&&(identical(other.email, email) || other.email == email)&&(identical(other.password, password) || other.password == password));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LoginRequest&&(identical(other.email, email) || other.email == email)&&(identical(other.password, password) || other.password == password));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,email,password);
+int get hashCode {
+    return Object.hash(runtimeType,email,password);
+}
 
 @override
 String toString() {
-  return 'LoginRequest(email: $email, password: $password)';
+    return 'LoginRequest(email: $email, password: $password)';
 }
 
 

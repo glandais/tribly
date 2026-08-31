@@ -33,16 +33,21 @@ $DeviceTokenResponseCopyWith<DeviceTokenResponse> get copyWith => _$DeviceTokenR
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceTokenResponse&&(identical(other.accessToken, accessToken) || other.accessToken == accessToken)&&(identical(other.tokenType, tokenType) || other.tokenType == tokenType)&&(identical(other.expiresIn, expiresIn) || other.expiresIn == expiresIn)&&(identical(other.refreshToken, refreshToken) || other.refreshToken == refreshToken));
+  final _this = this as DeviceTokenResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceTokenResponse&&(identical(other.accessToken, _this.accessToken) || other.accessToken == _this.accessToken)&&(identical(other.tokenType, _this.tokenType) || other.tokenType == _this.tokenType)&&(identical(other.expiresIn, _this.expiresIn) || other.expiresIn == _this.expiresIn)&&(identical(other.refreshToken, _this.refreshToken) || other.refreshToken == _this.refreshToken));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,accessToken,tokenType,expiresIn,refreshToken);
+int get hashCode {
+  final _this = this as DeviceTokenResponse;
+  return Object.hash(runtimeType,_this.accessToken,_this.tokenType,_this.expiresIn,_this.refreshToken);
+}
 
 @override
 String toString() {
-  return 'DeviceTokenResponse(accessToken: $accessToken, tokenType: $tokenType, expiresIn: $expiresIn, refreshToken: $refreshToken)';
+  final _this = this as DeviceTokenResponse;
+  return 'DeviceTokenResponse(accessToken: ${_this.accessToken}, tokenType: ${_this.tokenType}, expiresIn: ${_this.expiresIn}, refreshToken: ${_this.refreshToken})';
 }
 
 
@@ -242,16 +247,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceTokenResponse&&(identical(other.accessToken, accessToken) || other.accessToken == accessToken)&&(identical(other.tokenType, tokenType) || other.tokenType == tokenType)&&(identical(other.expiresIn, expiresIn) || other.expiresIn == expiresIn)&&(identical(other.refreshToken, refreshToken) || other.refreshToken == refreshToken));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceTokenResponse&&(identical(other.accessToken, accessToken) || other.accessToken == accessToken)&&(identical(other.tokenType, tokenType) || other.tokenType == tokenType)&&(identical(other.expiresIn, expiresIn) || other.expiresIn == expiresIn)&&(identical(other.refreshToken, refreshToken) || other.refreshToken == refreshToken));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,accessToken,tokenType,expiresIn,refreshToken);
+int get hashCode {
+    return Object.hash(runtimeType,accessToken,tokenType,expiresIn,refreshToken);
+}
 
 @override
 String toString() {
-  return 'DeviceTokenResponse(accessToken: $accessToken, tokenType: $tokenType, expiresIn: $expiresIn, refreshToken: $refreshToken)';
+    return 'DeviceTokenResponse(accessToken: $accessToken, tokenType: $tokenType, expiresIn: $expiresIn, refreshToken: $refreshToken)';
 }
 
 

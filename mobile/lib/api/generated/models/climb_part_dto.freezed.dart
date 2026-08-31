@@ -33,16 +33,21 @@ $ClimbPartDtoCopyWith<ClimbPartDto> get copyWith => _$ClimbPartDtoCopyWithImpl<C
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ClimbPartDto&&(identical(other.startDistance, startDistance) || other.startDistance == startDistance)&&(identical(other.endDistance, endDistance) || other.endDistance == endDistance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.grade, grade) || other.grade == grade));
+  final _this = this as ClimbPartDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ClimbPartDto&&(identical(other.startDistance, _this.startDistance) || other.startDistance == _this.startDistance)&&(identical(other.endDistance, _this.endDistance) || other.endDistance == _this.endDistance)&&(identical(other.elevationGain, _this.elevationGain) || other.elevationGain == _this.elevationGain)&&(identical(other.grade, _this.grade) || other.grade == _this.grade));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,startDistance,endDistance,elevationGain,grade);
+int get hashCode {
+  final _this = this as ClimbPartDto;
+  return Object.hash(runtimeType,_this.startDistance,_this.endDistance,_this.elevationGain,_this.grade);
+}
 
 @override
 String toString() {
-  return 'ClimbPartDto(startDistance: $startDistance, endDistance: $endDistance, elevationGain: $elevationGain, grade: $grade)';
+  final _this = this as ClimbPartDto;
+  return 'ClimbPartDto(startDistance: ${_this.startDistance}, endDistance: ${_this.endDistance}, elevationGain: ${_this.elevationGain}, grade: ${_this.grade})';
 }
 
 
@@ -242,16 +247,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ClimbPartDto&&(identical(other.startDistance, startDistance) || other.startDistance == startDistance)&&(identical(other.endDistance, endDistance) || other.endDistance == endDistance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.grade, grade) || other.grade == grade));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ClimbPartDto&&(identical(other.startDistance, startDistance) || other.startDistance == startDistance)&&(identical(other.endDistance, endDistance) || other.endDistance == endDistance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.grade, grade) || other.grade == grade));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,startDistance,endDistance,elevationGain,grade);
+int get hashCode {
+    return Object.hash(runtimeType,startDistance,endDistance,elevationGain,grade);
+}
 
 @override
 String toString() {
-  return 'ClimbPartDto(startDistance: $startDistance, endDistance: $endDistance, elevationGain: $elevationGain, grade: $grade)';
+    return 'ClimbPartDto(startDistance: $startDistance, endDistance: $endDistance, elevationGain: $elevationGain, grade: $grade)';
 }
 
 

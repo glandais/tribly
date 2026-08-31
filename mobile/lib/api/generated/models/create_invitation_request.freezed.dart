@@ -31,16 +31,21 @@ $CreateInvitationRequestCopyWith<CreateInvitationRequest> get copyWith => _$Crea
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateInvitationRequest&&(identical(other.email, email) || other.email == email)&&(identical(other.role, role) || other.role == role));
+  final _this = this as CreateInvitationRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateInvitationRequest&&(identical(other.email, _this.email) || other.email == _this.email)&&(identical(other.role, _this.role) || other.role == _this.role));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,email,role);
+int get hashCode {
+  final _this = this as CreateInvitationRequest;
+  return Object.hash(runtimeType,_this.email,_this.role);
+}
 
 @override
 String toString() {
-  return 'CreateInvitationRequest(email: $email, role: $role)';
+  final _this = this as CreateInvitationRequest;
+  return 'CreateInvitationRequest(email: ${_this.email}, role: ${_this.role})';
 }
 
 
@@ -234,16 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateInvitationRequest&&(identical(other.email, email) || other.email == email)&&(identical(other.role, role) || other.role == role));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateInvitationRequest&&(identical(other.email, email) || other.email == email)&&(identical(other.role, role) || other.role == role));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,email,role);
+int get hashCode {
+    return Object.hash(runtimeType,email,role);
+}
 
 @override
 String toString() {
-  return 'CreateInvitationRequest(email: $email, role: $role)';
+    return 'CreateInvitationRequest(email: $email, role: $role)';
 }
 
 

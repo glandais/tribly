@@ -30,16 +30,21 @@ $AdContactRequestCopyWith<AdContactRequest> get copyWith => _$AdContactRequestCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdContactRequest&&(identical(other.message, message) || other.message == message));
+  final _this = this as AdContactRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdContactRequest&&(identical(other.message, _this.message) || other.message == _this.message));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,message);
+int get hashCode {
+  final _this = this as AdContactRequest;
+  return Object.hash(runtimeType,_this.message);
+}
 
 @override
 String toString() {
-  return 'AdContactRequest(message: $message)';
+  final _this = this as AdContactRequest;
+  return 'AdContactRequest(message: ${_this.message})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdContactRequest&&(identical(other.message, message) || other.message == message));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdContactRequest&&(identical(other.message, message) || other.message == message));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,message);
+int get hashCode {
+    return Object.hash(runtimeType,message);
+}
 
 @override
 String toString() {
-  return 'AdContactRequest(message: $message)';
+    return 'AdContactRequest(message: $message)';
 }
 
 

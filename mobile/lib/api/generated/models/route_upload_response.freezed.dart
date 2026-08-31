@@ -32,16 +32,21 @@ $RouteUploadResponseCopyWith<RouteUploadResponse> get copyWith => _$RouteUploadR
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RouteUploadResponse&&(identical(other.success, success) || other.success == success)&&(identical(other.message, message) || other.message == message)&&(identical(other.externalRouteId, externalRouteId) || other.externalRouteId == externalRouteId));
+  final _this = this as RouteUploadResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RouteUploadResponse&&(identical(other.success, _this.success) || other.success == _this.success)&&(identical(other.message, _this.message) || other.message == _this.message)&&(identical(other.externalRouteId, _this.externalRouteId) || other.externalRouteId == _this.externalRouteId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,success,message,externalRouteId);
+int get hashCode {
+  final _this = this as RouteUploadResponse;
+  return Object.hash(runtimeType,_this.success,_this.message,_this.externalRouteId);
+}
 
 @override
 String toString() {
-  return 'RouteUploadResponse(success: $success, message: $message, externalRouteId: $externalRouteId)';
+  final _this = this as RouteUploadResponse;
+  return 'RouteUploadResponse(success: ${_this.success}, message: ${_this.message}, externalRouteId: ${_this.externalRouteId})';
 }
 
 
@@ -238,16 +243,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RouteUploadResponse&&(identical(other.success, success) || other.success == success)&&(identical(other.message, message) || other.message == message)&&(identical(other.externalRouteId, externalRouteId) || other.externalRouteId == externalRouteId));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RouteUploadResponse&&(identical(other.success, success) || other.success == success)&&(identical(other.message, message) || other.message == message)&&(identical(other.externalRouteId, externalRouteId) || other.externalRouteId == externalRouteId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,success,message,externalRouteId);
+int get hashCode {
+    return Object.hash(runtimeType,success,message,externalRouteId);
+}
 
 @override
 String toString() {
-  return 'RouteUploadResponse(success: $success, message: $message, externalRouteId: $externalRouteId)';
+    return 'RouteUploadResponse(success: $success, message: $message, externalRouteId: $externalRouteId)';
 }
 
 

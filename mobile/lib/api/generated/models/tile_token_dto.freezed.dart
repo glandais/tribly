@@ -32,16 +32,21 @@ $TileTokenDtoCopyWith<TileTokenDto> get copyWith => _$TileTokenDtoCopyWithImpl<T
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TileTokenDto&&(identical(other.token, token) || other.token == token)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.expiresIn, expiresIn) || other.expiresIn == expiresIn));
+  final _this = this as TileTokenDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TileTokenDto&&(identical(other.token, _this.token) || other.token == _this.token)&&(identical(other.expiresAt, _this.expiresAt) || other.expiresAt == _this.expiresAt)&&(identical(other.expiresIn, _this.expiresIn) || other.expiresIn == _this.expiresIn));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,token,expiresAt,expiresIn);
+int get hashCode {
+  final _this = this as TileTokenDto;
+  return Object.hash(runtimeType,_this.token,_this.expiresAt,_this.expiresIn);
+}
 
 @override
 String toString() {
-  return 'TileTokenDto(token: $token, expiresAt: $expiresAt, expiresIn: $expiresIn)';
+  final _this = this as TileTokenDto;
+  return 'TileTokenDto(token: ${_this.token}, expiresAt: ${_this.expiresAt}, expiresIn: ${_this.expiresIn})';
 }
 
 
@@ -238,16 +243,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TileTokenDto&&(identical(other.token, token) || other.token == token)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.expiresIn, expiresIn) || other.expiresIn == expiresIn));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TileTokenDto&&(identical(other.token, token) || other.token == token)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.expiresIn, expiresIn) || other.expiresIn == expiresIn));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,token,expiresAt,expiresIn);
+int get hashCode {
+    return Object.hash(runtimeType,token,expiresAt,expiresIn);
+}
 
 @override
 String toString() {
-  return 'TileTokenDto(token: $token, expiresAt: $expiresAt, expiresIn: $expiresIn)';
+    return 'TileTokenDto(token: $token, expiresAt: $expiresAt, expiresIn: $expiresIn)';
 }
 
 

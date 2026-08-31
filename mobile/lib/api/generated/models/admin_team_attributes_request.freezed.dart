@@ -33,16 +33,21 @@ $AdminTeamAttributesRequestCopyWith<AdminTeamAttributesRequest> get copyWith => 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminTeamAttributesRequest&&(identical(other.visibilityEditable, visibilityEditable) || other.visibilityEditable == visibilityEditable)&&(identical(other.joinable, joinable) || other.joinable == joinable)&&(identical(other.addMemberAllowed, addMemberAllowed) || other.addMemberAllowed == addMemberAllowed)&&(identical(other.enableRoutePlanner, enableRoutePlanner) || other.enableRoutePlanner == enableRoutePlanner));
+  final _this = this as AdminTeamAttributesRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminTeamAttributesRequest&&(identical(other.visibilityEditable, _this.visibilityEditable) || other.visibilityEditable == _this.visibilityEditable)&&(identical(other.joinable, _this.joinable) || other.joinable == _this.joinable)&&(identical(other.addMemberAllowed, _this.addMemberAllowed) || other.addMemberAllowed == _this.addMemberAllowed)&&(identical(other.enableRoutePlanner, _this.enableRoutePlanner) || other.enableRoutePlanner == _this.enableRoutePlanner));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,visibilityEditable,joinable,addMemberAllowed,enableRoutePlanner);
+int get hashCode {
+  final _this = this as AdminTeamAttributesRequest;
+  return Object.hash(runtimeType,_this.visibilityEditable,_this.joinable,_this.addMemberAllowed,_this.enableRoutePlanner);
+}
 
 @override
 String toString() {
-  return 'AdminTeamAttributesRequest(visibilityEditable: $visibilityEditable, joinable: $joinable, addMemberAllowed: $addMemberAllowed, enableRoutePlanner: $enableRoutePlanner)';
+  final _this = this as AdminTeamAttributesRequest;
+  return 'AdminTeamAttributesRequest(visibilityEditable: ${_this.visibilityEditable}, joinable: ${_this.joinable}, addMemberAllowed: ${_this.addMemberAllowed}, enableRoutePlanner: ${_this.enableRoutePlanner})';
 }
 
 
@@ -242,16 +247,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminTeamAttributesRequest&&(identical(other.visibilityEditable, visibilityEditable) || other.visibilityEditable == visibilityEditable)&&(identical(other.joinable, joinable) || other.joinable == joinable)&&(identical(other.addMemberAllowed, addMemberAllowed) || other.addMemberAllowed == addMemberAllowed)&&(identical(other.enableRoutePlanner, enableRoutePlanner) || other.enableRoutePlanner == enableRoutePlanner));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminTeamAttributesRequest&&(identical(other.visibilityEditable, visibilityEditable) || other.visibilityEditable == visibilityEditable)&&(identical(other.joinable, joinable) || other.joinable == joinable)&&(identical(other.addMemberAllowed, addMemberAllowed) || other.addMemberAllowed == addMemberAllowed)&&(identical(other.enableRoutePlanner, enableRoutePlanner) || other.enableRoutePlanner == enableRoutePlanner));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,visibilityEditable,joinable,addMemberAllowed,enableRoutePlanner);
+int get hashCode {
+    return Object.hash(runtimeType,visibilityEditable,joinable,addMemberAllowed,enableRoutePlanner);
+}
 
 @override
 String toString() {
-  return 'AdminTeamAttributesRequest(visibilityEditable: $visibilityEditable, joinable: $joinable, addMemberAllowed: $addMemberAllowed, enableRoutePlanner: $enableRoutePlanner)';
+    return 'AdminTeamAttributesRequest(visibilityEditable: $visibilityEditable, joinable: $joinable, addMemberAllowed: $addMemberAllowed, enableRoutePlanner: $enableRoutePlanner)';
 }
 
 

@@ -33,16 +33,21 @@ $AdListResponseCopyWith<AdListResponse> get copyWith => _$AdListResponseCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdListResponse&&const DeepCollectionEquality().equals(other.ads, ads)&&(identical(other.total, total) || other.total == total)&&(identical(other.page, page) || other.page == page)&&(identical(other.size, size) || other.size == size));
+  final _this = this as AdListResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdListResponse&&const DeepCollectionEquality().equals(other.ads, _this.ads)&&(identical(other.total, _this.total) || other.total == _this.total)&&(identical(other.page, _this.page) || other.page == _this.page)&&(identical(other.size, _this.size) || other.size == _this.size));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(ads),total,page,size);
+int get hashCode {
+  final _this = this as AdListResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.ads),_this.total,_this.page,_this.size);
+}
 
 @override
 String toString() {
-  return 'AdListResponse(ads: $ads, total: $total, page: $page, size: $size)';
+  final _this = this as AdListResponse;
+  return 'AdListResponse(ads: ${_this.ads}, total: ${_this.total}, page: ${_this.page}, size: ${_this.size})';
 }
 
 
@@ -249,16 +254,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdListResponse&&const DeepCollectionEquality().equals(other._ads, _ads)&&(identical(other.total, total) || other.total == total)&&(identical(other.page, page) || other.page == page)&&(identical(other.size, size) || other.size == size));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdListResponse&&const DeepCollectionEquality().equals(other.ads, _ads)&&(identical(other.total, total) || other.total == total)&&(identical(other.page, page) || other.page == page)&&(identical(other.size, size) || other.size == size));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_ads),total,page,size);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_ads),total,page,size);
+}
 
 @override
 String toString() {
-  return 'AdListResponse(ads: $ads, total: $total, page: $page, size: $size)';
+    return 'AdListResponse(ads: $ads, total: $total, page: $page, size: $size)';
 }
 
 

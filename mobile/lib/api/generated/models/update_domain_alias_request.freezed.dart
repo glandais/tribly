@@ -33,16 +33,21 @@ $UpdateDomainAliasRequestCopyWith<UpdateDomainAliasRequest> get copyWith => _$Up
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateDomainAliasRequest&&(identical(other.teamSlug, teamSlug) || other.teamSlug == teamSlug)&&(identical(other.name, name) || other.name == name)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.androidFingerprints, androidFingerprints) || other.androidFingerprints == androidFingerprints));
+  final _this = this as UpdateDomainAliasRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateDomainAliasRequest&&(identical(other.teamSlug, _this.teamSlug) || other.teamSlug == _this.teamSlug)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.baseUrl, _this.baseUrl) || other.baseUrl == _this.baseUrl)&&(identical(other.androidFingerprints, _this.androidFingerprints) || other.androidFingerprints == _this.androidFingerprints));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,teamSlug,name,baseUrl,androidFingerprints);
+int get hashCode {
+  final _this = this as UpdateDomainAliasRequest;
+  return Object.hash(runtimeType,_this.teamSlug,_this.name,_this.baseUrl,_this.androidFingerprints);
+}
 
 @override
 String toString() {
-  return 'UpdateDomainAliasRequest(teamSlug: $teamSlug, name: $name, baseUrl: $baseUrl, androidFingerprints: $androidFingerprints)';
+  final _this = this as UpdateDomainAliasRequest;
+  return 'UpdateDomainAliasRequest(teamSlug: ${_this.teamSlug}, name: ${_this.name}, baseUrl: ${_this.baseUrl}, androidFingerprints: ${_this.androidFingerprints})';
 }
 
 
@@ -242,16 +247,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateDomainAliasRequest&&(identical(other.teamSlug, teamSlug) || other.teamSlug == teamSlug)&&(identical(other.name, name) || other.name == name)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.androidFingerprints, androidFingerprints) || other.androidFingerprints == androidFingerprints));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateDomainAliasRequest&&(identical(other.teamSlug, teamSlug) || other.teamSlug == teamSlug)&&(identical(other.name, name) || other.name == name)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.androidFingerprints, androidFingerprints) || other.androidFingerprints == androidFingerprints));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,teamSlug,name,baseUrl,androidFingerprints);
+int get hashCode {
+    return Object.hash(runtimeType,teamSlug,name,baseUrl,androidFingerprints);
+}
 
 @override
 String toString() {
-  return 'UpdateDomainAliasRequest(teamSlug: $teamSlug, name: $name, baseUrl: $baseUrl, androidFingerprints: $androidFingerprints)';
+    return 'UpdateDomainAliasRequest(teamSlug: $teamSlug, name: $name, baseUrl: $baseUrl, androidFingerprints: $androidFingerprints)';
 }
 
 

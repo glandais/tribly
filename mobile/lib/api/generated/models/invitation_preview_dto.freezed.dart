@@ -36,16 +36,21 @@ $InvitationPreviewDtoCopyWith<InvitationPreviewDto> get copyWith => _$Invitation
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is InvitationPreviewDto&&(identical(other.teamName, teamName) || other.teamName == teamName)&&(identical(other.teamSlug, teamSlug) || other.teamSlug == teamSlug)&&(identical(other.inviterName, inviterName) || other.inviterName == inviterName)&&(identical(other.maskedEmail, maskedEmail) || other.maskedEmail == maskedEmail)&&(identical(other.role, role) || other.role == role)&&(identical(other.status, status) || other.status == status)&&(identical(other.redeemable, redeemable) || other.redeemable == redeemable));
+  final _this = this as InvitationPreviewDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is InvitationPreviewDto&&(identical(other.teamName, _this.teamName) || other.teamName == _this.teamName)&&(identical(other.teamSlug, _this.teamSlug) || other.teamSlug == _this.teamSlug)&&(identical(other.inviterName, _this.inviterName) || other.inviterName == _this.inviterName)&&(identical(other.maskedEmail, _this.maskedEmail) || other.maskedEmail == _this.maskedEmail)&&(identical(other.role, _this.role) || other.role == _this.role)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.redeemable, _this.redeemable) || other.redeemable == _this.redeemable));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,teamName,teamSlug,inviterName,maskedEmail,role,status,redeemable);
+int get hashCode {
+  final _this = this as InvitationPreviewDto;
+  return Object.hash(runtimeType,_this.teamName,_this.teamSlug,_this.inviterName,_this.maskedEmail,_this.role,_this.status,_this.redeemable);
+}
 
 @override
 String toString() {
-  return 'InvitationPreviewDto(teamName: $teamName, teamSlug: $teamSlug, inviterName: $inviterName, maskedEmail: $maskedEmail, role: $role, status: $status, redeemable: $redeemable)';
+  final _this = this as InvitationPreviewDto;
+  return 'InvitationPreviewDto(teamName: ${_this.teamName}, teamSlug: ${_this.teamSlug}, inviterName: ${_this.inviterName}, maskedEmail: ${_this.maskedEmail}, role: ${_this.role}, status: ${_this.status}, redeemable: ${_this.redeemable})';
 }
 
 
@@ -254,16 +259,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _InvitationPreviewDto&&(identical(other.teamName, teamName) || other.teamName == teamName)&&(identical(other.teamSlug, teamSlug) || other.teamSlug == teamSlug)&&(identical(other.inviterName, inviterName) || other.inviterName == inviterName)&&(identical(other.maskedEmail, maskedEmail) || other.maskedEmail == maskedEmail)&&(identical(other.role, role) || other.role == role)&&(identical(other.status, status) || other.status == status)&&(identical(other.redeemable, redeemable) || other.redeemable == redeemable));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _InvitationPreviewDto&&(identical(other.teamName, teamName) || other.teamName == teamName)&&(identical(other.teamSlug, teamSlug) || other.teamSlug == teamSlug)&&(identical(other.inviterName, inviterName) || other.inviterName == inviterName)&&(identical(other.maskedEmail, maskedEmail) || other.maskedEmail == maskedEmail)&&(identical(other.role, role) || other.role == role)&&(identical(other.status, status) || other.status == status)&&(identical(other.redeemable, redeemable) || other.redeemable == redeemable));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,teamName,teamSlug,inviterName,maskedEmail,role,status,redeemable);
+int get hashCode {
+    return Object.hash(runtimeType,teamName,teamSlug,inviterName,maskedEmail,role,status,redeemable);
+}
 
 @override
 String toString() {
-  return 'InvitationPreviewDto(teamName: $teamName, teamSlug: $teamSlug, inviterName: $inviterName, maskedEmail: $maskedEmail, role: $role, status: $status, redeemable: $redeemable)';
+    return 'InvitationPreviewDto(teamName: $teamName, teamSlug: $teamSlug, inviterName: $inviterName, maskedEmail: $maskedEmail, role: $role, status: $status, redeemable: $redeemable)';
 }
 
 
