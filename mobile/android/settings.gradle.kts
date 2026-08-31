@@ -15,6 +15,15 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
     }
+
+    // maplibre_android 0.3.6 applies `org.jlleitschuh.gradle.ktlint` in its own
+    // build.gradle.kts without a version and without a buildscript classpath
+    // (0.3.5 still carried one), so the plugin is unresolvable and every
+    // consumer build dies at that file. Supplying a default version here is the
+    // only place a consumer can fix it. Drop this once upstream republishes.
+    plugins {
+        id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
+    }
 }
 
 plugins {
