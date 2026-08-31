@@ -43,3 +43,8 @@ fastlane/test_output
 *.ipa
 *.dSYM.zip
 *.dSYM
+
+# Bundler installs fastlane here (BUNDLE_PATH in .bundle/config) — Homebrew's
+# shared gem dir symlinks read-only files into the Cellar, so a global install
+# dies with EACCES regenerating gem plugins.
+vendor/bundle/
