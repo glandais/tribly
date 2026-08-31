@@ -38,16 +38,21 @@ $AdminUserDtoCopyWith<AdminUserDto> get copyWith => _$AdminUserDtoCopyWithImpl<A
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminUserDto&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.domainId, domainId) || other.domainId == domainId)&&(identical(other.domainName, domainName) || other.domainName == domainName)&&(identical(other.emailVerified, emailVerified) || other.emailVerified == emailVerified)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.platformRole, platformRole) || other.platformRole == platformRole)&&(identical(other.lastLoginAt, lastLoginAt) || other.lastLoginAt == lastLoginAt));
+  final _this = this as AdminUserDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminUserDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.email, _this.email) || other.email == _this.email)&&(identical(other.displayName, _this.displayName) || other.displayName == _this.displayName)&&(identical(other.domainId, _this.domainId) || other.domainId == _this.domainId)&&(identical(other.domainName, _this.domainName) || other.domainName == _this.domainName)&&(identical(other.emailVerified, _this.emailVerified) || other.emailVerified == _this.emailVerified)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.platformRole, _this.platformRole) || other.platformRole == _this.platformRole)&&(identical(other.lastLoginAt, _this.lastLoginAt) || other.lastLoginAt == _this.lastLoginAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,email,displayName,domainId,domainName,emailVerified,createdAt,platformRole,lastLoginAt);
+int get hashCode {
+  final _this = this as AdminUserDto;
+  return Object.hash(runtimeType,_this.id,_this.email,_this.displayName,_this.domainId,_this.domainName,_this.emailVerified,_this.createdAt,_this.platformRole,_this.lastLoginAt);
+}
 
 @override
 String toString() {
-  return 'AdminUserDto(id: $id, email: $email, displayName: $displayName, domainId: $domainId, domainName: $domainName, emailVerified: $emailVerified, createdAt: $createdAt, platformRole: $platformRole, lastLoginAt: $lastLoginAt)';
+  final _this = this as AdminUserDto;
+  return 'AdminUserDto(id: ${_this.id}, email: ${_this.email}, displayName: ${_this.displayName}, domainId: ${_this.domainId}, domainName: ${_this.domainName}, emailVerified: ${_this.emailVerified}, createdAt: ${_this.createdAt}, platformRole: ${_this.platformRole}, lastLoginAt: ${_this.lastLoginAt})';
 }
 
 
@@ -262,16 +267,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminUserDto&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.domainId, domainId) || other.domainId == domainId)&&(identical(other.domainName, domainName) || other.domainName == domainName)&&(identical(other.emailVerified, emailVerified) || other.emailVerified == emailVerified)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.platformRole, platformRole) || other.platformRole == platformRole)&&(identical(other.lastLoginAt, lastLoginAt) || other.lastLoginAt == lastLoginAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminUserDto&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.domainId, domainId) || other.domainId == domainId)&&(identical(other.domainName, domainName) || other.domainName == domainName)&&(identical(other.emailVerified, emailVerified) || other.emailVerified == emailVerified)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.platformRole, platformRole) || other.platformRole == platformRole)&&(identical(other.lastLoginAt, lastLoginAt) || other.lastLoginAt == lastLoginAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,email,displayName,domainId,domainName,emailVerified,createdAt,platformRole,lastLoginAt);
+int get hashCode {
+    return Object.hash(runtimeType,id,email,displayName,domainId,domainName,emailVerified,createdAt,platformRole,lastLoginAt);
+}
 
 @override
 String toString() {
-  return 'AdminUserDto(id: $id, email: $email, displayName: $displayName, domainId: $domainId, domainName: $domainName, emailVerified: $emailVerified, createdAt: $createdAt, platformRole: $platformRole, lastLoginAt: $lastLoginAt)';
+    return 'AdminUserDto(id: $id, email: $email, displayName: $displayName, domainId: $domainId, domainName: $domainName, emailVerified: $emailVerified, createdAt: $createdAt, platformRole: $platformRole, lastLoginAt: $lastLoginAt)';
 }
 
 

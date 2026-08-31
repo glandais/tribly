@@ -30,16 +30,21 @@ $OtpRequestCopyWith<OtpRequest> get copyWith => _$OtpRequestCopyWithImpl<OtpRequ
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is OtpRequest&&(identical(other.email, email) || other.email == email));
+  final _this = this as OtpRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is OtpRequest&&(identical(other.email, _this.email) || other.email == _this.email));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,email);
+int get hashCode {
+  final _this = this as OtpRequest;
+  return Object.hash(runtimeType,_this.email);
+}
 
 @override
 String toString() {
-  return 'OtpRequest(email: $email)';
+  final _this = this as OtpRequest;
+  return 'OtpRequest(email: ${_this.email})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _OtpRequest&&(identical(other.email, email) || other.email == email));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _OtpRequest&&(identical(other.email, email) || other.email == email));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,email);
+int get hashCode {
+    return Object.hash(runtimeType,email);
+}
 
 @override
 String toString() {
-  return 'OtpRequest(email: $email)';
+    return 'OtpRequest(email: $email)';
 }
 
 

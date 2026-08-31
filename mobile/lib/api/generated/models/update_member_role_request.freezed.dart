@@ -30,16 +30,21 @@ $UpdateMemberRoleRequestCopyWith<UpdateMemberRoleRequest> get copyWith => _$Upda
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateMemberRoleRequest&&(identical(other.role, role) || other.role == role));
+  final _this = this as UpdateMemberRoleRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateMemberRoleRequest&&(identical(other.role, _this.role) || other.role == _this.role));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,role);
+int get hashCode {
+  final _this = this as UpdateMemberRoleRequest;
+  return Object.hash(runtimeType,_this.role);
+}
 
 @override
 String toString() {
-  return 'UpdateMemberRoleRequest(role: $role)';
+  final _this = this as UpdateMemberRoleRequest;
+  return 'UpdateMemberRoleRequest(role: ${_this.role})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateMemberRoleRequest&&(identical(other.role, role) || other.role == role));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateMemberRoleRequest&&(identical(other.role, role) || other.role == role));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,role);
+int get hashCode {
+    return Object.hash(runtimeType,role);
+}
 
 @override
 String toString() {
-  return 'UpdateMemberRoleRequest(role: $role)';
+    return 'UpdateMemberRoleRequest(role: $role)';
 }
 
 

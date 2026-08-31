@@ -30,16 +30,21 @@ $BetaSignupRequestCopyWith<BetaSignupRequest> get copyWith => _$BetaSignupReques
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BetaSignupRequest&&(identical(other.email, email) || other.email == email));
+  final _this = this as BetaSignupRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BetaSignupRequest&&(identical(other.email, _this.email) || other.email == _this.email));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,email);
+int get hashCode {
+  final _this = this as BetaSignupRequest;
+  return Object.hash(runtimeType,_this.email);
+}
 
 @override
 String toString() {
-  return 'BetaSignupRequest(email: $email)';
+  final _this = this as BetaSignupRequest;
+  return 'BetaSignupRequest(email: ${_this.email})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BetaSignupRequest&&(identical(other.email, email) || other.email == email));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _BetaSignupRequest&&(identical(other.email, email) || other.email == email));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,email);
+int get hashCode {
+    return Object.hash(runtimeType,email);
+}
 
 @override
 String toString() {
-  return 'BetaSignupRequest(email: $email)';
+    return 'BetaSignupRequest(email: $email)';
 }
 
 

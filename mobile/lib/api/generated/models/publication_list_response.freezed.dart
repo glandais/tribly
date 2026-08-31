@@ -33,16 +33,21 @@ $PublicationListResponseCopyWith<PublicationListResponse> get copyWith => _$Publ
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PublicationListResponse&&const DeepCollectionEquality().equals(other.publications, publications)&&(identical(other.total, total) || other.total == total)&&(identical(other.page, page) || other.page == page)&&(identical(other.size, size) || other.size == size));
+  final _this = this as PublicationListResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PublicationListResponse&&const DeepCollectionEquality().equals(other.publications, _this.publications)&&(identical(other.total, _this.total) || other.total == _this.total)&&(identical(other.page, _this.page) || other.page == _this.page)&&(identical(other.size, _this.size) || other.size == _this.size));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(publications),total,page,size);
+int get hashCode {
+  final _this = this as PublicationListResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.publications),_this.total,_this.page,_this.size);
+}
 
 @override
 String toString() {
-  return 'PublicationListResponse(publications: $publications, total: $total, page: $page, size: $size)';
+  final _this = this as PublicationListResponse;
+  return 'PublicationListResponse(publications: ${_this.publications}, total: ${_this.total}, page: ${_this.page}, size: ${_this.size})';
 }
 
 
@@ -249,16 +254,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PublicationListResponse&&const DeepCollectionEquality().equals(other._publications, _publications)&&(identical(other.total, total) || other.total == total)&&(identical(other.page, page) || other.page == page)&&(identical(other.size, size) || other.size == size));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PublicationListResponse&&const DeepCollectionEquality().equals(other.publications, _publications)&&(identical(other.total, total) || other.total == total)&&(identical(other.page, page) || other.page == page)&&(identical(other.size, size) || other.size == size));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_publications),total,page,size);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_publications),total,page,size);
+}
 
 @override
 String toString() {
-  return 'PublicationListResponse(publications: $publications, total: $total, page: $page, size: $size)';
+    return 'PublicationListResponse(publications: $publications, total: $total, page: $page, size: $size)';
 }
 
 

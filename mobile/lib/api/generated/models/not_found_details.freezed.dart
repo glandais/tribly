@@ -33,16 +33,21 @@ $NotFoundDetailsCopyWith<NotFoundDetails> get copyWith => _$NotFoundDetailsCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NotFoundDetails&&(identical(other.type, type) || other.type == type)&&(identical(other.entityType, entityType) || other.entityType == entityType)&&(identical(other.searchedBy, searchedBy) || other.searchedBy == searchedBy)&&(identical(other.id, id) || other.id == id));
+  final _this = this as NotFoundDetails;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NotFoundDetails&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.entityType, _this.entityType) || other.entityType == _this.entityType)&&(identical(other.searchedBy, _this.searchedBy) || other.searchedBy == _this.searchedBy)&&(identical(other.id, _this.id) || other.id == _this.id));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,entityType,searchedBy,id);
+int get hashCode {
+  final _this = this as NotFoundDetails;
+  return Object.hash(runtimeType,_this.type,_this.entityType,_this.searchedBy,_this.id);
+}
 
 @override
 String toString() {
-  return 'NotFoundDetails(type: $type, entityType: $entityType, searchedBy: $searchedBy, id: $id)';
+  final _this = this as NotFoundDetails;
+  return 'NotFoundDetails(type: ${_this.type}, entityType: ${_this.entityType}, searchedBy: ${_this.searchedBy}, id: ${_this.id})';
 }
 
 
@@ -242,16 +247,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NotFoundDetails&&(identical(other.type, type) || other.type == type)&&(identical(other.entityType, entityType) || other.entityType == entityType)&&(identical(other.searchedBy, searchedBy) || other.searchedBy == searchedBy)&&(identical(other.id, id) || other.id == id));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NotFoundDetails&&(identical(other.type, type) || other.type == type)&&(identical(other.entityType, entityType) || other.entityType == entityType)&&(identical(other.searchedBy, searchedBy) || other.searchedBy == searchedBy)&&(identical(other.id, id) || other.id == id));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,entityType,searchedBy,id);
+int get hashCode {
+    return Object.hash(runtimeType,type,entityType,searchedBy,id);
+}
 
 @override
 String toString() {
-  return 'NotFoundDetails(type: $type, entityType: $entityType, searchedBy: $searchedBy, id: $id)';
+    return 'NotFoundDetails(type: $type, entityType: $entityType, searchedBy: $searchedBy, id: $id)';
 }
 
 

@@ -29,16 +29,21 @@ $AssetDimensionsDtoCopyWith<AssetDimensionsDto> get copyWith => _$AssetDimension
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AssetDimensionsDto&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height));
+  final _this = this as AssetDimensionsDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AssetDimensionsDto&&(identical(other.width, _this.width) || other.width == _this.width)&&(identical(other.height, _this.height) || other.height == _this.height));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,width,height);
+int get hashCode {
+  final _this = this as AssetDimensionsDto;
+  return Object.hash(runtimeType,_this.width,_this.height);
+}
 
 @override
 String toString() {
-  return 'AssetDimensionsDto(width: $width, height: $height)';
+  final _this = this as AssetDimensionsDto;
+  return 'AssetDimensionsDto(width: ${_this.width}, height: ${_this.height})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AssetDimensionsDto&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AssetDimensionsDto&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,width,height);
+int get hashCode {
+    return Object.hash(runtimeType,width,height);
+}
 
 @override
 String toString() {
-  return 'AssetDimensionsDto(width: $width, height: $height)';
+    return 'AssetDimensionsDto(width: $width, height: $height)';
 }
 
 

@@ -31,16 +31,21 @@ $RoutesBulkResponseCopyWith<RoutesBulkResponse> get copyWith => _$RoutesBulkResp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RoutesBulkResponse&&const DeepCollectionEquality().equals(other.routes, routes)&&(identical(other.extent, extent) || other.extent == extent));
+  final _this = this as RoutesBulkResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RoutesBulkResponse&&const DeepCollectionEquality().equals(other.routes, _this.routes)&&(identical(other.extent, _this.extent) || other.extent == _this.extent));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(routes),extent);
+int get hashCode {
+  final _this = this as RoutesBulkResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.routes),_this.extent);
+}
 
 @override
 String toString() {
-  return 'RoutesBulkResponse(routes: $routes, extent: $extent)';
+  final _this = this as RoutesBulkResponse;
+  return 'RoutesBulkResponse(routes: ${_this.routes}, extent: ${_this.extent})';
 }
 
 
@@ -253,16 +258,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RoutesBulkResponse&&const DeepCollectionEquality().equals(other._routes, _routes)&&(identical(other.extent, extent) || other.extent == extent));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RoutesBulkResponse&&const DeepCollectionEquality().equals(other.routes, _routes)&&(identical(other.extent, extent) || other.extent == extent));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_routes),extent);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_routes),extent);
+}
 
 @override
 String toString() {
-  return 'RoutesBulkResponse(routes: $routes, extent: $extent)';
+    return 'RoutesBulkResponse(routes: $routes, extent: $extent)';
 }
 
 

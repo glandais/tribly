@@ -30,16 +30,21 @@ $CountResponseCopyWith<CountResponse> get copyWith => _$CountResponseCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CountResponse&&(identical(other.total, total) || other.total == total));
+  final _this = this as CountResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CountResponse&&(identical(other.total, _this.total) || other.total == _this.total));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,total);
+int get hashCode {
+  final _this = this as CountResponse;
+  return Object.hash(runtimeType,_this.total);
+}
 
 @override
 String toString() {
-  return 'CountResponse(total: $total)';
+  final _this = this as CountResponse;
+  return 'CountResponse(total: ${_this.total})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CountResponse&&(identical(other.total, total) || other.total == total));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CountResponse&&(identical(other.total, total) || other.total == total));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,total);
+int get hashCode {
+    return Object.hash(runtimeType,total);
+}
 
 @override
 String toString() {
-  return 'CountResponse(total: $total)';
+    return 'CountResponse(total: $total)';
 }
 
 

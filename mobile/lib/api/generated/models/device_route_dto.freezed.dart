@@ -36,16 +36,21 @@ $DeviceRouteDtoCopyWith<DeviceRouteDto> get copyWith => _$DeviceRouteDtoCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceRouteDto&&(identical(other.teamSlug, teamSlug) || other.teamSlug == teamSlug)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.routeName, routeName) || other.routeName == routeName)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.startLat, startLat) || other.startLat == startLat)&&(identical(other.startLon, startLon) || other.startLon == startLon));
+  final _this = this as DeviceRouteDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceRouteDto&&(identical(other.teamSlug, _this.teamSlug) || other.teamSlug == _this.teamSlug)&&(identical(other.routeSlug, _this.routeSlug) || other.routeSlug == _this.routeSlug)&&(identical(other.routeName, _this.routeName) || other.routeName == _this.routeName)&&(identical(other.distance, _this.distance) || other.distance == _this.distance)&&(identical(other.elevationGain, _this.elevationGain) || other.elevationGain == _this.elevationGain)&&(identical(other.startLat, _this.startLat) || other.startLat == _this.startLat)&&(identical(other.startLon, _this.startLon) || other.startLon == _this.startLon));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,teamSlug,routeSlug,routeName,distance,elevationGain,startLat,startLon);
+int get hashCode {
+  final _this = this as DeviceRouteDto;
+  return Object.hash(runtimeType,_this.teamSlug,_this.routeSlug,_this.routeName,_this.distance,_this.elevationGain,_this.startLat,_this.startLon);
+}
 
 @override
 String toString() {
-  return 'DeviceRouteDto(teamSlug: $teamSlug, routeSlug: $routeSlug, routeName: $routeName, distance: $distance, elevationGain: $elevationGain, startLat: $startLat, startLon: $startLon)';
+  final _this = this as DeviceRouteDto;
+  return 'DeviceRouteDto(teamSlug: ${_this.teamSlug}, routeSlug: ${_this.routeSlug}, routeName: ${_this.routeName}, distance: ${_this.distance}, elevationGain: ${_this.elevationGain}, startLat: ${_this.startLat}, startLon: ${_this.startLon})';
 }
 
 
@@ -254,16 +259,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceRouteDto&&(identical(other.teamSlug, teamSlug) || other.teamSlug == teamSlug)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.routeName, routeName) || other.routeName == routeName)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.startLat, startLat) || other.startLat == startLat)&&(identical(other.startLon, startLon) || other.startLon == startLon));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceRouteDto&&(identical(other.teamSlug, teamSlug) || other.teamSlug == teamSlug)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.routeName, routeName) || other.routeName == routeName)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.startLat, startLat) || other.startLat == startLat)&&(identical(other.startLon, startLon) || other.startLon == startLon));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,teamSlug,routeSlug,routeName,distance,elevationGain,startLat,startLon);
+int get hashCode {
+    return Object.hash(runtimeType,teamSlug,routeSlug,routeName,distance,elevationGain,startLat,startLon);
+}
 
 @override
 String toString() {
-  return 'DeviceRouteDto(teamSlug: $teamSlug, routeSlug: $routeSlug, routeName: $routeName, distance: $distance, elevationGain: $elevationGain, startLat: $startLat, startLon: $startLon)';
+    return 'DeviceRouteDto(teamSlug: $teamSlug, routeSlug: $routeSlug, routeName: $routeName, distance: $distance, elevationGain: $elevationGain, startLat: $startLat, startLon: $startLon)';
 }
 
 

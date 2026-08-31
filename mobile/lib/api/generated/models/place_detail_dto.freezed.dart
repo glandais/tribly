@@ -30,16 +30,21 @@ $PlaceDetailDtoCopyWith<PlaceDetailDto> get copyWith => _$PlaceDetailDtoCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlaceDetailDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.startPlace, startPlace) || other.startPlace == startPlace)&&(identical(other.endPlace, endPlace) || other.endPlace == endPlace)&&(identical(other.address, address) || other.address == address)&&(identical(other.link, link) || other.link == link)&&(identical(other.geometry, geometry) || other.geometry == geometry));
+  final _this = this as PlaceDetailDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlaceDetailDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.startPlace, _this.startPlace) || other.startPlace == _this.startPlace)&&(identical(other.endPlace, _this.endPlace) || other.endPlace == _this.endPlace)&&(identical(other.address, _this.address) || other.address == _this.address)&&(identical(other.link, _this.link) || other.link == _this.link)&&(identical(other.geometry, _this.geometry) || other.geometry == _this.geometry));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,startPlace,endPlace,address,link,geometry);
+int get hashCode {
+  final _this = this as PlaceDetailDto;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.startPlace,_this.endPlace,_this.address,_this.link,_this.geometry);
+}
 
 @override
 String toString() {
-  return 'PlaceDetailDto(id: $id, name: $name, startPlace: $startPlace, endPlace: $endPlace, address: $address, link: $link, geometry: $geometry)';
+  final _this = this as PlaceDetailDto;
+  return 'PlaceDetailDto(id: ${_this.id}, name: ${_this.name}, startPlace: ${_this.startPlace}, endPlace: ${_this.endPlace}, address: ${_this.address}, link: ${_this.link}, geometry: ${_this.geometry})';
 }
 
 
@@ -254,16 +259,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlaceDetailDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.startPlace, startPlace) || other.startPlace == startPlace)&&(identical(other.endPlace, endPlace) || other.endPlace == endPlace)&&(identical(other.address, address) || other.address == address)&&(identical(other.link, link) || other.link == link)&&(identical(other.geometry, geometry) || other.geometry == geometry));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlaceDetailDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.startPlace, startPlace) || other.startPlace == startPlace)&&(identical(other.endPlace, endPlace) || other.endPlace == endPlace)&&(identical(other.address, address) || other.address == address)&&(identical(other.link, link) || other.link == link)&&(identical(other.geometry, geometry) || other.geometry == geometry));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,startPlace,endPlace,address,link,geometry);
+int get hashCode {
+    return Object.hash(runtimeType,id,name,startPlace,endPlace,address,link,geometry);
+}
 
 @override
 String toString() {
-  return 'PlaceDetailDto(id: $id, name: $name, startPlace: $startPlace, endPlace: $endPlace, address: $address, link: $link, geometry: $geometry)';
+    return 'PlaceDetailDto(id: $id, name: $name, startPlace: $startPlace, endPlace: $endPlace, address: $address, link: $link, geometry: $geometry)';
 }
 
 

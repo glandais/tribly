@@ -34,16 +34,21 @@ $AdminGpsCredentialDtoCopyWith<AdminGpsCredentialDto> get copyWith => _$AdminGps
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminGpsCredentialDto&&(identical(other.id, id) || other.id == id)&&(identical(other.serviceType, serviceType) || other.serviceType == serviceType)&&(identical(other.clientId, clientId) || other.clientId == clientId)&&(identical(other.active, active) || other.active == active)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  final _this = this as AdminGpsCredentialDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminGpsCredentialDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.serviceType, _this.serviceType) || other.serviceType == _this.serviceType)&&(identical(other.clientId, _this.clientId) || other.clientId == _this.clientId)&&(identical(other.active, _this.active) || other.active == _this.active)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,serviceType,clientId,active,createdAt);
+int get hashCode {
+  final _this = this as AdminGpsCredentialDto;
+  return Object.hash(runtimeType,_this.id,_this.serviceType,_this.clientId,_this.active,_this.createdAt);
+}
 
 @override
 String toString() {
-  return 'AdminGpsCredentialDto(id: $id, serviceType: $serviceType, clientId: $clientId, active: $active, createdAt: $createdAt)';
+  final _this = this as AdminGpsCredentialDto;
+  return 'AdminGpsCredentialDto(id: ${_this.id}, serviceType: ${_this.serviceType}, clientId: ${_this.clientId}, active: ${_this.active}, createdAt: ${_this.createdAt})';
 }
 
 
@@ -246,16 +251,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminGpsCredentialDto&&(identical(other.id, id) || other.id == id)&&(identical(other.serviceType, serviceType) || other.serviceType == serviceType)&&(identical(other.clientId, clientId) || other.clientId == clientId)&&(identical(other.active, active) || other.active == active)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminGpsCredentialDto&&(identical(other.id, id) || other.id == id)&&(identical(other.serviceType, serviceType) || other.serviceType == serviceType)&&(identical(other.clientId, clientId) || other.clientId == clientId)&&(identical(other.active, active) || other.active == active)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,serviceType,clientId,active,createdAt);
+int get hashCode {
+    return Object.hash(runtimeType,id,serviceType,clientId,active,createdAt);
+}
 
 @override
 String toString() {
-  return 'AdminGpsCredentialDto(id: $id, serviceType: $serviceType, clientId: $clientId, active: $active, createdAt: $createdAt)';
+    return 'AdminGpsCredentialDto(id: $id, serviceType: $serviceType, clientId: $clientId, active: $active, createdAt: $createdAt)';
 }
 
 

@@ -37,16 +37,21 @@ $AdRequestCopyWith<AdRequest> get copyWith => _$AdRequestCopyWithImpl<AdRequest>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.status, status) || other.status == status)&&(identical(other.adType, adType) || other.adType == adType)&&(identical(other.price, price) || other.price == price)&&(identical(other.rentalPeriod, rentalPeriod) || other.rentalPeriod == rentalPeriod)&&(identical(other.locationDescription, locationDescription) || other.locationDescription == locationDescription)&&(identical(other.locationGeometry, locationGeometry) || other.locationGeometry == locationGeometry));
+  final _this = this as AdRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdRequest&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.media, _this.media) || other.media == _this.media)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.adType, _this.adType) || other.adType == _this.adType)&&(identical(other.price, _this.price) || other.price == _this.price)&&(identical(other.rentalPeriod, _this.rentalPeriod) || other.rentalPeriod == _this.rentalPeriod)&&(identical(other.locationDescription, _this.locationDescription) || other.locationDescription == _this.locationDescription)&&(identical(other.locationGeometry, _this.locationGeometry) || other.locationGeometry == _this.locationGeometry));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,media,status,adType,price,rentalPeriod,locationDescription,locationGeometry);
+int get hashCode {
+  final _this = this as AdRequest;
+  return Object.hash(runtimeType,_this.name,_this.media,_this.status,_this.adType,_this.price,_this.rentalPeriod,_this.locationDescription,_this.locationGeometry);
+}
 
 @override
 String toString() {
-  return 'AdRequest(name: $name, media: $media, status: $status, adType: $adType, price: $price, rentalPeriod: $rentalPeriod, locationDescription: $locationDescription, locationGeometry: $locationGeometry)';
+  final _this = this as AdRequest;
+  return 'AdRequest(name: ${_this.name}, media: ${_this.media}, status: ${_this.status}, adType: ${_this.adType}, price: ${_this.price}, rentalPeriod: ${_this.rentalPeriod}, locationDescription: ${_this.locationDescription}, locationGeometry: ${_this.locationGeometry})';
 }
 
 
@@ -279,16 +284,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.status, status) || other.status == status)&&(identical(other.adType, adType) || other.adType == adType)&&(identical(other.price, price) || other.price == price)&&(identical(other.rentalPeriod, rentalPeriod) || other.rentalPeriod == rentalPeriod)&&(identical(other.locationDescription, locationDescription) || other.locationDescription == locationDescription)&&(identical(other.locationGeometry, locationGeometry) || other.locationGeometry == locationGeometry));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.status, status) || other.status == status)&&(identical(other.adType, adType) || other.adType == adType)&&(identical(other.price, price) || other.price == price)&&(identical(other.rentalPeriod, rentalPeriod) || other.rentalPeriod == rentalPeriod)&&(identical(other.locationDescription, locationDescription) || other.locationDescription == locationDescription)&&(identical(other.locationGeometry, locationGeometry) || other.locationGeometry == locationGeometry));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,media,status,adType,price,rentalPeriod,locationDescription,locationGeometry);
+int get hashCode {
+    return Object.hash(runtimeType,name,media,status,adType,price,rentalPeriod,locationDescription,locationGeometry);
+}
 
 @override
 String toString() {
-  return 'AdRequest(name: $name, media: $media, status: $status, adType: $adType, price: $price, rentalPeriod: $rentalPeriod, locationDescription: $locationDescription, locationGeometry: $locationGeometry)';
+    return 'AdRequest(name: $name, media: $media, status: $status, adType: $adType, price: $price, rentalPeriod: $rentalPeriod, locationDescription: $locationDescription, locationGeometry: $locationGeometry)';
 }
 
 

@@ -35,16 +35,21 @@ $DeviceCodeResponseCopyWith<DeviceCodeResponse> get copyWith => _$DeviceCodeResp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceCodeResponse&&(identical(other.deviceCode, deviceCode) || other.deviceCode == deviceCode)&&(identical(other.userCode, userCode) || other.userCode == userCode)&&(identical(other.verificationUri, verificationUri) || other.verificationUri == verificationUri)&&(identical(other.verificationUriComplete, verificationUriComplete) || other.verificationUriComplete == verificationUriComplete)&&(identical(other.expiresIn, expiresIn) || other.expiresIn == expiresIn)&&(identical(other.interval, interval) || other.interval == interval));
+  final _this = this as DeviceCodeResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceCodeResponse&&(identical(other.deviceCode, _this.deviceCode) || other.deviceCode == _this.deviceCode)&&(identical(other.userCode, _this.userCode) || other.userCode == _this.userCode)&&(identical(other.verificationUri, _this.verificationUri) || other.verificationUri == _this.verificationUri)&&(identical(other.verificationUriComplete, _this.verificationUriComplete) || other.verificationUriComplete == _this.verificationUriComplete)&&(identical(other.expiresIn, _this.expiresIn) || other.expiresIn == _this.expiresIn)&&(identical(other.interval, _this.interval) || other.interval == _this.interval));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,deviceCode,userCode,verificationUri,verificationUriComplete,expiresIn,interval);
+int get hashCode {
+  final _this = this as DeviceCodeResponse;
+  return Object.hash(runtimeType,_this.deviceCode,_this.userCode,_this.verificationUri,_this.verificationUriComplete,_this.expiresIn,_this.interval);
+}
 
 @override
 String toString() {
-  return 'DeviceCodeResponse(deviceCode: $deviceCode, userCode: $userCode, verificationUri: $verificationUri, verificationUriComplete: $verificationUriComplete, expiresIn: $expiresIn, interval: $interval)';
+  final _this = this as DeviceCodeResponse;
+  return 'DeviceCodeResponse(deviceCode: ${_this.deviceCode}, userCode: ${_this.userCode}, verificationUri: ${_this.verificationUri}, verificationUriComplete: ${_this.verificationUriComplete}, expiresIn: ${_this.expiresIn}, interval: ${_this.interval})';
 }
 
 
@@ -250,16 +255,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceCodeResponse&&(identical(other.deviceCode, deviceCode) || other.deviceCode == deviceCode)&&(identical(other.userCode, userCode) || other.userCode == userCode)&&(identical(other.verificationUri, verificationUri) || other.verificationUri == verificationUri)&&(identical(other.verificationUriComplete, verificationUriComplete) || other.verificationUriComplete == verificationUriComplete)&&(identical(other.expiresIn, expiresIn) || other.expiresIn == expiresIn)&&(identical(other.interval, interval) || other.interval == interval));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceCodeResponse&&(identical(other.deviceCode, deviceCode) || other.deviceCode == deviceCode)&&(identical(other.userCode, userCode) || other.userCode == userCode)&&(identical(other.verificationUri, verificationUri) || other.verificationUri == verificationUri)&&(identical(other.verificationUriComplete, verificationUriComplete) || other.verificationUriComplete == verificationUriComplete)&&(identical(other.expiresIn, expiresIn) || other.expiresIn == expiresIn)&&(identical(other.interval, interval) || other.interval == interval));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,deviceCode,userCode,verificationUri,verificationUriComplete,expiresIn,interval);
+int get hashCode {
+    return Object.hash(runtimeType,deviceCode,userCode,verificationUri,verificationUriComplete,expiresIn,interval);
+}
 
 @override
 String toString() {
-  return 'DeviceCodeResponse(deviceCode: $deviceCode, userCode: $userCode, verificationUri: $verificationUri, verificationUriComplete: $verificationUriComplete, expiresIn: $expiresIn, interval: $interval)';
+    return 'DeviceCodeResponse(deviceCode: $deviceCode, userCode: $userCode, verificationUri: $verificationUri, verificationUriComplete: $verificationUriComplete, expiresIn: $expiresIn, interval: $interval)';
 }
 
 

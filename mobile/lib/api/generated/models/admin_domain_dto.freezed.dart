@@ -40,16 +40,21 @@ $AdminDomainDtoCopyWith<AdminDomainDto> get copyWith => _$AdminDomainDtoCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminDomainDto&&(identical(other.id, id) || other.id == id)&&(identical(other.domain, domain) || other.domain == domain)&&(identical(other.name, name) || other.name == name)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam)&&(identical(other.enableGpxPlanner, enableGpxPlanner) || other.enableGpxPlanner == enableGpxPlanner)&&(identical(other.active, active) || other.active == active)&&(identical(other.teamCount, teamCount) || other.teamCount == teamCount)&&(identical(other.userCount, userCount) || other.userCount == userCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.androidFingerprints, androidFingerprints) || other.androidFingerprints == androidFingerprints));
+  final _this = this as AdminDomainDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminDomainDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.domain, _this.domain) || other.domain == _this.domain)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.baseUrl, _this.baseUrl) || other.baseUrl == _this.baseUrl)&&(identical(other.singleTeam, _this.singleTeam) || other.singleTeam == _this.singleTeam)&&(identical(other.enableGpxPlanner, _this.enableGpxPlanner) || other.enableGpxPlanner == _this.enableGpxPlanner)&&(identical(other.active, _this.active) || other.active == _this.active)&&(identical(other.teamCount, _this.teamCount) || other.teamCount == _this.teamCount)&&(identical(other.userCount, _this.userCount) || other.userCount == _this.userCount)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.androidFingerprints, _this.androidFingerprints) || other.androidFingerprints == _this.androidFingerprints));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,domain,name,baseUrl,singleTeam,enableGpxPlanner,active,teamCount,userCount,createdAt,androidFingerprints);
+int get hashCode {
+  final _this = this as AdminDomainDto;
+  return Object.hash(runtimeType,_this.id,_this.domain,_this.name,_this.baseUrl,_this.singleTeam,_this.enableGpxPlanner,_this.active,_this.teamCount,_this.userCount,_this.createdAt,_this.androidFingerprints);
+}
 
 @override
 String toString() {
-  return 'AdminDomainDto(id: $id, domain: $domain, name: $name, baseUrl: $baseUrl, singleTeam: $singleTeam, enableGpxPlanner: $enableGpxPlanner, active: $active, teamCount: $teamCount, userCount: $userCount, createdAt: $createdAt, androidFingerprints: $androidFingerprints)';
+  final _this = this as AdminDomainDto;
+  return 'AdminDomainDto(id: ${_this.id}, domain: ${_this.domain}, name: ${_this.name}, baseUrl: ${_this.baseUrl}, singleTeam: ${_this.singleTeam}, enableGpxPlanner: ${_this.enableGpxPlanner}, active: ${_this.active}, teamCount: ${_this.teamCount}, userCount: ${_this.userCount}, createdAt: ${_this.createdAt}, androidFingerprints: ${_this.androidFingerprints})';
 }
 
 
@@ -270,16 +275,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminDomainDto&&(identical(other.id, id) || other.id == id)&&(identical(other.domain, domain) || other.domain == domain)&&(identical(other.name, name) || other.name == name)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam)&&(identical(other.enableGpxPlanner, enableGpxPlanner) || other.enableGpxPlanner == enableGpxPlanner)&&(identical(other.active, active) || other.active == active)&&(identical(other.teamCount, teamCount) || other.teamCount == teamCount)&&(identical(other.userCount, userCount) || other.userCount == userCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.androidFingerprints, androidFingerprints) || other.androidFingerprints == androidFingerprints));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminDomainDto&&(identical(other.id, id) || other.id == id)&&(identical(other.domain, domain) || other.domain == domain)&&(identical(other.name, name) || other.name == name)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.singleTeam, singleTeam) || other.singleTeam == singleTeam)&&(identical(other.enableGpxPlanner, enableGpxPlanner) || other.enableGpxPlanner == enableGpxPlanner)&&(identical(other.active, active) || other.active == active)&&(identical(other.teamCount, teamCount) || other.teamCount == teamCount)&&(identical(other.userCount, userCount) || other.userCount == userCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.androidFingerprints, androidFingerprints) || other.androidFingerprints == androidFingerprints));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,domain,name,baseUrl,singleTeam,enableGpxPlanner,active,teamCount,userCount,createdAt,androidFingerprints);
+int get hashCode {
+    return Object.hash(runtimeType,id,domain,name,baseUrl,singleTeam,enableGpxPlanner,active,teamCount,userCount,createdAt,androidFingerprints);
+}
 
 @override
 String toString() {
-  return 'AdminDomainDto(id: $id, domain: $domain, name: $name, baseUrl: $baseUrl, singleTeam: $singleTeam, enableGpxPlanner: $enableGpxPlanner, active: $active, teamCount: $teamCount, userCount: $userCount, createdAt: $createdAt, androidFingerprints: $androidFingerprints)';
+    return 'AdminDomainDto(id: $id, domain: $domain, name: $name, baseUrl: $baseUrl, singleTeam: $singleTeam, enableGpxPlanner: $enableGpxPlanner, active: $active, teamCount: $teamCount, userCount: $userCount, createdAt: $createdAt, androidFingerprints: $androidFingerprints)';
 }
 
 

@@ -35,16 +35,21 @@ $PasskeyDtoCopyWith<PasskeyDto> get copyWith => _$PasskeyDtoCopyWithImpl<Passkey
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PasskeyDto&&(identical(other.id, id) || other.id == id)&&(identical(other.credentialId, credentialId) || other.credentialId == credentialId)&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName)&&const DeepCollectionEquality().equals(other.transports, transports)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.lastUsedAt, lastUsedAt) || other.lastUsedAt == lastUsedAt));
+  final _this = this as PasskeyDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PasskeyDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.credentialId, _this.credentialId) || other.credentialId == _this.credentialId)&&(identical(other.deviceName, _this.deviceName) || other.deviceName == _this.deviceName)&&const DeepCollectionEquality().equals(other.transports, _this.transports)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.lastUsedAt, _this.lastUsedAt) || other.lastUsedAt == _this.lastUsedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,credentialId,deviceName,const DeepCollectionEquality().hash(transports),createdAt,lastUsedAt);
+int get hashCode {
+  final _this = this as PasskeyDto;
+  return Object.hash(runtimeType,_this.id,_this.credentialId,_this.deviceName,const DeepCollectionEquality().hash(_this.transports),_this.createdAt,_this.lastUsedAt);
+}
 
 @override
 String toString() {
-  return 'PasskeyDto(id: $id, credentialId: $credentialId, deviceName: $deviceName, transports: $transports, createdAt: $createdAt, lastUsedAt: $lastUsedAt)';
+  final _this = this as PasskeyDto;
+  return 'PasskeyDto(id: ${_this.id}, credentialId: ${_this.credentialId}, deviceName: ${_this.deviceName}, transports: ${_this.transports}, createdAt: ${_this.createdAt}, lastUsedAt: ${_this.lastUsedAt})';
 }
 
 
@@ -259,16 +264,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PasskeyDto&&(identical(other.id, id) || other.id == id)&&(identical(other.credentialId, credentialId) || other.credentialId == credentialId)&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName)&&const DeepCollectionEquality().equals(other._transports, _transports)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.lastUsedAt, lastUsedAt) || other.lastUsedAt == lastUsedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PasskeyDto&&(identical(other.id, id) || other.id == id)&&(identical(other.credentialId, credentialId) || other.credentialId == credentialId)&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName)&&const DeepCollectionEquality().equals(other.transports, _transports)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.lastUsedAt, lastUsedAt) || other.lastUsedAt == lastUsedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,credentialId,deviceName,const DeepCollectionEquality().hash(_transports),createdAt,lastUsedAt);
+int get hashCode {
+    return Object.hash(runtimeType,id,credentialId,deviceName,const DeepCollectionEquality().hash(_transports),createdAt,lastUsedAt);
+}
 
 @override
 String toString() {
-  return 'PasskeyDto(id: $id, credentialId: $credentialId, deviceName: $deviceName, transports: $transports, createdAt: $createdAt, lastUsedAt: $lastUsedAt)';
+    return 'PasskeyDto(id: $id, credentialId: $credentialId, deviceName: $deviceName, transports: $transports, createdAt: $createdAt, lastUsedAt: $lastUsedAt)';
 }
 
 

@@ -31,16 +31,21 @@ $VerifyResponseCopyWith<VerifyResponse> get copyWith => _$VerifyResponseCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is VerifyResponse&&(identical(other.userCode, userCode) || other.userCode == userCode)&&(identical(other.authorized, authorized) || other.authorized == authorized));
+  final _this = this as VerifyResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is VerifyResponse&&(identical(other.userCode, _this.userCode) || other.userCode == _this.userCode)&&(identical(other.authorized, _this.authorized) || other.authorized == _this.authorized));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,userCode,authorized);
+int get hashCode {
+  final _this = this as VerifyResponse;
+  return Object.hash(runtimeType,_this.userCode,_this.authorized);
+}
 
 @override
 String toString() {
-  return 'VerifyResponse(userCode: $userCode, authorized: $authorized)';
+  final _this = this as VerifyResponse;
+  return 'VerifyResponse(userCode: ${_this.userCode}, authorized: ${_this.authorized})';
 }
 
 
@@ -234,16 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _VerifyResponse&&(identical(other.userCode, userCode) || other.userCode == userCode)&&(identical(other.authorized, authorized) || other.authorized == authorized));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _VerifyResponse&&(identical(other.userCode, userCode) || other.userCode == userCode)&&(identical(other.authorized, authorized) || other.authorized == authorized));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,userCode,authorized);
+int get hashCode {
+    return Object.hash(runtimeType,userCode,authorized);
+}
 
 @override
 String toString() {
-  return 'VerifyResponse(userCode: $userCode, authorized: $authorized)';
+    return 'VerifyResponse(userCode: $userCode, authorized: $authorized)';
 }
 
 

@@ -33,16 +33,21 @@ $CreateGpsCredentialRequestCopyWith<CreateGpsCredentialRequest> get copyWith => 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateGpsCredentialRequest&&(identical(other.serviceType, serviceType) || other.serviceType == serviceType)&&(identical(other.clientId, clientId) || other.clientId == clientId)&&(identical(other.clientSecret, clientSecret) || other.clientSecret == clientSecret)&&(identical(other.active, active) || other.active == active));
+  final _this = this as CreateGpsCredentialRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateGpsCredentialRequest&&(identical(other.serviceType, _this.serviceType) || other.serviceType == _this.serviceType)&&(identical(other.clientId, _this.clientId) || other.clientId == _this.clientId)&&(identical(other.clientSecret, _this.clientSecret) || other.clientSecret == _this.clientSecret)&&(identical(other.active, _this.active) || other.active == _this.active));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,serviceType,clientId,clientSecret,active);
+int get hashCode {
+  final _this = this as CreateGpsCredentialRequest;
+  return Object.hash(runtimeType,_this.serviceType,_this.clientId,_this.clientSecret,_this.active);
+}
 
 @override
 String toString() {
-  return 'CreateGpsCredentialRequest(serviceType: $serviceType, clientId: $clientId, clientSecret: $clientSecret, active: $active)';
+  final _this = this as CreateGpsCredentialRequest;
+  return 'CreateGpsCredentialRequest(serviceType: ${_this.serviceType}, clientId: ${_this.clientId}, clientSecret: ${_this.clientSecret}, active: ${_this.active})';
 }
 
 
@@ -242,16 +247,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateGpsCredentialRequest&&(identical(other.serviceType, serviceType) || other.serviceType == serviceType)&&(identical(other.clientId, clientId) || other.clientId == clientId)&&(identical(other.clientSecret, clientSecret) || other.clientSecret == clientSecret)&&(identical(other.active, active) || other.active == active));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateGpsCredentialRequest&&(identical(other.serviceType, serviceType) || other.serviceType == serviceType)&&(identical(other.clientId, clientId) || other.clientId == clientId)&&(identical(other.clientSecret, clientSecret) || other.clientSecret == clientSecret)&&(identical(other.active, active) || other.active == active));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,serviceType,clientId,clientSecret,active);
+int get hashCode {
+    return Object.hash(runtimeType,serviceType,clientId,clientSecret,active);
+}
 
 @override
 String toString() {
-  return 'CreateGpsCredentialRequest(serviceType: $serviceType, clientId: $clientId, clientSecret: $clientSecret, active: $active)';
+    return 'CreateGpsCredentialRequest(serviceType: $serviceType, clientId: $clientId, clientSecret: $clientSecret, active: $active)';
 }
 
 

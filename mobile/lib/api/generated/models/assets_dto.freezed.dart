@@ -37,16 +37,21 @@ $AssetsDtoCopyWith<AssetsDto> get copyWith => _$AssetsDtoCopyWithImpl<AssetsDto>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AssetsDto&&const DeepCollectionEquality().equals(other.images, images)&&const DeepCollectionEquality().equals(other.attachments, attachments)&&(identical(other.logo, logo) || other.logo == logo)&&(identical(other.originalGpx, originalGpx) || other.originalGpx == originalGpx)&&(identical(other.gpx, gpx) || other.gpx == gpx)&&(identical(other.fit, fit) || other.fit == fit)&&(identical(other.thumbnailLight, thumbnailLight) || other.thumbnailLight == thumbnailLight)&&(identical(other.thumbnailDark, thumbnailDark) || other.thumbnailDark == thumbnailDark));
+  final _this = this as AssetsDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AssetsDto&&const DeepCollectionEquality().equals(other.images, _this.images)&&const DeepCollectionEquality().equals(other.attachments, _this.attachments)&&(identical(other.logo, _this.logo) || other.logo == _this.logo)&&(identical(other.originalGpx, _this.originalGpx) || other.originalGpx == _this.originalGpx)&&(identical(other.gpx, _this.gpx) || other.gpx == _this.gpx)&&(identical(other.fit, _this.fit) || other.fit == _this.fit)&&(identical(other.thumbnailLight, _this.thumbnailLight) || other.thumbnailLight == _this.thumbnailLight)&&(identical(other.thumbnailDark, _this.thumbnailDark) || other.thumbnailDark == _this.thumbnailDark));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(images),const DeepCollectionEquality().hash(attachments),logo,originalGpx,gpx,fit,thumbnailLight,thumbnailDark);
+int get hashCode {
+  final _this = this as AssetsDto;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.images),const DeepCollectionEquality().hash(_this.attachments),_this.logo,_this.originalGpx,_this.gpx,_this.fit,_this.thumbnailLight,_this.thumbnailDark);
+}
 
 @override
 String toString() {
-  return 'AssetsDto(images: $images, attachments: $attachments, logo: $logo, originalGpx: $originalGpx, gpx: $gpx, fit: $fit, thumbnailLight: $thumbnailLight, thumbnailDark: $thumbnailDark)';
+  final _this = this as AssetsDto;
+  return 'AssetsDto(images: ${_this.images}, attachments: ${_this.attachments}, logo: ${_this.logo}, originalGpx: ${_this.originalGpx}, gpx: ${_this.gpx}, fit: ${_this.fit}, thumbnailLight: ${_this.thumbnailLight}, thumbnailDark: ${_this.thumbnailDark})';
 }
 
 
@@ -344,16 +349,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AssetsDto&&const DeepCollectionEquality().equals(other._images, _images)&&const DeepCollectionEquality().equals(other._attachments, _attachments)&&(identical(other.logo, logo) || other.logo == logo)&&(identical(other.originalGpx, originalGpx) || other.originalGpx == originalGpx)&&(identical(other.gpx, gpx) || other.gpx == gpx)&&(identical(other.fit, fit) || other.fit == fit)&&(identical(other.thumbnailLight, thumbnailLight) || other.thumbnailLight == thumbnailLight)&&(identical(other.thumbnailDark, thumbnailDark) || other.thumbnailDark == thumbnailDark));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AssetsDto&&const DeepCollectionEquality().equals(other.images, _images)&&const DeepCollectionEquality().equals(other.attachments, _attachments)&&(identical(other.logo, logo) || other.logo == logo)&&(identical(other.originalGpx, originalGpx) || other.originalGpx == originalGpx)&&(identical(other.gpx, gpx) || other.gpx == gpx)&&(identical(other.fit, fit) || other.fit == fit)&&(identical(other.thumbnailLight, thumbnailLight) || other.thumbnailLight == thumbnailLight)&&(identical(other.thumbnailDark, thumbnailDark) || other.thumbnailDark == thumbnailDark));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_images),const DeepCollectionEquality().hash(_attachments),logo,originalGpx,gpx,fit,thumbnailLight,thumbnailDark);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_images),const DeepCollectionEquality().hash(_attachments),logo,originalGpx,gpx,fit,thumbnailLight,thumbnailDark);
+}
 
 @override
 String toString() {
-  return 'AssetsDto(images: $images, attachments: $attachments, logo: $logo, originalGpx: $originalGpx, gpx: $gpx, fit: $fit, thumbnailLight: $thumbnailLight, thumbnailDark: $thumbnailDark)';
+    return 'AssetsDto(images: $images, attachments: $attachments, logo: $logo, originalGpx: $originalGpx, gpx: $gpx, fit: $fit, thumbnailLight: $thumbnailLight, thumbnailDark: $thumbnailDark)';
 }
 
 

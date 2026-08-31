@@ -31,16 +31,21 @@ $MediaDtoCopyWith<MediaDto> get copyWith => _$MediaDtoCopyWithImpl<MediaDto>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MediaDto&&(identical(other.markdown, markdown) || other.markdown == markdown)&&(identical(other.assets, assets) || other.assets == assets));
+  final _this = this as MediaDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MediaDto&&(identical(other.markdown, _this.markdown) || other.markdown == _this.markdown)&&(identical(other.assets, _this.assets) || other.assets == _this.assets));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,markdown,assets);
+int get hashCode {
+  final _this = this as MediaDto;
+  return Object.hash(runtimeType,_this.markdown,_this.assets);
+}
 
 @override
 String toString() {
-  return 'MediaDto(markdown: $markdown, assets: $assets)';
+  final _this = this as MediaDto;
+  return 'MediaDto(markdown: ${_this.markdown}, assets: ${_this.assets})';
 }
 
 
@@ -243,16 +248,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MediaDto&&(identical(other.markdown, markdown) || other.markdown == markdown)&&(identical(other.assets, assets) || other.assets == assets));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MediaDto&&(identical(other.markdown, markdown) || other.markdown == markdown)&&(identical(other.assets, assets) || other.assets == assets));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,markdown,assets);
+int get hashCode {
+    return Object.hash(runtimeType,markdown,assets);
+}
 
 @override
 String toString() {
-  return 'MediaDto(markdown: $markdown, assets: $assets)';
+    return 'MediaDto(markdown: $markdown, assets: $assets)';
 }
 
 

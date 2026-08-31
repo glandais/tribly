@@ -34,16 +34,21 @@ $UserPreferencesRequestCopyWith<UserPreferencesRequest> get copyWith => _$UserPr
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserPreferencesRequest&&(identical(other.unitSystem, unitSystem) || other.unitSystem == unitSystem)&&(identical(other.theme, theme) || other.theme == theme)&&(identical(other.language, language) || other.language == language)&&(identical(other.timezone, timezone) || other.timezone == timezone)&&(identical(other.contactableByMembers, contactableByMembers) || other.contactableByMembers == contactableByMembers));
+  final _this = this as UserPreferencesRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserPreferencesRequest&&(identical(other.unitSystem, _this.unitSystem) || other.unitSystem == _this.unitSystem)&&(identical(other.theme, _this.theme) || other.theme == _this.theme)&&(identical(other.language, _this.language) || other.language == _this.language)&&(identical(other.timezone, _this.timezone) || other.timezone == _this.timezone)&&(identical(other.contactableByMembers, _this.contactableByMembers) || other.contactableByMembers == _this.contactableByMembers));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,unitSystem,theme,language,timezone,contactableByMembers);
+int get hashCode {
+  final _this = this as UserPreferencesRequest;
+  return Object.hash(runtimeType,_this.unitSystem,_this.theme,_this.language,_this.timezone,_this.contactableByMembers);
+}
 
 @override
 String toString() {
-  return 'UserPreferencesRequest(unitSystem: $unitSystem, theme: $theme, language: $language, timezone: $timezone, contactableByMembers: $contactableByMembers)';
+  final _this = this as UserPreferencesRequest;
+  return 'UserPreferencesRequest(unitSystem: ${_this.unitSystem}, theme: ${_this.theme}, language: ${_this.language}, timezone: ${_this.timezone}, contactableByMembers: ${_this.contactableByMembers})';
 }
 
 
@@ -246,16 +251,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserPreferencesRequest&&(identical(other.unitSystem, unitSystem) || other.unitSystem == unitSystem)&&(identical(other.theme, theme) || other.theme == theme)&&(identical(other.language, language) || other.language == language)&&(identical(other.timezone, timezone) || other.timezone == timezone)&&(identical(other.contactableByMembers, contactableByMembers) || other.contactableByMembers == contactableByMembers));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserPreferencesRequest&&(identical(other.unitSystem, unitSystem) || other.unitSystem == unitSystem)&&(identical(other.theme, theme) || other.theme == theme)&&(identical(other.language, language) || other.language == language)&&(identical(other.timezone, timezone) || other.timezone == timezone)&&(identical(other.contactableByMembers, contactableByMembers) || other.contactableByMembers == contactableByMembers));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,unitSystem,theme,language,timezone,contactableByMembers);
+int get hashCode {
+    return Object.hash(runtimeType,unitSystem,theme,language,timezone,contactableByMembers);
+}
 
 @override
 String toString() {
-  return 'UserPreferencesRequest(unitSystem: $unitSystem, theme: $theme, language: $language, timezone: $timezone, contactableByMembers: $contactableByMembers)';
+    return 'UserPreferencesRequest(unitSystem: $unitSystem, theme: $theme, language: $language, timezone: $timezone, contactableByMembers: $contactableByMembers)';
 }
 
 

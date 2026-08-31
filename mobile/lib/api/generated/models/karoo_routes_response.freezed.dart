@@ -30,16 +30,21 @@ $KarooRoutesResponseCopyWith<KarooRoutesResponse> get copyWith => _$KarooRoutesR
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is KarooRoutesResponse&&const DeepCollectionEquality().equals(other.routes, routes));
+  final _this = this as KarooRoutesResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is KarooRoutesResponse&&const DeepCollectionEquality().equals(other.routes, _this.routes));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(routes));
+int get hashCode {
+  final _this = this as KarooRoutesResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.routes));
+}
 
 @override
 String toString() {
-  return 'KarooRoutesResponse(routes: $routes)';
+  final _this = this as KarooRoutesResponse;
+  return 'KarooRoutesResponse(routes: ${_this.routes})';
 }
 
 
@@ -237,16 +242,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _KarooRoutesResponse&&const DeepCollectionEquality().equals(other._routes, _routes));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _KarooRoutesResponse&&const DeepCollectionEquality().equals(other.routes, _routes));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_routes));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_routes));
+}
 
 @override
 String toString() {
-  return 'KarooRoutesResponse(routes: $routes)';
+    return 'KarooRoutesResponse(routes: $routes)';
 }
 
 

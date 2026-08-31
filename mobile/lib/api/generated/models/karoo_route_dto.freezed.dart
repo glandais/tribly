@@ -38,16 +38,21 @@ $KarooRouteDtoCopyWith<KarooRouteDto> get copyWith => _$KarooRouteDtoCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is KarooRouteDto&&(identical(other.teamSlug, teamSlug) || other.teamSlug == teamSlug)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.name, name) || other.name == name)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.label, label) || other.label == label)&&(identical(other.rideDateTime, rideDateTime) || other.rideDateTime == rideDateTime)&&(identical(other.startLat, startLat) || other.startLat == startLat)&&(identical(other.startLon, startLon) || other.startLon == startLon));
+  final _this = this as KarooRouteDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is KarooRouteDto&&(identical(other.teamSlug, _this.teamSlug) || other.teamSlug == _this.teamSlug)&&(identical(other.routeSlug, _this.routeSlug) || other.routeSlug == _this.routeSlug)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.distance, _this.distance) || other.distance == _this.distance)&&(identical(other.elevationGain, _this.elevationGain) || other.elevationGain == _this.elevationGain)&&(identical(other.label, _this.label) || other.label == _this.label)&&(identical(other.rideDateTime, _this.rideDateTime) || other.rideDateTime == _this.rideDateTime)&&(identical(other.startLat, _this.startLat) || other.startLat == _this.startLat)&&(identical(other.startLon, _this.startLon) || other.startLon == _this.startLon));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,teamSlug,routeSlug,name,distance,elevationGain,label,rideDateTime,startLat,startLon);
+int get hashCode {
+  final _this = this as KarooRouteDto;
+  return Object.hash(runtimeType,_this.teamSlug,_this.routeSlug,_this.name,_this.distance,_this.elevationGain,_this.label,_this.rideDateTime,_this.startLat,_this.startLon);
+}
 
 @override
 String toString() {
-  return 'KarooRouteDto(teamSlug: $teamSlug, routeSlug: $routeSlug, name: $name, distance: $distance, elevationGain: $elevationGain, label: $label, rideDateTime: $rideDateTime, startLat: $startLat, startLon: $startLon)';
+  final _this = this as KarooRouteDto;
+  return 'KarooRouteDto(teamSlug: ${_this.teamSlug}, routeSlug: ${_this.routeSlug}, name: ${_this.name}, distance: ${_this.distance}, elevationGain: ${_this.elevationGain}, label: ${_this.label}, rideDateTime: ${_this.rideDateTime}, startLat: ${_this.startLat}, startLon: ${_this.startLon})';
 }
 
 
@@ -262,16 +267,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _KarooRouteDto&&(identical(other.teamSlug, teamSlug) || other.teamSlug == teamSlug)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.name, name) || other.name == name)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.label, label) || other.label == label)&&(identical(other.rideDateTime, rideDateTime) || other.rideDateTime == rideDateTime)&&(identical(other.startLat, startLat) || other.startLat == startLat)&&(identical(other.startLon, startLon) || other.startLon == startLon));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _KarooRouteDto&&(identical(other.teamSlug, teamSlug) || other.teamSlug == teamSlug)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.name, name) || other.name == name)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.label, label) || other.label == label)&&(identical(other.rideDateTime, rideDateTime) || other.rideDateTime == rideDateTime)&&(identical(other.startLat, startLat) || other.startLat == startLat)&&(identical(other.startLon, startLon) || other.startLon == startLon));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,teamSlug,routeSlug,name,distance,elevationGain,label,rideDateTime,startLat,startLon);
+int get hashCode {
+    return Object.hash(runtimeType,teamSlug,routeSlug,name,distance,elevationGain,label,rideDateTime,startLat,startLon);
+}
 
 @override
 String toString() {
-  return 'KarooRouteDto(teamSlug: $teamSlug, routeSlug: $routeSlug, name: $name, distance: $distance, elevationGain: $elevationGain, label: $label, rideDateTime: $rideDateTime, startLat: $startLat, startLon: $startLon)';
+    return 'KarooRouteDto(teamSlug: $teamSlug, routeSlug: $routeSlug, name: $name, distance: $distance, elevationGain: $elevationGain, label: $label, rideDateTime: $rideDateTime, startLat: $startLat, startLon: $startLon)';
 }
 
 

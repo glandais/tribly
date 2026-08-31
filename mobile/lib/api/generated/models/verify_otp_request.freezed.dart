@@ -31,16 +31,21 @@ $VerifyOtpRequestCopyWith<VerifyOtpRequest> get copyWith => _$VerifyOtpRequestCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is VerifyOtpRequest&&(identical(other.email, email) || other.email == email)&&(identical(other.code, code) || other.code == code));
+  final _this = this as VerifyOtpRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is VerifyOtpRequest&&(identical(other.email, _this.email) || other.email == _this.email)&&(identical(other.code, _this.code) || other.code == _this.code));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,email,code);
+int get hashCode {
+  final _this = this as VerifyOtpRequest;
+  return Object.hash(runtimeType,_this.email,_this.code);
+}
 
 @override
 String toString() {
-  return 'VerifyOtpRequest(email: $email, code: $code)';
+  final _this = this as VerifyOtpRequest;
+  return 'VerifyOtpRequest(email: ${_this.email}, code: ${_this.code})';
 }
 
 
@@ -234,16 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _VerifyOtpRequest&&(identical(other.email, email) || other.email == email)&&(identical(other.code, code) || other.code == code));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _VerifyOtpRequest&&(identical(other.email, email) || other.email == email)&&(identical(other.code, code) || other.code == code));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,email,code);
+int get hashCode {
+    return Object.hash(runtimeType,email,code);
+}
 
 @override
 String toString() {
-  return 'VerifyOtpRequest(email: $email, code: $code)';
+    return 'VerifyOtpRequest(email: $email, code: $code)';
 }
 
 

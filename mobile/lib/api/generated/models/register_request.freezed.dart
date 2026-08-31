@@ -32,16 +32,21 @@ $RegisterRequestCopyWith<RegisterRequest> get copyWith => _$RegisterRequestCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RegisterRequest&&(identical(other.email, email) || other.email == email)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.password, password) || other.password == password));
+  final _this = this as RegisterRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RegisterRequest&&(identical(other.email, _this.email) || other.email == _this.email)&&(identical(other.displayName, _this.displayName) || other.displayName == _this.displayName)&&(identical(other.password, _this.password) || other.password == _this.password));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,email,displayName,password);
+int get hashCode {
+  final _this = this as RegisterRequest;
+  return Object.hash(runtimeType,_this.email,_this.displayName,_this.password);
+}
 
 @override
 String toString() {
-  return 'RegisterRequest(email: $email, displayName: $displayName, password: $password)';
+  final _this = this as RegisterRequest;
+  return 'RegisterRequest(email: ${_this.email}, displayName: ${_this.displayName}, password: ${_this.password})';
 }
 
 
@@ -238,16 +243,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RegisterRequest&&(identical(other.email, email) || other.email == email)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.password, password) || other.password == password));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RegisterRequest&&(identical(other.email, email) || other.email == email)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.password, password) || other.password == password));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,email,displayName,password);
+int get hashCode {
+    return Object.hash(runtimeType,email,displayName,password);
+}
 
 @override
 String toString() {
-  return 'RegisterRequest(email: $email, displayName: $displayName, password: $password)';
+    return 'RegisterRequest(email: $email, displayName: $displayName, password: $password)';
 }
 
 

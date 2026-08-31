@@ -37,16 +37,21 @@ $TeamInvitationDtoCopyWith<TeamInvitationDto> get copyWith => _$TeamInvitationDt
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeamInvitationDto&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.role, role) || other.role == role)&&(identical(other.status, status) || other.status == status)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.invitedBy, invitedBy) || other.invitedBy == invitedBy)&&(identical(other.acceptedAt, acceptedAt) || other.acceptedAt == acceptedAt));
+  final _this = this as TeamInvitationDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeamInvitationDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.email, _this.email) || other.email == _this.email)&&(identical(other.role, _this.role) || other.role == _this.role)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.expiresAt, _this.expiresAt) || other.expiresAt == _this.expiresAt)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.invitedBy, _this.invitedBy) || other.invitedBy == _this.invitedBy)&&(identical(other.acceptedAt, _this.acceptedAt) || other.acceptedAt == _this.acceptedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,email,role,status,expiresAt,createdAt,invitedBy,acceptedAt);
+int get hashCode {
+  final _this = this as TeamInvitationDto;
+  return Object.hash(runtimeType,_this.id,_this.email,_this.role,_this.status,_this.expiresAt,_this.createdAt,_this.invitedBy,_this.acceptedAt);
+}
 
 @override
 String toString() {
-  return 'TeamInvitationDto(id: $id, email: $email, role: $role, status: $status, expiresAt: $expiresAt, createdAt: $createdAt, invitedBy: $invitedBy, acceptedAt: $acceptedAt)';
+  final _this = this as TeamInvitationDto;
+  return 'TeamInvitationDto(id: ${_this.id}, email: ${_this.email}, role: ${_this.role}, status: ${_this.status}, expiresAt: ${_this.expiresAt}, createdAt: ${_this.createdAt}, invitedBy: ${_this.invitedBy}, acceptedAt: ${_this.acceptedAt})';
 }
 
 
@@ -267,16 +272,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeamInvitationDto&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.role, role) || other.role == role)&&(identical(other.status, status) || other.status == status)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.invitedBy, invitedBy) || other.invitedBy == invitedBy)&&(identical(other.acceptedAt, acceptedAt) || other.acceptedAt == acceptedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeamInvitationDto&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.role, role) || other.role == role)&&(identical(other.status, status) || other.status == status)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.invitedBy, invitedBy) || other.invitedBy == invitedBy)&&(identical(other.acceptedAt, acceptedAt) || other.acceptedAt == acceptedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,email,role,status,expiresAt,createdAt,invitedBy,acceptedAt);
+int get hashCode {
+    return Object.hash(runtimeType,id,email,role,status,expiresAt,createdAt,invitedBy,acceptedAt);
+}
 
 @override
 String toString() {
-  return 'TeamInvitationDto(id: $id, email: $email, role: $role, status: $status, expiresAt: $expiresAt, createdAt: $createdAt, invitedBy: $invitedBy, acceptedAt: $acceptedAt)';
+    return 'TeamInvitationDto(id: $id, email: $email, role: $role, status: $status, expiresAt: $expiresAt, createdAt: $createdAt, invitedBy: $invitedBy, acceptedAt: $acceptedAt)';
 }
 
 

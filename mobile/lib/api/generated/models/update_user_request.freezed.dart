@@ -31,16 +31,21 @@ $UpdateUserRequestCopyWith<UpdateUserRequest> get copyWith => _$UpdateUserReques
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateUserRequest&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.unitSystem, unitSystem) || other.unitSystem == unitSystem));
+  final _this = this as UpdateUserRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateUserRequest&&(identical(other.displayName, _this.displayName) || other.displayName == _this.displayName)&&(identical(other.unitSystem, _this.unitSystem) || other.unitSystem == _this.unitSystem));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,displayName,unitSystem);
+int get hashCode {
+  final _this = this as UpdateUserRequest;
+  return Object.hash(runtimeType,_this.displayName,_this.unitSystem);
+}
 
 @override
 String toString() {
-  return 'UpdateUserRequest(displayName: $displayName, unitSystem: $unitSystem)';
+  final _this = this as UpdateUserRequest;
+  return 'UpdateUserRequest(displayName: ${_this.displayName}, unitSystem: ${_this.unitSystem})';
 }
 
 
@@ -234,16 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateUserRequest&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.unitSystem, unitSystem) || other.unitSystem == unitSystem));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateUserRequest&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.unitSystem, unitSystem) || other.unitSystem == unitSystem));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,displayName,unitSystem);
+int get hashCode {
+    return Object.hash(runtimeType,displayName,unitSystem);
+}
 
 @override
 String toString() {
-  return 'UpdateUserRequest(displayName: $displayName, unitSystem: $unitSystem)';
+    return 'UpdateUserRequest(displayName: $displayName, unitSystem: $unitSystem)';
 }
 
 

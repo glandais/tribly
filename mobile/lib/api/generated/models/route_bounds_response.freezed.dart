@@ -30,16 +30,21 @@ $RouteBoundsResponseCopyWith<RouteBoundsResponse> get copyWith => _$RouteBoundsR
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RouteBoundsResponse&&(identical(other.bounds, bounds) || other.bounds == bounds));
+  final _this = this as RouteBoundsResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RouteBoundsResponse&&(identical(other.bounds, _this.bounds) || other.bounds == _this.bounds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,bounds);
+int get hashCode {
+  final _this = this as RouteBoundsResponse;
+  return Object.hash(runtimeType,_this.bounds);
+}
 
 @override
 String toString() {
-  return 'RouteBoundsResponse(bounds: $bounds)';
+  final _this = this as RouteBoundsResponse;
+  return 'RouteBoundsResponse(bounds: ${_this.bounds})';
 }
 
 
@@ -242,16 +247,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RouteBoundsResponse&&(identical(other.bounds, bounds) || other.bounds == bounds));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RouteBoundsResponse&&(identical(other.bounds, bounds) || other.bounds == bounds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,bounds);
+int get hashCode {
+    return Object.hash(runtimeType,bounds);
+}
 
 @override
 String toString() {
-  return 'RouteBoundsResponse(bounds: $bounds)';
+    return 'RouteBoundsResponse(bounds: $bounds)';
 }
 
 

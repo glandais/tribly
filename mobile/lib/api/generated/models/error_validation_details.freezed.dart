@@ -31,16 +31,21 @@ $ErrorValidationDetailsCopyWith<ErrorValidationDetails> get copyWith => _$ErrorV
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ErrorValidationDetails&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other.fieldErrors, fieldErrors));
+  final _this = this as ErrorValidationDetails;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ErrorValidationDetails&&(identical(other.type, _this.type) || other.type == _this.type)&&const DeepCollectionEquality().equals(other.fieldErrors, _this.fieldErrors));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,const DeepCollectionEquality().hash(fieldErrors));
+int get hashCode {
+  final _this = this as ErrorValidationDetails;
+  return Object.hash(runtimeType,_this.type,const DeepCollectionEquality().hash(_this.fieldErrors));
+}
 
 @override
 String toString() {
-  return 'ErrorValidationDetails(type: $type, fieldErrors: $fieldErrors)';
+  final _this = this as ErrorValidationDetails;
+  return 'ErrorValidationDetails(type: ${_this.type}, fieldErrors: ${_this.fieldErrors})';
 }
 
 
@@ -241,16 +246,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ErrorValidationDetails&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other._fieldErrors, _fieldErrors));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ErrorValidationDetails&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other.fieldErrors, _fieldErrors));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,const DeepCollectionEquality().hash(_fieldErrors));
+int get hashCode {
+    return Object.hash(runtimeType,type,const DeepCollectionEquality().hash(_fieldErrors));
+}
 
 @override
 String toString() {
-  return 'ErrorValidationDetails(type: $type, fieldErrors: $fieldErrors)';
+    return 'ErrorValidationDetails(type: $type, fieldErrors: $fieldErrors)';
 }
 
 

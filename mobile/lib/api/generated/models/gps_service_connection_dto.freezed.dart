@@ -32,16 +32,21 @@ $GpsServiceConnectionDtoCopyWith<GpsServiceConnectionDto> get copyWith => _$GpsS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GpsServiceConnectionDto&&(identical(other.serviceType, serviceType) || other.serviceType == serviceType)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.connectedAt, connectedAt) || other.connectedAt == connectedAt));
+  final _this = this as GpsServiceConnectionDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GpsServiceConnectionDto&&(identical(other.serviceType, _this.serviceType) || other.serviceType == _this.serviceType)&&(identical(other.displayName, _this.displayName) || other.displayName == _this.displayName)&&(identical(other.connectedAt, _this.connectedAt) || other.connectedAt == _this.connectedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,serviceType,displayName,connectedAt);
+int get hashCode {
+  final _this = this as GpsServiceConnectionDto;
+  return Object.hash(runtimeType,_this.serviceType,_this.displayName,_this.connectedAt);
+}
 
 @override
 String toString() {
-  return 'GpsServiceConnectionDto(serviceType: $serviceType, displayName: $displayName, connectedAt: $connectedAt)';
+  final _this = this as GpsServiceConnectionDto;
+  return 'GpsServiceConnectionDto(serviceType: ${_this.serviceType}, displayName: ${_this.displayName}, connectedAt: ${_this.connectedAt})';
 }
 
 
@@ -238,16 +243,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GpsServiceConnectionDto&&(identical(other.serviceType, serviceType) || other.serviceType == serviceType)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.connectedAt, connectedAt) || other.connectedAt == connectedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _GpsServiceConnectionDto&&(identical(other.serviceType, serviceType) || other.serviceType == serviceType)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.connectedAt, connectedAt) || other.connectedAt == connectedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,serviceType,displayName,connectedAt);
+int get hashCode {
+    return Object.hash(runtimeType,serviceType,displayName,connectedAt);
+}
 
 @override
 String toString() {
-  return 'GpsServiceConnectionDto(serviceType: $serviceType, displayName: $displayName, connectedAt: $connectedAt)';
+    return 'GpsServiceConnectionDto(serviceType: $serviceType, displayName: $displayName, connectedAt: $connectedAt)';
 }
 
 

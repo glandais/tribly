@@ -32,16 +32,21 @@ $CalendarTokenDtoCopyWith<CalendarTokenDto> get copyWith => _$CalendarTokenDtoCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CalendarTokenDto&&(identical(other.token, token) || other.token == token)&&(identical(other.globalFeedUrl, globalFeedUrl) || other.globalFeedUrl == globalFeedUrl)&&(identical(other.teamFeedUrlTemplate, teamFeedUrlTemplate) || other.teamFeedUrlTemplate == teamFeedUrlTemplate));
+  final _this = this as CalendarTokenDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CalendarTokenDto&&(identical(other.token, _this.token) || other.token == _this.token)&&(identical(other.globalFeedUrl, _this.globalFeedUrl) || other.globalFeedUrl == _this.globalFeedUrl)&&(identical(other.teamFeedUrlTemplate, _this.teamFeedUrlTemplate) || other.teamFeedUrlTemplate == _this.teamFeedUrlTemplate));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,token,globalFeedUrl,teamFeedUrlTemplate);
+int get hashCode {
+  final _this = this as CalendarTokenDto;
+  return Object.hash(runtimeType,_this.token,_this.globalFeedUrl,_this.teamFeedUrlTemplate);
+}
 
 @override
 String toString() {
-  return 'CalendarTokenDto(token: $token, globalFeedUrl: $globalFeedUrl, teamFeedUrlTemplate: $teamFeedUrlTemplate)';
+  final _this = this as CalendarTokenDto;
+  return 'CalendarTokenDto(token: ${_this.token}, globalFeedUrl: ${_this.globalFeedUrl}, teamFeedUrlTemplate: ${_this.teamFeedUrlTemplate})';
 }
 
 
@@ -238,16 +243,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CalendarTokenDto&&(identical(other.token, token) || other.token == token)&&(identical(other.globalFeedUrl, globalFeedUrl) || other.globalFeedUrl == globalFeedUrl)&&(identical(other.teamFeedUrlTemplate, teamFeedUrlTemplate) || other.teamFeedUrlTemplate == teamFeedUrlTemplate));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CalendarTokenDto&&(identical(other.token, token) || other.token == token)&&(identical(other.globalFeedUrl, globalFeedUrl) || other.globalFeedUrl == globalFeedUrl)&&(identical(other.teamFeedUrlTemplate, teamFeedUrlTemplate) || other.teamFeedUrlTemplate == teamFeedUrlTemplate));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,token,globalFeedUrl,teamFeedUrlTemplate);
+int get hashCode {
+    return Object.hash(runtimeType,token,globalFeedUrl,teamFeedUrlTemplate);
+}
 
 @override
 String toString() {
-  return 'CalendarTokenDto(token: $token, globalFeedUrl: $globalFeedUrl, teamFeedUrlTemplate: $teamFeedUrlTemplate)';
+    return 'CalendarTokenDto(token: $token, globalFeedUrl: $globalFeedUrl, teamFeedUrlTemplate: $teamFeedUrlTemplate)';
 }
 
 

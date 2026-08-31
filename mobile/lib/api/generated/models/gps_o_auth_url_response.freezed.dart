@@ -30,16 +30,21 @@ $GpsOAuthUrlResponseCopyWith<GpsOAuthUrlResponse> get copyWith => _$GpsOAuthUrlR
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GpsOAuthUrlResponse&&(identical(other.authorizationUrl, authorizationUrl) || other.authorizationUrl == authorizationUrl));
+  final _this = this as GpsOAuthUrlResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GpsOAuthUrlResponse&&(identical(other.authorizationUrl, _this.authorizationUrl) || other.authorizationUrl == _this.authorizationUrl));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,authorizationUrl);
+int get hashCode {
+  final _this = this as GpsOAuthUrlResponse;
+  return Object.hash(runtimeType,_this.authorizationUrl);
+}
 
 @override
 String toString() {
-  return 'GpsOAuthUrlResponse(authorizationUrl: $authorizationUrl)';
+  final _this = this as GpsOAuthUrlResponse;
+  return 'GpsOAuthUrlResponse(authorizationUrl: ${_this.authorizationUrl})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GpsOAuthUrlResponse&&(identical(other.authorizationUrl, authorizationUrl) || other.authorizationUrl == authorizationUrl));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _GpsOAuthUrlResponse&&(identical(other.authorizationUrl, authorizationUrl) || other.authorizationUrl == authorizationUrl));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,authorizationUrl);
+int get hashCode {
+    return Object.hash(runtimeType,authorizationUrl);
+}
 
 @override
 String toString() {
-  return 'GpsOAuthUrlResponse(authorizationUrl: $authorizationUrl)';
+    return 'GpsOAuthUrlResponse(authorizationUrl: $authorizationUrl)';
 }
 
 

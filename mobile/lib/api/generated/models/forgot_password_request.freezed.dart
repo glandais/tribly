@@ -30,16 +30,21 @@ $ForgotPasswordRequestCopyWith<ForgotPasswordRequest> get copyWith => _$ForgotPa
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ForgotPasswordRequest&&(identical(other.email, email) || other.email == email));
+  final _this = this as ForgotPasswordRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ForgotPasswordRequest&&(identical(other.email, _this.email) || other.email == _this.email));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,email);
+int get hashCode {
+  final _this = this as ForgotPasswordRequest;
+  return Object.hash(runtimeType,_this.email);
+}
 
 @override
 String toString() {
-  return 'ForgotPasswordRequest(email: $email)';
+  final _this = this as ForgotPasswordRequest;
+  return 'ForgotPasswordRequest(email: ${_this.email})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ForgotPasswordRequest&&(identical(other.email, email) || other.email == email));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ForgotPasswordRequest&&(identical(other.email, email) || other.email == email));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,email);
+int get hashCode {
+    return Object.hash(runtimeType,email);
+}
 
 @override
 String toString() {
-  return 'ForgotPasswordRequest(email: $email)';
+    return 'ForgotPasswordRequest(email: $email)';
 }
 
 

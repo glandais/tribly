@@ -32,16 +32,21 @@ $RideParticipationDtoCopyWith<RideParticipationDto> get copyWith => _$RidePartic
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RideParticipationDto&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.registeredAt, registeredAt) || other.registeredAt == registeredAt));
+  final _this = this as RideParticipationDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RideParticipationDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.userId, _this.userId) || other.userId == _this.userId)&&(identical(other.registeredAt, _this.registeredAt) || other.registeredAt == _this.registeredAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,userId,registeredAt);
+int get hashCode {
+  final _this = this as RideParticipationDto;
+  return Object.hash(runtimeType,_this.id,_this.userId,_this.registeredAt);
+}
 
 @override
 String toString() {
-  return 'RideParticipationDto(id: $id, userId: $userId, registeredAt: $registeredAt)';
+  final _this = this as RideParticipationDto;
+  return 'RideParticipationDto(id: ${_this.id}, userId: ${_this.userId}, registeredAt: ${_this.registeredAt})';
 }
 
 
@@ -238,16 +243,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RideParticipationDto&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.registeredAt, registeredAt) || other.registeredAt == registeredAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RideParticipationDto&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.registeredAt, registeredAt) || other.registeredAt == registeredAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,userId,registeredAt);
+int get hashCode {
+    return Object.hash(runtimeType,id,userId,registeredAt);
+}
 
 @override
 String toString() {
-  return 'RideParticipationDto(id: $id, userId: $userId, registeredAt: $registeredAt)';
+    return 'RideParticipationDto(id: $id, userId: $userId, registeredAt: $registeredAt)';
 }
 
 

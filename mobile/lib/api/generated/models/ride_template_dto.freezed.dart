@@ -40,16 +40,21 @@ $RideTemplateDtoCopyWith<RideTemplateDto> get copyWith => _$RideTemplateDtoCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RideTemplateDto&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.markdown, markdown) || other.markdown == markdown)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.groupCount, groupCount) || other.groupCount == groupCount)&&const DeepCollectionEquality().equals(other.groups, groups));
+  final _this = this as RideTemplateDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RideTemplateDto&&(identical(other.team, _this.team) || other.team == _this.team)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.slug, _this.slug) || other.slug == _this.slug)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.markdown, _this.markdown) || other.markdown == _this.markdown)&&(identical(other.visibility, _this.visibility) || other.visibility == _this.visibility)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.groupCount, _this.groupCount) || other.groupCount == _this.groupCount)&&const DeepCollectionEquality().equals(other.groups, _this.groups));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,team,id,slug,name,markdown,visibility,status,createdAt,updatedAt,groupCount,const DeepCollectionEquality().hash(groups));
+int get hashCode {
+  final _this = this as RideTemplateDto;
+  return Object.hash(runtimeType,_this.team,_this.id,_this.slug,_this.name,_this.markdown,_this.visibility,_this.status,_this.createdAt,_this.updatedAt,_this.groupCount,const DeepCollectionEquality().hash(_this.groups));
+}
 
 @override
 String toString() {
-  return 'RideTemplateDto(team: $team, id: $id, slug: $slug, name: $name, markdown: $markdown, visibility: $visibility, status: $status, createdAt: $createdAt, updatedAt: $updatedAt, groupCount: $groupCount, groups: $groups)';
+  final _this = this as RideTemplateDto;
+  return 'RideTemplateDto(team: ${_this.team}, id: ${_this.id}, slug: ${_this.slug}, name: ${_this.name}, markdown: ${_this.markdown}, visibility: ${_this.visibility}, status: ${_this.status}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt}, groupCount: ${_this.groupCount}, groups: ${_this.groups})';
 }
 
 
@@ -286,16 +291,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RideTemplateDto&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.markdown, markdown) || other.markdown == markdown)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.groupCount, groupCount) || other.groupCount == groupCount)&&const DeepCollectionEquality().equals(other._groups, _groups));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RideTemplateDto&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.markdown, markdown) || other.markdown == markdown)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.groupCount, groupCount) || other.groupCount == groupCount)&&const DeepCollectionEquality().equals(other.groups, _groups));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,team,id,slug,name,markdown,visibility,status,createdAt,updatedAt,groupCount,const DeepCollectionEquality().hash(_groups));
+int get hashCode {
+    return Object.hash(runtimeType,team,id,slug,name,markdown,visibility,status,createdAt,updatedAt,groupCount,const DeepCollectionEquality().hash(_groups));
+}
 
 @override
 String toString() {
-  return 'RideTemplateDto(team: $team, id: $id, slug: $slug, name: $name, markdown: $markdown, visibility: $visibility, status: $status, createdAt: $createdAt, updatedAt: $updatedAt, groupCount: $groupCount, groups: $groups)';
+    return 'RideTemplateDto(team: $team, id: $id, slug: $slug, name: $name, markdown: $markdown, visibility: $visibility, status: $status, createdAt: $createdAt, updatedAt: $updatedAt, groupCount: $groupCount, groups: $groups)';
 }
 
 

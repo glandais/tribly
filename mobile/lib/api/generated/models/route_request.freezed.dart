@@ -34,16 +34,21 @@ $RouteRequestCopyWith<RouteRequest> get copyWith => _$RouteRequestCopyWithImpl<R
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RouteRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.surfaceType, surfaceType) || other.surfaceType == surfaceType)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&const DeepCollectionEquality().equals(other.points, points));
+  final _this = this as RouteRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RouteRequest&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.media, _this.media) || other.media == _this.media)&&(identical(other.surfaceType, _this.surfaceType) || other.surfaceType == _this.surfaceType)&&(identical(other.visibility, _this.visibility) || other.visibility == _this.visibility)&&const DeepCollectionEquality().equals(other.points, _this.points));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,media,surfaceType,visibility,const DeepCollectionEquality().hash(points));
+int get hashCode {
+  final _this = this as RouteRequest;
+  return Object.hash(runtimeType,_this.name,_this.media,_this.surfaceType,_this.visibility,const DeepCollectionEquality().hash(_this.points));
+}
 
 @override
 String toString() {
-  return 'RouteRequest(name: $name, media: $media, surfaceType: $surfaceType, visibility: $visibility, points: $points)';
+  final _this = this as RouteRequest;
+  return 'RouteRequest(name: ${_this.name}, media: ${_this.media}, surfaceType: ${_this.surfaceType}, visibility: ${_this.visibility}, points: ${_this.points})';
 }
 
 
@@ -264,16 +269,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RouteRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.surfaceType, surfaceType) || other.surfaceType == surfaceType)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&const DeepCollectionEquality().equals(other._points, _points));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RouteRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.surfaceType, surfaceType) || other.surfaceType == surfaceType)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&const DeepCollectionEquality().equals(other.points, _points));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,media,surfaceType,visibility,const DeepCollectionEquality().hash(_points));
+int get hashCode {
+    return Object.hash(runtimeType,name,media,surfaceType,visibility,const DeepCollectionEquality().hash(_points));
+}
 
 @override
 String toString() {
-  return 'RouteRequest(name: $name, media: $media, surfaceType: $surfaceType, visibility: $visibility, points: $points)';
+    return 'RouteRequest(name: $name, media: $media, surfaceType: $surfaceType, visibility: $visibility, points: $points)';
 }
 
 

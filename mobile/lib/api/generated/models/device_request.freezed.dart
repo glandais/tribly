@@ -30,16 +30,21 @@ $DeviceRequestCopyWith<DeviceRequest> get copyWith => _$DeviceRequestCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceRequest&&(identical(other.clientId, clientId) || other.clientId == clientId));
+  final _this = this as DeviceRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceRequest&&(identical(other.clientId, _this.clientId) || other.clientId == _this.clientId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,clientId);
+int get hashCode {
+  final _this = this as DeviceRequest;
+  return Object.hash(runtimeType,_this.clientId);
+}
 
 @override
 String toString() {
-  return 'DeviceRequest(clientId: $clientId)';
+  final _this = this as DeviceRequest;
+  return 'DeviceRequest(clientId: ${_this.clientId})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceRequest&&(identical(other.clientId, clientId) || other.clientId == clientId));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceRequest&&(identical(other.clientId, clientId) || other.clientId == clientId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,clientId);
+int get hashCode {
+    return Object.hash(runtimeType,clientId);
+}
 
 @override
 String toString() {
-  return 'DeviceRequest(clientId: $clientId)';
+    return 'DeviceRequest(clientId: $clientId)';
 }
 
 

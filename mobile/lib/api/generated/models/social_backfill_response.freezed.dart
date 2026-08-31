@@ -30,16 +30,21 @@ $SocialBackfillResponseCopyWith<SocialBackfillResponse> get copyWith => _$Social
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SocialBackfillResponse&&(identical(other.identitiesCreated, identitiesCreated) || other.identitiesCreated == identitiesCreated));
+  final _this = this as SocialBackfillResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SocialBackfillResponse&&(identical(other.identitiesCreated, _this.identitiesCreated) || other.identitiesCreated == _this.identitiesCreated));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,identitiesCreated);
+int get hashCode {
+  final _this = this as SocialBackfillResponse;
+  return Object.hash(runtimeType,_this.identitiesCreated);
+}
 
 @override
 String toString() {
-  return 'SocialBackfillResponse(identitiesCreated: $identitiesCreated)';
+  final _this = this as SocialBackfillResponse;
+  return 'SocialBackfillResponse(identitiesCreated: ${_this.identitiesCreated})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SocialBackfillResponse&&(identical(other.identitiesCreated, identitiesCreated) || other.identitiesCreated == identitiesCreated));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SocialBackfillResponse&&(identical(other.identitiesCreated, identitiesCreated) || other.identitiesCreated == identitiesCreated));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,identitiesCreated);
+int get hashCode {
+    return Object.hash(runtimeType,identitiesCreated);
+}
 
 @override
 String toString() {
-  return 'SocialBackfillResponse(identitiesCreated: $identitiesCreated)';
+    return 'SocialBackfillResponse(identitiesCreated: $identitiesCreated)';
 }
 
 

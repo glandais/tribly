@@ -31,16 +31,21 @@ $GpxPreviewFromPointsRequestCopyWith<GpxPreviewFromPointsRequest> get copyWith =
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GpxPreviewFromPointsRequest&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.points, points));
+  final _this = this as GpxPreviewFromPointsRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GpxPreviewFromPointsRequest&&(identical(other.name, _this.name) || other.name == _this.name)&&const DeepCollectionEquality().equals(other.points, _this.points));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,const DeepCollectionEquality().hash(points));
+int get hashCode {
+  final _this = this as GpxPreviewFromPointsRequest;
+  return Object.hash(runtimeType,_this.name,const DeepCollectionEquality().hash(_this.points));
+}
 
 @override
 String toString() {
-  return 'GpxPreviewFromPointsRequest(name: $name, points: $points)';
+  final _this = this as GpxPreviewFromPointsRequest;
+  return 'GpxPreviewFromPointsRequest(name: ${_this.name}, points: ${_this.points})';
 }
 
 
@@ -241,16 +246,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GpxPreviewFromPointsRequest&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other._points, _points));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _GpxPreviewFromPointsRequest&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.points, _points));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,const DeepCollectionEquality().hash(_points));
+int get hashCode {
+    return Object.hash(runtimeType,name,const DeepCollectionEquality().hash(_points));
+}
 
 @override
 String toString() {
-  return 'GpxPreviewFromPointsRequest(name: $name, points: $points)';
+    return 'GpxPreviewFromPointsRequest(name: $name, points: $points)';
 }
 
 

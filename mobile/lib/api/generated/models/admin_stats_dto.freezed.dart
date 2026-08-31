@@ -32,16 +32,21 @@ $AdminStatsDtoCopyWith<AdminStatsDto> get copyWith => _$AdminStatsDtoCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminStatsDto&&(identical(other.totalDomains, totalDomains) || other.totalDomains == totalDomains)&&(identical(other.totalTeams, totalTeams) || other.totalTeams == totalTeams)&&(identical(other.totalUsers, totalUsers) || other.totalUsers == totalUsers));
+  final _this = this as AdminStatsDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminStatsDto&&(identical(other.totalDomains, _this.totalDomains) || other.totalDomains == _this.totalDomains)&&(identical(other.totalTeams, _this.totalTeams) || other.totalTeams == _this.totalTeams)&&(identical(other.totalUsers, _this.totalUsers) || other.totalUsers == _this.totalUsers));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,totalDomains,totalTeams,totalUsers);
+int get hashCode {
+  final _this = this as AdminStatsDto;
+  return Object.hash(runtimeType,_this.totalDomains,_this.totalTeams,_this.totalUsers);
+}
 
 @override
 String toString() {
-  return 'AdminStatsDto(totalDomains: $totalDomains, totalTeams: $totalTeams, totalUsers: $totalUsers)';
+  final _this = this as AdminStatsDto;
+  return 'AdminStatsDto(totalDomains: ${_this.totalDomains}, totalTeams: ${_this.totalTeams}, totalUsers: ${_this.totalUsers})';
 }
 
 
@@ -238,16 +243,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminStatsDto&&(identical(other.totalDomains, totalDomains) || other.totalDomains == totalDomains)&&(identical(other.totalTeams, totalTeams) || other.totalTeams == totalTeams)&&(identical(other.totalUsers, totalUsers) || other.totalUsers == totalUsers));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminStatsDto&&(identical(other.totalDomains, totalDomains) || other.totalDomains == totalDomains)&&(identical(other.totalTeams, totalTeams) || other.totalTeams == totalTeams)&&(identical(other.totalUsers, totalUsers) || other.totalUsers == totalUsers));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,totalDomains,totalTeams,totalUsers);
+int get hashCode {
+    return Object.hash(runtimeType,totalDomains,totalTeams,totalUsers);
+}
 
 @override
 String toString() {
-  return 'AdminStatsDto(totalDomains: $totalDomains, totalTeams: $totalTeams, totalUsers: $totalUsers)';
+    return 'AdminStatsDto(totalDomains: $totalDomains, totalTeams: $totalTeams, totalUsers: $totalUsers)';
 }
 
 

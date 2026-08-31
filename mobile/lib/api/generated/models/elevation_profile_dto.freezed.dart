@@ -36,16 +36,21 @@ $ElevationProfileDtoCopyWith<ElevationProfileDto> get copyWith => _$ElevationPro
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ElevationProfileDto&&(identical(other.routeId, routeId) || other.routeId == routeId)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.minElevation, minElevation) || other.minElevation == minElevation)&&(identical(other.maxElevation, maxElevation) || other.maxElevation == maxElevation)&&(identical(other.samples, samples) || other.samples == samples)&&const DeepCollectionEquality().equals(other.points, points));
+  final _this = this as ElevationProfileDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ElevationProfileDto&&(identical(other.routeId, _this.routeId) || other.routeId == _this.routeId)&&(identical(other.slug, _this.slug) || other.slug == _this.slug)&&(identical(other.distance, _this.distance) || other.distance == _this.distance)&&(identical(other.minElevation, _this.minElevation) || other.minElevation == _this.minElevation)&&(identical(other.maxElevation, _this.maxElevation) || other.maxElevation == _this.maxElevation)&&(identical(other.samples, _this.samples) || other.samples == _this.samples)&&const DeepCollectionEquality().equals(other.points, _this.points));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,routeId,slug,distance,minElevation,maxElevation,samples,const DeepCollectionEquality().hash(points));
+int get hashCode {
+  final _this = this as ElevationProfileDto;
+  return Object.hash(runtimeType,_this.routeId,_this.slug,_this.distance,_this.minElevation,_this.maxElevation,_this.samples,const DeepCollectionEquality().hash(_this.points));
+}
 
 @override
 String toString() {
-  return 'ElevationProfileDto(routeId: $routeId, slug: $slug, distance: $distance, minElevation: $minElevation, maxElevation: $maxElevation, samples: $samples, points: $points)';
+  final _this = this as ElevationProfileDto;
+  return 'ElevationProfileDto(routeId: ${_this.routeId}, slug: ${_this.slug}, distance: ${_this.distance}, minElevation: ${_this.minElevation}, maxElevation: ${_this.maxElevation}, samples: ${_this.samples}, points: ${_this.points})';
 }
 
 
@@ -261,16 +266,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ElevationProfileDto&&(identical(other.routeId, routeId) || other.routeId == routeId)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.minElevation, minElevation) || other.minElevation == minElevation)&&(identical(other.maxElevation, maxElevation) || other.maxElevation == maxElevation)&&(identical(other.samples, samples) || other.samples == samples)&&const DeepCollectionEquality().equals(other._points, _points));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ElevationProfileDto&&(identical(other.routeId, routeId) || other.routeId == routeId)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.minElevation, minElevation) || other.minElevation == minElevation)&&(identical(other.maxElevation, maxElevation) || other.maxElevation == maxElevation)&&(identical(other.samples, samples) || other.samples == samples)&&const DeepCollectionEquality().equals(other.points, _points));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,routeId,slug,distance,minElevation,maxElevation,samples,const DeepCollectionEquality().hash(_points));
+int get hashCode {
+    return Object.hash(runtimeType,routeId,slug,distance,minElevation,maxElevation,samples,const DeepCollectionEquality().hash(_points));
+}
 
 @override
 String toString() {
-  return 'ElevationProfileDto(routeId: $routeId, slug: $slug, distance: $distance, minElevation: $minElevation, maxElevation: $maxElevation, samples: $samples, points: $points)';
+    return 'ElevationProfileDto(routeId: $routeId, slug: $slug, distance: $distance, minElevation: $minElevation, maxElevation: $maxElevation, samples: $samples, points: $points)';
 }
 
 

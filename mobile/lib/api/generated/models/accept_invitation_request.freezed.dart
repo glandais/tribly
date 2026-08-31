@@ -30,16 +30,21 @@ $AcceptInvitationRequestCopyWith<AcceptInvitationRequest> get copyWith => _$Acce
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AcceptInvitationRequest&&(identical(other.token, token) || other.token == token));
+  final _this = this as AcceptInvitationRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AcceptInvitationRequest&&(identical(other.token, _this.token) || other.token == _this.token));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,token);
+int get hashCode {
+  final _this = this as AcceptInvitationRequest;
+  return Object.hash(runtimeType,_this.token);
+}
 
 @override
 String toString() {
-  return 'AcceptInvitationRequest(token: $token)';
+  final _this = this as AcceptInvitationRequest;
+  return 'AcceptInvitationRequest(token: ${_this.token})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AcceptInvitationRequest&&(identical(other.token, token) || other.token == token));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AcceptInvitationRequest&&(identical(other.token, token) || other.token == token));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,token);
+int get hashCode {
+    return Object.hash(runtimeType,token);
+}
 
 @override
 String toString() {
-  return 'AcceptInvitationRequest(token: $token)';
+    return 'AcceptInvitationRequest(token: $token)';
 }
 
 

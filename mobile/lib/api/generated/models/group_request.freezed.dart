@@ -35,16 +35,21 @@ $GroupRequestCopyWith<GroupRequest> get copyWith => _$GroupRequestCopyWithImpl<G
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GroupRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.id, id) || other.id == id)&&(identical(other.time, time) || other.time == time)&&(identical(other.averageSpeed, averageSpeed) || other.averageSpeed == averageSpeed)&&(identical(other.maxParticipants, maxParticipants) || other.maxParticipants == maxParticipants)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.leaderId, leaderId) || other.leaderId == leaderId));
+  final _this = this as GroupRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GroupRequest&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.time, _this.time) || other.time == _this.time)&&(identical(other.averageSpeed, _this.averageSpeed) || other.averageSpeed == _this.averageSpeed)&&(identical(other.maxParticipants, _this.maxParticipants) || other.maxParticipants == _this.maxParticipants)&&(identical(other.routeSlug, _this.routeSlug) || other.routeSlug == _this.routeSlug)&&(identical(other.leaderId, _this.leaderId) || other.leaderId == _this.leaderId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,id,time,averageSpeed,maxParticipants,routeSlug,leaderId);
+int get hashCode {
+  final _this = this as GroupRequest;
+  return Object.hash(runtimeType,_this.name,_this.id,_this.time,_this.averageSpeed,_this.maxParticipants,_this.routeSlug,_this.leaderId);
+}
 
 @override
 String toString() {
-  return 'GroupRequest(name: $name, id: $id, time: $time, averageSpeed: $averageSpeed, maxParticipants: $maxParticipants, routeSlug: $routeSlug, leaderId: $leaderId)';
+  final _this = this as GroupRequest;
+  return 'GroupRequest(name: ${_this.name}, id: ${_this.id}, time: ${_this.time}, averageSpeed: ${_this.averageSpeed}, maxParticipants: ${_this.maxParticipants}, routeSlug: ${_this.routeSlug}, leaderId: ${_this.leaderId})';
 }
 
 
@@ -252,16 +257,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GroupRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.id, id) || other.id == id)&&(identical(other.time, time) || other.time == time)&&(identical(other.averageSpeed, averageSpeed) || other.averageSpeed == averageSpeed)&&(identical(other.maxParticipants, maxParticipants) || other.maxParticipants == maxParticipants)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.leaderId, leaderId) || other.leaderId == leaderId));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _GroupRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.id, id) || other.id == id)&&(identical(other.time, time) || other.time == time)&&(identical(other.averageSpeed, averageSpeed) || other.averageSpeed == averageSpeed)&&(identical(other.maxParticipants, maxParticipants) || other.maxParticipants == maxParticipants)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.leaderId, leaderId) || other.leaderId == leaderId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,id,time,averageSpeed,maxParticipants,routeSlug,leaderId);
+int get hashCode {
+    return Object.hash(runtimeType,name,id,time,averageSpeed,maxParticipants,routeSlug,leaderId);
+}
 
 @override
 String toString() {
-  return 'GroupRequest(name: $name, id: $id, time: $time, averageSpeed: $averageSpeed, maxParticipants: $maxParticipants, routeSlug: $routeSlug, leaderId: $leaderId)';
+    return 'GroupRequest(name: $name, id: $id, time: $time, averageSpeed: $averageSpeed, maxParticipants: $maxParticipants, routeSlug: $routeSlug, leaderId: $leaderId)';
 }
 
 

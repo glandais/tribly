@@ -47,7 +47,7 @@ mixin _$ErrorDetails {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ErrorDetails);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is ErrorDetails);
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -56,7 +56,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'ErrorDetails()';
+    return 'ErrorDetails()';
 }
 
 
@@ -232,16 +232,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ErrorDetailsValidation&&const DeepCollectionEquality().equals(other._fieldErrors, _fieldErrors));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is ErrorDetailsValidation&&const DeepCollectionEquality().equals(other.fieldErrors, _fieldErrors));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_fieldErrors));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_fieldErrors));
+}
 
 @override
 String toString() {
-  return 'ErrorDetails.validation(fieldErrors: $fieldErrors)';
+    return 'ErrorDetails.validation(fieldErrors: $fieldErrors)';
 }
 
 
@@ -310,16 +312,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ErrorDetailsNotFound&&(identical(other.entityType, entityType) || other.entityType == entityType)&&(identical(other.searchedBy, searchedBy) || other.searchedBy == searchedBy)&&(identical(other.id, id) || other.id == id));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is ErrorDetailsNotFound&&(identical(other.entityType, entityType) || other.entityType == entityType)&&(identical(other.searchedBy, searchedBy) || other.searchedBy == searchedBy)&&(identical(other.id, id) || other.id == id));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,entityType,searchedBy,id);
+int get hashCode {
+    return Object.hash(runtimeType,entityType,searchedBy,id);
+}
 
 @override
 String toString() {
-  return 'ErrorDetails.notFound(entityType: $entityType, searchedBy: $searchedBy, id: $id)';
+    return 'ErrorDetails.notFound(entityType: $entityType, searchedBy: $searchedBy, id: $id)';
 }
 
 

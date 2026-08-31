@@ -34,16 +34,21 @@ $RideTemplateRequestCopyWith<RideTemplateRequest> get copyWith => _$RideTemplate
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RideTemplateRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.markdown, markdown) || other.markdown == markdown)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.groups, groups));
+  final _this = this as RideTemplateRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RideTemplateRequest&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.markdown, _this.markdown) || other.markdown == _this.markdown)&&(identical(other.visibility, _this.visibility) || other.visibility == _this.visibility)&&(identical(other.status, _this.status) || other.status == _this.status)&&const DeepCollectionEquality().equals(other.groups, _this.groups));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,markdown,visibility,status,const DeepCollectionEquality().hash(groups));
+int get hashCode {
+  final _this = this as RideTemplateRequest;
+  return Object.hash(runtimeType,_this.name,_this.markdown,_this.visibility,_this.status,const DeepCollectionEquality().hash(_this.groups));
+}
 
 @override
 String toString() {
-  return 'RideTemplateRequest(name: $name, markdown: $markdown, visibility: $visibility, status: $status, groups: $groups)';
+  final _this = this as RideTemplateRequest;
+  return 'RideTemplateRequest(name: ${_this.name}, markdown: ${_this.markdown}, visibility: ${_this.visibility}, status: ${_this.status}, groups: ${_this.groups})';
 }
 
 
@@ -253,16 +258,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RideTemplateRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.markdown, markdown) || other.markdown == markdown)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other._groups, _groups));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RideTemplateRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.markdown, markdown) || other.markdown == markdown)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.groups, _groups));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,markdown,visibility,status,const DeepCollectionEquality().hash(_groups));
+int get hashCode {
+    return Object.hash(runtimeType,name,markdown,visibility,status,const DeepCollectionEquality().hash(_groups));
+}
 
 @override
 String toString() {
-  return 'RideTemplateRequest(name: $name, markdown: $markdown, visibility: $visibility, status: $status, groups: $groups)';
+    return 'RideTemplateRequest(name: $name, markdown: $markdown, visibility: $visibility, status: $status, groups: $groups)';
 }
 
 

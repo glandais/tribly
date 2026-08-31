@@ -39,16 +39,21 @@ $AdminDomainAliasDtoCopyWith<AdminDomainAliasDto> get copyWith => _$AdminDomainA
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminDomainAliasDto&&(identical(other.id, id) || other.id == id)&&(identical(other.hostname, hostname) || other.hostname == hostname)&&(identical(other.domainId, domainId) || other.domainId == domainId)&&(identical(other.pinnedTeamId, pinnedTeamId) || other.pinnedTeamId == pinnedTeamId)&&(identical(other.pinnedTeamSlug, pinnedTeamSlug) || other.pinnedTeamSlug == pinnedTeamSlug)&&(identical(other.name, name) || other.name == name)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.active, active) || other.active == active)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.androidFingerprints, androidFingerprints) || other.androidFingerprints == androidFingerprints));
+  final _this = this as AdminDomainAliasDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminDomainAliasDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.hostname, _this.hostname) || other.hostname == _this.hostname)&&(identical(other.domainId, _this.domainId) || other.domainId == _this.domainId)&&(identical(other.pinnedTeamId, _this.pinnedTeamId) || other.pinnedTeamId == _this.pinnedTeamId)&&(identical(other.pinnedTeamSlug, _this.pinnedTeamSlug) || other.pinnedTeamSlug == _this.pinnedTeamSlug)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.baseUrl, _this.baseUrl) || other.baseUrl == _this.baseUrl)&&(identical(other.active, _this.active) || other.active == _this.active)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.androidFingerprints, _this.androidFingerprints) || other.androidFingerprints == _this.androidFingerprints));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,hostname,domainId,pinnedTeamId,pinnedTeamSlug,name,baseUrl,active,createdAt,androidFingerprints);
+int get hashCode {
+  final _this = this as AdminDomainAliasDto;
+  return Object.hash(runtimeType,_this.id,_this.hostname,_this.domainId,_this.pinnedTeamId,_this.pinnedTeamSlug,_this.name,_this.baseUrl,_this.active,_this.createdAt,_this.androidFingerprints);
+}
 
 @override
 String toString() {
-  return 'AdminDomainAliasDto(id: $id, hostname: $hostname, domainId: $domainId, pinnedTeamId: $pinnedTeamId, pinnedTeamSlug: $pinnedTeamSlug, name: $name, baseUrl: $baseUrl, active: $active, createdAt: $createdAt, androidFingerprints: $androidFingerprints)';
+  final _this = this as AdminDomainAliasDto;
+  return 'AdminDomainAliasDto(id: ${_this.id}, hostname: ${_this.hostname}, domainId: ${_this.domainId}, pinnedTeamId: ${_this.pinnedTeamId}, pinnedTeamSlug: ${_this.pinnedTeamSlug}, name: ${_this.name}, baseUrl: ${_this.baseUrl}, active: ${_this.active}, createdAt: ${_this.createdAt}, androidFingerprints: ${_this.androidFingerprints})';
 }
 
 
@@ -266,16 +271,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminDomainAliasDto&&(identical(other.id, id) || other.id == id)&&(identical(other.hostname, hostname) || other.hostname == hostname)&&(identical(other.domainId, domainId) || other.domainId == domainId)&&(identical(other.pinnedTeamId, pinnedTeamId) || other.pinnedTeamId == pinnedTeamId)&&(identical(other.pinnedTeamSlug, pinnedTeamSlug) || other.pinnedTeamSlug == pinnedTeamSlug)&&(identical(other.name, name) || other.name == name)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.active, active) || other.active == active)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.androidFingerprints, androidFingerprints) || other.androidFingerprints == androidFingerprints));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminDomainAliasDto&&(identical(other.id, id) || other.id == id)&&(identical(other.hostname, hostname) || other.hostname == hostname)&&(identical(other.domainId, domainId) || other.domainId == domainId)&&(identical(other.pinnedTeamId, pinnedTeamId) || other.pinnedTeamId == pinnedTeamId)&&(identical(other.pinnedTeamSlug, pinnedTeamSlug) || other.pinnedTeamSlug == pinnedTeamSlug)&&(identical(other.name, name) || other.name == name)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.active, active) || other.active == active)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.androidFingerprints, androidFingerprints) || other.androidFingerprints == androidFingerprints));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,hostname,domainId,pinnedTeamId,pinnedTeamSlug,name,baseUrl,active,createdAt,androidFingerprints);
+int get hashCode {
+    return Object.hash(runtimeType,id,hostname,domainId,pinnedTeamId,pinnedTeamSlug,name,baseUrl,active,createdAt,androidFingerprints);
+}
 
 @override
 String toString() {
-  return 'AdminDomainAliasDto(id: $id, hostname: $hostname, domainId: $domainId, pinnedTeamId: $pinnedTeamId, pinnedTeamSlug: $pinnedTeamSlug, name: $name, baseUrl: $baseUrl, active: $active, createdAt: $createdAt, androidFingerprints: $androidFingerprints)';
+    return 'AdminDomainAliasDto(id: $id, hostname: $hostname, domainId: $domainId, pinnedTeamId: $pinnedTeamId, pinnedTeamSlug: $pinnedTeamSlug, name: $name, baseUrl: $baseUrl, active: $active, createdAt: $createdAt, androidFingerprints: $androidFingerprints)';
 }
 
 

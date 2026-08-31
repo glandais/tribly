@@ -30,16 +30,21 @@ $PasskeyRegisterRequestCopyWith<PasskeyRegisterRequest> get copyWith => _$Passke
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PasskeyRegisterRequest&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName));
+  final _this = this as PasskeyRegisterRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PasskeyRegisterRequest&&(identical(other.deviceName, _this.deviceName) || other.deviceName == _this.deviceName));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,deviceName);
+int get hashCode {
+  final _this = this as PasskeyRegisterRequest;
+  return Object.hash(runtimeType,_this.deviceName);
+}
 
 @override
 String toString() {
-  return 'PasskeyRegisterRequest(deviceName: $deviceName)';
+  final _this = this as PasskeyRegisterRequest;
+  return 'PasskeyRegisterRequest(deviceName: ${_this.deviceName})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PasskeyRegisterRequest&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PasskeyRegisterRequest&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,deviceName);
+int get hashCode {
+    return Object.hash(runtimeType,deviceName);
+}
 
 @override
 String toString() {
-  return 'PasskeyRegisterRequest(deviceName: $deviceName)';
+    return 'PasskeyRegisterRequest(deviceName: $deviceName)';
 }
 
 

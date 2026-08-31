@@ -33,16 +33,21 @@ $GeocodeResultDtoCopyWith<GeocodeResultDto> get copyWith => _$GeocodeResultDtoCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GeocodeResultDto&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.lat, lat) || other.lat == lat)&&(identical(other.lon, lon) || other.lon == lon));
+  final _this = this as GeocodeResultDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GeocodeResultDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.displayName, _this.displayName) || other.displayName == _this.displayName)&&(identical(other.lat, _this.lat) || other.lat == _this.lat)&&(identical(other.lon, _this.lon) || other.lon == _this.lon));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,displayName,lat,lon);
+int get hashCode {
+  final _this = this as GeocodeResultDto;
+  return Object.hash(runtimeType,_this.id,_this.displayName,_this.lat,_this.lon);
+}
 
 @override
 String toString() {
-  return 'GeocodeResultDto(id: $id, displayName: $displayName, lat: $lat, lon: $lon)';
+  final _this = this as GeocodeResultDto;
+  return 'GeocodeResultDto(id: ${_this.id}, displayName: ${_this.displayName}, lat: ${_this.lat}, lon: ${_this.lon})';
 }
 
 
@@ -242,16 +247,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GeocodeResultDto&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.lat, lat) || other.lat == lat)&&(identical(other.lon, lon) || other.lon == lon));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _GeocodeResultDto&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.lat, lat) || other.lat == lat)&&(identical(other.lon, lon) || other.lon == lon));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,displayName,lat,lon);
+int get hashCode {
+    return Object.hash(runtimeType,id,displayName,lat,lon);
+}
 
 @override
 String toString() {
-  return 'GeocodeResultDto(id: $id, displayName: $displayName, lat: $lat, lon: $lon)';
+    return 'GeocodeResultDto(id: $id, displayName: $displayName, lat: $lat, lon: $lon)';
 }
 
 

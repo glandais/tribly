@@ -31,16 +31,21 @@ $MapTerrainDtoCopyWith<MapTerrainDto> get copyWith => _$MapTerrainDtoCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MapTerrainDto&&(identical(other.url, url) || other.url == url)&&(identical(other.maxZoom, maxZoom) || other.maxZoom == maxZoom));
+  final _this = this as MapTerrainDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MapTerrainDto&&(identical(other.url, _this.url) || other.url == _this.url)&&(identical(other.maxZoom, _this.maxZoom) || other.maxZoom == _this.maxZoom));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,url,maxZoom);
+int get hashCode {
+  final _this = this as MapTerrainDto;
+  return Object.hash(runtimeType,_this.url,_this.maxZoom);
+}
 
 @override
 String toString() {
-  return 'MapTerrainDto(url: $url, maxZoom: $maxZoom)';
+  final _this = this as MapTerrainDto;
+  return 'MapTerrainDto(url: ${_this.url}, maxZoom: ${_this.maxZoom})';
 }
 
 
@@ -234,16 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MapTerrainDto&&(identical(other.url, url) || other.url == url)&&(identical(other.maxZoom, maxZoom) || other.maxZoom == maxZoom));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MapTerrainDto&&(identical(other.url, url) || other.url == url)&&(identical(other.maxZoom, maxZoom) || other.maxZoom == maxZoom));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,url,maxZoom);
+int get hashCode {
+    return Object.hash(runtimeType,url,maxZoom);
+}
 
 @override
 String toString() {
-  return 'MapTerrainDto(url: $url, maxZoom: $maxZoom)';
+    return 'MapTerrainDto(url: $url, maxZoom: $maxZoom)';
 }
 
 

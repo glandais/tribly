@@ -33,16 +33,21 @@ $RideTemplateListResponseCopyWith<RideTemplateListResponse> get copyWith => _$Ri
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RideTemplateListResponse&&const DeepCollectionEquality().equals(other.templates, templates)&&(identical(other.total, total) || other.total == total)&&(identical(other.page, page) || other.page == page)&&(identical(other.size, size) || other.size == size));
+  final _this = this as RideTemplateListResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RideTemplateListResponse&&const DeepCollectionEquality().equals(other.templates, _this.templates)&&(identical(other.total, _this.total) || other.total == _this.total)&&(identical(other.page, _this.page) || other.page == _this.page)&&(identical(other.size, _this.size) || other.size == _this.size));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(templates),total,page,size);
+int get hashCode {
+  final _this = this as RideTemplateListResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.templates),_this.total,_this.page,_this.size);
+}
 
 @override
 String toString() {
-  return 'RideTemplateListResponse(templates: $templates, total: $total, page: $page, size: $size)';
+  final _this = this as RideTemplateListResponse;
+  return 'RideTemplateListResponse(templates: ${_this.templates}, total: ${_this.total}, page: ${_this.page}, size: ${_this.size})';
 }
 
 
@@ -249,16 +254,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RideTemplateListResponse&&const DeepCollectionEquality().equals(other._templates, _templates)&&(identical(other.total, total) || other.total == total)&&(identical(other.page, page) || other.page == page)&&(identical(other.size, size) || other.size == size));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RideTemplateListResponse&&const DeepCollectionEquality().equals(other.templates, _templates)&&(identical(other.total, total) || other.total == total)&&(identical(other.page, page) || other.page == page)&&(identical(other.size, size) || other.size == size));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_templates),total,page,size);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_templates),total,page,size);
+}
 
 @override
 String toString() {
-  return 'RideTemplateListResponse(templates: $templates, total: $total, page: $page, size: $size)';
+    return 'RideTemplateListResponse(templates: $templates, total: $total, page: $page, size: $size)';
 }
 
 

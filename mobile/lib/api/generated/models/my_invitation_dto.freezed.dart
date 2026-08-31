@@ -34,16 +34,21 @@ $MyInvitationDtoCopyWith<MyInvitationDto> get copyWith => _$MyInvitationDtoCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MyInvitationDto&&(identical(other.id, id) || other.id == id)&&(identical(other.team, team) || other.team == team)&&(identical(other.inviterName, inviterName) || other.inviterName == inviterName)&&(identical(other.role, role) || other.role == role)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt));
+  final _this = this as MyInvitationDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MyInvitationDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.team, _this.team) || other.team == _this.team)&&(identical(other.inviterName, _this.inviterName) || other.inviterName == _this.inviterName)&&(identical(other.role, _this.role) || other.role == _this.role)&&(identical(other.expiresAt, _this.expiresAt) || other.expiresAt == _this.expiresAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,team,inviterName,role,expiresAt);
+int get hashCode {
+  final _this = this as MyInvitationDto;
+  return Object.hash(runtimeType,_this.id,_this.team,_this.inviterName,_this.role,_this.expiresAt);
+}
 
 @override
 String toString() {
-  return 'MyInvitationDto(id: $id, team: $team, inviterName: $inviterName, role: $role, expiresAt: $expiresAt)';
+  final _this = this as MyInvitationDto;
+  return 'MyInvitationDto(id: ${_this.id}, team: ${_this.team}, inviterName: ${_this.inviterName}, role: ${_this.role}, expiresAt: ${_this.expiresAt})';
 }
 
 
@@ -255,16 +260,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MyInvitationDto&&(identical(other.id, id) || other.id == id)&&(identical(other.team, team) || other.team == team)&&(identical(other.inviterName, inviterName) || other.inviterName == inviterName)&&(identical(other.role, role) || other.role == role)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MyInvitationDto&&(identical(other.id, id) || other.id == id)&&(identical(other.team, team) || other.team == team)&&(identical(other.inviterName, inviterName) || other.inviterName == inviterName)&&(identical(other.role, role) || other.role == role)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,team,inviterName,role,expiresAt);
+int get hashCode {
+    return Object.hash(runtimeType,id,team,inviterName,role,expiresAt);
+}
 
 @override
 String toString() {
-  return 'MyInvitationDto(id: $id, team: $team, inviterName: $inviterName, role: $role, expiresAt: $expiresAt)';
+    return 'MyInvitationDto(id: $id, team: $team, inviterName: $inviterName, role: $role, expiresAt: $expiresAt)';
 }
 
 

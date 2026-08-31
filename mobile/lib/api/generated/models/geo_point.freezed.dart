@@ -29,16 +29,21 @@ $GeoPointCopyWith<GeoPoint> get copyWith => _$GeoPointCopyWithImpl<GeoPoint>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GeoPoint&&(identical(other.lng, lng) || other.lng == lng)&&(identical(other.lat, lat) || other.lat == lat));
+  final _this = this as GeoPoint;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GeoPoint&&(identical(other.lng, _this.lng) || other.lng == _this.lng)&&(identical(other.lat, _this.lat) || other.lat == _this.lat));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,lng,lat);
+int get hashCode {
+  final _this = this as GeoPoint;
+  return Object.hash(runtimeType,_this.lng,_this.lat);
+}
 
 @override
 String toString() {
-  return 'GeoPoint(lng: $lng, lat: $lat)';
+  final _this = this as GeoPoint;
+  return 'GeoPoint(lng: ${_this.lng}, lat: ${_this.lat})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GeoPoint&&(identical(other.lng, lng) || other.lng == lng)&&(identical(other.lat, lat) || other.lat == lat));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _GeoPoint&&(identical(other.lng, lng) || other.lng == lng)&&(identical(other.lat, lat) || other.lat == lat));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,lng,lat);
+int get hashCode {
+    return Object.hash(runtimeType,lng,lat);
+}
 
 @override
 String toString() {
-  return 'GeoPoint(lng: $lng, lat: $lat)';
+    return 'GeoPoint(lng: $lng, lat: $lat)';
 }
 
 

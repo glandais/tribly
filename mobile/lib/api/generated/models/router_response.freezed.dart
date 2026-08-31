@@ -29,16 +29,21 @@ $RouterResponseCopyWith<RouterResponse> get copyWith => _$RouterResponseCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RouterResponse&&(identical(other.route, route) || other.route == route)&&(identical(other.dist, dist) || other.dist == dist)&&(identical(other.ascend, ascend) || other.ascend == ascend));
+  final _this = this as RouterResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RouterResponse&&(identical(other.route, _this.route) || other.route == _this.route)&&(identical(other.dist, _this.dist) || other.dist == _this.dist)&&(identical(other.ascend, _this.ascend) || other.ascend == _this.ascend));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,route,dist,ascend);
+int get hashCode {
+  final _this = this as RouterResponse;
+  return Object.hash(runtimeType,_this.route,_this.dist,_this.ascend);
+}
 
 @override
 String toString() {
-  return 'RouterResponse(route: $route, dist: $dist, ascend: $ascend)';
+  final _this = this as RouterResponse;
+  return 'RouterResponse(route: ${_this.route}, dist: ${_this.dist}, ascend: ${_this.ascend})';
 }
 
 
@@ -241,16 +246,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RouterResponse&&(identical(other.route, route) || other.route == route)&&(identical(other.dist, dist) || other.dist == dist)&&(identical(other.ascend, ascend) || other.ascend == ascend));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RouterResponse&&(identical(other.route, route) || other.route == route)&&(identical(other.dist, dist) || other.dist == dist)&&(identical(other.ascend, ascend) || other.ascend == ascend));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,route,dist,ascend);
+int get hashCode {
+    return Object.hash(runtimeType,route,dist,ascend);
+}
 
 @override
 String toString() {
-  return 'RouterResponse(route: $route, dist: $dist, ascend: $ascend)';
+    return 'RouterResponse(route: $route, dist: $dist, ascend: $ascend)';
 }
 
 

@@ -32,16 +32,21 @@ $DeviceTokenRequestCopyWith<DeviceTokenRequest> get copyWith => _$DeviceTokenReq
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceTokenRequest&&(identical(other.grantType, grantType) || other.grantType == grantType)&&(identical(other.deviceCode, deviceCode) || other.deviceCode == deviceCode)&&(identical(other.refreshToken, refreshToken) || other.refreshToken == refreshToken));
+  final _this = this as DeviceTokenRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceTokenRequest&&(identical(other.grantType, _this.grantType) || other.grantType == _this.grantType)&&(identical(other.deviceCode, _this.deviceCode) || other.deviceCode == _this.deviceCode)&&(identical(other.refreshToken, _this.refreshToken) || other.refreshToken == _this.refreshToken));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,grantType,deviceCode,refreshToken);
+int get hashCode {
+  final _this = this as DeviceTokenRequest;
+  return Object.hash(runtimeType,_this.grantType,_this.deviceCode,_this.refreshToken);
+}
 
 @override
 String toString() {
-  return 'DeviceTokenRequest(grantType: $grantType, deviceCode: $deviceCode, refreshToken: $refreshToken)';
+  final _this = this as DeviceTokenRequest;
+  return 'DeviceTokenRequest(grantType: ${_this.grantType}, deviceCode: ${_this.deviceCode}, refreshToken: ${_this.refreshToken})';
 }
 
 
@@ -238,16 +243,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceTokenRequest&&(identical(other.grantType, grantType) || other.grantType == grantType)&&(identical(other.deviceCode, deviceCode) || other.deviceCode == deviceCode)&&(identical(other.refreshToken, refreshToken) || other.refreshToken == refreshToken));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceTokenRequest&&(identical(other.grantType, grantType) || other.grantType == grantType)&&(identical(other.deviceCode, deviceCode) || other.deviceCode == deviceCode)&&(identical(other.refreshToken, refreshToken) || other.refreshToken == refreshToken));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,grantType,deviceCode,refreshToken);
+int get hashCode {
+    return Object.hash(runtimeType,grantType,deviceCode,refreshToken);
+}
 
 @override
 String toString() {
-  return 'DeviceTokenRequest(grantType: $grantType, deviceCode: $deviceCode, refreshToken: $refreshToken)';
+    return 'DeviceTokenRequest(grantType: $grantType, deviceCode: $deviceCode, refreshToken: $refreshToken)';
 }
 
 

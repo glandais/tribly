@@ -29,16 +29,21 @@ $RouterRequestCopyWith<RouterRequest> get copyWith => _$RouterRequestCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RouterRequest&&(identical(other.from, from) || other.from == from)&&(identical(other.to, to) || other.to == to)&&(identical(other.profile, profile) || other.profile == profile));
+  final _this = this as RouterRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RouterRequest&&(identical(other.from, _this.from) || other.from == _this.from)&&(identical(other.to, _this.to) || other.to == _this.to)&&(identical(other.profile, _this.profile) || other.profile == _this.profile));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,from,to,profile);
+int get hashCode {
+  final _this = this as RouterRequest;
+  return Object.hash(runtimeType,_this.from,_this.to,_this.profile);
+}
 
 @override
 String toString() {
-  return 'RouterRequest(from: $from, to: $to, profile: $profile)';
+  final _this = this as RouterRequest;
+  return 'RouterRequest(from: ${_this.from}, to: ${_this.to}, profile: ${_this.profile})';
 }
 
 
@@ -250,16 +255,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RouterRequest&&(identical(other.from, from) || other.from == from)&&(identical(other.to, to) || other.to == to)&&(identical(other.profile, profile) || other.profile == profile));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RouterRequest&&(identical(other.from, from) || other.from == from)&&(identical(other.to, to) || other.to == to)&&(identical(other.profile, profile) || other.profile == profile));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,from,to,profile);
+int get hashCode {
+    return Object.hash(runtimeType,from,to,profile);
+}
 
 @override
 String toString() {
-  return 'RouterRequest(from: $from, to: $to, profile: $profile)';
+    return 'RouterRequest(from: $from, to: $to, profile: $profile)';
 }
 
 

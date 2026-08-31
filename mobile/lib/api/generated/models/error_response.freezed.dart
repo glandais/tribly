@@ -31,16 +31,21 @@ $ErrorResponseCopyWith<ErrorResponse> get copyWith => _$ErrorResponseCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ErrorResponse&&(identical(other.code, code) || other.code == code)&&(identical(other.errorDetails, errorDetails) || other.errorDetails == errorDetails));
+  final _this = this as ErrorResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ErrorResponse&&(identical(other.code, _this.code) || other.code == _this.code)&&(identical(other.errorDetails, _this.errorDetails) || other.errorDetails == _this.errorDetails));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,code,errorDetails);
+int get hashCode {
+  final _this = this as ErrorResponse;
+  return Object.hash(runtimeType,_this.code,_this.errorDetails);
+}
 
 @override
 String toString() {
-  return 'ErrorResponse(code: $code, errorDetails: $errorDetails)';
+  final _this = this as ErrorResponse;
+  return 'ErrorResponse(code: ${_this.code}, errorDetails: ${_this.errorDetails})';
 }
 
 
@@ -246,16 +251,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ErrorResponse&&(identical(other.code, code) || other.code == code)&&(identical(other.errorDetails, errorDetails) || other.errorDetails == errorDetails));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ErrorResponse&&(identical(other.code, code) || other.code == code)&&(identical(other.errorDetails, errorDetails) || other.errorDetails == errorDetails));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,code,errorDetails);
+int get hashCode {
+    return Object.hash(runtimeType,code,errorDetails);
+}
 
 @override
 String toString() {
-  return 'ErrorResponse(code: $code, errorDetails: $errorDetails)';
+    return 'ErrorResponse(code: $code, errorDetails: $errorDetails)';
 }
 
 

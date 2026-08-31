@@ -40,16 +40,21 @@ $TripStageDtoCopyWith<TripStageDto> get copyWith => _$TripStageDtoCopyWithImpl<T
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TripStageDto&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.media, media) || other.media == media)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&(identical(other.stageIndex, stageIndex) || other.stageIndex == stageIndex)&&(identical(other.stageCount, stageCount) || other.stageCount == stageCount)&&(identical(other.route, route) || other.route == route)&&(identical(other.startPlace, startPlace) || other.startPlace == startPlace)&&(identical(other.endPlace, endPlace) || other.endPlace == endPlace));
+  final _this = this as TripStageDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TripStageDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.slug, _this.slug) || other.slug == _this.slug)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.dateTime, _this.dateTime) || other.dateTime == _this.dateTime)&&(identical(other.media, _this.media) || other.media == _this.media)&&(identical(other.sortOrder, _this.sortOrder) || other.sortOrder == _this.sortOrder)&&(identical(other.stageIndex, _this.stageIndex) || other.stageIndex == _this.stageIndex)&&(identical(other.stageCount, _this.stageCount) || other.stageCount == _this.stageCount)&&(identical(other.route, _this.route) || other.route == _this.route)&&(identical(other.startPlace, _this.startPlace) || other.startPlace == _this.startPlace)&&(identical(other.endPlace, _this.endPlace) || other.endPlace == _this.endPlace));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,slug,name,dateTime,media,sortOrder,stageIndex,stageCount,route,startPlace,endPlace);
+int get hashCode {
+  final _this = this as TripStageDto;
+  return Object.hash(runtimeType,_this.id,_this.slug,_this.name,_this.dateTime,_this.media,_this.sortOrder,_this.stageIndex,_this.stageCount,_this.route,_this.startPlace,_this.endPlace);
+}
 
 @override
 String toString() {
-  return 'TripStageDto(id: $id, slug: $slug, name: $name, dateTime: $dateTime, media: $media, sortOrder: $sortOrder, stageIndex: $stageIndex, stageCount: $stageCount, route: $route, startPlace: $startPlace, endPlace: $endPlace)';
+  final _this = this as TripStageDto;
+  return 'TripStageDto(id: ${_this.id}, slug: ${_this.slug}, name: ${_this.name}, dateTime: ${_this.dateTime}, media: ${_this.media}, sortOrder: ${_this.sortOrder}, stageIndex: ${_this.stageIndex}, stageCount: ${_this.stageCount}, route: ${_this.route}, startPlace: ${_this.startPlace}, endPlace: ${_this.endPlace})';
 }
 
 
@@ -315,16 +320,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TripStageDto&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.media, media) || other.media == media)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&(identical(other.stageIndex, stageIndex) || other.stageIndex == stageIndex)&&(identical(other.stageCount, stageCount) || other.stageCount == stageCount)&&(identical(other.route, route) || other.route == route)&&(identical(other.startPlace, startPlace) || other.startPlace == startPlace)&&(identical(other.endPlace, endPlace) || other.endPlace == endPlace));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TripStageDto&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.media, media) || other.media == media)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&(identical(other.stageIndex, stageIndex) || other.stageIndex == stageIndex)&&(identical(other.stageCount, stageCount) || other.stageCount == stageCount)&&(identical(other.route, route) || other.route == route)&&(identical(other.startPlace, startPlace) || other.startPlace == startPlace)&&(identical(other.endPlace, endPlace) || other.endPlace == endPlace));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,slug,name,dateTime,media,sortOrder,stageIndex,stageCount,route,startPlace,endPlace);
+int get hashCode {
+    return Object.hash(runtimeType,id,slug,name,dateTime,media,sortOrder,stageIndex,stageCount,route,startPlace,endPlace);
+}
 
 @override
 String toString() {
-  return 'TripStageDto(id: $id, slug: $slug, name: $name, dateTime: $dateTime, media: $media, sortOrder: $sortOrder, stageIndex: $stageIndex, stageCount: $stageCount, route: $route, startPlace: $startPlace, endPlace: $endPlace)';
+    return 'TripStageDto(id: $id, slug: $slug, name: $name, dateTime: $dateTime, media: $media, sortOrder: $sortOrder, stageIndex: $stageIndex, stageCount: $stageCount, route: $route, startPlace: $startPlace, endPlace: $endPlace)';
 }
 
 

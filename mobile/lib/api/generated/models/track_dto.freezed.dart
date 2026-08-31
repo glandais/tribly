@@ -30,16 +30,21 @@ $TrackDtoCopyWith<TrackDto> get copyWith => _$TrackDtoCopyWithImpl<TrackDto>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TrackDto&&(identical(other.line, line) || other.line == line)&&const DeepCollectionEquality().equals(other.climbs, climbs));
+  final _this = this as TrackDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TrackDto&&(identical(other.line, _this.line) || other.line == _this.line)&&const DeepCollectionEquality().equals(other.climbs, _this.climbs));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,line,const DeepCollectionEquality().hash(climbs));
+int get hashCode {
+  final _this = this as TrackDto;
+  return Object.hash(runtimeType,_this.line,const DeepCollectionEquality().hash(_this.climbs));
+}
 
 @override
 String toString() {
-  return 'TrackDto(line: $line, climbs: $climbs)';
+  final _this = this as TrackDto;
+  return 'TrackDto(line: ${_this.line}, climbs: ${_this.climbs})';
 }
 
 
@@ -248,16 +253,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TrackDto&&(identical(other.line, line) || other.line == line)&&const DeepCollectionEquality().equals(other._climbs, _climbs));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TrackDto&&(identical(other.line, line) || other.line == line)&&const DeepCollectionEquality().equals(other.climbs, _climbs));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,line,const DeepCollectionEquality().hash(_climbs));
+int get hashCode {
+    return Object.hash(runtimeType,line,const DeepCollectionEquality().hash(_climbs));
+}
 
 @override
 String toString() {
-  return 'TrackDto(line: $line, climbs: $climbs)';
+    return 'TrackDto(line: $line, climbs: $climbs)';
 }
 
 

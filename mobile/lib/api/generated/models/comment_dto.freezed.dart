@@ -36,16 +36,21 @@ $CommentDtoCopyWith<CommentDto> get copyWith => _$CommentDtoCopyWithImpl<Comment
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CommentDto&&(identical(other.id, id) || other.id == id)&&(identical(other.content, content) || other.content == content)&&(identical(other.author, author) || other.author == author)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other.replies, replies)&&(identical(other.replyCount, replyCount) || other.replyCount == replyCount)&&(identical(other.parentId, parentId) || other.parentId == parentId));
+  final _this = this as CommentDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CommentDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.content, _this.content) || other.content == _this.content)&&(identical(other.author, _this.author) || other.author == _this.author)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&const DeepCollectionEquality().equals(other.replies, _this.replies)&&(identical(other.replyCount, _this.replyCount) || other.replyCount == _this.replyCount)&&(identical(other.parentId, _this.parentId) || other.parentId == _this.parentId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,content,author,createdAt,const DeepCollectionEquality().hash(replies),replyCount,parentId);
+int get hashCode {
+  final _this = this as CommentDto;
+  return Object.hash(runtimeType,_this.id,_this.content,_this.author,_this.createdAt,const DeepCollectionEquality().hash(_this.replies),_this.replyCount,_this.parentId);
+}
 
 @override
 String toString() {
-  return 'CommentDto(id: $id, content: $content, author: $author, createdAt: $createdAt, replies: $replies, replyCount: $replyCount, parentId: $parentId)';
+  final _this = this as CommentDto;
+  return 'CommentDto(id: ${_this.id}, content: ${_this.content}, author: ${_this.author}, createdAt: ${_this.createdAt}, replies: ${_this.replies}, replyCount: ${_this.replyCount}, parentId: ${_this.parentId})';
 }
 
 
@@ -270,16 +275,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CommentDto&&(identical(other.id, id) || other.id == id)&&(identical(other.content, content) || other.content == content)&&(identical(other.author, author) || other.author == author)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other._replies, _replies)&&(identical(other.replyCount, replyCount) || other.replyCount == replyCount)&&(identical(other.parentId, parentId) || other.parentId == parentId));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CommentDto&&(identical(other.id, id) || other.id == id)&&(identical(other.content, content) || other.content == content)&&(identical(other.author, author) || other.author == author)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other.replies, _replies)&&(identical(other.replyCount, replyCount) || other.replyCount == replyCount)&&(identical(other.parentId, parentId) || other.parentId == parentId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,content,author,createdAt,const DeepCollectionEquality().hash(_replies),replyCount,parentId);
+int get hashCode {
+    return Object.hash(runtimeType,id,content,author,createdAt,const DeepCollectionEquality().hash(_replies),replyCount,parentId);
+}
 
 @override
 String toString() {
-  return 'CommentDto(id: $id, content: $content, author: $author, createdAt: $createdAt, replies: $replies, replyCount: $replyCount, parentId: $parentId)';
+    return 'CommentDto(id: $id, content: $content, author: $author, createdAt: $createdAt, replies: $replies, replyCount: $replyCount, parentId: $parentId)';
 }
 
 

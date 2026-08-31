@@ -30,16 +30,21 @@ $PlaceRequestGeometryCopyWith<PlaceRequestGeometry> get copyWith => _$PlaceReque
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlaceRequestGeometry&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other.coordinates, coordinates));
+  final _this = this as PlaceRequestGeometry;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlaceRequestGeometry&&(identical(other.type, _this.type) || other.type == _this.type)&&const DeepCollectionEquality().equals(other.coordinates, _this.coordinates));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,const DeepCollectionEquality().hash(coordinates));
+int get hashCode {
+  final _this = this as PlaceRequestGeometry;
+  return Object.hash(runtimeType,_this.type,const DeepCollectionEquality().hash(_this.coordinates));
+}
 
 @override
 String toString() {
-  return 'PlaceRequestGeometry(type: $type, coordinates: $coordinates)';
+  final _this = this as PlaceRequestGeometry;
+  return 'PlaceRequestGeometry(type: ${_this.type}, coordinates: ${_this.coordinates})';
 }
 
 
@@ -239,16 +244,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlaceRequestGeometry&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other._coordinates, _coordinates));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlaceRequestGeometry&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other.coordinates, _coordinates));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,const DeepCollectionEquality().hash(_coordinates));
+int get hashCode {
+    return Object.hash(runtimeType,type,const DeepCollectionEquality().hash(_coordinates));
+}
 
 @override
 String toString() {
-  return 'PlaceRequestGeometry(type: $type, coordinates: $coordinates)';
+    return 'PlaceRequestGeometry(type: $type, coordinates: $coordinates)';
 }
 
 

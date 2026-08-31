@@ -29,16 +29,21 @@ $WaypointDtoCopyWith<WaypointDto> get copyWith => _$WaypointDtoCopyWithImpl<Wayp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is WaypointDto&&(identical(other.geometry, geometry) || other.geometry == geometry)&&(identical(other.name, name) || other.name == name));
+  final _this = this as WaypointDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is WaypointDto&&(identical(other.geometry, _this.geometry) || other.geometry == _this.geometry)&&(identical(other.name, _this.name) || other.name == _this.name));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,geometry,name);
+int get hashCode {
+  final _this = this as WaypointDto;
+  return Object.hash(runtimeType,_this.geometry,_this.name);
+}
 
 @override
 String toString() {
-  return 'WaypointDto(geometry: $geometry, name: $name)';
+  final _this = this as WaypointDto;
+  return 'WaypointDto(geometry: ${_this.geometry}, name: ${_this.name})';
 }
 
 
@@ -239,16 +244,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WaypointDto&&(identical(other.geometry, geometry) || other.geometry == geometry)&&(identical(other.name, name) || other.name == name));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _WaypointDto&&(identical(other.geometry, geometry) || other.geometry == geometry)&&(identical(other.name, name) || other.name == name));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,geometry,name);
+int get hashCode {
+    return Object.hash(runtimeType,geometry,name);
+}
 
 @override
 String toString() {
-  return 'WaypointDto(geometry: $geometry, name: $name)';
+    return 'WaypointDto(geometry: $geometry, name: $name)';
 }
 
 

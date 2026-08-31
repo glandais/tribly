@@ -36,16 +36,21 @@ $ClimbDtoCopyWith<ClimbDto> get copyWith => _$ClimbDtoCopyWithImpl<ClimbDto>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ClimbDto&&(identical(other.startDistance, startDistance) || other.startDistance == startDistance)&&(identical(other.endDistance, endDistance) || other.endDistance == endDistance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.averageGradient, averageGradient) || other.averageGradient == averageGradient)&&(identical(other.maxGradient, maxGradient) || other.maxGradient == maxGradient)&&const DeepCollectionEquality().equals(other.parts, parts)&&(identical(other.category, category) || other.category == category));
+  final _this = this as ClimbDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ClimbDto&&(identical(other.startDistance, _this.startDistance) || other.startDistance == _this.startDistance)&&(identical(other.endDistance, _this.endDistance) || other.endDistance == _this.endDistance)&&(identical(other.elevationGain, _this.elevationGain) || other.elevationGain == _this.elevationGain)&&(identical(other.averageGradient, _this.averageGradient) || other.averageGradient == _this.averageGradient)&&(identical(other.maxGradient, _this.maxGradient) || other.maxGradient == _this.maxGradient)&&const DeepCollectionEquality().equals(other.parts, _this.parts)&&(identical(other.category, _this.category) || other.category == _this.category));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,startDistance,endDistance,elevationGain,averageGradient,maxGradient,const DeepCollectionEquality().hash(parts),category);
+int get hashCode {
+  final _this = this as ClimbDto;
+  return Object.hash(runtimeType,_this.startDistance,_this.endDistance,_this.elevationGain,_this.averageGradient,_this.maxGradient,const DeepCollectionEquality().hash(_this.parts),_this.category);
+}
 
 @override
 String toString() {
-  return 'ClimbDto(startDistance: $startDistance, endDistance: $endDistance, elevationGain: $elevationGain, averageGradient: $averageGradient, maxGradient: $maxGradient, parts: $parts, category: $category)';
+  final _this = this as ClimbDto;
+  return 'ClimbDto(startDistance: ${_this.startDistance}, endDistance: ${_this.endDistance}, elevationGain: ${_this.elevationGain}, averageGradient: ${_this.averageGradient}, maxGradient: ${_this.maxGradient}, parts: ${_this.parts}, category: ${_this.category})';
 }
 
 
@@ -261,16 +266,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ClimbDto&&(identical(other.startDistance, startDistance) || other.startDistance == startDistance)&&(identical(other.endDistance, endDistance) || other.endDistance == endDistance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.averageGradient, averageGradient) || other.averageGradient == averageGradient)&&(identical(other.maxGradient, maxGradient) || other.maxGradient == maxGradient)&&const DeepCollectionEquality().equals(other._parts, _parts)&&(identical(other.category, category) || other.category == category));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ClimbDto&&(identical(other.startDistance, startDistance) || other.startDistance == startDistance)&&(identical(other.endDistance, endDistance) || other.endDistance == endDistance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.averageGradient, averageGradient) || other.averageGradient == averageGradient)&&(identical(other.maxGradient, maxGradient) || other.maxGradient == maxGradient)&&const DeepCollectionEquality().equals(other.parts, _parts)&&(identical(other.category, category) || other.category == category));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,startDistance,endDistance,elevationGain,averageGradient,maxGradient,const DeepCollectionEquality().hash(_parts),category);
+int get hashCode {
+    return Object.hash(runtimeType,startDistance,endDistance,elevationGain,averageGradient,maxGradient,const DeepCollectionEquality().hash(_parts),category);
+}
 
 @override
 String toString() {
-  return 'ClimbDto(startDistance: $startDistance, endDistance: $endDistance, elevationGain: $elevationGain, averageGradient: $averageGradient, maxGradient: $maxGradient, parts: $parts, category: $category)';
+    return 'ClimbDto(startDistance: $startDistance, endDistance: $endDistance, elevationGain: $elevationGain, averageGradient: $averageGradient, maxGradient: $maxGradient, parts: $parts, category: $category)';
 }
 
 
