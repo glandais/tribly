@@ -1,7 +1,7 @@
 ####
 # Base: node + pnpm via corepack (shared by all stages)
 ####
-FROM node:26.7.0-alpine AS base
+FROM node:26.8.1-alpine AS base
 
 WORKDIR /app
 
@@ -51,7 +51,7 @@ RUN pnpm build
 ####
 # Runtime stage with Node.js for SSR
 ####
-FROM node:26.7.0-alpine
+FROM node:26.8.1-alpine
 
 WORKDIR /app
 ENV NODE_ENV=production
