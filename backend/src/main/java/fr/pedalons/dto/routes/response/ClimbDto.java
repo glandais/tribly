@@ -1,9 +1,9 @@
 package fr.pedalons.dto.routes.response;
 
+import fr.pedalons.domain.route.ClimbData;
+import fr.pedalons.domain.route.ClimbPartData;
 import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.enums.ClimbCategory;
-import io.github.glandais.gpx.climb.Climb;
-import io.github.glandais.gpx.climb.ClimbPart;
 import java.math.BigDecimal;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -26,7 +26,7 @@ public record ClimbDto(
     @Nullable @Schema(description = "Climb category (HC, 1, 2, 3, 4)") ClimbCategory category,
     @Schema(description = "Gradient segments making up the climb", required = true)
         List<ClimbPartDto> parts) {
-  public static ClimbDto from(Climb climb) {
+  public static ClimbDto from(ClimbData climb) {
 
     return new ClimbDto(
         (int) Math.round(climb.startDist()),
@@ -48,7 +48,7 @@ public record ClimbDto(
    * - CAT3: 300-500m elevation
    * - CAT4: < 300m elevation
    */
-  private static ClimbCategory categorizeClimb(Climb climb) {
+  private static ClimbCategory categorizeClimb(ClimbData climb) {
     int elevationGain = (int) Math.round(climb.positiveElevation());
     double avgGrade = climb.grade();
 
@@ -65,10 +65,10 @@ public record ClimbDto(
     }
   }
 
-  private static double getMaxGrade(Climb climb) {
+  private static double getMaxGrade(ClimbData climb) {
     if (climb.parts().isEmpty()) {
       return climb.grade();
     }
-    return climb.parts().stream().mapToDouble(ClimbPart::grade).max().orElse(climb.grade());
+    return climb.parts().stream().mapToDouble(ClimbPartData::grade).max().orElse(climb.grade());
   }
 }

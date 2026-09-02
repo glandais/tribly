@@ -265,10 +265,12 @@ Two services stay per-environment on purpose, even though they look shareable:
 
 - **imgproxy/varnish** — imgproxy only takes a single global `IMGPROXY_S3_ENDPOINT`, so one instance
   cannot serve two MinIO backends. They become shareable if and when MinIO is shared.
-- **the gpx2web cache** (`DATA_CACHE_PATH`) — gpx2web downloads tiles straight into their final path
-  with no write-then-rename, guarded only by an in-JVM lock. Two backends sharing the directory can
-  read a truncated file and cache it permanently. Keep it at `/mnt/cache`: pointed at `/tmp` it lives
-  inside the container and is re-downloaded in full on every restart.
+- **the vcyclist cache** (`DATA_CACHE_PATH`) — `DemTileFetcher` writes each downloaded tile to a temp
+  file in the target directory, then moves it into place with `ATOMIC_MOVE` + `REPLACE_EXISTING`,
+  and only after the bytes have decoded successfully. Two backends racing on the same tile just
+  overwrite each other with identical bytes; a crash or a bad response never leaves a truncated or
+  garbage file cached permanently. Keep it at `/mnt/cache`: pointed at `/tmp` it lives inside the
+  container and is re-downloaded in full on every restart.
 
 ### Running the full stack locally
 

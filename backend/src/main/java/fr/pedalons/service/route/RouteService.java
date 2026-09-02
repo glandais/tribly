@@ -38,7 +38,7 @@ import fr.pedalons.service.common.TeamEntityService;
 import fr.pedalons.service.route.response.TrackMetadata;
 import fr.pedalons.service.security.annotation.CheckAccess;
 import fr.pedalons.service.security.annotation.Public;
-import io.github.glandais.gpx.data.GPX;
+import io.github.glandais.engine.gpx.GpxDocument;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -276,15 +276,16 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
 
     try {
 
-      GPX gpx;
+      GpxDocument gpx;
       if (gpxPath != null) {
         gpx = gpxProcessingService.parseGpx(gpxPath);
       } else {
         gpx = gpxProcessingService.fromPoints(route.getName(), routePoints);
       }
       // Phase 1: CPU + S3 (transaction suspended, DB connection released)
+      // gpxPath, when present, is what makes original.gpx the uploaded bytes verbatim.
       GpxProcessingService.GpxProcessingResult gpxResult =
-          gpxProcessingService.processGpxData(route, gpx);
+          gpxProcessingService.processGpxData(route, gpx, gpxPath);
 
       // Phase 2: DB persist (transaction resumed, short burst)
       TrackMetadata metadata = gpxProcessingService.persistGpxData(route, gpxResult);
@@ -350,7 +351,7 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
     route.setDateTime(Instant.now());
 
     try {
-      GPX gpx = null;
+      GpxDocument gpx = null;
       if (gpxPath != null) {
         gpx = gpxProcessingService.parseGpx(gpxPath);
       } else {
@@ -369,7 +370,7 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
 
         // Phase 1: CPU + S3 (transaction suspended, DB connection released)
         GpxProcessingService.GpxProcessingResult gpxResult =
-            gpxProcessingService.processGpxData(route, gpx);
+            gpxProcessingService.processGpxData(route, gpx, gpxPath);
 
         // Phase 2: DB persist (transaction resumed, short burst)
         TrackMetadata metadata = gpxProcessingService.persistGpxData(route, gpxResult);

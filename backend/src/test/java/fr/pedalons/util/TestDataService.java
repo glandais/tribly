@@ -58,7 +58,6 @@ import fr.pedalons.repository.trip.TripRepository;
 import fr.pedalons.repository.trip.TripStageRepository;
 import fr.pedalons.repository.user.UserRepository;
 import fr.pedalons.service.common.SlugService;
-import io.github.glandais.gpx.climb.Climbs;
 import io.hypersistence.tsid.TSID;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -473,8 +472,7 @@ public class TestDataService {
       String geometry,
       List<GpxTrack.TrackPoint> trackPoints) {
     LineString<G2D> lineString = (LineString<G2D>) Wkt.fromWkt(geometry, WGS84);
-    GpxTrack track =
-        new GpxTrack(createdBy, name, lineString, trackPoints, new Climbs(), 10, 10, 10);
+    GpxTrack track = new GpxTrack(createdBy, name, lineString, trackPoints, List.of(), 10, 10, 10);
     Route route =
         new Route(createdBy, team, name, SlugService.slugify(name), visibility, SurfaceType.ROAD);
     route.addTrack(track);
@@ -507,8 +505,7 @@ public class TestDataService {
               "LINESTRING(%f %f,%f %f)", first.lng(), first.lat(), last.lng(), last.lat());
       LineString<G2D> lineString = (LineString<G2D>) Wkt.fromWkt(geometry, WGS84);
       GpxTrack track =
-          new GpxTrack(
-              createdBy, name + " " + i, lineString, trackPoints, new Climbs(), 10, 10, 10);
+          new GpxTrack(createdBy, name + " " + i, lineString, trackPoints, List.of(), 10, 10, 10);
       route.addTrack(track);
       i++;
     }
@@ -540,8 +537,7 @@ public class TestDataService {
     List<GpxTrack.TrackPoint> trackPoints = List.of(new GpxTrack.TrackPoint(45.0, 6.0, 500.0, 0.0));
     String geometry = "LINESTRING(6 45,6.1 45.1)";
     LineString<G2D> lineString = (LineString<G2D>) Wkt.fromWkt(geometry, WGS84);
-    GpxTrack track =
-        new GpxTrack(createdBy, name, lineString, trackPoints, new Climbs(), 10, 10, 10);
+    GpxTrack track = new GpxTrack(createdBy, name, lineString, trackPoints, List.of(), 10, 10, 10);
 
     Route route =
         new Route(createdBy, team, name, SlugService.slugify(name), visibility, SurfaceType.ROAD);
@@ -582,7 +578,7 @@ public class TestDataService {
     LineString<G2D> lineString = (LineString<G2D>) Wkt.fromWkt(geometry, WGS84);
     GpxTrack track =
         new GpxTrack(
-            createdBy, name, lineString, trackPoints, new Climbs(), distance, elevationGain, 0);
+            createdBy, name, lineString, trackPoints, List.of(), distance, elevationGain, 0);
 
     Route route =
         new Route(createdBy, team, name, SlugService.slugify(name), visibility, surfaceType);
