@@ -160,7 +160,7 @@ services:
       AWS_REGION: us-east-1
 
   varnish:
-    image: varnish:9.0.3-3
+    image: varnish:9.0.3-5
     container_name: ${ENV_NAME}-varnish
     restart: unless-stopped
     networks:
