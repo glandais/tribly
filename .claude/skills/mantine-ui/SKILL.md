@@ -7,7 +7,7 @@ description: Use when modifying files in frontend/src/components/ or frontend/sr
 
 ## Overview
 
-Mantine v8 component library with TypeScript, dark mode, and form integration. All components require `MantineProvider` wrapper.
+Mantine v9 component library with TypeScript, dark mode, and form integration. All components require `MantineProvider` wrapper.
 
 **Docs:** https://mantine.dev/llms.txt
 

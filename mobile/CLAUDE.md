@@ -40,7 +40,7 @@ no dependency on the `.agents/skills` universal layout since we vendor a copy in
 
 The [Dart/Flutter MCP server](https://docs.flutter.dev/ai/mcp-server) (`dart mcp-server`) is registered project-wide in
 `../.mcp.json` as `dart-mcp-server` — it gives Claude live `analyze_files`, `hot_reload`/`hot_restart`, `get_runtime_errors`,
-`widget_inspector`, `run_tests`, and device/app-lifecycle tools against a running Flutter app, on top of the static skill
+`widget_inspector`, and device/app-lifecycle tools against a running Flutter app, on top of the static skill
 instructions above.
 
 To let it [drive a running app](https://docs.flutter.dev/ai/mcp-server#interact-with-a-running-app) — screenshots, tapping,
@@ -226,9 +226,6 @@ final teamsClientProvider = Provider<TeamsClient>((ref) => ref.watch(apiClientPr
 `lib/core/pdl/README.md` is the authority on the component library (contract, naming, what not to
 port). `../docs/NEXT.md` lists what's left and what was ruled out.
 
-See `rules.md` for comprehensive Flutter/Dart coding standards including:
-- State management patterns (ValueNotifier, ChangeNotifier, MVVM)
-- JSON serialization with `json_serializable`
-- Testing best practices (unit, widget, integration)
-- Visual design and theming
-- Accessibility requirements
+See `rules.md` for the project's Flutter/Dart conventions: Riverpod patterns, generated-code
+workflow, logging, testing and accessibility. Visual design lives in `lib/core/pdl/README.md`,
+not in `rules.md`.

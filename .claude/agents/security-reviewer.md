@@ -1,7 +1,6 @@
 ---
 name: security-reviewer
 description: Reviews code changes for security vulnerabilities specific to Pedalons's architecture. Use when changes touch authentication, authorization, multi-tenancy, or sensitive data handling.
-subagent_type: general-purpose
 ---
 
 # Security Reviewer
