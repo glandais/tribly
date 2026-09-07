@@ -10,16 +10,15 @@ import fr.pedalons.domain.trip.TripStage;
 import fr.pedalons.enums.AssetType;
 import fr.pedalons.service.asset.AssetService;
 import fr.pedalons.service.asset.response.AssetWithFile;
-import io.github.glandais.gpx.data.GPX;
-import io.github.glandais.gpx.data.GPXPath;
-import io.github.glandais.gpx.data.GPXPathType;
-import io.github.glandais.gpx.data.Point;
-import io.github.glandais.gpx.map.TileMapProducer;
+import io.github.glandais.elevation.CoordinatesElevation;
+import io.github.glandais.elevation.LatLonElevation;
+import io.github.glandais.engine.path.Path;
+import io.github.glandais.engine.path.PathJvm;
+import io.github.glandais.map.TileMapProducer;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.awt.Color;
 import java.io.File;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
@@ -116,15 +115,13 @@ public class ThumbnailService {
       }
     }
 
-    List<GPXPath> paths = buildPaths(tracks);
+    List<Path> paths = buildPaths(tracks);
     if (paths.isEmpty()) {
       return;
     }
 
-    GPX gpx = new GPX("thumbnail", paths, List.of());
-
-    generateThumbnail(entity, gpx, "colorful", lightType, "thumbnail-light.png");
-    generateThumbnail(entity, gpx, "eclipse", darkType, "thumbnail-dark.png");
+    generateThumbnail(entity, paths, "colorful", lightType, "thumbnail-light.png");
+    generateThumbnail(entity, paths, "eclipse", darkType, "thumbnail-dark.png");
   }
 
   /** Track geometry reduced to what the map renderer needs — decoupled from {@code Asset}/team. */
@@ -138,14 +135,14 @@ public class ThumbnailService {
    * callers treat a thumbnail as best-effort.
    */
   public boolean renderLightThumbnail(File output, List<ThumbnailTrack> tracks) {
-    List<GPXPath> paths = buildPaths(tracks);
+    List<Path> paths = buildPaths(tracks);
     if (paths.isEmpty()) {
       return false;
     }
-    GPX gpx = new GPX("thumbnail", paths, List.of());
     try {
       String tileUrl = tileserverUrl + "/styles/colorful/256/{z}/{x}/{y}.png";
-      tileMapProducer.createTileMap(output, gpx, tileUrl, 0.1, 512, 512, ROUTE_COLORS);
+      tileMapProducer.createTileMap(
+          output, paths, tileUrl, 0.1, null, 512, 512, null, ROUTE_COLORS);
       return true;
     } catch (Exception e) {
       LOG.warnv("Preview thumbnail generation failed: {0}", e.getMessage());
@@ -153,32 +150,37 @@ public class ThumbnailService {
     }
   }
 
-  private static List<GPXPath> buildPaths(List<ThumbnailTrack> tracks) {
-    List<GPXPath> paths = new ArrayList<>();
+  /**
+   * Rebuilds renderable geometry from stored track points. {@code public} so {@code
+   * GpxProcessingService} draws its route thumbnails from exactly the same geometry the rest of the
+   * app renders, instead of maintaining a second conversion.
+   */
+  public static List<Path> buildPaths(List<ThumbnailTrack> tracks) {
+    List<Path> paths = new ArrayList<>();
     for (ThumbnailTrack track : tracks) {
-      GPXPath gpxPath = new GPXPath(track.name(), GPXPathType.TRACK);
+      List<CoordinatesElevation> coordinates = new ArrayList<>(track.points().size());
       for (GpxTrack.TrackPoint tp : track.points()) {
-        Point p = new Point();
-        p.setLon(Math.toRadians(tp.lng()));
-        p.setLat(Math.toRadians(tp.lat()));
-        p.setEle(tp.ele());
-        p.setInstant(null, Instant.EPOCH);
-        gpxPath.addPoint(p);
+        coordinates.add(new LatLonElevation(tp.lat(), tp.lng(), tp.ele()));
       }
-      gpxPath.computeArrays();
-      paths.add(gpxPath);
+      if (coordinates.isEmpty()) {
+        continue;
+      }
+      paths.add(PathJvm.fromCoordinates(coordinates));
     }
     return paths;
   }
 
   private void generateThumbnail(
-      TeamEntity entity, GPX gpx, String style, AssetType assetType, String fileName) {
+      TeamEntity entity, List<Path> paths, String style, AssetType assetType, String fileName) {
     try {
       AssetWithFile assetFile = assetService.addAsset(entity, assetType, fileName);
       entity.getAssets().add(assetFile.asset());
       File file = assetFile.file();
       String tileUrl = tileserverUrl + "/styles/" + style + "/256/{z}/{x}/{y}.png";
-      tileMapProducer.createTileMap(file, gpx, tileUrl, 0.1, 512, 512, ROUTE_COLORS);
+      // Exactly one framing mode may be non-null (maxSize | width+height | zoom): here
+      // width+height. A second one would raise IllegalArgumentException, swallowed by the catch
+      // below since a thumbnail is best-effort.
+      tileMapProducer.createTileMap(file, paths, tileUrl, 0.1, null, 512, 512, null, ROUTE_COLORS);
       assetService.uploadAssetFile(assetFile.asset());
       LOG.infov(
           "Generated {0} thumbnail for {1} {2}",

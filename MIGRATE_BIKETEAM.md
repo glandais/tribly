@@ -6,7 +6,7 @@ docker compose --profile restore down -v --remove-orphans
 rm -rf ./data/storage/*
 docker compose up -d
 
-`./data/cache` is deliberately left alone: it holds gpx2web's map tiles and the elevation tiles
+`./data/cache` is deliberately left alone: it holds vcyclist's map tiles and the elevation tiles
 fetched from tiles.mapterhorn.com, keyed by coordinates, so it stays valid across a reset and saves
 the bulk of a run's rendering. Delete it only to reclaim disk.
 

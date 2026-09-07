@@ -203,6 +203,11 @@ jeton ICS. Thème clair et compte `gaby` pas repassés en revue depuis.
 - [ ] **`AdDto` ne porte aucun champ de contact** — le `grep` et le script Python du §5.3 du document
       d'API. Le jour où ils remontent quelque chose, le relais a été contourné et une adresse
       personnelle est publiée à toute une équipe, irrévocablement.
+- [ ] **Migration vcyclist (§11 de [`2026-07-28-migration-vcyclist.md`](plans/2026-07-28-migration-vcyclist.md))** —
+      le cache de tuiles carto change de layout et se remplit une fois entièrement au premier import
+      qui touche une zone (les tuiles d'élévation, elles, sont conservées). La récupération
+      d'élévation devient concurrente (10 tuiles en parallèle) contre un fetch séquentiel avant : à
+      cache froid, surveiller un ×10 sur le débit vers `tiles.mapterhorn.com`.
 
 ---
 
@@ -507,6 +512,7 @@ sont des invariants que le code garde.
 | **Jeu d'icônes Tabler côté mobile** | Material outline conservé | L'écart ne porte que sur la graisse du trait des icônes de badge de 11 px. `PdlIcons` est le **seul** fichier autorisé à nommer `Icons.*` : basculer un jour ne touchera qu'un fichier |
 | **Écran de profil public d'un membre** | Aucune maquette ne va au-delà de la liste | Les lignes du trombinoscope ne sont pas cliquables. Ne pas inventer l'écran |
 | **Édition et création de contenu au mobile** | Hors brief : la v2 est une version de consultation et de participation | Le sélecteur de meneur dans l'éditeur de groupes existe **côté web** (livré hors plan) ; l'équivalent mobile n'est pas ouvert |
+| **`dominantHeadwindAzimuthDeg()` (vcyclist g31) dans `WindEstimator`** | Écarté de la migration gpx2web → vcyclist | Rendrait un azimut compas directement exploitable et supprimerait `findDirectionFromVector` (le repli `-v.getY()` du repère Mercator, voir §4 de [`2026-07-28-migration-vcyclist.md`](plans/2026-07-28-migration-vcyclist.md)) — mais c'est un changement de comportement, pas une migration à iso-fonctionnalité |
 
 ---
 
@@ -522,3 +528,11 @@ relues dans cette passe :
   dernier contrôle le 1er avril 2026. Ses lignes critiques encore ouvertes : backups PostgreSQL et
   MinIO, rate limiting sur `/api/device/oauth/complete`, pipeline CD, `maximum-scale=1.0` du
   viewport, tests frontend.
+- [`plans/2026-07-28-migration-vcyclist.md`](plans/2026-07-28-migration-vcyclist.md) — remplacer
+  gpx2web par vcyclist dans le backend. **Exécuté**, contre **vcyclist 5.0.0 depuis Maven
+  Central** : la bibliothèque est publiée, un manque côté vcyclist se corrige par une release
+  amont et non plus par un `publishToMavenLocal` sans bump. Contrat d'API
+  **inchangé** par construction : les cols
+  gardent leur forme JSONB actuelle via des records maison, donc pas de bump de
+  `pedalons.api.version` ni de migration Flyway. Ce qui change à la marge, et seulement pour les
+  parcours **réimportés** : détection des cols et direction de vent.
