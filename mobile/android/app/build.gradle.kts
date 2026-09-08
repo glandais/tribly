@@ -56,6 +56,11 @@ android {
 
     buildTypes {
         release {
+            // Le plugin maplibre pilote le SDK Android par JNI depuis Dart : il résout
+            // les classes Flutter par leur nom et compare les descripteurs de méthode à
+            // des chaînes littérales. R8 renomme ces classes, la résolution échoue sans
+            // bruit et la carte n'est jamais créée. proguard-rules.pro fige ces noms.
+            proguardFile("proguard-rules.pro")
             signingConfig = if (keystorePropertiesFile.exists()) {
                 signingConfigs.getByName("release")
             } else {
