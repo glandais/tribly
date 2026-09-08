@@ -3,8 +3,9 @@ import java.io.FileInputStream
 
 plugins {
     id("com.android.application")
-    id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    // The Flutter Gradle Plugin must be applied after the Android Gradle plugin.
+    // Kotlin support comes from AGP's built-in Kotlin (android.builtInKotlin=true in
+    // gradle.properties) — the standalone kotlin-android plugin is no longer applied.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -21,7 +22,10 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "fr.pedalons.mobile"
-    compileSdk = flutter.compileSdkVersion
+    // Pinned above `flutter.compileSdkVersion` (36): flutter_secure_storage is compiled
+    // against API 37 and its AAR metadata refuses a lower compileSdk. compileSdk is
+    // backward compatible; minSdk/targetSdk are unaffected.
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
