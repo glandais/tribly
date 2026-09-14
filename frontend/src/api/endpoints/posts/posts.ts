@@ -58,6 +58,8 @@ export const createPost = (
   )
 }
 
+export const getCreatePostMutationKey = () => ['createPost'] as const
+
 export const getCreatePostMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -65,17 +67,17 @@ export const getCreatePostMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createPost>>,
     TError,
-    { teamSlug: string; data: BodyType<PostRequest> },
+    CreatePostMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createPost>>,
   TError,
-  { teamSlug: string; data: BodyType<PostRequest> },
+  CreatePostMutationVariables,
   TContext
 > => {
-  const mutationKey = ['createPost']
+  const mutationKey = getCreatePostMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -84,7 +86,7 @@ export const getCreatePostMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createPost>>,
-    { teamSlug: string; data: BodyType<PostRequest> }
+    CreatePostMutationVariables
   > = (props) => {
     const { teamSlug, data } = props ?? {}
 
@@ -97,6 +99,7 @@ export const getCreatePostMutationOptions = <
 export type CreatePostMutationResult = NonNullable<Awaited<ReturnType<typeof createPost>>>
 export type CreatePostMutationBody = BodyType<PostRequest>
 export type CreatePostMutationError = ErrorType<ErrorResponse>
+export type CreatePostMutationVariables = { teamSlug: string; data: BodyType<PostRequest> }
 
 /**
  * @summary Create post
@@ -106,7 +109,7 @@ export const useCreatePost = <TError = ErrorType<ErrorResponse>, TContext = unkn
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createPost>>,
       TError,
-      { teamSlug: string; data: BodyType<PostRequest> },
+      CreatePostMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -115,7 +118,7 @@ export const useCreatePost = <TError = ErrorType<ErrorResponse>, TContext = unkn
 ): UseMutationResult<
   Awaited<ReturnType<typeof createPost>>,
   TError,
-  { teamSlug: string; data: BodyType<PostRequest> },
+  CreatePostMutationVariables,
   TContext
 > => {
   return useMutation(getCreatePostMutationOptions(options), queryClient)
@@ -143,6 +146,8 @@ export const updatePost = (
   )
 }
 
+export const getUpdatePostMutationKey = () => ['updatePost'] as const
+
 export const getUpdatePostMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -150,17 +155,17 @@ export const getUpdatePostMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updatePost>>,
     TError,
-    { teamSlug: string; postSlug: string; data: BodyType<PostRequest> },
+    UpdatePostMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updatePost>>,
   TError,
-  { teamSlug: string; postSlug: string; data: BodyType<PostRequest> },
+  UpdatePostMutationVariables,
   TContext
 > => {
-  const mutationKey = ['updatePost']
+  const mutationKey = getUpdatePostMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -169,7 +174,7 @@ export const getUpdatePostMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updatePost>>,
-    { teamSlug: string; postSlug: string; data: BodyType<PostRequest> }
+    UpdatePostMutationVariables
   > = (props) => {
     const { teamSlug, postSlug, data } = props ?? {}
 
@@ -182,6 +187,11 @@ export const getUpdatePostMutationOptions = <
 export type UpdatePostMutationResult = NonNullable<Awaited<ReturnType<typeof updatePost>>>
 export type UpdatePostMutationBody = BodyType<PostRequest>
 export type UpdatePostMutationError = ErrorType<ErrorResponse>
+export type UpdatePostMutationVariables = {
+  teamSlug: string
+  postSlug: string
+  data: BodyType<PostRequest>
+}
 
 /**
  * @summary Update post
@@ -191,7 +201,7 @@ export const useUpdatePost = <TError = ErrorType<ErrorResponse>, TContext = unkn
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updatePost>>,
       TError,
-      { teamSlug: string; postSlug: string; data: BodyType<PostRequest> },
+      UpdatePostMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -200,7 +210,7 @@ export const useUpdatePost = <TError = ErrorType<ErrorResponse>, TContext = unkn
 ): UseMutationResult<
   Awaited<ReturnType<typeof updatePost>>,
   TError,
-  { teamSlug: string; postSlug: string; data: BodyType<PostRequest> },
+  UpdatePostMutationVariables,
   TContext
 > => {
   return useMutation(getUpdatePostMutationOptions(options), queryClient)
@@ -372,6 +382,8 @@ export const deletePost = (
   )
 }
 
+export const getDeletePostMutationKey = () => ['deletePost'] as const
+
 export const getDeletePostMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -379,17 +391,17 @@ export const getDeletePostMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deletePost>>,
     TError,
-    { teamSlug: string; postSlug: string },
+    DeletePostMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deletePost>>,
   TError,
-  { teamSlug: string; postSlug: string },
+  DeletePostMutationVariables,
   TContext
 > => {
-  const mutationKey = ['deletePost']
+  const mutationKey = getDeletePostMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -398,7 +410,7 @@ export const getDeletePostMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deletePost>>,
-    { teamSlug: string; postSlug: string }
+    DeletePostMutationVariables
   > = (props) => {
     const { teamSlug, postSlug } = props ?? {}
 
@@ -411,6 +423,7 @@ export const getDeletePostMutationOptions = <
 export type DeletePostMutationResult = NonNullable<Awaited<ReturnType<typeof deletePost>>>
 
 export type DeletePostMutationError = ErrorType<ErrorResponse>
+export type DeletePostMutationVariables = { teamSlug: string; postSlug: string }
 
 /**
  * @summary Delete post
@@ -420,7 +433,7 @@ export const useDeletePost = <TError = ErrorType<ErrorResponse>, TContext = unkn
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deletePost>>,
       TError,
-      { teamSlug: string; postSlug: string },
+      DeletePostMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -429,7 +442,7 @@ export const useDeletePost = <TError = ErrorType<ErrorResponse>, TContext = unkn
 ): UseMutationResult<
   Awaited<ReturnType<typeof deletePost>>,
   TError,
-  { teamSlug: string; postSlug: string },
+  DeletePostMutationVariables,
   TContext
 > => {
   return useMutation(getDeletePostMutationOptions(options), queryClient)
@@ -457,6 +470,8 @@ export const changePostSlug = (
   )
 }
 
+export const getChangePostSlugMutationKey = () => ['changePostSlug'] as const
+
 export const getChangePostSlugMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -464,17 +479,17 @@ export const getChangePostSlugMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof changePostSlug>>,
     TError,
-    { teamSlug: string; postSlug: string; data: BodyType<SlugChangeRequest> },
+    ChangePostSlugMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof changePostSlug>>,
   TError,
-  { teamSlug: string; postSlug: string; data: BodyType<SlugChangeRequest> },
+  ChangePostSlugMutationVariables,
   TContext
 > => {
-  const mutationKey = ['changePostSlug']
+  const mutationKey = getChangePostSlugMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -483,7 +498,7 @@ export const getChangePostSlugMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof changePostSlug>>,
-    { teamSlug: string; postSlug: string; data: BodyType<SlugChangeRequest> }
+    ChangePostSlugMutationVariables
   > = (props) => {
     const { teamSlug, postSlug, data } = props ?? {}
 
@@ -496,6 +511,11 @@ export const getChangePostSlugMutationOptions = <
 export type ChangePostSlugMutationResult = NonNullable<Awaited<ReturnType<typeof changePostSlug>>>
 export type ChangePostSlugMutationBody = BodyType<SlugChangeRequest>
 export type ChangePostSlugMutationError = ErrorType<ErrorResponse | void>
+export type ChangePostSlugMutationVariables = {
+  teamSlug: string
+  postSlug: string
+  data: BodyType<SlugChangeRequest>
+}
 
 /**
  * @summary Change post slug
@@ -505,7 +525,7 @@ export const useChangePostSlug = <TError = ErrorType<ErrorResponse | void>, TCon
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof changePostSlug>>,
       TError,
-      { teamSlug: string; postSlug: string; data: BodyType<SlugChangeRequest> },
+      ChangePostSlugMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -514,7 +534,7 @@ export const useChangePostSlug = <TError = ErrorType<ErrorResponse | void>, TCon
 ): UseMutationResult<
   Awaited<ReturnType<typeof changePostSlug>>,
   TError,
-  { teamSlug: string; postSlug: string; data: BodyType<SlugChangeRequest> },
+  ChangePostSlugMutationVariables,
   TContext
 > => {
   return useMutation(getChangePostSlugMutationOptions(options), queryClient)
@@ -535,6 +555,8 @@ export const undeletePost = (
   )
 }
 
+export const getUndeletePostMutationKey = () => ['undeletePost'] as const
+
 export const getUndeletePostMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -542,17 +564,17 @@ export const getUndeletePostMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof undeletePost>>,
     TError,
-    { teamSlug: string; postSlug: string },
+    UndeletePostMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof undeletePost>>,
   TError,
-  { teamSlug: string; postSlug: string },
+  UndeletePostMutationVariables,
   TContext
 > => {
-  const mutationKey = ['undeletePost']
+  const mutationKey = getUndeletePostMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -561,7 +583,7 @@ export const getUndeletePostMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof undeletePost>>,
-    { teamSlug: string; postSlug: string }
+    UndeletePostMutationVariables
   > = (props) => {
     const { teamSlug, postSlug } = props ?? {}
 
@@ -574,6 +596,7 @@ export const getUndeletePostMutationOptions = <
 export type UndeletePostMutationResult = NonNullable<Awaited<ReturnType<typeof undeletePost>>>
 
 export type UndeletePostMutationError = ErrorType<ErrorResponse>
+export type UndeletePostMutationVariables = { teamSlug: string; postSlug: string }
 
 /**
  * @summary Restore post
@@ -583,7 +606,7 @@ export const useUndeletePost = <TError = ErrorType<ErrorResponse>, TContext = un
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof undeletePost>>,
       TError,
-      { teamSlug: string; postSlug: string },
+      UndeletePostMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -592,7 +615,7 @@ export const useUndeletePost = <TError = ErrorType<ErrorResponse>, TContext = un
 ): UseMutationResult<
   Awaited<ReturnType<typeof undeletePost>>,
   TError,
-  { teamSlug: string; postSlug: string },
+  UndeletePostMutationVariables,
   TContext
 > => {
   return useMutation(getUndeletePostMutationOptions(options), queryClient)

@@ -505,6 +505,8 @@ export const deviceSyncRoute = (
   )
 }
 
+export const getDeviceSyncRouteMutationKey = () => ['deviceSyncRoute'] as const
+
 export const getDeviceSyncRouteMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -512,17 +514,17 @@ export const getDeviceSyncRouteMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deviceSyncRoute>>,
     TError,
-    { teamSlug: string; routeSlug: string; params: DeviceSyncRouteParams },
+    DeviceSyncRouteMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deviceSyncRoute>>,
   TError,
-  { teamSlug: string; routeSlug: string; params: DeviceSyncRouteParams },
+  DeviceSyncRouteMutationVariables,
   TContext
 > => {
-  const mutationKey = ['deviceSyncRoute']
+  const mutationKey = getDeviceSyncRouteMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -531,7 +533,7 @@ export const getDeviceSyncRouteMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deviceSyncRoute>>,
-    { teamSlug: string; routeSlug: string; params: DeviceSyncRouteParams }
+    DeviceSyncRouteMutationVariables
   > = (props) => {
     const { teamSlug, routeSlug, params } = props ?? {}
 
@@ -544,6 +546,11 @@ export const getDeviceSyncRouteMutationOptions = <
 export type DeviceSyncRouteMutationResult = NonNullable<Awaited<ReturnType<typeof deviceSyncRoute>>>
 
 export type DeviceSyncRouteMutationError = ErrorType<ErrorResponse>
+export type DeviceSyncRouteMutationVariables = {
+  teamSlug: string
+  routeSlug: string
+  params: DeviceSyncRouteParams
+}
 
 /**
  * @summary Sync route to cloud service
@@ -553,7 +560,7 @@ export const useDeviceSyncRoute = <TError = ErrorType<ErrorResponse>, TContext =
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deviceSyncRoute>>,
       TError,
-      { teamSlug: string; routeSlug: string; params: DeviceSyncRouteParams },
+      DeviceSyncRouteMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -562,7 +569,7 @@ export const useDeviceSyncRoute = <TError = ErrorType<ErrorResponse>, TContext =
 ): UseMutationResult<
   Awaited<ReturnType<typeof deviceSyncRoute>>,
   TError,
-  { teamSlug: string; routeSlug: string; params: DeviceSyncRouteParams },
+  DeviceSyncRouteMutationVariables,
   TContext
 > => {
   return useMutation(getDeviceSyncRouteMutationOptions(options), queryClient)

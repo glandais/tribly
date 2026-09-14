@@ -836,6 +836,8 @@ export const createRoute = (
   )
 }
 
+export const getCreateRouteMutationKey = () => ['createRoute'] as const
+
 export const getCreateRouteMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -843,17 +845,17 @@ export const getCreateRouteMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createRoute>>,
     TError,
-    { teamSlug: string; data: BodyType<CreateRouteBody> },
+    CreateRouteMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createRoute>>,
   TError,
-  { teamSlug: string; data: BodyType<CreateRouteBody> },
+  CreateRouteMutationVariables,
   TContext
 > => {
-  const mutationKey = ['createRoute']
+  const mutationKey = getCreateRouteMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -862,7 +864,7 @@ export const getCreateRouteMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createRoute>>,
-    { teamSlug: string; data: BodyType<CreateRouteBody> }
+    CreateRouteMutationVariables
   > = (props) => {
     const { teamSlug, data } = props ?? {}
 
@@ -875,6 +877,7 @@ export const getCreateRouteMutationOptions = <
 export type CreateRouteMutationResult = NonNullable<Awaited<ReturnType<typeof createRoute>>>
 export type CreateRouteMutationBody = BodyType<CreateRouteBody>
 export type CreateRouteMutationError = ErrorType<ErrorResponse>
+export type CreateRouteMutationVariables = { teamSlug: string; data: BodyType<CreateRouteBody> }
 
 /**
  * @summary Create route
@@ -884,7 +887,7 @@ export const useCreateRoute = <TError = ErrorType<ErrorResponse>, TContext = unk
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createRoute>>,
       TError,
-      { teamSlug: string; data: BodyType<CreateRouteBody> },
+      CreateRouteMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -893,7 +896,7 @@ export const useCreateRoute = <TError = ErrorType<ErrorResponse>, TContext = unk
 ): UseMutationResult<
   Awaited<ReturnType<typeof createRoute>>,
   TError,
-  { teamSlug: string; data: BodyType<CreateRouteBody> },
+  CreateRouteMutationVariables,
   TContext
 > => {
   return useMutation(getCreateRouteMutationOptions(options), queryClient)
@@ -1572,6 +1575,8 @@ export const updateRoute = (
   )
 }
 
+export const getUpdateRouteMutationKey = () => ['updateRoute'] as const
+
 export const getUpdateRouteMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -1579,17 +1584,17 @@ export const getUpdateRouteMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateRoute>>,
     TError,
-    { teamSlug: string; routeSlug: string; data: BodyType<UpdateRouteBody> },
+    UpdateRouteMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateRoute>>,
   TError,
-  { teamSlug: string; routeSlug: string; data: BodyType<UpdateRouteBody> },
+  UpdateRouteMutationVariables,
   TContext
 > => {
-  const mutationKey = ['updateRoute']
+  const mutationKey = getUpdateRouteMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -1598,7 +1603,7 @@ export const getUpdateRouteMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateRoute>>,
-    { teamSlug: string; routeSlug: string; data: BodyType<UpdateRouteBody> }
+    UpdateRouteMutationVariables
   > = (props) => {
     const { teamSlug, routeSlug, data } = props ?? {}
 
@@ -1611,6 +1616,11 @@ export const getUpdateRouteMutationOptions = <
 export type UpdateRouteMutationResult = NonNullable<Awaited<ReturnType<typeof updateRoute>>>
 export type UpdateRouteMutationBody = BodyType<UpdateRouteBody>
 export type UpdateRouteMutationError = ErrorType<ErrorResponse>
+export type UpdateRouteMutationVariables = {
+  teamSlug: string
+  routeSlug: string
+  data: BodyType<UpdateRouteBody>
+}
 
 /**
  * @summary Update route
@@ -1620,7 +1630,7 @@ export const useUpdateRoute = <TError = ErrorType<ErrorResponse>, TContext = unk
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateRoute>>,
       TError,
-      { teamSlug: string; routeSlug: string; data: BodyType<UpdateRouteBody> },
+      UpdateRouteMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -1629,7 +1639,7 @@ export const useUpdateRoute = <TError = ErrorType<ErrorResponse>, TContext = unk
 ): UseMutationResult<
   Awaited<ReturnType<typeof updateRoute>>,
   TError,
-  { teamSlug: string; routeSlug: string; data: BodyType<UpdateRouteBody> },
+  UpdateRouteMutationVariables,
   TContext
 > => {
   return useMutation(getUpdateRouteMutationOptions(options), queryClient)
@@ -1801,6 +1811,8 @@ export const deleteRoute = (
   )
 }
 
+export const getDeleteRouteMutationKey = () => ['deleteRoute'] as const
+
 export const getDeleteRouteMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -1808,17 +1820,17 @@ export const getDeleteRouteMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deleteRoute>>,
     TError,
-    { teamSlug: string; routeSlug: string },
+    DeleteRouteMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteRoute>>,
   TError,
-  { teamSlug: string; routeSlug: string },
+  DeleteRouteMutationVariables,
   TContext
 > => {
-  const mutationKey = ['deleteRoute']
+  const mutationKey = getDeleteRouteMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -1827,7 +1839,7 @@ export const getDeleteRouteMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteRoute>>,
-    { teamSlug: string; routeSlug: string }
+    DeleteRouteMutationVariables
   > = (props) => {
     const { teamSlug, routeSlug } = props ?? {}
 
@@ -1840,6 +1852,7 @@ export const getDeleteRouteMutationOptions = <
 export type DeleteRouteMutationResult = NonNullable<Awaited<ReturnType<typeof deleteRoute>>>
 
 export type DeleteRouteMutationError = ErrorType<ErrorResponse>
+export type DeleteRouteMutationVariables = { teamSlug: string; routeSlug: string }
 
 /**
  * @summary Delete route
@@ -1849,7 +1862,7 @@ export const useDeleteRoute = <TError = ErrorType<ErrorResponse>, TContext = unk
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deleteRoute>>,
       TError,
-      { teamSlug: string; routeSlug: string },
+      DeleteRouteMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -1858,7 +1871,7 @@ export const useDeleteRoute = <TError = ErrorType<ErrorResponse>, TContext = unk
 ): UseMutationResult<
   Awaited<ReturnType<typeof deleteRoute>>,
   TError,
-  { teamSlug: string; routeSlug: string },
+  DeleteRouteMutationVariables,
   TContext
 > => {
   return useMutation(getDeleteRouteMutationOptions(options), queryClient)
@@ -1886,6 +1899,8 @@ export const changeRouteSlug = (
   )
 }
 
+export const getChangeRouteSlugMutationKey = () => ['changeRouteSlug'] as const
+
 export const getChangeRouteSlugMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -1893,17 +1908,17 @@ export const getChangeRouteSlugMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof changeRouteSlug>>,
     TError,
-    { teamSlug: string; routeSlug: string; data: BodyType<SlugChangeRequest> },
+    ChangeRouteSlugMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof changeRouteSlug>>,
   TError,
-  { teamSlug: string; routeSlug: string; data: BodyType<SlugChangeRequest> },
+  ChangeRouteSlugMutationVariables,
   TContext
 > => {
-  const mutationKey = ['changeRouteSlug']
+  const mutationKey = getChangeRouteSlugMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -1912,7 +1927,7 @@ export const getChangeRouteSlugMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof changeRouteSlug>>,
-    { teamSlug: string; routeSlug: string; data: BodyType<SlugChangeRequest> }
+    ChangeRouteSlugMutationVariables
   > = (props) => {
     const { teamSlug, routeSlug, data } = props ?? {}
 
@@ -1925,6 +1940,11 @@ export const getChangeRouteSlugMutationOptions = <
 export type ChangeRouteSlugMutationResult = NonNullable<Awaited<ReturnType<typeof changeRouteSlug>>>
 export type ChangeRouteSlugMutationBody = BodyType<SlugChangeRequest>
 export type ChangeRouteSlugMutationError = ErrorType<ErrorResponse>
+export type ChangeRouteSlugMutationVariables = {
+  teamSlug: string
+  routeSlug: string
+  data: BodyType<SlugChangeRequest>
+}
 
 /**
  * @summary Change route slug
@@ -1934,7 +1954,7 @@ export const useChangeRouteSlug = <TError = ErrorType<ErrorResponse>, TContext =
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof changeRouteSlug>>,
       TError,
-      { teamSlug: string; routeSlug: string; data: BodyType<SlugChangeRequest> },
+      ChangeRouteSlugMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -1943,7 +1963,7 @@ export const useChangeRouteSlug = <TError = ErrorType<ErrorResponse>, TContext =
 ): UseMutationResult<
   Awaited<ReturnType<typeof changeRouteSlug>>,
   TError,
-  { teamSlug: string; routeSlug: string; data: BodyType<SlugChangeRequest> },
+  ChangeRouteSlugMutationVariables,
   TContext
 > => {
   return useMutation(getChangeRouteSlugMutationOptions(options), queryClient)
@@ -1964,6 +1984,8 @@ export const undeleteRoute = (
   )
 }
 
+export const getUndeleteRouteMutationKey = () => ['undeleteRoute'] as const
+
 export const getUndeleteRouteMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -1971,17 +1993,17 @@ export const getUndeleteRouteMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof undeleteRoute>>,
     TError,
-    { teamSlug: string; routeSlug: string },
+    UndeleteRouteMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof undeleteRoute>>,
   TError,
-  { teamSlug: string; routeSlug: string },
+  UndeleteRouteMutationVariables,
   TContext
 > => {
-  const mutationKey = ['undeleteRoute']
+  const mutationKey = getUndeleteRouteMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -1990,7 +2012,7 @@ export const getUndeleteRouteMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof undeleteRoute>>,
-    { teamSlug: string; routeSlug: string }
+    UndeleteRouteMutationVariables
   > = (props) => {
     const { teamSlug, routeSlug } = props ?? {}
 
@@ -2003,6 +2025,7 @@ export const getUndeleteRouteMutationOptions = <
 export type UndeleteRouteMutationResult = NonNullable<Awaited<ReturnType<typeof undeleteRoute>>>
 
 export type UndeleteRouteMutationError = ErrorType<ErrorResponse>
+export type UndeleteRouteMutationVariables = { teamSlug: string; routeSlug: string }
 
 /**
  * @summary Restore route
@@ -2012,7 +2035,7 @@ export const useUndeleteRoute = <TError = ErrorType<ErrorResponse>, TContext = u
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof undeleteRoute>>,
       TError,
-      { teamSlug: string; routeSlug: string },
+      UndeleteRouteMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -2021,7 +2044,7 @@ export const useUndeleteRoute = <TError = ErrorType<ErrorResponse>, TContext = u
 ): UseMutationResult<
   Awaited<ReturnType<typeof undeleteRoute>>,
   TError,
-  { teamSlug: string; routeSlug: string },
+  UndeleteRouteMutationVariables,
   TContext
 > => {
   return useMutation(getUndeleteRouteMutationOptions(options), queryClient)

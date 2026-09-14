@@ -330,6 +330,8 @@ export const unlinkStrava = (
   return axiosMutator<void>({ url: `/api/auth/strava/identity`, method: 'DELETE', signal }, options)
 }
 
+export const getUnlinkStravaMutationKey = () => ['unlinkStrava'] as const
+
 export const getUnlinkStravaMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -337,7 +339,7 @@ export const getUnlinkStravaMutationOptions = <
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof unlinkStrava>>, TError, void, TContext>
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<Awaited<ReturnType<typeof unlinkStrava>>, TError, void, TContext> => {
-  const mutationKey = ['unlinkStrava']
+  const mutationKey = getUnlinkStravaMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -521,6 +523,8 @@ export const createStravaSession = (
   )
 }
 
+export const getCreateStravaSessionMutationKey = () => ['createStravaSession'] as const
+
 export const getCreateStravaSessionMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -528,17 +532,17 @@ export const getCreateStravaSessionMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createStravaSession>>,
     TError,
-    { data: BodyType<StravaSessionRequest> },
+    CreateStravaSessionMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createStravaSession>>,
   TError,
-  { data: BodyType<StravaSessionRequest> },
+  CreateStravaSessionMutationVariables,
   TContext
 > => {
-  const mutationKey = ['createStravaSession']
+  const mutationKey = getCreateStravaSessionMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -547,7 +551,7 @@ export const getCreateStravaSessionMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createStravaSession>>,
-    { data: BodyType<StravaSessionRequest> }
+    CreateStravaSessionMutationVariables
   > = (props) => {
     const { data } = props ?? {}
 
@@ -562,6 +566,7 @@ export type CreateStravaSessionMutationResult = NonNullable<
 >
 export type CreateStravaSessionMutationBody = BodyType<StravaSessionRequest>
 export type CreateStravaSessionMutationError = ErrorType<ErrorResponse>
+export type CreateStravaSessionMutationVariables = { data: BodyType<StravaSessionRequest> }
 
 /**
  * @summary Exchange Strava login code for a session
@@ -571,7 +576,7 @@ export const useCreateStravaSession = <TError = ErrorType<ErrorResponse>, TConte
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createStravaSession>>,
       TError,
-      { data: BodyType<StravaSessionRequest> },
+      CreateStravaSessionMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -580,7 +585,7 @@ export const useCreateStravaSession = <TError = ErrorType<ErrorResponse>, TConte
 ): UseMutationResult<
   Awaited<ReturnType<typeof createStravaSession>>,
   TError,
-  { data: BodyType<StravaSessionRequest> },
+  CreateStravaSessionMutationVariables,
   TContext
 > => {
   return useMutation(getCreateStravaSessionMutationOptions(options), queryClient)

@@ -1,3 +1,3 @@
 export type CreatePreviewBody = {
-  gpxFile?: Blob
+  gpxFile?: Blob | File
 }

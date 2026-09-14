@@ -215,6 +215,8 @@ export const addMember = (
   )
 }
 
+export const getAddMemberMutationKey = () => ['addMember'] as const
+
 export const getAddMemberMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -222,17 +224,17 @@ export const getAddMemberMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof addMember>>,
     TError,
-    { teamSlug: string; data: BodyType<AddMemberRequest> },
+    AddMemberMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof addMember>>,
   TError,
-  { teamSlug: string; data: BodyType<AddMemberRequest> },
+  AddMemberMutationVariables,
   TContext
 > => {
-  const mutationKey = ['addMember']
+  const mutationKey = getAddMemberMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -241,7 +243,7 @@ export const getAddMemberMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof addMember>>,
-    { teamSlug: string; data: BodyType<AddMemberRequest> }
+    AddMemberMutationVariables
   > = (props) => {
     const { teamSlug, data } = props ?? {}
 
@@ -254,6 +256,7 @@ export const getAddMemberMutationOptions = <
 export type AddMemberMutationResult = NonNullable<Awaited<ReturnType<typeof addMember>>>
 export type AddMemberMutationBody = BodyType<AddMemberRequest>
 export type AddMemberMutationError = ErrorType<ErrorResponse>
+export type AddMemberMutationVariables = { teamSlug: string; data: BodyType<AddMemberRequest> }
 
 /**
  * @summary Add team member
@@ -263,7 +266,7 @@ export const useAddMember = <TError = ErrorType<ErrorResponse>, TContext = unkno
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof addMember>>,
       TError,
-      { teamSlug: string; data: BodyType<AddMemberRequest> },
+      AddMemberMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -272,7 +275,7 @@ export const useAddMember = <TError = ErrorType<ErrorResponse>, TContext = unkno
 ): UseMutationResult<
   Awaited<ReturnType<typeof addMember>>,
   TError,
-  { teamSlug: string; data: BodyType<AddMemberRequest> },
+  AddMemberMutationVariables,
   TContext
 > => {
   return useMutation(getAddMemberMutationOptions(options), queryClient)
@@ -292,6 +295,8 @@ export const joinTeam = (
   )
 }
 
+export const getJoinTeamMutationKey = () => ['joinTeam'] as const
+
 export const getJoinTeamMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -299,26 +304,27 @@ export const getJoinTeamMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof joinTeam>>,
     TError,
-    { teamSlug: string },
+    JoinTeamMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof joinTeam>>,
   TError,
-  { teamSlug: string },
+  JoinTeamMutationVariables,
   TContext
 > => {
-  const mutationKey = ['joinTeam']
+  const mutationKey = getJoinTeamMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined }
 
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof joinTeam>>, { teamSlug: string }> = (
-    props
-  ) => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof joinTeam>>,
+    JoinTeamMutationVariables
+  > = (props) => {
     const { teamSlug } = props ?? {}
 
     return joinTeam(teamSlug, requestOptions)
@@ -330,6 +336,7 @@ export const getJoinTeamMutationOptions = <
 export type JoinTeamMutationResult = NonNullable<Awaited<ReturnType<typeof joinTeam>>>
 
 export type JoinTeamMutationError = ErrorType<ErrorResponse | void>
+export type JoinTeamMutationVariables = { teamSlug: string }
 
 /**
  * @summary Join team
@@ -339,7 +346,7 @@ export const useJoinTeam = <TError = ErrorType<ErrorResponse | void>, TContext =
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof joinTeam>>,
       TError,
-      { teamSlug: string },
+      JoinTeamMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -348,7 +355,7 @@ export const useJoinTeam = <TError = ErrorType<ErrorResponse | void>, TContext =
 ): UseMutationResult<
   Awaited<ReturnType<typeof joinTeam>>,
   TError,
-  { teamSlug: string },
+  JoinTeamMutationVariables,
   TContext
 > => {
   return useMutation(getJoinTeamMutationOptions(options), queryClient)
@@ -368,6 +375,8 @@ export const leaveTeam = (
   )
 }
 
+export const getLeaveTeamMutationKey = () => ['leaveTeam'] as const
+
 export const getLeaveTeamMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -375,17 +384,17 @@ export const getLeaveTeamMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof leaveTeam>>,
     TError,
-    { teamSlug: string },
+    LeaveTeamMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof leaveTeam>>,
   TError,
-  { teamSlug: string },
+  LeaveTeamMutationVariables,
   TContext
 > => {
-  const mutationKey = ['leaveTeam']
+  const mutationKey = getLeaveTeamMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -394,7 +403,7 @@ export const getLeaveTeamMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof leaveTeam>>,
-    { teamSlug: string }
+    LeaveTeamMutationVariables
   > = (props) => {
     const { teamSlug } = props ?? {}
 
@@ -407,6 +416,7 @@ export const getLeaveTeamMutationOptions = <
 export type LeaveTeamMutationResult = NonNullable<Awaited<ReturnType<typeof leaveTeam>>>
 
 export type LeaveTeamMutationError = ErrorType<ErrorResponse | void>
+export type LeaveTeamMutationVariables = { teamSlug: string }
 
 /**
  * @summary Leave team
@@ -416,7 +426,7 @@ export const useLeaveTeam = <TError = ErrorType<ErrorResponse | void>, TContext 
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof leaveTeam>>,
       TError,
-      { teamSlug: string },
+      LeaveTeamMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -425,7 +435,7 @@ export const useLeaveTeam = <TError = ErrorType<ErrorResponse | void>, TContext 
 ): UseMutationResult<
   Awaited<ReturnType<typeof leaveTeam>>,
   TError,
-  { teamSlug: string },
+  LeaveTeamMutationVariables,
   TContext
 > => {
   return useMutation(getLeaveTeamMutationOptions(options), queryClient)
@@ -453,6 +463,8 @@ export const updateMemberRole = (
   )
 }
 
+export const getUpdateMemberRoleMutationKey = () => ['updateMemberRole'] as const
+
 export const getUpdateMemberRoleMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -460,17 +472,17 @@ export const getUpdateMemberRoleMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateMemberRole>>,
     TError,
-    { teamSlug: string; memberId: string; data: BodyType<UpdateMemberRoleRequest> },
+    UpdateMemberRoleMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateMemberRole>>,
   TError,
-  { teamSlug: string; memberId: string; data: BodyType<UpdateMemberRoleRequest> },
+  UpdateMemberRoleMutationVariables,
   TContext
 > => {
-  const mutationKey = ['updateMemberRole']
+  const mutationKey = getUpdateMemberRoleMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -479,7 +491,7 @@ export const getUpdateMemberRoleMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateMemberRole>>,
-    { teamSlug: string; memberId: string; data: BodyType<UpdateMemberRoleRequest> }
+    UpdateMemberRoleMutationVariables
   > = (props) => {
     const { teamSlug, memberId, data } = props ?? {}
 
@@ -494,6 +506,11 @@ export type UpdateMemberRoleMutationResult = NonNullable<
 >
 export type UpdateMemberRoleMutationBody = BodyType<UpdateMemberRoleRequest>
 export type UpdateMemberRoleMutationError = ErrorType<ErrorResponse>
+export type UpdateMemberRoleMutationVariables = {
+  teamSlug: string
+  memberId: string
+  data: BodyType<UpdateMemberRoleRequest>
+}
 
 /**
  * @summary Update member role
@@ -503,7 +520,7 @@ export const useUpdateMemberRole = <TError = ErrorType<ErrorResponse>, TContext 
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateMemberRole>>,
       TError,
-      { teamSlug: string; memberId: string; data: BodyType<UpdateMemberRoleRequest> },
+      UpdateMemberRoleMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -512,7 +529,7 @@ export const useUpdateMemberRole = <TError = ErrorType<ErrorResponse>, TContext 
 ): UseMutationResult<
   Awaited<ReturnType<typeof updateMemberRole>>,
   TError,
-  { teamSlug: string; memberId: string; data: BodyType<UpdateMemberRoleRequest> },
+  UpdateMemberRoleMutationVariables,
   TContext
 > => {
   return useMutation(getUpdateMemberRoleMutationOptions(options), queryClient)
@@ -533,6 +550,8 @@ export const removeMember = (
   )
 }
 
+export const getRemoveMemberMutationKey = () => ['removeMember'] as const
+
 export const getRemoveMemberMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -540,17 +559,17 @@ export const getRemoveMemberMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof removeMember>>,
     TError,
-    { teamSlug: string; memberId: string },
+    RemoveMemberMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof removeMember>>,
   TError,
-  { teamSlug: string; memberId: string },
+  RemoveMemberMutationVariables,
   TContext
 > => {
-  const mutationKey = ['removeMember']
+  const mutationKey = getRemoveMemberMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -559,7 +578,7 @@ export const getRemoveMemberMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof removeMember>>,
-    { teamSlug: string; memberId: string }
+    RemoveMemberMutationVariables
   > = (props) => {
     const { teamSlug, memberId } = props ?? {}
 
@@ -572,6 +591,7 @@ export const getRemoveMemberMutationOptions = <
 export type RemoveMemberMutationResult = NonNullable<Awaited<ReturnType<typeof removeMember>>>
 
 export type RemoveMemberMutationError = ErrorType<ErrorResponse>
+export type RemoveMemberMutationVariables = { teamSlug: string; memberId: string }
 
 /**
  * @summary Remove team member
@@ -581,7 +601,7 @@ export const useRemoveMember = <TError = ErrorType<ErrorResponse>, TContext = un
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof removeMember>>,
       TError,
-      { teamSlug: string; memberId: string },
+      RemoveMemberMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -590,7 +610,7 @@ export const useRemoveMember = <TError = ErrorType<ErrorResponse>, TContext = un
 ): UseMutationResult<
   Awaited<ReturnType<typeof removeMember>>,
   TError,
-  { teamSlug: string; memberId: string },
+  RemoveMemberMutationVariables,
   TContext
 > => {
   return useMutation(getRemoveMemberMutationOptions(options), queryClient)

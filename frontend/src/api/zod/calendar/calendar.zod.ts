@@ -17,8 +17,8 @@ export const GetEventsResponse = zod
           .object({
             id: zod.string().describe('Event ID (TSID)'),
             title: zod.string().describe('Event title'),
-            start: zod.iso.datetime({ offset: true }).describe('Event start date\/time'),
-            end: zod.iso.datetime({ offset: true }).optional().describe('Event end date\/time'),
+            start: zod.iso.datetime({ offset: true }).describe('Event start date/time'),
+            end: zod.iso.datetime({ offset: true }).optional().describe('Event end date/time'),
             allDay: zod.boolean().describe('Is all-day event'),
             type: zod.enum(['RIDE', 'TRIP_STAGE']).describe('Event type'),
             teamSlug: zod.string().describe('Team slug'),
@@ -45,7 +45,7 @@ export const GetEventsResponse = zod
               .string()
               .optional()
               .describe(
-                "Thumbnail image URL template (contains a {size} placeholder), light variant preferred. Falls back to the route's thumbnail when the ride or stage has none of its own. For a client that renders one picture and does not follow a colour scheme; prefer thumbnailLightUrl\/thumbnailDarkUrl otherwise."
+                "Thumbnail image URL template (contains a {size} placeholder), light variant preferred. Falls back to the route's thumbnail when the ride or stage has none of its own. For a client that renders one picture and does not follow a colour scheme; prefer thumbnailLightUrl/thumbnailDarkUrl otherwise."
               ),
             thumbnailLightUrl: zod
               .string()
@@ -135,8 +135,8 @@ export const GetTeamEventsResponse = zod
           .object({
             id: zod.string().describe('Event ID (TSID)'),
             title: zod.string().describe('Event title'),
-            start: zod.iso.datetime({ offset: true }).describe('Event start date\/time'),
-            end: zod.iso.datetime({ offset: true }).optional().describe('Event end date\/time'),
+            start: zod.iso.datetime({ offset: true }).describe('Event start date/time'),
+            end: zod.iso.datetime({ offset: true }).optional().describe('Event end date/time'),
             allDay: zod.boolean().describe('Is all-day event'),
             type: zod.enum(['RIDE', 'TRIP_STAGE']).describe('Event type'),
             teamSlug: zod.string().describe('Team slug'),
@@ -163,7 +163,7 @@ export const GetTeamEventsResponse = zod
               .string()
               .optional()
               .describe(
-                "Thumbnail image URL template (contains a {size} placeholder), light variant preferred. Falls back to the route's thumbnail when the ride or stage has none of its own. For a client that renders one picture and does not follow a colour scheme; prefer thumbnailLightUrl\/thumbnailDarkUrl otherwise."
+                "Thumbnail image URL template (contains a {size} placeholder), light variant preferred. Falls back to the route's thumbnail when the ride or stage has none of its own. For a client that renders one picture and does not follow a colour scheme; prefer thumbnailLightUrl/thumbnailDarkUrl otherwise."
               ),
             thumbnailLightUrl: zod
               .string()

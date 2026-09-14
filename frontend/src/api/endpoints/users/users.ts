@@ -213,6 +213,8 @@ export const updateMe = (
   )
 }
 
+export const getUpdateMeMutationKey = () => ['updateMe'] as const
+
 export const getUpdateMeMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -220,17 +222,17 @@ export const getUpdateMeMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateMe>>,
     TError,
-    { data: BodyType<UpdateUserRequest> },
+    UpdateMeMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateMe>>,
   TError,
-  { data: BodyType<UpdateUserRequest> },
+  UpdateMeMutationVariables,
   TContext
 > => {
-  const mutationKey = ['updateMe']
+  const mutationKey = getUpdateMeMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -239,7 +241,7 @@ export const getUpdateMeMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateMe>>,
-    { data: BodyType<UpdateUserRequest> }
+    UpdateMeMutationVariables
   > = (props) => {
     const { data } = props ?? {}
 
@@ -252,6 +254,7 @@ export const getUpdateMeMutationOptions = <
 export type UpdateMeMutationResult = NonNullable<Awaited<ReturnType<typeof updateMe>>>
 export type UpdateMeMutationBody = BodyType<UpdateUserRequest>
 export type UpdateMeMutationError = ErrorType<ErrorResponse | void>
+export type UpdateMeMutationVariables = { data: BodyType<UpdateUserRequest> }
 
 /**
  * @summary Update current user
@@ -261,7 +264,7 @@ export const useUpdateMe = <TError = ErrorType<ErrorResponse | void>, TContext =
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateMe>>,
       TError,
-      { data: BodyType<UpdateUserRequest> },
+      UpdateMeMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -270,7 +273,7 @@ export const useUpdateMe = <TError = ErrorType<ErrorResponse | void>, TContext =
 ): UseMutationResult<
   Awaited<ReturnType<typeof updateMe>>,
   TError,
-  { data: BodyType<UpdateUserRequest> },
+  UpdateMeMutationVariables,
   TContext
 > => {
   return useMutation(getUpdateMeMutationOptions(options), queryClient)
@@ -411,6 +414,8 @@ export const deleteCurrentUser = (
   return axiosMutator<void>({ url: `/api/users/me`, method: 'DELETE', signal }, options)
 }
 
+export const getDeleteCurrentUserMutationKey = () => ['deleteCurrentUser'] as const
+
 export const getDeleteCurrentUserMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -423,7 +428,7 @@ export const getDeleteCurrentUserMutationOptions = <
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<Awaited<ReturnType<typeof deleteCurrentUser>>, TError, void, TContext> => {
-  const mutationKey = ['deleteCurrentUser']
+  const mutationKey = getDeleteCurrentUserMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -486,6 +491,8 @@ export const uploadAvatar = (
   )
 }
 
+export const getUploadAvatarMutationKey = () => ['uploadAvatar'] as const
+
 export const getUploadAvatarMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -493,17 +500,17 @@ export const getUploadAvatarMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof uploadAvatar>>,
     TError,
-    { data: BodyType<UploadAvatarBody> },
+    UploadAvatarMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof uploadAvatar>>,
   TError,
-  { data: BodyType<UploadAvatarBody> },
+  UploadAvatarMutationVariables,
   TContext
 > => {
-  const mutationKey = ['uploadAvatar']
+  const mutationKey = getUploadAvatarMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -512,7 +519,7 @@ export const getUploadAvatarMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof uploadAvatar>>,
-    { data: BodyType<UploadAvatarBody> }
+    UploadAvatarMutationVariables
   > = (props) => {
     const { data } = props ?? {}
 
@@ -525,6 +532,7 @@ export const getUploadAvatarMutationOptions = <
 export type UploadAvatarMutationResult = NonNullable<Awaited<ReturnType<typeof uploadAvatar>>>
 export type UploadAvatarMutationBody = BodyType<UploadAvatarBody>
 export type UploadAvatarMutationError = ErrorType<ErrorResponse | void>
+export type UploadAvatarMutationVariables = { data: BodyType<UploadAvatarBody> }
 
 /**
  * @summary Upload user avatar
@@ -534,7 +542,7 @@ export const useUploadAvatar = <TError = ErrorType<ErrorResponse | void>, TConte
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof uploadAvatar>>,
       TError,
-      { data: BodyType<UploadAvatarBody> },
+      UploadAvatarMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -543,7 +551,7 @@ export const useUploadAvatar = <TError = ErrorType<ErrorResponse | void>, TConte
 ): UseMutationResult<
   Awaited<ReturnType<typeof uploadAvatar>>,
   TError,
-  { data: BodyType<UploadAvatarBody> },
+  UploadAvatarMutationVariables,
   TContext
 > => {
   return useMutation(getUploadAvatarMutationOptions(options), queryClient)
@@ -559,6 +567,8 @@ export const deleteAvatar = (
   return axiosMutator<UserDto>({ url: `/api/users/me/avatar`, method: 'DELETE', signal }, options)
 }
 
+export const getDeleteAvatarMutationKey = () => ['deleteAvatar'] as const
+
 export const getDeleteAvatarMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -566,7 +576,7 @@ export const getDeleteAvatarMutationOptions = <
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteAvatar>>, TError, void, TContext>
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<Awaited<ReturnType<typeof deleteAvatar>>, TError, void, TContext> => {
-  const mutationKey = ['deleteAvatar']
+  const mutationKey = getDeleteAvatarMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -610,6 +620,8 @@ export const requestExport = (
   )
 }
 
+export const getRequestExportMutationKey = () => ['requestExport'] as const
+
 export const getRequestExportMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -617,7 +629,7 @@ export const getRequestExportMutationOptions = <
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof requestExport>>, TError, void, TContext>
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<Awaited<ReturnType<typeof requestExport>>, TError, void, TContext> => {
-  const mutationKey = ['requestExport']
+  const mutationKey = getRequestExportMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -1096,6 +1108,8 @@ export const updateMyPreferences = (
   )
 }
 
+export const getUpdateMyPreferencesMutationKey = () => ['updateMyPreferences'] as const
+
 export const getUpdateMyPreferencesMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -1103,17 +1117,17 @@ export const getUpdateMyPreferencesMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateMyPreferences>>,
     TError,
-    { data: BodyType<UserPreferencesRequest> },
+    UpdateMyPreferencesMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateMyPreferences>>,
   TError,
-  { data: BodyType<UserPreferencesRequest> },
+  UpdateMyPreferencesMutationVariables,
   TContext
 > => {
-  const mutationKey = ['updateMyPreferences']
+  const mutationKey = getUpdateMyPreferencesMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -1122,7 +1136,7 @@ export const getUpdateMyPreferencesMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateMyPreferences>>,
-    { data: BodyType<UserPreferencesRequest> }
+    UpdateMyPreferencesMutationVariables
   > = (props) => {
     const { data } = props ?? {}
 
@@ -1137,6 +1151,7 @@ export type UpdateMyPreferencesMutationResult = NonNullable<
 >
 export type UpdateMyPreferencesMutationBody = BodyType<UserPreferencesRequest>
 export type UpdateMyPreferencesMutationError = ErrorType<ErrorResponse | void>
+export type UpdateMyPreferencesMutationVariables = { data: BodyType<UserPreferencesRequest> }
 
 /**
  * @summary Update display preferences
@@ -1149,7 +1164,7 @@ export const useUpdateMyPreferences = <
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateMyPreferences>>,
       TError,
-      { data: BodyType<UserPreferencesRequest> },
+      UpdateMyPreferencesMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -1158,7 +1173,7 @@ export const useUpdateMyPreferences = <
 ): UseMutationResult<
   Awaited<ReturnType<typeof updateMyPreferences>>,
   TError,
-  { data: BodyType<UserPreferencesRequest> },
+  UpdateMyPreferencesMutationVariables,
   TContext
 > => {
   return useMutation(getUpdateMyPreferencesMutationOptions(options), queryClient)

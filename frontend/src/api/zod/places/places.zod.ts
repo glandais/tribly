@@ -101,7 +101,7 @@ export const CreatePlaceBody = zod
       .optional()
       .describe('Geographic coordinates [longitude, latitude]'),
   })
-  .describe('Place create\/update request')
+  .describe('Place create/update request')
 
 export const CreatePlaceResponse = zod.object({
   id: zod.string().describe('Place ID (TSID)'),
@@ -167,7 +167,7 @@ export const UpdatePlaceBody = zod
       .optional()
       .describe('Geographic coordinates [longitude, latitude]'),
   })
-  .describe('Place create\/update request')
+  .describe('Place create/update request')
 
 export const UpdatePlaceResponse = zod.object({
   id: zod.string().describe('Place ID (TSID)'),

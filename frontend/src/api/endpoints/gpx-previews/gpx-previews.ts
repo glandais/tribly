@@ -214,6 +214,8 @@ export const createPreview = (
   )
 }
 
+export const getCreatePreviewMutationKey = () => ['createPreview'] as const
+
 export const getCreatePreviewMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -221,17 +223,17 @@ export const getCreatePreviewMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createPreview>>,
     TError,
-    { data: BodyType<CreatePreviewBody> },
+    CreatePreviewMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createPreview>>,
   TError,
-  { data: BodyType<CreatePreviewBody> },
+  CreatePreviewMutationVariables,
   TContext
 > => {
-  const mutationKey = ['createPreview']
+  const mutationKey = getCreatePreviewMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -240,7 +242,7 @@ export const getCreatePreviewMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createPreview>>,
-    { data: BodyType<CreatePreviewBody> }
+    CreatePreviewMutationVariables
   > = (props) => {
     const { data } = props ?? {}
 
@@ -253,6 +255,7 @@ export const getCreatePreviewMutationOptions = <
 export type CreatePreviewMutationResult = NonNullable<Awaited<ReturnType<typeof createPreview>>>
 export type CreatePreviewMutationBody = BodyType<CreatePreviewBody>
 export type CreatePreviewMutationError = ErrorType<ErrorResponse | void>
+export type CreatePreviewMutationVariables = { data: BodyType<CreatePreviewBody> }
 
 /**
  * @summary Analyse a GPX file
@@ -262,7 +265,7 @@ export const useCreatePreview = <TError = ErrorType<ErrorResponse | void>, TCont
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createPreview>>,
       TError,
-      { data: BodyType<CreatePreviewBody> },
+      CreatePreviewMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -271,7 +274,7 @@ export const useCreatePreview = <TError = ErrorType<ErrorResponse | void>, TCont
 ): UseMutationResult<
   Awaited<ReturnType<typeof createPreview>>,
   TError,
-  { data: BodyType<CreatePreviewBody> },
+  CreatePreviewMutationVariables,
   TContext
 > => {
   return useMutation(getCreatePreviewMutationOptions(options), queryClient)
@@ -297,6 +300,8 @@ export const createPreviewFromPoints = (
   )
 }
 
+export const getCreatePreviewFromPointsMutationKey = () => ['createPreviewFromPoints'] as const
+
 export const getCreatePreviewFromPointsMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -304,17 +309,17 @@ export const getCreatePreviewFromPointsMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createPreviewFromPoints>>,
     TError,
-    { data: BodyType<GpxPreviewFromPointsRequest> },
+    CreatePreviewFromPointsMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createPreviewFromPoints>>,
   TError,
-  { data: BodyType<GpxPreviewFromPointsRequest> },
+  CreatePreviewFromPointsMutationVariables,
   TContext
 > => {
-  const mutationKey = ['createPreviewFromPoints']
+  const mutationKey = getCreatePreviewFromPointsMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -323,7 +328,7 @@ export const getCreatePreviewFromPointsMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createPreviewFromPoints>>,
-    { data: BodyType<GpxPreviewFromPointsRequest> }
+    CreatePreviewFromPointsMutationVariables
   > = (props) => {
     const { data } = props ?? {}
 
@@ -338,6 +343,9 @@ export type CreatePreviewFromPointsMutationResult = NonNullable<
 >
 export type CreatePreviewFromPointsMutationBody = BodyType<GpxPreviewFromPointsRequest>
 export type CreatePreviewFromPointsMutationError = ErrorType<ErrorResponse | void>
+export type CreatePreviewFromPointsMutationVariables = {
+  data: BodyType<GpxPreviewFromPointsRequest>
+}
 
 /**
  * @summary Create an analysed GPX file from planner points
@@ -350,7 +358,7 @@ export const useCreatePreviewFromPoints = <
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createPreviewFromPoints>>,
       TError,
-      { data: BodyType<GpxPreviewFromPointsRequest> },
+      CreatePreviewFromPointsMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -359,7 +367,7 @@ export const useCreatePreviewFromPoints = <
 ): UseMutationResult<
   Awaited<ReturnType<typeof createPreviewFromPoints>>,
   TError,
-  { data: BodyType<GpxPreviewFromPointsRequest> },
+  CreatePreviewFromPointsMutationVariables,
   TContext
 > => {
   return useMutation(getCreatePreviewFromPointsMutationOptions(options), queryClient)
@@ -394,6 +402,8 @@ export const updatePreview = (
   )
 }
 
+export const getUpdatePreviewMutationKey = () => ['updatePreview'] as const
+
 export const getUpdatePreviewMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -401,17 +411,17 @@ export const getUpdatePreviewMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updatePreview>>,
     TError,
-    { previewId: string; data: BodyType<UpdatePreviewBody> },
+    UpdatePreviewMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updatePreview>>,
   TError,
-  { previewId: string; data: BodyType<UpdatePreviewBody> },
+  UpdatePreviewMutationVariables,
   TContext
 > => {
-  const mutationKey = ['updatePreview']
+  const mutationKey = getUpdatePreviewMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -420,7 +430,7 @@ export const getUpdatePreviewMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updatePreview>>,
-    { previewId: string; data: BodyType<UpdatePreviewBody> }
+    UpdatePreviewMutationVariables
   > = (props) => {
     const { previewId, data } = props ?? {}
 
@@ -433,6 +443,10 @@ export const getUpdatePreviewMutationOptions = <
 export type UpdatePreviewMutationResult = NonNullable<Awaited<ReturnType<typeof updatePreview>>>
 export type UpdatePreviewMutationBody = BodyType<UpdatePreviewBody>
 export type UpdatePreviewMutationError = ErrorType<ErrorResponse>
+export type UpdatePreviewMutationVariables = {
+  previewId: string
+  data: BodyType<UpdatePreviewBody>
+}
 
 /**
  * @summary Update an analysed GPX file
@@ -442,7 +456,7 @@ export const useUpdatePreview = <TError = ErrorType<ErrorResponse>, TContext = u
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updatePreview>>,
       TError,
-      { previewId: string; data: BodyType<UpdatePreviewBody> },
+      UpdatePreviewMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -451,7 +465,7 @@ export const useUpdatePreview = <TError = ErrorType<ErrorResponse>, TContext = u
 ): UseMutationResult<
   Awaited<ReturnType<typeof updatePreview>>,
   TError,
-  { previewId: string; data: BodyType<UpdatePreviewBody> },
+  UpdatePreviewMutationVariables,
   TContext
 > => {
   return useMutation(getUpdatePreviewMutationOptions(options), queryClient)
@@ -614,6 +628,8 @@ export const deletePreview = (
   )
 }
 
+export const getDeletePreviewMutationKey = () => ['deletePreview'] as const
+
 export const getDeletePreviewMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -621,17 +637,17 @@ export const getDeletePreviewMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deletePreview>>,
     TError,
-    { previewId: string },
+    DeletePreviewMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deletePreview>>,
   TError,
-  { previewId: string },
+  DeletePreviewMutationVariables,
   TContext
 > => {
-  const mutationKey = ['deletePreview']
+  const mutationKey = getDeletePreviewMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -640,7 +656,7 @@ export const getDeletePreviewMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deletePreview>>,
-    { previewId: string }
+    DeletePreviewMutationVariables
   > = (props) => {
     const { previewId } = props ?? {}
 
@@ -653,6 +669,7 @@ export const getDeletePreviewMutationOptions = <
 export type DeletePreviewMutationResult = NonNullable<Awaited<ReturnType<typeof deletePreview>>>
 
 export type DeletePreviewMutationError = ErrorType<ErrorResponse>
+export type DeletePreviewMutationVariables = { previewId: string }
 
 /**
  * @summary Delete an analysed GPX file
@@ -662,7 +679,7 @@ export const useDeletePreview = <TError = ErrorType<ErrorResponse>, TContext = u
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deletePreview>>,
       TError,
-      { previewId: string },
+      DeletePreviewMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -671,7 +688,7 @@ export const useDeletePreview = <TError = ErrorType<ErrorResponse>, TContext = u
 ): UseMutationResult<
   Awaited<ReturnType<typeof deletePreview>>,
   TError,
-  { previewId: string },
+  DeletePreviewMutationVariables,
   TContext
 > => {
   return useMutation(getDeletePreviewMutationOptions(options), queryClient)
@@ -692,6 +709,8 @@ export const uploadToGpsService = (
   )
 }
 
+export const getUploadToGpsServiceMutationKey = () => ['uploadToGpsService'] as const
+
 export const getUploadToGpsServiceMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -699,17 +718,17 @@ export const getUploadToGpsServiceMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof uploadToGpsService>>,
     TError,
-    { previewId: string; serviceType: GpsServiceType },
+    UploadToGpsServiceMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof uploadToGpsService>>,
   TError,
-  { previewId: string; serviceType: GpsServiceType },
+  UploadToGpsServiceMutationVariables,
   TContext
 > => {
-  const mutationKey = ['uploadToGpsService']
+  const mutationKey = getUploadToGpsServiceMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -718,7 +737,7 @@ export const getUploadToGpsServiceMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof uploadToGpsService>>,
-    { previewId: string; serviceType: GpsServiceType }
+    UploadToGpsServiceMutationVariables
   > = (props) => {
     const { previewId, serviceType } = props ?? {}
 
@@ -733,6 +752,7 @@ export type UploadToGpsServiceMutationResult = NonNullable<
 >
 
 export type UploadToGpsServiceMutationError = ErrorType<ErrorResponse | void>
+export type UploadToGpsServiceMutationVariables = { previewId: string; serviceType: GpsServiceType }
 
 /**
  * @summary Send an analysed GPX file to a GPS service
@@ -742,7 +762,7 @@ export const useUploadToGpsService = <TError = ErrorType<ErrorResponse | void>, 
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof uploadToGpsService>>,
       TError,
-      { previewId: string; serviceType: GpsServiceType },
+      UploadToGpsServiceMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -751,7 +771,7 @@ export const useUploadToGpsService = <TError = ErrorType<ErrorResponse | void>, 
 ): UseMutationResult<
   Awaited<ReturnType<typeof uploadToGpsService>>,
   TError,
-  { previewId: string; serviceType: GpsServiceType },
+  UploadToGpsServiceMutationVariables,
   TContext
 > => {
   return useMutation(getUploadToGpsServiceMutationOptions(options), queryClient)
@@ -779,6 +799,8 @@ export const createRouteFromPreview = (
   )
 }
 
+export const getCreateRouteFromPreviewMutationKey = () => ['createRouteFromPreview'] as const
+
 export const getCreateRouteFromPreviewMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -786,17 +808,17 @@ export const getCreateRouteFromPreviewMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createRouteFromPreview>>,
     TError,
-    { previewId: string; teamSlug: string; data: BodyType<RouteRequest> },
+    CreateRouteFromPreviewMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createRouteFromPreview>>,
   TError,
-  { previewId: string; teamSlug: string; data: BodyType<RouteRequest> },
+  CreateRouteFromPreviewMutationVariables,
   TContext
 > => {
-  const mutationKey = ['createRouteFromPreview']
+  const mutationKey = getCreateRouteFromPreviewMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -805,7 +827,7 @@ export const getCreateRouteFromPreviewMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createRouteFromPreview>>,
-    { previewId: string; teamSlug: string; data: BodyType<RouteRequest> }
+    CreateRouteFromPreviewMutationVariables
   > = (props) => {
     const { previewId, teamSlug, data } = props ?? {}
 
@@ -820,6 +842,11 @@ export type CreateRouteFromPreviewMutationResult = NonNullable<
 >
 export type CreateRouteFromPreviewMutationBody = BodyType<RouteRequest>
 export type CreateRouteFromPreviewMutationError = ErrorType<ErrorResponse>
+export type CreateRouteFromPreviewMutationVariables = {
+  previewId: string
+  teamSlug: string
+  data: BodyType<RouteRequest>
+}
 
 /**
  * @summary Save an analysed GPX file as a route
@@ -829,7 +856,7 @@ export const useCreateRouteFromPreview = <TError = ErrorType<ErrorResponse>, TCo
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createRouteFromPreview>>,
       TError,
-      { previewId: string; teamSlug: string; data: BodyType<RouteRequest> },
+      CreateRouteFromPreviewMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -838,7 +865,7 @@ export const useCreateRouteFromPreview = <TError = ErrorType<ErrorResponse>, TCo
 ): UseMutationResult<
   Awaited<ReturnType<typeof createRouteFromPreview>>,
   TError,
-  { previewId: string; teamSlug: string; data: BodyType<RouteRequest> },
+  CreateRouteFromPreviewMutationVariables,
   TContext
 > => {
   return useMutation(getCreateRouteFromPreviewMutationOptions(options), queryClient)

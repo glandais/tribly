@@ -174,7 +174,7 @@ export const CreateRideBody = zod
           .describe('Assets'),
       })
       .describe('Ride media'),
-    dateTime: zod.iso.datetime({ offset: true }).describe('Ride date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Ride date/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Ride status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     routeSlug: zod.string().optional().describe('Route slug'),
@@ -200,7 +200,7 @@ export const CreateRideBody = zod
               .number()
               .gt(createRideBodyGroupsItemAverageSpeedExclusiveMin)
               .optional()
-              .describe('Average speed in km\/h'),
+              .describe('Average speed in km/h'),
             maxParticipants: zod
               .int()
               .gt(createRideBodyGroupsItemMaxParticipantsExclusiveMin)
@@ -389,7 +389,7 @@ export const CreateRideResponse = zod
       .describe(
         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
       ),
-    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
@@ -405,7 +405,7 @@ export const CreateRideResponse = zod
             name: zod.string().describe('Group name'),
             time: zod.string().optional(),
             routeSlug: zod.string().optional().describe('Route slug'),
-            averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
+            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
             maxParticipants: zod.int().optional().describe('Maximum participants'),
             countParticipants: zod.int().describe('Current number of participants'),
             participants: zod
@@ -706,7 +706,7 @@ export const UpdateRideBody = zod
           .describe('Assets'),
       })
       .describe('Ride media'),
-    dateTime: zod.iso.datetime({ offset: true }).describe('Ride date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Ride date/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Ride status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     routeSlug: zod.string().optional().describe('Route slug'),
@@ -732,7 +732,7 @@ export const UpdateRideBody = zod
               .number()
               .gt(updateRideBodyGroupsItemAverageSpeedExclusiveMin)
               .optional()
-              .describe('Average speed in km\/h'),
+              .describe('Average speed in km/h'),
             maxParticipants: zod
               .int()
               .gt(updateRideBodyGroupsItemMaxParticipantsExclusiveMin)
@@ -921,7 +921,7 @@ export const UpdateRideResponse = zod
       .describe(
         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
       ),
-    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
@@ -937,7 +937,7 @@ export const UpdateRideResponse = zod
             name: zod.string().describe('Group name'),
             time: zod.string().optional(),
             routeSlug: zod.string().optional().describe('Route slug'),
-            averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
+            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
             maxParticipants: zod.int().optional().describe('Maximum participants'),
             countParticipants: zod.int().describe('Current number of participants'),
             participants: zod
@@ -1241,7 +1241,7 @@ export const GetRideResponse = zod
       .describe(
         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
       ),
-    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
@@ -1257,7 +1257,7 @@ export const GetRideResponse = zod
             name: zod.string().describe('Group name'),
             time: zod.string().optional(),
             routeSlug: zod.string().optional().describe('Route slug'),
-            averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
+            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
             maxParticipants: zod.int().optional().describe('Maximum participants'),
             countParticipants: zod.int().describe('Current number of participants'),
             participants: zod
@@ -1616,7 +1616,7 @@ export const ChangeRideSlugResponse = zod
       .describe(
         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
       ),
-    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
@@ -1632,7 +1632,7 @@ export const ChangeRideSlugResponse = zod
             name: zod.string().describe('Group name'),
             time: zod.string().optional(),
             routeSlug: zod.string().optional().describe('Route slug'),
-            averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
+            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
             maxParticipants: zod.int().optional().describe('Maximum participants'),
             countParticipants: zod.int().describe('Current number of participants'),
             participants: zod
@@ -1936,7 +1936,7 @@ export const UndeleteRideResponse = zod
       .describe(
         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
       ),
-    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
@@ -1952,7 +1952,7 @@ export const UndeleteRideResponse = zod
             name: zod.string().describe('Group name'),
             time: zod.string().optional(),
             routeSlug: zod.string().optional().describe('Route slug'),
-            averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
+            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
             maxParticipants: zod.int().optional().describe('Maximum participants'),
             countParticipants: zod.int().describe('Current number of participants'),
             participants: zod

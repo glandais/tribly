@@ -27,10 +27,10 @@ export const ListAdsQueryParams = zod.object({
     .number()
     .optional()
     .describe(
-      'Search radius in metres around nearLat\/nearLon (default 25000, capped at 500000). Ads with no location are excluded when a centre is given.'
+      'Search radius in metres around nearLat/nearLon (default 25000, capped at 500000). Ads with no location are excluded when a centre is given.'
     ),
   page: zod.int().default(listAdsQueryPageDefault).describe('Page number'),
-  search: zod.string().optional().describe('Search by name\/description'),
+  search: zod.string().optional().describe('Search by name/description'),
   size: zod.int().default(listAdsQuerySizeDefault).describe('Page size'),
   sortBy: zod
     .enum(['DATE_TIME', 'PRICE', 'NAME'])
@@ -239,7 +239,7 @@ export const ListAdsResponse = zod
               .enum(['DAY', 'WEEK', 'MONTH'])
               .optional()
               .describe(
-                "Period the price applies to, for a rental — render as 'price \/ period'. Null for a sale, and for a rental whose period has not been set."
+                "Period the price applies to, for a rental — render as 'price / period'. Null for a sale, and for a rental whose period has not been set."
               ),
             locationDescription: zod.string().optional().describe('Location description'),
             locationGeometry: zod
@@ -647,7 +647,7 @@ export const CreateAdResponse = zod
       .enum(['DAY', 'WEEK', 'MONTH'])
       .optional()
       .describe(
-        "Period the price applies to, for a rental — render as 'price \/ period'. Null for a sale, and for a rental whose period has not been set."
+        "Period the price applies to, for a rental — render as 'price / period'. Null for a sale, and for a rental whose period has not been set."
       ),
     locationDescription: zod.string().optional().describe('Location description'),
     locationGeometry: zod
@@ -695,9 +695,9 @@ export const CountAdsQueryParams = zod.object({
     .number()
     .optional()
     .describe(
-      'Search radius in metres around nearLat\/nearLon (default 25000, capped at 500000). Ads with no location are excluded when a centre is given.'
+      'Search radius in metres around nearLat/nearLon (default 25000, capped at 500000). Ads with no location are excluded when a centre is given.'
     ),
-  search: zod.string().optional().describe('Search by name\/description'),
+  search: zod.string().optional().describe('Search by name/description'),
   to: zod.string().optional().describe('End date filter (ISO format)'),
 })
 
@@ -1085,7 +1085,7 @@ export const UpdateAdResponse = zod
       .enum(['DAY', 'WEEK', 'MONTH'])
       .optional()
       .describe(
-        "Period the price applies to, for a rental — render as 'price \/ period'. Null for a sale, and for a rental whose period has not been set."
+        "Period the price applies to, for a rental — render as 'price / period'. Null for a sale, and for a rental whose period has not been set."
       ),
     locationDescription: zod.string().optional().describe('Location description'),
     locationGeometry: zod
@@ -1305,7 +1305,7 @@ export const GetAdResponse = zod
       .enum(['DAY', 'WEEK', 'MONTH'])
       .optional()
       .describe(
-        "Period the price applies to, for a rental — render as 'price \/ period'. Null for a sale, and for a rental whose period has not been set."
+        "Period the price applies to, for a rental — render as 'price / period'. Null for a sale, and for a rental whose period has not been set."
       ),
     locationDescription: zod.string().optional().describe('Location description'),
     locationGeometry: zod
@@ -1770,7 +1770,7 @@ export const ChangeAdSlugResponse = zod
       .enum(['DAY', 'WEEK', 'MONTH'])
       .optional()
       .describe(
-        "Period the price applies to, for a rental — render as 'price \/ period'. Null for a sale, and for a rental whose period has not been set."
+        "Period the price applies to, for a rental — render as 'price / period'. Null for a sale, and for a rental whose period has not been set."
       ),
     locationDescription: zod.string().optional().describe('Location description'),
     locationGeometry: zod

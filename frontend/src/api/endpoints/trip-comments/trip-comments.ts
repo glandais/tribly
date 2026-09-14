@@ -233,6 +233,8 @@ export const createTripComment = (
   )
 }
 
+export const getCreateTripCommentMutationKey = () => ['createTripComment'] as const
+
 export const getCreateTripCommentMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -240,17 +242,17 @@ export const getCreateTripCommentMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createTripComment>>,
     TError,
-    { teamSlug: string; entitySlug: string; data: BodyType<CommentRequest> },
+    CreateTripCommentMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createTripComment>>,
   TError,
-  { teamSlug: string; entitySlug: string; data: BodyType<CommentRequest> },
+  CreateTripCommentMutationVariables,
   TContext
 > => {
-  const mutationKey = ['createTripComment']
+  const mutationKey = getCreateTripCommentMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -259,7 +261,7 @@ export const getCreateTripCommentMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createTripComment>>,
-    { teamSlug: string; entitySlug: string; data: BodyType<CommentRequest> }
+    CreateTripCommentMutationVariables
   > = (props) => {
     const { teamSlug, entitySlug, data } = props ?? {}
 
@@ -274,6 +276,11 @@ export type CreateTripCommentMutationResult = NonNullable<
 >
 export type CreateTripCommentMutationBody = BodyType<CommentRequest>
 export type CreateTripCommentMutationError = ErrorType<ErrorResponse | void>
+export type CreateTripCommentMutationVariables = {
+  teamSlug: string
+  entitySlug: string
+  data: BodyType<CommentRequest>
+}
 
 /**
  * @summary Create trip comment
@@ -283,7 +290,7 @@ export const useCreateTripComment = <TError = ErrorType<ErrorResponse | void>, T
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createTripComment>>,
       TError,
-      { teamSlug: string; entitySlug: string; data: BodyType<CommentRequest> },
+      CreateTripCommentMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -292,7 +299,7 @@ export const useCreateTripComment = <TError = ErrorType<ErrorResponse | void>, T
 ): UseMutationResult<
   Awaited<ReturnType<typeof createTripComment>>,
   TError,
-  { teamSlug: string; entitySlug: string; data: BodyType<CommentRequest> },
+  CreateTripCommentMutationVariables,
   TContext
 > => {
   return useMutation(getCreateTripCommentMutationOptions(options), queryClient)
@@ -317,6 +324,8 @@ export const deleteTripComment = (
   )
 }
 
+export const getDeleteTripCommentMutationKey = () => ['deleteTripComment'] as const
+
 export const getDeleteTripCommentMutationOptions = <
   TError = ErrorType<void | ErrorResponse>,
   TContext = unknown,
@@ -324,17 +333,17 @@ export const getDeleteTripCommentMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deleteTripComment>>,
     TError,
-    { teamSlug: string; entitySlug: string; commentId: string },
+    DeleteTripCommentMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteTripComment>>,
   TError,
-  { teamSlug: string; entitySlug: string; commentId: string },
+  DeleteTripCommentMutationVariables,
   TContext
 > => {
-  const mutationKey = ['deleteTripComment']
+  const mutationKey = getDeleteTripCommentMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -343,7 +352,7 @@ export const getDeleteTripCommentMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteTripComment>>,
-    { teamSlug: string; entitySlug: string; commentId: string }
+    DeleteTripCommentMutationVariables
   > = (props) => {
     const { teamSlug, entitySlug, commentId } = props ?? {}
 
@@ -358,6 +367,11 @@ export type DeleteTripCommentMutationResult = NonNullable<
 >
 
 export type DeleteTripCommentMutationError = ErrorType<void | ErrorResponse>
+export type DeleteTripCommentMutationVariables = {
+  teamSlug: string
+  entitySlug: string
+  commentId: string
+}
 
 /**
  * @summary Delete trip comment
@@ -367,7 +381,7 @@ export const useDeleteTripComment = <TError = ErrorType<void | ErrorResponse>, T
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deleteTripComment>>,
       TError,
-      { teamSlug: string; entitySlug: string; commentId: string },
+      DeleteTripCommentMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -376,7 +390,7 @@ export const useDeleteTripComment = <TError = ErrorType<void | ErrorResponse>, T
 ): UseMutationResult<
   Awaited<ReturnType<typeof deleteTripComment>>,
   TError,
-  { teamSlug: string; entitySlug: string; commentId: string },
+  DeleteTripCommentMutationVariables,
   TContext
 > => {
   return useMutation(getDeleteTripCommentMutationOptions(options), queryClient)

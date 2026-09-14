@@ -21,7 +21,7 @@ export const DeviceListRoutesResponse = zod
             startDateTime: zod.iso
               .datetime({ offset: true })
               .optional()
-              .describe('Start date\/time'),
+              .describe('Start date/time'),
             entries: zod
               .array(
                 zod

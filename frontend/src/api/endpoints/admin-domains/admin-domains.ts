@@ -211,6 +211,8 @@ export const createDomain = (
   )
 }
 
+export const getCreateDomainMutationKey = () => ['createDomain'] as const
+
 export const getCreateDomainMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -218,17 +220,17 @@ export const getCreateDomainMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createDomain>>,
     TError,
-    { data: BodyType<CreateDomainRequest> },
+    CreateDomainMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createDomain>>,
   TError,
-  { data: BodyType<CreateDomainRequest> },
+  CreateDomainMutationVariables,
   TContext
 > => {
-  const mutationKey = ['createDomain']
+  const mutationKey = getCreateDomainMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -237,7 +239,7 @@ export const getCreateDomainMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createDomain>>,
-    { data: BodyType<CreateDomainRequest> }
+    CreateDomainMutationVariables
   > = (props) => {
     const { data } = props ?? {}
 
@@ -250,6 +252,7 @@ export const getCreateDomainMutationOptions = <
 export type CreateDomainMutationResult = NonNullable<Awaited<ReturnType<typeof createDomain>>>
 export type CreateDomainMutationBody = BodyType<CreateDomainRequest>
 export type CreateDomainMutationError = ErrorType<ErrorResponse | void>
+export type CreateDomainMutationVariables = { data: BodyType<CreateDomainRequest> }
 
 /**
  * @summary Create domain
@@ -259,7 +262,7 @@ export const useCreateDomain = <TError = ErrorType<ErrorResponse | void>, TConte
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createDomain>>,
       TError,
-      { data: BodyType<CreateDomainRequest> },
+      CreateDomainMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -268,7 +271,7 @@ export const useCreateDomain = <TError = ErrorType<ErrorResponse | void>, TConte
 ): UseMutationResult<
   Awaited<ReturnType<typeof createDomain>>,
   TError,
-  { data: BodyType<CreateDomainRequest> },
+  CreateDomainMutationVariables,
   TContext
 > => {
   return useMutation(getCreateDomainMutationOptions(options), queryClient)
@@ -423,6 +426,8 @@ export const updateDomain = (
   )
 }
 
+export const getUpdateDomainMutationKey = () => ['updateDomain'] as const
+
 export const getUpdateDomainMutationOptions = <
   TError = ErrorType<void | ErrorResponse>,
   TContext = unknown,
@@ -430,17 +435,17 @@ export const getUpdateDomainMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateDomain>>,
     TError,
-    { domainId: string; data: BodyType<UpdateDomainRequest> },
+    UpdateDomainMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateDomain>>,
   TError,
-  { domainId: string; data: BodyType<UpdateDomainRequest> },
+  UpdateDomainMutationVariables,
   TContext
 > => {
-  const mutationKey = ['updateDomain']
+  const mutationKey = getUpdateDomainMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -449,7 +454,7 @@ export const getUpdateDomainMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateDomain>>,
-    { domainId: string; data: BodyType<UpdateDomainRequest> }
+    UpdateDomainMutationVariables
   > = (props) => {
     const { domainId, data } = props ?? {}
 
@@ -462,6 +467,10 @@ export const getUpdateDomainMutationOptions = <
 export type UpdateDomainMutationResult = NonNullable<Awaited<ReturnType<typeof updateDomain>>>
 export type UpdateDomainMutationBody = BodyType<UpdateDomainRequest>
 export type UpdateDomainMutationError = ErrorType<void | ErrorResponse>
+export type UpdateDomainMutationVariables = {
+  domainId: string
+  data: BodyType<UpdateDomainRequest>
+}
 
 /**
  * @summary Update domain
@@ -471,7 +480,7 @@ export const useUpdateDomain = <TError = ErrorType<void | ErrorResponse>, TConte
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateDomain>>,
       TError,
-      { domainId: string; data: BodyType<UpdateDomainRequest> },
+      UpdateDomainMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -480,7 +489,7 @@ export const useUpdateDomain = <TError = ErrorType<void | ErrorResponse>, TConte
 ): UseMutationResult<
   Awaited<ReturnType<typeof updateDomain>>,
   TError,
-  { domainId: string; data: BodyType<UpdateDomainRequest> },
+  UpdateDomainMutationVariables,
   TContext
 > => {
   return useMutation(getUpdateDomainMutationOptions(options), queryClient)
@@ -795,6 +804,8 @@ export const createDomainAlias = (
   )
 }
 
+export const getCreateDomainAliasMutationKey = () => ['createDomainAlias'] as const
+
 export const getCreateDomainAliasMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -802,17 +813,17 @@ export const getCreateDomainAliasMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createDomainAlias>>,
     TError,
-    { domainId: string; data: BodyType<CreateDomainAliasRequest> },
+    CreateDomainAliasMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createDomainAlias>>,
   TError,
-  { domainId: string; data: BodyType<CreateDomainAliasRequest> },
+  CreateDomainAliasMutationVariables,
   TContext
 > => {
-  const mutationKey = ['createDomainAlias']
+  const mutationKey = getCreateDomainAliasMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -821,7 +832,7 @@ export const getCreateDomainAliasMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createDomainAlias>>,
-    { domainId: string; data: BodyType<CreateDomainAliasRequest> }
+    CreateDomainAliasMutationVariables
   > = (props) => {
     const { domainId, data } = props ?? {}
 
@@ -836,6 +847,10 @@ export type CreateDomainAliasMutationResult = NonNullable<
 >
 export type CreateDomainAliasMutationBody = BodyType<CreateDomainAliasRequest>
 export type CreateDomainAliasMutationError = ErrorType<ErrorResponse | void>
+export type CreateDomainAliasMutationVariables = {
+  domainId: string
+  data: BodyType<CreateDomainAliasRequest>
+}
 
 /**
  * @summary Create domain alias
@@ -845,7 +860,7 @@ export const useCreateDomainAlias = <TError = ErrorType<ErrorResponse | void>, T
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createDomainAlias>>,
       TError,
-      { domainId: string; data: BodyType<CreateDomainAliasRequest> },
+      CreateDomainAliasMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -854,7 +869,7 @@ export const useCreateDomainAlias = <TError = ErrorType<ErrorResponse | void>, T
 ): UseMutationResult<
   Awaited<ReturnType<typeof createDomainAlias>>,
   TError,
-  { domainId: string; data: BodyType<CreateDomainAliasRequest> },
+  CreateDomainAliasMutationVariables,
   TContext
 > => {
   return useMutation(getCreateDomainAliasMutationOptions(options), queryClient)
@@ -882,6 +897,8 @@ export const updateDomainAlias = (
   )
 }
 
+export const getUpdateDomainAliasMutationKey = () => ['updateDomainAlias'] as const
+
 export const getUpdateDomainAliasMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -889,17 +906,17 @@ export const getUpdateDomainAliasMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateDomainAlias>>,
     TError,
-    { domainId: string; aliasId: string; data: BodyType<UpdateDomainAliasRequest> },
+    UpdateDomainAliasMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateDomainAlias>>,
   TError,
-  { domainId: string; aliasId: string; data: BodyType<UpdateDomainAliasRequest> },
+  UpdateDomainAliasMutationVariables,
   TContext
 > => {
-  const mutationKey = ['updateDomainAlias']
+  const mutationKey = getUpdateDomainAliasMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -908,7 +925,7 @@ export const getUpdateDomainAliasMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateDomainAlias>>,
-    { domainId: string; aliasId: string; data: BodyType<UpdateDomainAliasRequest> }
+    UpdateDomainAliasMutationVariables
   > = (props) => {
     const { domainId, aliasId, data } = props ?? {}
 
@@ -923,6 +940,11 @@ export type UpdateDomainAliasMutationResult = NonNullable<
 >
 export type UpdateDomainAliasMutationBody = BodyType<UpdateDomainAliasRequest>
 export type UpdateDomainAliasMutationError = ErrorType<ErrorResponse | void>
+export type UpdateDomainAliasMutationVariables = {
+  domainId: string
+  aliasId: string
+  data: BodyType<UpdateDomainAliasRequest>
+}
 
 /**
  * @summary Update domain alias
@@ -932,7 +954,7 @@ export const useUpdateDomainAlias = <TError = ErrorType<ErrorResponse | void>, T
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateDomainAlias>>,
       TError,
-      { domainId: string; aliasId: string; data: BodyType<UpdateDomainAliasRequest> },
+      UpdateDomainAliasMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -941,7 +963,7 @@ export const useUpdateDomainAlias = <TError = ErrorType<ErrorResponse | void>, T
 ): UseMutationResult<
   Awaited<ReturnType<typeof updateDomainAlias>>,
   TError,
-  { domainId: string; aliasId: string; data: BodyType<UpdateDomainAliasRequest> },
+  UpdateDomainAliasMutationVariables,
   TContext
 > => {
   return useMutation(getUpdateDomainAliasMutationOptions(options), queryClient)
@@ -962,6 +984,8 @@ export const deleteDomainAlias = (
   )
 }
 
+export const getDeleteDomainAliasMutationKey = () => ['deleteDomainAlias'] as const
+
 export const getDeleteDomainAliasMutationOptions = <
   TError = ErrorType<void | ErrorResponse>,
   TContext = unknown,
@@ -969,17 +993,17 @@ export const getDeleteDomainAliasMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deleteDomainAlias>>,
     TError,
-    { domainId: string; aliasId: string },
+    DeleteDomainAliasMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteDomainAlias>>,
   TError,
-  { domainId: string; aliasId: string },
+  DeleteDomainAliasMutationVariables,
   TContext
 > => {
-  const mutationKey = ['deleteDomainAlias']
+  const mutationKey = getDeleteDomainAliasMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -988,7 +1012,7 @@ export const getDeleteDomainAliasMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteDomainAlias>>,
-    { domainId: string; aliasId: string }
+    DeleteDomainAliasMutationVariables
   > = (props) => {
     const { domainId, aliasId } = props ?? {}
 
@@ -1003,6 +1027,7 @@ export type DeleteDomainAliasMutationResult = NonNullable<
 >
 
 export type DeleteDomainAliasMutationError = ErrorType<void | ErrorResponse>
+export type DeleteDomainAliasMutationVariables = { domainId: string; aliasId: string }
 
 /**
  * @summary Delete domain alias
@@ -1012,7 +1037,7 @@ export const useDeleteDomainAlias = <TError = ErrorType<void | ErrorResponse>, T
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deleteDomainAlias>>,
       TError,
-      { domainId: string; aliasId: string },
+      DeleteDomainAliasMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -1021,7 +1046,7 @@ export const useDeleteDomainAlias = <TError = ErrorType<void | ErrorResponse>, T
 ): UseMutationResult<
   Awaited<ReturnType<typeof deleteDomainAlias>>,
   TError,
-  { domainId: string; aliasId: string },
+  DeleteDomainAliasMutationVariables,
   TContext
 > => {
   return useMutation(getDeleteDomainAliasMutationOptions(options), queryClient)
@@ -1046,6 +1071,8 @@ export const toggleDomainAliasActive = (
   )
 }
 
+export const getToggleDomainAliasActiveMutationKey = () => ['toggleDomainAliasActive'] as const
+
 export const getToggleDomainAliasActiveMutationOptions = <
   TError = ErrorType<void | ErrorResponse>,
   TContext = unknown,
@@ -1053,17 +1080,17 @@ export const getToggleDomainAliasActiveMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof toggleDomainAliasActive>>,
     TError,
-    { domainId: string; aliasId: string },
+    ToggleDomainAliasActiveMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof toggleDomainAliasActive>>,
   TError,
-  { domainId: string; aliasId: string },
+  ToggleDomainAliasActiveMutationVariables,
   TContext
 > => {
-  const mutationKey = ['toggleDomainAliasActive']
+  const mutationKey = getToggleDomainAliasActiveMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -1072,7 +1099,7 @@ export const getToggleDomainAliasActiveMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof toggleDomainAliasActive>>,
-    { domainId: string; aliasId: string }
+    ToggleDomainAliasActiveMutationVariables
   > = (props) => {
     const { domainId, aliasId } = props ?? {}
 
@@ -1087,6 +1114,7 @@ export type ToggleDomainAliasActiveMutationResult = NonNullable<
 >
 
 export type ToggleDomainAliasActiveMutationError = ErrorType<void | ErrorResponse>
+export type ToggleDomainAliasActiveMutationVariables = { domainId: string; aliasId: string }
 
 /**
  * @summary Toggle domain alias active status
@@ -1099,7 +1127,7 @@ export const useToggleDomainAliasActive = <
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof toggleDomainAliasActive>>,
       TError,
-      { domainId: string; aliasId: string },
+      ToggleDomainAliasActiveMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -1108,7 +1136,7 @@ export const useToggleDomainAliasActive = <
 ): UseMutationResult<
   Awaited<ReturnType<typeof toggleDomainAliasActive>>,
   TError,
-  { domainId: string; aliasId: string },
+  ToggleDomainAliasActiveMutationVariables,
   TContext
 > => {
   return useMutation(getToggleDomainAliasActiveMutationOptions(options), queryClient)
@@ -1293,6 +1321,8 @@ export const createDomainGpsCredential = (
   )
 }
 
+export const getCreateDomainGpsCredentialMutationKey = () => ['createDomainGpsCredential'] as const
+
 export const getCreateDomainGpsCredentialMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -1300,17 +1330,17 @@ export const getCreateDomainGpsCredentialMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createDomainGpsCredential>>,
     TError,
-    { domainId: string; data: BodyType<CreateGpsCredentialRequest> },
+    CreateDomainGpsCredentialMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createDomainGpsCredential>>,
   TError,
-  { domainId: string; data: BodyType<CreateGpsCredentialRequest> },
+  CreateDomainGpsCredentialMutationVariables,
   TContext
 > => {
-  const mutationKey = ['createDomainGpsCredential']
+  const mutationKey = getCreateDomainGpsCredentialMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -1319,7 +1349,7 @@ export const getCreateDomainGpsCredentialMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createDomainGpsCredential>>,
-    { domainId: string; data: BodyType<CreateGpsCredentialRequest> }
+    CreateDomainGpsCredentialMutationVariables
   > = (props) => {
     const { domainId, data } = props ?? {}
 
@@ -1334,6 +1364,10 @@ export type CreateDomainGpsCredentialMutationResult = NonNullable<
 >
 export type CreateDomainGpsCredentialMutationBody = BodyType<CreateGpsCredentialRequest>
 export type CreateDomainGpsCredentialMutationError = ErrorType<ErrorResponse | void>
+export type CreateDomainGpsCredentialMutationVariables = {
+  domainId: string
+  data: BodyType<CreateGpsCredentialRequest>
+}
 
 /**
  * @summary Create GPS credential
@@ -1346,7 +1380,7 @@ export const useCreateDomainGpsCredential = <
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createDomainGpsCredential>>,
       TError,
-      { domainId: string; data: BodyType<CreateGpsCredentialRequest> },
+      CreateDomainGpsCredentialMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -1355,7 +1389,7 @@ export const useCreateDomainGpsCredential = <
 ): UseMutationResult<
   Awaited<ReturnType<typeof createDomainGpsCredential>>,
   TError,
-  { domainId: string; data: BodyType<CreateGpsCredentialRequest> },
+  CreateDomainGpsCredentialMutationVariables,
   TContext
 > => {
   return useMutation(getCreateDomainGpsCredentialMutationOptions(options), queryClient)
@@ -1383,6 +1417,8 @@ export const updateDomainGpsCredential = (
   )
 }
 
+export const getUpdateDomainGpsCredentialMutationKey = () => ['updateDomainGpsCredential'] as const
+
 export const getUpdateDomainGpsCredentialMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -1390,17 +1426,17 @@ export const getUpdateDomainGpsCredentialMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateDomainGpsCredential>>,
     TError,
-    { domainId: string; credentialId: string; data: BodyType<UpdateGpsCredentialRequest> },
+    UpdateDomainGpsCredentialMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateDomainGpsCredential>>,
   TError,
-  { domainId: string; credentialId: string; data: BodyType<UpdateGpsCredentialRequest> },
+  UpdateDomainGpsCredentialMutationVariables,
   TContext
 > => {
-  const mutationKey = ['updateDomainGpsCredential']
+  const mutationKey = getUpdateDomainGpsCredentialMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -1409,7 +1445,7 @@ export const getUpdateDomainGpsCredentialMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateDomainGpsCredential>>,
-    { domainId: string; credentialId: string; data: BodyType<UpdateGpsCredentialRequest> }
+    UpdateDomainGpsCredentialMutationVariables
   > = (props) => {
     const { domainId, credentialId, data } = props ?? {}
 
@@ -1424,6 +1460,11 @@ export type UpdateDomainGpsCredentialMutationResult = NonNullable<
 >
 export type UpdateDomainGpsCredentialMutationBody = BodyType<UpdateGpsCredentialRequest>
 export type UpdateDomainGpsCredentialMutationError = ErrorType<ErrorResponse | void>
+export type UpdateDomainGpsCredentialMutationVariables = {
+  domainId: string
+  credentialId: string
+  data: BodyType<UpdateGpsCredentialRequest>
+}
 
 /**
  * @summary Update GPS credential
@@ -1436,7 +1477,7 @@ export const useUpdateDomainGpsCredential = <
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateDomainGpsCredential>>,
       TError,
-      { domainId: string; credentialId: string; data: BodyType<UpdateGpsCredentialRequest> },
+      UpdateDomainGpsCredentialMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -1445,7 +1486,7 @@ export const useUpdateDomainGpsCredential = <
 ): UseMutationResult<
   Awaited<ReturnType<typeof updateDomainGpsCredential>>,
   TError,
-  { domainId: string; credentialId: string; data: BodyType<UpdateGpsCredentialRequest> },
+  UpdateDomainGpsCredentialMutationVariables,
   TContext
 > => {
   return useMutation(getUpdateDomainGpsCredentialMutationOptions(options), queryClient)
@@ -1470,6 +1511,8 @@ export const deleteDomainGpsCredential = (
   )
 }
 
+export const getDeleteDomainGpsCredentialMutationKey = () => ['deleteDomainGpsCredential'] as const
+
 export const getDeleteDomainGpsCredentialMutationOptions = <
   TError = ErrorType<void | ErrorResponse>,
   TContext = unknown,
@@ -1477,17 +1520,17 @@ export const getDeleteDomainGpsCredentialMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deleteDomainGpsCredential>>,
     TError,
-    { domainId: string; credentialId: string },
+    DeleteDomainGpsCredentialMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteDomainGpsCredential>>,
   TError,
-  { domainId: string; credentialId: string },
+  DeleteDomainGpsCredentialMutationVariables,
   TContext
 > => {
-  const mutationKey = ['deleteDomainGpsCredential']
+  const mutationKey = getDeleteDomainGpsCredentialMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -1496,7 +1539,7 @@ export const getDeleteDomainGpsCredentialMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteDomainGpsCredential>>,
-    { domainId: string; credentialId: string }
+    DeleteDomainGpsCredentialMutationVariables
   > = (props) => {
     const { domainId, credentialId } = props ?? {}
 
@@ -1511,6 +1554,7 @@ export type DeleteDomainGpsCredentialMutationResult = NonNullable<
 >
 
 export type DeleteDomainGpsCredentialMutationError = ErrorType<void | ErrorResponse>
+export type DeleteDomainGpsCredentialMutationVariables = { domainId: string; credentialId: string }
 
 /**
  * @summary Delete GPS credential
@@ -1523,7 +1567,7 @@ export const useDeleteDomainGpsCredential = <
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deleteDomainGpsCredential>>,
       TError,
-      { domainId: string; credentialId: string },
+      DeleteDomainGpsCredentialMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -1532,7 +1576,7 @@ export const useDeleteDomainGpsCredential = <
 ): UseMutationResult<
   Awaited<ReturnType<typeof deleteDomainGpsCredential>>,
   TError,
-  { domainId: string; credentialId: string },
+  DeleteDomainGpsCredentialMutationVariables,
   TContext
 > => {
   return useMutation(getDeleteDomainGpsCredentialMutationOptions(options), queryClient)
@@ -1552,6 +1596,8 @@ export const toggleDomainActive = (
   )
 }
 
+export const getToggleDomainActiveMutationKey = () => ['toggleDomainActive'] as const
+
 export const getToggleDomainActiveMutationOptions = <
   TError = ErrorType<void | ErrorResponse>,
   TContext = unknown,
@@ -1559,17 +1605,17 @@ export const getToggleDomainActiveMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof toggleDomainActive>>,
     TError,
-    { domainId: string },
+    ToggleDomainActiveMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof toggleDomainActive>>,
   TError,
-  { domainId: string },
+  ToggleDomainActiveMutationVariables,
   TContext
 > => {
-  const mutationKey = ['toggleDomainActive']
+  const mutationKey = getToggleDomainActiveMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -1578,7 +1624,7 @@ export const getToggleDomainActiveMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof toggleDomainActive>>,
-    { domainId: string }
+    ToggleDomainActiveMutationVariables
   > = (props) => {
     const { domainId } = props ?? {}
 
@@ -1593,6 +1639,7 @@ export type ToggleDomainActiveMutationResult = NonNullable<
 >
 
 export type ToggleDomainActiveMutationError = ErrorType<void | ErrorResponse>
+export type ToggleDomainActiveMutationVariables = { domainId: string }
 
 /**
  * @summary Toggle domain active status
@@ -1602,7 +1649,7 @@ export const useToggleDomainActive = <TError = ErrorType<void | ErrorResponse>, 
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof toggleDomainActive>>,
       TError,
-      { domainId: string },
+      ToggleDomainActiveMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -1611,7 +1658,7 @@ export const useToggleDomainActive = <TError = ErrorType<void | ErrorResponse>, 
 ): UseMutationResult<
   Awaited<ReturnType<typeof toggleDomainActive>>,
   TError,
-  { domainId: string },
+  ToggleDomainActiveMutationVariables,
   TContext
 > => {
   return useMutation(getToggleDomainActiveMutationOptions(options), queryClient)

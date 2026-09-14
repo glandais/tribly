@@ -34,6 +34,8 @@ export const route = (
   )
 }
 
+export const getRouteMutationKey = () => ['route'] as const
+
 export const getRouteMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -41,27 +43,26 @@ export const getRouteMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof route>>,
     TError,
-    { data: BodyType<RouterRequest> },
+    RouteMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof route>>,
   TError,
-  { data: BodyType<RouterRequest> },
+  RouteMutationVariables,
   TContext
 > => {
-  const mutationKey = ['route']
+  const mutationKey = getRouteMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined }
 
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof route>>,
-    { data: BodyType<RouterRequest> }
-  > = (props) => {
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof route>>, RouteMutationVariables> = (
+    props
+  ) => {
     const { data } = props ?? {}
 
     return route(data, requestOptions)
@@ -73,6 +74,7 @@ export const getRouteMutationOptions = <
 export type RouteMutationResult = NonNullable<Awaited<ReturnType<typeof route>>>
 export type RouteMutationBody = BodyType<RouterRequest>
 export type RouteMutationError = ErrorType<ErrorResponse | void>
+export type RouteMutationVariables = { data: BodyType<RouterRequest> }
 
 /**
  * @summary Calculate route
@@ -82,7 +84,7 @@ export const useRoute = <TError = ErrorType<ErrorResponse | void>, TContext = un
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof route>>,
       TError,
-      { data: BodyType<RouterRequest> },
+      RouteMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -91,7 +93,7 @@ export const useRoute = <TError = ErrorType<ErrorResponse | void>, TContext = un
 ): UseMutationResult<
   Awaited<ReturnType<typeof route>>,
   TError,
-  { data: BodyType<RouterRequest> },
+  RouteMutationVariables,
   TContext
 > => {
   return useMutation(getRouteMutationOptions(options), queryClient)

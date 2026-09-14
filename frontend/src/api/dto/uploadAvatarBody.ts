@@ -1,3 +1,3 @@
 export type UploadAvatarBody = {
-  file?: Blob
+  file?: Blob | File
 }

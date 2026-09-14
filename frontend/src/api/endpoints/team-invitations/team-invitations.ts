@@ -214,6 +214,8 @@ export const invite = (
   )
 }
 
+export const getInviteMutationKey = () => ['invite'] as const
+
 export const getInviteMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -221,17 +223,17 @@ export const getInviteMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof invite>>,
     TError,
-    { teamSlug: string; data: BodyType<CreateInvitationRequest> },
+    InviteMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof invite>>,
   TError,
-  { teamSlug: string; data: BodyType<CreateInvitationRequest> },
+  InviteMutationVariables,
   TContext
 > => {
-  const mutationKey = ['invite']
+  const mutationKey = getInviteMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -240,7 +242,7 @@ export const getInviteMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof invite>>,
-    { teamSlug: string; data: BodyType<CreateInvitationRequest> }
+    InviteMutationVariables
   > = (props) => {
     const { teamSlug, data } = props ?? {}
 
@@ -253,6 +255,7 @@ export const getInviteMutationOptions = <
 export type InviteMutationResult = NonNullable<Awaited<ReturnType<typeof invite>>>
 export type InviteMutationBody = BodyType<CreateInvitationRequest>
 export type InviteMutationError = ErrorType<ErrorResponse>
+export type InviteMutationVariables = { teamSlug: string; data: BodyType<CreateInvitationRequest> }
 
 /**
  * @summary Invite an e-mail address
@@ -262,7 +265,7 @@ export const useInvite = <TError = ErrorType<ErrorResponse>, TContext = unknown>
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof invite>>,
       TError,
-      { teamSlug: string; data: BodyType<CreateInvitationRequest> },
+      InviteMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -271,7 +274,7 @@ export const useInvite = <TError = ErrorType<ErrorResponse>, TContext = unknown>
 ): UseMutationResult<
   Awaited<ReturnType<typeof invite>>,
   TError,
-  { teamSlug: string; data: BodyType<CreateInvitationRequest> },
+  InviteMutationVariables,
   TContext
 > => {
   return useMutation(getInviteMutationOptions(options), queryClient)
@@ -292,6 +295,8 @@ export const revoke = (
   )
 }
 
+export const getRevokeMutationKey = () => ['revoke'] as const
+
 export const getRevokeMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -299,17 +304,17 @@ export const getRevokeMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof revoke>>,
     TError,
-    { teamSlug: string; invitationId: string },
+    RevokeMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof revoke>>,
   TError,
-  { teamSlug: string; invitationId: string },
+  RevokeMutationVariables,
   TContext
 > => {
-  const mutationKey = ['revoke']
+  const mutationKey = getRevokeMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -318,7 +323,7 @@ export const getRevokeMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof revoke>>,
-    { teamSlug: string; invitationId: string }
+    RevokeMutationVariables
   > = (props) => {
     const { teamSlug, invitationId } = props ?? {}
 
@@ -331,6 +336,7 @@ export const getRevokeMutationOptions = <
 export type RevokeMutationResult = NonNullable<Awaited<ReturnType<typeof revoke>>>
 
 export type RevokeMutationError = ErrorType<ErrorResponse>
+export type RevokeMutationVariables = { teamSlug: string; invitationId: string }
 
 /**
  * @summary Revoke an invitation
@@ -340,7 +346,7 @@ export const useRevoke = <TError = ErrorType<ErrorResponse>, TContext = unknown>
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof revoke>>,
       TError,
-      { teamSlug: string; invitationId: string },
+      RevokeMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -349,7 +355,7 @@ export const useRevoke = <TError = ErrorType<ErrorResponse>, TContext = unknown>
 ): UseMutationResult<
   Awaited<ReturnType<typeof revoke>>,
   TError,
-  { teamSlug: string; invitationId: string },
+  RevokeMutationVariables,
   TContext
 > => {
   return useMutation(getRevokeMutationOptions(options), queryClient)

@@ -32,6 +32,8 @@ export const backfillStravaIdentities = (
   )
 }
 
+export const getBackfillStravaIdentitiesMutationKey = () => ['backfillStravaIdentities'] as const
+
 export const getBackfillStravaIdentitiesMutationOptions = <
   TError = ErrorType<void | ErrorResponse>,
   TContext = unknown,
@@ -39,17 +41,17 @@ export const getBackfillStravaIdentitiesMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof backfillStravaIdentities>>,
     TError,
-    { params?: BackfillStravaIdentitiesParams },
+    BackfillStravaIdentitiesMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof backfillStravaIdentities>>,
   TError,
-  { params?: BackfillStravaIdentitiesParams },
+  BackfillStravaIdentitiesMutationVariables,
   TContext
 > => {
-  const mutationKey = ['backfillStravaIdentities']
+  const mutationKey = getBackfillStravaIdentitiesMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -58,7 +60,7 @@ export const getBackfillStravaIdentitiesMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof backfillStravaIdentities>>,
-    { params?: BackfillStravaIdentitiesParams }
+    BackfillStravaIdentitiesMutationVariables
   > = (props) => {
     const { params } = props ?? {}
 
@@ -73,6 +75,7 @@ export type BackfillStravaIdentitiesMutationResult = NonNullable<
 >
 
 export type BackfillStravaIdentitiesMutationError = ErrorType<void | ErrorResponse>
+export type BackfillStravaIdentitiesMutationVariables = { params?: BackfillStravaIdentitiesParams }
 
 /**
  * @summary Backfill Strava identities
@@ -85,7 +88,7 @@ export const useBackfillStravaIdentities = <
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof backfillStravaIdentities>>,
       TError,
-      { params?: BackfillStravaIdentitiesParams },
+      BackfillStravaIdentitiesMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -94,7 +97,7 @@ export const useBackfillStravaIdentities = <
 ): UseMutationResult<
   Awaited<ReturnType<typeof backfillStravaIdentities>>,
   TError,
-  { params?: BackfillStravaIdentitiesParams },
+  BackfillStravaIdentitiesMutationVariables,
   TContext
 > => {
   return useMutation(getBackfillStravaIdentitiesMutationOptions(options), queryClient)

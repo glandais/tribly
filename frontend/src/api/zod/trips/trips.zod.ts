@@ -170,7 +170,7 @@ export const CreateTripBody = zod
           .describe('Assets'),
       })
       .describe('Trip media'),
-    dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Trip status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     routeSlug: zod.string().optional().describe('Overall route slug for the trip'),
@@ -189,7 +189,7 @@ export const CreateTripBody = zod
               .max(createTripBodyStagesItemNameMax)
               .regex(createTripBodyStagesItemNameRegExp)
               .describe('Stage name'),
-            dateTime: zod.iso.datetime({ offset: true }).describe('Stage date\/time'),
+            dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
             routeSlug: zod.string().optional().describe('Route slug for this stage'),
             startPlaceId: zod.string().optional().describe('Start place ID (TSID)'),
             endPlaceId: zod.string().optional().describe('End place ID (TSID)'),
@@ -516,7 +516,7 @@ export const CreateTripResponse = zod
       .describe(
         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
       ),
-    dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date/time'),
     endDate: zod.iso
       .datetime({ offset: true })
       .optional()
@@ -549,7 +549,7 @@ export const CreateTripResponse = zod
             id: zod.string().describe('Stage ID (TSID)'),
             slug: zod.string().describe('Stage slug'),
             name: zod.string().describe('Stage name'),
-            dateTime: zod.iso.datetime({ offset: true }).describe('Stage date\/time'),
+            dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
             route: zod
               .object({
                 id: zod.string().describe('Route ID (TSID)'),
@@ -937,7 +937,7 @@ export const CreateTripResponse = zod
               ),
             stageCount: zod
               .int()
-              .describe("How many live stages the trip has — the '\/ 5' of 'Day 2 \/ 5'."),
+              .describe("How many live stages the trip has — the '/ 5' of 'Day 2 / 5'."),
           })
           .describe('Trip stage information')
       )
@@ -1145,7 +1145,7 @@ export const UpdateTripBody = zod
           .describe('Assets'),
       })
       .describe('Trip media'),
-    dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Trip status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     routeSlug: zod.string().optional().describe('Overall route slug for the trip'),
@@ -1164,7 +1164,7 @@ export const UpdateTripBody = zod
               .max(updateTripBodyStagesItemNameMax)
               .regex(updateTripBodyStagesItemNameRegExp)
               .describe('Stage name'),
-            dateTime: zod.iso.datetime({ offset: true }).describe('Stage date\/time'),
+            dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
             routeSlug: zod.string().optional().describe('Route slug for this stage'),
             startPlaceId: zod.string().optional().describe('Start place ID (TSID)'),
             endPlaceId: zod.string().optional().describe('End place ID (TSID)'),
@@ -1491,7 +1491,7 @@ export const UpdateTripResponse = zod
       .describe(
         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
       ),
-    dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date/time'),
     endDate: zod.iso
       .datetime({ offset: true })
       .optional()
@@ -1524,7 +1524,7 @@ export const UpdateTripResponse = zod
             id: zod.string().describe('Stage ID (TSID)'),
             slug: zod.string().describe('Stage slug'),
             name: zod.string().describe('Stage name'),
-            dateTime: zod.iso.datetime({ offset: true }).describe('Stage date\/time'),
+            dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
             route: zod
               .object({
                 id: zod.string().describe('Route ID (TSID)'),
@@ -1912,7 +1912,7 @@ export const UpdateTripResponse = zod
               ),
             stageCount: zod
               .int()
-              .describe("How many live stages the trip has — the '\/ 5' of 'Day 2 \/ 5'."),
+              .describe("How many live stages the trip has — the '/ 5' of 'Day 2 / 5'."),
           })
           .describe('Trip stage information')
       )
@@ -2127,7 +2127,7 @@ export const GetTripResponse = zod
       .describe(
         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
       ),
-    dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date/time'),
     endDate: zod.iso
       .datetime({ offset: true })
       .optional()
@@ -2160,7 +2160,7 @@ export const GetTripResponse = zod
             id: zod.string().describe('Stage ID (TSID)'),
             slug: zod.string().describe('Stage slug'),
             name: zod.string().describe('Stage name'),
-            dateTime: zod.iso.datetime({ offset: true }).describe('Stage date\/time'),
+            dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
             route: zod
               .object({
                 id: zod.string().describe('Route ID (TSID)'),
@@ -2548,7 +2548,7 @@ export const GetTripResponse = zod
               ),
             stageCount: zod
               .int()
-              .describe("How many live stages the trip has — the '\/ 5' of 'Day 2 \/ 5'."),
+              .describe("How many live stages the trip has — the '/ 5' of 'Day 2 / 5'."),
           })
           .describe('Trip stage information')
       )
@@ -2816,7 +2816,7 @@ export const ChangeTripSlugResponse = zod
       .describe(
         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
       ),
-    dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date/time'),
     endDate: zod.iso
       .datetime({ offset: true })
       .optional()
@@ -2849,7 +2849,7 @@ export const ChangeTripSlugResponse = zod
             id: zod.string().describe('Stage ID (TSID)'),
             slug: zod.string().describe('Stage slug'),
             name: zod.string().describe('Stage name'),
-            dateTime: zod.iso.datetime({ offset: true }).describe('Stage date\/time'),
+            dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
             route: zod
               .object({
                 id: zod.string().describe('Route ID (TSID)'),
@@ -3237,7 +3237,7 @@ export const ChangeTripSlugResponse = zod
               ),
             stageCount: zod
               .int()
-              .describe("How many live stages the trip has — the '\/ 5' of 'Day 2 \/ 5'."),
+              .describe("How many live stages the trip has — the '/ 5' of 'Day 2 / 5'."),
           })
           .describe('Trip stage information')
       )
@@ -3452,7 +3452,7 @@ export const UndeleteTripResponse = zod
       .describe(
         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
       ),
-    dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date/time'),
     endDate: zod.iso
       .datetime({ offset: true })
       .optional()
@@ -3485,7 +3485,7 @@ export const UndeleteTripResponse = zod
             id: zod.string().describe('Stage ID (TSID)'),
             slug: zod.string().describe('Stage slug'),
             name: zod.string().describe('Stage name'),
-            dateTime: zod.iso.datetime({ offset: true }).describe('Stage date\/time'),
+            dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
             route: zod
               .object({
                 id: zod.string().describe('Route ID (TSID)'),
@@ -3873,7 +3873,7 @@ export const UndeleteTripResponse = zod
               ),
             stageCount: zod
               .int()
-              .describe("How many live stages the trip has — the '\/ 5' of 'Day 2 \/ 5'."),
+              .describe("How many live stages the trip has — the '/ 5' of 'Day 2 / 5'."),
           })
           .describe('Trip stage information')
       )

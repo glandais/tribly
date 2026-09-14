@@ -16,7 +16,7 @@ export const RequestEmailChangeBody = zod
       .regex(requestEmailChangeBodyEmailRegExp)
       .describe('New email address'),
   })
-  .describe("Request to set\/change the account's real email address")
+  .describe("Request to set/change the account's real email address")
 
 export const RequestEmailChangeResponse = zod
   .object({
@@ -113,7 +113,7 @@ export const LoginWithPasswordResponse = zod
           .string()
           .optional()
           .describe(
-            "Preferred IANA timezone (e.g. 'Europe\/Paris'). Null means the user never chose one; the client then follows the browser."
+            "Preferred IANA timezone (e.g. 'Europe/Paris'). Null means the user never chose one; the client then follows the browser."
           ),
         contactableByMembers: zod
           .boolean()
@@ -266,7 +266,7 @@ export const VerifyOtpResponse = zod
           .string()
           .optional()
           .describe(
-            "Preferred IANA timezone (e.g. 'Europe\/Paris'). Null means the user never chose one; the client then follows the browser."
+            "Preferred IANA timezone (e.g. 'Europe/Paris'). Null means the user never chose one; the client then follows the browser."
           ),
         contactableByMembers: zod
           .boolean()
@@ -364,7 +364,7 @@ export const RefreshResponse = zod
           .string()
           .optional()
           .describe(
-            "Preferred IANA timezone (e.g. 'Europe\/Paris'). Null means the user never chose one; the client then follows the browser."
+            "Preferred IANA timezone (e.g. 'Europe/Paris'). Null means the user never chose one; the client then follows the browser."
           ),
         contactableByMembers: zod
           .boolean()
@@ -528,7 +528,7 @@ export const ResetPasswordResponse = zod
           .string()
           .optional()
           .describe(
-            "Preferred IANA timezone (e.g. 'Europe\/Paris'). Null means the user never chose one; the client then follows the browser."
+            "Preferred IANA timezone (e.g. 'Europe/Paris'). Null means the user never chose one; the client then follows the browser."
           ),
         contactableByMembers: zod
           .boolean()
@@ -639,7 +639,7 @@ export const VerifyEmailResponse = zod
           .string()
           .optional()
           .describe(
-            "Preferred IANA timezone (e.g. 'Europe\/Paris'). Null means the user never chose one; the client then follows the browser."
+            "Preferred IANA timezone (e.g. 'Europe/Paris'). Null means the user never chose one; the client then follows the browser."
           ),
         contactableByMembers: zod
           .boolean()

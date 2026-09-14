@@ -235,6 +235,8 @@ export const createRouteComment = (
   )
 }
 
+export const getCreateRouteCommentMutationKey = () => ['createRouteComment'] as const
+
 export const getCreateRouteCommentMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -242,17 +244,17 @@ export const getCreateRouteCommentMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createRouteComment>>,
     TError,
-    { teamSlug: string; entitySlug: string; data: BodyType<CommentRequest> },
+    CreateRouteCommentMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createRouteComment>>,
   TError,
-  { teamSlug: string; entitySlug: string; data: BodyType<CommentRequest> },
+  CreateRouteCommentMutationVariables,
   TContext
 > => {
-  const mutationKey = ['createRouteComment']
+  const mutationKey = getCreateRouteCommentMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -261,7 +263,7 @@ export const getCreateRouteCommentMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createRouteComment>>,
-    { teamSlug: string; entitySlug: string; data: BodyType<CommentRequest> }
+    CreateRouteCommentMutationVariables
   > = (props) => {
     const { teamSlug, entitySlug, data } = props ?? {}
 
@@ -276,6 +278,11 @@ export type CreateRouteCommentMutationResult = NonNullable<
 >
 export type CreateRouteCommentMutationBody = BodyType<CommentRequest>
 export type CreateRouteCommentMutationError = ErrorType<ErrorResponse | void>
+export type CreateRouteCommentMutationVariables = {
+  teamSlug: string
+  entitySlug: string
+  data: BodyType<CommentRequest>
+}
 
 /**
  * @summary Create route comment
@@ -285,7 +292,7 @@ export const useCreateRouteComment = <TError = ErrorType<ErrorResponse | void>, 
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createRouteComment>>,
       TError,
-      { teamSlug: string; entitySlug: string; data: BodyType<CommentRequest> },
+      CreateRouteCommentMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -294,7 +301,7 @@ export const useCreateRouteComment = <TError = ErrorType<ErrorResponse | void>, 
 ): UseMutationResult<
   Awaited<ReturnType<typeof createRouteComment>>,
   TError,
-  { teamSlug: string; entitySlug: string; data: BodyType<CommentRequest> },
+  CreateRouteCommentMutationVariables,
   TContext
 > => {
   return useMutation(getCreateRouteCommentMutationOptions(options), queryClient)
@@ -319,6 +326,8 @@ export const deleteRouteComment = (
   )
 }
 
+export const getDeleteRouteCommentMutationKey = () => ['deleteRouteComment'] as const
+
 export const getDeleteRouteCommentMutationOptions = <
   TError = ErrorType<void | ErrorResponse>,
   TContext = unknown,
@@ -326,17 +335,17 @@ export const getDeleteRouteCommentMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deleteRouteComment>>,
     TError,
-    { teamSlug: string; entitySlug: string; commentId: string },
+    DeleteRouteCommentMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteRouteComment>>,
   TError,
-  { teamSlug: string; entitySlug: string; commentId: string },
+  DeleteRouteCommentMutationVariables,
   TContext
 > => {
-  const mutationKey = ['deleteRouteComment']
+  const mutationKey = getDeleteRouteCommentMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -345,7 +354,7 @@ export const getDeleteRouteCommentMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteRouteComment>>,
-    { teamSlug: string; entitySlug: string; commentId: string }
+    DeleteRouteCommentMutationVariables
   > = (props) => {
     const { teamSlug, entitySlug, commentId } = props ?? {}
 
@@ -360,6 +369,11 @@ export type DeleteRouteCommentMutationResult = NonNullable<
 >
 
 export type DeleteRouteCommentMutationError = ErrorType<void | ErrorResponse>
+export type DeleteRouteCommentMutationVariables = {
+  teamSlug: string
+  entitySlug: string
+  commentId: string
+}
 
 /**
  * @summary Delete route comment
@@ -369,7 +383,7 @@ export const useDeleteRouteComment = <TError = ErrorType<void | ErrorResponse>, 
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deleteRouteComment>>,
       TError,
-      { teamSlug: string; entitySlug: string; commentId: string },
+      DeleteRouteCommentMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -378,7 +392,7 @@ export const useDeleteRouteComment = <TError = ErrorType<void | ErrorResponse>, 
 ): UseMutationResult<
   Awaited<ReturnType<typeof deleteRouteComment>>,
   TError,
-  { teamSlug: string; entitySlug: string; commentId: string },
+  DeleteRouteCommentMutationVariables,
   TContext
 > => {
   return useMutation(getDeleteRouteCommentMutationOptions(options), queryClient)

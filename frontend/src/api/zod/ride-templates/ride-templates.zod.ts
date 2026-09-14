@@ -51,7 +51,7 @@ export const ListTemplatesResponse = zod
                     id: zod.string().describe('Group ID (TSID)'),
                     name: zod.string().describe('Group name'),
                     time: zod.string().optional(),
-                    averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
+                    averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                     maxParticipants: zod.int().optional().describe('Maximum participants'),
                     sortOrder: zod.int().describe('Sort order'),
                   })
@@ -108,7 +108,7 @@ export const CreateTemplateBody = zod
               .regex(createTemplateBodyGroupsItemNameRegExp)
               .describe('Group name'),
             time: zod.string().optional(),
-            averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
+            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
             maxParticipants: zod.int().optional().describe('Maximum participants'),
           })
           .describe('Ride template group request')
@@ -145,7 +145,7 @@ export const CreateTemplateResponse = zod
             id: zod.string().describe('Group ID (TSID)'),
             name: zod.string().describe('Group name'),
             time: zod.string().optional(),
-            averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
+            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
             maxParticipants: zod.int().optional().describe('Maximum participants'),
             sortOrder: zod.int().describe('Sort order'),
           })
@@ -196,7 +196,7 @@ export const UpdateTemplateBody = zod
               .regex(updateTemplateBodyGroupsItemNameRegExp)
               .describe('Group name'),
             time: zod.string().optional(),
-            averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
+            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
             maxParticipants: zod.int().optional().describe('Maximum participants'),
           })
           .describe('Ride template group request')
@@ -233,7 +233,7 @@ export const UpdateTemplateResponse = zod
             id: zod.string().describe('Group ID (TSID)'),
             name: zod.string().describe('Group name'),
             time: zod.string().optional(),
-            averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
+            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
             maxParticipants: zod.int().optional().describe('Maximum participants'),
             sortOrder: zod.int().describe('Sort order'),
           })
@@ -280,7 +280,7 @@ export const GetTemplateResponse = zod
             id: zod.string().describe('Group ID (TSID)'),
             name: zod.string().describe('Group name'),
             time: zod.string().optional(),
-            averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
+            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
             maxParticipants: zod.int().optional().describe('Maximum participants'),
             sortOrder: zod.int().describe('Sort order'),
           })

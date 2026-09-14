@@ -63,6 +63,8 @@ export const accept = (
   )
 }
 
+export const getAcceptMutationKey = () => ['accept'] as const
+
 export const getAcceptMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -70,17 +72,17 @@ export const getAcceptMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof accept>>,
     TError,
-    { data: BodyType<AcceptInvitationRequest> },
+    AcceptMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof accept>>,
   TError,
-  { data: BodyType<AcceptInvitationRequest> },
+  AcceptMutationVariables,
   TContext
 > => {
-  const mutationKey = ['accept']
+  const mutationKey = getAcceptMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -89,7 +91,7 @@ export const getAcceptMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof accept>>,
-    { data: BodyType<AcceptInvitationRequest> }
+    AcceptMutationVariables
   > = (props) => {
     const { data } = props ?? {}
 
@@ -102,6 +104,7 @@ export const getAcceptMutationOptions = <
 export type AcceptMutationResult = NonNullable<Awaited<ReturnType<typeof accept>>>
 export type AcceptMutationBody = BodyType<AcceptInvitationRequest>
 export type AcceptMutationError = ErrorType<ErrorResponse>
+export type AcceptMutationVariables = { data: BodyType<AcceptInvitationRequest> }
 
 /**
  * @summary Accept an invitation
@@ -111,7 +114,7 @@ export const useAccept = <TError = ErrorType<ErrorResponse>, TContext = unknown>
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof accept>>,
       TError,
-      { data: BodyType<AcceptInvitationRequest> },
+      AcceptMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -120,7 +123,7 @@ export const useAccept = <TError = ErrorType<ErrorResponse>, TContext = unknown>
 ): UseMutationResult<
   Awaited<ReturnType<typeof accept>>,
   TError,
-  { data: BodyType<AcceptInvitationRequest> },
+  AcceptMutationVariables,
   TContext
 > => {
   return useMutation(getAcceptMutationOptions(options), queryClient)
@@ -146,6 +149,8 @@ export const preview = (
   )
 }
 
+export const getPreviewMutationKey = () => ['preview'] as const
+
 export const getPreviewMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -153,17 +158,17 @@ export const getPreviewMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof preview>>,
     TError,
-    { data: BodyType<AcceptInvitationRequest> },
+    PreviewMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof preview>>,
   TError,
-  { data: BodyType<AcceptInvitationRequest> },
+  PreviewMutationVariables,
   TContext
 > => {
-  const mutationKey = ['preview']
+  const mutationKey = getPreviewMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -172,7 +177,7 @@ export const getPreviewMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof preview>>,
-    { data: BodyType<AcceptInvitationRequest> }
+    PreviewMutationVariables
   > = (props) => {
     const { data } = props ?? {}
 
@@ -185,6 +190,7 @@ export const getPreviewMutationOptions = <
 export type PreviewMutationResult = NonNullable<Awaited<ReturnType<typeof preview>>>
 export type PreviewMutationBody = BodyType<AcceptInvitationRequest>
 export type PreviewMutationError = ErrorType<ErrorResponse>
+export type PreviewMutationVariables = { data: BodyType<AcceptInvitationRequest> }
 
 /**
  * @summary Read an invitation
@@ -194,7 +200,7 @@ export const usePreview = <TError = ErrorType<ErrorResponse>, TContext = unknown
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof preview>>,
       TError,
-      { data: BodyType<AcceptInvitationRequest> },
+      PreviewMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -203,7 +209,7 @@ export const usePreview = <TError = ErrorType<ErrorResponse>, TContext = unknown
 ): UseMutationResult<
   Awaited<ReturnType<typeof preview>>,
   TError,
-  { data: BodyType<AcceptInvitationRequest> },
+  PreviewMutationVariables,
   TContext
 > => {
   return useMutation(getPreviewMutationOptions(options), queryClient)
@@ -356,6 +362,8 @@ export const acceptMyInvitation = (
   )
 }
 
+export const getAcceptMyInvitationMutationKey = () => ['acceptMyInvitation'] as const
+
 export const getAcceptMyInvitationMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -363,17 +371,17 @@ export const getAcceptMyInvitationMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof acceptMyInvitation>>,
     TError,
-    { invitationId: string },
+    AcceptMyInvitationMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof acceptMyInvitation>>,
   TError,
-  { invitationId: string },
+  AcceptMyInvitationMutationVariables,
   TContext
 > => {
-  const mutationKey = ['acceptMyInvitation']
+  const mutationKey = getAcceptMyInvitationMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -382,7 +390,7 @@ export const getAcceptMyInvitationMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof acceptMyInvitation>>,
-    { invitationId: string }
+    AcceptMyInvitationMutationVariables
   > = (props) => {
     const { invitationId } = props ?? {}
 
@@ -397,6 +405,7 @@ export type AcceptMyInvitationMutationResult = NonNullable<
 >
 
 export type AcceptMyInvitationMutationError = ErrorType<ErrorResponse>
+export type AcceptMyInvitationMutationVariables = { invitationId: string }
 
 /**
  * @summary Accept one of my invitations
@@ -406,7 +415,7 @@ export const useAcceptMyInvitation = <TError = ErrorType<ErrorResponse>, TContex
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof acceptMyInvitation>>,
       TError,
-      { invitationId: string },
+      AcceptMyInvitationMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -415,7 +424,7 @@ export const useAcceptMyInvitation = <TError = ErrorType<ErrorResponse>, TContex
 ): UseMutationResult<
   Awaited<ReturnType<typeof acceptMyInvitation>>,
   TError,
-  { invitationId: string },
+  AcceptMyInvitationMutationVariables,
   TContext
 > => {
   return useMutation(getAcceptMyInvitationMutationOptions(options), queryClient)

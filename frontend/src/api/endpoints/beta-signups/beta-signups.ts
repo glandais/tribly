@@ -34,6 +34,8 @@ export const signUpForBeta = (
   )
 }
 
+export const getSignUpForBetaMutationKey = () => ['signUpForBeta'] as const
+
 export const getSignUpForBetaMutationOptions = <
   TError = ErrorType<void>,
   TContext = unknown,
@@ -41,17 +43,17 @@ export const getSignUpForBetaMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof signUpForBeta>>,
     TError,
-    { data: BodyType<BetaSignupRequest> },
+    SignUpForBetaMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof signUpForBeta>>,
   TError,
-  { data: BodyType<BetaSignupRequest> },
+  SignUpForBetaMutationVariables,
   TContext
 > => {
-  const mutationKey = ['signUpForBeta']
+  const mutationKey = getSignUpForBetaMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -60,7 +62,7 @@ export const getSignUpForBetaMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof signUpForBeta>>,
-    { data: BodyType<BetaSignupRequest> }
+    SignUpForBetaMutationVariables
   > = (props) => {
     const { data } = props ?? {}
 
@@ -73,6 +75,7 @@ export const getSignUpForBetaMutationOptions = <
 export type SignUpForBetaMutationResult = NonNullable<Awaited<ReturnType<typeof signUpForBeta>>>
 export type SignUpForBetaMutationBody = BodyType<BetaSignupRequest>
 export type SignUpForBetaMutationError = ErrorType<void>
+export type SignUpForBetaMutationVariables = { data: BodyType<BetaSignupRequest> }
 
 /**
  * @summary Sign up for a beta program
@@ -82,7 +85,7 @@ export const useSignUpForBeta = <TError = ErrorType<void>, TContext = unknown>(
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof signUpForBeta>>,
       TError,
-      { data: BodyType<BetaSignupRequest> },
+      SignUpForBetaMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -91,7 +94,7 @@ export const useSignUpForBeta = <TError = ErrorType<void>, TContext = unknown>(
 ): UseMutationResult<
   Awaited<ReturnType<typeof signUpForBeta>>,
   TError,
-  { data: BodyType<BetaSignupRequest> },
+  SignUpForBetaMutationVariables,
   TContext
 > => {
   return useMutation(getSignUpForBetaMutationOptions(options), queryClient)

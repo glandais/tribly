@@ -18,7 +18,7 @@ export const GetConfigResponse = zod
       .string()
       .optional()
       .describe(
-        'Slug of the team the site is pinned to (dedicated hostname \/ alias). Null on a regular multi-team domain. When set, the app roots on this team.'
+        'Slug of the team the site is pinned to (dedicated hostname / alias). Null on a regular multi-team domain. When set, the app roots on this team.'
       ),
     mapStyles: zod
       .array(
@@ -34,7 +34,7 @@ export const GetConfigResponse = zod
             url: zod
               .string()
               .describe(
-                'URL of the MapLibre style document to load in light mode (or at all times when darkVariant is null). Either a third-party style document or, for a raster basemap the server wraps itself, a URL on \/api\/map\/styles\/{id}.json.'
+                'URL of the MapLibre style document to load in light mode (or at all times when darkVariant is null). Either a third-party style document or, for a raster basemap the server wraps itself, a URL on /api/map/styles/{id}.json.'
               ),
             darkVariant: zod
               .string()
@@ -46,7 +46,7 @@ export const GetConfigResponse = zod
               .string()
               .optional()
               .describe(
-                'Credit the style document does not declare itself, to be displayed IN ADDITION to the attribution the map engine derives from that document — not instead of it. Null for a style that credits itself (most of them) and for a raster basemap, whose credit is already on the source of the wrapper served at \/api\/map\/styles\/{id}.json. Non-null only where the provider ships no attribution at all, which would otherwise render the basemap uncredited.'
+                'Credit the style document does not declare itself, to be displayed IN ADDITION to the attribution the map engine derives from that document — not instead of it. Null for a style that credits itself (most of them) and for a raster basemap, whose credit is already on the source of the wrapper served at /api/map/styles/{id}.json. Non-null only where the provider ships no attribution at all, which would otherwise render the basemap uncredited.'
               ),
           })
           .describe('A basemap style the clients may offer')

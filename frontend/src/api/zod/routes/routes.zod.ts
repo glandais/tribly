@@ -30,7 +30,7 @@ export const ListAllRoutesQueryParams = zod.object({
     .optional()
     .describe('Search near START, END, or START_OR_END (default)'),
   page: zod.int().default(listAllRoutesQueryPageDefault).describe('Page number (0-indexed)'),
-  search: zod.string().optional().describe('Search by name\/markdown'),
+  search: zod.string().optional().describe('Search by name/markdown'),
   size: zod.int().default(listAllRoutesQuerySizeDefault).describe('Page size'),
   sortBy: zod
     .enum(['DISTANCE', 'ELEVATION_GAIN', 'HILLINESS', 'DATE_TIME'])
@@ -291,7 +291,7 @@ export const GetAllRoutesBoundsQueryParams = zod.object({
     .enum(['START', 'END', 'START_OR_END'])
     .optional()
     .describe('Search near START, END, or START_OR_END (default)'),
-  search: zod.string().optional().describe('Search by name\/markdown'),
+  search: zod.string().optional().describe('Search by name/markdown'),
   surfaceType: zod
     .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
     .optional()
@@ -351,7 +351,7 @@ export const CountAllRoutesQueryParams = zod.object({
     .enum(['START', 'END', 'START_OR_END'])
     .optional()
     .describe('Search near START, END, or START_OR_END (default)'),
-  search: zod.string().optional().describe('Search by name\/markdown'),
+  search: zod.string().optional().describe('Search by name/markdown'),
   surfaceType: zod
     .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
     .optional()
@@ -409,7 +409,7 @@ export const AllRoutesTileQueryParams = zod.object({
     .enum(['START', 'END', 'START_OR_END'])
     .optional()
     .describe('Search near START, END, or START_OR_END (default)'),
-  search: zod.string().optional().describe('Search by name\/markdown'),
+  search: zod.string().optional().describe('Search by name/markdown'),
   surfaceType: zod
     .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
     .optional()
@@ -418,7 +418,7 @@ export const AllRoutesTileQueryParams = zod.object({
     .string()
     .optional()
     .describe(
-      'Tile token from POST \/api\/tiles\/token, for clients whose map renderer cannot carry an Authorization header. Omitted, the request falls back to the session cookie and then to the anonymous visitor.'
+      'Tile token from POST /api/tiles/token, for clients whose map renderer cannot carry an Authorization header. Omitted, the request falls back to the session cookie and then to the anonymous visitor.'
     ),
   windDirection: zod
     .enum([
@@ -465,7 +465,7 @@ export const ListRoutesQueryParams = zod.object({
     .optional()
     .describe('Search near START, END, or START_OR_END (default)'),
   page: zod.int().default(listRoutesQueryPageDefault).describe('Page number (0-indexed)'),
-  search: zod.string().optional().describe('Search by name\/markdown'),
+  search: zod.string().optional().describe('Search by name/markdown'),
   size: zod.int().default(listRoutesQuerySizeDefault).describe('Page size'),
   sortBy: zod
     .enum(['DISTANCE', 'ELEVATION_GAIN', 'HILLINESS', 'DATE_TIME'])
@@ -885,7 +885,7 @@ export const CreateRouteBody = zod.object({
     })
     .optional()
     .describe('Route update request'),
-  gpxFile: zod.instanceof(File).optional(),
+  gpxFile: zod.instanceof(Blob).optional(),
 })
 
 export const CreateRouteResponse = zod
@@ -1104,7 +1104,7 @@ export const GetRoutesBoundsQueryParams = zod.object({
     .enum(['START', 'END', 'START_OR_END'])
     .optional()
     .describe('Search near START, END, or START_OR_END (default)'),
-  search: zod.string().optional().describe('Search by name\/markdown'),
+  search: zod.string().optional().describe('Search by name/markdown'),
   surfaceType: zod
     .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
     .optional()
@@ -1159,7 +1159,7 @@ export const GetRoutesBulkQueryParams = zod.object({
     .array(zod.string())
     .optional()
     .describe(
-      "Route slug to include, repeatable. Capped at 50; unknown slugs and slugs the caller may not read are silently omitted from the response rather than erroring. Unlike GET \/{routeSlug}, a slug that was renamed is also omitted rather than followed to the route's current slug: the single-route endpoint falls back to the rename history, this one does not. Same 'omit, never fail' contract as an unknown or unreadable slug, just for a different reason."
+      "Route slug to include, repeatable. Capped at 50; unknown slugs and slugs the caller may not read are silently omitted from the response rather than erroring. Unlike GET /{routeSlug}, a slug that was renamed is also omitted rather than followed to the route's current slug: the single-route endpoint falls back to the rename history, this one does not. Same 'omit, never fail' contract as an unknown or unreadable slug, just for a different reason."
     ),
 })
 
@@ -1474,7 +1474,7 @@ export const CountRoutesQueryParams = zod.object({
     .enum(['START', 'END', 'START_OR_END'])
     .optional()
     .describe('Search near START, END, or START_OR_END (default)'),
-  search: zod.string().optional().describe('Search by name\/markdown'),
+  search: zod.string().optional().describe('Search by name/markdown'),
   surfaceType: zod
     .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
     .optional()
@@ -1527,7 +1527,7 @@ export const RoutesTileQueryParams = zod.object({
     .enum(['START', 'END', 'START_OR_END'])
     .optional()
     .describe('Search near START, END, or START_OR_END (default)'),
-  search: zod.string().optional().describe('Search by name\/markdown'),
+  search: zod.string().optional().describe('Search by name/markdown'),
   surfaceType: zod
     .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
     .optional()
@@ -1536,7 +1536,7 @@ export const RoutesTileQueryParams = zod.object({
     .string()
     .optional()
     .describe(
-      'Tile token from POST \/api\/tiles\/token, for clients whose map renderer cannot carry an Authorization header. Omitted, the request falls back to the session cookie and then to the anonymous visitor.'
+      'Tile token from POST /api/tiles/token, for clients whose map renderer cannot carry an Authorization header. Omitted, the request falls back to the session cookie and then to the anonymous visitor.'
     ),
   windDirection: zod
     .enum([
@@ -1741,7 +1741,7 @@ export const UpdateRouteBody = zod.object({
     })
     .optional()
     .describe('Route update request'),
-  gpxFile: zod.instanceof(File).optional(),
+  gpxFile: zod.instanceof(Blob).optional(),
 })
 
 export const UpdateRouteResponse = zod
@@ -2798,7 +2798,7 @@ export const GetRouteUsagesResponse = zod
             type: zod.enum(['RIDE', 'POST', 'TRIP']).describe('Publication type (RIDE or TRIP)'),
             slug: zod.string().describe('Publication URL slug'),
             name: zod.string().describe('Publication name'),
-            dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
+            dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
             teamSlug: zod.string().describe('Slug of the team owning the publication'),
             referencedDirectly: zod
               .boolean()

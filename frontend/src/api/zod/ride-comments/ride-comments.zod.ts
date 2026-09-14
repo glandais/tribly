@@ -60,7 +60,7 @@ export const ListRideCommentsResponse = zod
     itemTotal: zod
       .int()
       .describe(
-        'How many items exist in the mode that was asked for: top-level comments normally, or replies of the requested parentId. This is what page\/size iterate over.'
+        'How many items exist in the mode that was asked for: top-level comments normally, or replies of the requested parentId. This is what page/size iterate over.'
       ),
     page: zod.int().describe('Page number of items (0-indexed)'),
     size: zod

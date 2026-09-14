@@ -78,7 +78,7 @@ export const PreviewResponse = zod
     teamName: zod.string().describe('Team name'),
     teamSlug: zod.string().describe('Team URL slug'),
     inviterName: zod.string().describe('Display name of whoever sent the invitation'),
-    maskedEmail: zod.string().describe('Invited address, masked (a\*\*\*@example.com)'),
+    maskedEmail: zod.string().describe('Invited address, masked (a***@example.com)'),
     role: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']).describe('Role granted on acceptance'),
     status: zod
       .enum(['PENDING', 'ACCEPTED', 'REVOKED', 'EXPIRED'])

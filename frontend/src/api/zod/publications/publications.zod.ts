@@ -23,7 +23,7 @@ export const ListAllPublicationsQueryParams = zod.object({
     .describe(
       'Only publications the current user is registered to (rides and trips). Yields nothing for an anonymous visitor.'
     ),
-  search: zod.string().optional().describe('Search by name\/markdown'),
+  search: zod.string().optional().describe('Search by name/markdown'),
   size: zod.int().default(listAllPublicationsQuerySizeDefault).describe('Page size'),
   status: zod
     .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
@@ -216,7 +216,7 @@ export const ListAllPublicationsResponse = zod
                   .describe(
                     "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
                   ),
-                dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
+                dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
                 status: zod
                   .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                   .describe('Publication status'),
@@ -242,7 +242,7 @@ export const ListAllPublicationsResponse = zod
                         name: zod.string().describe('Group name'),
                         time: zod.string().optional(),
                         routeSlug: zod.string().optional().describe('Route slug'),
-                        averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
+                        averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                         maxParticipants: zod.int().optional().describe('Maximum participants'),
                         countParticipants: zod.int().describe('Current number of participants'),
                         participants: zod
@@ -550,7 +550,7 @@ export const ListAllPublicationsResponse = zod
                   .describe(
                     "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
                   ),
-                dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
+                dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
                 status: zod
                   .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                   .describe('Publication status'),
@@ -743,7 +743,7 @@ export const ListAllPublicationsResponse = zod
                   .describe(
                     "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
                   ),
-                dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date\/time'),
+                dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date/time'),
                 endDate: zod.iso
                   .datetime({ offset: true })
                   .optional()
@@ -786,7 +786,7 @@ export const ListAllPublicationsResponse = zod
                         id: zod.string().describe('Stage ID (TSID)'),
                         slug: zod.string().describe('Stage slug'),
                         name: zod.string().describe('Stage name'),
-                        dateTime: zod.iso.datetime({ offset: true }).describe('Stage date\/time'),
+                        dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
                         route: zod
                           .object({
                             id: zod.string().describe('Route ID (TSID)'),
@@ -1227,7 +1227,7 @@ export const ListAllPublicationsResponse = zod
                         stageCount: zod
                           .int()
                           .describe(
-                            "How many live stages the trip has — the '\/ 5' of 'Day 2 \/ 5'."
+                            "How many live stages the trip has — the '/ 5' of 'Day 2 / 5'."
                           ),
                       })
                       .describe('Trip stage information')
@@ -1303,7 +1303,7 @@ export const CountAllPublicationsQueryParams = zod.object({
     .describe(
       'Only publications the current user is registered to (rides and trips). Yields zero for an anonymous visitor.'
     ),
-  search: zod.string().optional().describe('Search by name\/markdown'),
+  search: zod.string().optional().describe('Search by name/markdown'),
   status: zod
     .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
     .optional()
@@ -1341,7 +1341,7 @@ export const ListPublicationsQueryParams = zod.object({
     .describe(
       'Only publications the current user is registered to (rides and trips). Yields nothing for an anonymous visitor.'
     ),
-  search: zod.string().optional().describe('Search by name\/markdown'),
+  search: zod.string().optional().describe('Search by name/markdown'),
   size: zod.int().default(listPublicationsQuerySizeDefault).describe('Page size'),
   status: zod
     .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
@@ -1534,7 +1534,7 @@ export const ListPublicationsResponse = zod
                   .describe(
                     "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
                   ),
-                dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
+                dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
                 status: zod
                   .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                   .describe('Publication status'),
@@ -1560,7 +1560,7 @@ export const ListPublicationsResponse = zod
                         name: zod.string().describe('Group name'),
                         time: zod.string().optional(),
                         routeSlug: zod.string().optional().describe('Route slug'),
-                        averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
+                        averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                         maxParticipants: zod.int().optional().describe('Maximum participants'),
                         countParticipants: zod.int().describe('Current number of participants'),
                         participants: zod
@@ -1868,7 +1868,7 @@ export const ListPublicationsResponse = zod
                   .describe(
                     "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
                   ),
-                dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
+                dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
                 status: zod
                   .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                   .describe('Publication status'),
@@ -2061,7 +2061,7 @@ export const ListPublicationsResponse = zod
                   .describe(
                     "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
                   ),
-                dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date\/time'),
+                dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date/time'),
                 endDate: zod.iso
                   .datetime({ offset: true })
                   .optional()
@@ -2104,7 +2104,7 @@ export const ListPublicationsResponse = zod
                         id: zod.string().describe('Stage ID (TSID)'),
                         slug: zod.string().describe('Stage slug'),
                         name: zod.string().describe('Stage name'),
-                        dateTime: zod.iso.datetime({ offset: true }).describe('Stage date\/time'),
+                        dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
                         route: zod
                           .object({
                             id: zod.string().describe('Route ID (TSID)'),
@@ -2545,7 +2545,7 @@ export const ListPublicationsResponse = zod
                         stageCount: zod
                           .int()
                           .describe(
-                            "How many live stages the trip has — the '\/ 5' of 'Day 2 \/ 5'."
+                            "How many live stages the trip has — the '/ 5' of 'Day 2 / 5'."
                           ),
                       })
                       .describe('Trip stage information')
@@ -2619,7 +2619,7 @@ export const CountPublicationsQueryParams = zod.object({
     .describe(
       'Only publications the current user is registered to (rides and trips). Yields zero for an anonymous visitor.'
     ),
-  search: zod.string().optional().describe('Search by name\/markdown'),
+  search: zod.string().optional().describe('Search by name/markdown'),
   status: zod
     .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
     .optional()

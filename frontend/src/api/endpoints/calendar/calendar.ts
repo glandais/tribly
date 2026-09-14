@@ -463,6 +463,8 @@ export const regenerateToken = (
   )
 }
 
+export const getRegenerateTokenMutationKey = () => ['regenerateToken'] as const
+
 export const getRegenerateTokenMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -470,7 +472,7 @@ export const getRegenerateTokenMutationOptions = <
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof regenerateToken>>, TError, void, TContext>
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<Awaited<ReturnType<typeof regenerateToken>>, TError, void, TContext> => {
-  const mutationKey = ['regenerateToken']
+  const mutationKey = getRegenerateTokenMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options

@@ -347,6 +347,8 @@ export const adminUpdateTeamAttributes = (
   )
 }
 
+export const getAdminUpdateTeamAttributesMutationKey = () => ['adminUpdateTeamAttributes'] as const
+
 export const getAdminUpdateTeamAttributesMutationOptions = <
   TError = ErrorType<void | ErrorResponse>,
   TContext = unknown,
@@ -354,17 +356,17 @@ export const getAdminUpdateTeamAttributesMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof adminUpdateTeamAttributes>>,
     TError,
-    { teamId: string; data: BodyType<AdminTeamAttributesRequest> },
+    AdminUpdateTeamAttributesMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof adminUpdateTeamAttributes>>,
   TError,
-  { teamId: string; data: BodyType<AdminTeamAttributesRequest> },
+  AdminUpdateTeamAttributesMutationVariables,
   TContext
 > => {
-  const mutationKey = ['adminUpdateTeamAttributes']
+  const mutationKey = getAdminUpdateTeamAttributesMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -373,7 +375,7 @@ export const getAdminUpdateTeamAttributesMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof adminUpdateTeamAttributes>>,
-    { teamId: string; data: BodyType<AdminTeamAttributesRequest> }
+    AdminUpdateTeamAttributesMutationVariables
   > = (props) => {
     const { teamId, data } = props ?? {}
 
@@ -388,6 +390,10 @@ export type AdminUpdateTeamAttributesMutationResult = NonNullable<
 >
 export type AdminUpdateTeamAttributesMutationBody = BodyType<AdminTeamAttributesRequest>
 export type AdminUpdateTeamAttributesMutationError = ErrorType<void | ErrorResponse>
+export type AdminUpdateTeamAttributesMutationVariables = {
+  teamId: string
+  data: BodyType<AdminTeamAttributesRequest>
+}
 
 /**
  * @summary Update team governance attributes
@@ -400,7 +406,7 @@ export const useAdminUpdateTeamAttributes = <
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof adminUpdateTeamAttributes>>,
       TError,
-      { teamId: string; data: BodyType<AdminTeamAttributesRequest> },
+      AdminUpdateTeamAttributesMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -409,7 +415,7 @@ export const useAdminUpdateTeamAttributes = <
 ): UseMutationResult<
   Awaited<ReturnType<typeof adminUpdateTeamAttributes>>,
   TError,
-  { teamId: string; data: BodyType<AdminTeamAttributesRequest> },
+  AdminUpdateTeamAttributesMutationVariables,
   TContext
 > => {
   return useMutation(getAdminUpdateTeamAttributesMutationOptions(options), queryClient)
@@ -429,6 +435,8 @@ export const adminToggleTeamDeleted = (
   )
 }
 
+export const getAdminToggleTeamDeletedMutationKey = () => ['adminToggleTeamDeleted'] as const
+
 export const getAdminToggleTeamDeletedMutationOptions = <
   TError = ErrorType<void | ErrorResponse>,
   TContext = unknown,
@@ -436,17 +444,17 @@ export const getAdminToggleTeamDeletedMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof adminToggleTeamDeleted>>,
     TError,
-    { teamId: string },
+    AdminToggleTeamDeletedMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof adminToggleTeamDeleted>>,
   TError,
-  { teamId: string },
+  AdminToggleTeamDeletedMutationVariables,
   TContext
 > => {
-  const mutationKey = ['adminToggleTeamDeleted']
+  const mutationKey = getAdminToggleTeamDeletedMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -455,7 +463,7 @@ export const getAdminToggleTeamDeletedMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof adminToggleTeamDeleted>>,
-    { teamId: string }
+    AdminToggleTeamDeletedMutationVariables
   > = (props) => {
     const { teamId } = props ?? {}
 
@@ -470,6 +478,7 @@ export type AdminToggleTeamDeletedMutationResult = NonNullable<
 >
 
 export type AdminToggleTeamDeletedMutationError = ErrorType<void | ErrorResponse>
+export type AdminToggleTeamDeletedMutationVariables = { teamId: string }
 
 /**
  * @summary Toggle team deleted
@@ -482,7 +491,7 @@ export const useAdminToggleTeamDeleted = <
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof adminToggleTeamDeleted>>,
       TError,
-      { teamId: string },
+      AdminToggleTeamDeletedMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -491,7 +500,7 @@ export const useAdminToggleTeamDeleted = <
 ): UseMutationResult<
   Awaited<ReturnType<typeof adminToggleTeamDeleted>>,
   TError,
-  { teamId: string },
+  AdminToggleTeamDeletedMutationVariables,
   TContext
 > => {
   return useMutation(getAdminToggleTeamDeletedMutationOptions(options), queryClient)

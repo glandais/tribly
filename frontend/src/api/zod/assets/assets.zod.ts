@@ -12,7 +12,7 @@ export const UploadAssetQueryParams = zod.object({
 })
 
 export const UploadAssetBody = zod.object({
-  file: zod.instanceof(File).optional(),
+  file: zod.instanceof(Blob).optional(),
 })
 
 export const UploadAssetResponse = zod.object({

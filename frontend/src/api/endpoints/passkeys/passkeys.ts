@@ -193,6 +193,8 @@ export const authenticate = (
   )
 }
 
+export const getAuthenticateMutationKey = () => ['authenticate'] as const
+
 export const getAuthenticateMutationOptions = <
   TError = ErrorType<void | ErrorResponse>,
   TContext = unknown,
@@ -200,17 +202,17 @@ export const getAuthenticateMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof authenticate>>,
     TError,
-    { data: BodyType<AuthenticateBody> },
+    AuthenticateMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof authenticate>>,
   TError,
-  { data: BodyType<AuthenticateBody> },
+  AuthenticateMutationVariables,
   TContext
 > => {
-  const mutationKey = ['authenticate']
+  const mutationKey = getAuthenticateMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -219,7 +221,7 @@ export const getAuthenticateMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof authenticate>>,
-    { data: BodyType<AuthenticateBody> }
+    AuthenticateMutationVariables
   > = (props) => {
     const { data } = props ?? {}
 
@@ -232,6 +234,7 @@ export const getAuthenticateMutationOptions = <
 export type AuthenticateMutationResult = NonNullable<Awaited<ReturnType<typeof authenticate>>>
 export type AuthenticateMutationBody = BodyType<AuthenticateBody>
 export type AuthenticateMutationError = ErrorType<void | ErrorResponse>
+export type AuthenticateMutationVariables = { data: BodyType<AuthenticateBody> }
 
 /**
  * @summary Authenticate with passkey
@@ -241,7 +244,7 @@ export const useAuthenticate = <TError = ErrorType<void | ErrorResponse>, TConte
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof authenticate>>,
       TError,
-      { data: BodyType<AuthenticateBody> },
+      AuthenticateMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -250,7 +253,7 @@ export const useAuthenticate = <TError = ErrorType<void | ErrorResponse>, TConte
 ): UseMutationResult<
   Awaited<ReturnType<typeof authenticate>>,
   TError,
-  { data: BodyType<AuthenticateBody> },
+  AuthenticateMutationVariables,
   TContext
 > => {
   return useMutation(getAuthenticateMutationOptions(options), queryClient)
@@ -276,6 +279,8 @@ export const getAuthenticationOptions = (
   )
 }
 
+export const getGetAuthenticationOptionsMutationKey = () => ['getAuthenticationOptions'] as const
+
 export const getGetAuthenticationOptionsMutationOptions = <
   TError = ErrorType<void>,
   TContext = unknown,
@@ -283,17 +288,17 @@ export const getGetAuthenticationOptionsMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof getAuthenticationOptions>>,
     TError,
-    { data: BodyType<PasskeyAuthenticationRequest> },
+    GetAuthenticationOptionsMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof getAuthenticationOptions>>,
   TError,
-  { data: BodyType<PasskeyAuthenticationRequest> },
+  GetAuthenticationOptionsMutationVariables,
   TContext
 > => {
-  const mutationKey = ['getAuthenticationOptions']
+  const mutationKey = getGetAuthenticationOptionsMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -302,7 +307,7 @@ export const getGetAuthenticationOptionsMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof getAuthenticationOptions>>,
-    { data: BodyType<PasskeyAuthenticationRequest> }
+    GetAuthenticationOptionsMutationVariables
   > = (props) => {
     const { data } = props ?? {}
 
@@ -317,6 +322,9 @@ export type GetAuthenticationOptionsMutationResult = NonNullable<
 >
 export type GetAuthenticationOptionsMutationBody = BodyType<PasskeyAuthenticationRequest>
 export type GetAuthenticationOptionsMutationError = ErrorType<void>
+export type GetAuthenticationOptionsMutationVariables = {
+  data: BodyType<PasskeyAuthenticationRequest>
+}
 
 /**
  * @summary Get authentication options
@@ -326,7 +334,7 @@ export const useGetAuthenticationOptions = <TError = ErrorType<void>, TContext =
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof getAuthenticationOptions>>,
       TError,
-      { data: BodyType<PasskeyAuthenticationRequest> },
+      GetAuthenticationOptionsMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -335,7 +343,7 @@ export const useGetAuthenticationOptions = <TError = ErrorType<void>, TContext =
 ): UseMutationResult<
   Awaited<ReturnType<typeof getAuthenticationOptions>>,
   TError,
-  { data: BodyType<PasskeyAuthenticationRequest> },
+  GetAuthenticationOptionsMutationVariables,
   TContext
 > => {
   return useMutation(getGetAuthenticationOptionsMutationOptions(options), queryClient)
@@ -363,6 +371,8 @@ export const registerPasskey = (
   )
 }
 
+export const getRegisterPasskeyMutationKey = () => ['registerPasskey'] as const
+
 export const getRegisterPasskeyMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -370,17 +380,17 @@ export const getRegisterPasskeyMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof registerPasskey>>,
     TError,
-    { data: BodyType<RegisterPasskeyBody>; params?: RegisterPasskeyParams },
+    RegisterPasskeyMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof registerPasskey>>,
   TError,
-  { data: BodyType<RegisterPasskeyBody>; params?: RegisterPasskeyParams },
+  RegisterPasskeyMutationVariables,
   TContext
 > => {
-  const mutationKey = ['registerPasskey']
+  const mutationKey = getRegisterPasskeyMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -389,7 +399,7 @@ export const getRegisterPasskeyMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof registerPasskey>>,
-    { data: BodyType<RegisterPasskeyBody>; params?: RegisterPasskeyParams }
+    RegisterPasskeyMutationVariables
   > = (props) => {
     const { data, params } = props ?? {}
 
@@ -402,6 +412,10 @@ export const getRegisterPasskeyMutationOptions = <
 export type RegisterPasskeyMutationResult = NonNullable<Awaited<ReturnType<typeof registerPasskey>>>
 export type RegisterPasskeyMutationBody = BodyType<RegisterPasskeyBody>
 export type RegisterPasskeyMutationError = ErrorType<ErrorResponse | void>
+export type RegisterPasskeyMutationVariables = {
+  data: BodyType<RegisterPasskeyBody>
+  params?: RegisterPasskeyParams
+}
 
 /**
  * @summary Register passkey
@@ -411,7 +425,7 @@ export const useRegisterPasskey = <TError = ErrorType<ErrorResponse | void>, TCo
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof registerPasskey>>,
       TError,
-      { data: BodyType<RegisterPasskeyBody>; params?: RegisterPasskeyParams },
+      RegisterPasskeyMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -420,7 +434,7 @@ export const useRegisterPasskey = <TError = ErrorType<ErrorResponse | void>, TCo
 ): UseMutationResult<
   Awaited<ReturnType<typeof registerPasskey>>,
   TError,
-  { data: BodyType<RegisterPasskeyBody>; params?: RegisterPasskeyParams },
+  RegisterPasskeyMutationVariables,
   TContext
 > => {
   return useMutation(getRegisterPasskeyMutationOptions(options), queryClient)
@@ -582,6 +596,8 @@ export const deletePasskey = (
   return axiosMutator<void>({ url: `/api/auth/passkeys/${id}`, method: 'DELETE', signal }, options)
 }
 
+export const getDeletePasskeyMutationKey = () => ['deletePasskey'] as const
+
 export const getDeletePasskeyMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -589,26 +605,27 @@ export const getDeletePasskeyMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deletePasskey>>,
     TError,
-    { id: string },
+    DeletePasskeyMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deletePasskey>>,
   TError,
-  { id: string },
+  DeletePasskeyMutationVariables,
   TContext
 > => {
-  const mutationKey = ['deletePasskey']
+  const mutationKey = getDeletePasskeyMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined }
 
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof deletePasskey>>, { id: string }> = (
-    props
-  ) => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deletePasskey>>,
+    DeletePasskeyMutationVariables
+  > = (props) => {
     const { id } = props ?? {}
 
     return deletePasskey(id, requestOptions)
@@ -620,6 +637,7 @@ export const getDeletePasskeyMutationOptions = <
 export type DeletePasskeyMutationResult = NonNullable<Awaited<ReturnType<typeof deletePasskey>>>
 
 export type DeletePasskeyMutationError = ErrorType<ErrorResponse | void>
+export type DeletePasskeyMutationVariables = { id: string }
 
 /**
  * @summary Delete passkey
@@ -629,7 +647,7 @@ export const useDeletePasskey = <TError = ErrorType<ErrorResponse | void>, TCont
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deletePasskey>>,
       TError,
-      { id: string },
+      DeletePasskeyMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -638,7 +656,7 @@ export const useDeletePasskey = <TError = ErrorType<ErrorResponse | void>, TCont
 ): UseMutationResult<
   Awaited<ReturnType<typeof deletePasskey>>,
   TError,
-  { id: string },
+  DeletePasskeyMutationVariables,
   TContext
 > => {
   return useMutation(getDeletePasskeyMutationOptions(options), queryClient)

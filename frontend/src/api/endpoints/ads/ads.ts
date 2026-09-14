@@ -219,6 +219,8 @@ export const createAd = (
   )
 }
 
+export const getCreateAdMutationKey = () => ['createAd'] as const
+
 export const getCreateAdMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -226,17 +228,17 @@ export const getCreateAdMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createAd>>,
     TError,
-    { teamSlug: string; data: BodyType<AdRequest> },
+    CreateAdMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createAd>>,
   TError,
-  { teamSlug: string; data: BodyType<AdRequest> },
+  CreateAdMutationVariables,
   TContext
 > => {
-  const mutationKey = ['createAd']
+  const mutationKey = getCreateAdMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -245,7 +247,7 @@ export const getCreateAdMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createAd>>,
-    { teamSlug: string; data: BodyType<AdRequest> }
+    CreateAdMutationVariables
   > = (props) => {
     const { teamSlug, data } = props ?? {}
 
@@ -258,6 +260,7 @@ export const getCreateAdMutationOptions = <
 export type CreateAdMutationResult = NonNullable<Awaited<ReturnType<typeof createAd>>>
 export type CreateAdMutationBody = BodyType<AdRequest>
 export type CreateAdMutationError = ErrorType<ErrorResponse>
+export type CreateAdMutationVariables = { teamSlug: string; data: BodyType<AdRequest> }
 
 /**
  * @summary Create ad
@@ -267,7 +270,7 @@ export const useCreateAd = <TError = ErrorType<ErrorResponse>, TContext = unknow
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createAd>>,
       TError,
-      { teamSlug: string; data: BodyType<AdRequest> },
+      CreateAdMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -276,7 +279,7 @@ export const useCreateAd = <TError = ErrorType<ErrorResponse>, TContext = unknow
 ): UseMutationResult<
   Awaited<ReturnType<typeof createAd>>,
   TError,
-  { teamSlug: string; data: BodyType<AdRequest> },
+  CreateAdMutationVariables,
   TContext
 > => {
   return useMutation(getCreateAdMutationOptions(options), queryClient)
@@ -454,6 +457,8 @@ export const updateAd = (
   )
 }
 
+export const getUpdateAdMutationKey = () => ['updateAd'] as const
+
 export const getUpdateAdMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -461,17 +466,17 @@ export const getUpdateAdMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateAd>>,
     TError,
-    { teamSlug: string; slug: string; data: BodyType<AdRequest> },
+    UpdateAdMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateAd>>,
   TError,
-  { teamSlug: string; slug: string; data: BodyType<AdRequest> },
+  UpdateAdMutationVariables,
   TContext
 > => {
-  const mutationKey = ['updateAd']
+  const mutationKey = getUpdateAdMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -480,7 +485,7 @@ export const getUpdateAdMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateAd>>,
-    { teamSlug: string; slug: string; data: BodyType<AdRequest> }
+    UpdateAdMutationVariables
   > = (props) => {
     const { teamSlug, slug, data } = props ?? {}
 
@@ -493,6 +498,11 @@ export const getUpdateAdMutationOptions = <
 export type UpdateAdMutationResult = NonNullable<Awaited<ReturnType<typeof updateAd>>>
 export type UpdateAdMutationBody = BodyType<AdRequest>
 export type UpdateAdMutationError = ErrorType<ErrorResponse>
+export type UpdateAdMutationVariables = {
+  teamSlug: string
+  slug: string
+  data: BodyType<AdRequest>
+}
 
 /**
  * @summary Update ad
@@ -502,7 +512,7 @@ export const useUpdateAd = <TError = ErrorType<ErrorResponse>, TContext = unknow
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateAd>>,
       TError,
-      { teamSlug: string; slug: string; data: BodyType<AdRequest> },
+      UpdateAdMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -511,7 +521,7 @@ export const useUpdateAd = <TError = ErrorType<ErrorResponse>, TContext = unknow
 ): UseMutationResult<
   Awaited<ReturnType<typeof updateAd>>,
   TError,
-  { teamSlug: string; slug: string; data: BodyType<AdRequest> },
+  UpdateAdMutationVariables,
   TContext
 > => {
   return useMutation(getUpdateAdMutationOptions(options), queryClient)
@@ -682,6 +692,8 @@ export const deleteAd = (
   )
 }
 
+export const getDeleteAdMutationKey = () => ['deleteAd'] as const
+
 export const getDeleteAdMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -689,17 +701,17 @@ export const getDeleteAdMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deleteAd>>,
     TError,
-    { teamSlug: string; slug: string },
+    DeleteAdMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteAd>>,
   TError,
-  { teamSlug: string; slug: string },
+  DeleteAdMutationVariables,
   TContext
 > => {
-  const mutationKey = ['deleteAd']
+  const mutationKey = getDeleteAdMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -708,7 +720,7 @@ export const getDeleteAdMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteAd>>,
-    { teamSlug: string; slug: string }
+    DeleteAdMutationVariables
   > = (props) => {
     const { teamSlug, slug } = props ?? {}
 
@@ -721,6 +733,7 @@ export const getDeleteAdMutationOptions = <
 export type DeleteAdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAd>>>
 
 export type DeleteAdMutationError = ErrorType<ErrorResponse>
+export type DeleteAdMutationVariables = { teamSlug: string; slug: string }
 
 /**
  * @summary Delete ad
@@ -730,7 +743,7 @@ export const useDeleteAd = <TError = ErrorType<ErrorResponse>, TContext = unknow
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deleteAd>>,
       TError,
-      { teamSlug: string; slug: string },
+      DeleteAdMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -739,7 +752,7 @@ export const useDeleteAd = <TError = ErrorType<ErrorResponse>, TContext = unknow
 ): UseMutationResult<
   Awaited<ReturnType<typeof deleteAd>>,
   TError,
-  { teamSlug: string; slug: string },
+  DeleteAdMutationVariables,
   TContext
 > => {
   return useMutation(getDeleteAdMutationOptions(options), queryClient)
@@ -767,6 +780,8 @@ export const contactAdAuthor = (
   )
 }
 
+export const getContactAdAuthorMutationKey = () => ['contactAdAuthor'] as const
+
 export const getContactAdAuthorMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -774,17 +789,17 @@ export const getContactAdAuthorMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof contactAdAuthor>>,
     TError,
-    { teamSlug: string; slug: string; data: BodyType<AdContactRequest> },
+    ContactAdAuthorMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof contactAdAuthor>>,
   TError,
-  { teamSlug: string; slug: string; data: BodyType<AdContactRequest> },
+  ContactAdAuthorMutationVariables,
   TContext
 > => {
-  const mutationKey = ['contactAdAuthor']
+  const mutationKey = getContactAdAuthorMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -793,7 +808,7 @@ export const getContactAdAuthorMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof contactAdAuthor>>,
-    { teamSlug: string; slug: string; data: BodyType<AdContactRequest> }
+    ContactAdAuthorMutationVariables
   > = (props) => {
     const { teamSlug, slug, data } = props ?? {}
 
@@ -806,6 +821,11 @@ export const getContactAdAuthorMutationOptions = <
 export type ContactAdAuthorMutationResult = NonNullable<Awaited<ReturnType<typeof contactAdAuthor>>>
 export type ContactAdAuthorMutationBody = BodyType<AdContactRequest>
 export type ContactAdAuthorMutationError = ErrorType<ErrorResponse>
+export type ContactAdAuthorMutationVariables = {
+  teamSlug: string
+  slug: string
+  data: BodyType<AdContactRequest>
+}
 
 /**
  * @summary Contact an ad's author
@@ -815,7 +835,7 @@ export const useContactAdAuthor = <TError = ErrorType<ErrorResponse>, TContext =
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof contactAdAuthor>>,
       TError,
-      { teamSlug: string; slug: string; data: BodyType<AdContactRequest> },
+      ContactAdAuthorMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -824,7 +844,7 @@ export const useContactAdAuthor = <TError = ErrorType<ErrorResponse>, TContext =
 ): UseMutationResult<
   Awaited<ReturnType<typeof contactAdAuthor>>,
   TError,
-  { teamSlug: string; slug: string; data: BodyType<AdContactRequest> },
+  ContactAdAuthorMutationVariables,
   TContext
 > => {
   return useMutation(getContactAdAuthorMutationOptions(options), queryClient)
@@ -1002,6 +1022,8 @@ export const changeAdSlug = (
   )
 }
 
+export const getChangeAdSlugMutationKey = () => ['changeAdSlug'] as const
+
 export const getChangeAdSlugMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -1009,17 +1031,17 @@ export const getChangeAdSlugMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof changeAdSlug>>,
     TError,
-    { teamSlug: string; slug: string; data: BodyType<SlugChangeRequest> },
+    ChangeAdSlugMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof changeAdSlug>>,
   TError,
-  { teamSlug: string; slug: string; data: BodyType<SlugChangeRequest> },
+  ChangeAdSlugMutationVariables,
   TContext
 > => {
-  const mutationKey = ['changeAdSlug']
+  const mutationKey = getChangeAdSlugMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -1028,7 +1050,7 @@ export const getChangeAdSlugMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof changeAdSlug>>,
-    { teamSlug: string; slug: string; data: BodyType<SlugChangeRequest> }
+    ChangeAdSlugMutationVariables
   > = (props) => {
     const { teamSlug, slug, data } = props ?? {}
 
@@ -1041,6 +1063,11 @@ export const getChangeAdSlugMutationOptions = <
 export type ChangeAdSlugMutationResult = NonNullable<Awaited<ReturnType<typeof changeAdSlug>>>
 export type ChangeAdSlugMutationBody = BodyType<SlugChangeRequest>
 export type ChangeAdSlugMutationError = ErrorType<ErrorResponse>
+export type ChangeAdSlugMutationVariables = {
+  teamSlug: string
+  slug: string
+  data: BodyType<SlugChangeRequest>
+}
 
 /**
  * @summary Change ad slug
@@ -1050,7 +1077,7 @@ export const useChangeAdSlug = <TError = ErrorType<ErrorResponse>, TContext = un
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof changeAdSlug>>,
       TError,
-      { teamSlug: string; slug: string; data: BodyType<SlugChangeRequest> },
+      ChangeAdSlugMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -1059,7 +1086,7 @@ export const useChangeAdSlug = <TError = ErrorType<ErrorResponse>, TContext = un
 ): UseMutationResult<
   Awaited<ReturnType<typeof changeAdSlug>>,
   TError,
-  { teamSlug: string; slug: string; data: BodyType<SlugChangeRequest> },
+  ChangeAdSlugMutationVariables,
   TContext
 > => {
   return useMutation(getChangeAdSlugMutationOptions(options), queryClient)
@@ -1080,6 +1107,8 @@ export const undeleteAd = (
   )
 }
 
+export const getUndeleteAdMutationKey = () => ['undeleteAd'] as const
+
 export const getUndeleteAdMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -1087,17 +1116,17 @@ export const getUndeleteAdMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof undeleteAd>>,
     TError,
-    { teamSlug: string; slug: string },
+    UndeleteAdMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof undeleteAd>>,
   TError,
-  { teamSlug: string; slug: string },
+  UndeleteAdMutationVariables,
   TContext
 > => {
-  const mutationKey = ['undeleteAd']
+  const mutationKey = getUndeleteAdMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -1106,7 +1135,7 @@ export const getUndeleteAdMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof undeleteAd>>,
-    { teamSlug: string; slug: string }
+    UndeleteAdMutationVariables
   > = (props) => {
     const { teamSlug, slug } = props ?? {}
 
@@ -1119,6 +1148,7 @@ export const getUndeleteAdMutationOptions = <
 export type UndeleteAdMutationResult = NonNullable<Awaited<ReturnType<typeof undeleteAd>>>
 
 export type UndeleteAdMutationError = ErrorType<ErrorResponse>
+export type UndeleteAdMutationVariables = { teamSlug: string; slug: string }
 
 /**
  * @summary Restore ad
@@ -1128,7 +1158,7 @@ export const useUndeleteAd = <TError = ErrorType<ErrorResponse>, TContext = unkn
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof undeleteAd>>,
       TError,
-      { teamSlug: string; slug: string },
+      UndeleteAdMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -1137,7 +1167,7 @@ export const useUndeleteAd = <TError = ErrorType<ErrorResponse>, TContext = unkn
 ): UseMutationResult<
   Awaited<ReturnType<typeof undeleteAd>>,
   TError,
-  { teamSlug: string; slug: string },
+  UndeleteAdMutationVariables,
   TContext
 > => {
   return useMutation(getUndeleteAdMutationOptions(options), queryClient)

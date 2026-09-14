@@ -204,6 +204,8 @@ export const createTeam = (
   )
 }
 
+export const getCreateTeamMutationKey = () => ['createTeam'] as const
+
 export const getCreateTeamMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -211,17 +213,17 @@ export const getCreateTeamMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createTeam>>,
     TError,
-    { data: BodyType<TeamRequest> },
+    CreateTeamMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createTeam>>,
   TError,
-  { data: BodyType<TeamRequest> },
+  CreateTeamMutationVariables,
   TContext
 > => {
-  const mutationKey = ['createTeam']
+  const mutationKey = getCreateTeamMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -230,7 +232,7 @@ export const getCreateTeamMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createTeam>>,
-    { data: BodyType<TeamRequest> }
+    CreateTeamMutationVariables
   > = (props) => {
     const { data } = props ?? {}
 
@@ -243,6 +245,7 @@ export const getCreateTeamMutationOptions = <
 export type CreateTeamMutationResult = NonNullable<Awaited<ReturnType<typeof createTeam>>>
 export type CreateTeamMutationBody = BodyType<TeamRequest>
 export type CreateTeamMutationError = ErrorType<ErrorResponse | void>
+export type CreateTeamMutationVariables = { data: BodyType<TeamRequest> }
 
 /**
  * @summary Create team
@@ -252,7 +255,7 @@ export const useCreateTeam = <TError = ErrorType<ErrorResponse | void>, TContext
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createTeam>>,
       TError,
-      { data: BodyType<TeamRequest> },
+      CreateTeamMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -261,7 +264,7 @@ export const useCreateTeam = <TError = ErrorType<ErrorResponse | void>, TContext
 ): UseMutationResult<
   Awaited<ReturnType<typeof createTeam>>,
   TError,
-  { data: BodyType<TeamRequest> },
+  CreateTeamMutationVariables,
   TContext
 > => {
   return useMutation(getCreateTeamMutationOptions(options), queryClient)
@@ -288,6 +291,8 @@ export const updateTeam = (
   )
 }
 
+export const getUpdateTeamMutationKey = () => ['updateTeam'] as const
+
 export const getUpdateTeamMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -295,17 +300,17 @@ export const getUpdateTeamMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateTeam>>,
     TError,
-    { teamSlug: string; data: BodyType<TeamRequest> },
+    UpdateTeamMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateTeam>>,
   TError,
-  { teamSlug: string; data: BodyType<TeamRequest> },
+  UpdateTeamMutationVariables,
   TContext
 > => {
-  const mutationKey = ['updateTeam']
+  const mutationKey = getUpdateTeamMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -314,7 +319,7 @@ export const getUpdateTeamMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateTeam>>,
-    { teamSlug: string; data: BodyType<TeamRequest> }
+    UpdateTeamMutationVariables
   > = (props) => {
     const { teamSlug, data } = props ?? {}
 
@@ -327,6 +332,7 @@ export const getUpdateTeamMutationOptions = <
 export type UpdateTeamMutationResult = NonNullable<Awaited<ReturnType<typeof updateTeam>>>
 export type UpdateTeamMutationBody = BodyType<TeamRequest>
 export type UpdateTeamMutationError = ErrorType<ErrorResponse>
+export type UpdateTeamMutationVariables = { teamSlug: string; data: BodyType<TeamRequest> }
 
 /**
  * @summary Update team
@@ -336,7 +342,7 @@ export const useUpdateTeam = <TError = ErrorType<ErrorResponse>, TContext = unkn
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateTeam>>,
       TError,
-      { teamSlug: string; data: BodyType<TeamRequest> },
+      UpdateTeamMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -345,7 +351,7 @@ export const useUpdateTeam = <TError = ErrorType<ErrorResponse>, TContext = unkn
 ): UseMutationResult<
   Awaited<ReturnType<typeof updateTeam>>,
   TError,
-  { teamSlug: string; data: BodyType<TeamRequest> },
+  UpdateTeamMutationVariables,
   TContext
 > => {
   return useMutation(getUpdateTeamMutationOptions(options), queryClient)
@@ -505,6 +511,8 @@ export const deleteTeam = (
   return axiosMutator<void>({ url: `/api/teams/${teamSlug}`, method: 'DELETE', signal }, options)
 }
 
+export const getDeleteTeamMutationKey = () => ['deleteTeam'] as const
+
 export const getDeleteTeamMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -512,17 +520,17 @@ export const getDeleteTeamMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deleteTeam>>,
     TError,
-    { teamSlug: string },
+    DeleteTeamMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteTeam>>,
   TError,
-  { teamSlug: string },
+  DeleteTeamMutationVariables,
   TContext
 > => {
-  const mutationKey = ['deleteTeam']
+  const mutationKey = getDeleteTeamMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -531,7 +539,7 @@ export const getDeleteTeamMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteTeam>>,
-    { teamSlug: string }
+    DeleteTeamMutationVariables
   > = (props) => {
     const { teamSlug } = props ?? {}
 
@@ -544,6 +552,7 @@ export const getDeleteTeamMutationOptions = <
 export type DeleteTeamMutationResult = NonNullable<Awaited<ReturnType<typeof deleteTeam>>>
 
 export type DeleteTeamMutationError = ErrorType<ErrorResponse>
+export type DeleteTeamMutationVariables = { teamSlug: string }
 
 /**
  * @summary Delete team
@@ -553,7 +562,7 @@ export const useDeleteTeam = <TError = ErrorType<ErrorResponse>, TContext = unkn
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deleteTeam>>,
       TError,
-      { teamSlug: string },
+      DeleteTeamMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -562,7 +571,7 @@ export const useDeleteTeam = <TError = ErrorType<ErrorResponse>, TContext = unkn
 ): UseMutationResult<
   Awaited<ReturnType<typeof deleteTeam>>,
   TError,
-  { teamSlug: string },
+  DeleteTeamMutationVariables,
   TContext
 > => {
   return useMutation(getDeleteTeamMutationOptions(options), queryClient)
@@ -589,6 +598,8 @@ export const changeTeamSlug = (
   )
 }
 
+export const getChangeTeamSlugMutationKey = () => ['changeTeamSlug'] as const
+
 export const getChangeTeamSlugMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -596,17 +607,17 @@ export const getChangeTeamSlugMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof changeTeamSlug>>,
     TError,
-    { teamSlug: string; data: BodyType<SlugChangeRequest> },
+    ChangeTeamSlugMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof changeTeamSlug>>,
   TError,
-  { teamSlug: string; data: BodyType<SlugChangeRequest> },
+  ChangeTeamSlugMutationVariables,
   TContext
 > => {
-  const mutationKey = ['changeTeamSlug']
+  const mutationKey = getChangeTeamSlugMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -615,7 +626,7 @@ export const getChangeTeamSlugMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof changeTeamSlug>>,
-    { teamSlug: string; data: BodyType<SlugChangeRequest> }
+    ChangeTeamSlugMutationVariables
   > = (props) => {
     const { teamSlug, data } = props ?? {}
 
@@ -628,6 +639,10 @@ export const getChangeTeamSlugMutationOptions = <
 export type ChangeTeamSlugMutationResult = NonNullable<Awaited<ReturnType<typeof changeTeamSlug>>>
 export type ChangeTeamSlugMutationBody = BodyType<SlugChangeRequest>
 export type ChangeTeamSlugMutationError = ErrorType<ErrorResponse>
+export type ChangeTeamSlugMutationVariables = {
+  teamSlug: string
+  data: BodyType<SlugChangeRequest>
+}
 
 /**
  * @summary Change team slug
@@ -637,7 +652,7 @@ export const useChangeTeamSlug = <TError = ErrorType<ErrorResponse>, TContext = 
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof changeTeamSlug>>,
       TError,
-      { teamSlug: string; data: BodyType<SlugChangeRequest> },
+      ChangeTeamSlugMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -646,7 +661,7 @@ export const useChangeTeamSlug = <TError = ErrorType<ErrorResponse>, TContext = 
 ): UseMutationResult<
   Awaited<ReturnType<typeof changeTeamSlug>>,
   TError,
-  { teamSlug: string; data: BodyType<SlugChangeRequest> },
+  ChangeTeamSlugMutationVariables,
   TContext
 > => {
   return useMutation(getChangeTeamSlugMutationOptions(options), queryClient)

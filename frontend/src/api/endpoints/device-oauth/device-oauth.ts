@@ -66,6 +66,8 @@ export const deviceComplete = (
   )
 }
 
+export const getDeviceCompleteMutationKey = () => ['deviceComplete'] as const
+
 export const getDeviceCompleteMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -73,17 +75,17 @@ export const getDeviceCompleteMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deviceComplete>>,
     TError,
-    { data: BodyType<CompleteRequest> },
+    DeviceCompleteMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deviceComplete>>,
   TError,
-  { data: BodyType<CompleteRequest> },
+  DeviceCompleteMutationVariables,
   TContext
 > => {
-  const mutationKey = ['deviceComplete']
+  const mutationKey = getDeviceCompleteMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -92,7 +94,7 @@ export const getDeviceCompleteMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deviceComplete>>,
-    { data: BodyType<CompleteRequest> }
+    DeviceCompleteMutationVariables
   > = (props) => {
     const { data } = props ?? {}
 
@@ -105,6 +107,7 @@ export const getDeviceCompleteMutationOptions = <
 export type DeviceCompleteMutationResult = NonNullable<Awaited<ReturnType<typeof deviceComplete>>>
 export type DeviceCompleteMutationBody = BodyType<CompleteRequest>
 export type DeviceCompleteMutationError = ErrorType<ErrorResponse | void>
+export type DeviceCompleteMutationVariables = { data: BodyType<CompleteRequest> }
 
 /**
  * @summary Complete device authorization
@@ -114,7 +117,7 @@ export const useDeviceComplete = <TError = ErrorType<ErrorResponse | void>, TCon
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deviceComplete>>,
       TError,
-      { data: BodyType<CompleteRequest> },
+      DeviceCompleteMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -123,7 +126,7 @@ export const useDeviceComplete = <TError = ErrorType<ErrorResponse | void>, TCon
 ): UseMutationResult<
   Awaited<ReturnType<typeof deviceComplete>>,
   TError,
-  { data: BodyType<CompleteRequest> },
+  DeviceCompleteMutationVariables,
   TContext
 > => {
   return useMutation(getDeviceCompleteMutationOptions(options), queryClient)
@@ -149,6 +152,8 @@ export const device = (
   )
 }
 
+export const getDeviceMutationKey = () => ['device'] as const
+
 export const getDeviceMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -156,17 +161,17 @@ export const getDeviceMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof device>>,
     TError,
-    { data: BodyType<DeviceRequest> },
+    DeviceMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof device>>,
   TError,
-  { data: BodyType<DeviceRequest> },
+  DeviceMutationVariables,
   TContext
 > => {
-  const mutationKey = ['device']
+  const mutationKey = getDeviceMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -175,7 +180,7 @@ export const getDeviceMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof device>>,
-    { data: BodyType<DeviceRequest> }
+    DeviceMutationVariables
   > = (props) => {
     const { data } = props ?? {}
 
@@ -188,6 +193,7 @@ export const getDeviceMutationOptions = <
 export type DeviceMutationResult = NonNullable<Awaited<ReturnType<typeof device>>>
 export type DeviceMutationBody = BodyType<DeviceRequest>
 export type DeviceMutationError = ErrorType<ErrorResponse>
+export type DeviceMutationVariables = { data: BodyType<DeviceRequest> }
 
 /**
  * @summary Request device code
@@ -197,7 +203,7 @@ export const useDevice = <TError = ErrorType<ErrorResponse>, TContext = unknown>
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof device>>,
       TError,
-      { data: BodyType<DeviceRequest> },
+      DeviceMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -206,7 +212,7 @@ export const useDevice = <TError = ErrorType<ErrorResponse>, TContext = unknown>
 ): UseMutationResult<
   Awaited<ReturnType<typeof device>>,
   TError,
-  { data: BodyType<DeviceRequest> },
+  DeviceMutationVariables,
   TContext
 > => {
   return useMutation(getDeviceMutationOptions(options), queryClient)
@@ -232,6 +238,8 @@ export const deviceToken = (
   )
 }
 
+export const getDeviceTokenMutationKey = () => ['deviceToken'] as const
+
 export const getDeviceTokenMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -239,17 +247,17 @@ export const getDeviceTokenMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deviceToken>>,
     TError,
-    { data: BodyType<DeviceTokenRequest> },
+    DeviceTokenMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deviceToken>>,
   TError,
-  { data: BodyType<DeviceTokenRequest> },
+  DeviceTokenMutationVariables,
   TContext
 > => {
-  const mutationKey = ['deviceToken']
+  const mutationKey = getDeviceTokenMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -258,7 +266,7 @@ export const getDeviceTokenMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deviceToken>>,
-    { data: BodyType<DeviceTokenRequest> }
+    DeviceTokenMutationVariables
   > = (props) => {
     const { data } = props ?? {}
 
@@ -271,6 +279,7 @@ export const getDeviceTokenMutationOptions = <
 export type DeviceTokenMutationResult = NonNullable<Awaited<ReturnType<typeof deviceToken>>>
 export type DeviceTokenMutationBody = BodyType<DeviceTokenRequest>
 export type DeviceTokenMutationError = ErrorType<ErrorResponse>
+export type DeviceTokenMutationVariables = { data: BodyType<DeviceTokenRequest> }
 
 /**
  * @summary Exchange code for tokens
@@ -280,7 +289,7 @@ export const useDeviceToken = <TError = ErrorType<ErrorResponse>, TContext = unk
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deviceToken>>,
       TError,
-      { data: BodyType<DeviceTokenRequest> },
+      DeviceTokenMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -289,7 +298,7 @@ export const useDeviceToken = <TError = ErrorType<ErrorResponse>, TContext = unk
 ): UseMutationResult<
   Awaited<ReturnType<typeof deviceToken>>,
   TError,
-  { data: BodyType<DeviceTokenRequest> },
+  DeviceTokenMutationVariables,
   TContext
 > => {
   return useMutation(getDeviceTokenMutationOptions(options), queryClient)

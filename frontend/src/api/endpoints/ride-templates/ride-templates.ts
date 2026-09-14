@@ -214,6 +214,8 @@ export const createTemplate = (
   )
 }
 
+export const getCreateTemplateMutationKey = () => ['createTemplate'] as const
+
 export const getCreateTemplateMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -221,17 +223,17 @@ export const getCreateTemplateMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createTemplate>>,
     TError,
-    { teamSlug: string; data: BodyType<RideTemplateRequest> },
+    CreateTemplateMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createTemplate>>,
   TError,
-  { teamSlug: string; data: BodyType<RideTemplateRequest> },
+  CreateTemplateMutationVariables,
   TContext
 > => {
-  const mutationKey = ['createTemplate']
+  const mutationKey = getCreateTemplateMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -240,7 +242,7 @@ export const getCreateTemplateMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createTemplate>>,
-    { teamSlug: string; data: BodyType<RideTemplateRequest> }
+    CreateTemplateMutationVariables
   > = (props) => {
     const { teamSlug, data } = props ?? {}
 
@@ -253,6 +255,10 @@ export const getCreateTemplateMutationOptions = <
 export type CreateTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof createTemplate>>>
 export type CreateTemplateMutationBody = BodyType<RideTemplateRequest>
 export type CreateTemplateMutationError = ErrorType<ErrorResponse>
+export type CreateTemplateMutationVariables = {
+  teamSlug: string
+  data: BodyType<RideTemplateRequest>
+}
 
 /**
  * @summary Create ride template
@@ -262,7 +268,7 @@ export const useCreateTemplate = <TError = ErrorType<ErrorResponse>, TContext = 
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createTemplate>>,
       TError,
-      { teamSlug: string; data: BodyType<RideTemplateRequest> },
+      CreateTemplateMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -271,7 +277,7 @@ export const useCreateTemplate = <TError = ErrorType<ErrorResponse>, TContext = 
 ): UseMutationResult<
   Awaited<ReturnType<typeof createTemplate>>,
   TError,
-  { teamSlug: string; data: BodyType<RideTemplateRequest> },
+  CreateTemplateMutationVariables,
   TContext
 > => {
   return useMutation(getCreateTemplateMutationOptions(options), queryClient)
@@ -299,6 +305,8 @@ export const updateTemplate = (
   )
 }
 
+export const getUpdateTemplateMutationKey = () => ['updateTemplate'] as const
+
 export const getUpdateTemplateMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -306,17 +314,17 @@ export const getUpdateTemplateMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateTemplate>>,
     TError,
-    { teamSlug: string; templateSlug: string; data: BodyType<RideTemplateRequest> },
+    UpdateTemplateMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateTemplate>>,
   TError,
-  { teamSlug: string; templateSlug: string; data: BodyType<RideTemplateRequest> },
+  UpdateTemplateMutationVariables,
   TContext
 > => {
-  const mutationKey = ['updateTemplate']
+  const mutationKey = getUpdateTemplateMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -325,7 +333,7 @@ export const getUpdateTemplateMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateTemplate>>,
-    { teamSlug: string; templateSlug: string; data: BodyType<RideTemplateRequest> }
+    UpdateTemplateMutationVariables
   > = (props) => {
     const { teamSlug, templateSlug, data } = props ?? {}
 
@@ -338,6 +346,11 @@ export const getUpdateTemplateMutationOptions = <
 export type UpdateTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof updateTemplate>>>
 export type UpdateTemplateMutationBody = BodyType<RideTemplateRequest>
 export type UpdateTemplateMutationError = ErrorType<ErrorResponse>
+export type UpdateTemplateMutationVariables = {
+  teamSlug: string
+  templateSlug: string
+  data: BodyType<RideTemplateRequest>
+}
 
 /**
  * @summary Update ride template
@@ -347,7 +360,7 @@ export const useUpdateTemplate = <TError = ErrorType<ErrorResponse>, TContext = 
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateTemplate>>,
       TError,
-      { teamSlug: string; templateSlug: string; data: BodyType<RideTemplateRequest> },
+      UpdateTemplateMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -356,7 +369,7 @@ export const useUpdateTemplate = <TError = ErrorType<ErrorResponse>, TContext = 
 ): UseMutationResult<
   Awaited<ReturnType<typeof updateTemplate>>,
   TError,
-  { teamSlug: string; templateSlug: string; data: BodyType<RideTemplateRequest> },
+  UpdateTemplateMutationVariables,
   TContext
 > => {
   return useMutation(getUpdateTemplateMutationOptions(options), queryClient)
@@ -531,6 +544,8 @@ export const deleteTemplate = (
   )
 }
 
+export const getDeleteTemplateMutationKey = () => ['deleteTemplate'] as const
+
 export const getDeleteTemplateMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -538,17 +553,17 @@ export const getDeleteTemplateMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deleteTemplate>>,
     TError,
-    { teamSlug: string; templateSlug: string },
+    DeleteTemplateMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteTemplate>>,
   TError,
-  { teamSlug: string; templateSlug: string },
+  DeleteTemplateMutationVariables,
   TContext
 > => {
-  const mutationKey = ['deleteTemplate']
+  const mutationKey = getDeleteTemplateMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -557,7 +572,7 @@ export const getDeleteTemplateMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteTemplate>>,
-    { teamSlug: string; templateSlug: string }
+    DeleteTemplateMutationVariables
   > = (props) => {
     const { teamSlug, templateSlug } = props ?? {}
 
@@ -570,6 +585,7 @@ export const getDeleteTemplateMutationOptions = <
 export type DeleteTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof deleteTemplate>>>
 
 export type DeleteTemplateMutationError = ErrorType<ErrorResponse>
+export type DeleteTemplateMutationVariables = { teamSlug: string; templateSlug: string }
 
 /**
  * @summary Delete ride template
@@ -579,7 +595,7 @@ export const useDeleteTemplate = <TError = ErrorType<ErrorResponse>, TContext = 
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deleteTemplate>>,
       TError,
-      { teamSlug: string; templateSlug: string },
+      DeleteTemplateMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -588,7 +604,7 @@ export const useDeleteTemplate = <TError = ErrorType<ErrorResponse>, TContext = 
 ): UseMutationResult<
   Awaited<ReturnType<typeof deleteTemplate>>,
   TError,
-  { teamSlug: string; templateSlug: string },
+  DeleteTemplateMutationVariables,
   TContext
 > => {
   return useMutation(getDeleteTemplateMutationOptions(options), queryClient)

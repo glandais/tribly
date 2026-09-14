@@ -167,7 +167,7 @@ export const CreatePostBody = zod
           .describe('Assets'),
       })
       .describe('Post description'),
-    dateTime: zod.iso.datetime({ offset: true }).describe('Post date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Post date/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Post status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso
@@ -352,7 +352,7 @@ export const CreatePostResponse = zod
       .describe(
         "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
       ),
-    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
@@ -535,7 +535,7 @@ export const UpdatePostBody = zod
           .describe('Assets'),
       })
       .describe('Post description'),
-    dateTime: zod.iso.datetime({ offset: true }).describe('Post date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Post date/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Post status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso
@@ -720,7 +720,7 @@ export const UpdatePostResponse = zod
       .describe(
         "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
       ),
-    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
@@ -919,7 +919,7 @@ export const GetPostResponse = zod
       .describe(
         "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
       ),
-    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
@@ -1143,7 +1143,7 @@ export const ChangePostSlugResponse = zod
       .describe(
         "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
       ),
-    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
@@ -1342,7 +1342,7 @@ export const UndeletePostResponse = zod
       .describe(
         "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
       ),
-    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
+    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),

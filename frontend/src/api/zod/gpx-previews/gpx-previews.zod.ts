@@ -40,7 +40,7 @@ export const ListMyPreviewsResponse = zod
  * @summary Analyse a GPX file
  */
 export const CreatePreviewBody = zod.object({
-  gpxFile: zod.instanceof(File).optional(),
+  gpxFile: zod.instanceof(Blob).optional(),
 })
 
 export const CreatePreviewResponse = zod
@@ -268,7 +268,7 @@ export const UpdatePreviewBody = zod.object({
     })
     .optional()
     .describe('GPX preview update request'),
-  gpxFile: zod.instanceof(File).optional(),
+  gpxFile: zod.instanceof(Blob).optional(),
 })
 
 export const UpdatePreviewResponse = zod

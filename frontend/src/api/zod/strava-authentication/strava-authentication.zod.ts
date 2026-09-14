@@ -92,7 +92,7 @@ export const CreateStravaSessionResponse = zod
           .string()
           .optional()
           .describe(
-            "Preferred IANA timezone (e.g. 'Europe\/Paris'). Null means the user never chose one; the client then follows the browser."
+            "Preferred IANA timezone (e.g. 'Europe/Paris'). Null means the user never chose one; the client then follows the browser."
           ),
         contactableByMembers: zod
           .boolean()

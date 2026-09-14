@@ -21,6 +21,8 @@ export const mint = (options?: SecondParameter<typeof axiosMutator>, signal?: Ab
   return axiosMutator<TileTokenDto>({ url: `/api/tiles/token`, method: 'POST', signal }, options)
 }
 
+export const getMintMutationKey = () => ['mint'] as const
+
 export const getMintMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -28,7 +30,7 @@ export const getMintMutationOptions = <
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof mint>>, TError, void, TContext>
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<Awaited<ReturnType<typeof mint>>, TError, void, TContext> => {
-  const mutationKey = ['mint']
+  const mutationKey = getMintMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options

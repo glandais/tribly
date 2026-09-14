@@ -214,6 +214,8 @@ export const createPlace = (
   )
 }
 
+export const getCreatePlaceMutationKey = () => ['createPlace'] as const
+
 export const getCreatePlaceMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -221,17 +223,17 @@ export const getCreatePlaceMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createPlace>>,
     TError,
-    { teamSlug: string; data: BodyType<PlaceRequest> },
+    CreatePlaceMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createPlace>>,
   TError,
-  { teamSlug: string; data: BodyType<PlaceRequest> },
+  CreatePlaceMutationVariables,
   TContext
 > => {
-  const mutationKey = ['createPlace']
+  const mutationKey = getCreatePlaceMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -240,7 +242,7 @@ export const getCreatePlaceMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createPlace>>,
-    { teamSlug: string; data: BodyType<PlaceRequest> }
+    CreatePlaceMutationVariables
   > = (props) => {
     const { teamSlug, data } = props ?? {}
 
@@ -253,6 +255,7 @@ export const getCreatePlaceMutationOptions = <
 export type CreatePlaceMutationResult = NonNullable<Awaited<ReturnType<typeof createPlace>>>
 export type CreatePlaceMutationBody = BodyType<PlaceRequest>
 export type CreatePlaceMutationError = ErrorType<ErrorResponse>
+export type CreatePlaceMutationVariables = { teamSlug: string; data: BodyType<PlaceRequest> }
 
 /**
  * @summary Create place
@@ -262,7 +265,7 @@ export const useCreatePlace = <TError = ErrorType<ErrorResponse>, TContext = unk
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createPlace>>,
       TError,
-      { teamSlug: string; data: BodyType<PlaceRequest> },
+      CreatePlaceMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -271,7 +274,7 @@ export const useCreatePlace = <TError = ErrorType<ErrorResponse>, TContext = unk
 ): UseMutationResult<
   Awaited<ReturnType<typeof createPlace>>,
   TError,
-  { teamSlug: string; data: BodyType<PlaceRequest> },
+  CreatePlaceMutationVariables,
   TContext
 > => {
   return useMutation(getCreatePlaceMutationOptions(options), queryClient)
@@ -299,6 +302,8 @@ export const updatePlace = (
   )
 }
 
+export const getUpdatePlaceMutationKey = () => ['updatePlace'] as const
+
 export const getUpdatePlaceMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -306,17 +311,17 @@ export const getUpdatePlaceMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updatePlace>>,
     TError,
-    { teamSlug: string; placeId: string; data: BodyType<PlaceRequest> },
+    UpdatePlaceMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updatePlace>>,
   TError,
-  { teamSlug: string; placeId: string; data: BodyType<PlaceRequest> },
+  UpdatePlaceMutationVariables,
   TContext
 > => {
-  const mutationKey = ['updatePlace']
+  const mutationKey = getUpdatePlaceMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -325,7 +330,7 @@ export const getUpdatePlaceMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updatePlace>>,
-    { teamSlug: string; placeId: string; data: BodyType<PlaceRequest> }
+    UpdatePlaceMutationVariables
   > = (props) => {
     const { teamSlug, placeId, data } = props ?? {}
 
@@ -338,6 +343,11 @@ export const getUpdatePlaceMutationOptions = <
 export type UpdatePlaceMutationResult = NonNullable<Awaited<ReturnType<typeof updatePlace>>>
 export type UpdatePlaceMutationBody = BodyType<PlaceRequest>
 export type UpdatePlaceMutationError = ErrorType<ErrorResponse>
+export type UpdatePlaceMutationVariables = {
+  teamSlug: string
+  placeId: string
+  data: BodyType<PlaceRequest>
+}
 
 /**
  * @summary Update place
@@ -347,7 +357,7 @@ export const useUpdatePlace = <TError = ErrorType<ErrorResponse>, TContext = unk
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updatePlace>>,
       TError,
-      { teamSlug: string; placeId: string; data: BodyType<PlaceRequest> },
+      UpdatePlaceMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -356,7 +366,7 @@ export const useUpdatePlace = <TError = ErrorType<ErrorResponse>, TContext = unk
 ): UseMutationResult<
   Awaited<ReturnType<typeof updatePlace>>,
   TError,
-  { teamSlug: string; placeId: string; data: BodyType<PlaceRequest> },
+  UpdatePlaceMutationVariables,
   TContext
 > => {
   return useMutation(getUpdatePlaceMutationOptions(options), queryClient)
@@ -528,6 +538,8 @@ export const deletePlace = (
   )
 }
 
+export const getDeletePlaceMutationKey = () => ['deletePlace'] as const
+
 export const getDeletePlaceMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
@@ -535,17 +547,17 @@ export const getDeletePlaceMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deletePlace>>,
     TError,
-    { teamSlug: string; placeId: string },
+    DeletePlaceMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deletePlace>>,
   TError,
-  { teamSlug: string; placeId: string },
+  DeletePlaceMutationVariables,
   TContext
 > => {
-  const mutationKey = ['deletePlace']
+  const mutationKey = getDeletePlaceMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -554,7 +566,7 @@ export const getDeletePlaceMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deletePlace>>,
-    { teamSlug: string; placeId: string }
+    DeletePlaceMutationVariables
   > = (props) => {
     const { teamSlug, placeId } = props ?? {}
 
@@ -567,6 +579,7 @@ export const getDeletePlaceMutationOptions = <
 export type DeletePlaceMutationResult = NonNullable<Awaited<ReturnType<typeof deletePlace>>>
 
 export type DeletePlaceMutationError = ErrorType<ErrorResponse>
+export type DeletePlaceMutationVariables = { teamSlug: string; placeId: string }
 
 /**
  * @summary Delete place
@@ -576,7 +589,7 @@ export const useDeletePlace = <TError = ErrorType<ErrorResponse>, TContext = unk
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deletePlace>>,
       TError,
-      { teamSlug: string; placeId: string },
+      DeletePlaceMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -585,7 +598,7 @@ export const useDeletePlace = <TError = ErrorType<ErrorResponse>, TContext = unk
 ): UseMutationResult<
   Awaited<ReturnType<typeof deletePlace>>,
   TError,
-  { teamSlug: string; placeId: string },
+  DeletePlaceMutationVariables,
   TContext
 > => {
   return useMutation(getDeletePlaceMutationOptions(options), queryClient)

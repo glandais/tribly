@@ -55,7 +55,7 @@ export const UpdateMeResponse = zod
       .string()
       .optional()
       .describe(
-        "Preferred IANA timezone (e.g. 'Europe\/Paris'). Null means the user never chose one; the client then follows the browser."
+        "Preferred IANA timezone (e.g. 'Europe/Paris'). Null means the user never chose one; the client then follows the browser."
       ),
     contactableByMembers: zod
       .boolean()
@@ -134,7 +134,7 @@ export const GetMeResponse = zod
       .string()
       .optional()
       .describe(
-        "Preferred IANA timezone (e.g. 'Europe\/Paris'). Null means the user never chose one; the client then follows the browser."
+        "Preferred IANA timezone (e.g. 'Europe/Paris'). Null means the user never chose one; the client then follows the browser."
       ),
     contactableByMembers: zod
       .boolean()
@@ -193,7 +193,7 @@ export const DeleteCurrentUserResponse = zod.void()
  * @summary Upload user avatar
  */
 export const UploadAvatarBody = zod.object({
-  file: zod.instanceof(File).optional(),
+  file: zod.instanceof(Blob).optional(),
 })
 
 export const UploadAvatarResponse = zod
@@ -223,7 +223,7 @@ export const UploadAvatarResponse = zod
       .string()
       .optional()
       .describe(
-        "Preferred IANA timezone (e.g. 'Europe\/Paris'). Null means the user never chose one; the client then follows the browser."
+        "Preferred IANA timezone (e.g. 'Europe/Paris'). Null means the user never chose one; the client then follows the browser."
       ),
     contactableByMembers: zod
       .boolean()
@@ -302,7 +302,7 @@ export const DeleteAvatarResponse = zod
       .string()
       .optional()
       .describe(
-        "Preferred IANA timezone (e.g. 'Europe\/Paris'). Null means the user never chose one; the client then follows the browser."
+        "Preferred IANA timezone (e.g. 'Europe/Paris'). Null means the user never chose one; the client then follows the browser."
       ),
     contactableByMembers: zod
       .boolean()
@@ -622,7 +622,7 @@ export const ListMyParticipationsResponse = zod
                   .describe(
                     "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
                   ),
-                dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
+                dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
                 status: zod
                   .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                   .describe('Publication status'),
@@ -648,7 +648,7 @@ export const ListMyParticipationsResponse = zod
                         name: zod.string().describe('Group name'),
                         time: zod.string().optional(),
                         routeSlug: zod.string().optional().describe('Route slug'),
-                        averageSpeed: zod.number().optional().describe('Average speed in km\/h'),
+                        averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                         maxParticipants: zod.int().optional().describe('Maximum participants'),
                         countParticipants: zod.int().describe('Current number of participants'),
                         participants: zod
@@ -956,7 +956,7 @@ export const ListMyParticipationsResponse = zod
                   .describe(
                     "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
                   ),
-                dateTime: zod.iso.datetime({ offset: true }).describe('Publication date\/time'),
+                dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
                 status: zod
                   .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                   .describe('Publication status'),
@@ -1149,7 +1149,7 @@ export const ListMyParticipationsResponse = zod
                   .describe(
                     "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
                   ),
-                dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date\/time'),
+                dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date/time'),
                 endDate: zod.iso
                   .datetime({ offset: true })
                   .optional()
@@ -1192,7 +1192,7 @@ export const ListMyParticipationsResponse = zod
                         id: zod.string().describe('Stage ID (TSID)'),
                         slug: zod.string().describe('Stage slug'),
                         name: zod.string().describe('Stage name'),
-                        dateTime: zod.iso.datetime({ offset: true }).describe('Stage date\/time'),
+                        dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
                         route: zod
                           .object({
                             id: zod.string().describe('Route ID (TSID)'),
@@ -1633,7 +1633,7 @@ export const ListMyParticipationsResponse = zod
                         stageCount: zod
                           .int()
                           .describe(
-                            "How many live stages the trip has — the '\/ 5' of 'Day 2 \/ 5'."
+                            "How many live stages the trip has — the '/ 5' of 'Day 2 / 5'."
                           ),
                       })
                       .describe('Trip stage information')
@@ -1725,7 +1725,7 @@ export const UpdateMyPreferencesBody = zod
       .max(updateMyPreferencesBodyTimezoneMax)
       .optional()
       .describe(
-        "Preferred IANA timezone (e.g. 'Europe\/Paris'). Omit or send null to leave it unchanged. Validated against the JDK's own timezone database, not a regex."
+        "Preferred IANA timezone (e.g. 'Europe/Paris'). Omit or send null to leave it unchanged. Validated against the JDK's own timezone database, not a regex."
       ),
     contactableByMembers: zod
       .boolean()
@@ -1763,7 +1763,7 @@ export const UpdateMyPreferencesResponse = zod
       .string()
       .optional()
       .describe(
-        "Preferred IANA timezone (e.g. 'Europe\/Paris'). Null means the user never chose one; the client then follows the browser."
+        "Preferred IANA timezone (e.g. 'Europe/Paris'). Null means the user never chose one; the client then follows the browser."
       ),
     contactableByMembers: zod
       .boolean()

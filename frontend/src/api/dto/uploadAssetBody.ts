@@ -1,3 +1,3 @@
 export type UploadAssetBody = {
-  file?: Blob
+  file?: Blob | File
 }

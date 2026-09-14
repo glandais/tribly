@@ -496,6 +496,8 @@ export const disconnect = (
   )
 }
 
+export const getDisconnectMutationKey = () => ['disconnect'] as const
+
 export const getDisconnectMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -503,17 +505,17 @@ export const getDisconnectMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof disconnect>>,
     TError,
-    { serviceType: GpsServiceType },
+    DisconnectMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof disconnect>>,
   TError,
-  { serviceType: GpsServiceType },
+  DisconnectMutationVariables,
   TContext
 > => {
-  const mutationKey = ['disconnect']
+  const mutationKey = getDisconnectMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -522,7 +524,7 @@ export const getDisconnectMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof disconnect>>,
-    { serviceType: GpsServiceType }
+    DisconnectMutationVariables
   > = (props) => {
     const { serviceType } = props ?? {}
 
@@ -535,6 +537,7 @@ export const getDisconnectMutationOptions = <
 export type DisconnectMutationResult = NonNullable<Awaited<ReturnType<typeof disconnect>>>
 
 export type DisconnectMutationError = ErrorType<ErrorResponse | void>
+export type DisconnectMutationVariables = { serviceType: GpsServiceType }
 
 /**
  * @summary Disconnect GPS service
@@ -544,7 +547,7 @@ export const useDisconnect = <TError = ErrorType<ErrorResponse | void>, TContext
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof disconnect>>,
       TError,
-      { serviceType: GpsServiceType },
+      DisconnectMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -553,7 +556,7 @@ export const useDisconnect = <TError = ErrorType<ErrorResponse | void>, TContext
 ): UseMutationResult<
   Awaited<ReturnType<typeof disconnect>>,
   TError,
-  { serviceType: GpsServiceType },
+  DisconnectMutationVariables,
   TContext
 > => {
   return useMutation(getDisconnectMutationOptions(options), queryClient)
@@ -575,6 +578,8 @@ export const uploadRoute = (
   )
 }
 
+export const getUploadRouteMutationKey = () => ['uploadRoute'] as const
+
 export const getUploadRouteMutationOptions = <
   TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
@@ -582,17 +587,17 @@ export const getUploadRouteMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof uploadRoute>>,
     TError,
-    { serviceType: GpsServiceType; teamSlug: string; routeSlug: string },
+    UploadRouteMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof uploadRoute>>,
   TError,
-  { serviceType: GpsServiceType; teamSlug: string; routeSlug: string },
+  UploadRouteMutationVariables,
   TContext
 > => {
-  const mutationKey = ['uploadRoute']
+  const mutationKey = getUploadRouteMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -601,7 +606,7 @@ export const getUploadRouteMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof uploadRoute>>,
-    { serviceType: GpsServiceType; teamSlug: string; routeSlug: string }
+    UploadRouteMutationVariables
   > = (props) => {
     const { serviceType, teamSlug, routeSlug } = props ?? {}
 
@@ -614,6 +619,11 @@ export const getUploadRouteMutationOptions = <
 export type UploadRouteMutationResult = NonNullable<Awaited<ReturnType<typeof uploadRoute>>>
 
 export type UploadRouteMutationError = ErrorType<ErrorResponse | void>
+export type UploadRouteMutationVariables = {
+  serviceType: GpsServiceType
+  teamSlug: string
+  routeSlug: string
+}
 
 /**
  * @summary Upload route to GPS service
@@ -623,7 +633,7 @@ export const useUploadRoute = <TError = ErrorType<ErrorResponse | void>, TContex
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof uploadRoute>>,
       TError,
-      { serviceType: GpsServiceType; teamSlug: string; routeSlug: string },
+      UploadRouteMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -632,7 +642,7 @@ export const useUploadRoute = <TError = ErrorType<ErrorResponse | void>, TContex
 ): UseMutationResult<
   Awaited<ReturnType<typeof uploadRoute>>,
   TError,
-  { serviceType: GpsServiceType; teamSlug: string; routeSlug: string },
+  UploadRouteMutationVariables,
   TContext
 > => {
   return useMutation(getUploadRouteMutationOptions(options), queryClient)

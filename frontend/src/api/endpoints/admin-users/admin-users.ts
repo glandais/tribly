@@ -347,6 +347,8 @@ export const assignPlatformRole = (
   )
 }
 
+export const getAssignPlatformRoleMutationKey = () => ['assignPlatformRole'] as const
+
 export const getAssignPlatformRoleMutationOptions = <
   TError = ErrorType<void | ErrorResponse>,
   TContext = unknown,
@@ -354,17 +356,17 @@ export const getAssignPlatformRoleMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assignPlatformRole>>,
     TError,
-    { userId: string; data: BodyType<AssignPlatformRoleRequest> },
+    AssignPlatformRoleMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assignPlatformRole>>,
   TError,
-  { userId: string; data: BodyType<AssignPlatformRoleRequest> },
+  AssignPlatformRoleMutationVariables,
   TContext
 > => {
-  const mutationKey = ['assignPlatformRole']
+  const mutationKey = getAssignPlatformRoleMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -373,7 +375,7 @@ export const getAssignPlatformRoleMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assignPlatformRole>>,
-    { userId: string; data: BodyType<AssignPlatformRoleRequest> }
+    AssignPlatformRoleMutationVariables
   > = (props) => {
     const { userId, data } = props ?? {}
 
@@ -388,6 +390,10 @@ export type AssignPlatformRoleMutationResult = NonNullable<
 >
 export type AssignPlatformRoleMutationBody = BodyType<AssignPlatformRoleRequest>
 export type AssignPlatformRoleMutationError = ErrorType<void | ErrorResponse>
+export type AssignPlatformRoleMutationVariables = {
+  userId: string
+  data: BodyType<AssignPlatformRoleRequest>
+}
 
 /**
  * @summary Assign platform role
@@ -397,7 +403,7 @@ export const useAssignPlatformRole = <TError = ErrorType<void | ErrorResponse>, 
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof assignPlatformRole>>,
       TError,
-      { userId: string; data: BodyType<AssignPlatformRoleRequest> },
+      AssignPlatformRoleMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -406,7 +412,7 @@ export const useAssignPlatformRole = <TError = ErrorType<void | ErrorResponse>, 
 ): UseMutationResult<
   Awaited<ReturnType<typeof assignPlatformRole>>,
   TError,
-  { userId: string; data: BodyType<AssignPlatformRoleRequest> },
+  AssignPlatformRoleMutationVariables,
   TContext
 > => {
   return useMutation(getAssignPlatformRoleMutationOptions(options), queryClient)
