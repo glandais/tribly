@@ -44,7 +44,7 @@ dependencies:
   intl: ^0.20.3
 
   # Image caching with auth headers support
-  cached_network_image: ^3.4.1
+  cached_network_image: ^4.0.0
 
   # Maps
   maplibre: ^0.3.6
