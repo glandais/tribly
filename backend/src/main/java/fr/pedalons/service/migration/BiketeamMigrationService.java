@@ -603,44 +603,107 @@ public class BiketeamMigrationService {
     reader.findTripParticipants(tripIds).forEach(p -> referenced.add(p.userId()));
     reader.findMessages(sourceTeam).forEach(m -> referenced.add(m.userId()));
 
+    // Biketeam cleared the address of the accounts that lost its case-insensitive email
+    // deduplication. The account that kept it must be read too, whether or not it is referenced.
+    Map<String, String> emailConflicts = reader.findEmailConflicts();
+    referenced.addAll(
+        referenced.stream().map(emailConflicts::get).filter(Objects::nonNull).toList());
+
     if (referenced.isEmpty()) {
       return Map.of();
     }
     Map<String, Long> idMap = new HashMap<>();
-    int placeholders = 0;
-    int skipped = 0;
+    UserCounts counts = new UserCounts();
+    List<BiketeamReader.BtUser> losers = new ArrayList<>();
     for (BiketeamReader.BtUser bt : reader.findUsersByIds(new ArrayList<>(referenced))) {
-      String email = resolveEmail(bt);
-      if (email == null) {
-        LOG.warnf("Skipping biketeam user %s: no email and no external id to derive one", bt.id());
-        skipped++;
-        continue;
+      if (emailConflicts.containsKey(bt.id())) {
+        losers.add(bt);
+      } else {
+        migrateUser(domain, bt, idMap, counts);
       }
-      boolean deliverable = hasRealEmail(bt);
-      if (!deliverable) {
-        placeholders++;
-      }
-      try {
-        QuarkusTransaction.requiringNew()
-            .run(
-                () -> {
-                  User user = upsertUserByEmail(domain, bt, email, deliverable);
-                  upsertStravaIdentity(domain, user, bt);
-                  mapRepo.upsert(T_USER, bt.id(), user.getId());
-                  idMap.put(bt.id(), user.getId());
-                });
-      } catch (Exception e) {
-        LOG.warnf(e, "Failed to migrate user biketeam.id=%s email=%s", bt.id(), email);
+    }
+    // After the accounts they may fold into, which are therefore already mapped.
+    for (BiketeamReader.BtUser bt : losers) {
+      Long keptUserId = idMap.get(emailConflicts.get(bt.id()));
+      if (keptUserId != null && resolveEmail(bt) == null) {
+        foldIntoKeptUser(bt, keptUserId, idMap, counts);
+      } else {
+        migrateUser(domain, bt, idMap, counts);
       }
     }
     LOG.infof(
-        "Migrated %d users (%d with a placeholder email, %d skipped)",
-        idMap.size(), placeholders, skipped);
+        "Migrated %d users (%d with a placeholder email, %d folded into the account that kept"
+            + " their email, %d skipped)",
+        idMap.size(), counts.placeholders, counts.folded, counts.skipped);
     return idMap;
+  }
+
+  private static final class UserCounts {
+    int placeholders;
+    int folded;
+    int skipped;
+  }
+
+  private void migrateUser(
+      Domain domain, BiketeamReader.BtUser bt, Map<String, Long> idMap, UserCounts counts) {
+    String email = resolveEmail(bt);
+    if (email == null) {
+      LOG.warnf("Skipping biketeam user %s: no email and no external id to derive one", bt.id());
+      counts.skipped++;
+      return;
+    }
+    if (!hasRealEmail(bt)) {
+      counts.placeholders++;
+    }
+    try {
+      QuarkusTransaction.requiringNew()
+          .run(
+              () -> {
+                User user = upsertUserByEmail(domain, bt, email);
+                upsertStravaIdentity(domain, user, bt);
+                mapRepo.upsert(T_USER, bt.id(), user.getId());
+                idMap.put(bt.id(), user.getId());
+              });
+    } catch (Exception e) {
+      LOG.warnf(e, "Failed to migrate user biketeam.id=%s email=%s", bt.id(), email);
+    }
+  }
+
+  /**
+   * A deduplication loser with no external id has nothing left to log in with, and would otherwise
+   * be skipped along with its memberships, participations and comments. Before the deduplication
+   * the migration merged it into the same tribly user by lowercased email; this keeps that. Only
+   * the data follows: no login method of the loser is attached to the kept account. A loser that
+   * does have an external id stays a separate account, as it now is in biketeam.
+   */
+  private void foldIntoKeptUser(
+      BiketeamReader.BtUser bt, Long keptUserId, Map<String, Long> idMap, UserCounts counts) {
+    try {
+      QuarkusTransaction.requiringNew().run(() -> mapRepo.upsert(T_USER, bt.id(), keptUserId));
+      idMap.put(bt.id(), keptUserId);
+      counts.folded++;
+    } catch (Exception e) {
+      LOG.warnf(e, "Failed to fold biketeam user %s into tribly user %d", bt.id(), keptUserId);
+    }
   }
 
   private static boolean hasRealEmail(BiketeamReader.BtUser bt) {
     return bt.email() != null && !bt.email().isBlank();
+  }
+
+  /**
+   * Whether the migrated address can be trusted as the member's own. Biketeam's old profile form
+   * accepted any address, so biketeam itself reset {@code email_verified} to false on every account
+   * and only sets it back on proof of mailbox control. A verified email opens OTP login and
+   * password reset in tribly, which has no Google/Facebook login, so the rule is widened to the
+   * accounts carrying one of those identities — otherwise they would have no way in at all. A
+   * password alone proves nothing: biketeam stores it before the address is verified.
+   */
+  private static boolean hasProvenEmail(BiketeamReader.BtUser bt) {
+    return hasRealEmail(bt)
+        && (bt.emailVerified()
+            || (bt.facebookId() != null && !bt.facebookId().isBlank())
+            || (bt.googleId() != null && !bt.googleId().isBlank()));
   }
 
   /**
@@ -652,7 +715,7 @@ public class BiketeamMigrationService {
    */
   private @Nullable String resolveEmail(BiketeamReader.BtUser bt) {
     if (hasRealEmail(bt)) {
-      return bt.email().toLowerCase(Locale.ROOT);
+      return bt.email().trim().toLowerCase(Locale.ROOT);
     }
     String domain = config.getPlaceholderEmailDomain();
     String localPart = null;
@@ -688,36 +751,53 @@ public class BiketeamMigrationService {
     }
   }
 
-  private User upsertUserByEmail(
-      Domain domain, BiketeamReader.BtUser bt, String email, boolean deliverable) {
+  private User upsertUserByEmail(Domain domain, BiketeamReader.BtUser bt, String email) {
     return userRepository
         .findByEmailAndDomain(domain.getId(), email)
-        .map(u -> updateUser(u, bt, deliverable))
-        .orElseGet(() -> createUser(domain, bt, email, deliverable));
+        .map(u -> updateUser(u, bt))
+        .orElseGet(() -> createUser(domain, bt, email));
   }
 
-  private User createUser(
-      Domain domain, BiketeamReader.BtUser bt, String email, boolean deliverable) {
+  private User createUser(Domain domain, BiketeamReader.BtUser bt, String email) {
     User user = new User(domain, email, displayNameFor(bt, email));
-    if (deliverable) {
-      user.setEmailVerified(true);
-      user.setEmailVerifiedAt(Instant.now());
-    }
+    applyProvenEmail(user, bt);
     userRepository.persist(user);
     return user;
   }
 
-  private User updateUser(User user, BiketeamReader.BtUser bt, boolean deliverable) {
+  private User updateUser(User user, BiketeamReader.BtUser bt) {
     user.setDisplayName(displayNameFor(bt, user.getEmail()));
-    if (deliverable && !user.isEmailVerified()) {
-      user.setEmailVerified(true);
-      user.setEmailVerifiedAt(Instant.now());
-    }
+    applyProvenEmail(user, bt);
     if (bt.deletion() && !user.isDeleted()) {
       user.setDeleted(true);
     }
     userRepository.persist(user);
     return user;
+  }
+
+  /**
+   * Marks the email verified and carries the biketeam password over, both only on a proven email:
+   * tribly's password login does not check verification, so a hash set on someone else's address
+   * would be a working login to it. Never downgrades what tribly already holds.
+   */
+  private void applyProvenEmail(User user, BiketeamReader.BtUser bt) {
+    if (!hasProvenEmail(bt)) {
+      return;
+    }
+    if (!user.isEmailVerified()) {
+      user.markEmailVerified();
+    }
+    String hash = bt.passwordHash();
+    if (hash == null || user.getPasswordHash() != null) {
+      return;
+    }
+    // Spring's BCryptPasswordEncoder writes $2a$; elytron's ModularCrypt, behind BcryptUtil,
+    // reads $2a$, $2x$ and $2y$ but not $2b$, and would throw at login rather than refuse.
+    if (hash.startsWith("$2a$") || hash.startsWith("$2y$")) {
+      user.setPasswordHash(hash);
+    } else {
+      LOG.warnf("Not migrating the password of biketeam user %s: unsupported hash format", bt.id());
+    }
   }
 
   private String displayNameFor(BiketeamReader.BtUser bt, String fallback) {

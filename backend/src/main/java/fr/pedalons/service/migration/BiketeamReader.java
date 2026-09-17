@@ -42,6 +42,9 @@ public class BiketeamReader {
    * {@code email} is null for the many biketeam accounts created through a Strava/Facebook/Google
    * login, where biketeam never asked for one. The external ids let the migration synthesize a
    * stable placeholder address for them.
+   *
+   * <p>{@code passwordHash} and {@code emailVerified} only exist in dumps taken after biketeam's
+   * email/password login; an older dump reads them as null and false.
    */
   public record BtUser(
       String id,
@@ -53,7 +56,9 @@ public class BiketeamReader {
       boolean deletion,
       @Nullable Long stravaId,
       @Nullable String facebookId,
-      @Nullable String googleId) {}
+      @Nullable String googleId,
+      @Nullable String passwordHash,
+      boolean emailVerified) {}
 
   /** Free-text presentation plus contact details, shown on the biketeam team home page. */
   public record BtTeamDescription(
@@ -201,6 +206,28 @@ public class BiketeamReader {
     }
   }
 
+  /** Lets the reader accept dumps taken before a biketeam schema change. */
+  private boolean hasTable(String table) {
+    return Boolean.TRUE.equals(
+        one(
+            "SELECT true FROM information_schema.tables"
+                + " WHERE table_schema = current_schema() AND table_name = ?",
+            ps -> ps.setString(1, table),
+            rs -> true));
+  }
+
+  private boolean hasColumn(String table, String column) {
+    return Boolean.TRUE.equals(
+        one(
+            "SELECT true FROM information_schema.columns"
+                + " WHERE table_schema = current_schema() AND table_name = ? AND column_name = ?",
+            ps -> {
+              ps.setString(1, table);
+              ps.setString(2, column);
+            },
+            rs -> true));
+  }
+
   // ─── Queries ──────────────────────────────────────────────────────────────
 
   private static final String TEAM_COLUMNS =
@@ -276,9 +303,15 @@ public class BiketeamReader {
       return List.of();
     }
     String placeholders = String.join(",", ids.stream().map(x -> "?").toList());
+    String authColumns =
+        hasColumn("user_account", "password_hash")
+            ? "password_hash, email_verified"
+            : "NULL AS password_hash, false AS email_verified";
     String sql =
         "SELECT id, email, first_name, last_name, city, admin, deletion, "
-            + "strava_id, facebook_id, google_id FROM user_account "
+            + "strava_id, facebook_id, google_id, "
+            + authColumns
+            + " FROM user_account "
             + "WHERE id IN ("
             + placeholders
             + ")";
@@ -310,8 +343,27 @@ public class BiketeamReader {
               deletion,
               stravaId,
               rs.getString(9),
-              rs.getString(10));
+              rs.getString(10),
+              rs.getString(11),
+              rs.getBoolean(12));
         });
+  }
+
+  /**
+   * Biketeam's case-insensitive email deduplication cleared the address of every "losing" account
+   * and recorded it in {@code user_email_conflict}: loser id → the id of the account that kept the
+   * address. Empty for a dump older than that changeset.
+   */
+  public Map<String, String> findEmailConflicts() {
+    Map<String, String> out = new HashMap<>();
+    if (!hasTable("user_email_conflict")) {
+      return out;
+    }
+    forEach(
+        "SELECT user_id, kept_user_id FROM user_email_conflict WHERE kept_user_id IS NOT NULL",
+        ps -> {},
+        rs -> out.put(rs.getString(1), rs.getString(2)));
+    return out;
   }
 
   public List<BtUserRole> findUserRoles(String teamId) {

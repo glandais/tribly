@@ -281,6 +281,27 @@ deliverable, so the account is left **unverified** and cannot log in until its o
 claims it. This keeps their memberships, ride participations and comments; skipping them
 would have dropped roughly 60% of n-peloton's participation history.
 
+## Verified emails and passwords
+
+Biketeam's old profile form accepted any address, so when it added email/password login it
+reset `email_verified` to false on every account. A verified email opens OTP login and
+password reset in tribly, so the migration only marks it verified on proof: biketeam's own
+`email_verified`, or a Google/Facebook identity on the account — tribly has neither login,
+and without this those members would have no way in. A real address without either proof
+is migrated **unverified**.
+
+The BCrypt `password_hash` is copied as is (Spring's `$2a$` is readable by `BcryptUtil`),
+but only on a verified email: tribly's password login does not check verification, so a
+password set on someone else's address would open that account.
+
+Biketeam's case-insensitive email deduplication cleared the address of every "losing"
+account and logged it in `user_email_conflict`. A loser with an external id stays a separate
+(placeholder) account, as in biketeam; one without is folded into the account that kept the
+address, so its history is not dropped — only its data follows, never a login method.
+
+A dump taken before those biketeam changes has neither the columns nor the table; the reader
+detects that, and every address is then only verified through a Google/Facebook identity.
+
 ## Running the migration from dev mode instead
 
 PEDALONS_MIGRATION_BIKETEAM_ENABLED=true \
