@@ -4,6 +4,7 @@ import fr.pedalons.domain.common.Publication;
 import fr.pedalons.domain.post.Post;
 import fr.pedalons.enums.Status;
 import fr.pedalons.repository.common.AllPublicationRepository;
+import fr.pedalons.service.notification.NotificationPublisher;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -21,6 +22,8 @@ public class PublicationPublishScheduler {
   private static final Logger LOG = Logger.getLogger(PublicationPublishScheduler.class);
 
   @Inject AllPublicationRepository publicationRepository;
+
+  @Inject NotificationPublisher notificationPublisher;
 
   /**
    * Runs every minute to check for publications that should be auto-published. A publication is
@@ -47,6 +50,10 @@ public class PublicationPublishScheduler {
 
       publication.setPublishAt(null); // Clear after publishing
       publicationRepository.persist(publication);
+      // Nobody pressed "publish": the author is the closest thing to an actor, and is spared
+      // being told about their own publication.
+      notificationPublisher.publicationStatusChanged(
+          publication, Status.DRAFT, publication.getCreatedBy());
       LOG.infov(
           "Auto-published {0} {1} ''{2}'' for team {3}",
           publication.getClass().getSimpleName(),

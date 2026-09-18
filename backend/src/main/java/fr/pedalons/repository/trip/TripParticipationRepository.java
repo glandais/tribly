@@ -1,6 +1,7 @@
 package fr.pedalons.repository.trip;
 
 import fr.pedalons.domain.trip.TripParticipation;
+import fr.pedalons.domain.user.User;
 import fr.pedalons.repository.common.BaseRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.Collection;
@@ -41,5 +42,18 @@ public class TripParticipationRepository implements BaseRepository<TripParticipa
   public List<TripParticipation> findByUser(Long domainId, Long userId) {
     return list(
         "user.id = ?2 and trip.team.domain.id = ?1 order by registeredAt", domainId, userId);
+  }
+
+  /** The live users registered to a trip who are still members of its team. */
+  public List<User> findRegisteredMemberUsers(Long tripId) {
+    return getEntityManager()
+        .createQuery(
+            "select distinct u from TripParticipation p join p.user u"
+                + " where p.trip.id = :tripId and u.deleted = false"
+                + " and exists (select 1 from UserTeam ut"
+                + " where ut.user = u and ut.team = p.trip.team)",
+            User.class)
+        .setParameter("tripId", tripId)
+        .getResultList();
   }
 }

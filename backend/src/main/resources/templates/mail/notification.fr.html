@@ -1,0 +1,9 @@
+{#include "mail/base.fr.html"}
+{#content}
+<p>Bonjour {params.recipientName},</p>
+<p><strong>{params.title}</strong></p>
+<p>{params.body}</p>
+<p><a href="{params.ctaUrl}">{params.ctaLabel}</a></p>
+<p style="font-size:12px;color:#666666;">Vous recevez cet e-mail parce que ce type de notification est activé sur votre compte. <a href="{params.preferencesUrl}">Choisir vos notifications</a>.</p>
+{/content}
+{/include}

@@ -28,6 +28,7 @@ import fr.pedalons.repository.trip.TripStageRepository;
 import fr.pedalons.service.comment.CommentCountLookup;
 import fr.pedalons.service.common.ParticipationLookup;
 import fr.pedalons.service.common.TeamEntityService;
+import fr.pedalons.service.notification.NotificationPublisher;
 import fr.pedalons.service.route.RouteService;
 import fr.pedalons.service.security.annotation.CheckAccess;
 import fr.pedalons.service.thumbnail.ThumbnailService;
@@ -58,6 +59,8 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
   @Inject ParticipationLookup participationLookup;
 
   @Inject CommentCountLookup commentCountLookup;
+
+  @Inject NotificationPublisher notificationPublisher;
 
   @Override
   protected TripRepository getRepository() {
@@ -121,6 +124,7 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
     }
 
     thumbnailService.generateTripThumbnails(trip);
+    notificationPublisher.publicationStatusChanged(trip, null, creator);
 
     return toDto(trip);
   }
@@ -205,6 +209,7 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
     Team team = teamService.getTeam(teamSlug);
     Trip trip = findBySlug(team, tripSlug);
     User user = pedalonsContext.getUser();
+    Status previousStatus = trip.getStatus();
 
     // Validate visibility: private teams can only have team-only trips
     validateVisibility(team, request);
@@ -251,6 +256,7 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
     tripRepository.persist(trip);
 
     thumbnailService.generateTripThumbnails(trip);
+    notificationPublisher.publicationStatusChanged(trip, previousStatus, user);
 
     return toDto(trip);
   }

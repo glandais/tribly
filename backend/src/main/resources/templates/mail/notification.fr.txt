@@ -1,0 +1,13 @@
+{#fragment id=subject rendered=false}{params.subject}{/fragment}
+Bonjour {params.recipientName},
+
+{params.title}
+
+{params.body}
+
+{params.ctaLabel} : {params.ctaUrl}
+
+Vous recevez cet e-mail parce que ce type de notification est activé sur votre compte. Choisir vos notifications : {params.preferencesUrl}
+
+Cordialement,
+L'équipe {params.appName}

@@ -1,6 +1,7 @@
 package fr.pedalons.repository.ride;
 
 import fr.pedalons.domain.ride.RideParticipation;
+import fr.pedalons.domain.user.User;
 import fr.pedalons.repository.common.BaseRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.Collection;
@@ -61,5 +62,21 @@ public class RideParticipationRepository implements BaseRepository<RideParticipa
         "user.id = ?2 and rideGroup.ride.team.domain.id = ?1 order by registeredAt",
         domainId,
         userId);
+  }
+
+  /**
+   * The live users registered to any group of a ride who are still members of its team. Leaving
+   * the team does not remove a registration, but it does end the right to hear about the ride.
+   */
+  public List<User> findRegisteredMemberUsers(Long rideId) {
+    return getEntityManager()
+        .createQuery(
+            "select distinct u from RideParticipation p join p.user u"
+                + " where p.rideGroup.ride.id = :rideId and u.deleted = false"
+                + " and exists (select 1 from UserTeam ut"
+                + " where ut.user = u and ut.team = p.rideGroup.ride.team)",
+            User.class)
+        .setParameter("rideId", rideId)
+        .getResultList();
   }
 }

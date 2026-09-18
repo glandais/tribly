@@ -2411,6 +2411,187 @@ components:
         id:
           type: string
           description: id/slug
+    NotificationChannel:
+      type: string
+      enum:
+      - IN_APP
+      - EMAIL
+      - PUSH
+    NotificationDto:
+      description: A notification in the current user's inbox
+      type: object
+      required:
+      - id
+      - type
+      - read
+      - createdAt
+      - teamSlug
+      - teamName
+      - subjectType
+      - subjectSlug
+      - subjectName
+      properties:
+        id:
+          type: string
+          description: Notification identifier
+        type:
+          description: What happened
+          type: string
+          $ref: "#/components/schemas/NotificationType"
+        read:
+          type: boolean
+          description: Whether the user has read it
+        createdAt:
+          description: When it was created
+          type: string
+          $ref: "#/components/schemas/Instant"
+        actorName:
+          type: string
+          description: "Display name of whoever caused it, when someone did (a scheduled\
+            \ publication has no actor)"
+        teamSlug:
+          type: string
+          description: Slug of the team it happened in
+        teamName:
+          type: string
+          description: Name of the team it happened in
+        subjectType:
+          description: Kind of page the notification opens
+          type: string
+          $ref: "#/components/schemas/NotificationSubjectType"
+        subjectSlug:
+          type: string
+          description: "Slug of the ride, trip, post or route"
+        subjectName:
+          type: string
+          description: "Name of the ride, trip, post or route"
+        subjectDateTime:
+          description: "Date of the ride or trip, publication date of a post"
+          type: string
+          $ref: "#/components/schemas/Instant"
+        excerpt:
+          type: string
+          description: "A short quote — the reply, for COMMENT_REPLY"
+    NotificationListResponse:
+      description: "A page of the current user's notifications, newest first"
+      type: object
+      required:
+      - items
+      - total
+      - unreadCount
+      - page
+      - size
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/NotificationDto"
+          description: The notifications of this page
+        total:
+          type: integer
+          format: int64
+          description: "How many notifications match the query (unread only, if asked)"
+        unreadCount:
+          type: integer
+          format: int64
+          description: "How many notifications are unread, whatever the filter"
+        page:
+          type: integer
+          format: int32
+          description: Page number (0-indexed)
+        size:
+          type: integer
+          format: int32
+          description: Page size applied
+    NotificationPreferenceDto:
+      description: "One cell of the notification preferences: a type on a channel"
+      type: object
+      required:
+      - type
+      - channel
+      - enabled
+      - enabledByDefault
+      properties:
+        type:
+          description: Notification type
+          type: string
+          $ref: "#/components/schemas/NotificationType"
+        channel:
+          description: Delivery channel
+          type: string
+          $ref: "#/components/schemas/NotificationChannel"
+        enabled:
+          type: boolean
+          description: "Whether it is delivered, as currently in effect"
+        enabledByDefault:
+          type: boolean
+          description: What applies when the user never touched this cell. Lets a
+            client offer a 'restore defaults' without hard-coding them.
+    NotificationPreferenceUpdate:
+      description: Switch one notification type on or off on one channel
+      type: object
+      required:
+      - type
+      - channel
+      - enabled
+      properties:
+        type:
+          description: Notification type
+          type: string
+          $ref: "#/components/schemas/NotificationType"
+        channel:
+          description: "Delivery channel. IN_APP is refused: the inbox is always on."
+          type: string
+          $ref: "#/components/schemas/NotificationChannel"
+        enabled:
+          type: boolean
+          description: Whether to deliver it
+    NotificationPreferencesDto:
+      description: The current user's notification preferences
+      type: object
+      required:
+      - channels
+      - preferences
+      properties:
+        channels:
+          type: array
+          items:
+            $ref: "#/components/schemas/NotificationChannel"
+          description: "Channels that can be configured on this server, in display\
+            \ order"
+        preferences:
+          type: array
+          items:
+            $ref: "#/components/schemas/NotificationPreferenceDto"
+          description: One cell per type and configurable channel
+    NotificationPreferencesRequest:
+      description: Notification preference cells to change
+      type: object
+      required:
+      - preferences
+      properties:
+        preferences:
+          type: array
+          items:
+            $ref: "#/components/schemas/NotificationPreferenceUpdate"
+          description: The cells to change
+          maxItems: 200
+    NotificationSubjectType:
+      type: string
+      enum:
+      - RIDE
+      - TRIP
+      - POST
+      - ROUTE
+    NotificationType:
+      type: string
+      enum:
+      - RIDE_PUBLISHED
+      - RIDE_CANCELLED
+      - TRIP_PUBLISHED
+      - TRIP_CANCELLED
+      - POST_PUBLISHED
+      - COMMENT_REPLY
     OtpRequest:
       description: OTP request
       type: object
@@ -4572,6 +4753,16 @@ components:
       enum:
       - METRIC
       - IMPERIAL
+    UnreadCountDto:
+      description: Number of unread notifications — the badge on the bell
+      type: object
+      required:
+      - count
+      properties:
+        count:
+          type: integer
+          format: int64
+          description: Unread notifications
     UpdateDomainAliasRequest:
       description: Request to update a domain alias
       type: object
@@ -4957,6 +5148,8 @@ tags:
   description: "Address lookup, proxied to OpenStreetMap Nominatim"
 - name: Invitations
   description: Redeem a team invitation
+- name: Notifications
+  description: Notification inbox and preferences
 - name: Passkeys
   description: WebAuthn passkey management
 - name: Places
@@ -7827,6 +8020,197 @@ paths:
                 type: object
         "404":
           description: No generated style with this id
+  /api/notifications:
+    get:
+      summary: List my notifications
+      description: "The current user's notifications, newest first. Each carries a\
+        \ type and structured fields, not rendered text: the client words it in its\
+        \ own language."
+      operationId: listMyNotifications
+      tags:
+      - Notifications
+      parameters:
+      - description: Page number (0-indexed)
+        name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - description: Page size (max 200)
+        name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 20
+      - description: Only unread notifications
+        name: unreadOnly
+        in: query
+        schema:
+          type: boolean
+          default: false
+      responses:
+        "200":
+          description: A page of notifications
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationListResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/notifications/preferences:
+    put:
+      summary: Update my notification preferences
+      description: "A partial update: only the cells sent change. The full matrix\
+        \ is returned."
+      operationId: updateMyNotificationPreferences
+      tags:
+      - Notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotificationPreferencesRequest"
+        required: true
+      responses:
+        "200":
+          description: Preferences updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationPreferencesDto"
+        "400":
+          description: Invalid request (e.g. an attempt to switch the IN_APP channel
+            off)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+    get:
+      summary: Get my notification preferences
+      description: "Every notification type on every channel this server can deliver\
+        \ on. The inbox is not listed: it always receives everything."
+      operationId: getMyNotificationPreferences
+      tags:
+      - Notifications
+      responses:
+        "200":
+          description: The preference matrix
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationPreferencesDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/notifications/read-all:
+    post:
+      summary: Mark all my notifications read
+      operationId: markAllNotificationsRead
+      tags:
+      - Notifications
+      responses:
+        "204":
+          description: All marked read
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/notifications/unread-count:
+    get:
+      summary: Count my unread notifications
+      description: "The badge on the bell. Cheap by design: clients poll it (on focus,\
+        \ at most once a minute) rather than reloading the list."
+      operationId: countMyUnreadNotifications
+      tags:
+      - Notifications
+      responses:
+        "200":
+          description: Unread count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnreadCountDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/notifications/{notificationId}/read:
+    post:
+      summary: Mark a notification read
+      description: "Idempotent: marking an already-read notification read succeeds."
+      operationId: markNotificationRead
+      tags:
+      - Notifications
+      parameters:
+      - name: notificationId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Marked read
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No such notification for the current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
   /api/publications:
     get:
       summary: List all publications
@@ -14079,7 +14463,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 3.4.0
+  version: 3.5.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

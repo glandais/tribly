@@ -32,6 +32,13 @@ public class EmailService {
 
   public static final String TEAM_INVITATION_SIGNUP = "team-invitation-signup";
 
+  /**
+   * The one template every notification type shares. Its parameters arrive already rendered
+   * ({@code subject}, {@code title}, {@code body}, {@code ctaLabel}, {@code ctaUrl}…) by {@code
+   * NotificationTexts}, so a new notification type needs no new Brevo template.
+   */
+  public static final String NOTIFICATION = "notification";
+
   /** The languages {@code templates/mail} is translated into; anything else falls back to French. */
   private static final Set<String> TEMPLATE_LANGUAGES = Set.of("fr", "en");
 
@@ -82,6 +89,12 @@ public class EmailService {
 
   @ConfigProperty(name = "pedalons.email.brevo.templates.team-invitation-signup.en")
   Optional<Long> templateTeamInvitationSignupEn;
+
+  @ConfigProperty(name = "pedalons.email.brevo.templates.notification.fr")
+  Optional<Long> templateNotificationFr;
+
+  @ConfigProperty(name = "pedalons.email.brevo.templates.notification.en")
+  Optional<Long> templateNotificationEn;
 
   @Inject @RestClient BrevoRestClient brevoRestClient;
 
@@ -197,6 +210,16 @@ public class EmailService {
               () ->
                   new IllegalStateException(
                       "Brevo template ID not configured for team-invitation-signup.en"));
+      case NOTIFICATION + ".fr" ->
+          templateNotificationFr.orElseThrow(
+              () ->
+                  new IllegalStateException(
+                      "Brevo template ID not configured for notification.fr"));
+      case NOTIFICATION + ".en" ->
+          templateNotificationEn.orElseThrow(
+              () ->
+                  new IllegalStateException(
+                      "Brevo template ID not configured for notification.en"));
       default ->
           throw new IllegalArgumentException(
               "Unknown template: " + templateName + " / " + language);

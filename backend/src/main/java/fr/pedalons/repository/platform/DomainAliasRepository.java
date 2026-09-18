@@ -31,4 +31,11 @@ public class DomainAliasRepository implements BaseRepository<DomainAlias> {
             + " order by da.hostname",
         domainId);
   }
+
+  /** The active alias pinned on a team, if any — the site that team's members know. */
+  public Optional<DomainAlias> findActiveByPinnedTeam(Long teamId) {
+    return find(
+            "pinnedTeam.id = ?1 and active = true and deleted = false order by createdAt", teamId)
+        .firstResultOptional();
+  }
 }

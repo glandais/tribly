@@ -1,0 +1,151 @@
+package fr.pedalons.service.notification;
+
+import fr.pedalons.common.TsidUtils;
+import fr.pedalons.common.exception.BadRequestException;
+import fr.pedalons.common.exception.NotFoundException;
+import fr.pedalons.domain.notification.NotificationPreference;
+import fr.pedalons.domain.user.User;
+import fr.pedalons.dto.notifications.request.NotificationPreferenceUpdate;
+import fr.pedalons.dto.notifications.request.NotificationPreferencesRequest;
+import fr.pedalons.dto.notifications.response.NotificationDto;
+import fr.pedalons.dto.notifications.response.NotificationListResponse;
+import fr.pedalons.dto.notifications.response.NotificationPreferenceDto;
+import fr.pedalons.dto.notifications.response.NotificationPreferencesDto;
+import fr.pedalons.dto.notifications.response.UnreadCountDto;
+import fr.pedalons.enums.NotificationChannel;
+import fr.pedalons.enums.NotificationType;
+import fr.pedalons.repository.common.BaseRepository;
+import fr.pedalons.repository.notification.NotificationPreferenceRepository;
+import fr.pedalons.repository.notification.NotificationRepository;
+import fr.pedalons.service.security.PedalonsQueryContext;
+import fr.pedalons.service.security.annotation.Logged;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * The current user's inbox and preferences. Everything is scoped to the caller and their domain:
+ * someone else's notification is a 404, never a 403.
+ */
+@ApplicationScoped
+public class NotificationService {
+
+  @Inject NotificationRepository notificationRepository;
+  @Inject NotificationPreferenceRepository preferenceRepository;
+  @Inject NotificationChannels channels;
+  @Inject PedalonsQueryContext pedalonsContext;
+
+  @Logged
+  @Transactional
+  public NotificationListResponse list(int page, int size, boolean unreadOnly) {
+    Long userId = pedalonsContext.getUserId();
+    Long domainId = pedalonsContext.getDomainId();
+    int pageSize =
+        size <= 0 ? BaseRepository.DEFAULT_PAGE_SIZE : Math.min(size, BaseRepository.MAX_PAGE_SIZE);
+    int pageNumber = Math.max(page, 0);
+    List<NotificationDto> items =
+        notificationRepository.page(userId, domainId, unreadOnly, pageNumber, pageSize).stream()
+            .map(NotificationDto::from)
+            .toList();
+    long unread = notificationRepository.count(userId, domainId, true);
+    long total = unreadOnly ? unread : notificationRepository.count(userId, domainId, false);
+    return new NotificationListResponse(items, total, unread, pageNumber, pageSize);
+  }
+
+  @Logged
+  @Transactional
+  public UnreadCountDto unreadCount() {
+    return new UnreadCountDto(
+        notificationRepository.count(
+            pedalonsContext.getUserId(), pedalonsContext.getDomainId(), true));
+  }
+
+  @Logged
+  @Transactional
+  public void markRead(String notificationId) {
+    boolean found =
+        notificationRepository.markRead(
+            TsidUtils.toLong(notificationId),
+            pedalonsContext.getUserId(),
+            pedalonsContext.getDomainId(),
+            Instant.now());
+    if (!found) {
+      throw new NotFoundException();
+    }
+  }
+
+  @Logged
+  @Transactional
+  public void markAllRead() {
+    notificationRepository.markAllRead(
+        pedalonsContext.getUserId(), pedalonsContext.getDomainId(), Instant.now());
+  }
+
+  @Logged
+  @Transactional
+  public NotificationPreferencesDto getPreferences() {
+    return preferences(pedalonsContext.getUserId());
+  }
+
+  /**
+   * Writes the cells sent, leaves the others alone. A cell set back to its default is stored like
+   * any other: the row records a choice, and a later change of default should not override it.
+   */
+  @Logged
+  @Transactional
+  public NotificationPreferencesDto updatePreferences(NotificationPreferencesRequest request) {
+    User user = pedalonsContext.getUser();
+    Map<Cell, NotificationPreference> existing = new HashMap<>();
+    for (NotificationPreference preference : preferenceRepository.findByUser(user.getId())) {
+      existing.put(new Cell(preference.getType(), preference.getChannel()), preference);
+    }
+    for (NotificationPreferenceUpdate update : request.preferences()) {
+      if (!update.channel().isConfigurable()) {
+        throw new BadRequestException();
+      }
+      NotificationPreference preference = existing.get(new Cell(update.type(), update.channel()));
+      if (preference == null) {
+        preference =
+            new NotificationPreference(user, update.type(), update.channel(), update.enabled());
+        preferenceRepository.persist(preference);
+        existing.put(new Cell(update.type(), update.channel()), preference);
+      } else {
+        preference.setEnabled(update.enabled());
+      }
+    }
+    return preferences(user.getId());
+  }
+
+  private record Cell(NotificationType type, NotificationChannel channel) {}
+
+  private NotificationPreferencesDto preferences(Long userId) {
+    Map<Cell, Boolean> overrides = new HashMap<>();
+    for (NotificationPreference preference : preferenceRepository.findByUser(userId)) {
+      overrides.put(
+          new Cell(preference.getType(), preference.getChannel()), preference.isEnabled());
+    }
+    Set<NotificationChannel> available = channels.available();
+    List<NotificationChannel> shown =
+        Arrays.stream(NotificationChannel.values()).filter(available::contains).toList();
+    List<NotificationPreferenceDto> cells = new ArrayList<>();
+    for (NotificationType type : NotificationType.values()) {
+      for (NotificationChannel channel : shown) {
+        boolean byDefault = type.isEnabledByDefault(channel);
+        cells.add(
+            new NotificationPreferenceDto(
+                type,
+                channel,
+                overrides.getOrDefault(new Cell(type, channel), byDefault),
+                byDefault));
+      }
+    }
+    return new NotificationPreferencesDto(shown, cells);
+  }
+}

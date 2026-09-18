@@ -10,6 +10,7 @@ import fr.pedalons.enums.Status;
 import fr.pedalons.repository.post.PostRepository;
 import fr.pedalons.service.comment.CommentCountLookup;
 import fr.pedalons.service.common.TeamEntityService;
+import fr.pedalons.service.notification.NotificationPublisher;
 import fr.pedalons.service.security.annotation.CheckAccess;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -21,6 +22,8 @@ public class PostService extends TeamEntityService<Post, PostRepository, PostDto
   @Inject PostRepository postRepository;
 
   @Inject CommentCountLookup commentCountLookup;
+
+  @Inject NotificationPublisher notificationPublisher;
 
   @Override
   protected PostRepository getRepository() {
@@ -72,6 +75,7 @@ public class PostService extends TeamEntityService<Post, PostRepository, PostDto
     updateMedia(post, request.media());
 
     postRepository.persist(post);
+    notificationPublisher.publicationStatusChanged(post, null, post.getCreatedBy());
 
     return PostDto.from(post, assetService);
   }
@@ -81,6 +85,7 @@ public class PostService extends TeamEntityService<Post, PostRepository, PostDto
   public PostDto updatePost(String teamSlug, String postSlug, PostRequest request) {
     Team team = teamService.getTeam(teamSlug);
     Post post = findBySlug(team, postSlug);
+    Status previousStatus = post.getStatus();
 
     validateVisibility(team, request);
 
@@ -98,6 +103,7 @@ public class PostService extends TeamEntityService<Post, PostRepository, PostDto
     updateMedia(post, request.media());
 
     postRepository.persist(post);
+    notificationPublisher.publicationStatusChanged(post, previousStatus, pedalonsContext.getUser());
 
     return PostDto.from(post, assetService);
   }

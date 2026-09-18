@@ -15,6 +15,8 @@ import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
 import fr.pedalons.infrastructure.exception.NotFoundException;
 import fr.pedalons.repository.comment.CommentRepository;
+import fr.pedalons.service.notification.NotificationPublisher;
+import fr.pedalons.service.notification.event.CommentReplied;
 import fr.pedalons.service.post.PostService;
 import fr.pedalons.service.ride.RideService;
 import fr.pedalons.service.route.RouteService;
@@ -40,6 +42,7 @@ public class CommentService {
   @Inject RouteService routeService;
   @Inject RideService rideService;
   @Inject TripService tripService;
+  @Inject NotificationPublisher notificationPublisher;
 
   TeamEntity getTeamEntity(Team team, String slug, EntityType entityType) {
     if (entityType == EntityType.POST) {
@@ -191,6 +194,9 @@ public class CommentService {
             : new Comment(creator, teamEntity, request.content());
 
     commentRepository.persistAndFlush(comment);
+    if (parent != null) {
+      notificationPublisher.publish(new CommentReplied(comment.getId()), team, creator);
+    }
 
     return CommentDto.from(comment, List.of());
   }

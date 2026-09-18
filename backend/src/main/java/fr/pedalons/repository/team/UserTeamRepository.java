@@ -1,6 +1,7 @@
 package fr.pedalons.repository.team;
 
 import fr.pedalons.domain.team.UserTeam;
+import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.common.PedalonsPage;
 import fr.pedalons.enums.TeamRole;
 import fr.pedalons.repository.common.BaseRepository;
@@ -124,5 +125,19 @@ public class UserTeamRepository implements BaseRepository<UserTeam> {
             .setParameter("teamIds", teamIds)
             .setParameter("domainId", domainId)
             .getResultList());
+  }
+
+  /**
+   * Every live member of a team, users loaded in the same query — the audience of a "published"
+   * notification. Unpaginated on purpose: the caller fans out to all of them.
+   */
+  public List<User> findActiveMemberUsers(Long teamId) {
+    return getEntityManager()
+        .createQuery(
+            "select u from UserTeam ut join ut.user u"
+                + " where ut.team.id = :teamId and u.deleted = false",
+            User.class)
+        .setParameter("teamId", teamId)
+        .getResultList();
   }
 }

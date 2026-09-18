@@ -63,6 +63,7 @@ import fr.pedalons.service.asset.AssetService;
 import fr.pedalons.service.asset.response.AssetWithFile;
 import fr.pedalons.service.bootstrap.BootstrapService;
 import fr.pedalons.service.common.SlugService;
+import fr.pedalons.service.notification.NotificationPublisher;
 import fr.pedalons.service.place.PlaceService;
 import fr.pedalons.service.post.PostService;
 import fr.pedalons.service.ride.RideService;
@@ -193,6 +194,7 @@ public class BiketeamMigrationService {
   @Inject RideService rideService;
   @Inject TripService tripService;
   @Inject PostService postService;
+  @Inject NotificationPublisher notificationPublisher;
   @Inject AssetService assetService;
 
   /**
@@ -210,7 +212,8 @@ public class BiketeamMigrationService {
       activated = true;
     }
     try {
-      return runWithinRequest();
+      // The migration replays a club's history through the ordinary services; none of it is news.
+      return notificationPublisher.silently(this::runWithinRequest);
     } finally {
       if (activated) {
         requestContext.terminate();

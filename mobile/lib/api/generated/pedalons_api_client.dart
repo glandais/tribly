@@ -23,6 +23,7 @@ import 'clients/geocode_client.dart';
 import 'clients/gps_services_client.dart';
 import 'clients/gpx_previews_client.dart';
 import 'clients/invitations_client.dart';
+import 'clients/notifications_client.dart';
 import 'clients/publications_client.dart';
 import 'clients/router_client.dart';
 import 'clients/routes_client.dart';
@@ -44,7 +45,7 @@ import 'clients/trip_comments_client.dart';
 import 'clients/tiles_client.dart';
 import 'clients/server_version_client.dart';
 
-/// Pedalons API `v3.4.0`.
+/// Pedalons API `v3.5.0`.
 ///
 /// API for Pedalons Cycling Team Management Platform.
 class PedalonsApiClient {
@@ -57,7 +58,7 @@ class PedalonsApiClient {
   final Dio _dio;
   final String? _baseUrl;
 
-  static String get version => '3.4.0';
+  static String get version => '3.5.0';
 
   AdminBetaSignupsClient? _adminBetaSignups;
   AdminDomainsClient? _adminDomains;
@@ -78,6 +79,7 @@ class PedalonsApiClient {
   GpsServicesClient? _gpsServices;
   GpxPreviewsClient? _gpxPreviews;
   InvitationsClient? _invitations;
+  NotificationsClient? _notifications;
   PublicationsClient? _publications;
   RouterClient? _router;
   RoutesClient? _routes;
@@ -157,6 +159,9 @@ class PedalonsApiClient {
 
   InvitationsClient get invitations =>
       _invitations ??= InvitationsClient(_dio, baseUrl: _baseUrl);
+
+  NotificationsClient get notifications =>
+      _notifications ??= NotificationsClient(_dio, baseUrl: _baseUrl);
 
   PublicationsClient get publications =>
       _publications ??= PublicationsClient(_dio, baseUrl: _baseUrl);

@@ -364,6 +364,10 @@ le mobile — la cohabitation ci-dessus est ce qui rend la bascule possible.
 
 ### 4.2 Notifications push (L, plus un délai de store)
 
+> **Repris le 18 septembre 2026** par [`plans/2026-09-18-notifications.md`](plans/2026-09-18-notifications.md) :
+> le push y devient un canal d'un pipeline commun (boîte de réception, e-mail, push). L'avancement est
+> dans le [ledger](plans/2026-09-18-notifications-ledger.md) — phase 4 pour le push.
+
 Le seul mécanisme qui ramène un membre sans qu'il ouvre l'app. Trois déclencheurs : rappel J-1,
 annulation de sortie, réponse à un commentaire. Six endpoints, deux ou trois entités, une migration.
 

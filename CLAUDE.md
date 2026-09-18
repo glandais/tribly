@@ -19,6 +19,7 @@ both clients: changing it in one place only makes them diverge silently.
 |---|---|
 | What's left to do, and what was deliberately ruled out | **[docs/NEXT.md](docs/NEXT.md)** — start here |
 | Product roadmap (P0 → Icebox) | [BACKLOG.md](BACKLOG.md) |
+| Notifications (event pipeline, channels, what's left) | [docs/plans/2026-09-18-notifications.md](docs/plans/2026-09-18-notifications.md) + its ledger |
 | Why the mobile app / the site / the API look the way they do | [docs/plans/archive/](docs/plans/archive/) — executed plans, kept for their arbitrations |
 | Infrastructure and security audit, still open | [docs/plans/2026-02-14-project-audit.md](docs/plans/2026-02-14-project-audit.md) |
 | The design brief the v2 came from (state *before* v2) | [docs/audit-ux/](docs/audit-ux/) |

@@ -86,6 +86,7 @@ Requires significant architecture work. Spike before committing.
 
 ### Notifications
 - [ ] Versatile notification system
+  - **In progress** — design in docs/plans/2026-09-18-notifications.md, state in its ledger
   - Event types
   - Team/user preferences
   - Dispatchers: webhook, email, in-app

@@ -1,0 +1,106 @@
+package fr.pedalons.util;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.pedalons.domain.notification.Notification;
+import fr.pedalons.domain.notification.NotificationDelivery;
+import fr.pedalons.domain.notification.NotificationEventEntry;
+import fr.pedalons.domain.team.Team;
+import fr.pedalons.domain.user.User;
+import fr.pedalons.enums.NotificationEventStatus;
+import fr.pedalons.enums.NotificationSubjectType;
+import fr.pedalons.enums.NotificationType;
+import fr.pedalons.repository.notification.NotificationDeliveryRepository;
+import fr.pedalons.repository.notification.NotificationEventRepository;
+import fr.pedalons.repository.notification.NotificationRepository;
+import fr.pedalons.repository.team.UserTeamRepository;
+import fr.pedalons.service.notification.event.RidePublished;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
+
+/** Reads and seeds the notification tables for tests, each call in its own transaction. */
+@ApplicationScoped
+public class NotificationTestData {
+
+  @Inject NotificationEventRepository eventRepository;
+  @Inject NotificationRepository notificationRepository;
+  @Inject NotificationDeliveryRepository deliveryRepository;
+  @Inject UserTeamRepository userTeamRepository;
+  @Inject ObjectMapper objectMapper;
+
+  /** A notification as the dispatcher sees it: type, status, and who it went to. */
+  public record EventView(NotificationType type, NotificationEventStatus status, String dedupKey) {}
+
+  @Transactional
+  public List<EventView> events() {
+    return eventRepository.listAll().stream()
+        .map(e -> new EventView(e.getType(), e.getStatus(), e.getDedupKey()))
+        .toList();
+  }
+
+  @Transactional
+  public List<NotificationType> notificationTypesFor(User user) {
+    return notificationRepository.list("recipient.id", user.getId()).stream()
+        .map(Notification::getType)
+        .toList();
+  }
+
+  @Transactional
+  public long notificationCount() {
+    return notificationRepository.count();
+  }
+
+  @Transactional
+  public List<NotificationDelivery> deliveriesFor(User user) {
+    return deliveryRepository.list("notification.recipient.id", user.getId());
+  }
+
+  /**
+   * Seeds {@code count} fanned-out notifications for one recipient, bypassing the pipeline — for
+   * the inbox tests, which are about reading, not producing.
+   */
+  @Transactional
+  public List<Notification> seedInbox(User recipient, Team team, int count) {
+    Instant now = Instant.now().truncatedTo(ChronoUnit.MILLIS);
+    List<Notification> seeded = new ArrayList<>();
+    for (int i = 0; i < count; i++) {
+      NotificationEventEntry event = new NotificationEventEntry();
+      event.setDomainId(team.getDomain().getId());
+      event.setType(NotificationType.RIDE_PUBLISHED);
+      event.setStatus(NotificationEventStatus.DONE);
+      event.setDedupKey("seed:" + recipient.getId() + ":" + i + ":" + System.nanoTime());
+      event.setPayload(objectMapper.valueToTree(new RidePublished(i)));
+      event.setTeamId(team.getId());
+      event.setCreatedAt(now.minusSeconds(count - i));
+      event.setProcessedAt(now);
+      event.setActorName("Seeder");
+      event.setTeamSlug(team.getSlug());
+      event.setTeamName(team.getName());
+      event.setSubjectType(NotificationSubjectType.RIDE);
+      event.setSubjectSlug("ride-" + i);
+      event.setSubjectName("Ride " + i);
+      event.setSubjectDateTime(now.plus(1, ChronoUnit.DAYS));
+      event.setBaseUrl("http://localhost:5173");
+      event.setSiteName("Pedalons");
+      eventRepository.persist(event);
+      Notification notification = new Notification(event, recipient, now.minusSeconds(count - i));
+      notificationRepository.persist(notification);
+      seeded.add(notification);
+    }
+    return seeded;
+  }
+
+  @Transactional
+  public void removeFromTeam(User user, Team team) {
+    userTeamRepository.delete("user.id = ?1 and team.id = ?2", user.getId(), team.getId());
+  }
+
+  @Transactional
+  public void backdateEvents(int days) {
+    eventRepository.update("createdAt = ?1", Instant.now().minus(days, ChronoUnit.DAYS));
+  }
+}

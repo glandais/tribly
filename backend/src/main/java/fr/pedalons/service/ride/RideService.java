@@ -31,6 +31,7 @@ import fr.pedalons.repository.team.UserTeamRepository;
 import fr.pedalons.service.comment.CommentCountLookup;
 import fr.pedalons.service.common.ParticipationLookup;
 import fr.pedalons.service.common.TeamEntityService;
+import fr.pedalons.service.notification.NotificationPublisher;
 import fr.pedalons.service.route.RouteService;
 import fr.pedalons.service.security.annotation.CheckAccess;
 import fr.pedalons.service.thumbnail.ThumbnailService;
@@ -62,6 +63,8 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
   @Inject CommentCountLookup commentCountLookup;
 
   @Inject UserTeamRepository userTeamRepository;
+
+  @Inject NotificationPublisher notificationPublisher;
 
   @Override
   protected RideRepository getRepository() {
@@ -127,6 +130,7 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
     }
 
     thumbnailService.generateRideThumbnails(ride);
+    notificationPublisher.publicationStatusChanged(ride, null, creator);
 
     return toDto(ride);
   }
@@ -209,6 +213,7 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
     Team team = teamService.getTeam(teamSlug);
     Ride ride = findBySlug(team, rideSlug);
     User user = pedalonsContext.getUser();
+    Status previousStatus = ride.getStatus();
 
     validateVisibility(team, request);
     ride.setVisibility(request.visibility());
@@ -255,6 +260,7 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
     rideRepository.persist(ride);
 
     thumbnailService.generateRideThumbnails(ride);
+    notificationPublisher.publicationStatusChanged(ride, previousStatus, user);
 
     return toDto(ride);
   }
