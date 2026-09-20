@@ -14,6 +14,7 @@ import '../features/calendar/presentation/pages/calendar_page.dart';
 import '../features/home/presentation/pages/home_page.dart';
 import '../features/legal/presentation/pages/legal_page.dart';
 import '../features/navigation/presentation/shell/main_shell.dart';
+import '../features/notifications/presentation/pages/notifications_page.dart';
 import '../features/profile/presentation/pages/my_participations_page.dart';
 import '../features/profile/presentation/pages/profile_page.dart';
 import '../core/pdl/pdl.dart';
@@ -93,6 +94,13 @@ final List<_DeepLinkHierarchy> _deepLinkHierarchies = [
   ),
   _DeepLinkHierarchy(
     patterns: PathVariants.deviceVerifyKaroo(),
+    ancestors: [_homeAncestor],
+  ),
+
+  // La boîte de réception vit sous l'accueil, d'où sa cloche l'ouvre : un lien
+  // froid doit retrouver l'accueil dessous plutôt que la seule boîte.
+  _DeepLinkHierarchy(
+    patterns: PathVariants.notifications(),
     ancestors: [_homeAncestor],
   ),
 
@@ -512,14 +520,24 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state, navigationShell) =>
             MainShell(state: state, navigationShell: navigationShell),
         branches: [
-          // 0 · Home
+          // 0 · Home, et la boîte de réception que sa cloche ouvre. Elle vit
+          // ici plutôt que sous le profil parce que `getDestinationIndex`
+          // retombe sur l'accueil pour une URL qu'aucune destination ne
+          // réclame : l'onglet allumé et la branche active disent alors la
+          // même chose, sans règle supplémentaire.
           StatefulShellBranch(
             navigatorKey: _homeNavigatorKey,
-            routes: _perLocale(
-              PathVariants.home(),
-              (ctx, st) => const HomePage(),
-              asPage: true,
-            ),
+            routes: [
+              ..._perLocale(
+                PathVariants.home(),
+                (ctx, st) => const HomePage(),
+                asPage: true,
+              ),
+              ..._perLocale(
+                PathVariants.notifications(),
+                (ctx, st) => const NotificationsPage(),
+              ),
+            ],
           ),
           // 1 · Teams, and the whole team tree under it — same URLs as before,
           // only the graft point changed. `/teams/discover` is declared before

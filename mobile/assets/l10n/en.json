@@ -812,6 +812,54 @@
       "deleteMessage": "This cannot be undone. Your registrations, your comments and your profile will be permanently deleted."
     }
   },
+  "notifications": {
+    "title": "Notifications",
+    "bellUnread": {
+      "one": "Notifications, {} unread",
+      "other": "Notifications, {} unread"
+    },
+    "markAllRead": "Mark all read",
+    "count": {
+      "zero": "No notifications",
+      "one": "{} notification",
+      "other": "{} notifications"
+    },
+    "filter": {
+      "all": "All",
+      "unread": "Unread"
+    },
+    "empty": {
+      "title": "No notifications",
+      "hint": "Your teams' rides, trips and posts will show up here.",
+      "unreadTitle": "No unread notifications",
+      "unreadHint": "Everything is read. Go back to “All” to see earlier ones."
+    },
+    "type": {
+      "RIDE_PUBLISHED": "{actor} published a ride",
+      "RIDE_CANCELLED": "A ride was cancelled",
+      "TRIP_PUBLISHED": "{actor} published a trip",
+      "TRIP_CANCELLED": "A trip was cancelled",
+      "POST_PUBLISHED": "{actor} published a post",
+      "COMMENT_REPLY": "{actor} replied to your comment"
+    },
+    "typeLabel": {
+      "RIDE_PUBLISHED": "Ride published",
+      "RIDE_CANCELLED": "Ride cancelled",
+      "TRIP_PUBLISHED": "Trip published",
+      "TRIP_CANCELLED": "Trip cancelled",
+      "POST_PUBLISHED": "Post published",
+      "COMMENT_REPLY": "Comment reply"
+    },
+    "channel": {
+      "IN_APP": "In app",
+      "EMAIL": "E-mail",
+      "PUSH": "Push"
+    },
+    "preferences": {
+      "title": "Notifications",
+      "inAppAlwaysOn": "You always get notifications in the app; only the channels that interrupt you are set here."
+    }
+  },
   "apps": {
     "title": "Apps",
     "subtitle": "Track your rides anywhere: GPS watch, phone or browser.",

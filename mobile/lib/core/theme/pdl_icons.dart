@@ -127,6 +127,8 @@ abstract final class PdlIcons {
   static const IconData passkey = Icons.fingerprint;
   static const IconData device = Icons.smartphone;
   static const IconData devices = Icons.devices;
+  static const IconData notifications = Icons.notifications_none;
+  static const IconData notificationsOff = Icons.notifications_off_outlined;
   static const IconData language = Icons.language;
   static const IconData theme = Icons.brightness_6_outlined;
   static const IconData units = Icons.straighten;

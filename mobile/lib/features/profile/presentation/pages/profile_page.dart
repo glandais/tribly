@@ -13,6 +13,7 @@ import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
+import '../../../notifications/presentation/widgets/notification_preferences_section.dart';
 import '../../providers/participations_provider.dart';
 import '../widgets/connected_services_section.dart';
 import '../widgets/data_and_account_section.dart';
@@ -31,11 +32,13 @@ final _packageInfoProvider = FutureProvider<PackageInfo>(
 /// Le profil : une colonne unique bornée à 600 px, et dix sections au même
 /// motif — un en-tête, puis une carte.
 ///
-/// **Deux sections de la maquette ne sont pas livrées, et c'est délibéré.**
-/// Les notifications (quatre interrupteurs) n'ont ni endpoint de préférences ni
-/// push : les dessiner produirait quatre réglages sans effet, ce que le brief
-/// §5 interdit explicitement. La cloche de la barre supérieure disparaît pour
-/// la même raison (§1.0.4).
+/// **Les notifications sont revenues, sous condition.** Elles n'avaient ni
+/// endpoint de préférences ni push en v2, et les dessiner aurait produit des
+/// réglages sans effet (brief §5). [NotificationPreferencesSection] les rend
+/// désormais — mais **seulement** les canaux que le serveur déclare
+/// configurables, et rien du tout quand il n'y en a aucun, ce qui reste le cas
+/// par défaut. La section porte donc son propre en-tête, contrairement à ses
+/// voisines : celui-ci disparaît avec elle.
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
@@ -67,6 +70,7 @@ class ProfilePage extends ConsumerWidget {
             title: 'profile.preferences'.tr(),
             child: const PreferencesSection(),
           ),
+          const SliverToBoxAdapter(child: NotificationPreferencesSection()),
           const SliverToBoxAdapter(child: PasskeysSection()),
           _section(
             title: 'profile.gps.title'.tr(),

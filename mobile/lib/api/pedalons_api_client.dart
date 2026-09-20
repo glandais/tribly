@@ -187,3 +187,7 @@ final routeCommentsClientProvider = Provider<RouteCommentsClient>((ref) {
 final tripCommentsClientProvider = Provider<TripCommentsClient>((ref) {
   return ref.watch(apiClientProvider).tripComments;
 });
+
+final notificationsClientProvider = Provider<NotificationsClient>((ref) {
+  return ref.watch(apiClientProvider).notifications;
+});

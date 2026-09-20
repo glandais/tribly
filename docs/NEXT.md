@@ -105,8 +105,10 @@ jeton ICS. Thème clair et compte `gaby` pas repassés en revue depuis.
 - [ ] **Profil (33)** — les quatre réglages s'appliquent **immédiatement, sans bouton** (unités,
       thème, langue, « Être contacté par les membres ») ; un échec revient à la valeur précédente.
       Ajouter une seconde clé d'accès **n'écrase plus les autres**. `logout-all` est câblé.
-      Aucune section Notifications, aucune cloche : il n'y a pas d'endpoint, et un emplacement mort
-      est interdit.
+      La cloche et la section Notifications existent depuis la phase 3 de
+      [`plans/2026-09-18-notifications.md`](plans/2026-09-18-notifications.md) — mais la section
+      reste **non rendue** tant que le serveur ne déclare aucun canal configurable, ce qui est le
+      défaut : à recetter dans les deux états.
 - [ ] **Deeplinks à froid** — application tuée, ouvrir un lien de sortie, de parcours et d'annonce.
       Le bon onglet est surligné et la pile de retour est cohérente. (Le test
       `deep_link_hierarchy_test.dart` couvre la table ; il ne couvre pas l'ouverture réelle.)
@@ -381,8 +383,10 @@ Deux pièges qui cassent en production et pas en test : l'**idempotence** du rap
 « rappel envoyé », un redémarrage renotifie tout le monde) et la purge des jetons périmés (retour
 `UNREGISTERED` de FCM), sans quoi la table grossit indéfiniment.
 
-Débloque la cloche de l'accueil, la section Notifications du profil (aujourd'hui **non rendue**, pas
-un emplacement mort) et un écran « Notifications » qui n'est pas maquetté.
+La cloche de l'accueil, la section Notifications du profil et l'écran « Notifications » (non maquetté)
+sont livrés depuis la phase 3 de
+[`plans/2026-09-18-notifications.md`](plans/2026-09-18-notifications.md) : le push n'a plus qu'à
+devenir un canal de plus du même pipeline, sans rien changer au fan-out.
 
 ### 4.3 Cache, fraîcheur et images (C.1 M · C.2 M · C.3 M · C.4 S)
 

@@ -812,6 +812,54 @@
       "deleteMessage": "Cette action est irréversible. Vos inscriptions, vos commentaires et votre profil seront définitivement supprimés."
     }
   },
+  "notifications": {
+    "title": "Notifications",
+    "bellUnread": {
+      "one": "Notifications, {} non lue",
+      "other": "Notifications, {} non lues"
+    },
+    "markAllRead": "Tout marquer lu",
+    "count": {
+      "zero": "Aucune notification",
+      "one": "{} notification",
+      "other": "{} notifications"
+    },
+    "filter": {
+      "all": "Toutes",
+      "unread": "Non lues"
+    },
+    "empty": {
+      "title": "Aucune notification",
+      "hint": "Les sorties, voyages et publications de vos équipes apparaîtront ici.",
+      "unreadTitle": "Aucune notification non lue",
+      "unreadHint": "Tout est lu. Revenez à « Toutes » pour revoir les précédentes."
+    },
+    "type": {
+      "RIDE_PUBLISHED": "{actor} a publié une sortie",
+      "RIDE_CANCELLED": "Une sortie est annulée",
+      "TRIP_PUBLISHED": "{actor} a publié un voyage",
+      "TRIP_CANCELLED": "Un voyage est annulé",
+      "POST_PUBLISHED": "{actor} a publié un article",
+      "COMMENT_REPLY": "{actor} a répondu à votre commentaire"
+    },
+    "typeLabel": {
+      "RIDE_PUBLISHED": "Sortie publiée",
+      "RIDE_CANCELLED": "Sortie annulée",
+      "TRIP_PUBLISHED": "Voyage publié",
+      "TRIP_CANCELLED": "Voyage annulé",
+      "POST_PUBLISHED": "Article publié",
+      "COMMENT_REPLY": "Réponse à un commentaire"
+    },
+    "channel": {
+      "IN_APP": "Application",
+      "EMAIL": "E-mail",
+      "PUSH": "Push"
+    },
+    "preferences": {
+      "title": "Notifications",
+      "inAppAlwaysOn": "Vous recevez toujours les notifications dans l'application ; seuls les canaux qui vous interrompent se règlent ici."
+    }
+  },
   "apps": {
     "title": "Applications",
     "subtitle": "Suivez vos sorties partout : montre GPS, téléphone ou navigateur.",

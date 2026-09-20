@@ -50,6 +50,11 @@ final List<_LinkCase> _cases = [
     PathVariants.home(),
   ]),
 
+  // La boîte de réception vit sous l'accueil, d'où sa cloche l'ouvre.
+  _LinkCase('notifications', PathVariants.notifications(), [
+    PathVariants.home(),
+  ]),
+
   // La page des participations vit sous le profil.
   _LinkCase('myParticipations', PathVariants.myParticipations(), [
     PathVariants.profile(),

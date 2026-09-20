@@ -12,6 +12,7 @@ import '../../../../core/theme/pdl_typography.dart';
 import '../../../auth/domain/auth_state.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../feed/presentation/widgets/publication_feed_view.dart';
+import '../../../notifications/presentation/widgets/notification_bell.dart';
 import '../../providers/next_ride_provider.dart';
 import '../../providers/upcoming_provider.dart';
 import '../widgets/next_ride_card.dart';
@@ -25,10 +26,11 @@ import '../widgets/upcoming_carousel.dart';
 /// page d'équipe partage — le fil se comporte pareil des deux côtés.
 ///
 /// Ce qui disparaît de la v1 : le dégradé de 182 pt (« Bonjour Gaby »), qui
-/// coûtait la première carte du fil sans rien apprendre, la carte
+/// coûtait la première carte du fil sans rien apprendre, et la carte
 /// d'incitation passkey conditionnelle, qui poussait le contenu encore plus
-/// bas, et la cloche de notifications — aucun endpoint ne la sert, et le brief
-/// §5 interdit une icône-action sans effet.
+/// bas. La cloche, elle, est revenue : elle était absente parce qu'aucun
+/// endpoint ne la servait, et le brief §5 interdit une icône-action sans
+/// effet — la boîte de réception de la phase 1 lui donne le sien.
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
@@ -87,6 +89,7 @@ class _HomeAppBar extends ConsumerWidget {
       titleSpacing: PdlSpacing.section,
       title: Text('app.name'.tr(), style: t.wordmark),
       actions: <Widget>[
+        if (user != null) const NotificationBell(),
         if (user != null)
           Padding(
             padding: const EdgeInsets.only(right: PdlSpacing.section),

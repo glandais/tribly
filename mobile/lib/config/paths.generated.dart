@@ -91,6 +91,7 @@ class Paths {
     }
   }
 
+  static String notifications() => '/notifications';
   static String myParticipations() {
     switch (getCurrentLocale()) {
       case 'fr':
@@ -300,6 +301,10 @@ class PathVariants {
   };
   static Map<String, String> terms() => {'en': '/terms', 'fr': '/cgu'};
   static Map<String, String> profile() => {'en': '/profile', 'fr': '/profil'};
+  static Map<String, String> notifications() => {
+    'en': '/notifications',
+    'fr': '/notifications',
+  };
   static Map<String, String> myParticipations() => {
     'en': '/profile/participations',
     'fr': '/profil/participations',

@@ -130,17 +130,47 @@ de trop dans la requête, pas un budget à relever.
   SSR (`pnpm dev:ssr`) rend `/notifications` en 200, avec le même avertissement `<Navigate>` que
   `/profile` — préexistant, pas une régression
 
-### À faire avec la phase 3 (mobile)
-- ☐ `contracts/routes.yaml` : passer `notifications` en `mobile: true` + `deeplink: true` **dans le
-  commit de l'écran Flutter**
+### Reste ouvert côté web
+- ☑ `contracts/routes.yaml` : `notifications` est passé `mobile: true` + `deeplink: true` avec la
+  phase 3
 - ☐ Tests web : aucun test Vitest n'a été ajouté (le dossier n'en compte que 8, tous sur des
-  utilitaires) — à trancher si la cloche mérite le sien
+  utilitaires) — à trancher si la cloche mérite le sien. Le mobile, lui, a le sien.
 
-## Phase 3 — Mobile (☐)
+## Phase 3 — Mobile (20 septembre 2026)
 
-- ☐ Cloche de l'accueil (NEXT.md l'interdisait tant qu'il n'y avait pas d'endpoint : il existe)
-- ☐ Écran « Notifications » (non maquetté — à faire valider)
-- ☐ Section « Notifications » du profil (même règle : non rendue si `channels` est vide)
+- ☑ Cloche de la barre d'accueil (`features/notifications/presentation/widgets/notification_bell.dart`) :
+  pastille `unread-count`, sondage **au plus une fois par minute** (`kUnreadPollInterval`), arrêté
+  net quand la session tombe — sinon l'écran de connexion produirait une 401 par minute. Elle ouvre
+  la boîte **pastille ou pas** : une cloche qui n'obéit qu'au-delà de zéro serait l'icône-action sans
+  effet que le brief §5 interdit.
+- ☑ Écran « Notifications » (non maquetté) : liste paginée `PagedListNotifier`, segmenté
+  Toutes / Non lues, états vides absolu et filtré distincts, « Tout marquer lu » dans la barre.
+  Il vit dans la branche **Accueil** du shell : `getDestinationIndex` retombe sur l'accueil pour une
+  URL qu'aucune destination ne réclame, donc l'onglet allumé et la branche active disent la même
+  chose sans règle supplémentaire.
+- ☑ Section « Notifications » du profil : matrice type × canal, une case par appel. **Rendue nulle,
+  en-tête compris**, quand `channels` est vide — elle porte donc son propre `PdlSectionHeader`,
+  contrairement à ses voisines.
+- ☑ `contracts/routes.yaml` : `notifications` passe `mobile: true` + `deeplink: true` dans ce commit,
+  avec sa hiérarchie de lien froid (`_deepLinkHierarchies` → accueil) et son entrée dans
+  `internalRouteTemplates` — sans quoi un lien de notification partirait dans le navigateur
+- ☑ `PdlIcons.notifications` / `notificationsOff` ajoutées (seul fichier autorisé à nommer `Icons.*`)
+- ☑ Test de widget `test/features/notifications/notifications_page_test.dart` (6 cas) : la phrase
+  vient du client, l'équipe remplace l'acteur absent, le type brut n'atteint jamais l'écran, le
+  sujet inconnu ne fabrique pas de route
+
+### Recette sur émulateur (Pixel 8a, API locale, compte membre de `gaby`)
+- ☑ Pastille « 2 » sur la cloche ; l'écran liste les deux entrées, formulées en français
+- ☑ Taper une entrée ouvre la sortie **et** la marque lue : point et graisse disparaissent au
+  retour, `read_at` est posé en base
+- ☑ Matrice de préférences : six lignes, colonne unique (le nom du canal n'est pas répété par ligne
+  quand il n'y en a qu'un) ; une case cochée écrit **une seule** dérogation en base
+- ☑ `pedalons.notifications.email.enabled=false` ⇒ la section disparaît entièrement du profil,
+  sans titre orphelin entre « Préférences » et « Sécurité »
+- ☑ `flutter analyze` propre, `bash check.sh` vert (**545 tests**)
+- ☐ Reste à voir sur un appareil réel : thème sombre (l'app suit la préférence utilisateur, pas le
+  mode système de l'émulateur), text scaling ×1,3 / ×2,0, et l'ouverture d'un deeplink
+  `/notifications` application tuée
 
 ## Phase 4 — Push (☐)
 
@@ -181,6 +211,7 @@ confidentialité (`mobile/store-metadata/data-safety.md`), nouvelle soumission a
 | Date | Passe | Notes |
 |---|---|---|
 | 2026-09-18 | Phase 1 | Conception, socle backend, contrat 3.5.0, clients régénérés. Découverte en cours de route : la migration biketeam passe par les services producteurs → mode muet ajouté. Tests verts, commité. |
+| 2026-09-20 | Phase 3 | Mobile livré : cloche, écran, matrice, deeplink. Deux filets du dépôt ont demandé leur entrée (`_deepLinkHierarchies`, `internalRouteTemplates`) — c'est leur raison d'être. « Tout marquer lu » a été redérivé des lignes visibles en plus du compteur global, qui est muet hors session. |
 | 2026-09-20 | Phase 2 | Web livré : cloche, page, libellés fr/en, matrice de préférences, ancre des e-mails. Deux défauts trouvés en recette et corrigés sur place : le fragment `#notifications` n'amenait nulle part, et la section masquée laissait un double séparateur. |
 | 2026-09-20 | Recette locale | Essai manuel de bout en bout sur la base restaurée : publication, fan-out, inbox, préférences, annulation, e-mail Mailhog, cascade. Rien à corriger. Relevé au passage, **hors notifications** : `POST /api/teams/{slug}/rides` lève une NPE 500 quand `media.assets` est `{}` (`AssetService.updateAssets` déréférence `images()` nul) — le client web envoie toujours des listes, donc invisible depuis l'application. |
 | 2026-09-18 | Revue | Clé de dédup rendue par les évènements `SKIPPED`/`FAILED` ; recul avant nouvelle tentative d'un évènement (V38, `next_attempt_at`) ; récupération des bloqués toutes les 5 min, livraisons bloquées sans tentative restante → `FAILED`. |
