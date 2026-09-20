@@ -32,6 +32,10 @@ function lazyPage<N extends string>(
  */
 export const pages = {
   HomePage: lazyPage('HomePage', () => import('../pages/home/HomePage')),
+  NotificationListPage: lazyPage(
+    'NotificationListPage',
+    () => import('../pages/notification/NotificationListPage')
+  ),
   LoginPage: lazyPage('LoginPage', () => import('../pages/auth/LoginPage')),
   DeviceVerifyPage: lazyPage('DeviceVerifyPage', () => import('../pages/device/DeviceVerifyPage')),
   VerifyEmailPage: lazyPage('VerifyEmailPage', () => import('../pages/auth/VerifyEmailPage')),

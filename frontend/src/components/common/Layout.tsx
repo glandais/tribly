@@ -19,7 +19,14 @@ import {
   UnstyledButton,
 } from '@mantine/core'
 import { useDisclosure, useHeadroom } from '@mantine/hooks'
-import { IconUser, IconLogout, IconShield, IconMapSearch, IconMail } from '@tabler/icons-react'
+import {
+  IconUser,
+  IconLogout,
+  IconShield,
+  IconMapSearch,
+  IconMail,
+  IconBell,
+} from '@tabler/icons-react'
 import { useGetVersion } from '@/api/endpoints/server-version/server-version'
 import { useAuth } from '../../hooks/useAuth'
 import { useAppName } from '../../hooks/useAppName'
@@ -28,6 +35,7 @@ import { useBreadcrumb } from '../../hooks/useBreadcrumb'
 import { useScrollRestoration } from '../../hooks/useScrollRestoration'
 import { Breadcrumb } from './Breadcrumb'
 import { ColorSchemeSwitcher } from './ColorSchemeSwitcher'
+import { NotificationBell } from '@/components/notification/NotificationBell'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { paths } from '@/config/paths'
 
@@ -100,6 +108,7 @@ export function Layout() {
             <Group gap="sm" visibleFrom="sm">
               <ColorSchemeSwitcher />
               <LanguageSwitcher />
+              {isAuthenticated && <NotificationBell />}
               {isAuthenticated ? (
                 <Menu shadow="md" width={200}>
                   <Menu.Target>
@@ -127,6 +136,13 @@ export function Layout() {
                       to={paths.profile()}
                     >
                       {t('nav.profile')}
+                    </Menu.Item>
+                    <Menu.Item
+                      leftSection={<IconBell size={14} />}
+                      component={PrefetchLink}
+                      to={paths.notifications()}
+                    >
+                      {t('notifications.title')}
                     </Menu.Item>
                     <Menu.Item
                       leftSection={<IconMapSearch size={14} />}
@@ -189,6 +205,15 @@ export function Layout() {
                   <Text size="sm">{user?.displayName}</Text>
                 </Group>
               </UnstyledButton>
+              <Button
+                variant="subtle"
+                leftSection={<IconBell size={16} />}
+                component={PrefetchLink}
+                to={paths.notifications()}
+                onClick={close}
+              >
+                {t('notifications.title')}
+              </Button>
               <Button
                 variant="subtle"
                 leftSection={<IconMapSearch size={16} />}

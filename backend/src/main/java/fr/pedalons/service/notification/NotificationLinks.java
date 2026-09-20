@@ -11,7 +11,12 @@ import fr.pedalons.enums.NotificationSubjectType;
  */
 final class NotificationLinks {
 
-  static final String PREFERENCES_PATH = "/profile";
+  /**
+   * The profile's notification section, by its anchor: {@code NotificationPreferences} renders with
+   * {@code id="notifications"}. The fragment is dropped harmlessly by a client that has no such
+   * section, so it costs nothing on a page that hasn't caught up.
+   */
+  static final String PREFERENCES_PATH = "/profile#notifications";
 
   private NotificationLinks() {}
 

@@ -311,6 +311,16 @@ export const routesConfig: RoutesConfig = [
     prefetch: (queryClient) => prefetchUserProfile(queryClient),
   },
   {
+    id: 'notifications',
+    paths: pathVariants.notifications(),
+    component: pages.NotificationListPage,
+    auth: 'authenticated',
+    parentId: null,
+    breadcrumb: { type: 'static', i18nKey: tRegister('notifications.title') },
+    // No `prefetch`: the inbox is per-user, and an anonymous server render has nothing to fill it
+    // with — see pages/notification/notificationListData.ts.
+  },
+  {
     id: 'calendar',
     paths: pathVariants.calendar(),
     component: pages.CalendarPage,

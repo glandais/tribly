@@ -2,7 +2,8 @@ import { Text } from '@mantine/core'
 import { useTranslation } from 'react-i18next'
 
 /** Resources whose list pages show a total. One plural key pair per entry. */
-type CountedResource = 'publications' | 'routes' | 'ads' | 'teams' | 'participations'
+type CountedResource =
+  'publications' | 'routes' | 'ads' | 'teams' | 'participations' | 'notifications'
 
 interface ResultCountProps {
   /** `total` of the list response, or a `CountResponse.total`. Undefined while loading. */

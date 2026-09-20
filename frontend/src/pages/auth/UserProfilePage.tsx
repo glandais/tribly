@@ -24,6 +24,7 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { UserAvatar } from '../../components/common/UserAvatar'
 import { UnitSystemSwitcher } from '../../components/common/UnitSystemSwitcher'
 import { ContactPreference } from '../../components/profile/ContactPreference'
+import { NotificationPreferences } from '@/components/profile/NotificationPreferences'
 import { TimezonePreference } from '../../components/profile/TimezonePreference'
 import { PasskeyManager } from '../../components/auth/PasskeyManager'
 import { GpsConnectionsManager } from '../../components/profile/GpsConnectionsManager'
@@ -228,6 +229,8 @@ export function UserProfilePage() {
             <TimezonePreference timezone={user.timezone} />
             <ContactPreference contactableByMembers={user.contactableByMembers} />
           </Stack>
+
+          <NotificationPreferences />
 
           <Divider />
 

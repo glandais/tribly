@@ -94,16 +94,47 @@ de trop dans la requête, pas un budget à relever.
 
 ---
 
-## Phase 2 — Web (☐)
+## Phase 2 — Web (20 septembre 2026)
 
-- ☐ Cloche dans l'en-tête : pastille sur `unread-count` (React Query, `refetchOnWindowFocus`,
-  `refetchInterval` ≥ 60 s), liste déroulante des dernières notifications, « Tout marquer lu »
-- ☐ Page « Notifications » (liste paginée, filtre non lues) — route à ajouter dans
-  `contracts/routes.yaml` puis `pnpm generate-routes`
-- ☐ Libellés par `NotificationType` dans `locales/{fr,en}` ; route par `subjectType`
-- ☐ Section « Notifications » du profil : matrice type × `channels` (masquée si `channels` est vide)
-- ☐ Lien « Choisir vos notifications » des e-mails : aujourd'hui `/profile`, à faire pointer sur la
-  section (ancre) une fois qu'elle existe — `NotificationLinks.PREFERENCES_PATH`
+- ☑ Cloche dans l'en-tête (`components/notification/NotificationBell.tsx`) : pastille sur
+  `unread-count` (React Query, `refetchOnWindowFocus`, `refetchInterval` 60 s), liste déroulante des
+  6 dernières, « Tout marquer lu ». **La liste n'est demandée qu'à l'ouverture du menu** : la
+  pastille coûte un `unread-count` par minute, une liste coûterait une page de notifications à
+  chaque sondage pour un menu que personne n'a ouvert.
+- ☑ Page « Notifications » (`pages/notification/`) : liste paginée, filtre « non lues » **dans l'URL**
+  (`?unread=true`, via `useUrlFilters`), états vides absolu et filtré distincts. Route `notifications`
+  ajoutée à `contracts/routes.yaml` (`web: true`, `mobile: false`, `deeplink: false` — la phase 3 les
+  bascule, sans quoi une app installée avalerait le lien sans écran pour le recevoir), puis
+  `pnpm generate-routes`. Pas de `prefetch` SSR : la boîte est propre à l'utilisateur.
+- ☑ Libellés par `NotificationType` dans `locales/{fr,en}` ; icône, couleur et route dans
+  `components/notification/notificationDisplay.ts` — la route vient du **`subjectType`**, jamais du
+  `type`, donc un type de plus sur un sujet existant n'y touche pas.
+- ☑ Section « Notifications » du profil (`components/profile/NotificationPreferences.tsx`) : matrice
+  type × `channels`, une case par appel (envoyer la matrice entière transformerait chaque défaut en
+  dérogation). **Rendue nulle, séparateur compris, quand `channels` est vide** — vérifié en coupant
+  `pedalons.notifications.email.enabled`.
+- ☑ Lien « Choisir vos notifications » des e-mails : `NotificationLinks.PREFERENCES_PATH` vaut
+  désormais `/profile#notifications`, et la section **fait elle-même le défilement** vers son ancre
+  une fois ses données chargées — sans quoi le fragment ne fait rien, la section n'existant pas
+  encore quand le navigateur le traite.
+
+### Recette en direct (`mvn quarkus:dev` + `pnpm dev`, équipe `gaby`)
+- ☑ Pastille à 3, menu déroulant, navigation vers la sortie et décompte à 2 ; « Tout marquer lu »
+  vide la pastille et fait disparaître son propre bouton
+- ☑ `?unread=true` filtre bien (2 sur 4) ; libellés vérifiés **en français et en anglais**, et le
+  rendu relu en thème clair comme en thème sombre
+- ☑ Matrice : colonne `E-mail` seule (ni `IN_APP`, ni `PUSH`), dérogation écrite en base pour la
+  seule case touchée, e-mail reçu ensuite pour un `RIDE_PUBLISHED` qui n'en envoyait pas par défaut
+- ☑ `channels` vide ⇒ section absente, sans double séparateur sur la page profil
+- ☑ `pnpm typecheck`, `pnpm lint`, `pnpm i18n:lint`, `pnpm build`, `pnpm test` (56) verts ;
+  SSR (`pnpm dev:ssr`) rend `/notifications` en 200, avec le même avertissement `<Navigate>` que
+  `/profile` — préexistant, pas une régression
+
+### À faire avec la phase 3 (mobile)
+- ☐ `contracts/routes.yaml` : passer `notifications` en `mobile: true` + `deeplink: true` **dans le
+  commit de l'écran Flutter**
+- ☐ Tests web : aucun test Vitest n'a été ajouté (le dossier n'en compte que 8, tous sur des
+  utilitaires) — à trancher si la cloche mérite le sien
 
 ## Phase 3 — Mobile (☐)
 
@@ -150,5 +181,6 @@ confidentialité (`mobile/store-metadata/data-safety.md`), nouvelle soumission a
 | Date | Passe | Notes |
 |---|---|---|
 | 2026-09-18 | Phase 1 | Conception, socle backend, contrat 3.5.0, clients régénérés. Découverte en cours de route : la migration biketeam passe par les services producteurs → mode muet ajouté. Tests verts, commité. |
+| 2026-09-20 | Phase 2 | Web livré : cloche, page, libellés fr/en, matrice de préférences, ancre des e-mails. Deux défauts trouvés en recette et corrigés sur place : le fragment `#notifications` n'amenait nulle part, et la section masquée laissait un double séparateur. |
 | 2026-09-20 | Recette locale | Essai manuel de bout en bout sur la base restaurée : publication, fan-out, inbox, préférences, annulation, e-mail Mailhog, cascade. Rien à corriger. Relevé au passage, **hors notifications** : `POST /api/teams/{slug}/rides` lève une NPE 500 quand `media.assets` est `{}` (`AssetService.updateAssets` déréférence `images()` nul) — le client web envoie toujours des listes, donc invisible depuis l'application. |
 | 2026-09-18 | Revue | Clé de dédup rendue par les évènements `SKIPPED`/`FAILED` ; recul avant nouvelle tentative d'un évènement (V38, `next_attempt_at`) ; récupération des bloqués toutes les 5 min, livraisons bloquées sans tentative restante → `FAILED`. |
