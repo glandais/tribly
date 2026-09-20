@@ -311,8 +311,11 @@ invalidé par l'activation de la capacité push sur l'App ID.
 
 ## Hors pipeline, à ne pas oublier
 
-- ☐ **Brevo** : créer le gabarit `notification` (fr, en ; sujet `{{ params.subject }}`), renseigner
-  `%prod.pedalons.email.brevo.templates.notification.{fr,en}` — **avant** d'activer l'e-mail en prod
+- ☑ **Brevo** : gabarit `notification` créé le 21 septembre 2026 (`pedalons-notification-fr` **16**,
+  `pedalons-notification-en` **17**, actifs, sujet `{{ params.subject }}`, émetteur
+  `Pédalons ! <contact@pedalons.fr>`), rendu depuis les gabarits Qute du repli SMTP
+  (`templates/mail/notification.{fr,en}.html`, `base` aplati dedans — Brevo n'a pas d'`include`) et
+  les ids renseignés dans `%prod.pedalons.email.brevo.templates.notification.{fr,en}`
 - ☐ **Décision produit** : activer `PEDALONS_NOTIFICATIONS_EMAIL_ENABLED=true` en production, en
   connaissant les défauts (annulations, voyages publiés)
 - ☐ Export RGPD (`UserExportBuilder`) : y inclure les notifications et préférences
@@ -328,5 +331,6 @@ invalidé par l'activation de la capacité push sur l'App ID.
 | 2026-09-20 | Phase 2 | Web livré : cloche, page, libellés fr/en, matrice de préférences, ancre des e-mails. Deux défauts trouvés en recette et corrigés sur place : le fragment `#notifications` n'amenait nulle part, et la section masquée laissait un double séparateur. |
 | 2026-09-20 | Recette locale | Essai manuel de bout en bout sur la base restaurée : publication, fan-out, inbox, préférences, annulation, e-mail Mailhog, cascade. Rien à corriger. Relevé au passage, **hors notifications** : `POST /api/teams/{slug}/rides` lève une NPE 500 quand `media.assets` est `{}` (`AssetService.updateAssets` déréférence `images()` nul) — le client web envoie toujours des listes, donc invisible depuis l'application. |
 | 2026-09-20 | Phase 4 | Push côté serveur : `push_devices` (V39), deux endpoints, `PushNotificationSender` et `FcmClient` (FCM HTTP v1 sans dépendance nouvelle — `smallrye-jwt-build` signe l'assertion). Le canal reste indisponible faute de compte de service, ce qui est exactement le filet de §5 : rien n'est mis en file. Contrat 3.6.0, clients régénérés. Le mobile et les préalables console restent à faire. |
+| 2026-09-21 | Brevo | Gabarit `notification` créé (16 fr, 17 en) et ids renseignés en `%prod`. Reste la décision produit : `PEDALONS_NOTIFICATIONS_EMAIL_ENABLED=true`. |
 | 2026-09-20 | Préalables push | Console faite : projet Firebase `pedalons-9e595` (Analytics et Gemini coupés), apps Android et Apple `fr.pedalons.mobile`, compte de service vérifié hors application (jeton minté, `messages:send` répond 400 `INVALID_ARGUMENT` sur un faux jeton), clé APNs Sandbox & Production créée et capacité *Push Notifications* activée sur l'App ID — ce qui invalide le profil de provisionnement iOS existant. Les fichiers vivent dans `~/Documents/pedalons/firebase/`, hors dépôt. |
 | 2026-09-18 | Revue | Clé de dédup rendue par les évènements `SKIPPED`/`FAILED` ; recul avant nouvelle tentative d'un évènement (V38, `next_attempt_at`) ; récupération des bloqués toutes les 5 min, livraisons bloquées sans tentative restante → `FAILED`. |
