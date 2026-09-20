@@ -238,23 +238,57 @@ mvn test -Dtest='Push*Test,Notification*Test,ArchitectureTest'
 ```
 
 ### Reste à faire côté serveur
-- ☐ Appliquer V39 sur la base locale et faire la recette (le canal ne s'allume qu'avec un compte de
-  service — voir les préalables)
+- ☐ Appliquer V39 sur la base locale et faire la recette. **Reportée à la phase 4 bis** le
+  20 septembre 2026 : la stack locale de ce dossier n'a plus de `.env` utilisable (celui de la
+  recette précédente vivait dans un worktree disparu), et une recette push sans jeton d'appareil ne
+  montrerait de toute façon que le cas « aucun appareil ⇒ `SENT` sans appel réseau ». Elle se fera
+  quand l'app enregistrera un vrai jeton, avec :
+  ```bash
+  PEDALONS_PUSH_ENABLED=true \
+  PEDALONS_PUSH_FCM_CREDENTIALS=$HOME/Documents/pedalons/firebase/fcm-service-account.json \
+  mvn quarkus:dev
+  ```
+  Au démarrage, le journal doit dire `Push notifications enabled — FCM project pedalons-9e595` ;
+  sans cette ligne, le canal est resté indisponible et rien ne sera mis en file.
 - ☐ Commit
 
-### Préalables hors dépôt (aucun n'est fait)
-- ☐ **Projet Firebase** pour Pedalons, application Android (`google-services.json`) et application
-  iOS (`GoogleService-Info.plist`)
-- ☐ **Compte de service** avec le rôle *Firebase Cloud Messaging API Admin*, JSON téléchargé, monté
-  en secret et référencé par `FCM_CREDENTIALS`
-- ☐ **Clé APNs `.p8`** (Apple Developer → Keys, APNs) téléversée dans Firebase, plus l'entitlement
-  `aps-environment` sur la cible Runner
+### Préalables hors dépôt (20 septembre 2026)
+
+Les fichiers ne sont **pas** dans le dépôt : ils vivent dans `~/Documents/pedalons/firebase/`, à
+côté des autres secrets du projet (keystore Android, profil iOS). Rien de tout cela ne se commite.
+
+- ☑ **Projet Firebase** `pedalons-9e595` (numéro de projet `46396427421`), Analytics et Gemini
+  laissés **désactivés** : le push n'en a pas besoin, et Analytics aurait ouvert une déclaration de
+  collecte de plus dans les deux formulaires de confidentialité. Application Android
+  *Pedalons Android* et application Apple *Pedalons iOS*, toutes deux `fr.pedalons.mobile` ⇒
+  `google-services.json` et `GoogleService-Info.plist` téléchargés.
+- ☑ **Compte de service** `firebase-adminsdk-fbsvc@pedalons-9e595.iam.gserviceaccount.com`, clé JSON
+  téléchargée (`fcm-service-account.json`, `chmod 600`). Vérifiée de bout en bout hors application :
+  l'assertion RS256 s'échange contre un jeton d'accès, et `messages:send` sur un faux jeton répond
+  **400 `INVALID_ARGUMENT`** — donc l'authentification passe, et c'est exactement le cas que
+  `FcmClient.isTokenInvalid` traite comme « jeton mort, purger sans rejouer ». L'API *Firebase Cloud
+  Messaging (V1)* est active ; l'ancienne API est désactivée, ce qui est le bon sens de l'histoire.
+- ☑ **Clé APNs `.p8`** créée (« Pedalons APNs », key id `LCNR9RNF47`, team id `7Q49262697`), en
+  **Sandbox & Production** : la portée ne se change plus après coup, et une clé *Sandbox* seule
+  n'aurait rien livré en TestFlight. Capacité *Push Notifications* activée sur l'App ID
+  `fr.pedalons.mobile` — ce qui **invalide le profil de provisionnement existant**
+  (`~/Documents/pedalons/ios/provisioning-profile/pedalons.mobileprovision`) : il faut le
+  régénérer avant la prochaine build iOS, en même temps que l'entitlement `aps-environment`.
+  La `.p8` est **téléversée dans Firebase sur les deux lignes** (APNs de développement et de
+  production), même clé, même key id — le téléversement se fait à la main, la console n'expose pas
+  d'`input` fichier mais un sélecteur natif.
 - ☐ Permission `POST_NOTIFICATIONS` (Android 13+) et **l'écran qui la demande, qui n'est dans aucune
   maquette**
 - ☐ `mobile/store-metadata/data-safety.md` et le formulaire de confidentialité Apple mis à jour
 - ☐ Nouvelle soumission aux deux stores
 
 ## Phase 4 bis — Push, côté mobile (☐)
+
+Les deux fichiers de configuration attendent dans `~/Documents/pedalons/firebase/` : poser
+`google-services.json` dans `mobile/android/app/` et `GoogleService-Info.plist` dans
+`mobile/ios/Runner/` (et les tenir hors dépôt). Côté iOS, il faut en plus l'entitlement
+`aps-environment` sur la cible Runner **et un profil de provisionnement régénéré** — l'ancien a été
+invalidé par l'activation de la capacité push sur l'App ID.
 
 - ☐ `firebase_messaging`, enregistrement du jeton au lancement et à sa rotation, `DELETE` à la
   déconnexion
@@ -292,4 +326,5 @@ mvn test -Dtest='Push*Test,Notification*Test,ArchitectureTest'
 | 2026-09-20 | Phase 2 | Web livré : cloche, page, libellés fr/en, matrice de préférences, ancre des e-mails. Deux défauts trouvés en recette et corrigés sur place : le fragment `#notifications` n'amenait nulle part, et la section masquée laissait un double séparateur. |
 | 2026-09-20 | Recette locale | Essai manuel de bout en bout sur la base restaurée : publication, fan-out, inbox, préférences, annulation, e-mail Mailhog, cascade. Rien à corriger. Relevé au passage, **hors notifications** : `POST /api/teams/{slug}/rides` lève une NPE 500 quand `media.assets` est `{}` (`AssetService.updateAssets` déréférence `images()` nul) — le client web envoie toujours des listes, donc invisible depuis l'application. |
 | 2026-09-20 | Phase 4 | Push côté serveur : `push_devices` (V39), deux endpoints, `PushNotificationSender` et `FcmClient` (FCM HTTP v1 sans dépendance nouvelle — `smallrye-jwt-build` signe l'assertion). Le canal reste indisponible faute de compte de service, ce qui est exactement le filet de §5 : rien n'est mis en file. Contrat 3.6.0, clients régénérés. Le mobile et les préalables console restent à faire. |
+| 2026-09-20 | Préalables push | Console faite : projet Firebase `pedalons-9e595` (Analytics et Gemini coupés), apps Android et Apple `fr.pedalons.mobile`, compte de service vérifié hors application (jeton minté, `messages:send` répond 400 `INVALID_ARGUMENT` sur un faux jeton), clé APNs Sandbox & Production créée et capacité *Push Notifications* activée sur l'App ID — ce qui invalide le profil de provisionnement iOS existant. Les fichiers vivent dans `~/Documents/pedalons/firebase/`, hors dépôt. |
 | 2026-09-18 | Revue | Clé de dédup rendue par les évènements `SKIPPED`/`FAILED` ; recul avant nouvelle tentative d'un évènement (V38, `next_attempt_at`) ; récupération des bloqués toutes les 5 min, livraisons bloquées sans tentative restante → `FAILED`. |
