@@ -224,13 +224,15 @@ Un compte de service illisible **n'empêche pas l'application de démarrer** : l
 et le canal reste indisponible. Un démarrage cassé pour une clé mal montée serait pire que pas de
 push.
 
-### Tests — ☐ à lancer
-- ☐ `PushDeviceResourceTest` — enregistrement, double enregistrement, jeton déplacé d'un utilisateur
+### Tests — verts (lancés par l'utilisateur le 20 septembre 2026)
+- ☑ `PushDeviceResourceTest` — enregistrement, double enregistrement, jeton déplacé d'un utilisateur
   à l'autre, désinscription croisée sans effet, jeton vide refusé, 401
-- ☐ `PushNotificationTest` — `FcmClient` mocké (le pipeline, pas le format de Google) : livraison
+- ☑ `PushNotificationTest` — `FcmClient` mocké (le pipeline, pas le format de Google) : livraison
   créée et envoyée à chaque appareil, contenu de `data`, aucun appareil ⇒ `SENT`, jeton mort purgé
   et non rejoué, échec passager rejoué avec l'appareil conservé, canal non configuré ⇒ aucune
   livraison ni case dans la matrice
+- ☑ `Notification*Test` et `ArchitectureTest` de nouveau verts : la phase 4 n'a rien bougé au
+  fan-out, et le canal reste indisponible en test faute de compte de service
 
 ```bash
 cd backend
@@ -250,7 +252,7 @@ mvn test -Dtest='Push*Test,Notification*Test,ArchitectureTest'
   ```
   Au démarrage, le journal doit dire `Push notifications enabled — FCM project pedalons-9e595` ;
   sans cette ligne, le canal est resté indisponible et rien ne sera mis en file.
-- ☐ Commit
+- ☑ Commit (`e241d921` pour le code, `7c0923c4` pour les préalables console)
 
 ### Préalables hors dépôt (20 septembre 2026)
 
