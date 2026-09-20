@@ -53,6 +53,10 @@ acceptable pour un e-mail unique que l'utilisateur attend, inacceptable pour 2 0
 L'insertion est un `INSERT … ON CONFLICT (dedup_key) DO NOTHING` natif. Un doublon ne doit **jamais**
 lever d'exception : une violation de contrainte ferait échouer la mise à jour de la sortie elle-même.
 
+« Une seule fois » vaut pour les notifications **envoyées** : un évènement `SKIPPED` ou `FAILED`
+n'a notifié personne, et rend sa clé (suffixée de son id). Une sortie publiée, repassée en brouillon
+avant le tick puis republiée pour de bon est donc annoncée ; sinon elle ne l'aurait jamais été.
+
 ### Étage 2 — fan-out (scheduler, hors requête)
 
 `NotificationDispatchScheduler` réclame un évènement `PENDING` (`for update skip locked` +
@@ -70,12 +74,21 @@ compare-and-set, le même schéma que `user_exports`), puis dans une transaction
 5. Une ligne `notifications` par destinataire, puis une ligne `notification_deliveries` par canal
    hors-app **activé** pour ce destinataire.
 
+Un fan-out qui échoue repasse `PENDING` avec un `next_attempt_at` reculé (exponentiel, comme les
+livraisons) : retenté dans le même tick, un incident passager consommerait toutes les tentatives en
+quelques millisecondes.
+
 ### Étage 3 — envoi (scheduler, par lots)
 
 Chaque canal hors-app a un `NotificationChannelSender`. Un tick réclame un lot de livraisons
 `PENDING` échues (`next_attempt_at <= now`), envoie **hors transaction**, puis marque `SENT`, ou
 replanifie avec un recul exponentiel, ou `FAILED` au-delà de `max-attempts`. Un envoi réussi dont le
 marquage échoue sera renvoyé : on accepte le « au moins une fois », pas le « peut-être jamais ».
+
+Un worker qui meurt en plein travail (un déploiement) laisse des évènements `PROCESSING` et des
+livraisons `SENDING`. Une récupération toutes les 5 min les remet en file passé
+`stuck-after-minutes` — ou les passe `FAILED` s'ils ont épuisé leurs tentatives. Pas la nuit : une
+annulation bloquée jusqu'à 4 h serait écartée comme passée.
 
 ## 3. Le typage
 

@@ -12,7 +12,6 @@ import io.quarkus.narayana.jta.QuarkusTransaction;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -36,8 +35,6 @@ public class NotificationDeliveryService {
 
   private static final Logger LOG = Logger.getLogger(NotificationDeliveryService.class);
 
-  private static final Duration MAX_BACKOFF = Duration.ofHours(6);
-
   @Inject NotificationDeliveryRepository deliveryRepository;
   @Inject NotificationChannels channels;
 
@@ -46,6 +43,11 @@ public class NotificationDeliveryService {
 
   @ConfigProperty(name = "pedalons.notifications.delivery.max-attempts", defaultValue = "5")
   int maxAttempts;
+
+  /** Through the CDI proxy, where the field itself reads 0. */
+  int maxAttempts() {
+    return maxAttempts;
+  }
 
   @ConfigProperty(name = "pedalons.notifications.delivery.backoff-seconds", defaultValue = "60")
   int backoffSeconds;
@@ -163,7 +165,10 @@ public class NotificationDeliveryService {
                   delivery.setStatus(NotificationDeliveryStatus.FAILED);
                 } else {
                   delivery.setStatus(NotificationDeliveryStatus.PENDING);
-                  delivery.setNextAttemptAt(now.plus(backoff(delivery.getAttempts())));
+                  delivery.setNextAttemptAt(
+                      now.plus(
+                          NotificationDispatchService.backoff(
+                              backoffSeconds, delivery.getAttempts())));
                 }
                 return;
               }
@@ -175,16 +180,13 @@ public class NotificationDeliveryService {
             });
   }
 
-  Duration backoff(int attempts) {
-    Duration delay =
-        Duration.ofSeconds(backoffSeconds).multipliedBy(1L << Math.clamp(attempts - 1, 0, 20));
-    return delay.compareTo(MAX_BACKOFF) > 0 ? MAX_BACKOFF : delay;
-  }
-
-  /** Puts back on the queue the deliveries a crash left in SENDING. */
+  /**
+   * Puts back on the queue the deliveries a crash left in SENDING, and fails those that had no
+   * attempt left.
+   */
   @Transactional
   public int recoverStuck() {
     return deliveryRepository.resetStuck(
-        Instant.now().minus(stuckAfterMinutes, ChronoUnit.MINUTES));
+        Instant.now().minus(stuckAfterMinutes, ChronoUnit.MINUTES), maxAttempts);
   }
 }

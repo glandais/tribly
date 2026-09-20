@@ -6,6 +6,7 @@ import fr.pedalons.domain.notification.NotificationDelivery;
 import fr.pedalons.domain.notification.NotificationEventEntry;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.user.User;
+import fr.pedalons.enums.NotificationDeliveryStatus;
 import fr.pedalons.enums.NotificationEventStatus;
 import fr.pedalons.enums.NotificationSubjectType;
 import fr.pedalons.enums.NotificationType;
@@ -76,6 +77,7 @@ public class NotificationTestData {
       event.setPayload(objectMapper.valueToTree(new RidePublished(i)));
       event.setTeamId(team.getId());
       event.setCreatedAt(now.minusSeconds(count - i));
+      event.setNextAttemptAt(event.getCreatedAt());
       event.setProcessedAt(now);
       event.setActorName("Seeder");
       event.setTeamSlug(team.getSlug());
@@ -97,6 +99,49 @@ public class NotificationTestData {
   @Transactional
   public void removeFromTeam(User user, Team team) {
     userTeamRepository.delete("user.id = ?1 and team.id = ?2", user.getId(), team.getId());
+  }
+
+  /** The events themselves, detached — for the queue fields {@link #events()} leaves out. */
+  @Transactional
+  public List<NotificationEventEntry> eventEntries() {
+    return eventRepository.listAll();
+  }
+
+  /** Queues an event whose payload cannot be read back, so that every attempt at it fails. */
+  @Transactional
+  public void queueUnreadableEvent(Team team) {
+    eventRepository.insertIfAbsent(
+        team.getDomain().getId(),
+        NotificationType.RIDE_PUBLISHED,
+        "unreadable:" + System.nanoTime(),
+        "{\"rideId\": \"not a number\"}",
+        null,
+        team.getId(),
+        Instant.now());
+  }
+
+  /** Skips the backoff: every pending event becomes due now. */
+  @Transactional
+  public void makeEventsDue() {
+    eventRepository.update("nextAttemptAt = ?1", Instant.now());
+  }
+
+  /** As a worker that died mid-claim leaves them: in progress, long ago. */
+  @Transactional
+  public void backdateEventClaims() {
+    eventRepository.update("startedAt = ?1", Instant.now().minus(1, ChronoUnit.HOURS));
+  }
+
+  /** As a worker that died mid-send leaves them: SENDING since long ago, after {@code attempts}. */
+  @Transactional
+  public void strandDeliveries(User user, int attempts) {
+    deliveryRepository.update(
+        "status = ?1, attempts = ?2, lastAttemptAt = ?3 where notification.id in"
+            + " (select n.id from Notification n where n.recipient.id = ?4)",
+        NotificationDeliveryStatus.SENDING,
+        attempts,
+        Instant.now().minus(1, ChronoUnit.HOURS),
+        user.getId());
   }
 
   @Transactional

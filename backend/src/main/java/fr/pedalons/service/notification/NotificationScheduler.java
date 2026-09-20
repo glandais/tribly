@@ -6,7 +6,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
 
-/** Drives stages 2 and 3 of the notification pipeline, and their nightly housekeeping. */
+/** Drives stages 2 and 3 of the notification pipeline, their recovery and their housekeeping. */
 @ApplicationScoped
 public class NotificationScheduler {
 
@@ -44,16 +44,30 @@ public class NotificationScheduler {
     }
   }
 
-  @Scheduled(cron = "0 15 4 * * ?")
-  void housekeeping() {
+  /**
+   * Picks up what a crash — a deploy mid-tick — left claimed. Every few minutes rather than nightly:
+   * a cancellation stuck overnight would be dropped as past once recovered.
+   */
+  @Scheduled(every = "5m", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
+  void recoverStuck() {
     try {
       int events = dispatchService.recoverStuck();
       int deliveries = deliveryService.recoverStuck();
+      if (events > 0 || deliveries > 0) {
+        LOG.warnf(
+            "Notification recovery: %d stuck event(s), %d stuck delivery(ies) requeued",
+            events, deliveries);
+      }
+    } catch (Exception e) {
+      LOG.error("Notification recovery failed", e);
+    }
+  }
+
+  @Scheduled(cron = "0 15 4 * * ?")
+  void housekeeping() {
+    try {
       int purged = retentionService.purgeExpired();
-      LOG.infof(
-          "Notification housekeeping: %d stuck event(s), %d stuck delivery(ies) requeued, %d"
-              + " expired event(s) purged",
-          events, deliveries, purged);
+      LOG.infof("Notification housekeeping: %d expired event(s) purged", purged);
     } catch (Exception e) {
       LOG.error("Notification housekeeping failed", e);
     }

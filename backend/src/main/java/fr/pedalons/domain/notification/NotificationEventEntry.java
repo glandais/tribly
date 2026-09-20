@@ -43,7 +43,7 @@ import org.jspecify.annotations.Nullable;
           columnNames = {"dedup_key"})
     },
     indexes = {
-      @Index(name = "idx_notification_events_status_created", columnList = "status, created_at"),
+      @Index(name = "idx_notification_events_queue", columnList = "status, next_attempt_at"),
       @Index(name = "idx_notification_events_created", columnList = "created_at")
     })
 @NoArgsConstructor
@@ -62,7 +62,12 @@ public class NotificationEventEntry {
   @Column(name = "status", nullable = false, length = 20)
   private NotificationEventStatus status = NotificationEventStatus.PENDING;
 
-  /** {@code TYPE:subjectId} for the types of the first pass — see {@code NotificationEvent}. */
+  /**
+   * {@code TYPE:subjectId} for the types of the first pass — see {@code NotificationEvent}. An event
+   * that notified nobody — {@link NotificationEventStatus#SKIPPED} or {@link
+   * NotificationEventStatus#FAILED} — has its key suffixed with its id, which releases it: a ride
+   * unpublished before dispatch and published again later must still be announced.
+   */
   @Column(name = "dedup_key", nullable = false, length = 200)
   private String dedupKey;
 
@@ -83,6 +88,10 @@ public class NotificationEventEntry {
 
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
+
+  /** Not claimed before this: set on insert, pushed back by a failed attempt. */
+  @Column(name = "next_attempt_at", nullable = false)
+  private Instant nextAttemptAt;
 
   @Column(name = "started_at")
   private @Nullable Instant startedAt;

@@ -35,10 +35,10 @@ public class NotificationEventRepository implements PanacheRepository<Notificati
                 """
                 insert into notification_events
                   (id, domain_id, type, status, dedup_key, payload, actor_id, team_id, attempts,
-                   created_at, version)
+                   created_at, next_attempt_at, version)
                 values
                   (:id, :domainId, :type, :status, :dedupKey, cast(:payload as jsonb), :actorId,
-                   :teamId, 0, :now, 0)
+                   :teamId, 0, :now, :now, 0)
                 on conflict (dedup_key) do nothing
                 """)
             .setParameter("id", TSID.Factory.getTsid().toLong())
@@ -55,21 +55,23 @@ public class NotificationEventRepository implements PanacheRepository<Notificati
   }
 
   /**
-   * Head of the queue, locked for this transaction. Same two-part claim as {@code
+   * Head of the due queue, locked for this transaction. An event backing off after a failure is not
+   * due, so the drain loop moves on to the next one rather than retrying it at once. Same two-part claim as {@code
    * UserExportRepository}: {@code skip locked} for throughput, the compare-and-set in {@link #claim}
    * for correctness.
    */
-  public @Nullable Long findNextPendingIdSkipLocked() {
+  public @Nullable Long findNextDueIdSkipLocked(Instant now) {
     Object id =
         getEntityManager()
             .createNativeQuery(
                 """
                 select id from notification_events
-                where status = 'PENDING'
-                order by created_at
+                where status = 'PENDING' and next_attempt_at <= :now
+                order by next_attempt_at
                 limit 1
                 for update skip locked
                 """)
+            .setParameter("now", Timestamp.from(now))
             .getResultStream()
             .findFirst()
             .orElse(null);

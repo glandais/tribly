@@ -26,6 +26,7 @@ import io.quarkus.narayana.jta.QuarkusTransaction;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -54,6 +55,8 @@ public class NotificationDispatchService {
 
   private static final Logger LOG = Logger.getLogger(NotificationDispatchService.class);
 
+  private static final Duration MAX_BACKOFF = Duration.ofHours(6);
+
   @Inject NotificationEventRepository eventRepository;
   @Inject NotificationRepository notificationRepository;
   @Inject NotificationDeliveryRepository deliveryRepository;
@@ -67,6 +70,14 @@ public class NotificationDispatchService {
 
   @ConfigProperty(name = "pedalons.notifications.max-attempts", defaultValue = "3")
   int maxAttempts;
+
+  /** Through the CDI proxy, where the field itself reads 0. */
+  int maxAttempts() {
+    return maxAttempts;
+  }
+
+  @ConfigProperty(name = "pedalons.notifications.backoff-seconds", defaultValue = "60")
+  int backoffSeconds;
 
   @ConfigProperty(name = "pedalons.notifications.stuck-after-minutes", defaultValue = "15")
   int stuckAfterMinutes;
@@ -101,7 +112,7 @@ public class NotificationDispatchService {
     return QuarkusTransaction.requiringNew()
         .call(
             () -> {
-              Long id = eventRepository.findNextPendingIdSkipLocked();
+              Long id = eventRepository.findNextDueIdSkipLocked(Instant.now());
               if (id == null) {
                 return Optional.<Long>empty();
               }
@@ -120,9 +131,10 @@ public class NotificationDispatchService {
 
     Optional<Resolution> resolution = resolver.resolve(event);
     if (resolution.isEmpty()) {
+      LOG.debugf("Notification %s skipped: no longer relevant", entry.getDedupKey());
       entry.setStatus(NotificationEventStatus.SKIPPED);
       entry.setProcessedAt(now);
-      LOG.debugf("Notification %s skipped: no longer relevant", entry.getDedupKey());
+      releaseDedupKey(entry);
       return;
     }
     snapshot(entry, resolution.get());
@@ -235,26 +247,48 @@ public class NotificationDispatchService {
                 return;
               }
               entry.setErrorMessage(truncate(cause.toString()));
-              // Below the ceiling it goes back on the queue for a later tick.
-              entry.setStatus(
-                  entry.getAttempts() >= maxAttempts
-                      ? NotificationEventStatus.FAILED
-                      : NotificationEventStatus.PENDING);
+              // Below the ceiling it goes back on the queue, after a backoff: retried within the
+              // same tick, a transient fault would burn every attempt in milliseconds.
+              requeueOrFail(
+                  entry, Instant.now().plus(backoff(backoffSeconds, entry.getAttempts())));
             });
   }
 
   /** Puts back on the queue the events a crash left in PROCESSING. */
   @Transactional
   public int recoverStuck() {
-    Instant cutoff = Instant.now().minus(stuckAfterMinutes, ChronoUnit.MINUTES);
-    List<NotificationEventEntry> stuck = eventRepository.findStuck(cutoff);
+    Instant now = Instant.now();
+    List<NotificationEventEntry> stuck =
+        eventRepository.findStuck(now.minus(stuckAfterMinutes, ChronoUnit.MINUTES));
     for (NotificationEventEntry entry : stuck) {
-      entry.setStatus(
-          entry.getAttempts() >= maxAttempts
-              ? NotificationEventStatus.FAILED
-              : NotificationEventStatus.PENDING);
+      requeueOrFail(entry, now);
     }
     return stuck.size();
+  }
+
+  private void requeueOrFail(NotificationEventEntry entry, Instant nextAttemptAt) {
+    if (entry.getAttempts() >= maxAttempts) {
+      entry.setStatus(NotificationEventStatus.FAILED);
+      releaseDedupKey(entry);
+    } else {
+      entry.setStatus(NotificationEventStatus.PENDING);
+      entry.setNextAttemptAt(nextAttemptAt);
+    }
+  }
+
+  /**
+   * "Notify once" is about notifications sent. An event that notified nobody gives its key back, so
+   * the same change made again later — a ride published for real after a false start — is queued.
+   */
+  private static void releaseDedupKey(NotificationEventEntry entry) {
+    entry.setDedupKey(entry.getDedupKey() + "#" + TsidUtils.toString(entry.getId()));
+  }
+
+  /** Exponential from {@code baseSeconds}, doubling per attempt already made, capped. */
+  static Duration backoff(int baseSeconds, int attempts) {
+    Duration delay =
+        Duration.ofSeconds(baseSeconds).multipliedBy(1L << Math.clamp(attempts - 1, 0, 20));
+    return delay.compareTo(MAX_BACKOFF) > 0 ? MAX_BACKOFF : delay;
   }
 
   static String truncate(String message) {

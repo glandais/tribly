@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import fr.pedalons.api.AbstractResourceTest;
 import fr.pedalons.common.TsidUtils;
 import fr.pedalons.domain.notification.NotificationDelivery;
+import fr.pedalons.domain.notification.NotificationEventEntry;
 import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.domain.ride.RideGroup;
 import fr.pedalons.dto.comments.request.CommentRequest;
@@ -171,6 +172,21 @@ class NotificationPipelineTest extends AbstractResourceTest {
     assertEquals(0, notifications.notificationCount());
   }
 
+  /** A skipped event notified nobody, so it must not swallow the real publication after it. */
+  @Test
+  void rideUnpublishedBeforeDispatch_isAnnouncedWhenPublishedAgain() {
+    String slug = createRide(Status.PUBLISHED, nextWeek);
+    updateRide(slug, ride(Status.DRAFT, nextWeek, null));
+    drain();
+    assertEquals(0, notifications.notificationCount());
+
+    updateRide(slug, ride(Status.PUBLISHED, nextWeek, null));
+    drain();
+
+    assertEquals(
+        List.of(NotificationType.RIDE_PUBLISHED), notifications.notificationTypesFor(user3));
+  }
+
   /** What the biketeam migration relies on: history replayed through the services is not news. */
   @Test
   void silenced_queuesNothing() {
@@ -306,5 +322,74 @@ class NotificationPipelineTest extends AbstractResourceTest {
 
     assertTrue(notifications.events().isEmpty());
     assertEquals(0, notifications.notificationCount());
+  }
+
+  // ------------------------------------------------------------------ failures and recovery
+
+  @Test
+  void failedEvent_backsOff_insteadOfBeingRetriedInTheSameTick() {
+    notifications.queueUnreadableEvent(team1);
+
+    assertTrue(dispatchService.dispatchOne());
+    assertFalse(dispatchService.dispatchOne(), "backing off, not due again yet");
+
+    NotificationEventEntry entry = notifications.eventEntries().getFirst();
+    assertEquals(NotificationEventStatus.PENDING, entry.getStatus());
+    assertEquals(1, entry.getAttempts());
+    assertTrue(entry.getNextAttemptAt().isAfter(Instant.now()), "next attempt in the future");
+  }
+
+  @Test
+  void failedEvent_givesUpAfterMaxAttempts_andReleasesItsDedupKey() {
+    notifications.queueUnreadableEvent(team1);
+    String key = notifications.eventEntries().getFirst().getDedupKey();
+
+    for (int i = 0; i < dispatchService.maxAttempts(); i++) {
+      notifications.makeEventsDue();
+      assertTrue(dispatchService.dispatchOne());
+    }
+
+    NotificationEventEntry entry = notifications.eventEntries().getFirst();
+    assertEquals(NotificationEventStatus.FAILED, entry.getStatus());
+    assertTrue(entry.getDedupKey().startsWith(key + "#"), entry.getDedupKey());
+  }
+
+  @Test
+  void eventLeftInProgressByACrash_isRequeued() {
+    createRide(Status.PUBLISHED, nextWeek);
+    assertTrue(dispatchService.claimNextPending().isPresent());
+    notifications.backdateEventClaims();
+
+    assertEquals(1, dispatchService.recoverStuck());
+    assertEquals(NotificationEventStatus.PENDING, notifications.events().getFirst().status());
+
+    drain();
+    assertEquals(1, notifications.notificationTypesFor(user3).size());
+  }
+
+  @Test
+  void deliveryLeftSendingByACrash_isRequeued_whileItHasAttemptsLeft() {
+    cancel(registeredRide());
+    drain();
+    notifications.strandDeliveries(user3, 1);
+
+    deliveryService.recoverStuck();
+
+    assertEquals(
+        NotificationDeliveryStatus.PENDING,
+        notifications.deliveriesFor(user3).getFirst().getStatus());
+  }
+
+  @Test
+  void deliveryLeftSendingByACrash_fails_onceOutOfAttempts() {
+    cancel(registeredRide());
+    drain();
+    notifications.strandDeliveries(user3, deliveryService.maxAttempts());
+
+    deliveryService.recoverStuck();
+
+    assertEquals(
+        NotificationDeliveryStatus.FAILED,
+        notifications.deliveriesFor(user3).getFirst().getStatus());
   }
 }

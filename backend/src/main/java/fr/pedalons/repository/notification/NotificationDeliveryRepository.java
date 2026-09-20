@@ -60,8 +60,20 @@ public class NotificationDeliveryRepository implements PanacheRepository<Notific
         .getResultList();
   }
 
-  /** Back on the queue: claimed, then the worker died before marking them. */
-  public int resetStuck(Instant lastAttemptBefore) {
+  /**
+   * Claimed, then the worker died before marking them: back on the queue, unless they have used
+   * every attempt — a delivery that kills its worker each time must end, not be retried forever.
+   * Returns how many were requeued.
+   */
+  public int resetStuck(Instant lastAttemptBefore, int maxAttempts) {
+    update(
+        "status = ?1, errorMessage = ?2 where status = ?3 and lastAttemptAt < ?4 and attempts >="
+            + " ?5",
+        NotificationDeliveryStatus.FAILED,
+        "Stuck in SENDING after the last attempt",
+        NotificationDeliveryStatus.SENDING,
+        lastAttemptBefore,
+        maxAttempts);
     return update(
         "status = ?1 where status = ?2 and lastAttemptAt < ?3",
         NotificationDeliveryStatus.PENDING,
