@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:app_links/app_links.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_driver/driver_extension.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,6 +13,7 @@ import 'app.dart';
 import 'config/router.dart';
 import 'core/preferences/user_preferences_provider.dart';
 import 'features/auth/providers/auth_provider.dart';
+import 'features/notifications/providers/push_provider.dart';
 
 void main() async {
   // Lets an AI assistant (or `flutter drive`) screenshot/tap/hot-reload this
@@ -23,6 +25,16 @@ void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
+
+  // Firebase avant le premier cadre, et **sans bloquer le démarrage si elle
+  // échoue** : une app qui ne s'ouvre pas parce que FCM est injoignable serait
+  // un bien plus gros défaut que l'absence de push. `PushController` ne
+  // trouvera alors pas de jeton, et le canal restera simplement muet.
+  try {
+    await Firebase.initializeApp();
+  } catch (error) {
+    log('Firebase could not start, push disabled: $error', name: 'main');
+  }
 
   // Le miroir des préférences se lit AVANT le premier cadre : sans lui, l'app
   // s'ouvre en clair puis bascule en sombre une fois `GET /api/users/me`
@@ -80,6 +92,7 @@ const int _maxRouterMountFrames = 120;
 
 class _DeepLinkHandlerState extends ConsumerState<_DeepLinkHandler> {
   StreamSubscription<Uri>? _linkSubscription;
+  ProviderSubscription<String?>? _pushSubscription;
   ProviderSubscription<bool>? _authSubscription;
   Completer<void>? _authInitialized;
   String? _pendingPath;
@@ -99,11 +112,30 @@ class _DeepLinkHandlerState extends ConsumerState<_DeepLinkHandler> {
       final path = uri.path + (uri.query.isNotEmpty ? '?${uri.query}' : '');
       _requestOpen(path);
     });
+
+    // Le contrôleur push n'existe que si quelqu'un le tient : sans cette
+    // écoute, l'appareil ne s'inscrirait qu'à l'ouverture de l'écran des
+    // notifications, et un membre qui ne l'ouvre jamais ne recevrait rien.
+    ref.listenManual(pushAuthorizationProvider, (_, _) {});
+
+    // Une notification tapée passe par le même tuyau qu'un lien web : elle
+    // attend la session et la première route du routeur, et arrive avec ses
+    // ancêtres. Le `path` est celui que le serveur a mis dans le message.
+    _pushSubscription = ref.listenManual(pendingPushRouteProvider, (
+      String? previous,
+      String? next,
+    ) {
+      if (next == null) return;
+      log('Push route received: $next', name: 'main');
+      ref.read(pendingPushRouteProvider.notifier).state = null;
+      _requestOpen(next);
+    });
   }
 
   @override
   void dispose() {
     _linkSubscription?.cancel();
+    _pushSubscription?.close();
     _authSubscription?.close();
     super.dispose();
   }

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "46396427421",
+    "project_id": "pedalons-9e595",
+    "storage_bucket": "pedalons-9e595.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:46396427421:android:248bc4e55b9d639bfcd874",
+        "android_client_info": {
+          "package_name": "fr.pedalons.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBVPCkrNuiXimQZ8B-ZOtuKX510Zr27LwY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

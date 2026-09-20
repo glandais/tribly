@@ -858,6 +858,12 @@
     "preferences": {
       "title": "Notifications",
       "inAppAlwaysOn": "You always get notifications in the app; only the channels that interrupt you are set here."
+    },
+    "push": {
+      "title": "Notifications on this device",
+      "hint": "Hear about a published or cancelled ride without opening the app.",
+      "enable": "Turn on",
+      "deniedHint": "Notifications are blocked for Pédalons. You can turn them back on in your phone's settings."
     }
   },
   "apps": {

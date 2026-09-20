@@ -68,6 +68,12 @@ All icons are generated from `assets/icon.svg` via `scripts/generate-icons.sh` (
 | `ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage.png`     | 168x168 | iOS launch image @1x    |
 | `ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@2x.png`  | 336x336 | iOS launch image @2x    |
 | `ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@3x.png`  | 504x504 | iOS launch image @3x    |
+| `android/app/src/main/res/drawable-{m,h,xh,xxh,xxxh}dpi/ic_stat_notification.png` | 24→96 | Android notification small icon |
+
+The notification icon is **not** the launcher icon: Android keeps only its alpha channel and paints
+every remaining pixel white, so the launcher icon shows up as a white square with the P swallowed
+by its own background. `generate_android_notification_icon` therefore keeps what is *orange* in
+`icon.svg` — the bicycle P — and drops everything else, rim included.
 
 **Karoo** (`karoo/app/src/main/res/`, generated via `--karoo`):
 

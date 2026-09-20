@@ -63,6 +63,39 @@ generate_mobile() {
   # Copy icon for in-app usage (login page, etc.)
   cp "$PNG" "$REPO_ROOT/mobile/assets/icon.png"
   echo "  assets/icon.png (1024x1024)"
+
+  generate_android_notification_icon
+}
+
+# Android's status bar keeps only the alpha channel of a notification's small
+# icon and paints it white: handed the launcher icon, it shows a white square,
+# the P swallowed by its own background. So the background is dropped and what
+# is left — the bicycle P — becomes a white silhouette.
+generate_android_notification_icon() {
+  command -v magick >/dev/null 2>&1 || die "magick not found"
+  echo "  Generating Android notification icon..."
+  local RES="$REPO_ROOT/mobile/android/app/src/main/res"
+  for entry in mdpi:24 hdpi:36 xhdpi:48 xxhdpi:72 xxxhdpi:96; do
+    local density="${entry%%:*}"
+    local size="${entry##*:}"
+    local out_dir="$RES/drawable-$density"
+    mkdir -p "$out_dir"
+    local TMP
+    TMP=$(mktemp /tmp/icon_notif_XXXX.png)
+    # Rasterize large, then cut: the P's thin frame loses its shape if the
+    # silhouette is taken at 24 px. The mask keeps what is *orange* rather than
+    # dropping what is blue — keying the background out would leave the rounded
+    # square's own anti-aliased rim behind, and that rim is a visible frame once
+    # the status bar paints every remaining pixel white.
+    svg_to_png 512 "$TMP"
+    magick "$TMP" -background black -alpha remove -alpha off \
+      -fuzz 35% -fill white -opaque "#fd7e14" -fill black +opaque white \
+      -resize "${size}x${size}" "$TMP.mask.png"
+    magick -size "${size}x${size}" xc:white "$TMP.mask.png" -alpha off \
+      -compose CopyOpacity -composite "$out_dir/ic_stat_notification.png"
+    rm "$TMP" "$TMP.mask.png"
+    echo "  drawable-$density/ic_stat_notification.png (${size}x${size})"
+  done
 }
 
 generate_karoo() {

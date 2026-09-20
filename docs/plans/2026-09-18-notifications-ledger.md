@@ -279,25 +279,94 @@ côté des autres secrets du projet (keystore Android, profil iOS). Rien de tout
   La `.p8` est **téléversée dans Firebase sur les deux lignes** (APNs de développement et de
   production), même clé, même key id — le téléversement se fait à la main, la console n'expose pas
   d'`input` fichier mais un sélecteur natif.
-- ☐ Permission `POST_NOTIFICATIONS` (Android 13+) et **l'écran qui la demande, qui n'est dans aucune
-  maquette**
-- ☐ `mobile/store-metadata/data-safety.md` et le formulaire de confidentialité Apple mis à jour
+- ☑ Permission `POST_NOTIFICATIONS` (Android 13+) et l'écran qui la demande — faites en phase 4 bis,
+  où le bandeau de la boîte de réception tient lieu de maquette manquante
+- ☑ `mobile/store-metadata/data-safety.md` et `PrivacyInfo.xcprivacy` mis à jour ; ☐ les deux
+  formulaires des stores, et la politique de confidentialité, restent à faire
 - ☐ Nouvelle soumission aux deux stores
 
-## Phase 4 bis — Push, côté mobile (☐)
+## Phase 4 bis — Push, côté mobile (21 septembre 2026)
 
-Les deux fichiers de configuration attendent dans `~/Documents/pedalons/firebase/` : poser
-`google-services.json` dans `mobile/android/app/` et `GoogleService-Info.plist` dans
-`mobile/ios/Runner/` (et les tenir hors dépôt). Côté iOS, il faut en plus l'entitlement
-`aps-environment` sur la cible Runner **et un profil de provisionnement régénéré** — l'ancien a été
-invalidé par l'activation de la capacité push sur l'App ID.
+Les deux fichiers de configuration sont **commités** (`mobile/android/app/google-services.json`,
+`mobile/ios/Runner/GoogleService-Info.plist`) : ce ne sont pas des secrets — identifiants d'app
+publics et clé API restreinte au bundle — et les tenir hors dépôt aurait cassé toute build faite
+ailleurs. Le compte de service et la clé APNs, eux, restent dans `~/Documents/pedalons/firebase/`.
 
-- ☐ `firebase_messaging`, enregistrement du jeton au lancement et à sa rotation, `DELETE` à la
-  déconnexion
-- ☐ Canal Android `pedalons_default` (le `channel_id` que `FcmClient` envoie déjà)
-- ☐ Ouverture du deeplink au tap depuis `data.path`, application au premier plan, en arrière-plan
-  **et tuée**
-- ☐ Marquage lu à l'ouverture depuis `data.notificationId`
+### Le canal côté appareil
+- ☑ `firebase_core` + `firebase_messaging`, **et rien d'autre de Firebase** : pas d'Analytics, pas
+  de Crashlytics. `Firebase.initializeApp()` est appelé dans `main.dart` dans un `try` — une app qui
+  refuserait de s'ouvrir parce que FCM est injoignable serait un défaut bien pire que l'absence de
+  push. La configuration vient des fichiers natifs, donc **pas de `firebase_options.dart`** à tenir
+  en phase avec eux.
+- ☑ `PushGateway` (`features/notifications/services/push_gateway.dart`) est la seule chose qui
+  touche Firebase : autorisation, jeton, flux de messages, bannière. C'est cette couture qui rend
+  `push_test.dart` possible — un test de widget qui instancierait `FirebaseMessaging` mourrait sur
+  les canaux de plateforme.
+- ☑ `PushController` : jeton enregistré à l'ouverture de session **et à chaque rotation**
+  (`onTokenRefresh`), `DELETE /api/push-devices/{token}` à la déconnexion. La désinscription est
+  appelée par `AuthNotifier.logout` **avant** d'effacer la session, l'endpoint étant authentifié ;
+  le jeton lui-même vit dans `registeredPushTokenProvider`, un provider à part, pour que
+  `authProvider` n'ait pas à instancier le contrôleur qui l'écoute.
+- ☑ **L'app ne demande jamais l'autorisation au lancement.** `PushActivationBanner` la propose
+  depuis la boîte de réception, et seulement quand `PUSH` figure dans les canaux de la matrice —
+  c'est-à-dire quand le serveur sait vraiment pousser. La boîte de dialogue du système ne s'affiche
+  qu'une fois dans la vie d'une installation : la dépenser avant que le membre ait vu ce que l'app
+  notifie, c'est la dépenser mal. Refus définitif ⇒ le bandeau renvoie aux réglages au lieu de
+  rejouer un bouton sans effet.
+- ☑ Canal Android `pedalons_default`, créé par `flutter_local_notifications` (sinon le `channel_id`
+  envoyé par `FcmClient` retomberait sur « Divers ») ; c'est elle aussi qui affiche la bannière
+  **au premier plan**, qu'Android n'affiche pas tout seul. Sur iOS, `setForegroundNotificationPresentationOptions`.
+- ☑ Icône de la barre d'état `ic_stat_notification`, générée par `scripts/generate-icons.sh` : le
+  système ne garde que l'alpha et peint tout en blanc, donc l'icône du lanceur donnerait un carré
+  blanc. Le masque garde ce qui est **orange** dans `icon.svg` plutôt que d'enlever le bleu — retirer
+  le fond laisserait le liseré antialiasé du carré arrondi, c'est-à-dire un cadre bien visible.
+- ☑ Tap ⇒ `data.notificationId` marqué lu, puis `data.path` déposé dans `pendingPushRouteProvider`,
+  que `main.dart` fait passer par le **même** tuyau qu'un lien web (attendre la session, attendre la
+  première route, reconstruire les ancêtres). Les trois états sont couverts : premier plan,
+  arrière-plan (`onMessageOpenedApp`) et **application tuée** (`getInitialMessage`).
+- ☑ `POST_NOTIFICATIONS` déclarée, et vérifiée sur le manifeste **fusionné** : elle y est,
+  `ACCESS_FINE_LOCATION` n'y est toujours pas, et le push ajoute `VIBRATE` et `WAKE_LOCK`.
+- ☑ iOS : entitlement `aps-environment` (`development`, réécrit en `production` à l'archivage),
+  `UIBackgroundModes: remote-notification` pour le `content-available: 1` du serveur, et
+  `GoogleService-Info.plist` ajouté aux ressources de la cible Runner.
+- ✗ Badge iOS posé par l'app : `flutter_local_notifications` ne sait poser un badge qu'en affichant
+  une notification, et en arrière-plan c'est le système qui affiche celle de FCM. Il faudrait une
+  dépendance de plus pour un compteur que la cloche montre déjà à l'ouverture.
+- ✗ Isolat de fond (`onBackgroundMessage`) : le serveur envoie `notification` **et** `data`, donc le
+  système affiche la bannière sans l'app. Un isolat n'aurait rien à faire de plus.
+
+### Vérifications
+- ☑ `flutter analyze` propre, `bash check.sh` vert, **560 tests** (545 + 15)
+- ☑ `test/features/notifications/push_test.dart` (15 cas) : pas de jeton sans autorisation, jeton
+  envoyé une seule fois, bouton d'activation qui enregistre dans la foulée, refus sans erreur,
+  rotation réenregistrée, échec d'inscription non retenu (la session suivante réessaie), tap qui
+  marque lu et dépose la route, app tuée réveillée par un tap, message sans route, et les quatre
+  états du bandeau
+- ☑ `flutter build apk --debug` : la desugarisation des bibliothèques du cœur a dû être activée
+  (`isCoreLibraryDesugaringEnabled`, `desugar_jdk_libs`) — `flutter_local_notifications` refuse de
+  lier sans elle. Avertissement connu et sans effet : `firebase_core` applique encore le plugin
+  Gradle Kotlin, ce que Flutter annonce vouloir refuser un jour.
+- ☑ `flutter build ios --simulator --debug` : Firebase passe par Swift Package Manager sans Podfile.
+- ☐ Recette sur appareil réel : la seule chose qui prouve la chaîne de bout en bout (jeton
+  enregistré, sortie publiée, bannière reçue, tap qui ouvre la sortie et la marque lue).
+
+### Déclarations de confidentialité
+- ☑ `mobile/store-metadata/data-safety.md` repris : le jeton FCM et le modèle d'appareil entrent à
+  l'inventaire (#11, #12), Apple gagne `NSPrivacyCollectedDataTypeDeviceID` (lié, *App
+  Functionality*), Play gagne *Device or other IDs*, et la phrase « aucun SDK Firebase » — qui
+  était vraie et ne l'est plus — est corrigée plutôt que laissée à pourrir.
+- ☑ `ios/Runner/PrivacyInfo.xcprivacy` aligné (`plutil -lint` propre).
+- ☐ **La politique de confidentialité ne parle pas encore du push.** Elle doit nommer Google
+  (Firebase Cloud Messaging) comme sous-traitant, dire que le titre et le corps de la notification
+  passent par lui, et que le jeton est supprimé à la déconnexion — **avant** que le push n'arrive
+  aux membres. Consigné dans les points ouverts de `data-safety.md`.
+- ☐ Reporter §4 et §5 de `data-safety.md` dans les deux formulaires des stores.
+
+### Reste à faire
+- ☐ Profil de provisionnement iOS : **réémis** le 21 septembre 2026 (capacités *Associated Domains,
+  In-App Purchase, Push Notifications*, expire le 21/09/2027), reste à le télécharger et à remplacer
+  `~/Documents/pedalons/ios/provisioning-profile/pedalons.mobileprovision`.
+- ☐ Nouvelle soumission aux deux stores.
 
 ## Phase 5 — Nouveaux types et canaux (☐)
 
@@ -333,4 +402,5 @@ invalidé par l'activation de la capacité push sur l'App ID.
 | 2026-09-20 | Phase 4 | Push côté serveur : `push_devices` (V39), deux endpoints, `PushNotificationSender` et `FcmClient` (FCM HTTP v1 sans dépendance nouvelle — `smallrye-jwt-build` signe l'assertion). Le canal reste indisponible faute de compte de service, ce qui est exactement le filet de §5 : rien n'est mis en file. Contrat 3.6.0, clients régénérés. Le mobile et les préalables console restent à faire. |
 | 2026-09-21 | Brevo | Gabarit `notification` créé (16 fr, 17 en) et ids renseignés en `%prod`. Reste la décision produit : `PEDALONS_NOTIFICATIONS_EMAIL_ENABLED=true`. |
 | 2026-09-20 | Préalables push | Console faite : projet Firebase `pedalons-9e595` (Analytics et Gemini coupés), apps Android et Apple `fr.pedalons.mobile`, compte de service vérifié hors application (jeton minté, `messages:send` répond 400 `INVALID_ARGUMENT` sur un faux jeton), clé APNs Sandbox & Production créée et capacité *Push Notifications* activée sur l'App ID — ce qui invalide le profil de provisionnement iOS existant. Les fichiers vivent dans `~/Documents/pedalons/firebase/`, hors dépôt. |
+| 2026-09-21 | Phase 4 bis | Push côté mobile : `firebase_messaging` derrière une `PushGateway` (seule couche qui connaît Firebase, ce qui rend les tests possibles), enregistrement du jeton et désinscription à la déconnexion, canal Android et icône de barre d'état, tap qui marque lu et ouvre `data.path` par le tuyau des liens web. L'autorisation se demande depuis la boîte de réception et jamais au lancement. Deux surprises de build : `flutter_local_notifications` exige la desugarisation des bibliothèques du cœur, et l'icône de notification ne pouvait pas être celle du lanceur (le système n'en garde que l'alpha). 560 tests verts ; déclarations de confidentialité reprises, politique et formulaires des stores encore à faire. |
 | 2026-09-18 | Revue | Clé de dédup rendue par les évènements `SKIPPED`/`FAILED` ; recul avant nouvelle tentative d'un évènement (V38, `next_attempt_at`) ; récupération des bloqués toutes les 5 min, livraisons bloquées sans tentative restante → `FAILED`. |

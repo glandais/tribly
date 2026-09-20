@@ -13,7 +13,7 @@ from:
 
 - **App**: Pédalons, `fr.pedalons.mobile`, version `1.0.0+23` (`mobile/pubspec.yaml`)
 - **Backend**: `https://www.pedalons.fr` (`mobile/lib/config/app_config.dart`)
-- **Last verified against the code**: 2026-07-26
+- **Last verified against the code**: 2026-09-21 (push notifications added)
 
 > Scope note. These declarations describe **the mobile app binary**, not the whole Pedalons
 > platform. The web frontend can do considerably more than the app (see §7). Declaring platform
@@ -23,12 +23,13 @@ from:
 
 ## 1. What the app actually does
 
-The mobile app authenticates, then reads team content. Two capabilities beyond reading touch
-personal data: **picking a profile picture** from the photo library, and reading a **coarse
-device position** to sort content by proximity. There is no content authoring, no camera capture,
-no file import, and no analytics.
+The mobile app authenticates, then reads team content. Three capabilities beyond reading touch
+personal data: **picking a profile picture** from the photo library, reading a **coarse
+device position** to sort content by proximity, and registering the device for **push
+notifications**. There is no content authoring, no camera capture, no file import, and no
+analytics.
 
-Two capabilities added, and their exact boundary:
+Three capabilities added, and their exact boundary:
 
 - **`image_picker`** — photo library only, to feed `POST /api/users/me/avatar`. No camera
   capture (`NSCameraUsageDescription` is deliberately absent, so iOS cannot grant it).
@@ -41,6 +42,16 @@ Two capabilities added, and their exact boundary:
   with `tools:node="remove"` (see §5). No background location, no MapLibre user-location puck, no
   ride recording.
 
+- **`firebase_core` + `firebase_messaging`** — Firebase Cloud Messaging, *messaging only*. The app
+  sends the FCM registration token to `POST /api/push-devices` with the device model and the app
+  version, and deletes it with `DELETE /api/push-devices/{token}` on sign-out. Nothing else of
+  Firebase is initialized: **no Analytics, no Crashlytics, no Performance, no Remote Config, no
+  Installations-based measurement** — the Firebase project itself was created with Analytics
+  switched off (`docs/plans/2026-09-18-notifications-ledger.md`). The token is requested **only
+  after the member grants notification permission from the notifications screen**
+  (`lib/features/notifications/providers/push_provider.dart`); the app never asks at launch.
+  `device_info_plus` is now on an executed path — it supplies that device name, and nothing else.
+
 Verified absent from `mobile/pubspec.yaml`, `mobile/pubspec.lock`, `mobile/lib/`, `mobile/ios/`
 and `mobile/android/`:
 
@@ -51,9 +62,12 @@ and `mobile/android/`:
 - No GPX/FIT **import**. Route files are download-only: fetched to `getTemporaryDirectory()` and
   handed to the OS share sheet (`lib/features/routes/presentation/pages/route_detail_page.dart`).
   Coordinates flow server → device, never device → server.
-- No analytics, crash-reporting, advertising or attribution SDK (no Firebase/Crashlytics/Sentry/
-  Amplitude/AppsFlyer/Adjust). `device_info_plus` and `ua_client_hints` are present only as
-  transitive dependencies of `passkeys` and are not on any executed code path.
+- No analytics, crash-reporting, advertising or attribution SDK (no Crashlytics/Sentry/Amplitude/
+  AppsFlyer/Adjust). Firebase **is** present, but only `firebase_core` and `firebase_messaging` —
+  see the push entry above; no other Firebase product is a dependency, which
+  `grep -n "firebase" pubspec.yaml` shows in two lines. `ua_client_hints` remains a transitive
+  dependency of `passkeys` and is on no executed code path; `device_info_plus` no longer is —
+  it names the device at push registration.
 - No StoreKit / `in_app_purchase` / payment SDK.
 - The only multipart / `FormData` upload reachable from the UI is the avatar upload
   (`POST /api/users/me/avatar`). Every other multipart operation in the generated client stays
@@ -80,6 +94,8 @@ Everything below leaves the device to `https://www.pedalons.fr` unless stated ot
 | 7 | **GPS-device pairing code** | 6-character code — `lib/features/device/presentation/pages/device_verify_page.dart` | Yes | Yes |
 | 8 | **Session security metadata** | Server-recorded on sign-in: IP address, user agent, last-login / last-use timestamps (per `mobile/privacy/privacy-policy.en.md` §"Session Data") | Yes | Yes |
 | 9 | **Profile picture** | Photo chosen from the system photo library (`image_picker`) and sent to `POST /api/users/me/avatar` | Yes | Yes |
+| 11 | **Push registration token** | `lib/features/notifications/providers/push_provider.dart` → `POST /api/push-devices`. Issued by FCM, identifies the *installation*, deleted server-side at sign-out | Yes, to us **and to Google** (FCM issues it and routes every message) | Yes |
+| 12 | **Device model and app version** | Sent alongside #11 — `lib/features/notifications/data/push_device_repository.dart` (`device_info_plus`, `package_info_plus`) | Yes | Yes |
 | 10 | **Approximate location** | `geolocator` at `LocationAccuracy.low`, while in use, only when the user turns on the "around me" filter — becomes the `nearLat`/`nearLon`/`nearRadius` query parameters | Yes, as query parameters of a read request | **No** — not stored server-side, not written to the account |
 
 Stored **on device only**, never transmitted:
@@ -115,6 +131,7 @@ value is invented.
 | `NSPrivacyCollectedDataTypeOtherDataTypes` | `true` | `false` | `…PurposeAppFunctionality` | #8 |
 | `NSPrivacyCollectedDataTypePhotosorVideos` | `true` | `false` | `…PurposeAppFunctionality` | #9 |
 | `NSPrivacyCollectedDataTypeCoarseLocation` | **`false`** | `false` | `…PurposeAppFunctionality` | #10 |
+| `NSPrivacyCollectedDataTypeDeviceID` | `true` | `false` | `…PurposeAppFunctionality` | #11, #12 |
 
 `…Purpose` above abbreviates `NSPrivacyCollectedDataTypePurpose`. Note the lowercase `or` in
 `PhotosorVideos` — that is Apple's literal spelling, not a typo.
@@ -143,7 +160,7 @@ plutil -lint mobile/ios/Runner/PrivacyInfo.xcprivacy
 
 ## 4. App Store Connect → App Privacy
 
-Answer **"Yes, we collect data from this app"**, then declare exactly these seven, none used for
+Answer **"Yes, we collect data from this app"**, then declare exactly these eight, none used for
 **Tracking**, all purpose **App Functionality**. All are **Data Linked to You** except Coarse
 Location, which is **Data Not Linked to You**:
 
@@ -155,13 +172,17 @@ Location, which is **Data Not Linked to You**:
 | User Content | Other User Content | Yes | No | App Functionality |
 | User Content | Photos or Videos | Yes | No | App Functionality |
 | Location | Coarse Location | **No** | No | App Functionality |
+| Identifiers | Device ID | Yes | No | App Functionality |
 | Other Data | Other Data Types | Yes | No | App Functionality |
 
 For *Other Data Types*, describe it as: **"Session security metadata (IP address, user agent and
 sign-in timestamps) recorded to detect suspicious account activity."**
 
+*Device ID* covers the **push registration token** and the device model sent with it (#11, #12) —
+not an advertising identifier, which the app still never reads.
+
 Explicitly answer **No / do not select**: Precise Location, Audio Data, Contacts, Health, Fitness,
-Payment Info, Purchase History, Device ID, Product Interaction, Advertising Data, Crash Data,
+Payment Info, Purchase History, Product Interaction, Advertising Data, Crash Data,
 Performance Data, Search History, Browsing History.
 
 Privacy policy URL: `https://www.pedalons.fr/privacy` (EN) · `https://www.pedalons.fr/confidentialite` (FR).
@@ -199,6 +220,7 @@ per-row, because approximate location is the one type that is processed ephemera
 | App activity | Other actions | Yes | No | Optional | App functionality |
 | Photos and videos | Photos | Yes | No | Optional | App functionality |
 | Location | Approximate location | Yes | **Yes** | Optional | App functionality |
+| Device or other IDs | Device or other IDs | Yes | No | Optional | App functionality |
 
 *Photos* is **optional**: the account works without a profile picture, and the photo library is
 only reached when the user taps "change picture".
@@ -209,10 +231,15 @@ neither stored on the device nor persisted server-side. It is not linked to the 
 used for tracking or advertising. Precise location is **not** collected — the app requests
 `ACCESS_COARSE_LOCATION` only, and `LocationAccuracy.low`.
 
+*Device or other IDs* is **optional** and covers the **push registration token** (#11) with the
+device model sent beside it: it exists only for a member who turned notifications on, and
+sign-out deletes it. It is **not** an advertising ID — none is read — and Google's own form has no
+finer bucket for a messaging token.
+
 Everything else in the form is **not collected**: Precise location, Financial info, Health and
 fitness, Messages, Videos, Audio files, Files and docs, Calendar, Contacts, App interactions,
 In-app search history, Installed apps, Other user-generated content, Web browsing history, Crash
-logs, Diagnostics, Other app performance data, Device or other IDs.
+logs, Diagnostics, Other app performance data.
 
 **Deliberate divergences from §4**
 
@@ -248,9 +275,16 @@ its LocationComponent (the user-location puck), which this app never enables. `g
 need it either: `LocationAccuracy.low` is served by the coarse permission. Left alone it would show
 on the Play listing and over-declare against §5.
 
+**Notification permission.** `POST_NOTIFICATIONS` (Android 13+) is declared and requested from the
+notifications screen, never at launch. It is a permission, not a data type: Play's form has no row
+for it, and the data it enables is declared as *Device or other IDs* above. The merge also brings in
+`VIBRATE` and `WAKE_LOCK` from FCM and `flutter_local_notifications` — how a notification buzzes and
+wakes the screen, not data, and not declarable.
+
 Expected merged release permission set: `INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`,
-`ACCESS_COARSE_LOCATION`, `USE_BIOMETRIC`, `USE_FINGERPRINT`, `USE_CREDENTIALS`,
-`CREDENTIAL_MANAGER_SET_ORIGIN` — and **no** `ACCESS_FINE_LOCATION`. To re-check after a release
+`ACCESS_COARSE_LOCATION`, `POST_NOTIFICATIONS`, `VIBRATE`, `WAKE_LOCK`, `USE_BIOMETRIC`,
+`USE_FINGERPRINT`, `USE_CREDENTIALS`, `CREDENTIAL_MANAGER_SET_ORIGIN` — and **no**
+`ACCESS_FINE_LOCATION` (verified on the merged debug manifest, 21 September 2026). To re-check after a release
 build:
 
 ```bash
@@ -262,7 +296,8 @@ grep -o 'android:name="android.permission.[A-Z_]*"' \
 
 The other merged permissions are not declarable data types and stay: `INTERNET`,
 `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE` (MapLibre connectivity detection), `USE_BIOMETRIC`,
-`USE_FINGERPRINT`, `USE_CREDENTIALS`, `CREDENTIAL_MANAGER_SET_ORIGIN` (passkeys).
+`USE_FINGERPRINT`, `USE_CREDENTIALS`, `CREDENTIAL_MANAGER_SET_ORIGIN` (passkeys), `VIBRATE` and
+`WAKE_LOCK` (push).
 
 Android needs no photo-library permission: `image_picker` goes through the system photo picker
 (`ACTION_PICK_IMAGES` / `ACTION_GET_CONTENT`), which returns a single user-chosen item without
@@ -279,6 +314,11 @@ the device's IP address as an unavoidable consequence of an HTTP request:
 |---|---|---|
 | `tiles.versatiles.org` | Map styles and raster/vector tiles (`lib/features/routes/presentation/widgets/route_map.dart`) | IP address; the map viewport being browsed |
 | `fonts.gstatic.com` | Inter font fetched at first launch by `google_fonts` — no font files are bundled (`lib/core/theme/pedalons_theme.dart`) | IP address |
+| Firebase Cloud Messaging (`*.googleapis.com`, APNs via Firebase) | Issues the registration token and routes every push (`lib/features/notifications/services/push_gateway.dart`) | IP address, the token it issued, the device and app version it registers, and **the content of each notification** — title and body are rendered server-side and travel through Google |
+
+FCM is a genuine **sub-processor**, unlike the two above: it does not merely see an IP address, it
+carries the message. It has to appear in the policy's provider table with Google Ireland as
+recipient — see the open items.
 
 ⚠️ **These contradict the published privacy policy.** `mobile/privacy/privacy-policy.en.md` §4
 lists only OVHcloud and Brevo as technical providers and states that image processing and route
@@ -297,7 +337,7 @@ Tracked in §8 — not fixed here, because it is a code/policy change rather tha
 | Camera | No `NSCameraUsageDescription` and no camera permission — the photo library is the only entry point. |
 | Files and docs | GPX/FIT is download-and-share only; there is no import path. |
 | Fitness / Health | No HealthKit, no Motion & Fitness, no activity recording. |
-| Device ID | No advertising identifier and no device-level ID is read or sent. The passkey `deviceName` is the constant string `"Mobile"`. |
+| Advertising ID | No advertising identifier is read or sent. The declared *Device ID* row covers the FCM registration token only (#11). The passkey `deviceName` is still the constant string `"Mobile"`. |
 | Product Interaction / Usage / Advertising Data | No analytics or advertising SDK of any kind. |
 | Crash Data / Performance Data | Nothing is collected by us. Apple- and Google-side crash reporting the user opts into is the platform's collection, not ours. |
 | Purchase History / Payment Info | No purchases in the app. |
@@ -318,6 +358,7 @@ these ships:
 | GPX **import** from the device | Play *Files and docs*; Apple `NSPrivacyCollectedDataTypeOtherUserContent`. If the GPX describes the user's own rides, also Apple `…PreciseLocation` and Play *Location → Precise location* |
 | Live location / "record a ride" / follow-me on the map / a MapLibre user-location puck | Apple `NSPrivacyCollectedDataTypePreciseLocation` (and flip Coarse Location's `Linked` if it becomes persisted); Play *Location → Precise location* and drop the *processed ephemerally* flag; stop stripping `ACCESS_FINE_LOCATION`; `NSLocationAlwaysAndWhenInUseUsageDescription` if it ever runs in the background |
 | Storing the user's position server-side (saved "home area", proximity history) | flip Apple `NSPrivacyCollectedDataTypeCoarseLocation` → `Linked: true` and clear Play's *processed ephemerally* |
+| Any other Firebase product (Analytics, Crashlytics, Remote Config, In-App Messaging) | It is no longer "no Firebase, full stop": re-read §1, and expect Apple `…ProductInteraction` / `…CrashData` and Play *App info and performance* to become due |
 | Any analytics or crash SDK | Apple `…ProductInteraction` / `…CrashData` (+ re-check `NSPrivacyTracking` and `NSPrivacyTrackingDomains`); Play *App info and performance*, *App activity → App interactions* |
 | In-app purchases | Apple `…PurchaseHistory` / `…PaymentInfo`; Play *Financial info* |
 
@@ -330,10 +371,15 @@ these ships:
    and describes neither. It must gain a profile-picture entry and an approximate-location entry
    ("read on demand, sent as a search parameter, not retained") **before** either capability ships
    to users — §4/§5 and the policy contradicting each other is itself a rejection motive.
-3. **Undisclosed third-party endpoints.** Either bundle the Inter font locally instead of fetching
+3. **The privacy policy says nothing about push.** It must name Google (Firebase Cloud Messaging,
+   Google Ireland Ltd) as a sub-processor, say that the notification's title and body pass through
+   it, and say that the token is deleted at sign-out — **before** push ships to users. The same
+   paragraph should note that the member chooses to receive push and can stop at any time, from the
+   phone's settings or the app's preference matrix. (§2 #11, §6)
+4. **Undisclosed third-party endpoints.** Either bundle the Inter font locally instead of fetching
    from `fonts.gstatic.com`, self-host map tiles, or add both to the privacy policy's provider
    table with a legal basis for the transfer. (§6)
-4. **`android:allowBackup` is unset**, so it defaults to `true`: app data is eligible for Google
+5. **`android:allowBackup` is unset**, so it defaults to `true`: app data is eligible for Google
    Drive backup and device-to-device transfer. Two consequences worth a decision — it is a data
    flow to Google that the privacy policy does not mention, and `flutter_secure_storage` is known
    to restore badly under it (the ciphertext is backed up but the Keystore key is not, so the
@@ -373,6 +419,12 @@ grep -rhA3 "@\(POST\|PUT\|PATCH\|DELETE\)(" lib/api/generated \
   | while read -r m; do
       grep -rqE "\.${m}\(" lib/features lib/core && echo "USED: $m"
     done
+
+# push stays messaging-only: exactly firebase_core and firebase_messaging, nothing else
+grep -n "firebase" pubspec.yaml
+
+# the notification permission must be asked from a screen, never at launch
+grep -rn "requestAuthorization" lib | grep -v lib/api/generated
 
 # manifest is well-formed
 plutil -lint ios/Runner/PrivacyInfo.xcprivacy

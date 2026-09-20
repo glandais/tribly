@@ -15,6 +15,7 @@ import '../../../../core/utils/api_error_handler.dart';
 import '../../providers/notifications_provider.dart';
 import '../notification_display.dart';
 import '../widgets/notification_tile.dart';
+import '../widgets/push_activation_banner.dart';
 
 /// La boîte de réception : la liste paginée, et un filtre « non lues ».
 ///
@@ -97,6 +98,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                 ),
               ),
             ),
+            const SliverToBoxAdapter(child: PushActivationBanner()),
             ..._content(state, notifier),
             const SliverPadding(padding: EdgeInsets.only(bottom: 32)),
           ],

@@ -858,6 +858,12 @@
     "preferences": {
       "title": "Notifications",
       "inAppAlwaysOn": "Vous recevez toujours les notifications dans l'application ; seuls les canaux qui vous interrompent se règlent ici."
+    },
+    "push": {
+      "title": "Notifications sur cet appareil",
+      "hint": "Soyez prévenu d'une sortie publiée ou annulée sans ouvrir l'application.",
+      "enable": "Activer",
+      "deniedHint": "Les notifications sont bloquées pour Pédalons. Vous pouvez les réactiver dans les réglages de votre téléphone."
     }
   },
   "apps": {

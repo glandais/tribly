@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/legacy.dart';
 import '../../../api/generated/export.dart';
 import '../../../api/pedalons_api_client.dart';
 import '../../../core/utils/api_error_handler.dart';
+import '../../notifications/data/push_device_repository.dart';
+import '../../notifications/providers/push_provider.dart';
 import '../../routes/data/tile_token_repository.dart';
 import '../data/auth_repository.dart';
 import '../data/secure_storage.dart';
@@ -278,7 +280,27 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   /// Logout
+  /// Dit au serveur de ne plus pousser sur cet appareil.
+  ///
+  /// Avant tout le reste : l'endpoint est authentifié, et une déconnexion qui
+  /// efface d'abord le jeton de session laisserait l'installation inscrite —
+  /// donc les notifications de l'ancien compte continueraient d'arriver sur un
+  /// téléphone qui ne lui appartient plus.
+  Future<void> _unregisterPushDevice() async {
+    final String? token = _ref.read(registeredPushTokenProvider);
+    if (token == null) return;
+    try {
+      await _ref.read(pushDeviceRepositoryProvider).unregister(token);
+    } catch (_) {
+      // Le serveur oubliera le jeton de lui-même à la première livraison
+      // refusée par FCM ; échouer ici ne doit pas empêcher de se déconnecter.
+    } finally {
+      _ref.read(registeredPushTokenProvider.notifier).state = null;
+    }
+  }
+
   Future<void> logout() async {
+    await _unregisterPushDevice();
     try {
       final refreshToken = await _storage.getRefreshToken();
       await _repository.logout(refreshToken);
@@ -295,6 +317,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   /// Logout from all devices
   Future<void> logoutAll() async {
+    await _unregisterPushDevice();
     try {
       await _repository.logoutAll();
     } catch (_) {

@@ -7,10 +7,12 @@ plugins {
     // Kotlin support comes from AGP's built-in Kotlin (android.builtInKotlin=true in
     // gradle.properties) — the standalone kotlin-android plugin is no longer applied.
     id("dev.flutter.flutter-gradle-plugin")
+    id("com.google.gms.google-services")
 }
 
 dependencies {
     implementation("com.google.android.material:material:1.14.0")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 }
 
 // Load key.properties for release signing
@@ -31,6 +33,9 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // Required by flutter_local_notifications, which uses java.time to schedule
+        // notifications and refuses to link without it below API 26.
+        isCoreLibraryDesugaringEnabled = true
     }
 
     signingConfigs {

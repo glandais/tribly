@@ -40,6 +40,22 @@
 				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
 			</array>
 		</dict>
+		<!-- Le jeton d'inscription FCM, envoyé à POST /api/push-devices avec le modèle de
+		     l'appareil et la version de l'app. C'est un identifiant d'installation rattaché
+		     au compte : Linked, donc, et aucun usage autre que la livraison d'une
+		     notification. -->
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeDeviceID</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<true/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
 		<!-- Account id, session tokens, WebAuthn credential id / user handle. -->
 		<dict>
 			<key>NSPrivacyCollectedDataType</key>
