@@ -28,6 +28,7 @@ import jakarta.inject.Inject;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import org.hibernate.Hibernate;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -122,7 +123,8 @@ public class NotificationRecipientResolver {
     if (reply == null || reply.getParent() == null) {
       return Optional.empty();
     }
-    TeamEntity subject = reply.getTeamEntity();
+    // Unproxied: a lazy TeamEntity proxy matches none of the subtypes subjectType switches on.
+    TeamEntity subject = Hibernate.unproxy(reply.getTeamEntity(), TeamEntity.class);
     NotificationSubjectType type = subjectType(subject);
     if (type == null || subject.isDeleted() || subject.getStatus() == Status.DRAFT) {
       return Optional.empty();
