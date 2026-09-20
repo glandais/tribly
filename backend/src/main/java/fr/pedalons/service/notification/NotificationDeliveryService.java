@@ -127,6 +127,8 @@ public class NotificationDeliveryService {
     }
     return new NotificationMessage(
         delivery.getId(),
+        notification.getId(),
+        recipient.getId(),
         delivery.getChannel(),
         notification.getType(),
         recipient.getEmail(),

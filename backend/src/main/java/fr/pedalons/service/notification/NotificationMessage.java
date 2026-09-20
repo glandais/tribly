@@ -14,6 +14,10 @@ import org.jspecify.annotations.Nullable;
  */
 public record NotificationMessage(
     Long deliveryId,
+    /** The inbox row this delivery mirrors — what a push hands the app so a tap can mark it read. */
+    Long notificationId,
+    /** Needed by a channel whose address is not on the user row: push resolves their devices. */
+    Long recipientUserId,
     NotificationChannel channel,
     NotificationType type,
     String recipientEmail,

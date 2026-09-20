@@ -19,6 +19,8 @@ class NotificationTextsTest {
       NotificationType type, @Nullable String language, String subjectName) {
     return new NotificationMessage(
         1L,
+        2L,
+        3L,
         NotificationChannel.EMAIL,
         type,
         "rider@example.com",

@@ -20,6 +20,7 @@ import type {
   NotificationListResponse,
   NotificationPreferencesDto,
   NotificationPreferencesRequest,
+  PushDeviceRegistration,
   UnreadCountDto,
 } from '../../dto'
 
@@ -736,4 +737,177 @@ export const useMarkNotificationRead = <
   TContext
 > => {
   return useMutation(getMarkNotificationReadMutationOptions(options), queryClient)
+}
+/**
+ * Called at every app launch and whenever FCM rotates the token. Idempotent: a token already known is refreshed, and moved to the current user if it was someone else's.
+ * @summary Register a device for push notifications
+ */
+export const registerPushDevice = (
+  pushDeviceRegistration: BodyType<PushDeviceRegistration>,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<void>(
+    {
+      url: `/api/push-devices`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: pushDeviceRegistration,
+      signal,
+    },
+    options
+  )
+}
+
+export const getRegisterPushDeviceMutationKey = () => ['registerPushDevice'] as const
+
+export const getRegisterPushDeviceMutationOptions = <
+  TError = ErrorType<ErrorResponse | void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof registerPushDevice>>,
+    TError,
+    RegisterPushDeviceMutationVariables,
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof registerPushDevice>>,
+  TError,
+  RegisterPushDeviceMutationVariables,
+  TContext
+> => {
+  const mutationKey = getRegisterPushDeviceMutationKey()
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof registerPushDevice>>,
+    RegisterPushDeviceMutationVariables
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return registerPushDevice(data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type RegisterPushDeviceMutationResult = NonNullable<
+  Awaited<ReturnType<typeof registerPushDevice>>
+>
+export type RegisterPushDeviceMutationBody = BodyType<PushDeviceRegistration>
+export type RegisterPushDeviceMutationError = ErrorType<ErrorResponse | void>
+export type RegisterPushDeviceMutationVariables = { data: BodyType<PushDeviceRegistration> }
+
+/**
+ * @summary Register a device for push notifications
+ */
+export const useRegisterPushDevice = <TError = ErrorType<ErrorResponse | void>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof registerPushDevice>>,
+      TError,
+      RegisterPushDeviceMutationVariables,
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof registerPushDevice>>,
+  TError,
+  RegisterPushDeviceMutationVariables,
+  TContext
+> => {
+  return useMutation(getRegisterPushDeviceMutationOptions(options), queryClient)
+}
+/**
+ * Called on sign-out. Idempotent, and silent about tokens that are not the caller's.
+ * @summary Stop sending push notifications to a device
+ */
+export const unregisterPushDevice = (
+  token: string,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<void>(
+    { url: `/api/push-devices/${token}`, method: 'DELETE', signal },
+    options
+  )
+}
+
+export const getUnregisterPushDeviceMutationKey = () => ['unregisterPushDevice'] as const
+
+export const getUnregisterPushDeviceMutationOptions = <
+  TError = ErrorType<ErrorResponse | void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof unregisterPushDevice>>,
+    TError,
+    UnregisterPushDeviceMutationVariables,
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof unregisterPushDevice>>,
+  TError,
+  UnregisterPushDeviceMutationVariables,
+  TContext
+> => {
+  const mutationKey = getUnregisterPushDeviceMutationKey()
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof unregisterPushDevice>>,
+    UnregisterPushDeviceMutationVariables
+  > = (props) => {
+    const { token } = props ?? {}
+
+    return unregisterPushDevice(token, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type UnregisterPushDeviceMutationResult = NonNullable<
+  Awaited<ReturnType<typeof unregisterPushDevice>>
+>
+
+export type UnregisterPushDeviceMutationError = ErrorType<ErrorResponse | void>
+export type UnregisterPushDeviceMutationVariables = { token: string }
+
+/**
+ * @summary Stop sending push notifications to a device
+ */
+export const useUnregisterPushDevice = <
+  TError = ErrorType<ErrorResponse | void>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof unregisterPushDevice>>,
+      TError,
+      UnregisterPushDeviceMutationVariables,
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof unregisterPushDevice>>,
+  TError,
+  UnregisterPushDeviceMutationVariables,
+  TContext
+> => {
+  return useMutation(getUnregisterPushDeviceMutationOptions(options), queryClient)
 }

@@ -196,3 +196,49 @@ export const MarkNotificationReadParams = zod.object({
 })
 
 export const MarkNotificationReadResponse = zod.void()
+
+/**
+ * Called at every app launch and whenever FCM rotates the token. Idempotent: a token already known is refreshed, and moved to the current user if it was someone else's.
+ * @summary Register a device for push notifications
+ */
+export const registerPushDeviceBodyTokenMax = 512
+
+export const registerPushDeviceBodyTokenRegExp = new RegExp('\\S')
+export const registerPushDeviceBodyDeviceNameMax = 120
+
+export const registerPushDeviceBodyAppVersionMax = 40
+
+export const RegisterPushDeviceBody = zod
+  .object({
+    token: zod
+      .string()
+      .max(registerPushDeviceBodyTokenMax)
+      .regex(registerPushDeviceBodyTokenRegExp)
+      .describe(
+        'The FCM registration token. Registering a token already known moves it to the current user and refreshes its last-seen date.'
+      ),
+    platform: zod.enum(['ANDROID', 'IOS']).describe("The device's platform"),
+    deviceName: zod
+      .string()
+      .max(registerPushDeviceBodyDeviceNameMax)
+      .optional()
+      .describe("A human-readable device name, for the member's own device list"),
+    appVersion: zod
+      .string()
+      .max(registerPushDeviceBodyAppVersionMax)
+      .optional()
+      .describe('The app version that registered, for support'),
+  })
+  .describe('A device to receive push notifications on')
+
+export const RegisterPushDeviceResponse = zod.void()
+
+/**
+ * Called on sign-out. Idempotent, and silent about tokens that are not the caller's.
+ * @summary Stop sending push notifications to a device
+ */
+export const UnregisterPushDeviceParams = zod.object({
+  token: zod.string().describe('The FCM registration token to drop'),
+})
+
+export const UnregisterPushDeviceResponse = zod.void()

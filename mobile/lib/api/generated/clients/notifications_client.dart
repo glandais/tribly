@@ -9,6 +9,7 @@ import 'package:retrofit/error_logger.dart';
 import '../models/notification_list_response.dart';
 import '../models/notification_preferences_dto.dart';
 import '../models/notification_preferences_request.dart';
+import '../models/push_device_registration.dart';
 import '../models/unread_count_dto.dart';
 
 part 'notifications_client.g.dart';
@@ -66,5 +67,25 @@ abstract class NotificationsClient {
   @POST('/api/notifications/{notificationId}/read')
   Future<void> markNotificationRead({
     @Path('notificationId') required String notificationId,
+  });
+
+  /// Register a device for push notifications.
+  ///
+  /// Called at every app launch and whenever FCM rotates the token. Idempotent: a token already known is refreshed, and moved to the current user if it was someone else's.
+  ///
+  /// [body] - Name not received - field will be skipped.
+  @POST('/api/push-devices')
+  Future<void> registerPushDevice({
+    @Body() required PushDeviceRegistration body,
+  });
+
+  /// Stop sending push notifications to a device.
+  ///
+  /// Called on sign-out. Idempotent, and silent about tokens that are not the caller's.
+  ///
+  /// [token] - The FCM registration token to drop.
+  @DELETE('/api/push-devices/{token}')
+  Future<void> unregisterPushDevice({
+    @Path('token') required String token,
   });
 }

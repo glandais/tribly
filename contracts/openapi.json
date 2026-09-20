@@ -3052,6 +3052,38 @@
         "type" : "string",
         "enum" : [ "RIDE", "POST", "TRIP" ]
       },
+      "PushDeviceRegistration" : {
+        "description" : "A device to receive push notifications on",
+        "type" : "object",
+        "required" : [ "token", "platform" ],
+        "properties" : {
+          "token" : {
+            "type" : "string",
+            "description" : "The FCM registration token. Registering a token already known moves it to the current user and refreshes its last-seen date.",
+            "pattern" : "\\S",
+            "maxLength" : 512
+          },
+          "platform" : {
+            "description" : "The device's platform",
+            "type" : "string",
+            "$ref" : "#/components/schemas/PushPlatform"
+          },
+          "deviceName" : {
+            "type" : "string",
+            "description" : "A human-readable device name, for the member's own device list",
+            "maxLength" : 120
+          },
+          "appVersion" : {
+            "type" : "string",
+            "description" : "The app version that registered, for support",
+            "maxLength" : 40
+          }
+        }
+      },
+      "PushPlatform" : {
+        "type" : "string",
+        "enum" : [ "ANDROID", "IOS" ]
+      },
       "RegisterRequest" : {
         "description" : "User registration request",
         "type" : "object",
@@ -9919,6 +9951,93 @@
             }
           }
         }
+      }
+    },
+    "/api/push-devices" : {
+      "post" : {
+        "summary" : "Register a device for push notifications",
+        "description" : "Called at every app launch and whenever FCM rotates the token. Idempotent: a token already known is refreshed, and moved to the current user if it was someone else's.",
+        "operationId" : "registerPushDevice",
+        "tags" : [ "Notifications" ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PushDeviceRegistration"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "Device registered"
+          },
+          "400" : {
+            "description" : "Invalid request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/push-devices/{token}" : {
+      "delete" : {
+        "summary" : "Stop sending push notifications to a device",
+        "description" : "Called on sign-out. Idempotent, and silent about tokens that are not the caller's.",
+        "operationId" : "unregisterPushDevice",
+        "tags" : [ "Notifications" ],
+        "parameters" : [ {
+          "description" : "The FCM registration token to drop",
+          "name" : "token",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Device unregistered"
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
       }
     },
     "/api/router" : {
@@ -18504,7 +18623,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "3.5.0",
+    "version" : "3.6.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

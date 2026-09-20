@@ -5,9 +5,11 @@ ce qui est fait, ce qui ne l'est pas, ce qui a été vérifié et comment. On le
 passe, en tête de la phase concernée ; une case ne se coche que vérifiée.
 
 - Branche : `feat/notifications` · worktree `../tribly.worktrees/feat/notifications`
-- Contrat : **3.4.0 → 3.5.0** (six endpoints ajoutés, rien retiré)
+- Contrat : **3.4.0 → 3.5.0** (six endpoints ajoutés), puis **3.5.0 → 3.6.0** (deux de plus pour les
+  appareils push) — rien retiré
 - Migrations : **V37** `notifications`, **V38** `notification event backoff` — appliquées sans heurt
-  sur la base locale restaurée (schéma 36 → 38) le 20 septembre 2026
+  sur la base locale restaurée (schéma 36 → 38) le 20 septembre 2026 ; **V39** `push_devices`,
+  écrite le 20 septembre 2026, ☐ pas encore appliquée sur la base locale
 
 Légende : ☑ fait et vérifié · ◐ fait, vérification en attente · ☐ à faire · ✗ écarté (raison sur place)
 
@@ -172,19 +174,94 @@ de trop dans la requête, pas un budget à relever.
   mode système de l'émulateur), text scaling ×1,3 / ×2,0, et l'ouverture d'un deeplink
   `/notifications` application tuée
 
-## Phase 4 — Push (☐)
+## Phase 4 — Push, côté serveur (20 septembre 2026)
 
-Reprend le §4.2 de `docs/NEXT.md`. Le code est la petite partie : entitlement `aps-environment` et
-clé APNs `.p8`, `google-services.json`, permission `POST_NOTIFICATIONS` (Android 13+), formulaires de
-confidentialité (`mobile/store-metadata/data-safety.md`), nouvelle soumission aux deux stores.
+Reprend le §4.2 de `docs/NEXT.md`. Le code est la petite partie ; les préalables console et store
+sont plus bas, et rien ne part tant qu'ils ne sont pas faits.
 
-- ☐ Table `push_devices` (user, plateforme, jeton, `last_seen_at`), `POST`/`DELETE /api/push-devices`
-- ☐ `PushNotificationSender` (FCM HTTP v1) — un envoi par appareil ; `isEnabled()` sur la présence
-  des identifiants
-- ☐ Purge des jetons sur `UNREGISTERED` — sans quoi la table grossit indéfiniment
-- ☐ Titre/corps depuis `NotificationTexts` ; `data` = type + slugs pour le deeplink
-- Rien à changer au fan-out : le jour où l'émetteur est actif, les défauts `PUSH` de
-  `NotificationType` s'appliquent et les livraisons apparaissent
+### Le canal
+- ☑ Table `push_devices` (V39) : utilisateur, plateforme, jeton, nom, version de l'app,
+  `last_seen_at`. **Unique sur le jeton seul**, pas sur (utilisateur, jeton) : un jeton adresse une
+  *installation*. Se connecter sur un téléphone prêté déplace la ligne au lieu d'en créer une
+  seconde — sans quoi son propriétaire précédent continuerait d'être notifié dessus.
+- ☑ `POST /api/push-devices` (enregistrer/rafraîchir, idempotent, appelé à chaque lancement) et
+  `DELETE /api/push-devices/{token}` (à la déconnexion, muet sur un jeton qui n'est pas celui de
+  l'appelant : la déconnexion ne doit pas devenir un moyen de sonder l'existence d'un jeton)
+- ☑ `PushNotificationSender` : un message FCM par appareil du destinataire. `isEnabled()` ne regarde
+  pas un booléen mais `FcmClient.isConfigured()` — donc **tant qu'il n'y a pas de compte de service,
+  le canal reste indisponible**, le fan-out ne crée aucune livraison et la matrice ne propose
+  aucune case. C'est le même filet que pour l'e-mail, §5.
+- ☑ `FcmClient` (FCM HTTP v1) : assertion JWT RS256 signée avec la clé du compte de service,
+  échangée contre un jeton d'accès **mis en cache** jusqu'à deux minutes avant son expiration.
+  Aucune dépendance ajoutée : `smallrye-jwt-build` (déjà là pour nos JWT) signe, et deux
+  `@RegisterRestClient` (`fcm`, `google-oauth`) parlent. Ils renvoient `Response` et non un corps
+  typé, parce que **le corps d'un 404 est ce qui dit si le jeton est mort**.
+- ☑ Purge sur `UNREGISTERED` (et sur un `INVALID_ARGUMENT` à l'envoi) : la ligne part, et la
+  livraison n'est **pas** rejouée — la retenter jusqu'à `max-attempts` ne ferait que retarder la
+  purge. Seul un échec passager, et seulement si **rien** n'est parti, repasse `PENDING` : si un
+  appareil avait reçu, réessayer le notifierait deux fois.
+- ☑ Aucun appareil enregistré ⇒ livraison `SENT` sans appel réseau. C'est l'état normal de tout
+  membre qui n'utilise que le web ; lever ici aurait fait mourir la livraison en `FAILED`.
+- ☑ Titre et corps depuis `NotificationTexts` (les mêmes clés que l'e-mail, aucune à ajouter) ;
+  `data` = `type`, `notificationId`, `teamSlug`, `subjectType`, `subjectSlug` et `path` — le chemin
+  vient de `NotificationLinks`, donc une route renommée dans `contracts/routes.yaml` déplace le
+  deeplink du push et le lien de l'e-mail d'un seul geste.
+- ☑ `NotificationMessage` gagne `notificationId` et `recipientUserId` : l'e-mail avait son adresse
+  sur la ligne utilisateur, le push doit résoudre des appareils.
+- ✗ Badge iOS (`aps.badge`) : il aurait fallu recompter les non-lues à l'envoi, et
+  `NotificationMessage` ne porte ni le domaine ni ce compteur. L'app pose son badge elle-même au
+  réveil (`content-available: 1` est envoyé pour ça).
+- Rien n'a changé au fan-out, comme annoncé : les défauts `PUSH` de `NotificationType` s'appliquent
+  du jour où l'émetteur est configuré.
+
+### Configuration
+```properties
+pedalons.push.enabled=false              # et, en prod, les deux lignes commentées :
+# %prod.pedalons.push.fcm.credentials=${FCM_CREDENTIALS}   # chemin du secret monté, ou le JSON
+# %prod.pedalons.push.fcm.project-id=${FCM_PROJECT_ID}     # facultatif, sinon celui du JSON
+```
+Un compte de service illisible **n'empêche pas l'application de démarrer** : l'erreur est journalisée
+et le canal reste indisponible. Un démarrage cassé pour une clé mal montée serait pire que pas de
+push.
+
+### Tests — ☐ à lancer
+- ☐ `PushDeviceResourceTest` — enregistrement, double enregistrement, jeton déplacé d'un utilisateur
+  à l'autre, désinscription croisée sans effet, jeton vide refusé, 401
+- ☐ `PushNotificationTest` — `FcmClient` mocké (le pipeline, pas le format de Google) : livraison
+  créée et envoyée à chaque appareil, contenu de `data`, aucun appareil ⇒ `SENT`, jeton mort purgé
+  et non rejoué, échec passager rejoué avec l'appareil conservé, canal non configuré ⇒ aucune
+  livraison ni case dans la matrice
+
+```bash
+cd backend
+mvn test -Dtest='Push*Test,Notification*Test,ArchitectureTest'
+```
+
+### Reste à faire côté serveur
+- ☐ Appliquer V39 sur la base locale et faire la recette (le canal ne s'allume qu'avec un compte de
+  service — voir les préalables)
+- ☐ Commit
+
+### Préalables hors dépôt (aucun n'est fait)
+- ☐ **Projet Firebase** pour Pedalons, application Android (`google-services.json`) et application
+  iOS (`GoogleService-Info.plist`)
+- ☐ **Compte de service** avec le rôle *Firebase Cloud Messaging API Admin*, JSON téléchargé, monté
+  en secret et référencé par `FCM_CREDENTIALS`
+- ☐ **Clé APNs `.p8`** (Apple Developer → Keys, APNs) téléversée dans Firebase, plus l'entitlement
+  `aps-environment` sur la cible Runner
+- ☐ Permission `POST_NOTIFICATIONS` (Android 13+) et **l'écran qui la demande, qui n'est dans aucune
+  maquette**
+- ☐ `mobile/store-metadata/data-safety.md` et le formulaire de confidentialité Apple mis à jour
+- ☐ Nouvelle soumission aux deux stores
+
+## Phase 4 bis — Push, côté mobile (☐)
+
+- ☐ `firebase_messaging`, enregistrement du jeton au lancement et à sa rotation, `DELETE` à la
+  déconnexion
+- ☐ Canal Android `pedalons_default` (le `channel_id` que `FcmClient` envoie déjà)
+- ☐ Ouverture du deeplink au tap depuis `data.path`, application au premier plan, en arrière-plan
+  **et tuée**
+- ☐ Marquage lu à l'ouverture depuis `data.notificationId`
 
 ## Phase 5 — Nouveaux types et canaux (☐)
 
@@ -214,4 +291,5 @@ confidentialité (`mobile/store-metadata/data-safety.md`), nouvelle soumission a
 | 2026-09-20 | Phase 3 | Mobile livré : cloche, écran, matrice, deeplink. Deux filets du dépôt ont demandé leur entrée (`_deepLinkHierarchies`, `internalRouteTemplates`) — c'est leur raison d'être. « Tout marquer lu » a été redérivé des lignes visibles en plus du compteur global, qui est muet hors session. |
 | 2026-09-20 | Phase 2 | Web livré : cloche, page, libellés fr/en, matrice de préférences, ancre des e-mails. Deux défauts trouvés en recette et corrigés sur place : le fragment `#notifications` n'amenait nulle part, et la section masquée laissait un double séparateur. |
 | 2026-09-20 | Recette locale | Essai manuel de bout en bout sur la base restaurée : publication, fan-out, inbox, préférences, annulation, e-mail Mailhog, cascade. Rien à corriger. Relevé au passage, **hors notifications** : `POST /api/teams/{slug}/rides` lève une NPE 500 quand `media.assets` est `{}` (`AssetService.updateAssets` déréférence `images()` nul) — le client web envoie toujours des listes, donc invisible depuis l'application. |
+| 2026-09-20 | Phase 4 | Push côté serveur : `push_devices` (V39), deux endpoints, `PushNotificationSender` et `FcmClient` (FCM HTTP v1 sans dépendance nouvelle — `smallrye-jwt-build` signe l'assertion). Le canal reste indisponible faute de compte de service, ce qui est exactement le filet de §5 : rien n'est mis en file. Contrat 3.6.0, clients régénérés. Le mobile et les préalables console restent à faire. |
 | 2026-09-18 | Revue | Clé de dédup rendue par les évènements `SKIPPED`/`FAILED` ; recul avant nouvelle tentative d'un évènement (V38, `next_attempt_at`) ; récupération des bloqués toutes les 5 min, livraisons bloquées sans tentative restante → `FAILED`. |

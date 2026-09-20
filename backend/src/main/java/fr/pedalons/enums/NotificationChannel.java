@@ -12,7 +12,11 @@ public enum NotificationChannel {
   IN_APP,
   /** An e-mail through {@code EmailService}, using the generic {@code notification} template. */
   EMAIL,
-  /** A mobile push (FCM, APNs through FCM). Not implemented yet: no delivery is ever created. */
+  /**
+   * A mobile push, through FCM — Android directly, iOS via APNs behind it. Delivered by {@code
+   * PushNotificationSender} to every device the recipient has registered; no delivery is created
+   * while the server has no FCM service account.
+   */
   PUSH;
 
   /** Whether a member may switch this channel off. */
