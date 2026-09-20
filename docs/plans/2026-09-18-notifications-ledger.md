@@ -6,7 +6,8 @@ passe, en tête de la phase concernée ; une case ne se coche que vérifiée.
 
 - Branche : `feat/notifications` · worktree `../tribly.worktrees/feat/notifications`
 - Contrat : **3.4.0 → 3.5.0** (six endpoints ajoutés, rien retiré)
-- Migration : **V37** `notifications`
+- Migrations : **V37** `notifications`, **V38** `notification event backoff` — appliquées sans heurt
+  sur la base locale restaurée (schéma 36 → 38) le 20 septembre 2026
 
 Légende : ☑ fait et vérifié · ◐ fait, vérification en attente · ☐ à faire · ✗ écarté (raison sur place)
 
@@ -71,9 +72,24 @@ de trop dans la requête, pas un budget à relever.
 
 ### Reste à faire avant de fusionner la phase 1
 - ☑ Faire passer les tests ci-dessus
-- ☐ Essai manuel : `mvn quarkus:dev`, publier une sortie, voir l'évènement passer `DONE` et
-  `GET /api/notifications` d'un autre membre ; annuler une sortie avec un inscrit, voir l'e-mail dans
-  Mailhog (:8025)
+- ☑ Essai manuel, **20 septembre 2026**, `mvn quarkus:dev` sur la base locale restaurée, équipe
+  `gaby` (7 membres, dont 6 destinataires) :
+  - `RIDE_PUBLISHED` — sortie publiée par l'admin ⇒ évènement `DONE` en un tick, `attempts=1`,
+    **6 notifications** (tous les membres sauf l'acteur) et **0 livraison** (les défauts du type sont
+    in-app + push, et le push n'a pas d'émetteur : c'est exactement ce que §5 exige).
+  - Instantané figé sur l'évènement : équipe, sujet, acteur, `base_url` **du domaine en base**
+    (`http://localhost:8090`), pas de la requête — la résolution du site de §8 tient hors HTTP.
+  - `GET /api/notifications` d'un autre membre : l'entrée typée, sans texte pré-rendu ;
+    `unread-count` cohérent ; `POST /{id}/read` idempotent (204 deux fois) ; `read-all` ⇒ 0.
+  - `GET /preferences` : `channels = [EMAIL]` seul — ni `IN_APP` (non configurable) ni `PUSH`
+    (indisponible), et la matrice porte bien `enabled`/`enabledByDefault` par type.
+  - `RIDE_CANCELLED` — sortie annulée avec un inscrit ⇒ **1 seule** notification (l'inscrit, pas
+    l'équipe), 1 livraison `EMAIL` `SENT` au premier essai, e-mail lu dans Mailhog : gabarit
+    générique, heure au fuseau du destinataire (09:00Z rendu « 11h00 »), lien du sujet et lien
+    « Choisir vos notifications » sur `base_url`.
+  - Suppression des évènements ⇒ notifications et livraisons parties en cascade (le chemin qu'emprunte
+    la rétention nocturne).
+  - Aucune erreur côté notifications dans le journal du serveur.
 - ☑ Commit
 
 ---
@@ -134,4 +150,5 @@ confidentialité (`mobile/store-metadata/data-safety.md`), nouvelle soumission a
 | Date | Passe | Notes |
 |---|---|---|
 | 2026-09-18 | Phase 1 | Conception, socle backend, contrat 3.5.0, clients régénérés. Découverte en cours de route : la migration biketeam passe par les services producteurs → mode muet ajouté. Tests verts, commité. |
+| 2026-09-20 | Recette locale | Essai manuel de bout en bout sur la base restaurée : publication, fan-out, inbox, préférences, annulation, e-mail Mailhog, cascade. Rien à corriger. Relevé au passage, **hors notifications** : `POST /api/teams/{slug}/rides` lève une NPE 500 quand `media.assets` est `{}` (`AssetService.updateAssets` déréférence `images()` nul) — le client web envoie toujours des listes, donc invisible depuis l'application. |
 | 2026-09-18 | Revue | Clé de dédup rendue par les évènements `SKIPPED`/`FAILED` ; recul avant nouvelle tentative d'un évènement (V38, `next_attempt_at`) ; récupération des bloqués toutes les 5 min, livraisons bloquées sans tentative restante → `FAILED`. |
