@@ -1064,6 +1064,7 @@
     "send": "Post",
     "sending": "Posting...",
     "reply": "Reply",
+    "deletedPlaceholder": "Comment deleted",
     "replyingTo": "Replying to {name}",
     "showReplies": {
       "one": "View the reply",

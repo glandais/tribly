@@ -13,7 +13,6 @@ import fr.pedalons.enums.UnitSystem;
 import fr.pedalons.repository.gps.GpsServiceConnectionRepository;
 import fr.pedalons.repository.social.UserSocialIdentityRepository;
 import fr.pedalons.repository.user.UserRepository;
-import fr.pedalons.service.notification.NotificationService;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.Logged;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -35,7 +34,7 @@ public class UserService {
 
   @Inject UserSocialIdentityRepository socialIdentityRepository;
 
-  @Inject NotificationService notificationService;
+  @Inject AccountErasureService accountErasureService;
 
   @Logged
   public UserDto getUserDto() {
@@ -113,10 +112,9 @@ public class UserService {
   @Logged
   @Transactional
   public void deleteUser() {
-    User user = pedalonsContext.getUser();
-    user.setDeleted(true);
-    userRepository.persist(user);
-    notificationService.forgetUser(user.getId());
+    // Erased now, not flagged for later: nothing ever came back for a flagged account, and the
+    // policy, the app and the store listings all promise the data is gone.
+    accountErasureService.erase(pedalonsContext.getUser());
     // The request context memoizes the active user; it is no longer active.
     pedalonsContext.invalidateUser();
   }

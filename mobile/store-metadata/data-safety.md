@@ -390,12 +390,13 @@ these ships:
    both cloud backup and device-to-device transfer — `allowBackup` alone no longer stops the
    latter on Android 12+. Nothing reaches Google Drive, and a new phone signs in again, which it
    had to anyway since the restored `refresh_token` was undecryptable.
-6. **Account deletion is a flag, never a purge.** `UserService.deleteUser` sets `deleted = true`
-   and erases the notification data (`forgetUser`); no scheduler ever removes the user row, their
-   sessions, participations or comments. The policy's §6 promises *permanent deletion within 30
-   days* — untrue today. Either add a purge job (anonymise or delete users `deleted` for 30 days)
-   or change the promise; the first is what the policy, the app's confirmation text
-   ("définitivement supprimés") and the Play *data deletion* answer all assume.
+6. ~~**Account deletion is a flag, never a purge.**~~ Done 2026-09-21: `deleteUser` now erases
+   synchronously (`AccountErasureService`), and `AccountErasureScheduler` catches up nightly on
+   accounts flagged before. The `users` row is anonymized, not deleted — ~30 foreign keys hold team
+   content — and everything personal goes: credentials, memberships, future registrations, ads,
+   comments (an answered one stays as a blank tombstone), notifications, exports, GPX previews,
+   avatar. Rides, routes and posts created for a team stay, credited to "Ancien membre", which
+   the policy's "Delete your account" section now states, along with the 30-day backup window.
 
 ---
 

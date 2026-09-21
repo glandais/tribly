@@ -166,6 +166,61 @@ public class CommentRepository implements BaseRepository<Comment> {
         .list();
   }
 
+  // ------------------------------------------------------------------ account erasure
+  //
+  // An erased account's comments go, except a top-level comment others have answered: deleting it
+  // would take their replies with it, so it stays as a tombstone — its content blanked, its author
+  // the anonymized account. A tombstone is recognised by that author alone (see CommentDto); these
+  // bulk statements are the only writes that produce or remove one.
+
+  /** The threads a user replied to: the tombstones their erasure may leave with no reply. */
+  public List<Long> findParentIdsOfRepliesBy(Long userId) {
+    return getEntityManager()
+        .createQuery(
+            "select distinct c.parent.id from Comment c"
+                + " where c.createdBy.id = :userId and c.parent is not null",
+            Long.class)
+        .setParameter("userId", userId)
+        .getResultList();
+  }
+
+  /** Deletes a user's replies. Threading is one level deep, so a reply has nothing below it. */
+  public long deleteRepliesBy(Long userId) {
+    return delete("createdBy.id = ?1 and parent is not null", userId);
+  }
+
+  /** Deletes a user's top-level comments that nobody answered. */
+  public long deleteUnansweredRootsBy(Long userId) {
+    return getEntityManager()
+        .createQuery(
+            "delete from Comment c where c.createdBy.id = :userId and c.parent is null"
+                + " and not exists (select r.id from Comment r where r.parent.id = c.id)")
+        .setParameter("userId", userId)
+        .executeUpdate();
+  }
+
+  /** Blanks what is left of a user's comments: the answered top-level ones, now tombstones. */
+  public long blankContentBy(Long userId) {
+    return update("content = '' where createdBy.id = ?1", userId);
+  }
+
+  /**
+   * Deletes, among the given comments, the tombstones that no longer have any reply — the last one
+   * was just deleted, by its author or by another erasure. A live comment is never touched.
+   */
+  public long deleteEmptyTombstones(Collection<Long> ids) {
+    if (ids.isEmpty()) {
+      return 0;
+    }
+    return getEntityManager()
+        .createQuery(
+            "delete from Comment c where c.id in (:ids) and c.parent is null"
+                + " and c.createdBy.id in (select u.id from User u where u.deleted = true)"
+                + " and not exists (select r.id from Comment r where r.parent.id = c.id)")
+        .setParameter("ids", ids)
+        .executeUpdate();
+  }
+
   /** Never interpolates anything but one of the two enum constants. */
   private static String direction(SortDirection sort) {
     return sort == SortDirection.DESC ? "desc" : "asc";

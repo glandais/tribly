@@ -191,7 +191,7 @@ Connecting to third-party GPS services (Hammerhead, Garmin, Wahoo) involves a da
 | Notification preferences | As long as your account is active |
 | Phone registration for push notifications | Until you sign out of the app, uninstall it, or delete your account |
 | Files (images, GPX) | As long as the associated content exists |
-| Data after account deletion | Immediate soft deletion, permanent deletion within 30 days |
+| Data after account deletion | Erased immediately; gone from backups within 30 days (see section 7) |
 
 ---
 
@@ -224,7 +224,13 @@ You can delete your account yourself, at any time, without writing to us:
 
 If you no longer have access to your account or to the app, write to **privacy@pedalons.fr** from your account's email address asking for its deletion; we will process it within 30 days.
 
-Deletion is irreversible. Your account is deactivated immediately: you can no longer sign in. Your notifications, notification preferences and phone registrations for push notifications are erased on the spot. How long the rest is kept is stated in section 6. Routes published on behalf of a team remain that team's property.
+Deletion is irreversible and immediate. As soon as you confirm, your account is deactivated and your personal data is erased: email address, name, profile picture, password and passkeys, sessions, preferences, connected GPS services, team memberships, registrations for upcoming rides and trips, classified ads and their photos, comments, notifications, phone registrations for push notifications, data exports and GPX previews.
+
+What you published for a team (rides, trips, routes, posts and their files) belongs to that team and stays online. That content is from then on credited to "Ancien membre" (French for "former member") and is no longer linked to any data that could identify you. Likewise, a comment other members replied to is kept empty, marked "Comment deleted", so that their replies do not disappear with it. Your registrations for past rides are kept in the same anonymous form and are no longer displayed.
+
+If you want content published for a team to disappear, delete it before deleting your account, or ask one of the team's organizers.
+
+Our backups, kept for 30 days, still contain your data until they are renewed; they are only used to restore the service after an incident.
 
 ### Contact us
 

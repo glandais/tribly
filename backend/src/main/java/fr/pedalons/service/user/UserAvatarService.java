@@ -128,8 +128,12 @@ public class UserAvatarService {
   @Logged
   @Transactional
   public void deleteAvatar() {
-    User user = pedalonsContext.getUser();
+    forgetAvatar(pedalonsContext.getUser());
+  }
 
+  /** Deletes a user's avatar from storage and clears the URL; nothing to do if they have none. */
+  @Transactional
+  public void forgetAvatar(User user) {
     String avatarUrl = user.getAvatarUrl();
     if (avatarUrl != null) {
       deleteAvatarFromUrl(avatarUrl);

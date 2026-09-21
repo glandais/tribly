@@ -162,8 +162,8 @@ class UserServiceTest extends AbstractBaseTest {
     }
 
     /**
-     * The account is only flagged deleted, so the database cascade never runs: the notification
-     * data has to go explicitly — and only the leaver's.
+     * The user row is anonymized, never deleted, so the database cascade never runs: the
+     * notification data has to go explicitly — and only the leaver's.
      */
     @Test
     void shouldForgetNotificationDataOfTheDeletedUserOnly() {

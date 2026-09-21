@@ -1113,13 +1113,15 @@ components:
       - createdAt
       - replies
       - replyCount
+      - deleted
       properties:
         id:
           type: string
           description: Comment ID (TSID)
         content:
           type: string
-          description: Comment content
+          description: Comment content. Empty when the comment is deleted — see the
+            deleted flag.
         author:
           description: Comment author
           type: object
@@ -1143,6 +1145,11 @@ components:
             when the whole thread is embedded; a client that loads threads on demand
             uses it to decide whether ?parentId= is worth a call. Always 0 on a reply
             — threading is one level deep.
+        deleted:
+          type: boolean
+          description: "True for the comment of a deleted account that others had\
+            \ answered. It stays only to carry its replies: the content is empty,\
+            \ and clients render a placeholder with neither author nor actions."
     CommentListResponse:
       description: List of comments response
       type: object
@@ -14558,7 +14565,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 3.6.0
+  version: 3.7.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

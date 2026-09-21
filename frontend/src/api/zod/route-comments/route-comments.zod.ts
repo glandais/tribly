@@ -36,7 +36,11 @@ export const ListRouteCommentsResponse = zod
         zod
           .object({
             id: zod.string().describe('Comment ID (TSID)'),
-            content: zod.string().describe('Comment content'),
+            content: zod
+              .string()
+              .describe(
+                'Comment content. Empty when the comment is deleted — see the deleted flag.'
+              ),
             author: zod
               .object({
                 id: zod.string().describe('User ID (TSID)'),
@@ -51,6 +55,11 @@ export const ListRouteCommentsResponse = zod
               .int()
               .describe(
                 'How many replies this comment has. Equal to replies.size() when the whole thread is embedded; a client that loads threads on demand uses it to decide whether ?parentId= is worth a call. Always 0 on a reply — threading is one level deep.'
+              ),
+            deleted: zod
+              .boolean()
+              .describe(
+                'True for the comment of a deleted account that others had answered. It stays only to carry its replies: the content is empty, and clients render a placeholder with neither author nor actions.'
               ),
           })
           .describe('Comment data')
@@ -97,7 +106,9 @@ export const CreateRouteCommentBody = zod
 export const CreateRouteCommentResponse = zod
   .object({
     id: zod.string().describe('Comment ID (TSID)'),
-    content: zod.string().describe('Comment content'),
+    content: zod
+      .string()
+      .describe('Comment content. Empty when the comment is deleted — see the deleted flag.'),
     author: zod
       .object({
         id: zod.string().describe('User ID (TSID)'),
@@ -112,6 +123,11 @@ export const CreateRouteCommentResponse = zod
       .int()
       .describe(
         'How many replies this comment has. Equal to replies.size() when the whole thread is embedded; a client that loads threads on demand uses it to decide whether ?parentId= is worth a call. Always 0 on a reply — threading is one level deep.'
+      ),
+    deleted: zod
+      .boolean()
+      .describe(
+        'True for the comment of a deleted account that others had answered. It stays only to carry its replies: the content is empty, and clients render a placeholder with neither author nor actions.'
       ),
   })
   .describe('Comment data')

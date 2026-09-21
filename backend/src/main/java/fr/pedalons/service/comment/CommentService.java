@@ -210,7 +210,13 @@ public class CommentService {
         commentRepository
             .findByTeamIdAndId(team.getId(), commentId)
             .orElseThrow(() -> new NotFoundException(EntityType.COMMENT, commentId));
+    Comment parent = comment.getParent();
     deleteRecursive(comment);
+    if (parent != null) {
+      // The last reply to an erased account's comment leaves nothing for the tombstone to carry.
+      commentRepository.flush();
+      commentRepository.deleteEmptyTombstones(List.of(parent.getId()));
+    }
   }
 
   private void deleteRecursive(Comment comment) {

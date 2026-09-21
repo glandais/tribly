@@ -41,7 +41,9 @@ export function CommentItem({
   isReplying,
   isReply = false,
 }: CommentItemProps) {
-  const canDelete = canDeleteComment(comment)
+  // A deleted account's comment kept only to carry the replies others wrote: no author, no actions.
+  const isTombstone = comment.deleted
+  const canDelete = !isTombstone && canDeleteComment(comment)
   const { t } = useTranslation()
   const { formatRelative } = useFormattedDate()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -68,43 +70,51 @@ export function CommentItem({
       pl={isReply ? 'md' : 0}
       style={isReply ? { borderLeft: '2px solid var(--mantine-color-default-border)' } : undefined}
     >
-      <Group align="flex-start" gap="sm">
-        <UserAvatar user={comment.author} size="sm" />
-        <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
-          <Group gap="xs">
-            <Text fw={500}>{comment.author.displayName}</Text>
-            <Text size="xs" c="dimmed">
-              {formatRelative(comment.createdAt)}
+      {isTombstone ? (
+        <Text size="sm" c="dimmed" fs="italic">
+          {t('comments.deletedPlaceholder')}
+        </Text>
+      ) : (
+        <Group align="flex-start" gap="sm">
+          <UserAvatar user={comment.author} size="sm" />
+          <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
+            <Group gap="xs">
+              <Text fw={500}>{comment.author.displayName}</Text>
+              <Text size="xs" c="dimmed">
+                {formatRelative(comment.createdAt)}
+              </Text>
+            </Group>
+            <Text style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+              {comment.content}
             </Text>
-          </Group>
-          <Text style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{comment.content}</Text>
 
-          <Group mt={4}>
-            {!isReply && onReply && (
-              <Button
-                variant="subtle"
-                size="xs"
-                color="gray"
-                leftSection={<IconMessage size={14} />}
-                onClick={onReply}
-              >
-                {t('comments.actions.reply')}
-              </Button>
-            )}
-            {canDelete && (
-              <Button
-                variant="subtle"
-                size="xs"
-                color="danger"
-                leftSection={<IconTrash size={14} />}
-                onClick={() => setShowDeleteConfirm(true)}
-              >
-                {t('actions.delete')}
-              </Button>
-            )}
-          </Group>
-        </Stack>
-      </Group>
+            <Group mt={4}>
+              {!isReply && onReply && (
+                <Button
+                  variant="subtle"
+                  size="xs"
+                  color="gray"
+                  leftSection={<IconMessage size={14} />}
+                  onClick={onReply}
+                >
+                  {t('comments.actions.reply')}
+                </Button>
+              )}
+              {canDelete && (
+                <Button
+                  variant="subtle"
+                  size="xs"
+                  color="danger"
+                  leftSection={<IconTrash size={14} />}
+                  onClick={() => setShowDeleteConfirm(true)}
+                >
+                  {t('actions.delete')}
+                </Button>
+              )}
+            </Group>
+          </Stack>
+        </Group>
+      )}
 
       {isReplyingToThis && onReplySubmit && onCancelReply && (
         <Box mt="sm" ml={44}>

@@ -191,7 +191,7 @@ La connexion à des services GPS tiers (Hammerhead, Garmin, Wahoo) implique un t
 | Préférences de notification | Tant que votre compte est actif |
 | Enregistrement du téléphone pour les notifications push | Jusqu'à votre déconnexion de l'application, la désinstallation de l'application ou la suppression de votre compte |
 | Fichiers (images, GPX) | Tant que le contenu associé existe |
-| Données après suppression de compte | Suppression logique immédiate, suppression définitive sous 30 jours |
+| Données après suppression de compte | Effacement immédiat ; disparition des sauvegardes sous 30 jours (voir section 7) |
 
 ---
 
@@ -224,7 +224,13 @@ Vous pouvez supprimer votre compte vous-même, à tout moment, sans nous écrire
 
 Si vous n'avez plus accès à votre compte ou à l'application, écrivez-nous depuis l'adresse e-mail de votre compte à **privacy@pedalons.fr** en demandant sa suppression ; nous la traiterons dans un délai de 30 jours.
 
-La suppression est irréversible. Votre compte est désactivé immédiatement : vous ne pouvez plus vous connecter. Vos notifications, vos préférences de notification et l'enregistrement de vos téléphones pour les notifications push sont effacés sur-le-champ. La durée de conservation du reste est indiquée à la section 6. Les parcours publiés au nom d'une équipe restent la propriété de cette équipe.
+La suppression est irréversible et immédiate. Dès votre confirmation, votre compte est désactivé et vos données personnelles sont effacées : adresse e-mail, nom, photo de profil, mot de passe et clés d'accès, sessions, préférences, services GPS connectés, appartenance aux équipes, inscriptions aux sorties et voyages à venir, petites annonces et leurs photos, commentaires, notifications, enregistrement de vos téléphones pour les notifications push, exports de données et aperçus GPX.
+
+Ce que vous avez publié pour une équipe (sorties, voyages, parcours, posts et leurs fichiers) appartient à cette équipe et reste en ligne. Ces contenus sont désormais attribués à « Ancien membre » et ne sont plus rattachés à aucune donnée permettant de vous identifier. De même, un commentaire auquel d'autres membres ont répondu est conservé vide, avec la mention « Commentaire supprimé », pour que leurs réponses ne disparaissent pas avec lui. Vos inscriptions aux sorties passées sont conservées sous la même forme anonyme et ne sont plus affichées.
+
+Pour qu'un contenu publié pour une équipe disparaisse, supprimez-le avant de supprimer votre compte, ou demandez-le à un organisateur de l'équipe.
+
+Nos sauvegardes, conservées 30 jours, contiennent encore vos données jusqu'à leur renouvellement ; elles ne servent qu'à rétablir le service après un incident.
 
 ### Nous contacter
 

@@ -183,6 +183,14 @@ class _CommentThreadState extends ConsumerState<CommentThread> {
     bool isReply = false,
   }) {
     final PdlTypography t = context.pdlText;
+    // Le commentaire d'un compte supprimé, gardé seulement pour porter les
+    // réponses des autres : ni auteur, ni date, ni action.
+    if (comment.deleted) {
+      return Text(
+        'comments.deletedPlaceholder'.tr(),
+        style: t.xs.copyWith(fontStyle: FontStyle.italic),
+      );
+    }
     final bool mine = comment.author.id == currentUserId;
     final DateTime? createdAt = DateTime.tryParse(comment.createdAt);
 

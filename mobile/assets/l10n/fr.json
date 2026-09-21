@@ -1064,6 +1064,7 @@
     "send": "Publier",
     "sending": "Publication...",
     "reply": "Répondre",
+    "deletedPlaceholder": "Commentaire supprimé",
     "replyingTo": "En réponse à {name}",
     "showReplies": {
       "one": "Voir la réponse",

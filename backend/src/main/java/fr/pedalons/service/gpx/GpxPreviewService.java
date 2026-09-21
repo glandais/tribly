@@ -419,6 +419,15 @@ public class GpxPreviewService {
     return expired.size();
   }
 
+  /** Deletes every preview a user uploaded, S3 objects first — part of an account erasure. */
+  @Transactional
+  public void forgetCreator(Long domainId, Long userId) {
+    for (GpxPreview preview : gpxPreviewRepository.findAllByCreator(domainId, userId)) {
+      deleteFiles(preview.getPublicId());
+      gpxPreviewRepository.delete(preview);
+    }
+  }
+
   /**
    * Serves the preview's rendered map thumbnail through imgproxy (used as the Open Graph image).
    * Public: like {@link #getPreview}, the unguessable link is what grants access, and the lookup is

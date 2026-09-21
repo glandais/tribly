@@ -17,12 +17,13 @@ T _$identity<T>(T value) => value;
 mixin _$CommentDto {
 
 /// Comment ID (TSID)
- String get id;/// Comment content
+ String get id;/// Comment content. Empty when the comment is deleted — see the deleted flag.
  String get content;/// Comment author
  PublicUserDto get author;/// Creation timestamp
  String get createdAt;/// Replies to this comment
  List<CommentDto> get replies;/// How many replies this comment has. Equal to replies.size() when the whole thread is embedded; a client that loads threads on demand uses it to decide whether ?parentId= is worth a call. Always 0 on a reply — threading is one level deep.
- int get replyCount;/// Parent comment ID (for replies)
+ int get replyCount;/// True for the comment of a deleted account that others had answered. It stays only to carry its replies: the content is empty, and clients render a placeholder with neither author nor actions.
+ bool get deleted;/// Parent comment ID (for replies)
  String? get parentId;
 /// Create a copy of CommentDto
 /// with the given fields replaced by the non-null parameter values.
@@ -37,20 +38,20 @@ $CommentDtoCopyWith<CommentDto> get copyWith => _$CommentDtoCopyWithImpl<Comment
 @override
 bool operator ==(Object other) {
   final _this = this as CommentDto;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CommentDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.content, _this.content) || other.content == _this.content)&&(identical(other.author, _this.author) || other.author == _this.author)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&const DeepCollectionEquality().equals(other.replies, _this.replies)&&(identical(other.replyCount, _this.replyCount) || other.replyCount == _this.replyCount)&&(identical(other.parentId, _this.parentId) || other.parentId == _this.parentId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CommentDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.content, _this.content) || other.content == _this.content)&&(identical(other.author, _this.author) || other.author == _this.author)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&const DeepCollectionEquality().equals(other.replies, _this.replies)&&(identical(other.replyCount, _this.replyCount) || other.replyCount == _this.replyCount)&&(identical(other.deleted, _this.deleted) || other.deleted == _this.deleted)&&(identical(other.parentId, _this.parentId) || other.parentId == _this.parentId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as CommentDto;
-  return Object.hash(runtimeType,_this.id,_this.content,_this.author,_this.createdAt,const DeepCollectionEquality().hash(_this.replies),_this.replyCount,_this.parentId);
+  return Object.hash(runtimeType,_this.id,_this.content,_this.author,_this.createdAt,const DeepCollectionEquality().hash(_this.replies),_this.replyCount,_this.deleted,_this.parentId);
 }
 
 @override
 String toString() {
   final _this = this as CommentDto;
-  return 'CommentDto(id: ${_this.id}, content: ${_this.content}, author: ${_this.author}, createdAt: ${_this.createdAt}, replies: ${_this.replies}, replyCount: ${_this.replyCount}, parentId: ${_this.parentId})';
+  return 'CommentDto(id: ${_this.id}, content: ${_this.content}, author: ${_this.author}, createdAt: ${_this.createdAt}, replies: ${_this.replies}, replyCount: ${_this.replyCount}, deleted: ${_this.deleted}, parentId: ${_this.parentId})';
 }
 
 
@@ -61,7 +62,7 @@ abstract mixin class $CommentDtoCopyWith<$Res>  {
   factory $CommentDtoCopyWith(CommentDto value, $Res Function(CommentDto) _then) = _$CommentDtoCopyWithImpl;
 @useResult
 $Res call({
- String id, String content, PublicUserDto author, String createdAt, List<CommentDto> replies, int replyCount, String? parentId
+ String id, String content, PublicUserDto author, String createdAt, List<CommentDto> replies, int replyCount, bool deleted, String? parentId
 });
 
 
@@ -78,7 +79,7 @@ class _$CommentDtoCopyWithImpl<$Res>
 
 /// Create a copy of CommentDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? content = null,Object? author = null,Object? createdAt = null,Object? replies = null,Object? replyCount = null,Object? parentId = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? content = null,Object? author = null,Object? createdAt = null,Object? replies = null,Object? replyCount = null,Object? deleted = null,Object? parentId = freezed,}) {
   return _then(CommentDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,content: null == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
@@ -86,7 +87,8 @@ as String,author: null == author ? _self.author : author // ignore: cast_nullabl
 as PublicUserDto,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String,replies: null == replies ? _self.replies : replies // ignore: cast_nullable_to_non_nullable
 as List<CommentDto>,replyCount: null == replyCount ? _self.replyCount : replyCount // ignore: cast_nullable_to_non_nullable
-as int,parentId: freezed == parentId ? _self.parentId : parentId // ignore: cast_nullable_to_non_nullable
+as int,deleted: null == deleted ? _self.deleted : deleted // ignore: cast_nullable_to_non_nullable
+as bool,parentId: freezed == parentId ? _self.parentId : parentId // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -181,10 +183,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String content,  PublicUserDto author,  String createdAt,  List<CommentDto> replies,  int replyCount,  String? parentId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String content,  PublicUserDto author,  String createdAt,  List<CommentDto> replies,  int replyCount,  bool deleted,  String? parentId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CommentDto() when $default != null:
-return $default(_that.id,_that.content,_that.author,_that.createdAt,_that.replies,_that.replyCount,_that.parentId);case _:
+return $default(_that.id,_that.content,_that.author,_that.createdAt,_that.replies,_that.replyCount,_that.deleted,_that.parentId);case _:
   return orElse();
 
 }
@@ -202,10 +204,10 @@ return $default(_that.id,_that.content,_that.author,_that.createdAt,_that.replie
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String content,  PublicUserDto author,  String createdAt,  List<CommentDto> replies,  int replyCount,  String? parentId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String content,  PublicUserDto author,  String createdAt,  List<CommentDto> replies,  int replyCount,  bool deleted,  String? parentId)  $default,) {final _that = this;
 switch (_that) {
 case _CommentDto():
-return $default(_that.id,_that.content,_that.author,_that.createdAt,_that.replies,_that.replyCount,_that.parentId);case _:
+return $default(_that.id,_that.content,_that.author,_that.createdAt,_that.replies,_that.replyCount,_that.deleted,_that.parentId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -222,10 +224,10 @@ return $default(_that.id,_that.content,_that.author,_that.createdAt,_that.replie
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String content,  PublicUserDto author,  String createdAt,  List<CommentDto> replies,  int replyCount,  String? parentId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String content,  PublicUserDto author,  String createdAt,  List<CommentDto> replies,  int replyCount,  bool deleted,  String? parentId)?  $default,) {final _that = this;
 switch (_that) {
 case _CommentDto() when $default != null:
-return $default(_that.id,_that.content,_that.author,_that.createdAt,_that.replies,_that.replyCount,_that.parentId);case _:
+return $default(_that.id,_that.content,_that.author,_that.createdAt,_that.replies,_that.replyCount,_that.deleted,_that.parentId);case _:
   return null;
 
 }
@@ -237,12 +239,12 @@ return $default(_that.id,_that.content,_that.author,_that.createdAt,_that.replie
 @JsonSerializable()
 
 class _CommentDto implements CommentDto {
-  const _CommentDto({required this.id, required this.content, required this.author, required this.createdAt, required  List<CommentDto> replies, required this.replyCount, this.parentId}): _replies = replies;
+  const _CommentDto({required this.id, required this.content, required this.author, required this.createdAt, required  List<CommentDto> replies, required this.replyCount, required this.deleted, this.parentId}): _replies = replies;
   factory _CommentDto.fromJson(Map<String, dynamic> json) => _$CommentDtoFromJson(json);
 
 /// Comment ID (TSID)
 @override final  String id;
-/// Comment content
+/// Comment content. Empty when the comment is deleted — see the deleted flag.
 @override final  String content;
 /// Comment author
 @override final  PublicUserDto author;
@@ -259,6 +261,8 @@ class _CommentDto implements CommentDto {
 
 /// How many replies this comment has. Equal to replies.size() when the whole thread is embedded; a client that loads threads on demand uses it to decide whether ?parentId= is worth a call. Always 0 on a reply — threading is one level deep.
 @override final  int replyCount;
+/// True for the comment of a deleted account that others had answered. It stays only to carry its replies: the content is empty, and clients render a placeholder with neither author nor actions.
+@override final  bool deleted;
 /// Parent comment ID (for replies)
 @override final  String? parentId;
 
@@ -275,18 +279,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CommentDto&&(identical(other.id, id) || other.id == id)&&(identical(other.content, content) || other.content == content)&&(identical(other.author, author) || other.author == author)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other.replies, _replies)&&(identical(other.replyCount, replyCount) || other.replyCount == replyCount)&&(identical(other.parentId, parentId) || other.parentId == parentId));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CommentDto&&(identical(other.id, id) || other.id == id)&&(identical(other.content, content) || other.content == content)&&(identical(other.author, author) || other.author == author)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other.replies, _replies)&&(identical(other.replyCount, replyCount) || other.replyCount == replyCount)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.parentId, parentId) || other.parentId == parentId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,content,author,createdAt,const DeepCollectionEquality().hash(_replies),replyCount,parentId);
+    return Object.hash(runtimeType,id,content,author,createdAt,const DeepCollectionEquality().hash(_replies),replyCount,deleted,parentId);
 }
 
 @override
 String toString() {
-    return 'CommentDto(id: $id, content: $content, author: $author, createdAt: $createdAt, replies: $replies, replyCount: $replyCount, parentId: $parentId)';
+    return 'CommentDto(id: $id, content: $content, author: $author, createdAt: $createdAt, replies: $replies, replyCount: $replyCount, deleted: $deleted, parentId: $parentId)';
 }
 
 
@@ -297,7 +301,7 @@ abstract mixin class _$CommentDtoCopyWith<$Res> implements $CommentDtoCopyWith<$
   factory _$CommentDtoCopyWith(_CommentDto value, $Res Function(_CommentDto) _then) = __$CommentDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String content, PublicUserDto author, String createdAt, List<CommentDto> replies, int replyCount, String? parentId
+ String id, String content, PublicUserDto author, String createdAt, List<CommentDto> replies, int replyCount, bool deleted, String? parentId
 });
 
 
@@ -314,7 +318,7 @@ class __$CommentDtoCopyWithImpl<$Res>
 
 /// Create a copy of CommentDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? content = null,Object? author = null,Object? createdAt = null,Object? replies = null,Object? replyCount = null,Object? parentId = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? content = null,Object? author = null,Object? createdAt = null,Object? replies = null,Object? replyCount = null,Object? deleted = null,Object? parentId = freezed,}) {
   return _then(_CommentDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,content: null == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
@@ -322,7 +326,8 @@ as String,author: null == author ? _self.author : author // ignore: cast_nullabl
 as PublicUserDto,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String,replies: null == replies ? _self._replies : replies // ignore: cast_nullable_to_non_nullable
 as List<CommentDto>,replyCount: null == replyCount ? _self.replyCount : replyCount // ignore: cast_nullable_to_non_nullable
-as int,parentId: freezed == parentId ? _self.parentId : parentId // ignore: cast_nullable_to_non_nullable
+as int,deleted: null == deleted ? _self.deleted : deleted // ignore: cast_nullable_to_non_nullable
+as bool,parentId: freezed == parentId ? _self.parentId : parentId // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

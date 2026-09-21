@@ -18,7 +18,7 @@ abstract class CommentDto with _$CommentDto {
     /// Comment ID (TSID)
     required String id,
 
-    /// Comment content
+    /// Comment content. Empty when the comment is deleted — see the deleted flag.
     required String content,
 
     /// Comment author
@@ -32,6 +32,9 @@ abstract class CommentDto with _$CommentDto {
 
     /// How many replies this comment has. Equal to replies.size() when the whole thread is embedded; a client that loads threads on demand uses it to decide whether ?parentId= is worth a call. Always 0 on a reply — threading is one level deep.
     required int replyCount,
+
+    /// True for the comment of a deleted account that others had answered. It stays only to carry its replies: the content is empty, and clients render a placeholder with neither author nor actions.
+    required bool deleted,
 
     /// Parent comment ID (for replies)
     String? parentId,

@@ -13,7 +13,11 @@ import org.jspecify.annotations.Nullable;
 @ValidateSchema
 public record CommentDto(
     @Schema(description = "Comment ID (TSID)", required = true) String id,
-    @Schema(description = "Comment content", required = true) String content,
+    @Schema(
+            description =
+                "Comment content. Empty when the comment is deleted — see the deleted flag.",
+            required = true)
+        String content,
     @Schema(description = "Comment author", required = true) PublicUserDto author,
     @Schema(description = "Creation timestamp", required = true) Instant createdAt,
     @Nullable @Schema(description = "Parent comment ID (for replies)") String parentId,
@@ -25,7 +29,14 @@ public record CommentDto(
                     + " whether ?parentId= is worth a call. Always 0 on a reply — threading is one"
                     + " level deep.",
             required = true)
-        int replyCount) {
+        int replyCount,
+    @Schema(
+            description =
+                "True for the comment of a deleted account that others had answered. It stays"
+                    + " only to carry its replies: the content is empty, and clients render a"
+                    + " placeholder with neither author nor actions.",
+            required = true)
+        boolean deleted) {
 
   public static CommentDto from(Comment comment, List<CommentDto> replies) {
     return from(comment, replies, replies.size());
@@ -36,13 +47,17 @@ public record CommentDto(
    *     a thread can be answered without being embedded
    */
   public static CommentDto from(Comment comment, List<CommentDto> replies, int replyCount) {
+    // An erased account's surviving comments are exactly the tombstones: the erasure deletes the
+    // others. Checking the author also covers an account flagged deleted but not yet erased.
+    boolean deleted = comment.getCreatedBy().isDeleted();
     return new CommentDto(
         TsidUtils.toString(comment.getId()),
-        comment.getContent(),
+        deleted ? "" : comment.getContent(),
         PublicUserDto.from(comment.getCreatedBy()),
         comment.getCreatedAt(),
         comment.getParent() != null ? TsidUtils.toString(comment.getParent().getId()) : null,
         replies,
-        replyCount);
+        replyCount,
+        deleted);
   }
 }

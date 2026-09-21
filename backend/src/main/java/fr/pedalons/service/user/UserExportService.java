@@ -418,6 +418,20 @@ public class UserExportService {
     return userExportRepository.deleteOlderThan(Instant.now().minus(historyDays, ChronoUnit.DAYS));
   }
 
+  /**
+   * Deletes every export of a user, archives first — part of an account erasure.
+   *
+   * <p>A job in flight at that moment finds its row gone when it tries to mark it ready; {@link
+   * #markFailed} tolerates that, and the archive it just uploaded is deleted on the same path.
+   */
+  @Transactional
+  public void forgetUser(Long userId) {
+    for (UserExport export : userExportRepository.list("user.id", userId)) {
+      safeDelete(export.getStorageKey());
+      userExportRepository.delete(export);
+    }
+  }
+
   private void safeDelete(@Nullable String storageKey) {
     if (storageKey == null) {
       return;

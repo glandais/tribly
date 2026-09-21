@@ -321,6 +321,7 @@
   "comments.count_one": "{{count}} comment",
   "comments.count_other": "{{count}} comments",
   "comments.loadMore": "Load more comments",
+  "comments.deletedPlaceholder": "Comment deleted",
   "comments.showReplies_one": "Show the reply",
   "comments.showReplies_other": "Show the {{count}} replies",
   "comments.actions.reply": "Reply",

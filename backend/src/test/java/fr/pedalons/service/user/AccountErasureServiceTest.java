@@ -1,0 +1,368 @@
+package fr.pedalons.service.user;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import fr.pedalons.AbstractBaseTest;
+import fr.pedalons.domain.ad.Ad;
+import fr.pedalons.domain.comment.Comment;
+import fr.pedalons.domain.platform.Domain;
+import fr.pedalons.domain.post.Post;
+import fr.pedalons.domain.ride.Ride;
+import fr.pedalons.domain.ride.RideGroup;
+import fr.pedalons.domain.team.Team;
+import fr.pedalons.domain.trip.Trip;
+import fr.pedalons.domain.user.User;
+import fr.pedalons.dto.comments.response.CommentDto;
+import fr.pedalons.dto.comments.response.CommentListResponse;
+import fr.pedalons.enums.AdType;
+import fr.pedalons.enums.EntityType;
+import fr.pedalons.enums.GpsServiceType;
+import fr.pedalons.enums.TeamRole;
+import fr.pedalons.enums.Visibility;
+import fr.pedalons.service.comment.CommentService;
+import fr.pedalons.service.security.DomainResolver;
+import fr.pedalons.service.security.PedalonsQueryContext;
+import fr.pedalons.util.TestDataCleaner;
+import fr.pedalons.util.TestDataService;
+import io.quarkus.narayana.jta.QuarkusTransaction;
+import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+
+@QuarkusTest
+class AccountErasureServiceTest extends AbstractBaseTest {
+
+  @Inject AccountErasureService erasureService;
+  @Inject UserService userService;
+  @Inject CommentService commentService;
+  @Inject TestDataService dataService;
+  @Inject TestDataCleaner dataCleaner;
+  @Inject PedalonsQueryContext queryContext;
+  @Inject DomainResolver domainResolver;
+  @Inject EntityManager em;
+
+  private Domain domain;
+  private Team team;
+  private User leaver;
+  private User stayer;
+  private Post post;
+
+  @BeforeEach
+  void setUp() {
+    dataCleaner.cleanAll();
+    domain = dataService.getOrCreateDefaultDomain();
+    domainResolver.setDomainForTest(domain);
+    stayer = dataService.createUser("stayer@example.com", "Stayer");
+    team = dataService.createTeam(stayer, "Team", "team", Visibility.PUBLIC);
+    leaver = dataService.createUser("leaver@example.com", "Leaver");
+    dataService.addUserToTeam(leaver, team, TeamRole.MEMBER);
+    post = dataService.createPost(team, stayer, "Post", Instant.now(), Visibility.PUBLIC);
+  }
+
+  private void erase(User user) {
+    erasureService.eraseById(user.getId());
+  }
+
+  private User reload(User user) {
+    return QuarkusTransaction.requiringNew().call(() -> em.find(User.class, user.getId()));
+  }
+
+  private long count(String hql, Object param) {
+    return QuarkusTransaction.requiringNew()
+        .call(
+            () ->
+                em.createQuery(hql, Long.class)
+                    .setParameter("p", param)
+                    .getSingleResult()
+                    .longValue());
+  }
+
+  private boolean commentExists(Comment comment) {
+    return count("select count(c) from Comment c where c.id = :p", comment.getId()) == 1;
+  }
+
+  private List<CommentDto> listComments() {
+    queryContext.setUserForTest(stayer);
+    CommentListResponse response =
+        commentService.listComments(team.getSlug(), post.getSlug(), EntityType.POST);
+    return response.items();
+  }
+
+  // ==================== The account ====================
+
+  @Nested
+  class Account {
+
+    @Test
+    void anonymizesTheUserRow() {
+      dataService.setUserPasswordHash(leaver, "hash");
+
+      erase(leaver);
+
+      User erased = reload(leaver);
+      assertTrue(erased.isDeleted());
+      assertTrue(AccountErasureService.isErased(erased));
+      assertFalse(erased.getEmail().contains("leaver"));
+      assertEquals(AccountErasureService.ERASED_DISPLAY_NAME, erased.getDisplayName());
+      assertNull(erased.getPasswordHash());
+      assertNull(erased.getAvatarUrl());
+      assertFalse(erased.isEmailVerified());
+    }
+
+    /** uk_users_domain_email is not partial: the old address blocked any new sign-up. */
+    @Test
+    void freesTheEmailForANewAccount() {
+      erase(leaver);
+
+      User again = dataService.createUser("leaver@example.com", "Back again");
+
+      assertNotEquals(leaver.getId(), again.getId());
+    }
+
+    @Test
+    void deleteUserErasesImmediately() {
+      queryContext.setUserForTest(leaver);
+
+      userService.deleteUser();
+
+      assertTrue(AccountErasureService.isErased(reload(leaver)));
+    }
+
+    @Test
+    void isIdempotent() {
+      erase(leaver);
+      String email = reload(leaver).getEmail();
+
+      erase(leaver);
+
+      assertEquals(email, reload(leaver).getEmail());
+    }
+  }
+
+  // ==================== Rows owned by the user ====================
+
+  @Nested
+  class OwnedRows {
+
+    @Test
+    void deletesCredentialsAndMembershipsOfTheLeaverOnly() {
+      for (User user : List.of(leaver, stayer)) {
+        dataService.createAuthSession(
+            user, "hash-" + user.getId(), Instant.now().plus(1, ChronoUnit.DAYS));
+        dataService.createPasskey(user, ("cred-" + user.getId()).getBytes(), new byte[] {1, 2, 3});
+        dataService.createGpsServiceConnection(user, GpsServiceType.GARMIN);
+        dataService.createCalendarToken(user, "cal-" + user.getId());
+      }
+
+      erase(leaver);
+
+      for (String entity :
+          List.of("AuthSession", "Passkey", "GpsServiceConnection", "CalendarToken", "UserTeam")) {
+        String hql = "select count(e) from " + entity + " e where e.user.id = :p";
+        assertEquals(0, count(hql, leaver.getId()), entity + " of the leaver");
+        assertEquals(1, count(hql, stayer.getId()), entity + " of the stayer");
+      }
+    }
+  }
+
+  // ==================== Registrations ====================
+
+  @Nested
+  class Registrations {
+
+    @Test
+    void deletesFutureRegistrationsAndKeepsPastOnes() {
+      Ride past =
+          dataService.createRide(
+              team, stayer, "Past", "past", Instant.now().minus(7, ChronoUnit.DAYS));
+      Ride future =
+          dataService.createRide(
+              team, stayer, "Future", "future", Instant.now().plus(7, ChronoUnit.DAYS));
+      RideGroup pastGroup = dataService.createRideGroup(stayer, past, "A");
+      RideGroup futureGroup = dataService.createRideGroup(stayer, future, "A");
+      dataService.createParticipation(pastGroup, leaver);
+      dataService.createParticipation(futureGroup, leaver);
+      Trip pastTrip =
+          dataService.createTrip(
+              team, stayer, "Past trip", Instant.now().minus(7, ChronoUnit.DAYS));
+      Trip futureTrip =
+          dataService.createTrip(
+              team, stayer, "Future trip", Instant.now().plus(7, ChronoUnit.DAYS));
+      dataService.createTripParticipation(pastTrip, leaver);
+      dataService.createTripParticipation(futureTrip, leaver);
+
+      erase(leaver);
+
+      assertEquals(
+          1,
+          count(
+              "select count(p) from RideParticipation p where p.rideGroup.id = :p",
+              pastGroup.getId()));
+      assertEquals(
+          0,
+          count(
+              "select count(p) from RideParticipation p where p.rideGroup.id = :p",
+              futureGroup.getId()));
+      assertEquals(
+          1,
+          count("select count(p) from TripParticipation p where p.trip.id = :p", pastTrip.getId()));
+      assertEquals(
+          0,
+          count(
+              "select count(p) from TripParticipation p where p.trip.id = :p", futureTrip.getId()));
+    }
+
+    /** Null is a leader's normal state: clients render nothing, never a fallback. */
+    @Test
+    void unsetsTheLeaderOfGroups() {
+      Ride ride =
+          dataService.createRide(
+              team, stayer, "Ride", "ride", Instant.now().plus(7, ChronoUnit.DAYS));
+      RideGroup group = dataService.createRideGroup(stayer, ride, "A");
+      group.setLeader(leaver);
+      dataService.updateRideGroup(group);
+
+      erase(leaver);
+
+      assertEquals(
+          0,
+          count(
+              "select count(g) from RideGroup g where g.id = :p and g.leader is not null",
+              group.getId()));
+    }
+  }
+
+  // ==================== Ads ====================
+
+  @Nested
+  class Ads {
+
+    @Test
+    void softDeletesAndBlanksTheAds() {
+      Ad ad = dataService.createAd(team, leaver, "Vélo de Leaver", AdType.SALE);
+      dataService.setMarkdown(ad, "Appelez-moi");
+
+      erase(leaver);
+
+      Ad erased = QuarkusTransaction.requiringNew().call(() -> em.find(Ad.class, ad.getId()));
+      assertTrue(erased.isDeleted());
+      assertEquals(AccountErasureService.ERASED_AD_NAME, erased.getName());
+      assertEquals("", erased.getMarkdown());
+      assertNull(erased.getLocationDescription());
+    }
+  }
+
+  // ==================== Comments ====================
+
+  @Nested
+  class Comments {
+
+    @Test
+    void deletesUnansweredCommentsAndReplies() {
+      Comment unanswered = dataService.createComment(leaver, post, "Seul");
+      Comment stayerRoot = dataService.createComment(stayer, post, "Question");
+      Comment leaverReply = dataService.createReply(leaver, post, stayerRoot, "Réponse");
+
+      erase(leaver);
+
+      assertFalse(commentExists(unanswered));
+      assertFalse(commentExists(leaverReply));
+      assertTrue(commentExists(stayerRoot));
+    }
+
+    /** Deleting it would take the replies of others with it. */
+    @Test
+    void keepsAnAnsweredCommentAsATombstone() {
+      Comment root = dataService.createComment(leaver, post, "Rendez-vous à 9h");
+      Comment reply = dataService.createReply(stayer, post, root, "J'y serai");
+
+      erase(leaver);
+
+      assertTrue(commentExists(root));
+      assertTrue(commentExists(reply));
+      CommentDto dto = listComments().getFirst();
+      assertTrue(dto.deleted());
+      assertEquals("", dto.content());
+      assertEquals(1, dto.replies().size());
+      assertFalse(dto.replies().getFirst().deleted());
+      assertEquals("J'y serai", dto.replies().getFirst().content());
+    }
+
+    @Test
+    void deletesACommentAnsweredOnlyByItsOwnAuthor() {
+      Comment root = dataService.createComment(leaver, post, "Monologue");
+      dataService.createReply(leaver, post, root, "Suite");
+
+      erase(leaver);
+
+      assertFalse(commentExists(root));
+    }
+
+    /** The leaver's reply was all that kept an earlier-erased account's tombstone alive. */
+    @Test
+    void deletesATombstoneLeftWithoutReplies() {
+      User earlier = dataService.createUser("earlier@example.com", "Earlier");
+      dataService.addUserToTeam(earlier, team, TeamRole.MEMBER);
+      Comment root = dataService.createComment(earlier, post, "Ancien fil");
+      dataService.createReply(leaver, post, root, "Dernière réponse");
+      erase(earlier);
+      assertTrue(commentExists(root));
+
+      erase(leaver);
+
+      assertFalse(commentExists(root));
+    }
+
+    @Test
+    void deletingTheLastReplyDeletesTheTombstone() {
+      Comment root = dataService.createComment(leaver, post, "Rendez-vous à 9h");
+      Comment reply = dataService.createReply(stayer, post, root, "J'y serai");
+      erase(leaver);
+
+      queryContext.setUserForTest(stayer);
+      commentService.deleteComment(team.getSlug(), post.getSlug(), EntityType.POST, reply.getId());
+
+      assertFalse(commentExists(root));
+    }
+
+    @Test
+    void deletingAReplyLeavesALiveCommentAlone() {
+      Comment root = dataService.createComment(stayer, post, "Question");
+      Comment reply = dataService.createReply(stayer, post, root, "Précision");
+
+      queryContext.setUserForTest(stayer);
+      commentService.deleteComment(team.getSlug(), post.getSlug(), EntityType.POST, reply.getId());
+
+      assertTrue(commentExists(root));
+    }
+  }
+
+  // ==================== Catch-up ====================
+
+  @Nested
+  class CatchUp {
+
+    /** Accounts flagged deleted before erasure existed. */
+    @Test
+    void erasesAccountsOnlyFlaggedDeleted() {
+      dataService.deleteUser(leaver);
+      assertEquals(List.of(leaver.getId()), erasureService.findPendingErasure());
+
+      erasureService.eraseById(leaver.getId());
+
+      assertTrue(AccountErasureService.isErased(reload(leaver)));
+      assertTrue(erasureService.findPendingErasure().isEmpty());
+    }
+
+    @Test
+    void ignoresActiveAccounts() {
+      assertTrue(erasureService.findPendingErasure().isEmpty());
+    }
+  }
+}
