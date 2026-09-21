@@ -215,6 +215,17 @@ L'archive contient votre profil, vos équipes, vos inscriptions, tout ce que vou
 
 Pour des raisons de sécurité, les éléments d'identification en sont exclus : hachage de votre mot de passe, jetons de session, matériel cryptographique de vos clés d'accès, jeton de votre calendrier, jetons d'accès à vos services GPS connectés et jetons d'enregistrement de vos téléphones pour les notifications push. Leurs métadonnées (dates, appareils, services concernés) sont bien présentes. Le lien de téléchargement expire au bout de **7 jours**, après quoi l'archive est supprimée de nos serveurs. Un export par heure et par compte.
 
+### Supprimer votre compte
+
+Vous pouvez supprimer votre compte vous-même, à tout moment, sans nous écrire :
+
+- **dans l'application mobile** : **Profil → Compte → Zone de danger**, puis « Supprimer le compte » ;
+- **sur le site web** : **Profil → Actions du compte → Zone de danger**, puis « Supprimer le compte ».
+
+Si vous n'avez plus accès à votre compte ou à l'application, écrivez-nous depuis l'adresse e-mail de votre compte à **privacy@pedalons.fr** en demandant sa suppression ; nous la traiterons dans un délai de 30 jours.
+
+La suppression est irréversible. Votre compte est désactivé immédiatement : vous ne pouvez plus vous connecter. Vos notifications, vos préférences de notification et l'enregistrement de vos téléphones pour les notifications push sont effacés sur-le-champ. La durée de conservation du reste est indiquée à la section 6. Les parcours publiés au nom d'une équipe restent la propriété de cette équipe.
+
 ### Nous contacter
 
 Pour les autres droits, ou si vous préférez passer par nous, contactez-nous à : **privacy@pedalons.fr**

@@ -215,6 +215,17 @@ The archive contains your profile, your teams, your sign-ups, everything you hav
 
 For security reasons, credential material is excluded: your password hash, session tokens, the cryptographic material of your passkeys, your calendar token, the access tokens of your connected GPS services, and the registration tokens of your phones for push notifications. Their metadata (dates, devices, services involved) is included. The download link expires after **7 days**, after which the archive is deleted from our servers. One export per hour per account.
 
+### Delete your account
+
+You can delete your account yourself, at any time, without writing to us:
+
+- **in the mobile app**: **Profile → Account → Danger zone**, then "Delete the account";
+- **on the website**: **Profile → Account Actions → Danger Zone**, then "Delete Account".
+
+If you no longer have access to your account or to the app, write to **privacy@pedalons.fr** from your account's email address asking for its deletion; we will process it within 30 days.
+
+Deletion is irreversible. Your account is deactivated immediately: you can no longer sign in. Your notifications, notification preferences and phone registrations for push notifications are erased on the spot. How long the rest is kept is stated in section 6. Routes published on behalf of a team remain that team's property.
+
 ### Contact us
 
 For the other rights, or if you would rather go through us, contact us at: **privacy@pedalons.fr**

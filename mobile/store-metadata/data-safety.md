@@ -201,13 +201,12 @@ divergences are called out below and are deliberate.
 | Does your app collect or share any of the required user data types? | **Yes** | §2 |
 | Is all of the user data collected by your app encrypted in transit? | **Yes** | HTTPS-only base URL; no `usesCleartextTraffic`, no `networkSecurityConfig`, no `NSAppTransportSecurity` exception |
 | Do you provide a way for users to request that their data be deleted? | **Yes** | see below |
-| Data deletion URL | `https://www.pedalons.fr/profile` | web profile "danger zone" → `useDeleteCurrentUser` (`frontend/src/pages/auth/UserProfilePage.tsx`, `frontend/src/hooks/useAuth.ts`) |
+| Data deletion URL | `https://www.pedalons.fr/privacy` | Public page: policy §7 *Delete your account* gives the in-app and web steps and the e-mail fallback. Not `/profile`, which sits behind sign-in — a reviewer opening it lands on the login screen |
 | Privacy policy URL | `https://www.pedalons.fr/privacy` | |
 
-⚠️ **Open item** — Play policy requires an **in-app** account-deletion path for apps that allow
-in-app account creation, in addition to the web URL. The app registers accounts but has no
-deletion UI. `DELETE /api/users/me` already exists in the generated client
-(`lib/api/generated/clients/users_client.dart`) and is unused. See §8.
+In-app deletion, which Play requires on top of the URL for apps that register accounts, exists:
+**Profile → Account → Danger zone** (`lib/features/profile/presentation/widgets/data_and_account_section.dart`)
+calls `DELETE /api/users/me`, then signs out.
 
 **Per-data-type answers.** *Shared* = No on every row. *Collected* and *Processed ephemerally* are
 per-row, because approximate location is the one type that is processed ephemerally.
@@ -370,8 +369,9 @@ these ships:
 
 **Known open items** (not store declarations — tracked here so they are not lost):
 
-1. **In-app account deletion** is required by Play policy for apps with in-app registration. Wire
-   the existing `DELETE /api/users/me` into the profile page. (§5)
+1. ~~**In-app account deletion**~~ Done — it shipped with the settings-style profile
+   (`fce64d47`); the deletion URL now points at the public policy rather than the signed-in
+   profile. (§5)
 2. ~~**The privacy policy has not caught up with §2 #9 and #10.**~~ Done 2026-09-21: the policy
    says the app receives only the photo picked through the system picker, and gained an
    *Approximate location* subsection (read on demand, in use only, sent as a search parameter,
@@ -385,13 +385,17 @@ these ships:
 4. ~~**Undisclosed third-party endpoints.**~~ Done 2026-09-21: Inter is bundled and `google_fonts`
    removed; every basemap provider is listed in the policy with what it sees, and the Esri (US)
    and OSMF (UK) transfers are stated. (§6)
-5. **`android:allowBackup` is unset**, so it defaults to `true`: app data is eligible for Google
-   Drive backup and device-to-device transfer. Two consequences worth a decision — it is a data
-   flow to Google that the privacy policy does not mention, and `flutter_secure_storage` is known
-   to restore badly under it (the ciphertext is backed up but the Keystore key is not, so the
-   restored `refresh_token` is undecryptable). Fixing it means setting `android:allowBackup` /
-   `android:dataExtractionRules` on `<application>`, which changes restore behaviour — a product
-   call, deliberately not made here.
+5. ~~**`android:allowBackup` is unset**~~ Done 2026-09-21: `allowBackup="false"`,
+   `fullBackupContent="false"`, and `res/xml/data_extraction_rules.xml` excluding every domain from
+   both cloud backup and device-to-device transfer — `allowBackup` alone no longer stops the
+   latter on Android 12+. Nothing reaches Google Drive, and a new phone signs in again, which it
+   had to anyway since the restored `refresh_token` was undecryptable.
+6. **Account deletion is a flag, never a purge.** `UserService.deleteUser` sets `deleted = true`
+   and erases the notification data (`forgetUser`); no scheduler ever removes the user row, their
+   sessions, participations or comments. The policy's §6 promises *permanent deletion within 30
+   days* — untrue today. Either add a purge job (anonymise or delete users `deleted` for 30 days)
+   or change the promise; the first is what the policy, the app's confirmation text
+   ("définitivement supprimés") and the Play *data deletion* answer all assume.
 
 ---
 
