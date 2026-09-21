@@ -267,7 +267,7 @@ We implement the following measures to protect your data:
 - **Secure cookies**: HttpOnly, Secure, SameSite=Strict.
 - **Multi-tenant isolation**: each domain's data is strictly isolated at the database level.
 - **Rate limiting**: protection against brute-force login attempts.
-- **Soft deletion**: deleted data is first deactivated before permanent deletion.
+- **Actual deletion**: what you delete, your account included, is erased from our database, not merely hidden; it survives only in our backups, for 30 days at most.
 
 No system is infallible. If you notice suspicious activity on your account, contact us immediately.
 

@@ -267,7 +267,7 @@ Nous mettons en oeuvre les mesures suivantes pour protéger vos données :
 - **Cookies sécurisés** : HttpOnly, Secure, SameSite=Strict.
 - **Isolation multi-tenant** : les données de chaque domaine sont strictement isolées au niveau de la base de données.
 - **Limitation de débit** : protection contre les tentatives de connexion par force brute.
-- **Suppression logique** : les données supprimées sont d'abord désactivées avant suppression définitive.
+- **Suppression effective** : ce que vous supprimez, compte compris, est effacé de notre base de données, et non simplement masqué ; il ne subsiste que dans nos sauvegardes, 30 jours au plus.
 
 Aucun système n'est infaillible. Si vous constatez une activité suspecte sur votre compte, contactez-nous immédiatement.
 
