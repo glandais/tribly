@@ -4,9 +4,11 @@ import fr.pedalons.common.TsidUtils;
 import fr.pedalons.domain.notification.Notification;
 import fr.pedalons.domain.notification.NotificationEventEntry;
 import fr.pedalons.dto.validation.ValidateSchema;
+import fr.pedalons.enums.NotificationChange;
 import fr.pedalons.enums.NotificationSubjectType;
 import fr.pedalons.enums.NotificationType;
 import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
@@ -35,14 +37,23 @@ public record NotificationDto(
     @Schema(description = "Name of the team it happened in", required = true) String teamName,
     @Schema(description = "Kind of page the notification opens", required = true)
         NotificationSubjectType subjectType,
-    @Schema(description = "Slug of the ride, trip, post or route", required = true)
+    @Schema(
+            description = "Slug of the ride, trip, post or route — of the team, for TEAM",
+            required = true)
         String subjectSlug,
-    @Schema(description = "Name of the ride, trip, post or route", required = true)
+    @Schema(
+            description = "Name of the ride, trip, post or route — of the team, for TEAM",
+            required = true)
         String subjectName,
     @Schema(description = "Date of the ride or trip, publication date of a post")
         @Nullable Instant subjectDateTime,
-    @Schema(description = "A short quote — the reply, for COMMENT_REPLY")
-        @Nullable String excerpt) {
+    @Schema(
+            description =
+                "A short quote: the comment, for COMMENT_REPLY and COMMENT_ON_MY_PUBLICATION; the"
+                    + " name of the group joined, for RIDE_JOINED")
+        @Nullable String excerpt,
+    @Schema(description = "What changed, for RIDE_UPDATED; empty otherwise", required = true)
+        List<NotificationChange> changes) {
 
   /** Expects the event join-fetched, and fanned out — only then is its snapshot set. */
   public static NotificationDto from(Notification notification) {
@@ -59,6 +70,7 @@ public record NotificationDto(
         Objects.requireNonNull(event.getSubjectSlug()),
         Objects.requireNonNull(event.getSubjectName()),
         event.getSubjectDateTime(),
-        event.getExcerpt());
+        event.getExcerpt(),
+        event.changeList());
   }
 }

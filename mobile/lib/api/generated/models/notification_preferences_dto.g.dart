@@ -15,6 +15,13 @@ _NotificationPreferencesDto _$NotificationPreferencesDtoFromJson(
   preferences: (json['preferences'] as List<dynamic>)
       .map((e) => NotificationPreferenceDto.fromJson(e as Map<String, dynamic>))
       .toList(),
+  teams: (json['teams'] as List<dynamic>)
+      .map(
+        (e) =>
+            NotificationTeamPreferenceDto.fromJson(e as Map<String, dynamic>),
+      )
+      .toList(),
+  emailDigest: json['emailDigest'] as bool,
 );
 
 Map<String, dynamic> _$NotificationPreferencesDtoToJson(
@@ -22,4 +29,6 @@ Map<String, dynamic> _$NotificationPreferencesDtoToJson(
 ) => <String, dynamic>{
   'channels': instance.channels.map((e) => e.toJson()).toList(),
   'preferences': instance.preferences.map((e) => e.toJson()).toList(),
+  'teams': instance.teams.map((e) => e.toJson()).toList(),
+  'emailDigest': instance.emailDigest,
 };

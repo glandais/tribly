@@ -2,11 +2,13 @@ package fr.pedalons.repository.ride;
 
 import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.enums.EntityType;
+import fr.pedalons.enums.Status;
 import fr.pedalons.enums.TeamEntityType;
 import fr.pedalons.repository.common.TeamEntityQueryBasic;
 import fr.pedalons.repository.common.TeamEntityRepository;
 import fr.pedalons.repository.query.PedalonsQuery;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -74,5 +76,20 @@ public class RideRepository implements TeamEntityRepository<Ride, TeamEntityQuer
             + "(select 1 from RideGroup g where g.ride = te and g.route.id = :routeId))",
         Map.of("routeId", routeId));
     return findAll(pedalonsQuery);
+  }
+
+  /**
+   * Published rides starting in {@code [from, to)} that someone registered to, on every domain —
+   * what {@code RideReminderScheduler} reminds. Riderless rides are left out: their reminder would
+   * reach nobody.
+   */
+  public List<Ride> findToRemind(Instant from, Instant to) {
+    return list(
+        "from Ride r where r.status = ?1 and r.deleted = false and r.team.deleted = false"
+            + " and r.dateTime >= ?2 and r.dateTime < ?3 and exists (select 1 from"
+            + " RideParticipation p where p.rideGroup.ride = r)",
+        Status.PUBLISHED,
+        from,
+        to);
   }
 }

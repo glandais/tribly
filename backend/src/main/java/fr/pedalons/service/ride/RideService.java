@@ -32,15 +32,20 @@ import fr.pedalons.service.comment.CommentCountLookup;
 import fr.pedalons.service.common.ParticipationLookup;
 import fr.pedalons.service.common.TeamEntityService;
 import fr.pedalons.service.notification.NotificationPublisher;
+import fr.pedalons.service.notification.event.RideJoined;
+import fr.pedalons.service.notification.event.RideUpdated;
 import fr.pedalons.service.route.RouteService;
 import fr.pedalons.service.security.annotation.CheckAccess;
 import fr.pedalons.service.thumbnail.ThumbnailService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
@@ -65,6 +70,10 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
   @Inject UserTeamRepository userTeamRepository;
 
   @Inject NotificationPublisher notificationPublisher;
+
+  /** How long a ride edit waits before notifying — the window in which further edits fold in. */
+  @ConfigProperty(name = "pedalons.notifications.update-delay-seconds", defaultValue = "300")
+  int updateDelaySeconds;
 
   @Override
   protected RideRepository getRepository() {
@@ -214,6 +223,8 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
     Ride ride = findBySlug(team, rideSlug);
     User user = pedalonsContext.getUser();
     Status previousStatus = ride.getStatus();
+    Instant previousDateTime = ride.getDateTime();
+    Long previousStartPlaceId = ride.getStart() != null ? ride.getStart().getId() : null;
 
     validateVisibility(team, request);
     ride.setVisibility(request.visibility());
@@ -261,6 +272,19 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
 
     thumbnailService.generateRideThumbnails(ride);
     notificationPublisher.publicationStatusChanged(ride, previousStatus, user);
+    // Only a ride that stays published has riders to warn; the resolver compares the state before
+    // with the state after the delay, so an edit undone in the meantime notifies nobody.
+    if (previousStatus == Status.PUBLISHED
+        && ride.getStatus() == Status.PUBLISHED
+        && (!previousDateTime.equals(ride.getDateTime())
+            || !Objects.equals(
+                previousStartPlaceId, startPlace != null ? startPlace.getId() : null))) {
+      notificationPublisher.publish(
+          new RideUpdated(ride.getId(), previousDateTime, previousStartPlaceId),
+          team,
+          user,
+          Duration.ofSeconds(updateDelaySeconds));
+    }
 
     return toDto(ride);
   }
@@ -316,6 +340,8 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
 
     group.addParticipation(participation);
     participationRepository.persist(participation);
+    notificationPublisher.publish(
+        new RideJoined(participation.getId()), team, pedalonsContext.getUser());
 
     return RideParticipationDto.from(participation);
   }

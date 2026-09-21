@@ -39,6 +39,13 @@ public class EmailService {
    */
   public static final String NOTIFICATION = "notification";
 
+  /**
+   * The daily digest: several notifications in one e-mail. {@code items} is a list of already
+   * rendered {@code title}, {@code body}, {@code ctaLabel}, {@code ctaUrl} — a loop in the Brevo
+   * template.
+   */
+  public static final String NOTIFICATION_DIGEST = "notification-digest";
+
   /** The languages {@code templates/mail} is translated into; anything else falls back to French. */
   private static final Set<String> TEMPLATE_LANGUAGES = Set.of("fr", "en");
 
@@ -95,6 +102,12 @@ public class EmailService {
 
   @ConfigProperty(name = "pedalons.email.brevo.templates.notification.en")
   Optional<Long> templateNotificationEn;
+
+  @ConfigProperty(name = "pedalons.email.brevo.templates.notification-digest.fr")
+  Optional<Long> templateNotificationDigestFr;
+
+  @ConfigProperty(name = "pedalons.email.brevo.templates.notification-digest.en")
+  Optional<Long> templateNotificationDigestEn;
 
   @Inject @RestClient BrevoRestClient brevoRestClient;
 
@@ -220,6 +233,16 @@ public class EmailService {
               () ->
                   new IllegalStateException(
                       "Brevo template ID not configured for notification.en"));
+      case NOTIFICATION_DIGEST + ".fr" ->
+          templateNotificationDigestFr.orElseThrow(
+              () ->
+                  new IllegalStateException(
+                      "Brevo template ID not configured for notification-digest.fr"));
+      case NOTIFICATION_DIGEST + ".en" ->
+          templateNotificationDigestEn.orElseThrow(
+              () ->
+                  new IllegalStateException(
+                      "Brevo template ID not configured for notification-digest.en"));
       default ->
           throw new IllegalArgumentException(
               "Unknown template: " + templateName + " / " + language);

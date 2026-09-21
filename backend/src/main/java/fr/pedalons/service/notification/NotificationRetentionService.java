@@ -3,6 +3,7 @@ package fr.pedalons.service.notification;
 import fr.pedalons.repository.notification.NotificationDeliveryRepository;
 import fr.pedalons.repository.notification.NotificationEventRepository;
 import fr.pedalons.repository.notification.NotificationRepository;
+import fr.pedalons.repository.notification.TeamWebhookDeliveryRepository;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -26,6 +27,7 @@ public class NotificationRetentionService {
   @Inject NotificationEventRepository eventRepository;
   @Inject NotificationRepository notificationRepository;
   @Inject NotificationDeliveryRepository deliveryRepository;
+  @Inject TeamWebhookDeliveryRepository webhookDeliveryRepository;
 
   @ConfigProperty(name = "pedalons.notifications.retention-days", defaultValue = "90")
   int retentionDays;
@@ -44,6 +46,7 @@ public class NotificationRetentionService {
                       return 0;
                     }
                     deliveryRepository.deleteByEventIds(ids);
+                    webhookDeliveryRepository.deleteByEventIds(ids);
                     notificationRepository.deleteByEventIds(ids);
                     eventRepository.delete("id in ?1", ids);
                     return ids.size();

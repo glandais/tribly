@@ -20,25 +20,87 @@ import java.util.Set;
  */
 public enum NotificationType {
   /** A ride became visible to the team: created published, published from draft, or auto-published. */
-  RIDE_PUBLISHED(EnumSet.of(IN_APP, PUSH)),
+  RIDE_PUBLISHED(EnumSet.of(IN_APP, PUSH), Audience.BROADCAST, false),
   /** A ride the recipient is registered to was cancelled. */
-  RIDE_CANCELLED(EnumSet.of(IN_APP, EMAIL, PUSH)),
+  RIDE_CANCELLED(EnumSet.of(IN_APP, EMAIL, PUSH), Audience.PERSONAL, true),
   /** A trip became visible to the team. Rarer and weightier than a ride, hence the e-mail. */
-  TRIP_PUBLISHED(EnumSet.of(IN_APP, EMAIL, PUSH)),
+  TRIP_PUBLISHED(EnumSet.of(IN_APP, EMAIL, PUSH), Audience.BROADCAST, false),
   /** A trip the recipient is registered to was cancelled. */
-  TRIP_CANCELLED(EnumSet.of(IN_APP, EMAIL, PUSH)),
+  TRIP_CANCELLED(EnumSet.of(IN_APP, EMAIL, PUSH), Audience.PERSONAL, true),
   /** A post became visible to the team. */
-  POST_PUBLISHED(EnumSet.of(IN_APP)),
+  POST_PUBLISHED(EnumSet.of(IN_APP), Audience.BROADCAST, false),
   /** Someone replied to the recipient's comment. */
-  COMMENT_REPLY(EnumSet.of(IN_APP, PUSH));
+  COMMENT_REPLY(EnumSet.of(IN_APP, PUSH), Audience.PERSONAL, false),
+  /** A ride the recipient is registered to starts within a day. Produced by a scheduler. */
+  RIDE_REMINDER(EnumSet.of(IN_APP, PUSH), Audience.PERSONAL, true),
+  /** The date or the meeting point of a ride the recipient is registered to changed. */
+  RIDE_UPDATED(EnumSet.of(IN_APP, EMAIL, PUSH), Audience.PERSONAL, true),
+  /**
+   * Someone joined a ride the recipient created or leads a group of. In-app only by default: a
+   * popular ride would otherwise buzz its organiser thirty times.
+   */
+  RIDE_JOINED(EnumSet.of(IN_APP), Audience.PERSONAL, false),
+  /** Someone commented on a ride, trip, post or route the recipient created. */
+  COMMENT_ON_MY_PUBLICATION(EnumSet.of(IN_APP, PUSH), Audience.PERSONAL, false),
+  /**
+   * The recipient was invited to a team. No e-mail by default: the invitation sends its own, with
+   * the link that accepts it.
+   */
+  TEAM_INVITATION(EnumSet.of(IN_APP, PUSH), Audience.PERSONAL, false);
+
+  /** Who a type speaks to. */
+  public enum Audience {
+    /**
+     * The whole team, because something was announced to it. The kind a member silences by muting a
+     * team, and the kind a team webhook relays.
+     */
+    BROADCAST,
+    /** Someone concerned in particular: registered, replied to, invited. Never muted by a team. */
+    PERSONAL
+  }
 
   private final Set<NotificationChannel> defaultChannels;
+  private final Audience audience;
+  private final boolean urgent;
 
-  NotificationType(Set<NotificationChannel> defaultChannels) {
+  NotificationType(Set<NotificationChannel> defaultChannels, Audience audience, boolean urgent) {
     this.defaultChannels = Set.copyOf(defaultChannels);
+    this.audience = audience;
+    this.urgent = urgent;
   }
 
   public boolean isEnabledByDefault(NotificationChannel channel) {
     return defaultChannels.contains(channel);
+  }
+
+  /** Announced to the whole team — see {@link Audience#BROADCAST}. */
+  public boolean isBroadcast() {
+    return audience == Audience.BROADCAST;
+  }
+
+  /**
+   * Cannot wait for tomorrow morning's digest: the cancellation of a ride that leaves at eight would
+   * arrive after it left.
+   */
+  public boolean isUrgent() {
+    return urgent;
+  }
+
+  /**
+   * Relayed to the team webhook: what the whole team would want to read in its chat — what was
+   * announced, and what changed or was called off since.
+   */
+  public boolean isRelayedToTeamWebhook() {
+    return switch (this) {
+      case RIDE_PUBLISHED,
+          TRIP_PUBLISHED,
+          POST_PUBLISHED,
+          RIDE_CANCELLED,
+          TRIP_CANCELLED,
+          RIDE_UPDATED ->
+          true;
+      case COMMENT_REPLY, RIDE_REMINDER, RIDE_JOINED, COMMENT_ON_MY_PUBLICATION, TEAM_INVITATION ->
+          false;
+    };
   }
 }

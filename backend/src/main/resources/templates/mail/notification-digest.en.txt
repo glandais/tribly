@@ -1,0 +1,17 @@
+{#fragment id=subject rendered=false}{params.subject}{/fragment}
+Hello {params.recipientName},
+
+{params.title}
+
+{params.intro}
+{#for item in params.items}
+
+{item.title}
+{item.body}
+{item.ctaLabel}: {item.ctaUrl}
+{/for}
+
+You are receiving this digest because you chose to receive your email notifications once a day. Choose your notifications: {params.preferencesUrl}
+
+Best regards,
+The {params.appName} team

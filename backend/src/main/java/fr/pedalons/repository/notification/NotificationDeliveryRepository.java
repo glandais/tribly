@@ -24,6 +24,7 @@ public class NotificationDeliveryRepository implements PanacheRepository<Notific
                 """
                 select id from notification_deliveries
                 where channel = :channel and status = 'PENDING' and next_attempt_at <= :now
+                  and not digest
                 order by next_attempt_at
                 limit :limit
                 for update skip locked
@@ -31,6 +32,48 @@ public class NotificationDeliveryRepository implements PanacheRepository<Notific
             .setParameter("channel", channel.name())
             .setParameter("now", java.sql.Timestamp.from(now))
             .setParameter("limit", limit)
+            .getResultList();
+    return ids.stream().map(Number::longValue).toList();
+  }
+
+  /**
+   * Recipients who have at least one digest e-mail due, at most {@code limit}. Not locked: {@link
+   * #lockDueDigest} is the claim, and a recipient whose rows another worker took simply yields
+   * nothing there.
+   */
+  @SuppressWarnings("unchecked")
+  public List<Long> findDueDigestRecipients(Instant now, int limit) {
+    List<Number> ids =
+        getEntityManager()
+            .createNativeQuery(
+                """
+                select distinct n.recipient_id from notification_deliveries d
+                join notifications n on n.id = d.notification_id
+                where d.digest and d.status = 'PENDING' and d.next_attempt_at <= :now
+                limit :limit
+                """)
+            .setParameter("now", java.sql.Timestamp.from(now))
+            .setParameter("limit", limit)
+            .getResultList();
+    return ids.stream().map(Number::longValue).toList();
+  }
+
+  /** One recipient's due digest e-mails, locked for this transaction — the digest's claim. */
+  @SuppressWarnings("unchecked")
+  public List<Long> lockDueDigest(Long recipientId, Instant now) {
+    List<Number> ids =
+        getEntityManager()
+            .createNativeQuery(
+                """
+                select d.id from notification_deliveries d
+                join notifications n on n.id = d.notification_id
+                where d.digest and d.status = 'PENDING' and d.next_attempt_at <= :now
+                  and n.recipient_id = :recipientId
+                order by d.created_at
+                for update of d skip locked
+                """)
+            .setParameter("now", java.sql.Timestamp.from(now))
+            .setParameter("recipientId", recipientId)
             .getResultList();
     return ids.stream().map(Number::longValue).toList();
   }

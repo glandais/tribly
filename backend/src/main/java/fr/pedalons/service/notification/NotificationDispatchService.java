@@ -2,11 +2,11 @@ package fr.pedalons.service.notification;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.pedalons.common.TsidUtils;
-import fr.pedalons.domain.common.TeamEntity;
 import fr.pedalons.domain.notification.Notification;
 import fr.pedalons.domain.notification.NotificationDelivery;
 import fr.pedalons.domain.notification.NotificationEventEntry;
 import fr.pedalons.domain.notification.NotificationPreference;
+import fr.pedalons.domain.notification.TeamWebhookDelivery;
 import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.user.User;
@@ -17,6 +17,10 @@ import fr.pedalons.repository.notification.NotificationDeliveryRepository;
 import fr.pedalons.repository.notification.NotificationEventRepository;
 import fr.pedalons.repository.notification.NotificationPreferenceRepository;
 import fr.pedalons.repository.notification.NotificationRepository;
+import fr.pedalons.repository.notification.NotificationSettingsRepository;
+import fr.pedalons.repository.notification.NotificationTeamMuteRepository;
+import fr.pedalons.repository.notification.TeamWebhookDeliveryRepository;
+import fr.pedalons.repository.notification.TeamWebhookRepository;
 import fr.pedalons.repository.platform.DomainAliasRepository;
 import fr.pedalons.repository.platform.DomainRepository;
 import fr.pedalons.repository.user.UserRepository;
@@ -28,6 +32,8 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalTime;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -40,6 +46,7 @@ import java.util.Set;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.hibernate.Session;
 import org.jboss.logging.Logger;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Stage 2 of the notification pipeline: turns one queued event into one inbox row per recipient
@@ -57,10 +64,17 @@ public class NotificationDispatchService {
 
   private static final Duration MAX_BACKOFF = Duration.ofHours(6);
 
+  /** When the daily digest leaves, in the recipient's time zone. */
+  static final LocalTime DIGEST_TIME = LocalTime.of(7, 0);
+
   @Inject NotificationEventRepository eventRepository;
   @Inject NotificationRepository notificationRepository;
   @Inject NotificationDeliveryRepository deliveryRepository;
   @Inject NotificationPreferenceRepository preferenceRepository;
+  @Inject NotificationTeamMuteRepository teamMuteRepository;
+  @Inject NotificationSettingsRepository settingsRepository;
+  @Inject TeamWebhookRepository webhookRepository;
+  @Inject TeamWebhookDeliveryRepository webhookDeliveryRepository;
   @Inject NotificationRecipientResolver resolver;
   @Inject NotificationChannels channels;
   @Inject UserRepository userRepository;
@@ -140,11 +154,23 @@ public class NotificationDispatchService {
     snapshot(entry, resolution.get());
 
     List<User> recipients = recipients(resolution.get().recipients(), entry);
+    if (entry.getType().isBroadcast() && !recipients.isEmpty()) {
+      Set<Long> muted =
+          teamMuteRepository.findMutedUserIds(
+              resolution.get().team().getId(), recipients.stream().map(User::getId).toList());
+      recipients.removeIf(user -> muted.contains(user.getId()));
+    }
     Set<NotificationChannel> available = channels.available();
     Map<Long, Map<NotificationChannel, Boolean>> overrides =
         available.isEmpty() || recipients.isEmpty()
             ? Map.of()
             : overrides(entry.getType(), recipients);
+    Set<Long> digestReaders =
+        available.contains(NotificationChannel.EMAIL)
+                && !entry.getType().isUrgent()
+                && !recipients.isEmpty()
+            ? settingsRepository.findDigestUserIds(recipients.stream().map(User::getId).toList())
+            : Set.of();
 
     // Notifications first, deliveries after: two runs of same-table inserts batch; interleaving
     // them would flush a batch of one at every switch.
@@ -157,24 +183,65 @@ public class NotificationDispatchService {
     }
     int deliveries = 0;
     for (Notification notification : notifications) {
+      User recipient = notification.getRecipient();
       Map<NotificationChannel, Boolean> userOverrides =
-          overrides.getOrDefault(notification.getRecipient().getId(), Map.of());
+          overrides.getOrDefault(recipient.getId(), Map.of());
       for (NotificationChannel channel : available) {
         boolean enabled =
             userOverrides.getOrDefault(channel, entry.getType().isEnabledByDefault(channel));
         if (enabled) {
-          deliveryRepository.persist(new NotificationDelivery(notification, channel, now));
+          NotificationDelivery delivery = new NotificationDelivery(notification, channel, now);
+          if (channel == NotificationChannel.EMAIL && digestReaders.contains(recipient.getId())) {
+            delivery.setDigest(true);
+            delivery.setNextAttemptAt(nextDigest(now, recipient.getTimezone()));
+          }
+          deliveryRepository.persist(delivery);
           deliveries++;
         }
       }
     }
+    boolean relayed = queueWebhook(entry, resolution.get(), now);
 
     entry.setStatus(NotificationEventStatus.DONE);
     entry.setProcessedAt(now);
     entry.setErrorMessage(null);
+    if (event.coalescesWhilePending()) {
+      // Done waiting: the next edit is a new change, and must be able to queue a new event.
+      releaseDedupKey(entry);
+    }
     LOG.infof(
-        "Notification %s: %d recipient(s), %d delivery(ies)",
-        entry.getDedupKey(), notifications.size(), deliveries);
+        "Notification %s: %d recipient(s), %d delivery(ies)%s",
+        entry.getDedupKey(), notifications.size(), deliveries, relayed ? ", team webhook" : "");
+  }
+
+  /**
+   * Queues the event for the team's webhook, when the type is one a team channel wants to read and
+   * the team has an enabled webhook. Independent of the recipients: a ride published in a team whose
+   * members all muted it is still news in its chat.
+   */
+  private boolean queueWebhook(NotificationEventEntry entry, Resolution resolution, Instant now) {
+    if (!entry.getType().isRelayedToTeamWebhook()) {
+      return false;
+    }
+    return webhookRepository
+        .findByTeam(resolution.team().getId())
+        .filter(webhook -> webhook.isEnabled())
+        .map(
+            webhook -> {
+              webhookDeliveryRepository.persist(new TeamWebhookDelivery(entry, webhook, now));
+              return true;
+            })
+        .orElse(false);
+  }
+
+  /** The next {@link #DIGEST_TIME} strictly after {@code now}, in the recipient's time zone. */
+  static Instant nextDigest(Instant now, @Nullable String timezone) {
+    ZonedDateTime local = now.atZone(NotificationTexts.zone(timezone));
+    ZonedDateTime next = local.with(DIGEST_TIME);
+    if (!next.isAfter(local)) {
+      next = next.plusDays(1).with(DIGEST_TIME);
+    }
+    return next.toInstant();
   }
 
   /**
@@ -211,15 +278,15 @@ public class NotificationDispatchService {
    * organiser happened to publish from.
    */
   private void snapshot(NotificationEventEntry entry, Resolution resolution) {
-    TeamEntity subject = resolution.subject();
-    Team team = subject.getTeam();
+    Team team = resolution.team();
     entry.setTeamSlug(team.getSlug());
     entry.setTeamName(team.getName());
     entry.setSubjectType(resolution.subjectType());
-    entry.setSubjectSlug(subject.getSlug());
-    entry.setSubjectName(subject.getName());
-    entry.setSubjectDateTime(subject.getDateTime());
+    entry.setSubjectSlug(resolution.subjectSlug());
+    entry.setSubjectName(resolution.subjectName());
+    entry.setSubjectDateTime(resolution.subjectDateTime());
     entry.setExcerpt(resolution.excerpt());
+    entry.setChangeList(resolution.changes());
     if (entry.getActorId() != null) {
       User actor = userRepository.findById(entry.getActorId());
       entry.setActorName(actor != null ? actor.getDisplayName() : null);

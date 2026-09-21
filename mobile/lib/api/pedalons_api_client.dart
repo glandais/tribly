@@ -191,3 +191,7 @@ final tripCommentsClientProvider = Provider<TripCommentsClient>((ref) {
 final notificationsClientProvider = Provider<NotificationsClient>((ref) {
   return ref.watch(apiClientProvider).notifications;
 });
+
+final invitationsClientProvider = Provider<InvitationsClient>((ref) {
+  return ref.watch(apiClientProvider).invitations;
+});

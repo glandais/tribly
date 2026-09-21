@@ -18,6 +18,7 @@ import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { TeamForm } from '../../components/team/TeamForm'
 import { TeamAdminLayout } from '../../components/team/TeamAdminLayout'
+import { TeamWebhookSettings } from '../../components/team/TeamWebhookSettings'
 import { TeamDetailDto } from '@/api/dto'
 
 export function TeamSettingsPage() {
@@ -110,6 +111,8 @@ export function TeamSettingsPage() {
           create={false}
           onSlugChange={handleSlugChange}
         />
+
+        <TeamWebhookSettings teamSlug={team.slug} />
 
         {/* Danger Zone */}
         <Box mt="xl" pt="xl" style={{ borderTop: '1px solid var(--mantine-color-default-border)' }}>

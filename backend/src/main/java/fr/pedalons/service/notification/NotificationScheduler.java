@@ -18,6 +18,8 @@ public class NotificationScheduler {
   @Inject NotificationDispatchService dispatchService;
   @Inject NotificationDeliveryService deliveryService;
   @Inject NotificationRetentionService retentionService;
+  @Inject NotificationDigestService digestService;
+  @Inject TeamWebhookDeliveryService webhookDeliveryService;
 
   /**
    * {@code SKIP}: a slow tick never overlaps the next. The claims below are what make more than one
@@ -42,6 +44,27 @@ public class NotificationScheduler {
         LOG.errorf(e, "Notification delivery tick failed on %s", channel);
       }
     }
+    try {
+      webhookDeliveryService.sendDue();
+    } catch (Exception e) {
+      LOG.error("Team webhook delivery tick failed", e);
+    }
+  }
+
+  /**
+   * Sends the daily digests that are due. Every quarter of an hour rather than once at 7:00: the
+   * time is each recipient's own, so some digest falls due at every quarter somewhere.
+   */
+  @Scheduled(every = "15m", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
+  void digests() {
+    try {
+      int sent = digestService.sendDue();
+      if (sent > 0) {
+        LOG.infof("Notification digests: %d sent", sent);
+      }
+    } catch (Exception e) {
+      LOG.error("Notification digest tick failed", e);
+    }
   }
 
   /**
@@ -52,7 +75,7 @@ public class NotificationScheduler {
   void recoverStuck() {
     try {
       int events = dispatchService.recoverStuck();
-      int deliveries = deliveryService.recoverStuck();
+      int deliveries = deliveryService.recoverStuck() + webhookDeliveryService.recoverStuck();
       if (events > 0 || deliveries > 0) {
         LOG.warnf(
             "Notification recovery: %d stuck event(s), %d stuck delivery(ies) requeued",

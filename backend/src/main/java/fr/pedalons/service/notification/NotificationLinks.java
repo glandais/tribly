@@ -20,6 +20,12 @@ final class NotificationLinks {
 
   private NotificationLinks() {}
 
+  /**
+   * An invitation opens the team list, not the team: that is where pending invitations are shown
+   * and accepted, and the team page itself may not be readable before joining.
+   */
+  static final String TEAMS_PATH = "/teams";
+
   static String subjectPath(NotificationSubjectType type, String teamSlug, String slug) {
     String segment =
         switch (type) {
@@ -27,7 +33,8 @@ final class NotificationLinks {
           case TRIP -> "trips";
           case POST -> "posts";
           case ROUTE -> "routes";
+          case TEAM -> null;
         };
-    return "/teams/" + teamSlug + "/" + segment + "/" + slug;
+    return segment == null ? TEAMS_PATH : "/teams/" + teamSlug + "/" + segment + "/" + slug;
   }
 }

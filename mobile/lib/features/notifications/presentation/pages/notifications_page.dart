@@ -12,6 +12,7 @@ import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
+import '../../../teams/providers/team_providers.dart';
 import '../../providers/notifications_provider.dart';
 import '../notification_display.dart';
 import '../widgets/notification_tile.dart';
@@ -128,7 +129,17 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
     // par-dessus celui-ci, et une pastille qui ne bouge qu'au retour donne
     // l'impression que le geste n'a rien fait.
     _markReadInBackground(notifier, notification);
-    if (path != null && mounted) context.push(path);
+    if (path == null || !mounted) return;
+    if (notification.subjectTypeEnum == NotificationSubjectType.team) {
+      // Une invitation ouvre la liste des équipes, qui est la racine d'un
+      // onglet : on y *va* plutôt que de l'empiler sur l'accueil, ce qui
+      // fondrait les deux branches et laisserait l'onglet « Accueil » allumé.
+      // Les invitations sont relues, la nouvelle n'y est peut-être pas encore.
+      ref.invalidate(myInvitationsProvider);
+      context.go(path);
+      return;
+    }
+    context.push(path);
   }
 
   void _markReadInBackground(

@@ -18,18 +18,27 @@ const List<NotificationType> _typeOrder = <NotificationType>[
   NotificationType.tripCancelled,
   NotificationType.postPublished,
   NotificationType.commentReply,
+  NotificationType.rideReminder,
+  NotificationType.rideUpdated,
+  NotificationType.rideJoined,
+  NotificationType.commentOnMyPublication,
+  NotificationType.teamInvitation,
 ];
 
-/// La matrice type × canal du profil.
+/// Les réglages de notification du profil : la matrice type × canal, le
+/// résumé quotidien et les équipes coupées.
 ///
-/// **Elle ne rend rien** tant que le serveur ne déclare aucun canal
-/// configurable — c'est le cas par défaut aujourd'hui : `IN_APP` n'est jamais
-/// réglable (la boîte reçoit tout, et le `PUT` le refuse) et `PUSH` n'a pas
-/// encore d'émetteur. Dessiner des interrupteurs sans effet est exactement ce
+/// **La matrice ne rend rien** tant que le serveur ne déclare aucun canal
+/// configurable : `IN_APP` n'est jamais réglable (la boîte reçoit tout, et le
+/// `PUT` le refuse). Dessiner des interrupteurs sans effet est exactement ce
 /// que le brief §5 interdit, et ce qui avait fait retirer la section en v2.
+/// Les équipes, elles, se règlent **même sans canal** : couper une équipe vide
+/// aussi la boîte de ses annonces. La section entière ne disparaît donc que
+/// s'il n'y a ni canal ni équipe.
 ///
 /// Un interrupteur écrit **une seule case** : envoyer la matrice entière
-/// transformerait chaque défaut en dérogation explicite jamais choisie.
+/// transformerait chaque défaut en dérogation explicite jamais choisie. Il en
+/// va de même d'une équipe ou du résumé — un appel par geste.
 class NotificationPreferencesSection extends ConsumerStatefulWidget {
   const NotificationPreferencesSection({super.key});
 
@@ -43,19 +52,17 @@ class _NotificationPreferencesSectionState
   String? _error;
   bool _busy = false;
 
-  Future<void> _toggle({
-    required NotificationType type,
-    required NotificationChannel channel,
-    required bool enabled,
-  }) async {
+  /// Un appel, puis la relecture des préférences : c'est la réponse du
+  /// serveur qui fait foi, pas l'état local de l'interrupteur.
+  Future<void> _write(
+    Future<void> Function(NotificationsRepository repository) call,
+  ) async {
     setState(() {
       _error = null;
       _busy = true;
     });
     try {
-      await ref
-          .read(notificationsRepositoryProvider)
-          .setPreference(type: type, channel: channel, enabled: enabled);
+      await call(ref.read(notificationsRepositoryProvider));
       ref.invalidate(notificationPreferencesProvider);
       await ref.read(notificationPreferencesProvider.future);
     } catch (error, stackTrace) {
@@ -64,6 +71,15 @@ class _NotificationPreferencesSectionState
       if (mounted) setState(() => _busy = false);
     }
   }
+
+  Future<void> _toggle({
+    required NotificationType type,
+    required NotificationChannel channel,
+    required bool enabled,
+  }) => _write(
+    (NotificationsRepository r) =>
+        r.setPreference(type: type, channel: channel, enabled: enabled),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +91,7 @@ class _NotificationPreferencesSectionState
     // réglage secondaire du profil, elle n'a pas à y planter un bandeau rouge
     // ni à réserver de la place pour un tableau qui n'arrivera peut-être pas.
     final NotificationPreferencesDto? data = async.value;
-    if (data == null || data.channels.isEmpty) return const SizedBox.shrink();
+    if (data == null) return const SizedBox.shrink();
 
     final PdlTypography t = context.pdlText;
     // `$unknown` : un canal qu'une version plus ancienne de l'app ne connaît
@@ -86,7 +102,7 @@ class _NotificationPreferencesSectionState
               channel != NotificationChannel.$unknown,
         )
         .toList();
-    if (channels.isEmpty) return const SizedBox.shrink();
+    if (channels.isEmpty && data.teams.isEmpty) return const SizedBox.shrink();
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -103,14 +119,30 @@ class _NotificationPreferencesSectionState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                Text(
-                  'notifications.preferences.inAppAlwaysOn'.tr(),
-                  style: t.xs,
-                ),
-                const SizedBox(height: PdlSpacing.chipGap),
-                for (final NotificationType type in _typeOrder)
-                  for (final NotificationChannel channel in channels)
-                    _cell(data, type, channel),
+                if (channels.isNotEmpty) ...<Widget>[
+                  Text(
+                    'notifications.preferences.inAppAlwaysOn'.tr(),
+                    style: t.xs,
+                  ),
+                  const SizedBox(height: PdlSpacing.chipGap),
+                  for (final NotificationType type in _typeOrder)
+                    for (final NotificationChannel channel in channels)
+                      _cell(data, type, channel),
+                  if (channels.contains(NotificationChannel.email))
+                    _digest(data),
+                ],
+                if (data.teams.isNotEmpty) ...<Widget>[
+                  if (channels.isNotEmpty)
+                    const SizedBox(height: PdlSpacing.section),
+                  Text(
+                    'notifications.preferences.teamsTitle'.tr(),
+                    style: t.bodyStrong,
+                  ),
+                  Text('notifications.preferences.teamsHint'.tr(), style: t.xs),
+                  const SizedBox(height: PdlSpacing.chipGap),
+                  for (final NotificationTeamPreferenceDto team in data.teams)
+                    _team(team),
+                ],
                 if (_error != null) ...<Widget>[
                   const SizedBox(height: PdlSpacing.chipGap),
                   PdlBanner(tone: PdlBannerTone.danger, message: _error!),
@@ -123,10 +155,49 @@ class _NotificationPreferencesSectionState
     );
   }
 
+  /// Le résumé quotidien. Il ne concerne que l'e-mail, d'où sa place : sous la
+  /// matrice, et seulement quand l'e-mail en est une colonne.
+  Widget _digest(NotificationPreferencesDto data) {
+    final String label = 'notifications.preferences.digest'.tr();
+    return PdlSettingRow(
+      title: label,
+      subtitle: 'notifications.preferences.digestHint'.tr(),
+      trailing: PdlSwitch(
+        value: data.emailDigest,
+        semanticLabel: label,
+        onChanged: _busy
+            ? null
+            : (bool value) => _write(
+                (NotificationsRepository r) => r.setEmailDigest(value),
+              ),
+      ),
+    );
+  }
+
+  /// Une équipe. L'interrupteur dit « je reçois ses annonces » — allumé par
+  /// défaut, comme les cases de la matrice — plutôt que « coupée », qui
+  /// inverserait le sens d'un interrupteur sur deux dans la même carte.
+  Widget _team(NotificationTeamPreferenceDto team) {
+    return PdlSettingRow(
+      title: team.teamName,
+      trailing: PdlSwitch(
+        value: !team.muted,
+        semanticLabel: 'notifications.preferences.teamSwitch'.tr(
+          namedArgs: <String, String>{'team': team.teamName},
+        ),
+        onChanged: _busy
+            ? null
+            : (bool receive) => _write(
+                (NotificationsRepository r) =>
+                    r.setTeamMuted(teamSlug: team.teamSlug, muted: !receive),
+              ),
+      ),
+    );
+  }
+
   /// Une ligne par case de la matrice.
   ///
-  /// Avec un seul canal — le cas d'aujourd'hui — le nom du canal serait répété
-  /// six fois pour rien : la ligne ne porte alors que le type, et le canal est
+  /// Avec un seul canal le nom du canal serait répété à chaque ligne pour rien : la ligne ne porte alors que le type, et le canal est
   /// dit une fois dans l'en-tête de section.
   Widget _cell(
     NotificationPreferencesDto data,

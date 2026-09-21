@@ -1,35 +1,80 @@
 package fr.pedalons.service.notification;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import fr.pedalons.enums.NotificationType;
+import fr.pedalons.service.notification.event.CommentOnPublication;
+import fr.pedalons.service.notification.event.CommentReplied;
 import fr.pedalons.service.notification.event.NotificationEvent;
-import java.lang.reflect.RecordComponent;
+import fr.pedalons.service.notification.event.PostPublished;
+import fr.pedalons.service.notification.event.RideCancelled;
+import fr.pedalons.service.notification.event.RideJoined;
+import fr.pedalons.service.notification.event.RidePublished;
+import fr.pedalons.service.notification.event.RideReminder;
+import fr.pedalons.service.notification.event.RideUpdated;
+import fr.pedalons.service.notification.event.TeamInvited;
+import fr.pedalons.service.notification.event.TripCancelled;
+import fr.pedalons.service.notification.event.TripPublished;
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 
 /**
  * Every type has a record that says it is that type, and survives the trip through the payload
- * column. Plain unit test: a default ObjectMapper stands in for Quarkus's.
+ * column. Plain unit test: an ObjectMapper with the java.time module stands in for Quarkus's.
  */
 class NotificationEventTest {
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private static final Instant DATE = Instant.parse("2026-09-27T07:00:00Z");
+
+  private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+
+  /** One event per type. Exhaustive: a type added without a sample does not compile. */
+  private static NotificationEvent sample(NotificationType type) {
+    return switch (type) {
+      case RIDE_PUBLISHED -> new RidePublished(42);
+      case RIDE_CANCELLED -> new RideCancelled(42);
+      case TRIP_PUBLISHED -> new TripPublished(42);
+      case TRIP_CANCELLED -> new TripCancelled(42);
+      case POST_PUBLISHED -> new PostPublished(42);
+      case COMMENT_REPLY -> new CommentReplied(42);
+      case RIDE_REMINDER -> new RideReminder(42, DATE);
+      case RIDE_UPDATED -> new RideUpdated(42, DATE, 7L);
+      case RIDE_JOINED -> new RideJoined(42);
+      case COMMENT_ON_MY_PUBLICATION -> new CommentOnPublication(42);
+      case TEAM_INVITATION -> new TeamInvited(42);
+    };
+  }
 
   @Test
   void everyTypeRoundTripsThroughItsRecord() throws Exception {
     for (NotificationType type : NotificationType.values()) {
+      NotificationEvent event = sample(type);
       Class<? extends NotificationEvent> recordClass = NotificationEvent.recordClass(type);
-      RecordComponent[] components = recordClass.getRecordComponents();
-      assertEquals(1, components.length, recordClass + ": update this test for richer payloads");
-      NotificationEvent event = recordClass.getDeclaredConstructor(long.class).newInstance(42L);
 
+      assertEquals(recordClass, event.getClass());
       assertEquals(type, event.type());
-      assertEquals(type.name() + ":42", event.dedupKey());
+      assertTrue(
+          event.dedupKey().startsWith(type.name() + ":42"), recordClass + ": " + event.dedupKey());
       assertEquals(
           event,
           objectMapper.treeToValue(objectMapper.valueToTree(event), recordClass),
           "round trip of " + recordClass.getSimpleName());
     }
+  }
+
+  @Test
+  void reminderKey_carriesTheDate_soAMovedRideIsRemindedAgain() {
+    assertEquals(
+        "RIDE_REMINDER:42:" + DATE.getEpochSecond(), new RideReminder(42, DATE).dedupKey());
+  }
+
+  @Test
+  void updateWithoutStartPlace_roundTrips() throws Exception {
+    RideUpdated event = new RideUpdated(42, DATE, null);
+    assertEquals(
+        event, objectMapper.treeToValue(objectMapper.valueToTree(event), RideUpdated.class));
   }
 }

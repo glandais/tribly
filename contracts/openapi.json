@@ -1700,7 +1700,7 @@
       },
       "ErrorCode" : {
         "type" : "string",
-        "enum" : [ "BAD_REQUEST", "NOT_FOUND", "UNAUTHORIZED", "FORBIDDEN", "INTERNAL_ERROR", "UNKNOWN", "VALIDATION", "BUSINESS_RULE", "LAST_ADMIN", "ALREADY_REGISTERED", "NOT_REGISTERED", "INVALID_SLUG", "SLUG_TAKEN", "USER_NOT_SYNCED", "GROUP_FULL", "INVALID_VISIBILITY", "PUBLIC_TRIP_PRIVATE_ROUTE", "GPX_FAILURE", "FILE_REQUIRED", "FILE_TYPE_REJECTED", "FILE_DETECTION_FAILED", "FILE_TOO_LARGE", "TOO_MANY_TEAM_PAGES", "GPX_EMPTY", "ROUTE_PLANNER_DISABLED", "INVALID_FORMAT", "INVALID_TIMEZONE", "RENTAL_PERIOD_MISSING", "STATUS_INVALID", "PUBLIC_RIDE_PRIVATE_ROUTE", "INVALID_CREDENTIALS", "EMAIL_NOT_VERIFIED", "EMAIL_ALREADY_EXISTS", "TOKEN_INVALID", "TOKEN_EXPIRED", "SESSION_EXPIRED", "PASSWORD_NOT_SET", "PASSKEY_NOT_FOUND", "USER_NOT_FOUND", "DOMAIN_NOT_FOUND", "TEAM_NOT_FOUND", "TEAM_CREATION_DISABLED", "USER_TEAM_LIMIT_REACHED", "TEAM_JOIN_NOT_ALLOWED", "TEAM_ADD_MEMBER_NOT_ALLOWED", "GPS_SERVICE_ALREADY_CONNECTED", "GPS_SERVICE_NOT_CONNECTED", "GPS_SERVICE_NOT_CONFIGURED", "GPS_INVALID_STATE", "GPS_STATE_EXPIRED", "GPX_NOT_FOUND", "AUTHORIZATION_PENDING", "GPS_CREDENTIAL_ALREADY_EXISTS", "GPS_TOKEN_EXCHANGE_FAILED", "ENCRYPTION_FAILED", "DECRYPTION_FAILED", "DOMAIN_ALIAS_NOT_FOUND", "DOMAIN_ALIAS_HOSTNAME_EXISTS", "DOMAIN_ALIAS_TEAM_MISMATCH", "SOCIAL_SERVICE_NOT_CONFIGURED", "SOCIAL_INVALID_STATE", "SOCIAL_IDENTITY_ALREADY_LINKED", "SOCIAL_LOGIN_CODE_INVALID", "SOCIAL_NO_ACCOUNT", "SOCIAL_LAST_LOGIN_METHOD", "EXPORT_IN_PROGRESS", "EXPORT_RATE_LIMITED", "RIDE_GROUP_LEADER_NOT_MEMBER", "AD_CONTACT_SELF", "AD_CONTACT_OPTED_OUT", "AD_CONTACT_RATE_LIMITED", "AD_CONTACT_DELIVERY_FAILED", "TEAM_INVITE_INVALID", "TEAM_INVITE_EXPIRED", "TEAM_INVITE_REVOKED", "TEAM_INVITE_ALREADY_USED", "TEAM_INVITE_ALREADY_MEMBER", "TEAM_INVITE_EMAIL_MISMATCH", "TEAM_INVITE_SELF", "TEAM_INVITE_NOT_PENDING", "TEAM_INVITE_RATE_LIMITED", "TEAM_INVITE_DELIVERY_FAILED" ]
+        "enum" : [ "BAD_REQUEST", "NOT_FOUND", "UNAUTHORIZED", "FORBIDDEN", "INTERNAL_ERROR", "UNKNOWN", "VALIDATION", "BUSINESS_RULE", "LAST_ADMIN", "ALREADY_REGISTERED", "NOT_REGISTERED", "INVALID_SLUG", "SLUG_TAKEN", "USER_NOT_SYNCED", "GROUP_FULL", "INVALID_VISIBILITY", "PUBLIC_TRIP_PRIVATE_ROUTE", "GPX_FAILURE", "FILE_REQUIRED", "FILE_TYPE_REJECTED", "FILE_DETECTION_FAILED", "FILE_TOO_LARGE", "TOO_MANY_TEAM_PAGES", "GPX_EMPTY", "ROUTE_PLANNER_DISABLED", "INVALID_FORMAT", "INVALID_TIMEZONE", "RENTAL_PERIOD_MISSING", "STATUS_INVALID", "PUBLIC_RIDE_PRIVATE_ROUTE", "INVALID_CREDENTIALS", "EMAIL_NOT_VERIFIED", "EMAIL_ALREADY_EXISTS", "TOKEN_INVALID", "TOKEN_EXPIRED", "SESSION_EXPIRED", "PASSWORD_NOT_SET", "PASSKEY_NOT_FOUND", "USER_NOT_FOUND", "DOMAIN_NOT_FOUND", "TEAM_NOT_FOUND", "TEAM_CREATION_DISABLED", "USER_TEAM_LIMIT_REACHED", "TEAM_JOIN_NOT_ALLOWED", "TEAM_ADD_MEMBER_NOT_ALLOWED", "GPS_SERVICE_ALREADY_CONNECTED", "GPS_SERVICE_NOT_CONNECTED", "GPS_SERVICE_NOT_CONFIGURED", "GPS_INVALID_STATE", "GPS_STATE_EXPIRED", "GPX_NOT_FOUND", "AUTHORIZATION_PENDING", "GPS_CREDENTIAL_ALREADY_EXISTS", "GPS_TOKEN_EXCHANGE_FAILED", "ENCRYPTION_FAILED", "DECRYPTION_FAILED", "DOMAIN_ALIAS_NOT_FOUND", "DOMAIN_ALIAS_HOSTNAME_EXISTS", "DOMAIN_ALIAS_TEAM_MISMATCH", "SOCIAL_SERVICE_NOT_CONFIGURED", "SOCIAL_INVALID_STATE", "SOCIAL_IDENTITY_ALREADY_LINKED", "SOCIAL_LOGIN_CODE_INVALID", "SOCIAL_NO_ACCOUNT", "SOCIAL_LAST_LOGIN_METHOD", "EXPORT_IN_PROGRESS", "EXPORT_RATE_LIMITED", "RIDE_GROUP_LEADER_NOT_MEMBER", "AD_CONTACT_SELF", "AD_CONTACT_OPTED_OUT", "AD_CONTACT_RATE_LIMITED", "AD_CONTACT_DELIVERY_FAILED", "TEAM_INVITE_INVALID", "TEAM_INVITE_EXPIRED", "TEAM_INVITE_REVOKED", "TEAM_INVITE_ALREADY_USED", "TEAM_INVITE_ALREADY_MEMBER", "TEAM_INVITE_EMAIL_MISMATCH", "TEAM_INVITE_SELF", "TEAM_INVITE_NOT_PENDING", "TEAM_INVITE_RATE_LIMITED", "TEAM_INVITE_DELIVERY_FAILED", "WEBHOOK_URL_INVALID" ]
       },
       "ErrorDetails" : {
         "oneOf" : [ {
@@ -2450,14 +2450,22 @@
           }
         }
       },
+      "NotificationChange" : {
+        "type" : "string",
+        "enum" : [ "DATE_TIME", "START_PLACE" ]
+      },
       "NotificationChannel" : {
         "type" : "string",
         "enum" : [ "IN_APP", "EMAIL", "PUSH" ]
       },
+      "NotificationDeliveryStatus" : {
+        "type" : "string",
+        "enum" : [ "PENDING", "SENDING", "SENT", "SKIPPED", "FAILED" ]
+      },
       "NotificationDto" : {
         "description" : "A notification in the current user's inbox",
         "type" : "object",
-        "required" : [ "id", "type", "read", "createdAt", "teamSlug", "teamName", "subjectType", "subjectSlug", "subjectName" ],
+        "required" : [ "id", "type", "read", "createdAt", "teamSlug", "teamName", "subjectType", "subjectSlug", "subjectName", "changes" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -2496,11 +2504,11 @@
           },
           "subjectSlug" : {
             "type" : "string",
-            "description" : "Slug of the ride, trip, post or route"
+            "description" : "Slug of the ride, trip, post or route — of the team, for TEAM"
           },
           "subjectName" : {
             "type" : "string",
-            "description" : "Name of the ride, trip, post or route"
+            "description" : "Name of the ride, trip, post or route — of the team, for TEAM"
           },
           "subjectDateTime" : {
             "description" : "Date of the ride or trip, publication date of a post",
@@ -2509,7 +2517,14 @@
           },
           "excerpt" : {
             "type" : "string",
-            "description" : "A short quote — the reply, for COMMENT_REPLY"
+            "description" : "A short quote: the comment, for COMMENT_REPLY and COMMENT_ON_MY_PUBLICATION; the name of the group joined, for RIDE_JOINED"
+          },
+          "changes" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/NotificationChange"
+            },
+            "description" : "What changed, for RIDE_UPDATED; empty otherwise"
           }
         }
       },
@@ -2596,7 +2611,7 @@
       "NotificationPreferencesDto" : {
         "description" : "The current user's notification preferences",
         "type" : "object",
-        "required" : [ "channels", "preferences" ],
+        "required" : [ "channels", "preferences", "teams", "emailDigest" ],
         "properties" : {
           "channels" : {
             "type" : "array",
@@ -2611,6 +2626,17 @@
               "$ref" : "#/components/schemas/NotificationPreferenceDto"
             },
             "description" : "One cell per type and configurable channel"
+          },
+          "teams" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/NotificationTeamPreferenceDto"
+            },
+            "description" : "The user's teams on this site, each with its mute switch. Offered whatever the channels: muting also keeps the team's announcements out of the inbox."
+          },
+          "emailDigest" : {
+            "type" : "boolean",
+            "description" : "Non-urgent e-mails are held and sent as one digest a day, at 7:00 in the user's time zone. Cancellations, changes and reminders still leave at once. Only meaningful when EMAIL is among the channels."
           }
         }
       },
@@ -2626,16 +2652,63 @@
             },
             "description" : "The cells to change",
             "maxItems" : 200
+          },
+          "teams" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/NotificationTeamPreferenceUpdate"
+            },
+            "description" : "The teams to mute or unmute",
+            "maxItems" : 200
+          },
+          "emailDigest" : {
+            "type" : "boolean",
+            "description" : "Switch the daily e-mail digest on or off; absent leaves it"
           }
         }
       },
       "NotificationSubjectType" : {
         "type" : "string",
-        "enum" : [ "RIDE", "TRIP", "POST", "ROUTE" ]
+        "enum" : [ "RIDE", "TRIP", "POST", "ROUTE", "TEAM" ]
+      },
+      "NotificationTeamPreferenceDto" : {
+        "type" : "object",
+        "description" : "Whether the current user silenced one of their teams",
+        "required" : [ "teamSlug", "teamName", "muted" ],
+        "properties" : {
+          "teamSlug" : {
+            "type" : "string",
+            "description" : "Team slug"
+          },
+          "teamName" : {
+            "type" : "string",
+            "description" : "Team name"
+          },
+          "muted" : {
+            "type" : "boolean",
+            "description" : "Muted: none of the team's announcements (publications) reach the user, inbox included. What concerns them personally — a cancelled ride they joined, a reply — still does."
+          }
+        }
+      },
+      "NotificationTeamPreferenceUpdate" : {
+        "type" : "object",
+        "description" : "Mute or unmute one of the current user's teams",
+        "required" : [ "teamSlug", "muted" ],
+        "properties" : {
+          "teamSlug" : {
+            "type" : "string",
+            "description" : "Team slug — a team the user belongs to",
+            "pattern" : "\\S"
+          },
+          "muted" : {
+            "type" : "boolean",
+            "description" : "Whether to mute its announcements"
+          }
+        }
       },
       "NotificationType" : {
         "type" : "string",
-        "enum" : [ "RIDE_PUBLISHED", "RIDE_CANCELLED", "TRIP_PUBLISHED", "TRIP_CANCELLED", "POST_PUBLISHED", "COMMENT_REPLY" ]
+        "enum" : [ "RIDE_PUBLISHED", "RIDE_CANCELLED", "TRIP_PUBLISHED", "TRIP_CANCELLED", "POST_PUBLISHED", "COMMENT_REPLY", "RIDE_REMINDER", "RIDE_UPDATED", "RIDE_JOINED", "COMMENT_ON_MY_PUBLICATION", "TEAM_INVITATION" ]
       },
       "OtpRequest" : {
         "description" : "OTP request",
@@ -4615,6 +4688,97 @@
         "type" : "string",
         "enum" : [ "MEMBER", "ORGANIZER", "ADMIN" ]
       },
+      "TeamWebhookDto" : {
+        "description" : "The team's outgoing webhook",
+        "type" : "object",
+        "required" : [ "configured", "enabled" ],
+        "properties" : {
+          "configured" : {
+            "type" : "boolean",
+            "description" : "Whether the team has a webhook at all"
+          },
+          "maskedUrl" : {
+            "type" : "string",
+            "description" : "The URL, masked: scheme, host and the last characters only",
+            "examples" : [ "https://hooks.slack.com/…XXXX" ]
+          },
+          "kind" : {
+            "description" : "Message format, read from the URL",
+            "type" : "string",
+            "$ref" : "#/components/schemas/TeamWebhookKind"
+          },
+          "language" : {
+            "type" : "string",
+            "description" : "Language the messages are written in",
+            "examples" : [ "fr" ]
+          },
+          "enabled" : {
+            "type" : "boolean",
+            "description" : "Whether announcements are posted"
+          },
+          "lastStatus" : {
+            "description" : "Outcome of the latest attempt",
+            "type" : "string",
+            "$ref" : "#/components/schemas/NotificationDeliveryStatus"
+          },
+          "lastError" : {
+            "type" : "string",
+            "description" : "Why the latest attempt failed, when it did"
+          },
+          "lastAttemptAt" : {
+            "description" : "When the latest attempt was made",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          }
+        }
+      },
+      "TeamWebhookKind" : {
+        "type" : "string",
+        "enum" : [ "SLACK", "DISCORD", "MATTERMOST", "GENERIC" ]
+      },
+      "TeamWebhookRequest" : {
+        "description" : "Create or change a team's webhook",
+        "type" : "object",
+        "properties" : {
+          "url" : {
+            "type" : "string",
+            "description" : "The https URL to post to. Omit it to keep the one already set — the API never returns it in full. Required when the team has no webhook yet.",
+            "examples" : [ "https://hooks.slack.com/services/T000/B000/XXXX" ],
+            "maxLength" : 1000
+          },
+          "language" : {
+            "type" : "string",
+            "description" : "Language the messages are written in",
+            "examples" : [ "fr" ],
+            "pattern" : "fr|en"
+          },
+          "enabled" : {
+            "type" : "boolean",
+            "description" : "Whether announcements are posted"
+          }
+        },
+        "required" : [ "language", "enabled" ]
+      },
+      "TeamWebhookTestDto" : {
+        "description" : "Outcome of a test message sent to the team's webhook",
+        "type" : "object",
+        "required" : [ "success" ],
+        "properties" : {
+          "success" : {
+            "type" : "boolean",
+            "description" : "Whether the endpoint accepted it (2xx)"
+          },
+          "statusCode" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "HTTP status the endpoint answered, if it answered"
+          },
+          "error" : {
+            "type" : "string",
+            "description" : "Why it failed, when it did"
+          }
+        }
+      },
       "ThemePreference" : {
         "type" : "string",
         "enum" : [ "SYSTEM", "LIGHT", "DARK" ]
@@ -5436,6 +5600,9 @@
   }, {
     "name" : "Team Pages",
     "description" : "Team page management operations"
+  }, {
+    "name" : "Team Webhook",
+    "description" : "Post a team's announcements to a chat channel"
   }, {
     "name" : "Teams",
     "description" : "Team management operations"
@@ -17962,6 +18129,204 @@
         } ]
       }
     },
+    "/api/teams/{teamSlug}/webhook" : {
+      "put" : {
+        "summary" : "Create or change the team's webhook",
+        "description" : "The message format is read from the URL: Slack, Discord, or a structured JSON document for anything else. Only https URLs to public addresses are accepted. Omitting the URL keeps the current one.",
+        "operationId" : "saveTeamWebhook",
+        "tags" : [ "Team Webhook" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TeamWebhookRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "The webhook as saved",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TeamWebhookDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "URL missing, not https, or pointing at a private address (WEBHOOK_URL_INVALID)",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not an administrator of the team",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      },
+      "get" : {
+        "summary" : "Get the team's webhook",
+        "description" : "The webhook with its URL masked — the URL is a secret. `configured` is false when the team has none.",
+        "operationId" : "getTeamWebhook",
+        "tags" : [ "Team Webhook" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The webhook",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TeamWebhookDto"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not an administrator of the team",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      },
+      "delete" : {
+        "summary" : "Remove the team's webhook",
+        "operationId" : "deleteTeamWebhook",
+        "tags" : [ "Team Webhook" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Removed, or there was none"
+          },
+          "403" : {
+            "description" : "Not an administrator of the team",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{teamSlug}/webhook/test" : {
+      "post" : {
+        "summary" : "Send a test message to the team's webhook",
+        "description" : "Posts a test message now and reports how the endpoint answered.",
+        "operationId" : "testTeamWebhook",
+        "tags" : [ "Team Webhook" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The endpoint's answer",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TeamWebhookTestDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "The team has no webhook (WEBHOOK_URL_INVALID)",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not an administrator of the team",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
     "/api/tiles/token" : {
       "post" : {
         "summary" : "Mint a tile token",
@@ -18627,7 +18992,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "3.7.0",
+    "version" : "3.8.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

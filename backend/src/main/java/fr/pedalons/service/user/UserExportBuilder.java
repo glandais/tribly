@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import fr.pedalons.common.TsidUtils;
 import fr.pedalons.domain.asset.Asset;
 import fr.pedalons.domain.gpx.GpxPreview;
+import fr.pedalons.domain.notification.NotificationSettings;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.users.export.AccountExport;
 import fr.pedalons.dto.users.export.ContentExport;
@@ -29,6 +30,8 @@ import fr.pedalons.repository.gpx.GpxPreviewRepository;
 import fr.pedalons.repository.notification.NotificationDeliveryRepository;
 import fr.pedalons.repository.notification.NotificationPreferenceRepository;
 import fr.pedalons.repository.notification.NotificationRepository;
+import fr.pedalons.repository.notification.NotificationSettingsRepository;
+import fr.pedalons.repository.notification.NotificationTeamMuteRepository;
 import fr.pedalons.repository.notification.PushDeviceRepository;
 import fr.pedalons.repository.place.PlaceRepository;
 import fr.pedalons.repository.ride.RideGroupRepository;
@@ -131,6 +134,8 @@ public class UserExportBuilder {
   @Inject NotificationDeliveryRepository notificationDeliveryRepository;
   @Inject NotificationPreferenceRepository notificationPreferenceRepository;
   @Inject PushDeviceRepository pushDeviceRepository;
+  @Inject NotificationSettingsRepository notificationSettingsRepository;
+  @Inject NotificationTeamMuteRepository notificationTeamMuteRepository;
 
   @ConfigProperty(name = "pedalons.export.temp-dir")
   Optional<String> configuredTempDir;
@@ -171,6 +176,8 @@ public class UserExportBuilder {
       writeSection(zip, "account/oauth-states.json", counts, () -> handshakeStates(ctx));
       writeSection(
           zip, "account/notification-preferences.json", counts, () -> notificationPreferences(ctx));
+      writeSection(
+          zip, "account/notification-settings.json", counts, () -> notificationSettings(ctx));
       writeSection(zip, "account/push-devices.json", counts, () -> pushDevices(ctx));
 
       writeSection(zip, "memberships/teams.json", counts, () -> memberships(ctx));
@@ -294,6 +301,17 @@ public class UserExportBuilder {
     return notificationPreferenceRepository.findByUser(ctx.userId()).stream()
         .map(NotificationExport.Preference::from)
         .toList();
+  }
+
+  private NotificationExport.Settings notificationSettings(ExportJobContext ctx) {
+    return new NotificationExport.Settings(
+        notificationSettingsRepository
+            .findByUser(ctx.userId())
+            .map(NotificationSettings::isEmailDigest)
+            .orElse(false),
+        notificationTeamMuteRepository.findByUser(ctx.userId()).stream()
+            .map(NotificationExport.MutedTeam::from)
+            .toList());
   }
 
   private List<NotificationExport.PushDeviceEntry> pushDevices(ExportJobContext ctx) {
@@ -541,7 +559,9 @@ public class UserExportBuilder {
 
       account/          Votre compte : profil, sessions, clés d'accès (passkeys),
                         connexions GPS et réseaux sociaux, jetons d'authentification,
-                        choix de notifications et appareils inscrits aux notifications push.
+                        choix de notifications (dont le résumé quotidien et les équipes
+                        dont vous avez coupé les annonces) et appareils inscrits aux
+                        notifications push.
       memberships/      Les équipes dont vous êtes membre.
       participations/   Les sorties et voyages auxquels vous vous êtes inscrit.
       notifications/    Les notifications reçues ces derniers mois, et pour chacune les

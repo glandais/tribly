@@ -14,10 +14,20 @@ _NotificationPreferencesRequest _$NotificationPreferencesRequestFromJson(
         (e) => NotificationPreferenceUpdate.fromJson(e as Map<String, dynamic>),
       )
       .toList(),
+  teams: (json['teams'] as List<dynamic>?)
+      ?.map(
+        (e) => NotificationTeamPreferenceUpdate.fromJson(
+          e as Map<String, dynamic>,
+        ),
+      )
+      .toList(),
+  emailDigest: json['emailDigest'] as bool?,
 );
 
 Map<String, dynamic> _$NotificationPreferencesRequestToJson(
   _NotificationPreferencesRequest instance,
 ) => <String, dynamic>{
   'preferences': instance.preferences.map((e) => e.toJson()).toList(),
+  'teams': instance.teams?.map((e) => e.toJson()).toList(),
+  'emailDigest': instance.emailDigest,
 };

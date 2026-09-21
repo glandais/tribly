@@ -840,7 +840,12 @@
       "TRIP_PUBLISHED": "{actor} a publié un voyage",
       "TRIP_CANCELLED": "Un voyage est annulé",
       "POST_PUBLISHED": "{actor} a publié un article",
-      "COMMENT_REPLY": "{actor} a répondu à votre commentaire"
+      "COMMENT_REPLY": "{actor} a répondu à votre commentaire",
+      "RIDE_REMINDER": "Rappel : votre sortie part demain",
+      "RIDE_JOINED": "{actor} s'est inscrit à une sortie",
+      "COMMENT_ON_MY_PUBLICATION": "{actor} a commenté votre publication",
+      "TEAM_INVITATION": "{actor} vous invite à rejoindre {team}",
+      "RIDE_UPDATED": "Une sortie a été modifiée"
     },
     "typeLabel": {
       "RIDE_PUBLISHED": "Sortie publiée",
@@ -848,7 +853,12 @@
       "TRIP_PUBLISHED": "Voyage publié",
       "TRIP_CANCELLED": "Voyage annulé",
       "POST_PUBLISHED": "Article publié",
-      "COMMENT_REPLY": "Réponse à un commentaire"
+      "COMMENT_REPLY": "Réponse à un commentaire",
+      "RIDE_REMINDER": "Rappel la veille d'une sortie",
+      "RIDE_UPDATED": "Sortie modifiée",
+      "RIDE_JOINED": "Inscription à votre sortie",
+      "COMMENT_ON_MY_PUBLICATION": "Commentaire sur votre publication",
+      "TEAM_INVITATION": "Invitation dans une équipe"
     },
     "channel": {
       "IN_APP": "Application",
@@ -857,14 +867,26 @@
     },
     "preferences": {
       "title": "Notifications",
-      "inAppAlwaysOn": "Vous recevez toujours les notifications dans l'application ; seuls les canaux qui vous interrompent se règlent ici."
+      "inAppAlwaysOn": "Vous recevez toujours les notifications dans l'application ; seuls les canaux qui vous interrompent se règlent ici.",
+      "digest": "Résumé quotidien par e-mail",
+      "digestHint": "Un seul e-mail par jour, à 7 h, pour ce qui peut attendre. Les annulations, modifications et rappels partent toujours tout de suite.",
+      "teamsTitle": "Annonces des équipes",
+      "teamsHint": "Coupez une équipe pour ne plus recevoir ses sorties, voyages et articles publiés, boîte de réception comprise. Ce qui vous concerne personnellement vous parvient toujours.",
+      "teamSwitch": "Annonces de {team}"
     },
     "push": {
       "title": "Notifications sur cet appareil",
       "hint": "Soyez prévenu d'une sortie publiée ou annulée sans ouvrir l'application.",
       "enable": "Activer",
       "deniedHint": "Les notifications sont bloquées pour Pédalons. Vous pouvez les réactiver dans les réglages de votre téléphone."
-    }
+    },
+    "rideUpdated": {
+      "dateTime": "Une sortie change de date",
+      "startPlace": "Une sortie change de point de départ",
+      "both": "Une sortie change de date et de point de départ",
+      "other": "Une sortie a été modifiée"
+    },
+    "joinedGroup": "Groupe « {group} »"
   },
   "apps": {
     "title": "Applications",
@@ -979,6 +1001,12 @@
       "SLUG_TAKEN": "Cette URL personnalisée est déjà utilisée",
       "STATUS_INVALID": "Ce changement de statut n'est pas autorisé",
       "TEAM_CREATION_DISABLED": "La création d'équipes est désactivée sur cette plateforme",
+      "TEAM_INVITE_ALREADY_MEMBER": "Cette adresse appartient déjà à un membre de l'équipe.",
+      "TEAM_INVITE_EMAIL_MISMATCH": "Cette invitation est adressée à quelqu'un d'autre. Déconnectez-vous et reconnectez-vous avec l'adresse invitée.",
+      "TEAM_INVITE_EXPIRED": "Cette invitation a expiré. Demandez-en une nouvelle à un administrateur de l'équipe.",
+      "TEAM_INVITE_INVALID": "Cette invitation n'existe pas ou n'est plus valide.",
+      "TEAM_INVITE_NOT_PENDING": "Cette invitation n'est plus en attente.",
+      "TEAM_INVITE_REVOKED": "Cette invitation a été annulée.",
       "TEAM_NOT_FOUND": "Équipe introuvable",
       "TOKEN_EXPIRED": "Le jeton a expiré",
       "TOKEN_INVALID": "Le jeton est invalide",
@@ -987,7 +1015,8 @@
       "UNKNOWN": "Une erreur inattendue s'est produite",
       "USER_NOT_FOUND": "Utilisateur introuvable",
       "USER_NOT_SYNCED": "Le compte utilisateur n'est pas synchronisé",
-      "VALIDATION": "Les données fournies sont invalides"
+      "VALIDATION": "Les données fournies sont invalides",
+      "WEBHOOK_URL_INVALID": "Cette adresse de webhook n'est pas acceptée : elle doit commencer par https:// et pointer vers un service public."
     },
     "outdated": {
       "title": "Mise à jour requise",
@@ -1108,5 +1137,16 @@
     "downloadOriginal": "Télécharger l’originale de {file}",
     "downloadAttachment": "Télécharger {file}",
     "downloading": "Téléchargement en cours…"
+  },
+  "invitations": {
+    "pending": {
+      "title": {
+        "one": "Vous avez une invitation en attente",
+        "other": "Vous avez {} invitations en attente"
+      },
+      "line": "{inviter} vous invite à rejoindre {team}.",
+      "accept": "Accepter",
+      "accepting": "Acceptation…"
+    }
   }
 }

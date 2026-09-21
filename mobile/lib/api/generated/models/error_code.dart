@@ -170,6 +170,8 @@ enum ErrorCode {
   teamInviteRateLimited('TEAM_INVITE_RATE_LIMITED'),
   @JsonValue('TEAM_INVITE_DELIVERY_FAILED')
   teamInviteDeliveryFailed('TEAM_INVITE_DELIVERY_FAILED'),
+  @JsonValue('WEBHOOK_URL_INVALID')
+  webhookUrlInvalid('WEBHOOK_URL_INVALID'),
 
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
   $unknown(null);

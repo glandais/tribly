@@ -1,9 +1,11 @@
 package fr.pedalons.service.notification;
 
+import fr.pedalons.enums.NotificationChange;
 import fr.pedalons.enums.NotificationChannel;
 import fr.pedalons.enums.NotificationSubjectType;
 import fr.pedalons.enums.NotificationType;
 import java.time.Instant;
+import java.util.List;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -33,7 +35,9 @@ public record NotificationMessage(
     @Nullable Instant subjectDateTime,
     @Nullable String excerpt,
     String baseUrl,
-    String siteName) {
+    String siteName,
+    /** What a {@code RIDE_UPDATED} says changed; empty for every other type. */
+    List<NotificationChange> changes) {
 
   /** The page the notification opens, on the site of the recipient's team. */
   public String subjectUrl() {

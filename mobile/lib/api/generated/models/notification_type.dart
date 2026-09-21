@@ -18,6 +18,16 @@ enum NotificationType {
   postPublished('POST_PUBLISHED'),
   @JsonValue('COMMENT_REPLY')
   commentReply('COMMENT_REPLY'),
+  @JsonValue('RIDE_REMINDER')
+  rideReminder('RIDE_REMINDER'),
+  @JsonValue('RIDE_UPDATED')
+  rideUpdated('RIDE_UPDATED'),
+  @JsonValue('RIDE_JOINED')
+  rideJoined('RIDE_JOINED'),
+  @JsonValue('COMMENT_ON_MY_PUBLICATION')
+  commentOnMyPublication('COMMENT_ON_MY_PUBLICATION'),
+  @JsonValue('TEAM_INVITATION')
+  teamInvitation('TEAM_INVITATION'),
 
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
   $unknown(null);

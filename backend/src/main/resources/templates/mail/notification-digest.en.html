@@ -1,0 +1,11 @@
+{#include "mail/base.en.html"}
+{#content}
+<p>Hello {params.recipientName},</p>
+<p><strong>{params.title}</strong></p>
+<p>{params.intro}</p>
+{#for item in params.items}
+<p><strong>{item.title}</strong><br>{item.body}<br><a href="{item.ctaUrl}">{item.ctaLabel}</a></p>
+{/for}
+<p style="font-size:12px;color:#666666;">You are receiving this digest because you chose to receive your email notifications once a day. <a href="{params.preferencesUrl}">Choose your notifications</a>.</p>
+{/content}
+{/include}

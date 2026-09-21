@@ -6,15 +6,16 @@ passe, en tête de la phase concernée ; une case ne se coche que vérifiée.
 
 - Branche : `feat/notifications` · worktree `../tribly.worktrees/feat/notifications`
 - Contrat : **3.4.0 → 3.5.0** (six endpoints ajoutés), puis **3.5.0 → 3.6.0** (deux de plus pour les
-  appareils push) — rien retiré
+  appareils push), puis **3.7.0 → 3.8.0** (phase 5) — rien retiré
 - Migrations : **V37** `notifications`, **V38** `notification event backoff` — appliquées sans heurt
   sur la base locale restaurée (schéma 36 → 38) le 20 septembre 2026 ; **V39** `push_devices`,
   écrite le 20 septembre 2026, ☑ appliquée sur une base locale neuve le 21 septembre 2026
 
-**État au 21 septembre 2026 : push en production.** Serveur à jour en staging et en prod,
-`PEDALONS_PUSH_ENABLED=true` en prod ; build mobile `1.0.0+52` disponible en test sur les deux stores
-(TestFlight, piste de test Play) ; formulaire Play envoyé pour examen. Restent la publication des
-stores et la phase 5 ; l'e-mail reste coupé, par décision.
+**État au 21 septembre 2026 : push en production ; phase 5 écrite, tests verts, recette à faire.** Serveur à
+jour en staging et en prod, `PEDALONS_PUSH_ENABLED=true` en prod ; build mobile `1.0.0+52`
+disponible en test sur les deux stores (TestFlight, piste de test Play) ; formulaire Play envoyé pour
+examen. Restent la publication des stores et la recette de la phase 5 ; l'e-mail reste
+coupé, par décision.
 
 Légende : ☑ fait et vérifié · ◐ fait, vérification en attente · ☐ à faire · ✗ écarté (raison sur place)
 
@@ -431,15 +432,87 @@ ailleurs. Le compte de service et la clé APNs, eux, restent dans `~/Documents/p
   (`-allowProvisioningUpdates`, `3ac6dfa7`).
 - ◐ Nouvelle soumission aux deux stores — voir plus haut (build `1.0.0+52` en test, publication à venir).
 
-## Phase 5 — Nouveaux types et canaux (☐)
+## Phase 5 — Nouveaux types, préférences par équipe, webhook, résumé (21 septembre 2026)
 
-- ☐ `RIDE_REMINDER` (J-1) — premier producteur **planifié** : clé de dédup `RIDE_REMINDER:id:date`,
-  qui règle d'office l'idempotence exigée par NEXT.md §4.2
-- ☐ `RIDE_UPDATED` (heure ou lieu changés, pour les inscrits) — payload enrichi : ce qui a changé
-- ☐ `COMMENT_ON_MY_PUBLICATION`, `RIDE_JOINED` (pour l'organisateur), invitation d'équipe reçue
-- ☐ Webhook d'équipe : branché sur l'évènement (étage 2), pas par destinataire
-- ☐ Résumé quotidien par e-mail (regroupe les `EMAIL` d'une journée)
-- ☐ Préférences par équipe (colonne `team_id` nullable sur `notification_preferences`)
+Conception : §12 du plan. Contrat **3.7.0 → 3.8.0** (additif : 5 types, sujet `TEAM`,
+`NotificationDto.changes`, `teams` et `emailDigest` dans les préférences, 4 endpoints webhook, code
+d'erreur `WEBHOOK_URL_INVALID`). Migration **V40** `notifications_phase5`, ◐ pas encore appliquée
+sur une base réelle.
+
+### Backend
+- ☑ `RIDE_REMINDER` — `RideReminderScheduler` (toutes les heures, sorties à 20-24 h qui ont un
+  inscrit), clé `RIDE_REMINDER:id:date` ; rappel d'une sortie déplacée depuis ⇒ `SKIPPED`
+- ☑ `RIDE_UPDATED` — publié par `RideService.updateRide` quand date ou point de départ changent
+  sur une sortie qui reste publiée ; **5 min de retard** (`update-delay-seconds`), clé tenue tant
+  que l'évènement attend (`coalescesWhilePending`) puis rendue ; `changes` figé dans l'instantané
+- ☑ `RIDE_JOINED` — créateur de la sortie + meneur du groupe, nom du groupe dans `excerpt`
+- ☑ `COMMENT_ON_MY_PUBLICATION` — commentaires de premier niveau seulement
+- ☑ `TEAM_INVITATION` — publié pour toute invitation ; le résolveur cherche le compte, **vérifié**
+  seulement (un compte non vérifié peut être la revendication d'un tiers sur l'adresse), et non
+  encore membre. Sujet `TEAM` ⇒ `/teams`
+- ☑ `NotificationType` : `Audience` (`BROADCAST`/`PERSONAL`), `urgent`,
+  `isRelayedToTeamWebhook`
+- ☑ Équipes coupées (`notification_team_mutes`) : aucun type `BROADCAST` pour ce membre, boîte
+  comprise ; `PUT /preferences` refuse (404) une équipe dont on n'est pas membre
+- ☑ Résumé quotidien (`notification_settings.email_digest`) : livraisons `EMAIL` non urgentes en
+  `digest`, échues au prochain 7 h local ; `NotificationDigestService` (tick 15 min) ; gabarit Qute
+  `notification-digest` fr/en
+- ☑ Webhook d'équipe (`team_webhooks`, `team_webhook_deliveries`) : `GET|PUT|DELETE
+  /api/teams/{slug}/webhook`, `POST …/test` (`TEAM`/`UPDATE`) ; format Slack/Discord/Mattermost/JSON
+  déduit de l'URL (Mattermost par son chemin `/hooks/<id>`, charge Slack en `**gras**`, mentions
+  neutralisées) ; `WebhookHttpClient` : https seulement, résolution DNS refusée vers toute adresse
+  interne (bouclage, privée, lien-local, CGNAT, ULA…), pas de redirection, 10 s ; 4xx définitif,
+  5xx/408/429/réseau rejoués ; URL masquée dans l'API. Reste ouvert, documenté : le *DNS
+  rebinding* entre la vérification et la connexion
+- ☑ Rétention (livraisons webhook), `forgetUser` (équipes coupées, réglages), export RGPD
+  (`account/notification-settings.json`)
+
+### Tests — verts (lancés par l'utilisateur le 21 septembre 2026)
+- ☑ `NotificationPhase5Test` (18 cas : rappel, modification retardée/regroupée/défaite/répétée,
+  inscription, commentaire, invitation compte vérifié/non vérifié/sans compte, équipe coupée,
+  préférences, résumé, webhook Slack, webhook 404 non rejoué, URL refusées et non-admin) et
+  `NotificationPhase5UnitTest` (heure du résumé, format, garde SSRF, textes)
+- ☑ `NotificationEventTest` réécrit : un exemple par type (`switch` exhaustif) plutôt qu'un
+  constructeur `long` par réflexion, que le rappel et la modification n'ont plus
+- ☑ Suites touchées : `NotificationPipelineTest` (le créateur d'une sortie reçoit désormais
+  `COMMENT_ON_MY_PUBLICATION` — assertion reprise), `UserExportBuilderTest` (section ajoutée)
+
+```bash
+cd backend
+mvn test -Dtest='Notification*Test,Push*Test,UserExportBuilderTest,ArchitectureTest'
+mvn test -Dtest='Ride*Test,Comment*Test,TeamInvitation*Test,Invitation*Test'
+```
+
+### Web
+- ☑ `notificationDisplay.ts` / `NotificationItem.tsx` : icônes et libellés des cinq types ;
+  `RIDE_UPDATED` dit ce qui a changé (`changes`), le rappel donne l'heure de départ, l'inscription
+  affiche « Groupe : … » (pas en citation) ; sujet `TEAM` ⇒ liste des équipes, où
+  `PendingInvitationsBanner` fait accepter
+- ☑ Préférences : 11 types, bloc « Annonces de vos équipes » (visible même sans canal), interrupteur
+  du résumé seulement si `EMAIL` est proposé ; une case par appel
+- ☑ `components/team/TeamWebhookSettings.tsx` sur la page de réglages de l'équipe : URL jamais
+  affichée au-delà de `maskedUrl` (champ vide = garder), format détecté, langue, activation,
+  dernier statut, « Envoyer un message de test », suppression confirmée
+- ☑ `pnpm typecheck`, `lint`, `i18n:lint`, `build`, `test` (56) verts — ◐ pas vu dans un navigateur
+
+### Mobile
+- ☑ Libellés, icônes (`PdlIcons.reminder`, `personAdd`, `invitation`) et lignes de matrice des
+  cinq types ; `RIDE_UPDATED` formulé d'après `changes`
+- ☑ Sujet `TEAM` ⇒ `Paths.teams()` (par `go` : c'est la racine d'un onglet), push `/teams` compris
+- ☑ **Invitations en attente sur mobile** (il n'y en avait pas) : `PendingInvitationsCard` en tête
+  de « Mes équipes », bouton « Accepter », rafraîchit équipes et invitations ; codes d'erreur
+  d'invitation traduits
+- ☑ Préférences : interrupteurs d'équipe visibles même sans canal, résumé seulement avec `EMAIL`
+- ☑ `flutter analyze` propre, `bash check.sh` vert, **571 tests** — ◐ pas vu sur appareil
+
+### Reste à faire
+- ☐ Appliquer V40 sur la base locale restaurée et faire la recette
+- ☐ Brevo : gabarits `notification-digest` fr/en (boucle sur `params.items`) et leurs ids en
+  `%prod` — **avant** d'activer l'e-mail en production, puisqu'un membre peut cocher le résumé
+- ☐ Recette webhook contre un vrai Slack, Discord et Mattermost (bouton « Envoyer un test ») —
+  vérifier au passage qu'un `@channel` dans un nom de sortie ne notifie personne sur Mattermost
+- ☐ Nouvelle build mobile pour les nouveaux libellés ; la build 52 affiche déjà les nouveaux types
+  sans planter (`$unknown`), mais sans libellé propre
 
 ## Hors pipeline, à ne pas oublier
 
@@ -485,4 +558,5 @@ ailleurs. Le compte de service et la clé APNs, eux, restent dans `~/Documents/p
 | 2026-09-21 | Formulaires des stores | Versionnés : `app-privacy.json` (Apple, `asc web privacy`) et `data-safety.csv` (Play, lane `fastlane data_safety` sur l'API `applications.dataSafety`). Apple publié, `plan` à zéro écart ; Play poussé et réexporté sans écart, **en attente d'envoi pour examen** dans la console. Reste une nouvelle soumission aux deux stores. |
 | 2026-09-21 | Mise en production | Staging et prod à jour. Compte de service FCM déposé et `PEDALONS_PUSH_ENABLED=true` en prod — le démarrage journalise « Push notifications enabled — FCM project pedalons-9e595 ». Le canal `PUSH` devient disponible : proposé dans les préférences, livraisons créées pour les types qui l'ont par défaut. Build mobile `1.0.0+52` en cours d'envoi sur TestFlight. |
 | 2026-09-21 | Stores | Build `1.0.0+52` disponible en test (TestFlight, piste de test Play) ; formulaire *Sécurité des données* envoyé pour examen. E-mail de notification : pas pour le moment. |
+| 2026-09-21 | Phase 5 | Cinq types (rappel J-1, modification retardée et regroupée, inscription, commentaire, invitation), équipes coupées, résumé quotidien, webhook d'équipe. Écart au plan : les préférences par équipe sont un interrupteur « couper les annonces », pas une matrice par équipe (§12). Relevé en revue : l'invitation n'atteint qu'un compte à l'adresse vérifiée. |
 | 2026-09-18 | Revue | Clé de dédup rendue par les évènements `SKIPPED`/`FAILED` ; recul avant nouvelle tentative d'un évènement (V38, `next_attempt_at`) ; récupération des bloqués toutes les 5 min, livraisons bloquées sans tentative restante → `FAILED`. |

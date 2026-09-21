@@ -72,10 +72,12 @@ class NotificationTile extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      if (notification.excerpt != null)
+                      if (notification.detail() case final String detail)
                         Text(
-                          notification.excerpt!,
-                          style: t.xs.copyWith(fontStyle: FontStyle.italic),
+                          detail,
+                          style: notification.detailIsQuote
+                              ? t.xs.copyWith(fontStyle: FontStyle.italic)
+                              : t.xs,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),

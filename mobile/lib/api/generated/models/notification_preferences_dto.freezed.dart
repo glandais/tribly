@@ -18,7 +18,9 @@ mixin _$NotificationPreferencesDto {
 
 /// Channels that can be configured on this server, in display order
  List<NotificationChannel> get channels;/// One cell per type and configurable channel
- List<NotificationPreferenceDto> get preferences;
+ List<NotificationPreferenceDto> get preferences;/// The user's teams on this site, each with its mute switch. Offered whatever the channels: muting also keeps the team's announcements out of the inbox.
+ List<NotificationTeamPreferenceDto> get teams;/// Non-urgent e-mails are held and sent as one digest a day, at 7:00 in the user's time zone. Cancellations, changes and reminders still leave at once. Only meaningful when EMAIL is among the channels.
+ bool get emailDigest;
 /// Create a copy of NotificationPreferencesDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -32,20 +34,20 @@ $NotificationPreferencesDtoCopyWith<NotificationPreferencesDto> get copyWith => 
 @override
 bool operator ==(Object other) {
   final _this = this as NotificationPreferencesDto;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NotificationPreferencesDto&&const DeepCollectionEquality().equals(other.channels, _this.channels)&&const DeepCollectionEquality().equals(other.preferences, _this.preferences));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NotificationPreferencesDto&&const DeepCollectionEquality().equals(other.channels, _this.channels)&&const DeepCollectionEquality().equals(other.preferences, _this.preferences)&&const DeepCollectionEquality().equals(other.teams, _this.teams)&&(identical(other.emailDigest, _this.emailDigest) || other.emailDigest == _this.emailDigest));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as NotificationPreferencesDto;
-  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.channels),const DeepCollectionEquality().hash(_this.preferences));
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.channels),const DeepCollectionEquality().hash(_this.preferences),const DeepCollectionEquality().hash(_this.teams),_this.emailDigest);
 }
 
 @override
 String toString() {
   final _this = this as NotificationPreferencesDto;
-  return 'NotificationPreferencesDto(channels: ${_this.channels}, preferences: ${_this.preferences})';
+  return 'NotificationPreferencesDto(channels: ${_this.channels}, preferences: ${_this.preferences}, teams: ${_this.teams}, emailDigest: ${_this.emailDigest})';
 }
 
 
@@ -56,7 +58,7 @@ abstract mixin class $NotificationPreferencesDtoCopyWith<$Res>  {
   factory $NotificationPreferencesDtoCopyWith(NotificationPreferencesDto value, $Res Function(NotificationPreferencesDto) _then) = _$NotificationPreferencesDtoCopyWithImpl;
 @useResult
 $Res call({
- List<NotificationChannel> channels, List<NotificationPreferenceDto> preferences
+ List<NotificationChannel> channels, List<NotificationPreferenceDto> preferences, List<NotificationTeamPreferenceDto> teams, bool emailDigest
 });
 
 
@@ -73,11 +75,13 @@ class _$NotificationPreferencesDtoCopyWithImpl<$Res>
 
 /// Create a copy of NotificationPreferencesDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? channels = null,Object? preferences = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? channels = null,Object? preferences = null,Object? teams = null,Object? emailDigest = null,}) {
   return _then(NotificationPreferencesDto(
 channels: null == channels ? _self.channels : channels // ignore: cast_nullable_to_non_nullable
 as List<NotificationChannel>,preferences: null == preferences ? _self.preferences : preferences // ignore: cast_nullable_to_non_nullable
-as List<NotificationPreferenceDto>,
+as List<NotificationPreferenceDto>,teams: null == teams ? _self.teams : teams // ignore: cast_nullable_to_non_nullable
+as List<NotificationTeamPreferenceDto>,emailDigest: null == emailDigest ? _self.emailDigest : emailDigest // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -162,10 +166,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<NotificationChannel> channels,  List<NotificationPreferenceDto> preferences)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<NotificationChannel> channels,  List<NotificationPreferenceDto> preferences,  List<NotificationTeamPreferenceDto> teams,  bool emailDigest)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _NotificationPreferencesDto() when $default != null:
-return $default(_that.channels,_that.preferences);case _:
+return $default(_that.channels,_that.preferences,_that.teams,_that.emailDigest);case _:
   return orElse();
 
 }
@@ -183,10 +187,10 @@ return $default(_that.channels,_that.preferences);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<NotificationChannel> channels,  List<NotificationPreferenceDto> preferences)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<NotificationChannel> channels,  List<NotificationPreferenceDto> preferences,  List<NotificationTeamPreferenceDto> teams,  bool emailDigest)  $default,) {final _that = this;
 switch (_that) {
 case _NotificationPreferencesDto():
-return $default(_that.channels,_that.preferences);case _:
+return $default(_that.channels,_that.preferences,_that.teams,_that.emailDigest);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -203,10 +207,10 @@ return $default(_that.channels,_that.preferences);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<NotificationChannel> channels,  List<NotificationPreferenceDto> preferences)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<NotificationChannel> channels,  List<NotificationPreferenceDto> preferences,  List<NotificationTeamPreferenceDto> teams,  bool emailDigest)?  $default,) {final _that = this;
 switch (_that) {
 case _NotificationPreferencesDto() when $default != null:
-return $default(_that.channels,_that.preferences);case _:
+return $default(_that.channels,_that.preferences,_that.teams,_that.emailDigest);case _:
   return null;
 
 }
@@ -218,7 +222,7 @@ return $default(_that.channels,_that.preferences);case _:
 @JsonSerializable()
 
 class _NotificationPreferencesDto implements NotificationPreferencesDto {
-  const _NotificationPreferencesDto({required  List<NotificationChannel> channels, required  List<NotificationPreferenceDto> preferences}): _channels = channels,_preferences = preferences;
+  const _NotificationPreferencesDto({required  List<NotificationChannel> channels, required  List<NotificationPreferenceDto> preferences, required  List<NotificationTeamPreferenceDto> teams, required this.emailDigest}): _channels = channels,_preferences = preferences,_teams = teams;
   factory _NotificationPreferencesDto.fromJson(Map<String, dynamic> json) => _$NotificationPreferencesDtoFromJson(json);
 
 /// Channels that can be configured on this server, in display order
@@ -239,6 +243,17 @@ class _NotificationPreferencesDto implements NotificationPreferencesDto {
   return EqualUnmodifiableListView(_preferences);
 }
 
+/// The user's teams on this site, each with its mute switch. Offered whatever the channels: muting also keeps the team's announcements out of the inbox.
+ final  List<NotificationTeamPreferenceDto> _teams;
+/// The user's teams on this site, each with its mute switch. Offered whatever the channels: muting also keeps the team's announcements out of the inbox.
+@override List<NotificationTeamPreferenceDto> get teams {
+  if (_teams is EqualUnmodifiableListView) return _teams;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_teams);
+}
+
+/// Non-urgent e-mails are held and sent as one digest a day, at 7:00 in the user's time zone. Cancellations, changes and reminders still leave at once. Only meaningful when EMAIL is among the channels.
+@override final  bool emailDigest;
 
 /// Create a copy of NotificationPreferencesDto
 /// with the given fields replaced by the non-null parameter values.
@@ -253,18 +268,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NotificationPreferencesDto&&const DeepCollectionEquality().equals(other.channels, _channels)&&const DeepCollectionEquality().equals(other.preferences, _preferences));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NotificationPreferencesDto&&const DeepCollectionEquality().equals(other.channels, _channels)&&const DeepCollectionEquality().equals(other.preferences, _preferences)&&const DeepCollectionEquality().equals(other.teams, _teams)&&(identical(other.emailDigest, emailDigest) || other.emailDigest == emailDigest));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_channels),const DeepCollectionEquality().hash(_preferences));
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_channels),const DeepCollectionEquality().hash(_preferences),const DeepCollectionEquality().hash(_teams),emailDigest);
 }
 
 @override
 String toString() {
-    return 'NotificationPreferencesDto(channels: $channels, preferences: $preferences)';
+    return 'NotificationPreferencesDto(channels: $channels, preferences: $preferences, teams: $teams, emailDigest: $emailDigest)';
 }
 
 
@@ -275,7 +290,7 @@ abstract mixin class _$NotificationPreferencesDtoCopyWith<$Res> implements $Noti
   factory _$NotificationPreferencesDtoCopyWith(_NotificationPreferencesDto value, $Res Function(_NotificationPreferencesDto) _then) = __$NotificationPreferencesDtoCopyWithImpl;
 @override @useResult
 $Res call({
- List<NotificationChannel> channels, List<NotificationPreferenceDto> preferences
+ List<NotificationChannel> channels, List<NotificationPreferenceDto> preferences, List<NotificationTeamPreferenceDto> teams, bool emailDigest
 });
 
 
@@ -292,11 +307,13 @@ class __$NotificationPreferencesDtoCopyWithImpl<$Res>
 
 /// Create a copy of NotificationPreferencesDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? channels = null,Object? preferences = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? channels = null,Object? preferences = null,Object? teams = null,Object? emailDigest = null,}) {
   return _then(_NotificationPreferencesDto(
 channels: null == channels ? _self._channels : channels // ignore: cast_nullable_to_non_nullable
 as List<NotificationChannel>,preferences: null == preferences ? _self._preferences : preferences // ignore: cast_nullable_to_non_nullable
-as List<NotificationPreferenceDto>,
+as List<NotificationPreferenceDto>,teams: null == teams ? _self._teams : teams // ignore: cast_nullable_to_non_nullable
+as List<NotificationTeamPreferenceDto>,emailDigest: null == emailDigest ? _self.emailDigest : emailDigest // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

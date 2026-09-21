@@ -5,6 +5,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'instant.dart';
+import 'notification_change.dart';
 import 'notification_subject_type.dart';
 import 'notification_type.dart';
 
@@ -36,11 +37,14 @@ abstract class NotificationDto with _$NotificationDto {
     /// Kind of page the notification opens
     required String subjectType,
 
-    /// Slug of the ride, trip, post or route
+    /// Slug of the ride, trip, post or route — of the team, for TEAM
     required String subjectSlug,
 
-    /// Name of the ride, trip, post or route
+    /// Name of the ride, trip, post or route — of the team, for TEAM
     required String subjectName,
+
+    /// What changed, for RIDE_UPDATED; empty otherwise
+    required List<NotificationChange> changes,
 
     /// Display name of whoever caused it, when someone did (a scheduled publication has no actor)
     String? actorName,
@@ -48,7 +52,7 @@ abstract class NotificationDto with _$NotificationDto {
     /// Date of the ride or trip, publication date of a post
     String? subjectDateTime,
 
-    /// A short quote — the reply, for COMMENT_REPLY
+    /// A short quote: the comment, for COMMENT_REPLY and COMMENT_ON_MY_PUBLICATION; the name of the group joined, for RIDE_JOINED
     String? excerpt,
   }) = _NotificationDto;
 

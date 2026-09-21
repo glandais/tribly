@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../api/generated/export.dart';
+import '../data/invitations_repository.dart';
 import '../data/team_repository.dart';
 
 /// The one source of a team's detail, and therefore the one source of its
@@ -46,4 +47,14 @@ final teamMembershipProvider = Provider.family<bool?, String>((
         data: (List<TeamDetailDto> teams) =>
             teams.any((TeamDetailDto t) => t.slug == teamSlug),
       );
+});
+
+/// Les invitations en attente adressées à l'utilisateur, affichées en tête de
+/// « Mes équipes ».
+///
+/// C'est la seule porte d'entrée mobile d'une invitation : une notification
+/// `TEAM_INVITATION` mène à la liste des équipes, et quelqu'un invité avant
+/// d'avoir un compte n'est inscrit à rien par son inscription.
+final myInvitationsProvider = FutureProvider<List<MyInvitationDto>>((ref) {
+  return ref.watch(invitationsRepositoryProvider).listMine();
 });

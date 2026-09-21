@@ -32,6 +32,11 @@ export const ListMyNotificationsResponse = zod
                 'TRIP_CANCELLED',
                 'POST_PUBLISHED',
                 'COMMENT_REPLY',
+                'RIDE_REMINDER',
+                'RIDE_UPDATED',
+                'RIDE_JOINED',
+                'COMMENT_ON_MY_PUBLICATION',
+                'TEAM_INVITATION',
               ])
               .describe('What happened'),
             read: zod.boolean().describe('Whether the user has read it'),
@@ -45,10 +50,14 @@ export const ListMyNotificationsResponse = zod
             teamSlug: zod.string().describe('Slug of the team it happened in'),
             teamName: zod.string().describe('Name of the team it happened in'),
             subjectType: zod
-              .enum(['RIDE', 'TRIP', 'POST', 'ROUTE'])
+              .enum(['RIDE', 'TRIP', 'POST', 'ROUTE', 'TEAM'])
               .describe('Kind of page the notification opens'),
-            subjectSlug: zod.string().describe('Slug of the ride, trip, post or route'),
-            subjectName: zod.string().describe('Name of the ride, trip, post or route'),
+            subjectSlug: zod
+              .string()
+              .describe('Slug of the ride, trip, post or route — of the team, for TEAM'),
+            subjectName: zod
+              .string()
+              .describe('Name of the ride, trip, post or route — of the team, for TEAM'),
             subjectDateTime: zod.iso
               .datetime({ offset: true })
               .optional()
@@ -56,7 +65,12 @@ export const ListMyNotificationsResponse = zod
             excerpt: zod
               .string()
               .optional()
-              .describe('A short quote — the reply, for COMMENT_REPLY'),
+              .describe(
+                'A short quote: the comment, for COMMENT_REPLY and COMMENT_ON_MY_PUBLICATION; the name of the group joined, for RIDE_JOINED'
+              ),
+            changes: zod
+              .array(zod.enum(['DATE_TIME', 'START_PLACE']))
+              .describe('What changed, for RIDE_UPDATED; empty otherwise'),
           })
           .describe("A notification in the current user's inbox")
       )
@@ -74,6 +88,9 @@ export const ListMyNotificationsResponse = zod
  */
 export const updateMyNotificationPreferencesBodyPreferencesMax = 200
 
+export const updateMyNotificationPreferencesBodyTeamsItemTeamSlugRegExp = new RegExp('\\S')
+export const updateMyNotificationPreferencesBodyTeamsMax = 200
+
 export const UpdateMyNotificationPreferencesBody = zod
   .object({
     preferences: zod
@@ -88,6 +105,11 @@ export const UpdateMyNotificationPreferencesBody = zod
                 'TRIP_CANCELLED',
                 'POST_PUBLISHED',
                 'COMMENT_REPLY',
+                'RIDE_REMINDER',
+                'RIDE_UPDATED',
+                'RIDE_JOINED',
+                'COMMENT_ON_MY_PUBLICATION',
+                'TEAM_INVITATION',
               ])
               .describe('Notification type'),
             channel: zod
@@ -99,6 +121,25 @@ export const UpdateMyNotificationPreferencesBody = zod
       )
       .max(updateMyNotificationPreferencesBodyPreferencesMax)
       .describe('The cells to change'),
+    teams: zod
+      .array(
+        zod
+          .object({
+            teamSlug: zod
+              .string()
+              .regex(updateMyNotificationPreferencesBodyTeamsItemTeamSlugRegExp)
+              .describe('Team slug — a team the user belongs to'),
+            muted: zod.boolean().describe('Whether to mute its announcements'),
+          })
+          .describe("Mute or unmute one of the current user's teams")
+      )
+      .max(updateMyNotificationPreferencesBodyTeamsMax)
+      .optional()
+      .describe('The teams to mute or unmute'),
+    emailDigest: zod
+      .boolean()
+      .optional()
+      .describe('Switch the daily e-mail digest on or off; absent leaves it'),
   })
   .describe('Notification preference cells to change')
 
@@ -119,6 +160,11 @@ export const UpdateMyNotificationPreferencesResponse = zod
                 'TRIP_CANCELLED',
                 'POST_PUBLISHED',
                 'COMMENT_REPLY',
+                'RIDE_REMINDER',
+                'RIDE_UPDATED',
+                'RIDE_JOINED',
+                'COMMENT_ON_MY_PUBLICATION',
+                'TEAM_INVITATION',
               ])
               .describe('Notification type'),
             channel: zod.enum(['IN_APP', 'EMAIL', 'PUSH']).describe('Delivery channel'),
@@ -132,6 +178,28 @@ export const UpdateMyNotificationPreferencesResponse = zod
           .describe('One cell of the notification preferences: a type on a channel')
       )
       .describe('One cell per type and configurable channel'),
+    teams: zod
+      .array(
+        zod
+          .object({
+            teamSlug: zod.string().describe('Team slug'),
+            teamName: zod.string().describe('Team name'),
+            muted: zod
+              .boolean()
+              .describe(
+                "Muted: none of the team's announcements (publications) reach the user, inbox included. What concerns them personally — a cancelled ride they joined, a reply — still does."
+              ),
+          })
+          .describe('Whether the current user silenced one of their teams')
+      )
+      .describe(
+        "The user's teams on this site, each with its mute switch. Offered whatever the channels: muting also keeps the team's announcements out of the inbox."
+      ),
+    emailDigest: zod
+      .boolean()
+      .describe(
+        "Non-urgent e-mails are held and sent as one digest a day, at 7:00 in the user's time zone. Cancellations, changes and reminders still leave at once. Only meaningful when EMAIL is among the channels."
+      ),
   })
   .describe("The current user's notification preferences")
 
@@ -156,6 +224,11 @@ export const GetMyNotificationPreferencesResponse = zod
                 'TRIP_CANCELLED',
                 'POST_PUBLISHED',
                 'COMMENT_REPLY',
+                'RIDE_REMINDER',
+                'RIDE_UPDATED',
+                'RIDE_JOINED',
+                'COMMENT_ON_MY_PUBLICATION',
+                'TEAM_INVITATION',
               ])
               .describe('Notification type'),
             channel: zod.enum(['IN_APP', 'EMAIL', 'PUSH']).describe('Delivery channel'),
@@ -169,6 +242,28 @@ export const GetMyNotificationPreferencesResponse = zod
           .describe('One cell of the notification preferences: a type on a channel')
       )
       .describe('One cell per type and configurable channel'),
+    teams: zod
+      .array(
+        zod
+          .object({
+            teamSlug: zod.string().describe('Team slug'),
+            teamName: zod.string().describe('Team name'),
+            muted: zod
+              .boolean()
+              .describe(
+                "Muted: none of the team's announcements (publications) reach the user, inbox included. What concerns them personally — a cancelled ride they joined, a reply — still does."
+              ),
+          })
+          .describe('Whether the current user silenced one of their teams')
+      )
+      .describe(
+        "The user's teams on this site, each with its mute switch. Offered whatever the channels: muting also keeps the team's announcements out of the inbox."
+      ),
+    emailDigest: zod
+      .boolean()
+      .describe(
+        "Non-urgent e-mails are held and sent as one digest a day, at 7:00 in the user's time zone. Cancellations, changes and reminders still leave at once. Only meaningful when EMAIL is among the channels."
+      ),
   })
   .describe("The current user's notification preferences")
 

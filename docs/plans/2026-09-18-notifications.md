@@ -211,3 +211,91 @@ sont supprimés, et avec eux, en cascade, leurs notifications et livraisons. Un 
   les clients d'afficher la notification avec leurs propres composants.
 - **Pas de préférences par équipe** en phase 1 (« pas de notifications de l'équipe X ») : la table
   pourra gagner une colonne `team_id` nullable sans rien casser.
+
+## 12. Phase 5 — nouveaux types, préférences par équipe, webhook, résumé
+
+> Écrit le 21 septembre 2026, avant la phase 5. État dans le ledger.
+
+### Cinq types de plus
+
+| Type | Déclencheur | Destinataires | Canaux par défaut | Clé de dédup |
+|---|---|---|---|---|
+| `RIDE_REMINDER` | `RideReminderScheduler`, toutes les heures : sortie publiée qui part dans 20 à 24 h | inscrits | in-app, push | `RIDE_REMINDER:id:dateTime` |
+| `RIDE_UPDATED` | date ou point de départ changés sur une sortie publiée | inscrits | in-app, e-mail, push | `RIDE_UPDATED:id`, **rendue une fois l'évènement traité** |
+| `RIDE_JOINED` | inscription à un groupe | créateur de la sortie et meneur du groupe | in-app | `RIDE_JOINED:idInscription` |
+| `COMMENT_ON_MY_PUBLICATION` | commentaire **de premier niveau** | auteur de la sortie, du voyage, de l'article ou du parcours | in-app, push | `…:idCommentaire` |
+| `TEAM_INVITATION` | invitation envoyée | le compte qui porte l'adresse invitée, s'il existe | in-app, push | `TEAM_INVITATION:idInvitation` |
+
+- **Le rappel** porte la date dans sa clé : une sortie déplacée a droit à un nouveau rappel, et le
+  résolveur écarte le rappel dont la date n'est plus celle de la sortie. Une fenêtre de quatre heures
+  plutôt qu'un instant : un tick manqué (un redéploiement) ne fait pas perdre le rappel, et la clé
+  empêche le doublon. Une sortie créée moins de 20 h avant son départ n'a pas de rappel — ceux qui s'y
+  inscrivent viennent de la voir.
+- **La modification** porte l'état *d'avant* (date, identifiant du lieu) et le résolveur compare à
+  l'état courant : une modification défaite avant l'envoi ne notifie personne. Elle part avec
+  **cinq minutes** de retard (`pedalons.notifications.update-delay-seconds`), et sa clé reste prise
+  tant qu'elle attend : trois retouches successives font une seule notification, qui compare le
+  premier état au dernier. La clé est rendue une fois l'évènement traité — c'est la seule
+  différence avec les autres types (`NotificationEvent.coalescesWhilePending`). Ce qui a changé est
+  figé dans l'instantané (`changes`) et exposé à l'API (`NotificationDto.changes`). Les horaires de
+  groupe n'en font pas partie.
+- **L'inscription** ne passe pas par le push par défaut : une sortie populaire en ferait trente. Le
+  nom du groupe voyage dans `excerpt`.
+- **Le commentaire** ne concerne que le premier niveau : une réponse notifie déjà l'auteur du
+  commentaire parent (`COMMENT_REPLY`), et l'auteur de la publication qui répond dans un fil ne
+  recevrait que du bruit.
+- **L'invitation** est publiée pour toute invitation, compte existant ou non : c'est le résolveur
+  qui cherche le compte, hors requête. L'invitant ne peut donc rien en déduire — la règle de
+  `TeamInvitationService` (« créer une invitation ne dit pas si un compte existe ») tient. Le
+  destinataire n'étant pas membre, c'est le seul type exempté du garde-fou « encore membre ». Pas
+  d'e-mail par défaut : l'invitation a déjà le sien. Nouveau sujet `TEAM`, qui ouvre la liste des
+  équipes, là où les invitations en attente s'acceptent.
+
+`NotificationType` gagne deux attributs : `broadcast` (l'audience est toute l'équipe — les trois
+`…_PUBLISHED`) et `urgent` (le résumé ne peut pas attendre — annulations, modification, rappel).
+
+### Préférences par équipe : un interrupteur, pas une matrice
+
+Le plan prévoyait une colonne `team_id` sur `notification_preferences`, donc une matrice type × canal
+*par équipe*. Écarté : personne ne réglera 11 × 2 cases pour chacune de ses équipes, et le besoin
+exprimé est « plus rien de l'équipe X ». Donc une table `notification_team_mutes(user_id, team_id)` :
+une équipe coupée ne produit **plus aucune notification des types `broadcast`** pour ce membre, boîte
+comprise. Les types personnels (annulation d'une sortie où l'on est inscrit, rappel, réponse,
+invitation…) passent toujours : couper les annonces d'un club ne doit pas faire rater l'annulation de
+la sortie où l'on va demain.
+
+### Résumé quotidien
+
+Un réglage par membre (`notification_settings.email_digest`), faux par défaut. Coché, les livraisons
+`EMAIL` des types non urgents sont créées avec `digest = true` et échues au prochain **7 h** du fuseau
+du destinataire ; l'envoi ordinaire les ignore, et un tick du résumé (toutes les 15 min) les réclame
+**par destinataire** pour en faire un seul e-mail (`notification-digest`, Qute fr/en ; deux gabarits
+Brevo à créer avant d'activer l'e-mail en production). Un résumé qui échoue est rejoué en bloc.
+Les types urgents partent tout de suite même en mode résumé : l'annulation d'une sortie du lendemain
+matin arriverait après le départ.
+
+### Webhook d'équipe
+
+Un par équipe (`team_webhooks`), réglé par les administrateurs de l'équipe (`TEAM` / `UPDATE`) depuis
+le web. Branché à l'étage 2, sur l'**évènement** : après le fan-out d'un type annoncé à toute
+l'équipe (publications, annulations, modification), une ligne `team_webhook_deliveries`, envoyée par
+le tick avec le même recul exponentiel — même quand l'évènement n'a aucun destinataire individuel.
+
+- **Format déduit de l'URL, jamais stocké** : `hooks.slack.com` ⇒ `{"text"}`,
+  `discord.com/api/webhooks` ⇒ `{"content"}` (mentions coupées), un chemin `/hooks/<26 car.>` ⇒
+  Mattermost, sinon un JSON structuré (`type`, équipe, sujet, URL, acteur, texte). Aucun réglage de
+  format à se tromper.
+- **Mattermost** est auto-hébergé : pas d'hôte reconnaissable, d'où le chemin. Il reçoit la charge
+  Slack, que sa [couche de compatibilité](https://developers.mattermost.com/integrate/webhooks/incoming/#slack-compatibility)
+  lit (`{"text"}`, liens `<url|libellé>`), avec deux écarts : le gras s'écrit `**` (une étoile est
+  de l'italique), et un `@channel`, `@here` ou `@all` écrit dans le texte **notifie tout le canal**
+  — Slack, lui, ne l'interprète pas sans `link_names`. Chaque `@` est donc suivi d'une espace sans
+  chasse, et le Markdown d'un nom de sortie est échappé. Un faux positif ne coûte rien : le JSON
+  générique porte lui aussi un `text`. Si la détection se trompait un jour, une colonne `kind`
+  nullable (null = automatique) et un sélecteur dans le formulaire suffiraient. La langue du texte est réglée sur le webhook.
+- **SSRF** : `https` seulement ; à l'envoi, l'hôte est résolu et refusé s'il pointe vers une adresse
+  de bouclage, privée, lien-local, multicast ou non routable ; redirections non suivies ; 10 s de
+  délai. Un 4xx (hors 429) est définitif, pas rejoué.
+- **L'URL est un secret** (celles de Slack et Discord suffisent à poster) : l'API ne la renvoie que
+  masquée, et un `PUT` sans URL garde celle en place.
+- `POST …/webhook/test` envoie un message d'essai tout de suite et rend le code HTTP obtenu.

@@ -16,6 +16,7 @@ import fr.pedalons.enums.EntityType;
 import fr.pedalons.infrastructure.exception.NotFoundException;
 import fr.pedalons.repository.comment.CommentRepository;
 import fr.pedalons.service.notification.NotificationPublisher;
+import fr.pedalons.service.notification.event.CommentOnPublication;
 import fr.pedalons.service.notification.event.CommentReplied;
 import fr.pedalons.service.post.PostService;
 import fr.pedalons.service.ride.RideService;
@@ -194,9 +195,14 @@ public class CommentService {
             : new Comment(creator, teamEntity, request.content());
 
     commentRepository.persistAndFlush(comment);
-    if (parent != null) {
-      notificationPublisher.publish(new CommentReplied(comment.getId()), team, creator);
-    }
+    // A reply already reaches the author of the comment it answers; only a new thread tells the
+    // author of the ride, trip, post or route.
+    notificationPublisher.publish(
+        parent != null
+            ? new CommentReplied(comment.getId())
+            : new CommentOnPublication(comment.getId()),
+        team,
+        creator);
 
     return CommentDto.from(comment, List.of());
   }

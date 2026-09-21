@@ -92,5 +92,8 @@ public enum ErrorCode {
   TEAM_INVITE_SELF,
   TEAM_INVITE_NOT_PENDING,
   TEAM_INVITE_RATE_LIMITED,
-  TEAM_INVITE_DELIVERY_FAILED
+  TEAM_INVITE_DELIVERY_FAILED,
+  // Team webhook
+  /** Not an https URL, or one that points at a private or local address. */
+  WEBHOOK_URL_INVALID
 }

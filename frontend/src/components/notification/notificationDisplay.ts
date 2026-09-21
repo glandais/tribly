@@ -1,9 +1,14 @@
 import {
+  IconAlarm,
   IconBike,
   IconCalendarCancel,
+  IconCalendarTime,
+  IconMessage,
   IconMessageReply,
   IconNews,
   IconRoute,
+  IconUserPlus,
+  IconUsersPlus,
 } from '@tabler/icons-react'
 import { NotificationSubjectType, NotificationType } from '@/api/dto'
 import type { NotificationDto } from '@/api/dto'
@@ -29,9 +34,17 @@ const TYPE_ICONS: Record<NotificationType, TablerIcon> = {
   [NotificationType.TRIP_CANCELLED]: IconCalendarCancel,
   [NotificationType.POST_PUBLISHED]: IconNews,
   [NotificationType.COMMENT_REPLY]: IconMessageReply,
+  [NotificationType.RIDE_REMINDER]: IconAlarm,
+  [NotificationType.RIDE_UPDATED]: IconCalendarTime,
+  [NotificationType.RIDE_JOINED]: IconUserPlus,
+  [NotificationType.COMMENT_ON_MY_PUBLICATION]: IconMessage,
+  [NotificationType.TEAM_INVITATION]: IconUsersPlus,
 }
 
-/** Mantine palette *name*, never a hex — the theme resolves it per colour scheme. */
+/**
+ * Mantine palette *name*, never a hex — the theme resolves it per colour scheme. A change to a ride
+ * you joined is a caution (`warning`, BRANDING.md), not a cancellation.
+ */
 const TYPE_COLORS: Record<NotificationType, string> = {
   [NotificationType.RIDE_PUBLISHED]: 'primary',
   [NotificationType.RIDE_CANCELLED]: 'danger',
@@ -39,6 +52,11 @@ const TYPE_COLORS: Record<NotificationType, string> = {
   [NotificationType.TRIP_CANCELLED]: 'danger',
   [NotificationType.POST_PUBLISHED]: 'primary',
   [NotificationType.COMMENT_REPLY]: 'primary',
+  [NotificationType.RIDE_REMINDER]: 'primary',
+  [NotificationType.RIDE_UPDATED]: 'warning',
+  [NotificationType.RIDE_JOINED]: 'primary',
+  [NotificationType.COMMENT_ON_MY_PUBLICATION]: 'primary',
+  [NotificationType.TEAM_INVITATION]: 'primary',
 }
 
 export function notificationIcon(type: NotificationType): TablerIcon {
@@ -64,5 +82,9 @@ export function notificationPath(notification: NotificationDto): string {
       return paths.post(teamSlug, subjectSlug)
     case NotificationSubjectType.ROUTE:
       return paths.route(teamSlug, subjectSlug)
+    // An invitation: the team list is where `PendingInvitationsBanner` lets it be accepted — the
+    // team's own page would be one the invitee may not be allowed to see yet.
+    case NotificationSubjectType.TEAM:
+      return paths.teams()
   }
 }

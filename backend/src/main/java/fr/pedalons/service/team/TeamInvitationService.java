@@ -28,6 +28,8 @@ import fr.pedalons.infrastructure.exception.NotFoundException;
 import fr.pedalons.repository.team.TeamInvitationRepository;
 import fr.pedalons.repository.team.UserTeamRepository;
 import fr.pedalons.repository.user.UserRepository;
+import fr.pedalons.service.notification.NotificationPublisher;
+import fr.pedalons.service.notification.event.TeamInvited;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.CheckAccess;
 import fr.pedalons.service.security.annotation.Logged;
@@ -72,6 +74,8 @@ public class TeamInvitationService {
   @Inject TeamMembershipService membershipService;
 
   @Inject TeamInvitationEmailService invitationEmailService;
+
+  @Inject NotificationPublisher notificationPublisher;
 
   @Inject PedalonsQueryContext pedalonsContext;
 
@@ -152,6 +156,9 @@ public class TeamInvitationService {
             TokenUtils.hashToken(token),
             Instant.now().plus(expiryDays, ChronoUnit.DAYS));
     invitationRepository.persist(invitation);
+    // Queued whether or not an account holds the address: the dispatcher looks it up, off this
+    // request, so nothing here differs between the two branches.
+    notificationPublisher.publish(new TeamInvited(invitation.getId()), team, inviter);
 
     sendInvitationEmail(invitation, existing.orElse(null), token, domainId, email);
 

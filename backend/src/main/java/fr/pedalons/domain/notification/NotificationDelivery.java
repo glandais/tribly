@@ -32,7 +32,10 @@ import org.jspecify.annotations.Nullable;
     indexes = {
       @Index(
           name = "idx_notification_deliveries_queue",
-          columnList = "channel, status, next_attempt_at")
+          columnList = "channel, status, next_attempt_at"),
+      @Index(
+          name = "idx_notification_deliveries_digest",
+          columnList = "digest, status, next_attempt_at")
     })
 @NoArgsConstructor
 public class NotificationDelivery {
@@ -69,6 +72,13 @@ public class NotificationDelivery {
 
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
+
+  /**
+   * Held for the recipient's daily digest: skipped by the ordinary sender, sent with the recipient's
+   * other due digest e-mails as one message. {@code nextAttemptAt} is then the digest time.
+   */
+  @Column(name = "digest", nullable = false)
+  private boolean digest;
 
   @Version private Long version;
 

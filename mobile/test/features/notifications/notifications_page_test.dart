@@ -54,6 +54,8 @@ class _StubRepository implements NotificationsRepository {
       const NotificationPreferencesDto(
         channels: <NotificationChannel>[],
         preferences: <NotificationPreferenceDto>[],
+        teams: <NotificationTeamPreferenceDto>[],
+        emailDigest: false,
       );
 
   @override
@@ -62,6 +64,16 @@ class _StubRepository implements NotificationsRepository {
     required NotificationChannel channel,
     required bool enabled,
   }) async => preferences();
+
+  @override
+  Future<NotificationPreferencesDto> setTeamMuted({
+    required String teamSlug,
+    required bool muted,
+  }) async => preferences();
+
+  @override
+  Future<NotificationPreferencesDto> setEmailDigest(bool enabled) async =>
+      preferences();
 }
 
 NotificationDto _notification({
@@ -70,6 +82,9 @@ NotificationDto _notification({
   NotificationSubjectType subject = NotificationSubjectType.ride,
   bool read = false,
   String? actorName = 'Gaby Landais',
+  List<NotificationChange> changes = const <NotificationChange>[],
+  String? excerpt,
+  String subjectName = 'Sortie du dimanche',
 }) {
   return NotificationDto(
     id: id,
@@ -84,7 +99,9 @@ NotificationDto _notification({
     teamName: 'Gaby',
     subjectType: subject.toJson(),
     subjectSlug: 'sortie-du-dimanche',
-    subjectName: 'Sortie du dimanche',
+    subjectName: subjectName,
+    changes: changes,
+    excerpt: excerpt,
   );
 }
 
@@ -186,6 +203,101 @@ void main() {
     expect(
       _notification(subject: NotificationSubjectType.$unknown).path(),
       isNull,
+    );
+  });
+
+  testWidgets('les types de la phase 5 ont leur phrase, pas leur code', (
+    WidgetTester tester,
+  ) async {
+    await open(
+      tester,
+      _StubRepository(<NotificationDto>[
+        _notification(
+          id: 'c',
+          type: NotificationType.commentOnMyPublication,
+          excerpt: 'Superbe parcours !',
+        ),
+        _notification(
+          id: 'j',
+          type: NotificationType.rideJoined,
+          actorName: 'Léa',
+          excerpt: 'Groupe rapide',
+        ),
+        _notification(
+          id: 'r',
+          type: NotificationType.rideReminder,
+          actorName: null,
+        ),
+      ]),
+    );
+
+    expect(
+      find.text('Gaby Landais a commenté votre publication'),
+      findsOneWidget,
+    );
+    expect(find.text('Superbe parcours !'), findsOneWidget);
+    // Le nom du groupe n'est pas une citation : il est présenté comme tel.
+    expect(find.text('Léa s\'est inscrit à une sortie'), findsOneWidget);
+    expect(find.text('Groupe « Groupe rapide »'), findsOneWidget);
+    expect(find.text('Rappel : votre sortie part demain'), findsOneWidget);
+    expect(find.textContaining('COMMENT_ON_MY_PUBLICATION'), findsNothing);
+  });
+
+  test('une modification de sortie dit ce qui a changé', () {
+    String title(List<NotificationChange> changes) => _notification(
+      type: NotificationType.rideUpdated,
+      changes: changes,
+    ).title();
+
+    expect(
+      title(<NotificationChange>[NotificationChange.dateTime]),
+      'Une sortie change de date',
+    );
+    expect(
+      title(<NotificationChange>[NotificationChange.startPlace]),
+      'Une sortie change de point de départ',
+    );
+    expect(
+      title(<NotificationChange>[
+        NotificationChange.dateTime,
+        NotificationChange.startPlace,
+      ]),
+      'Une sortie change de date et de point de départ',
+    );
+    // Rien de connu : la phrase générique, jamais un trou.
+    expect(
+      title(<NotificationChange>[NotificationChange.$unknown]),
+      'Une sortie a été modifiée',
+    );
+  });
+
+  testWidgets('une invitation nomme l\'invitant et l\'équipe', (
+    WidgetTester tester,
+  ) async {
+    await open(
+      tester,
+      _StubRepository(<NotificationDto>[
+        _notification(
+          type: NotificationType.teamInvitation,
+          subject: NotificationSubjectType.team,
+          subjectName: 'Gaby',
+        ),
+      ]),
+    );
+
+    expect(
+      find.text('Gaby Landais vous invite à rejoindre Gaby'),
+      findsOneWidget,
+    );
+  });
+
+  test('un sujet TEAM mène à la liste des équipes', () {
+    expect(
+      _notification(
+        type: NotificationType.teamInvitation,
+        subject: NotificationSubjectType.team,
+      ).path(),
+      '/equipes',
     );
   });
 }

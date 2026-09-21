@@ -75,4 +75,30 @@ class NotificationsRepository {
       ),
     );
   }
+
+  /// Coupe ou rétablit les annonces d'une équipe. `preferences` est requis
+  /// par le contrat : une liste vide ne touche à aucune case de la matrice.
+  Future<NotificationPreferencesDto> setTeamMuted({
+    required String teamSlug,
+    required bool muted,
+  }) {
+    return _client.updateMyNotificationPreferences(
+      body: NotificationPreferencesRequest(
+        preferences: const <NotificationPreferenceUpdate>[],
+        teams: <NotificationTeamPreferenceUpdate>[
+          NotificationTeamPreferenceUpdate(teamSlug: teamSlug, muted: muted),
+        ],
+      ),
+    );
+  }
+
+  /// Active ou coupe le résumé quotidien des e-mails.
+  Future<NotificationPreferencesDto> setEmailDigest(bool enabled) {
+    return _client.updateMyNotificationPreferences(
+      body: NotificationPreferencesRequest(
+        preferences: const <NotificationPreferenceUpdate>[],
+        emailDigest: enabled,
+      ),
+    );
+  }
 }

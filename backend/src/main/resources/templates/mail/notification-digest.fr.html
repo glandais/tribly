@@ -1,0 +1,11 @@
+{#include "mail/base.fr.html"}
+{#content}
+<p>Bonjour {params.recipientName},</p>
+<p><strong>{params.title}</strong></p>
+<p>{params.intro}</p>
+{#for item in params.items}
+<p><strong>{item.title}</strong><br>{item.body}<br><a href="{item.ctaUrl}">{item.ctaLabel}</a></p>
+{/for}
+<p style="font-size:12px;color:#666666;">Vous recevez ce résumé parce que vous avez choisi de regrouper vos notifications par e-mail en un envoi quotidien. <a href="{params.preferencesUrl}">Choisir vos notifications</a>.</p>
+{/content}
+{/include}

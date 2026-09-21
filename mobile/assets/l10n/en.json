@@ -840,7 +840,12 @@
       "TRIP_PUBLISHED": "{actor} published a trip",
       "TRIP_CANCELLED": "A trip was cancelled",
       "POST_PUBLISHED": "{actor} published a post",
-      "COMMENT_REPLY": "{actor} replied to your comment"
+      "COMMENT_REPLY": "{actor} replied to your comment",
+      "RIDE_REMINDER": "Reminder: your ride starts tomorrow",
+      "RIDE_JOINED": "{actor} joined a ride",
+      "COMMENT_ON_MY_PUBLICATION": "{actor} commented on your publication",
+      "TEAM_INVITATION": "{actor} invited you to join {team}",
+      "RIDE_UPDATED": "A ride was changed"
     },
     "typeLabel": {
       "RIDE_PUBLISHED": "Ride published",
@@ -848,7 +853,12 @@
       "TRIP_PUBLISHED": "Trip published",
       "TRIP_CANCELLED": "Trip cancelled",
       "POST_PUBLISHED": "Post published",
-      "COMMENT_REPLY": "Comment reply"
+      "COMMENT_REPLY": "Comment reply",
+      "RIDE_REMINDER": "Reminder the day before a ride",
+      "RIDE_UPDATED": "Ride changed",
+      "RIDE_JOINED": "Someone joins your ride",
+      "COMMENT_ON_MY_PUBLICATION": "Comment on your publication",
+      "TEAM_INVITATION": "Team invitation"
     },
     "channel": {
       "IN_APP": "In app",
@@ -857,14 +867,26 @@
     },
     "preferences": {
       "title": "Notifications",
-      "inAppAlwaysOn": "You always get notifications in the app; only the channels that interrupt you are set here."
+      "inAppAlwaysOn": "You always get notifications in the app; only the channels that interrupt you are set here.",
+      "digest": "Daily e-mail digest",
+      "digestHint": "One e-mail a day, at 7:00, for what can wait. Cancellations, changes and reminders are still sent right away.",
+      "teamsTitle": "Team announcements",
+      "teamsHint": "Turn a team off to stop receiving its published rides, trips and posts, inbox included. What concerns you personally still reaches you.",
+      "teamSwitch": "Announcements from {team}"
     },
     "push": {
       "title": "Notifications on this device",
       "hint": "Hear about a published or cancelled ride without opening the app.",
       "enable": "Turn on",
       "deniedHint": "Notifications are blocked for Pédalons. You can turn them back on in your phone's settings."
-    }
+    },
+    "rideUpdated": {
+      "dateTime": "A ride has a new date",
+      "startPlace": "A ride has a new meeting point",
+      "both": "A ride has a new date and meeting point",
+      "other": "A ride was changed"
+    },
+    "joinedGroup": "Group “{group}”"
   },
   "apps": {
     "title": "Apps",
@@ -979,6 +1001,12 @@
       "SLUG_TAKEN": "This custom URL is already in use",
       "STATUS_INVALID": "This status change is not allowed",
       "TEAM_CREATION_DISABLED": "Team creation is disabled on this platform",
+      "TEAM_INVITE_ALREADY_MEMBER": "That address already belongs to a member of this team.",
+      "TEAM_INVITE_EMAIL_MISMATCH": "This invitation is addressed to someone else. Sign out and sign back in with the invited address.",
+      "TEAM_INVITE_EXPIRED": "This invitation has expired. Ask a team administrator for a new one.",
+      "TEAM_INVITE_INVALID": "This invitation does not exist or is no longer valid.",
+      "TEAM_INVITE_NOT_PENDING": "This invitation is no longer pending.",
+      "TEAM_INVITE_REVOKED": "This invitation has been cancelled.",
       "TEAM_NOT_FOUND": "Team not found",
       "TOKEN_EXPIRED": "The token has expired",
       "TOKEN_INVALID": "The token is invalid",
@@ -987,7 +1015,8 @@
       "UNKNOWN": "An unexpected error occurred",
       "USER_NOT_FOUND": "User not found",
       "USER_NOT_SYNCED": "The user account is not synchronized",
-      "VALIDATION": "The provided data is invalid"
+      "VALIDATION": "The provided data is invalid",
+      "WEBHOOK_URL_INVALID": "This webhook address is not accepted: it must start with https:// and point to a public service."
     },
     "outdated": {
       "title": "Update required",
@@ -1108,5 +1137,16 @@
     "downloadOriginal": "Download the original of {file}",
     "downloadAttachment": "Download {file}",
     "downloading": "Downloading…"
+  },
+  "invitations": {
+    "pending": {
+      "title": {
+        "one": "You have one invitation waiting",
+        "other": "You have {} invitations waiting"
+      },
+      "line": "{inviter} invites you to join {team}.",
+      "accept": "Accept",
+      "accepting": "Accepting…"
+    }
   }
 }

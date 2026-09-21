@@ -4,8 +4,10 @@ import 'dart:developer';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
+import '../../../api/generated/export.dart';
 import '../../auth/domain/auth_state.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../teams/providers/team_providers.dart';
 import '../data/notifications_repository.dart';
 import '../data/push_device_repository.dart';
 import '../domain/push_message.dart';
@@ -157,6 +159,12 @@ class PushController extends StateNotifier<PushAuthorization> {
   void _handleTap(PushMessage message) {
     final String? id = message.notificationId;
     if (id != null) unawaited(_markRead(id));
+
+    // Une invitation ouvre la liste des équipes : sa carte d'invitations
+    // doit être relue, l'onglet l'a peut-être chargée avant l'invitation.
+    if (message.data['subjectType'] == NotificationSubjectType.team.toJson()) {
+      _ref.invalidate(myInvitationsProvider);
+    }
 
     final String? path = message.path;
     if (path != null) _ref.read(pendingPushRouteProvider.notifier).state = path;

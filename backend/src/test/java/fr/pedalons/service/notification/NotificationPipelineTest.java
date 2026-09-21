@@ -306,7 +306,10 @@ class NotificationPipelineTest extends AbstractResourceTest {
     assertEquals(
         List.of(NotificationType.COMMENT_REPLY), notifications.notificationTypesFor(user3));
     assertTrue(notifications.notificationTypesFor(user2).isEmpty(), "the replier");
-    assertTrue(notifications.notificationTypesFor(user1).isEmpty(), "not in the thread");
+    // The ride's author hears of the thread once, when it starts — not of every reply in it.
+    assertEquals(
+        List.of(NotificationType.COMMENT_ON_MY_PUBLICATION),
+        notifications.notificationTypesFor(user1));
   }
 
   // ------------------------------------------------------------------ housekeeping

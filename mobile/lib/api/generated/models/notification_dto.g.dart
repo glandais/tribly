@@ -17,6 +17,9 @@ _NotificationDto _$NotificationDtoFromJson(Map<String, dynamic> json) =>
       subjectType: json['subjectType'] as String,
       subjectSlug: json['subjectSlug'] as String,
       subjectName: json['subjectName'] as String,
+      changes: (json['changes'] as List<dynamic>)
+          .map((e) => NotificationChange.fromJson(e as String))
+          .toList(),
       actorName: json['actorName'] as String?,
       subjectDateTime: json['subjectDateTime'] as String?,
       excerpt: json['excerpt'] as String?,
@@ -33,6 +36,7 @@ Map<String, dynamic> _$NotificationDtoToJson(_NotificationDto instance) =>
       'subjectType': instance.subjectType,
       'subjectSlug': instance.subjectSlug,
       'subjectName': instance.subjectName,
+      'changes': instance.changes.map((e) => e.toJson()).toList(),
       'actorName': instance.actorName,
       'subjectDateTime': instance.subjectDateTime,
       'excerpt': instance.excerpt,

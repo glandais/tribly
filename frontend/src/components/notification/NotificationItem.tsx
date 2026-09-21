@@ -3,7 +3,7 @@ import { Box, Group, Stack, Text, ThemeIcon, UnstyledButton } from '@mantine/cor
 import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useFormattedDate } from '@/utils/dateFormat'
 import type { NotificationDto } from '@/api/dto'
-import { NotificationType } from '@/api/dto'
+import { NotificationChange, NotificationType } from '@/api/dto'
 import { notificationColor, notificationIcon, notificationPath } from './notificationDisplay'
 
 interface NotificationItemProps {
@@ -24,7 +24,7 @@ interface NotificationItemProps {
  */
 export function NotificationItem({ notification, onOpen, compact = false }: NotificationItemProps) {
   const { t } = useTranslation()
-  const { formatRelative } = useFormattedDate()
+  const { formatRelative, formatDateTime, isGuessedTimezone } = useFormattedDate()
 
   const Icon = notificationIcon(notification.type)
   const color = notificationColor(notification.type)
@@ -39,6 +39,25 @@ export function NotificationItem({ notification, onOpen, compact = false }: Noti
       team: notification.teamName,
     }
   )
+
+  // What moved, for RIDE_UPDATED: the snapshot says which fields changed, and `subjectDateTime` is
+  // already the new date. A reminder carries no change but reads better with its start time.
+  const details =
+    notification.type === NotificationType.RIDE_REMINDER && notification.subjectDateTime
+      ? t('notifications.item.startsAt', { date: formatDateTime(notification.subjectDateTime) })
+      : notification.changes
+          .map((change) =>
+            t(`notifications.change.${change satisfies NotificationChange}`, {
+              date: formatDateTime(notification.subjectDateTime),
+            })
+          )
+          .join(' · ')
+
+  // The excerpt is a quoted comment — except for RIDE_JOINED, where it is the group's name.
+  const excerpt =
+    notification.excerpt && notification.type === NotificationType.RIDE_JOINED
+      ? t('notifications.item.group', { group: notification.excerpt })
+      : notification.excerpt
 
   return (
     <UnstyledButton
@@ -59,9 +78,19 @@ export function NotificationItem({ notification, onOpen, compact = false }: Noti
           <Text size="sm" c="dimmed" lineClamp={compact ? 1 : 2}>
             {notification.subjectName}
           </Text>
-          {notification.excerpt && (
-            <Text size="xs" c="dimmed" fs="italic" lineClamp={2}>
-              {notification.excerpt}
+          {details && (
+            <Text size="xs" c="dimmed" suppressHydrationWarning={isGuessedTimezone}>
+              {details}
+            </Text>
+          )}
+          {excerpt && (
+            <Text
+              size="xs"
+              c="dimmed"
+              fs={notification.type === NotificationType.RIDE_JOINED ? undefined : 'italic'}
+              lineClamp={2}
+            >
+              {excerpt}
             </Text>
           )}
           {/* "il y a 2 minutes" is read off the clock, not off a timezone: server and client

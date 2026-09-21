@@ -5,6 +5,7 @@ import fr.pedalons.domain.notification.Notification;
 import fr.pedalons.domain.notification.NotificationDelivery;
 import fr.pedalons.domain.notification.NotificationEventEntry;
 import fr.pedalons.domain.notification.NotificationPreference;
+import fr.pedalons.domain.notification.NotificationTeamMute;
 import fr.pedalons.domain.notification.PushDevice;
 import java.time.Instant;
 import java.util.List;
@@ -12,7 +13,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * What the notification pipeline holds about the user: the inbox, the channels each entry went out
- * on, the preference overrides and the registered devices.
+ * on, the preference overrides, the settings and muted teams, and the registered devices.
  */
 public final class NotificationExport {
 
@@ -90,6 +91,19 @@ public final class NotificationExport {
           d.getAppVersion(),
           d.getCreatedAt(),
           d.getLastSeenAt());
+    }
+  }
+
+  /**
+   * {@code account/notification-settings.json}: the daily digest switch and the teams whose
+   * announcements the user muted.
+   */
+  public record Settings(boolean emailDigest, List<MutedTeam> mutedTeams) {}
+
+  public record MutedTeam(String teamName, Instant mutedAt) {
+
+    public static MutedTeam from(NotificationTeamMute m) {
+      return new MutedTeam(m.getTeam().getName(), m.getCreatedAt());
     }
   }
 }

@@ -1,6 +1,7 @@
 package fr.pedalons.domain.notification;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.pedalons.enums.NotificationChange;
 import fr.pedalons.enums.NotificationEventStatus;
 import fr.pedalons.enums.NotificationSubjectType;
 import fr.pedalons.enums.NotificationType;
@@ -8,6 +9,8 @@ import io.hypersistence.utils.hibernate.id.Tsid;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -137,6 +140,24 @@ public class NotificationEventEntry {
 
   @Column(name = "site_name", length = 250)
   private @Nullable String siteName;
+
+  /** What a {@code RIDE_UPDATED} says changed: {@link NotificationChange} names, comma-separated. */
+  @Column(name = "changes", length = 100)
+  private @Nullable String changes;
+
+  public List<NotificationChange> changeList() {
+    if (changes == null || changes.isBlank()) {
+      return List.of();
+    }
+    return Arrays.stream(changes.split(",")).map(NotificationChange::valueOf).toList();
+  }
+
+  public void setChangeList(List<NotificationChange> list) {
+    this.changes =
+        list.isEmpty()
+            ? null
+            : String.join(",", list.stream().map(NotificationChange::name).toList());
+  }
 
   @Version private Long version;
 }

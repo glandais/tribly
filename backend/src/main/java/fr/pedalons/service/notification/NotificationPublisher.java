@@ -19,6 +19,7 @@ import fr.pedalons.service.notification.event.TripPublished;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.function.Supplier;
 import org.jboss.logging.Logger;
@@ -65,6 +66,15 @@ public class NotificationPublisher {
 
   @Transactional(Transactional.TxType.MANDATORY)
   public void publish(NotificationEvent event, Team team, @Nullable User actor) {
+    publish(event, team, actor, Duration.ZERO);
+  }
+
+  /**
+   * Queues an event that will not be fanned out before {@code delay} has passed. For a type that
+   * coalesces while pending, the delay is the window in which further edits fold into it.
+   */
+  @Transactional(Transactional.TxType.MANDATORY)
+  public void publish(NotificationEvent event, Team team, @Nullable User actor, Duration delay) {
     if (SILENCED.get()) {
       return;
     }
@@ -75,6 +85,7 @@ public class NotificationPublisher {
       // A record of longs cannot fail to serialize; if it ever does, that is a programming error.
       throw new IllegalStateException("Cannot serialize " + event, e);
     }
+    Instant now = Instant.now();
     boolean queued =
         eventRepository.insertIfAbsent(
             team.getDomain().getId(),
@@ -83,7 +94,8 @@ public class NotificationPublisher {
             payload,
             actor != null ? actor.getId() : null,
             team.getId(),
-            Instant.now());
+            now,
+            now.plus(delay));
     if (!queued) {
       LOG.debugf("Notification %s already queued once, not again", event.dedupKey());
     }

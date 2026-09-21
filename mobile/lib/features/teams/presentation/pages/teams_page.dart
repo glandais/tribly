@@ -14,6 +14,7 @@ import '../../../../core/widgets/widgets.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/safe_string.dart';
 import '../../providers/team_providers.dart';
+import '../widgets/pending_invitations_card.dart';
 
 /// The teams the user belongs to.
 ///
@@ -61,6 +62,13 @@ class _TeamsPageState extends ConsumerState<TeamsPage> {
         .toList();
   }
 
+  /// Tirer pour rafraîchir recharge aussi les invitations : c'est le geste
+  /// naturel après avoir été prévenu d'une invitation hors de l'app.
+  Future<void> _refresh() {
+    ref.invalidate(myInvitationsProvider);
+    return ref.refresh(myTeamsProvider.future);
+  }
+
   void _openDiscover() => context.push(Paths.teamsDiscover());
 
   @override
@@ -87,6 +95,7 @@ class _TeamsPageState extends ConsumerState<TeamsPage> {
       ),
       body: Column(
         children: [
+          const PendingInvitationsCard(),
           if (_searching)
             Padding(
               padding: const EdgeInsets.symmetric(
@@ -146,7 +155,7 @@ class _TeamsPageState extends ConsumerState<TeamsPage> {
     // the search — never for joining a team.
     if (visible.isEmpty) {
       return PdlRefresh(
-        onRefresh: () => ref.refresh(myTeamsProvider.future),
+        onRefresh: _refresh,
         child: ListView(
           children: [
             if (teams.isEmpty)
@@ -183,7 +192,7 @@ class _TeamsPageState extends ConsumerState<TeamsPage> {
     }
 
     return PdlRefresh(
-      onRefresh: () => ref.refresh(myTeamsProvider.future),
+      onRefresh: _refresh,
       child: AnimatedResponsiveGrid(
         padding: const EdgeInsets.all(PdlSpacing.section),
         itemCount: visible.length,

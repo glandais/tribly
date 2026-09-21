@@ -103,6 +103,9 @@ abstract final class PdlIcons {
   static const IconData people = Icons.people_outline;
   static const IconData person = Icons.person_outline;
   static const IconData personOff = Icons.person_off_outlined;
+  static const IconData personAdd = Icons.person_add_alt_outlined;
+  static const IconData reminder = Icons.alarm;
+  static const IconData invitation = Icons.drafts_outlined;
   static const IconData leader = Icons.star_outline;
   static const IconData admin = Icons.shield_outlined;
   static const IconData seats = Icons.event_seat_outlined;

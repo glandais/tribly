@@ -4,13 +4,19 @@ import fr.pedalons.common.TsidUtils;
 import fr.pedalons.common.exception.BadRequestException;
 import fr.pedalons.common.exception.NotFoundException;
 import fr.pedalons.domain.notification.NotificationPreference;
+import fr.pedalons.domain.notification.NotificationSettings;
+import fr.pedalons.domain.notification.NotificationTeamMute;
+import fr.pedalons.domain.team.Team;
+import fr.pedalons.domain.team.UserTeam;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.notifications.request.NotificationPreferenceUpdate;
 import fr.pedalons.dto.notifications.request.NotificationPreferencesRequest;
+import fr.pedalons.dto.notifications.request.NotificationTeamPreferenceUpdate;
 import fr.pedalons.dto.notifications.response.NotificationDto;
 import fr.pedalons.dto.notifications.response.NotificationListResponse;
 import fr.pedalons.dto.notifications.response.NotificationPreferenceDto;
 import fr.pedalons.dto.notifications.response.NotificationPreferencesDto;
+import fr.pedalons.dto.notifications.response.NotificationTeamPreferenceDto;
 import fr.pedalons.dto.notifications.response.UnreadCountDto;
 import fr.pedalons.enums.NotificationChannel;
 import fr.pedalons.enums.NotificationType;
@@ -18,7 +24,10 @@ import fr.pedalons.repository.common.BaseRepository;
 import fr.pedalons.repository.notification.NotificationDeliveryRepository;
 import fr.pedalons.repository.notification.NotificationPreferenceRepository;
 import fr.pedalons.repository.notification.NotificationRepository;
+import fr.pedalons.repository.notification.NotificationSettingsRepository;
+import fr.pedalons.repository.notification.NotificationTeamMuteRepository;
 import fr.pedalons.repository.notification.PushDeviceRepository;
+import fr.pedalons.repository.team.UserTeamRepository;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.Logged;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -27,10 +36,14 @@ import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * The current user's inbox and preferences. Everything is scoped to the caller and their domain:
@@ -43,6 +56,9 @@ public class NotificationService {
   @Inject NotificationPreferenceRepository preferenceRepository;
   @Inject NotificationDeliveryRepository deliveryRepository;
   @Inject PushDeviceRepository pushDeviceRepository;
+  @Inject NotificationTeamMuteRepository teamMuteRepository;
+  @Inject NotificationSettingsRepository settingsRepository;
+  @Inject UserTeamRepository userTeamRepository;
   @Inject NotificationChannels channels;
   @Inject PedalonsQueryContext pedalonsContext;
 
@@ -95,7 +111,7 @@ public class NotificationService {
   @Logged
   @Transactional
   public NotificationPreferencesDto getPreferences() {
-    return preferences(pedalonsContext.getUserId());
+    return preferences(pedalonsContext.getUserId(), pedalonsContext.getDomainId());
   }
 
   /**
@@ -124,12 +140,51 @@ public class NotificationService {
         preference.setEnabled(update.enabled());
       }
     }
-    return preferences(user.getId());
+    if (request.teams() != null) {
+      Map<String, Team> teams = memberships(user.getId(), pedalonsContext.getDomainId());
+      for (NotificationTeamPreferenceUpdate update : request.teams()) {
+        Team team = teams.get(update.teamSlug());
+        if (team == null) {
+          // Not one of the caller's teams on this site — the same answer as a team that does not
+          // exist, so the endpoint says nothing about other teams.
+          throw new NotFoundException();
+        }
+        Optional<NotificationTeamMute> mute =
+            teamMuteRepository.findByUserAndTeam(user.getId(), team.getId());
+        if (update.muted() && mute.isEmpty()) {
+          teamMuteRepository.persist(new NotificationTeamMute(user, team));
+        } else if (!update.muted()) {
+          mute.ifPresent(teamMuteRepository::delete);
+        }
+      }
+    }
+    if (request.emailDigest() != null) {
+      NotificationSettings settings =
+          settingsRepository
+              .findByUser(user.getId())
+              .orElseGet(
+                  () -> {
+                    NotificationSettings created = new NotificationSettings(user);
+                    settingsRepository.persist(created);
+                    return created;
+                  });
+      settings.setEmailDigest(request.emailDigest());
+    }
+    return preferences(user.getId(), pedalonsContext.getDomainId());
+  }
+
+  /** The caller's live teams on this domain, by slug, in name order. */
+  private Map<String, Team> memberships(Long userId, Long domainId) {
+    return userTeamRepository.findByUserId(userId).stream()
+        .map(UserTeam::getTeam)
+        .filter(team -> team.getDomain().getId().equals(domainId))
+        .sorted(Comparator.comparing(Team::getName, String.CASE_INSENSITIVE_ORDER))
+        .collect(Collectors.toMap(Team::getSlug, team -> team, (a, b) -> a, LinkedHashMap::new));
   }
 
   private record Cell(NotificationType type, NotificationChannel channel) {}
 
-  private NotificationPreferencesDto preferences(Long userId) {
+  private NotificationPreferencesDto preferences(Long userId, Long domainId) {
     Map<Cell, Boolean> overrides = new HashMap<>();
     for (NotificationPreference preference : preferenceRepository.findByUser(userId)) {
       overrides.put(
@@ -150,12 +205,28 @@ public class NotificationService {
                 byDefault));
       }
     }
-    return new NotificationPreferencesDto(shown, cells);
+    Set<Long> muted =
+        teamMuteRepository.findByUser(userId).stream()
+            .map(mute -> mute.getTeam().getId())
+            .collect(Collectors.toSet());
+    List<NotificationTeamPreferenceDto> teams =
+        memberships(userId, domainId).values().stream()
+            .map(
+                team ->
+                    new NotificationTeamPreferenceDto(
+                        team.getSlug(), team.getName(), muted.contains(team.getId())))
+            .toList();
+    boolean digest =
+        settingsRepository
+            .findByUser(userId)
+            .map(NotificationSettings::isEmailDigest)
+            .orElse(false);
+    return new NotificationPreferencesDto(shown, cells, teams, digest);
   }
 
   /**
    * Forgets what the pipeline holds about a user whose account is being deleted: their inbox with
-   * its pending deliveries, their preferences and their push devices.
+   * its pending deliveries, their preferences, team mutes and settings, and their push devices.
    *
    * <p>The account itself is only flagged deleted, so the {@code on delete cascade} of the
    * migration never fires. Nothing more would be sent anyway — the fan-out and the senders both skip
@@ -171,6 +242,8 @@ public class NotificationService {
     deliveryRepository.deleteByRecipient(userId);
     notificationRepository.deleteByRecipient(userId);
     preferenceRepository.deleteByUser(userId);
+    teamMuteRepository.deleteByUser(userId);
+    settingsRepository.deleteByUser(userId);
     pushDeviceRepository.deleteByUser(userId);
   }
 }

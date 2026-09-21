@@ -30,6 +30,19 @@ public class NotificationEventRepository implements PanacheRepository<Notificati
       @Nullable Long actorId,
       @Nullable Long teamId,
       Instant now) {
+    return insertIfAbsent(domainId, type, dedupKey, payloadJson, actorId, teamId, now, now);
+  }
+
+  /** As above, not claimed before {@code notBefore} — a delay in which later edits fold in. */
+  public boolean insertIfAbsent(
+      Long domainId,
+      NotificationType type,
+      String dedupKey,
+      String payloadJson,
+      @Nullable Long actorId,
+      @Nullable Long teamId,
+      Instant now,
+      Instant notBefore) {
     return getEntityManager()
             .createNativeQuery(
                 """
@@ -38,7 +51,7 @@ public class NotificationEventRepository implements PanacheRepository<Notificati
                    created_at, next_attempt_at, version)
                 values
                   (:id, :domainId, :type, :status, :dedupKey, cast(:payload as jsonb), :actorId,
-                   :teamId, 0, :now, :now, 0)
+                   :teamId, 0, :now, :notBefore, 0)
                 on conflict (dedup_key) do nothing
                 """)
             .setParameter("id", TSID.Factory.getTsid().toLong())
@@ -50,6 +63,7 @@ public class NotificationEventRepository implements PanacheRepository<Notificati
             .setParameter("actorId", actorId)
             .setParameter("teamId", teamId)
             .setParameter("now", Timestamp.from(now))
+            .setParameter("notBefore", Timestamp.from(notBefore))
             .executeUpdate()
         == 1;
   }

@@ -1,5 +1,6 @@
 package fr.pedalons.service.notification;
 
+import fr.pedalons.enums.NotificationChange;
 import fr.pedalons.enums.NotificationType;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.io.IOException;
@@ -8,8 +9,11 @@ import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.time.DateTimeException;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
@@ -19,8 +23,8 @@ import java.util.regex.Pattern;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Server-side wording of the notifications, for the channels that need finished text (e-mail today,
- * push tomorrow). The inbox does not use it: clients localize from the type and structured fields.
+ * Server-side wording of the notifications, for the channels that need finished text: e-mail, push,
+ * the team webhook. The inbox does not use it: clients localize from the type and structured fields.
  *
  * <p>A properties file per language rather than one Brevo template per type: the e-mail goes
  * through a single generic template whose parameters are already rendered here, so adding a type
@@ -45,22 +49,73 @@ public class NotificationTexts {
   public record Rendered(String subject, String title, String body, String cta) {}
 
   public Rendered render(NotificationMessage message) {
-    String language = language(message.recipientLanguage());
+    return render(
+        message.type(),
+        message.recipientLanguage(),
+        message.recipientTimezone(),
+        message.actorName(),
+        message.teamName(),
+        message.subjectName(),
+        message.subjectDateTime(),
+        message.excerpt(),
+        message.siteName(),
+        message.changes());
+  }
+
+  /**
+   * The same wording for a reader who is not a member — a team webhook, which has a language of its
+   * own and no time zone but the default.
+   */
+  public Rendered render(
+      NotificationType type,
+      @Nullable String languageTag,
+      @Nullable String timezone,
+      @Nullable String actorName,
+      String teamName,
+      String subjectName,
+      @Nullable Instant subjectDateTime,
+      @Nullable String excerpt,
+      String siteName,
+      List<NotificationChange> changes) {
+    String language = language(languageTag);
     Properties texts = bundle(language);
-    Map<String, String> values =
-        Map.of(
-            "actor", message.actorName() != null ? message.actorName() : message.teamName(),
-            "team", message.teamName(),
-            "subject", message.subjectName(),
-            "date", formatDate(message, language),
-            "excerpt", message.excerpt() != null ? message.excerpt() : "",
-            "site", message.siteName());
-    String prefix = message.type().name() + ".";
+    String date =
+        subjectDateTime == null
+            ? ""
+            : DATE_FORMATS.get(language).withZone(zone(timezone)).format(subjectDateTime);
+    Map<String, String> values = new HashMap<>();
+    values.put("actor", actorName != null ? actorName : teamName);
+    values.put("team", teamName);
+    values.put("subject", subjectName);
+    values.put("date", date);
+    values.put("excerpt", excerpt != null ? excerpt : "");
+    values.put("site", siteName);
+    // Each change is a clause of its own, filled with the same values, then the clauses joined.
+    values.put(
+        "changes",
+        String.join(
+            texts.getProperty("change.separator", "; "),
+            changes.stream().map(c -> fill(texts, "change." + c.name(), values)).toList()));
+    String prefix = type.name() + ".";
     return new Rendered(
         fill(texts, prefix + "subject", values),
         fill(texts, prefix + "title", values),
         fill(texts, prefix + "body", values),
         fill(texts, prefix + "cta", values));
+  }
+
+  /** The test message of a team webhook: its {@code title} or {@code body}. */
+  public String webhookTestText(String languageTag, String key, String teamName, String siteName) {
+    return fill(
+        bundle(language(languageTag)),
+        "webhook.test." + key,
+        Map.of("team", teamName, "site", siteName));
+  }
+
+  /** A line of the daily digest's frame: its subject and its heading. */
+  public String digestText(@Nullable String languageTag, String key, int count) {
+    return fill(
+        bundle(language(languageTag)), "digest." + key, Map.of("count", String.valueOf(count)));
   }
 
   /** "fr-CA" reads the French file; a language nobody translated reads the default. */
@@ -72,17 +127,7 @@ public class NotificationTexts {
     return DATE_FORMATS.containsKey(primary) ? primary : DEFAULT_LANGUAGE;
   }
 
-  private static String formatDate(NotificationMessage message, String language) {
-    if (message.subjectDateTime() == null) {
-      return "";
-    }
-    return DATE_FORMATS
-        .get(language)
-        .withZone(zone(message.recipientTimezone()))
-        .format(message.subjectDateTime());
-  }
-
-  private static ZoneId zone(@Nullable String timezone) {
+  static ZoneId zone(@Nullable String timezone) {
     if (timezone == null) {
       return DEFAULT_ZONE;
     }
@@ -126,6 +171,28 @@ public class NotificationTexts {
   /** Every language with a texts file — what {@code NotificationTextsTest} checks for completeness. */
   static Iterable<String> languages() {
     return DATE_FORMATS.keySet();
+  }
+
+  /** The keys outside the per-type blocks: change clauses, digest frame, webhook test. */
+  static boolean isFrameComplete(Properties texts) {
+    for (NotificationChange change : NotificationChange.values()) {
+      if (texts.getProperty("change." + change.name()) == null) {
+        return false;
+      }
+    }
+    for (String key :
+        new String[] {
+          "digest.subject",
+          "digest.title",
+          "digest.intro",
+          "webhook.test.title",
+          "webhook.test.body"
+        }) {
+      if (texts.getProperty(key) == null) {
+        return false;
+      }
+    }
+    return true;
   }
 
   static boolean isComplete(Properties texts, NotificationType type) {

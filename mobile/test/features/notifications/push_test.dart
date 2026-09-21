@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pedalons/api/generated/export.dart';
+import 'package:pedalons/config/router.dart';
 import 'package:pedalons/core/pagination/pagination.dart';
 import 'package:pedalons/features/notifications/data/notifications_repository.dart';
 import 'package:pedalons/features/notifications/data/push_device_repository.dart';
@@ -14,6 +15,7 @@ import 'package:pedalons/features/notifications/providers/push_provider.dart';
 import 'package:pedalons/core/theme/pedalons_theme.dart';
 import 'package:pedalons/features/notifications/presentation/widgets/push_activation_banner.dart';
 import 'package:pedalons/features/notifications/services/push_gateway.dart';
+import 'package:pedalons/features/teams/providers/team_providers.dart';
 
 import '../../support/localization.dart';
 
@@ -123,6 +125,8 @@ class _FakeNotificationsRepository implements NotificationsRepository {
       NotificationPreferencesDto(
         channels: channels,
         preferences: const <NotificationPreferenceDto>[],
+        teams: const <NotificationTeamPreferenceDto>[],
+        emailDigest: false,
       );
 
   @override
@@ -131,6 +135,16 @@ class _FakeNotificationsRepository implements NotificationsRepository {
     required NotificationChannel channel,
     required bool enabled,
   }) async => preferences();
+
+  @override
+  Future<NotificationPreferencesDto> setTeamMuted({
+    required String teamSlug,
+    required bool muted,
+  }) async => preferences();
+
+  @override
+  Future<NotificationPreferencesDto> setEmailDigest(bool enabled) async =>
+      preferences();
 }
 
 /// Le contrôleur, monté sans passer par `authProvider` : celui-ci ouvrirait
@@ -145,8 +159,10 @@ void main() {
   late _FakeDeviceRepository devices;
   late _FakeNotificationsRepository notifications;
   late ProviderContainer container;
+  late int invitationLoads;
 
   setUp(() {
+    invitationLoads = 0;
     gateway = _FakeGateway();
     devices = _FakeDeviceRepository();
     notifications = _FakeNotificationsRepository();
@@ -155,6 +171,10 @@ void main() {
         pushGatewayProvider.overrideWithValue(gateway),
         pushDeviceRepositoryProvider.overrideWithValue(devices),
         notificationsRepositoryProvider.overrideWithValue(notifications),
+        myInvitationsProvider.overrideWith((Ref ref) async {
+          invitationLoads++;
+          return const <MyInvitationDto>[];
+        }),
       ],
     );
     addTearDown(container.dispose);
@@ -315,6 +335,36 @@ void main() {
         container.read(pendingPushRouteProvider),
         '/equipes/gaby/articles/bilan',
       );
+    },
+  );
+
+  test(
+    'une invitation ouvre la liste des équipes et relit les invitations',
+    () async {
+      gateway.initial = PushAuthorization.granted;
+      final PushController controller = start();
+      await controller.onAuthChanged(true);
+      await container.read(myInvitationsProvider.future);
+      expect(invitationLoads, 1);
+
+      gateway.tapped.add(
+        const PushMessage(
+          data: <String, String>{
+            'notificationId': 'n-11',
+            'type': 'TEAM_INVITATION',
+            'subjectType': 'TEAM',
+            'path': '/teams',
+          },
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(container.read(pendingPushRouteProvider), '/teams');
+      // La liste des équipes est la racine d'un onglet : aucun ancêtre à
+      // empiler, `main.dart` y va directement.
+      expect(ancestorsForDeepLink('/teams'), isEmpty);
+      await container.read(myInvitationsProvider.future);
+      expect(invitationLoads, 2);
     },
   );
 

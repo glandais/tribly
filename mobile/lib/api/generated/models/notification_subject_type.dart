@@ -14,6 +14,8 @@ enum NotificationSubjectType {
   post('POST'),
   @JsonValue('ROUTE')
   route('ROUTE'),
+  @JsonValue('TEAM')
+  team('TEAM'),
 
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
   $unknown(null);

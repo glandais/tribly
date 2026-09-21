@@ -1,0 +1,17 @@
+{#fragment id=subject rendered=false}{params.subject}{/fragment}
+Bonjour {params.recipientName},
+
+{params.title}
+
+{params.intro}
+{#for item in params.items}
+
+{item.title}
+{item.body}
+{item.ctaLabel} : {item.ctaUrl}
+{/for}
+
+Vous recevez ce résumé parce que vous avez choisi de regrouper vos notifications par e-mail en un envoi quotidien. Choisir vos notifications : {params.preferencesUrl}
+
+Cordialement,
+L'équipe {params.appName}

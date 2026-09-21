@@ -6,4 +6,5 @@ export const NotificationSubjectType = {
   TRIP: 'TRIP',
   POST: 'POST',
   ROUTE: 'ROUTE',
+  TEAM: 'TEAM',
 } as const

@@ -111,7 +111,7 @@ public class NotificationDeliveryService {
   }
 
   /** Null when there is nothing left to send to: the recipient was deleted since the fan-out. */
-  private static @Nullable NotificationMessage toMessage(NotificationDelivery delivery) {
+  static @Nullable NotificationMessage toMessage(NotificationDelivery delivery) {
     Notification notification = delivery.getNotification();
     NotificationEventEntry event = notification.getEvent();
     User recipient = notification.getRecipient();
@@ -144,7 +144,8 @@ public class NotificationDeliveryService {
         event.getSubjectDateTime(),
         event.getExcerpt(),
         event.getBaseUrl(),
-        event.getSiteName());
+        event.getSiteName(),
+        event.changeList());
   }
 
   /**

@@ -5,6 +5,7 @@ import fr.pedalons.domain.notification.Notification;
 import fr.pedalons.domain.notification.NotificationDelivery;
 import fr.pedalons.domain.notification.NotificationEventEntry;
 import fr.pedalons.domain.notification.NotificationPreference;
+import fr.pedalons.domain.notification.TeamWebhookDelivery;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.enums.NotificationChannel;
@@ -16,6 +17,7 @@ import fr.pedalons.repository.notification.NotificationDeliveryRepository;
 import fr.pedalons.repository.notification.NotificationEventRepository;
 import fr.pedalons.repository.notification.NotificationPreferenceRepository;
 import fr.pedalons.repository.notification.NotificationRepository;
+import fr.pedalons.repository.notification.TeamWebhookDeliveryRepository;
 import fr.pedalons.repository.team.UserTeamRepository;
 import fr.pedalons.service.notification.event.RidePublished;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -34,6 +36,7 @@ public class NotificationTestData {
   @Inject NotificationRepository notificationRepository;
   @Inject NotificationDeliveryRepository deliveryRepository;
   @Inject NotificationPreferenceRepository preferenceRepository;
+  @Inject TeamWebhookDeliveryRepository webhookDeliveryRepository;
   @Inject UserTeamRepository userTeamRepository;
   @Inject ObjectMapper objectMapper;
 
@@ -170,5 +173,19 @@ public class NotificationTestData {
   @Transactional
   public void backdateEvents(int days) {
     eventRepository.update("createdAt = ?1", Instant.now().minus(days, ChronoUnit.DAYS));
+  }
+
+  /** Skips the digest wait: every pending delivery becomes due now. */
+  @Transactional
+  public void makeDeliveriesDue() {
+    deliveryRepository.update("nextAttemptAt = ?1", Instant.now());
+  }
+
+  /** The statuses of the team webhook queue, in creation order. */
+  @Transactional
+  public List<NotificationDeliveryStatus> webhookDeliveryStatuses() {
+    return webhookDeliveryRepository.list("order by createdAt").stream()
+        .map(TeamWebhookDelivery::getStatus)
+        .toList();
   }
 }

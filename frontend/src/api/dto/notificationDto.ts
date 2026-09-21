@@ -1,4 +1,5 @@
 import type { Instant } from './instant.ts'
+import type { NotificationChange } from './notificationChange.ts'
 import type { NotificationSubjectType } from './notificationSubjectType.ts'
 import type { NotificationType } from './notificationType.ts'
 
@@ -22,12 +23,14 @@ export interface NotificationDto {
   teamName: string
   /** Kind of page the notification opens */
   subjectType: NotificationSubjectType
-  /** Slug of the ride, trip, post or route */
+  /** Slug of the ride, trip, post or route — of the team, for TEAM */
   subjectSlug: string
-  /** Name of the ride, trip, post or route */
+  /** Name of the ride, trip, post or route — of the team, for TEAM */
   subjectName: string
   /** Date of the ride or trip, publication date of a post */
   subjectDateTime?: Instant
-  /** A short quote — the reply, for COMMENT_REPLY */
+  /** A short quote: the comment, for COMMENT_REPLY and COMMENT_ON_MY_PUBLICATION; the name of the group joined, for RIDE_JOINED */
   excerpt?: string
+  /** What changed, for RIDE_UPDATED; empty otherwise */
+  changes: NotificationChange[]
 }

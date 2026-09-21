@@ -6,6 +6,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'notification_channel.dart';
 import 'notification_preference_dto.dart';
+import 'notification_team_preference_dto.dart';
 
 part 'notification_preferences_dto.freezed.dart';
 part 'notification_preferences_dto.g.dart';
@@ -19,6 +20,12 @@ abstract class NotificationPreferencesDto with _$NotificationPreferencesDto {
 
     /// One cell per type and configurable channel
     required List<NotificationPreferenceDto> preferences,
+
+    /// The user's teams on this site, each with its mute switch. Offered whatever the channels: muting also keeps the team's announcements out of the inbox.
+    required List<NotificationTeamPreferenceDto> teams,
+
+    /// Non-urgent e-mails are held and sent as one digest a day, at 7:00 in the user's time zone. Cancellations, changes and reminders still leave at once. Only meaningful when EMAIL is among the channels.
+    required bool emailDigest,
   }) = _NotificationPreferencesDto;
 
   factory NotificationPreferencesDto.fromJson(Map<String, Object?> json) =>

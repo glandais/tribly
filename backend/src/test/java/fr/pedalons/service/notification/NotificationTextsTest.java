@@ -7,6 +7,7 @@ import fr.pedalons.enums.NotificationChannel;
 import fr.pedalons.enums.NotificationSubjectType;
 import fr.pedalons.enums.NotificationType;
 import java.time.Instant;
+import java.util.List;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +37,8 @@ class NotificationTextsTest {
         Instant.parse("2026-09-20T06:30:00Z"),
         "8h30 au parking",
         "https://club.example",
-        "Le Club");
+        "Le Club",
+        List.of());
   }
 
   @Test
