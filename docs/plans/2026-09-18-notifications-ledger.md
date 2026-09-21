@@ -362,6 +362,8 @@ ailleurs. Le compte de service et la clé APNs, eux, restent dans `~/Documents/p
     arrière-plan, application tuée** (aucun processus) : livraison `PUSH` `SENT` au premier essai,
     bannière reçue, tap qui ouvre la sortie et la marque lue, les trois fois.
   - Délai publication → envoi de 3 à 15 s : c'est le tick du dispatcher, pas un défaut.
+  - Refaite après les correctifs iOS (`48cd3df1`, `a0a1f99f`), backend joint par l'IP du Mac : les
+    trois états OK, jeton réenregistré par l'upsert sans erreur.
 - ☑ Recette sur appareil réel **iOS** (iPhone 13 Pro Max, 21 septembre 2026) : build *release*
   signée développement (APNs sandbox) sur `API_BASE_URL=http://<IP du Mac>:8080` — backend lancé
   avec `-Dquarkus.http.host=0.0.0.0`, et le `Domain` en base renommé à cette IP, faute de quoi
