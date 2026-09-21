@@ -22,6 +22,10 @@ platform :ios do
       workspace: "Runner.xcworkspace",
       scheme: "Runner",
       export_method: "app-store",
+      # Automatic signing only refreshes its cached profile when allowed to. Without this, a new
+      # entitlement (aps-environment for push) fails the archive against the stale profile.
+      xcargs: "-allowProvisioningUpdates",
+      export_xcargs: "-allowProvisioningUpdates",
       export_options: {
         signingStyle: "automatic"
       }
