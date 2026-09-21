@@ -37,6 +37,27 @@ platform :android do
     )
   end
 
+  desc "Push the Data safety form from store-metadata/data-safety.csv (Play Console CSV format). The API is write-only: there is no pull, so the CSV in git is the record, and a hand edit in the Console is overwritten by the next run."
+  lane :data_safety do
+    require "google/apis/androidpublisher_v3"
+    require "googleauth"
+
+    csv = File.read("../../store-metadata/data-safety.csv")
+    key_file = CredentialsManager::AppfileConfig.try_fetch_value(:json_key_file)
+    package = CredentialsManager::AppfileConfig.try_fetch_value(:package_name)
+
+    service = Google::Apis::AndroidpublisherV3::AndroidPublisherService.new
+    service.authorization = Google::Auth::ServiceAccountCredentials.make_creds(
+      json_key_io: File.open(key_file),
+      scope: "https://www.googleapis.com/auth/androidpublisher",
+    )
+    service.data_application_safety(
+      package,
+      Google::Apis::AndroidpublisherV3::SafetyLabelsUpdateRequest.new(safety_labels: csv),
+    )
+    UI.success("Data safety form updated for #{package}")
+  end
+
   desc "Deploy a new version to the Google Play production track"
   lane :deploy do
     upload_to_play_store(

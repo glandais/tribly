@@ -7,8 +7,8 @@ from:
 | Artefact | Where | Kept in sync by |
 |---|---|---|
 | iOS privacy manifest | `mobile/ios/Runner/PrivacyInfo.xcprivacy` | hand-edit alongside this file |
-| App Store Connect → App Privacy | App Store Connect (web form) | copy §4 into the form |
-| Google Play Console → Data safety | Play Console (web form) | copy §5 into the form |
+| App Store Connect → App Privacy | `app-privacy.json` → `asc web privacy apply` | regenerate from §4 |
+| Google Play Console → Data safety | `data-safety.csv` → `fastlane data_safety` | regenerate from §5 |
 | Published privacy policy | `privacy/privacy-policy.{en,fr}.md` | must not contradict §2 |
 
 - **App**: Pédalons, `fr.pedalons.mobile`, version `1.0.0+23` (`mobile/pubspec.yaml`)
@@ -175,7 +175,8 @@ Location, which is **Data Not Linked to You**:
 | Identifiers | Device ID | Yes | No | App Functionality |
 | Other Data | Other Data Types | Yes | No | App Functionality |
 
-For *Other Data Types*, describe it as: **"Session security metadata (IP address, user agent and
+*Other Data Types* is the `OTHER_DATA` token in `app-privacy.json` (not `OTHER_DATA_TYPES`, which
+`asc` rejects). If the form asks, describe it as: **"Session security metadata (IP address, user agent and
 sign-in timestamps) recorded to detect suspicious account activity."**
 
 *Device ID* covers the **push registration token** and the device model sent with it (#11, #12) —
@@ -256,10 +257,9 @@ logs, Diagnostics, Other app performance data.
 **There is no Android equivalent of `PrivacyInfo.xcprivacy`.** Google has no privacy-manifest file
 that ships inside the APK/AAB — the Data safety declaration exists **only** as a Play Console web
 form, which is exactly why §5 of this file exists. Nothing in `mobile/android/` encodes it, and
-`fastlane`'s `upload_to_play_store` cannot upload it either (`skip_upload_metadata` in
-`android/fastlane/Fastfile` is unrelated). If you prefer bulk entry, Play Console offers
-*Data safety → Import from CSV*; download the template from the Console rather than hand-writing
-one, and fill it from the tables above.
+`fastlane`'s `upload_to_play_store` cannot upload it either. The Android Publisher API can
+(`applications.dataSafety`, write-only), which is what the `data_safety` lane does with
+`data-safety.csv` — see `README.md` in this folder.
 
 What Android *does* encode is the **permission set**, and that must not contradict §5.
 

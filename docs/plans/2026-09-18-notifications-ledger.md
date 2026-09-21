@@ -291,8 +291,8 @@ côté des autres secrets du projet (keystore Android, profil iOS). Rien de tout
 - ☑ Permission `POST_NOTIFICATIONS` (Android 13+) et l'écran qui la demande — faites en phase 4 bis,
   où le bandeau de la boîte de réception tient lieu de maquette manquante
 - ☑ `mobile/store-metadata/data-safety.md` et `PrivacyInfo.xcprivacy` mis à jour
-- ☑ Politique de confidentialité (21 septembre 2026) ; ☐ les deux formulaires des stores restent à
-  faire
+- ☑ Politique de confidentialité et formulaires des deux stores (21 septembre 2026) ; le
+  formulaire Play attend encore son envoi pour examen
 - ☐ Nouvelle soumission aux deux stores
 
 ## Phase 4 bis — Push, côté mobile (21 septembre 2026)
@@ -412,7 +412,8 @@ ailleurs. Le compte de service et la clé APNs, eux, restent dans `~/Documents/p
   consentement ; Google Ireland (FCM) en sous-traitant, transfert US sous CCT + Data Privacy
   Framework ; rétention 90 jours ; contenu de l'export. La ligne Brevo mentionnait l'adresse seule —
   elle porte désormais le contenu des notifications par e-mail.
-- ☐ Reporter §4 et §5 de `data-safety.md` dans les deux formulaires des stores.
+- ☑ §4 et §5 de `data-safety.md` reportés dans les deux formulaires — par fichier et commande,
+  plus par saisie (`mobile/store-metadata/README.md`). Play : envoi pour examen à faire.
 
 ### Reste à faire
 - ☑ Profil de provisionnement iOS : **réémis** le 21 septembre 2026 (capacités *Associated Domains,
@@ -473,4 +474,5 @@ ailleurs. Le compte de service et la clé APNs, eux, restent dans `~/Documents/p
 | 2026-09-21 | Politique (hors push) | Les deux autres écarts avec `data-safety.md` fermés : photo de profil (sélecteur système seul) et position approximative (« autour de moi », non conservée) décrites ; Inter embarquée dans l'app et `google_fonts` retiré — plus de requête à `fonts.gstatic.com` ; fonds de carte déclarés un par un, avec les transferts Esri (US) et OSMF (UK). |
 | 2026-09-21 | Préalables stores | Suppression de compte : déjà dans l'app ; la politique gagne « Supprimer votre compte » et devient l'URL de suppression déclarée à Play (`/profile` exige d'être connecté). Sauvegarde Android coupée (`allowBackup`, `data_extraction_rules.xml`). Relevé en chemin : la suppression de compte n'est qu'un drapeau, aucune purge ne tient la promesse des 30 jours — point ouvert 6 de `data-safety.md`. |
 | 2026-09-21 | Effacement de compte | Point 6 de `data-safety.md` clos : `deleteUser` efface tout de suite (`AccountErasureService`), un rattrapage nocturne traite les comptes déjà marqués. Ligne `users` anonymisée plutôt que supprimée (contenus d'équipe crédités à « Ancien membre »). Un commentaire qui a des réponses devient une pierre tombale (`CommentDto.deleted`, API 3.7.0) plutôt que d'emporter les réponses des autres. |
+| 2026-09-21 | Formulaires des stores | Versionnés : `app-privacy.json` (Apple, `asc web privacy`) et `data-safety.csv` (Play, lane `fastlane data_safety` sur l'API `applications.dataSafety`). Apple publié, `plan` à zéro écart ; Play poussé et réexporté sans écart, **en attente d'envoi pour examen** dans la console. Reste une nouvelle soumission aux deux stores. |
 | 2026-09-18 | Revue | Clé de dédup rendue par les évènements `SKIPPED`/`FAILED` ; recul avant nouvelle tentative d'un évènement (V38, `next_attempt_at`) ; récupération des bloqués toutes les 5 min, livraisons bloquées sans tentative restante → `FAILED`. |

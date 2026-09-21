@@ -31,6 +31,14 @@ Runs all the tests
 
 Upload a new build to Play Store internal track. Run `flutter build appbundle --release` from the project root first.
 
+### android data_safety
+
+```sh
+[bundle exec] fastlane android data_safety
+```
+
+Push the Data safety form from store-metadata/data-safety.csv (Play Console CSV format). The API is write-only: there is no pull, so the CSV in git is the record, and a hand edit in the Console is overwritten by the next run.
+
 ### android deploy
 
 ```sh
