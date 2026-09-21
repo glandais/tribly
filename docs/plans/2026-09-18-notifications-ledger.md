@@ -11,11 +11,10 @@ passe, en tête de la phase concernée ; une case ne se coche que vérifiée.
   sur la base locale restaurée (schéma 36 → 38) le 20 septembre 2026 ; **V39** `push_devices`,
   écrite le 20 septembre 2026, ☑ appliquée sur une base locale neuve le 21 septembre 2026
 
-**État au 21 septembre 2026 : push en production ; phase 5 déployée et testée en staging.** Serveur à
-jour en staging et en prod, `PEDALONS_PUSH_ENABLED=true` en prod ; build mobile `1.0.0+52`
-disponible en test sur les deux stores (TestFlight, piste de test Play) ; formulaire Play envoyé pour
-examen. Restent la publication des stores et la mise en production de la phase 5 ; l'e-mail reste
-coupé, par décision.
+**État au 21 septembre 2026 : push et phase 5 en production.** Serveur à jour en staging et en
+prod, `PEDALONS_PUSH_ENABLED=true` en prod ; build mobile `1.0.0+53` (phase 5) poussée en test sur les
+deux stores ; formulaire Play envoyé pour examen. Restent la publication des stores et la recette du
+webhook contre de vrais Slack, Discord et Mattermost ; l'e-mail reste coupé, par décision.
 
 Légende : ☑ fait et vérifié · ◐ fait, vérification en attente · ☐ à faire · ✗ écarté (raison sur place)
 
@@ -437,7 +436,7 @@ ailleurs. Le compte de service et la clé APNs, eux, restent dans `~/Documents/p
 Conception : §12 du plan. Contrat **3.7.0 → 3.8.0** (additif : 5 types, sujet `TEAM`,
 `NotificationDto.changes`, `teams` et `emailDigest` dans les préférences, 4 endpoints webhook, code
 d'erreur `WEBHOOK_URL_INVALID`). Migration **V40** `notifications_phase5`, ☑ appliquée en staging
-le 21 septembre 2026.
+puis en production le 21 septembre 2026.
 
 ### Backend
 - ☑ `RIDE_REMINDER` — `RideReminderScheduler` (toutes les heures, sorties à 20-24 h qui ont un
@@ -507,7 +506,7 @@ mvn test -Dtest='Ride*Test,Comment*Test,TeamInvitation*Test,Invitation*Test'
 
 ### Reste à faire
 - ☑ Déployé et testé en staging (21 septembre 2026), V40 comprise
-- ☐ Déployer en production
+- ☑ Déployé et testé en production (21 septembre 2026)
 - ☑ Brevo : gabarits `notification-digest` créés le 21 septembre 2026
   (`pedalons-notification-digest-fr` **18**, `pedalons-notification-digest-en` **19**, actifs, sujet
   `{{ params.subject }}`, même émetteur et même mise en page que 16/17), recopiés des gabarits Qute
@@ -516,8 +515,9 @@ mvn test -Dtest='Ride*Test,Comment*Test,TeamInvitation*Test,Invitation*Test'
   `Col & <Galibier>` est échappé une fois, pas deux
 - ☐ Recette webhook contre un vrai Slack, Discord et Mattermost (bouton « Envoyer un test ») —
   vérifier au passage qu'un `@channel` dans un nom de sortie ne notifie personne sur Mattermost
-- ☐ Nouvelle build mobile pour les nouveaux libellés ; la build 52 affiche déjà les nouveaux types
-  sans planter (`$unknown`), mais sans libellé propre
+- ◐ Build mobile `1.0.0+53` (nouveaux libellés, carte des invitations) poussée en test sur les deux
+  stores le 21 septembre 2026 ; reste la publication. La build 52 affiche les nouveaux types sans
+  planter (`$unknown`), mais sans libellé propre
 
 ## Hors pipeline, à ne pas oublier
 
@@ -565,4 +565,5 @@ mvn test -Dtest='Ride*Test,Comment*Test,TeamInvitation*Test,Invitation*Test'
 | 2026-09-21 | Stores | Build `1.0.0+52` disponible en test (TestFlight, piste de test Play) ; formulaire *Sécurité des données* envoyé pour examen. E-mail de notification : pas pour le moment. |
 | 2026-09-21 | Phase 5 | Cinq types (rappel J-1, modification retardée et regroupée, inscription, commentaire, invitation), équipes coupées, résumé quotidien, webhook d'équipe. Écart au plan : les préférences par équipe sont un interrupteur « couper les annonces », pas une matrice par équipe (§12). Relevé en revue : l'invitation n'atteint qu'un compte à l'adresse vérifiée. |
 | 2026-09-21 | Staging | Phase 5 déployée et testée en staging (V40 appliquée). Gabarits Brevo du résumé créés (18, 19) et vérifiés par envoi réel. |
+| 2026-09-21 | Production | Phase 5 déployée et testée en production. Build mobile `1.0.0+53` poussée en test sur les deux stores. |
 | 2026-09-18 | Revue | Clé de dédup rendue par les évènements `SKIPPED`/`FAILED` ; recul avant nouvelle tentative d'un évènement (V38, `next_attempt_at`) ; récupération des bloqués toutes les 5 min, livraisons bloquées sans tentative restante → `FAILED`. |
