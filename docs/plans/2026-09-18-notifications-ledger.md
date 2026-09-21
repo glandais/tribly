@@ -507,8 +507,12 @@ mvn test -Dtest='Ride*Test,Comment*Test,TeamInvitation*Test,Invitation*Test'
 
 ### Reste à faire
 - ☐ Appliquer V40 sur la base locale restaurée et faire la recette
-- ☐ Brevo : gabarits `notification-digest` fr/en (boucle sur `params.items`) et leurs ids en
-  `%prod` — **avant** d'activer l'e-mail en production, puisqu'un membre peut cocher le résumé
+- ☑ Brevo : gabarits `notification-digest` créés le 21 septembre 2026
+  (`pedalons-notification-digest-fr` **18**, `pedalons-notification-digest-en` **19**, actifs, sujet
+  `{{ params.subject }}`, même émetteur et même mise en page que 16/17), recopiés des gabarits Qute
+  avec une boucle `{% for item in params.items %}` ; ids renseignés en `%prod`. Vérifiés par un
+  envoi réel des deux langues : les éléments de la boucle sortent tous, et un nom de sortie
+  `Col & <Galibier>` est échappé une fois, pas deux
 - ☐ Recette webhook contre un vrai Slack, Discord et Mattermost (bouton « Envoyer un test ») —
   vérifier au passage qu'un `@channel` dans un nom de sortie ne notifie personne sur Mattermost
 - ☐ Nouvelle build mobile pour les nouveaux libellés ; la build 52 affiche déjà les nouveaux types
