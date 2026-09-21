@@ -12,9 +12,9 @@ passe, en tête de la phase concernée ; une case ne se coche que vérifiée.
   écrite le 20 septembre 2026, ☑ appliquée sur une base locale neuve le 21 septembre 2026
 
 **État au 21 septembre 2026 : push en production.** Serveur à jour en staging et en prod,
-`PEDALONS_PUSH_ENABLED=true` en prod ; build mobile `1.0.0+52` en cours d'envoi sur TestFlight.
-Restent la revue des stores, l'envoi pour examen du formulaire Play, la décision sur l'e-mail, et la
-phase 5.
+`PEDALONS_PUSH_ENABLED=true` en prod ; build mobile `1.0.0+52` disponible en test sur les deux stores
+(TestFlight, piste de test Play) ; formulaire Play envoyé pour examen. Restent la publication des
+stores et la phase 5 ; l'e-mail reste coupé, par décision.
 
 Légende : ☑ fait et vérifié · ◐ fait, vérification en attente · ☐ à faire · ✗ écarté (raison sur place)
 
@@ -298,9 +298,9 @@ côté des autres secrets du projet (keystore Android, profil iOS). Rien de tout
   où le bandeau de la boîte de réception tient lieu de maquette manquante
 - ☑ `mobile/store-metadata/data-safety.md` et `PrivacyInfo.xcprivacy` mis à jour
 - ☑ Politique de confidentialité et formulaires des deux stores (21 septembre 2026) ; le
-  formulaire Play attend encore son envoi pour examen
-- ◐ Nouvelle soumission aux deux stores — build `1.0.0+52` en cours d'envoi sur TestFlight le
-  21 septembre 2026 ; revue des stores à suivre
+  formulaire Play envoyé pour examen le même jour
+- ◐ Nouvelle soumission aux deux stores — build `1.0.0+52` disponible en test le 21 septembre 2026
+  (TestFlight, piste de test Play) ; reste la publication
 
 ## Phase 4 bis — Push, côté mobile (21 septembre 2026)
 
@@ -420,7 +420,7 @@ ailleurs. Le compte de service et la clé APNs, eux, restent dans `~/Documents/p
   Framework ; rétention 90 jours ; contenu de l'export. La ligne Brevo mentionnait l'adresse seule —
   elle porte désormais le contenu des notifications par e-mail.
 - ☑ §4 et §5 de `data-safety.md` reportés dans les deux formulaires — par fichier et commande,
-  plus par saisie (`mobile/store-metadata/README.md`). Play : envoi pour examen à faire.
+  plus par saisie (`mobile/store-metadata/README.md`). Play : envoyé pour examen le 21 septembre 2026.
 
 ### Reste à faire
 - ☑ Profil de provisionnement iOS : **réémis** le 21 septembre 2026 (capacités *Associated Domains,
@@ -429,7 +429,7 @@ ailleurs. Le compte de service et la clé APNs, eux, restent dans `~/Documents/p
   **développement** (`aps-environment = development`, un seul appareil), celui de la recette sur
   iPhone. Le profil de distribution, lui, est généré par fastlane à l'archivage
   (`-allowProvisioningUpdates`, `3ac6dfa7`).
-- ◐ Nouvelle soumission aux deux stores — voir plus haut (build `1.0.0+52`, TestFlight).
+- ◐ Nouvelle soumission aux deux stores — voir plus haut (build `1.0.0+52` en test, publication à venir).
 
 ## Phase 5 — Nouveaux types et canaux (☐)
 
@@ -450,6 +450,7 @@ ailleurs. Le compte de service et la clé APNs, eux, restent dans `~/Documents/p
   les ids renseignés dans `%prod.pedalons.email.brevo.templates.notification.{fr,en}`
 - ☐ **Décision produit** : activer `PEDALONS_NOTIFICATIONS_EMAIL_ENABLED=true` en production, en
   connaissant les défauts (annulations, voyages publiés)
+  — **pas pour le moment** (décision du 21 septembre 2026) : l'e-mail reste coupé en prod.
 - ☑ Export RGPD (`UserExportBuilder`) — 21 septembre 2026 : `notifications/inbox.json` (l'instantané
   de chaque entrée et ses envois e-mail/push, deux requêtes pour toute la boîte),
   `account/notification-preferences.json` et `account/push-devices.json` **sans le jeton** (c'est
@@ -483,4 +484,5 @@ ailleurs. Le compte de service et la clé APNs, eux, restent dans `~/Documents/p
 | 2026-09-21 | Effacement de compte | Point 6 de `data-safety.md` clos : `deleteUser` efface tout de suite (`AccountErasureService`), un rattrapage nocturne traite les comptes déjà marqués. Ligne `users` anonymisée plutôt que supprimée (contenus d'équipe crédités à « Ancien membre »). Un commentaire qui a des réponses devient une pierre tombale (`CommentDto.deleted`, API 3.7.0) plutôt que d'emporter les réponses des autres. |
 | 2026-09-21 | Formulaires des stores | Versionnés : `app-privacy.json` (Apple, `asc web privacy`) et `data-safety.csv` (Play, lane `fastlane data_safety` sur l'API `applications.dataSafety`). Apple publié, `plan` à zéro écart ; Play poussé et réexporté sans écart, **en attente d'envoi pour examen** dans la console. Reste une nouvelle soumission aux deux stores. |
 | 2026-09-21 | Mise en production | Staging et prod à jour. Compte de service FCM déposé et `PEDALONS_PUSH_ENABLED=true` en prod — le démarrage journalise « Push notifications enabled — FCM project pedalons-9e595 ». Le canal `PUSH` devient disponible : proposé dans les préférences, livraisons créées pour les types qui l'ont par défaut. Build mobile `1.0.0+52` en cours d'envoi sur TestFlight. |
+| 2026-09-21 | Stores | Build `1.0.0+52` disponible en test (TestFlight, piste de test Play) ; formulaire *Sécurité des données* envoyé pour examen. E-mail de notification : pas pour le moment. |
 | 2026-09-18 | Revue | Clé de dédup rendue par les évènements `SKIPPED`/`FAILED` ; recul avant nouvelle tentative d'un évènement (V38, `next_attempt_at`) ; récupération des bloqués toutes les 5 min, livraisons bloquées sans tentative restante → `FAILED`. |
