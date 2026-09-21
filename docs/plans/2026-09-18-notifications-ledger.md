@@ -359,8 +359,29 @@ ailleurs. Le compte de service et la clé APNs, eux, restent dans `~/Documents/p
     arrière-plan, application tuée** (aucun processus) : livraison `PUSH` `SENT` au premier essai,
     bannière reçue, tap qui ouvre la sortie et la marque lue, les trois fois.
   - Délai publication → envoi de 3 à 15 s : c'est le tick du dispatcher, pas un défaut.
-- ☐ Recette sur appareil réel **iOS** : même scénario sur iPhone (APNs via FCM), avec le profil de
-  développement réémis.
+- ◐ Recette sur appareil réel **iOS** (iPhone 13 Pro Max, 21 septembre 2026) : build *release*
+  signée développement (APNs sandbox) sur `API_BASE_URL=http://<IP du Mac>:8080` — backend lancé
+  avec `-Dquarkus.http.host=0.0.0.0`, et le `Domain` en base renommé à cette IP, faute de quoi
+  `DomainResolver` ne trouve rien. Une build *debug* ne se relance pas depuis l'écran d'accueil sans
+  débogueur : elle ne permet pas le cas « application tuée ».
+  - Jeton enregistré (`IOS`), bannière et tap OK au **premier plan** et en **arrière-plan**.
+  - **Application tuée : défaut trouvé et corrigé.** Le `content-available: 1` du message réveille
+    parfois l'app tuée en arrière-plan dès l'arrivée du push ; `firebase_messaging` retient alors le
+    message comme « initial », `getInitialMessage()` — appelé à ce réveil — répond `null`, et au tap
+    le plugin reconnaît le même `gcm.message_id`, n'émet **pas** `onMessageOpenedApp` et garde le
+    message pour un second `getInitialMessage()` que personne ne faisait. Vu dans le journal de
+    l'appareil (réveil `state=2`, puis `didReceive` trois secondes plus tard, rien côté Dart).
+    Correctif : `FirebasePushGateway` refait un `getInitialMessage()` à chaque retour au premier plan
+    sur iOS (le plugin ne le rend qu'une fois). Et le serveur n'envoie plus `content-available`,
+    qui ne servait qu'au badge écarté plus haut.
+  - Après correctif : trois taps sur app tuée, trois ouvertures de la sortie marquée lue — **mais
+    les trois par le chemin direct** (le tap lance l'app, `willConnect` porte la réponse) : iOS n'a
+    plus réveillé l'app en arrière-plan, il bride ces réveils après des arrêts forcés répétés. Le
+    chemin corrigé n'a donc pas été observé, d'où ◐ ; sans `content-available`, il ne devrait plus
+    se présenter.
+  - Deux fausses pistes écartées en route : agrandir le tampon du canal (le message n'atteignait
+    pas Dart du tout), et poser `UNUserNotificationCenter.delegate = self` dans `AppDelegate` — ce
+    qui a **coupé la réception** des pushes sur l'iPhone. Ne pas y revenir.
 
 ### Déclarations de confidentialité
 - ☑ `mobile/store-metadata/data-safety.md` repris : le jeton FCM et le modèle d'appareil entrent à
@@ -418,5 +439,6 @@ ailleurs. Le compte de service et la clé APNs, eux, restent dans `~/Documents/p
 | 2026-09-21 | Brevo | Gabarit `notification` créé (16 fr, 17 en) et ids renseignés en `%prod`. Reste la décision produit : `PEDALONS_NOTIFICATIONS_EMAIL_ENABLED=true`. |
 | 2026-09-20 | Préalables push | Console faite : projet Firebase `pedalons-9e595` (Analytics et Gemini coupés), apps Android et Apple `fr.pedalons.mobile`, compte de service vérifié hors application (jeton minté, `messages:send` répond 400 `INVALID_ARGUMENT` sur un faux jeton), clé APNs Sandbox & Production créée et capacité *Push Notifications* activée sur l'App ID — ce qui invalide le profil de provisionnement iOS existant. Les fichiers vivent dans `~/Documents/pedalons/firebase/`, hors dépôt. |
 | 2026-09-21 | Phase 4 bis | Push côté mobile : `firebase_messaging` derrière une `PushGateway` (seule couche qui connaît Firebase, ce qui rend les tests possibles), enregistrement du jeton et désinscription à la déconnexion, canal Android et icône de barre d'état, tap qui marque lu et ouvre `data.path` par le tuyau des liens web. L'autorisation se demande depuis la boîte de réception et jamais au lancement. Deux surprises de build : `flutter_local_notifications` exige la desugarisation des bibliothèques du cœur, et l'icône de notification ne pouvait pas être celle du lanceur (le système n'en garde que l'alpha). 560 tests verts ; déclarations de confidentialité reprises, politique et formulaires des stores encore à faire. |
+| 2026-09-21 | Recette push iOS | iPhone 13 Pro Max, build release signée développement. Premier plan et arrière-plan OK du premier coup. App tuée : tap perdu quand `content-available` avait déjà réveillé l'app — le plugin garde alors le message pour un second `getInitialMessage()`. Corrigé côté app (nouvel appel au retour au premier plan) et côté serveur (`content-available` retiré). Relevé aussi : deux `POST /api/push-devices` concurrents au lancement, l'un en 500. |
 | 2026-09-21 | Recette push Android | Pixel 6a contre un backend local : jeton enregistré, bannière et tap OK au premier plan, en arrière-plan et application tuée. Rien à corriger dans le code. En chemin : `minio/minio` n'est plus tiré depuis Docker Hub (même tag pris sur `quay.io/minio/minio`), et `postgis/postgis:17-3.5-alpine` n'existe pas en arm64 (tiré en amd64). Reste l'iPhone. |
 | 2026-09-18 | Revue | Clé de dédup rendue par les évènements `SKIPPED`/`FAILED` ; recul avant nouvelle tentative d'un évènement (V38, `next_attempt_at`) ; récupération des bloqués toutes les 5 min, livraisons bloquées sans tentative restante → `FAILED`. |

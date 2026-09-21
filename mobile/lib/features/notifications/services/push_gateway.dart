@@ -5,6 +5,7 @@ import 'dart:io' show Platform;
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../domain/push_message.dart';
@@ -76,6 +77,7 @@ class FirebasePushGateway implements PushGateway {
   final StreamController<PushMessage> _taps =
       StreamController<PushMessage>.broadcast();
   StreamSubscription<RemoteMessage>? _openedSubscription;
+  AppLifecycleListener? _resumeListener;
   bool _initialized = false;
 
   @override
@@ -119,11 +121,26 @@ class FirebasePushGateway implements PushGateway {
         badge: true,
         sound: true,
       );
+      // Une app tuée n'est pas lancée par le tap : le `content-available` du
+      // message la réveille en arrière-plan dès son arrivée, et le plugin le
+      // retient alors comme « message initial ». `getInitialMessage()`, appelé
+      // à ce réveil, répond `null` — personne n'a encore tapé. Au tap, le
+      // plugin reconnaît le même message, n'émet **pas** `onMessageOpenedApp`
+      // et le garde pour un *second* `getInitialMessage()`. On le fait donc à
+      // chaque retour au premier plan ; le plugin ne le rend qu'une fois.
+      _resumeListener ??= AppLifecycleListener(
+        onResume: () => unawaited(_collectTappedInitialMessage()),
+      );
     }
 
     _openedSubscription ??= FirebaseMessaging.onMessageOpenedApp.listen(
       (RemoteMessage message) => _taps.add(_toPushMessage(message)),
     );
+  }
+
+  Future<void> _collectTappedInitialMessage() async {
+    final RemoteMessage? message = await _messaging.getInitialMessage();
+    if (message != null) _taps.add(_toPushMessage(message));
   }
 
   @override
