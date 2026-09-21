@@ -363,9 +363,12 @@ ailleurs. Le compte de service et la clé APNs, eux, restent dans `~/Documents/p
 - ☐ Reporter §4 et §5 de `data-safety.md` dans les deux formulaires des stores.
 
 ### Reste à faire
-- ☐ Profil de provisionnement iOS : **réémis** le 21 septembre 2026 (capacités *Associated Domains,
-  In-App Purchase, Push Notifications*, expire le 21/09/2027), reste à le télécharger et à remplacer
-  `~/Documents/pedalons/ios/provisioning-profile/pedalons.mobileprovision`.
+- ☑ Profil de provisionnement iOS : **réémis** le 21 septembre 2026 (capacités *Associated Domains,
+  In-App Purchase, Push Notifications*, expire le 21/09/2027) et remplacé dans
+  `~/Documents/pedalons/ios/provisioning-profile/pedalons.mobileprovision` — profil de
+  **développement** (`aps-environment = development`, un seul appareil), celui de la recette sur
+  iPhone. Le profil de distribution, lui, est généré par fastlane à l'archivage
+  (`-allowProvisioningUpdates`, `3ac6dfa7`).
 - ☐ Nouvelle soumission aux deux stores.
 
 ## Phase 5 — Nouveaux types et canaux (☐)
