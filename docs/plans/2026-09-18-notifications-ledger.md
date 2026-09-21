@@ -9,7 +9,7 @@ passe, en tête de la phase concernée ; une case ne se coche que vérifiée.
   appareils push) — rien retiré
 - Migrations : **V37** `notifications`, **V38** `notification event backoff` — appliquées sans heurt
   sur la base locale restaurée (schéma 36 → 38) le 20 septembre 2026 ; **V39** `push_devices`,
-  écrite le 20 septembre 2026, ☐ pas encore appliquée sur la base locale
+  écrite le 20 septembre 2026, ☑ appliquée sur une base locale neuve le 21 septembre 2026
 
 Légende : ☑ fait et vérifié · ◐ fait, vérification en attente · ☐ à faire · ✗ écarté (raison sur place)
 
@@ -240,7 +240,8 @@ mvn test -Dtest='Push*Test,Notification*Test,ArchitectureTest'
 ```
 
 ### Reste à faire côté serveur
-- ☐ Appliquer V39 sur la base locale et faire la recette. **Reportée à la phase 4 bis** le
+- ☑ Appliquer V39 sur la base locale et faire la recette — faite le 21 septembre 2026 avec la
+  phase 4 bis, voir « Recette sur appareil réel » plus bas. **Reportée à la phase 4 bis** le
   20 septembre 2026 : la stack locale de ce dossier n'a plus de `.env` utilisable (celui de la
   recette précédente vivait dans un worktree disparu), et une recette push sans jeton d'appareil ne
   montrerait de toute façon que le cas « aucun appareil ⇒ `SENT` sans appel réseau ». Elle se fera
@@ -347,8 +348,19 @@ ailleurs. Le compte de service et la clé APNs, eux, restent dans `~/Documents/p
   lier sans elle. Avertissement connu et sans effet : `firebase_core` applique encore le plugin
   Gradle Kotlin, ce que Flutter annonce vouloir refuser un jour.
 - ☑ `flutter build ios --simulator --debug` : Firebase passe par Swift Package Manager sans Podfile.
-- ☐ Recette sur appareil réel : la seule chose qui prouve la chaîne de bout en bout (jeton
-  enregistré, sortie publiée, bannière reçue, tap qui ouvre la sortie et la marque lue).
+- ☑ Recette sur appareil réel **Android** (Pixel 6a, 21 septembre 2026) : build debug sur
+  `API_BASE_URL=http://localhost:8080` via `adb reverse tcp:8080 tcp:8080`, backend `quarkus:dev`
+  lancé avec `PEDALONS_PUSH_ENABLED=true` et le compte de service (journal : `Push notifications
+  enabled — FCM project pedalons-9e595`), base neuve, un membre et un organisateur dans une équipe
+  de test.
+  - Push activé depuis le bandeau de la boîte ⇒ une ligne `push_devices` (`ANDROID`,
+    `Google Pixel 6a`, `1.0.0+51`) ; la matrice propose `[EMAIL, PUSH]`.
+  - Une sortie publiée par l'organisateur dans chacun des trois états de l'app — **premier plan,
+    arrière-plan, application tuée** (aucun processus) : livraison `PUSH` `SENT` au premier essai,
+    bannière reçue, tap qui ouvre la sortie et la marque lue, les trois fois.
+  - Délai publication → envoi de 3 à 15 s : c'est le tick du dispatcher, pas un défaut.
+- ☐ Recette sur appareil réel **iOS** : même scénario sur iPhone (APNs via FCM), avec le profil de
+  développement réémis.
 
 ### Déclarations de confidentialité
 - ☑ `mobile/store-metadata/data-safety.md` repris : le jeton FCM et le modèle d'appareil entrent à
@@ -406,4 +418,5 @@ ailleurs. Le compte de service et la clé APNs, eux, restent dans `~/Documents/p
 | 2026-09-21 | Brevo | Gabarit `notification` créé (16 fr, 17 en) et ids renseignés en `%prod`. Reste la décision produit : `PEDALONS_NOTIFICATIONS_EMAIL_ENABLED=true`. |
 | 2026-09-20 | Préalables push | Console faite : projet Firebase `pedalons-9e595` (Analytics et Gemini coupés), apps Android et Apple `fr.pedalons.mobile`, compte de service vérifié hors application (jeton minté, `messages:send` répond 400 `INVALID_ARGUMENT` sur un faux jeton), clé APNs Sandbox & Production créée et capacité *Push Notifications* activée sur l'App ID — ce qui invalide le profil de provisionnement iOS existant. Les fichiers vivent dans `~/Documents/pedalons/firebase/`, hors dépôt. |
 | 2026-09-21 | Phase 4 bis | Push côté mobile : `firebase_messaging` derrière une `PushGateway` (seule couche qui connaît Firebase, ce qui rend les tests possibles), enregistrement du jeton et désinscription à la déconnexion, canal Android et icône de barre d'état, tap qui marque lu et ouvre `data.path` par le tuyau des liens web. L'autorisation se demande depuis la boîte de réception et jamais au lancement. Deux surprises de build : `flutter_local_notifications` exige la desugarisation des bibliothèques du cœur, et l'icône de notification ne pouvait pas être celle du lanceur (le système n'en garde que l'alpha). 560 tests verts ; déclarations de confidentialité reprises, politique et formulaires des stores encore à faire. |
+| 2026-09-21 | Recette push Android | Pixel 6a contre un backend local : jeton enregistré, bannière et tap OK au premier plan, en arrière-plan et application tuée. Rien à corriger dans le code. En chemin : `minio/minio` n'est plus tiré depuis Docker Hub (même tag pris sur `quay.io/minio/minio`), et `postgis/postgis:17-3.5-alpine` n'existe pas en arm64 (tiré en amd64). Reste l'iPhone. |
 | 2026-09-18 | Revue | Clé de dédup rendue par les évènements `SKIPPED`/`FAILED` ; recul avant nouvelle tentative d'un évènement (V38, `next_attempt_at`) ; récupération des bloqués toutes les 5 min, livraisons bloquées sans tentative restante → `FAILED`. |
