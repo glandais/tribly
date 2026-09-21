@@ -149,14 +149,17 @@ public class FcmClient {
           "android",
           Map.of("priority", "high", "notification", Map.of("channel_id", "pedalons_default")));
     } else {
-      // content-available lets the app refresh its badge and inbox before the member taps.
+      // No content-available: nothing in the app uses a background wake (the iOS badge was ruled
+      // out), and the wake is harmful — it relaunches a killed app before the tap, and
+      // firebase_messaging then withholds the tap from getInitialMessage() at launch. See the
+      // iOS push recipe in docs/plans/2026-09-18-notifications-ledger.md.
       message.put(
           "apns",
           Map.of(
               "headers",
               Map.of("apns-priority", "10"),
               "payload",
-              Map.of("aps", Map.of("sound", "default", "content-available", 1))));
+              Map.of("aps", Map.of("sound", "default"))));
     }
     return message;
   }

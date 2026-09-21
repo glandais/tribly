@@ -1,7 +1,5 @@
 package fr.pedalons.service.notification;
 
-import fr.pedalons.domain.notification.PushDevice;
-import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.notifications.request.PushDeviceRegistration;
 import fr.pedalons.repository.notification.PushDeviceRepository;
 import fr.pedalons.service.security.PedalonsQueryContext;
@@ -10,7 +8,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
-import java.util.Optional;
 
 /**
  * The address book of the push channel, from the app's side.
@@ -35,22 +32,13 @@ public class PushDeviceService {
   @Logged
   @Transactional
   public void register(PushDeviceRegistration registration) {
-    User user = pedalonsContext.getUser();
-    Instant now = Instant.now();
-    Optional<PushDevice> existing = deviceRepository.findByToken(registration.token());
-    PushDevice device =
-        existing.orElseGet(
-            () -> {
-              PushDevice created =
-                  new PushDevice(user, registration.platform(), registration.token(), now);
-              deviceRepository.persist(created);
-              return created;
-            });
-    device.setUser(user);
-    device.setPlatform(registration.platform());
-    device.setDeviceName(registration.deviceName());
-    device.setAppVersion(registration.appVersion());
-    device.setLastSeenAt(now);
+    deviceRepository.upsert(
+        pedalonsContext.getUserId(),
+        registration.platform(),
+        registration.token(),
+        registration.deviceName(),
+        registration.appVersion(),
+        Instant.now());
   }
 
   /**
