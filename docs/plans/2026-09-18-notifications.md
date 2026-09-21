@@ -133,12 +133,12 @@ d'où « membres de l'équipe » sans autre filtre. Un brouillon n'est jamais no
 |---|---|---|
 | `IN_APP` | phase 1 | **Toujours actif, non configurable.** La ligne `notifications` *est* l'entrée de la boîte de réception. Les préférences ne gouvernent que les canaux qui interrompent. |
 | `EMAIL` | phase 1, **désactivé par défaut** | `pedalons.notifications.email.enabled`. Un seul gabarit générique `notification` (fr/en) — voir §6. |
-| `PUSH` | phase 4 | FCM (Android + iOS via APNs). Table `push_devices`, enregistrement du jeton, purge sur `UNREGISTERED`. |
+| `PUSH` | phase 4, **en production depuis le 21 septembre 2026** | FCM (Android + iOS via APNs). Table `push_devices`, enregistrement du jeton, purge sur `UNREGISTERED`. Disponible seulement avec `PEDALONS_PUSH_ENABLED=true` *et* un compte de service lisible. |
 | Web Push, webhook d'équipe, résumé | plus tard | Le webhook n'est pas un canal *par destinataire* : il se branchera à l'étage 2, sur l'évènement. |
 
 Un canal n'est proposé (dans les préférences) et n'engendre de livraisons que s'il est **disponible**
-côté serveur : implémenté *et* activé par configuration. Tant que le push n'existe pas, aucune ligne
-`PUSH` n'est créée — sinon elles s'empileraient sans jamais partir.
+côté serveur : implémenté *et* activé par configuration. Un environnement sans compte de service FCM
+(dev, test) ne crée aucune ligne `PUSH` — sinon elles s'empileraient sans jamais partir.
 
 ## 6. E-mail : un gabarit générique
 

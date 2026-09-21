@@ -90,9 +90,8 @@ Requires significant architecture work. Spike before committing.
   - Event types
   - Team/user preferences
   - Dispatchers: webhook, email, in-app
-  - Mobile push is scoped in docs/NEXT.md §4.2 (six endpoints, three triggers) — note that the
-    store-side work (APNs key, `POST_NOTIFICATIONS`, both privacy forms, a new submission) is what
-    sets the real timeline, not the code. No bell is shown anywhere until this lands
+  - Mobile push: **live in production since 2026-09-21** (FCM, Android + iOS); store review of
+    build 1.0.0+52 pending. Next: phase 5 of the plan (J-1 reminder, team webhook, daily digest)
 
 ### Administration
 - [X] System admin panel

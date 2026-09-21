@@ -107,8 +107,8 @@ jeton ICS. Thème clair et compte `gaby` pas repassés en revue depuis.
       Ajouter une seconde clé d'accès **n'écrase plus les autres**. `logout-all` est câblé.
       La cloche et la section Notifications existent depuis la phase 3 de
       [`plans/2026-09-18-notifications.md`](plans/2026-09-18-notifications.md) — mais la section
-      reste **non rendue** tant que le serveur ne déclare aucun canal configurable, ce qui est le
-      défaut : à recetter dans les deux états.
+      reste **non rendue** tant que le serveur ne déclare aucun canal configurable — le défaut en
+      dev, plus le cas en prod depuis que le push y est actif : à recetter dans les deux états.
 - [ ] **Deeplinks à froid** — application tuée, ouvrir un lien de sortie, de parcours et d'annonce.
       Le bon onglet est surligné et la pile de retour est cohérente. (Le test
       `deep_link_hierarchy_test.dart` couvre la table ; il ne couvre pas l'ouverture réelle.)
@@ -366,9 +366,11 @@ le mobile — la cohabitation ci-dessus est ce qui rend la bascule possible.
 
 ### 4.2 Notifications push (L, plus un délai de store)
 
-> **Repris le 18 septembre 2026** par [`plans/2026-09-18-notifications.md`](plans/2026-09-18-notifications.md) :
-> le push y devient un canal d'un pipeline commun (boîte de réception, e-mail, push). L'avancement est
-> dans le [ledger](plans/2026-09-18-notifications-ledger.md) — phase 4 pour le push.
+> **Livré — push activé en production le 21 septembre 2026.** Repris le 18 septembre 2026 par
+> [`plans/2026-09-18-notifications.md`](plans/2026-09-18-notifications.md), où le push est devenu un
+> canal d'un pipeline commun (boîte de réception, e-mail, push) ; état dans le
+> [ledger](plans/2026-09-18-notifications-ledger.md), phases 4 et 4 bis. Restent la revue des stores
+> (build `1.0.0+52`) et, en phase 5, le rappel J-1 — le texte ci-dessous est l'analyse d'origine.
 
 Le seul mécanisme qui ramène un membre sans qu'il ouvre l'app. Trois déclencheurs : rappel J-1,
 annulation de sortie, réponse à un commentaire. Six endpoints, deux ou trois entités, une migration.

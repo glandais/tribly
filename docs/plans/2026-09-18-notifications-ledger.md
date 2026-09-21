@@ -11,6 +11,11 @@ passe, en tête de la phase concernée ; une case ne se coche que vérifiée.
   sur la base locale restaurée (schéma 36 → 38) le 20 septembre 2026 ; **V39** `push_devices`,
   écrite le 20 septembre 2026, ☑ appliquée sur une base locale neuve le 21 septembre 2026
 
+**État au 21 septembre 2026 : push en production.** Serveur à jour en staging et en prod,
+`PEDALONS_PUSH_ENABLED=true` en prod ; build mobile `1.0.0+52` en cours d'envoi sur TestFlight.
+Restent la revue des stores, l'envoi pour examen du formulaire Play, la décision sur l'e-mail, et la
+phase 5.
+
 Légende : ☑ fait et vérifié · ◐ fait, vérification en attente · ☐ à faire · ✗ écarté (raison sur place)
 
 ---
@@ -226,8 +231,9 @@ pedalons.push.enabled=false              # PEDALONS_PUSH_ENABLED=true dans le .e
 `data/keys/fcm-service-account.json` (`chmod 600`, propriétaire `PUID`), le dossier des clés JWT —
 déjà monté en lecture seule sur `/mnt/keys`, et sauvegardé par `backup.sh` ; `restore.sh` le remet en
 600. Aucun changement de `docker-compose.yml`. Bloc documenté dans `.env.example`.
-- ☐ Déposer le fichier sur l'hôte et passer `PEDALONS_PUSH_ENABLED=true` — **après** la politique de
-  confidentialité (Phase 4 bis, « Déclarations de confidentialité »)
+- ☑ Déposer le fichier sur l'hôte et passer `PEDALONS_PUSH_ENABLED=true` — **activé en production le
+  21 septembre 2026**, après la politique de confidentialité ; le log de démarrage dit
+  « Push notifications enabled — FCM project pedalons-9e595 »
 Un compte de service illisible **n'empêche pas l'application de démarrer** : l'erreur est journalisée
 et le canal reste indisponible. Un démarrage cassé pour une clé mal montée serait pire que pas de
 push.
@@ -293,7 +299,8 @@ côté des autres secrets du projet (keystore Android, profil iOS). Rien de tout
 - ☑ `mobile/store-metadata/data-safety.md` et `PrivacyInfo.xcprivacy` mis à jour
 - ☑ Politique de confidentialité et formulaires des deux stores (21 septembre 2026) ; le
   formulaire Play attend encore son envoi pour examen
-- ☐ Nouvelle soumission aux deux stores
+- ◐ Nouvelle soumission aux deux stores — build `1.0.0+52` en cours d'envoi sur TestFlight le
+  21 septembre 2026 ; revue des stores à suivre
 
 ## Phase 4 bis — Push, côté mobile (21 septembre 2026)
 
@@ -422,7 +429,7 @@ ailleurs. Le compte de service et la clé APNs, eux, restent dans `~/Documents/p
   **développement** (`aps-environment = development`, un seul appareil), celui de la recette sur
   iPhone. Le profil de distribution, lui, est généré par fastlane à l'archivage
   (`-allowProvisioningUpdates`, `3ac6dfa7`).
-- ☐ Nouvelle soumission aux deux stores.
+- ◐ Nouvelle soumission aux deux stores — voir plus haut (build `1.0.0+52`, TestFlight).
 
 ## Phase 5 — Nouveaux types et canaux (☐)
 
@@ -475,4 +482,5 @@ ailleurs. Le compte de service et la clé APNs, eux, restent dans `~/Documents/p
 | 2026-09-21 | Préalables stores | Suppression de compte : déjà dans l'app ; la politique gagne « Supprimer votre compte » et devient l'URL de suppression déclarée à Play (`/profile` exige d'être connecté). Sauvegarde Android coupée (`allowBackup`, `data_extraction_rules.xml`). Relevé en chemin : la suppression de compte n'est qu'un drapeau, aucune purge ne tient la promesse des 30 jours — point ouvert 6 de `data-safety.md`. |
 | 2026-09-21 | Effacement de compte | Point 6 de `data-safety.md` clos : `deleteUser` efface tout de suite (`AccountErasureService`), un rattrapage nocturne traite les comptes déjà marqués. Ligne `users` anonymisée plutôt que supprimée (contenus d'équipe crédités à « Ancien membre »). Un commentaire qui a des réponses devient une pierre tombale (`CommentDto.deleted`, API 3.7.0) plutôt que d'emporter les réponses des autres. |
 | 2026-09-21 | Formulaires des stores | Versionnés : `app-privacy.json` (Apple, `asc web privacy`) et `data-safety.csv` (Play, lane `fastlane data_safety` sur l'API `applications.dataSafety`). Apple publié, `plan` à zéro écart ; Play poussé et réexporté sans écart, **en attente d'envoi pour examen** dans la console. Reste une nouvelle soumission aux deux stores. |
+| 2026-09-21 | Mise en production | Staging et prod à jour. Compte de service FCM déposé et `PEDALONS_PUSH_ENABLED=true` en prod — le démarrage journalise « Push notifications enabled — FCM project pedalons-9e595 ». Le canal `PUSH` devient disponible : proposé dans les préférences, livraisons créées pour les types qui l'ont par défaut. Build mobile `1.0.0+52` en cours d'envoi sur TestFlight. |
 | 2026-09-18 | Revue | Clé de dédup rendue par les évènements `SKIPPED`/`FAILED` ; recul avant nouvelle tentative d'un évènement (V38, `next_attempt_at`) ; récupération des bloqués toutes les 5 min, livraisons bloquées sans tentative restante → `FAILED`. |

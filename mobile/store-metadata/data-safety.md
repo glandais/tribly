@@ -11,7 +11,7 @@ from:
 | Google Play Console → Data safety | `data-safety.csv` → `fastlane data_safety` | regenerate from §5 |
 | Published privacy policy | `privacy/privacy-policy.{en,fr}.md` | must not contradict §2 |
 
-- **App**: Pédalons, `fr.pedalons.mobile`, version `1.0.0+23` (`mobile/pubspec.yaml`)
+- **App**: Pédalons, `fr.pedalons.mobile`, version `1.0.0+52` (`mobile/pubspec.yaml`)
 - **Backend**: `https://www.pedalons.fr` (`mobile/lib/config/app_config.dart`)
 - **Last verified against the code**: 2026-09-21 (push notifications added)
 
