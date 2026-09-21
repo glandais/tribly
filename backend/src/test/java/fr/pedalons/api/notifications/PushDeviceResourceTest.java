@@ -12,6 +12,7 @@ import fr.pedalons.util.PushDeviceTestData;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /** Registering and dropping push devices — the address book of the PUSH channel. */
@@ -21,6 +22,11 @@ class PushDeviceResourceTest extends AbstractResourceTest {
   private static final String TOKEN = "fcm-token-abcdef";
 
   @Inject PushDeviceTestData devices;
+
+  @BeforeEach
+  public void setUp() {
+    super.setUp();
+  }
 
   private void register(String user, PushDeviceRegistration registration, int status) {
     given()
