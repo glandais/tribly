@@ -1,6 +1,6 @@
 # Politique de confidentialité
 
-**Dernière mise à jour : 29 juillet 2026**
+**Dernière mise à jour : 21 septembre 2026**
 
 La présente politique de confidentialité décrit la manière dont Pedalons (« nous », « notre », « nos ») collecte, utilise et protège vos données personnelles lorsque vous utilisez notre plateforme (site web, application mobile, extensions pour appareils GPS).
 
@@ -16,7 +16,7 @@ Lors de la création de votre compte, nous collectons :
 
 - **Adresse e-mail** : pour l'authentification et les communications liées au service
 - **Nom d'affichage** : choisi par vous, visible par les membres de votre équipe
-- **Photo de profil** (facultatif) : image que vous téléchargez pour personnaliser votre profil
+- **Photo de profil** (facultatif) : image que vous téléchargez pour personnaliser votre profil. Dans l'application mobile, vous la choisissez dans votre photothèque par le sélecteur du système : l'application ne reçoit que la photo choisie, et n'accède ni à l'appareil photo ni au reste de votre photothèque.
 - **Préférences** : système d'unités (métrique/impérial), langue
 
 ### Données d'authentification
@@ -43,7 +43,15 @@ Lorsque vous créez ou consultez des itinéraires :
 - **Points d'intérêt** : noms et coordonnées des lieux que vous ajoutez.
 - **Coordonnées de l'équipe** (facultatif) : point géographique représentant la localisation de votre équipe.
 
-**Important** : nous ne suivons pas votre position en temps réel. Les données GPS proviennent exclusivement de fichiers que vous importez volontairement.
+### Position approximative (application mobile, facultatif)
+
+Si vous activez le filtre « autour de moi » de l'application mobile, celle-ci lit la position **approximative** de votre téléphone (à quelques centaines de mètres près, jamais la position précise) et l'envoie comme critère de recherche pour trier les parcours par distance. Cette position :
+
+- n'est lue qu'à ce moment-là, application ouverte, et avec votre autorisation — jamais en arrière-plan ;
+- n'est ni enregistrée avec votre compte, ni conservée dans notre base de données ;
+- comme l'adresse de toute requête, peut figurer dans les journaux techniques de notre serveur web.
+
+**Important** : nous ne suivons pas votre position en temps réel et n'enregistrons pas vos sorties. Les traces GPS proviennent exclusivement de fichiers que vous importez volontairement.
 
 ### Contenu que vous créez
 
@@ -52,6 +60,17 @@ Lorsque vous créez ou consultez des itinéraires :
 - **Commentaires** : texte associé à une publication.
 - **Itinéraires (routes)** : nom, distance, dénivelé, type de surface, traces et points GPS.
 - **Photos et images** : fichiers que vous téléchargez pour illustrer vos contenus.
+
+### Notifications
+
+Pour vous prévenir de ce qui se passe dans vos équipes (nouvelle sortie, commentaire, changement d'une sortie à laquelle vous êtes inscrit…), nous traitons :
+
+- **Vos notifications** : le type d'évènement, l'élément concerné, le texte affiché et la date à laquelle vous l'avez lue. Elles apparaissent dans la page Notifications du site et de l'application.
+- **Vos préférences de notification** : pour chaque type de notification, les canaux par lesquels vous acceptez d'être prévenu (e-mail, notification sur votre téléphone).
+- **Le suivi des envois** : pour chaque notification envoyée par e-mail ou sur votre téléphone, le canal, l'état de l'envoi et sa date.
+- **L'enregistrement de votre téléphone** (application mobile uniquement, et seulement si vous autorisez les notifications) : un jeton d'enregistrement délivré par Firebase Cloud Messaging (service de Google), le système (Android ou iOS), le modèle de l'appareil et la version de l'application. Ce jeton identifie l'installation de l'application, pas votre personne ; il nous sert uniquement à adresser les notifications à votre téléphone.
+
+L'application ne demande l'autorisation d'afficher des notifications que lorsque vous le choisissez, jamais à son lancement. Vous pouvez la retirer à tout moment dans les réglages de votre téléphone, ou couper un type de notification depuis vos préférences de notification. Le jeton est supprimé de nos serveurs lorsque vous vous déconnectez de l'application, lorsque Google nous signale qu'il n'est plus valide (application désinstallée, par exemple) et lorsque vous supprimez votre compte.
 
 ### Données de connexion à des services GPS tiers
 
@@ -86,8 +105,13 @@ Dans votre navigateur web ou application mobile :
 | Fournir le service (compte, authentification, navigation) | Exécution du contrat |
 | Afficher les itinéraires et sorties de votre équipe | Exécution du contrat |
 | Envoyer des e-mails de vérification et codes de connexion | Exécution du contrat |
+| Vous notifier dans le site et l'application de l'activité de vos équipes | Exécution du contrat |
+| Vous notifier par e-mail, selon vos préférences de notification | Exécution du contrat (réglable à tout moment) |
+| Vous notifier sur votre téléphone (notifications push) | Consentement (autorisation donnée sur le téléphone) |
 | Sécuriser votre compte (détection de sessions suspectes) | Intérêt légitime |
 | Synchroniser vos itinéraires avec des appareils GPS connectés | Consentement (connexion volontaire) |
+| Trier les parcours par distance (filtre « autour de moi » de l'application) | Consentement (autorisation de localisation donnée sur le téléphone) |
+| Afficher les cartes | Intérêt légitime |
 | Améliorer le service (analyse agrégée d'utilisation) | Intérêt légitime |
 
 Nous n'utilisons **jamais** vos données pour :
@@ -112,9 +136,24 @@ Nous faisons appel à des services techniques pour le fonctionnement de la plate
 | Service | Rôle | Données concernées |
 |---------|------|-------------------|
 | OVHcloud (OVH SAS, France) | Hébergement de l'application, de la base de données et du stockage objet | Toutes les données |
-| Brevo (Sendinblue SAS, France) | Envoi d'e-mails transactionnels | Adresse e-mail |
+| Brevo (Sendinblue SAS, France) | Envoi d'e-mails transactionnels et des notifications par e-mail | Adresse e-mail, nom d'affichage, contenu de l'e-mail (dont le titre et le texte des notifications) |
+| Google Firebase Cloud Messaging (Google Ireland Limited, Irlande) | Acheminement des notifications push vers l'application mobile, via Apple Push Notification service pour les iPhone | Jeton d'enregistrement du téléphone, titre et texte de chaque notification, identifiant technique permettant d'ouvrir le bon écran au toucher |
 
-**Tous nos services de traitement d'images (imgproxy) et de calcul d'itinéraires (Valhalla) sont auto-hébergés** et ne transmettent aucune donnée à des tiers.
+**Tous nos services de traitement d'images (imgproxy) et de calcul d'itinéraires (Valhalla) sont auto-hébergés** et ne transmettent aucune donnée à des tiers. Les polices de caractères sont intégrées au site et à l'application : aucune n'est chargée depuis un service tiers.
+
+### Fonds de carte
+
+Les cartes sont affichées par votre navigateur ou votre téléphone, qui télécharge les images de carte directement auprès du fournisseur du fond choisi. Comme pour toute page web, ce fournisseur reçoit alors votre **adresse IP** et la **zone de carte affichée** ; il ne reçoit ni votre compte, ni votre nom, ni vos itinéraires. Ces fournisseurs agissent en responsables de traitement indépendants, selon leurs propres politiques.
+
+| Fond de carte | Fournisseur | Quand |
+|---------------|-------------|-------|
+| Plan (par défaut) | VersaTiles (tiles.versatiles.org) | Fond par défaut |
+| Relief (ombrage) | Mapterhorn (tiles.mapterhorn.com) | Si l'ombrage du relief est activé |
+| IGN, Satellite (IGN), IGN SCAN 25 | Institut national de l'information géographique et forestière — Géoplateforme (France) | Si vous choisissez ce fond |
+| Satellite (ESRI) | Esri Inc. (États-Unis) | Si vous choisissez ce fond |
+| OpenStreetMap | OpenStreetMap Foundation (Royaume-Uni) | Si vous choisissez ce fond |
+| CyclOSM | OpenStreetMap France | Si vous choisissez ce fond |
+| Michelin | Servi par nos soins (tiles.pedalons.fr) | Si vous choisissez ce fond |
 
 ### Nous ne vendons pas vos données
 
@@ -130,6 +169,10 @@ Nous pouvons être amenés à communiquer vos données si la loi l'exige (demand
 
 Nos serveurs sont hébergés par **OVHcloud** (OVH SAS, Roubaix, France) et sont situés en France. Vos données restent dans l'Union européenne.
 
+Si vous autorisez les notifications push dans l'application mobile, leur contenu transite par **Firebase Cloud Messaging**, fourni par Google Ireland Limited. Google peut traiter ces données aux États-Unis ; ce transfert est encadré par les clauses contractuelles types de la Commission européenne et par l'adhésion de Google LLC au cadre de protection des données UE–États-Unis (Data Privacy Framework). Sur iPhone, les notifications sont remises par le service Apple Push Notification d'Apple, comme pour toute application iOS.
+
+Le fond de carte « Satellite (ESRI) » est servi depuis les États-Unis : votre adresse IP et la zone affichée n'y sont transmises que si vous le choisissez. Le fond OpenStreetMap est servi depuis le Royaume-Uni, qui bénéficie d'une décision d'adéquation de la Commission européenne.
+
 La connexion à des services GPS tiers (Hammerhead, Garmin, Wahoo) implique un transfert de données vers ces services, situés aux États-Unis. Ce transfert repose sur votre consentement explicite lors de la connexion du service.
 
 ---
@@ -144,6 +187,9 @@ La connexion à des services GPS tiers (Hammerhead, Garmin, Wahoo) implique un t
 | Codes d'appairage d'appareils | 10 minutes |
 | Challenges WebAuthn | 5 minutes |
 | Contenu (sorties, posts, itinéraires) | Tant que vous ne le supprimez pas |
+| Notifications et suivi de leurs envois | 90 jours, puis suppression automatique |
+| Préférences de notification | Tant que votre compte est actif |
+| Enregistrement du téléphone pour les notifications push | Jusqu'à votre déconnexion de l'application, la désinstallation de l'application ou la suppression de votre compte |
 | Fichiers (images, GPX) | Tant que le contenu associé existe |
 | Données après suppression de compte | Suppression logique immédiate, suppression définitive sous 30 jours |
 
@@ -165,9 +211,9 @@ Conformément au Règlement Général sur la Protection des Données (RGPD), vou
 
 Les droits d'accès et de portabilité s'exercent vous-même, sans nous écrire : depuis le site web, dans **Profil → Vos données**, choisissez « Télécharger mes données ». Nous préparons une archive ZIP et vous envoyons un lien de téléchargement par email. Cette fonction n'est pas encore proposée dans l'application mobile ; le lien reçu par email fonctionne en revanche sur tous vos appareils.
 
-L'archive contient votre profil, vos équipes, vos inscriptions, tout ce que vous avez publié, ainsi que vos fichiers (photo de profil, images envoyées, fichiers GPX et FIT de vos parcours). Les données sont au format JSON, structuré et lisible par machine.
+L'archive contient votre profil, vos équipes, vos inscriptions, tout ce que vous avez publié, vos notifications, leurs envois, vos préférences de notification et les téléphones enregistrés pour les notifications push, ainsi que vos fichiers (photo de profil, images envoyées, fichiers GPX et FIT de vos parcours). Les données sont au format JSON, structuré et lisible par machine.
 
-Pour des raisons de sécurité, les éléments d'identification en sont exclus : hachage de votre mot de passe, jetons de session, matériel cryptographique de vos clés d'accès, jeton de votre calendrier et jetons d'accès à vos services GPS connectés. Leurs métadonnées (dates, appareils, services concernés) sont bien présentes. Le lien de téléchargement expire au bout de **7 jours**, après quoi l'archive est supprimée de nos serveurs. Un export par heure et par compte.
+Pour des raisons de sécurité, les éléments d'identification en sont exclus : hachage de votre mot de passe, jetons de session, matériel cryptographique de vos clés d'accès, jeton de votre calendrier, jetons d'accès à vos services GPS connectés et jetons d'enregistrement de vos téléphones pour les notifications push. Leurs métadonnées (dates, appareils, services concernés) sont bien présentes. Le lien de téléchargement expire au bout de **7 jours**, après quoi l'archive est supprimée de nos serveurs. Un export par heure et par compte.
 
 ### Nous contacter
 

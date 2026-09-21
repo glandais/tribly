@@ -76,7 +76,6 @@ dependencies:
   markdown_widget: ^2.3.2+6
 
   # Fonts
-  google_fonts: ^8.2.1
   package_info_plus: ^10.2.1
   flutter_driver:
     sdk: flutter
@@ -112,3 +111,19 @@ flutter:
     - assets/l10n/
     - assets/icon.png
     - privacy/
+
+  # Inter ships with the app (rsms/inter 4.1, SIL OFL — assets/fonts/inter/OFL.txt) rather than
+  # through google_fonts, which fetched it from fonts.gstatic.com at first launch: a request to
+  # Google, with the device's IP, that the privacy policy had no business to explain. Only the
+  # four weights the charte uses (400–700) are bundled.
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/inter/Inter-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/inter/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/inter/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/inter/Inter-Bold.ttf
+          weight: 700

@@ -9,7 +9,7 @@ from:
 | iOS privacy manifest | `mobile/ios/Runner/PrivacyInfo.xcprivacy` | hand-edit alongside this file |
 | App Store Connect → App Privacy | App Store Connect (web form) | copy §4 into the form |
 | Google Play Console → Data safety | Play Console (web form) | copy §5 into the form |
-| Published privacy policy | `mobile/privacy/privacy-policy.{en,fr}.md` | must not contradict §2 |
+| Published privacy policy | `privacy/privacy-policy.{en,fr}.md` | must not contradict §2 |
 
 - **App**: Pédalons, `fr.pedalons.mobile`, version `1.0.0+23` (`mobile/pubspec.yaml`)
 - **Backend**: `https://www.pedalons.fr` (`mobile/lib/config/app_config.dart`)
@@ -92,7 +92,7 @@ Everything below leaves the device to `https://www.pedalons.fr` unless stated ot
 | 5 | **WebAuthn credential material** | `lib/features/auth/services/passkey_service.dart` — credential id, rawId, clientDataJSON, signature, userHandle, plus the literal device label `"Mobile"` | Yes | Yes |
 | 6 | **Ride / trip / team participation** | Join & leave — `lib/features/rides/data/ride_repository.dart`, `lib/features/trips/data/trip_repository.dart`, `lib/features/teams/data/team_repository.dart` (team join/leave is wired in the repository but has no UI entry point yet) | Yes | Yes |
 | 7 | **GPS-device pairing code** | 6-character code — `lib/features/device/presentation/pages/device_verify_page.dart` | Yes | Yes |
-| 8 | **Session security metadata** | Server-recorded on sign-in: IP address, user agent, last-login / last-use timestamps (per `mobile/privacy/privacy-policy.en.md` §"Session Data") | Yes | Yes |
+| 8 | **Session security metadata** | Server-recorded on sign-in: IP address, user agent, last-login / last-use timestamps (per `privacy/privacy-policy.en.md` §"Session Data") | Yes | Yes |
 | 9 | **Profile picture** | Photo chosen from the system photo library (`image_picker`) and sent to `POST /api/users/me/avatar` | Yes | Yes |
 | 11 | **Push registration token** | `lib/features/notifications/providers/push_provider.dart` → `POST /api/push-devices`. Issued by FCM, identifies the *installation*, deleted server-side at sign-out | Yes, to us **and to Google** (FCM issues it and routes every message) | Yes |
 | 12 | **Device model and app version** | Sent alongside #11 — `lib/features/notifications/data/push_device_repository.dart` (`device_info_plus`, `package_info_plus`) | Yes | Yes |
@@ -307,24 +307,30 @@ Android needs no photo-library permission: `image_picker` goes through the syste
 
 ## 6. Third parties contacted by the app
 
-No SDK sends data to a third party. Two **network endpoints** outside our infrastructure receive
-the device's IP address as an unavoidable consequence of an HTTP request:
+No SDK sends data to a third party other than FCM. **Map endpoints** outside our infrastructure
+receive the device's IP address as an unavoidable consequence of an HTTP request. They are not
+hard-coded in the app: the basemap list comes from `GET /api/config`
+(`pedalons.map.*` in `backend/src/main/resources/application.properties`), so re-read that file
+rather than this table when it changes.
 
 | Endpoint | Why | What it sees |
 |---|---|---|
-| `tiles.versatiles.org` | Map styles and raster/vector tiles (`lib/features/routes/presentation/widgets/route_map.dart`) | IP address; the map viewport being browsed |
-| `fonts.gstatic.com` | Inter font fetched at first launch by `google_fonts` — no font files are bundled (`lib/core/theme/pedalons_theme.dart`) | IP address |
+| `tiles.versatiles.org` | Default basemap (style, vector tiles, glyphs, sprites) | IP address; the map viewport being browsed |
+| `tiles.mapterhorn.com` | Relief shading (raster-DEM), when on | Same |
+| `data.geopf.fr` (IGN Géoplateforme) | IGN, Satellite (IGN), SCAN 25 basemaps, when chosen | Same |
+| `server.arcgisonline.com` (Esri, US) | Satellite (ESRI) basemap, when chosen | Same |
+| `tile.openstreetmap.org` (OSMF, UK) | OpenStreetMap basemap, when chosen | Same |
+| `*.tile-cyclosm.openstreetmap.fr` | CyclOSM basemap, when chosen | Same |
 | Firebase Cloud Messaging (`*.googleapis.com`, APNs via Firebase) | Issues the registration token and routes every push (`lib/features/notifications/services/push_gateway.dart`) | IP address, the token it issued, the device and app version it registers, and **the content of each notification** — title and body are rendered server-side and travel through Google |
 
-FCM is a genuine **sub-processor**, unlike the two above: it does not merely see an IP address, it
-carries the message. It has to appear in the policy's provider table with Google Ireland as
-recipient — see the open items.
+FCM is a genuine **sub-processor**: it does not merely see an IP address, it carries the message.
+The map providers are independent controllers of a request the device makes; none receives an
+account identifier. Both are in the published policy since 2026-09-21 (§4 *Technical service
+providers* and *Basemaps*, §5 for the US and UK transfers).
 
-⚠️ **These contradict the published privacy policy.** `mobile/privacy/privacy-policy.en.md` §4
-lists only OVHcloud and Brevo as technical providers and states that image processing and route
-calculation are self-hosted "and do not transmit any data to third parties". Neither versatiles.org
-nor Google is mentioned, and the gstatic transfer is a US transfer with no stated legal basis.
-Tracked in §8 — not fixed here, because it is a code/policy change rather than a store declaration.
+**No font is fetched.** Inter is bundled (`assets/fonts/inter/`, declared in `pubspec.yaml`) since
+2026-09-21; `google_fonts`, which pulled it from `fonts.gstatic.com` at first launch, is no longer
+a dependency. Do not bring it back — it would re-open a US transfer for a typeface.
 
 ---
 
@@ -366,19 +372,19 @@ these ships:
 
 1. **In-app account deletion** is required by Play policy for apps with in-app registration. Wire
    the existing `DELETE /api/users/me` into the profile page. (§5)
-2. **The privacy policy has not caught up with §2 #9 and #10.**
-   `mobile/privacy/privacy-policy.{en,fr}.md` predates the avatar picker and the proximity filter
-   and describes neither. It must gain a profile-picture entry and an approximate-location entry
-   ("read on demand, sent as a search parameter, not retained") **before** either capability ships
-   to users — §4/§5 and the policy contradicting each other is itself a rejection motive.
-3. **The privacy policy says nothing about push.** It must name Google (Firebase Cloud Messaging,
-   Google Ireland Ltd) as a sub-processor, say that the notification's title and body pass through
-   it, and say that the token is deleted at sign-out — **before** push ships to users. The same
-   paragraph should note that the member chooses to receive push and can stop at any time, from the
-   phone's settings or the app's preference matrix. (§2 #11, §6)
-4. **Undisclosed third-party endpoints.** Either bundle the Inter font locally instead of fetching
-   from `fonts.gstatic.com`, self-host map tiles, or add both to the privacy policy's provider
-   table with a legal basis for the transfer. (§6)
+2. ~~**The privacy policy has not caught up with §2 #9 and #10.**~~ Done 2026-09-21: the policy
+   says the app receives only the photo picked through the system picker, and gained an
+   *Approximate location* subsection (read on demand, in use only, sent as a search parameter,
+   not stored with the account — and, honestly, present in the web server's access log like any
+   request URL) plus a consent-based purpose.
+3. ~~**The privacy policy says nothing about push.**~~ Done 2026-09-21: `privacy/privacy-policy.{en,fr}.md`
+   gained a *Notifications* subsection (inbox, preferences, delivery records, phone registration,
+   opt-in and sign-out deletion), FCM (Google Ireland) in the provider table, the US transfer and
+   its safeguards, the 90-day retention, and the export contents. Brevo's row now says it carries
+   notification content, not just an address.
+4. ~~**Undisclosed third-party endpoints.**~~ Done 2026-09-21: Inter is bundled and `google_fonts`
+   removed; every basemap provider is listed in the policy with what it sees, and the Esri (US)
+   and OSMF (UK) transfers are stated. (§6)
 5. **`android:allowBackup` is unset**, so it defaults to `true`: app data is eligible for Google
    Drive backup and device-to-device transfer. Two consequences worth a decision — it is a data
    flow to Google that the privacy policy does not mention, and `flutter_secure_storage` is known
@@ -422,6 +428,8 @@ grep -rhA3 "@\(POST\|PUT\|PATCH\|DELETE\)(" lib/api/generated \
 
 # push stays messaging-only: exactly firebase_core and firebase_messaging, nothing else
 grep -n "firebase" pubspec.yaml
+# no font is fetched from Google: must stay empty
+grep -n "google_fonts" pubspec.yaml
 
 # the notification permission must be asked from a screen, never at launch
 grep -rn "requestAuthorization" lib | grep -v lib/api/generated

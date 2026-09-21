@@ -290,8 +290,9 @@ côté des autres secrets du projet (keystore Android, profil iOS). Rien de tout
   d'`input` fichier mais un sélecteur natif.
 - ☑ Permission `POST_NOTIFICATIONS` (Android 13+) et l'écran qui la demande — faites en phase 4 bis,
   où le bandeau de la boîte de réception tient lieu de maquette manquante
-- ☑ `mobile/store-metadata/data-safety.md` et `PrivacyInfo.xcprivacy` mis à jour ; ☐ les deux
-  formulaires des stores, et la politique de confidentialité, restent à faire
+- ☑ `mobile/store-metadata/data-safety.md` et `PrivacyInfo.xcprivacy` mis à jour
+- ☑ Politique de confidentialité (21 septembre 2026) ; ☐ les deux formulaires des stores restent à
+  faire
 - ☐ Nouvelle soumission aux deux stores
 
 ## Phase 4 bis — Push, côté mobile (21 septembre 2026)
@@ -404,10 +405,13 @@ ailleurs. Le compte de service et la clé APNs, eux, restent dans `~/Documents/p
   Functionality*), Play gagne *Device or other IDs*, et la phrase « aucun SDK Firebase » — qui
   était vraie et ne l'est plus — est corrigée plutôt que laissée à pourrir.
 - ☑ `ios/Runner/PrivacyInfo.xcprivacy` aligné (`plutil -lint` propre).
-- ☐ **La politique de confidentialité ne parle pas encore du push.** Elle doit nommer Google
-  (Firebase Cloud Messaging) comme sous-traitant, dire que le titre et le corps de la notification
-  passent par lui, et que le jeton est supprimé à la déconnexion — **avant** que le push n'arrive
-  aux membres. Consigné dans les points ouverts de `data-safety.md`.
+- ☑ **Politique de confidentialité** (`privacy/privacy-policy.{fr,en}.md`, 21 septembre 2026) :
+  sous-section *Notifications* (boîte, préférences, suivi des envois, jeton FCM et modèle
+  d'appareil, autorisation demandée à la demande, jeton supprimé à la déconnexion, sur
+  `UNREGISTERED` et à la suppression du compte) ; trois finalités de plus, dont le push sur
+  consentement ; Google Ireland (FCM) en sous-traitant, transfert US sous CCT + Data Privacy
+  Framework ; rétention 90 jours ; contenu de l'export. La ligne Brevo mentionnait l'adresse seule —
+  elle porte désormais le contenu des notifications par e-mail.
 - ☐ Reporter §4 et §5 de `data-safety.md` dans les deux formulaires des stores.
 
 ### Reste à faire
@@ -465,4 +469,6 @@ ailleurs. Le compte de service et la clé APNs, eux, restent dans `~/Documents/p
 | 2026-09-21 | Recette push iOS | iPhone 13 Pro Max, build release signée développement. Premier plan et arrière-plan OK du premier coup. App tuée : tap perdu quand `content-available` avait déjà réveillé l'app — le plugin garde alors le message pour un second `getInitialMessage()`. Corrigé côté app (nouvel appel au retour au premier plan) et côté serveur (`content-available` retiré). Relevé aussi : deux `POST /api/push-devices` concurrents au lancement (session + `onTokenRefresh`), l'un en 500 sur le verrou optimiste — `register` est devenu un upsert natif `ON CONFLICT (token) DO UPDATE`. |
 | 2026-09-21 | Recette push Android | Pixel 6a contre un backend local : jeton enregistré, bannière et tap OK au premier plan, en arrière-plan et application tuée. Rien à corriger dans le code. En chemin : `minio/minio` n'est plus tiré depuis Docker Hub (même tag pris sur `quay.io/minio/minio`), et `postgis/postgis:17-3.5-alpine` n'existe pas en arm64 (tiré en amd64). Reste l'iPhone. |
 | 2026-09-21 | Clôture (code) | Push prêt pour la prod (compte de service dans `data/keys`, interrupteur `PEDALONS_PUSH_ENABLED`). Export RGPD : boîte, envois, préférences, appareils sans jeton. Suppression de compte : `forgetUser` efface boîte, livraisons, préférences et appareils. Tests verts. |
+| 2026-09-21 | Politique de confidentialité | Notifications et push décrits en fr et en : Google Ireland (FCM) sous-traitant, transfert US sous CCT + DPF, rétention 90 jours, jeton supprimé à la déconnexion. Restent les deux formulaires des stores et une nouvelle soumission. |
+| 2026-09-21 | Politique (hors push) | Les deux autres écarts avec `data-safety.md` fermés : photo de profil (sélecteur système seul) et position approximative (« autour de moi », non conservée) décrites ; Inter embarquée dans l'app et `google_fonts` retiré — plus de requête à `fonts.gstatic.com` ; fonds de carte déclarés un par un, avec les transferts Esri (US) et OSMF (UK). |
 | 2026-09-18 | Revue | Clé de dédup rendue par les évènements `SKIPPED`/`FAILED` ; recul avant nouvelle tentative d'un évènement (V38, `next_attempt_at`) ; récupération des bloqués toutes les 5 min, livraisons bloquées sans tentative restante → `FAILED`. |

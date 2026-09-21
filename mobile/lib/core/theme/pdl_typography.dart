@@ -8,9 +8,10 @@ import 'pdl_colors.dart';
 /// badges. Chaque rôle porte sa couleur par défaut : un widget qui pose une
 /// couleur explicite le fait pour une raison nommée, pas par habitude.
 ///
-/// La pile monospace passe par [TextStyle.fontFamilyFallback] et **non** par
-/// `GoogleFonts.jetBrainsMono` : quatre usages ne justifient pas le
-/// téléchargement d'une police.
+/// Inter est embarquée dans l'application (`pubspec.yaml`, `assets/fonts/`) :
+/// aucune police n'est téléchargée. La pile monospace passe par
+/// [TextStyle.fontFamilyFallback] : quatre usages ne justifient pas d'embarquer
+/// une seconde famille.
 @immutable
 class PdlTypography extends ThemeExtension<PdlTypography> {
   const PdlTypography({
@@ -109,6 +110,9 @@ class PdlTypography extends ThemeExtension<PdlTypography> {
   /// Chip active — 14/600 en `primaryOnSoft`.
   final TextStyle chipActive;
 
+  /// La famille déclarée dans `pubspec.yaml`.
+  static const String family = 'Inter';
+
   static const List<String> monoFallback = <String>[
     'SFMono-Regular',
     'Menlo',
@@ -120,11 +124,9 @@ class PdlTypography extends ThemeExtension<PdlTypography> {
   ///
   /// [base] porte la **famille** de police et rien d'autre : chaque rôle y
   /// superpose ses propres taille, graisse, interligne et couleur. Le thème
-  /// (`PedalonsTheme.build`) y passe `GoogleFonts.inter()`. La valeur par
-  /// défaut est volontairement une `TextStyle` nue : `GoogleFonts.inter`
-  /// interroge l'AssetManifest puis le réseau **dès la construction du
-  /// style**, ce qui rendrait cette fabrique inutilisable en test unitaire
-  /// alors que ce qu'on y vérifie — les métriques — n'en dépend pas.
+  /// (`PedalonsTheme.build`) y passe une `TextStyle` portant [family] ; la
+  /// valeur par défaut est une `TextStyle` nue, ce que les tests de métriques
+  /// n'ont pas besoin de changer.
   factory PdlTypography.of(Brightness brightness, {TextStyle? base}) {
     final PdlColors c = PdlColors.of(brightness);
     final TextStyle root = base ?? const TextStyle();

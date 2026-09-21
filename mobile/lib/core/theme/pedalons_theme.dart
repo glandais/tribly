@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'pdl_colors.dart';
 import 'pdl_tokens.dart';
@@ -17,7 +16,7 @@ abstract final class PedalonsTheme {
   /// [PdlTypography], enregistrées ci-dessous.
   static ThemeData build(Brightness brightness) {
     final PdlColors c = PdlColors.of(brightness);
-    final TextStyle interBase = GoogleFonts.inter();
+    const TextStyle interBase = TextStyle(fontFamily: PdlTypography.family);
     final PdlTypography type = PdlTypography.of(brightness, base: interBase);
 
     final ColorScheme colorScheme = ColorScheme(
@@ -59,9 +58,12 @@ abstract final class PedalonsTheme {
       inversePrimary: c.primarySoft,
     );
 
-    final TextTheme textTheme = GoogleFonts.interTextTheme(
-      ThemeData(brightness: brightness).textTheme,
-    ).apply(bodyColor: c.text, displayColor: c.textBright);
+    final TextTheme textTheme = ThemeData(brightness: brightness).textTheme
+        .apply(
+          fontFamily: PdlTypography.family,
+          bodyColor: c.text,
+          displayColor: c.textBright,
+        );
 
     // Rayon 8 et hauteur 44 : la maquette réserve le rayon 12 aux cartes, et
     // le brief §5 impose 44 px de cible tactile à toute action.
