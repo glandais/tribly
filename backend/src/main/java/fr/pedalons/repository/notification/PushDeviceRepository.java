@@ -73,4 +73,8 @@ public class PushDeviceRepository implements PanacheRepository<PushDevice> {
   public long deleteByTokens(List<String> tokens) {
     return tokens.isEmpty() ? 0 : delete("token in ?1", tokens);
   }
+
+  public long deleteByUser(Long userId) {
+    return delete("user.id", userId);
+  }
 }

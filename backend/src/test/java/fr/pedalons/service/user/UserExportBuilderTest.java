@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import fr.pedalons.AbstractBaseTest;
 import fr.pedalons.common.TsidUtils;
 import fr.pedalons.domain.asset.Asset;
+import fr.pedalons.domain.notification.Notification;
 import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.domain.ride.RideGroup;
@@ -12,10 +13,15 @@ import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.enums.AssetType;
 import fr.pedalons.enums.GpsServiceType;
+import fr.pedalons.enums.NotificationChannel;
+import fr.pedalons.enums.NotificationType;
+import fr.pedalons.enums.PushPlatform;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.infrastructure.storage.StorageService;
 import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.service.security.PedalonsQueryContext;
+import fr.pedalons.util.NotificationTestData;
+import fr.pedalons.util.PushDeviceTestData;
 import fr.pedalons.util.TestDataCleaner;
 import fr.pedalons.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -25,6 +31,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -45,6 +52,7 @@ class UserExportBuilderTest extends AbstractBaseTest {
   private static final String CALENDAR_TOKEN = "CALENDAR-TOKEN-SHOULD-NOT-APPEAR";
   private static final String OAUTH_STATE = "OAUTH-STATE-SHOULD-NOT-APPEAR";
   private static final String PASSWORD_HASH = "PASSWORD-HASH-SHOULD-NOT-APPEAR";
+  private static final String PUSH_TOKEN = "PUSH-TOKEN-SHOULD-NOT-APPEAR";
 
   /** Every JSON section the export promises. Asserting the exact set makes an omission fail here. */
   private static final Set<String> EXPECTED_JSON_ENTRIES =
@@ -60,9 +68,12 @@ class UserExportBuilderTest extends AbstractBaseTest {
           "account/auth-tokens.json",
           "account/device-codes.json",
           "account/oauth-states.json",
+          "account/notification-preferences.json",
+          "account/push-devices.json",
           "memberships/teams.json",
           "participations/rides.json",
           "participations/trips.json",
+          "notifications/inbox.json",
           "content/teams.json",
           "content/publications.json",
           "content/trip-stages.json",
@@ -82,6 +93,8 @@ class UserExportBuilderTest extends AbstractBaseTest {
   @Inject DomainResolver domainResolver;
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
+  @Inject NotificationTestData notifications;
+  @Inject PushDeviceTestData pushDevices;
 
   private Domain domain;
   private User user;
@@ -152,6 +165,7 @@ class UserExportBuilderTest extends AbstractBaseTest {
       assertFalse(everything.contains(CALENDAR_TOKEN), "calendar token leaked");
       assertFalse(everything.contains(OAUTH_STATE), "OAuth state leaked");
       assertFalse(everything.contains(PASSWORD_HASH), "password hash leaked");
+      assertFalse(everything.contains(PUSH_TOKEN), "push token leaked");
 
       // The surrounding metadata must still be there, or the redaction went too far.
       String sessions = ZipReader.text(ZipReader.readAll(zip), "account/sessions.json");
@@ -235,6 +249,30 @@ class UserExportBuilderTest extends AbstractBaseTest {
   }
 
   @Test
+  void build_shouldIncludeTheNotificationInboxWithItsDeliveries() throws IOException {
+    Team team = dataService.createTeam(domain, user, "Team", "team", Visibility.PUBLIC);
+    List<Notification> inbox = notifications.seedInbox(user, team, 2);
+    notifications.seedDelivery(inbox.getFirst(), NotificationChannel.EMAIL);
+    notifications.seedPreference(
+        user, NotificationType.RIDE_CANCELLED, NotificationChannel.EMAIL, false);
+    pushDevices.seed(user, PushPlatform.ANDROID, "some-token");
+
+    Path zip = builder.build(ctx);
+    try {
+      Map<String, byte[]> entries = ZipReader.readAll(zip);
+      String exported = ZipReader.text(entries, "notifications/inbox.json");
+      assertTrue(exported.contains("Ride 0") && exported.contains("Ride 1"), exported);
+      assertTrue(exported.contains("\"channel\" : \"EMAIL\""), exported);
+      assertTrue(
+          ZipReader.text(entries, "account/notification-preferences.json")
+              .contains("RIDE_CANCELLED"));
+      assertTrue(ZipReader.text(entries, "account/push-devices.json").contains("ANDROID"));
+    } finally {
+      Files.deleteIfExists(zip);
+    }
+  }
+
+  @Test
   void build_shouldNotLeaveTheTempFileBehindOnFailure() throws IOException {
     // A context pointing at a user that does not exist fails inside the first section.
     ExportJobContext broken =
@@ -270,6 +308,7 @@ class UserExportBuilderTest extends AbstractBaseTest {
     dataService.createCalendarToken(user, CALENDAR_TOKEN);
     dataService.createGpsOAuthState(
         user, OAUTH_STATE, GpsServiceType.HAMMERHEAD, Instant.now().plusSeconds(600));
+    pushDevices.seed(user, PushPlatform.IOS, PUSH_TOKEN);
   }
 
   private String assetKey(Team team, Asset asset) {

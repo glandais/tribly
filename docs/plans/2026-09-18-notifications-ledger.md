@@ -218,10 +218,16 @@ sont plus bas, et rien ne part tant qu'ils ne sont pas faits.
 
 ### Configuration
 ```properties
-pedalons.push.enabled=false              # et, en prod, les deux lignes commentées :
-# %prod.pedalons.push.fcm.credentials=${FCM_CREDENTIALS}   # chemin du secret monté, ou le JSON
+pedalons.push.enabled=false              # PEDALONS_PUSH_ENABLED=true dans le .env du déploiement
+%prod.pedalons.push.fcm.credentials=${FCM_CREDENTIALS:/mnt/keys/fcm-service-account.json}
 # %prod.pedalons.push.fcm.project-id=${FCM_PROJECT_ID}     # facultatif, sinon celui du JSON
 ```
+**Branché pour la prod le 21 septembre 2026** : le compte de service se dépose dans
+`data/keys/fcm-service-account.json` (`chmod 600`, propriétaire `PUID`), le dossier des clés JWT —
+déjà monté en lecture seule sur `/mnt/keys`, et sauvegardé par `backup.sh` ; `restore.sh` le remet en
+600. Aucun changement de `docker-compose.yml`. Bloc documenté dans `.env.example`.
+- ☐ Déposer le fichier sur l'hôte et passer `PEDALONS_PUSH_ENABLED=true` — **après** la politique de
+  confidentialité (Phase 4 bis, « Déclarations de confidentialité »)
 Un compte de service illisible **n'empêche pas l'application de démarrer** : l'erreur est journalisée
 et le canal reste indisponible. Un démarrage cassé pour une clé mal montée serait pire que pas de
 push.
@@ -432,9 +438,17 @@ ailleurs. Le compte de service et la clé APNs, eux, restent dans `~/Documents/p
   les ids renseignés dans `%prod.pedalons.email.brevo.templates.notification.{fr,en}`
 - ☐ **Décision produit** : activer `PEDALONS_NOTIFICATIONS_EMAIL_ENABLED=true` en production, en
   connaissant les défauts (annulations, voyages publiés)
-- ☐ Export RGPD (`UserExportBuilder`) : y inclure les notifications et préférences
-- ☐ Suppression de compte : les lignes suivent l'utilisateur (FK `on delete cascade` en base), mais
-  les comptes sont supprimés *logiquement* — vérifier ce que la purge doit en faire
+- ☑ Export RGPD (`UserExportBuilder`) — 21 septembre 2026 : `notifications/inbox.json` (l'instantané
+  de chaque entrée et ses envois e-mail/push, deux requêtes pour toute la boîte),
+  `account/notification-preferences.json` et `account/push-devices.json` **sans le jeton** (c'est
+  l'adresse de l'appareil ; ajouté à la suite de redaction). README de l'archive repris. Tests
+  verts (`UserExportBuilderTest`, lancés par l'utilisateur le 21 septembre 2026)
+- ☑ Suppression de compte — 21 septembre 2026 : la suppression reste logique, donc la cascade ne
+  part jamais ; `UserService.deleteUser` appelle `NotificationService.forgetUser`, qui efface la
+  boîte, ses livraisons, les préférences et les appareils push. Rien ne partait déjà plus (fan-out
+  et émetteurs sautent les comptes supprimés) : c'est de la minimisation. Les évènements restent —
+  ils appartiennent à tous leurs destinataires — et le nom de l'acteur figé dedans part avec la
+  rétention (90 j). Test vert (`UserServiceTest`, lancé par l'utilisateur le 21 septembre 2026)
 
 ## Journal
 
@@ -450,4 +464,5 @@ ailleurs. Le compte de service et la clé APNs, eux, restent dans `~/Documents/p
 | 2026-09-21 | Phase 4 bis | Push côté mobile : `firebase_messaging` derrière une `PushGateway` (seule couche qui connaît Firebase, ce qui rend les tests possibles), enregistrement du jeton et désinscription à la déconnexion, canal Android et icône de barre d'état, tap qui marque lu et ouvre `data.path` par le tuyau des liens web. L'autorisation se demande depuis la boîte de réception et jamais au lancement. Deux surprises de build : `flutter_local_notifications` exige la desugarisation des bibliothèques du cœur, et l'icône de notification ne pouvait pas être celle du lanceur (le système n'en garde que l'alpha). 560 tests verts ; déclarations de confidentialité reprises, politique et formulaires des stores encore à faire. |
 | 2026-09-21 | Recette push iOS | iPhone 13 Pro Max, build release signée développement. Premier plan et arrière-plan OK du premier coup. App tuée : tap perdu quand `content-available` avait déjà réveillé l'app — le plugin garde alors le message pour un second `getInitialMessage()`. Corrigé côté app (nouvel appel au retour au premier plan) et côté serveur (`content-available` retiré). Relevé aussi : deux `POST /api/push-devices` concurrents au lancement (session + `onTokenRefresh`), l'un en 500 sur le verrou optimiste — `register` est devenu un upsert natif `ON CONFLICT (token) DO UPDATE`. |
 | 2026-09-21 | Recette push Android | Pixel 6a contre un backend local : jeton enregistré, bannière et tap OK au premier plan, en arrière-plan et application tuée. Rien à corriger dans le code. En chemin : `minio/minio` n'est plus tiré depuis Docker Hub (même tag pris sur `quay.io/minio/minio`), et `postgis/postgis:17-3.5-alpine` n'existe pas en arm64 (tiré en amd64). Reste l'iPhone. |
+| 2026-09-21 | Clôture (code) | Push prêt pour la prod (compte de service dans `data/keys`, interrupteur `PEDALONS_PUSH_ENABLED`). Export RGPD : boîte, envois, préférences, appareils sans jeton. Suppression de compte : `forgetUser` efface boîte, livraisons, préférences et appareils. Tests verts. |
 | 2026-09-18 | Revue | Clé de dédup rendue par les évènements `SKIPPED`/`FAILED` ; recul avant nouvelle tentative d'un évènement (V38, `next_attempt_at`) ; récupération des bloqués toutes les 5 min, livraisons bloquées sans tentative restante → `FAILED`. |

@@ -392,7 +392,7 @@ scripts, and none of them are incidental:
 |------|----------|----------------|
 | `postgres.dump` | `pg_dump -Fc` of `$POSTGRES_DB` | Accounts, teams, rides, routes, posts |
 | `minio/` | The object store, verbatim | Photos, GPX files, avatars, previews |
-| `secrets.tar.gz` | `.env`, `data/keys/*.pem`, `data/storage` | The JWT keys sign every session and passkey; `ENCRYPTION_KEY` decrypts the stored Karoo/Garmin tokens |
+| `secrets.tar.gz` | `.env`, `data/keys` (JWT keys, FCM service account), `data/storage` | The JWT keys sign every session and passkey; the service account sends every push; `ENCRYPTION_KEY` decrypts the stored Karoo/Garmin tokens |
 | `MANIFEST` | Timestamp, env, git commit, image tags | Says which commit to rebuild before restoring |
 | `SHA256SUMS` | Checksums of the two archives | Verified by `restore.sh` before it destroys anything |
 | `COMPLETE` | Written last, after everything else landed | A dated directory without it is a failed run, not a backup — and the restricted key cannot delete it, so it has to be recognisable |

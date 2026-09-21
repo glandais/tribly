@@ -6,7 +6,7 @@
 # Produces $BACKUP_REMOTE_PATH/<UTC timestamp>/ on the backup host:
 #   postgres.dump      pg_dump -Fc of $POSTGRES_DB
 #   minio/             object storage, hard-linked against the previous snapshot
-#   secrets.tar.gz     .env, data/keys/*.pem, data/storage
+#   secrets.tar.gz     .env, data/keys (JWT keys, FCM service account), data/storage
 #   MANIFEST           what this snapshot is, and what to rebuild to restore it
 #   SHA256SUMS         checksums of the two archives
 #   COMPLETE           written last: a snapshot without it is a failed run, not a backup
@@ -90,8 +90,9 @@ log "postgres dump: $DUMP_SIZE bytes"
 
 # --- 2. Secrets -------------------------------------------------------------
 #
-# Small but decisive: without data/keys every session and passkey is void, and without
-# ENCRYPTION_KEY the stored Karoo/Garmin tokens can no longer be decrypted.
+# Small but decisive: without data/keys every session and passkey is void and push stops (the FCM
+# service account lives there too), and without ENCRYPTION_KEY the stored Karoo/Garmin tokens can
+# no longer be decrypted.
 # data/storage is included even though nothing writes there today — it is a few kilobytes.
 log "archiving secrets"
 SECRET_PATHS=(.env data/keys)

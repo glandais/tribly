@@ -85,4 +85,18 @@ public class NotificationDeliveryRepository implements PanacheRepository<Notific
     return delete(
         "notification.id in (select n.id from Notification n where n.event.id in ?1)", eventIds);
   }
+
+  /** Every delivery of one recipient's inbox, for their data export — one query for the lot. */
+  public List<NotificationDelivery> findByRecipient(Long recipientId, Long domainId) {
+    return list(
+        "notification.recipient.id = ?1 and notification.domainId = ?2 order by createdAt",
+        recipientId,
+        domainId);
+  }
+
+  public long deleteByRecipient(Long recipientId) {
+    return delete(
+        "notification.id in (select n.id from Notification n where n.recipient.id = ?1)",
+        recipientId);
+  }
 }

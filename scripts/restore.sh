@@ -104,7 +104,8 @@ restore_secrets() {
   else
     tar -xzf "$FETCH/$SECRETS_FILE" -C "$REPO_ROOT"
   fi
-  chmod 600 "$REPO_ROOT/.env" "$REPO_ROOT"/data/keys/privateKey.pem 2>/dev/null || true
+  chmod 600 "$REPO_ROOT/.env" "$REPO_ROOT"/data/keys/privateKey.pem \
+    "$REPO_ROOT"/data/keys/fcm-service-account.json 2>/dev/null || true
   log "secrets restored — next: ./build.sh, then $0 --snapshot $SNAPSHOT"
 }
 

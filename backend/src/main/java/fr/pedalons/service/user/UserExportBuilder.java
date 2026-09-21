@@ -11,6 +11,7 @@ import fr.pedalons.dto.users.export.ContentExport;
 import fr.pedalons.dto.users.export.ExportManifest;
 import fr.pedalons.dto.users.export.MembershipExport;
 import fr.pedalons.dto.users.export.MembershipExport.MissingFile;
+import fr.pedalons.dto.users.export.NotificationExport;
 import fr.pedalons.infrastructure.storage.StorageService;
 import fr.pedalons.repository.ad.AdRepository;
 import fr.pedalons.repository.asset.AssetRepository;
@@ -25,6 +26,10 @@ import fr.pedalons.repository.common.AllPublicationRepository;
 import fr.pedalons.repository.gps.GpsOAuthStateRepository;
 import fr.pedalons.repository.gps.GpsServiceConnectionRepository;
 import fr.pedalons.repository.gpx.GpxPreviewRepository;
+import fr.pedalons.repository.notification.NotificationDeliveryRepository;
+import fr.pedalons.repository.notification.NotificationPreferenceRepository;
+import fr.pedalons.repository.notification.NotificationRepository;
+import fr.pedalons.repository.notification.PushDeviceRepository;
 import fr.pedalons.repository.place.PlaceRepository;
 import fr.pedalons.repository.ride.RideGroupRepository;
 import fr.pedalons.repository.ride.RideParticipationRepository;
@@ -60,6 +65,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -121,6 +127,10 @@ public class UserExportBuilder {
   @Inject RideGroupRepository rideGroupRepository;
   @Inject RideTemplateRepository rideTemplateRepository;
   @Inject GpxPreviewRepository gpxPreviewRepository;
+  @Inject NotificationRepository notificationRepository;
+  @Inject NotificationDeliveryRepository notificationDeliveryRepository;
+  @Inject NotificationPreferenceRepository notificationPreferenceRepository;
+  @Inject PushDeviceRepository pushDeviceRepository;
 
   @ConfigProperty(name = "pedalons.export.temp-dir")
   Optional<String> configuredTempDir;
@@ -159,10 +169,15 @@ public class UserExportBuilder {
       writeSection(zip, "account/auth-tokens.json", counts, () -> authTokens(ctx));
       writeSection(zip, "account/device-codes.json", counts, () -> deviceCodes(ctx));
       writeSection(zip, "account/oauth-states.json", counts, () -> handshakeStates(ctx));
+      writeSection(
+          zip, "account/notification-preferences.json", counts, () -> notificationPreferences(ctx));
+      writeSection(zip, "account/push-devices.json", counts, () -> pushDevices(ctx));
 
       writeSection(zip, "memberships/teams.json", counts, () -> memberships(ctx));
       writeSection(zip, "participations/rides.json", counts, () -> rideParticipations(ctx));
       writeSection(zip, "participations/trips.json", counts, () -> tripParticipations(ctx));
+
+      writeSection(zip, "notifications/inbox.json", counts, () -> inbox(ctx));
 
       writeSection(zip, "content/teams.json", counts, () -> teams(ctx));
       writeSection(zip, "content/publications.json", counts, () -> publications(ctx));
@@ -273,6 +288,34 @@ public class UserExportBuilder {
         .map(AccountExport.HandshakeState::from)
         .forEach(states::add);
     return states;
+  }
+
+  private List<NotificationExport.Preference> notificationPreferences(ExportJobContext ctx) {
+    return notificationPreferenceRepository.findByUser(ctx.userId()).stream()
+        .map(NotificationExport.Preference::from)
+        .toList();
+  }
+
+  private List<NotificationExport.PushDeviceEntry> pushDevices(ExportJobContext ctx) {
+    return pushDeviceRepository.findByUser(ctx.userId()).stream()
+        .map(NotificationExport.PushDeviceEntry::from)
+        .toList();
+  }
+
+  /** Two queries whatever the size of the inbox: the entries, then all their deliveries. */
+  private List<NotificationExport.InboxEntry> inbox(ExportJobContext ctx) {
+    Map<Long, List<NotificationExport.Delivery>> deliveries =
+        notificationDeliveryRepository.findByRecipient(ctx.userId(), ctx.domainId()).stream()
+            .collect(
+                Collectors.groupingBy(
+                    d -> d.getNotification().getId(),
+                    Collectors.mapping(NotificationExport.Delivery::from, Collectors.toList())));
+    return notificationRepository.findAllByRecipient(ctx.userId(), ctx.domainId()).stream()
+        .map(
+            n ->
+                NotificationExport.InboxEntry.from(
+                    n, deliveries.getOrDefault(n.getId(), List.of())))
+        .toList();
   }
 
   private List<MembershipExport.Membership> memberships(ExportJobContext ctx) {
@@ -497,9 +540,12 @@ public class UserExportBuilder {
     CONTENU
 
       account/          Votre compte : profil, sessions, clés d'accès (passkeys),
-                        connexions GPS et réseaux sociaux, jetons d'authentification.
+                        connexions GPS et réseaux sociaux, jetons d'authentification,
+                        choix de notifications et appareils inscrits aux notifications push.
       memberships/      Les équipes dont vous êtes membre.
       participations/   Les sorties et voyages auxquels vous vous êtes inscrit.
+      notifications/    Les notifications reçues ces derniers mois, et pour chacune les
+                        envois par e-mail ou push qu'elle a donnés.
       content/          Ce que vous avez publié : sorties, articles, voyages, parcours,
                         annonces, pages, lieux, commentaires, modèles de sortie.
       files/            Vos fichiers : photo de profil, images et documents envoyés,
@@ -518,7 +564,9 @@ public class UserExportBuilder {
       - le jeton de votre calendrier ICS (récupérable à tout moment depuis l'application) ;
       - les jetons d'accès et de rafraîchissement de vos connexions GPS (Strava, Garmin,
         Hammerhead…), qui donneraient accès à ces comptes tiers ;
-      - les valeurs à usage unique des échanges OAuth et WebAuthn en cours.
+      - les valeurs à usage unique des échanges OAuth et WebAuthn en cours ;
+      - le jeton push de chacun de vos appareils, qui est l'adresse où lui envoyer
+        une notification.
 
     Les métadonnées de chacun de ces éléments (dates, appareils, services concernés) sont
     bien présentes : seule la valeur secrète est retirée.

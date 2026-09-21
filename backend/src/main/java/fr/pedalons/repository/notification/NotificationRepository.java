@@ -71,4 +71,21 @@ public class NotificationRepository implements PanacheRepository<Notification> {
   public long deleteByEventIds(List<Long> eventIds) {
     return delete("event.id in ?1", eventIds);
   }
+
+  /** The whole inbox, newest first, for the recipient's data export. Retention bounds its size. */
+  public List<Notification> findAllByRecipient(Long recipientId, Long domainId) {
+    return getEntityManager()
+        .createQuery(
+            "select n from Notification n join fetch n.event"
+                + WHERE_INBOX
+                + " order by n.createdAt desc, n.id desc",
+            Notification.class)
+        .setParameter("recipientId", recipientId)
+        .setParameter("domainId", domainId)
+        .getResultList();
+  }
+
+  public long deleteByRecipient(Long recipientId) {
+    return delete("recipient.id", recipientId);
+  }
 }

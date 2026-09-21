@@ -4,14 +4,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.pedalons.domain.notification.Notification;
 import fr.pedalons.domain.notification.NotificationDelivery;
 import fr.pedalons.domain.notification.NotificationEventEntry;
+import fr.pedalons.domain.notification.NotificationPreference;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.user.User;
+import fr.pedalons.enums.NotificationChannel;
 import fr.pedalons.enums.NotificationDeliveryStatus;
 import fr.pedalons.enums.NotificationEventStatus;
 import fr.pedalons.enums.NotificationSubjectType;
 import fr.pedalons.enums.NotificationType;
 import fr.pedalons.repository.notification.NotificationDeliveryRepository;
 import fr.pedalons.repository.notification.NotificationEventRepository;
+import fr.pedalons.repository.notification.NotificationPreferenceRepository;
 import fr.pedalons.repository.notification.NotificationRepository;
 import fr.pedalons.repository.team.UserTeamRepository;
 import fr.pedalons.service.notification.event.RidePublished;
@@ -30,6 +33,7 @@ public class NotificationTestData {
   @Inject NotificationEventRepository eventRepository;
   @Inject NotificationRepository notificationRepository;
   @Inject NotificationDeliveryRepository deliveryRepository;
+  @Inject NotificationPreferenceRepository preferenceRepository;
   @Inject UserTeamRepository userTeamRepository;
   @Inject ObjectMapper objectMapper;
 
@@ -94,6 +98,25 @@ public class NotificationTestData {
       seeded.add(notification);
     }
     return seeded;
+  }
+
+  /** Queues one delivery of an already seeded notification, as the fan-out would. */
+  @Transactional
+  public void seedDelivery(Notification notification, NotificationChannel channel) {
+    deliveryRepository.persist(
+        new NotificationDelivery(
+            notificationRepository.findById(notification.getId()), channel, Instant.now()));
+  }
+
+  @Transactional
+  public void seedPreference(
+      User user, NotificationType type, NotificationChannel channel, boolean enabled) {
+    preferenceRepository.persist(new NotificationPreference(user, type, channel, enabled));
+  }
+
+  @Transactional
+  public long preferenceCount(User user) {
+    return preferenceRepository.count("user.id", user.getId());
   }
 
   @Transactional

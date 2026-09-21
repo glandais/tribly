@@ -30,4 +30,8 @@ public class NotificationPreferenceRepository implements PanacheRepository<Notif
     }
     return result;
   }
+
+  public long deleteByUser(Long userId) {
+    return delete("user.id", userId);
+  }
 }
