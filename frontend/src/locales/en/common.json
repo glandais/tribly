@@ -660,7 +660,7 @@
   "profile.account.dangerZone.confirmButton": "Yes, Delete My Account",
   "profile.account.dangerZone.confirmMessage": "Are you sure? This action cannot be undone.",
   "profile.account.dangerZone.deleteButton": "Delete Account",
-  "profile.account.dangerZone.deleteDescription": "Permanently delete your account and all associated data.",
+  "profile.account.dangerZone.deleteDescription": "Erase your account and your personal data. What you published for a team stays online, credited to \"Ancien membre\".",
   "profile.account.dangerZone.title": "Danger Zone",
   "profile.account.signOut": "Sign Out",
   "profile.account.title": "Account Actions",

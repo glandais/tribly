@@ -660,7 +660,7 @@
   "profile.account.dangerZone.confirmButton": "Oui, supprimer mon compte",
   "profile.account.dangerZone.confirmMessage": "Êtes-vous sûr ? Cette action est irréversible.",
   "profile.account.dangerZone.deleteButton": "Supprimer le compte",
-  "profile.account.dangerZone.deleteDescription": "Supprimer définitivement votre compte et toutes les données associées.",
+  "profile.account.dangerZone.deleteDescription": "Effacer votre compte et vos données personnelles. Ce que vous avez publié pour une équipe reste en ligne, attribué à « Ancien membre ».",
   "profile.account.dangerZone.title": "Zone de danger",
   "profile.account.signOut": "Se déconnecter",
   "profile.account.title": "Actions du compte",

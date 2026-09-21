@@ -806,10 +806,10 @@
       "logoutAllTitle": "Déconnecter tous les appareils ?",
       "logoutAllMessage": "Toutes vos sessions seront fermées, celle-ci comprise. Vous devrez vous reconnecter.",
       "dangerZone": "Zone de danger",
-      "dangerHint": "La suppression du compte efface votre profil, vos inscriptions et vos commentaires sur toutes vos équipes. Les parcours publiés restent la propriété des équipes.",
+      "dangerHint": "La suppression du compte efface tout de suite vos données personnelles : profil, équipes, inscriptions à venir, annonces, commentaires et notifications. Ce que vous avez publié pour une équipe reste en ligne, attribué à « Ancien membre ».",
       "delete": "Supprimer le compte",
       "deleteTitle": "Voulez-vous vraiment supprimer votre compte ?",
-      "deleteMessage": "Cette action est irréversible. Vos inscriptions, vos commentaires et votre profil seront définitivement supprimés."
+      "deleteMessage": "Cette action est irréversible. Vos données personnelles seront effacées immédiatement. Les sorties, parcours et posts publiés pour une équipe resteront en ligne, attribués à « Ancien membre », et un commentaire qui a reçu des réponses restera affiché vide."
     }
   },
   "notifications": {

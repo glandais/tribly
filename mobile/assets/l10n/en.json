@@ -806,10 +806,10 @@
       "logoutAllTitle": "Sign out of every device?",
       "logoutAllMessage": "All your sessions will be closed, this one included. You will have to sign in again.",
       "dangerZone": "Danger zone",
-      "dangerHint": "Deleting the account erases your profile, your registrations and your comments across every team. Published routes stay the property of the teams.",
+      "dangerHint": "Deleting the account erases your personal data right away: profile, teams, upcoming registrations, ads, comments and notifications. What you published for a team stays online, credited to \"Ancien membre\".",
       "delete": "Delete the account",
       "deleteTitle": "Do you really want to delete your account?",
-      "deleteMessage": "This cannot be undone. Your registrations, your comments and your profile will be permanently deleted."
+      "deleteMessage": "This cannot be undone. Your personal data will be erased immediately. Rides, routes and posts published for a team will stay online, credited to \"Ancien membre\", and a comment others have replied to will remain, blank."
     }
   },
   "notifications": {
