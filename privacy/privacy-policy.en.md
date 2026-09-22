@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last updated: September 21, 2026**
+**Last updated: September 22, 2026**
 
 This privacy policy describes how Pedalons ("we", "our", "us") collects, uses, and protects your personal data when you use our platform (website, mobile app, GPS device extensions).
 
@@ -136,7 +136,7 @@ We use technical services to operate the platform:
 | Service | Role | Data Involved |
 |---------|------|--------------|
 | OVHcloud (OVH SAS, France) | Application, database, and object storage hosting | All data |
-| Brevo (Sendinblue SAS, France) | Delivery of transactional emails and email notifications | Email address, display name, email content (including the title and text of notifications) |
+| Scaleway (Scaleway SAS, France) | Delivery of transactional emails and email notifications (Transactional Email) | Email address, display name, email content (including the title and text of notifications) |
 | Google Firebase Cloud Messaging (Google Ireland Limited, Ireland) | Routing push notifications to the mobile app, through Apple Push Notification service for iPhones | Phone registration token, title and text of each notification, technical identifier used to open the right screen when tapped |
 
 **All our image processing (imgproxy) and route calculation (Valhalla) services are self-hosted** and do not transmit any data to third parties. Fonts are bundled with the website and the app: none is loaded from a third-party service.

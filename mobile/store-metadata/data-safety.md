@@ -380,8 +380,8 @@ these ships:
 3. ~~**The privacy policy says nothing about push.**~~ Done 2026-09-21: `privacy/privacy-policy.{en,fr}.md`
    gained a *Notifications* subsection (inbox, preferences, delivery records, phone registration,
    opt-in and sign-out deletion), FCM (Google Ireland) in the provider table, the US transfer and
-   its safeguards, the 90-day retention, and the export contents. Brevo's row now says it carries
-   notification content, not just an address.
+   its safeguards, the 90-day retention, and the export contents. The e-mail provider's row (Brevo then, Scaleway
+   Transactional Email since 2026-09-22) now says it carries notification content, not just an address.
 4. ~~**Undisclosed third-party endpoints.**~~ Done 2026-09-21: Inter is bundled and `google_fonts`
    removed; every basemap provider is listed in the policy with what it sees, and the Esri (US)
    and OSMF (UK) transfers are stated. (§6)

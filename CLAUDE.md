@@ -85,9 +85,9 @@ backup scripts inspect. Keep it `tribly-local` on a workstation: a local stack c
 indistinguishable from the real one in `docker ps` and to `scripts/restore.sh`.
 
 **A local stack must not be able to send mail.** The containers run the `%prod` Quarkus profile,
-where `pedalons.email.brevo.enabled=true` sends through the Brevo *API* and `QUARKUS_MAILER_*` is
-ignored entirely. A local `.env` therefore sets `PEDALONS_EMAIL_BREVO_ENABLED=false` and points the
-SMTP fallback at `mailhog:1025`. This is not cosmetic: after a biketeam migration the local database
+whose only way out for mail is the SMTP relay named by `QUARKUS_MAILER_*` — Scaleway Transactional
+Email on a server. A local `.env` therefore points it at `mailhog:1025`, with TLS and login
+`DISABLED`. This is not cosmetic: after a biketeam migration the local database
 holds thousands of real member addresses, and one OTP or team invitation is enough to reach them.
 
 Deployed hosts are laid out differently: one shared stack (`docker-compose.shared.yml` — valhalla and

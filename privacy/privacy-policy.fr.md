@@ -1,6 +1,6 @@
 # Politique de confidentialité
 
-**Dernière mise à jour : 21 septembre 2026**
+**Dernière mise à jour : 22 septembre 2026**
 
 La présente politique de confidentialité décrit la manière dont Pedalons (« nous », « notre », « nos ») collecte, utilise et protège vos données personnelles lorsque vous utilisez notre plateforme (site web, application mobile, extensions pour appareils GPS).
 
@@ -136,7 +136,7 @@ Nous faisons appel à des services techniques pour le fonctionnement de la plate
 | Service | Rôle | Données concernées |
 |---------|------|-------------------|
 | OVHcloud (OVH SAS, France) | Hébergement de l'application, de la base de données et du stockage objet | Toutes les données |
-| Brevo (Sendinblue SAS, France) | Envoi d'e-mails transactionnels et des notifications par e-mail | Adresse e-mail, nom d'affichage, contenu de l'e-mail (dont le titre et le texte des notifications) |
+| Scaleway (Scaleway SAS, France) | Envoi d'e-mails transactionnels et des notifications par e-mail (Transactional Email) | Adresse e-mail, nom d'affichage, contenu de l'e-mail (dont le titre et le texte des notifications) |
 | Google Firebase Cloud Messaging (Google Ireland Limited, Irlande) | Acheminement des notifications push vers l'application mobile, via Apple Push Notification service pour les iPhone | Jeton d'enregistrement du téléphone, titre et texte de chaque notification, identifiant technique permettant d'ouvrir le bon écran au toucher |
 
 **Tous nos services de traitement d'images (imgproxy) et de calcul d'itinéraires (Valhalla) sont auto-hébergés** et ne transmettent aucune donnée à des tiers. Les polices de caractères sont intégrées au site et à l'application : aucune n'est chargée depuis un service tiers.

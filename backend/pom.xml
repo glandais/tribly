@@ -188,7 +188,7 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-mailer</artifactId>
         </dependency>
-        <!-- Renders templates/mail/, the SMTP-path mirror of the Brevo templates -->
+        <!-- Renders templates/mail/, the e-mail templates -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-qute</artifactId>

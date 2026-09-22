@@ -189,19 +189,18 @@ jeton ICS. Thème clair et compte `gaby` pas repassés en revue depuis.
       ne jamais désactiver pour faire passer un build : `…QueryCountTest` (elles échouent si
       quelqu'un réintroduit une requête par ligne) et `groupLeader_isNotTheRideCreator` (elle échoue
       si quelqu'un réintroduit un repli sur `createdBy`).
-- [ ] **Le relais de contact en production** — les gabarits Brevo `ad-contact.fr` / `ad-contact.en`
-      (identifiants 10 et 11, profil `%prod`) existent et l'envoi a été validé par un message réel.
-      À revérifier après tout changement de compte Brevo : un identifiant manquant fait répondre
-      **500 en nommant le template absent**, ce qui ressemble à un défaut de front et n'en est pas.
-      L'API de prévisualisation de Brevo n'est pas exploitable — la seule recette est un envoi réel.
-- [ ] **Les quatre gabarits d'invitation en production** — `team-invitation.{fr,en}` (12, 13) et
-      `team-invitation-signup.{fr,en}` (14, 15) **existent et sont actifs** (créés le 1er août 2026,
-      expéditeur `Pédalons ! <contact@pedalons.fr>`, id 1). Params des quatre : `appName`,
-      `inviterName`, `teamName`, `invitationUrl`, `expiresInDays`. **Reste à faire : un envoi réel**,
-      seule recette possible, comme pour `ad-contact`. Si un identifiant venait à manquer,
-      `POST …/invitations` répond **500 `TEAM_INVITE_DELIVERY_FAILED`** — délibérément, plutôt qu'un
-      `INTERNAL_ERROR` opaque — et la transaction est annulée : aucune invitation fantôme ne
-      subsiste. En dev, Mailhog rend les branches `sendViaSMTP` et ne dépend d'aucun identifiant.
+- [ ] **Le relais de contact en production** — les gabarits `ad-contact.{fr,en}` sont rendus par le
+      backend (`templates/mail/`) et partent par le relais SMTP de Scaleway TEM comme tout le reste ;
+      l'envoi a été validé par un message réel du temps de Brevo. À revérifier après la bascule TEM
+      par un envoi réel : le `Reply-To` doit porter l'adresse de l'auteur et le corps ne doit jamais
+      l'imprimer.
+- [ ] **Les quatre gabarits d'invitation en production** — `team-invitation.{fr,en}` et
+      `team-invitation-signup.{fr,en}` vivent dans `templates/mail/` et partent par le relais SMTP de
+      Scaleway TEM. Params des quatre : `appName`, `inviterName`, `teamName`, `invitationUrl`,
+      `expiresInDays`. **Reste à faire : un envoi réel** après la bascule TEM, comme pour
+      `ad-contact`. Si le relais refuse le message, `POST …/invitations` répond **500
+      `TEAM_INVITE_DELIVERY_FAILED`** — délibérément, plutôt qu'un `INTERNAL_ERROR` opaque — et la
+      transaction est annulée : aucune invitation fantôme ne subsiste.
 - [ ] **`AdDto` ne porte aucun champ de contact** — le `grep` et le script Python du §5.3 du document
       d'API. Le jour où ils remontent quelque chose, le relais a été contourné et une adresse
       personnelle est publiée à toute une équipe, irrévocablement.

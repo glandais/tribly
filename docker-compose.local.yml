@@ -21,9 +21,8 @@
 #   4. an `app` profile on backend/frontend/traefik, so that a plain `up` starts the backing services
 #      alone — see the comment on those three below.
 services:
-  # The stack runs the %prod Quarkus profile, where pedalons.email.brevo.enabled=true sends through
-  # the Brevo *API* and QUARKUS_MAILER_* is ignored. The local .env sets
-  # PEDALONS_EMAIL_BREVO_ENABLED=false to fall back to SMTP — which lands here, and goes no further.
+  # The stack runs the %prod Quarkus profile, whose only way out for mail is the SMTP relay named by
+  # QUARKUS_MAILER_*. The local .env points it here, and it goes no further.
   mailhog:
     image: mailhog/mailhog:v1.0.1
     container_name: ${ENV_NAME}-mailhog

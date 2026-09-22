@@ -26,9 +26,9 @@ import org.jspecify.annotations.Nullable;
  * Server-side wording of the notifications, for the channels that need finished text: e-mail, push,
  * the team webhook. The inbox does not use it: clients localize from the type and structured fields.
  *
- * <p>A properties file per language rather than one Brevo template per type: the e-mail goes
+ * <p>A properties file per language rather than one mail template per type: the e-mail goes
  * through a single generic template whose parameters are already rendered here, so adding a type
- * means adding four lines to two files, not two templates to Brevo.
+ * means adding four lines to two files, not two more Qute templates.
  */
 @ApplicationScoped
 public class NotificationTexts {

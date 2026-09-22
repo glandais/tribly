@@ -12,8 +12,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
  * {@code notification} template.
  *
  * <p>Off unless {@code pedalons.notifications.email.enabled} says otherwise. Turning it on in
- * production writes to every member whose defaults include e-mail — a product decision, and one
- * that also needs the two Brevo template IDs configured first.
+ * production writes to every member whose defaults include e-mail — a product decision.
  */
 @ApplicationScoped
 public class EmailNotificationSender implements NotificationChannelSender {

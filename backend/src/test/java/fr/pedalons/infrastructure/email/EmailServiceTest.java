@@ -13,9 +13,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Covers the SMTP path of {@link EmailService}, which the per-feature mail tests only exercise in
- * French: {@code sendViaSMTP} used to ignore its language argument entirely, so nothing here was
- * tested until the Qute templates replaced the hardcoded bodies.
+ * Covers the rendering of {@link EmailService}, which the per-feature mail tests only exercise in
+ * French. The mock mailbox receives exactly what the Scaleway SMTP relay would.
  */
 @QuarkusTest
 class EmailServiceTest extends AbstractBaseTest {
@@ -60,10 +59,7 @@ class EmailServiceTest extends AbstractBaseTest {
     mailbox.clear();
   }
 
-  /**
-   * The guard that catches a template added to the Brevo side but forgotten locally — otherwise the
-   * gap only shows up the day Brevo is switched off.
-   */
+  /** Every template exists in both languages and both formats, or sending it throws. */
   @Test
   void everyTemplateExistsInBothLanguagesAndBothFormats() {
     for (String name : TEMPLATE_NAMES) {
@@ -114,10 +110,7 @@ class EmailServiceTest extends AbstractBaseTest {
     assertEquals("Votre code de connexion - Pedalons", mail.getSubject());
   }
 
-  /**
-   * The ad message is the one value a stranger writes; Qute escapes it in the HTML part, which the
-   * Brevo templates do not do.
-   */
+  /** The ad message is the one value a stranger writes; Qute escapes it in the HTML part. */
   @Test
   void userWrittenMessageIsEscapedInTheHtmlPart() {
     var params = new java.util.HashMap<>(ALL_PARAMS);

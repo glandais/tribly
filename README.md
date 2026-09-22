@@ -38,14 +38,13 @@ There is **one** `.env`, never committed, and one template for both uses. Compos
 anything that has no business inside the application has no business in it either (the `BACKUP_*`
 settings live in `/root/pedalons-backup.env` instead, see [Backup and restore](#backup-and-restore)).
 
-A workstation and a deployment differ in six keys, and only those:
+A workstation and a deployment differ in five keys, and only those:
 
 | Key | Deployment | Workstation |
 |---|---|---|
 | `ENV_NAME` | `pedalons-prod`, `pedalons-staging` | `tribly-local` |
 | `COMPOSE_FILE` | *unset* — `docker-compose.yml` alone | `docker-compose.yml:docker-compose.local.yml` |
-| `PEDALONS_EMAIL_BREVO_ENABLED` | *unset*, so `true`: sends through the Brevo API | `false` |
-| `QUARKUS_MAILER_*` | the Brevo SMTP relay | `mailhog` / `1025`, TLS and login `DISABLED` |
+| `QUARKUS_MAILER_*` | the Scaleway TEM SMTP relay | `mailhog` / `1025`, TLS and login `DISABLED` |
 | `PEDALONS_BOOTSTRAP_DOMAIN` / `_BASE_URL` | the public hostname, `https://…` | `localhost` / `http://localhost:8090` |
 | `HTTP_PORT` | 8090 prod, 8089 staging, behind Caddy | anything free |
 
@@ -69,7 +68,6 @@ keep in sync.
 | `POSTGRES_PASSWORD` | any value; the database is created with it on first start |
 | `MINIO_ROOT_PASSWORD` and `MINIO_SECRET_KEY` | must be **equal** — the second is how the backend authenticates against the first. Same for `MINIO_ROOT_USER` / `MINIO_ACCESS_KEY` |
 | `ENCRYPTION_KEY` | `openssl rand -base64 32`. Encrypts the stored GPS-service tokens: change it later and they stop decrypting |
-| `BREVO_API_KEY` | required even locally, even with Brevo disabled — the `%prod` profile expands it at startup, so a placeholder does |
 | `PEDALONS_BOOTSTRAP_ADMIN_EMAIL` | your address. The account is created without a password; first login is by OTP or passkey |
 
 **Everything else in `.env.example` has a working default**, so a workstation `.env` can be shorter
@@ -279,7 +277,6 @@ and both live in the local `.env`:
 ```bash
 ENV_NAME=tribly-local
 COMPOSE_FILE=docker-compose.yml:docker-compose.local.yml
-PEDALONS_EMAIL_BREVO_ENABLED=false
 QUARKUS_MAILER_HOST=mailhog       # + the rest of the block in .env.example
 ```
 
@@ -288,8 +285,8 @@ and the `${ENV_NAME}-minio` that `backup.sh` inspects. A local stack called `…
 indistinguishable from the real one in `docker ps` and to the backup scripts.
 
 **A local stack must not be able to send mail.** The containers run the `%prod` Quarkus profile
-wherever they run, and there `pedalons.email.brevo.enabled=true` sends through the Brevo *API* —
-`QUARKUS_MAILER_*` is not even read. Disabling it falls back to SMTP, pointed at the mailhog of
+wherever they run, and its only way out for mail is the SMTP relay named by `QUARKUS_MAILER_*` —
+Scaleway Transactional Email on a server. A workstation points it at the mailhog of
 `docker-compose.local.yml` (UI on http://127.0.0.1:8025). This is not hygiene: after a biketeam
 migration the local database holds thousands of real member addresses, and one OTP or team
 invitation is enough to reach them.
@@ -727,7 +724,7 @@ Verify the backend resolves it — a known host returns `200`, an unknown one `4
 curl -s -H 'Host: monclub.fr' http://localhost:8080/api/config
 ```
 
-**2. Register a user** through the normal signup flow. This sends a verification email, so the mailer must work: in `prod` the backend sends via Brevo, which rejects calls from IPs missing from its [authorised IPs](https://app.brevo.com/security/authorised_ips) allowlist. A rejected call surfaces as a misleading `401 UNKNOWN` on `/api/auth/register`, because `GlobalExceptionMapper` replays the upstream status verbatim.
+**2. Register a user** through the normal signup flow. This sends a verification email, so the mailer must work: in `prod` the backend sends through the Scaleway Transactional Email SMTP relay, which refuses a `FROM` whose domain is not verified in TEM (SPF, DKIM, MX) and credentials that are not a project id + IAM secret key with `TransactionalEmailEmailFullAccess`. A refused message surfaces as a 500 on `/api/auth/register`; the backend log carries the SMTP reply.
 
 **3. Grant the platform admin role** via SQL:
 

@@ -238,7 +238,7 @@ Informationnel :
 | V4 | Le dépôt ne pose aucun en-tête de sécurité (CSP, `frame-ancestors`, `nosniff`, HSTS). | Le Caddy les ajoute-t-il ? | Clickjacking sur les actions sensibles, et H2 sans atténuation. Ajouter un middleware Traefik `headers`. |
 | V5 | Sauvegardes : `rrsync <root>`, sans `-no-del`, accepte `--delete` et l'écriture en place. Les snapshots partagent des hardlinks et `SHA256SUMS` est stocké dans le snapshot lui-même. | La ligne `authorized_keys` exacte, et l'existence de snapshots en lecture seule côté hôte de sauvegarde. | Un root de prod peut effacer ou empoisonner tout l'historique de sauvegardes. |
 | V6 | `CrossSiteRequestFilter` accepte `Sec-Fetch-Site: same-site` (`CrossSiteRequestFilter.java:80-83`). | Des tenants ou alias sont-ils des sous-domaines frères d'un même domaine enregistrable ? | CSRF entre tenants frères. |
-| V7 | Le sujet des e-mails d'annonce contient `senderName` et `adName` sur le chemin SMTP. | Vert.x mail neutralise-t-il le CRLF ? (Brevo n'est pas concerné.) | Injection d'en-têtes SMTP. |
+| V7 | Le sujet des e-mails d'annonce contient `senderName` et `adName`, et tout part désormais en SMTP (relais Scaleway TEM). | Vert.x mail neutralise-t-il le CRLF ? | Injection d'en-têtes SMTP. |
 | V8 | imgproxy sert des SVG via `/images/...`. | `IMGPROXY_SANITIZE_SVG` est-il actif ? (Il l'est par défaut dans les versions récentes.) | Variante de H2. |
 
 ---

@@ -6,14 +6,16 @@ import io.quarkus.qute.Engine;
 import io.quarkus.qute.Template;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jspecify.annotations.Nullable;
 
+/**
+ * Renders {@code templates/mail/<name>.<lang>.{html,txt}} with Qute and hands the result to the
+ * Quarkus mailer. Where that mail goes is the deployment's business alone: Scaleway Transactional
+ * Email's SMTP relay in production, mailhog on a workstation, the mock mailbox in tests. The
+ * templates in this repository are the only copy there is.
+ */
 @ApplicationScoped
 public class EmailService {
 
@@ -24,9 +26,8 @@ public class EmailService {
   public static final String AD_CONTACT = "ad-contact";
 
   /**
-   * The two invitation templates. Two rather than one with a flag, because Brevo templates have no
-   * conditionals: whatever differs between "you already have an account, sign in" and "create one"
-   * has to differ at the template level.
+   * The two invitation templates: "you already have an account, sign in" and "create one" differ
+   * enough in wording that two files read better than one with a flag.
    */
   public static final String TEAM_INVITATION = "team-invitation";
 
@@ -35,81 +36,18 @@ public class EmailService {
   /**
    * The one template every notification type shares. Its parameters arrive already rendered
    * ({@code subject}, {@code title}, {@code body}, {@code ctaLabel}, {@code ctaUrl}…) by {@code
-   * NotificationTexts}, so a new notification type needs no new Brevo template.
+   * NotificationTexts}, so a new notification type needs no new template.
    */
   public static final String NOTIFICATION = "notification";
 
   /**
    * The daily digest: several notifications in one e-mail. {@code items} is a list of already
-   * rendered {@code title}, {@code body}, {@code ctaLabel}, {@code ctaUrl} — a loop in the Brevo
-   * template.
+   * rendered {@code title}, {@code body}, {@code ctaLabel}, {@code ctaUrl}.
    */
   public static final String NOTIFICATION_DIGEST = "notification-digest";
 
   /** The languages {@code templates/mail} is translated into; anything else falls back to French. */
   private static final Set<String> TEMPLATE_LANGUAGES = Set.of("fr", "en");
-
-  @ConfigProperty(name = "pedalons.email.brevo.enabled", defaultValue = "false")
-  boolean brevoEnabled;
-
-  @ConfigProperty(name = "pedalons.email.brevo.api-key")
-  Optional<String> brevoApiKey;
-
-  @ConfigProperty(name = "pedalons.email.brevo.templates.email-verification.fr")
-  Optional<Long> templateEmailVerificationFr;
-
-  @ConfigProperty(name = "pedalons.email.brevo.templates.email-verification.en")
-  Optional<Long> templateEmailVerificationEn;
-
-  @ConfigProperty(name = "pedalons.email.brevo.templates.otp.fr")
-  Optional<Long> templateOtpFr;
-
-  @ConfigProperty(name = "pedalons.email.brevo.templates.otp.en")
-  Optional<Long> templateOtpEn;
-
-  @ConfigProperty(name = "pedalons.email.brevo.templates.password-reset.fr")
-  Optional<Long> templatePasswordResetFr;
-
-  @ConfigProperty(name = "pedalons.email.brevo.templates.password-reset.en")
-  Optional<Long> templatePasswordResetEn;
-
-  @ConfigProperty(name = "pedalons.email.brevo.templates.data-export.fr")
-  Optional<Long> templateDataExportFr;
-
-  @ConfigProperty(name = "pedalons.email.brevo.templates.data-export.en")
-  Optional<Long> templateDataExportEn;
-
-  @ConfigProperty(name = "pedalons.email.brevo.templates.ad-contact.fr")
-  Optional<Long> templateAdContactFr;
-
-  @ConfigProperty(name = "pedalons.email.brevo.templates.ad-contact.en")
-  Optional<Long> templateAdContactEn;
-
-  @ConfigProperty(name = "pedalons.email.brevo.templates.team-invitation.fr")
-  Optional<Long> templateTeamInvitationFr;
-
-  @ConfigProperty(name = "pedalons.email.brevo.templates.team-invitation.en")
-  Optional<Long> templateTeamInvitationEn;
-
-  @ConfigProperty(name = "pedalons.email.brevo.templates.team-invitation-signup.fr")
-  Optional<Long> templateTeamInvitationSignupFr;
-
-  @ConfigProperty(name = "pedalons.email.brevo.templates.team-invitation-signup.en")
-  Optional<Long> templateTeamInvitationSignupEn;
-
-  @ConfigProperty(name = "pedalons.email.brevo.templates.notification.fr")
-  Optional<Long> templateNotificationFr;
-
-  @ConfigProperty(name = "pedalons.email.brevo.templates.notification.en")
-  Optional<Long> templateNotificationEn;
-
-  @ConfigProperty(name = "pedalons.email.brevo.templates.notification-digest.fr")
-  Optional<Long> templateNotificationDigestFr;
-
-  @ConfigProperty(name = "pedalons.email.brevo.templates.notification-digest.en")
-  Optional<Long> templateNotificationDigestEn;
-
-  @Inject @RestClient BrevoRestClient brevoRestClient;
 
   @Inject Mailer mailer;
 
@@ -127,135 +65,12 @@ public class EmailService {
    * stayed null until the classified-ad relay needed it: the whole point of relaying a message is
    * that the recipient can answer the person who wrote it without either address having been
    * published.
+   *
+   * <p>The subject lives in a hidden fragment of the {@code .txt} file rather than the {@code
+   * .html} one because Qute escapes everything in an HTML template, and these subjects interpolate
+   * user-chosen names.
    */
   public void sendEmail(
-      String toEmail,
-      String templateName,
-      String language,
-      Map<String, Object> params,
-      @Nullable String replyTo) {
-    if (brevoEnabled) {
-      sendViaBrevo(toEmail, templateName, language, params, replyTo);
-    } else {
-      sendViaSMTP(toEmail, templateName, language, params, replyTo);
-    }
-  }
-
-  private void sendViaBrevo(
-      String toEmail,
-      String templateName,
-      String language,
-      Map<String, Object> params,
-      @Nullable String replyTo) {
-    long templateId = resolveTemplateId(templateName, language);
-    String apiKey =
-        brevoApiKey.orElseThrow(() -> new IllegalStateException("Brevo API key not configured"));
-    brevoRestClient.send(
-        apiKey,
-        new BrevoEmailRequest(
-            List.of(new BrevoEmailRequest.EmailAddress(toEmail)),
-            templateId,
-            params,
-            replyTo == null ? null : new BrevoEmailRequest.EmailAddress(replyTo)));
-  }
-
-  private long resolveTemplateId(String templateName, String language) {
-    return switch (templateName + "." + language) {
-      case EMAIL_VERIFICATION + ".fr" ->
-          templateEmailVerificationFr.orElseThrow(
-              () ->
-                  new IllegalStateException(
-                      "Brevo template ID not configured for email-verification.fr"));
-      case EMAIL_VERIFICATION + ".en" ->
-          templateEmailVerificationEn.orElseThrow(
-              () ->
-                  new IllegalStateException(
-                      "Brevo template ID not configured for email-verification.en"));
-      case OTP + ".fr" ->
-          templateOtpFr.orElseThrow(
-              () -> new IllegalStateException("Brevo template ID not configured for otp.fr"));
-      case OTP + ".en" ->
-          templateOtpEn.orElseThrow(
-              () -> new IllegalStateException("Brevo template ID not configured for otp.en"));
-      case PASSWORD_RESET + ".fr" ->
-          templatePasswordResetFr.orElseThrow(
-              () ->
-                  new IllegalStateException(
-                      "Brevo template ID not configured for password-reset.fr"));
-      case PASSWORD_RESET + ".en" ->
-          templatePasswordResetEn.orElseThrow(
-              () ->
-                  new IllegalStateException(
-                      "Brevo template ID not configured for password-reset.en"));
-      case DATA_EXPORT + ".fr" ->
-          templateDataExportFr.orElseThrow(
-              () ->
-                  new IllegalStateException("Brevo template ID not configured for data-export.fr"));
-      case DATA_EXPORT + ".en" ->
-          templateDataExportEn.orElseThrow(
-              () ->
-                  new IllegalStateException("Brevo template ID not configured for data-export.en"));
-      case AD_CONTACT + ".fr" ->
-          templateAdContactFr.orElseThrow(
-              () ->
-                  new IllegalStateException("Brevo template ID not configured for ad-contact.fr"));
-      case AD_CONTACT + ".en" ->
-          templateAdContactEn.orElseThrow(
-              () ->
-                  new IllegalStateException("Brevo template ID not configured for ad-contact.en"));
-      case TEAM_INVITATION + ".fr" ->
-          templateTeamInvitationFr.orElseThrow(
-              () ->
-                  new IllegalStateException(
-                      "Brevo template ID not configured for team-invitation.fr"));
-      case TEAM_INVITATION + ".en" ->
-          templateTeamInvitationEn.orElseThrow(
-              () ->
-                  new IllegalStateException(
-                      "Brevo template ID not configured for team-invitation.en"));
-      case TEAM_INVITATION_SIGNUP + ".fr" ->
-          templateTeamInvitationSignupFr.orElseThrow(
-              () ->
-                  new IllegalStateException(
-                      "Brevo template ID not configured for team-invitation-signup.fr"));
-      case TEAM_INVITATION_SIGNUP + ".en" ->
-          templateTeamInvitationSignupEn.orElseThrow(
-              () ->
-                  new IllegalStateException(
-                      "Brevo template ID not configured for team-invitation-signup.en"));
-      case NOTIFICATION + ".fr" ->
-          templateNotificationFr.orElseThrow(
-              () ->
-                  new IllegalStateException(
-                      "Brevo template ID not configured for notification.fr"));
-      case NOTIFICATION + ".en" ->
-          templateNotificationEn.orElseThrow(
-              () ->
-                  new IllegalStateException(
-                      "Brevo template ID not configured for notification.en"));
-      case NOTIFICATION_DIGEST + ".fr" ->
-          templateNotificationDigestFr.orElseThrow(
-              () ->
-                  new IllegalStateException(
-                      "Brevo template ID not configured for notification-digest.fr"));
-      case NOTIFICATION_DIGEST + ".en" ->
-          templateNotificationDigestEn.orElseThrow(
-              () ->
-                  new IllegalStateException(
-                      "Brevo template ID not configured for notification-digest.en"));
-      default ->
-          throw new IllegalArgumentException(
-              "Unknown template: " + templateName + " / " + language);
-    };
-  }
-
-  /**
-   * Renders the local mirror of the Brevo templates. Both files are named after the same key the
-   * Brevo branch resolves an ID from, so the two paths cannot drift apart silently; the subject
-   * lives in a hidden fragment of the {@code .txt} file rather than the {@code .html} one because
-   * Qute escapes everything in an HTML template, and these subjects interpolate user-chosen names.
-   */
-  private void sendViaSMTP(
       String toEmail,
       String templateName,
       String language,

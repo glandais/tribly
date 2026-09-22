@@ -364,7 +364,7 @@ public class TeamInvitationService {
     } catch (RuntimeException e) {
       // Rolls the whole thing back, which is the point: an invitation whose e-mail never left is
       // one nobody can act on, and it would sit in the admin's list looking sent while consuming a
-      // slot in the (team, address) unique index. Also what keeps a missing Brevo template id from
+      // slot in the (team, address) unique index. Also what keeps a missing mail template from
       // surfacing as an opaque 500.
       Log.errorf(
           e,
