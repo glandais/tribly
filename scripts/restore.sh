@@ -5,8 +5,11 @@
 #   scripts/restore.sh --secrets-only             fetch .env + data/keys only (bootstrap a new host)
 #   scripts/restore.sh [--snapshot latest|<STAMP>] [--force] [--keep-fetch]
 #
-# DESTRUCTIVE: the full restore runs `docker compose down -v`, which drops this environment's
-# postgres and minio volumes before repopulating them. It asks for confirmation unless --force.
+# DESTRUCTIVE: the full restore takes the stack down and drops this environment's postgres and minio
+# volumes before repopulating them. It asks for confirmation unless --force.
+#
+# It follows the stack wherever it runs: as the Swarm stack ${ENV_NAME} when this node is in a swarm
+# (a deployed host, see scripts/deploy.sh), as a compose project otherwise (a workstation drill).
 #
 # Only rsync and docker are used, so this works both from the production host (root, restricted
 # backup key) and from any machine that can read the backup store over plain SSH — which is how a
@@ -146,28 +149,64 @@ log "fetching minio objects"
 mkdir -p "$FETCH/minio"
 rsync_remote -a --delete --info=progress2 "$(remote_url "$SNAPSHOT")/minio/" "$FETCH/minio/"
 
-# The stack declares `pedalons-shared` as external: compose refuses to start until it exists.
-docker network inspect pedalons-shared >/dev/null 2>&1 \
-  || die "network pedalons-shared missing — start the shared stack first (docker compose -f docker-compose.shared.yml up -d)"
+# On a host the stack declares `pedalons-shared` as external and refuses to start until it exists.
+# A workstation runs valhalla and tileserver itself (docker-compose.local.yml) and needs no such thing.
+if is_swarm; then
+  docker network inspect pedalons-shared >/dev/null 2>&1 \
+    || die "network pedalons-shared missing — deploy the shared stack first (scripts/deploy.sh --shared)"
+fi
 
-for image in "pedalons-backend:$ENV_NAME" "pedalons-frontend:$ENV_NAME"; do
+# Checked now, before anything is dropped: on a host deploy.sh runs the build of the checked-out
+# commit (scripts/_image_tag.sh), a workstation the latest build under the alias.
+tag="$ENV_NAME"
+if is_swarm; then
+  . "$SCRIPT_DIR/_image_tag.sh"
+  ! worktree_dirty || die "uncommitted changes in $REPO_ROOT: deploy.sh would refuse to redeploy"
+  tag="$ENV_NAME$(image_suffix)"
+fi
+for image in "pedalons-backend:$tag" "pedalons-frontend:$tag"; do
   docker image inspect "$image" >/dev/null 2>&1 \
     || die "image $image missing — run ./build.sh (MANIFEST commit: $(manifest_get git_commit))"
 done
 
-log "stopping the stack and dropping its volumes"
-docker compose down --remove-orphans -v
+if is_swarm; then
+  # `stack rm` returns once removal is requested, not once it is done: the volumes stay in use, and
+  # the network half-exists, until every task has exited. Redeploying before that fails.
+  log "removing stack $ENV_NAME and dropping its volumes"
+  docker stack rm "$ENV_NAME" >/dev/null 2>&1 || true
+  for _ in $(seq 1 90); do
+    [[ -z "$(docker ps -aq --filter "label=com.docker.stack.namespace=$ENV_NAME")" ]] \
+      && ! docker network inspect "${ENV_NAME}-net" >/dev/null 2>&1 \
+      && break
+    sleep 2
+  done
+  docker volume rm "${ENV_NAME}_postgres_data" "${ENV_NAME}_minio_data" >/dev/null 2>&1 || true
+  for volume in "${ENV_NAME}_postgres_data" "${ENV_NAME}_minio_data"; do
+    ! docker volume inspect "$volume" >/dev/null 2>&1 || die "volume $volume is still there — is a container still using it?"
+  done
 
-log "starting postgres and minio on empty volumes"
-docker compose up -d postgres minio
+  # Swarm cannot start part of a stack, so the whole stack comes back — with backend and frontend at
+  # zero replicas, or the backend would boot on the empty database, run Flyway and bootstrap a fresh
+  # Domain before the dump lands.
+  log "redeploying the stack on empty volumes, backend and frontend held at 0 replicas"
+  "$SCRIPT_DIR/deploy.sh" --hold-app
+else
+  log "stopping the stack and dropping its volumes"
+  docker compose down --remove-orphans -v
+
+  log "starting postgres and minio on empty volumes"
+  docker compose up -d postgres minio
+fi
 
 log "waiting for postgres to become healthy"
+POSTGRES_CID=""
 for _ in $(seq 1 60); do
-  [[ "$(docker inspect -f '{{.State.Health.Status}}' "${ENV_NAME}-postgres" 2>/dev/null)" == "healthy" ]] && break
+  POSTGRES_CID="$(container_of postgres)"
+  [[ -n "$POSTGRES_CID" && "$(docker inspect -f '{{.State.Health.Status}}' "$POSTGRES_CID" 2>/dev/null)" == "healthy" ]] && break
   sleep 2
 done
-[[ "$(docker inspect -f '{{.State.Health.Status}}' "${ENV_NAME}-postgres")" == "healthy" ]] \
-  || die "postgres never became healthy — check docker compose logs postgres"
+[[ -n "$POSTGRES_CID" && "$(docker inspect -f '{{.State.Health.Status}}' "$POSTGRES_CID")" == "healthy" ]] \
+  || die "postgres never became healthy — check its logs"
 
 # --- postgres ---------------------------------------------------------------
 #
@@ -177,7 +216,7 @@ done
 # notices for the DROPs, so the summary below is what matters.
 log "restoring postgres into $POSTGRES_DB"
 set +e
-docker exec -i "${ENV_NAME}-postgres" \
+docker exec -i "$POSTGRES_CID" \
   sh -c 'pg_restore --clean --if-exists --no-owner --no-acl -U "$POSTGRES_USER" -d "$POSTGRES_DB"' \
   < "$FETCH/postgres.dump"
 PG_RC=$?
@@ -186,19 +225,33 @@ set -e
 
 # --- minio ------------------------------------------------------------------
 #
-# Restoring under a live MinIO would corrupt its on-disk index, so the container goes down first.
-# `docker cp` rather than a write into /var/lib/docker/volumes: it needs no root, and it hands the
-# files to the container as root:root, which is the user MinIO runs as. Writing the volume path
-# directly would stamp them with the restoring account's uid.
-log "stopping minio to restore its data"
-docker compose stop minio
-docker exec "${ENV_NAME}-minio" true 2>/dev/null || true
-log "copying objects into ${ENV_NAME}-minio:/data"
-docker cp "$FETCH/minio/." "${ENV_NAME}-minio:/data"
-docker compose start minio
+# Restoring under a live MinIO would corrupt its on-disk index, so it goes down first.
+# Never a write into /var/lib/docker/volumes: that needs root, and stamps the files with the restoring
+# account's uid where MinIO, which runs as root, expects root:root.
+if is_swarm; then
+  # Swarm has no stop, only a scale to 0 that leaves no container to `docker cp` into. A throwaway
+  # container mounts the volume instead; `cp -R` without -a, so the objects come out root:root.
+  log "scaling minio to 0 to restore its data"
+  docker service scale "${ENV_NAME}_minio=0" >/dev/null
+  MINIO_VOLUME="${ENV_NAME}_minio_data"
+  log "copying objects into the $MINIO_VOLUME volume"
+  docker run --rm -v "$MINIO_VOLUME:/data" -v "$FETCH/minio:/restore:ro" alpine \
+    sh -c 'cp -R /restore/. /data/'
+  docker service scale "${ENV_NAME}_minio=1" >/dev/null
 
-log "starting the full stack"
-docker compose up -d
+  log "scaling backend and frontend back up"
+  docker service scale "${ENV_NAME}_backend=1" "${ENV_NAME}_frontend=1" >/dev/null
+else
+  # `docker cp` into the stopped container hands the files over as root:root.
+  log "stopping minio to restore its data"
+  docker compose stop minio
+  log "copying objects into ${ENV_NAME}-minio:/data"
+  docker cp "$FETCH/minio/." "${ENV_NAME}-minio:/data"
+  docker compose start minio
+
+  log "starting the full stack"
+  docker compose up -d
+fi
 
 # --- verification -----------------------------------------------------------
 
@@ -215,7 +268,7 @@ done
 
 echo
 log "restore summary"
-docker exec "${ENV_NAME}-postgres" sh -c \
+docker exec "$POSTGRES_CID" sh -c \
   'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc "SELECT (SELECT count(*) FROM domains), (SELECT count(*) FROM users), (SELECT count(*) FROM teams), (SELECT count(*) FROM assets)"' \
   | awk -F'|' '{printf "    domains=%s users=%s teams=%s assets=%s\n", $1, $2, $3, $4}'
 # Counted on the fetched copy, not inside the container: the minio image ships no `find`, and the
@@ -227,7 +280,7 @@ echo
 $KEEP_FETCH || rm -rf "$FETCH"
 
 [[ "$STATUS" == "200" ]] \
-  || die "the backend does not answer 200 on /api/config — check docker compose logs backend"
+  || die "the backend does not answer 200 on /api/config — check the backend logs"
 
 log "restore complete. Open the site and check that an existing photo still renders: that path goes"
 log "through minio -> imgproxy -> varnish, so it is what proves the objects came back, not just the rows."

@@ -61,27 +61,38 @@ docker compose up -d
 docker compose --profile app up -d
 ```
 
-`docker-compose.yml` **is the deployment file** — keep dev tooling out of it. What a workstation
+`docker-compose.yml` **is the deployment file** — keep dev tooling out of it. It is deployed as a
+**Docker Swarm** stack (always via `scripts/deploy.sh`) yet run by plain `docker compose` on a
+workstation, so it must stay valid for both: no `profiles:` and no top-level `name:` (they make
+`docker stack deploy` fail), Traefik routing labels under both `labels` and `deploy.labels` (one
+YAML anchor), and no published postgres port (Swarm cannot bind the loopback). What a workstation
 needs on top lives in `docker-compose.local.yml`, and the local `.env` sets
 `COMPOSE_FILE=docker-compose.yml:docker-compose.local.yml` so a plain `docker compose` command picks
 up both. A deployed `.env` has no `COMPOSE_FILE` and reads `docker-compose.yml` alone. The overlay
-carries four things: mailhog (:8025 — and no SQL browser, deliberately: postgres is on :5432, bring
+carries five things: mailhog (:8025 — and no SQL browser, deliberately: postgres is on :5432, bring
 the client you like); valhalla and tileserver, `extends`-ed from
 `docker-compose.shared.yml` so a laptop runs one stack rather than two — which is also why it
 redeclares the `shared` network as a plain project network instead of the `external`
 `pedalons-shared`; the loopback ports the out-of-Docker dev backend expects (imgproxy 38080, valhalla
-8002, tileserver 18080, MinIO 9000, SMTP 1025 — postgres is already published by
-`POSTGRES_HOST_PORT`); and an `app` profile on `backend`/`frontend`/`traefik`, which is why a plain
-`up` starts the backing services alone. Adding a profile is override-only, so a deployment still
-starts all three by default.
+8002, tileserver 18080, MinIO 9000, SMTP 1025, postgres `POSTGRES_HOST_PORT`); an `app` profile on
+`backend`/`frontend`/`traefik`, which is why a plain `up` starts the backing services alone; and the
+undoing of what only Swarm wants — traefik's Docker provider instead of the Swarm one, its port back
+on the loopback, the overlay network back to a bridge (`!reset`, so an existing one is kept). The
+biketeam migration job lives apart, in `docker-compose.restore.yml`.
+
+**Deploys are rolling, start-first**: `build.sh` tags each image `${ENV_NAME}-<sha12>` (plus the
+alias `${ENV_NAME}`), `deploy.sh` deploys the checked-out commit's tag, so for about a minute the old
+and new backends share the database. A Flyway migration must therefore leave the schema usable by the
+previous release, and a scheduled job not claiming its work in the database must be idempotent. See
+[Rolling updates](README.md#rolling-updates-and-rollback).
 
 **The dev backend needs the stack's credentials**: `source scripts/dev-env.sh` before
 `mvn quarkus:dev`. It exports the postgres/MinIO values from `.env` and nothing else — Quarkus reads
 env vars above `application.properties`, so the full file would override the `%dev` bootstrap domain
 (`localhost`, the WebAuthn origin of dev passkeys).
 
-**`ENV_NAME` names the stack** — containers, network, image tags, and the `${ENV_NAME}-minio` the
-backup scripts inspect. Keep it `tribly-local` on a workstation: a local stack called `…-prod` is
+**`ENV_NAME` names the stack** — containers, network, image tags, the Swarm stack and its volumes,
+and the postgres/minio the backup scripts look up. Keep it `tribly-local` on a workstation: a local stack called `…-prod` is
 indistinguishable from the real one in `docker ps` and to `scripts/restore.sh`.
 
 **A local stack must not be able to send mail.** The containers run the `%prod` Quarkus profile,
@@ -90,7 +101,7 @@ Email on a server. A local `.env` therefore points it at `mailhog:1025`, with TL
 `DISABLED`. This is not cosmetic: after a biketeam migration the local database
 holds thousands of real member addresses, and one OTP or team invitation is enough to reach them.
 
-Deployed hosts are laid out differently: one shared stack (`docker-compose.shared.yml` — valhalla and
+Deployed hosts are single-node Swarms, laid out differently: one shared stack (`docker-compose.shared.yml` — valhalla and
 tileserver, on the `pedalons-shared` network) plus one `docker-compose.yml` stack per environment.
 See [Deployment](README.md#deployment) before touching networks or the compose files.
 

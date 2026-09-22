@@ -2,7 +2,7 @@
 
 Wipes the stack and its data — postgres, minio, and the assets written to `./data/storage`.
 
-docker compose --profile restore down -v --remove-orphans
+docker compose down -v --remove-orphans
 rm -rf ./data/storage/*
 docker compose up -d
 
@@ -37,8 +37,9 @@ rsync -avz biketeam@main.tomacla.info:/tmp/biketeam_export.dump ../biketeam-back
 
 # Restore the dump into biketeam_import
 
-The compose postgres publishes `POSTGRES_HOST_PORT` (default 5432) on 127.0.0.1, so the
-script reaches it from the host. User and password default to POSTGRES_USER /
+On a workstation the postgres of docker-compose.local.yml publishes `POSTGRES_HOST_PORT` (default
+5432) on 127.0.0.1, so the script reaches it from the host. A Swarm host publishes no postgres port:
+there, pipe the dump through `docker exec -i` into the postgres task instead. User and password default to POSTGRES_USER /
 POSTGRES_PASSWORD, read from .env.
 
 ./scripts/biketeam_restore.sh ../biketeam-backup/biketeam_export.dump
@@ -62,14 +63,19 @@ The migration runs once on boot and then stops the application, so the container
 Run it in the foreground to get the logs and the exit code — 0 when every team made it through,
 1 when any of them failed:
 
-docker compose --profile restore run --rm backend-restore
+docker compose -f docker-compose.restore.yml run --rm backend-restore
+
+`-f` is not optional: it keeps the job out of the stack's own project (and out of the local
+`COMPOSE_FILE`). The job joins the running stack's networks as `external`, so the stack must be up —
+and on a workstation `SHARED_NETWORK=${ENV_NAME}-shared` must be in the `.env`, since the shared
+services live on the local overlay's network rather than on `pedalons-shared`.
 
 Or detached, if you would rather not hold the terminal for an hour:
 
-docker compose --profile restore up -d backend-restore
-docker compose logs -f backend-restore
+docker compose -f docker-compose.restore.yml up -d backend-restore
+docker compose -f docker-compose.restore.yml logs -f backend-restore
 
-Config lives in the `backend-restore` service in docker-compose.yml. Set
+Config lives in docker-compose.restore.yml. Set
 `PEDALONS_MIGRATION_BIKETEAM_EXIT_WHEN_DONE=false` to keep the application up afterwards; `%dev`
 already does, since there the migration is a step of a server you asked to keep running.
 

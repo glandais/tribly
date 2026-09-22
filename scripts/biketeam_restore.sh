@@ -5,8 +5,9 @@
 # Usage:
 #   scripts/biketeam_restore.sh <dump_file> [pg_user] [pg_host] [pg_port]
 #
-# Defaults are read from .env (POSTGRES_USER / POSTGRES_HOST_PORT) so they match the
-# postgres service of docker-compose.yml, which publishes 5432 on the loopback only.
+# Defaults are read from .env (POSTGRES_USER / POSTGRES_HOST_PORT) so they match the postgres
+# docker-compose.local.yml publishes on the loopback. A Swarm host publishes none (README.md,
+# Deployment): there, feed the dump to the postgres task through `docker exec -i` instead.
 set -euo pipefail
 
 ENV_FILE="$(dirname "$0")/../.env"

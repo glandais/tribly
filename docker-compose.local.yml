@@ -6,7 +6,8 @@
 # A local .env sets COMPOSE_FILE to that pair, so plain `docker compose up -d` picks it up here and
 # nowhere else — a deployed .env has no COMPOSE_FILE and reads docker-compose.yml alone.
 #
-# Four things a deployment does not want:
+# docker-compose.yml is written for `docker stack deploy` first, so this file also turns back what
+# only Swarm wants — see 5. below. Five things a deployment does not want:
 #
 #   1. mailhog. No SQL client here: postgres is published on the loopback, so bring your own —
 #      psql, pgAdmin, DBeaver, an IDE. See "Running SQL" in README.md.
@@ -17,9 +18,11 @@
 #   3. the host ports `mvn quarkus:dev` and `pnpm dev` talk to. A deployed backend reaches every
 #      service over the compose network and publishes none of them; the %dev profile runs outside
 #      Docker and expects imgproxy on 38080, valhalla on 8002, tileserver on 18080, MinIO on 9000
-#      and SMTP on 1025. Postgres is already published by docker-compose.yml (POSTGRES_HOST_PORT).
+#      and SMTP on 1025, and postgres on POSTGRES_HOST_PORT.
 #   4. an `app` profile on backend/frontend/traefik, so that a plain `up` starts the backing services
 #      alone — see the comment on those three below.
+#   5. what Swarm needs and compose cannot use: traefik's Swarm provider becomes the Docker one, its
+#      port goes back to the loopback, and the overlay network becomes a bridge.
 services:
   # The stack runs the %prod Quarkus profile, whose only way out for mail is the SMTP relay named by
   # QUARKUS_MAILER_*. The local .env points it here, and it goes no further.
@@ -40,6 +43,7 @@ services:
       file: docker-compose.shared.yml
       service: valhalla
     container_name: ${ENV_NAME}-valhalla
+    restart: unless-stopped
     ports:
       - "127.0.0.1:8002:8002"
 
@@ -48,6 +52,7 @@ services:
       file: docker-compose.shared.yml
       service: tileserver
     container_name: ${ENV_NAME}-tileserver
+    restart: unless-stopped
     ports:
       - "127.0.0.1:18080:8080"
 
@@ -66,6 +71,26 @@ services:
     profiles: [app]
   traefik:
     profiles: [app]
+    # Swarm cannot publish on the loopback; compose can, so a workstation keeps it off the LAN.
+    ports: !override
+      - "127.0.0.1:${HTTP_PORT:-8090}:80"
+    # docker-compose.yml's command with the Docker provider in place of the Swarm one: without a
+    # swarm there are no services to watch, and the routing labels are on the containers.
+    command: !override
+      - "--api.dashboard=false"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.forwardedHeaders.insecure=true"
+      - "--log.level=WARN"
+      - "--accesslog=true"
+      - "--accesslog.filepath=/var/log/traefik/access.log"
+      - "--providers.docker.constraints=Label(`traefik.stack`,`${ENV_NAME}`)"
+      - "--providers.docker.network=${ENV_NAME}-net"
+
+  postgres:
+    ports:
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5432}:5432"
 
   imgproxy:
     ports:
@@ -77,6 +102,12 @@ services:
       - "127.0.0.1:9001:9001" # Console UI
 
 networks:
+  # Back to exactly what compose had before Swarm — a default bridge — so an existing workstation
+  # network is kept rather than recreated. Overlay needs a swarm, and `attachable` only serves
+  # docker-compose.restore.yml attaching to one.
+  pedalons:
+    driver: !reset null
+    attachable: !reset null
   # docker-compose.yml declares this one `external`, so a deployed environment refuses to start
   # until the shared stack has created it. Here valhalla and tileserver belong to *this* project, so
   # the network is ours to create — and there is no shared stack on a workstation to create it.

@@ -19,7 +19,7 @@
 #
 # Reading the minio volume needs root, so this runs from root's crontab.
 #
-# Configuration lives in $BACKUP_ENV_FILE (default /root/pedalons-backup.env), NOT in .env: compose
+# Configuration lives in $BACKUP_ENV_FILE (default /root/pedalons-backup.env), NOT in .env: the stack
 # hands the whole .env to the backend container.
 #
 # Restore with scripts/restore.sh.
@@ -68,8 +68,8 @@ trap finish_failed EXIT
 hc_ping "/start"
 log "backing up $ENV_NAME to $(remote_url "$STAMP")"
 
-require_container "${ENV_NAME}-postgres"
-require_container "${ENV_NAME}-minio"
+POSTGRES_CID="$(require_container postgres)"
+require_container minio >/dev/null
 
 rm -rf "$STAGE"
 mkdir -p "$STAGE"
@@ -82,7 +82,7 @@ chmod 700 "$STAGE"
 # object. pg_dump runs in a single transaction, so the dump is consistent without stopping anything.
 # Credentials are read from the container's own environment — never typed into this shell.
 log "dumping postgres ($POSTGRES_DB)"
-docker exec -i "${ENV_NAME}-postgres" \
+docker exec -i "$POSTGRES_CID" \
   sh -c 'pg_dump -Fc -U "$POSTGRES_USER" -d "$POSTGRES_DB"' > "$STAGE/postgres.dump"
 DUMP_SIZE="$(stat -c %s "$STAGE/postgres.dump")"
 ((DUMP_SIZE > 0)) || die "postgres.dump is empty"
@@ -125,9 +125,9 @@ log "writing MANIFEST"
   echo "git_commit=$(git -c safe.directory="$REPO_ROOT" -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null || echo unknown)"
   echo "git_branch=$(git -c safe.directory="$REPO_ROOT" -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)"
   echo "postgres_db=$POSTGRES_DB"
-  echo "postgres_image=$(image_of "${ENV_NAME}-postgres")"
-  echo "backend_image=$(image_of "${ENV_NAME}-backend")"
-  echo "frontend_image=$(image_of "${ENV_NAME}-frontend")"
+  echo "postgres_image=$(image_of "$POSTGRES_CID")"
+  echo "backend_image=$(image_of "$(container_of backend)")"
+  echo "frontend_image=$(image_of "$(container_of frontend)")"
   echo "postgres_dump_bytes=$DUMP_SIZE"
   echo "secrets_file=$SECRETS_FILE"
 } > "$STAGE/MANIFEST"
