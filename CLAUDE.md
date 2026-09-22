@@ -95,12 +95,17 @@ docker compose --profile app up -d
 
 `docker-compose.yml` **is the deployment file** — keep dev tooling out of it; what a workstation
 needs on top lives in `docker-compose.local.yml`, picked up through `COMPOSE_FILE` in the local
-`.env`. The overlay, its ports and the `.env` keys are described in the [README](README.md#quick-start)
+`.env`. It is deployed as a **Docker Swarm** stack (always via `scripts/deploy.sh`) yet run by plain
+`docker compose` on a workstation, so it must stay valid for both: no `profiles:` and no top-level
+`name:` (they make `docker stack deploy` fail), Traefik routing labels under both `labels` and
+`deploy.labels` (one YAML anchor), and no published postgres port (Swarm cannot bind the loopback).
+The overlay undoes what only Swarm wants — traefik's Docker provider, its loopback port, a bridge
+network (`!reset`). The overlay, its ports and the `.env` keys are described in the [README](README.md#quick-start)
 ([Running the full stack locally](README.md#running-the-full-stack-locally)); deployment, the shared
 stack, backups and restore in [docs/OPERATIONS.md](docs/OPERATIONS.md) — read its
 [Deployment](docs/OPERATIONS.md#deployment) section before touching networks or the compose files.
 
-Four rules hold whatever the change:
+Five rules hold whatever the change:
 
 - **The dev backend needs the stack's credentials**: `source scripts/dev-env.sh` before
   `mvn quarkus:dev`. It exports the postgres/MinIO values from `.env` and nothing else — Quarkus reads
@@ -109,14 +114,19 @@ Four rules hold whatever the change:
 - **End-to-end tests run on a stack of their own**: `scripts/e2e.sh` starts `tribly-e2e` (empty
   database, mail to mailpit only, ports offset so it runs beside `tribly-local`). Never point the suite at the workstation stack — see
   [frontend/e2e/README.md](frontend/e2e/README.md).
-- **`ENV_NAME` names the stack** — containers, network, image tags, and the `${ENV_NAME}-minio` the
-  backup scripts inspect. Keep it `tribly-local` on a workstation: a local stack called `…-prod` is
+- **`ENV_NAME` names the stack** — containers, network, image tags, the Swarm stack and its
+  volumes, and the postgres/minio the backup scripts look up. Keep it `tribly-local` on a workstation: a local stack called `…-prod` is
   indistinguishable from the real one in `docker ps` and to `scripts/restore.sh`.
 - **A local stack must not be able to send mail.** The containers run the `%prod` Quarkus profile,
   whose only way out for mail is the SMTP relay named by `QUARKUS_MAILER_*`. A local `.env`
   therefore points it at `mailpit:1025`, with TLS and login `DISABLED`. This is not cosmetic: after a
   biketeam migration the local database holds thousands of real member addresses, and one OTP or
   team invitation is enough to reach them.
+- **Deploys are rolling, start-first**: `build.sh` tags each image `${ENV_NAME}-<sha12>` (plus the
+  alias `${ENV_NAME}`), `deploy.sh` deploys the checked-out commit's tag, so for about a minute the
+  old and new backends share the database. A Flyway migration must therefore leave the schema usable
+  by the previous release, and a scheduled job not claiming its work in the database must be
+  idempotent. See [Rolling updates](docs/OPERATIONS.md#rolling-updates-and-rollback).
 
 ## Multi-Tenancy
 

@@ -33,8 +33,9 @@ cp .env.example .env
 
 ### The `.env`, on a workstation and on a server
 
-There is **one** `.env`, never committed, and one template for both uses. Compose reads it, and
-`docker-compose.yml` hands the whole file to the backend container through `env_file` — which is why
+There is **one** `.env`, never committed, and one template for both uses. Compose reads it on a
+workstation, `scripts/deploy.sh` on a host, and `docker-compose.yml` hands the whole file to the
+backend container through `env_file` — which is why
 anything that has no business inside the application has no business in it either (the `BACKUP_*`
 settings live in `/root/pedalons-backup.env` instead, see [Backup and restore](docs/OPERATIONS.md#backup-and-restore)).
 
@@ -49,7 +50,7 @@ A workstation and a deployment differ in five keys, and only those:
 | `HTTP_PORT` | 8090 prod, 8089 staging, behind Caddy | anything free |
 
 Two of those are not a matter of taste. **`ENV_NAME` names the stack** — containers, network, image
-tags, and the `${ENV_NAME}-minio` the backup scripts inspect; a local stack called `…-prod` is
+tags, and the postgres and minio the backup scripts look up; a local stack called `…-prod` is
 indistinguishable from the real one in `docker ps` and to `scripts/restore.sh`. And **a local stack
 must not be able to send mail**, for reasons worth reading before the first `up`:
 [Running the full stack locally](#running-the-full-stack-locally).
@@ -235,7 +236,7 @@ tribly/
 ├── privacy/          # Privacy policy, terms and support pages (served by the site, bundled in the app)
 ├── assets/           # Logo and icon sources (see docs/BRANDING.md)
 ├── data/             # Runtime data (keys, storage, cache, valhalla, tileserver)
-├── docker-compose.yml         # One deployed environment (prod, staging, ...)
+├── docker-compose.yml         # One deployed environment (prod, staging, ...): a Swarm stack
 ├── docker-compose.local.yml   # Workstation overlay: mailpit, the shared services, the
 │                              #   loopback ports dev mode needs. Never deployed
 ├── docker-compose.e2e.yml     # End-to-end test stack (scripts/e2e.sh, .env.e2e)
@@ -244,8 +245,10 @@ tribly/
 
 ## Running the full stack locally
 
-The same `docker-compose.yml`, on a workstation — for testing a build. Two things must differ from a deployment,
-and both live in the local `.env`:
+The same `docker-compose.yml`, on a workstation — for testing a build. A workstation stays on plain
+`docker compose`, not Swarm: the overlay turns back what only Swarm wants — traefik's Docker provider
+instead of the Swarm one, its port on the loopback, a bridge network instead of an overlay. Two
+things must differ from a deployment, and both live in the local `.env`:
 
 ```bash
 ENV_NAME=tribly-local
@@ -368,22 +371,25 @@ committing, and include its output in the commit.
 
 ## Running SQL
 
-One PostgreSQL container, whichever way you run Pedalons: `${ENV_NAME}-postgres` —
-`tribly-prod-postgres`, `tribly-local-postgres`, … Its credentials come from `.env`, which is not
-versioned. The container name follows `ENV_NAME`, so read it from `docker ps` rather than assuming,
-and read the credentials from the container's own environment, which keeps secrets out of your shell
-history:
+One PostgreSQL container per environment. Its credentials come from `.env`, which is not versioned:
+read them from the container's own environment, which keeps secrets out of your shell history. On a
+workstation it is `${ENV_NAME}-postgres` (`tribly-local-postgres`); on a host it is a Swarm task,
+with no fixed name and a new one after every restart, so look it up by its service:
 
 ```bash
+PG="$(docker ps -q --filter "label=com.docker.swarm.service.name=${ENV_NAME}_postgres")"  # host
+PG="${ENV_NAME}-postgres"                                                                 # workstation
+
 # Interactive session
-docker exec -it "${ENV_NAME}-postgres" sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
+docker exec -it "$PG" sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
 
 # One-off statement
-docker exec "${ENV_NAME}-postgres" sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c "SELECT domain, name, active FROM domains;"'
+docker exec "$PG" sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c "SELECT domain, name, active FROM domains;"'
 ```
 
-It also publishes `127.0.0.1:${POSTGRES_HOST_PORT:-5432}` — that is how `mvn quarkus:dev` reaches it
-from the host, and how any client of yours can. **The stack ships no
+On a workstation it also publishes `127.0.0.1:${POSTGRES_HOST_PORT:-5432}` — that is how
+`mvn quarkus:dev` reaches it from the host, and how any client of yours can. A host publishes nothing
+(see [Only Caddy may reach traefik](docs/OPERATIONS.md#only-caddy-may-reach-traefik)). **The stack ships no
 SQL browser**: pick your own — psql, pgAdmin, DBeaver, the database panel of your IDE — and point it
 at `localhost:5432` with the `.env` credentials. Nothing to declare in compose for that.
 

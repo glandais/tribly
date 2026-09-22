@@ -12,6 +12,10 @@
 #   3. mailpit, publishing only its HTTP API: the tests read OTP codes and verification links there.
 #   4. valhalla + tileserver are not run: the `shared` network is the workstation stack's, joined
 #      from outside (E2E_SHARED_NETWORK).
+#   5. what docker-compose.local.yml turns back on a workstation, since docker-compose.yml is written
+#      for Swarm: traefik's Docker provider and loopback port, postgres published on the loopback,
+#      a bridge network instead of an overlay. Not by layering docker-compose.local.yml, whose
+#      mailpit, valhalla, tileserver and fixed dev ports would clash with the workstation stack.
 services:
   backend:
     env_file: !override
@@ -20,6 +24,25 @@ services:
       - ./.e2e/storage:/mnt/storage
       - ./.e2e/keys:/mnt/keys:ro
       - ./.e2e/cache:/mnt/cache
+
+  traefik:
+    ports: !override
+      - "127.0.0.1:${HTTP_PORT:?set it in .env.e2e}:80"
+    # docker-compose.local.yml's command: the Docker provider in place of the Swarm one.
+    command: !override
+      - "--api.dashboard=false"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.forwardedHeaders.insecure=true"
+      - "--log.level=WARN"
+      - "--accesslog=false"
+      - "--providers.docker.constraints=Label(`traefik.stack`,`${ENV_NAME}`)"
+      - "--providers.docker.network=${ENV_NAME}-net"
+
+  postgres:
+    ports:
+      - "127.0.0.1:${POSTGRES_HOST_PORT:?set it in .env.e2e}:5432"
 
   mailpit:
     image: axllent/mailpit:v1.31.3
@@ -31,6 +54,8 @@ services:
       - "127.0.0.1:${E2E_MAILPIT_PORT:?set it in .env.e2e}:8025"
 
 networks:
+  pedalons:
+    driver: !reset null
   shared:
     name: ${E2E_SHARED_NETWORK:?set it in .env.e2e}
     external: true

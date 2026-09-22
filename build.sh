@@ -20,6 +20,17 @@ set -a
 set +a
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$ROOT"
+. "$ROOT/scripts/_image_tag.sh"
+
+# Each image goes under the alias :${ENV_NAME} and, from a clean checkout, under its commit too —
+# the tag scripts/deploy.sh deploys (see scripts/_image_tag.sh).
+COMMIT_TAG=""
+if worktree_dirty; then
+  echo "Uncommitted changes: tagging :$ENV_NAME only — scripts/deploy.sh deploys commits." >&2
+else
+  COMMIT_TAG="$ENV_NAME$(image_suffix)"
+fi
 
 build_backend() {
   cd "$ROOT/backend"
@@ -29,6 +40,7 @@ build_backend() {
   # Jib builds linux/amd64 unless told otherwise. Build for the daemon the image is loaded into:
   # arm64 on an Apple Silicon workstation (Docker VMM cannot emulate amd64), amd64 on a server.
   export QUARKUS_JIB_PLATFORMS="linux/$(docker version --format '{{.Server.Arch}}')"
+  export QUARKUS_CONTAINER_IMAGE_ADDITIONAL_TAGS="$COMMIT_TAG"
   mvn clean package -DskipTests -Dquarkus.container-image.build=true
 }
 
@@ -39,8 +51,18 @@ build_frontend() {
   docker build --progress=plain \
     --build-arg VITE_BUILD_SOURCEMAP="${FRONTEND_SOURCEMAP:-false}" \
     --build-arg FRONTEND_PREFETCH_AUDIT="${FRONTEND_PREFETCH_AUDIT:-false}" \
-    -t "pedalons-frontend:$ENV_NAME" .
+    -t "pedalons-frontend:$ENV_NAME" ${COMMIT_TAG:+-t "pedalons-frontend:$COMMIT_TAG"} .
   rm -rf src/assets/legal
+}
+
+# A one-sided build leaves the other image as it was: its latest build is what this commit runs
+# with, so it gets this commit's tag too, and deploy.sh finds both.
+carry_over() {
+  local image="pedalons-$1"
+  [[ -n "$COMMIT_TAG" ]] || return 0
+  docker image inspect "$image:$COMMIT_TAG" >/dev/null 2>&1 && return 0
+  docker image inspect "$image:$ENV_NAME" >/dev/null 2>&1 || return 0
+  docker tag "$image:$ENV_NAME" "$image:$COMMIT_TAG"
 }
 
 if [ "$TARGET" = "all" ] || [ "$TARGET" = "backend" ]; then
@@ -49,3 +71,6 @@ fi
 if [ "$TARGET" = "all" ] || [ "$TARGET" = "frontend" ]; then
   build_frontend
 fi
+[ "$TARGET" = "frontend" ] && carry_over backend
+[ "$TARGET" = "backend" ] && carry_over frontend
+exit 0

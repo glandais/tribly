@@ -9,6 +9,7 @@ import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import java.time.Instant;
 import java.util.List;
 import org.jboss.logging.Logger;
 
@@ -34,22 +35,27 @@ public class PublicationPublishScheduler {
    *   <li>publishAt is not null
    *   <li>publishAt <= current time
    * </ul>
+   *
+   * <p>Each one is claimed with a conditional update rather than modified in memory: during a
+   * rolling update two backends run this job at once, and the one that loses a row skips it instead
+   * of failing its whole batch on the version check.
    */
   @Scheduled(every = "1m")
   @Transactional
   void autoPublishPublications() {
     List<Publication> publications = publicationRepository.findPublicationsToAutoPublish();
+    Instant now = Instant.now();
+    int published = 0;
 
     for (Publication publication : publications) {
-      publication.setStatus(Status.PUBLISHED);
-
       // Only Posts update dateTime to publishAt
-      if (publication instanceof Post post) {
-        post.setDateTime(post.getPublishAt());
+      Instant dateTime =
+          publication instanceof Post ? publication.getPublishAt() : publication.getDateTime();
+      if (!publicationRepository.claimAutoPublish(publication, dateTime, now)) {
+        continue;
       }
-
-      publication.setPublishAt(null); // Clear after publishing
-      publicationRepository.persist(publication);
+      publicationRepository.getEntityManager().refresh(publication);
+      published++;
       // Nobody pressed "publish": the author is the closest thing to an actor, and is spared
       // being told about their own publication.
       notificationPublisher.publicationStatusChanged(
@@ -62,8 +68,8 @@ public class PublicationPublishScheduler {
           publication.getTeam().getId());
     }
 
-    if (!publications.isEmpty()) {
-      LOG.infov("Auto-published {0} publication(s)", publications.size());
+    if (published > 0) {
+      LOG.infov("Auto-published {0} publication(s)", published);
     }
   }
 }
