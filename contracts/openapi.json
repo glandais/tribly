@@ -1760,7 +1760,7 @@
       },
       "FieldError" : {
         "type" : "object",
-        "required" : [ "field", "message", "rejectedValue" ],
+        "required" : [ "field", "message" ],
         "properties" : {
           "field" : {
             "type" : "string",
@@ -1769,9 +1769,6 @@
           "message" : {
             "type" : "string",
             "description" : "Message"
-          },
-          "rejectedValue" : {
-            "description" : "Rejected value"
           }
         }
       },
@@ -18992,7 +18989,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "3.8.0",
+    "version" : "4.0.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

@@ -15,9 +15,6 @@ abstract class FieldError with _$FieldError {
 
     /// Message
     required String message,
-
-    /// Rejected value
-    required dynamic rejectedValue,
   }) = _FieldError;
 
   factory FieldError.fromJson(Map<String, Object?> json) =>

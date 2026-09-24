@@ -5,9 +5,11 @@ import fr.pedalons.common.exception.TooManyRequestsException;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.dto.error.FieldError;
+import io.quarkus.hibernate.validator.runtime.jaxrs.ResteasyReactiveViolationException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.ElementKind;
 import jakarta.ws.rs.ForbiddenException;
 import jakarta.ws.rs.NotAuthorizedException;
 import jakarta.ws.rs.NotFoundException;
@@ -19,8 +21,10 @@ import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
+import org.jboss.resteasy.reactive.server.ServerExceptionMapper;
 import org.jspecify.annotations.Nullable;
 
 @Provider
@@ -32,6 +36,16 @@ public class GlobalExceptionMapper implements ExceptionMapper<Throwable> {
 
   @ConfigProperty(name = "pedalons.error.log-details", defaultValue = "false")
   boolean logDetails;
+
+  /**
+   * Violations on resource parameters ({@code @Valid} bodies) would otherwise reach Quarkus's own
+   * mapper, which is more specific than {@code Throwable} and answers with its "Constraint
+   * Violation" report instead of our {@link ErrorResponse}.
+   */
+  @ServerExceptionMapper
+  public Response mapResourceViolation(ResteasyReactiveViolationException exception) {
+    return toResponse(exception);
+  }
 
   @Override
   public Response toResponse(Throwable exception) {
@@ -53,6 +67,11 @@ public class GlobalExceptionMapper implements ExceptionMapper<Throwable> {
         return forbidden();
       }
       case ConstraintViolationException cve -> {
+        // A resource returning an invalid value is our bug, not the caller's: keep it a 500.
+        if (isReturnValueViolation(cve)) {
+          LOG.error("Invalid return value: " + getPath(), cve);
+          return internal();
+        }
         warn(cve, "Validation error: {0}", getPath());
         return validationError(cve);
       }
@@ -83,6 +102,12 @@ public class GlobalExceptionMapper implements ExceptionMapper<Throwable> {
       }
     }
     return internal();
+  }
+
+  private static boolean isReturnValueViolation(ConstraintViolationException cve) {
+    return cve.getConstraintViolations().stream()
+        .flatMap(v -> StreamSupport.stream(v.getPropertyPath().spliterator(), false))
+        .anyMatch(node -> node.getKind() == ElementKind.RETURN_VALUE);
   }
 
   private void warn(Throwable t, String format, Object... params) {
@@ -131,7 +156,8 @@ public class GlobalExceptionMapper implements ExceptionMapper<Throwable> {
             ? propertyPath.substring(propertyPath.lastIndexOf('.') + 1)
             : propertyPath;
 
-    return new FieldError(field, violation.getMessage(), violation.getInvalidValue());
+    // The rejected value is left out on purpose: it may be a password or a token.
+    return new FieldError(field, violation.getMessage());
   }
 
   private Response pedalonsError(PedalonsException be) {

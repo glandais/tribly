@@ -216,7 +216,12 @@ class AdContactResourceTest extends AbstractResourceTest {
         .when()
         .post("/api/teams/" + team1Slug + "/classifieds/" + adSlug + "/contact")
         .then()
-        .statusCode(400);
+        .statusCode(400)
+        // Our ErrorResponse, not Quarkus's "Constraint Violation" report.
+        .body("code", Matchers.equalTo("VALIDATION"))
+        .body("errorDetails.type", Matchers.equalTo("VALIDATION"))
+        .body("errorDetails.fieldErrors.field", Matchers.contains("message"))
+        .body("errorDetails.fieldErrors[0]", Matchers.not(Matchers.hasKey("rejectedValue")));
 
     assertEquals(0, mailbox.getTotalMessagesSent(), "nothing is relayed when the call is refused");
   }

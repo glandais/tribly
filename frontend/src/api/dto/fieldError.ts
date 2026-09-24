@@ -3,6 +3,4 @@ export interface FieldError {
   field: string
   /** Message */
   message: string
-  /** Rejected value */
-  rejectedValue: unknown
 }

@@ -18,8 +18,7 @@ mixin _$FieldError {
 
 /// Field
  String get field;/// Message
- String get message;/// Rejected value
- dynamic get rejectedValue;
+ String get message;
 /// Create a copy of FieldError
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -33,20 +32,20 @@ $FieldErrorCopyWith<FieldError> get copyWith => _$FieldErrorCopyWithImpl<FieldEr
 @override
 bool operator ==(Object other) {
   final _this = this as FieldError;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is FieldError&&(identical(other.field, _this.field) || other.field == _this.field)&&(identical(other.message, _this.message) || other.message == _this.message)&&const DeepCollectionEquality().equals(other.rejectedValue, _this.rejectedValue));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FieldError&&(identical(other.field, _this.field) || other.field == _this.field)&&(identical(other.message, _this.message) || other.message == _this.message));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as FieldError;
-  return Object.hash(runtimeType,_this.field,_this.message,const DeepCollectionEquality().hash(_this.rejectedValue));
+  return Object.hash(runtimeType,_this.field,_this.message);
 }
 
 @override
 String toString() {
   final _this = this as FieldError;
-  return 'FieldError(field: ${_this.field}, message: ${_this.message}, rejectedValue: ${_this.rejectedValue})';
+  return 'FieldError(field: ${_this.field}, message: ${_this.message})';
 }
 
 
@@ -57,7 +56,7 @@ abstract mixin class $FieldErrorCopyWith<$Res>  {
   factory $FieldErrorCopyWith(FieldError value, $Res Function(FieldError) _then) = _$FieldErrorCopyWithImpl;
 @useResult
 $Res call({
- String field, String message, dynamic rejectedValue
+ String field, String message
 });
 
 
@@ -74,12 +73,11 @@ class _$FieldErrorCopyWithImpl<$Res>
 
 /// Create a copy of FieldError
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? field = null,Object? message = null,Object? rejectedValue = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? field = null,Object? message = null,}) {
   return _then(FieldError(
 field: null == field ? _self.field : field // ignore: cast_nullable_to_non_nullable
 as String,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
-as String,rejectedValue: freezed == rejectedValue ? _self.rejectedValue : rejectedValue // ignore: cast_nullable_to_non_nullable
-as dynamic,
+as String,
   ));
 }
 
@@ -164,10 +162,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String field,  String message,  dynamic rejectedValue)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String field,  String message)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _FieldError() when $default != null:
-return $default(_that.field,_that.message,_that.rejectedValue);case _:
+return $default(_that.field,_that.message);case _:
   return orElse();
 
 }
@@ -185,10 +183,10 @@ return $default(_that.field,_that.message,_that.rejectedValue);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String field,  String message,  dynamic rejectedValue)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String field,  String message)  $default,) {final _that = this;
 switch (_that) {
 case _FieldError():
-return $default(_that.field,_that.message,_that.rejectedValue);case _:
+return $default(_that.field,_that.message);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -205,10 +203,10 @@ return $default(_that.field,_that.message,_that.rejectedValue);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String field,  String message,  dynamic rejectedValue)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String field,  String message)?  $default,) {final _that = this;
 switch (_that) {
 case _FieldError() when $default != null:
-return $default(_that.field,_that.message,_that.rejectedValue);case _:
+return $default(_that.field,_that.message);case _:
   return null;
 
 }
@@ -220,15 +218,13 @@ return $default(_that.field,_that.message,_that.rejectedValue);case _:
 @JsonSerializable()
 
 class _FieldError implements FieldError {
-  const _FieldError({required this.field, required this.message, required this.rejectedValue});
+  const _FieldError({required this.field, required this.message});
   factory _FieldError.fromJson(Map<String, dynamic> json) => _$FieldErrorFromJson(json);
 
 /// Field
 @override final  String field;
 /// Message
 @override final  String message;
-/// Rejected value
-@override final  dynamic rejectedValue;
 
 /// Create a copy of FieldError
 /// with the given fields replaced by the non-null parameter values.
@@ -243,18 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FieldError&&(identical(other.field, field) || other.field == field)&&(identical(other.message, message) || other.message == message)&&const DeepCollectionEquality().equals(other.rejectedValue, rejectedValue));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FieldError&&(identical(other.field, field) || other.field == field)&&(identical(other.message, message) || other.message == message));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,field,message,const DeepCollectionEquality().hash(rejectedValue));
+    return Object.hash(runtimeType,field,message);
 }
 
 @override
 String toString() {
-    return 'FieldError(field: $field, message: $message, rejectedValue: $rejectedValue)';
+    return 'FieldError(field: $field, message: $message)';
 }
 
 
@@ -265,7 +261,7 @@ abstract mixin class _$FieldErrorCopyWith<$Res> implements $FieldErrorCopyWith<$
   factory _$FieldErrorCopyWith(_FieldError value, $Res Function(_FieldError) _then) = __$FieldErrorCopyWithImpl;
 @override @useResult
 $Res call({
- String field, String message, dynamic rejectedValue
+ String field, String message
 });
 
 
@@ -282,12 +278,11 @@ class __$FieldErrorCopyWithImpl<$Res>
 
 /// Create a copy of FieldError
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? field = null,Object? message = null,Object? rejectedValue = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? field = null,Object? message = null,}) {
   return _then(_FieldError(
 field: null == field ? _self.field : field // ignore: cast_nullable_to_non_nullable
 as String,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
-as String,rejectedValue: freezed == rejectedValue ? _self.rejectedValue : rejectedValue // ignore: cast_nullable_to_non_nullable
-as dynamic,
+as String,
   ));
 }
 
