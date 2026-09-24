@@ -16,6 +16,7 @@ import {
   TextInput,
   PasswordInput,
   Divider,
+  Checkbox,
 } from '@mantine/core'
 import { startAuthentication, browserSupportsWebAuthn } from '@simplewebauthn/browser'
 import { useAuth } from '../../hooks/useAuth'
@@ -61,7 +62,13 @@ export function LoginPage() {
   })
 
   const registerForm = useForm({
-    initialValues: { email: '', displayName: '', password: '', confirmPassword: '' },
+    initialValues: {
+      email: '',
+      displayName: '',
+      password: '',
+      confirmPassword: '',
+      acceptTerms: false,
+    },
     validate: {
       email: (v) =>
         !v || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? t('auth.validation.email') : null,
@@ -74,6 +81,7 @@ export function LoginPage() {
       password: (v) => (v.length < 8 ? t('auth.validation.passwordMin') : null),
       confirmPassword: (v, values) =>
         v !== values.password ? t('auth.validation.passwordMismatch') : null,
+      acceptTerms: (v) => (v ? null : t('auth.validation.acceptTerms')),
     },
   })
 
@@ -161,6 +169,7 @@ export function LoginPage() {
     email: string
     displayName: string
     password: string
+    acceptTerms: boolean
   }) => {
     setIsLoading(true)
     try {
@@ -168,6 +177,7 @@ export function LoginPage() {
         email: values.email,
         displayName: values.displayName,
         password: values.password,
+        acceptTerms: values.acceptTerms,
       })
       notifications.show({
         message: t('auth.register.success.checkEmail'),
@@ -304,6 +314,21 @@ export function LoginPage() {
                   autoComplete="new-password"
                   leftSection={<IconLock size={16} />}
                   {...registerForm.getInputProps('confirmPassword')}
+                />
+                {/* Mandatory: the terms carry the zero-tolerance clause on abusive content. The links
+                    open in a new tab so the half-filled form survives reading them. */}
+                <Checkbox
+                  name="accept-terms"
+                  label={
+                    <Trans
+                      i18nKey="auth.register.acceptTerms"
+                      components={{
+                        termsLink: <Anchor href={paths.terms()} target="_blank" inherit />,
+                        privacyLink: <Anchor href={paths.privacy()} target="_blank" inherit />,
+                      }}
+                    />
+                  }
+                  {...registerForm.getInputProps('acceptTerms', { type: 'checkbox' })}
                 />
                 <Button
                   type="submit"

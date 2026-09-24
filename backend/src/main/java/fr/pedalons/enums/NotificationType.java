@@ -46,7 +46,12 @@ public enum NotificationType {
    * The recipient was invited to a team. No e-mail by default: the invitation sends its own, with
    * the link that accepts it.
    */
-  TEAM_INVITATION(EnumSet.of(IN_APP, PUSH), Audience.PERSONAL, false);
+  TEAM_INVITATION(EnumSet.of(IN_APP, PUSH), Audience.PERSONAL, false),
+  /**
+   * Something in a team the recipient moderates was reported and waits for their decision. Urgent:
+   * a report of harassment must not wait for tomorrow's digest. Never names the reporter.
+   */
+  CONTENT_REPORTED(EnumSet.of(IN_APP, PUSH, EMAIL), Audience.PERSONAL, true);
 
   /** Who a type speaks to. */
   public enum Audience {
@@ -99,7 +104,12 @@ public enum NotificationType {
           TRIP_CANCELLED,
           RIDE_UPDATED ->
           true;
-      case COMMENT_REPLY, RIDE_REMINDER, RIDE_JOINED, COMMENT_ON_MY_PUBLICATION, TEAM_INVITATION ->
+      case COMMENT_REPLY,
+          RIDE_REMINDER,
+          RIDE_JOINED,
+          COMMENT_ON_MY_PUBLICATION,
+          TEAM_INVITATION,
+          CONTENT_REPORTED ->
           false;
     };
   }

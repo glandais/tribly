@@ -2,6 +2,7 @@ package fr.pedalons.service.common;
 
 import fr.pedalons.common.exception.BusinessException;
 import fr.pedalons.common.exception.ConflictException;
+import fr.pedalons.common.exception.ForbiddenException;
 import fr.pedalons.domain.common.TeamEntity;
 import fr.pedalons.domain.common.TeamEntitySlugRedirect;
 import fr.pedalons.domain.team.Team;
@@ -11,6 +12,7 @@ import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.infrastructure.exception.*;
 import fr.pedalons.repository.common.TeamEntityRepository;
+import fr.pedalons.repository.moderation.ContentReportRepository;
 import fr.pedalons.service.asset.AssetService;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.team.TeamService;
@@ -34,6 +36,8 @@ public abstract class TeamEntityService<
   @Inject protected PedalonsQueryContext pedalonsContext;
 
   @Inject protected IncludeDeletedService includeDeletedService;
+
+  @Inject protected ContentReportRepository contentReportRepository;
 
   protected abstract R getRepository();
 
@@ -94,6 +98,18 @@ public abstract class TeamEntityService<
                             .findByTeamAndId(domainId, team.getId(), userId, id, true, false))
                 .orElseThrow(
                     () -> new NotFoundException(getRepository().getAllEntityType(), entitySlug)));
+  }
+
+  /**
+   * Refuses to undelete a publication that a moderator removed from the reports queue. Such a removal
+   * is the same soft delete as the author's, but it is a decision on the reports: letting the
+   * {@code undelete*} of the services undo it would let a team administrator put their own reported
+   * content back, reports still closed. Only a platform administrator may reverse it.
+   */
+  protected void requireNotRemovedByModeration(T entity) {
+    if (!isPlatformAdmin() && contentReportRepository.isRemovedByModeration(entity.getId())) {
+      throw new ForbiddenException();
+    }
   }
 
   protected boolean isIncludeDeleted(Team team) {

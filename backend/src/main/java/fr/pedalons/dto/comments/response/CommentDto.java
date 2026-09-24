@@ -38,6 +38,23 @@ public record CommentDto(
             required = true)
         boolean deleted) {
 
+  /**
+   * A comment masked for this reader — its author blocked, reported by the reader, or hidden by
+   * reports — kept only to carry replies the reader may still see. Rendered like the tombstone of an
+   * erased account: {@code deleted}, empty content, no actions.
+   */
+  public static CommentDto masked(Comment comment, List<CommentDto> replies) {
+    return new CommentDto(
+        TsidUtils.toString(comment.getId()),
+        "",
+        PublicUserDto.from(comment.getCreatedBy()),
+        comment.getCreatedAt(),
+        comment.getParent() != null ? TsidUtils.toString(comment.getParent().getId()) : null,
+        replies,
+        replies.size(),
+        true);
+  }
+
   public static CommentDto from(Comment comment, List<CommentDto> replies) {
     return from(comment, replies, replies.size());
   }

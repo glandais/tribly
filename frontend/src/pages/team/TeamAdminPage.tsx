@@ -4,6 +4,7 @@ import { paths } from '../../config/paths'
 import { useTeamAdminData } from './teamAdminData'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { useTranslation } from 'react-i18next'
+import { useAuthStore, selectIsPlatformAdmin } from '@/store/authStore'
 
 export function TeamAdminPage() {
   const { t } = useTranslation()
@@ -11,6 +12,7 @@ export function TeamAdminPage() {
   const navigate = useNavigate()
 
   const { data: team, isLoading } = useTeamAdminData(teamSlug)
+  const isPlatformAdmin = useAuthStore(selectIsPlatformAdmin)
 
   useEffect(() => {
     if (isLoading) return
@@ -21,6 +23,11 @@ export function TeamAdminPage() {
     }
 
     const isOrganizer = team.role === 'ADMIN' || team.role === 'ORGANIZER'
+    // A platform admin who is not an organizer here can only moderate the team.
+    if (!isOrganizer && isPlatformAdmin) {
+      navigate(paths.teamAdminReports(teamSlug!), { replace: true })
+      return
+    }
     if (!isOrganizer) {
       navigate(paths.team(teamSlug!), { replace: true })
       return
@@ -28,7 +35,7 @@ export function TeamAdminPage() {
 
     // Redirect to ride templates as the default admin tab
     navigate(paths.rideTemplates(teamSlug!), { replace: true })
-  }, [team, isLoading, teamSlug, navigate])
+  }, [team, isLoading, teamSlug, navigate, isPlatformAdmin])
 
   return <LoadingPage message={t('loading')} />
 }

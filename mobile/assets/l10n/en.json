@@ -88,6 +88,12 @@
       "generic": "Error: {error}",
       "INVALID_CREDENTIALS": "Incorrect email or password",
       "PASSWORD_NOT_SET": "No password set. A reset code has been sent to your email."
+    },
+    "terms": {
+      "accept": "I accept the terms of use: no tolerance for objectionable content or abusive behaviour.",
+      "required": "Accept the terms of use to create an account.",
+      "read": "Read the terms",
+      "privacy": "Privacy"
     }
   },
   "common": {
@@ -810,7 +816,8 @@
       "delete": "Delete the account",
       "deleteTitle": "Do you really want to delete your account?",
       "deleteMessage": "This cannot be undone. Your personal data will be erased immediately. Rides, routes and posts published for a team will stay online, credited to \"Ancien membre\", and a comment others have replied to will remain, blank."
-    }
+    },
+    "community": "Community"
   },
   "notifications": {
     "title": "Notifications",
@@ -845,7 +852,8 @@
       "RIDE_JOINED": "{actor} joined a ride",
       "COMMENT_ON_MY_PUBLICATION": "{actor} commented on your publication",
       "TEAM_INVITATION": "{actor} invited you to join {team}",
-      "RIDE_UPDATED": "A ride was changed"
+      "RIDE_UPDATED": "A ride was changed",
+      "CONTENT_REPORTED": "New report in {team}"
     },
     "typeLabel": {
       "RIDE_PUBLISHED": "Ride published",
@@ -1016,7 +1024,10 @@
       "USER_NOT_FOUND": "User not found",
       "USER_NOT_SYNCED": "The user account is not synchronized",
       "VALIDATION": "The provided data is invalid",
-      "WEBHOOK_URL_INVALID": "This webhook address is not accepted: it must start with https:// and point to a public service."
+      "WEBHOOK_URL_INVALID": "This webhook address is not accepted: it must start with https:// and point to a public service.",
+      "CONTENT_REJECTED": "This text contains words that aren't allowed on Pédalons. Rephrase it to publish.",
+      "REPORT_SELF": "You can't report your own content.",
+      "BLOCK_SELF": "You can't block yourself."
     },
     "outdated": {
       "title": "Update required",
@@ -1147,6 +1158,52 @@
       "line": "{inviter} invites you to join {team}.",
       "accept": "Accept",
       "accepting": "Accepting…"
+    }
+  },
+  "moderation": {
+    "more": "More actions",
+    "report": "Report",
+    "reportMember": "Report this member",
+    "block": "Block {name}",
+    "reportTitle": {
+      "COMMENT": "Report this comment",
+      "POST": "Report this post",
+      "AD": "Report this ad",
+      "RIDE": "Report this ride",
+      "TRIP": "Report this trip",
+      "ROUTE": "Report this route",
+      "MEMBER": "Report {name}"
+    },
+    "reasonPrompt": "What's wrong?",
+    "reason": {
+      "SPAM": "Spam or advertising",
+      "HARASSMENT": "Harassment or bullying",
+      "HATE": "Hate speech",
+      "SEXUAL": "Sexual content",
+      "VIOLENCE": "Violence or threats",
+      "ILLEGAL": "Illegal content",
+      "INAPPROPRIATE_IMAGE": "Inappropriate image",
+      "OTHER": "Something else"
+    },
+    "messageHint": "Add details if needed (optional)",
+    "recipients": "Sent to the organisers of {team} and to the Pédalons team.",
+    "recipientsNoTeam": "Sent to the team's organisers and to the Pédalons team.",
+    "send": "Send",
+    "sending": "Sending…",
+    "reported": "Thank you. This content is now hidden from you.",
+    "memberReported": "Thank you. Your report has been sent.",
+    "blockTitle": "Block {name}?",
+    "blockMessage": "You will no longer see their comments, posts and ads, nor notifications about their comments. {name} won't be told.",
+    "blockConfirm": "Block",
+    "blocked": "You blocked {name}.",
+    "unblock": "Unblock",
+    "unblockSemantic": "Unblock {name}",
+    "unblocked": "You unblocked {name}.",
+    "blockedUsers": {
+      "title": "Blocked users",
+      "hint": "You no longer see their comments, posts and ads. They don't know you blocked them.",
+      "emptyTitle": "No blocked users",
+      "emptyMessage": "To block someone, tap ⋯ on one of their comments or ads, or their name in the member list."
     }
   }
 }

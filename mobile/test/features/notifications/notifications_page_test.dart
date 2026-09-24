@@ -206,6 +206,22 @@ void main() {
     );
   });
 
+  test('un signalement nomme l\'équipe et mène à la file du site', () {
+    final NotificationDto reported = _notification(
+      type: NotificationType.contentReported,
+      subject: NotificationSubjectType.report,
+      actorName: null,
+      subjectName: 'Gaby',
+    );
+    // Aucun acteur : le signaleur est anonyme pour l'équipe.
+    expect(reported.title(), 'Nouveau signalement dans Gaby');
+    // La file n'existe que sur le web : pas de route interne, une page du
+    // site — celle que le serveur met dans le push.
+    expect(reported.path(), isNull);
+    expect(reported.webPath(), '/teams/gaby/admin/reports');
+    expect(_notification().webPath(), isNull);
+  });
+
   testWidgets('les types de la phase 5 ont leur phrase, pas leur code', (
     WidgetTester tester,
   ) async {

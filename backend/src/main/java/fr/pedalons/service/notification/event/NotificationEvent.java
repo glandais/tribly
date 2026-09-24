@@ -24,7 +24,8 @@ public sealed interface NotificationEvent
         RideUpdated,
         RideJoined,
         CommentOnPublication,
-        TeamInvited {
+        TeamInvited,
+        ContentReported {
 
   NotificationType type();
 
@@ -59,6 +60,7 @@ public sealed interface NotificationEvent
       case RIDE_JOINED -> RideJoined.class;
       case COMMENT_ON_MY_PUBLICATION -> CommentOnPublication.class;
       case TEAM_INVITATION -> TeamInvited.class;
+      case CONTENT_REPORTED -> ContentReported.class;
     };
   }
 }

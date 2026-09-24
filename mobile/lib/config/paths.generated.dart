@@ -101,6 +101,15 @@ class Paths {
     }
   }
 
+  static String blockedUsers() {
+    switch (getCurrentLocale()) {
+      case 'fr':
+        return '/profil/bloques';
+      default:
+        return '/profile/blocked';
+    }
+  }
+
   static String calendar() {
     switch (getCurrentLocale()) {
       case 'fr':
@@ -308,6 +317,10 @@ class PathVariants {
   static Map<String, String> myParticipations() => {
     'en': '/profile/participations',
     'fr': '/profil/participations',
+  };
+  static Map<String, String> blockedUsers() => {
+    'en': '/profile/blocked',
+    'fr': '/profil/bloques',
   };
   static Map<String, String> calendar() => {
     'en': '/calendar',

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import fr.pedalons.AbstractBaseTest;
 import fr.pedalons.domain.ad.Ad;
 import fr.pedalons.domain.comment.Comment;
+import fr.pedalons.domain.moderation.ContentReport;
 import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.domain.post.Post;
 import fr.pedalons.domain.ride.Ride;
@@ -17,6 +18,8 @@ import fr.pedalons.dto.comments.response.CommentListResponse;
 import fr.pedalons.enums.AdType;
 import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.GpsServiceType;
+import fr.pedalons.enums.ReportReason;
+import fr.pedalons.enums.ReportTargetType;
 import fr.pedalons.enums.TeamRole;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.service.comment.CommentService;
@@ -340,6 +343,58 @@ class AccountErasureServiceTest extends AbstractBaseTest {
       commentService.deleteComment(team.getSlug(), post.getSlug(), EntityType.POST, reply.getId());
 
       assertTrue(commentExists(root));
+    }
+  }
+
+  // ==================== Moderation ====================
+
+  @Nested
+  class Moderation {
+
+    @Test
+    void deletesTheBlocksTheLeaverMadeOrReceived() {
+      User other = dataService.createUser("other@example.com", "Other");
+      dataService.createBlock(leaver, stayer);
+      dataService.createBlock(stayer, leaver);
+      dataService.createBlock(stayer, other);
+
+      erase(leaver);
+
+      assertFalse(dataService.isBlocked(leaver, stayer));
+      assertFalse(dataService.isBlocked(stayer, leaver));
+      assertTrue(dataService.isBlocked(stayer, other), "someone else's block stays");
+    }
+
+    /** Their excerpt is the leaver's own content. */
+    @Test
+    void deletesTheReportsAboutTheLeaver() {
+      Comment comment = dataService.createComment(leaver, post, "Mon commentaire");
+      dataService.createReport(
+          team, stayer, ReportTargetType.COMMENT, comment.getId(), leaver, ReportReason.SPAM);
+      dataService.createReport(
+          team, stayer, ReportTargetType.MEMBER, leaver.getId(), leaver, ReportReason.HARASSMENT);
+
+      erase(leaver);
+
+      assertEquals(
+          0,
+          count("select count(r) from ContentReport r where r.targetUser.id = :p", leaver.getId()));
+    }
+
+    /** The report stays, for the decision it records — without the leaver's name. */
+    @Test
+    void keepsTheReportsTheLeaverFiled_withoutThem() {
+      ContentReport filed =
+          dataService.createReport(
+              team, leaver, ReportTargetType.POST, post.getId(), stayer, ReportReason.SPAM);
+
+      erase(leaver);
+
+      assertEquals(
+          1,
+          count(
+              "select count(r) from ContentReport r where r.id = :p and r.reporter is null",
+              filed.getId()));
     }
   }
 

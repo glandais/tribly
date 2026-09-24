@@ -194,6 +194,12 @@ export const paths = {
       default: return `/teams/${teamSlug}/admin/members`
     }
   },
+  teamAdminReports: (teamSlug: string) => {
+    switch (getCurrentLocale()) {
+      case 'fr': return `/equipes/${teamSlug}/admin/signalements`
+      default: return `/teams/${teamSlug}/admin/reports`
+    }
+  },
   teamSettings: (teamSlug: string) => {
     switch (getCurrentLocale()) {
       case 'fr': return `/equipes/${teamSlug}/admin/parametres`
@@ -374,6 +380,12 @@ export const paths = {
       default: return '/platform/beta-signups'
     }
   },
+  adminReports: () => {
+    switch (getCurrentLocale()) {
+      case 'fr': return '/plateforme/signalements'
+      default: return '/platform/reports'
+    }
+  },
 } as const
 
 /** Per-locale URL variants — returns all locale pattern strings. */
@@ -414,6 +426,7 @@ export const pathVariants = {
   teamAdminPageNew: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/admin/pages/new`, fr: `/equipes/${teamSlug}/admin/pages/nouvelle` }),
   teamAdminPageEdit: (teamSlug: string, pageSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/admin/pages/${pageSlug}/edit`, fr: `/equipes/${teamSlug}/admin/pages/${pageSlug}/modifier` }),
   teamAdminMembers: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/admin/members`, fr: `/equipes/${teamSlug}/admin/membres` }),
+  teamAdminReports: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/admin/reports`, fr: `/equipes/${teamSlug}/admin/signalements` }),
   teamSettings: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/admin/settings`, fr: `/equipes/${teamSlug}/admin/parametres` }),
   rideNew: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/rides/new`, fr: `/equipes/${teamSlug}/sorties/nouvelle` }),
   ride: (teamSlug: string, rideSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/rides/${rideSlug}`, fr: `/equipes/${teamSlug}/sorties/${rideSlug}` }),
@@ -444,4 +457,5 @@ export const pathVariants = {
   adminTeams: (): Record<Locale, string> => ({ en: '/platform/teams', fr: '/plateforme/equipes' }),
   adminUsers: (): Record<Locale, string> => ({ en: '/platform/users', fr: '/plateforme/utilisateurs' }),
   adminBetaSignups: (): Record<Locale, string> => ({ en: '/platform/beta-signups', fr: '/plateforme/inscriptions-beta' }),
+  adminReports: (): Record<Locale, string> => ({ en: '/platform/reports', fr: '/plateforme/signalements' }),
 } as const

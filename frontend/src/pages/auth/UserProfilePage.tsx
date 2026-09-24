@@ -30,6 +30,7 @@ import { PasskeyManager } from '../../components/auth/PasskeyManager'
 import { GpsConnectionsManager } from '../../components/profile/GpsConnectionsManager'
 import { SocialConnectionsManager } from '../../components/profile/SocialConnectionsManager'
 import { DataExportManager } from '../../components/profile/DataExportManager'
+import { BlockedUsers } from '../../components/profile/BlockedUsers'
 import { MyParticipations } from '../../components/profile/MyParticipations'
 import { UpdateMeBody } from '@/api/zod/users/users.zod'
 import { UpdateUserRequest } from '@/api/dto'
@@ -231,6 +232,10 @@ export function UserProfilePage() {
           </Stack>
 
           <NotificationPreferences />
+
+          <Divider />
+
+          <BlockedUsers />
 
           <Divider />
 

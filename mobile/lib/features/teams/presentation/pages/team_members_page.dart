@@ -11,6 +11,9 @@ import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../auth/domain/auth_state.dart';
+import '../../../auth/providers/auth_provider.dart';
+import '../../../moderation/presentation/moderation_menu.dart';
 import '../../domain/member_filters.dart';
 import '../../providers/team_members_provider.dart';
 
@@ -22,9 +25,10 @@ import '../../providers/team_members_provider.dart';
 /// sur mille neuf cent quatre-vingt-dix-neuf sans le dire. Tout est au contrat
 /// depuis le début : `role`, `search`, `page`, `size` et surtout `total`.
 ///
-/// **Aucune ligne n'est cliquable** : il n'existe pas d'écran de profil public,
-/// et en inventer un derrière une ligne serait promettre une porte qui n'existe
-/// pas.
+/// **Une ligne ouvre le menu de modération**, pas un profil : il n'existe pas
+/// d'écran de profil public, et en inventer un derrière une ligne serait
+/// promettre une porte qui n'existe pas. Toucher un membre propose de le
+/// signaler ou de le bloquer — sauf sa propre ligne, qui ne s'ouvre pas.
 ///
 /// C'est un **corps de section** : l'en-tête d'équipe et la rangée de sections
 /// appartiennent à `TeamHomePage`.
@@ -47,6 +51,23 @@ class _TeamMembersPageState extends ConsumerState<TeamMembersPage> {
       context,
     );
     if (controller != null && controller.hasClients) controller.jumpTo(0);
+  }
+
+  Future<void> _openMemberMenu(MemberDto member) {
+    final PublicUserDto user = member.user;
+    return showModerationMenu(
+      context,
+      title: user.displayName,
+      subject: ModerationSubject(
+        teamSlug: widget.teamSlug,
+        type: ReportTargetType.member,
+        id: user.id,
+        teamName: member.team.name,
+        memberName: user.displayName,
+      ),
+      blockUserId: user.id,
+      blockUserName: user.displayName,
+    );
   }
 
   @override
@@ -89,6 +110,9 @@ class _TeamMembersPageState extends ConsumerState<TeamMembersPage> {
     TeamMembersNotifier notifier,
     MemberFilters filters,
   ) {
+    final String? currentUserId = ref.watch(
+      authProvider.select((AuthState s) => s.user?.id),
+    );
     if (state.showsSkeletons) {
       return <Widget>[
         const SliverPadding(
@@ -182,6 +206,9 @@ class _TeamMembersPageState extends ConsumerState<TeamMembersPage> {
               key: ValueKey<String>(member.id),
               member: member,
               showDivider: index < state.items.length - 1,
+              onTap: member.user.id == currentUserId
+                  ? null
+                  : () => _openMemberMenu(member),
             );
           },
         ),
@@ -269,10 +296,16 @@ class _MembersToolbar extends StatelessWidget {
 
 /// Une ligne du trombinoscope : avatar, nom, badge de rôle, ancienneté.
 class _MemberRow extends StatelessWidget {
-  const _MemberRow({super.key, required this.member, this.showDivider = true});
+  const _MemberRow({
+    super.key,
+    required this.member,
+    this.showDivider = true,
+    this.onTap,
+  });
 
   final MemberDto member;
   final bool showDivider;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -289,7 +322,8 @@ class _MemberRow extends StatelessWidget {
     return PdlPersonRow(
       name: member.user.displayName,
       imageUrl: member.user.avatarUrl,
-      // Aucun `onTap` : il n'y a pas d'écran de profil public à ouvrir.
+      // Le menu de modération, et non un profil public, qui n'existe pas.
+      onTap: onTap,
       subtitle: joined == null
           ? null
           : 'teams.membersList.since'.tr(

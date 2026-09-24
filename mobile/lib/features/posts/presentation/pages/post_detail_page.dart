@@ -20,6 +20,7 @@ import '../../../../core/widgets/markdown_content.dart';
 import '../../../../core/widgets/media_attachments.dart';
 import '../../../comments/data/comment_repository.dart';
 import '../../../comments/presentation/widgets/comment_thread.dart';
+import '../../../moderation/presentation/moderation_menu.dart';
 import '../../../teams/providers/team_providers.dart';
 import '../../data/post_repository.dart';
 import '../../domain/post_neighbours.dart';
@@ -125,6 +126,24 @@ class _PostDetailContent extends ConsumerWidget {
             icon: PdlIcons.share,
             semanticLabel: 'routes.share'.tr(),
             onPressed: () => unawaited(_share(context)),
+          ),
+          // Signaler seulement : une publication n'expose pas son auteur, on
+          // ne peut donc ni savoir si c'est la sienne, ni proposer de le
+          // bloquer. Le serveur refuse `REPORT_SELF`, et la feuille le dit.
+          PdlAppBarAction(
+            icon: PdlIcons.more,
+            semanticLabel: 'moderation.more'.tr(),
+            onPressed: () => unawaited(
+              showDetailModerationMenu(
+                context,
+                subject: ModerationSubject(
+                  teamSlug: post.team.slug,
+                  type: ReportTargetType.post,
+                  id: post.id,
+                  teamName: post.team.name,
+                ),
+              ),
+            ),
           ),
         ],
       ),

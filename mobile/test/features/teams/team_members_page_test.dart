@@ -101,18 +101,25 @@ void main() {
   });
 
   testWidgets(
-    'une ligne dit le rôle et l\'ancienneté, et n\'est pas cliquable',
+    'une ligne dit le rôle et l\'ancienneté, et ouvre Signaler / Bloquer',
     (WidgetTester tester) async {
       await openMembers(tester, repository: _StubTeamRepository(total: 3));
 
       expect(find.text('Membre 0'), findsOneWidget);
       expect(find.textContaining('Membre depuis mars 2019'), findsWidgets);
-      // Pas d'écran de profil public : aucune ligne n'ouvre quoi que ce soit.
+      // Pas d'écran de profil public : une ligne ouvre le menu de
+      // modération, rien d'autre (directive App Store 1.2).
       for (final PdlPersonRow row in tester.widgetList<PdlPersonRow>(
         find.byType(PdlPersonRow),
       )) {
-        expect(row.onTap, isNull);
+        expect(row.onTap, isNotNull);
       }
+
+      await tester.tap(find.text('Membre 0'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Signaler ce membre'), findsOneWidget);
+      expect(find.text('Bloquer Membre 0'), findsOneWidget);
     },
   );
 

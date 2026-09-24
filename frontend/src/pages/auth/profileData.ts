@@ -5,6 +5,7 @@ import {
 } from '@/api/endpoints/users/users'
 import { prefetchListPasskeysQuery } from '@/api/endpoints/passkeys/passkeys'
 import { prefetchGetAvailableServicesQuery } from '@/api/endpoints/gps-services/gps-services'
+import { prefetchListMyBlockedUsersQuery } from '@/api/endpoints/moderation/moderation'
 import { PARTICIPATION_COUNT_PARAMS } from '@/components/profile/participationCountParams'
 import { useAuthStore } from '@/store/authStore'
 import { hourAlignedNowIso } from '@/utils/nowIso'
@@ -28,8 +29,9 @@ import { hourAlignedNowIso } from '@/utils/nowIso'
  * - `DataExportManager` (via `useDataExport`)'s `useGetLatestExport()` — unconditional on the same
  *   `isAuthenticated` gate, no param; only its *polling* while an export is in flight is a client
  *   concern.
+ * - `BlockedUsers`'s `useListMyBlockedUsers()` — unconditional, no param.
  *
- * All three render on first paint — none behind a tab, modal or accordion — so unlike the
+ * All four render on first paint — none behind a tab, modal or accordion — so unlike the
  * participation counts they need no shared derivation, just the matching generated `prefetchXxxQuery`.
  *
  * The section's paged participation queries are deliberately NOT prefetched here — they only fire
@@ -44,5 +46,6 @@ export async function prefetchUserProfile(queryClient: QueryClient): Promise<voi
     prefetchListPasskeysQuery(queryClient),
     prefetchGetAvailableServicesQuery(queryClient),
     prefetchGetLatestExportQuery(queryClient),
+    prefetchListMyBlockedUsersQuery(queryClient),
   ])
 }

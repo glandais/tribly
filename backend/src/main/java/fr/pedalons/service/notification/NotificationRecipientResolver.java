@@ -2,6 +2,7 @@ package fr.pedalons.service.notification;
 
 import fr.pedalons.domain.comment.Comment;
 import fr.pedalons.domain.common.TeamEntity;
+import fr.pedalons.domain.moderation.ContentReport;
 import fr.pedalons.domain.post.Post;
 import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.domain.ride.RideGroup;
@@ -9,12 +10,16 @@ import fr.pedalons.domain.ride.RideParticipation;
 import fr.pedalons.domain.route.Route;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.team.TeamInvitation;
+import fr.pedalons.domain.team.UserTeam;
 import fr.pedalons.domain.trip.Trip;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.enums.NotificationChange;
 import fr.pedalons.enums.NotificationSubjectType;
+import fr.pedalons.enums.ReportStatus;
 import fr.pedalons.enums.Status;
 import fr.pedalons.repository.comment.CommentRepository;
+import fr.pedalons.repository.moderation.ContentReportRepository;
+import fr.pedalons.repository.moderation.UserBlockRepository;
 import fr.pedalons.repository.post.PostRepository;
 import fr.pedalons.repository.ride.RideParticipationRepository;
 import fr.pedalons.repository.ride.RideRepository;
@@ -25,6 +30,7 @@ import fr.pedalons.repository.trip.TripRepository;
 import fr.pedalons.repository.user.UserRepository;
 import fr.pedalons.service.notification.event.CommentOnPublication;
 import fr.pedalons.service.notification.event.CommentReplied;
+import fr.pedalons.service.notification.event.ContentReported;
 import fr.pedalons.service.notification.event.NotificationEvent;
 import fr.pedalons.service.notification.event.PostPublished;
 import fr.pedalons.service.notification.event.RideCancelled;
@@ -71,6 +77,8 @@ public class NotificationRecipientResolver {
   @Inject TripParticipationRepository tripParticipationRepository;
   @Inject TeamInvitationRepository invitationRepository;
   @Inject UserRepository userRepository;
+  @Inject ContentReportRepository contentReportRepository;
+  @Inject UserBlockRepository userBlockRepository;
 
   /**
    * What the notification points at, and who receives it. The actor is not yet removed.
@@ -144,6 +152,7 @@ public class NotificationRecipientResolver {
       case CommentOnPublication e ->
           resolveCommentOnPublication(commentRepository.findById(e.commentId()));
       case TeamInvited e -> resolveInvitation(invitationRepository.findById(e.invitationId()));
+      case ContentReported e -> resolveReport(contentReportRepository.findById(e.reportId()));
     };
   }
 
@@ -228,12 +237,11 @@ public class NotificationRecipientResolver {
     if (type == null || subject.isDeleted() || subject.getStatus() == Status.DRAFT) {
       return Optional.empty();
     }
-    return Optional.of(
-        Resolution.of(
-            subject,
-            type,
-            excerpt(comment.getContent()),
-            stillMembers(List.of(subject.getCreatedBy()), subject.getTeam())));
+    List<User> recipients = stillMembers(List.of(subject.getCreatedBy()), subject.getTeam());
+    // An author who blocked the commenter hears nothing from them.
+    recipients.removeIf(
+        author -> userBlockRepository.isBlocked(author.getId(), comment.getCreatedBy().getId()));
+    return Optional.of(Resolution.of(subject, type, excerpt(comment.getContent()), recipients));
   }
 
   /**
@@ -264,6 +272,50 @@ public class NotificationRecipientResolver {
         new Resolution(
             team,
             NotificationSubjectType.TEAM,
+            team.getSlug(),
+            team.getName(),
+            null,
+            null,
+            List.of(),
+            recipients));
+  }
+
+  /**
+   * The moderators of the team a report was filed in, and the platform admins of its domain — never
+   * the reporter nor the member the report is about. When that member moderates the team, only the
+   * team's other administrators hear of it; with none left, the platform admins alone do.
+   *
+   * <p>No excerpt: a push shows on the lock screen, and the subject is the team, whose queue the
+   * notification opens. A report already decided, or gone with its team, notifies nobody.
+   */
+  private Optional<Resolution> resolveReport(@Nullable ContentReport report) {
+    if (report == null || report.getStatus() != ReportStatus.OPEN) {
+      return Optional.empty();
+    }
+    Team team = report.getTeam();
+    if (team.isDeleted()) {
+      return Optional.empty();
+    }
+    Long targetUserId = report.getTargetUser().getId();
+    User reporter = report.getReporter();
+    List<UserTeam> moderators = userTeamRepository.findModerators(team.getId());
+    boolean targetModerates =
+        moderators.stream().anyMatch(ut -> ut.getUser().getId().equals(targetUserId));
+    List<User> recipients = new ArrayList<>();
+    for (UserTeam moderator : moderators) {
+      if (!targetModerates || moderator.getRole().isAdmin()) {
+        recipients.add(moderator.getUser());
+      }
+    }
+    recipients.addAll(userRepository.findPlatformAdmins(team.getDomain().getId()));
+    recipients.removeIf(
+        user ->
+            user.getId().equals(targetUserId)
+                || (reporter != null && user.getId().equals(reporter.getId())));
+    return Optional.of(
+        new Resolution(
+            team,
+            NotificationSubjectType.REPORT,
             team.getSlug(),
             team.getName(),
             null,
@@ -316,7 +368,9 @@ public class NotificationRecipientResolver {
         !parentAuthor.isDeleted()
             && userTeamRepository
                 .findByUserAndTeam(parentAuthor.getId(), subject.getTeam().getId())
-                .isPresent();
+                .isPresent()
+            // A member who blocked the replier hears nothing from them.
+            && !userBlockRepository.isBlocked(parentAuthor.getId(), reply.getCreatedBy().getId());
     return Optional.of(
         Resolution.of(
             subject,

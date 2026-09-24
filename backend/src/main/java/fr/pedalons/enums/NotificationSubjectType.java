@@ -15,5 +15,10 @@ public enum NotificationSubjectType {
    * The team itself — an invitation to it. Opens the team list, where pending invitations are
    * accepted; the subject slug is the team's.
    */
-  TEAM
+  TEAM,
+  /**
+   * A report waiting in a team's moderation queue. Opens that queue; the subject slug is the
+   * team's. Deliberately carries no excerpt: a push shows on the lock screen.
+   */
+  REPORT
 }

@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last updated: September 22, 2026**
+**Last updated: September 24, 2026**
 
 This privacy policy describes how Pedalons ("we", "our", "us") collects, uses, and protects your personal data when you use our platform (website, mobile app, GPS device extensions).
 
@@ -18,6 +18,7 @@ When you create an account, we collect:
 - **Display name**: chosen by you, visible to your team members
 - **Profile picture** (optional): image you upload to personalize your profile. In the mobile app, you pick it from your photo library through the system picker: the app receives only the chosen photo, and has no access to the camera or to the rest of your library.
 - **Preferences**: unit system (metric/imperial), language
+- **Acceptance of the terms of service**: the date on which you accepted them at sign-up, kept as proof of that acceptance
 
 ### Authentication Data
 
@@ -72,6 +73,23 @@ To let you know what is happening in your teams (a new ride, a comment, a change
 
 The app only asks for permission to show notifications when you choose to, never at launch. You can withdraw that permission at any time in your phone's settings, or turn off a type of notification in your notification preferences. The token is deleted from our servers when you sign out of the app, when Google tells us it is no longer valid (for example, the app was uninstalled), and when you delete your account.
 
+### Reports and Blocks
+
+To make moderation possible (see section 6 of the terms of service), we record:
+
+- **Your reports**: who reported (you), what is reported (the content or the member, and the team concerned), the author of the content or the member concerned, the reason you chose, the optional message you add, a **copy of the reported text** (at most 1,000 characters), and the decision taken (content removed or report dismissed, by whom and when). The copy lets the decision be checked even if the content has since been edited or deleted.
+- **Your blocks**: who blocked whom, and since when.
+
+Who can see them:
+
+- **Your identity as a reporter** is visible **to the Pedalons team only**. It is never shown to the team's organizers, to the author of the content, or to the reported member, and the notification sent to moderators contains none of it.
+- **The team's organizers and administrators** see the reported content, its author, the reasons, and the messages added, but not who reported it. A message can identify you by what it says: write it knowing they will read it. An organizer who is the subject of a report does not see it.
+- **Your blocks** are visible to you only. The blocked person is not told, and nothing in the service reveals it to them.
+
+The notification that alerts moderators to a report contains only the team's name, never the reported content.
+
+**Publication filter**: when you publish, your text is compared with a short list of abusive or hateful terms. If it contains one, publication is refused and the text is not stored; the refusal has no other consequence for your account.
+
 ### Third-Party GPS Service Connections
 
 If you connect an external GPS service (Hammerhead, Garmin, Wahoo):
@@ -108,6 +126,8 @@ In your web browser or mobile app:
 | Notify you on the website and in the app of your teams' activity | Performance of contract |
 | Notify you by email, according to your notification preferences | Performance of contract (adjustable at any time) |
 | Notify you on your phone (push notifications) | Consent (permission granted on the phone) |
+| Moderate content: handle reports, apply your blocks, filter abusive terms at publication | Performance of contract (terms of service) and legitimate interest (protecting members) |
+| Keep proof that you accepted the terms of service | Legitimate interest |
 | Secure your account (suspicious session detection) | Legitimate interest |
 | Sync your routes with connected GPS devices | Consent (voluntary connection) |
 | Sort routes by distance (the app's "around me" filter) | Consent (location permission granted on the phone) |
@@ -191,6 +211,9 @@ Connecting to third-party GPS services (Hammerhead, Garmin, Wahoo) involves a da
 | Notification preferences | As long as your account is active |
 | Phone registration for push notifications | Until you sign out of the app, uninstall it, or delete your account |
 | Files (images, GPX) | As long as the associated content exists |
+| Date of acceptance of the terms of service | As long as your account is active |
+| Blocks | Until you unblock the person, or until either of your accounts is deleted |
+| Reports, copy of the reported text, and decision | As long as the account of the person concerned exists, to keep a record of moderation decisions; when the reporter's account is deleted, kept with no link to them (see section 7) |
 | Data after account deletion | Erased immediately; gone from backups within 30 days (see section 7) |
 
 ---
@@ -211,7 +234,7 @@ Under the General Data Protection Regulation (GDPR), you have the following righ
 
 You can exercise the rights of access and portability yourself, without writing to us: on the website, under **Profile → Your data**, choose "Download my data". We prepare a ZIP archive and email you a download link. This feature is not available in the mobile app yet; the emailed link, however, works on any of your devices.
 
-The archive contains your profile, your teams, your sign-ups, everything you have published, your notifications, their delivery records, your notification preferences and the phones registered for push notifications, and your files (profile picture, uploaded images, and the GPX and FIT files of your routes). The data is in JSON, a structured and machine-readable format.
+The archive contains your profile, your teams, your sign-ups, everything you have published, your notifications, their delivery records, your notification preferences, the phones registered for push notifications, the members you blocked and the reports you made (without the copy of the reported text, which is someone else's content), and your files (profile picture, uploaded images, and the GPX and FIT files of your routes). The data is in JSON, a structured and machine-readable format.
 
 For security reasons, credential material is excluded: your password hash, session tokens, the cryptographic material of your passkeys, your calendar token, the access tokens of your connected GPS services, and the registration tokens of your phones for push notifications. Their metadata (dates, devices, services involved) is included. The download link expires after **7 days**, after which the archive is deleted from our servers. One export per hour per account.
 
@@ -224,7 +247,7 @@ You can delete your account yourself, at any time, without writing to us:
 
 If you no longer have access to your account or to the app, write to **privacy@pedalons.fr** from your account's email address asking for its deletion; we will process it within 30 days.
 
-Deletion is irreversible and immediate. As soon as you confirm, your account is deactivated and your personal data is erased: email address, name, profile picture, password and passkeys, sessions, preferences, connected GPS services, team memberships, registrations for upcoming rides and trips, classified ads and their photos, comments, notifications, phone registrations for push notifications, data exports and GPX previews.
+Deletion is irreversible and immediate. As soon as you confirm, your account is deactivated and your personal data is erased: email address, name, profile picture, password and passkeys, sessions, preferences, connected GPS services, team memberships, registrations for upcoming rides and trips, classified ads and their photos, comments, notifications, phone registrations for push notifications, data exports and GPX previews. Blocks are deleted both ways, those you made and those aimed at you, and reports about you are deleted along with the copy of your content they held. Reports you made are kept, with no remaining link to you, so that the decisions taken can still be checked.
 
 What you published for a team (rides, trips, routes, posts and their files) belongs to that team and stays online. That content is from then on credited to "Ancien membre" (French for "former member") and is no longer linked to any data that could identify you. Likewise, a comment other members replied to is kept empty, marked "Comment deleted", so that their replies do not disappear with it. Your registrations for past rides are kept in the same anonymous form and are no longer displayed.
 

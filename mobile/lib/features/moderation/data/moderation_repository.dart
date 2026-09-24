@@ -1,0 +1,56 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../api/generated/export.dart';
+import '../../../api/pedalons_api_client.dart';
+
+final moderationRepositoryProvider = Provider<ModerationRepository>((Ref ref) {
+  return ModerationRepository(ref.watch(moderationClientProvider));
+});
+
+/// Signaler et bloquer — les deux gestes qu'un membre fait lui-même.
+///
+/// La file de modération n'a pas d'écran mobile : un organisateur décide depuis
+/// le site, où la notification `CONTENT_REPORTED` le mène.
+class ModerationRepository {
+  ModerationRepository(this._client);
+
+  final ModerationClient _client;
+
+  /// Idempotent côté serveur : signaler deux fois la même cible ne crée rien de
+  /// neuf, et ne lève pas d'erreur.
+  Future<void> report({
+    required String teamSlug,
+    required ReportTargetType targetType,
+    required String targetId,
+    required ReportReason reason,
+    String? message,
+  }) {
+    final String? text = message?.trim();
+    return _client.reportContent(
+      body: ReportRequest(
+        teamSlug: teamSlug,
+        targetType: targetType.toJson(),
+        targetId: targetId,
+        reason: reason.toJson(),
+        message: text == null || text.isEmpty ? null : text,
+      ),
+    );
+  }
+
+  Future<List<PublicUserDto>> listBlocked() async =>
+      (await _client.listMyBlockedUsers()).users;
+
+  Future<void> block(String userId) => _client.blockUser(userId: userId);
+
+  Future<void> unblock(String userId) => _client.unblockUser(userId: userId);
+}
+
+/// Les membres que l'utilisateur a bloqués, les plus récents d'abord.
+///
+/// Relu après chaque blocage ou déblocage ; il disparaît avec la session,
+/// puisqu'il dépend du client authentifié.
+final blockedUsersProvider = FutureProvider.autoDispose<List<PublicUserDto>>((
+  Ref ref,
+) {
+  return ref.watch(moderationRepositoryProvider).listBlocked();
+});

@@ -28,6 +28,8 @@ enum NotificationType {
   commentOnMyPublication('COMMENT_ON_MY_PUBLICATION'),
   @JsonValue('TEAM_INVITATION')
   teamInvitation('TEAM_INVITATION'),
+  @JsonValue('CONTENT_REPORTED')
+  contentReported('CONTENT_REPORTED'),
 
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
   $unknown(null);

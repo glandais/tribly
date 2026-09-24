@@ -172,6 +172,12 @@ enum ErrorCode {
   teamInviteDeliveryFailed('TEAM_INVITE_DELIVERY_FAILED'),
   @JsonValue('WEBHOOK_URL_INVALID')
   webhookUrlInvalid('WEBHOOK_URL_INVALID'),
+  @JsonValue('REPORT_SELF')
+  reportSelf('REPORT_SELF'),
+  @JsonValue('BLOCK_SELF')
+  blockSelf('BLOCK_SELF'),
+  @JsonValue('CONTENT_REJECTED')
+  contentRejected('CONTENT_REJECTED'),
 
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
   $unknown(null);

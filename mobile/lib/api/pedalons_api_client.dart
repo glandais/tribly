@@ -195,3 +195,7 @@ final notificationsClientProvider = Provider<NotificationsClient>((ref) {
 final invitationsClientProvider = Provider<InvitationsClient>((ref) {
   return ref.watch(apiClientProvider).invitations;
 });
+
+final moderationClientProvider = Provider<ModerationClient>((ref) {
+  return ref.watch(apiClientProvider).moderation;
+});

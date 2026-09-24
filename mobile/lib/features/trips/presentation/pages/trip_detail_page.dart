@@ -19,6 +19,7 @@ import '../../../../core/widgets/media_attachments.dart';
 import '../../../calendar/presentation/widgets/calendar_subscription_card.dart';
 import '../../../comments/data/comment_repository.dart';
 import '../../../comments/presentation/widgets/comment_thread.dart';
+import '../../../moderation/presentation/moderation_menu.dart';
 import '../../../participants/presentation/widgets/participants_sheet.dart';
 import '../../../teams/providers/team_providers.dart';
 import '../../providers/trip_detail_provider.dart';
@@ -106,6 +107,19 @@ class _TripDetailContent extends ConsumerWidget {
             icon: PdlIcons.share,
             semanticLabel: 'routes.share'.tr(),
             onPressed: () => _share(context),
+          ),
+          PdlAppBarAction(
+            icon: PdlIcons.more,
+            semanticLabel: 'moderation.more'.tr(),
+            onPressed: () => showDetailModerationMenu(
+              context,
+              subject: ModerationSubject(
+                teamSlug: trip.team.slug,
+                type: ReportTargetType.trip,
+                id: trip.id,
+                teamName: trip.team.name,
+              ),
+            ),
           ),
         ],
       ),

@@ -7,4 +7,5 @@ export const NotificationSubjectType = {
   POST: 'POST',
   ROUTE: 'ROUTE',
   TEAM: 'TEAM',
+  REPORT: 'REPORT',
 } as const

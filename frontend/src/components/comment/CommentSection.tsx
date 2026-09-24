@@ -17,6 +17,8 @@ import { useAuth } from '../../hooks/useAuth'
 
 interface CommentSectionProps {
   teamSlug: string
+  /** Named in the report dialog: its organizers receive the reports. */
+  teamName: string
   entityType: EntityType
   entitySlug: string
   isOrganizer: boolean
@@ -24,6 +26,7 @@ interface CommentSectionProps {
 
 export function CommentSection({
   teamSlug,
+  teamName,
   entityType,
   entitySlug,
   isOrganizer,
@@ -92,6 +95,7 @@ export function CommentSection({
             teamSlug={teamSlug}
             entityType={entityType}
             entitySlug={entitySlug}
+            reportContext={{ teamSlug, teamName }}
             canDeleteComment={canDeleteComment}
             onDeleteComment={(commentId) => deleteMutation.mutate(commentId)}
             onReply={() => setReplyingTo(comment.id)}

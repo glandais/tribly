@@ -886,6 +886,17 @@ components:
           examples:
           - rider@example.com
           pattern: \S
+    BlockedUsersResponse:
+      description: "The members the current user blocked, most recent first"
+      type: object
+      required:
+      - users
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicUserDto"
+          description: Blocked members
     BoundsDto:
       description: "Geographic bounding box, in WGS84 degrees"
       type: object
@@ -1710,6 +1721,9 @@ components:
       - TEAM_INVITE_RATE_LIMITED
       - TEAM_INVITE_DELIVERY_FAILED
       - WEBHOOK_URL_INVALID
+      - REPORT_SELF
+      - BLOCK_SELF
+      - CONTENT_REJECTED
     ErrorDetails:
       oneOf:
       - $ref: "#/components/schemas/ErrorValidationDetails"
@@ -2348,6 +2362,139 @@ components:
       - MEMBER
       - ORGANIZER
       - ADMIN
+    ModerationAction:
+      type: string
+      enum:
+      - REMOVE_CONTENT
+      - DISMISS
+    ModerationDecisionRequest:
+      description: "A moderator's decision, applied to every open report of one target"
+      type: object
+      required:
+      - targetType
+      - targetId
+      - action
+      properties:
+        targetType:
+          description: Type of the reported target
+          type: string
+          $ref: "#/components/schemas/ReportTargetType"
+        targetId:
+          type: string
+          description: ID (TSID) of the reported target
+          pattern: \S
+        action:
+          description: REMOVE_CONTENT deletes the content (not allowed on a MEMBER);
+            DISMISS keeps it and shows it again if reports had hidden it
+          type: string
+          $ref: "#/components/schemas/ModerationAction"
+    ModerationItemDto:
+      description: "One reported target in a moderation queue, with all its reports\
+        \ grouped"
+      type: object
+      required:
+      - targetType
+      - targetId
+      - teamSlug
+      - teamName
+      - targetUser
+      - reportCount
+      - reasons
+      - messages
+      - firstReportedAt
+      - lastReportedAt
+      - hidden
+      - status
+      properties:
+        targetType:
+          description: Type of the reported target
+          type: string
+          $ref: "#/components/schemas/ReportTargetType"
+        targetId:
+          type: string
+          description: ID (TSID) of the reported target
+        teamSlug:
+          type: string
+          description: Slug of the team the reports were filed in
+        teamName:
+          type: string
+          description: Name of that team
+        targetUser:
+          description: "Who the moderation is about: the author of the content, or\
+            \ the member"
+          type: object
+          $ref: "#/components/schemas/PublicUserDto"
+        contentName:
+          type: string
+          description: "Name of the publication — of the commented one for a comment.\
+            \ Null for a member, or when the content is gone."
+        contentType:
+          description: "Type of the content to open: the publication itself, or the\
+            \ one a comment is on (POST, RIDE, TRIP, ROUTE or AD). Null for a member,\
+            \ or when the content is gone."
+          type: string
+          $ref: "#/components/schemas/ReportTargetType"
+        contentSlug:
+          type: string
+          description: "Slug of the content to open, with contentType"
+        excerpt:
+          type: string
+          description: "The reported text as it was when first reported (comment text,\
+            \ name and start of the description, or member name)"
+        reportCount:
+          type: integer
+          format: int32
+          description: How many reports this target gathered
+        reasons:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReportReason"
+          description: The distinct reasons given
+        messages:
+          type: array
+          items:
+            type: string
+          description: The non-empty free texts of the reports
+        firstReportedAt:
+          description: When the first report was filed
+          type: string
+          $ref: "#/components/schemas/Instant"
+        lastReportedAt:
+          description: When the last report was filed
+          type: string
+          $ref: "#/components/schemas/Instant"
+        hidden:
+          type: boolean
+          description: "Whether the content is currently hidden from members, having\
+            \ gathered enough reports"
+        status:
+          description: OPEN while waiting; REMOVED or DISMISSED once decided (the
+            latest decision)
+          type: string
+          $ref: "#/components/schemas/ReportStatus"
+        reporters:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicUserDto"
+          description: "Who reported. Only in the platform queue: always null in a\
+            \ team's queue, where reporters stay anonymous."
+    ModerationQueueResponse:
+      description: "A moderation queue: every open target, or the 100 most recently\
+        \ decided ones, one item per target"
+      type: object
+      required:
+      - items
+      - total
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ModerationItemDto"
+          description: One item per reported target
+        total:
+          type: integer
+          format: int32
+          description: How many items
     MyInvitationDto:
       description: An invitation waiting for the current user
       type: object
@@ -2632,6 +2779,7 @@ components:
       - POST
       - ROUTE
       - TEAM
+      - REPORT
     NotificationTeamPreferenceDto:
       type: object
       description: Whether the current user silenced one of their teams
@@ -2679,6 +2827,7 @@ components:
       - RIDE_JOINED
       - COMMENT_ON_MY_PUBLICATION
       - TEAM_INVITATION
+      - CONTENT_REPORTED
     OtpRequest:
       description: OTP request
       type: object
@@ -3092,6 +3241,7 @@ components:
       - email
       - displayName
       - password
+      - acceptTerms
       properties:
         email:
           type: string
@@ -3114,6 +3264,10 @@ components:
           pattern: \S
           minLength: 8
           maxLength: 100
+        acceptTerms:
+          type: boolean
+          description: "The member accepted the terms of service. Required, and must\
+            \ be true: the sign-up form asks for it with a checkbox."
     RentalPeriod:
       type: string
       enum:
@@ -3131,6 +3285,69 @@ components:
           items:
             type: string
           description: Ordered list of page IDs
+    ReportQueueStatus:
+      type: string
+      enum:
+      - OPEN
+      - RESOLVED
+    ReportReason:
+      type: string
+      enum:
+      - SPAM
+      - HARASSMENT
+      - HATE
+      - SEXUAL
+      - VIOLENCE
+      - ILLEGAL
+      - INAPPROPRIATE_IMAGE
+      - OTHER
+    ReportRequest:
+      description: "A report of a comment, a publication, an ad, a route or a member"
+      type: object
+      required:
+      - teamSlug
+      - targetType
+      - targetId
+      - reason
+      properties:
+        teamSlug:
+          type: string
+          description: The team the target belongs to. Its organizers and administrators
+            moderate the report.
+          pattern: \S
+        targetType:
+          description: What is reported
+          type: string
+          $ref: "#/components/schemas/ReportTargetType"
+        targetId:
+          type: string
+          description: "ID (TSID) of the comment, publication, ad or route — or of\
+            \ the user for a MEMBER"
+          pattern: \S
+        reason:
+          description: Why
+          type: string
+          $ref: "#/components/schemas/ReportReason"
+        message:
+          type: string
+          description: "Optional free text for the moderators, up to 500 characters"
+          maxLength: 500
+    ReportStatus:
+      type: string
+      enum:
+      - OPEN
+      - REMOVED
+      - DISMISSED
+    ReportTargetType:
+      type: string
+      enum:
+      - COMMENT
+      - POST
+      - AD
+      - RIDE
+      - TRIP
+      - ROUTE
+      - MEMBER
     ResetPasswordRequest:
       description: Reset password request
       type: object
@@ -5319,6 +5536,8 @@ tags:
   description: "Beta program sign-ups, for platform admins"
 - name: Admin - Domains
   description: Platform admin domain management
+- name: Admin - Reports
+  description: Platform moderation queue
 - name: Admin - Social
   description: Platform admin social-identity operations
 - name: Admin - Teams
@@ -5351,6 +5570,8 @@ tags:
   description: "Address lookup, proxied to OpenStreetMap Nominatim"
 - name: Invitations
   description: Redeem a team invitation
+- name: Moderation
+  description: "Reports, moderation queues and blocks"
 - name: Notifications
   description: Notification inbox and preferences
 - name: Passkeys
@@ -6072,6 +6293,80 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: Forbidden - not a platform admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
+  /api/admin/reports:
+    get:
+      summary: List the platform moderation queue
+      description: "Reports of every team of the domain, grouped by target, with the\
+        \ reporters. OPEN lists every target waiting for a decision; RESOLVED the\
+        \ 100 most recently decided."
+      operationId: listAdminReports
+      tags:
+      - Admin - Reports
+      parameters:
+      - description: OPEN (default) or RESOLVED
+        name: status
+        in: query
+        schema:
+          $ref: "#/components/schemas/ReportQueueStatus"
+      responses:
+        "200":
+          description: The queue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModerationQueueResponse"
+        "403":
+          description: Forbidden - not a platform admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
+  /api/admin/reports/resolve:
+    post:
+      summary: "Decide about a reported target, in any team"
+      description: "Applies the decision to every open report of the target. REMOVE_CONTENT\
+        \ deletes the content (not allowed on a member); DISMISS keeps it, and shows\
+        \ it again if reports had hidden it."
+      operationId: resolveAdminReports
+      tags:
+      - Admin - Reports
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModerationDecisionRequest"
+        required: true
+      responses:
+        "204":
+          description: Decided
+        "400":
+          description: "Invalid request, or REMOVE_CONTENT on a member"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - not a platform admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No open report on this target
           content:
             application/json:
               schema:
@@ -8606,6 +8901,50 @@ paths:
           description: Device unregistered
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/reports:
+    post:
+      summary: Report content or a member
+      description: "Files a report in a team, about a comment, a publication, an ad,\
+        \ a route or a member the caller can read there. Idempotent: reporting the\
+        \ same target again changes nothing. The target disappears from the caller's\
+        \ lists at once; the team's organizers and administrators are notified, without\
+        \ the caller's name."
+      operationId: reportContent
+      tags:
+      - Moderation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReportRequest"
+        required: true
+      responses:
+        "204":
+          description: Reported
+        "400":
+          description: "Invalid request, or REPORT_SELF: the caller reported themselves\
+            \ or their own content"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: "No such team, or a target the caller cannot read"
           content:
             application/json:
               schema:
@@ -11810,6 +12149,108 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/teams/{teamSlug}/reports:
+    get:
+      summary: List the team's moderation queue
+      description: "Reports grouped by target, without the reporters' identities.\
+        \ OPEN lists every target waiting for a decision; RESOLVED the 100 most recently\
+        \ decided. Reports about the caller — their content, or themselves — are left\
+        \ out."
+      operationId: listTeamReports
+      tags:
+      - Moderation
+      parameters:
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: OPEN (default) or RESOLVED
+        name: status
+        in: query
+        schema:
+          $ref: "#/components/schemas/ReportQueueStatus"
+      responses:
+        "200":
+          description: The queue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModerationQueueResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not an organizer or administrator of the team
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No such team
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{teamSlug}/reports/resolve:
+    post:
+      summary: Decide about a reported target
+      description: "Applies the decision to every open report of the target. REMOVE_CONTENT\
+        \ deletes the content (not allowed on a member); DISMISS keeps it, and shows\
+        \ it again if reports had hidden it."
+      operationId: resolveTeamReports
+      tags:
+      - Moderation
+      parameters:
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModerationDecisionRequest"
+        required: true
+      responses:
+        "204":
+          description: Decided
+        "400":
+          description: "Invalid request, or REMOVE_CONTENT on a member"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not an organizer or administrator of the team
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No open report on this target in the caller's queue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
   /api/teams/{teamSlug}/ride-templates:
     get:
       summary: List ride templates
@@ -14572,6 +15013,111 @@ paths:
       security:
       - SecurityScheme:
         - user
+  /api/users/me/blocks:
+    get:
+      summary: List the members I blocked
+      description: Most recent first.
+      operationId: listMyBlockedUsers
+      tags:
+      - Moderation
+      responses:
+        "200":
+          description: The blocked members
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlockedUsersResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/users/me/blocks/{userId}:
+    delete:
+      summary: Unblock a member
+      description: Idempotent.
+      operationId: unblockUser
+      tags:
+      - Moderation
+      parameters:
+      - description: User ID (TSID)
+        name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Unblocked
+        "400":
+          description: "BLOCK_SELF: the caller named themselves"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No such user on this site
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+    put:
+      summary: Block a member
+      description: "Hides the member's comments, posts and ads from the caller, and\
+        \ the comment notifications they cause. Idempotent."
+      operationId: blockUser
+      tags:
+      - Moderation
+      parameters:
+      - description: User ID (TSID)
+        name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Blocked
+        "400":
+          description: "BLOCK_SELF: the caller tried to block themselves"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No such user on this site
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
   /api/users/me/export:
     post:
       summary: Request a personal data export
@@ -14874,7 +15420,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 4.0.0
+  version: 4.1.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

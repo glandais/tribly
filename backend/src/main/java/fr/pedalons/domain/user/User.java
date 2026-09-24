@@ -89,6 +89,13 @@ public class User extends BaseEntity {
   @Column(name = "password_hash", length = 255)
   private @Nullable String passwordHash;
 
+  /**
+   * When the member accepted the terms of service, at sign-up. Null for accounts created before the
+   * sign-up form asked, or by a path that does not ask (social login, migration).
+   */
+  @Column(name = "terms_accepted_at")
+  private @Nullable Instant termsAcceptedAt;
+
   public User(Domain domain, String email, String displayName) {
     super(null);
     this.domain = domain;

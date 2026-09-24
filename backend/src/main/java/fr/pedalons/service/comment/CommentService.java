@@ -13,8 +13,12 @@ import fr.pedalons.dto.comments.response.CommentListResponse;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
+import fr.pedalons.enums.ReportTargetType;
 import fr.pedalons.infrastructure.exception.NotFoundException;
 import fr.pedalons.repository.comment.CommentRepository;
+import fr.pedalons.repository.moderation.ContentReportRepository;
+import fr.pedalons.repository.moderation.UserBlockRepository;
+import fr.pedalons.repository.team.UserTeamRepository;
 import fr.pedalons.service.notification.NotificationPublisher;
 import fr.pedalons.service.notification.event.CommentOnPublication;
 import fr.pedalons.service.notification.event.CommentReplied;
@@ -28,8 +32,12 @@ import fr.pedalons.service.trip.TripService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
@@ -44,6 +52,9 @@ public class CommentService {
   @Inject RideService rideService;
   @Inject TripService tripService;
   @Inject NotificationPublisher notificationPublisher;
+  @Inject UserBlockRepository userBlockRepository;
+  @Inject ContentReportRepository contentReportRepository;
+  @Inject UserTeamRepository userTeamRepository;
 
   TeamEntity getTeamEntity(Team team, String slug, EntityType entityType) {
     if (entityType == EntityType.POST) {
@@ -82,6 +93,9 @@ public class CommentService {
    * <p>The {@code parentId} of the thread mode is matched against the resolved entity, so a comment
    * id belonging to another entity — hence another team, hence possibly another domain — yields an
    * empty page rather than someone else's thread.
+   *
+   * <p>In every mode the comments the reader must not see are masked in memory — see {@link
+   * #maskFor}. The totals stay those of the database.
    */
   @Transactional
   @CheckAccess(entityType = EntityType.COMMENT, action = ActionType.LIST)
@@ -92,37 +106,41 @@ public class CommentService {
     Long teamEntityId = teamEntity.getId();
 
     if (!query.paginated()) {
-      return wholeTree(teamEntityId);
+      return wholeTree(team, teamEntityId);
     }
     Long parentId = query.parentId();
     if (parentId != null) {
-      return threadPage(teamEntityId, parentId, query);
+      return threadPage(team, teamEntityId, parentId, query);
     }
-    return rootPage(teamEntityId, query);
+    return rootPage(team, teamEntityId, query);
   }
 
   /** One query, the tree built in memory — the shape every existing caller depends on. */
-  private CommentListResponse wholeTree(Long teamEntityId) {
+  private CommentListResponse wholeTree(Team team, Long teamEntityId) {
     List<Comment> allComments = commentRepository.findByTeamEntityId(teamEntityId);
+    Predicate<Comment> masked = maskFor(team, allComments);
 
     Map<Long, List<Comment>> repliesByParentId = groupByParent(allComments);
 
     List<Comment> roots = allComments.stream().filter(c -> c.getParent() == null).toList();
-    List<CommentDto> dtos = roots.stream().map(root -> toDto(root, repliesByParentId)).toList();
+    List<CommentDto> dtos = toDtos(roots, repliesByParentId, masked);
 
     return new CommentListResponse(dtos, allComments.size(), roots.size(), 0, roots.size());
   }
 
-  private CommentListResponse rootPage(Long teamEntityId, CommentListQuery query) {
+  private CommentListResponse rootPage(Team team, Long teamEntityId, CommentListQuery query) {
     List<Comment> roots =
         commentRepository.pageRoots(teamEntityId, query.page(), query.size(), query.sort());
     // Bounded by the page size, so the replies of a whole page cost one query — not one per root.
-    Map<Long, List<Comment>> repliesByParentId =
-        groupByParent(
-            commentRepository.findRepliesByParentIds(
-                roots.stream().map(Comment::getId).toList(), query.sort()));
+    List<Comment> replies =
+        commentRepository.findRepliesByParentIds(
+            roots.stream().map(Comment::getId).toList(), query.sort());
+    List<Comment> loaded = new ArrayList<>(roots);
+    loaded.addAll(replies);
+    Predicate<Comment> masked = maskFor(team, loaded);
+    Map<Long, List<Comment>> repliesByParentId = groupByParent(replies);
 
-    List<CommentDto> dtos = roots.stream().map(root -> toDto(root, repliesByParentId)).toList();
+    List<CommentDto> dtos = toDtos(roots, repliesByParentId, masked);
 
     return new CommentListResponse(
         dtos,
@@ -132,11 +150,15 @@ public class CommentService {
         query.size());
   }
 
-  private CommentListResponse threadPage(Long teamEntityId, Long parentId, CommentListQuery query) {
+  private CommentListResponse threadPage(
+      Team team, Long teamEntityId, Long parentId, CommentListQuery query) {
+    List<Comment> replies =
+        commentRepository.pageReplies(
+            teamEntityId, parentId, query.page(), query.size(), query.sort());
+    Predicate<Comment> masked = maskFor(team, replies);
     List<CommentDto> dtos =
-        commentRepository
-            .pageReplies(teamEntityId, parentId, query.page(), query.size(), query.sort())
-            .stream()
+        replies.stream()
+            .filter(masked.negate())
             .map(reply -> CommentDto.from(reply, List.of()))
             .toList();
 
@@ -154,12 +176,59 @@ public class CommentService {
         .collect(Collectors.groupingBy(c -> c.getParent().getId()));
   }
 
-  private static CommentDto toDto(Comment root, Map<Long, List<Comment>> repliesByParentId) {
-    List<CommentDto> replies =
-        repliesByParentId.getOrDefault(root.getId(), List.of()).stream()
-            .map(reply -> CommentDto.from(reply, List.of()))
-            .toList();
-    return CommentDto.from(root, replies);
+  /**
+   * The roots with their replies, masked: a masked reply is dropped; a masked root is dropped too,
+   * unless replies the reader may see hang from it — it then stays as a tombstone to carry them.
+   */
+  private static List<CommentDto> toDtos(
+      List<Comment> roots, Map<Long, List<Comment>> repliesByParentId, Predicate<Comment> masked) {
+    List<CommentDto> dtos = new ArrayList<>(roots.size());
+    for (Comment root : roots) {
+      List<CommentDto> replies =
+          repliesByParentId.getOrDefault(root.getId(), List.of()).stream()
+              .filter(masked.negate())
+              .map(reply -> CommentDto.from(reply, List.of()))
+              .toList();
+      if (!masked.test(root)) {
+        dtos.add(CommentDto.from(root, replies));
+      } else if (!replies.isEmpty()) {
+        dtos.add(CommentDto.masked(root, replies));
+      }
+    }
+    return dtos;
+  }
+
+  /**
+   * Which of the loaded comments this reader must not see: those whose author they blocked, those
+   * they reported, and those hidden by reports unless they moderate the team.
+   *
+   * <p>Two queries per call whatever the number of comments — the ids the reader blocked, and the
+   * ids among the loaded comments they reported. A third, the reader's role, only when a hidden
+   * comment is actually on the page.
+   */
+  private Predicate<Comment> maskFor(Team team, Collection<Comment> loaded) {
+    Long readerId = pedalonsQueryContext.getUserIdNullable();
+    if (readerId == null || loaded.isEmpty()) {
+      return comment -> false;
+    }
+    Set<Long> blocked = userBlockRepository.findBlockedIds(readerId);
+    Set<Long> reported =
+        contentReportRepository.findReportedTargetIds(
+            readerId, ReportTargetType.COMMENT, loaded.stream().map(Comment::getId).toList());
+    boolean anyHidden = loaded.stream().anyMatch(c -> c.getModerationHiddenAt() != null);
+    boolean seesHidden = anyHidden && isModerator(team, readerId);
+    return comment ->
+        blocked.contains(comment.getCreatedBy().getId())
+            || reported.contains(comment.getId())
+            || (comment.getModerationHiddenAt() != null && !seesHidden);
+  }
+
+  private boolean isModerator(Team team, Long userId) {
+    return pedalonsQueryContext.isPlatformAdmin()
+        || userTeamRepository
+            .findByUserAndTeam(userId, team.getId())
+            .map(userTeam -> userTeam.getRole().isOrganizer())
+            .orElse(false);
   }
 
   @Transactional
@@ -216,17 +285,34 @@ public class CommentService {
         commentRepository
             .findByTeamIdAndId(team.getId(), commentId)
             .orElseThrow(() -> new NotFoundException(EntityType.COMMENT, commentId));
+    removeComment(comment);
+  }
+
+  /**
+   * Deletes a comment with its replies, then the tombstone its parent may be left as. The only way
+   * a comment is deleted, whether its author, an organizer or a moderator decides it. No access
+   * check: the caller made it.
+   *
+   * @return the ids of every comment deleted, replies included
+   */
+  @Transactional(Transactional.TxType.MANDATORY)
+  public List<Long> removeComment(Comment comment) {
     Comment parent = comment.getParent();
-    deleteRecursive(comment);
+    List<Long> removed = new ArrayList<>();
+    deleteRecursive(comment, removed);
     if (parent != null) {
       // The last reply to an erased account's comment leaves nothing for the tombstone to carry.
       commentRepository.flush();
       commentRepository.deleteEmptyTombstones(List.of(parent.getId()));
     }
+    return removed;
   }
 
-  private void deleteRecursive(Comment comment) {
-    commentRepository.findReplies(comment.getId()).forEach(this::deleteRecursive);
+  private void deleteRecursive(Comment comment, List<Long> removed) {
+    commentRepository
+        .findReplies(comment.getId())
+        .forEach(reply -> deleteRecursive(reply, removed));
+    removed.add(comment.getId());
     commentRepository.delete(comment);
   }
 }

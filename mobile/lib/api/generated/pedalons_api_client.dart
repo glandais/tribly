@@ -6,6 +6,7 @@ import 'package:dio/dio.dart' hide Headers;
 
 import 'clients/admin_beta_signups_client.dart';
 import 'clients/admin_domains_client.dart';
+import 'clients/admin_reports_client.dart';
 import 'clients/admin_social_client.dart';
 import 'clients/admin_teams_client.dart';
 import 'clients/admin_users_client.dart';
@@ -25,6 +26,7 @@ import 'clients/gpx_previews_client.dart';
 import 'clients/invitations_client.dart';
 import 'clients/notifications_client.dart';
 import 'clients/publications_client.dart';
+import 'clients/moderation_client.dart';
 import 'clients/router_client.dart';
 import 'clients/routes_client.dart';
 import 'clients/teams_client.dart';
@@ -46,7 +48,7 @@ import 'clients/team_webhook_client.dart';
 import 'clients/tiles_client.dart';
 import 'clients/server_version_client.dart';
 
-/// Pedalons API `v4.0.0`.
+/// Pedalons API `v4.1.0`.
 ///
 /// API for Pedalons Cycling Team Management Platform.
 class PedalonsApiClient {
@@ -59,10 +61,11 @@ class PedalonsApiClient {
   final Dio _dio;
   final String? _baseUrl;
 
-  static String get version => '4.0.0';
+  static String get version => '4.1.0';
 
   AdminBetaSignupsClient? _adminBetaSignups;
   AdminDomainsClient? _adminDomains;
+  AdminReportsClient? _adminReports;
   AdminSocialClient? _adminSocial;
   AdminTeamsClient? _adminTeams;
   AdminUsersClient? _adminUsers;
@@ -82,6 +85,7 @@ class PedalonsApiClient {
   InvitationsClient? _invitations;
   NotificationsClient? _notifications;
   PublicationsClient? _publications;
+  ModerationClient? _moderation;
   RouterClient? _router;
   RoutesClient? _routes;
   TeamsClient? _teams;
@@ -108,6 +112,9 @@ class PedalonsApiClient {
 
   AdminDomainsClient get adminDomains =>
       _adminDomains ??= AdminDomainsClient(_dio, baseUrl: _baseUrl);
+
+  AdminReportsClient get adminReports =>
+      _adminReports ??= AdminReportsClient(_dio, baseUrl: _baseUrl);
 
   AdminSocialClient get adminSocial =>
       _adminSocial ??= AdminSocialClient(_dio, baseUrl: _baseUrl);
@@ -167,6 +174,9 @@ class PedalonsApiClient {
 
   PublicationsClient get publications =>
       _publications ??= PublicationsClient(_dio, baseUrl: _baseUrl);
+
+  ModerationClient get moderation =>
+      _moderation ??= ModerationClient(_dio, baseUrl: _baseUrl);
 
   RouterClient get router => _router ??= RouterClient(_dio, baseUrl: _baseUrl);
 

@@ -124,6 +124,10 @@ abstract final class PdlIcons {
   static const IconData visibilityUnlisted = Icons.link;
   static const IconData visibilityTeam = Icons.lock_outline;
 
+  // ── Modération ─────────────────────────────────────────────────────────
+  static const IconData report = Icons.outlined_flag;
+  static const IconData block = Icons.block;
+
   // ── Compte, préférences ────────────────────────────────────────────────
   static const IconData email = Icons.email_outlined;
   static const IconData password = Icons.lock_reset;

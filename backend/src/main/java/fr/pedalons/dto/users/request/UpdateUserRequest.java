@@ -1,5 +1,6 @@
 package fr.pedalons.dto.users.request;
 
+import fr.pedalons.dto.validation.AcceptableText;
 import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.enums.UnitSystem;
 import jakarta.validation.constraints.Size;
@@ -14,6 +15,7 @@ public record UpdateUserRequest(
     @Nullable
         @Schema(description = "User display name", examples = "John Doe")
         @Size(min = 1, max = 200)
+        @AcceptableText
         String displayName,
     @Nullable @Schema(description = "Preferred unit system", examples = "metric")
         UnitSystem unitSystem) {}

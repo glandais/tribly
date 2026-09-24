@@ -11,9 +11,10 @@ from:
 | Google Play Console → Data safety | `data-safety.csv` → `fastlane data_safety` | regenerate from §5 |
 | Published privacy policy | `privacy/privacy-policy.{en,fr}.md` | must not contradict §2 |
 
-- **App**: Pédalons, `fr.pedalons.mobile`, version `1.0.0+52` (`mobile/pubspec.yaml`)
+- **App**: Pédalons, `fr.pedalons.mobile`, version `1.0.0+53` (`mobile/pubspec.yaml`)
 - **Backend**: `https://www.pedalons.fr` (`mobile/lib/config/app_config.dart`)
-- **Last verified against the code**: 2026-09-21 (push notifications added)
+- **Last verified against the code**: 2026-09-24 (content reports, user blocks and terms acceptance
+  added — App Store guideline 1.2; spec `docs/plans/2026-09-24-signalement.md`)
 
 > Scope note. These declarations describe **the mobile app binary**, not the whole Pedalons
 > platform. The web frontend can do considerably more than the app (see §7). Declaring platform
@@ -26,10 +27,14 @@ from:
 The mobile app authenticates, then reads team content. Three capabilities beyond reading touch
 personal data: **picking a profile picture** from the photo library, reading a **coarse
 device position** to sort content by proximity, and registering the device for **push
-notifications**. There is no content authoring, no camera capture, no file import, and no
-analytics.
+notifications**. There is no camera capture and no analytics.
 
-Three capabilities added, and their exact boundary:
+Since 2026-09-24 the app also lets a member **report** content or another member and **block**
+another member (App Store guideline 1.2), and sign-up records that the **terms of service** were
+accepted. It also writes **comments** (`lib/features/comments/`), which earlier revisions of this
+file did not list; they are declared with the reports below, in the same bucket.
+
+The capabilities added, and their exact boundary:
 
 - **`image_picker`** — photo library only, to feed `POST /api/users/me/avatar`. No camera
   capture (`NSCameraUsageDescription` is deliberately absent, so iOS cannot grant it).
@@ -51,6 +56,17 @@ Three capabilities added, and their exact boundary:
   after the member grants notification permission from the notifications screen**
   (`lib/features/notifications/providers/push_provider.dart`); the app never asks at launch.
   `device_info_plus` is now on an executed path — it supplies that device name, and nothing else.
+
+- **Reports and blocks** — `api.moderation` (`lib/api/generated/clients/moderation_client.dart`):
+  `reportContent` → `POST /api/reports` with the team, the target, a reason from a fixed list and
+  an **optional free-text message** (≤ 500 characters); `blockUser` / `unblockUser` →
+  `PUT`/`DELETE /api/users/me/blocks/{userId}`; `listMyBlockedUsers` for the *Blocked users* page.
+  Server-side the report also stores the target's author and a **copy of the reported text**
+  (≤ 1,000 characters, `content_reports.excerpt`) and, later, the moderator's decision. The
+  reporter's identity is readable by `PLATFORM_ADMIN` only. Nothing new is read from the device:
+  no screenshot, no attachment, no contact.
+- **Terms acceptance** — `RegisterRequest.acceptTerms` (a required `true`); the server stores the
+  timestamp in `users.terms_accepted_at`. A timestamp on the account, not a new data type.
 
 Verified absent from `mobile/pubspec.yaml`, `mobile/pubspec.lock`, `mobile/lib/`, `mobile/ios/`
 and `mobile/android/`:
@@ -87,7 +103,7 @@ Everything below leaves the device to `https://www.pedalons.fr` unless stated ot
 |---|---|---|---|---|
 | 1 | **Email address** | Registration, login, forgot-password, reset-password forms — `lib/features/auth/presentation/pages/{login_page,forgot_password_page,reset_password_page}.dart` | Yes | Yes |
 | 2 | **Password** | Same forms; `POST /api/auth/register`, `/login`, `/reset-password` | Yes (over TLS, hashed server-side) | Credential — see note |
-| 3 | **Display name** | Registration only — `RegisterRequest(email, displayName, password)`, `lib/features/auth/providers/auth_provider.dart` | Yes | Yes |
+| 3 | **Display name** | Registration only — `RegisterRequest(email, displayName, password, acceptTerms)`, `lib/features/auth/providers/auth_provider.dart` | Yes | Yes |
 | 4 | **Account / user ID, session tokens** | `GET /api/users/me`, JWT subject, refresh token | Yes | Yes |
 | 5 | **WebAuthn credential material** | `lib/features/auth/services/passkey_service.dart` — credential id, rawId, clientDataJSON, signature, userHandle, plus the literal device label `"Mobile"` | Yes | Yes |
 | 6 | **Ride / trip / team participation** | Join & leave — `lib/features/rides/data/ride_repository.dart`, `lib/features/trips/data/trip_repository.dart`, `lib/features/teams/data/team_repository.dart` (team join/leave is wired in the repository but has no UI entry point yet) | Yes | Yes |
@@ -96,6 +112,10 @@ Everything below leaves the device to `https://www.pedalons.fr` unless stated ot
 | 9 | **Profile picture** | Photo chosen from the system photo library (`image_picker`) and sent to `POST /api/users/me/avatar` | Yes | Yes |
 | 11 | **Push registration token** | `lib/features/notifications/providers/push_provider.dart` → `POST /api/push-devices`. Issued by FCM, identifies the *installation*, deleted server-side at sign-out | Yes, to us **and to Google** (FCM issues it and routes every message) | Yes |
 | 12 | **Device model and app version** | Sent alongside #11 — `lib/features/notifications/data/push_device_repository.dart` (`device_info_plus`, `package_info_plus`) | Yes | Yes |
+| 13 | **Comments** | `lib/features/comments/data/comment_repository.dart` → `create*Comment` on rides, trips, routes and posts | Yes | Yes |
+| 14 | **Content reports** | Report sheet → `POST /api/reports`: target, reason, optional free-text message. Server adds the target's author, a copy of the reported text and the decision | Yes | Yes (reporter; erasure nulls it and keeps the report) |
+| 15 | **User blocks** | `PUT`/`DELETE /api/users/me/blocks/{userId}`: who blocked whom, and when | Yes | Yes |
+| 16 | **Terms acceptance** | Sign-up checkbox → `RegisterRequest.acceptTerms`; stored as `users.terms_accepted_at` | Yes | Yes |
 | 10 | **Approximate location** | `geolocator` at `LocationAccuracy.low`, while in use, only when the user turns on the "around me" filter — becomes the `nearLat`/`nearLon`/`nearRadius` query parameters | Yes, as query parameters of a read request | **No** — not stored server-side, not written to the account |
 
 Stored **on device only**, never transmitted:
@@ -127,7 +147,7 @@ value is invented.
 | `NSPrivacyCollectedDataTypeEmailAddress` | `true` | `false` | `…PurposeAppFunctionality` | inventory #1 |
 | `NSPrivacyCollectedDataTypeName` | `true` | `false` | `…PurposeAppFunctionality` | #3 |
 | `NSPrivacyCollectedDataTypeUserID` | `true` | `false` | `…PurposeAppFunctionality` | #4, #5, #7 |
-| `NSPrivacyCollectedDataTypeOtherUserContent` | `true` | `false` | `…PurposeAppFunctionality` | #6 |
+| `NSPrivacyCollectedDataTypeOtherUserContent` | `true` | `false` | `…PurposeAppFunctionality` | #6, #13, #14, #15 |
 | `NSPrivacyCollectedDataTypeOtherDataTypes` | `true` | `false` | `…PurposeAppFunctionality` | #8 |
 | `NSPrivacyCollectedDataTypePhotosorVideos` | `true` | `false` | `…PurposeAppFunctionality` | #9 |
 | `NSPrivacyCollectedDataTypeCoarseLocation` | **`false`** | `false` | `…PurposeAppFunctionality` | #10 |
@@ -135,6 +155,9 @@ value is invented.
 
 `…Purpose` above abbreviates `NSPrivacyCollectedDataTypePurpose`. Note the lowercase `or` in
 `PhotosorVideos` — that is Apple's literal spelling, not a typo.
+
+#16 (terms acceptance) has no row of its own: it is a timestamp on the account created at sign-up,
+covered by the account rows (`EmailAddress`, `Name`, `UserID`) like the account's creation date.
 
 `CoarseLocation` is the only **unlinked** row: the coordinates travel as query parameters of a
 read request and are never persisted against the account. Every other row is linked.
@@ -179,6 +202,24 @@ Location, which is **Data Not Linked to You**:
 `asc` rejects). If the form asks, describe it as: **"Session security metadata (IP address, user agent and
 sign-in timestamps) recorded to detect suspicious account activity."**
 
+*Other User Content* now also covers **comments, content reports and user blocks** (#13–#15). No new
+data type was added, deliberately:
+
+- A report is text the user writes (the optional message) plus a choice (reason, target) about
+  content inside the app — Apple's *Other User Content* is "any other user-generated content",
+  which is what it is. A block is a user choice recorded against the account, like the
+  participation records the row already covers (Apple has no "actions" type).
+- *Customer Support* was considered and rejected: a report is not a support request to us, it is
+  routed to the team's organizers and handled in the app. *Product Interaction* is for analytics,
+  which this is not. *Sensitive Info* does not apply: the reason list is fixed and describes the
+  content, not the user.
+- The purpose stays **App Functionality**: Apple's definition of it includes "implement security
+  measures" and keeping the service safe, which is what moderation is. No data is used for
+  anything else.
+
+Consequently `app-privacy.json` is **unchanged** by the reporting feature: the `OTHER_USER_CONTENT`
+entry it already carries is the right one.
+
 *Device ID* covers the **push registration token** and the device model sent with it (#11, #12) —
 not an advertising identifier, which the app still never reads.
 
@@ -218,6 +259,7 @@ per-row, because approximate location is the one type that is processed ephemera
 | Personal info | Email address | Yes | No | Required | App functionality, Account management |
 | Personal info | User IDs | Yes | No | Required | App functionality, Account management, Fraud prevention, security, and compliance |
 | App activity | Other actions | Yes | No | Optional | App functionality |
+| App activity | Other user-generated content | Yes | No | Optional | App functionality, Fraud prevention, security, and compliance |
 | Photos and videos | Photos | Yes | No | Optional | App functionality |
 | Location | Approximate location | Yes | **Yes** | Optional | App functionality |
 | Device or other IDs | Device or other IDs | Yes | No | Optional | App functionality |
@@ -231,6 +273,16 @@ neither stored on the device nor persisted server-side. It is not linked to the 
 used for tracking or advertising. Precise location is **not** collected — the app requests
 `ACCESS_COARSE_LOCATION` only, and `LocationAccuracy.low`.
 
+*Other actions* covers participation (#6) and **user blocks** (#15): a block is a choice made in
+the app, the same kind of record as a join/leave toggle.
+
+*Other user-generated content* is **optional** and covers **comments** (#13) and **content reports**
+(#14) — Google's example for the type is "open-ended responses", which is what a comment and a
+report's free-text message are. Nobody has to comment or report to use the app. Its purposes are
+*App functionality* and *Fraud prevention, security, and compliance*, the latter because a report
+exists to enforce the terms of service. Reports are not *shared*: they go to the team's organizers
+and to Pedalons inside the service, which Google does not count as sharing.
+
 *Device or other IDs* is **optional** and covers the **push registration token** (#11) with the
 device model sent beside it: it exists only for a member who turned notifications on, and
 sign-out deletes it. It is **not** an advertising ID — none is read — and Google's own form has no
@@ -238,8 +290,8 @@ finer bucket for a messaging token.
 
 Everything else in the form is **not collected**: Precise location, Financial info, Health and
 fitness, Messages, Videos, Audio files, Files and docs, Calendar, Contacts, App interactions,
-In-app search history, Installed apps, Other user-generated content, Web browsing history, Crash
-logs, Diagnostics, Other app performance data.
+In-app search history, Installed apps, Web browsing history, Crash logs, Diagnostics, Other app
+performance data.
 
 **Deliberate divergences from §4**
 
@@ -253,6 +305,11 @@ logs, Diagnostics, Other app performance data.
 3. *Approximate location* (#10) is declared to both, but Play additionally has a **"processed
    ephemerally"** flag, which we set. Apple has no such flag — the equivalent signal there is
    `NSPrivacyCollectedDataTypeLinked = false`. Same fact, two encodings.
+4. *Comments, content reports and user blocks* (#13–#15) are all Apple **"Other User Content"**,
+   but split on Play: blocks go with participation under **"App activity → Other actions"**, while
+   comments and reports go under **"App activity → Other user-generated content"**, the bucket for
+   free text. Play also gets the *Fraud prevention, security, and compliance* purpose, which Apple
+   folds into *App Functionality*.
 
 **There is no Android equivalent of `PrivacyInfo.xcprivacy`.** Google has no privacy-manifest file
 that ships inside the APK/AAB — the Data safety declaration exists **only** as a Play Console web
@@ -359,7 +416,8 @@ these ships:
 |---|---|
 | Profile editing (`PUT /api/users/me`) | nothing new — Name/Email already declared |
 | Camera capture for the avatar | `NSCameraUsageDescription` in `Info.plist` (+ its two `InfoPlist.strings`); no new data type — Photos or Videos already covers it |
-| Post / comment / ride / route authoring | Apple `NSPrivacyCollectedDataTypeOtherUserContent` (already present — widen its description); Play *App activity → Other user-generated content* |
+| Post / ride / route authoring (comments are already declared, #13) | nothing new — Apple `NSPrivacyCollectedDataTypeOtherUserContent` and Play *Other user-generated content* are both declared; widen the manifest comment and §2 |
+| A screenshot or attachment on a report, or automatic moderation of images or text beyond the word filter | Apple `…PhotosorVideos` already covers images, but re-read §4 for the purpose; Play *Photos*; any third-party moderation service is a new sub-processor for the policy |
 | GPX **import** from the device | Play *Files and docs*; Apple `NSPrivacyCollectedDataTypeOtherUserContent`. If the GPX describes the user's own rides, also Apple `…PreciseLocation` and Play *Location → Precise location* |
 | Live location / "record a ride" / follow-me on the map / a MapLibre user-location puck | Apple `NSPrivacyCollectedDataTypePreciseLocation` (and flip Coarse Location's `Linked` if it becomes persisted); Play *Location → Precise location* and drop the *processed ephemerally* flag; stop stripping `ACCESS_FINE_LOCATION`; `NSLocationAlwaysAndWhenInUseUsageDescription` if it ever runs in the background |
 | Storing the user's position server-side (saved "home area", proximity history) | flip Apple `NSPrivacyCollectedDataTypeCoarseLocation` → `Linked: true` and clear Play's *processed ephemerally* |
@@ -398,6 +456,18 @@ these ships:
    avatar. Rides, routes and posts created for a team stay, credited to "Ancien membre", which
    the policy's "Delete your account" section now states, along with the 30-day backup window.
 
+7. **Reports and blocks** (2026-09-24): declared as above; the policy gained a *Reports and
+   blocks* subsection (what is kept, the reporter visible to Pedalons only, team moderators seeing
+   content and reason but not the reporter, the blocked person never told, the publication filter
+   storing nothing), the terms-acceptance timestamp, retention rows, the export contents and what
+   erasure does (blocks deleted both ways, reports about the user deleted, reports by the user kept
+   without the reporter).
+8. **The inventory lags the code elsewhere.** The re-verify loop below also lists `uploadRoute`
+   (a route file sent from the device?) and `contactAdAuthor` (a message relayed by e-mail) as
+   reachable from the UI; neither is in §2. Audit both: a GPX upload would make *Files and docs* /
+   Apple `OtherUserContent` due as §8 says, and the relayed message is Play *Other user-generated
+   content* at least.
+
 ---
 
 ## How to re-verify
@@ -435,6 +505,9 @@ grep -rhA3 "@\(POST\|PUT\|PATCH\|DELETE\)(" lib/api/generated \
 grep -n "firebase" pubspec.yaml
 # no font is fetched from Google: must stay empty
 grep -n "google_fonts" pubspec.yaml
+
+# reports and blocks: the calls behind §2 #14 and #15, and nothing that reads a file or the camera
+grep -rnE "\.(reportContent|blockUser|unblockUser|listMyBlockedUsers)\(" lib/features lib/core
 
 # the notification permission must be asked from a screen, never at launch
 grep -rn "requestAuthorization" lib | grep -v lib/api/generated

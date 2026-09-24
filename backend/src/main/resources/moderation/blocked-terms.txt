@@ -1,0 +1,142 @@
+# The publication filter's terms — see TextFilter.
+#
+# One term or phrase per line; blank lines and lines starting with # are skipped. Each line is
+# normalized like the text it is matched against (lower case, accents removed, simple leetspeak
+# undone, non-letters turned into spaces) and matches only whole words: "salope" does not match
+# "salopette", "cunt" does not match "Scunthorpe".
+#
+# Deliberately short and unambiguous: heavy insults, slurs and hate phrases only. A word that is
+# also an ordinary word, or an insult only in some contexts, stays OFF this list — among others
+# "con", "retard", "crève", "tapette", "bite", "pd", "chienne", "putain", "bâtard", "nègre",
+# "fdp" (frais de port), "bitch", "bastard", "fag", "chink", "kike" (a Spanish first name) — as
+# does any phrase a cyclist could write innocently: "sale" + a colour, "sale race" ("Sale: race
+# wheels"), "white power" ("white power meter"). Reporting covers the rest.
+#
+# Inflections are listed one by one: matching is on whole words, never on prefixes.
+
+# ---------------------------------------------------------------- French: heavy insults
+connard
+connards
+connasse
+connasses
+salope
+salopes
+grosse salope
+pute
+putes
+fils de pute
+fille de pute
+ta mère la pute
+enculé
+enculée
+enculés
+enculées
+enculer
+sous-merde
+sous-merdes
+sac à merde
+nique ta mère
+nique ta race
+niquer ta mère
+va te faire foutre
+va te faire enculer
+suce ma bite
+
+# ---------------------------------------------------------------- French: harassment
+suicide-toi
+va te suicider
+va crever en enfer
+
+# ---------------------------------------------------------------- French: homophobic slurs
+tarlouze
+tarlouzes
+fiotte
+fiottes
+gouine
+gouines
+sale pédé
+sale pd
+pédé de merde
+mort aux pédés
+
+# ---------------------------------------------------------------- French: racist and antisemitic slurs
+bougnoule
+bougnoules
+crouille
+crouilles
+youpin
+youpins
+youpine
+youpines
+chinetoque
+chinetoques
+niakoué
+niakoués
+sale nègre
+sale negro
+sale bamboula
+sale arabe
+sale juif
+sale juive
+
+# ---------------------------------------------------------------- French: hate phrases
+mort aux juifs
+mort aux arabes
+mort aux noirs
+mort aux musulmans
+gazer les juifs
+
+# ---------------------------------------------------------------- English: heavy insults
+fuck you
+fuck off
+motherfucker
+motherfuckers
+motherfucking
+cunt
+cunts
+whore
+whores
+slut
+sluts
+cocksucker
+cocksuckers
+dickhead
+dickheads
+asshole
+assholes
+shithead
+shitheads
+son of a bitch
+piece of shit
+
+# ---------------------------------------------------------------- English: harassment
+kill yourself
+go kill yourself
+
+# ---------------------------------------------------------------- English: slurs
+faggot
+faggots
+nigger
+niggers
+nigga
+niggas
+sand nigger
+wetback
+wetbacks
+raghead
+ragheads
+towelhead
+towelheads
+gook
+gooks
+beaner
+beaners
+tranny
+trannies
+
+# ---------------------------------------------------------------- Hate phrases (any language)
+heil hitler
+sieg heil
+juden raus
+gas the jews
+kill all jews

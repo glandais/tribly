@@ -27,13 +27,18 @@ final class NotificationLinks {
   static final String TEAMS_PATH = "/teams";
 
   static String subjectPath(NotificationSubjectType type, String teamSlug, String slug) {
+    if (type == NotificationSubjectType.REPORT) {
+      // The team's moderation queue: {@code teamAdminReports} in routes.yaml. A platform admin
+      // reaches it too.
+      return "/teams/" + teamSlug + "/admin/reports";
+    }
     String segment =
         switch (type) {
           case RIDE -> "rides";
           case TRIP -> "trips";
           case POST -> "posts";
           case ROUTE -> "routes";
-          case TEAM -> null;
+          case TEAM, REPORT -> null;
         };
     return segment == null ? TEAMS_PATH : "/teams/" + teamSlug + "/" + segment + "/" + slug;
   }

@@ -3,6 +3,7 @@ import {
   IconBike,
   IconCalendarCancel,
   IconCalendarTime,
+  IconFlag,
   IconMessage,
   IconMessageReply,
   IconNews,
@@ -39,6 +40,7 @@ const TYPE_ICONS: Record<NotificationType, TablerIcon> = {
   [NotificationType.RIDE_JOINED]: IconUserPlus,
   [NotificationType.COMMENT_ON_MY_PUBLICATION]: IconMessage,
   [NotificationType.TEAM_INVITATION]: IconUsersPlus,
+  [NotificationType.CONTENT_REPORTED]: IconFlag,
 }
 
 /**
@@ -57,6 +59,8 @@ const TYPE_COLORS: Record<NotificationType, string> = {
   [NotificationType.RIDE_JOINED]: 'primary',
   [NotificationType.COMMENT_ON_MY_PUBLICATION]: 'primary',
   [NotificationType.TEAM_INVITATION]: 'primary',
+  // A report waits for a moderator's decision: a caution, not a failure.
+  [NotificationType.CONTENT_REPORTED]: 'warning',
 }
 
 export function notificationIcon(type: NotificationType): TablerIcon {
@@ -86,5 +90,9 @@ export function notificationPath(notification: NotificationDto): string {
     // team's own page would be one the invitee may not be allowed to see yet.
     case NotificationSubjectType.TEAM:
       return paths.teams()
+    // A report: the team's moderation queue, which a platform admin can open too. `subjectSlug`
+    // is the team's slug here, same as `teamSlug`.
+    case NotificationSubjectType.REPORT:
+      return paths.teamAdminReports(teamSlug)
   }
 }

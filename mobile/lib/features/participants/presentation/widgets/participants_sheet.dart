@@ -9,6 +9,7 @@ import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../auth/domain/auth_state.dart';
 import '../../../auth/providers/auth_provider.dart';
+import '../../../moderation/presentation/moderation_menu.dart';
 
 /// La feuille « Participants » d'un groupe de sortie ou d'un voyage.
 ///
@@ -25,7 +26,12 @@ class ParticipantsSheet extends ConsumerStatefulWidget {
     required this.count,
     this.organizerId,
     this.emptyMessageKey = 'participants.emptyMessage',
+    this.team,
   });
+
+  /// L'équipe de la sortie ou du voyage : c'est elle qui modère un membre
+  /// signalé depuis cette liste. Sans elle, les lignes ne s'ouvrent pas.
+  final TeamPublicationDto? team;
 
   /// Ce à quoi ces gens participent : le nom du groupe, ou celui du voyage.
   final String subtitle;
@@ -47,7 +53,11 @@ class ParticipantsSheet extends ConsumerStatefulWidget {
   /// `PdlSheet.show` force `useRootNavigator: true` : c'était l'unique cause de
   /// F-DE-8, où les feuilles s'ouvraient *dans* la branche de la coquille et
   /// passaient sous la barre.
-  static Future<void> open(BuildContext context, RideGroupDto group) {
+  static Future<void> open(
+    BuildContext context,
+    RideGroupDto group, {
+    required TeamPublicationDto team,
+  }) {
     return PdlSheet.show<void>(
       context: context,
       builder: (BuildContext _) => ParticipantsSheet(
@@ -55,6 +65,7 @@ class ParticipantsSheet extends ConsumerStatefulWidget {
         people: group.participants,
         count: group.countParticipants,
         organizerId: group.leader?.id,
+        team: team,
       ),
     );
   }
@@ -80,6 +91,7 @@ class ParticipantsSheet extends ConsumerStatefulWidget {
         subtitle: ride.name,
         people: byId.values.toList(),
         count: ride.participantCount,
+        team: ride.team,
       ),
     );
   }
@@ -93,6 +105,7 @@ class ParticipantsSheet extends ConsumerStatefulWidget {
         people: trip.participants,
         count: trip.participantCount,
         emptyMessageKey: 'participants.emptyTripMessage',
+        team: trip.team,
       ),
     );
   }
@@ -103,6 +116,23 @@ class ParticipantsSheet extends ConsumerStatefulWidget {
 
 class _ParticipantsSheetState extends ConsumerState<ParticipantsSheet> {
   String _search = '';
+
+  Future<void> _openMemberMenu(PublicUserDto person) {
+    final TeamPublicationDto team = widget.team!;
+    return showModerationMenu(
+      context,
+      title: person.displayName,
+      subject: ModerationSubject(
+        teamSlug: team.slug,
+        type: ReportTargetType.member,
+        id: person.id,
+        teamName: team.name,
+        memberName: person.displayName,
+      ),
+      blockUserId: person.id,
+      blockUserName: person.displayName,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -197,6 +227,12 @@ class _ParticipantsSheetState extends ConsumerState<ParticipantsSheet> {
                 // n'apparaît pas dans cette liste, et rien ne le signale ici.
                 organizerFlag: leaderId != null && person.id == leaderId,
                 organizerLabel: 'participants.groupOrganizer'.tr(),
+                // Signaler ou bloquer un participant — jamais soi-même. La
+                // liste, elle, ne change pas : un blocage ne touche pas
+                // l'organisation des sorties.
+                onTap: widget.team == null || person.id == currentUserId
+                    ? null
+                    : () => _openMemberMenu(person),
               ),
             ),
       ],

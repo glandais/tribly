@@ -84,6 +84,7 @@ extension NotificationDisplay on NotificationDto {
     NotificationType.rideJoined => PdlIcons.personAdd,
     NotificationType.commentOnMyPublication => PdlIcons.comment,
     NotificationType.teamInvitation => PdlIcons.invitation,
+    NotificationType.contentReported => PdlIcons.report,
     NotificationType.$unknown => PdlIcons.notifications,
   };
 
@@ -102,6 +103,20 @@ extension NotificationDisplay on NotificationDto {
     // invitations en attente s'acceptent, et la page de l'équipe elle-même
     // peut être fermée à qui n'en est pas encore membre.
     NotificationSubjectType.team => Paths.teams(),
+    // La file de signalements n'a pas d'écran dans l'app : voir [webPath].
+    NotificationSubjectType.report => null,
     NotificationSubjectType.$unknown => null,
+  };
+
+  /// La page **du site** que la notification ouvre, quand l'app n'a pas
+  /// d'écran pour elle — `null` sinon.
+  ///
+  /// Un signalement se décide dans la file de l'équipe, qui n'existe que sur
+  /// le web : c'est le lien même que le serveur met dans le push. Son chemin
+  /// est celui de la route `teamAdminReports`, qui n'est pas générée côté
+  /// mobile puisqu'elle est `web` seulement.
+  String? webPath() => switch (subjectTypeEnum) {
+    NotificationSubjectType.report => '/teams/$teamSlug/admin/reports',
+    _ => null,
   };
 }

@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
 import 'config/router.dart';
+import 'core/utils/link_launcher.dart';
 import 'core/preferences/user_preferences_provider.dart';
 import 'features/auth/providers/auth_provider.dart';
 import 'features/notifications/providers/push_provider.dart';
@@ -128,6 +129,13 @@ class _DeepLinkHandlerState extends ConsumerState<_DeepLinkHandler> {
       if (next == null) return;
       log('Push route received: $next', name: 'main');
       ref.read(pendingPushRouteProvider.notifier).state = null;
+      // Un chemin que l'app ne route pas — la file de signalements, qui
+      // n'existe que sur le site — s'ouvre dans le navigateur intégré plutôt
+      // que sur l'écran « page introuvable ».
+      if (internalLocationFor(next) == null) {
+        unawaited(openWebPage(next));
+        return;
+      }
       _requestOpen(next);
     });
   }

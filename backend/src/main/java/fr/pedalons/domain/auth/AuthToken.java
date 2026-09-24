@@ -51,6 +51,14 @@ public class AuthToken {
   @Column(name = "pending_password_hash", length = 255)
   private @Nullable String pendingPasswordHash;
 
+  /**
+   * When the sign-up form's terms checkbox was accepted — set by register, copied to the account by
+   * verifyEmail. Null on a verification token issued before the form asked: the account it creates
+   * records no consent that was never given.
+   */
+  @Column(name = "pending_terms_accepted_at")
+  private @Nullable Instant pendingTermsAcceptedAt;
+
   @Column(name = "domain_id", nullable = false)
   private Long domainId;
 

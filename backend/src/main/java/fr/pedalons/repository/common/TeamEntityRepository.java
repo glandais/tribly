@@ -177,6 +177,8 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
 
       // Anonymous user: only public publications from public teams
       pedalonsQuery = pedalonsQuery.and(publicEntity).and("TYPE(te) <> Ad", Map.of());
+      // Hidden by reports until a moderator decides.
+      pedalonsQuery.and("te.moderationHiddenAt IS NULL", Map.of());
     } else {
       pedalonsQuery =
           new PedalonsQuery(
@@ -235,6 +237,27 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
         visibilityFilter.add(draftEntity);
 
         pedalonsQuery.and(visibilityFilter);
+
+        // Hidden by reports until a moderator decides — except from the team's moderators, who
+        // have to read it to decide. A platform admin skips this block altogether.
+        pedalonsQuery.and(
+            "(te.moderationHiddenAt IS NULL OR ut.role IN ('ORGANIZER', 'ADMIN'))", Map.of());
+      }
+
+      if (list) {
+        // Listings only — the detail stays reachable by link. Platform admins included: both are
+        // the caller's own choice. Subqueries of the same statement, so a page still costs the
+        // same number of queries.
+        // What the caller reported disappears from their lists at once.
+        pedalonsQuery.and(
+            "te.id NOT IN (select r.targetId from ContentReport r where r.reporter.id = :userId)",
+            Map.of());
+        // Posts and ads of the members the caller blocked. Rides, trips and routes stay: they are
+        // the team's organisation, not someone's say.
+        pedalonsQuery.and(
+            "((TYPE(te) <> Post AND TYPE(te) <> Ad) OR te.createdBy.id NOT IN"
+                + " (select b.blocked.id from UserBlock b where b.blocker.id = :userId))",
+            Map.of());
       }
 
       MinRole minRole = query.minRole();

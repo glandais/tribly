@@ -57,7 +57,8 @@ class AuthServiceTest extends AbstractBaseTest {
 
   @Test
   void register_shouldCreateVerificationToken() {
-    RegisterRequest request = new RegisterRequest("new@example.com", "New User", "password123");
+    RegisterRequest request =
+        new RegisterRequest("new@example.com", "New User", "password123", true);
 
     authService.register(request);
 
@@ -70,7 +71,8 @@ class AuthServiceTest extends AbstractBaseTest {
 
   @Test
   void register_shouldSendVerificationEmail() {
-    RegisterRequest request = new RegisterRequest("new@example.com", "New User", "password123");
+    RegisterRequest request =
+        new RegisterRequest("new@example.com", "New User", "password123", true);
 
     authService.register(request);
 
@@ -83,7 +85,7 @@ class AuthServiceTest extends AbstractBaseTest {
   void register_shouldThrowIfEmailExists() {
     dataService.createVerifiedUser("existing@example.com", "Existing User");
     RegisterRequest request =
-        new RegisterRequest("existing@example.com", "New User", "password123");
+        new RegisterRequest("existing@example.com", "New User", "password123", true);
 
     assertThrows(BadRequestException.class, () -> authService.register(request));
   }
@@ -96,7 +98,8 @@ class AuthServiceTest extends AbstractBaseTest {
     dataService.createAuthToken(
         "test@example.com", "old-hash", AuthTokenType.EMAIL_VERIFICATION, expiresAt);
 
-    RegisterRequest request = new RegisterRequest("test@example.com", "Test User", "password123");
+    RegisterRequest request =
+        new RegisterRequest("test@example.com", "Test User", "password123", true);
     authService.register(request);
 
     // Old token should be invalidated

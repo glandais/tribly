@@ -69,7 +69,11 @@
 				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
 			</array>
 		</dict>
-		<!-- Ride, trip and team participation records, visible to teammates. -->
+		<!-- Ride, trip and team participation records, visible to teammates; comments;
+		     content reports (POST /api/reports: reason, optional free-text message, and
+		     the server-side copy of the reported text) and user blocks
+		     (PUT /api/users/me/blocks/{userId}). All user-generated, all stored against
+		     the account, used only to run the app and moderate it. -->
 		<dict>
 			<key>NSPrivacyCollectedDataType</key>
 			<string>NSPrivacyCollectedDataTypeOtherUserContent</string>

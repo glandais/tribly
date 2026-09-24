@@ -13,6 +13,8 @@ import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/markdown_content.dart';
 import '../../../auth/domain/auth_state.dart';
 import '../../../auth/providers/auth_provider.dart';
+import '../../../moderation/presentation/moderation_menu.dart';
+import '../../../teams/providers/team_providers.dart';
 import '../../data/comment_repository.dart';
 import '../../providers/comment_thread_provider.dart';
 
@@ -66,6 +68,24 @@ class _CommentThreadState extends ConsumerState<CommentThread> {
     final String? currentUserId = ref.watch(
       authProvider.select((AuthState s) => s.user?.id),
     );
+    final bool platformAdmin = ref.watch(
+      authProvider.select(
+        (AuthState s) => s.user?.platformRole == 'PLATFORM_ADMIN',
+      ),
+    );
+    // Le rôle vient de « Mes équipes », déjà chargée par l'écran pour savoir
+    // si l'on est membre : aucun appel de plus par fil.
+    final TeamDetailDto? team = ref
+        .watch(myTeamsProvider)
+        .value
+        ?.where((TeamDetailDto t) => t.slug == widget.target.teamSlug)
+        .firstOrNull;
+    final _Viewer viewer = _Viewer(
+      userId: currentUserId,
+      moderates:
+          platformAdmin || team?.role == 'ORGANIZER' || team?.role == 'ADMIN',
+      teamName: team?.name,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -115,7 +135,7 @@ class _CommentThreadState extends ConsumerState<CommentThread> {
           for (final CommentDto comment in state.items)
             Padding(
               padding: const EdgeInsets.only(bottom: 14),
-              child: _thread(comment, currentUserId),
+              child: _thread(comment, viewer),
             ),
         if (state.hasMore || state.nextError != null)
           PdlPagedListFooter(
@@ -140,14 +160,14 @@ class _CommentThreadState extends ConsumerState<CommentThread> {
   }
 
   // ── Un fil : le commentaire racine et ses réponses ──────────────────────
-  Widget _thread(CommentDto comment, String? currentUserId) {
+  Widget _thread(CommentDto comment, _Viewer viewer) {
     final PdlColors c = context.pdl;
     final List<CommentDto> replies = _notifier.repliesOf(comment);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        _comment(comment, currentUserId),
+        _comment(comment, viewer),
         for (final CommentDto reply in replies)
           Padding(
             padding: const EdgeInsets.only(top: 14, left: 14),
@@ -158,7 +178,7 @@ class _CommentThreadState extends ConsumerState<CommentThread> {
                   left: BorderSide(color: c.borderSubtle, width: 2),
                 ),
               ),
-              child: _comment(reply, currentUserId, isReply: true),
+              child: _comment(reply, viewer, isReply: true),
             ),
           ),
         if (_notifier.hasMoreReplies(comment))
@@ -177,11 +197,8 @@ class _CommentThreadState extends ConsumerState<CommentThread> {
     );
   }
 
-  Widget _comment(
-    CommentDto comment,
-    String? currentUserId, {
-    bool isReply = false,
-  }) {
+  Widget _comment(CommentDto comment, _Viewer viewer, {bool isReply = false}) {
+    final String? currentUserId = viewer.userId;
     final PdlTypography t = context.pdlText;
     // Le commentaire d'un compte supprimé, gardé seulement pour porter les
     // réponses des autres : ni auteur, ni date, ni action.
@@ -210,29 +227,33 @@ class _CommentThreadState extends ConsumerState<CommentThread> {
             children: <Widget>[
               Row(
                 children: <Widget>[
-                  Flexible(
-                    child: Text(
-                      comment.author.displayName,
-                      style: t.bodyStrong.copyWith(fontSize: 14),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                  Expanded(
+                    child: Row(
+                      children: <Widget>[
+                        Flexible(
+                          child: Text(
+                            comment.author.displayName,
+                            style: t.bodyStrong.copyWith(fontSize: 14),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: PdlSpacing.chipGap),
+                        if (createdAt != null)
+                          Text(
+                            AppFormatters.formatRelative(createdAt),
+                            style: t.xs,
+                          ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: PdlSpacing.chipGap),
-                  if (createdAt != null)
-                    Text(AppFormatters.formatRelative(createdAt), style: t.xs),
-                  // « Supprimer » n'apparaît que pour l'auteur : c'est la seule
-                  // action que l'API autorise, et la montrer à d'autres ferait
-                  // promettre un 403.
-                  if (mine) ...<Widget>[
-                    const SizedBox(width: PdlSpacing.chipGap),
-                    PdlButton(
-                      label: 'common.delete'.tr(),
-                      variant: PdlButtonVariant.danger,
-                      size: PdlButtonSize.sm,
-                      onPressed: () => _remove(comment),
+                  // Le menu `⋯` : Signaler et Bloquer pour le commentaire d'un
+                  // autre, Supprimer pour le sien — ou pour tout commentaire
+                  // de l'équipe qu'on organise.
+                  if (currentUserId != null)
+                    ModerationMoreButton(
+                      onPressed: () => _openMenu(comment, viewer, mine: mine),
                     ),
-                  ],
                 ],
               ),
               const SizedBox(height: 2),
@@ -343,6 +364,26 @@ class _CommentThreadState extends ConsumerState<CommentThread> {
     }
   }
 
+  Future<void> _openMenu(
+    CommentDto comment,
+    _Viewer viewer, {
+    required bool mine,
+  }) {
+    return showModerationMenu(
+      context,
+      subject: ModerationSubject(
+        teamSlug: widget.target.teamSlug,
+        type: ReportTargetType.comment,
+        id: comment.id,
+        teamName: viewer.teamName,
+      ),
+      canReport: !mine,
+      blockUserId: mine ? null : comment.author.id,
+      blockUserName: mine ? null : comment.author.displayName,
+      onDelete: mine || viewer.moderates ? () => _remove(comment) : null,
+    );
+  }
+
   Future<void> _remove(CommentDto comment) async {
     try {
       await _notifier.remove(comment);
@@ -350,4 +391,17 @@ class _CommentThreadState extends ConsumerState<CommentThread> {
       if (mounted) setState(() => _error = error);
     }
   }
+}
+
+/// Qui lit le fil, pour le menu `⋯` de chaque commentaire.
+class _Viewer {
+  const _Viewer({this.userId, this.moderates = false, this.teamName});
+
+  final String? userId;
+
+  /// Organisateur ou administrateur de l'équipe, ou administrateur de la
+  /// plateforme : il peut supprimer le commentaire d'un autre.
+  final bool moderates;
+
+  final String? teamName;
 }

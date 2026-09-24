@@ -17,6 +17,8 @@ import fr.pedalons.domain.social.UserSocialIdentity;
 import fr.pedalons.domain.team.UserTeam;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.repository.comment.CommentRepository;
+import fr.pedalons.repository.moderation.ContentReportRepository;
+import fr.pedalons.repository.moderation.UserBlockRepository;
 import fr.pedalons.repository.user.UserRepository;
 import fr.pedalons.service.gpx.GpxPreviewService;
 import fr.pedalons.service.notification.NotificationService;
@@ -46,6 +48,8 @@ import org.jboss.logging.Logger;
  *       photos deleted — and the record of the ads this member wrote to;
  *   <li>comments, except a top-level comment others answered, which stays as a blank tombstone so
  *       their replies keep their thread (see {@link CommentRepository});
+ *   <li>blocks made or received, and reports about the member; the reports they filed or decided
+ *       stay, without their name;
  *   <li>notifications, push devices, data exports, GPX previews, the avatar file.
  * </ul>
  *
@@ -87,6 +91,8 @@ public class AccountErasureService {
   @Inject EntityManager em;
   @Inject UserRepository userRepository;
   @Inject CommentRepository commentRepository;
+  @Inject UserBlockRepository userBlockRepository;
+  @Inject ContentReportRepository contentReportRepository;
   @Inject NotificationService notificationService;
   @Inject UserExportService userExportService;
   @Inject UserAvatarService userAvatarService;
@@ -123,6 +129,7 @@ public class AccountErasureService {
 
     forgetAds(userId);
     forgetComments(userId);
+    forgetModeration(userId);
 
     notificationService.forgetUser(userId);
     userExportService.forgetUser(userId);
@@ -199,6 +206,16 @@ public class AccountErasureService {
     commentRepository.deleteUnansweredRootsBy(userId);
     commentRepository.blankContentBy(userId);
     commentRepository.deleteEmptyTombstones(answeredThreads);
+  }
+
+  /**
+   * Blocks made or received go. Reports about the member go too — their excerpt is the member's own
+   * content. Reports the member filed or decided stay, for the decision they record, without them.
+   */
+  private void forgetModeration(Long userId) {
+    userBlockRepository.deleteByUser(userId);
+    contentReportRepository.deleteTargeting(userId);
+    contentReportRepository.forgetReporterAndResolver(userId);
   }
 
   private void anonymize(User user) {

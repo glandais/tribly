@@ -2,6 +2,7 @@ package fr.pedalons.dto.trips.request;
 
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.common.request.WithVisibility;
+import fr.pedalons.dto.validation.AcceptableText;
 import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.Visibility;
@@ -19,6 +20,7 @@ public record TripRequest(
     @Schema(description = "Trip name", examples = "Summer Alps Tour", required = true)
         @NotBlank
         @Size(min = 1, max = 200)
+        @AcceptableText
         String name,
     @Schema(description = "Trip media", required = true) @Valid MediaDto media,
     @Schema(description = "Trip start date/time", required = true) Instant dateTime,

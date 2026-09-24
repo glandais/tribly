@@ -22,4 +22,6 @@ export interface RegisterRequest {
    * @pattern \S
    */
   password: string
+  /** The member accepted the terms of service. Required, and must be true: the sign-up form asks for it with a checkbox. */
+  acceptTerms: boolean
 }

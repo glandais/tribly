@@ -4,7 +4,9 @@ import fr.pedalons.common.exception.PedalonsException;
 import fr.pedalons.common.exception.TooManyRequestsException;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.dto.error.ErrorResponse;
+import fr.pedalons.dto.error.ErrorValidationDetails;
 import fr.pedalons.dto.error.FieldError;
+import fr.pedalons.dto.validation.AcceptableText;
 import io.quarkus.hibernate.validator.runtime.jaxrs.ResteasyReactiveViolationException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolation;
@@ -140,16 +142,29 @@ public class GlobalExceptionMapper implements ExceptionMapper<Throwable> {
     return Response.status(Response.Status.BAD_REQUEST).entity(ErrorResponse.badRequest()).build();
   }
 
-  private Response validationError(ConstraintViolationException cve) {
+  /**
+   * Field-level errors, as {@code VALIDATION} — or {@code CONTENT_REJECTED} when the publication
+   * filter is among the violations.
+   */
+  private static Response validationError(ConstraintViolationException cve) {
     List<FieldError> fieldErrors =
-        cve.getConstraintViolations().stream().map(this::toFieldError).collect(Collectors.toList());
+        cve.getConstraintViolations().stream()
+            .map(GlobalExceptionMapper::toFieldError)
+            .collect(Collectors.toList());
 
-    return Response.status(Response.Status.BAD_REQUEST)
-        .entity(ErrorResponse.validation(fieldErrors))
-        .build();
+    // The publication filter answers with its own code, so a client can say "this text cannot be
+    // published" rather than "invalid field". The field detail travels all the same.
+    boolean rejected =
+        cve.getConstraintViolations().stream()
+            .anyMatch(v -> v.getConstraintDescriptor().getAnnotation() instanceof AcceptableText);
+    ErrorResponse body =
+        rejected
+            ? new ErrorResponse(ErrorCode.CONTENT_REJECTED, new ErrorValidationDetails(fieldErrors))
+            : ErrorResponse.validation(fieldErrors);
+    return Response.status(Response.Status.BAD_REQUEST).entity(body).build();
   }
 
-  private FieldError toFieldError(ConstraintViolation<?> violation) {
+  private static FieldError toFieldError(ConstraintViolation<?> violation) {
     String propertyPath = violation.getPropertyPath().toString();
     String field =
         propertyPath.contains(".")

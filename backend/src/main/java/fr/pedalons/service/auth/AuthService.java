@@ -99,6 +99,9 @@ public class AuthService {
     authToken.setPendingDisplayName(request.displayName());
     authToken.setPendingPasswordHash(BcryptUtil.bcryptHash(request.password()));
     authToken.setPendingDomainId(domain.getId());
+    // Bean Validation refuses a request without acceptTerms: reaching here means they were
+    // accepted.
+    authToken.setPendingTermsAcceptedAt(authToken.getCreatedAt());
     authTokenRepository.persist(authToken);
 
     // Send verification email
@@ -142,6 +145,9 @@ public class AuthService {
     user.setPasswordHash(authToken.getPendingPasswordHash());
     user.markEmailVerified();
     user.recordLogin();
+    // Accepted on the sign-up form, recorded on the token by register. A token issued before the
+    // form asked carries none, and the account records none.
+    user.setTermsAcceptedAt(authToken.getPendingTermsAcceptedAt());
     userRepository.persist(user);
 
     return createAuthResult(user, userAgent, ipAddress);

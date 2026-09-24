@@ -37,6 +37,7 @@ export const ListMyNotificationsResponse = zod
                 'RIDE_JOINED',
                 'COMMENT_ON_MY_PUBLICATION',
                 'TEAM_INVITATION',
+                'CONTENT_REPORTED',
               ])
               .describe('What happened'),
             read: zod.boolean().describe('Whether the user has read it'),
@@ -50,7 +51,7 @@ export const ListMyNotificationsResponse = zod
             teamSlug: zod.string().describe('Slug of the team it happened in'),
             teamName: zod.string().describe('Name of the team it happened in'),
             subjectType: zod
-              .enum(['RIDE', 'TRIP', 'POST', 'ROUTE', 'TEAM'])
+              .enum(['RIDE', 'TRIP', 'POST', 'ROUTE', 'TEAM', 'REPORT'])
               .describe('Kind of page the notification opens'),
             subjectSlug: zod
               .string()
@@ -110,6 +111,7 @@ export const UpdateMyNotificationPreferencesBody = zod
                 'RIDE_JOINED',
                 'COMMENT_ON_MY_PUBLICATION',
                 'TEAM_INVITATION',
+                'CONTENT_REPORTED',
               ])
               .describe('Notification type'),
             channel: zod
@@ -165,6 +167,7 @@ export const UpdateMyNotificationPreferencesResponse = zod
                 'RIDE_JOINED',
                 'COMMENT_ON_MY_PUBLICATION',
                 'TEAM_INVITATION',
+                'CONTENT_REPORTED',
               ])
               .describe('Notification type'),
             channel: zod.enum(['IN_APP', 'EMAIL', 'PUSH']).describe('Delivery channel'),
@@ -229,6 +232,7 @@ export const GetMyNotificationPreferencesResponse = zod
                 'RIDE_JOINED',
                 'COMMENT_ON_MY_PUBLICATION',
                 'TEAM_INVITATION',
+                'CONTENT_REPORTED',
               ])
               .describe('Notification type'),
             channel: zod.enum(['IN_APP', 'EMAIL', 'PUSH']).describe('Delivery channel'),

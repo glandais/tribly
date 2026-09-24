@@ -19,6 +19,7 @@ import '../../../../core/widgets/markdown_content.dart';
 import '../../../../core/widgets/media_attachments.dart';
 import '../../../comments/data/comment_repository.dart';
 import '../../../comments/presentation/widgets/comment_thread.dart';
+import '../../../moderation/presentation/moderation_menu.dart';
 import '../../../participants/presentation/widgets/participants_sheet.dart';
 import '../../../teams/providers/team_providers.dart';
 import '../../providers/ride_detail_provider.dart';
@@ -138,6 +139,19 @@ class _RideDetailContent extends ConsumerWidget {
             semanticLabel: 'routes.share'.tr(),
             onPressed: () => _share(context),
           ),
+          PdlAppBarAction(
+            icon: PdlIcons.more,
+            semanticLabel: 'moderation.more'.tr(),
+            onPressed: () => showDetailModerationMenu(
+              context,
+              subject: ModerationSubject(
+                teamSlug: ride.team.slug,
+                type: ReportTargetType.ride,
+                id: ride.id,
+                teamName: ride.team.name,
+              ),
+            ),
+          ),
         ],
       ),
       slivers: <Widget>[
@@ -182,7 +196,7 @@ class _RideDetailContent extends ConsumerWidget {
               selectedGroupId: selected,
               onSelect: select,
               onShowParticipants: (RideGroupDto g) =>
-                  ParticipantsSheet.open(context, g),
+                  ParticipantsSheet.open(context, g, team: ride.team),
               onViewRoute: (RideGroupDto g) {
                 final String? slug = g.routeSlug ?? ride.routeSlug;
                 if (slug != null) {

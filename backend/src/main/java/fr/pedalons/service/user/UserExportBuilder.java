@@ -12,6 +12,7 @@ import fr.pedalons.dto.users.export.ContentExport;
 import fr.pedalons.dto.users.export.ExportManifest;
 import fr.pedalons.dto.users.export.MembershipExport;
 import fr.pedalons.dto.users.export.MembershipExport.MissingFile;
+import fr.pedalons.dto.users.export.ModerationExport;
 import fr.pedalons.dto.users.export.NotificationExport;
 import fr.pedalons.infrastructure.storage.StorageService;
 import fr.pedalons.repository.ad.AdRepository;
@@ -27,6 +28,8 @@ import fr.pedalons.repository.common.AllPublicationRepository;
 import fr.pedalons.repository.gps.GpsOAuthStateRepository;
 import fr.pedalons.repository.gps.GpsServiceConnectionRepository;
 import fr.pedalons.repository.gpx.GpxPreviewRepository;
+import fr.pedalons.repository.moderation.ContentReportRepository;
+import fr.pedalons.repository.moderation.UserBlockRepository;
 import fr.pedalons.repository.notification.NotificationDeliveryRepository;
 import fr.pedalons.repository.notification.NotificationPreferenceRepository;
 import fr.pedalons.repository.notification.NotificationRepository;
@@ -136,6 +139,8 @@ public class UserExportBuilder {
   @Inject PushDeviceRepository pushDeviceRepository;
   @Inject NotificationSettingsRepository notificationSettingsRepository;
   @Inject NotificationTeamMuteRepository notificationTeamMuteRepository;
+  @Inject UserBlockRepository userBlockRepository;
+  @Inject ContentReportRepository contentReportRepository;
 
   @ConfigProperty(name = "pedalons.export.temp-dir")
   Optional<String> configuredTempDir;
@@ -179,6 +184,8 @@ public class UserExportBuilder {
       writeSection(
           zip, "account/notification-settings.json", counts, () -> notificationSettings(ctx));
       writeSection(zip, "account/push-devices.json", counts, () -> pushDevices(ctx));
+      writeSection(zip, "account/blocked-users.json", counts, () -> blockedUsers(ctx));
+      writeSection(zip, "account/reports.json", counts, () -> reports(ctx));
 
       writeSection(zip, "memberships/teams.json", counts, () -> memberships(ctx));
       writeSection(zip, "participations/rides.json", counts, () -> rideParticipations(ctx));
@@ -317,6 +324,18 @@ public class UserExportBuilder {
   private List<NotificationExport.PushDeviceEntry> pushDevices(ExportJobContext ctx) {
     return pushDeviceRepository.findByUser(ctx.userId()).stream()
         .map(NotificationExport.PushDeviceEntry::from)
+        .toList();
+  }
+
+  private List<ModerationExport.BlockEntry> blockedUsers(ExportJobContext ctx) {
+    return userBlockRepository.findByBlocker(ctx.userId()).stream()
+        .map(ModerationExport.BlockEntry::from)
+        .toList();
+  }
+
+  private List<ModerationExport.ReportEntry> reports(ExportJobContext ctx) {
+    return contentReportRepository.findByReporter(ctx.domainId(), ctx.userId()).stream()
+        .map(ModerationExport.ReportEntry::from)
         .toList();
   }
 
@@ -560,8 +579,9 @@ public class UserExportBuilder {
       account/          Votre compte : profil, sessions, clés d'accès (passkeys),
                         connexions GPS et réseaux sociaux, jetons d'authentification,
                         choix de notifications (dont le résumé quotidien et les équipes
-                        dont vous avez coupé les annonces) et appareils inscrits aux
-                        notifications push.
+                        dont vous avez coupé les annonces), appareils inscrits aux
+                        notifications push, membres que vous avez bloqués et
+                        signalements que vous avez faits.
       memberships/      Les équipes dont vous êtes membre.
       participations/   Les sorties et voyages auxquels vous vous êtes inscrit.
       notifications/    Les notifications reçues ces derniers mois, et pour chacune les

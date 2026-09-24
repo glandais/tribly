@@ -311,6 +311,7 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
   public RideDto undeleteRide(String teamSlug, String rideSlug) {
     Team team = teamService.getTeam(teamSlug);
     Ride ride = findBySlugIncludeDeleted(team, rideSlug);
+    requireNotRemovedByModeration(ride);
     ride.setDeleted(false);
     rideRepository.persist(ride);
     return toDto(ride);

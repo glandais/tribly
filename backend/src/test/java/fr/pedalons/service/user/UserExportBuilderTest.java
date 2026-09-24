@@ -7,6 +7,7 @@ import fr.pedalons.common.TsidUtils;
 import fr.pedalons.domain.asset.Asset;
 import fr.pedalons.domain.notification.Notification;
 import fr.pedalons.domain.platform.Domain;
+import fr.pedalons.domain.post.Post;
 import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.domain.ride.RideGroup;
 import fr.pedalons.domain.team.Team;
@@ -16,6 +17,8 @@ import fr.pedalons.enums.GpsServiceType;
 import fr.pedalons.enums.NotificationChannel;
 import fr.pedalons.enums.NotificationType;
 import fr.pedalons.enums.PushPlatform;
+import fr.pedalons.enums.ReportReason;
+import fr.pedalons.enums.ReportTargetType;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.infrastructure.storage.StorageService;
 import fr.pedalons.service.security.DomainResolver;
@@ -71,6 +74,8 @@ class UserExportBuilderTest extends AbstractBaseTest {
           "account/notification-preferences.json",
           "account/notification-settings.json",
           "account/push-devices.json",
+          "account/blocked-users.json",
+          "account/reports.json",
           "memberships/teams.json",
           "participations/rides.json",
           "participations/trips.json",
@@ -268,6 +273,29 @@ class UserExportBuilderTest extends AbstractBaseTest {
           ZipReader.text(entries, "account/notification-preferences.json")
               .contains("RIDE_CANCELLED"));
       assertTrue(ZipReader.text(entries, "account/push-devices.json").contains("ANDROID"));
+    } finally {
+      Files.deleteIfExists(zip);
+    }
+  }
+
+  @Test
+  void build_shouldIncludeBlocksAndReports() throws IOException {
+    Team team = dataService.createTeam(domain, user, "Team", "team", Visibility.PUBLIC);
+    User other = dataService.createUser(domain, "other@example.com", "Someone Blocked");
+    Post post = dataService.createPost(team, other, "Billet", Instant.now(), Visibility.PUBLIC);
+    dataService.createBlock(user, other);
+    dataService.createReport(
+        team, user, ReportTargetType.POST, post.getId(), other, ReportReason.HARASSMENT);
+
+    Path zip = builder.build(ctx);
+    try {
+      Map<String, byte[]> entries = ZipReader.readAll(zip);
+      assertTrue(ZipReader.text(entries, "account/blocked-users.json").contains("Someone Blocked"));
+      String reports = ZipReader.text(entries, "account/reports.json");
+      assertTrue(reports.contains("HARASSMENT"), reports);
+      assertTrue(reports.contains("OPEN"), reports);
+      // Someone else's content: the reported text is not part of the reporter's export.
+      assertFalse(reports.contains("excerpt"), reports);
     } finally {
       Files.deleteIfExists(zip);
     }

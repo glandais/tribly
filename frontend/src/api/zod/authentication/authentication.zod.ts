@@ -452,6 +452,11 @@ export const RegisterBody = zod
       .max(registerBodyPasswordMax)
       .regex(registerBodyPasswordRegExp)
       .describe('Password (min 8 chars)'),
+    acceptTerms: zod
+      .boolean()
+      .describe(
+        'The member accepted the terms of service. Required, and must be true: the sign-up form asks for it with a checkbox.'
+      ),
   })
   .describe('User registration request')
 

@@ -40,7 +40,7 @@ import {
 } from '../../api/endpoints/rides/rides'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { useRideDetailData } from './rideDetailData'
-import { Status } from '@/api/dto'
+import { ReportTargetType, Status } from '@/api/dto'
 import type { RideDto } from '@/api/dto'
 import { ApiClientError } from '@/lib/apiError'
 import { useAuth } from '../../hooks/useAuth'
@@ -60,6 +60,7 @@ import { useFormattedDate } from '../../utils/dateFormat'
 import { FormattedDateTime } from '../../components/common/FormattedDate'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
+import { ContentActionsMenu } from '../../components/moderation/ContentActionsMenu'
 import { CommentSection } from '../../components/comment'
 import { paths } from '@/config/paths'
 import { ErrorBoundary } from '../../components/common/ErrorBoundary'
@@ -334,65 +335,74 @@ export function RideDetailPage() {
             )}
           </Group>
 
-          {canEdit && (
-            <Button.Group>
-              <Button
-                component={PrefetchLink}
-                to={paths.rideEdit(teamSlug!, rideSlug!)}
-                variant="outline"
-                leftSection={<IconPencil size={16} />}
-              >
-                {t('actions.edit')}
-              </Button>
-              <Menu position="bottom-end">
-                <Menu.Target>
-                  <Button variant="outline" px="xs">
-                    <IconChevronDown size={16} />
-                  </Button>
-                </Menu.Target>
-                <Menu.Dropdown>
-                  {ride.status === Status.DRAFT && (
-                    <Menu.Item
-                      onClick={handlePublish}
-                      disabled={updateMutation.isPending}
-                      color="success"
-                    >
-                      {updateMutation.isPending && <Loader size="sm" />}
-                      {t('actions.publish')}
-                    </Menu.Item>
-                  )}
-                  {ride.status === Status.PUBLISHED && (
-                    <>
-                      <Menu.Item onClick={() => setShowUnpublishConfirm(true)} color="warning">
-                        {t('actions.unpublish')}
+          <Group gap="xs" wrap="nowrap">
+            {canEdit && (
+              <Button.Group>
+                <Button
+                  component={PrefetchLink}
+                  to={paths.rideEdit(teamSlug!, rideSlug!)}
+                  variant="outline"
+                  leftSection={<IconPencil size={16} />}
+                >
+                  {t('actions.edit')}
+                </Button>
+                <Menu position="bottom-end">
+                  <Menu.Target>
+                    <Button variant="outline" px="xs">
+                      <IconChevronDown size={16} />
+                    </Button>
+                  </Menu.Target>
+                  <Menu.Dropdown>
+                    {ride.status === Status.DRAFT && (
+                      <Menu.Item
+                        onClick={handlePublish}
+                        disabled={updateMutation.isPending}
+                        color="success"
+                      >
+                        {updateMutation.isPending && <Loader size="sm" />}
+                        {t('actions.publish')}
                       </Menu.Item>
-                      <Menu.Item onClick={() => setShowCancelConfirm(true)} color="warning">
-                        {t('rides.detail.actions.cancel')}
+                    )}
+                    {ride.status === Status.PUBLISHED && (
+                      <>
+                        <Menu.Item onClick={() => setShowUnpublishConfirm(true)} color="warning">
+                          {t('actions.unpublish')}
+                        </Menu.Item>
+                        <Menu.Item onClick={() => setShowCancelConfirm(true)} color="warning">
+                          {t('rides.detail.actions.cancel')}
+                        </Menu.Item>
+                      </>
+                    )}
+                    {ride.status === Status.CANCELLED && (
+                      <Menu.Item onClick={() => setShowUncancelConfirm(true)} color="green">
+                        {t('rides.detail.actions.uncancel')}
                       </Menu.Item>
-                    </>
-                  )}
-                  {ride.status === Status.CANCELLED && (
-                    <Menu.Item onClick={() => setShowUncancelConfirm(true)} color="green">
-                      {t('rides.detail.actions.uncancel')}
+                    )}
+                    {ride.deleted && (
+                      <Menu.Item
+                        onClick={handleRestore}
+                        color="green"
+                        disabled={undeleteMutation.isPending}
+                      >
+                        {t('actions.restore')}
+                      </Menu.Item>
+                    )}
+                    <Menu.Divider />
+                    <Menu.Item onClick={() => setShowDeleteConfirm(true)} color="danger">
+                      {t('actions.delete')}
                     </Menu.Item>
-                  )}
-                  {ride.deleted && (
-                    <Menu.Item
-                      onClick={handleRestore}
-                      color="green"
-                      disabled={undeleteMutation.isPending}
-                    >
-                      {t('actions.restore')}
-                    </Menu.Item>
-                  )}
-                  <Menu.Divider />
-                  <Menu.Item onClick={() => setShowDeleteConfirm(true)} color="danger">
-                    {t('actions.delete')}
-                  </Menu.Item>
-                </Menu.Dropdown>
-              </Menu>
-            </Button.Group>
-          )}
+                  </Menu.Dropdown>
+                </Menu>
+              </Button.Group>
+            )}
+            <ContentActionsMenu
+              teamSlug={ride.team.slug}
+              teamName={ride.team.name}
+              targetType={ReportTargetType.RIDE}
+              targetId={ride.id}
+              onReported={() => navigate(paths.team(ride.team.slug))}
+            />
+          </Group>
         </Group>
 
         <Box mt="md">
@@ -556,6 +566,7 @@ export function RideDetailPage() {
         <Box mt="lg">
           <CommentSection
             teamSlug={teamSlug!}
+            teamName={team.name}
             entityType="rides"
             entitySlug={rideSlug!}
             isOrganizer={canEdit}

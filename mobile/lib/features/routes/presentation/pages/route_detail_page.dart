@@ -15,6 +15,9 @@ import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/markdown_content.dart';
 import '../../../../core/widgets/media_attachments.dart';
+import '../../../auth/domain/auth_state.dart';
+import '../../../auth/providers/auth_provider.dart';
+import '../../../moderation/presentation/moderation_menu.dart';
 import '../../providers/route_detail_provider.dart';
 import '../../providers/route_elevation_provider.dart';
 import '../widgets/route_climbs_section.dart';
@@ -157,6 +160,9 @@ class _RouteDetailPageState extends ConsumerState<RouteDetailPage> {
   /// `PdlMapButton` et `PdlMapPill` portent `overlaySolid` — 95 % — plus un
   /// flou.
   Widget _overlay(RouteDetailDto route) {
+    final String? currentUserId = ref.watch(
+      authProvider.select((AuthState s) => s.user?.id),
+    );
     return Positioned(
       top: 0,
       left: 0,
@@ -174,6 +180,24 @@ class _RouteDetailPageState extends ConsumerState<RouteDetailPage> {
               ),
               const SizedBox(width: PdlSpacing.chipGap),
               Expanded(child: PdlMapPill(label: route.name)),
+              // Son propre parcours ne se signale pas : le menu serait vide.
+              if (currentUserId != null &&
+                  currentUserId != route.createdBy.id) ...<Widget>[
+                const SizedBox(width: PdlSpacing.chipGap),
+                PdlMapButton(
+                  icon: PdlIcons.more,
+                  semanticLabel: 'moderation.more'.tr(),
+                  onPressed: () => showDetailModerationMenu(
+                    context,
+                    subject: ModerationSubject(
+                      teamSlug: route.team.slug,
+                      type: ReportTargetType.route,
+                      id: route.id,
+                      teamName: route.team.name,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

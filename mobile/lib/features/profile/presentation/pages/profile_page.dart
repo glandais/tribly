@@ -13,6 +13,7 @@ import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
+import '../../../moderation/data/moderation_repository.dart';
 import '../../../notifications/presentation/widgets/notification_preferences_section.dart';
 import '../../providers/participations_provider.dart';
 import '../widgets/connected_services_section.dart';
@@ -83,6 +84,10 @@ class ProfilePage extends ConsumerWidget {
           _section(
             title: 'profile.data.title'.tr(),
             child: const DataExportCard(),
+          ),
+          _section(
+            title: 'profile.community'.tr(),
+            child: const _BlockedUsersCard(),
           ),
           _section(title: 'profile.about'.tr(), child: const _AboutCard()),
           const SliverToBoxAdapter(child: AccountSection()),
@@ -166,6 +171,40 @@ class _ParticipationsCard extends ConsumerWidget {
             title: 'profile.participations.past'.tr(),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// L'entrée de « Utilisateurs bloqués » — la seule, puisque bloquer se fait
+/// depuis le contenu de la personne, là où elle est affichée.
+class _BlockedUsersCard extends ConsumerWidget {
+  const _BlockedUsersCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final PdlColors c = context.pdl;
+    final int? count = ref.watch(blockedUsersProvider).value?.length;
+
+    return PdlCard(
+      padding: PdlCardPadding.none,
+      child: PdlSettingRow(
+        icon: PdlIcons.block,
+        title: 'moderation.blockedUsers.title'.tr(),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            if (count != null && count > 0)
+              PdlBadge(
+                label: '$count',
+                size: PdlBadgeSize.lg,
+                tone: PdlTone.pair(c.softGray, c.neutral),
+              ),
+            const SizedBox(width: 4),
+            Icon(PdlIcons.chevronRight, size: 20, color: c.textPlaceholder),
+          ],
+        ),
+        onTap: () => context.push(Paths.blockedUsers()),
       ),
     );
   }

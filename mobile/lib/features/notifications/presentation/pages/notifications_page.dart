@@ -12,6 +12,7 @@ import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
+import '../../../../core/utils/link_launcher.dart';
 import '../../../teams/providers/team_providers.dart';
 import '../../providers/notifications_provider.dart';
 import '../notification_display.dart';
@@ -129,6 +130,13 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
     // par-dessus celui-ci, et une pastille qui ne bouge qu'au retour donne
     // l'impression que le geste n'a rien fait.
     _markReadInBackground(notifier, notification);
+    final String? webPath = notification.webPath();
+    if (path == null && webPath != null) {
+      // Une page que seul le site sait afficher : la file de signalements.
+      final bool opened = await openWebPage(webPath);
+      if (!opened && mounted) showUnopenableLinkBanner(context, webPath);
+      return;
+    }
     if (path == null || !mounted) return;
     if (notification.subjectTypeEnum == NotificationSubjectType.team) {
       // Une invitation ouvre la liste des équipes, qui est la racine d'un
@@ -259,7 +267,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
           final NotificationDto notification = state.items[index];
           return NotificationTile(
             notification: notification,
-            onTap: notification.path() == null
+            onTap: notification.path() == null && notification.webPath() == null
                 ? null
                 : () => _open(notifier, notification),
           );

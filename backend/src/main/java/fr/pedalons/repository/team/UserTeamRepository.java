@@ -140,4 +140,19 @@ public class UserTeamRepository implements BaseRepository<UserTeam> {
         .setParameter("teamId", teamId)
         .getResultList();
   }
+
+  /**
+   * The live organizers and administrators of a team, users loaded in the same query — who hears of
+   * a report filed in it.
+   */
+  public List<UserTeam> findModerators(Long teamId) {
+    return getEntityManager()
+        .createQuery(
+            "select ut from UserTeam ut join fetch ut.user u"
+                + " where ut.team.id = :teamId and u.deleted = false and ut.role in (:roles)",
+            UserTeam.class)
+        .setParameter("teamId", teamId)
+        .setParameter("roles", List.of(TeamRole.ORGANIZER, TeamRole.ADMIN))
+        .getResultList();
+  }
 }

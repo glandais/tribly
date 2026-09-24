@@ -3,6 +3,7 @@ package fr.pedalons.dto.routes.request;
 import fr.pedalons.common.GeoPoint;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.common.request.WithVisibility;
+import fr.pedalons.dto.validation.AcceptableText;
 import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.enums.SurfaceType;
 import fr.pedalons.enums.Visibility;
@@ -16,7 +17,10 @@ import org.jspecify.annotations.Nullable;
 @Schema(description = "Route update request")
 @ValidateSchema
 public record RouteRequest(
-    @Schema(description = "Route name", required = true) @NotBlank @Size(min = 3, max = 200)
+    @Schema(description = "Route name", required = true)
+        @NotBlank
+        @Size(min = 3, max = 200)
+        @AcceptableText
         String name,
     @Schema(description = "Media", required = true) @Valid MediaDto media,
     @Schema(description = "Surface type", required = true) SurfaceType surfaceType,

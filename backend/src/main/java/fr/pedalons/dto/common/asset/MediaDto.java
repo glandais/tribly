@@ -1,6 +1,7 @@
 package fr.pedalons.dto.common.asset;
 
 import fr.pedalons.domain.common.TeamEntity;
+import fr.pedalons.dto.validation.AcceptableText;
 import fr.pedalons.enums.ListViewMode;
 import fr.pedalons.service.asset.AssetService;
 import jakarta.validation.Valid;
@@ -10,7 +11,7 @@ import org.jspecify.annotations.Nullable;
 
 @Builder
 public record MediaDto(
-    @Schema(description = "Markdown", required = true) String markdown,
+    @Schema(description = "Markdown", required = true) @AcceptableText String markdown,
     @Schema(description = "Assets", required = true) @Valid AssetsDto assets) {
 
   public static class MediaDtoBuilder {

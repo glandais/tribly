@@ -15,6 +15,7 @@ import '../features/home/presentation/pages/home_page.dart';
 import '../features/legal/presentation/pages/legal_page.dart';
 import '../features/navigation/presentation/shell/main_shell.dart';
 import '../features/notifications/presentation/pages/notifications_page.dart';
+import '../features/moderation/presentation/pages/blocked_users_page.dart';
 import '../features/profile/presentation/pages/my_participations_page.dart';
 import '../features/profile/presentation/pages/profile_page.dart';
 import '../core/pdl/pdl.dart';
@@ -598,6 +599,12 @@ final routerProvider = Provider<GoRouter>((ref) {
                   // qu'il n'identifie pas la page.
                   initialUpcoming: st.extra is bool ? st.extra! as bool : true,
                 ),
+              ),
+              // Mobile seulement, et sans lien d'app : aucune page web ne
+              // répond à cette adresse, seul le profil y mène.
+              ..._perLocale(
+                PathVariants.blockedUsers(),
+                (ctx, st) => const BlockedUsersPage(),
               ),
             ],
           ),

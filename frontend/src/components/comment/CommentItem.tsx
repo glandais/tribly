@@ -7,7 +7,15 @@ import { CommentForm } from './CommentForm'
 import { ConfirmDialog } from '../common/ConfirmDialog'
 import { useFormattedDate } from '../../utils/dateFormat'
 import type { CommentDto } from '@/api/dto'
+import { ReportTargetType } from '@/api/dto'
 import { useCommentReplies, type EntityType } from '../../hooks/useComments'
+import { ContentActionsMenu } from '../moderation/ContentActionsMenu'
+
+/** Where a report of this comment goes: the team the commented content belongs to. */
+export interface CommentReportContext {
+  teamSlug: string
+  teamName: string
+}
 
 interface CommentItemProps {
   comment: CommentDto
@@ -15,6 +23,8 @@ interface CommentItemProps {
   teamSlug?: string
   entityType?: EntityType
   entitySlug?: string
+  /** Enables the report/block menu. Passed down to replies, unlike the slugs above. */
+  reportContext?: CommentReportContext
   canDeleteComment: (comment: CommentDto) => boolean
   onDeleteComment: (commentId: string) => void
   onReply?: () => void
@@ -31,6 +41,7 @@ export function CommentItem({
   teamSlug,
   entityType,
   entitySlug,
+  reportContext,
   canDeleteComment,
   onDeleteComment,
   onReply,
@@ -78,11 +89,23 @@ export function CommentItem({
         <Group align="flex-start" gap="sm">
           <UserAvatar user={comment.author} size="sm" />
           <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
-            <Group gap="xs">
-              <Text fw={500}>{comment.author.displayName}</Text>
-              <Text size="xs" c="dimmed">
-                {formatRelative(comment.createdAt)}
-              </Text>
+            <Group gap="xs" justify="space-between" wrap="nowrap">
+              <Group gap="xs">
+                <Text fw={500}>{comment.author.displayName}</Text>
+                <Text size="xs" c="dimmed">
+                  {formatRelative(comment.createdAt)}
+                </Text>
+              </Group>
+              {reportContext && (
+                <ContentActionsMenu
+                  teamSlug={reportContext.teamSlug}
+                  teamName={reportContext.teamName}
+                  targetType={ReportTargetType.COMMENT}
+                  targetId={comment.id}
+                  author={comment.author}
+                  placement="inline"
+                />
+              )}
             </Group>
             <Text style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
               {comment.content}
@@ -148,6 +171,7 @@ export function CommentItem({
             <CommentItem
               key={reply.id}
               comment={reply}
+              reportContext={reportContext}
               canDeleteComment={canDeleteComment}
               onDeleteComment={onDeleteComment}
               replyingTo={null}

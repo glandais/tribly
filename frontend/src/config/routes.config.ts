@@ -25,6 +25,7 @@ import { prefetchAdminDomains } from '@/pages/admin/adminDomainsData'
 import { prefetchAdminTeams } from '@/pages/admin/adminTeamsData'
 import { prefetchAdminUsers } from '@/pages/admin/adminUsersData'
 import { prefetchAdminBetaSignups } from '@/pages/admin/adminBetaSignupsData'
+import { prefetchAdminReports } from '@/pages/admin/adminReportsData'
 import { prefetchTeamAbout } from '@/pages/team/teamAboutData'
 import { prefetchTeamPage } from '@/pages/team/teamPageData'
 import { prefetchTeamPagesAdmin } from '@/pages/team/teamPagesAdminData'
@@ -36,6 +37,7 @@ import { prefetchAdDetail } from '@/pages/ad/adDetailData'
 import { prefetchEditAdForm } from '@/pages/ad/adFormData'
 import { prefetchTeamPlaces } from '@/pages/team/teamPlacesData'
 import { prefetchTeamMembers } from '@/pages/team/teamMembersData'
+import { prefetchTeamReports } from '@/pages/team/teamReportsData'
 import { prefetchRideTemplateList } from '@/pages/ridetemplate/rideTemplateListData'
 import { prefetchCreateRideForm, prefetchEditRideForm } from '@/pages/ride/rideFormData'
 import { prefetchHomeFeed } from '@/pages/home/homeFeedData'
@@ -471,6 +473,15 @@ export const routesConfig: RoutesConfig = [
     prefetch: teamScopedPrefetch((qc, p, url) => prefetchTeamMembers(qc, p.teamSlug!, url)),
   },
   {
+    id: 'team-admin-reports',
+    paths: pathVariants.teamAdminReports(':teamSlug'),
+    component: pages.TeamReportsPage,
+    auth: 'authenticated',
+    parentId: 'team-admin',
+    breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.tabs.reports') },
+    prefetch: teamScopedPrefetch((qc, p, url) => prefetchTeamReports(qc, p.teamSlug!, url)),
+  },
+  {
     id: 'team-settings',
     paths: pathVariants.teamSettings(':teamSlug'),
     component: pages.TeamSettingsPage,
@@ -791,6 +802,15 @@ export const routesConfig: RoutesConfig = [
     parentId: 'admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('admin.tabs.users') },
     prefetch: (queryClient) => prefetchAdminUsers(queryClient),
+  },
+  {
+    id: 'admin-reports',
+    paths: pathVariants.adminReports(),
+    component: pages.AdminReportsPage,
+    auth: 'authenticated',
+    parentId: 'admin',
+    breadcrumb: { type: 'static', i18nKey: tRegister('admin.tabs.reports') },
+    prefetch: (queryClient, _params, url) => prefetchAdminReports(queryClient, url),
   },
   {
     id: 'admin-beta-signups',

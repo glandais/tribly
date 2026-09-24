@@ -4,6 +4,7 @@ import fr.pedalons.domain.common.BaseEntity;
 import fr.pedalons.domain.common.TeamEntity;
 import fr.pedalons.domain.user.User;
 import jakarta.persistence.*;
+import java.time.Instant;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -29,6 +30,14 @@ public class Comment extends BaseEntity {
 
   @Column(name = "content", nullable = false, columnDefinition = "TEXT")
   private String content;
+
+  /**
+   * Set when enough distinct members reported this comment: hidden from everyone but the team's
+   * moderators until one of them decides. See {@code ReportService}.
+   */
+  @Nullable
+  @Column(name = "moderation_hidden_at")
+  private Instant moderationHiddenAt;
 
   public Comment(User createdBy, TeamEntity teamEntity, String content) {
     super(createdBy);

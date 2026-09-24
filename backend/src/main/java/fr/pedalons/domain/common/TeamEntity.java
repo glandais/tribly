@@ -73,6 +73,14 @@ public abstract class TeamEntity extends BaseEntity {
   @Column(name = "deleted", nullable = false)
   private boolean deleted = false;
 
+  /**
+   * Set when enough distinct members reported this content: hidden from everyone but the team's
+   * moderators until one of them decides. See {@code ReportService}.
+   */
+  @Nullable
+  @Column(name = "moderation_hidden_at")
+  private Instant moderationHiddenAt;
+
   public TeamEntity(
       User createdBy,
       Team team,

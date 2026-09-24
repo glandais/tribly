@@ -2,6 +2,7 @@ package fr.pedalons.dto.posts.request;
 
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.common.request.WithVisibility;
+import fr.pedalons.dto.validation.AcceptableText;
 import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.Visibility;
@@ -15,7 +16,10 @@ import org.jspecify.annotations.Nullable;
 @Schema(description = "Post request")
 @ValidateSchema
 public record PostRequest(
-    @Schema(description = "Post name", required = true) @NotBlank @Size(min = 1, max = 200)
+    @Schema(description = "Post name", required = true)
+        @NotBlank
+        @Size(min = 1, max = 200)
+        @AcceptableText
         String name,
     @Schema(description = "Post description", required = true) @Valid MediaDto media,
     @Schema(description = "Post date/time", required = true) Instant dateTime,

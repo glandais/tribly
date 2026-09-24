@@ -2,6 +2,7 @@ package fr.pedalons.dto.teams.request;
 
 import fr.pedalons.dto.common.GeoJsonPoint;
 import fr.pedalons.dto.common.asset.MediaDto;
+import fr.pedalons.dto.validation.AcceptableText;
 import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.enums.Visibility;
 import jakarta.validation.Valid;
@@ -18,6 +19,7 @@ public record TeamRequest(
     @Schema(description = "Team name", examples = "Awesome Cycling Team", required = true)
         @NotBlank
         @Size(min = 1, max = 200)
+        @AcceptableText
         String name,
     @Schema(description = "Media", required = true) @Valid MediaDto media,
     @Schema(description = "Team visibility", examples = "PUBLIC", required = true)

@@ -1,6 +1,7 @@
 package fr.pedalons.dto.trips.request;
 
 import fr.pedalons.dto.common.asset.MediaDto;
+import fr.pedalons.dto.validation.AcceptableText;
 import fr.pedalons.dto.validation.ValidateSchema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -18,6 +19,7 @@ public record StageRequest(
     @Schema(description = "Stage name", examples = "Day 1 - Geneva to Chamonix", required = true)
         @NotBlank
         @Size(min = 1, max = 200)
+        @AcceptableText
         String name,
     @Schema(description = "Stage date/time", required = true) Instant dateTime,
     @Nullable @Schema(description = "Route slug for this stage") String routeSlug,

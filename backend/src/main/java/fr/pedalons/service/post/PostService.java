@@ -130,6 +130,7 @@ public class PostService extends TeamEntityService<Post, PostRepository, PostDto
   public PostDto undeletePost(String teamSlug, String postSlug) {
     Team team = teamService.getTeam(teamSlug);
     Post post = findBySlugIncludeDeleted(team, postSlug);
+    requireNotRemovedByModeration(post);
     post.setDeleted(false);
     postRepository.persist(post);
     return PostDto.from(post, assetService);

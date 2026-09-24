@@ -51,6 +51,24 @@ public class CommentRepository implements BaseRepository<Comment> {
     return find("parent.id = ?1", parentId).list();
   }
 
+  /**
+   * Comments by id with the entity they are on, in one query — the comments a moderation queue is
+   * about. Re-states the domain, the ids coming as a set.
+   */
+  public List<Comment> findByIdsWithEntity(Long domainId, Collection<Long> ids) {
+    if (ids.isEmpty()) {
+      return List.of();
+    }
+    return getEntityManager()
+        .createQuery(
+            "select c from Comment c join fetch c.teamEntity te"
+                + " where c.id in (:ids) and te.team.domain.id = :domainId",
+            Comment.class)
+        .setParameter("ids", ids)
+        .setParameter("domainId", domainId)
+        .getResultList();
+  }
+
   /** Comments a user wrote, for the GDPR data export. */
   public List<Comment> findByCreator(Long domainId, Long userId) {
     return list(

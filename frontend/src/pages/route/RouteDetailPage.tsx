@@ -17,6 +17,9 @@ import { DetailPageSkeleton } from '../../components/common/DetailPageSkeleton'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
 import { CommentSection } from '../../components/comment'
+import { ContentActionsMenu } from '../../components/moderation/ContentActionsMenu'
+import { ReportTargetType } from '@/api/dto'
+import { useAuthStore, selectUser } from '@/store/authStore'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
 export function RouteDetailPage() {
@@ -24,6 +27,7 @@ export function RouteDetailPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const currentUserId = useAuthStore(selectUser)?.id
 
   const { team: teamQuery, route: routeQuery } = useRouteDetailData(teamSlug, routeSlug)
   const { data: team, isLoading: teamLoading } = teamQuery
@@ -108,26 +112,40 @@ export function RouteDetailPage() {
             </Group>
             <MediaDisplay media={route.media} />
           </Stack>
-          {canEdit && (
-            <Group mt={{ base: 'md', sm: 0 }}>
-              <Button variant="default" component="a" href={paths.routeEdit(teamSlug!, routeSlug!)}>
-                {t('actions.edit')}
-              </Button>
-              {route.deleted && (
+          <Group mt={{ base: 'md', sm: 0 }} gap="sm">
+            {canEdit && (
+              <>
                 <Button
-                  variant="outline"
-                  color="green"
-                  onClick={handleRestore}
-                  loading={undeleteRouteMutation.isPending}
+                  variant="default"
+                  component="a"
+                  href={paths.routeEdit(teamSlug!, routeSlug!)}
                 >
-                  {t('actions.restore')}
+                  {t('actions.edit')}
                 </Button>
-              )}
-              <Button variant="outline" color="danger" onClick={() => setShowDeleteConfirm(true)}>
-                {t('actions.delete')}
-              </Button>
-            </Group>
-          )}
+                {route.deleted && (
+                  <Button
+                    variant="outline"
+                    color="green"
+                    onClick={handleRestore}
+                    loading={undeleteRouteMutation.isPending}
+                  >
+                    {t('actions.restore')}
+                  </Button>
+                )}
+                <Button variant="outline" color="danger" onClick={() => setShowDeleteConfirm(true)}>
+                  {t('actions.delete')}
+                </Button>
+              </>
+            )}
+            <ContentActionsMenu
+              teamSlug={team.slug}
+              teamName={team.name}
+              targetType={ReportTargetType.ROUTE}
+              targetId={route.id}
+              isOwn={route.createdBy.id === currentUserId}
+              onReported={() => navigate(paths.routes(team.slug))}
+            />
+          </Group>
         </Group>
       </Stack>
 
@@ -156,6 +174,7 @@ export function RouteDetailPage() {
         <Box mt="xl">
           <CommentSection
             teamSlug={teamSlug!}
+            teamName={team.name}
             entityType="routes"
             entitySlug={routeSlug!}
             isOrganizer={!!canEdit}

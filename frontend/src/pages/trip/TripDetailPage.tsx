@@ -47,7 +47,7 @@ import {
 } from '../../api/endpoints/trips/trips'
 import { useTripDetailData } from './tripDetailData'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
-import { Status } from '@/api/dto'
+import { ReportTargetType, Status } from '@/api/dto'
 import { useAuth } from '../../hooks/useAuth'
 import { QueryStateBoundary } from '../../components/common/QueryStateBoundary'
 import { DetailPageSkeleton } from '../../components/common/DetailPageSkeleton'
@@ -65,6 +65,7 @@ import { useFormattedDate } from '../../utils/dateFormat'
 import { FormattedDateTime } from '../../components/common/FormattedDate'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
+import { ContentActionsMenu } from '../../components/moderation/ContentActionsMenu'
 import { CommentSection } from '../../components/comment'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
@@ -293,65 +294,74 @@ export function TripDetailPage() {
               </Button>
             )}
 
-            {canEdit && (
-              <Button.Group>
-                <Button
-                  component={PrefetchLink}
-                  to={paths.tripEdit(teamSlug!, tripSlug!)}
-                  variant="outline"
-                  leftSection={<IconPencil size={16} />}
-                >
-                  {t('actions.edit')}
-                </Button>
-                <Menu position="bottom-end">
-                  <Menu.Target>
-                    <Button variant="outline" px="xs">
-                      <IconChevronDown size={16} />
-                    </Button>
-                  </Menu.Target>
-                  <Menu.Dropdown>
-                    {trip.status === Status.DRAFT && (
-                      <Menu.Item
-                        onClick={handlePublish}
-                        disabled={updateMutation.isPending}
-                        color="success"
-                        leftSection={updateMutation.isPending ? <Loader size="sm" /> : undefined}
-                      >
-                        {t('actions.publish')}
-                      </Menu.Item>
-                    )}
-                    {trip.status === Status.PUBLISHED && (
-                      <>
-                        <Menu.Item onClick={() => setShowUnpublishConfirm(true)} color="warning">
-                          {t('actions.unpublish')}
+            <Group gap="xs" wrap="nowrap">
+              {canEdit && (
+                <Button.Group>
+                  <Button
+                    component={PrefetchLink}
+                    to={paths.tripEdit(teamSlug!, tripSlug!)}
+                    variant="outline"
+                    leftSection={<IconPencil size={16} />}
+                  >
+                    {t('actions.edit')}
+                  </Button>
+                  <Menu position="bottom-end">
+                    <Menu.Target>
+                      <Button variant="outline" px="xs">
+                        <IconChevronDown size={16} />
+                      </Button>
+                    </Menu.Target>
+                    <Menu.Dropdown>
+                      {trip.status === Status.DRAFT && (
+                        <Menu.Item
+                          onClick={handlePublish}
+                          disabled={updateMutation.isPending}
+                          color="success"
+                          leftSection={updateMutation.isPending ? <Loader size="sm" /> : undefined}
+                        >
+                          {t('actions.publish')}
                         </Menu.Item>
-                        <Menu.Item onClick={() => setShowCancelConfirm(true)} color="warning">
-                          {t('trips.detail.actions.cancel')}
+                      )}
+                      {trip.status === Status.PUBLISHED && (
+                        <>
+                          <Menu.Item onClick={() => setShowUnpublishConfirm(true)} color="warning">
+                            {t('actions.unpublish')}
+                          </Menu.Item>
+                          <Menu.Item onClick={() => setShowCancelConfirm(true)} color="warning">
+                            {t('trips.detail.actions.cancel')}
+                          </Menu.Item>
+                        </>
+                      )}
+                      {trip.status === Status.CANCELLED && (
+                        <Menu.Item onClick={() => setShowUncancelConfirm(true)} color="green">
+                          {t('trips.detail.actions.uncancel')}
                         </Menu.Item>
-                      </>
-                    )}
-                    {trip.status === Status.CANCELLED && (
-                      <Menu.Item onClick={() => setShowUncancelConfirm(true)} color="green">
-                        {t('trips.detail.actions.uncancel')}
+                      )}
+                      {trip.deleted && (
+                        <Menu.Item
+                          onClick={handleRestore}
+                          color="green"
+                          disabled={undeleteMutation.isPending}
+                        >
+                          {t('actions.restore')}
+                        </Menu.Item>
+                      )}
+                      <Menu.Divider />
+                      <Menu.Item onClick={() => setShowDeleteConfirm(true)} color="danger">
+                        {t('actions.delete')}
                       </Menu.Item>
-                    )}
-                    {trip.deleted && (
-                      <Menu.Item
-                        onClick={handleRestore}
-                        color="green"
-                        disabled={undeleteMutation.isPending}
-                      >
-                        {t('actions.restore')}
-                      </Menu.Item>
-                    )}
-                    <Menu.Divider />
-                    <Menu.Item onClick={() => setShowDeleteConfirm(true)} color="danger">
-                      {t('actions.delete')}
-                    </Menu.Item>
-                  </Menu.Dropdown>
-                </Menu>
-              </Button.Group>
-            )}
+                    </Menu.Dropdown>
+                  </Menu>
+                </Button.Group>
+              )}
+              <ContentActionsMenu
+                teamSlug={trip.team.slug}
+                teamName={trip.team.name}
+                targetType={ReportTargetType.TRIP}
+                targetId={trip.id}
+                onReported={() => navigate(paths.team(trip.team.slug))}
+              />
+            </Group>
           </Group>
         </Group>
 
@@ -513,6 +523,7 @@ export function TripDetailPage() {
             <Box>
               <CommentSection
                 teamSlug={teamSlug!}
+                teamName={team.name}
                 entityType="trips"
                 entitySlug={tripSlug!}
                 isOrganizer={canEdit}

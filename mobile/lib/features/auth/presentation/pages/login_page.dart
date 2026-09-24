@@ -5,6 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../config/paths.dart';
+import '../../../../core/theme/pdl_colors.dart';
+import '../../../../core/theme/pdl_tokens.dart';
+import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/passkey_service.dart';
@@ -32,6 +35,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _regDisplayNameController = TextEditingController();
   final _regPasswordController = TextEditingController();
   final _regConfirmPasswordController = TextEditingController();
+
+  /// La case des conditions d'utilisation, obligatoire. Gardée hors du
+  /// `FormField` pour survivre à un aller-retour vers la page des conditions.
+  bool _acceptTerms = false;
 
   final _loginFormKey = GlobalKey<FormState>();
   final _registerFormKey = GlobalKey<FormState>();
@@ -139,6 +146,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         email: _regEmailController.text.trim(),
         displayName: _regDisplayNameController.text.trim(),
         password: _regPasswordController.text,
+        acceptTerms: _acceptTerms,
       );
       TextInput.finishAutofillContext();
       if (mounted) {
@@ -441,6 +449,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     return null;
                   },
                 ),
+                const SizedBox(height: 16),
+                _termsField(),
                 const SizedBox(height: 24),
                 FilledButton(
                   onPressed: _isLoading ? null : _handleRegister,
@@ -469,6 +479,54 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           child: Text('auth.login'.tr()),
         ),
       ],
+    );
+  }
+
+  /// La case des conditions d'utilisation — obligatoire, et le serveur la
+  /// refuse absente (`acceptTerms`). Les conditions et la politique de
+  /// confidentialité s'ouvrent dans l'app, sur les pages embarquées.
+  Widget _termsField() {
+    final PdlColors c = context.pdl;
+    final PdlTypography t = context.pdlText;
+    return FormField<bool>(
+      initialValue: _acceptTerms,
+      validator: (_) => _acceptTerms ? null : 'auth.terms.required'.tr(),
+      builder: (FormFieldState<bool> field) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          CheckboxListTile(
+            value: _acceptTerms,
+            onChanged: _isLoading
+                ? null
+                : (bool? value) {
+                    setState(() => _acceptTerms = value ?? false);
+                    field.didChange(_acceptTerms);
+                  },
+            controlAffinity: ListTileControlAffinity.leading,
+            contentPadding: EdgeInsets.zero,
+            title: Text('auth.terms.accept'.tr(), style: t.sub),
+            subtitle: field.hasError
+                ? Text(
+                    field.errorText!,
+                    style: t.xs.copyWith(color: c.dangerOnSoft),
+                  )
+                : null,
+          ),
+          Wrap(
+            spacing: PdlSpacing.chipGap,
+            children: [
+              TextButton(
+                onPressed: () => context.push(Paths.terms()),
+                child: Text('auth.terms.read'.tr()),
+              ),
+              TextButton(
+                onPressed: () => context.push(Paths.privacy()),
+                child: Text('auth.terms.privacy'.tr()),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

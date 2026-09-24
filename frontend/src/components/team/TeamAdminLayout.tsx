@@ -9,12 +9,14 @@ import {
   IconFileText,
   IconUsers,
   IconSettings,
+  IconFlag,
 } from '@tabler/icons-react'
 import type { TeamDetailDto } from '@/api/dto'
 import { paths } from '@/config/paths'
 import { NavButtons, type NavButtonItem } from '../common/NavButtons'
+import { useAuthStore, selectIsPlatformAdmin } from '@/store/authStore'
 
-export type AdminTab = 'ride-templates' | 'places' | 'pages' | 'members' | 'settings'
+export type AdminTab = 'ride-templates' | 'places' | 'pages' | 'members' | 'reports' | 'settings'
 
 interface TeamAdminLayoutProps {
   team: TeamDetailDto
@@ -25,15 +27,19 @@ interface TeamAdminLayoutProps {
 export function TeamAdminLayout({ team, currentTab, children }: TeamAdminLayoutProps) {
   const { t } = useTranslation()
 
+  const isPlatformAdmin = useAuthStore(selectIsPlatformAdmin)
+
   const isAdmin = team.role === 'ADMIN'
   const isOrganizer = team.role === 'ADMIN' || team.role === 'ORGANIZER'
 
-  // Only ADMIN or ORGANIZER can access admin section
-  if (!isOrganizer) {
+  // Only ADMIN or ORGANIZER can access admin section — except its moderation queue, which a
+  // platform admin opens from a report notification without being a member of the team.
+  const canModerateOnly = !isOrganizer && isPlatformAdmin && currentTab === 'reports'
+  if (!isOrganizer && !canModerateOnly) {
     return <Navigate to={paths.team(team.slug)} replace />
   }
 
-  const tabs: (NavButtonItem & { adminOnly?: boolean })[] = [
+  const tabs: (NavButtonItem & { adminOnly?: boolean; moderation?: boolean })[] = [
     {
       id: 'ride-templates',
       path: paths.rideTemplates(team.slug),
@@ -61,6 +67,13 @@ export function TeamAdminLayout({ team, currentTab, children }: TeamAdminLayoutP
       adminOnly: true,
     },
     {
+      id: 'reports',
+      path: paths.teamAdminReports(team.slug),
+      label: t('teams.admin.tabs.reports'),
+      icon: IconFlag,
+      moderation: true,
+    },
+    {
       id: 'settings',
       path: paths.teamSettings(team.slug),
       label: t('teams.admin.tabs.settings'),
@@ -69,8 +82,10 @@ export function TeamAdminLayout({ team, currentTab, children }: TeamAdminLayoutP
     },
   ]
 
-  // Filter tabs based on role
-  const visibleTabs: NavButtonItem[] = tabs.filter((tab) => !tab.adminOnly || isAdmin)
+  // Filter tabs based on role. A platform admin who is not an organizer here only gets the queue.
+  const visibleTabs: NavButtonItem[] = tabs
+    .filter((tab) => !tab.adminOnly || isAdmin)
+    .filter((tab) => !canModerateOnly || tab.moderation)
 
   return (
     <Container size="xl" py="xl">

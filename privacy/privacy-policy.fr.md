@@ -1,6 +1,6 @@
 # Politique de confidentialité
 
-**Dernière mise à jour : 22 septembre 2026**
+**Dernière mise à jour : 24 septembre 2026**
 
 La présente politique de confidentialité décrit la manière dont Pedalons (« nous », « notre », « nos ») collecte, utilise et protège vos données personnelles lorsque vous utilisez notre plateforme (site web, application mobile, extensions pour appareils GPS).
 
@@ -18,6 +18,7 @@ Lors de la création de votre compte, nous collectons :
 - **Nom d'affichage** : choisi par vous, visible par les membres de votre équipe
 - **Photo de profil** (facultatif) : image que vous téléchargez pour personnaliser votre profil. Dans l'application mobile, vous la choisissez dans votre photothèque par le sélecteur du système : l'application ne reçoit que la photo choisie, et n'accède ni à l'appareil photo ni au reste de votre photothèque.
 - **Préférences** : système d'unités (métrique/impérial), langue
+- **Acceptation des conditions d'utilisation** : la date à laquelle vous les avez acceptées à l'inscription, conservée comme preuve de cette acceptation
 
 ### Données d'authentification
 
@@ -72,6 +73,23 @@ Pour vous prévenir de ce qui se passe dans vos équipes (nouvelle sortie, comme
 
 L'application ne demande l'autorisation d'afficher des notifications que lorsque vous le choisissez, jamais à son lancement. Vous pouvez la retirer à tout moment dans les réglages de votre téléphone, ou couper un type de notification depuis vos préférences de notification. Le jeton est supprimé de nos serveurs lorsque vous vous déconnectez de l'application, lorsque Google nous signale qu'il n'est plus valide (application désinstallée, par exemple) et lorsque vous supprimez votre compte.
 
+### Signalements et blocages
+
+Pour permettre la modération (voir la section 6 des conditions d'utilisation), nous enregistrons :
+
+- **Vos signalements** : qui a signalé (vous), ce qui est signalé (le contenu ou le membre, et l'équipe concernée), l'auteur du contenu ou le membre visé, le motif choisi, le message facultatif que vous ajoutez, une **copie du texte signalé** (1 000 caractères au plus) et la décision prise (contenu supprimé ou signalement rejeté, par qui et quand). La copie permet de vérifier la décision même si le contenu a été modifié ou supprimé depuis.
+- **Vos blocages** : qui a bloqué qui, et depuis quand.
+
+Qui y a accès :
+
+- **Votre identité de signaleur** n'est visible **que par l'équipe Pedalons**. Elle n'est jamais montrée aux organisateurs de l'équipe, ni à l'auteur du contenu, ni au membre signalé, et la notification envoyée aux modérateurs n'en contient rien.
+- **Les organisateurs et administrateurs de l'équipe** voient le contenu signalé, son auteur, les motifs et les messages ajoutés, mais pas qui a signalé. Un message peut vous identifier par ce qu'il dit : écrivez-le en sachant qu'ils le liront. Un organisateur visé par un signalement ne le voit pas.
+- **Vos blocages** ne sont visibles que par vous. La personne bloquée n'en est pas informée, et rien dans le service ne le lui révèle.
+
+La notification qui prévient les modérateurs d'un signalement ne contient que le nom de l'équipe, jamais le contenu signalé.
+
+**Filtre de publication** : au moment où vous publiez, votre texte est comparé à une courte liste de termes injurieux ou haineux. S'il en contient un, la publication est refusée et le texte n'est pas enregistré ; ce refus n'a aucune autre conséquence pour votre compte.
+
 ### Données de connexion à des services GPS tiers
 
 Si vous connectez un service GPS externe (Hammerhead, Garmin, Wahoo) :
@@ -108,6 +126,8 @@ Dans votre navigateur web ou application mobile :
 | Vous notifier dans le site et l'application de l'activité de vos équipes | Exécution du contrat |
 | Vous notifier par e-mail, selon vos préférences de notification | Exécution du contrat (réglable à tout moment) |
 | Vous notifier sur votre téléphone (notifications push) | Consentement (autorisation donnée sur le téléphone) |
+| Modérer les contenus : traiter les signalements, appliquer vos blocages, filtrer les termes injurieux à la publication | Exécution du contrat (conditions d'utilisation) et intérêt légitime (protéger les membres) |
+| Conserver la preuve de votre acceptation des conditions d'utilisation | Intérêt légitime |
 | Sécuriser votre compte (détection de sessions suspectes) | Intérêt légitime |
 | Synchroniser vos itinéraires avec des appareils GPS connectés | Consentement (connexion volontaire) |
 | Trier les parcours par distance (filtre « autour de moi » de l'application) | Consentement (autorisation de localisation donnée sur le téléphone) |
@@ -191,6 +211,9 @@ La connexion à des services GPS tiers (Hammerhead, Garmin, Wahoo) implique un t
 | Préférences de notification | Tant que votre compte est actif |
 | Enregistrement du téléphone pour les notifications push | Jusqu'à votre déconnexion de l'application, la désinstallation de l'application ou la suppression de votre compte |
 | Fichiers (images, GPX) | Tant que le contenu associé existe |
+| Date d'acceptation des conditions d'utilisation | Tant que votre compte est actif |
+| Blocages | Jusqu'à ce que vous débloquiez la personne, ou jusqu'à la suppression du compte de l'un de vous deux |
+| Signalements, copie du texte signalé et décision | Tant que le compte de la personne visée existe, pour garder la trace des décisions de modération ; à la suppression du compte du signaleur, conservés sans lien avec lui (voir section 7) |
 | Données après suppression de compte | Effacement immédiat ; disparition des sauvegardes sous 30 jours (voir section 7) |
 
 ---
@@ -211,7 +234,7 @@ Conformément au Règlement Général sur la Protection des Données (RGPD), vou
 
 Les droits d'accès et de portabilité s'exercent vous-même, sans nous écrire : depuis le site web, dans **Profil → Vos données**, choisissez « Télécharger mes données ». Nous préparons une archive ZIP et vous envoyons un lien de téléchargement par email. Cette fonction n'est pas encore proposée dans l'application mobile ; le lien reçu par email fonctionne en revanche sur tous vos appareils.
 
-L'archive contient votre profil, vos équipes, vos inscriptions, tout ce que vous avez publié, vos notifications, leurs envois, vos préférences de notification et les téléphones enregistrés pour les notifications push, ainsi que vos fichiers (photo de profil, images envoyées, fichiers GPX et FIT de vos parcours). Les données sont au format JSON, structuré et lisible par machine.
+L'archive contient votre profil, vos équipes, vos inscriptions, tout ce que vous avez publié, vos notifications, leurs envois, vos préférences de notification, les téléphones enregistrés pour les notifications push, les membres que vous avez bloqués et les signalements que vous avez faits (sans la copie du texte signalé, qui est le contenu de quelqu'un d'autre), ainsi que vos fichiers (photo de profil, images envoyées, fichiers GPX et FIT de vos parcours). Les données sont au format JSON, structuré et lisible par machine.
 
 Pour des raisons de sécurité, les éléments d'identification en sont exclus : hachage de votre mot de passe, jetons de session, matériel cryptographique de vos clés d'accès, jeton de votre calendrier, jetons d'accès à vos services GPS connectés et jetons d'enregistrement de vos téléphones pour les notifications push. Leurs métadonnées (dates, appareils, services concernés) sont bien présentes. Le lien de téléchargement expire au bout de **7 jours**, après quoi l'archive est supprimée de nos serveurs. Un export par heure et par compte.
 
@@ -224,7 +247,7 @@ Vous pouvez supprimer votre compte vous-même, à tout moment, sans nous écrire
 
 Si vous n'avez plus accès à votre compte ou à l'application, écrivez-nous depuis l'adresse e-mail de votre compte à **privacy@pedalons.fr** en demandant sa suppression ; nous la traiterons dans un délai de 30 jours.
 
-La suppression est irréversible et immédiate. Dès votre confirmation, votre compte est désactivé et vos données personnelles sont effacées : adresse e-mail, nom, photo de profil, mot de passe et clés d'accès, sessions, préférences, services GPS connectés, appartenance aux équipes, inscriptions aux sorties et voyages à venir, petites annonces et leurs photos, commentaires, notifications, enregistrement de vos téléphones pour les notifications push, exports de données et aperçus GPX.
+La suppression est irréversible et immédiate. Dès votre confirmation, votre compte est désactivé et vos données personnelles sont effacées : adresse e-mail, nom, photo de profil, mot de passe et clés d'accès, sessions, préférences, services GPS connectés, appartenance aux équipes, inscriptions aux sorties et voyages à venir, petites annonces et leurs photos, commentaires, notifications, enregistrement de vos téléphones pour les notifications push, exports de données et aperçus GPX. Les blocages sont supprimés dans les deux sens, ceux que vous aviez faits comme ceux qui vous visaient, et les signalements qui vous visent sont supprimés avec la copie de votre contenu qu'ils contenaient. Les signalements que vous avez faits sont conservés, sans plus aucun lien avec vous, pour que les décisions prises restent vérifiables.
 
 Ce que vous avez publié pour une équipe (sorties, voyages, parcours, posts et leurs fichiers) appartient à cette équipe et reste en ligne. Ces contenus sont désormais attribués à « Ancien membre » et ne sont plus rattachés à aucune donnée permettant de vous identifier. De même, un commentaire auquel d'autres membres ont répondu est conservé vide, avec la mention « Commentaire supprimé », pour que leurs réponses ne disparaissent pas avec lui. Vos inscriptions aux sorties passées sont conservées sous la même forme anonyme et ne sont plus affichées.
 

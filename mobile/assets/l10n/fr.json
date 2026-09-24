@@ -88,6 +88,12 @@
       "generic": "Erreur: {error}",
       "INVALID_CREDENTIALS": "Email ou mot de passe incorrect",
       "PASSWORD_NOT_SET": "Aucun mot de passe défini. Un code de réinitialisation a été envoyé à votre email."
+    },
+    "terms": {
+      "accept": "J'accepte les conditions d'utilisation : aucune tolérance pour les contenus injurieux ni pour les comportements abusifs.",
+      "required": "Acceptez les conditions d'utilisation pour créer un compte.",
+      "read": "Lire les conditions",
+      "privacy": "Confidentialité"
     }
   },
   "common": {
@@ -810,7 +816,8 @@
       "delete": "Supprimer le compte",
       "deleteTitle": "Voulez-vous vraiment supprimer votre compte ?",
       "deleteMessage": "Cette action est irréversible. Vos données personnelles seront effacées immédiatement. Les sorties, parcours et posts publiés pour une équipe resteront en ligne, attribués à « Ancien membre », et un commentaire qui a reçu des réponses restera affiché vide."
-    }
+    },
+    "community": "Communauté"
   },
   "notifications": {
     "title": "Notifications",
@@ -845,7 +852,8 @@
       "RIDE_JOINED": "{actor} s'est inscrit à une sortie",
       "COMMENT_ON_MY_PUBLICATION": "{actor} a commenté votre publication",
       "TEAM_INVITATION": "{actor} vous invite à rejoindre {team}",
-      "RIDE_UPDATED": "Une sortie a été modifiée"
+      "RIDE_UPDATED": "Une sortie a été modifiée",
+      "CONTENT_REPORTED": "Nouveau signalement dans {team}"
     },
     "typeLabel": {
       "RIDE_PUBLISHED": "Sortie publiée",
@@ -1016,7 +1024,10 @@
       "USER_NOT_FOUND": "Utilisateur introuvable",
       "USER_NOT_SYNCED": "Le compte utilisateur n'est pas synchronisé",
       "VALIDATION": "Les données fournies sont invalides",
-      "WEBHOOK_URL_INVALID": "Cette adresse de webhook n'est pas acceptée : elle doit commencer par https:// et pointer vers un service public."
+      "WEBHOOK_URL_INVALID": "Cette adresse de webhook n'est pas acceptée : elle doit commencer par https:// et pointer vers un service public.",
+      "CONTENT_REJECTED": "Ce texte contient des termes interdits sur Pédalons. Reformulez-le pour publier.",
+      "REPORT_SELF": "Vous ne pouvez pas signaler votre propre contenu.",
+      "BLOCK_SELF": "Vous ne pouvez pas vous bloquer vous-même."
     },
     "outdated": {
       "title": "Mise à jour requise",
@@ -1147,6 +1158,52 @@
       "line": "{inviter} vous invite à rejoindre {team}.",
       "accept": "Accepter",
       "accepting": "Acceptation…"
+    }
+  },
+  "moderation": {
+    "more": "Plus d'actions",
+    "report": "Signaler",
+    "reportMember": "Signaler ce membre",
+    "block": "Bloquer {name}",
+    "reportTitle": {
+      "COMMENT": "Signaler ce commentaire",
+      "POST": "Signaler cette publication",
+      "AD": "Signaler cette annonce",
+      "RIDE": "Signaler cette sortie",
+      "TRIP": "Signaler ce voyage",
+      "ROUTE": "Signaler ce parcours",
+      "MEMBER": "Signaler {name}"
+    },
+    "reasonPrompt": "Pour quelle raison ?",
+    "reason": {
+      "SPAM": "Spam ou publicité",
+      "HARASSMENT": "Harcèlement ou intimidation",
+      "HATE": "Propos haineux",
+      "SEXUAL": "Contenu sexuel",
+      "VIOLENCE": "Violence ou menaces",
+      "ILLEGAL": "Contenu illégal",
+      "INAPPROPRIATE_IMAGE": "Image inappropriée",
+      "OTHER": "Autre raison"
+    },
+    "messageHint": "Précisez si besoin (facultatif)",
+    "recipients": "Transmis aux organisateurs de {team} et à l'équipe Pédalons.",
+    "recipientsNoTeam": "Transmis aux organisateurs de l'équipe et à l'équipe Pédalons.",
+    "send": "Envoyer",
+    "sending": "Envoi…",
+    "reported": "Merci. Ce contenu est masqué pour vous.",
+    "memberReported": "Merci. Votre signalement a été transmis.",
+    "blockTitle": "Bloquer {name} ?",
+    "blockMessage": "Vous ne verrez plus ses commentaires, publications et annonces, ni les notifications de ses commentaires. {name} n'en sera pas prévenu.",
+    "blockConfirm": "Bloquer",
+    "blocked": "Vous avez bloqué {name}.",
+    "unblock": "Débloquer",
+    "unblockSemantic": "Débloquer {name}",
+    "unblocked": "Vous avez débloqué {name}.",
+    "blockedUsers": {
+      "title": "Utilisateurs bloqués",
+      "hint": "Vous ne voyez plus leurs commentaires, publications et annonces. Ils ne savent pas que vous les avez bloqués.",
+      "emptyTitle": "Aucun utilisateur bloqué",
+      "emptyMessage": "Pour bloquer quelqu'un, touchez ⋯ sur l'un de ses commentaires ou de ses annonces, ou son nom dans la liste des membres."
     }
   }
 }

@@ -16,6 +16,7 @@ import '../../../../core/widgets/media_attachments.dart';
 import '../../../../core/widgets/team_banner.dart';
 import '../../../auth/domain/auth_state.dart';
 import '../../../auth/providers/auth_provider.dart';
+import '../../../moderation/presentation/moderation_menu.dart';
 import '../../data/ad_repository.dart';
 import '../widgets/ad_contact_sheet.dart';
 import '../widgets/ad_location_map.dart';
@@ -132,6 +133,26 @@ class _AdDetailContentState extends ConsumerState<_AdDetailContent> {
         // dessous. Le répéter en 17 dans la barre le dit deux fois.
         onBack: () => Navigator.of(context).maybePop(),
         backSemanticLabel: 'ads.title'.tr(),
+        // Sa propre annonce ne se signale pas et son auteur ne se bloque
+        // pas : le menu serait vide, le bouton n'existe donc pas.
+        actions: <Widget>[
+          if (currentUserId != null && currentUserId != ad.createdById)
+            PdlAppBarAction(
+              icon: PdlIcons.more,
+              semanticLabel: 'moderation.more'.tr(),
+              onPressed: () => showDetailModerationMenu(
+                context,
+                subject: ModerationSubject(
+                  teamSlug: ad.team.slug,
+                  type: ReportTargetType.ad,
+                  id: ad.id,
+                  teamName: ad.team.name,
+                ),
+                blockUserId: ad.createdById,
+                blockUserName: ad.createdByDisplayName,
+              ),
+            ),
+        ],
       ),
       body: CustomScrollView(
         slivers: <Widget>[

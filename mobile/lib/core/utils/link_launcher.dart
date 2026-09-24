@@ -73,6 +73,7 @@ final Map<String, List<String>> internalRouteTemplates = <String, List<String>>{
   'terms': PathVariants.terms().values.toList(),
   'profile': PathVariants.profile().values.toList(),
   'myParticipations': PathVariants.myParticipations().values.toList(),
+  'blockedUsers': PathVariants.blockedUsers().values.toList(),
   'notifications': PathVariants.notifications().values.toList(),
   'calendar': PathVariants.calendar().values.toList(),
   'allRoutes': PathVariants.allRoutes().values.toList(),
@@ -197,6 +198,26 @@ Future<LinkOutcome> openLink(BuildContext context, String href) async {
     return LinkOutcome.refused;
   }
   return LinkOutcome.external;
+}
+
+/// Ouvre une page **du site** que l'app ne sait pas afficher — la file de
+/// signalements d'une équipe, par exemple.
+///
+/// Dans le navigateur intégré et non par [openLink] : le domaine est celui
+/// des liens d'app, et une adresse `/teams/*` confiée au système reviendrait
+/// dans l'app — sur une route qu'elle n'a pas. `false` si le système a
+/// refusé, ce que l'appelant peut dire.
+Future<bool> openWebPage(String path) async {
+  final Uri url = Uri.parse(
+    '${AppConfig.deepLinkScheme}://${AppConfig.deepLinkHost}$path',
+  );
+  try {
+    return await (debugLinkOpener ??
+        (Uri u) => launchUrl(u, mode: LaunchMode.inAppBrowserView))(url);
+  } on Object catch (error) {
+    debugPrint('openWebPage: $url refusé par le système ($error)');
+    return false;
+  }
 }
 
 /// Le bandeau du troisième temps : `warn`, **l'URL en clair**, et de quoi la

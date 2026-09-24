@@ -95,5 +95,12 @@ public enum ErrorCode {
   TEAM_INVITE_DELIVERY_FAILED,
   // Team webhook
   /** Not an https URL, or one that points at a private or local address. */
-  WEBHOOK_URL_INVALID
+  WEBHOOK_URL_INVALID,
+  // Reporting and blocking
+  /** A member reported themselves, or their own content. */
+  REPORT_SELF,
+  /** A member tried to block themselves. */
+  BLOCK_SELF,
+  /** A text failed the publication filter (see TextFilter). */
+  CONTENT_REJECTED
 }

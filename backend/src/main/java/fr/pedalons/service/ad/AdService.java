@@ -237,6 +237,7 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
   public AdEditDto undeleteAd(String teamSlug, String adSlug) {
     Team team = teamService.getTeam(teamSlug);
     Ad ad = findBySlugIncludeDeleted(team, adSlug);
+    requireNotRemovedByModeration(ad);
     ad.setDeleted(false);
     adRepository.persist(ad);
     return AdEditDto.from(ad, assetService);

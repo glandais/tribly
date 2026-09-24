@@ -1375,4 +1375,84 @@ public class TestDataService {
   public void updateUserExport(fr.pedalons.domain.user.UserExport export) {
     userExportRepository.getEntityManager().merge(export);
   }
+
+  // ------------------------------------------------------------------ moderation
+
+  @Inject fr.pedalons.repository.moderation.ContentReportRepository contentReportRepository;
+  @Inject fr.pedalons.repository.moderation.UserBlockRepository userBlockRepository;
+
+  /** An open report, filed without going through the API (no auto-hide, no notification). */
+  @Transactional
+  public fr.pedalons.domain.moderation.ContentReport createReport(
+      Team team,
+      User reporter,
+      ReportTargetType targetType,
+      Long targetId,
+      User targetUser,
+      ReportReason reason) {
+    fr.pedalons.domain.moderation.ContentReport report =
+        new fr.pedalons.domain.moderation.ContentReport(
+            team.getDomain(),
+            team,
+            reporter,
+            targetType,
+            targetId,
+            targetUser,
+            reason,
+            null,
+            "excerpt");
+    contentReportRepository.persistAndFlush(report);
+    return report;
+  }
+
+  @Transactional
+  public fr.pedalons.domain.moderation.UserBlock createBlock(User blocker, User blocked) {
+    fr.pedalons.domain.moderation.UserBlock block =
+        new fr.pedalons.domain.moderation.UserBlock(blocker, blocked);
+    userBlockRepository.persistAndFlush(block);
+    return block;
+  }
+
+  /** Status of every report of a target, oldest first. */
+  @Transactional
+  public List<ReportStatus> reportStatuses(ReportTargetType targetType, Long targetId) {
+    return contentReportRepository
+        .list("targetType = ?1 and targetId = ?2 order by createdAt", targetType, targetId)
+        .stream()
+        .map(fr.pedalons.domain.moderation.ContentReport::getStatus)
+        .toList();
+  }
+
+  @Transactional
+  public long reportCount() {
+    return contentReportRepository.count();
+  }
+
+  @Transactional
+  public boolean isBlocked(User blocker, User blocked) {
+    return userBlockRepository.isBlocked(blocker.getId(), blocked.getId());
+  }
+
+  /** The reloaded moderation state of a publication: {@code [deleted, hidden]}. */
+  @Transactional
+  public boolean[] teamEntityState(TeamEntity entity) {
+    TeamEntity reloaded = postRepository.getEntityManager().find(TeamEntity.class, entity.getId());
+    return new boolean[] {reloaded.isDeleted(), reloaded.getModerationHiddenAt() != null};
+  }
+
+  @Transactional
+  public @Nullable Comment findComment(Long id) {
+    return commentRepository.findById(id);
+  }
+
+  @Transactional
+  public void hideForModeration(TeamEntity entity) {
+    TeamEntity reloaded = postRepository.getEntityManager().find(TeamEntity.class, entity.getId());
+    reloaded.setModerationHiddenAt(Instant.now());
+  }
+
+  @Transactional
+  public void hideCommentForModeration(Comment comment) {
+    commentRepository.findById(comment.getId()).setModerationHiddenAt(Instant.now());
+  }
 }

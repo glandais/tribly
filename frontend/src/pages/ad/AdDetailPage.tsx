@@ -47,10 +47,11 @@ import { DetailPageSkeleton } from '../../components/common/DetailPageSkeleton'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
+import { ContentActionsMenu } from '../../components/moderation/ContentActionsMenu'
 import { TeamContextBanner } from '../../components/team/TeamContextBanner'
 import { FormattedDateTime } from '../../components/common/FormattedDate'
 import { paths } from '@/config/paths'
-import { AdType, RentalPeriod, Status } from '../../api/dto'
+import { AdType, RentalPeriod, ReportTargetType, Status } from '../../api/dto'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useAdDetailData } from './adDetailData'
 
@@ -229,55 +230,65 @@ export function AdDetailPage() {
             </Stack>
           </Group>
 
-          {canEdit && (
-            <Button.Group>
-              <Button
-                component={PrefetchLink}
-                to={paths.adEdit(teamSlug!, adSlug!)}
-                variant="default"
-                leftSection={<IconPencil size={16} />}
-              >
-                {t('actions.edit')}
-              </Button>
-              <Menu position="bottom-end">
-                <Menu.Target>
-                  <Button variant="default" px="xs">
-                    <IconChevronDown size={16} />
-                  </Button>
-                </Menu.Target>
-                <Menu.Dropdown>
-                  {ad.status === Status.DRAFT && (
-                    <Menu.Item
-                      onClick={handlePublish}
-                      disabled={updateMutation.isPending}
-                      color="success"
-                      leftSection={updateMutation.isPending ? <Loader size="sm" /> : undefined}
-                    >
-                      {t('actions.publish')}
+          <Group gap="xs" wrap="nowrap">
+            {canEdit && (
+              <Button.Group>
+                <Button
+                  component={PrefetchLink}
+                  to={paths.adEdit(teamSlug!, adSlug!)}
+                  variant="default"
+                  leftSection={<IconPencil size={16} />}
+                >
+                  {t('actions.edit')}
+                </Button>
+                <Menu position="bottom-end">
+                  <Menu.Target>
+                    <Button variant="default" px="xs">
+                      <IconChevronDown size={16} />
+                    </Button>
+                  </Menu.Target>
+                  <Menu.Dropdown>
+                    {ad.status === Status.DRAFT && (
+                      <Menu.Item
+                        onClick={handlePublish}
+                        disabled={updateMutation.isPending}
+                        color="success"
+                        leftSection={updateMutation.isPending ? <Loader size="sm" /> : undefined}
+                      >
+                        {t('actions.publish')}
+                      </Menu.Item>
+                    )}
+                    {ad.status === Status.PUBLISHED && (
+                      <Menu.Item onClick={() => setShowUnpublishConfirm(true)} color="warning">
+                        {t('actions.unpublish')}
+                      </Menu.Item>
+                    )}
+                    {ad.deleted && (
+                      <Menu.Item
+                        onClick={handleRestore}
+                        color="green"
+                        disabled={undeleteMutation.isPending}
+                      >
+                        {t('actions.restore')}
+                      </Menu.Item>
+                    )}
+                    <Menu.Divider />
+                    <Menu.Item onClick={() => setShowDeleteConfirm(true)} color="danger">
+                      {t('actions.delete')}
                     </Menu.Item>
-                  )}
-                  {ad.status === Status.PUBLISHED && (
-                    <Menu.Item onClick={() => setShowUnpublishConfirm(true)} color="warning">
-                      {t('actions.unpublish')}
-                    </Menu.Item>
-                  )}
-                  {ad.deleted && (
-                    <Menu.Item
-                      onClick={handleRestore}
-                      color="green"
-                      disabled={undeleteMutation.isPending}
-                    >
-                      {t('actions.restore')}
-                    </Menu.Item>
-                  )}
-                  <Menu.Divider />
-                  <Menu.Item onClick={() => setShowDeleteConfirm(true)} color="danger">
-                    {t('actions.delete')}
-                  </Menu.Item>
-                </Menu.Dropdown>
-              </Menu>
-            </Button.Group>
-          )}
+                  </Menu.Dropdown>
+                </Menu>
+              </Button.Group>
+            )}
+            <ContentActionsMenu
+              teamSlug={ad.team.slug}
+              teamName={ad.team.name}
+              targetType={ReportTargetType.AD}
+              targetId={ad.id}
+              author={{ id: ad.createdById, displayName: ad.createdByDisplayName }}
+              onReported={() => navigate(paths.ads(ad.team.slug))}
+            />
+          </Group>
         </Group>
 
         {/* Price */}

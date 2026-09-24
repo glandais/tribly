@@ -283,6 +283,7 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
   public TripDto undeleteTrip(String teamSlug, String tripSlug) {
     Team team = teamService.getTeam(teamSlug);
     Trip trip = findBySlugIncludeDeleted(team, tripSlug);
+    requireNotRemovedByModeration(trip);
     trip.setDeleted(false);
     tripRepository.persist(trip);
     return toDto(trip);

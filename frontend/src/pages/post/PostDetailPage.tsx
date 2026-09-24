@@ -27,12 +27,13 @@ import {
 } from '../../api/endpoints/posts/posts'
 import { usePostDetailData } from './postDetailData'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
-import { Status } from '../../api/dto'
+import { ReportTargetType, Status } from '../../api/dto'
 import { QueryStateBoundary } from '../../components/common/QueryStateBoundary'
 import { DetailPageSkeleton } from '../../components/common/DetailPageSkeleton'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
+import { ContentActionsMenu } from '../../components/moderation/ContentActionsMenu'
 import { CommentSection } from '../../components/comment'
 import { TeamContextBanner } from '../../components/team/TeamContextBanner'
 import { useFormattedDate } from '../../utils/dateFormat'
@@ -198,65 +199,74 @@ export function PostDetailPage() {
               </Badge>
             </Group>
 
-            {canEdit && (
-              <Button.Group>
-                <Button
-                  component={PrefetchLink}
-                  to={paths.postEdit(teamSlug!, postSlug!)}
-                  variant="outline"
-                  leftSection={<IconPencil size={16} />}
-                >
-                  {t('actions.edit')}
-                </Button>
-                <Menu position="bottom-end">
-                  <Menu.Target>
-                    <Button variant="outline" px="xs">
-                      <IconChevronDown size={16} />
-                    </Button>
-                  </Menu.Target>
-                  <Menu.Dropdown>
-                    {post.status === Status.DRAFT && (
-                      <Menu.Item
-                        onClick={handlePublish}
-                        disabled={updateMutation.isPending}
-                        color="success"
-                        leftSection={updateMutation.isPending ? <Loader size="sm" /> : undefined}
-                      >
-                        {t('actions.publish')}
-                      </Menu.Item>
-                    )}
-                    {post.status === Status.PUBLISHED && (
-                      <>
-                        <Menu.Item onClick={() => setShowUnpublishConfirm(true)} color="warning">
-                          {t('actions.unpublish')}
+            <Group gap="xs" wrap="nowrap">
+              {canEdit && (
+                <Button.Group>
+                  <Button
+                    component={PrefetchLink}
+                    to={paths.postEdit(teamSlug!, postSlug!)}
+                    variant="outline"
+                    leftSection={<IconPencil size={16} />}
+                  >
+                    {t('actions.edit')}
+                  </Button>
+                  <Menu position="bottom-end">
+                    <Menu.Target>
+                      <Button variant="outline" px="xs">
+                        <IconChevronDown size={16} />
+                      </Button>
+                    </Menu.Target>
+                    <Menu.Dropdown>
+                      {post.status === Status.DRAFT && (
+                        <Menu.Item
+                          onClick={handlePublish}
+                          disabled={updateMutation.isPending}
+                          color="success"
+                          leftSection={updateMutation.isPending ? <Loader size="sm" /> : undefined}
+                        >
+                          {t('actions.publish')}
                         </Menu.Item>
-                        <Menu.Item onClick={() => setShowCancelConfirm(true)} color="warning">
-                          {t('actions.cancelAction')}
+                      )}
+                      {post.status === Status.PUBLISHED && (
+                        <>
+                          <Menu.Item onClick={() => setShowUnpublishConfirm(true)} color="warning">
+                            {t('actions.unpublish')}
+                          </Menu.Item>
+                          <Menu.Item onClick={() => setShowCancelConfirm(true)} color="warning">
+                            {t('actions.cancelAction')}
+                          </Menu.Item>
+                        </>
+                      )}
+                      {post.status === Status.CANCELLED && (
+                        <Menu.Item onClick={() => setShowUncancelConfirm(true)} color="green">
+                          {t('posts.detail.actions.uncancel')}
                         </Menu.Item>
-                      </>
-                    )}
-                    {post.status === Status.CANCELLED && (
-                      <Menu.Item onClick={() => setShowUncancelConfirm(true)} color="green">
-                        {t('posts.detail.actions.uncancel')}
+                      )}
+                      {post.deleted && (
+                        <Menu.Item
+                          onClick={handleRestore}
+                          color="green"
+                          disabled={undeleteMutation.isPending}
+                        >
+                          {t('actions.restore')}
+                        </Menu.Item>
+                      )}
+                      <Menu.Divider />
+                      <Menu.Item onClick={() => setShowDeleteConfirm(true)} color="danger">
+                        {t('actions.delete')}
                       </Menu.Item>
-                    )}
-                    {post.deleted && (
-                      <Menu.Item
-                        onClick={handleRestore}
-                        color="green"
-                        disabled={undeleteMutation.isPending}
-                      >
-                        {t('actions.restore')}
-                      </Menu.Item>
-                    )}
-                    <Menu.Divider />
-                    <Menu.Item onClick={() => setShowDeleteConfirm(true)} color="danger">
-                      {t('actions.delete')}
-                    </Menu.Item>
-                  </Menu.Dropdown>
-                </Menu>
-              </Button.Group>
-            )}
+                    </Menu.Dropdown>
+                  </Menu>
+                </Button.Group>
+              )}
+              <ContentActionsMenu
+                teamSlug={post.team.slug}
+                teamName={post.team.name}
+                targetType={ReportTargetType.POST}
+                targetId={post.id}
+                onReported={() => navigate(paths.team(post.team.slug))}
+              />
+            </Group>
           </Group>
 
           <Box mt="md">
@@ -290,6 +300,7 @@ export function PostDetailPage() {
         {isMember && (
           <CommentSection
             teamSlug={teamSlug!}
+            teamName={team.name}
             entityType="posts"
             entitySlug={postSlug!}
             isOrganizer={canEdit}

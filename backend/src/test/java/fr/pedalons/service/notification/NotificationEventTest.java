@@ -1,13 +1,17 @@
 package fr.pedalons.service.notification;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import fr.pedalons.enums.NotificationType;
+import fr.pedalons.enums.ReportTargetType;
 import fr.pedalons.service.notification.event.CommentOnPublication;
 import fr.pedalons.service.notification.event.CommentReplied;
+import fr.pedalons.service.notification.event.ContentReported;
 import fr.pedalons.service.notification.event.NotificationEvent;
 import fr.pedalons.service.notification.event.PostPublished;
 import fr.pedalons.service.notification.event.RideCancelled;
@@ -45,6 +49,7 @@ class NotificationEventTest {
       case RIDE_JOINED -> new RideJoined(42);
       case COMMENT_ON_MY_PUBLICATION -> new CommentOnPublication(42);
       case TEAM_INVITATION -> new TeamInvited(42);
+      case CONTENT_REPORTED -> new ContentReported(7, 3, ReportTargetType.COMMENT, 42);
     };
   }
 
@@ -56,8 +61,13 @@ class NotificationEventTest {
 
       assertEquals(recordClass, event.getClass());
       assertEquals(type, event.type());
+      // A report is keyed by its target, which the sample puts at COMMENT 42.
+      String expectedPrefix =
+          type == NotificationType.CONTENT_REPORTED
+              ? type.name() + ":COMMENT:42"
+              : type.name() + ":42";
       assertTrue(
-          event.dedupKey().startsWith(type.name() + ":42"), recordClass + ": " + event.dedupKey());
+          event.dedupKey().startsWith(expectedPrefix), recordClass + ": " + event.dedupKey());
       assertEquals(
           event,
           objectMapper.treeToValue(objectMapper.valueToTree(event), recordClass),
@@ -76,5 +86,27 @@ class NotificationEventTest {
     RideUpdated event = new RideUpdated(42, DATE, null);
     assertEquals(
         event, objectMapper.treeToValue(objectMapper.valueToTree(event), RideUpdated.class));
+  }
+
+  /** Keyed by the target, not the report: a burst of reports on one comment makes one notice. */
+  @Test
+  void reportKey_isTheTarget_andCoalescesWhilePending() {
+    ContentReported first = new ContentReported(1, 3, ReportTargetType.POST, 42);
+    ContentReported second = new ContentReported(2, 3, ReportTargetType.POST, 42);
+
+    assertEquals("CONTENT_REPORTED:3:POST:42", first.dedupKey());
+    assertEquals(first.dedupKey(), second.dedupKey());
+    assertTrue(first.coalescesWhilePending());
+    assertFalse(NotificationType.CONTENT_REPORTED.isRelayedToTeamWebhook());
+    assertTrue(NotificationType.CONTENT_REPORTED.isUrgent());
+  }
+
+  /** A member reported in two teams: each team's moderators must hear of it. */
+  @Test
+  void reportKey_includesTheTeam() {
+    ContentReported inTeamA = new ContentReported(1, 3, ReportTargetType.MEMBER, 42);
+    ContentReported inTeamB = new ContentReported(2, 4, ReportTargetType.MEMBER, 42);
+
+    assertNotEquals(inTeamA.dedupKey(), inTeamB.dedupKey());
   }
 }

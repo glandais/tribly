@@ -1,6 +1,7 @@
 package fr.pedalons.repository.user;
 
 import fr.pedalons.domain.user.User;
+import fr.pedalons.enums.PlatformRole;
 import fr.pedalons.repository.common.BaseRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
@@ -34,5 +35,13 @@ public class UserRepository implements BaseRepository<User> {
             domainId,
             "strava!_%@" + placeholderDomain.toLowerCase())
         .list();
+  }
+
+  /** The live platform administrators of a domain: the moderators of last resort. */
+  public List<User> findPlatformAdmins(Long domainId) {
+    return list(
+        "domain.id = ?1 and platformRole = ?2 and deleted = false",
+        domainId,
+        PlatformRole.PLATFORM_ADMIN);
   }
 }

@@ -2,6 +2,7 @@ package fr.pedalons.dto.rides.request;
 
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.common.request.WithVisibility;
+import fr.pedalons.dto.validation.AcceptableText;
 import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.Visibility;
@@ -19,6 +20,7 @@ public record RideRequest(
     @Schema(description = "Ride name", examples = "Sunday Morning Ride", required = true)
         @NotBlank
         @Size(min = 3, max = 200)
+        @AcceptableText
         String name,
     @Schema(description = "Ride media", required = true) @Valid MediaDto media,
     @Schema(description = "Ride date/time", required = true) Instant dateTime,

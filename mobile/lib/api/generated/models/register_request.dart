@@ -19,6 +19,9 @@ abstract class RegisterRequest with _$RegisterRequest {
 
     /// Password (min 8 chars)
     required String password,
+
+    /// The member accepted the terms of service. Required, and must be true: the sign-up form asks for it with a checkbox.
+    required bool acceptTerms,
   }) = _RegisterRequest;
 
   factory RegisterRequest.fromJson(Map<String, Object?> json) =>

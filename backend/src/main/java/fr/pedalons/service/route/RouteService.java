@@ -585,6 +585,7 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
   public RouteDetailDto undeleteRoute(String teamSlug, String slug) {
     Team team = teamService.getTeam(teamSlug);
     Route route = findBySlugIncludeDeleted(team, slug);
+    requireNotRemovedByModeration(route);
     route.setDeleted(false);
     routeRepository.persist(route);
     return toDto(route);

@@ -58,7 +58,8 @@ class AuthResourceTest extends AbstractResourceTest {
             {
               "email": "newuser@example.com",
               "displayName": "New User",
-              "password": "securepass123"
+              "password": "securepass123",
+              "acceptTerms": true
             }
             """)
         .when()
@@ -77,7 +78,8 @@ class AuthResourceTest extends AbstractResourceTest {
             {
               "email": "not-an-email",
               "displayName": "Test",
-              "password": "securepass123"
+              "password": "securepass123",
+              "acceptTerms": true
             }
             """)
         .when()
@@ -97,7 +99,8 @@ class AuthResourceTest extends AbstractResourceTest {
             {
               "email": "existing@example.com",
               "displayName": "Test",
-              "password": "securepass123"
+              "password": "securepass123",
+              "acceptTerms": true
             }
             """)
         .when()
@@ -105,6 +108,65 @@ class AuthResourceTest extends AbstractResourceTest {
         .then()
         .statusCode(400)
         .body("code", equalTo("EMAIL_ALREADY_EXISTS"));
+  }
+
+  @Test
+  void register_withoutAcceptingTheTerms_shouldReturn400() {
+    given()
+        .contentType(ContentType.JSON)
+        .body(
+            """
+            {
+              "email": "noterms@example.com",
+              "displayName": "No Terms",
+              "password": "securepass123"
+            }
+            """)
+        .when()
+        .post("/api/auth/register")
+        .then()
+        .statusCode(400)
+        .body("code", equalTo("VALIDATION"));
+
+    given()
+        .contentType(ContentType.JSON)
+        .body(
+            """
+            {
+              "email": "noterms@example.com",
+              "displayName": "No Terms",
+              "password": "securepass123",
+              "acceptTerms": false
+            }
+            """)
+        .when()
+        .post("/api/auth/register")
+        .then()
+        .statusCode(400)
+        .body("code", equalTo("VALIDATION"));
+
+    assertThat(mailbox.getMailsSentTo("noterms@example.com").size(), is(0));
+  }
+
+  @Test
+  void register_withAnOffensiveDisplayName_shouldReturnContentRejected() {
+    given()
+        .contentType(ContentType.JSON)
+        .body(
+            """
+            {
+              "email": "rude@example.com",
+              "displayName": "Gros connard",
+              "password": "securepass123",
+              "acceptTerms": true
+            }
+            """)
+        .when()
+        .post("/api/auth/register")
+        .then()
+        .statusCode(400)
+        .body("code", equalTo("CONTENT_REJECTED"))
+        .body("errorDetails.fieldErrors[0].field", equalTo("displayName"));
   }
 
   @Test
@@ -457,7 +519,8 @@ class AuthResourceTest extends AbstractResourceTest {
             {
               "email": "pwdregister@example.com",
               "displayName": "Pwd User",
-              "password": "mypassword123"
+              "password": "mypassword123",
+              "acceptTerms": true
             }
             """)
         .when()
@@ -474,6 +537,7 @@ class AuthResourceTest extends AbstractResourceTest {
                 domain.getId())
             .orElseThrow();
     assertThat(token.getPendingPasswordHash(), is(notNullValue()));
+    assertThat(token.getPendingTermsAcceptedAt(), is(notNullValue()));
   }
 
   @Test
@@ -492,6 +556,25 @@ class AuthResourceTest extends AbstractResourceTest {
 
     User user = dataService.findUserByEmail("pwdverify@example.com");
     assertThat(user.getPasswordHash(), is(notNullValue()));
+    // The terms were accepted on the sign-up form that issued the token.
+    assertThat(user.getTermsAcceptedAt(), is(notNullValue()));
+  }
+
+  /** A token issued before the form asked: the account must not record a consent never given. */
+  @Test
+  void verifyEmail_withATokenIssuedBeforeTheTermsCheckbox_recordsNoAcceptance() {
+    createVerificationToken("legacyterms@example.com", "Legacy Terms", "legacy-terms-token");
+
+    given()
+        .contentType(ContentType.JSON)
+        .body("{\"token\": \"legacy-terms-token\"}")
+        .when()
+        .post("/api/auth/verify-email")
+        .then()
+        .statusCode(200);
+
+    User user = dataService.findUserByEmail("legacyterms@example.com");
+    assertThat(user.getTermsAcceptedAt(), is(nullValue()));
   }
 
   // --- Forgot password tests ---
@@ -757,6 +840,8 @@ class AuthResourceTest extends AbstractResourceTest {
     authToken.setPendingDomainId(domain.getId());
     authToken.setPendingPasswordHash(
         io.quarkus.elytron.security.common.BcryptUtil.bcryptHash(password));
+    // As register does: the sign-up form's terms checkbox was ticked.
+    authToken.setPendingTermsAcceptedAt(authToken.getCreatedAt());
     authTokenRepository.persist(authToken);
   }
 
