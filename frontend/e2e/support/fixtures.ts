@@ -20,5 +20,17 @@ export const test = base.extend<{ seed: Seed }>({
 
 export { expect } from '@playwright/test'
 
+let counter = 0
+
+/**
+ * A name no other test — nor another run against the same stack — will produce: the suite is fully
+ * parallel, over two projects, and the database outlives a run.
+ */
+export function unique(label: string): string {
+  const { project, workerIndex } = base.info()
+  counter += 1
+  return `${label} ${project.name}-${workerIndex}-${counter}-${Date.now().toString(36)}`
+}
+
 /** `test.use(as('rider'))` — the tests of that block start signed in as that role. */
 export const as = (role: Role) => ({ storageState: storageStatePath(role) })

@@ -1,5 +1,5 @@
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
-import type { AddMemberRequest, TeamDetailDto, TeamRequest } from '../src/api/dto'
+import { existsSync, readFileSync } from 'node:fs'
+import type { AddMemberRequest, TeamDetailDto } from '../src/api/dto'
 import {
   ApiError,
   apiContext,
@@ -8,9 +8,11 @@ import {
   loginWithPassword,
   refresh,
   register,
+  writeFileAtomic,
   writeStorageState,
   type AuthResponse,
 } from './support/api'
+import { teamRequest } from './support/data'
 import { seedPath, stack, storageStatePath, type Role } from './support/stack'
 import type { Seed } from './support/fixtures'
 
@@ -54,7 +56,7 @@ export default async function globalSetup() {
     rider: { email: RIDER.email, displayName: RIDER.displayName, password: RIDER.password },
     team,
   }
-  writeFileSync(seedPath, JSON.stringify(seed, null, 2))
+  writeFileAtomic(seedPath, JSON.stringify(seed, null, 2))
 }
 
 async function assertStackUp() {
@@ -89,17 +91,7 @@ async function ensureTeam(admin: AuthResponse): Promise<Seed['team']> {
   try {
     // A team is always born TEAM-visible; only a platform admin may then open it to the public.
     // The PUT runs on every setup, so a team whose creation was interrupted is still made public.
-    const request: TeamRequest = {
-      name: TEAM.name,
-      visibility: 'TEAM',
-      media: { markdown: '', assets: { images: [], attachments: [] } },
-      enableTrips: true,
-      enableAds: true,
-      enablePosts: true,
-      enableRides: true,
-      enableRoutes: true,
-      enableMemberDirectory: true,
-    }
+    const request = teamRequest(TEAM.name)
     const existing = await api.get(`/api/teams/${TEAM.slug}`)
     const slug = existing.ok()
       ? TEAM.slug

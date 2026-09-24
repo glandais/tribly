@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { mkdirSync, renameSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { request, type APIRequestContext, type APIResponse } from '@playwright/test'
 import { linkTokenIn, mailbox, otpCodeIn, waitForNewMail } from './mailhog'
@@ -122,8 +122,7 @@ export async function refresh(refreshToken: string): Promise<AuthResponse | null
  */
 export function writeStorageState(path: string, refreshToken: string) {
   const { hostname } = new URL(stack.baseURL)
-  mkdirSync(dirname(path), { recursive: true })
-  writeFileSync(
+  writeFileAtomic(
     path,
     JSON.stringify(
       {
@@ -145,4 +144,15 @@ export function writeStorageState(path: string, refreshToken: string) {
       2
     )
   )
+}
+
+/**
+ * Several Playwright runs may share one stack, each running global-setup: a reader must never see a
+ * half-written session or seed file.
+ */
+export function writeFileAtomic(path: string, content: string) {
+  mkdirSync(dirname(path), { recursive: true })
+  const tmp = `${path}.${process.pid}.tmp`
+  writeFileSync(tmp, content)
+  renameSync(tmp, path)
 }
