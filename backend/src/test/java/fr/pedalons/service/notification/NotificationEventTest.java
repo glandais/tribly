@@ -61,10 +61,10 @@ class NotificationEventTest {
 
       assertEquals(recordClass, event.getClass());
       assertEquals(type, event.type());
-      // A report is keyed by its target, which the sample puts at COMMENT 42.
+      // A report is keyed by its team and its target, which the sample puts at team 3, COMMENT 42.
       String expectedPrefix =
           type == NotificationType.CONTENT_REPORTED
-              ? type.name() + ":COMMENT:42"
+              ? type.name() + ":3:COMMENT:42"
               : type.name() + ":42";
       assertTrue(
           event.dedupKey().startsWith(expectedPrefix), recordClass + ": " + event.dedupKey());

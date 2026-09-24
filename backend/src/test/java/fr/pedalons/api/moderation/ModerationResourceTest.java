@@ -26,6 +26,7 @@ import fr.pedalons.enums.ReportTargetType;
 import fr.pedalons.enums.TeamRole;
 import fr.pedalons.enums.Visibility;
 import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -256,10 +257,24 @@ class ModerationResourceTest extends AbstractResourceTest {
         .statusCode(204);
     String undelete = "/api/teams/" + team1Slug + "/posts/" + post.getSlug() + "/undelete";
 
-    given().auth().oauth2(getAccessToken(USER1)).when().post(undelete).then().statusCode(403);
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .contentType(ContentType.JSON)
+        .when()
+        .post(undelete)
+        .then()
+        .statusCode(403);
     assertArrayEquals(new boolean[] {true, false}, dataService.teamEntityState(post));
 
-    given().auth().oauth2(getAccessToken(ADMIN)).when().post(undelete).then().statusCode(200);
+    given()
+        .auth()
+        .oauth2(getAccessToken(ADMIN))
+        .contentType(ContentType.JSON)
+        .when()
+        .post(undelete)
+        .then()
+        .statusCode(200);
     assertArrayEquals(new boolean[] {false, false}, dataService.teamEntityState(post));
   }
 
