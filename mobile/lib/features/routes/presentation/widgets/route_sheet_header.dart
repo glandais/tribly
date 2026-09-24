@@ -124,8 +124,9 @@ class RouteSheetHeader extends ConsumerWidget {
 
   /// Distance · D+ (vert) · D− (rouge, **affiché négatif**).
   ///
-  /// Le contrat rend `elevationLoss` positif ; l'écrire tel quel à côté d'un D+
-  /// de même signe se lit comme deux montées.
+  /// Le serveur rend `elevationLoss` **négatif** (toutes les lignes en base) ;
+  /// on affiche sa valeur absolue derrière notre propre « − », sans quoi il
+  /// sortait « −-1108 m ». `abs()` tient aussi si le signe change un jour.
   List<PdlStat> _stats(UnitSystem units, {required bool big}) => <PdlStat>[
     PdlStat(
       value: AppFormatters.formatDistance(route.distance, units),
@@ -141,7 +142,8 @@ class RouteSheetHeader extends ConsumerWidget {
       trend: PdlStatTrend.up,
     ),
     PdlStat(
-      value: '−${AppFormatters.formatElevation(route.elevationLoss, units)}',
+      value:
+          '−${AppFormatters.formatElevation(route.elevationLoss.abs(), units)}',
       icon: PdlIcons.elevationDown,
       label: big ? 'units.elevationLossLong'.tr() : null,
       big: big,
