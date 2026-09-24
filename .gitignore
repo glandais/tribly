@@ -102,3 +102,6 @@ frontend/*.pem
 
 # Crawl account passwords for scripts/ssr-audit.mjs — never commit
 scripts/.env.users
+
+# asc CLI local state (metadata review artifacts, apply reports)
+.asc/

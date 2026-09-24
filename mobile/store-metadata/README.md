@@ -35,7 +35,41 @@ Editing the CSV: every row of the Console template is kept, answered or not, bec
 expects the full questionnaire. Start from a fresh export if Google adds questions.
 
 Listing copy and screenshots live elsewhere and are not duplicated here:
-`mobile/android/fastlane/metadata/` (Play) and App Store Connect (iOS).
+`mobile/android/fastlane/metadata/` (Play) and `mobile/metadata/` (App Store, below).
+
+## App Store listing
+
+`mobile/metadata/` holds the App Store copy in `asc`'s canonical layout — `app-info/<locale>.json`
+(name, subtitle, privacy URL) and `version/<version>/<locale>.json` (description, keywords, support
+and marketing URLs), in `fr-FR` (primary) and `en-US` — plus `review-notes.md`, which `asc metadata`
+does not cover. Never `apply` without reading the plan:
+
+```bash
+cd mobile
+asc metadata validate --dir ./metadata
+asc metadata plan     --app 6761760079 --version 1.0.0 --platform IOS --dir ./metadata --review-dir ../.asc/metadata/review
+asc metadata approve  --review-dir ../.asc/metadata/review --all
+asc metadata apply    --app 6761760079 --version 1.0.0 --platform IOS --dir ./metadata --review-dir ../.asc/metadata/review --confirm
+```
+
+Name, subtitle and keywords form **one indexed pool**: never repeat a word across them, keep keywords
+comma-separated without spaces, near 100 characters. The description must only claim what the app
+does (guideline 2.3.1) — no GPX *import* on mobile, for instance. At the next version, rename the
+`version/` folder and add `whatsNew`, which does not exist on a first version.
+
+Set outside `metadata/`, on 24 September 2026: version renamed `1.0` → `1.0.0` (it must match the
+build's `CFBundleShortVersionString`), copyright « 2026 Gabriel Landais », manual release, build 53
+attached, age rating 4+ (all `NONE` but user-generated content and messaging), third-party content
+declared (OpenStreetMap under ODbL, members' content), categories Sports then Health & Fitness, free,
+174 territories (mainland China excluded: it requires an ICP filing). Review contact and demo account
+(`marketplace-tester@pedalons.fr`) were already in place. `asc validate --app 6761760079 --version
+1.0.0 --platform IOS` then reports only the missing screenshots. It checks neither price nor
+Mac/Vision Pro distribution — look at *Pricing and Availability* in the browser.
+
+Pitfalls: adding a locale takes **two** `apply` runs (creating the `app-info` localization makes
+App Store Connect create the version one, and the version half of the same plan fails with "already
+been used" — re-plan and apply again). `review-notes.md` is pushed with
+`asc review details-update --id d8cc0005-f535-4475-a720-a00eeb844adb --notes "$(cat metadata/review-notes.md)"`.
 
 **TODO**: `android/fastlane/metadata/android/en-US/images/phoneScreenshots/` currently reuses the
 `fr-FR` screenshots as a placeholder (French UI copy, dev seed data — "Bonjour, Gaby!", "Publi
