@@ -80,6 +80,11 @@ starts all three by default.
 env vars above `application.properties`, so the full file would override the `%dev` bootstrap domain
 (`localhost`, the WebAuthn origin of dev passkeys).
 
+**End-to-end tests run on a stack of their own**: `scripts/e2e.sh` starts `tribly-e2e` (empty
+database, mail to mailhog only, ports offset so it runs beside `tribly-local`) from
+`docker-compose.yml` + `docker-compose.e2e.yml` and the committed `.env.e2e`. Never point the suite
+at the workstation stack — see [frontend/e2e/README.md](frontend/e2e/README.md).
+
 **`ENV_NAME` names the stack** — containers, network, image tags, and the `${ENV_NAME}-minio` the
 backup scripts inspect. Keep it `tribly-local` on a workstation: a local stack called `…-prod` is
 indistinguishable from the real one in `docker ps` and to `scripts/restore.sh`.

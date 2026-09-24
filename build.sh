@@ -2,6 +2,8 @@
 set -euo pipefail
 
 # What to build: all (default) | frontend | backend
+# ENV_FILE picks another env file than ./.env — its ENV_NAME becomes the image tag (scripts/e2e.sh
+# builds the tribly-e2e images this way).
 TARGET="${1:-all}"
 case "$TARGET" in
   all | frontend | backend) ;;
@@ -14,7 +16,7 @@ esac
 # `export $(... | xargs)` splits values on whitespace, quoted or not, so a display name like
 # "Gaby Landais" would be exported as two broken words. Let the shell parse the file instead.
 set -a
-. ./.env
+. "${ENV_FILE:-./.env}"
 set +a
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

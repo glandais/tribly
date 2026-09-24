@@ -105,3 +105,10 @@ scripts/.env.users
 
 # asc CLI local state (metadata review artifacts, apply reports)
 .asc/
+
+# End-to-end test stack (scripts/e2e.sh): keys, storage and cache of the tribly-e2e backend
+/.e2e/
+# Playwright (frontend/e2e): saved sessions, seed, traces and HTML report
+frontend/e2e/.auth/
+frontend/e2e/.results/
+frontend/e2e/.report/

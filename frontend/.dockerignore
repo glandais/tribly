@@ -30,3 +30,6 @@ coverage/
 
 # Documentation
 docs/
+# Playwright suite: never needed in the image, and e2e/.auth holds live session tokens
+e2e/
+playwright.config.ts

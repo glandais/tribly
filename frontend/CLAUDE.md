@@ -20,6 +20,7 @@ pnpm lint                          # oxlint (includes i18next/no-literal-string 
 pnpm lint:fix                      # oxlint with auto-fix
 pnpm format                        # Prettier
 pnpm test                          # Vitest (watch mode)
+pnpm e2e                           # Playwright against the e2e stack (scripts/e2e.sh up first) — see e2e/README.md
 pnpm i18n:lint                     # Validate i18n keys (checks templated keys have type annotations)
 pnpm i18n:extract                  # Extract new keys from t() and tRegister() calls
 ```

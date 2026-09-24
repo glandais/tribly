@@ -1,0 +1,46 @@
+# End-to-end test overlay for docker-compose.yml. Driven by scripts/e2e.sh, which passes both files,
+# `--env-file .env.e2e` and the project name explicitly — never started by a bare `docker compose`.
+#
+# What it changes, and why:
+#
+#   1. No bind mount into ./data. The workstation stack owns data/storage and data/cache, and two
+#      backends writing the same gpx2web cache corrupt it for good (see DATA_CACHE_PATH in
+#      .env.example). Storage, cache and JWT keys live under .e2e/ instead, which e2e.sh
+#      creates as the invoking user (the backend runs as PUID; a named volume would start root-owned)
+#      and `e2e.sh reset` empties.
+#   2. The backend reads .env.e2e, not the .env next to it — which may be a real one.
+#   3. mailhog, publishing only its HTTP API: the tests read OTP codes and verification links there.
+#   4. valhalla + tileserver are not run: the `shared` network is the workstation stack's, joined
+#      from outside (E2E_SHARED_NETWORK).
+services:
+  backend:
+    env_file: !override
+      - .env.e2e
+    volumes: !override
+      - ./.e2e/storage:/mnt/storage
+      - ./.e2e/keys:/mnt/keys:ro
+      - ./.e2e/cache:/mnt/cache
+
+  # Only ever started by `--profile restore`, which e2e.sh never passes; overridden anyway so no
+  # command can make it read the real .env or the real biketeam backup.
+  backend-restore:
+    env_file: !override
+      - .env.e2e
+    volumes: !override
+      - ./.e2e/storage:/mnt/storage
+      - ./.e2e/keys:/mnt/keys:ro
+      - ./.e2e/cache:/mnt/cache
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: ${ENV_NAME}-mailhog
+    restart: unless-stopped
+    networks:
+      - pedalons
+    ports:
+      - "127.0.0.1:${E2E_MAILHOG_PORT:?set it in .env.e2e}:8025"
+
+networks:
+  shared:
+    name: ${E2E_SHARED_NETWORK:?set it in .env.e2e}
+    external: true
