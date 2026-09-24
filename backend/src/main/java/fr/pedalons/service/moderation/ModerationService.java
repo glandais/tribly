@@ -195,7 +195,13 @@ public class ModerationService {
       case POST, AD, RIDE, TRIP, ROUTE ->
           reportRepository
               .findTeamEntity(team.getId(), targetId)
-              .ifPresent(entity -> entity.setDeleted(true));
+              .ifPresent(
+                  entity -> {
+                    entity.setDeleted(true);
+                    // Decided: the reports no longer hide it. Should a platform admin undelete it,
+                    // no open report is left to dismiss — it must not stay hidden for good.
+                    entity.setModerationHiddenAt(null);
+                  });
     }
   }
 

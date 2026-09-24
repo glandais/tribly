@@ -26,6 +26,23 @@ L'anneau de focus est à 2,74:1 en thème sombre, sous le seuil de 3,0 de SC 1.4
 
 Une préférence de langue enregistrée ne peut jamais l'emporter : caches: ['localStorage'] réécrit la langue détectée avant que src/i18n/index.ts ne relise i18nextLng après init.
 
+**Modération (branche `signalement`) — quatre défauts mineurs, notés sans être corrigés :**
+
+- **File plateforme regroupée par (type, id) seulement** (`ModerationService`) : un membre signalé
+  dans deux équipes devient une seule carte, étiquetée avec la première équipe, et une seule décision
+  clôt les signalements des deux. Regrouper par (type, id, équipe).
+- **Signalements orphelins après suppression** : `REMOVE_CONTENT` sur une publication laisse
+  `OPEN` les signalements de ses commentaires, qui pointent alors vers un contenu supprimé. Les clore
+  en même temps.
+- **Seuil de masquage sous concurrence** (`ReportService`) : le nombre de signalants est compté
+  dans la transaction de chaque signalement. Deux signalements validés au même instant peuvent
+  chacun voir 2 signalants, et le contenu n'est pas masqué avant un 4e. Verrouiller la ligne du
+  contenu (`SELECT … FOR UPDATE`) avant de compter.
+- **Notification de signalements fusionnés** (`NotificationRecipientResolver`) : une rafale de
+  signalements donne une seule notification qui ne connaît que le premier. Seul ce premier signalant
+  est exclu des destinataires, et un organisateur qui vient de signaler est donc notifié de son propre
+  signalement.
+
 ---
 
 ## 1. À recetter sur une application qui tourne
@@ -516,6 +533,8 @@ sont des invariants que le code garde.
 | **Jeu d'icônes Tabler côté mobile** | Material outline conservé | L'écart ne porte que sur la graisse du trait des icônes de badge de 11 px. `PdlIcons` est le **seul** fichier autorisé à nommer `Icons.*` : basculer un jour ne touchera qu'un fichier |
 | **Écran de profil public d'un membre** | Aucune maquette ne va au-delà de la liste | Les lignes du trombinoscope ne sont pas cliquables. Ne pas inventer l'écran |
 | **Édition et création de contenu au mobile** | Hors brief : la v2 est une version de consultation et de participation | Le sélecteur de meneur dans l'éditeur de groupes existe **côté web** (livré hors plan) ; l'équivalent mobile n'est pas ouvert |
+| **Contenu masqué d'un compte effacé** | Reste masqué | L'effacement supprime les signalements visant le membre, mais ne touche pas `moderationHiddenAt` sur ses sorties, parcours, posts et voyages. Ce contenu, masqué par 3 signalements, n'a plus d'entrée dans la file et reste invisible pour les membres. C'est voulu : le démasquer republierait un contenu signalé 3 fois |
+| **`acceptTerms` obligatoire à l'inscription (contrat `4.1.0`)** | Laissé en mineure | Les builds mobiles qui n'envoient pas le champ reçoivent un 400 `VALIDATION` à l'inscription. La rupture est acceptée sans passer en `5.0.0` |
 
 ---
 

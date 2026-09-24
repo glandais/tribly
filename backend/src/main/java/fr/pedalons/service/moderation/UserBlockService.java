@@ -2,7 +2,6 @@ package fr.pedalons.service.moderation;
 
 import fr.pedalons.common.TsidUtils;
 import fr.pedalons.common.exception.BadRequestException;
-import fr.pedalons.domain.moderation.UserBlock;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.dto.users.response.BlockedUsersResponse;
@@ -16,6 +15,7 @@ import fr.pedalons.service.security.annotation.Logged;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import java.time.Instant;
 
 /**
  * The current member's blocks: domain-wide, one-way and silent.
@@ -47,9 +47,8 @@ public class UserBlockService {
   public void blockUser(String userId) {
     User blocker = pedalonsContext.getUser();
     User blocked = findBlockable(blocker, userId);
-    if (userBlockRepository.findByBlockerAndBlocked(blocker.getId(), blocked.getId()).isEmpty()) {
-      userBlockRepository.persist(new UserBlock(blocker, blocked));
-    }
+    // Idempotent, a double tap included: see UserBlockRepository#insertIfAbsent.
+    userBlockRepository.insertIfAbsent(blocker.getId(), blocked.getId(), Instant.now());
   }
 
   /** Idempotent: unblocking someone not blocked changes nothing. */

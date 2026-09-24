@@ -189,7 +189,10 @@ public class CommentService {
               .filter(masked.negate())
               .map(reply -> CommentDto.from(reply, List.of()))
               .toList();
-      if (!masked.test(root)) {
+      // An erased account's tombstone only exists to carry replies: with every one of them masked
+      // for this reader, it would render as an empty "deleted comment" line.
+      boolean emptyTombstone = root.getCreatedBy().isDeleted() && replies.isEmpty();
+      if (!masked.test(root) && !emptyTombstone) {
         dtos.add(CommentDto.from(root, replies));
       } else if (!replies.isEmpty()) {
         dtos.add(CommentDto.masked(root, replies));
