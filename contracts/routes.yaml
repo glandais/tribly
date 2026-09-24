@@ -129,6 +129,13 @@ routes:
     web: true
     mobile: true
     deeplink: true
+  - id: support
+    path:
+      en: /support
+      fr: /support
+    web: true
+    mobile: false
+    deeplink: false
 
   # --- User tabs ---
   - id: profile

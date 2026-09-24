@@ -312,6 +312,12 @@ export function Layout() {
             <Anchor component={PrefetchLink} to={paths.terms()} c="dimmed" size="sm">
               {t('footer.terms')}
             </Anchor>
+            <Text c="dimmed" size="sm">
+              ·
+            </Text>
+            <Anchor component={PrefetchLink} to={paths.support()} c="dimmed" size="sm">
+              {t('footer.support')}
+            </Anchor>
             {version && (
               <>
                 <Text c="dimmed" size="sm">

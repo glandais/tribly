@@ -61,6 +61,7 @@ export const paths = {
       default: return '/terms'
     }
   },
+  support: () => '/support',
   profile: () => {
     switch (getCurrentLocale()) {
       case 'fr': return '/profil'
@@ -403,6 +404,7 @@ export const pathVariants = {
   apps: (): Record<Locale, string> => ({ en: '/apps', fr: '/applications' }),
   privacy: (): Record<Locale, string> => ({ en: '/privacy', fr: '/confidentialite' }),
   terms: (): Record<Locale, string> => ({ en: '/terms', fr: '/cgu' }),
+  support: (): Record<Locale, string> => ({ en: '/support', fr: '/support' }),
   profile: (): Record<Locale, string> => ({ en: '/profile', fr: '/profil' }),
   notifications: (): Record<Locale, string> => ({ en: '/notifications', fr: '/notifications' }),
   calendar: (): Record<Locale, string> => ({ en: '/calendar', fr: '/calendrier' }),

@@ -221,6 +221,14 @@ export const routesConfig: RoutesConfig = [
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('legal.terms.title') },
   },
+  {
+    id: 'support',
+    paths: pathVariants.support(),
+    component: pages.SupportPage,
+    auth: 'public',
+    parentId: null,
+    breadcrumb: { type: 'static', i18nKey: tRegister('legal.support.title') },
+  },
 
   // === Auth Routes ===
   {

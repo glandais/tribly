@@ -166,6 +166,7 @@ export const pages = {
     'TermsOfServicePage',
     () => import('../pages/legal/TermsOfServicePage')
   ),
+  SupportPage: lazyPage('SupportPage', () => import('../pages/legal/SupportPage')),
   AppsPage: lazyPage('AppsPage', () => import('../pages/apps/AppsPage')),
 } as const
 

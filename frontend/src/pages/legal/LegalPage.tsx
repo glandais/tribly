@@ -6,21 +6,24 @@ import privacyFr from '@/assets/legal/privacy-policy.fr.md?raw'
 import privacyEn from '@/assets/legal/privacy-policy.en.md?raw'
 import termsFr from '@/assets/legal/terms-of-service.fr.md?raw'
 import termsEn from '@/assets/legal/terms-of-service.en.md?raw'
+import supportFr from '@/assets/legal/support.fr.md?raw'
+import supportEn from '@/assets/legal/support.en.md?raw'
 
 const content = {
   privacy: { fr: privacyFr, en: privacyEn },
   terms: { fr: termsFr, en: termsEn },
+  support: { fr: supportFr, en: supportEn },
 } as const
 
 interface LegalPageProps {
-  type: 'privacy' | 'terms'
+  type: keyof typeof content
 }
 
 export function LegalPage({ type }: LegalPageProps) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language.startsWith('fr') ? 'fr' : 'en'
   const markdown = content[type][lang]
-  const titleKey = type === 'privacy' ? 'legal.privacy.title' : 'legal.terms.title'
+  const titleKey = `legal.${type}.title` as const
 
   return (
     <Container size="md" py="xl">
