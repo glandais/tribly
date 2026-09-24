@@ -16,6 +16,9 @@ _AccountDeletionImpactDto _$AccountDeletionImpactDtoFromJson(
   deletedTeams: (json['deletedTeams'] as List<dynamic>)
       .map((e) => TeamPublicationDto.fromJson(e as Map<String, dynamic>))
       .toList(),
+  migratedTeams: (json['migratedTeams'] as List<dynamic>)
+      .map((e) => TeamPublicationDto.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$AccountDeletionImpactDtoToJson(
@@ -24,4 +27,5 @@ Map<String, dynamic> _$AccountDeletionImpactDtoToJson(
   'blocked': instance.blocked,
   'blockingTeams': instance.blockingTeams.map((e) => e.toJson()).toList(),
   'deletedTeams': instance.deletedTeams.map((e) => e.toJson()).toList(),
+  'migratedTeams': instance.migratedTeams.map((e) => e.toJson()).toList(),
 };

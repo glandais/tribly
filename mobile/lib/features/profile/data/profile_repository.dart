@@ -39,7 +39,8 @@ class ProfileRepository {
   Future<void> deleteAccount() => _users.deleteCurrentUser();
 
   /// Ce que la suppression du compte ferait à ses équipes : celles qui partent
-  /// avec lui, celles qui la refusent (`SOLE_TEAM_ADMIN`).
+  /// avec lui, celles qui la refusent (`SOLE_TEAM_ADMIN`, ou
+  /// `SOLE_MIGRATED_TEAM_ADMIN` pour une équipe venue de biketeam).
   Future<AccountDeletionImpactDto> deletionImpact() =>
       _users.getMyDeletionImpact();
 

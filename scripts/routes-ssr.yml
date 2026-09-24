@@ -73,6 +73,8 @@ routes:
     users: [anonymous]
   - id: verifyEmail
   - id: invitation
+  - id: biketeamMigration
+    skip: needs a request token signed by biketeam (?request=); without one the page only renders its "incomplete link" state
   - id: forgotPassword
     users: [anonymous]
   - id: resetPassword

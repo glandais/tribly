@@ -22,24 +22,35 @@ components:
       - blocked
       - blockingTeams
       - deletedTeams
+      - migratedTeams
       properties:
         blocked:
           type: boolean
-          description: "Whether the deletion is refused (SOLE_TEAM_ADMIN): the user\
-            \ is the only admin of at least one team that has other members"
+          description: "Whether the deletion is refused: the user is the only admin\
+            \ of at least one team that has other members (SOLE_TEAM_ADMIN), or of\
+            \ a team migrated from biketeam (SOLE_MIGRATED_TEAM_ADMIN)"
         blockingTeams:
           type: array
           items:
             $ref: "#/components/schemas/TeamPublicationDto"
           description: "Teams the user is the only admin of while other members remain;\
             \ they must name another admin, or delete the team, before deleting their\
-            \ account"
+            \ account. Excludes the teams listed in migratedTeams"
         deletedTeams:
           type: array
           items:
             $ref: "#/components/schemas/TeamPublicationDto"
           description: Teams the user administers and is the only member of; they
-            are deleted with the account
+            are deleted with the account. Excludes the teams listed in migratedTeams
+        migratedTeams:
+          type: array
+          items:
+            $ref: "#/components/schemas/TeamPublicationDto"
+          description: "Teams the user is the only admin of, with or without other\
+            \ members, that were migrated from biketeam: their old biketeam addresses\
+            \ redirect to them. Each one refuses the deletion until another admin\
+            \ is named (or, for a platform admin, the switch-over is cancelled on\
+            \ biketeam and the team deleted)"
     AdContactRequest:
       description: A message to relay to the author of an ad
       type: object
@@ -1673,6 +1684,7 @@ components:
       - BUSINESS_RULE
       - LAST_ADMIN
       - SOLE_TEAM_ADMIN
+      - SOLE_MIGRATED_TEAM_ADMIN
       - ALREADY_REGISTERED
       - NOT_REGISTERED
       - INVALID_SLUG
@@ -1750,6 +1762,17 @@ components:
       - REPORT_SELF
       - BLOCK_SELF
       - CONTENT_REJECTED
+      - BIKETEAM_REQUEST_INVALID
+      - BIKETEAM_REQUEST_EXPIRED
+      - BIKETEAM_REQUEST_ALREADY_USED
+      - BIKETEAM_SLUG_CONFLICT
+      - BIKETEAM_MIGRATED_IN_OTHER_DOMAIN
+      - BIKETEAM_NOT_TEAM_ADMIN
+      - BIKETEAM_MIGRATION_RUNNING
+      - BIKETEAM_RESET_BLOCKED
+      - BIKETEAM_GRANT_INVALID
+      - BIKETEAM_GRANT_EXPIRED
+      - BIKETEAM_JOB_NOT_FOUND
     ErrorDetails:
       oneOf:
       - $ref: "#/components/schemas/ErrorValidationDetails"
@@ -15160,8 +15183,9 @@ paths:
         "204":
           description: User deleted successfully
         "400":
-          description: "SOLE_TEAM_ADMIN: the user is the only admin of a team that\
-            \ has other members"
+          description: "SOLE_MIGRATED_TEAM_ADMIN: the user is the only admin of a\
+            \ team migrated from biketeam, members or not. SOLE_TEAM_ADMIN: the user\
+            \ is the only admin of a team that has other members"
           content:
             application/json:
               schema:
@@ -15353,7 +15377,8 @@ paths:
       summary: Preview the deletion of the current user
       description: "What deleting the current user's account would do to their teams:\
         \ the teams deleted with it (they administer them alone), and the teams that\
-        \ refuse the deletion (SOLE_TEAM_ADMIN). Read-only."
+        \ refuse the deletion (SOLE_TEAM_ADMIN, or SOLE_MIGRATED_TEAM_ADMIN for a\
+        \ team migrated from biketeam). Read-only."
       operationId: getMyDeletionImpact
       tags:
       - Users
@@ -15677,7 +15702,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 4.4.0
+  version: 4.5.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

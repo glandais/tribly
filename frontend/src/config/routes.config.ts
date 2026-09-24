@@ -276,6 +276,17 @@ export const routesConfig: RoutesConfig = [
     breadcrumb: { type: 'static', i18nKey: tRegister('invitations.accept.pageTitle') },
   },
   {
+    // Public for the same reason as `invitation`: a signed-out admin arriving from biketeam must see
+    // what is being moved before signing in. The signed request in ?request= is not a credential;
+    // confirming needs a session. See docs/plans/2026-09-22-biketeam-live-migration.md §4.3.
+    id: 'biketeam-migration',
+    paths: pathVariants.biketeamMigration(),
+    component: pages.BiketeamMigrationPage,
+    auth: 'public',
+    parentId: null,
+    breadcrumb: { type: 'static', i18nKey: tRegister('biketeamMigration.pageTitle') },
+  },
+  {
     id: 'forgot-password',
     paths: pathVariants.forgotPassword(),
     component: pages.ForgotPasswordPage,

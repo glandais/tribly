@@ -40,6 +40,28 @@ public final class TokenUtils {
   }
 
   /**
+   * Compares two secrets in constant time. Both sides are hashed first, so that neither their
+   * content nor their length leaks through the timing of the comparison.
+   */
+  public static boolean constantTimeEquals(byte[] received, byte[] expected) {
+    return MessageDigest.isEqual(sha256(received), sha256(expected));
+  }
+
+  /** {@link #constantTimeEquals(byte[], byte[])} over the UTF-8 bytes of two strings. */
+  public static boolean constantTimeEquals(String received, String expected) {
+    return constantTimeEquals(
+        received.getBytes(StandardCharsets.UTF_8), expected.getBytes(StandardCharsets.UTF_8));
+  }
+
+  private static byte[] sha256(byte[] bytes) {
+    try {
+      return MessageDigest.getInstance("SHA-256").digest(bytes);
+    } catch (NoSuchAlgorithmException e) {
+      throw new IllegalStateException("SHA-256 not available", e);
+    }
+  }
+
+  /**
    * Hashes a token using SHA-256 for secure storage.
    *
    * @param token the raw token to hash

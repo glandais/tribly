@@ -313,7 +313,8 @@ public class UserResource {
       description =
           "What deleting the current user's account would do to their teams: the teams deleted"
               + " with it (they administer them alone), and the teams that refuse the deletion"
-              + " (SOLE_TEAM_ADMIN). Read-only.")
+              + " (SOLE_TEAM_ADMIN, or SOLE_MIGRATED_TEAM_ADMIN for a team migrated from"
+              + " biketeam). Read-only.")
   @APIResponses({
     @APIResponse(
         responseCode = "200",
@@ -340,7 +341,9 @@ public class UserResource {
     @APIResponse(
         responseCode = "400",
         description =
-            "SOLE_TEAM_ADMIN: the user is the only admin of a team that has other members",
+            "SOLE_MIGRATED_TEAM_ADMIN: the user is the only admin of a team migrated from"
+                + " biketeam, members or not. SOLE_TEAM_ADMIN: the user is the only admin of a"
+                + " team that has other members",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     @APIResponse(
         responseCode = "401",

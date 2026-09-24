@@ -28,6 +28,8 @@ import java.time.DateTimeException;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class UserService {
@@ -125,15 +127,28 @@ public class UserService {
   public AccountDeletionImpactDto getDeletionImpact() {
     User user = pedalonsContext.getUser();
     Long domainId = pedalonsContext.getDomainId();
+    // Three queries whatever the number of teams. A migrated team is named once, in its own list:
+    // what the member must do about it is not what they do about the others.
+    List<Team> migrated =
+        userTeamRepository.findMigratedTeamsAdministeredAlone(user.getId(), domainId);
+    Set<Long> migratedIds = migrated.stream().map(Team::getId).collect(Collectors.toSet());
     List<TeamPublicationDto> blockingTeams =
         userTeamRepository.findTeamsLeftWithoutAdmin(user.getId(), domainId).stream()
+            .filter(team -> !migratedIds.contains(team.getId()))
             .map(TeamPublicationDto::from)
             .toList();
     List<TeamPublicationDto> deletedTeams =
         userTeamRepository.findTeamsAdministeredAlone(user.getId(), domainId).stream()
+            .filter(team -> !migratedIds.contains(team.getId()))
             .map(TeamPublicationDto::from)
             .toList();
-    return new AccountDeletionImpactDto(!blockingTeams.isEmpty(), blockingTeams, deletedTeams);
+    List<TeamPublicationDto> migratedTeams =
+        migrated.stream().map(TeamPublicationDto::from).toList();
+    return new AccountDeletionImpactDto(
+        !blockingTeams.isEmpty() || !migratedTeams.isEmpty(),
+        blockingTeams,
+        deletedTeams,
+        migratedTeams);
   }
 
   @Logged
@@ -141,6 +156,13 @@ public class UserService {
   public void deleteUser() {
     User user = pedalonsContext.getUser();
     Long domainId = pedalonsContext.getDomainId();
+    // A team that came from biketeam is where biketeam redirects its old addresses: the erasure
+    // must not trash it, even with no other member (it would, below). Checked first, since what
+    // the member must do differs: name another admin, or — a platform admin — cancel the
+    // switch-over on biketeam before deleting the team.
+    if (!userTeamRepository.findMigratedTeamsAdministeredAlone(user.getId(), domainId).isEmpty()) {
+      throw new BusinessException(ErrorCode.SOLE_MIGRATED_TEAM_ADMIN);
+    }
     // The erasure drops every membership and promotes nobody: the last admin of a team others
     // still belong to would leave them a team no one can run. They name another admin, or delete
     // the team, first — the same rule as leaving the team (LAST_ADMIN).

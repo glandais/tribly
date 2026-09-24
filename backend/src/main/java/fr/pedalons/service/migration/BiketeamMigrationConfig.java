@@ -8,7 +8,12 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 /**
  * The target domain and the platform admin are not configured here — they belong to {@code
  * pedalons.bootstrap.*}, which the migration reuses through {@code BootstrapService}.
+ *
+ * @deprecated settings of the legacy dump import, replaced by the live migration
+ *     (docs/plans/2026-09-22-biketeam-live-migration.md)
  */
+// REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — whole class: pedalons.migration.biketeam.* settings.
+@Deprecated(forRemoval = true, since = "4.5.0")
 @ApplicationScoped
 @Getter
 public class BiketeamMigrationConfig {

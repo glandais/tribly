@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.TreeMap;
 
 /**
  * Accumulates per-endpoint SQL statement counts and prints a single formatted table at the end of
@@ -30,8 +30,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * Surefire's, so each side would load its <em>own</em> copy of this class with its own static map —
  * the recorder would fill one and the printer would read the other, empty one. {@code
  * System.getProperties()} is loaded by the bootstrap classloader and is therefore the same object on
- * both sides. Only JDK types cross that boundary (the values are {@code long[]}, never a custom
- * class), because a custom class would arrive as a different {@code Class} and fail to cast.
+ * both sides.
+ *
+ * <p>Every entry stored there is a {@code String} → {@code String} pair: one property per label,
+ * whose value is the comma-separated counters. Not a map, not a {@code long[]}: Narayana copies the
+ * whole of {@code System.getProperties()} each time Quarkus starts (a {@code @TestProfile} restarts
+ * it mid-suite), and {@code System.getProperty} returns {@code null} for a non-String value, which
+ * makes that copy throw and Quarkus fail to boot.
  *
  * <p>Printing happens at {@code testPlanExecutionFinished}, not from a JVM shutdown hook: Surefire
  * tears down its stdout forwarding channel before shutdown hooks run, so anything printed there is
@@ -39,11 +44,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class QueryCountReport {
 
-  private static final String ROWS_KEY = "fr.pedalons.queryCountReport.rows";
+  private static final String ROW_KEY_PREFIX = "fr.pedalons.queryCountReport.row.";
   private static final String PRINTED_KEY = "fr.pedalons.queryCountReport.printed";
   private static final Path REPORT_FILE = Path.of("target", "query-count-report.txt");
 
-  // Indexes into the long[] stored per label.
+  // Indexes into the counters stored per label.
   private static final int CALLS = 0;
   private static final int MAX_STATEMENTS = 1;
   private static final int TOTAL_STATEMENTS = 2;
@@ -54,11 +59,35 @@ public final class QueryCountReport {
 
   private QueryCountReport() {}
 
-  @SuppressWarnings("unchecked")
+  /** Snapshot of every label recorded so far, decoded from the system properties. */
   private static Map<String, long[]> rows() {
-    return (Map<String, long[]>)
-        System.getProperties()
-            .computeIfAbsent(ROWS_KEY, k -> new ConcurrentHashMap<String, long[]>());
+    Map<String, long[]> rows = new TreeMap<>();
+    for (String key : System.getProperties().stringPropertyNames()) {
+      if (key.startsWith(ROW_KEY_PREFIX)) {
+        rows.put(key.substring(ROW_KEY_PREFIX.length()), decode(System.getProperty(key)));
+      }
+    }
+    return rows;
+  }
+
+  private static long[] decode(String value) {
+    String[] parts = value.split(",");
+    long[] row = new long[SLOTS];
+    for (int i = 0; i < SLOTS; i++) {
+      row[i] = Long.parseLong(parts[i]);
+    }
+    return row;
+  }
+
+  private static String encode(long[] row) {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < SLOTS; i++) {
+      if (i > 0) {
+        sb.append(',');
+      }
+      sb.append(row[i]);
+    }
+    return sb.toString();
   }
 
   /**
@@ -72,18 +101,19 @@ public final class QueryCountReport {
    */
   public static void record(
       String label, long statements, long entityLoads, long queries, long writes) {
-    rows()
+    // Properties is backed by a ConcurrentHashMap, so compute() is atomic per label.
+    System.getProperties()
         .compute(
-            label,
-            (k, row) -> {
-              long[] updated = row == null ? new long[SLOTS] : row;
+            ROW_KEY_PREFIX + label,
+            (k, value) -> {
+              long[] updated = value == null ? new long[SLOTS] : decode((String) value);
               updated[CALLS]++;
               updated[TOTAL_STATEMENTS] += statements;
               updated[MAX_STATEMENTS] = Math.max(updated[MAX_STATEMENTS], statements);
               updated[MAX_ENTITY_LOADS] = Math.max(updated[MAX_ENTITY_LOADS], entityLoads);
               updated[MAX_QUERIES] = Math.max(updated[MAX_QUERIES], queries);
               updated[MAX_WRITES] = Math.max(updated[MAX_WRITES], writes);
-              return updated;
+              return encode(updated);
             });
   }
 
@@ -98,7 +128,7 @@ public final class QueryCountReport {
 
   /** Clears everything. Only meant for the report's own unit test. */
   static void reset() {
-    rows().clear();
+    System.getProperties().keySet().removeIf(k -> ((String) k).startsWith(ROW_KEY_PREFIX));
     System.getProperties().remove(PRINTED_KEY);
   }
 
@@ -168,7 +198,7 @@ public final class QueryCountReport {
 
   /** Prints the table to stdout and writes it to {@code target/query-count-report.txt}. */
   public static void print() {
-    if (System.getProperties().putIfAbsent(PRINTED_KEY, Boolean.TRUE) != null) {
+    if (System.getProperties().putIfAbsent(PRINTED_KEY, "true") != null) {
       return;
     }
     String table = render();

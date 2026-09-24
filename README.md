@@ -271,6 +271,9 @@ Two services stay per-environment on purpose, even though they look shareable:
 
 ### Running the full stack locally
 
+<!-- REMOVE-WITH-LEGACY-BIKETEAM-IMPORT: "or for running the biketeam migration" below means the
+legacy dump import (backend-restore); drop it with the import. The live migration needs no local
+stack — see MIGRATE_BIKETEAM.md, "Live migration". -->
 The same `docker-compose.yml`, on a workstation — for testing a build, or for running the biketeam
 migration (see [MIGRATE_BIKETEAM.md](MIGRATE_BIKETEAM.md)). Two things must differ from a deployment,
 and both live in the local `.env`:
@@ -658,6 +661,7 @@ docker exec -it "${ENV_NAME}-postgres" sh -c 'psql -U "$POSTGRES_USER" -d "$POST
 docker exec "${ENV_NAME}-postgres" sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c "SELECT domain, name, active FROM domains;"'
 ```
 
+<!-- REMOVE-WITH-LEGACY-BIKETEAM-IMPORT: drop scripts/biketeam_restore.sh from the sentence below. -->
 It also publishes `127.0.0.1:${POSTGRES_HOST_PORT:-5432}` — that is how `scripts/biketeam_restore.sh`
 and `mvn quarkus:dev` reach it from the host, and how any client of yours can. **The stack ships no
 SQL browser**: pick your own — psql, pgAdmin, DBeaver, the database panel of your IDE — and point it

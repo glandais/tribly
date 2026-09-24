@@ -43,6 +43,10 @@ export const pages = {
     'AcceptInvitationPage',
     () => import('../pages/invitation/AcceptInvitationPage')
   ),
+  BiketeamMigrationPage: lazyPage(
+    'BiketeamMigrationPage',
+    () => import('../pages/biketeamMigration/BiketeamMigrationPage')
+  ),
   ForgotPasswordPage: lazyPage(
     'ForgotPasswordPage',
     () => import('../pages/auth/ForgotPasswordPage')

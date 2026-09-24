@@ -17,6 +17,9 @@ import org.jspecify.annotations.Nullable;
  * Maps a biketeam source row (entityType + biketeamId) to the tribly entity that was created /
  * updated for it. Populated by {@code BiketeamMigrationService} so re-runs find existing tribly
  * entities instead of creating duplicates.
+ *
+ * <p>Shared by the legacy dump import and the live migration: the key {@code (entityType,
+ * biketeamId)} is global, since a biketeam team is migrated into one domain per database.
  */
 @Setter
 @Getter
@@ -47,6 +50,13 @@ public class BiketeamMigrationMap {
    */
   @Column(name = "source_fingerprint", length = 64)
   private @Nullable String sourceFingerprint;
+
+  /**
+   * The biketeam team this row came from, so a reset can forget exactly that team. Null on the rows
+   * the legacy import wrote; the live migration fills it on every upsert.
+   */
+  @Column(name = "biketeam_team_id", length = 255)
+  private @Nullable String biketeamTeamId;
 
   public BiketeamMigrationMap(String entityType, String biketeamId, long triblyId) {
     this.entityType = entityType;

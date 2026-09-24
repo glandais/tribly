@@ -14,7 +14,13 @@ import org.jboss.logging.Logger;
  * <p>Unless {@code exit-when-done} says otherwise, the application then stops: this is a one-shot
  * job, and its container has no reason to linger. The exit code tells a `docker compose run` whether
  * every team made it through.
+ *
+ * @deprecated the dump import runs through this startup hook only; the live migration replaces it
+ *     (docs/plans/2026-09-22-biketeam-live-migration.md)
  */
+// REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — whole class: startup hook of the dump import.
+@Deprecated(forRemoval = true, since = "4.5.0")
+@SuppressWarnings("removal")
 @ApplicationScoped
 public class BiketeamMigrationRunner {
 

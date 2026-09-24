@@ -18,25 +18,32 @@
       "AccountDeletionImpactDto" : {
         "description" : "What deleting the current user's account would do to their teams",
         "type" : "object",
-        "required" : [ "blocked", "blockingTeams", "deletedTeams" ],
+        "required" : [ "blocked", "blockingTeams", "deletedTeams", "migratedTeams" ],
         "properties" : {
           "blocked" : {
             "type" : "boolean",
-            "description" : "Whether the deletion is refused (SOLE_TEAM_ADMIN): the user is the only admin of at least one team that has other members"
+            "description" : "Whether the deletion is refused: the user is the only admin of at least one team that has other members (SOLE_TEAM_ADMIN), or of a team migrated from biketeam (SOLE_MIGRATED_TEAM_ADMIN)"
           },
           "blockingTeams" : {
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/TeamPublicationDto"
             },
-            "description" : "Teams the user is the only admin of while other members remain; they must name another admin, or delete the team, before deleting their account"
+            "description" : "Teams the user is the only admin of while other members remain; they must name another admin, or delete the team, before deleting their account. Excludes the teams listed in migratedTeams"
           },
           "deletedTeams" : {
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/TeamPublicationDto"
             },
-            "description" : "Teams the user administers and is the only member of; they are deleted with the account"
+            "description" : "Teams the user administers and is the only member of; they are deleted with the account. Excludes the teams listed in migratedTeams"
+          },
+          "migratedTeams" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TeamPublicationDto"
+            },
+            "description" : "Teams the user is the only admin of, with or without other members, that were migrated from biketeam: their old biketeam addresses redirect to them. Each one refuses the deletion until another admin is named (or, for a platform admin, the switch-over is cancelled on biketeam and the team deleted)"
           }
         }
       },
@@ -1739,7 +1746,7 @@
       },
       "ErrorCode" : {
         "type" : "string",
-        "enum" : [ "BAD_REQUEST", "NOT_FOUND", "UNAUTHORIZED", "FORBIDDEN", "INTERNAL_ERROR", "UNKNOWN", "VALIDATION", "BUSINESS_RULE", "LAST_ADMIN", "SOLE_TEAM_ADMIN", "ALREADY_REGISTERED", "NOT_REGISTERED", "INVALID_SLUG", "SLUG_TAKEN", "USER_NOT_SYNCED", "GROUP_FULL", "INVALID_VISIBILITY", "PUBLIC_TRIP_PRIVATE_ROUTE", "GPX_FAILURE", "FILE_REQUIRED", "FILE_TYPE_REJECTED", "FILE_DETECTION_FAILED", "FILE_TOO_LARGE", "TOO_MANY_TEAM_PAGES", "GPX_EMPTY", "ROUTE_PLANNER_DISABLED", "INVALID_FORMAT", "INVALID_TIMEZONE", "RENTAL_PERIOD_MISSING", "STATUS_INVALID", "PUBLIC_RIDE_PRIVATE_ROUTE", "INVALID_CREDENTIALS", "EMAIL_NOT_VERIFIED", "EMAIL_ALREADY_EXISTS", "TOKEN_INVALID", "TOKEN_EXPIRED", "SESSION_EXPIRED", "PASSWORD_NOT_SET", "PASSKEY_NOT_FOUND", "USER_NOT_FOUND", "DOMAIN_NOT_FOUND", "TEAM_NOT_FOUND", "TEAM_CREATION_DISABLED", "USER_TEAM_LIMIT_REACHED", "TEAM_JOIN_NOT_ALLOWED", "TEAM_ADD_MEMBER_NOT_ALLOWED", "GPS_SERVICE_ALREADY_CONNECTED", "GPS_SERVICE_NOT_CONNECTED", "GPS_SERVICE_NOT_CONFIGURED", "GPS_INVALID_STATE", "GPS_STATE_EXPIRED", "GPX_NOT_FOUND", "AUTHORIZATION_PENDING", "GPS_CREDENTIAL_ALREADY_EXISTS", "GPS_TOKEN_EXCHANGE_FAILED", "ENCRYPTION_FAILED", "DECRYPTION_FAILED", "DOMAIN_ALIAS_NOT_FOUND", "DOMAIN_ALIAS_HOSTNAME_EXISTS", "DOMAIN_ALIAS_TEAM_MISMATCH", "SOCIAL_SERVICE_NOT_CONFIGURED", "SOCIAL_INVALID_STATE", "SOCIAL_IDENTITY_ALREADY_LINKED", "SOCIAL_LOGIN_CODE_INVALID", "SOCIAL_NO_ACCOUNT", "SOCIAL_LAST_LOGIN_METHOD", "EXPORT_IN_PROGRESS", "EXPORT_RATE_LIMITED", "RIDE_GROUP_LEADER_NOT_MEMBER", "AD_CONTACT_SELF", "AD_CONTACT_OPTED_OUT", "AD_CONTACT_RATE_LIMITED", "AD_CONTACT_DELIVERY_FAILED", "TEAM_INVITE_INVALID", "TEAM_INVITE_EXPIRED", "TEAM_INVITE_REVOKED", "TEAM_INVITE_ALREADY_USED", "TEAM_INVITE_ALREADY_MEMBER", "TEAM_INVITE_EMAIL_MISMATCH", "TEAM_INVITE_SELF", "TEAM_INVITE_NOT_PENDING", "TEAM_INVITE_RATE_LIMITED", "TEAM_INVITE_DELIVERY_FAILED", "WEBHOOK_URL_INVALID", "REPORT_SELF", "BLOCK_SELF", "CONTENT_REJECTED" ]
+        "enum" : [ "BAD_REQUEST", "NOT_FOUND", "UNAUTHORIZED", "FORBIDDEN", "INTERNAL_ERROR", "UNKNOWN", "VALIDATION", "BUSINESS_RULE", "LAST_ADMIN", "SOLE_TEAM_ADMIN", "SOLE_MIGRATED_TEAM_ADMIN", "ALREADY_REGISTERED", "NOT_REGISTERED", "INVALID_SLUG", "SLUG_TAKEN", "USER_NOT_SYNCED", "GROUP_FULL", "INVALID_VISIBILITY", "PUBLIC_TRIP_PRIVATE_ROUTE", "GPX_FAILURE", "FILE_REQUIRED", "FILE_TYPE_REJECTED", "FILE_DETECTION_FAILED", "FILE_TOO_LARGE", "TOO_MANY_TEAM_PAGES", "GPX_EMPTY", "ROUTE_PLANNER_DISABLED", "INVALID_FORMAT", "INVALID_TIMEZONE", "RENTAL_PERIOD_MISSING", "STATUS_INVALID", "PUBLIC_RIDE_PRIVATE_ROUTE", "INVALID_CREDENTIALS", "EMAIL_NOT_VERIFIED", "EMAIL_ALREADY_EXISTS", "TOKEN_INVALID", "TOKEN_EXPIRED", "SESSION_EXPIRED", "PASSWORD_NOT_SET", "PASSKEY_NOT_FOUND", "USER_NOT_FOUND", "DOMAIN_NOT_FOUND", "TEAM_NOT_FOUND", "TEAM_CREATION_DISABLED", "USER_TEAM_LIMIT_REACHED", "TEAM_JOIN_NOT_ALLOWED", "TEAM_ADD_MEMBER_NOT_ALLOWED", "GPS_SERVICE_ALREADY_CONNECTED", "GPS_SERVICE_NOT_CONNECTED", "GPS_SERVICE_NOT_CONFIGURED", "GPS_INVALID_STATE", "GPS_STATE_EXPIRED", "GPX_NOT_FOUND", "AUTHORIZATION_PENDING", "GPS_CREDENTIAL_ALREADY_EXISTS", "GPS_TOKEN_EXCHANGE_FAILED", "ENCRYPTION_FAILED", "DECRYPTION_FAILED", "DOMAIN_ALIAS_NOT_FOUND", "DOMAIN_ALIAS_HOSTNAME_EXISTS", "DOMAIN_ALIAS_TEAM_MISMATCH", "SOCIAL_SERVICE_NOT_CONFIGURED", "SOCIAL_INVALID_STATE", "SOCIAL_IDENTITY_ALREADY_LINKED", "SOCIAL_LOGIN_CODE_INVALID", "SOCIAL_NO_ACCOUNT", "SOCIAL_LAST_LOGIN_METHOD", "EXPORT_IN_PROGRESS", "EXPORT_RATE_LIMITED", "RIDE_GROUP_LEADER_NOT_MEMBER", "AD_CONTACT_SELF", "AD_CONTACT_OPTED_OUT", "AD_CONTACT_RATE_LIMITED", "AD_CONTACT_DELIVERY_FAILED", "TEAM_INVITE_INVALID", "TEAM_INVITE_EXPIRED", "TEAM_INVITE_REVOKED", "TEAM_INVITE_ALREADY_USED", "TEAM_INVITE_ALREADY_MEMBER", "TEAM_INVITE_EMAIL_MISMATCH", "TEAM_INVITE_SELF", "TEAM_INVITE_NOT_PENDING", "TEAM_INVITE_RATE_LIMITED", "TEAM_INVITE_DELIVERY_FAILED", "WEBHOOK_URL_INVALID", "REPORT_SELF", "BLOCK_SELF", "CONTENT_REJECTED", "BIKETEAM_REQUEST_INVALID", "BIKETEAM_REQUEST_EXPIRED", "BIKETEAM_REQUEST_ALREADY_USED", "BIKETEAM_SLUG_CONFLICT", "BIKETEAM_MIGRATED_IN_OTHER_DOMAIN", "BIKETEAM_NOT_TEAM_ADMIN", "BIKETEAM_MIGRATION_RUNNING", "BIKETEAM_RESET_BLOCKED", "BIKETEAM_GRANT_INVALID", "BIKETEAM_GRANT_EXPIRED", "BIKETEAM_JOB_NOT_FOUND" ]
       },
       "ErrorDetails" : {
         "oneOf" : [ {
@@ -19214,7 +19221,7 @@
             "description" : "User deleted successfully"
           },
           "400" : {
-            "description" : "SOLE_TEAM_ADMIN: the user is the only admin of a team that has other members",
+            "description" : "SOLE_MIGRATED_TEAM_ADMIN: the user is the only admin of a team migrated from biketeam, members or not. SOLE_TEAM_ADMIN: the user is the only admin of a team that has other members",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -19491,7 +19498,7 @@
     "/api/users/me/deletion-impact" : {
       "get" : {
         "summary" : "Preview the deletion of the current user",
-        "description" : "What deleting the current user's account would do to their teams: the teams deleted with it (they administer them alone), and the teams that refuse the deletion (SOLE_TEAM_ADMIN). Read-only.",
+        "description" : "What deleting the current user's account would do to their teams: the teams deleted with it (they administer them alone), and the teams that refuse the deletion (SOLE_TEAM_ADMIN, or SOLE_MIGRATED_TEAM_ADMIN for a team migrated from biketeam). Read-only.",
         "operationId" : "getMyDeletionImpact",
         "tags" : [ "Users" ],
         "responses" : {
@@ -19940,7 +19947,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "4.4.0",
+    "version" : "4.5.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

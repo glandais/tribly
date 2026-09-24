@@ -1,3 +1,147 @@
+# Biketeam → Pédalons migration
+
+> **Two procedures live here.** The [live migration](#live-migration) is the current one: a biketeam
+> team admin moves *their* team from biketeam's admin, server to server over HTTPS, without people. Everything from
+> [Reset](#reset) down to the end describes the **legacy dump import** (a restored `biketeam_import`
+> database + a copy of the data directory + the `backend-restore` service), which is **deprecated**
+> and marked `REMOVE-WITH-LEGACY-BIKETEAM-IMPORT` for removal — except the mapping rules
+> ([Replaying](#replaying), [Known failures](#known-failures), [Ordering](#ordering-of-groups-and-stages),
+> [Visibility](#visibility), [Dates](#dates), [Team pages](#team-pages), [Team logos](#team-logos)),
+> which the live migration applies unchanged. Design and contract with biketeam:
+> [docs/plans/2026-09-22-biketeam-live-migration.md](docs/plans/2026-09-22-biketeam-live-migration.md).
+
+# Live migration
+
+A biketeam team admin opens *Migrer vers Pédalons* in their team's biketeam admin, chooses a **trial**
+(`dryRun`, ticked by default) or the real thing, and optionally a **reset**. Biketeam sends the browser
+to `/migration-biketeam?request=<signed token>` here; the admin signs in (or signs up) on Pédalons,
+reads what will be imported and confirms. Pédalons mints a single-use grant and sends the browser
+back to biketeam, which redeems it over HTTPS (`POST /api/internal/biketeam-migration/jobs`) and
+polls the job. The worker fetches the team's snapshot and files from biketeam's export API
+(`/internal/pedalons/…`), maps them with the rules below, and hands biketeam a URL table. A
+successful non-trial run, once the admin clicks *Basculer vers Pédalons*, makes biketeam redirect
+every URL of the team here — with a 302 by default, a 301 once `PEDALONS_REDIRECT_STATUS=301` is set
+on biketeam after the switches have settled — and turn the team read-only; nothing is deleted on
+either side.
+
+What comes over: the team (name, visibility, `joinable`), its about page (presentation + contact
+details), its FAQ page, its logo (not the placeholder), places, routes with their GPX, ride
+templates, publications (as posts), rides with their groups, trips with their stages, and their
+images. What does **not**: users, memberships, participations, comments, registrations, route
+ratings and favourites. The Pédalons account that confirmed becomes the team's **ADMIN** and the
+author (`createdBy`) of everything; members join afterwards through the usual invitation link or,
+for a `joinable` team, on their own. Ride groups have no leader (`RideGroupDto.leader` is null).
+
+The team lands in the domain the admin confirmed on (its parent domain, if they came through an
+alias), at slug = biketeam team id.
+
+| Situation at the slug | Trial / real run | With `reset` |
+|---|---|---|
+| free | team created | same |
+| a team migrated earlier from this biketeam team | updated in place (replay) — only by its Pédalons ADMIN or a PLATFORM_ADMIN | trashed (`deleted`, slug renamed `<slug>-reset-<jobId>`) then created anew — refused while a domain alias is pinned on it |
+| that team, already in the trash | trashed team set aside, created anew | same |
+| any other team (a native Pédalons team) | **refused** (`BIKETEAM_SLUG_CONFLICT`), never touched | same |
+| this biketeam team was migrated into another domain of this database | **refused** (`BIKETEAM_MIGRATED_IN_OTHER_DOMAIN`) | same |
+
+A **trial** is a real migration — the team really exists afterwards, visible according to its
+biketeam visibility — that biketeam simply does not switch over to. Replays are idempotent (same
+`biketeam_migration_map` as the legacy import, now tagged with `biketeam_team_id`), so the real run
+after a trial re-creates nothing: it resynchronises what changed on biketeam meanwhile, and skips
+the whole GPX pipeline — without even downloading — for every route whose file has the same
+`size:md5` fingerprint, including routes the legacy import built.
+
+## Turning it on
+
+Off until **all five** variables are set in the backend's `.env` (documented, empty, in
+`.env.example`); only some of them stops the backend at startup, naming the missing ones.
+
+| Variable | Value |
+|---|---|
+| `PEDALONS_BIKETEAM_REQUEST_KEY` | `openssl rand -base64 32` — same value as biketeam's `PEDALONS_REQUEST_KEY` |
+| `PEDALONS_BIKETEAM_TRIGGER_SECRET` | `openssl rand -base64 32` — same as biketeam's `PEDALONS_TRIGGER_SECRET` |
+| `PEDALONS_BIKETEAM_EXPORT_URL` | biketeam's public URL, **HTTPS mandatory**, e.g. `https://www.prendslaroue.fr` |
+| `PEDALONS_BIKETEAM_EXPORT_SECRET` | `openssl rand -base64 32` — same as biketeam's `PEDALONS_EXPORT_SECRET` |
+| `PEDALONS_BIKETEAM_PUBLIC_URL` | biketeam's public `site.url`, e.g. `https://www.prendslaroue.fr` |
+
+Order, on a new deployment:
+
+1. Deploy Pédalons, then biketeam, both without any of these variables: nothing changes.
+2. Secrets on both sides, restart both. There is no VPN: each side calls the other through its
+   normal public HTTPS entry point — Pédalons' `/api/internal/` and biketeam's `/internal/pedalons/`
+   are reachable from the Internet, guarded by the shared secrets, the single-use grant, and (for the
+   export) a migration in flight for that team. Both URLs must be `https://`.
+3. The backend log says
+   `Biketeam live migration enabled (export …, public site …)`.
+4. A trial of a small team (`gaby`) against **staging**, then against production, then the real run.
+
+`pedalons.biketeam.grant-ttl` (10 min), `.max-attempts` (3), `.stuck-after` (20 min),
+`.export-idle-timeout` (60 s without a byte of a snapshot or file) and `.export-transfer-timeout`
+(10 min for one snapshot or file) have defaults in `application.properties`.
+
+## Following a job
+
+Everything is in `biketeam_migrations` — one row per confirmed request, first a grant (`GRANTED`,
+`EXPIRED`), then a job (`QUEUED`, `RUNNING`, `SUCCEEDED`, `FAILED`). Biketeam shows the same
+status on its admin page; the backend logs one line per transition.
+
+```sql
+select id, biketeam_team_id, dry_run, reset, status, attempts, progress, error_code, error_message,
+       queued_at, started_at, finished_at
+from biketeam_migrations order by created_at desc limit 20;
+
+-- counts and warnings of the latest job of a team
+select result -> 'counts', result -> 'warnings'
+from biketeam_migrations where biketeam_team_id = 'n-peloton' order by created_at desc limit 1;
+```
+
+One job at a time per instance (the worker ticks every 10 s), one active job per biketeam team. A
+network or 5xx failure of the export is retried after 2, then 4 minutes; a job silent for
+`stuck-after` (a killed backend) is started over — the replay is cheap. Grants never redeemed become
+`EXPIRED` within the hour. No row is ever deleted.
+
+| `error_code` | Meaning |
+|---|---|
+| `BIKETEAM_SLUG_CONFLICT` | A native Pédalons team holds the slug: rename it on Pédalons, then retry from biketeam. |
+| `BIKETEAM_MIGRATED_IN_OTHER_DOMAIN` | This biketeam team already lives in another domain of this database. |
+| `BIKETEAM_NOT_TEAM_ADMIN` | The confirming account does not administer the existing team (any more). |
+| `BIKETEAM_RESET_BLOCKED` | A domain alias is pinned on the team a reset would trash. |
+| `EXPORT_REFUSED` | Biketeam answered 4xx — wrong `PEDALONS_BIKETEAM_EXPORT_SECRET`, or no migration in flight on its side. |
+| `EXPORT_UNAVAILABLE` | Biketeam unreachable or 5xx after every attempt — check `PEDALONS_BIKETEAM_EXPORT_URL` and that biketeam answers on it. |
+| `EXPORT_INVALID` | Unreadable snapshot, unexpected `schemaVersion`, or the snapshot of another team. |
+| `WORKER_LOST` | No heartbeat, and no attempt left. |
+| `INTERNAL_ERROR` | Anything else — the backend log has the stack trace. |
+
+A job that `SUCCEEDED` may still count per-element failures (`counts.*.failed`, with a warning each:
+`GPX_MISSING`, `GPX_EMPTY`, `GPX_FAILURE`, `FILE_DOWNLOAD_FAILED`, `IMAGE_FAILED`, `ITEM_FAILED`) —
+the same element-level error boundary as the legacy import, which lost 25 routes of the 2026-07
+dump to missing or broken GPX files. Read them after the trial; whether to go on is a human call.
+One warning is not a failure: `TRIP_STAGES_OUTSIDE_DATES` flags a trip whose stages fall outside its
+biketeam start/end dates — migrated as is, but Pédalons ends a trip with its last stage, so its
+biketeam end date is lost. Fix the dates on either side.
+
+## Both applications on a workstation
+
+Pédalons as usual (`mvn quarkus:dev` on 8080, `pnpm dev` on 5173), biketeam on **8081**
+(`SERVER_PORT=8081`). In dev, plain `http://localhost` URLs are fine.
+
+```bash
+# Pédalons backend, on top of `source scripts/dev-env.sh`
+export PEDALONS_BIKETEAM_REQUEST_KEY=…   PEDALONS_BIKETEAM_TRIGGER_SECRET=…   PEDALONS_BIKETEAM_EXPORT_SECRET=…
+export PEDALONS_BIKETEAM_EXPORT_URL=http://localhost:8081
+export PEDALONS_BIKETEAM_PUBLIC_URL=http://localhost:8081   # = biketeam's SITE_URL
+# biketeam: PEDALONS_URL=http://localhost:5173, PEDALONS_INTERNAL_URL=http://localhost:8080, same three secrets
+```
+
+## Tests
+
+Not run by the assistant (see CLAUDE.md): run them yourself.
+
+```bash
+cd backend
+mvn test -Dtest='BiketeamRequestTokenVerifierTest,BiketeamMigrationResourceTest,BiketeamMigrationDisabledTest,BiketeamMigrationInternalResourceTest,BiketeamLiveMigrationTest'
+```
+
+<!-- REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — section "Reset": legacy dump import only — delete it down to the next heading. -->
 # Reset
 
 Wipes the stack and its data — postgres, minio, and the assets written to `./data/storage`.
@@ -10,6 +154,7 @@ docker compose up -d
 fetched from tiles.mapterhorn.com, keyed by coordinates, so it stays valid across a reset and saves
 the bulk of a run's rendering. Delete it only to reclaim disk.
 
+<!-- REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — section "Backup data": legacy dump import only — delete it down to the next heading. -->
 # Backup data
 
 `scripts/biketeam_fetch.sh` does the whole fetch-and-restore: rsync of the production directory,
@@ -35,6 +180,7 @@ pg_dump -Fc -U biketeam -d biketeam_production -h localhost -f /tmp/biketeam_exp
 
 rsync -avz biketeam@main.tomacla.info:/tmp/biketeam_export.dump ../biketeam-backup/
 
+<!-- REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — section "Restore the dump into biketeam_import": legacy dump import only — delete it down to the next heading. -->
 # Restore the dump into biketeam_import
 
 The compose postgres publishes `POSTGRES_HOST_PORT` (default 5432) on 127.0.0.1, so the
@@ -43,6 +189,7 @@ POSTGRES_PASSWORD, read from .env.
 
 ./scripts/biketeam_restore.sh ../biketeam-backup/biketeam_export.dump
 
+<!-- REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — section "Run the migration": legacy dump import only — delete it down to the next heading. -->
 # Run the migration
 
 The `restore` profile starts a second backend that migrates `biketeam_import` into the
@@ -137,6 +284,7 @@ agree on all 849 rides, 152 trips and 26 templates. `id` breaks exact ties, wher
 Nothing sorts in `RideService`/`TripService`: there, `sortOrder` is the order a human dragged them
 into.
 
+<!-- REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — section "Which teams get migrated": legacy dump import only — delete it down to the next heading. -->
 ## Which teams get migrated
 
 `team-id` names one biketeam team, and — since biketeam ids are already slugs — the tribly
@@ -228,6 +376,10 @@ Biketeam stored time-of-day as `time without time zone` (`ride_group.meeting_tim
 zero trips, zero routes and zero posts, so no date is read through it. Revisit the constant if a
 later dump has a populated team outside Paris.
 
+The live migration no longer assumes Paris: the export carries `team_configuration.timezone`, and
+every bare date and time of the team is read in it (falling back to `Europe/Paris` if it is missing
+or unreadable).
+
 Only the four `published_at` columns (`ride`, `trip`, `publication`, `message`) are true instants,
 stored `timestamp with time zone`; those need no zone and are copied straight across.
 
@@ -259,6 +411,13 @@ bare `<teamId>` is the about page — and refresh the markdown in place.
 `https://www.prendslaroue.fr/n-peloton/faq#equipement` and to its old home page; those stay pointing
 at biketeam and have to be fixed by hand, or by the team, once the old site goes away.
 
+### Trip notes
+
+A trip had its own free-form page too — `trip.markdown_page`, served at `/{team}/trips/{id}/notes`.
+Tribly has no per-trip page, so it becomes the tail of the trip's description, under a `## Notes`
+heading. Like the FAQ it is already Markdown: only CRLF is normalised. The description is rebuilt
+from the source on every run, so a replay never stacks a second section.
+
 ## Team logos
 
 Biketeam kept the team logo at `misc/<teamId>/logo.png|jpg`. Tribly has no logo column: `TeamAvatar`
@@ -271,6 +430,7 @@ logos. Those 70 are skipped by comparing the file digest against the placeholder
 tribly's initials avatar in place. `heatmap.png`, which sits in the same directory, is never picked
 up, and neither is `misc/logo.png` — that one is biketeam's own platform logo, not a team's.
 
+<!-- REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — section "Members without an email": legacy dump import only — delete it down to the next heading. -->
 ## Members without an email
 
 Biketeam let people sign in through Strava, Facebook or Google without ever giving an
@@ -281,6 +441,7 @@ deliverable, so the account is left **unverified** and cannot log in until its o
 claims it. This keeps their memberships, ride participations and comments; skipping them
 would have dropped roughly 60% of n-peloton's participation history.
 
+<!-- REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — section "Verified emails and passwords": legacy dump import only — delete it down to the next heading. -->
 ## Verified emails and passwords
 
 Biketeam's old profile form accepted any address, so when it added email/password login it
@@ -302,6 +463,7 @@ address, so its history is not dropped — only its data follows, never a login 
 A dump taken before those biketeam changes has neither the columns nor the table; the reader
 detects that, and every address is then only verified through a Google/Facebook identity.
 
+<!-- REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — section "Running the migration from dev mode instead": legacy dump import only — delete it down to the next heading. -->
 ## Running the migration from dev mode instead
 
 PEDALONS_MIGRATION_BIKETEAM_ENABLED=true \
@@ -320,6 +482,7 @@ Note the credentials differ from the compose stack: `%dev` talks to a `pedalons`
 owned by `pedalons`, whereas docker-compose.yml runs `tribly` / `${POSTGRES_USER}`. Restore
 the dump into whichever postgres the dev profile points at.
 
+<!-- REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — section "Configuration": legacy dump import only — delete it down to the next heading. -->
 ## Configuration
 
 The target domain and the admin account are **not** migration settings. `pedalons.bootstrap.*`

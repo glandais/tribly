@@ -824,6 +824,10 @@
       "blocked": {
         "one": "Vous êtes le seul administrateur de l'équipe {teams}, qui compte d'autres membres. Nommez un autre administrateur depuis ses membres, ou supprimez l'équipe, puis revenez supprimer votre compte.",
         "other": "Vous êtes le seul administrateur des équipes {teams}, qui comptent d'autres membres. Nommez un autre administrateur depuis leurs membres, ou supprimez ces équipes, puis revenez supprimer votre compte."
+      },
+      "blockedMigrated": {
+        "one": "Vous êtes le seul administrateur de l'équipe {teams}, venue de biketeam : ses anciennes adresses biketeam redirigent vers elle, elle ne peut pas partir avec votre compte. Nommez un autre administrateur depuis ses membres, puis revenez supprimer votre compte. Pour supprimer l'équipe elle-même, un administrateur de la plateforme doit d'abord annuler sa bascule sur biketeam.",
+        "other": "Vous êtes le seul administrateur des équipes {teams}, venues de biketeam : leurs anciennes adresses biketeam redirigent vers elles, elles ne peuvent pas partir avec votre compte. Nommez un autre administrateur dans chacune, puis revenez supprimer votre compte. Pour supprimer ces équipes, un administrateur de la plateforme doit d'abord annuler leur bascule sur biketeam."
       }
     },
     "community": "Communauté"
@@ -1008,6 +1012,7 @@
       "INVALID_VISIBILITY": "Le paramètre de visibilité est invalide",
       "LAST_ADMIN": "Impossible de retirer le dernier administrateur de l'équipe",
       "SOLE_TEAM_ADMIN": "Vous êtes le seul administrateur d'une équipe qui compte d'autres membres. Nommez un autre administrateur, ou supprimez l'équipe, avant de supprimer votre compte.",
+      "SOLE_MIGRATED_TEAM_ADMIN": "Vous êtes le seul administrateur d'une équipe venue de biketeam, dont les anciennes adresses redirigent vers elle. Nommez un autre administrateur avant de supprimer votre compte ; pour supprimer l'équipe, un administrateur de la plateforme doit d'abord annuler sa bascule sur biketeam.",
       "NOT_FOUND": "La ressource demandée est introuvable",
       "NOT_REGISTERED": "Vous n'êtes pas inscrit à cette sortie",
       "PASSKEY_NOT_FOUND": "Passkey introuvable",

@@ -1,5 +1,6 @@
 package fr.pedalons.service.config;
 
+import fr.pedalons.common.UrlUtils;
 import fr.pedalons.common.exception.NotFoundException;
 import fr.pedalons.dto.config.MapStyleDto;
 import fr.pedalons.service.security.annotation.Public;
@@ -105,7 +106,6 @@ public class MapStyleService {
   }
 
   private static String generatedStyleUrl(String baseUrl, String id) {
-    String root = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
-    return "%s/api/map/styles/%s.json".formatted(root, id);
+    return "%s/api/map/styles/%s.json".formatted(UrlUtils.stripTrailingSlash(baseUrl), id);
   }
 }

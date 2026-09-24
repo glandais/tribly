@@ -9,6 +9,7 @@ import fr.pedalons.repository.common.BaseRepository;
 import fr.pedalons.repository.query.OrClause;
 import fr.pedalons.repository.query.PedalonsQuery;
 import fr.pedalons.repository.query.SimpleClause;
+import fr.pedalons.service.migration.BiketeamMigrationService;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.Collection;
 import java.util.HashSet;
@@ -114,6 +115,31 @@ public class UserTeamRepository implements BaseRepository<UserTeam> {
         .setParameter("userId", userId)
         .setParameter("domainId", domainId)
         .setParameter("admin", TeamRole.ADMIN)
+        .getResultList();
+  }
+
+  /**
+   * The live teams this user is the only admin of — whether or not others belong to them — that
+   * came from biketeam: a {@code TEAM} row of {@code biketeam_migration_map} points at them (live
+   * migration or legacy import alike). Their old biketeam addresses redirect to them, so the
+   * erasure of the account must not trash them. One query for all the user's teams. Ordered by name.
+   */
+  public List<Team> findMigratedTeamsAdministeredAlone(Long userId, Long domainId) {
+    return getEntityManager()
+        .createQuery(
+            "SELECT t FROM UserTeam ut JOIN ut.team t "
+                + "WHERE ut.user.id = :userId AND ut.role = :admin AND t.deleted = false "
+                + "AND t.domain.id = :domainId "
+                + "AND NOT EXISTS (SELECT 1 FROM UserTeam o WHERE o.team = t "
+                + "  AND o.user.id <> :userId AND o.role = :admin AND o.user.deleted = false) "
+                + "AND EXISTS (SELECT 1 FROM BiketeamMigrationMap bm "
+                + "  WHERE bm.entityType = :teamType AND bm.triblyId = t.id) "
+                + "ORDER BY t.name",
+            Team.class)
+        .setParameter("userId", userId)
+        .setParameter("domainId", domainId)
+        .setParameter("admin", TeamRole.ADMIN)
+        .setParameter("teamType", BiketeamMigrationService.T_TEAM)
         .getResultList();
   }
 

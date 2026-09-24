@@ -249,6 +249,22 @@ recette à la main aurait encore à regarder.
 | ~~2.3~~ | ~~Mettre à jour le document d'API archivé, ou le laisser tel quel en assumant qu'il s'arrête à 1.5.0~~ — **tranché : laissé tel quel**, avec une note explicite ajoutée en tête renvoyant vers `NEXT.md`/git pour tout ce qui a suivi (1.5.1, 1.6.0, 2.0.0…). Le doc garde le *pourquoi* de la livraison qu'il décrit, pas l'état courant du contrat — le tenir à jour en ferait un second changelog à maintenir en double de `NEXT.md` | `docs/plans/archive/` | S |
 | ~~2.4~~ | ~~`SlugService.RESERVED_SLUGS` (`bulk`, `count`, `bounds`, `tiles` pour `ROUTE` ; `reorder` pour `TEAM_PAGE`) n'empêche que les **nouvelles** écritures~~ — **vérifié le 31 juillet 2026, rien trouvé** : sur `pedalons-prod-postgres` (table unique `team_entities`, héritage single-table, `entity_type=2` pour `ROUTE` / `entity_type=4` pour `TEAM_PAGE`), 0 route sur 2 699 et 0 page d'équipe sur 2 porte un de ces slugs. Pas de renommage/backfill à faire | base de données (lecture seule) | S |
 
+- **Supprimer l'ancien import biketeam** <!-- REMOVE-WITH-LEGACY-BIKETEAM-IMPORT -->
+  (dump `biketeam_import` + dossier de données + service `backend-restore`), remplacé par la
+  migration en direct ([plan](plans/2026-09-22-biketeam-live-migration.md)). **Quand** : une fois la
+  dernière équipe biketeam basculée, ou décision de ne plus jamais rejouer un dump. **Comment** :
+  `git grep -n REMOVE-WITH-LEGACY-BIKETEAM-IMPORT`, supprimer chaque élément marqué (fichiers entiers,
+  méthodes, blocs de configuration, sections de doc), puis compiler et vérifier que
+  `git grep -n -i "biketeam_import\|backend-restore\|BiketeamReader\|biketeam_fetch\|biketeam_restore" -- ':!docs/plans'` ne rend plus rien (les plans datés gardent leur historique). Aucune
+  migration Flyway à écrire : `biketeam_migration_map` sert encore au direct.
+
+- **Purge physique des équipes à la corbeille** (reset de migration biketeam) — chantier séparé. Un
+  `reset` de la migration en direct met l'équipe Pédalons à la corbeille et libère son slug
+  (`TeamService.deleteTeam`), rien de plus : lignes `team_entities`, assets et fichiers S3 restent.
+  Chaque reset en laisse un exemplaire de plus. **Quand** : si le volume le justifie, ou avec une
+  politique de rétention générale de la corbeille. Décision du 2026-09-22
+  ([plan](plans/2026-09-22-biketeam-live-migration.md) §13, décision 10).
+
 ---
 
 ## 3. Le résidu du portage web

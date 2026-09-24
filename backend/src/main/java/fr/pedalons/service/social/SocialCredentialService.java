@@ -1,5 +1,6 @@
 package fr.pedalons.service.social;
 
+import fr.pedalons.common.UrlUtils;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.Optional;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -35,9 +36,8 @@ public class SocialCredentialService {
   /** Base URL of the Strava-compatible endpoint, never with a trailing slash. */
   public String getStravaBaseUrl() {
     return stravaBaseUrl
-        .map(String::trim)
+        .map(UrlUtils::stripTrailingSlash)
         .filter(s -> !s.isEmpty())
-        .map(s -> s.endsWith("/") ? s.substring(0, s.length() - 1) : s)
         .orElse(DEFAULT_STRAVA_BASE_URL);
   }
 

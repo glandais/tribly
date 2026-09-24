@@ -608,7 +608,7 @@ export const useDeleteAvatar = <TError = ErrorType<ErrorResponse | void>, TConte
   return useMutation(getDeleteAvatarMutationOptions(options), queryClient)
 }
 /**
- * What deleting the current user's account would do to their teams: the teams deleted with it (they administer them alone), and the teams that refuse the deletion (SOLE_TEAM_ADMIN). Read-only.
+ * What deleting the current user's account would do to their teams: the teams deleted with it (they administer them alone), and the teams that refuse the deletion (SOLE_TEAM_ADMIN, or SOLE_MIGRATED_TEAM_ADMIN for a team migrated from biketeam). Read-only.
  * @summary Preview the deletion of the current user
  */
 export const getMyDeletionImpact = (

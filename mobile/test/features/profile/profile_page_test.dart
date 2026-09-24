@@ -67,6 +67,7 @@ const AccountDeletionImpactDto _noImpact = AccountDeletionImpactDto(
   blocked: false,
   blockingTeams: <TeamPublicationDto>[],
   deletedTeams: <TeamPublicationDto>[],
+  migratedTeams: <TeamPublicationDto>[],
 );
 
 TeamPublicationDto _team(String name) =>
@@ -268,6 +269,7 @@ void main() {
           blocked: true,
           blockingTeams: <TeamPublicationDto>[_team('Les Rouleurs')],
           deletedTeams: <TeamPublicationDto>[_team('Mon équipe')],
+          migratedTeams: const <TeamPublicationDto>[],
         ),
       );
       await mount(tester, const AccountSection(), profile: profile);
@@ -283,6 +285,37 @@ void main() {
       expect(profile.accountDeleted, isFalse);
     });
 
+    testWidgets(
+      'une équipe venue de biketeam bloque, nommée avec son adresse, sans confirmation',
+      (WidgetTester tester) async {
+        final _StubProfileRepository profile = _StubProfileRepository(
+          AccountDeletionImpactDto(
+            blocked: true,
+            blockingTeams: const <TeamPublicationDto>[],
+            deletedTeams: const <TeamPublicationDto>[],
+            migratedTeams: <TeamPublicationDto>[_team('Club migré')],
+          ),
+        );
+        await mount(tester, const AccountSection(), profile: profile);
+
+        await tester.tap(find.text('Supprimer le compte'));
+        await settle(tester);
+
+        expect(find.textContaining('Club migré ('), findsOneWidget);
+        expect(find.textContaining('venue de biketeam'), findsOneWidget);
+        expect(find.textContaining('annuler sa bascule'), findsOneWidget);
+        expect(
+          find.textContaining('qui compte d\'autres membres'),
+          findsNothing,
+        );
+        expect(
+          find.text('Voulez-vous vraiment supprimer votre compte ?'),
+          findsNothing,
+        );
+        expect(profile.accountDeleted, isFalse);
+      },
+    );
+
     testWidgets('la confirmation nomme les équipes supprimées avec le compte', (
       WidgetTester tester,
     ) async {
@@ -291,6 +324,7 @@ void main() {
           blocked: false,
           blockingTeams: const <TeamPublicationDto>[],
           deletedTeams: <TeamPublicationDto>[_team('Mon équipe')],
+          migratedTeams: const <TeamPublicationDto>[],
         ),
       );
       await mount(tester, const AccountSection(), profile: profile);

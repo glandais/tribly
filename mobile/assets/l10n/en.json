@@ -824,6 +824,10 @@
       "blocked": {
         "one": "You are the only admin of the team {teams}, which has other members. Make another member an admin, or delete the team, then come back to delete your account.",
         "other": "You are the only admin of the teams {teams}, which have other members. Make another member an admin in each, or delete those teams, then come back to delete your account."
+      },
+      "blockedMigrated": {
+        "one": "You are the only admin of the team {teams}, which came from biketeam: its old biketeam addresses redirect to it, so it can't go with your account. Make another member an admin, then come back to delete your account. To delete the team itself, a platform admin must first cancel its switch-over on biketeam.",
+        "other": "You are the only admin of the teams {teams}, which came from biketeam: their old biketeam addresses redirect to them, so they can't go with your account. Make another member an admin in each, then come back to delete your account. To delete those teams, a platform admin must first cancel their switch-over on biketeam."
       }
     },
     "community": "Community"
@@ -1008,6 +1012,7 @@
       "INVALID_VISIBILITY": "The visibility setting is invalid",
       "LAST_ADMIN": "Cannot remove the last admin from the team",
       "SOLE_TEAM_ADMIN": "You are the only admin of a team that has other members. Make someone else an admin, or delete the team, before deleting your account.",
+      "SOLE_MIGRATED_TEAM_ADMIN": "You are the only admin of a team that came from biketeam, whose old addresses redirect to it. Make someone else an admin before deleting your account; to delete the team, a platform admin must first cancel its switch-over on biketeam.",
       "NOT_FOUND": "The requested resource was not found",
       "NOT_REGISTERED": "You are not registered for this ride",
       "PASSKEY_NOT_FOUND": "Passkey not found",

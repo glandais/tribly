@@ -64,6 +64,16 @@ routes:
     web: true
     mobile: false
     deeplink: false
+  # Where biketeam sends a team admin who asked to move their team here. The signed request travels
+  # in ?request= ; it is not a credential on its own (confirming needs a session), see
+  # docs/plans/2026-09-22-biketeam-live-migration.md.
+  - id: biketeamMigration
+    path:
+      en: /biketeam-migration
+      fr: /migration-biketeam
+    web: true
+    mobile: false
+    deeplink: false
   - id: forgotPassword
     path:
       en: /forgot-password

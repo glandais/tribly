@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# DEPRECATED — the legacy biketeam dump import is replaced by the live migration, team by team
+# (docs/plans/2026-09-22-biketeam-live-migration.md). REMOVE-WITH-LEGACY-BIKETEAM-IMPORT: delete this
+# script once the last biketeam team has switched over (see docs/NEXT.md).
+#
 # Prepare a restore from biketeam: pull the production data directory, dump the biketeam database
 # on the remote host, pull the dump, and load it into `biketeam_import` via biketeam_restore.sh.
 #
@@ -28,6 +32,8 @@ die() {
   exit 1
 }
 
+echo "WARNING: $(basename "$0") is DEPRECATED (legacy biketeam dump import) — see docs/NEXT.md" >&2
+
 DEST="$REPO_ROOT/../biketeam-backup"
 REMOTE="biketeam@main.tomacla.info"
 REMOTE_DIR="/home/biketeam/production"
@@ -46,7 +52,7 @@ while [[ $# -gt 0 ]]; do
     --skip-files) DO_FILES=0; shift ;;
     --skip-db) DO_DB=0; shift ;;
     --no-restore) DO_RESTORE=0; shift ;;
-    -h|--help) sed -n '2,20p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,24p' "$0"; exit 0 ;;
     *) die "unknown option: $1" ;;
   esac
 done

@@ -50,8 +50,9 @@ services:
     volumes:
       - ./data/storage:/mnt/storage
       - ./data/keys:/mnt/keys:ro
-      # gpx2web's tile + elevation cache (DATA_CACHE_PATH). Shared with backend-restore, and kept
-      # outside the container so it outlives `down`.
+      # gpx2web's tile + elevation cache (DATA_CACHE_PATH), kept outside the container so it outlives
+      # `down`. REMOVE-WITH-LEGACY-BIKETEAM-IMPORT: it is also shared with backend-restore — drop
+      # that mention with the service.
       - ./data/cache:/mnt/cache
     labels:
       - "traefik.enable=true"
@@ -60,6 +61,8 @@ services:
       - "traefik.http.routers.quarkus.priority=100"
       - "traefik.http.services.quarkus.loadbalancer.server.port=8080"
 
+  # REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — whole service: the legacy dump import (MIGRATE_BIKETEAM.md),
+  # replaced by the live migration. Delete it, its `restore` profile, and ../biketeam-backup.
   backend-restore:
     image: pedalons-backend:${ENV_NAME}
     container_name: ${ENV_NAME}-backend-restore
@@ -123,6 +126,8 @@ services:
       - pedalons
     # Loopback-only: lets scripts/biketeam_restore.sh reach the DB from the host
     # without exposing it beyond this machine.
+    # REMOVE-WITH-LEGACY-BIKETEAM-IMPORT: the port stays (dev backend, SQL client) — only rewrite
+    # this comment, which cites biketeam_restore.sh.
     ports:
       - "127.0.0.1:${POSTGRES_HOST_PORT:-5432}:5432"
     volumes:

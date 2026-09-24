@@ -22,6 +22,7 @@ both clients: changing it in one place only makes them diverge silently.
 | Notifications (event pipeline, channels, what's left) | [docs/plans/2026-09-18-notifications.md](docs/plans/2026-09-18-notifications.md) + its ledger |
 | Why the mobile app / the site / the API look the way they do | [docs/plans/archive/](docs/plans/archive/) — executed plans, kept for their arbitrations |
 | Infrastructure and security audit, still open | [docs/plans/2026-02-14-project-audit.md](docs/plans/2026-02-14-project-audit.md) |
+| Biketeam → Pédalons migration, team by team, server to server over HTTPS (contract with biketeam, operations) | [docs/plans/2026-09-22-biketeam-live-migration.md](docs/plans/2026-09-22-biketeam-live-migration.md) + [MIGRATE_BIKETEAM.md](MIGRATE_BIKETEAM.md) |
 | The design brief the v2 came from (state *before* v2) | [docs/audit-ux/](docs/audit-ux/) |
 
 Three invariants that cut across modules, each of which a plausible-looking change would break:

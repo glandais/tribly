@@ -51,6 +51,9 @@ public class BootstrapService {
    * Creates the default domain and its platform admin if they are missing, and returns them either
    * way. Idempotent, and safe to call outside the startup event — the biketeam migration relies on
    * it rather than growing its own copy, since {@code StartupEvent} observers have no ordering.
+   *
+   * <p>REMOVE-WITH-LEGACY-BIKETEAM-IMPORT: the sentence above is about the legacy dump import; the
+   * live migration writes as the confirming user instead. Rewrite it when the import goes.
    */
   public Identity ensureDomainAndAdmin() {
     if (config.domain().isBlank() || config.adminEmail().isBlank()) {

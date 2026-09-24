@@ -219,7 +219,7 @@
 | L9 | Nom de fichier brut dans l'URL de téléchargement d'asset | `AssetService.java:331` | Encoder le segment |
 | L10 | Karoo : tokens en clair dans DataStore avec `allowBackup="true"` | `karoo/app/src/main/AndroidManifest.xml:7`, `AuthManager.kt` | `allowBackup="false"` et chiffrement par Keystore |
 | L11 | GitHub Actions : actions tierces épinglées par tag, pas de `permissions:` par défaut ; `karoo-release.yml` dispose du keystore | `.github/workflows/*.yml` | Épingler par SHA, `permissions: contents: read` |
-| L12 | Dump biketeam écrit dans un `/tmp` prévisible sur un hôte partagé | `scripts/biketeam_fetch.sh:36,91` | `umask 077; mktemp -d` |
+| L12 | Dump biketeam écrit dans un `/tmp` prévisible sur un hôte partagé | `scripts/biketeam_fetch.sh:36,91` | `umask 077; mktemp -d` <!-- REMOVE-WITH-LEGACY-BIKETEAM-IMPORT: L12 devient sans objet avec biketeam_fetch.sh — retirer la ligne (et « L1–L12 » du tableau de synthèse) --> |
 
 Informationnel :
 - Le markdown web accepte des images externes (pistage de l'IP des lecteurs, sans fuite de token) : `MarkdownDisplay.tsx:70-72`.

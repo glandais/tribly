@@ -1,5 +1,16 @@
 package fr.pedalons.service.migration;
 
+import fr.pedalons.service.migration.BiketeamModel.BtMap;
+import fr.pedalons.service.migration.BiketeamModel.BtPlace;
+import fr.pedalons.service.migration.BiketeamModel.BtPublication;
+import fr.pedalons.service.migration.BiketeamModel.BtRide;
+import fr.pedalons.service.migration.BiketeamModel.BtRideGroup;
+import fr.pedalons.service.migration.BiketeamModel.BtRideGroupTemplate;
+import fr.pedalons.service.migration.BiketeamModel.BtRideTemplate;
+import fr.pedalons.service.migration.BiketeamModel.BtTeam;
+import fr.pedalons.service.migration.BiketeamModel.BtTeamDescription;
+import fr.pedalons.service.migration.BiketeamModel.BtTrip;
+import fr.pedalons.service.migration.BiketeamModel.BtTripStage;
 import io.agroal.api.AgroalDataSource;
 import io.quarkus.agroal.DataSource;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -18,7 +29,17 @@ import java.util.List;
 import java.util.Map;
 import org.jspecify.annotations.Nullable;
 
-/** Read-only JDBC accessor on the named "biketeam" datasource (restored biketeam dump). */
+/**
+ * Read-only JDBC accessor on the named "biketeam" datasource (restored biketeam dump).
+ *
+ * <p>REMOVE-WITH-LEGACY-BIKETEAM-IMPORT: the dump import is replaced by the live migration, which
+ * reads biketeam's export API instead of its database. The records shared with it moved to {@link
+ * BiketeamModel}; the ones left here describe people, which the live migration never imports.
+ *
+ * @deprecated replaced by the live migration (docs/plans/2026-09-22-biketeam-live-migration.md)
+ */
+// REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — whole class: the live migration never reads biketeam's DB.
+@Deprecated(forRemoval = true, since = "4.5.0")
 @ApplicationScoped
 public class BiketeamReader {
 
@@ -27,16 +48,6 @@ public class BiketeamReader {
   AgroalDataSource ds;
 
   // ─── Records ──────────────────────────────────────────────────────────────
-
-  /** {@code visibility} is one of PUBLIC, PUBLIC_UNLISTED, PRIVATE, PRIVATE_UNLISTED, USER. */
-  public record BtTeam(
-      String id,
-      String name,
-      String city,
-      String country,
-      LocalDate createdAt,
-      @Nullable String visibility,
-      boolean deletion) {}
 
   /**
    * {@code email} is null for the many biketeam accounts created through a Strava/Facebook/Google
@@ -60,129 +71,11 @@ public class BiketeamReader {
       @Nullable String passwordHash,
       boolean emailVerified) {}
 
-  /** Free-text presentation plus contact details, shown on the biketeam team home page. */
-  public record BtTeamDescription(
-      @Nullable String description,
-      @Nullable String addressStreetLine,
-      @Nullable String addressPostalCode,
-      @Nullable String addressPostalCity,
-      @Nullable String phoneNumber,
-      @Nullable String email,
-      @Nullable String facebook,
-      @Nullable String twitter,
-      @Nullable String instagram,
-      @Nullable String other) {}
-
   public record BtUserRole(String userId, String teamId, String role) {}
-
-  public record BtPlace(
-      String id,
-      String teamId,
-      String name,
-      @Nullable String address,
-      @Nullable String link,
-      @Nullable Double pointLat,
-      @Nullable Double pointLng,
-      boolean startPlace,
-      boolean endPlace) {}
-
-  public record BtMap(
-      String id,
-      String teamId,
-      String name,
-      @Nullable String permalink,
-      double length,
-      String type,
-      double positiveElevation,
-      double negativeElevation,
-      LocalDate postedAt,
-      @Nullable Double startPointLat,
-      @Nullable Double startPointLng,
-      @Nullable Double endPointLat,
-      @Nullable Double endPointLng,
-      @Nullable String windDirection,
-      boolean deletion,
-      List<String> tags) {}
-
-  public record BtRide(
-      String id,
-      String teamId,
-      @Nullable String permalink,
-      LocalDate date,
-      String title,
-      @Nullable String description,
-      String type,
-      String publishedStatus,
-      @Nullable Instant publishedAt,
-      @Nullable String startPlaceId,
-      @Nullable String endPlaceId,
-      boolean listedInFeed,
-      boolean deletion) {}
-
-  public record BtRideGroup(
-      String id,
-      String rideId,
-      String name,
-      @Nullable Double averageSpeed,
-      @Nullable LocalTime meetingTime,
-      @Nullable String mapId) {}
 
   public record BtRideGroupParticipant(String rideGroupId, String userId) {}
 
-  public record BtRideTemplate(
-      String id,
-      String teamId,
-      String name,
-      @Nullable String description,
-      String type,
-      @Nullable Integer increment,
-      @Nullable String startPlaceId,
-      @Nullable String endPlaceId) {}
-
-  public record BtRideGroupTemplate(
-      String id,
-      String rideTemplateId,
-      String name,
-      @Nullable Double averageSpeed,
-      @Nullable LocalTime meetingTime) {}
-
-  public record BtTrip(
-      String id,
-      String teamId,
-      @Nullable String permalink,
-      LocalDate startDate,
-      LocalDate endDate,
-      @Nullable LocalTime meetingTime,
-      String type,
-      String publishedStatus,
-      @Nullable Instant publishedAt,
-      String title,
-      @Nullable String description,
-      @Nullable String startPlaceId,
-      @Nullable String endPlaceId,
-      @Nullable String markdownPage,
-      boolean listedInFeed,
-      boolean deletion) {}
-
-  public record BtTripStage(
-      String id,
-      String tripId,
-      LocalDate date,
-      String name,
-      @Nullable String mapId,
-      boolean alternative) {}
-
   public record BtTripParticipant(String tripId, String userId) {}
-
-  public record BtPublication(
-      String id,
-      String teamId,
-      String publishedStatus,
-      String title,
-      Instant publishedAt,
-      @Nullable String content,
-      boolean imaged,
-      boolean deletion) {}
 
   public record BtMessage(
       String id,

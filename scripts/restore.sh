@@ -173,6 +173,7 @@ done
 #
 # --clean --if-exists so the script also works against a database that was not wiped; --no-owner
 # --no-acl because the dump's role names need not exist here (same flags as biketeam_restore.sh).
+# REMOVE-WITH-LEGACY-BIKETEAM-IMPORT: rewrite the comment above, which cites biketeam_restore.sh.
 # pg_restore is not run with --exit-on-error: a fresh database emits harmless "does not exist"
 # notices for the DROPs, so the summary below is what matters.
 log "restoring postgres into $POSTGRES_DB"

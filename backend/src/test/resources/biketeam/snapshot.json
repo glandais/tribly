@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-22T10:16:11.123Z",
+  "somethingBiketeamAddedLater": { "ignored": true },
+  "team": {
+    "id": "live-team",
+    "name": "Live Team",
+    "city": "Saint-Denis",
+    "country": "FR",
+    "createdAt": "2019-03-02",
+    "visibility": "PUBLIC",
+    "timezone": "Indian/Reunion",
+    "description": {
+      "description": "On roule.\nTous les samedis.",
+      "addressStreetLine": null,
+      "addressPostalCode": "97400",
+      "addressPostalCity": "Saint-Denis",
+      "phoneNumber": null,
+      "email": "contact@example.org",
+      "facebook": "liveteam",
+      "twitter": null,
+      "instagram": null,
+      "other": null
+    },
+    "markdownPage": "# FAQ\r\n\r\nQuestions fréquentes.",
+    "logo": {
+      "kind": "LOGO",
+      "path": "/internal/pedalons/teams/live-team/files/logo/live-team",
+      "fileName": "logo.png",
+      "contentType": "image/png",
+      "size": ${IMAGE_SIZE},
+      "md5": "${IMAGE_MD5}"
+    }
+  },
+  "places": [
+    {
+      "id": "place-1", "name": "Place du Barachois", "address": "Barachois", "link": null,
+      "lat": -20.8789, "lng": 55.4481, "startPlace": true, "endPlace": false
+    }
+  ],
+  "maps": [
+    {
+      "id": "map-1", "permalink": "boucle", "name": "Boucle du littoral",
+      "length": 84210.0, "type": "GRAVEL",
+      "positiveElevation": 612.0, "negativeElevation": 611.0,
+      "postedAt": "2023-04-11",
+      "startPoint": { "lat": -20.87, "lng": 55.44 },
+      "endPoint": null,
+      "windDirection": "NORTH_EAST",
+      "tags": ["littoral"],
+      "deleted": false,
+      "gpx": {
+        "kind": "GPX",
+        "path": "/internal/pedalons/teams/live-team/files/gpx/map-1",
+        "fileName": "map-1.gpx",
+        "contentType": "application/gpx+xml",
+        "size": ${GPX_SIZE},
+        "md5": "${GPX_MD5}"
+      }
+    },
+    {
+      "id": "map-2", "permalink": null, "name": "Supprimée",
+      "length": 1000.0, "type": "ROAD",
+      "positiveElevation": 0.0, "negativeElevation": 0.0,
+      "postedAt": "2022-01-01",
+      "startPoint": null, "endPoint": null, "windDirection": null, "tags": [],
+      "deleted": true,
+      "gpx": null
+    }
+  ],
+  "rideTemplates": [
+    {
+      "id": "tpl-1", "name": "Sortie du samedi", "description": "Départ 8h", "type": "REGULAR",
+      "increment": 7, "startPlaceId": "place-1", "endPlaceId": null,
+      "groups": [
+        { "id": "tplg-a", "name": "A", "averageSpeed": 30.0, "meetingTime": "08:00:00" },
+        { "id": "tplg-b", "name": "B", "averageSpeed": 25.0, "meetingTime": "07:30:00" }
+      ]
+    }
+  ],
+  "publications": [
+    {
+      "id": "pub-1", "title": "AG 2025", "content": "Compte rendu.\nMerci.",
+      "publishedStatus": "PUBLISHED", "publishedAt": "2025-01-10T18:00:00Z",
+      "deleted": false, "image": null
+    },
+    {
+      "id": "pub-2", "title": "Retirée", "content": "…",
+      "publishedStatus": "PUBLISHED", "publishedAt": "2024-01-10T18:00:00Z",
+      "deleted": true, "image": null
+    }
+  ],
+  "rides": [
+    {
+      "id": "ride-1", "permalink": "sortie-du-12", "date": "2025-04-12",
+      "title": "Sortie du 12", "description": "Deux groupes", "type": "REGULAR",
+      "publishedStatus": "PUBLISHED", "publishedAt": "2025-04-05T09:00:00Z",
+      "startPlaceId": "place-1", "endPlaceId": null,
+      "listedInFeed": true, "deleted": false,
+      "image": null,
+      "groups": [
+        { "id": "group-z", "name": "Z", "averageSpeed": 30.0, "meetingTime": "08:00:00", "mapId": "map-1" },
+        { "id": "group-a", "name": "A", "averageSpeed": 25.0, "meetingTime": "09:30:00", "mapId": null }
+      ]
+    },
+    {
+      "id": "ride-2", "permalink": null, "date": "2024-04-12",
+      "title": "Supprimée", "description": null, "type": "REGULAR",
+      "publishedStatus": "PUBLISHED", "publishedAt": "2024-04-05T09:00:00Z",
+      "startPlaceId": null, "endPlaceId": null,
+      "listedInFeed": true, "deleted": true,
+      "image": null, "groups": []
+    }
+  ],
+  "trips": [
+    {
+      "id": "trip-1", "permalink": "tour-2025",
+      "startDate": "2025-07-01", "endDate": "2025-07-02", "meetingTime": "07:30:00",
+      "type": "ROAD", "publishedStatus": "PUBLISHED", "publishedAt": "2025-03-01T12:00:00Z",
+      "title": "Tour 2025", "description": "Deux jours",
+      "startPlaceId": null, "endPlaceId": null,
+      "markdownPage": "Prévoir un **gilet**.\r\nGîte réservé.",
+      "listedInFeed": false, "deleted": false,
+      "image": null,
+      "stages": [
+        { "id": "stage-1", "date": "2025-07-01", "name": "Étape 1", "mapId": "map-1", "alternative": false },
+        { "id": "stage-2", "date": "2025-07-02", "name": "Étape 2", "mapId": null, "alternative": false }
+      ]
+    }
+  ]
+}

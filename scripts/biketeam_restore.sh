@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# DEPRECATED — the legacy biketeam dump import is replaced by the live migration, team by team
+# (docs/plans/2026-09-22-biketeam-live-migration.md). REMOVE-WITH-LEGACY-BIKETEAM-IMPORT: delete this
+# script once the last biketeam team has switched over (see docs/NEXT.md).
+#
 # Restore a biketeam pg_dump (custom format, -Fc) into a fresh `biketeam_import` database
 # alongside the main `pedalons` database, ready for the in-app migration runner.
 #
@@ -15,7 +19,9 @@ if [[ -f "$ENV_FILE" ]]; then
   set -a && source "$ENV_FILE" && set +a
 fi
 
-DUMP="${1:?Usage: $0 <dump_file> [pg_user] [pg_host] [pg_port]}"
+echo "WARNING: $(basename "$0") is DEPRECATED (legacy biketeam dump import) — see docs/NEXT.md" >&2
+
+DUMP="${1:?Usage: $0 <dump_file> [pg_user] [pg_host] [pg_port] (DEPRECATED: legacy biketeam dump import)}"
 PG_USER="${2:-${POSTGRES_USER:-tribly}}"
 PG_HOST="${3:-localhost}"
 PG_PORT="${4:-${POSTGRES_HOST_PORT:-5432}}"

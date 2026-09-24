@@ -27,7 +27,7 @@ public class SlugService {
   private static final Pattern PATTERN_NON_ALPHANUMERIC = Pattern.compile("[^a-zA-Z0-9]+");
   private static final Pattern PATTERN_TRIM_DASH = Pattern.compile("^-|-$");
   private static final Pattern PATTERN_VALID_SLUG = Pattern.compile("^[a-z0-9]+(-[a-z0-9]+)*$");
-  private static final int MAX_SLUG_LENGTH = 200;
+  public static final int MAX_SLUG_LENGTH = 200;
   private static final String EMPTY = "";
   private static final String HYPHEN = "-";
 
@@ -123,6 +123,24 @@ public class SlugService {
         .map(String::toLowerCase)
         // return empty string if input is null or empty
         .orElse(EMPTY);
+  }
+
+  /**
+   * {@link #slugify}, cut to {@link #MAX_SLUG_LENGTH} without leaving a trailing hyphen — a slug
+   * {@link #isValidSlug} accepts, unless {@code name} has no letter or digit at all (then empty).
+   */
+  public static String slugifyWithinLimit(String name) {
+    return truncateSlug(slugify(name), MAX_SLUG_LENGTH);
+  }
+
+  /** {@code slug} cut to {@code maxLength}, without the hyphens the cut may leave at its end. */
+  public static String truncateSlug(String slug, int maxLength) {
+    String cut = slug.length() <= maxLength ? slug : slug.substring(0, maxLength);
+    int end = cut.length();
+    while (end > 0 && cut.charAt(end - 1) == '-') {
+      end--;
+    }
+    return cut.substring(0, end);
   }
 
   private static String prepare(final String input) {

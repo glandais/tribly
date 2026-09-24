@@ -28,6 +28,15 @@ public class TeamRepository implements BaseRepository<Team> {
         .firstResultOptional();
   }
 
+  /**
+   * The team holding {@code slug} in the domain, trashed ones included: {@code uk_teams_domain_slug}
+   * spans deleted teams too, so a trashed team still blocks its slug. For the biketeam migration,
+   * which must tell a free slug from one a trashed team still holds.
+   */
+  public Optional<Team> findBySlugAndDomainIncludingDeleted(Long domainId, String slug) {
+    return find("domain.id = ?1 and slug = ?2", domainId, slug).firstResultOptional();
+  }
+
   public Optional<Team> findActiveById(Long id) {
     return find("id = ?1 and deleted = false", id).firstResultOptional();
   }

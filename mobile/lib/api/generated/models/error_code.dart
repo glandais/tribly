@@ -26,6 +26,8 @@ enum ErrorCode {
   lastAdmin('LAST_ADMIN'),
   @JsonValue('SOLE_TEAM_ADMIN')
   soleTeamAdmin('SOLE_TEAM_ADMIN'),
+  @JsonValue('SOLE_MIGRATED_TEAM_ADMIN')
+  soleMigratedTeamAdmin('SOLE_MIGRATED_TEAM_ADMIN'),
   @JsonValue('ALREADY_REGISTERED')
   alreadyRegistered('ALREADY_REGISTERED'),
   @JsonValue('NOT_REGISTERED')
@@ -180,6 +182,28 @@ enum ErrorCode {
   blockSelf('BLOCK_SELF'),
   @JsonValue('CONTENT_REJECTED')
   contentRejected('CONTENT_REJECTED'),
+  @JsonValue('BIKETEAM_REQUEST_INVALID')
+  biketeamRequestInvalid('BIKETEAM_REQUEST_INVALID'),
+  @JsonValue('BIKETEAM_REQUEST_EXPIRED')
+  biketeamRequestExpired('BIKETEAM_REQUEST_EXPIRED'),
+  @JsonValue('BIKETEAM_REQUEST_ALREADY_USED')
+  biketeamRequestAlreadyUsed('BIKETEAM_REQUEST_ALREADY_USED'),
+  @JsonValue('BIKETEAM_SLUG_CONFLICT')
+  biketeamSlugConflict('BIKETEAM_SLUG_CONFLICT'),
+  @JsonValue('BIKETEAM_MIGRATED_IN_OTHER_DOMAIN')
+  biketeamMigratedInOtherDomain('BIKETEAM_MIGRATED_IN_OTHER_DOMAIN'),
+  @JsonValue('BIKETEAM_NOT_TEAM_ADMIN')
+  biketeamNotTeamAdmin('BIKETEAM_NOT_TEAM_ADMIN'),
+  @JsonValue('BIKETEAM_MIGRATION_RUNNING')
+  biketeamMigrationRunning('BIKETEAM_MIGRATION_RUNNING'),
+  @JsonValue('BIKETEAM_RESET_BLOCKED')
+  biketeamResetBlocked('BIKETEAM_RESET_BLOCKED'),
+  @JsonValue('BIKETEAM_GRANT_INVALID')
+  biketeamGrantInvalid('BIKETEAM_GRANT_INVALID'),
+  @JsonValue('BIKETEAM_GRANT_EXPIRED')
+  biketeamGrantExpired('BIKETEAM_GRANT_EXPIRED'),
+  @JsonValue('BIKETEAM_JOB_NOT_FOUND')
+  biketeamJobNotFound('BIKETEAM_JOB_NOT_FOUND'),
 
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
   $unknown(null);

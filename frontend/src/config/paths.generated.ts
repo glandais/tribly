@@ -22,6 +22,12 @@ export const paths = {
     }
   },
   invitation: () => '/invitation',
+  biketeamMigration: () => {
+    switch (getCurrentLocale()) {
+      case 'fr': return '/migration-biketeam'
+      default: return '/biketeam-migration'
+    }
+  },
   forgotPassword: () => {
     switch (getCurrentLocale()) {
       case 'fr': return '/mot-de-passe-oublie'
@@ -395,6 +401,7 @@ export const pathVariants = {
   login: (): Record<Locale, string> => ({ en: '/login', fr: '/connexion' }),
   verifyEmail: (): Record<Locale, string> => ({ en: '/verify-email', fr: '/verifier-email' }),
   invitation: (): Record<Locale, string> => ({ en: '/invitation', fr: '/invitation' }),
+  biketeamMigration: (): Record<Locale, string> => ({ en: '/biketeam-migration', fr: '/migration-biketeam' }),
   forgotPassword: (): Record<Locale, string> => ({ en: '/forgot-password', fr: '/mot-de-passe-oublie' }),
   resetPassword: (): Record<Locale, string> => ({ en: '/reset-password', fr: '/nouveau-mot-de-passe' }),
   stravaCallback: (): Record<Locale, string> => ({ en: '/strava/callback', fr: '/strava/callback' }),

@@ -150,6 +150,12 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
   /// Les équipes qui refusent la suppression, nommées sous le bouton.
   List<String>? _blockingTeams;
 
+  /// Les équipes venues de biketeam dont on est le seul administrateur :
+  /// elles refusent la suppression même sans autre membre, puisque biketeam
+  /// redirige vers elles ses anciennes adresses. Nommées à part, avec leur
+  /// adresse : ce qu'il faut faire n'est pas la même chose.
+  List<String>? _migratedTeams;
+
   static List<String> _names(List<TeamPublicationDto> teams) =>
       teams.map((TeamPublicationDto team) => team.name).toList();
 
@@ -202,6 +208,7 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
       _busy = true;
       _error = null;
       _blockingTeams = null;
+      _migratedTeams = null;
     });
     AccountDeletionImpactDto? impact;
     try {
@@ -220,7 +227,13 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
 
     if (impact != null && impact.blocked) {
       final List<String> blocking = _names(impact.blockingTeams);
-      setState(() => _blockingTeams = blocking);
+      final List<String> migrated = impact.migratedTeams
+          .map((TeamPublicationDto team) => '${team.name} (${team.slug})')
+          .toList();
+      setState(() {
+        _blockingTeams = blocking.isEmpty ? null : blocking;
+        _migratedTeams = migrated.isEmpty ? null : migrated;
+      });
       return;
     }
 
@@ -300,6 +313,17 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
             enabled: !_busy,
             onPressed: _deleteAccount,
           ),
+          if (_migratedTeams case final List<String> migrated) ...<Widget>[
+            const SizedBox(height: PdlSpacing.chipGap),
+            PdlBanner(
+              tone: PdlBannerTone.danger,
+              title: 'profile.account.blockedTitle'.tr(),
+              message: 'profile.account.blockedMigrated'.plural(
+                migrated.length,
+                namedArgs: <String, String>{'teams': migrated.join(', ')},
+              ),
+            ),
+          ],
           if (_blockingTeams case final List<String> blocking) ...<Widget>[
             const SizedBox(height: PdlSpacing.chipGap),
             PdlBanner(

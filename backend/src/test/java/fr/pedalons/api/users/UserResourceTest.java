@@ -7,9 +7,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import fr.pedalons.api.AbstractResourceTest;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.user.User;
+import fr.pedalons.enums.TeamRole;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.repository.team.TeamRepository;
 import fr.pedalons.repository.user.UserRepository;
+import fr.pedalons.service.migration.live.BiketeamTestData;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -23,6 +25,8 @@ class UserResourceTest extends AbstractResourceTest {
   @Inject UserRepository userRepository;
 
   @Inject TeamRepository teamRepository;
+
+  @Inject BiketeamTestData biketeamData;
 
   @Override
   @BeforeEach
@@ -147,7 +151,157 @@ class UserResourceTest extends AbstractResourceTest {
         .statusCode(200)
         .body("blocked", is(false))
         .body("blockingTeams", empty())
+        .body("deletedTeams", empty())
+        .body("migratedTeams", empty());
+  }
+
+  // ─── teams migrated from biketeam ────────────────────────────────────────
+
+  @Test
+  void deleteCurrentUser_soleAdminOfAMigratedTeam_aloneInIt_isRefused_andTheTeamStays() {
+    User solo = dataService.createUser("solo@example.com", "Solo");
+    Team migrated = dataService.createTeam(solo, "Club migré", "club-migre", Visibility.PUBLIC);
+    biketeamData.mapTeam("club-migre", migrated);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken("solo"))
+        .when()
+        .get("/api/users/me/deletion-impact")
+        .then()
+        .statusCode(200)
+        .body("blocked", is(true))
+        .body("migratedTeams.slug", contains("club-migre"))
+        .body("migratedTeams[0].name", equalTo("Club migré"))
+        .body("deletedTeams", empty())
+        .body("blockingTeams", empty());
+
+    given()
+        .auth()
+        .oauth2(getAccessToken("solo"))
+        .when()
+        .delete("/api/users/me")
+        .then()
+        .statusCode(400)
+        .body("code", equalTo("SOLE_MIGRATED_TEAM_ADMIN"));
+
+    assertFalse(isDeleted(solo));
+    assertFalse(
+        QuarkusTransaction.requiringNew()
+            .call(() -> teamRepository.findById(migrated.getId()).isDeleted()));
+  }
+
+  @Test
+  void deleteCurrentUser_soleAdminOfAMigratedTeamWithMembers_isRefusedForTheMigration() {
+    biketeamData.mapTeam("team-one", team1);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .when()
+        .get("/api/users/me/deletion-impact")
+        .then()
+        .statusCode(200)
+        .body("blocked", is(true))
+        // Named once, in its own list.
+        .body("migratedTeams.slug", contains(team1Slug))
+        .body("blockingTeams.slug", contains(team2Slug));
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .when()
+        .delete("/api/users/me")
+        .then()
+        .statusCode(400)
+        .body("code", equalTo("SOLE_MIGRATED_TEAM_ADMIN"));
+
+    assertFalse(isDeleted(user1));
+  }
+
+  @Test
+  void deleteCurrentUser_aMigratedTeamWithAnotherAdmin_doesNotBlock() {
+    User solo = dataService.createUser("solo@example.com", "Solo");
+    Team migrated = dataService.createTeam(solo, "Club migré", "club-migre", Visibility.PUBLIC);
+    dataService.addUserToTeam(user4, migrated, TeamRole.ADMIN);
+    biketeamData.mapTeam("club-migre", migrated);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken("solo"))
+        .when()
+        .get("/api/users/me/deletion-impact")
+        .then()
+        .statusCode(200)
+        .body("blocked", is(false))
+        .body("migratedTeams", empty());
+
+    given()
+        .auth()
+        .oauth2(getAccessToken("solo"))
+        .when()
+        .delete("/api/users/me")
+        .then()
+        .statusCode(204);
+
+    assertTrue(isDeleted(solo));
+  }
+
+  @Test
+  void deleteCurrentUser_aTrashedMigratedTeam_doesNotBlock() {
+    User solo = dataService.createUser("solo@example.com", "Solo");
+    Team migrated = dataService.createTeam(solo, "Club migré", "club-migre", Visibility.PUBLIC);
+    biketeamData.mapTeam("club-migre", migrated);
+    biketeamData.trashTeam(migrated.getId());
+
+    given()
+        .auth()
+        .oauth2(getAccessToken("solo"))
+        .when()
+        .get("/api/users/me/deletion-impact")
+        .then()
+        .statusCode(200)
+        .body("blocked", is(false))
+        .body("migratedTeams", empty())
         .body("deletedTeams", empty());
+
+    given()
+        .auth()
+        .oauth2(getAccessToken("solo"))
+        .when()
+        .delete("/api/users/me")
+        .then()
+        .statusCode(204);
+  }
+
+  /** The migrated teams are found in one query for all of them, not one per team. */
+  @Test
+  void getMyDeletionImpact_costsTheSameForOneMigratedTeamAsForThree() {
+    User solo = dataService.createUser("solo@example.com", "Solo");
+    Team first = dataService.createTeam(solo, "Club 1", "club-1", Visibility.PUBLIC);
+    biketeamData.mapTeam("club-1", first);
+    String token = getAccessToken("solo");
+    Runnable impact =
+        () ->
+            given()
+                .auth()
+                .oauth2(token)
+                .when()
+                .get("/api/users/me/deletion-impact")
+                .then()
+                .statusCode(200)
+                .body("blocked", is(true));
+    impact.run(); // warm-up: the first request of a user pays for its lookup caches.
+    long one = queryStats.measure("GET /users/me/deletion-impact (1 migrated team)", impact);
+
+    for (int i = 2; i <= 3; i++) {
+      Team team = dataService.createTeam(solo, "Club " + i, "club-" + i, Visibility.PUBLIC);
+      biketeamData.mapTeam("club-" + i, team);
+    }
+    impact.run();
+    long three = queryStats.measure("GET /users/me/deletion-impact (3 migrated teams)", impact);
+
+    assertEquals(one, three, () -> "per-team queries:\n" + queryStats.queryBreakdown(10));
   }
 
   @Test
