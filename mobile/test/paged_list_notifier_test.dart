@@ -64,16 +64,44 @@ void main() {
       expect(notifier.state.items, ['a', 'b', 'c', 'd']);
     });
 
-    test('an empty page ends the list even when the total disagrees', () async {
+    test('the end is where the pages cover the total, however few items '
+        'came back', () async {
       final notifier = _FakeNotifier(
-        (page) async => page == 0 ? _page(['a'], 50) : _page([], 50),
+        (page) async => page == 0 ? _page(['a'], 6) : _page(['d'], 6),
       );
       await pumpEventQueue();
+      expect(notifier.state.hasMore, isTrue);
 
       await notifier.loadNextPage();
 
+      expect(notifier.requestedPages, [0, 1]);
+      expect(notifier.state.items, ['a', 'd']);
       expect(notifier.state.hasMore, isFalse);
-      expect(notifier.state.items, ['a']);
+    });
+
+    test('a page the server filtered down to nothing is skipped, not taken '
+        'as the end', () async {
+      final notifier = _FakeNotifier(
+        (page) async => switch (page) {
+          0 || 1 => _page([], 9),
+          _ => _page(['g', 'h'], 9),
+        },
+      );
+      await pumpEventQueue();
+
+      expect(notifier.requestedPages, [0, 1, 2]);
+      expect(notifier.state.items, ['g', 'h']);
+      expect(notifier.state.loadedPages, 3);
+      expect(notifier.state.hasMore, isFalse);
+    });
+
+    test('empty pages stop at the total', () async {
+      final notifier = _FakeNotifier((page) async => _page([], 7));
+      await pumpEventQueue();
+
+      expect(notifier.requestedPages, [0, 1, 2]);
+      expect(notifier.state.items, isEmpty);
+      expect(notifier.state.hasMore, isFalse);
     });
 
     test('a next-page failure keeps the loaded items and only fills '

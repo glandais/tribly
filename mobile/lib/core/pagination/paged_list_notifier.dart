@@ -63,13 +63,13 @@ abstract class PagedListNotifier<T> extends StateNotifier<PagedListState<T>> {
     );
 
     try {
-      final result = await fetchPage(0);
+      final (result, pages) = await _fetchFrom(0, generation);
       if (!mounted || generation != _generation) return;
       state = PagedListState<T>(
         items: result.items,
         total: result.total,
-        loadedPages: 1,
-        hasMore: _hasMoreAfter(result.items.length, result),
+        loadedPages: pages,
+        hasMore: _hasMoreAfter(pages, result),
         isLoadingInitial: false,
       );
     } catch (error) {
@@ -107,14 +107,14 @@ abstract class PagedListNotifier<T> extends StateNotifier<PagedListState<T>> {
     state = current.copyWith(isLoadingNext: true, nextError: null);
 
     try {
-      final result = await fetchPage(current.loadedPages);
+      final (result, pages) = await _fetchFrom(current.loadedPages, generation);
       if (!mounted || generation != _generation) return;
-      final merged = _append(state.items, result.items);
+      final loadedPages = state.loadedPages + pages;
       state = state.copyWith(
-        items: merged,
+        items: _append(state.items, result.items),
         total: result.total,
-        loadedPages: state.loadedPages + 1,
-        hasMore: _hasMoreAfter(merged.length, result),
+        loadedPages: loadedPages,
+        hasMore: _hasMoreAfter(loadedPages, result),
         isLoadingNext: false,
       );
     } catch (error) {
@@ -150,11 +150,29 @@ abstract class PagedListNotifier<T> extends StateNotifier<PagedListState<T>> {
     scheduleMicrotask(loadNextPage);
   }
 
-  bool _hasMoreAfter(int loadedCount, PageResult<T> result) {
-    // An empty page means the end, whatever the reported total says.
-    if (result.items.isEmpty) return false;
-    return loadedCount < result.total;
+  /// Fetch [page], then the pages after it for as long as they come back
+  /// empty and the total says more remain.
+  ///
+  /// The server may filter a page after cutting it — the comments of a member
+  /// the reader blocked, for one — so an empty page is not the end of the
+  /// list, and stopping there would hide every page after it. Returns the
+  /// last page fetched and how many pages were consumed.
+  Future<(PageResult<T>, int)> _fetchFrom(int page, int generation) async {
+    var next = page;
+    while (true) {
+      final result = await fetchPage(next++);
+      final stale = !mounted || generation != _generation;
+      if (stale || result.items.isNotEmpty || !_hasMoreAfter(next, result)) {
+        return (result, next - page);
+      }
+    }
   }
+
+  /// Whether pages remain after the first [loadedPages], counted in pages
+  /// rather than items: the items shown can fall short of the total when the
+  /// server filters a page, or when [_append] drops a duplicate.
+  bool _hasMoreAfter(int loadedPages, PageResult<T> result) =>
+      loadedPages * pageSize < result.total;
 
   List<T> _append(List<T> existing, List<T> incoming) {
     final seen = <Object>{};
