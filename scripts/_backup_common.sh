@@ -11,7 +11,7 @@ die() {
   exit 1
 }
 
-# Load .env, then the backup configuration. The two are deliberately separate files: docker-compose
+# Load .env, then the backup configuration. The two are deliberately separate files: the stack
 # passes the whole .env to the backend container (`env_file`), so the destination, the SSH key and
 # the Healthchecks URL would end up in the application's environment — and in the backup of it.
 # BACKUP_ENV_FILE defaults to /root/pedalons-backup.env, root-readable only and not versioned.
@@ -95,28 +95,51 @@ list_complete_snapshots() {
 latest_complete_snapshot() { list_complete_snapshots | tail -1; }
 
 # --- docker -----------------------------------------------------------------
+#
+# The same stack runs two ways: as a Swarm stack named ${ENV_NAME} on a deployed host, and as a compose
+# project on a workstation (restore drills). Only the lifecycle differs — see restore.sh — so the
+# lookups below serve both and let the caller ignore which one it is.
 
-require_container() {
-  docker inspect "$1" >/dev/null 2>&1 || die "container $1 not found — is the stack up?"
+# True when this node runs a swarm, i.e. on a deployed host.
+is_swarm() {
+  [[ "$(docker info --format '{{.Swarm.LocalNodeState}}' 2>/dev/null)" == "active" ]]
 }
 
-# Image a container runs, or "absent" when the container is not there. `docker inspect -f` still
-# emits a newline when it fails, so a bare `|| echo absent` yields an empty line *and* the fallback.
+# Id of the running container of service $1 ("postgres", "minio"...), or nothing. A Swarm task has no
+# fixed name and churns on every restart, so it is found by its service label; a compose container
+# by the container_name docker-compose.yml gives it.
+container_of() {
+  local id
+  id="$(docker ps -q --filter "label=com.docker.swarm.service.name=${ENV_NAME}_$1" | head -n1)"
+  [[ -n "$id" ]] || id="$(docker ps -q --filter "name=^${ENV_NAME}-$1\$" | head -n1)"
+  printf '%s' "$id"
+}
+
+# Like container_of, but dies when the service has no running container.
+require_container() {
+  local id
+  id="$(container_of "$1")"
+  [[ -n "$id" ]] || die "no running $1 container for ${ENV_NAME} — is the stack up?"
+  printf '%s' "$id"
+}
+
+# Image a container runs, or "absent" when there is no container. `docker inspect -f` still emits a
+# newline when it fails, so a bare `|| echo absent` yields an empty line *and* the fallback.
 image_of() {
   local image
-  image="$(docker inspect -f '{{.Config.Image}}' "$1" 2>/dev/null || true)"
+  [[ -n "$1" ]] && image="$(docker inspect -f '{{.Config.Image}}' "$1" 2>/dev/null || true)"
   printf '%s' "${image:-absent}"
 }
 
 # Host path backing /data in the minio container. Asked of the running container rather than derived
-# from the compose project name, which is the checkout directory's basename and so differs between
-# hosts (~/prod, ~/staging, /home/pedalons/prod...). Using .Source also means a bind mount works as
-# well as the named volume. Reading it needs root — the backup runs from root's crontab.
+# from the compose project or stack name — the project is the checkout directory's basename and so
+# differs between hosts (~/prod, ~/staging, /home/pedalons/prod...). Using .Source also means a bind
+# mount works as well as the named volume. Reading it needs root — the backup runs from root's crontab.
 minio_mountpoint() {
   local path
-  path="$(docker inspect "${ENV_NAME}-minio" \
+  path="$(docker inspect "$(require_container minio)" \
     --format '{{range .Mounts}}{{if eq .Destination "/data"}}{{.Source}}{{end}}{{end}}')"
-  [[ -n "$path" ]] || die "could not resolve what backs /data in ${ENV_NAME}-minio"
+  [[ -n "$path" ]] || die "could not resolve what backs /data in the ${ENV_NAME} minio container"
   [[ -d "$path" ]] || die "minio data directory not readable: $path (run as root?)"
   printf '%s' "$path"
 }

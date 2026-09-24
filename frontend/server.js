@@ -109,7 +109,10 @@ async function createServer() {
     app.use(vite.middlewares)
   }
 
-  app.get('/health', (_, res) => res.send('ok'))
+  // 503 once SIGTERM is received: traefik's health check routes around this instance while it
+  // still serves (see the drain below).
+  let draining = false
+  app.get('/health', (_, res) => (draining ? res.status(503).send('draining') : res.send('ok')))
 
   // Express 5 / path-to-regexp v8: bare '*' throws — the catch-all wildcard must
   // be named ('*splat').
@@ -234,6 +237,19 @@ async function createServer() {
     console.error(`Fatal: failed to bind to port ${port}:`, err.message)
     process.exit(1)
   })
+
+  // Rolling update (docker-compose.yml, `order: start-first`): Swarm sends SIGTERM to the old task
+  // once the new one is healthy. Keep serving until traefik has stopped routing here, then close.
+  // Node as PID 1 would otherwise ignore SIGTERM and be killed at the end of stop_grace_period.
+  if (isProduction)
+    process.once('SIGTERM', () => {
+      draining = true
+      setTimeout(() => {
+        server.close(() => process.exit(0))
+        server.closeIdleConnections()
+        setTimeout(() => process.exit(0), 5000).unref()
+      }, 10000)
+    })
 }
 
 process.on('unhandledRejection', (reason) => {

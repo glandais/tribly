@@ -17,6 +17,7 @@ import fr.pedalons.enums.TeamRole;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.util.TestDataCleaner;
 import fr.pedalons.util.TestDataService;
+import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.time.Instant;
@@ -847,6 +848,38 @@ class AllPublicationRepositoryTest extends AbstractBaseTest {
 
       assertEquals(1, result.size());
       assertEquals("Past Ride", result.getFirst().getName());
+    }
+  }
+
+  @Nested
+  @DisplayName("claimAutoPublish")
+  class ClaimAutoPublish {
+
+    @Test
+    @DisplayName("Only the first of two backends that read the same draft publishes it")
+    void claimAutoPublish_secondClaimOnSameVersionLoses() {
+      // Truncated: postgres keeps microseconds, and the assertion reads it back.
+      Instant publishAt = now.minus(1, ChronoUnit.HOURS).truncatedTo(ChronoUnit.MICROS);
+      Post post =
+          dataService.createPost(
+              team, user, "Scheduled Post", now, Visibility.PUBLIC, Status.DRAFT, publishAt);
+
+      boolean first =
+          QuarkusTransaction.requiringNew()
+              .call(() -> publicationRepository.claimAutoPublish(post, publishAt, now));
+      boolean second =
+          QuarkusTransaction.requiringNew()
+              .call(() -> publicationRepository.claimAutoPublish(post, publishAt, now));
+
+      assertTrue(first);
+      assertFalse(second);
+      Publication claimed =
+          QuarkusTransaction.requiringNew()
+              .call(() -> publicationRepository.findById(post.getId()));
+      assertEquals(Status.PUBLISHED, claimed.getStatus());
+      assertNull(claimed.getPublishAt());
+      assertEquals(publishAt, claimed.getDateTime());
+      assertEquals(post.getVersion() + 1, claimed.getVersion());
     }
   }
 }

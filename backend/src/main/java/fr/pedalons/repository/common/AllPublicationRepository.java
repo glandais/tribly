@@ -38,6 +38,25 @@ public class AllPublicationRepository
   }
 
   /**
+   * Compare-and-set of a publication found by {@link #findPublicationsToAutoPublish} from DRAFT to
+   * PUBLISHED, on the version it was read at. True if this caller won the row; false if another
+   * backend published it first — two run side by side during a rolling update — or if someone
+   * edited it since. A bulk update, so the loaded entity is stale afterwards: refresh it.
+   */
+  public boolean claimAutoPublish(Publication publication, Instant dateTime, Instant now) {
+    return update(
+            "status = ?1, publishAt = null, dateTime = ?2, updatedAt = ?3, version = version + 1"
+                + " where id = ?4 and version = ?5 and status = ?6",
+            Status.PUBLISHED,
+            dateTime,
+            now,
+            publication.getId(),
+            publication.getVersion(),
+            Status.DRAFT)
+        == 1;
+  }
+
+  /**
    * Correlated EXISTS over both participation tables — a ride is joined through its groups, a trip
    * directly. Written as an EXISTS rather than a join so a publication is never duplicated and the
    * page count stays right; {@code idx_ride_participations_user_group (user_id, ride_group_id)} and

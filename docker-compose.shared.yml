@@ -7,23 +7,24 @@
 # Cette stack est prealable aux stacks d'environnement : elle cree le reseau `pedalons-shared`, que
 # docker-compose.yml declare en `external`. Demarrage :
 #
-#   docker compose -f docker-compose.shared.yml up -d
+#   docker stack deploy -c docker-compose.shared.yml pedalons-shared
+#
+# Pas de `name:` en tete, ni de container_name/restart : `docker stack deploy` refuse le premier, et
+# ignore les deux autres -- le nom de la stack est celui de la commande, et Swarm redemarre de lui-meme
+# une tache qui meurt.
 #
 # Sur un poste de travail, on ne la lance pas : docker-compose.local.yml reprend ces deux services
-# via `extends` et redeclare le reseau en reseau de projet, pour n'avoir qu'une seule stack.
+# via `extends` et redeclare le reseau en reseau de projet, pour n'avoir qu'une seule stack. C'est
+# aussi lui qui leur redonne un nom de conteneur et une politique de redemarrage.
 #
 # Les noms de services `valhalla` et `tileserver` sont les alias DNS sur ce reseau : VALHALLA_URL et
 # TILESERVER_URL des .env d'environnement restent inchanges.
 #
 # NE PAS y ajouter imgproxy/varnish tant que MinIO n'est pas mutualise : imgproxy n'expose qu'un
 # IMGPROXY_S3_ENDPOINT global et ne sait pas servir deux backends S3 distincts.
-name: pedalons-shared
-
 services:
   valhalla:
     image: ghcr.io/valhalla/valhalla-scripted:latest
-    container_name: pedalons-shared-valhalla
-    restart: unless-stopped
     networks:
       - shared
     volumes:
@@ -40,13 +41,14 @@ services:
 
   tileserver:
     image: maptiler/tileserver-gl:v5.6.0
-    container_name: pedalons-shared-tileserver
-    restart: unless-stopped
     networks:
       - shared
     volumes:
       - ./data/tileserver:/data
 
 networks:
+  # `attachable` : backend-restore (docker-compose.restore.yml), conteneur ordinaire, s'y branche aussi.
   shared:
     name: pedalons-shared
+    driver: overlay
+    attachable: true

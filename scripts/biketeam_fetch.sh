@@ -3,7 +3,7 @@
 # on the remote host, pull the dump, and load it into `biketeam_import` via biketeam_restore.sh.
 #
 # This is the "Backup data" section of MIGRATE_BIKETEAM.md, unattended. Once it finishes, run the
-# migration itself:  docker compose --profile restore run --rm backend-restore
+# migration itself:  docker compose -f docker-compose.restore.yml run --rm backend-restore
 #
 # Usage:
 #   scripts/biketeam_fetch.sh [options]
@@ -106,5 +106,5 @@ fi
 cat <<EOF
 
 Ready. Data directory: $DEST/$(basename "$REMOTE_DIR")/data
-Next:  ./build.sh && docker compose --profile restore run --rm backend-restore
+Next:  ./build.sh && docker compose -f docker-compose.restore.yml run --rm backend-restore
 EOF
