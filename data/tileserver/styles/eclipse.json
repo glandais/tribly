@@ -8,7 +8,7 @@
   "sprite": [
     {
       "id": "basics",
-      "url": "https://tiles.versatiles.org/assets/sprites/basics/sprites"
+      "url": "https://tiles.versatiles.org/assets/sprites/base"
     }
   ],
   "sources": {
