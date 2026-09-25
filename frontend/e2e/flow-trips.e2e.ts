@@ -525,20 +525,11 @@ test.describe('regressions', () => {
     expect(published?.status).toBe('PUBLISHED')
     expect(published?.stages[0].route?.slug, 'the stage keeps its route').toBe(route.slug)
   })
-})
 
-test.describe('app defects', () => {
   test('a trip that is not there is not requested again and again', async ({ page }) => {
-    // src/lib/queryClient.ts no longer retries a 4xx other than 401, 408 and 429 — but it reads the
-    // status only from an Axios error (Axios.isAxiosError), while the generated clients go through
-    // lib/axiosInstance.ts axiosMutator, which turns every failed response into an ApiClientError.
-    // The status is never seen, so a 404 is still retried three times with a 1 s / 2 s / 4 s
-    // backoff: every detail page (ride, trip, post…) shows its skeleton for ~8 s before
-    // « introuvable », and asks the API four times for what it already said does not exist.
-    test.fail(
-      true,
-      'queryClient retry reads Axios errors only; axiosMutator throws ApiClientError, so a 404 is still retried three times'
-    )
+    // A 404 is an answer, not a failure: the query client used to retry it three times with a
+    // 1 s / 2 s / 4 s backoff — ~8 s of skeleton and four reads before « introuvable » on every
+    // detail page (fixed 2026-09-25).
     const { teamAdmin, team } = await tripTeam('absent')
     await signIn(page.context(), teamAdmin)
     const endpoint = `/api/teams/${team.slug}/trips/voyage-absent`
@@ -553,22 +544,15 @@ test.describe('app defects', () => {
     ).toBeVisible({
       timeout: 15_000,
     })
-    // The defect: a 404 is an answer, not a failure — one read is enough.
+    // One read is enough.
     expect(reads.length, 'browser reads of the missing trip').toBeLessThanOrEqual(1)
   })
 
   test('deleting a stage right after opening it does not crash the form', async ({ page }) => {
-    // MarkdownEditor now flushes its 150 ms debounce when it unmounts (fixed 2026-09-25, so that no
-    // typing is lost). Opening a stage's tab queues an update in that stage's editor; deleting the
-    // stage within the 150 ms removes its form item, then unmounts the editor, whose flush calls
-    // TripEditor's form.setFieldValue(`stages.${index}.media`) on the index that is gone: « Cannot
-    // set properties of undefined (setting 'media') », and the ErrorBoundary replaces the form.
-    // Typing in the description does not trigger it: clicking « Supprimer » blurs the editor,
-    // which flushes while the stage still exists.
-    test.fail(
-      true,
-      "a deleted stage's editor flushes its pending update into stages.<index>.media, an index the form no longer has: TypeError, the form replaced by « Une erreur est survenue »"
-    )
+    // Opening a stage's tab queues an update in that stage's editor. When MarkdownEditor flushed
+    // its 150 ms debounce on unmount, deleting the stage within those 150 ms wrote
+    // stages.<index>.media on an index the form no longer had: a TypeError, and the ErrorBoundary
+    // in place of the form. The unmount cancels again; the blur still flushes (fixed 2026-09-25).
     const { teamAdmin, team } = await tripTeam('suppression étape')
     const kept = unique('Étape gardée')
     const dropped = unique('Étape abandonnée')
@@ -594,7 +578,6 @@ test.describe('app defects', () => {
     await panel.getByRole('button', { name: 'Supprimer' }).click()
     await page.clock.resume()
 
-    // The defect.
     await expect(main.getByRole('tab', { name: startsWith(`1 ${kept}`) })).toBeVisible({
       timeout: 2_000,
     })

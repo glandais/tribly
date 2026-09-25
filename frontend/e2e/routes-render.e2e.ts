@@ -322,9 +322,6 @@ function adminTab(name: string) {
   }
 }
 
-// The create forms whose default date depends on the process's zone (see the defect below).
-const DEFAULT_DATE_FORMS = new Set(['rideNew', 'tripNew'])
-
 const auth = configuredAuth()
 const contract = contractWebRoutes()
 
@@ -411,21 +408,10 @@ for (const route of contract) {
         await expect(failure, `${where}: no error screen`).toHaveCount(0)
       expect(pageErrors, `${where}: uncaught errors`).toEqual([])
 
-      // The edit forms (hydrating a DateTimePicker), the platform dashboard's counts and the
-      // paginated lists on a phone used to fail hydration (fixed 2026-09-25). One defect is known,
-      // asserted under the precondition that makes it happen: CreateRidePage.getNextSunday() and
-      // CreateTripPage's default date put the new ride / stage at 08:00 with setHours(), in the
-      // process's zone — 08:00Z on the SSR server (UTC), 06:00Z in a Paris browser — and
-      // InstantDateTimePicker shows both in UTC during hydration: React #418 (text mismatch).
-      if (DEFAULT_DATE_FORMS.has(route.id) && !expected.why) {
-        const zone = await page.evaluate(() => Intl.DateTimeFormat().resolvedOptions().timeZone)
-        expect(zone, 'the browser is not in the SSR server zone (UTC)').toBe('Europe/Paris')
-        test.fail(
-          true,
-          'the default date is set with setHours(8) in the process zone: 08:00Z on the server, 06:00Z in the browser, both shown in UTC during hydration'
-        )
-      }
-      // The defect.
+      // The edit and create forms (a DateTimePicker hydrated in the SSR server's zone, a default
+      // date computed in the process's zone), the platform dashboard's counts and the paginated
+      // lists on a phone used to fail hydration (fixed 2026-09-25). The browser runs in
+      // Europe/Paris and the SSR server in UTC, so a zone-dependent render shows up here.
       expect(hydrationErrors, `${where}: hydration errors`).toEqual([])
     })
   }
