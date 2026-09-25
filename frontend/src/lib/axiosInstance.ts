@@ -8,6 +8,17 @@ import { getSSRAuth, getSSRHeaders } from './ssrContext'
 
 const isServer = typeof window === 'undefined'
 
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    /**
+     * Suppresses the global error toast for this call. For screens that render the API error
+     * themselves (inline Alert), where the toast would say the same thing twice — or contradict it.
+     * Pass it through an orval hook's `request` option.
+     */
+    skipErrorToast?: boolean
+  }
+}
+
 // Create axios instance with credentials support for cookies.
 // On the server, read API_BASE_URL at runtime (not baked at build time via Vite define).
 export const AXIOS_INSTANCE = Axios.create({
@@ -178,7 +189,7 @@ export const axiosMutator = <T>(
             errorData,
             parseRetryAfter(axiosError.response?.headers?.['retry-after'])
           )
-          if (!isServer) {
+          if (!isServer && !options?.skipErrorToast && !config.skipErrorToast) {
             notifications.show({
               message: i18next.t('errors.api.' + errorData.code, errorData.errorDetails || {}),
               color: 'red',

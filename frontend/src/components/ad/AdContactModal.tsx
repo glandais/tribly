@@ -57,7 +57,9 @@ export function AdContactModal({
 }: AdContactModalProps) {
   const { t } = useTranslation()
   const [failure, setFailure] = useState<Failure | null>(null)
-  const mutation = useContactAdAuthor()
+  // Every failure is rendered here (Alert) or by the page (opted out): the global toast would
+  // duplicate it, and on a quota contradict its retry delay.
+  const mutation = useContactAdAuthor({ request: { skipErrorToast: true } })
 
   const form = useForm({
     initialValues: { message: '' },
@@ -93,6 +95,8 @@ export function AdContactModal({
         }
       case 'AD_CONTACT_DELIVERY_FAILED':
         return { color: 'red', message: t('ads.contact.error.deliveryFailed') }
+      case 'AD_CONTACT_SELF':
+        return { color: 'orange', message: t('errors.api.AD_CONTACT_SELF') }
       default:
         return { color: 'red', message: t('ads.contact.error.generic') }
     }
@@ -134,7 +138,12 @@ export function AdContactModal({
   }
 
   return (
-    <Modal opened={opened} onClose={handleClose} title={t('ads.contact.title')}>
+    <Modal
+      opened={opened}
+      onClose={handleClose}
+      title={t('ads.contact.title')}
+      closeButtonProps={{ 'aria-label': t('aria.closeDialog') }}
+    >
       <form onSubmit={handleSubmit}>
         <Stack>
           <Text size="sm" c="dimmed">
@@ -166,7 +175,7 @@ export function AdContactModal({
 
           <Group justify="flex-end">
             <Button variant="default" onClick={handleClose}>
-              {t('actions.cancel')}
+              {t('actions.cancelAction')}
             </Button>
             <Button type="submit" loading={mutation.isPending} disabled={outOfBounds}>
               {failure ? t('generic.retry') : t('ads.contact.send')}
