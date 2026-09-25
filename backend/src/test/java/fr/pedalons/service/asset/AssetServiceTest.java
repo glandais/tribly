@@ -616,6 +616,53 @@ class AssetServiceTest extends AbstractBaseTest {
   class UpdateAssets {
 
     @Test
+    void shouldKeepTheImageOrderOfTheRequest() {
+      Post post =
+          dataService.createPost(team, admin, "Test Post", Instant.now(), Visibility.PUBLIC);
+      Asset img1 = dataService.createAsset(team, admin, AssetType.IMAGE, "img1.png");
+      Asset img2 = dataService.createAsset(team, admin, AssetType.IMAGE, "img2.png");
+      Asset img3 = dataService.createAsset(team, admin, AssetType.IMAGE, "img3.png");
+      // Neither upload order nor id order: only a persisted rank can reproduce it.
+      List<String> requested =
+          List.of(
+              TsidUtils.toString(img3.getId()),
+              TsidUtils.toString(img1.getId()),
+              TsidUtils.toString(img2.getId()));
+
+      AssetsDto assetsDto =
+          AssetsDto.builder()
+              .images(requested.stream().map(id -> AssetDto.builder().id(id).build()).toList())
+              .build();
+      String markdown =
+          String.join("\n", requested.stream().map(id -> "::asset{id=\"" + id + "\"}").toList());
+
+      assetService.updateAssets(post, new MediaDto(markdown, assetsDto));
+
+      assertEquals(
+          requested, assetService.getAssetsDto(post).images().stream().map(AssetDto::id).toList());
+    }
+
+    @Test
+    void shouldFallBackToUploadOrderWhenRanksTie() {
+      Post post =
+          dataService.createPost(team, admin, "Test Post", Instant.now(), Visibility.PUBLIC);
+      // Created in this order, all left at the default rank — the state of images saved before
+      // the rank was persisted.
+      List<Asset> images = new java.util.ArrayList<>();
+      for (int i = 0; i < 5; i++) {
+        Asset image = dataService.createAsset(team, admin, AssetType.IMAGE, "img" + i + ".png");
+        image.setTeamEntity(post);
+        dataService.updateAsset(image);
+        post.getAssets().add(image);
+        images.add(image);
+      }
+
+      assertEquals(
+          images.stream().map(a -> TsidUtils.toString(a.getId())).toList(),
+          assetService.getAssetsDto(post).images().stream().map(AssetDto::id).toList());
+    }
+
+    @Test
     void shouldUpdateAssetsFromDto() {
       Post post =
           dataService.createPost(team, admin, "Test Post", Instant.now(), Visibility.PUBLIC);

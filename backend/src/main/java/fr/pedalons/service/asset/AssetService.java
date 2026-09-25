@@ -50,6 +50,14 @@ public class AssetService {
 
   private static final String ASSETS_PREFIX = "assets";
 
+  /**
+   * The order the editor arranged an entity's assets in. The id breaks ties — TSIDs grow with
+   * creation — so assets saved before the rank was persisted keep their upload order instead of
+   * the hash order of {@link TeamEntity#getAssets()}.
+   */
+  private static final Comparator<Asset> EDITOR_ORDER =
+      Comparator.comparingInt(Asset::getSortOrder).thenComparing(Asset::getId);
+
   /** Matches ::asset{...id="ASSET_ID"...} directives in markdown */
   private static final Pattern ASSET_DIRECTIVE_PATTERN =
       Pattern.compile("::asset\\{[^}]*id=\"([^\"]+)\"[^}]*\\}");
@@ -361,7 +369,7 @@ public class AssetService {
   public @Nullable String getFirstImageUrl(TeamEntity teamEntity) {
     return teamEntity.getAssets().stream()
         .filter(asset -> asset.getType() == AssetType.IMAGE)
-        .min(Comparator.comparing(Asset::getSortOrder))
+        .min(EDITOR_ORDER)
         .map(this::getImageUrl)
         .orElse(null);
   }
@@ -379,7 +387,7 @@ public class AssetService {
   public List<String> getImageUrls(TeamEntity teamEntity) {
     return teamEntity.getAssets().stream()
         .filter(asset -> asset.getType() == AssetType.IMAGE)
-        .sorted(Comparator.comparing(Asset::getSortOrder))
+        .sorted(EDITOR_ORDER)
         .map(this::getImageUrl)
         .toList();
   }
@@ -454,10 +462,7 @@ public class AssetService {
     if (assetsForType == null) {
       return List.of();
     }
-    return assetsForType.stream()
-        .sorted(Comparator.comparing(Asset::getSortOrder))
-        .map(this::map)
-        .toList();
+    return assetsForType.stream().sorted(EDITOR_ORDER).map(this::map).toList();
   }
 
   /**
@@ -526,6 +531,7 @@ public class AssetService {
             || asset.getTeamEntity().getId().equals(teamEntity.getId()))) {
       asset.setTeamEntity(teamEntity);
       asset.setType(assetType);
+      asset.setSortOrder(order);
       assetRepository.persist(asset);
       teamEntity.getAssets().add(asset);
     }
