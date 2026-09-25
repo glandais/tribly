@@ -1,5 +1,5 @@
-import { useCallback, useMemo } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useCallback, useMemo, useRef } from 'react'
+import { useLocation, useSearchParams } from 'react-router-dom'
 import type { z } from 'zod'
 
 type AnyFiltersSchema = z.ZodObject<z.ZodRawShape>
@@ -94,29 +94,72 @@ export function useUrlFilters<S extends AnyFiltersSchema>({
 
   const filters = useMemo(() => read(searchParams), [read, searchParams])
 
+  // Every write is a navigation, and the route's loader awaits its prefetch before the location
+  // changes: until then the rendered `searchParams` — which is also what React Router hands to the
+  // functional `setSearchParams(previous => …)` form — still shows the query string *before* our
+  // last write. Two changes in quick succession (a sort, then a price bound) would each be built
+  // on that stale string, and the second would silently drop the first.
+  //
+  // So the hook remembers the query strings it asked for and has not seen rendered yet, and builds
+  // each write on the last of them. They are forgotten as soon as the location reaches the last
+  // one, or moves somewhere we never asked for (back/forward, a link, a cancelled navigation).
+  const { pathname } = useLocation()
+  const rendered = `${pathname}?${searchParams.toString()}`
+  const renderedRef = useRef(rendered)
+  renderedRef.current = rendered
+  const pendingRef = useRef<{ base: string; targets: string[] } | null>(null)
+
+  const latestParams = useCallback((): URLSearchParams => {
+    const current = renderedRef.current
+    const pending = pendingRef.current
+    if (pending) {
+      const reached = pending.targets.indexOf(current)
+      if (reached === pending.targets.length - 1) {
+        pendingRef.current = null
+      } else if (reached >= 0) {
+        // An intermediate write landed; the later ones are still in flight.
+        pendingRef.current = { base: current, targets: pending.targets.slice(reached + 1) }
+      } else if (current !== pending.base) {
+        pendingRef.current = null
+      }
+    }
+    const target = pendingRef.current?.targets.at(-1) ?? current
+    return new URLSearchParams(target.slice(target.indexOf('?') + 1))
+  }, [])
+
+  const commit = useCallback(
+    (params: URLSearchParams) => {
+      const current = renderedRef.current
+      const target = `${current.slice(0, current.indexOf('?'))}?${params.toString()}`
+      const pending = pendingRef.current
+      pendingRef.current = pending
+        ? { base: pending.base, targets: [...pending.targets, target] }
+        : { base: current, targets: [target] }
+      setSearchParams(params, { replace: true })
+    },
+    [setSearchParams]
+  )
+
   const setFilters = useCallback(
     (patch: Partial<z.infer<S>>) => {
-      setSearchParams(
-        (previous) => {
-          // Rebuild from `previous` rather than a captured `filters`, so a
-          // debounced search commit racing a page change never clobbers it.
-          const next = { ...read(previous), ...patch } as Record<string, unknown>
-          if (!('page' in patch) && 'page' in next) {
-            next.page = (defaults as Record<string, unknown>).page
-          }
-          return serialize(next)
-        },
-        { replace: true }
-      )
+      // Rebuild from the latest params we asked for rather than a captured `filters`, so a
+      // debounced search commit racing a page change never clobbers it (nor the reverse).
+      const next = { ...read(latestParams()), ...patch } as Record<string, unknown>
+      if (!('page' in patch) && 'page' in next) {
+        next.page = (defaults as Record<string, unknown>).page
+      }
+      commit(serialize(next))
     },
-    [setSearchParams, read, serialize, defaults]
+    [latestParams, commit, read, serialize, defaults]
   )
 
   const replaceFilters = useCallback(
     (next: Partial<z.infer<S>>) => {
-      setSearchParams(serialize(next as Record<string, unknown>), { replace: true })
+      // Builds on nothing, but still goes through `commit` so a later `setFilters` builds on it.
+      latestParams()
+      commit(serialize(next as Record<string, unknown>))
     },
-    [setSearchParams, serialize]
+    [latestParams, commit, serialize]
   )
 
   return { filters, setFilters, replaceFilters, defaults }
