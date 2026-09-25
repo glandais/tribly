@@ -5,8 +5,8 @@ Quatre temps, tous scriptés, depuis `mobile/` :
 ```bash
 python3 screenshots/seed.py                 # 1. les clubs de démo sur staging (dates relatives à aujourd'hui)
 ./screenshots/capture.sh                    # 2. captures brutes -> screenshots/flat/<appareil>/<locale>/
-kou generate screenshots/koubou/iphone.yaml # 3. cartes Koubou  -> screenshots/koubou/out/<appareil>/…
-kou generate screenshots/koubou/ipad.yaml
+(cd screenshots/koubou && kou generate iphone.yaml && kou generate ipad.yaml)
+                                            # 3. cartes Koubou  -> screenshots/koubou/out/<appareil>/…
 ./screenshots/assemble.sh                   # 4. jeu final      -> screenshots/appstore/<type>/<locale>/ (Git LFS)
 ```
 
@@ -57,6 +57,9 @@ L'accueil n'est pas capturé sur iPad : sa mise en page large ajoute les « dern
 de tous les clubs publics de staging, donc le contenu de vraies personnes. Le voyage le remplace.
 
 ## 3–4. Cartes et assemblage
+
+Koubou se lance **depuis `screenshots/koubou/`** : il résout `output_dir` tantôt par rapport au
+YAML, tantôt au dossier courant ; là, les deux coïncident.
 
 `koubou/templates/hero.html` : fond bleu de la marque, filet orange, titre et sous-titre, appareil
 qui sort par le bas. Les titres se traduisent dans `koubou/koubou-strings.xcstrings`, clé = la

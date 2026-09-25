@@ -1,12 +1,12 @@
-# App Store cards (iphone) — Koubou sources. From mobile/:
-#   kou generate screenshots/koubou/iphone.yaml
+# App Store cards (iphone) — Koubou sources. Run from screenshots/koubou/ (Koubou resolves output_dir inconsistently otherwise):
+#   cd screenshots/koubou && kou generate iphone.yaml
 # Inputs:  screenshots/flat/<device>/<locale>/NN-*.png (screenshots/capture.sh, not versioned)
 # Outputs: screenshots/koubou/out/iphone/<locale>/<frame>/NN-*.png (not versioned)
 # Headlines are translated in koubou-strings.xcstrings, keyed by the English text.
 
 project:
   name: "Pedalons"
-  output_dir: "screenshots/koubou/out/iphone"
+  output_dir: "out/iphone"
   device: "iPhone 17 Pro Max - Deep Blue - Portrait"
   output_size: "iPhone6_5"
 
