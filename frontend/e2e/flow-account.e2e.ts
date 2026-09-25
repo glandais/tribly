@@ -25,14 +25,14 @@ import {
   virtualAuthenticator,
 } from './support/flow-account'
 import { rosterOf } from './support/flow-team'
-import { mailbox, waitForNewMail } from './support/mailhog'
+import { mailbox, otpCodeIn, waitForNewMail } from './support/mailhog'
 import { findRide, joinGroup, newRide, openRide } from './support/rides'
-import { hydrated, pageAs } from './support/ui'
+import { hydrated } from './support/ui'
 
 /**
  * The account journeys, through the UI only: sign-up with the form and the mail's link, sign-out,
- * password sign-in, forgotten password, the profile and its immediate preferences, passkeys, the
- * personal calendar feed, and deleting the account.
+ * password sign-in, sign-in by an e-mailed code, forgotten password, the profile and its immediate
+ * preferences, passkeys, the personal calendar feed, and deleting the account.
  *
  * Every test signs up its own account: nothing here touches the seeded ones.
  */
@@ -143,6 +143,117 @@ test('a wrong password is refused and signs nobody in', async ({ page, context }
   await expect(page.getByText('Email ou mot de passe incorrect')).toBeVisible()
   await expect(page).toHaveURL(/\/connexion$/)
   expect(await sessionCookie(context)).toBeUndefined()
+})
+
+/**
+ * Sign-in by a code sent by e-mail (OtpLogin.tsx). Every test uses a fresh account: the backend
+ * accepts 3 code requests per address per 5 minutes, and burns a code after 5 wrong guesses — a
+ * burnt, an expired and a wrong code all answer the same 400 TOKEN_INVALID on purpose, so that
+ * rule is checked by the backend tests (AuthServiceTest), not here.
+ */
+test.describe('sign-in by e-mailed code', () => {
+  /** The six digit boxes of the code (Mantine PinInput). */
+  const codeBoxes = (page: Page) =>
+    page.getByRole('main').locator('input[autocomplete="one-time-code"]')
+
+  /** From the login page to the code step: the address typed, the code requested and read. */
+  async function requestCode(page: Page, email: string) {
+    const main = await openLogin(page)
+    const byMail = main.getByRole('button', { name: 'Connexion par email' })
+    await hydrated(byMail)
+    await byMail.click()
+    await expect(main.getByRole('heading', { name: 'Code par email' })).toBeVisible()
+    await main.getByRole('textbox', { name: 'Email' }).fill(email)
+    const seen = await mailbox(email)
+    await main.getByRole('button', { name: 'Envoyer le code' }).click()
+    await expect(main.getByRole('heading', { name: 'Entrez votre code' })).toBeVisible()
+    await expect(codeBoxes(page)).toHaveCount(6)
+    return otpCodeIn(await waitForNewMail(email, seen))
+  }
+
+  /** Types a code: the PinInput moves from box to box, and submits itself on the sixth digit. */
+  async function typeCode(page: Page, code: string) {
+    await codeBoxes(page).first().click()
+    await page.keyboard.type(code)
+  }
+
+  test('the code from the mail signs in on its sixth digit', async ({ page, context }) => {
+    const user = await newUser(unique('Code mail'))
+    const code = await requestCode(page, user.user.email)
+    // The code step says where the code went.
+    await expect(page.getByRole('main').getByText(user.user.email)).toBeVisible()
+
+    await typeCode(page, code)
+    await expect(page).not.toHaveURL(/\/connexion/)
+    const cookie = await sessionCookie(context)
+    expect(cookie, 'a session was opened').toBeTruthy()
+    expect((await meFromSession(cookie!)).email).toBe(user.user.email)
+  })
+
+  test('a wrong code is refused with a message, and the right one still signs in', async ({
+    page,
+    context,
+  }) => {
+    const user = await newUser(unique('Code faux'))
+    const code = await requestCode(page, user.user.email)
+    const wrong = code === '000000' ? '111111' : '000000'
+
+    await typeCode(page, wrong)
+    const main = page.getByRole('main')
+    await expect(main.getByRole('alert')).toHaveText('Code invalide ou expiré')
+    await expect(page).toHaveURL(/\/connexion/)
+    expect(await sessionCookie(context), 'no session for a wrong code').toBeUndefined()
+    // The boxes are emptied for another try.
+    await expect(codeBoxes(page).first()).toHaveValue('')
+
+    await typeCode(page, code)
+    await expect(page).not.toHaveURL(/\/connexion/)
+    expect(await sessionCookie(context)).toBeTruthy()
+  })
+
+  test('a new code can be asked for after 60 s, and it replaces the first one', async ({
+    page,
+    context,
+  }) => {
+    await page.clock.install()
+    const user = await newUser(unique('Code renvoyé'))
+    const first = await requestCode(page, user.user.email)
+    const main = page.getByRole('main')
+
+    await expect(main.getByRole('button', { name: 'Renvoyer dans 60s' })).toBeDisabled()
+    // The countdown is a chain of 1 s timeouts, each set after the previous render: step the clock
+    // one second at a time so that each one gets scheduled.
+    await page.clock.runFor(1_000)
+    await expect(main.getByRole('button', { name: 'Renvoyer dans 59s' })).toBeDisabled()
+    for (let second = 2; second <= 60; second++) await page.clock.runFor(1_000)
+    const resend = main.getByRole('button', { name: 'Renvoyer le code', exact: true })
+    await expect(resend).toBeEnabled()
+
+    const seen = await mailbox(user.user.email)
+    await resend.click()
+    const second = otpCodeIn(await waitForNewMail(user.user.email, seen))
+    await expect(main.getByRole('button', { name: /^Renvoyer dans \d+s$/ })).toBeDisabled()
+
+    // Asking again invalidates the previous code (unless the two happen to be the same).
+    if (first !== second) {
+      await typeCode(page, first)
+      await expect(main.getByRole('alert')).toHaveText('Code invalide ou expiré')
+    }
+    await typeCode(page, second)
+    await expect(page).not.toHaveURL(/\/connexion/)
+    expect(await sessionCookie(context)).toBeTruthy()
+  })
+
+  test('the code boxes are named in the page language', async ({ page }) => {
+    test.fail(
+      true,
+      'OtpLogin passes aria-label to PinInput, which lands on the wrapper: Mantine names each box with its ariaLabel prop, default « PinInput »'
+    )
+    const user = await newUser(unique('Code nommé'))
+    await requestCode(page, user.user.email)
+    // The defect.
+    await expect(codeBoxes(page).first()).toHaveAccessibleName(/code/i)
+  })
 })
 
 test('forgotten password: the mail, a new password, then sign in with it', async ({
@@ -446,32 +557,66 @@ test.describe('the personal calendar feed', () => {
 })
 
 test.describe('deleting the account', () => {
-  test('confirmed from the profile’s danger zone: signed out for good, sign-in refused, and the team it ran stays with its members', async ({
-    browser,
-    context,
-    page,
-  }) => {
-    const user = await newUser(unique('Partante'))
-    const member = await newUser(unique('Restante'))
-    const team = await newTeam(user, unique('Équipe orpheline'))
-    await addMember(await roleSession('admin'), team.slug, member)
-    const ride = await newRide(user, team.slug, unique('Sortie de la partante'))
-    await signIn(context, user)
-    const main = await openProfile(page, user.user.email)
-    const cookie = await sessionCookie(context)
-    expect(cookie, 'precondition: signed in').toBeTruthy()
-
+  /** The profile's danger zone, its delete button hydrated, and the confirmation dialog. */
+  async function openDangerZone(page: Page, email: string) {
+    const main = await openProfile(page, email)
     await expect(main.getByText('Zone de danger', { exact: true })).toBeVisible()
     const remove = main.getByRole('button', { name: 'Supprimer le compte' })
     await hydrated(remove)
+    return { remove, dialog: page.getByRole('dialog', { name: 'Zone de danger' }) }
+  }
+
+  test('the sole admin of a team with other members is refused, and keeps everything', async ({
+    page,
+    context,
+  }) => {
+    const user = await newUser(unique('Seule admin'))
+    const member = await newUser(unique('Coéquipière'))
+    const team = await newTeam(user, unique('Équipe à garder'))
+    await addMember(await roleSession('admin'), team.slug, member)
+    await signIn(context, user)
+    const { remove, dialog } = await openDangerZone(page, user.user.email)
+    const cookie = await sessionCookie(context)
+    expect(cookie, 'precondition: signed in').toBeTruthy()
 
     // Cancelling keeps everything.
     await remove.click()
-    const dialog = page.getByRole('dialog', { name: 'Zone de danger' })
     await expect(dialog.getByText('Êtes-vous sûr ? Cette action est irréversible.')).toBeVisible()
     await dialog.getByRole('button', { name: 'Annuler' }).click()
     await expect(dialog).toBeHidden()
-    expect(await sessionIsAlive(cookie!), 'cancelled: the session is untouched').toBe(true)
+
+    await remove.click()
+    const refused = page.waitForResponse(
+      (r) => r.request().method() === 'DELETE' && r.url().endsWith('/api/users/me')
+    )
+    await dialog.getByRole('button', { name: 'Oui, supprimer mon compte' }).click()
+    const response = await refused
+    expect(response.status()).toBe(400)
+    expect(((await response.json()) as { code: string }).code).toBe('SOLE_TEAM_ADMIN')
+
+    // Said, the dialog closed, and nothing gone: still signed in, still the team's admin.
+    await expect(
+      page.getByText("Vous êtes le seul administrateur d'une équipe qui compte d'autres membres.", {
+        exact: false,
+      })
+    ).toBeVisible()
+    await expect(dialog).toBeHidden()
+    await expect(page).toHaveURL(/\/profil$/)
+    expect(await sessionIsAlive(cookie!), 'the session is untouched').toBe(true)
+    expect(await getTeam(user, team.slug)).toMatchObject({ role: 'ADMIN', memberCount: 2 })
+  })
+
+  test('an admin alone in their team deletes the account: signed out for good, sign-in refused', async ({
+    page,
+    context,
+  }) => {
+    const user = await newUser(unique('Partante'))
+    const team = await newTeam(user, unique('Équipe solitaire'))
+    const ride = await newRide(user, team.slug, unique('Sortie de la partante'))
+    await signIn(context, user)
+    const { remove, dialog } = await openDangerZone(page, user.user.email)
+    const cookie = await sessionCookie(context)
+    expect(cookie, 'precondition: signed in').toBeTruthy()
 
     await remove.click()
     const deleted = page.waitForResponse(
@@ -496,21 +641,12 @@ test.describe('deleting the account', () => {
     expect(refused).toBeInstanceOf(ApiError)
     expect((refused as ApiError).code).toBe('INVALID_CREDENTIALS')
 
-    // AccountErasureService drops the memberships and leaves the team's content to the team: the
-    // team stays, with its other members and the ride it published.
-    const kept = await getTeam(member, team.slug)
-    expect(kept).toMatchObject({ name: team.name, role: 'MEMBER', memberCount: 1 })
-    const roster = await rosterOf(await roleSession('admin'), team.slug)
-    expect(roster.members.map((m) => m.user.id)).toEqual([member.user.id])
-    expect(await findRide(member, team.slug, ride.slug), 'the ride stays').not.toBeNull()
-
-    // And the member still reads it.
-    const { context: memberContext, page: memberPage } = await pageAs(browser, member)
-    try {
-      await openRide(memberPage, team.slug, ride)
-    } finally {
-      await memberContext.close()
-    }
+    // The team stays, with no member at all, and keeps its content. A product choice
+    // (2026-09-25), open to change: the account is let go rather than kept for an empty team.
+    const admin = await roleSession('admin')
+    const roster = await rosterOf(admin, team.slug)
+    expect(roster.members).toEqual([])
+    expect(await findRide(admin, team.slug, ride.slug), 'the ride stays').not.toBeNull()
   })
 })
 
