@@ -599,11 +599,18 @@ test.describe('deleting the account', () => {
     expect(cookie, 'precondition: signed in').toBeTruthy()
 
     // The confirmation names the team that blocks it, linked to its members, and cannot be
-    // confirmed.
+    // confirmed. A team created here is not one migrated from biketeam: it blocks for its members,
+    // not for its old addresses.
     await open()
     await expect(
-      dialog.getByText('Vous ne pouvez pas encore supprimer votre compte', { exact: false })
+      dialog.getByText('Vous ne pouvez pas encore supprimer votre compte', { exact: true })
     ).toBeVisible()
+    await expect(
+      dialog.getByText(
+        "Vous êtes le seul administrateur de cette équipe, qui compte d'autres membres :"
+      )
+    ).toBeVisible()
+    await expect(dialog.getByText('venue de biketeam', { exact: false })).toHaveCount(0)
     const blocking = dialog.getByRole('link', { name: team.name, exact: true })
     await expect(blocking).toHaveAttribute('href', `/equipes/${team.slug}/admin/membres`)
     await expect(confirm).toBeDisabled()
@@ -623,7 +630,7 @@ test.describe('deleting the account', () => {
     await addMember(admin, team.slug, successor, 'ADMIN')
     await open()
     await expect(
-      dialog.getByText('Vous ne pouvez pas encore supprimer votre compte', { exact: false })
+      dialog.getByText('Vous ne pouvez pas encore supprimer votre compte', { exact: true })
     ).toHaveCount(0)
     const deleted = page.waitForResponse(
       (r) => r.request().method() === 'DELETE' && r.url().endsWith('/api/users/me')

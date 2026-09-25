@@ -86,6 +86,15 @@ const screens: Record<string, Screen> = {
   // Following a real link is the journeys' job (auth, invitations).
   verifyEmail: { roles: EVERYONE, sees: heading('Lien invalide') },
   invitation: { roles: EVERYONE, sees: heading('Invitation indisponible') },
+  // biketeam sends a team admin here with a request it signed (?request=); without one the page
+  // says the link is incomplete. Following a real request needs biketeam itself.
+  biketeamMigration: {
+    roles: EVERYONE,
+    sees: async (main) => {
+      await heading('Demande de migration indisponible')(main)
+      await expect(main.getByText('Le lien est incomplet.', { exact: false })).toBeVisible()
+    },
+  },
   forgotPassword: { roles: ['anonymous'], sees: heading('Mot de passe oublié') },
   resetPassword: { roles: EVERYONE, sees: heading('Lien invalide') },
   stravaCallback: { roles: EVERYONE, sees: heading('Échec de la connexion Strava') },
