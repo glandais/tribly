@@ -17,18 +17,27 @@ import { AssetNode, AssetImagesProvider, markdownToEditor, ImageUploadControl } 
 import './tiptap/tiptap.css'
 
 // Debounce utility
-function debounce<T extends (...args: Parameters<T>) => void>(
-  fn: T,
+function debounce(
+  fn: (value: string) => void,
   delay: number
-): ((...args: Parameters<T>) => void) & { cancel: () => void } {
+): ((value: string) => void) & { flush: () => void } {
   let timeoutId: ReturnType<typeof setTimeout> | null = null
-  const debounced = (...args: Parameters<T>) => {
-    if (timeoutId) clearTimeout(timeoutId)
-    timeoutId = setTimeout(() => fn(...args), delay)
-  }
-  debounced.cancel = () => {
-    if (timeoutId) clearTimeout(timeoutId)
+  let pending: { value: string } | null = null
+  const run = () => {
     timeoutId = null
+    const queued = pending
+    pending = null
+    if (queued) fn(queued.value)
+  }
+  const debounced = (value: string) => {
+    if (timeoutId) clearTimeout(timeoutId)
+    pending = { value }
+    timeoutId = setTimeout(run, delay)
+  }
+  // Runs the pending call now, if any — a no-op when nothing is queued.
+  debounced.flush = () => {
+    if (timeoutId) clearTimeout(timeoutId)
+    run()
   }
   return debounced
 }
@@ -53,7 +62,7 @@ export function MarkdownEditor({
   minHeight = '200px',
   maxHeight = '1024px',
   disabled = false,
-  ariaLabel: _ariaLabel,
+  ariaLabel,
   onImageUpload,
   isUploadingImage,
   images = [],
@@ -88,7 +97,11 @@ export function MarkdownEditor({
     []
   )
 
-  useEffect(() => () => debouncedOnChange.cancel(), [debouncedOnChange])
+  // Flushed, never cancelled: whatever sits in the debounce is text the user typed, and the form
+  // only learns about it when the timer fires. Clicking « Enregistrer » blurs the editor first
+  // (flushed below, before the button's click handler reads the form); an unmount flushes too, so
+  // no path drops the last 150 ms of typing without a word.
+  useEffect(() => () => debouncedOnChange.flush(), [debouncedOnChange])
 
   const handleEditorChange = useCallback(
     (markdown: string) => {
@@ -122,6 +135,16 @@ export function MarkdownEditor({
     ],
     content: markdownToEditor(value),
     editable: !disabled,
+    // The contenteditable is the field itself: without these a screen reader announces an unnamed
+    // editable region.
+    editorProps: {
+      attributes: {
+        role: 'textbox',
+        'aria-multiline': 'true',
+        ...(ariaLabel ? { 'aria-label': ariaLabel } : {}),
+      },
+    },
+    onBlur: () => debouncedOnChange.flush(),
     onUpdate: ({ editor }) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const storage = editor.storage as any
