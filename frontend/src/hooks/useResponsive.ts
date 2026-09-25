@@ -1,27 +1,43 @@
 import { useMantineTheme, MantineSpacing, MantineSize, StyleProp } from '@mantine/core'
-import { useMediaQuery } from '@mantine/hooks'
+import { useCallback, useSyncExternalStore } from 'react'
+
+const getServerSnapshot = () => false
 
 /**
- * Hook for responsive breakpoint detection.
- * Uses mobile-first approach: defaults to mobile, scales up for larger screens.
+ * `matchMedia` as an external store: the hydration render reads `getServerSnapshot` (false, what
+ * the SSR server rendered), React re-renders with the real match right after, and any component
+ * mounted later reads the real match on its very first render.
+ *
+ * Mantine's `useMediaQuery` offers neither half of that. With `getInitialValueInEffect: false` it
+ * ignores `initialValue` and reads `matchMedia` during hydration, so a phone hydrated
+ * `isMobile=true` over server markup rendered with `false` — React #418 on every paginated list.
+ * With `true` it starts from `initialValue` on every mount, so each client-side navigation would
+ * render one frame for the wrong viewport.
+ */
+function useMediaMatch(query: string): boolean {
+  const subscribe = useCallback(
+    (onChange: () => void) => {
+      const mediaQuery = window.matchMedia(query)
+      mediaQuery.addEventListener('change', onChange)
+      return () => mediaQuery.removeEventListener('change', onChange)
+    },
+    [query]
+  )
+  return useSyncExternalStore(subscribe, () => window.matchMedia(query).matches, getServerSnapshot)
+}
+
+/**
+ * Hook for responsive breakpoint detection. Every flag reads `false` on the server and during
+ * hydration, then the real viewport.
  */
 export function useResponsive() {
   const theme = useMantineTheme()
 
-  // Mobile-first: default to true for mobile on SSR
-  const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`, true, {
-    getInitialValueInEffect: false,
-  })
-
-  const isTablet = useMediaQuery(
-    `(min-width: ${theme.breakpoints.sm}) and (max-width: ${theme.breakpoints.md})`,
-    false,
-    { getInitialValueInEffect: false }
+  const isMobile = useMediaMatch(`(max-width: ${theme.breakpoints.sm})`)
+  const isTablet = useMediaMatch(
+    `(min-width: ${theme.breakpoints.sm}) and (max-width: ${theme.breakpoints.md})`
   )
-
-  const isDesktop = useMediaQuery(`(min-width: ${theme.breakpoints.md})`, false, {
-    getInitialValueInEffect: false,
-  })
+  const isDesktop = useMediaMatch(`(min-width: ${theme.breakpoints.md})`)
 
   // Responsive sizes for Mantine components (mobile: xs, tablet: sm, desktop: md)
   const size: MantineSize = isMobile ? 'xs' : isTablet ? 'sm' : 'md'

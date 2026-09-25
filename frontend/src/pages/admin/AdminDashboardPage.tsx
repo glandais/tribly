@@ -16,6 +16,9 @@ interface StatCardProps {
 }
 
 function StatCard({ title, value, icon, link, linkLabel, isLoading }: StatCardProps) {
+  // The page's language, not the runtime's default locale: Node renders « 2,786 », a French
+  // browser « 2 786 », and the difference broke hydration past 999.
+  const { i18n } = useTranslation()
   return (
     <Paper withBorder p="lg" radius="md">
       <Group justify="space-between" align="flex-start">
@@ -27,7 +30,7 @@ function StatCard({ title, value, icon, link, linkLabel, isLoading }: StatCardPr
             <Skeleton height={32} width={60} mt="xs" />
           ) : (
             <Text size="xl" fw={700} mt="xs">
-              {value?.toLocaleString() ?? 0}
+              {(value ?? 0).toLocaleString(i18n.language)}
             </Text>
           )}
         </div>

@@ -16,7 +16,8 @@ import {
   ActionIcon,
   SimpleGrid,
 } from '@mantine/core'
-import { TimeInput, DateTimePicker } from '@mantine/dates'
+import { TimeInput } from '@mantine/dates'
+import { InstantDateTimePicker } from '@/components/common/InstantDateTimePicker'
 import { IconX } from '@tabler/icons-react'
 import { SlugEditor } from '../common/SlugEditor'
 import { ReorderControls } from '../common/ReorderControls'
@@ -213,7 +214,7 @@ export function RideEditor({
           />
         </Stack>
 
-        <DateTimePicker
+        <InstantDateTimePicker
           label={
             <>
               {t('startPlace')}{' '}
@@ -222,9 +223,9 @@ export function RideEditor({
               </Text>
             </>
           }
-          value={form.values.dateTime ? new Date(form.values.dateTime) : null}
-          onChange={(date) => {
-            if (date) form.setFieldValue('dateTime', new Date(date).toISOString())
+          value={form.values.dateTime}
+          onChange={(iso) => {
+            if (iso) form.setFieldValue('dateTime', iso)
           }}
           error={form.errors.dateTime}
         />
@@ -275,13 +276,11 @@ export function RideEditor({
         </Radio.Group>
 
         {status === Status.DRAFT && (
-          <DateTimePicker
+          <InstantDateTimePicker
             label={t('rides.create.form.publishAt.label')}
             description={t('form.publishAtHint')}
-            value={form.values.publishAt ? new Date(form.values.publishAt) : null}
-            onChange={(date) =>
-              form.setFieldValue('publishAt', date ? new Date(date).toISOString() : undefined)
-            }
+            value={form.values.publishAt}
+            onChange={(iso) => form.setFieldValue('publishAt', iso)}
             error={form.errors.publishAt}
             clearable
           />

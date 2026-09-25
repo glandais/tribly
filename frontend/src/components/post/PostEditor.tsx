@@ -3,7 +3,7 @@ import { useForm } from '@mantine/form'
 import { zodFormValidator } from '@/lib/formUtils'
 import { useTranslation } from 'react-i18next'
 import { TextInput, Radio, Stack, Group, Button, Text } from '@mantine/core'
-import { DateTimePicker } from '@mantine/dates'
+import { InstantDateTimePicker } from '@/components/common/InstantDateTimePicker'
 import type { TeamDetailDto } from '@/api/dto'
 import { MediaEditor } from '../common/MediaEditor'
 import { SlugEditor } from '../common/SlugEditor'
@@ -130,7 +130,7 @@ export function PostEditor({
         </Radio.Group>
 
         {status === Status.PUBLISHED && (
-          <DateTimePicker
+          <InstantDateTimePicker
             label={
               <>
                 {t('posts.create.dateTimeLabel')}{' '}
@@ -140,22 +140,20 @@ export function PostEditor({
               </>
             }
             description={t('posts.create.dateTimeHint')}
-            value={form.values.dateTime ? new Date(form.values.dateTime) : null}
-            onChange={(date) => {
-              if (date) form.setFieldValue('dateTime', new Date(date).toISOString())
+            value={form.values.dateTime}
+            onChange={(iso) => {
+              if (iso) form.setFieldValue('dateTime', iso)
             }}
             error={form.errors.dateTime}
           />
         )}
 
         {status === Status.DRAFT && (
-          <DateTimePicker
+          <InstantDateTimePicker
             label={t('posts.create.publishAtLabel')}
             description={t('form.publishAtHint')}
-            value={form.values.publishAt ? new Date(form.values.publishAt) : null}
-            onChange={(date) =>
-              form.setFieldValue('publishAt', date ? new Date(date).toISOString() : undefined)
-            }
+            value={form.values.publishAt}
+            onChange={(iso) => form.setFieldValue('publishAt', iso)}
             error={form.errors.publishAt}
             clearable
           />

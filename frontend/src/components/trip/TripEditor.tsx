@@ -14,7 +14,7 @@ import {
   Tabs,
   Badge,
 } from '@mantine/core'
-import { DateTimePicker } from '@mantine/dates'
+import { InstantDateTimePicker } from '@/components/common/InstantDateTimePicker'
 import { IconPlus, IconTrash, IconSettings, IconRoute as IconRouteIcon } from '@tabler/icons-react'
 import { SlugEditor } from '../common/SlugEditor'
 import { ReorderControls } from '../common/ReorderControls'
@@ -253,7 +253,7 @@ export function TripEditor({
                 />
               </Stack>
 
-              <DateTimePicker
+              <InstantDateTimePicker
                 label={
                   <>
                     {t('startPlace')}{' '}
@@ -262,9 +262,9 @@ export function TripEditor({
                     </Text>
                   </>
                 }
-                value={form.values.dateTime ? new Date(form.values.dateTime) : null}
-                onChange={(date) => {
-                  if (date) form.setFieldValue('dateTime', new Date(date).toISOString())
+                value={form.values.dateTime}
+                onChange={(iso) => {
+                  if (iso) form.setFieldValue('dateTime', iso)
                 }}
                 error={form.errors.dateTime}
               />
@@ -288,13 +288,11 @@ export function TripEditor({
               </Radio.Group>
 
               {status === Status.DRAFT && (
-                <DateTimePicker
+                <InstantDateTimePicker
                   label={t('trips.create.form.publishAt.label')}
                   description={t('form.publishAtHint')}
-                  value={form.values.publishAt ? new Date(form.values.publishAt) : null}
-                  onChange={(date) =>
-                    form.setFieldValue('publishAt', date ? new Date(date).toISOString() : undefined)
-                  }
+                  value={form.values.publishAt}
+                  onChange={(iso) => form.setFieldValue('publishAt', iso)}
                   error={form.errors.publishAt}
                   clearable
                 />
@@ -380,19 +378,11 @@ export function TripEditor({
                       placeholder={t('trips.create.form.stages.name.placeholder')}
                       {...form.getInputProps(`stages.${index}.name`)}
                     />
-                    <DateTimePicker
+                    <InstantDateTimePicker
                       label={t('trips.create.form.stages.date.label')}
-                      value={
-                        form.values.stages[index]?.dateTime
-                          ? new Date(form.values.stages[index].dateTime)
-                          : null
-                      }
-                      onChange={(date) => {
-                        if (date)
-                          form.setFieldValue(
-                            `stages.${index}.dateTime`,
-                            new Date(date).toISOString()
-                          )
+                      value={form.values.stages[index]?.dateTime}
+                      onChange={(iso) => {
+                        if (iso) form.setFieldValue(`stages.${index}.dateTime`, iso)
                       }}
                     />
                   </SimpleGrid>
