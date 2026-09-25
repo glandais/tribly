@@ -7,6 +7,7 @@ import { Alert, Button, Center, Group, Loader, Paper, Stack, Text, Title } from 
 import { paths } from '@/config/paths'
 import { useAuthStore } from '@/store/authStore'
 import { preview, accept } from '@/api/endpoints/invitations/invitations'
+import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { ApiClientError } from '@/lib/apiError'
 import type { InvitationPreviewDto } from '@/api/dto'
 
@@ -40,6 +41,20 @@ export function AcceptInvitationPage() {
   const [failureCode, setFailureCode] = useState<string | null>(null)
   const [isAccepting, setIsAccepting] = useState(false)
   const hasLoaded = useRef(false)
+
+  // An invitation that is no longer PENDING may simply be one this very member already accepted:
+  // replaying the link is a success on the server's side, so it must not read as "no longer valid"
+  // here. Only a member gets a role back; anyone else is told the invitation is spent.
+  const checkMembership = isAuthenticated && invitation !== null && !invitation.redeemable
+  const { data: invitedTeam, isLoading: isCheckingMembership } = useGetTeam(
+    invitation?.teamSlug ?? '',
+    {
+      query: { enabled: checkMembership, retry: false },
+      request: { skipErrorToast: true },
+    }
+  )
+  const membershipPending = checkMembership && isCheckingMembership
+  const isAlreadyMember = checkMembership && Boolean(invitedTeam?.role)
 
   useEffect(() => {
     if (!token || hasLoaded.current) {
@@ -83,6 +98,11 @@ export function AcceptInvitationPage() {
   // URL is the way through, so it is offered as a button rather than left as an exercise.
   const handleSwitchAccount = async () => {
     await logout()
+    // Back to the invitation itself when the mismatch was only found on accepting.
+    if (invitation) {
+      setFailureCode(null)
+      setState('ready')
+    }
     navigate(`${location.pathname}${location.search}`, { replace: true })
   }
 
@@ -108,6 +128,9 @@ export function AcceptInvitationPage() {
                 ? t('errors.api.' + failureCode)
                 : t('invitations.accept.unavailableBody')}
             </Text>
+            {failureCode === 'TEAM_INVITE_EMAIL_MISMATCH' && isAuthenticated && (
+              <Button onClick={handleSwitchAccount}>{t('invitations.accept.switchAccount')}</Button>
+            )}
             <Button component={PrefetchLink} to={paths.teams()} variant="default">
               {t('invitations.accept.backToTeams')}
             </Button>
@@ -152,7 +175,24 @@ export function AcceptInvitationPage() {
             })}
           </Text>
 
-          {!invitation.redeemable && (
+          {membershipPending && (
+            <Center>
+              <Loader size="sm" />
+            </Center>
+          )}
+
+          {isAlreadyMember && (
+            <Stack gap="xs">
+              <Alert color="success">
+                {t('invitations.accept.alreadyMember', { team: invitation.teamName })}
+              </Alert>
+              <Button component={PrefetchLink} to={paths.team(invitation.teamSlug)} fullWidth>
+                {t('invitations.accept.goToTeam')}
+              </Button>
+            </Stack>
+          )}
+
+          {!invitation.redeemable && !isAlreadyMember && !membershipPending && (
             <Alert color="orange">{t('invitations.accept.notRedeemable')}</Alert>
           )}
 
