@@ -385,6 +385,7 @@
   "errors.api.INVALID_TIMEZONE": "This timezone is not recognized",
   "errors.api.INVALID_VISIBILITY": "The visibility setting is invalid",
   "errors.api.LAST_ADMIN": "Cannot remove the last admin from the team",
+  "errors.api.SOLE_TEAM_ADMIN": "You are the only admin of a team that has other members. Make someone else an admin, or delete the team, before deleting your account.",
   "errors.api.NOT_FOUND": "The requested resource was not found",
   "errors.api.NOT_REGISTERED": "You are not registered for this ride",
   "errors.api.PASSKEY_NOT_FOUND": "Passkey not found",

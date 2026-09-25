@@ -998,6 +998,7 @@
       "INVALID_SLUG": "The custom URL is invalid",
       "INVALID_VISIBILITY": "The visibility setting is invalid",
       "LAST_ADMIN": "Cannot remove the last admin from the team",
+      "SOLE_TEAM_ADMIN": "You are the only admin of a team that has other members. Make someone else an admin, or delete the team, before deleting your account.",
       "NOT_FOUND": "The requested resource was not found",
       "NOT_REGISTERED": "You are not registered for this ride",
       "PASSKEY_NOT_FOUND": "Passkey not found",

@@ -10,6 +10,8 @@ public enum ErrorCode {
   VALIDATION,
   BUSINESS_RULE,
   LAST_ADMIN,
+  // Deleting an account that is the last admin of a team others still belong to.
+  SOLE_TEAM_ADMIN,
   ALREADY_REGISTERED,
   NOT_REGISTERED,
   INVALID_SLUG,

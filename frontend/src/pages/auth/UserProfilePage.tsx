@@ -87,7 +87,10 @@ export function UserProfilePage() {
   }
 
   const handleDelete = () => {
-    deleteAccount()
+    // A refusal (SOLE_TEAM_ADMIN: the last admin of a team others still belong to) is toasted by
+    // the API client; the dialog closes so the message is not left behind a confirmation that
+    // can only fail again.
+    deleteAccount(undefined, { onError: () => setShowDeleteConfirm(false) })
   }
 
   const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {

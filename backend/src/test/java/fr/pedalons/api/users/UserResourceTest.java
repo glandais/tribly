@@ -5,8 +5,9 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import fr.pedalons.api.AbstractResourceTest;
-import fr.pedalons.common.TsidUtils;
+import fr.pedalons.domain.user.User;
 import fr.pedalons.repository.user.UserRepository;
+import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.io.File;
@@ -68,22 +69,37 @@ class UserResourceTest extends AbstractResourceTest {
 
   @Test
   void deleteCurrentUser_shouldSoftDeleteAccount() {
+    // USER3 is a plain member: USER1, the sole admin of both teams, may not leave (see below).
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER3))
+        .when()
+        .delete("/api/users/me")
+        .then()
+        .statusCode(204);
+
+    assertTrue(isDeleted(user3));
+  }
+
+  @Test
+  void deleteCurrentUser_soleAdminOfATeamWithMembers_shouldReturn400() {
     given()
         .auth()
         .oauth2(getAccessToken(USER1))
         .when()
         .delete("/api/users/me")
         .then()
-        .statusCode(204);
+        .statusCode(400)
+        .body("code", equalTo("SOLE_TEAM_ADMIN"));
 
-    // Verify user is no longer accessible (will return 404 because user is deleted)
-    given()
-        .auth()
-        .oauth2(getAccessToken(USER2))
-        .when()
-        .get("/api/users/" + TsidUtils.toString(user1.getId()))
-        .then()
-        .statusCode(404);
+    assertFalse(isDeleted(user1));
+  }
+
+  // Read in the database: there is no GET /api/users/{id} — the 404 this test used to expect from
+  // one came from the missing route, whatever the account's state.
+  private boolean isDeleted(User user) {
+    return QuarkusTransaction.requiringNew()
+        .call(() -> userRepository.findById(user.getId()).isDeleted());
   }
 
   @Test

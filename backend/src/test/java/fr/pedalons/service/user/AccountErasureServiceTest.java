@@ -3,6 +3,7 @@ package fr.pedalons.service.user;
 import static org.junit.jupiter.api.Assertions.*;
 
 import fr.pedalons.AbstractBaseTest;
+import fr.pedalons.common.exception.BusinessException;
 import fr.pedalons.domain.ad.Ad;
 import fr.pedalons.domain.comment.Comment;
 import fr.pedalons.domain.moderation.ContentReport;
@@ -15,6 +16,7 @@ import fr.pedalons.domain.trip.Trip;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.comments.response.CommentDto;
 import fr.pedalons.dto.comments.response.CommentListResponse;
+import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.enums.AdType;
 import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.GpsServiceType;
@@ -135,6 +137,39 @@ class AccountErasureServiceTest extends AbstractBaseTest {
       userService.deleteUser();
 
       assertTrue(AccountErasureService.isErased(reload(leaver)));
+    }
+
+    /** The team keeps its members, so it must keep someone to run it. */
+    @Test
+    void deleteUserIsRefusedToTheSoleAdminOfATeamWithOtherMembers() {
+      queryContext.setUserForTest(stayer);
+
+      BusinessException refused = assertThrows(BusinessException.class, userService::deleteUser);
+
+      assertEquals(ErrorCode.SOLE_TEAM_ADMIN, refused.getErrorCode());
+      assertFalse(AccountErasureService.isErased(reload(stayer)));
+    }
+
+    @Test
+    void deleteUserIsAllowedOnceAnotherAdminIsNamed() {
+      User other = dataService.createUser("other@example.com", "Other");
+      dataService.addUserToTeam(other, team, TeamRole.ADMIN);
+      queryContext.setUserForTest(stayer);
+
+      userService.deleteUser();
+
+      assertTrue(AccountErasureService.isErased(reload(stayer)));
+    }
+
+    @Test
+    void deleteUserIsAllowedToTheAdminOfATeamTheyAreAloneIn() {
+      User solo = dataService.createUser("solo@example.com", "Solo");
+      dataService.createTeam(solo, "Solo team", "solo-team", Visibility.PUBLIC);
+      queryContext.setUserForTest(solo);
+
+      userService.deleteUser();
+
+      assertTrue(AccountErasureService.isErased(reload(solo)));
     }
 
     @Test

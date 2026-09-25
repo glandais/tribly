@@ -1,6 +1,7 @@
 package fr.pedalons.service.user;
 
 import fr.pedalons.common.exception.BadRequestException;
+import fr.pedalons.common.exception.BusinessException;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.dto.gps.response.GpsServiceConnectionDto;
@@ -12,6 +13,7 @@ import fr.pedalons.enums.ThemePreference;
 import fr.pedalons.enums.UnitSystem;
 import fr.pedalons.repository.gps.GpsServiceConnectionRepository;
 import fr.pedalons.repository.social.UserSocialIdentityRepository;
+import fr.pedalons.repository.team.UserTeamRepository;
 import fr.pedalons.repository.user.UserRepository;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.Logged;
@@ -35,6 +37,8 @@ public class UserService {
   @Inject UserSocialIdentityRepository socialIdentityRepository;
 
   @Inject AccountErasureService accountErasureService;
+
+  @Inject UserTeamRepository userTeamRepository;
 
   @Logged
   public UserDto getUserDto() {
@@ -112,9 +116,17 @@ public class UserService {
   @Logged
   @Transactional
   public void deleteUser() {
+    User user = pedalonsContext.getUser();
+    // The erasure drops every membership and promotes nobody: the last admin of a team others
+    // still belong to would leave them a team no one can run. They name another admin, or delete
+    // the team, first — the same rule as leaving the team (LAST_ADMIN). A team they are alone in
+    // does not stop them.
+    if (userTeamRepository.countTeamsLeftWithoutAdmin(user.getId()) > 0) {
+      throw new BusinessException(ErrorCode.SOLE_TEAM_ADMIN);
+    }
     // Erased now, not flagged for later: nothing ever came back for a flagged account, and the
     // policy, the app and the store listings all promise the data is gone.
-    accountErasureService.erase(pedalonsContext.getUser());
+    accountErasureService.erase(user);
     // The request context memoizes the active user; it is no longer active.
     pedalonsContext.invalidateUser();
   }

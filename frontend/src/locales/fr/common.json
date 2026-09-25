@@ -385,6 +385,7 @@
   "errors.api.INVALID_TIMEZONE": "Ce fuseau horaire n'est pas reconnu",
   "errors.api.INVALID_VISIBILITY": "Le paramètre de visibilité est invalide",
   "errors.api.LAST_ADMIN": "Impossible de retirer le dernier administrateur de l'équipe",
+  "errors.api.SOLE_TEAM_ADMIN": "Vous êtes le seul administrateur d'une équipe qui compte d'autres membres. Nommez un autre administrateur, ou supprimez l'équipe, avant de supprimer votre compte.",
   "errors.api.NOT_FOUND": "La ressource demandée est introuvable",
   "errors.api.NOT_REGISTERED": "Vous n'êtes pas inscrit à cette sortie",
   "errors.api.PASSKEY_NOT_FOUND": "Passkey introuvable",

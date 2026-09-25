@@ -73,6 +73,25 @@ public class UserTeamRepository implements BaseRepository<UserTeam> {
         .getSingleResult();
   }
 
+  /**
+   * The live teams this user is the only admin of while other members remain — the teams the
+   * erasure of their account would leave with members and nobody to run them.
+   */
+  public long countTeamsLeftWithoutAdmin(Long userId) {
+    return getEntityManager()
+        .createQuery(
+            "SELECT COUNT(ut) FROM UserTeam ut JOIN ut.team t "
+                + "WHERE ut.user.id = :userId AND ut.role = :admin AND t.deleted = false "
+                + "AND NOT EXISTS (SELECT 1 FROM UserTeam o WHERE o.team = t "
+                + "  AND o.user.id <> :userId AND o.role = :admin AND o.user.deleted = false) "
+                + "AND EXISTS (SELECT 1 FROM UserTeam m WHERE m.team = t "
+                + "  AND m.user.id <> :userId AND m.user.deleted = false)",
+            Long.class)
+        .setParameter("userId", userId)
+        .setParameter("admin", TeamRole.ADMIN)
+        .getSingleResult();
+  }
+
   public long countAdminsByTeam(Long teamId) {
     return count(
         "team.id = ?1 and role = ?2 and " + "team.deleted = false and user.deleted = false",

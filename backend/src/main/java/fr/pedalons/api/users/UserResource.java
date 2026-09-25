@@ -311,6 +311,11 @@ public class UserResource {
   @APIResponses({
     @APIResponse(responseCode = "204", description = "User deleted successfully"),
     @APIResponse(
+        responseCode = "400",
+        description =
+            "SOLE_TEAM_ADMIN: the user is the only admin of a team that has other members",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
         responseCode = "401",
         description = "Unauthorized",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))

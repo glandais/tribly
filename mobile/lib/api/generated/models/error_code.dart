@@ -24,6 +24,8 @@ enum ErrorCode {
   businessRule('BUSINESS_RULE'),
   @JsonValue('LAST_ADMIN')
   lastAdmin('LAST_ADMIN'),
+  @JsonValue('SOLE_TEAM_ADMIN')
+  soleTeamAdmin('SOLE_TEAM_ADMIN'),
   @JsonValue('ALREADY_REGISTERED')
   alreadyRegistered('ALREADY_REGISTERED'),
   @JsonValue('NOT_REGISTERED')
