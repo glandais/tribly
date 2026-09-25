@@ -26,6 +26,10 @@ From `frontend/`: `pnpm e2e` (same as `scripts/e2e.sh test`), `pnpm e2e:ui` (Pla
 `pnpm e2e:typecheck`. After a failure: `pnpm exec playwright show-report e2e/.report`, or
 `show-trace` on the `trace.zip` the failure printed.
 
+**Parallel runs need distinct output dirs.** Playwright empties its output directory (traces,
+screenshots, videos) when a run starts, so two runs sharing one wipe each other's failure traces.
+Give each its own: `E2E_OUTPUT=/tmp/e2e-mine pnpm e2e`, or `--output=/tmp/e2e-mine`.
+
 **The tests run against images, not your working tree** — rebuild (`scripts/e2e.sh build frontend`
 or `backend`, about a minute each) and `up` before testing a change. `E2E_BASE_URL` and
 `E2E_MAILHOG_URL` override where the suite looks, but the stack behind them must be one whose
@@ -52,6 +56,26 @@ reaches mailhog, and `.env.e2e` holds nothing but throwaway values — which is 
 - Prefer roles and accessible names (`getByRole('heading', { name })`) over text: the same text
   often appears in a breadcrumb that the mobile layout hides.
 
+## Shared helpers
+
+Everything a journey needs lives in `support/`, one module per domain — reuse before writing a new
+one, and keep journey-only helpers in their own `support/<journey>.ts`.
+
+- `api.ts` — `apiContext`, `expectOk` (throws an `ApiError` with the backend's `code`), the logins
+  and `refresh` (retries the backend's concurrent-refresh 500, see below).
+- `data.ts` — `roleSession(role)` (cached per worker), `signIn(context, auth)`, `newUser`,
+  `freshAddress` (an address with no account), `teamRequest`, `newTeam` (applies the `enable*`
+  flags POST ignores; `{ addMemberAllowed: true }` lets the team's admins add and invite),
+  `setTeamAttributes`, `addMember` (as the platform admin unless the team allows it).
+- `fixtures.ts` — `test`, `expect`, `as(role)`, the `seed` fixture, `unique(label)`.
+- `rides.ts` — `rideRequest`, `newRide`, `joinGroup`, `postComments`, `openRide`, `groupCard`.
+- `ads.ts` — `newAd` (with pictures), `uploadImage`, `solidPng`.
+- `mailhog.ts` — `mailbox` + `waitForNewMail` (text of the next mail), `mailsTo` (headers and every
+  part), `otpCodeIn`, `linkTokenIn`.
+- `ui.ts` — `hydrated(locator)` before clicking a server-rendered control, `pageHydrated`,
+  `watchHydration` (hydration errors and discarded server markup), `toasts`, `watchToasts` (every
+  toast shown, where a retrying `toHaveCount(0)` would pass vacuously).
+
 ## How sessions work
 
 `global-setup.ts` logs each role in once and writes a Playwright `storageState` holding the
@@ -59,3 +83,8 @@ reaches mailhog, and `.env.e2e` holds nothing but throwaway values — which is 
 into a session on the first request. The admin logs in by OTP, which the backend rate-limits to
 3 per 5 minutes — so on later runs global-setup refreshes the saved sessions instead of logging in
 again, and only logs in when a session no longer refreshes (after `reset`).
+
+Tests get a role's access token from `roleSession`, which refreshes the saved session at most every
+10 minutes per worker. That matters: **concurrent `POST /api/auth/refresh` on one session answer 500
+to all but one** (backend defect: `AuthService.refreshToken` → `user.recordLogin()` collides on the
+`User` row's `@Version`). `refresh` retries those 500s; don't call it per test.

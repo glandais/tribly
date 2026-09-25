@@ -62,8 +62,7 @@ function decode(part: MailhogPart): string {
   return part.Body
 }
 
-/** Every text/plain leaf of the message, decoded; the raw body when it is not multipart. */
-function textOf(message: MailhogMessage): string {
+function leavesOf(message: MailhogMessage): MailhogPart[] {
   const leaves: MailhogPart[] = []
   const walk = (part: MailhogPart) => {
     if (part.MIME?.Parts?.length) part.MIME.Parts.forEach(walk)
@@ -71,9 +70,34 @@ function textOf(message: MailhogMessage): string {
   }
   if (message.MIME?.Parts?.length) message.MIME.Parts.forEach(walk)
   else leaves.push(message.Content)
+  return leaves
+}
 
+/** Every text/plain leaf of the message, decoded; the raw body when it is not multipart. */
+function textOf(message: MailhogMessage): string {
+  const leaves = leavesOf(message)
   const plain = leaves.filter((p) => header(p, 'Content-Type').startsWith('text/plain'))
   return (plain.length ? plain : leaves).map(decode).join('\n')
+}
+
+export interface Mail {
+  /** The top-level headers, names lowercased, first value of each (`reply-to`, `from`, …). */
+  headers: Record<string, string>
+  /** Every leaf of the message (text and HTML), decoded. */
+  parts: string[]
+}
+
+/**
+ * Every mail delivered to `to` so far, with its headers and all its parts — for what the text alone
+ * does not show (a Reply-To, an address that must appear in no part).
+ */
+export async function mailsTo(to: string): Promise<Mail[]> {
+  return (await search(to)).map((message) => {
+    const headers: Record<string, string> = {}
+    for (const [key, values] of Object.entries(message.Content.Headers))
+      headers[key.toLowerCase()] = values[0] ?? ''
+    return { headers, parts: leavesOf(message).map(decode) }
+  })
 }
 
 export function otpCodeIn(text: string): string {

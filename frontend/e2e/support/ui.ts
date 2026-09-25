@@ -1,0 +1,89 @@
+import { expect, type Locator, type Page } from '@playwright/test'
+
+/**
+ * Browser-side helpers shared by the journeys: waiting for hydration, and recording what the page
+ * showed or threw away while a retrying assertion was not looking.
+ */
+
+/**
+ * Waits until React has hydrated `locator`'s element — i.e. its event handlers are attached. The
+ * pages are server-rendered, so a control is on screen (and clickable for Playwright) before that,
+ * and a click or keystroke in that window is lost. React marks every node it adopts with a
+ * `__reactProps$…` key; that is the signal.
+ */
+export async function hydrated(locator: Locator) {
+  await expect
+    .poll(
+      () =>
+        locator.evaluate((element) =>
+          Object.keys(element).some((key) => key.startsWith('__reactProps'))
+        ),
+      { timeout: 15_000 }
+    )
+    .toBe(true)
+}
+
+/**
+ * Waits until the app has taken over the server markup (React's container key on #root) and
+ * settled its first fetches.
+ */
+export async function pageHydrated(page: Page) {
+  await page.waitForFunction(() => {
+    const root = document.getElementById('root')
+    return !!root && Object.keys(root).some((key) => key.startsWith('__reactContainer'))
+  })
+  await page.waitForLoadState('networkidle')
+}
+
+/**
+ * Records, from before the first byte is parsed, every console `[hydration]` error and every DOM
+ * removal of a node holding one of `markers` — a mismatch makes React throw the server subtree
+ * away and client-render it, which is exactly the flicker to rule out. Call it before `goto`.
+ */
+export async function watchHydration(page: Page, markers: string[]) {
+  const hydrationErrors: string[] = []
+  page.on('console', (message) => {
+    if (message.type() === 'error' && message.text().includes('[hydration]'))
+      hydrationErrors.push(message.text())
+  })
+  await page.addInitScript((watched: string[]) => {
+    const removed: string[] = []
+    ;(window as unknown as { __e2eRemoved: string[] }).__e2eRemoved = removed
+    new MutationObserver((records) => {
+      for (const record of records)
+        for (const node of record.removedNodes)
+          for (const marker of watched) if (node.textContent?.includes(marker)) removed.push(marker)
+    }).observe(document, { childList: true, subtree: true })
+  }, markers)
+  return {
+    hydrationErrors,
+    removed: () =>
+      page.evaluate(() => (window as unknown as { __e2eRemoved: string[] }).__e2eRemoved),
+  }
+}
+
+/** The global toasts (Mantine Notifications) — apiClient shows one for every coded API error. */
+export const toasts = (page: Page) => page.locator('.mantine-Notification-root')
+
+/**
+ * Records the text of every global toast mounted from now on, on the current document; returns a
+ * reader. Use it to prove *no* toast was shown: a retrying `toHaveCount(0)` passes vacuously, since
+ * it simply waits for the toast to auto-close (4 s) within its own 5 s timeout.
+ */
+export async function watchToasts(page: Page): Promise<() => Promise<string[]>> {
+  await page.evaluate(() => {
+    const w = window as unknown as { __toastTexts: string[] }
+    w.__toastTexts = []
+    const record = (node: Node) => {
+      if (!(node instanceof HTMLElement)) return
+      const found = node.matches('.mantine-Notification-root')
+        ? [node]
+        : Array.from(node.querySelectorAll<HTMLElement>('.mantine-Notification-root'))
+      for (const toast of found) w.__toastTexts.push(toast.textContent ?? '')
+    }
+    new MutationObserver((mutations) => {
+      for (const m of mutations) m.addedNodes.forEach(record)
+    }).observe(document.body, { childList: true, subtree: true })
+  })
+  return () => page.evaluate(() => (window as unknown as { __toastTexts: string[] }).__toastTexts)
+}

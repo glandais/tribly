@@ -101,15 +101,32 @@ export async function register(account: {
   }
 }
 
-/** A fresh access token for a saved session, or null once the session is gone (stack reset). */
-export async function refresh(refreshToken: string): Promise<AuthResponse | null> {
+/**
+ * A fresh access token for a saved session, or null once the session is gone (stack reset: the
+ * backend answers 4xx).
+ *
+ * A 5xx is retried, a few times with a short, jittered backoff. BACKEND DEFECT: concurrent
+ * POST /api/auth/refresh on one session answer 500 to all requests but one —
+ * AuthService.refreshToken calls user.recordLogin(), and the concurrent updates of the same User row
+ * collide on its @Version (optimistic lock). Parallel workers, and parallel Playwright runs against
+ * one stack, refresh the same saved sessions at the same moment, so the race is hit routinely.
+ */
+export async function refresh(refreshToken: string, attempts = 6): Promise<AuthResponse | null> {
   const api = await apiContext()
   try {
-    const response = await api.post('/api/auth/refresh', {
-      headers: { 'X-Refresh-Token': refreshToken },
-    })
-    if (!response.ok()) return null
-    return { ...(await response.json()), refreshToken }
+    for (let attempt = 1; ; attempt++) {
+      const response = await api.post('/api/auth/refresh', {
+        headers: { 'X-Refresh-Token': refreshToken },
+      })
+      if (response.ok()) return { ...(await response.json()), refreshToken }
+      if (response.status() < 500) return null
+      if (attempt >= attempts)
+        throw new Error(
+          `POST /api/auth/refresh → ${response.status()} after ${attempts} attempts: ` +
+            (await response.text())
+        )
+      await new Promise((resolve) => setTimeout(resolve, 150 * attempt + Math.random() * 250))
+    }
   } finally {
     await api.dispose()
   }

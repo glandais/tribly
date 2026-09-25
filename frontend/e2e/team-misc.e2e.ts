@@ -1,0 +1,177 @@
+import type { Page } from '@playwright/test'
+import type { TeamDetailDto, UserPreferencesRequest } from '../src/api/dto'
+import { apiContext, expectOk } from './support/api'
+import { newTeam, newUser, signIn } from './support/data'
+import { expect, test, unique } from './support/fixtures'
+import { stack } from './support/stack'
+
+/**
+ * Three loose items of docs/NEXT.md: the team page's vertical budget (§1.2), and two notes of
+ * « A classifier » — the team settings page loaded directly through SSR, and a saved language
+ * preference winning over the browser's.
+ */
+
+test.describe('team page at 1440×900', () => {
+  test.use({ viewport: { width: 1440, height: 900 } })
+
+  // The criterion is a desktop one (T3.6 of docs/plans/archive/2026-07-26-web-portage-mobile-v2.md);
+  // the mobile project would emulate a phone behind the 1440 px viewport.
+  test.skip(({ isMobile }) => isMobile, 'desktop criterion')
+
+  // T3.6 aimed at 220 px; the page settled at ~283 px (from ~300 before the port): header (60) +
+  // breadcrumb + team header (avatar lg, h1) + NavButtons (40 px square *plus* a label line, ~78 px
+  // — NavButtons.tsx) + the Stack gaps of TeamLayout.tsx. Reaching 220 would mean redesigning the
+  // team nav, which was judged out of scope (2026-09-25): this pins today's budget so it doesn't grow.
+  test('the first content element starts less than 300 px from the top', async ({
+    context,
+    page,
+  }) => {
+    const owner = await newUser('team-misc layout owner')
+    const team = await newTeam(owner, unique('Budget vertical'))
+    await signIn(context, owner)
+
+    await page.goto(`/equipes/${team.slug}`)
+    await expect(
+      page.getByRole('heading', { level: 1, name: team.name }),
+      'precondition: the team page is rendered'
+    ).toBeVisible()
+    // The team's own tabs, then the page content: TeamLayout renders the content right after them.
+    const tabs = page.getByRole('navigation', { name: "Navigation de l'équipe" })
+    const content = tabs.locator('xpath=following-sibling::div[1]')
+    await expect(
+      content.getByRole('heading', { level: 2, name: "Fil d'actualités" }),
+      'precondition: the block measured is the page content, right after the team tabs'
+    ).toBeVisible()
+
+    const box = await content.boundingBox()
+    expect(box, 'precondition: the content block is laid out').not.toBeNull()
+    expect(box!.y).toBeLessThan(300)
+  })
+})
+
+test.describe('team settings loaded directly', () => {
+  test('the owner gets a working settings form from a document request', async ({
+    context,
+    page,
+  }) => {
+    const owner = await newUser('team-misc settings owner')
+    const team = await newTeam(owner, unique('Réglages directs'), {
+      media: {
+        markdown: 'Nous roulons **le dimanche** matin.',
+        assets: { images: [], attachments: [] },
+      },
+    })
+    await signIn(context, owner)
+    const failures: string[] = []
+    page.on('pageerror', (error) => failures.push(`pageerror: ${error.message}`))
+    page.on('console', (message) => {
+      if (message.type() === 'error' && message.text().includes('[hydration]'))
+        failures.push(message.text())
+    })
+
+    const response = await page.goto(`/equipes/${team.slug}/admin/parametres`)
+    expect(response?.status()).toBe(200)
+    // Rendered by the server, for the owner: the form itself, not a spinner or a redirect.
+    const html = await response!.text()
+    expect(html).toContain('Gérer le profil et les paramètres de votre équipe')
+    expect(html).toContain('le dimanche')
+    await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}/admin/parametres$`))
+    await expect(
+      page.getByRole('heading', { level: 2, name: "Paramètres de l'équipe" })
+    ).toBeVisible()
+    const name = page.getByLabel("Nom de l'équipe")
+    await expect(name).toHaveValue(team.name)
+    await expect(page.getByText('le dimanche', { exact: false })).toBeVisible()
+
+    // And it works once hydrated: a rename is saved and lands on the renamed team.
+    await page.waitForLoadState('networkidle')
+    const renamed = unique('Renommée')
+    await name.fill(renamed)
+    const form = page.locator('form').filter({ has: name })
+    await form.getByRole('button', { name: 'Enregistrer' }).click()
+    await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}$`))
+    await expect(page.getByRole('heading', { level: 1, name: renamed })).toBeVisible()
+
+    const api = await apiContext(owner.accessToken)
+    const saved = await expectOk<TeamDetailDto>(await api.get(`/api/teams/${team.slug}`))
+    await api.dispose()
+    expect(saved.name).toBe(renamed)
+    expect(failures).toEqual([])
+  })
+})
+
+test.describe('saved language preference', () => {
+  test.describe('in a French browser that has seen the site in French before', () => {
+    // i18next's own cache, as a previous French visit leaves it.
+    test.use({
+      locale: 'fr-FR',
+      storageState: {
+        cookies: [],
+        origins: [{ origin: stack.baseURL, localStorage: [{ name: 'i18nextLng', value: 'fr' }] }],
+      },
+    })
+
+    test('a signed-in user who saved English gets English', async ({ context, page }) => {
+      const user = await newUser('team-misc english')
+      const api = await apiContext(user.accessToken)
+      const preferences: UserPreferencesRequest = { language: 'en' }
+      await expectOk(await api.patch('/api/users/me/preferences', { data: preferences }))
+      await api.dispose()
+      await signIn(context, user)
+
+      const response = await page.goto('/')
+      expect(response?.status()).toBe(200)
+      // The server already renders in the saved language…
+      expect(await response!.text()).toMatch(/<html[^>]*\slang="en"/)
+      // …and the hydrated app keeps it.
+      await page.waitForLoadState('networkidle')
+      await expect(page.locator('html')).toHaveAttribute('lang', 'en')
+      await expect(languageSelect(page, 'Language')).toHaveValue('en')
+      await expect(page.getByRole('heading', { level: 2, name: /^Welcome to / })).toBeVisible()
+      await expect.poll(() => page.evaluate(() => localStorage.getItem('i18nextLng'))).toBe('en')
+    })
+  })
+
+  // DEFECT (docs/NEXT.md « A classifier »): i18n/index.ts detects with order ['htmlTag', …] and
+  // caches: ['localStorage'], so init writes the server's <html lang> (from Accept-Language) into
+  // i18nextLng *before* the post-init re-read of i18nextLng — the visitor's choice is overwritten
+  // and the re-read only ever sees the detected language.
+  test('an anonymous visitor who picked English keeps it on the next visit', async ({ page }) => {
+    test.fail()
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+    await expect(
+      languageSelect(page, 'Langue'),
+      'precondition: the page starts in French'
+    ).toHaveValue('fr')
+    await languageSelect(page, 'Langue').selectOption('en')
+    await expect(
+      languageSelect(page, 'Language'),
+      'precondition: picking English switched the page'
+    ).toHaveValue('en')
+    await expect
+      .poll(() => page.evaluate(() => localStorage.getItem('i18nextLng')), {
+        message: 'precondition: the choice is saved in i18nextLng',
+      })
+      .toBe('en')
+
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+    // The page is back, whatever its language…
+    await expect(
+      page.getByRole('heading', { level: 2, name: /^(Bienvenue sur|Welcome to) / }),
+      'precondition: the home page is back after the reload'
+    ).toBeVisible()
+    // …and it should still be English (the defect).
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en')
+    await expect(languageSelect(page, 'Language')).toHaveValue('en')
+  })
+})
+
+/**
+ * The header's language select. The layout renders two (header on desktop, drawer on mobile); the
+ * one the current breakpoint hides is display:none, so the first *accessible* one is the live one.
+ */
+function languageSelect(page: Page, name: 'Langue' | 'Language') {
+  return page.getByRole('combobox', { name }).first()
+}
