@@ -48,6 +48,11 @@ parce que ça dépend d'un vrai fournisseur (mail, tuiles, GPS), soit parce que 
 de première ouverture. `flutter analyze` est propre, les **480 tests mobiles** et le
 `pnpm check` du web passent : ce qui suit est ce qu'ils ne peuvent pas dire.
 
+**Sauf le web (§1.2), automatisé le 25 septembre 2026** par une suite Playwright qui tourne contre
+l'application entière (SSR, backend, postgres, MinIO, mailhog) sur une base vide :
+`scripts/e2e.sh up` puis `scripts/e2e.sh test`, voir `frontend/e2e/README.md`. Elle a trouvé onze
+défauts, tous corrigés sauf un arbitré (la page d'équipe, ci-dessous).
+
 ### 1.1 Mobile — les douze écrans
 
 À faire une fois **en clair** et une fois **en sombre** (le mode sombre est *dérivé*, aucune maquette
@@ -145,43 +150,58 @@ jeton ICS. Thème clair et compte `gaby` pas repassés en revue depuis.
 
 ### 1.2 Web
 
-- [ ] Les 5 écrans qui affichent le tracé complet d'un parcours : détail de parcours, carte plein
+Chaque ligne est couverte par un fichier de `frontend/e2e/`, sur desktop et sur mobile (Pixel 7).
+Ce qui reste hors de portée de l'automatisation est dit sous la ligne concernée : c'est ce qu'une
+recette à la main aurait encore à regarder.
+
+- [x] Les 5 écrans qui affichent le tracé complet d'un parcours : détail de parcours, carte plein
       écran de parcours et d'étape (les 4 via `useGetRoute`), carte de groupe d'une sortie (via
-      `useRoutesBulk` sans `geometry:false`, `RoutesMapView.tsx`).
-- [ ] « Ma prochaine sortie », badge `Inscrit` et « Mes participations » se rendent désormais
-      **dans le HTML initial** pour une requête porteuse d'un cookie de session (SSR authentifié,
-      cf. `frontend/SSR.md`). Vérifier avec `curl -H "Cookie: refresh_token=$TOKEN"` que ces blocs
-      sont présents, qu'ils sont **absents** sans cookie, et qu'ils ne clignotent pas à
-      l'hydratation (aucune erreur `[hydration]` en console).
-- [ ] Modale « Contacter le vendeur » : les quatre issues, brouillon **conservé** sur 429 et 500,
-      et pas de double message (l'`Alert` de la modale **plus** le toast global — les quatre clés
-      `errors.api.AD_CONTACT_*` doivent exister en `fr` et `en`). Le succès et
-      `AD_CONTACT_OPTED_OUT` ferment la modale et se rendent en `Alert` **persistante** sur la page,
-      le bouton disparaissant dans le second cas : c'est là que le toast global fait doublon, et
-      `apiClient` n'a aucun moyen de le taire par appel.
-- [ ] Annonces, détail : la galerie navigue aux flèches **et** aux vignettes, le plein écran sert la
-      variante 1920 ; la carte de localisation rend un **disque sans punaise**, cadré sur son
-      emprise, avec sa légende « à environ 1 km près » ; aucune section vide (pas de bloc
-      Localisation sans lieu ni géométrie, pas de bloc Description sans corps).
-- [ ] Annonces, liste : le tri et les bornes de prix survivent au retour arrière et au partage du
-      lien (`?sort=`/`?dir=`/`?pmin=`/`?pmax=`), et « Effacer les filtres » **conserve** le tri.
-- [ ] Page d'équipe en 1440×900 : le premier élément de contenu apparaît à moins de 220 px du haut.
-- [ ] Une sortie à plus de 20 commentaires n'en charge que 20 au premier rendu.
-- [ ] **Trombinoscope, la matrice rôle × réglage** — sur `gaby`, réglage désactivé : un membre
-      ordinaire ne voit pas l'entrée « Membres » (mobile) et prend un 403 s'il force l'URL ; un
-      organisateur voit la liste **sans les rôles ni les dates** ; le sélecteur de meneur de
-      `RideEditor` propose toujours des candidats. Réglage activé : le membre voit tout. Puis
-      `?search=` avec l'adresse **exacte** d'un coéquipier — **ne doit rien remonter** en membre et
-      en organisateur, doit le remonter en admin. C'est le seul contrôle qui prouve que l'oracle
-      d'énumération est fermé.
-- [ ] **Invitation par e-mail** — inviter une adresse **avec** compte puis une **sans** : la réponse
-      et l'écran doivent être **identiques**, seul le contenu du mail diffère (Mailhog en dev). La
-      liste des invitations en attente affiche les deux ; « Renvoyer » remplace le jeton ; « Annuler »
-      la retire. Accepter depuis un autre compte que l'adresse invitée : message dédié et bouton
-      « se déconnecter ». Accepter deux fois : pas d'erreur, une seule adhésion.
-- [ ] **Invitation d'une adresse sans compte, parcours complet** — inviter, s'inscrire par le lien,
-      vérifier l'adresse, puis constater qu'on n'est **pas** encore membre et que l'invitation
-      apparaît sur `/equipes` ; l'accepter. C'est le chemin que rien d'automatique ne couvre.
+      `useRoutesBulk` sans `geometry:false`, `RoutesMapView.tsx`). — `route-maps.e2e.ts` : chaque
+      écran lit la géométrie entière (aucun paramètre qui la réduise, chaque point du GPX à moins
+      de 15 m) et la carte dessine le tracé. *Non couvert : une simplification qui serait ajoutée
+      plus tard dans le chemin de dessin lui-même — le test compte des pixels, pas des sommets.*
+- [x] « Ma prochaine sortie », badge `Inscrit` et « Mes participations » se rendent **dans le HTML
+      initial** pour une requête porteuse d'un cookie de session, en sont **absents** sans cookie,
+      et survivent à l'hydratation sans erreur `[hydration]`. — `ssr-session.e2e.ts`, dont le
+      contrôle `curl` fait à la lettre (avec `Cache-Control: no-store` et `Vary: Cookie`).
+- [x] Modale « Contacter le vendeur » : les quatre issues, brouillon conservé sur 429 et 500, un
+      seul message (le contact coupe le toast global, `skipErrorToast`), `Alert` persistante sur la
+      page pour le succès et `AD_CONTACT_OPTED_OUT`, bouton absent sur sa propre annonce, 9 et
+      2 001 caractères refusés sans appel réseau ; le mail relayé porte l'auteur en `Reply-To` et
+      ne l'imprime jamais. — `ad-contact.e2e.ts`. *Le 500 est simulé : mailhog accepte tout, la
+      pile ne sait pas faire échouer un envoi. Les clés `en` ont été vérifiées à la lecture, la
+      suite tourne en `fr`.*
+- [x] Annonces, détail : galerie aux flèches et aux vignettes, **dans l'ordre d'ajout**, plein écran
+      en 1920 ; disque sans punaise, cadré sur son emprise, légendé « à environ 1 km près » ; aucune
+      section vide. — `ads-browse.e2e.ts`. *Le fond de carte (style tiers) est remplacé par un fond
+      uni pendant le test.*
+- [x] Annonces, liste : tri et bornes de prix survivent au retour arrière et au partage du lien,
+      « Effacer les filtres » conserve le tri, et des changements rapprochés arrivent tous dans
+      l'URL. — `ads-browse.e2e.ts`.
+- [x] Page d'équipe en 1440×900 : **arbitré le 25 septembre 2026, l'objectif de 220 px n'est pas
+      tenu** — le contenu commence à ~283 px (~300 avant le portage). Gagner les 60 px restants
+      voudrait dire refaire la navigation d'équipe (le carré de 40 px et son libellé font ~78 px),
+      un chantier de design et non de portage. — `team-misc.e2e.ts` fige **< 300 px** pour attraper
+      une régression.
+- [x] Une sortie à plus de 20 commentaires n'en charge que 20 au premier rendu. — `rides.e2e.ts`,
+      avec la pastille de meneur (absente sans meneur, jamais le créateur), l'inscription et le
+      « Complet ».
+- [x] **Trombinoscope, la matrice rôle × réglage** : réglage désactivé, un membre ordinaire prend un
+      403 ; un organisateur voit la liste sans rôles ni dates ; le sélecteur de meneur propose
+      toujours des candidats. Réglage activé, le membre voit tout. `?search=` avec l'adresse exacte
+      d'un coéquipier ne remonte rien en membre ni en organisateur, et le remonte en admin
+      d'équipe. — `member-directory.e2e.ts`, sur une équipe de test et non sur `gaby`. *L'entrée
+      « Membres » est un écran mobile (`web: false`), hors de portée de Playwright ; sur le web, le
+      403 est vérifié sur l'API, l'écran d'admin redirigeant vers la page d'équipe.*
+- [x] **Invitation par e-mail** : réponse et écran identiques avec et sans compte, seul le mail
+      diffère ; « Renvoyer » remplace le jeton, « Annuler » retire l'invitation ; accepter depuis un
+      autre compte donne un message dédié et un bouton « se déconnecter », qui **ramène à
+      l'invitation** ; accepter deux fois ne crée qu'une adhésion, et le lien rejoué dit « Vous
+      faites déjà partie de… ». — `invitations.e2e.ts`. *Non couvert : l'invitation expirée
+      (14 jours d'horloge).*
+- [x] **Invitation d'une adresse sans compte, parcours complet** : inscription par le lien,
+      vérification de l'adresse, pas encore membre, invitation visible sur `/equipes`, acceptation.
+      — `invitations.e2e.ts`.
 
 ### 1.3 Backend et exploitation
 
@@ -545,4 +565,5 @@ relues dans cette passe :
 - [`plans/2026-02-14-project-audit.md`](plans/2026-02-14-project-audit.md) — audit d'infrastructure,
   dernier contrôle le 1er avril 2026. Ses lignes critiques encore ouvertes : backups PostgreSQL et
   MinIO, rate limiting sur `/api/device/oauth/complete`, pipeline CD, `maximum-scale=1.0` du
-  viewport, tests frontend.
+  viewport, tests frontend. Pour ces derniers, une suite e2e existe depuis le 25 septembre 2026
+  (`frontend/e2e/`, §1.2), mais elle ne tourne qu'en local : aucune CI ne la lance.
