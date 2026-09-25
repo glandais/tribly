@@ -62,6 +62,10 @@ public class AuthToken {
   @Column(name = "domain_id", nullable = false)
   private Long domainId;
 
+  /** Wrong codes tried against this token — only a login OTP counts them. */
+  @Column(name = "failed_attempts", nullable = false)
+  private int failedAttempts;
+
   public AuthToken(
       String email, String tokenHash, AuthTokenType tokenType, Instant expiresAt, Long domainId) {
     this.email = email;
@@ -88,6 +92,14 @@ public class AuthToken {
 
   public void markUsed() {
     this.usedAt = Instant.now();
+  }
+
+  /** Records a wrong code, and burns the token once {@code maxAttempts} have been tried. */
+  public void recordFailedAttempt(int maxAttempts) {
+    failedAttempts++;
+    if (failedAttempts >= maxAttempts) {
+      markUsed();
+    }
   }
 
   public boolean isValid() {

@@ -198,6 +198,39 @@ class AuthServiceTest extends AbstractBaseTest {
         () -> authService.verifyOtp("otp@example.com", "000000", "Agent", "IP"));
   }
 
+  @Test
+  void verifyOtp_burnsTheCodeAfterFiveWrongGuesses() {
+    User user = dataService.createVerifiedUser("otp@example.com", "OTP User");
+    createOtpToken(user, "123456");
+
+    // Each miss is committed despite the exception — a rolled-back counter would never reach 5.
+    for (int i = 0; i < 5; i++) {
+      assertThrows(
+          BadRequestException.class,
+          () -> authService.verifyOtp("otp@example.com", "000000", "Agent", "IP"));
+    }
+
+    // The right code no longer opens anything: a guesser cannot walk the million combinations.
+    assertThrows(
+        BadRequestException.class,
+        () -> authService.verifyOtp("otp@example.com", "123456", "Agent", "IP"));
+  }
+
+  @Test
+  void verifyOtp_rightCodeAfterAFewTyposStillLogsIn() {
+    User user = dataService.createVerifiedUser("otp@example.com", "OTP User");
+    createOtpToken(user, "123456");
+
+    for (int i = 0; i < 4; i++) {
+      assertThrows(
+          BadRequestException.class,
+          () -> authService.verifyOtp("otp@example.com", "000000", "Agent", "IP"));
+    }
+
+    assertNotNull(
+        authService.verifyOtp("otp@example.com", "123456", "Agent", "IP").response().accessToken());
+  }
+
   // --- RefreshToken tests ---
 
   @Test

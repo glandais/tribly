@@ -64,6 +64,13 @@ public class AuthService {
   @ConfigProperty(name = "pedalons.auth.otp.rate-limit-window-minutes", defaultValue = "5")
   int otpRateLimitWindowMinutes;
 
+  /**
+   * Wrong codes a login OTP survives. With {@code otp.max-attempts} codes per window, a guesser gets
+   * 3 × 5 tries out of a million every 5 minutes instead of an unbounded run.
+   */
+  @ConfigProperty(name = "pedalons.auth.otp.max-verify-attempts", defaultValue = "5")
+  int otpMaxVerifyAttempts;
+
   @ConfigProperty(name = "pedalons.auth.email-verification.expiry-hours", defaultValue = "24")
   int emailVerificationExpiryHours;
 
@@ -279,7 +286,8 @@ public class AuthService {
     }
   }
 
-  @Transactional
+  // A wrong code throws, and the default rollback would erase the failed attempt it just counted.
+  @Transactional(dontRollbackOn = BadRequestException.class)
   @Public
   public AuthResult verifyOtp(String email, String code, String userAgent, String ipAddress) {
     Long domainId = domainResolver.getDomainId();
@@ -293,6 +301,7 @@ public class AuthService {
     if (!MessageDigest.isEqual(
         authToken.getTokenHash().getBytes(StandardCharsets.UTF_8),
         tokenHash.getBytes(StandardCharsets.UTF_8))) {
+      authToken.recordFailedAttempt(otpMaxVerifyAttempts);
       throw new BadRequestException(ErrorCode.TOKEN_INVALID);
     }
 
