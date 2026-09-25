@@ -17,6 +17,7 @@ import { RideEditor } from '../../components/ride/RideEditor'
 import { RideTemplatePickerModal } from '../../components/ridetemplate/RideTemplatePickerModal'
 import { defaultMedia } from '@/lib/apiUtils'
 import { paths } from '@/config/paths'
+import { nextWeekdayAt, useEffectiveTimezone } from '@/utils/dateFormat'
 
 export function CreateRidePage() {
   const { t } = useTranslation()
@@ -30,6 +31,11 @@ export function CreateRidePage() {
 
   const [showTemplateModal, setShowTemplateModal] = useState(false)
   const [editorKey, setEditorKey] = useState(0)
+  // Default dates are wall times in the effective timezone, which reads UTC on the hydration render
+  // and the visitor's real zone right after (unless they set one). The editor seeds its form once,
+  // so it is keyed on the zone: without a preference it remounts, untouched, with the default
+  // recomputed in the visitor's own zone.
+  const { timezone } = useEffectiveTimezone()
   const [templateValues, setTemplateValues] = useState<RideTemplateDto | null>(null)
 
   useCanonicalPath(team ? paths.rideNew(team.slug) : undefined)
@@ -52,15 +58,8 @@ export function CreateRidePage() {
     return <Navigate to={paths.team(teamSlug!)} replace />
   }
 
-  // Calculate next Sunday at 8am
-  const getNextSunday = () => {
-    const today = new Date()
-    const daysUntilSunday = (7 - today.getDay()) % 7 || 7
-    const nextSunday = new Date(today)
-    nextSunday.setDate(today.getDate() + daysUntilSunday)
-    nextSunday.setHours(8, 0, 0, 0)
-    return nextSunday.toISOString()
-  }
+  // Next Sunday at 8am
+  const getNextSunday = () => nextWeekdayAt(7, 8, timezone)
 
   // Prepare initial values - use template values if available
   const initialValues = templateValues
@@ -144,7 +143,7 @@ export function CreateRidePage() {
       </Stack>
 
       <RideEditor
-        key={editorKey}
+        key={`${timezone}-${editorKey}`}
         team={team}
         teamSlug={teamSlug!}
         initialValues={initialValues}

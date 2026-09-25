@@ -13,9 +13,15 @@ import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TripEditor } from '../../components/trip/TripEditor'
 import { defaultMedia } from '@/lib/apiUtils'
 import { useCreateTripFormData } from './tripFormData'
+import { nextWeekdayAt, useEffectiveTimezone } from '@/utils/dateFormat'
 
 export function CreateTripPage() {
   const { t } = useTranslation()
+  // Default dates are wall times in the effective timezone, which reads UTC on the hydration render
+  // and the visitor's real zone right after (unless they set one). The editor seeds its form once,
+  // so it is keyed on the zone: without a preference it remounts, untouched, with the default
+  // recomputed in the visitor's own zone.
+  const { timezone } = useEffectiveTimezone()
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -44,17 +50,8 @@ export function CreateTripPage() {
     return <Navigate to={paths.team(teamSlug!)} replace />
   }
 
-  // Calculate next Saturday at 8am (trips often start on weekends)
-  const getNextSaturday = () => {
-    const today = new Date()
-    const daysUntilSaturday = (6 - today.getDay() + 7) % 7 || 7
-    const nextSaturday = new Date(today)
-    nextSaturday.setDate(today.getDate() + daysUntilSaturday)
-    nextSaturday.setHours(8, 0, 0, 0)
-    return nextSaturday.toISOString()
-  }
-
-  const tripStartDate = getNextSaturday()
+  // Next Saturday at 8am (trips often start on weekends)
+  const tripStartDate = nextWeekdayAt(6, 8, timezone)
 
   // Prepare initial values for create mode
   const initialValues = {
@@ -102,6 +99,7 @@ export function CreateTripPage() {
       </Stack>
 
       <TripEditor
+        key={timezone}
         team={team}
         teamSlug={teamSlug!}
         initialValues={initialValues}
