@@ -43,6 +43,7 @@ public record ThumbnailOwnerReport(
   }
 
   @Schema(description = "One stored thumbnail")
+  @ValidateSchema
   public record ThumbnailFile(
       @Schema(description = "Asset type", required = true) String type,
       @Schema(description = "Stored size in bytes, -1 when the file is missing", required = true)
