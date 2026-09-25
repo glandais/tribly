@@ -1,4 +1,5 @@
 export * from './acceptInvitationRequest.ts'
+export * from './accountDeletionImpactDto.ts'
 export * from './adContactRequest.ts'
 export * from './addMemberRequest.ts'
 export * from './adDto.ts'

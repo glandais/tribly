@@ -815,7 +815,16 @@
       "dangerHint": "La suppression du compte efface tout de suite vos données personnelles : profil, équipes, inscriptions à venir, annonces, commentaires et notifications. Ce que vous avez publié pour une équipe reste en ligne, attribué à « Ancien membre ».",
       "delete": "Supprimer le compte",
       "deleteTitle": "Voulez-vous vraiment supprimer votre compte ?",
-      "deleteMessage": "Cette action est irréversible. Vos données personnelles seront effacées immédiatement. Les sorties, parcours et posts publiés pour une équipe resteront en ligne, attribués à « Ancien membre », et un commentaire qui a reçu des réponses restera affiché vide."
+      "deleteMessage": "Cette action est irréversible. Vos données personnelles seront effacées immédiatement. Les sorties, parcours et posts publiés pour une équipe resteront en ligne, attribués à « Ancien membre », et un commentaire qui a reçu des réponses restera affiché vide.",
+      "teamsDeleted": {
+        "one": "Vous êtes le seul membre de l'équipe {teams} : elle sera supprimée avec votre compte.",
+        "other": "Vous êtes le seul membre des équipes {teams} : elles seront supprimées avec votre compte."
+      },
+      "blockedTitle": "Suppression impossible pour l'instant",
+      "blocked": {
+        "one": "Vous êtes le seul administrateur de l'équipe {teams}, qui compte d'autres membres. Nommez un autre administrateur depuis ses membres, ou supprimez l'équipe, puis revenez supprimer votre compte.",
+        "other": "Vous êtes le seul administrateur des équipes {teams}, qui comptent d'autres membres. Nommez un autre administrateur depuis leurs membres, ou supprimez ces équipes, puis revenez supprimer votre compte."
+      }
     },
     "community": "Communauté"
   },

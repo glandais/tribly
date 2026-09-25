@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -145,6 +147,12 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
   bool _busy = false;
   String? _error;
 
+  /// Les équipes qui refusent la suppression, nommées sous le bouton.
+  List<String>? _blockingTeams;
+
+  static List<String> _names(List<TeamPublicationDto> teams) =>
+      teams.map((TeamPublicationDto team) => team.name).toList();
+
   Future<void> _run(Future<void> Function() action) async {
     setState(() {
       _busy = true;
@@ -182,11 +190,52 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
     });
   }
 
+  /// La suppression commence par demander ce qu'elle ferait aux équipes.
+  ///
+  /// Refusée, elle le dit **avant** la feuille de confirmation, en nommant les
+  /// équipes : une confirmation qui ne peut qu'échouer ne se propose pas.
+  /// Acceptée, la feuille nomme les équipes dont on est le seul membre, qui
+  /// partent avec le compte. Si la question échoue, la confirmation générique
+  /// reste : le serveur refuse de toute façon une suppression bloquée.
   Future<void> _deleteAccount() async {
+    setState(() {
+      _busy = true;
+      _error = null;
+      _blockingTeams = null;
+    });
+    AccountDeletionImpactDto? impact;
+    try {
+      impact = await ref.read(profileRepositoryProvider).deletionImpact();
+    } catch (error, stackTrace) {
+      developer.log(
+        'Deletion impact unavailable',
+        name: 'pedalons.profile',
+        level: 900,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+    if (!mounted) return;
+    setState(() => _busy = false);
+
+    if (impact != null && impact.blocked) {
+      final List<String> blocking = _names(impact.blockingTeams);
+      setState(() => _blockingTeams = blocking);
+      return;
+    }
+
+    final List<String> deletedTeams = _names(
+      impact?.deletedTeams ?? const <TeamPublicationDto>[],
+    );
+    final String warning = 'profile.account.deleteMessage'.tr();
+    final String message = deletedTeams.isEmpty
+        ? warning
+        : '${'profile.account.teamsDeleted'.plural(deletedTeams.length, namedArgs: <String, String>{'teams': deletedTeams.join(', ')})}\n\n$warning';
+
     final bool confirmed = await confirmDestructive(
       context,
       title: 'profile.account.deleteTitle'.tr(),
-      message: 'profile.account.deleteMessage'.tr(),
+      message: message,
       confirmLabel: 'profile.account.delete'.tr(),
     );
     if (!confirmed || !mounted) return;
@@ -251,6 +300,17 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
             enabled: !_busy,
             onPressed: _deleteAccount,
           ),
+          if (_blockingTeams case final List<String> blocking) ...<Widget>[
+            const SizedBox(height: PdlSpacing.chipGap),
+            PdlBanner(
+              tone: PdlBannerTone.danger,
+              title: 'profile.account.blockedTitle'.tr(),
+              message: 'profile.account.blocked'.plural(
+                blocking.length,
+                namedArgs: <String, String>{'teams': blocking.join(', ')},
+              ),
+            ),
+          ],
         ],
       ),
     );

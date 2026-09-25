@@ -11,6 +11,7 @@ import 'package:pedalons/features/auth/data/secure_storage.dart';
 import 'package:pedalons/features/auth/domain/auth_state.dart';
 import 'package:pedalons/features/auth/providers/auth_provider.dart';
 import 'package:pedalons/features/profile/data/profile_repository.dart';
+import 'package:pedalons/features/profile/presentation/widgets/data_and_account_section.dart';
 import 'package:pedalons/features/profile/presentation/widgets/passkeys_section.dart';
 import 'package:pedalons/features/profile/presentation/widgets/preferences_section.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -62,7 +63,29 @@ class _StubAuthNotifier extends AuthNotifier {
   }
 }
 
+const AccountDeletionImpactDto _noImpact = AccountDeletionImpactDto(
+  blocked: false,
+  blockingTeams: <TeamPublicationDto>[],
+  deletedTeams: <TeamPublicationDto>[],
+);
+
+TeamPublicationDto _team(String name) =>
+    TeamPublicationDto(id: name, name: name, slug: name, visibility: 'TEAM');
+
 class _StubProfileRepository implements ProfileRepository {
+  _StubProfileRepository([this.impact = _noImpact]);
+
+  final AccountDeletionImpactDto impact;
+  bool accountDeleted = false;
+
+  @override
+  Future<AccountDeletionImpactDto> deletionImpact() async => impact;
+
+  @override
+  Future<void> deleteAccount() async {
+    accountDeleted = true;
+  }
+
   @override
   Future<UserExportDto?> latestExport() async => null;
 
@@ -100,6 +123,7 @@ void main() {
     Widget child, {
     List<PasskeyDto> passkeys = const <PasskeyDto>[],
     Brightness brightness = Brightness.light,
+    _StubProfileRepository? profile,
   }) async {
     final _FakeAuthRepository auth = _FakeAuthRepository(passkeys);
     await tester.pumpWidget(
@@ -107,7 +131,9 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           authRepositoryProvider.overrideWithValue(auth),
-          profileRepositoryProvider.overrideWithValue(_StubProfileRepository()),
+          profileRepositoryProvider.overrideWithValue(
+            profile ?? _StubProfileRepository(),
+          ),
           accessTokenHolderProvider.overrideWith((ref) => 'token'),
           authProvider.overrideWith((ref) => _StubAuthNotifier(ref, auth)),
         ],
@@ -224,6 +250,66 @@ void main() {
       );
       expect(tester.takeException(), isNull);
       expect(find.text('iPhone 15'), findsOneWidget);
+    });
+  });
+
+  group('suppression du compte', () {
+    Future<void> settle(WidgetTester tester) async {
+      for (int i = 0; i < 6; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+    }
+
+    testWidgets('bloquée, elle nomme les équipes sans ouvrir de confirmation', (
+      WidgetTester tester,
+    ) async {
+      final _StubProfileRepository profile = _StubProfileRepository(
+        AccountDeletionImpactDto(
+          blocked: true,
+          blockingTeams: <TeamPublicationDto>[_team('Les Rouleurs')],
+          deletedTeams: <TeamPublicationDto>[_team('Mon équipe')],
+        ),
+      );
+      await mount(tester, const AccountSection(), profile: profile);
+
+      await tester.tap(find.text('Supprimer le compte'));
+      await settle(tester);
+
+      expect(find.textContaining('Les Rouleurs'), findsOneWidget);
+      expect(
+        find.text('Voulez-vous vraiment supprimer votre compte ?'),
+        findsNothing,
+      );
+      expect(profile.accountDeleted, isFalse);
+    });
+
+    testWidgets('la confirmation nomme les équipes supprimées avec le compte', (
+      WidgetTester tester,
+    ) async {
+      final _StubProfileRepository profile = _StubProfileRepository(
+        AccountDeletionImpactDto(
+          blocked: false,
+          blockingTeams: const <TeamPublicationDto>[],
+          deletedTeams: <TeamPublicationDto>[_team('Mon équipe')],
+        ),
+      );
+      await mount(tester, const AccountSection(), profile: profile);
+
+      await tester.tap(find.text('Supprimer le compte'));
+      await settle(tester);
+
+      expect(
+        find.text('Voulez-vous vraiment supprimer votre compte ?'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('seul membre de l\'équipe Mon équipe'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Annuler'));
+      await settle(tester);
+      expect(profile.accountDeleted, isFalse);
     });
   });
 }

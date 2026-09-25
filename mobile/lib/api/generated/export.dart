@@ -49,6 +49,7 @@ export 'clients/tiles_client.dart';
 export 'clients/server_version_client.dart';
 // Data classes
 export 'models/accept_invitation_request.dart';
+export 'models/account_deletion_impact_dto.dart';
 export 'models/ad_contact_request.dart';
 export 'models/ad_dto.dart';
 export 'models/ad_edit_dto.dart';

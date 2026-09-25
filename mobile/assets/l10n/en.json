@@ -815,7 +815,16 @@
       "dangerHint": "Deleting the account erases your personal data right away: profile, teams, upcoming registrations, ads, comments and notifications. What you published for a team stays online, credited to \"Ancien membre\".",
       "delete": "Delete the account",
       "deleteTitle": "Do you really want to delete your account?",
-      "deleteMessage": "This cannot be undone. Your personal data will be erased immediately. Rides, routes and posts published for a team will stay online, credited to \"Ancien membre\", and a comment others have replied to will remain, blank."
+      "deleteMessage": "This cannot be undone. Your personal data will be erased immediately. Rides, routes and posts published for a team will stay online, credited to \"Ancien membre\", and a comment others have replied to will remain, blank.",
+      "teamsDeleted": {
+        "one": "You are the only member of the team {teams}: it will be deleted with your account.",
+        "other": "You are the only member of the teams {teams}: they will be deleted with your account."
+      },
+      "blockedTitle": "You can't delete your account yet",
+      "blocked": {
+        "one": "You are the only admin of the team {teams}, which has other members. Make another member an admin, or delete the team, then come back to delete your account.",
+        "other": "You are the only admin of the teams {teams}, which have other members. Make another member an admin in each, or delete those teams, then come back to delete your account."
+      }
     },
     "community": "Community"
   },

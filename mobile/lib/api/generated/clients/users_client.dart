@@ -8,6 +8,7 @@ import 'package:dio/dio.dart' hide Headers;
 import 'package:retrofit/retrofit.dart';
 import 'package:retrofit/error_logger.dart';
 
+import '../models/account_deletion_impact_dto.dart';
 import '../models/list_view_mode.dart';
 import '../models/publication_list_response.dart';
 import '../models/status.dart';
@@ -50,7 +51,7 @@ abstract class UsersClient {
 
   /// Delete current user.
   ///
-  /// Delete the current user's account.
+  /// Delete the current user's account. The teams they administer and are the only member of are deleted with it; see GET /api/users/me/deletion-impact.
   @DELETE('/api/users/me')
   Future<void> deleteCurrentUser();
 
@@ -70,6 +71,12 @@ abstract class UsersClient {
   /// Remove the current user's avatar.
   @DELETE('/api/users/me/avatar')
   Future<UserDto> deleteAvatar();
+
+  /// Preview the deletion of the current user.
+  ///
+  /// What deleting the current user's account would do to their teams: the teams deleted with it (they administer them alone), and the teams that refuse the deletion (SOLE_TEAM_ADMIN). Read-only.
+  @GET('/api/users/me/deletion-impact')
+  Future<AccountDeletionImpactDto> getMyDeletionImpact();
 
   /// Request a personal data export.
   ///

@@ -5,7 +5,10 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import fr.pedalons.api.AbstractResourceTest;
+import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.user.User;
+import fr.pedalons.enums.Visibility;
+import fr.pedalons.repository.team.TeamRepository;
 import fr.pedalons.repository.user.UserRepository;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
@@ -18,6 +21,8 @@ import org.junit.jupiter.api.Test;
 class UserResourceTest extends AbstractResourceTest {
 
   @Inject UserRepository userRepository;
+
+  @Inject TeamRepository teamRepository;
 
   @Override
   @BeforeEach
@@ -93,6 +98,61 @@ class UserResourceTest extends AbstractResourceTest {
         .body("code", equalTo("SOLE_TEAM_ADMIN"));
 
     assertFalse(isDeleted(user1));
+  }
+
+  @Test
+  void deleteCurrentUser_aloneInATeam_shouldDeleteTheTeam() {
+    User solo = dataService.createUser("solo@example.com", "Solo");
+    Team soloTeam = dataService.createTeam(solo, "Solo team", "solo-team", Visibility.PUBLIC);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken("solo"))
+        .when()
+        .delete("/api/users/me")
+        .then()
+        .statusCode(204);
+
+    assertTrue(isDeleted(solo));
+    assertTrue(
+        QuarkusTransaction.requiringNew()
+            .call(() -> teamRepository.findById(soloTeam.getId()).isDeleted()));
+  }
+
+  @Test
+  void getMyDeletionImpact_soleAdminOfTeamsWithMembers_isBlocked() {
+    Team soloTeam = dataService.createTeam(user1, "Solo team", "solo-team", Visibility.PUBLIC);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .when()
+        .get("/api/users/me/deletion-impact")
+        .then()
+        .statusCode(200)
+        .body("blocked", is(true))
+        .body("blockingTeams.slug", containsInAnyOrder(team1Slug, team2Slug))
+        .body("deletedTeams.slug", contains(soloTeam.getSlug()))
+        .body("deletedTeams[0].name", equalTo("Solo team"));
+  }
+
+  @Test
+  void getMyDeletionImpact_plainMember_isNotBlocked() {
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER3))
+        .when()
+        .get("/api/users/me/deletion-impact")
+        .then()
+        .statusCode(200)
+        .body("blocked", is(false))
+        .body("blockingTeams", empty())
+        .body("deletedTeams", empty());
+  }
+
+  @Test
+  void getMyDeletionImpact_withoutAuth_shouldReturn401() {
+    given().when().get("/api/users/me/deletion-impact").then().statusCode(401);
   }
 
   // Read in the database: there is no GET /api/users/{id} — the 404 this test used to expect from

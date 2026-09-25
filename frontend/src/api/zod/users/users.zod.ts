@@ -183,7 +183,7 @@ export const GetMeResponse = zod
   .describe('User profile data')
 
 /**
- * Delete the current user's account
+ * Delete the current user's account. The teams they administer and are the only member of are deleted with it; see GET /api/users/me/deletion-impact.
  * @summary Delete current user
  */
 export const DeleteCurrentUserResponse = zod.void()
@@ -349,6 +349,52 @@ export const DeleteAvatarResponse = zod
       .describe('Linked external identities (e.g. Strava)'),
   })
   .describe('User profile data')
+
+/**
+ * What deleting the current user's account would do to their teams: the teams deleted with it (they administer them alone), and the teams that refuse the deletion (SOLE_TEAM_ADMIN). Read-only.
+ * @summary Preview the deletion of the current user
+ */
+export const GetMyDeletionImpactResponse = zod
+  .object({
+    blocked: zod
+      .boolean()
+      .describe(
+        'Whether the deletion is refused (SOLE_TEAM_ADMIN): the user is the only admin of at least one team that has other members'
+      ),
+    blockingTeams: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Team ID (TSID)'),
+            name: zod.string().describe('Team name'),
+            slug: zod.string().describe('Team URL slug'),
+            visibility: zod
+              .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+              .describe('Whether the team is public'),
+          })
+          .describe('Team information')
+      )
+      .describe(
+        'Teams the user is the only admin of while other members remain; they must name another admin, or delete the team, before deleting their account'
+      ),
+    deletedTeams: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Team ID (TSID)'),
+            name: zod.string().describe('Team name'),
+            slug: zod.string().describe('Team URL slug'),
+            visibility: zod
+              .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+              .describe('Whether the team is public'),
+          })
+          .describe('Team information')
+      )
+      .describe(
+        'Teams the user administers and is the only member of; they are deleted with the account'
+      ),
+  })
+  .describe("What deleting the current user's account would do to their teams")
 
 /**
  * Queue a GDPR export of the current user's data. The archive is built in the background and a download link is emailed when it is ready. Limited to one export per hour.

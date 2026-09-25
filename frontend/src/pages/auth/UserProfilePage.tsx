@@ -32,6 +32,8 @@ import { SocialConnectionsManager } from '../../components/profile/SocialConnect
 import { DataExportManager } from '../../components/profile/DataExportManager'
 import { BlockedUsers } from '../../components/profile/BlockedUsers'
 import { MyParticipations } from '../../components/profile/MyParticipations'
+import { AccountDeletionImpact } from '@/components/profile/AccountDeletionImpact'
+import { useGetMyDeletionImpact } from '@/api/endpoints/users/users'
 import { UpdateMeBody } from '@/api/zod/users/users.zod'
 import { UpdateUserRequest } from '@/api/dto'
 
@@ -57,6 +59,12 @@ export function UserProfilePage() {
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  // Read when the confirmation opens, and again on every opening: a team may have gained a member
+  // or an admin since.
+  const deletionImpact = useGetMyDeletionImpact({
+    query: { enabled: showDeleteConfirm, staleTime: 0 },
+  })
+  const deletionBlocked = deletionImpact.data?.blocked === true
 
   const form = useForm<UpdateUserRequest>({
     validate: zodFormValidator<UpdateUserRequest>(profileSchema),
@@ -293,10 +301,16 @@ export function UserProfilePage() {
         onClose={() => setShowDeleteConfirm(false)}
         onConfirm={handleDelete}
         title={t('profile.account.dangerZone.title')}
-        message={t('profile.account.dangerZone.confirmMessage')}
+        message={
+          <AccountDeletionImpact
+            impact={deletionImpact.data}
+            isLoading={deletionImpact.isFetching}
+          />
+        }
         confirmText={t('profile.account.dangerZone.confirmButton')}
         variant="danger"
         isLoading={isDeletingAccount}
+        confirmDisabled={deletionImpact.isFetching || deletionBlocked}
       />
     </Box>
   )

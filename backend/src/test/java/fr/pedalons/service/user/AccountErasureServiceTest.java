@@ -17,6 +17,8 @@ import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.comments.response.CommentDto;
 import fr.pedalons.dto.comments.response.CommentListResponse;
 import fr.pedalons.dto.error.ErrorCode;
+import fr.pedalons.dto.publications.response.TeamPublicationDto;
+import fr.pedalons.dto.users.response.AccountDeletionImpactDto;
 import fr.pedalons.enums.AdType;
 import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.GpsServiceType;
@@ -76,6 +78,14 @@ class AccountErasureServiceTest extends AbstractBaseTest {
 
   private User reload(User user) {
     return QuarkusTransaction.requiringNew().call(() -> em.find(User.class, user.getId()));
+  }
+
+  private boolean isTeamDeleted(Team t) {
+    return QuarkusTransaction.requiringNew().call(() -> em.find(Team.class, t.getId()).isDeleted());
+  }
+
+  private static List<String> slugs(List<TeamPublicationDto> teams) {
+    return teams.stream().map(TeamPublicationDto::slug).toList();
   }
 
   private long count(String hql, Object param) {
@@ -170,6 +180,58 @@ class AccountErasureServiceTest extends AbstractBaseTest {
       userService.deleteUser();
 
       assertTrue(AccountErasureService.isErased(reload(solo)));
+    }
+
+    /** Nobody would be left in it: the team goes with the account, the others stay. */
+    @Test
+    void deleteUserDeletesTheTeamsTheyAdministerAlone() {
+      User solo = dataService.createUser("solo@example.com", "Solo");
+      Team soloTeam = dataService.createTeam(solo, "Solo team", "solo-team", Visibility.PUBLIC);
+      dataService.addUserToTeam(solo, team, TeamRole.MEMBER);
+      queryContext.setUserForTest(solo);
+
+      userService.deleteUser();
+
+      assertTrue(AccountErasureService.isErased(reload(solo)));
+      assertTrue(isTeamDeleted(soloTeam));
+      assertFalse(isTeamDeleted(team));
+    }
+
+    /** A team with other members still blocks, and the refusal deletes nothing — solo team too. */
+    @Test
+    void deleteUserRefusedToTheSoleAdminOfATeamWithOtherMembersDeletesNoTeam() {
+      Team soloTeam = dataService.createTeam(stayer, "Solo team", "solo-team", Visibility.PUBLIC);
+      queryContext.setUserForTest(stayer);
+
+      BusinessException refused = assertThrows(BusinessException.class, userService::deleteUser);
+
+      assertEquals(ErrorCode.SOLE_TEAM_ADMIN, refused.getErrorCode());
+      assertFalse(AccountErasureService.isErased(reload(stayer)));
+      assertFalse(isTeamDeleted(soloTeam));
+      assertFalse(isTeamDeleted(team));
+    }
+
+    @Test
+    void deletionImpactNamesTheBlockingAndTheDeletedTeams() {
+      Team soloTeam = dataService.createTeam(stayer, "Solo team", "solo-team", Visibility.PUBLIC);
+      queryContext.setUserForTest(stayer);
+
+      AccountDeletionImpactDto impact = userService.getDeletionImpact();
+
+      assertTrue(impact.blocked());
+      assertEquals(List.of(team.getSlug()), slugs(impact.blockingTeams()));
+      assertEquals(List.of(soloTeam.getSlug()), slugs(impact.deletedTeams()));
+    }
+
+    @Test
+    void deletionImpactOfAPlainMemberIsEmpty() {
+      queryContext.setUserForTest(leaver);
+
+      AccountDeletionImpactDto impact = userService.getDeletionImpact();
+
+      assertFalse(impact.blocked());
+      assertTrue(impact.blockingTeams().isEmpty());
+      assertTrue(impact.deletedTeams().isEmpty());
     }
 
     @Test

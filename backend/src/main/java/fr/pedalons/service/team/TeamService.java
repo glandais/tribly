@@ -246,7 +246,19 @@ public class TeamService {
   @Transactional
   @CheckAccess(entityType = EntityType.TEAM, action = ActionType.DELETE)
   public void deleteTeam(String teamSlug) {
-    Team team = getTeam(teamSlug);
+    delete(getTeam(teamSlug));
+  }
+
+  /**
+   * Deletes a team the caller has already resolved and authorized — the one deletion shared by
+   * {@code DELETE /teams/{slug}} and the erasure of an account that was alone in its teams. A soft
+   * delete: the team and everything it holds stay in the database, invisible.
+   *
+   * <p>Takes the entity, not a slug: the erasure spans the whole domain, and {@link #getTeam} would
+   * refuse any team but the pinned one on a pinned alias host.
+   */
+  @Transactional
+  public void delete(Team team) {
     team.setDeleted(true);
     teamRepository.persist(team);
   }

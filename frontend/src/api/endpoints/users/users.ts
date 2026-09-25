@@ -15,6 +15,7 @@ import type {
 } from '@tanstack/react-query'
 
 import type {
+  AccountDeletionImpactDto,
   ErrorResponse,
   ListMyParticipationsParams,
   PublicationListResponse,
@@ -404,7 +405,7 @@ export const prefetchGetMeQuery = async <
 }
 
 /**
- * Delete the current user's account
+ * Delete the current user's account. The teams they administer and are the only member of are deleted with it; see GET /api/users/me/deletion-impact.
  * @summary Delete current user
  */
 export const deleteCurrentUser = (
@@ -606,6 +607,143 @@ export const useDeleteAvatar = <TError = ErrorType<ErrorResponse | void>, TConte
 ): UseMutationResult<Awaited<ReturnType<typeof deleteAvatar>>, TError, void, TContext> => {
   return useMutation(getDeleteAvatarMutationOptions(options), queryClient)
 }
+/**
+ * What deleting the current user's account would do to their teams: the teams deleted with it (they administer them alone), and the teams that refuse the deletion (SOLE_TEAM_ADMIN). Read-only.
+ * @summary Preview the deletion of the current user
+ */
+export const getMyDeletionImpact = (
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<AccountDeletionImpactDto>(
+    { url: `/api/users/me/deletion-impact`, method: 'GET', signal },
+    options
+  )
+}
+
+export const getGetMyDeletionImpactQueryKey = () => {
+  return [`/api/users/me/deletion-impact`] as const
+}
+
+export const getGetMyDeletionImpactQueryOptions = <
+  TData = Awaited<ReturnType<typeof getMyDeletionImpact>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(options?: {
+  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyDeletionImpact>>, TError, TData>>
+  request?: SecondParameter<typeof axiosMutator>
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getGetMyDeletionImpactQueryKey()
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyDeletionImpact>>> = ({ signal }) =>
+    getMyDeletionImpact(requestOptions, signal)
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getMyDeletionImpact>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetMyDeletionImpactQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getMyDeletionImpact>>
+>
+export type GetMyDeletionImpactQueryError = ErrorType<ErrorResponse | void>
+
+export function useGetMyDeletionImpact<
+  TData = Awaited<ReturnType<typeof getMyDeletionImpact>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getMyDeletionImpact>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMyDeletionImpact>>,
+          TError,
+          Awaited<ReturnType<typeof getMyDeletionImpact>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMyDeletionImpact<
+  TData = Awaited<ReturnType<typeof getMyDeletionImpact>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getMyDeletionImpact>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMyDeletionImpact>>,
+          TError,
+          Awaited<ReturnType<typeof getMyDeletionImpact>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMyDeletionImpact<
+  TData = Awaited<ReturnType<typeof getMyDeletionImpact>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyDeletionImpact>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Preview the deletion of the current user
+ */
+
+export function useGetMyDeletionImpact<
+  TData = Awaited<ReturnType<typeof getMyDeletionImpact>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyDeletionImpact>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetMyDeletionImpactQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Preview the deletion of the current user
+ */
+export const prefetchGetMyDeletionImpactQuery = async <
+  TData = Awaited<ReturnType<typeof getMyDeletionImpact>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  queryClient: QueryClient,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyDeletionImpact>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetMyDeletionImpactQueryOptions(options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
 /**
  * Queue a GDPR export of the current user's data. The archive is built in the background and a download link is emailed when it is ready. Limited to one export per hour.
  * @summary Request a personal data export

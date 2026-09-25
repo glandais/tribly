@@ -2,12 +2,15 @@ package fr.pedalons.service.user;
 
 import fr.pedalons.common.exception.BadRequestException;
 import fr.pedalons.common.exception.BusinessException;
+import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.dto.gps.response.GpsServiceConnectionDto;
+import fr.pedalons.dto.publications.response.TeamPublicationDto;
 import fr.pedalons.dto.social.response.SocialIdentityDto;
 import fr.pedalons.dto.users.request.UpdateUserRequest;
 import fr.pedalons.dto.users.request.UserPreferencesRequest;
+import fr.pedalons.dto.users.response.AccountDeletionImpactDto;
 import fr.pedalons.dto.users.response.UserDto;
 import fr.pedalons.enums.ThemePreference;
 import fr.pedalons.enums.UnitSystem;
@@ -17,6 +20,7 @@ import fr.pedalons.repository.team.UserTeamRepository;
 import fr.pedalons.repository.user.UserRepository;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.Logged;
+import fr.pedalons.service.team.TeamService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -39,6 +43,8 @@ public class UserService {
   @Inject AccountErasureService accountErasureService;
 
   @Inject UserTeamRepository userTeamRepository;
+
+  @Inject TeamService teamService;
 
   @Logged
   public UserDto getUserDto() {
@@ -113,16 +119,39 @@ public class UserService {
     return UserDto.from(user);
   }
 
+  /** What {@link #deleteUser} would do to the current user's teams, for the confirmation. */
+  @Logged
+  @Transactional
+  public AccountDeletionImpactDto getDeletionImpact() {
+    User user = pedalonsContext.getUser();
+    Long domainId = pedalonsContext.getDomainId();
+    List<TeamPublicationDto> blockingTeams =
+        userTeamRepository.findTeamsLeftWithoutAdmin(user.getId(), domainId).stream()
+            .map(TeamPublicationDto::from)
+            .toList();
+    List<TeamPublicationDto> deletedTeams =
+        userTeamRepository.findTeamsAdministeredAlone(user.getId(), domainId).stream()
+            .map(TeamPublicationDto::from)
+            .toList();
+    return new AccountDeletionImpactDto(!blockingTeams.isEmpty(), blockingTeams, deletedTeams);
+  }
+
   @Logged
   @Transactional
   public void deleteUser() {
     User user = pedalonsContext.getUser();
+    Long domainId = pedalonsContext.getDomainId();
     // The erasure drops every membership and promotes nobody: the last admin of a team others
     // still belong to would leave them a team no one can run. They name another admin, or delete
-    // the team, first — the same rule as leaving the team (LAST_ADMIN). A team they are alone in
-    // does not stop them.
-    if (userTeamRepository.countTeamsLeftWithoutAdmin(user.getId()) > 0) {
+    // the team, first — the same rule as leaving the team (LAST_ADMIN).
+    if (!userTeamRepository.findTeamsLeftWithoutAdmin(user.getId(), domainId).isEmpty()) {
       throw new BusinessException(ErrorCode.SOLE_TEAM_ADMIN);
+    }
+    // A team they administer alone would be left with no member at all: it goes with the account,
+    // through the same deletion as DELETE /teams/{slug}. The confirmation named these teams
+    // (GET /users/me/deletion-impact).
+    for (Team team : userTeamRepository.findTeamsAdministeredAlone(user.getId(), domainId)) {
+      teamService.delete(team);
     }
     // Erased now, not flagged for later: nothing ever came back for a flagged account, and the
     // policy, the app and the store listings all promise the data is gone.

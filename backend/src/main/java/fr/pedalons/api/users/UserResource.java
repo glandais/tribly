@@ -6,6 +6,7 @@ import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.dto.publications.response.PublicationListResponse;
 import fr.pedalons.dto.users.request.UpdateUserRequest;
 import fr.pedalons.dto.users.request.UserPreferencesRequest;
+import fr.pedalons.dto.users.response.AccountDeletionImpactDto;
 import fr.pedalons.dto.users.response.UserDto;
 import fr.pedalons.dto.users.response.UserExportDto;
 import fr.pedalons.enums.ListViewMode;
@@ -305,9 +306,35 @@ public class UserResource {
     return Response.ok(userExportService.getExport(exportId)).build();
   }
 
+  @GET
+  @Path("/me/deletion-impact")
+  @Operation(
+      summary = "Preview the deletion of the current user",
+      description =
+          "What deleting the current user's account would do to their teams: the teams deleted"
+              + " with it (they administer them alone), and the teams that refuse the deletion"
+              + " (SOLE_TEAM_ADMIN). Read-only.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Impact of the deletion",
+        content = @Content(schema = @Schema(implementation = AccountDeletionImpactDto.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response getMyDeletionImpact() {
+    return Response.ok(userService.getDeletionImpact()).build();
+  }
+
   @DELETE
   @Path("/me")
-  @Operation(summary = "Delete current user", description = "Delete the current user's account")
+  @Operation(
+      summary = "Delete current user",
+      description =
+          "Delete the current user's account. The teams they administer and are the only member"
+              + " of are deleted with it; see GET /api/users/me/deletion-impact.")
   @APIResponses({
     @APIResponse(responseCode = "204", description = "User deleted successfully"),
     @APIResponse(

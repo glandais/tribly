@@ -15,6 +15,31 @@
           }
         }
       },
+      "AccountDeletionImpactDto" : {
+        "description" : "What deleting the current user's account would do to their teams",
+        "type" : "object",
+        "required" : [ "blocked", "blockingTeams", "deletedTeams" ],
+        "properties" : {
+          "blocked" : {
+            "type" : "boolean",
+            "description" : "Whether the deletion is refused (SOLE_TEAM_ADMIN): the user is the only admin of at least one team that has other members"
+          },
+          "blockingTeams" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TeamPublicationDto"
+            },
+            "description" : "Teams the user is the only admin of while other members remain; they must name another admin, or delete the team, before deleting their account"
+          },
+          "deletedTeams" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TeamPublicationDto"
+            },
+            "description" : "Teams the user administers and is the only member of; they are deleted with the account"
+          }
+        }
+      },
       "AdContactRequest" : {
         "description" : "A message to relay to the author of an ad",
         "type" : "object",
@@ -19181,7 +19206,7 @@
       },
       "delete" : {
         "summary" : "Delete current user",
-        "description" : "Delete the current user's account",
+        "description" : "Delete the current user's account. The teams they administer and are the only member of are deleted with it; see GET /api/users/me/deletion-impact.",
         "operationId" : "deleteCurrentUser",
         "tags" : [ "Users" ],
         "responses" : {
@@ -19446,6 +19471,42 @@
           },
           "404" : {
             "description" : "No such user on this site",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/users/me/deletion-impact" : {
+      "get" : {
+        "summary" : "Preview the deletion of the current user",
+        "description" : "What deleting the current user's account would do to their teams: the teams deleted with it (they administer them alone), and the teams that refuse the deletion (SOLE_TEAM_ADMIN). Read-only.",
+        "operationId" : "getMyDeletionImpact",
+        "tags" : [ "Users" ],
+        "responses" : {
+          "200" : {
+            "description" : "Impact of the deletion",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AccountDeletionImpactDto"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -19879,7 +19940,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "4.3.0",
+    "version" : "4.4.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

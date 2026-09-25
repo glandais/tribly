@@ -1,5 +1,6 @@
 package fr.pedalons.repository.team;
 
+import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.team.UserTeam;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.common.PedalonsPage;
@@ -75,21 +76,45 @@ public class UserTeamRepository implements BaseRepository<UserTeam> {
 
   /**
    * The live teams this user is the only admin of while other members remain — the teams the
-   * erasure of their account would leave with members and nobody to run them.
+   * erasure of their account would leave with members and nobody to run them. Ordered by name, for
+   * a list the member reads.
    */
-  public long countTeamsLeftWithoutAdmin(Long userId) {
+  public List<Team> findTeamsLeftWithoutAdmin(Long userId, Long domainId) {
     return getEntityManager()
         .createQuery(
-            "SELECT COUNT(ut) FROM UserTeam ut JOIN ut.team t "
+            "SELECT t FROM UserTeam ut JOIN ut.team t "
                 + "WHERE ut.user.id = :userId AND ut.role = :admin AND t.deleted = false "
+                + "AND t.domain.id = :domainId "
                 + "AND NOT EXISTS (SELECT 1 FROM UserTeam o WHERE o.team = t "
                 + "  AND o.user.id <> :userId AND o.role = :admin AND o.user.deleted = false) "
                 + "AND EXISTS (SELECT 1 FROM UserTeam m WHERE m.team = t "
-                + "  AND m.user.id <> :userId AND m.user.deleted = false)",
-            Long.class)
+                + "  AND m.user.id <> :userId AND m.user.deleted = false) "
+                + "ORDER BY t.name",
+            Team.class)
         .setParameter("userId", userId)
+        .setParameter("domainId", domainId)
         .setParameter("admin", TeamRole.ADMIN)
-        .getSingleResult();
+        .getResultList();
+  }
+
+  /**
+   * The live teams this user administers and is the only live member of — the teams the erasure of
+   * their account deletes with it, since nobody would be left in them. Ordered by name.
+   */
+  public List<Team> findTeamsAdministeredAlone(Long userId, Long domainId) {
+    return getEntityManager()
+        .createQuery(
+            "SELECT t FROM UserTeam ut JOIN ut.team t "
+                + "WHERE ut.user.id = :userId AND ut.role = :admin AND t.deleted = false "
+                + "AND t.domain.id = :domainId "
+                + "AND NOT EXISTS (SELECT 1 FROM UserTeam m WHERE m.team = t "
+                + "  AND m.user.id <> :userId AND m.user.deleted = false) "
+                + "ORDER BY t.name",
+            Team.class)
+        .setParameter("userId", userId)
+        .setParameter("domainId", domainId)
+        .setParameter("admin", TeamRole.ADMIN)
+        .getResultList();
   }
 
   public long countAdminsByTeam(Long teamId) {

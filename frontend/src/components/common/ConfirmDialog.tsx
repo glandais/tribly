@@ -12,6 +12,8 @@ interface ConfirmDialogProps {
   cancelText?: string
   variant?: 'danger' | 'warning' | 'info'
   isLoading?: boolean
+  /** Keeps the confirmation from being given — while it is still being worked out, or refused. */
+  confirmDisabled?: boolean
 }
 
 const variantColors: Record<'danger' | 'warning' | 'info', string> = {
@@ -30,18 +32,27 @@ export function ConfirmDialog({
   cancelText,
   variant = 'warning',
   isLoading = false,
+  confirmDisabled = false,
 }: ConfirmDialogProps) {
   const { t } = useTranslation()
 
   return (
     <Modal opened={isOpen} onClose={onClose} title={title} centered>
       <Stack>
-        <Text c="dimmed">{message}</Text>
+        {/* A div, not a <p>: a rich message may hold blocks (a list, an alert). */}
+        <Text c="dimmed" component="div">
+          {message}
+        </Text>
         <Group justify="flex-end" mt="md">
           <Button variant="default" onClick={onClose} disabled={isLoading}>
             {cancelText || t('actions.cancelAction')}
           </Button>
-          <Button color={variantColors[variant]} onClick={onConfirm} loading={isLoading}>
+          <Button
+            color={variantColors[variant]}
+            onClick={onConfirm}
+            loading={isLoading}
+            disabled={confirmDisabled}
+          >
             {confirmText || t('buttons.confirm')}
           </Button>
         </Group>

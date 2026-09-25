@@ -38,6 +38,11 @@ class ProfileRepository {
 
   Future<void> deleteAccount() => _users.deleteCurrentUser();
 
+  /// Ce que la suppression du compte ferait à ses équipes : celles qui partent
+  /// avec lui, celles qui la refusent (`SOLE_TEAM_ADMIN`).
+  Future<AccountDeletionImpactDto> deletionImpact() =>
+      _users.getMyDeletionImpact();
+
   /// L'export RGPD le plus récent, ou `null` quand il n'y en a jamais eu.
   ///
   /// L'absence d'export est un **404**, pas une liste vide : sans ce filet,
