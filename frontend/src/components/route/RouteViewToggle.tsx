@@ -23,6 +23,7 @@ export function RouteViewToggle({ current, teamSlug }: RouteViewToggleProps) {
 
   return (
     <SegmentedControl
+      aria-label={t('routes.view.label')}
       value={current}
       onChange={(value) => navigate({ pathname: targets[value as RouteView], search })}
       data={[

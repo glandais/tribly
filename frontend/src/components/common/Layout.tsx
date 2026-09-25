@@ -178,7 +178,13 @@ export function Layout() {
             </Group>
 
             {/* Mobile burger */}
-            <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
+            <Burger
+              opened={opened}
+              onClick={toggle}
+              hiddenFrom="sm"
+              size="sm"
+              aria-label={opened ? t('nav.closeMenu') : t('nav.openMenu')}
+            />
           </Group>
         </Container>
       </AppShell.Header>

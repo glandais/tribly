@@ -1,11 +1,27 @@
 import type { ReactNode } from 'react'
 import type { i18n as I18nInstance } from 'i18next'
-import { I18nextProvider } from 'react-i18next'
+import { I18nextProvider, useTranslation } from 'react-i18next'
 import { MantineProvider, type MantineColorScheme } from '@mantine/core'
 import { Notifications } from '@mantine/notifications'
+import { DatesProvider } from '@mantine/dates'
 import { QueryClientProvider, type QueryClient } from '@tanstack/react-query'
 import { theme } from './lib/theme'
 import { SsrColorSchemeContext } from './hooks/useResolvedColorScheme'
+
+/**
+ * Mantine's date pickers in the page's language. Without it they fell back to dayjs's default,
+ * English (« September 2026 », « Mo Tu We »). The locale goes through the provider rather than
+ * `dayjs.locale()`, which is global and would race between concurrent SSR requests; the dayjs
+ * locales themselves are loaded by `i18n/index.ts`.
+ */
+function LocalizedDatesProvider({ children }: { children: ReactNode }) {
+  const { i18n } = useTranslation()
+  return (
+    <DatesProvider settings={{ locale: i18n.resolvedLanguage ?? i18n.language }}>
+      {children}
+    </DatesProvider>
+  )
+}
 
 /**
  * Provider tree shared by entry-client and entry-server.
@@ -35,7 +51,9 @@ export function AppProviders({
       <MantineProvider theme={theme} defaultColorScheme={defaultColorScheme}>
         <SsrColorSchemeContext.Provider value={defaultColorScheme === 'dark' ? 'dark' : 'light'}>
           <Notifications position="top-right" />
-          <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+          <QueryClientProvider client={queryClient}>
+            <LocalizedDatesProvider>{children}</LocalizedDatesProvider>
+          </QueryClientProvider>
         </SsrColorSchemeContext.Provider>
       </MantineProvider>
     </I18nextProvider>

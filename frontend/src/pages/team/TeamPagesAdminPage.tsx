@@ -224,7 +224,7 @@ export function TeamPagesAdminPage() {
                       to={paths.teamAdminPageEdit(teamSlug!, page.slug)}
                       variant="subtle"
                       color="gray"
-                      title={t('teams.actions.edit')}
+                      title={t('actions.edit')}
                     >
                       <IconPencil size={20} />
                     </ActionIcon>
@@ -243,7 +243,7 @@ export function TeamPagesAdminPage() {
                       variant="subtle"
                       color="danger"
                       onClick={() => handleDelete(page)}
-                      title={t('teams.buttons.delete')}
+                      title={t('actions.delete')}
                     >
                       <IconTrash size={20} />
                     </ActionIcon>
@@ -282,7 +282,7 @@ export function TeamPagesAdminPage() {
         onConfirm={confirmDelete}
         title={t('teams.pages.confirmations.deleteTitle')}
         message={t('teams.pages.confirmations.delete', { name: pageToDelete?.title })}
-        confirmText={t('teams.buttons.delete')}
+        confirmText={t('actions.delete')}
         variant="danger"
         isLoading={deleteMutation.isPending}
       />

@@ -133,6 +133,9 @@ export function TeamMemberList({
                     <>
                       <Select
                         size="xs"
+                        aria-label={t('teams.detail.members.roleOf', {
+                          name: member.user.displayName,
+                        })}
                         value={selectedRole}
                         onChange={(value) => value && setSelectedRole(value as TeamRole)}
                         data={getRoleOptions()}

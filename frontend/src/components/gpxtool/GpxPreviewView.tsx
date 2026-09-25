@@ -192,6 +192,7 @@ export function GpxPreviewView({ preview }: GpxPreviewViewProps) {
         opened={saveOpened}
         onClose={() => setSaveOpened(false)}
         title={t('gpxTools.preview.saveAsRoute')}
+        closeButtonProps={{ 'aria-label': t('aria.closeDialog') }}
       >
         <Stack>
           <Select

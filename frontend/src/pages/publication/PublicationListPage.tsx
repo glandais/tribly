@@ -90,7 +90,7 @@ export function PublicationListPage() {
                 {createMenuItems.length > 1 && (
                   <Menu position="bottom-end">
                     <Menu.Target>
-                      <Button px="xs">
+                      <Button px="xs" aria-label={t('aria.createOther')}>
                         <IconChevronDown size={16} />
                       </Button>
                     </Menu.Target>
