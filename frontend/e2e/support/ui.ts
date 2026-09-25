@@ -110,17 +110,12 @@ export const entityCard = (scope: Locator, name: string) =>
   scope.getByRole('link').filter({ hasText: name })
 
 /**
- * The chevron that opens a detail page's other actions (publish, cancel, delete…), grouped with
- * « Modifier »: « Plus d'actions » (named on 2026-09-25 — flow-rides.e2e.ts). The moderation menu
- * (report, block) shares that name, and shows next to it whenever the page's or a comment's author
- * is someone else, so the chevron is the one grouped with « Modifier ».
+ * The chevron that opens a detail page's other actions (publish, cancel, delete…), next to
+ * « Modifier »: « Options de gestion ». Not to be confused with the moderation menu (report, block),
+ * « Plus d'actions », shown when the page's or a comment's author is someone else.
  */
 export const actionsMenu = (page: Page) =>
-  page
-    .getByRole('main')
-    .getByRole('group')
-    .filter({ has: page.getByRole('link', { name: 'Modifier' }) })
-    .getByRole('button', { name: "Plus d'actions", exact: true })
+  page.getByRole('main').getByRole('button', { name: 'Options de gestion', exact: true })
 
 /** Opens the actions menu of a detail page, once hydrated; returns the menu. */
 export async function openActionsMenu(page: Page) {

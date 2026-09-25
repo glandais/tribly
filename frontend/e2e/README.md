@@ -98,7 +98,7 @@ helper — reuse before writing a new one, and keep journey-only helpers in thei
   `watchToasts` (every toast shown, where a retrying `toHaveCount(0)` would pass vacuously),
   `pageAs(browser, auth)` (a second browser with the project's device — never a bare
   `browser.newContext()`), `entityCard`, `actionsMenu` / `openActionsMenu` (a detail page's
-  « Plus d'actions » chevron), `escapeRegExp`, `startsWith`.
+  « Options de gestion » chevron), `escapeRegExp`, `startsWith`.
 
 ## How sessions work
 

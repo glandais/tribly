@@ -440,7 +440,9 @@ test.describe('regressions', () => {
   test("the actions menus' chevrons have a name", async ({ page }) => {
     // The chevron opening a detail page's other actions was an icon-only Button with no
     // aria-label — on the ride, trip, post and ad pages — and so was the feed's create menu
-    // (fixed 2026-09-25: « Plus d'actions », « Créer autre chose »). The ride page stands for the
+    // (fixed 2026-09-25: « Options de gestion », « Créer autre chose » — the first was briefly
+    // « Plus d'actions », the moderation menu's name, so a screen reader heard two identical
+    // buttons). The ride page stands for the
     // others here; support/ui.ts actionsMenu finds the chevron by that name, so flow-trips,
     // flow-posts and flow-ads check it on theirs.
     const { team, organizer } = await ridingTeam('menu')
@@ -448,7 +450,7 @@ test.describe('regressions', () => {
     await signIn(page.context(), organizer)
     await page.goto(`/equipes/${team.slug}/sorties/${ride.slug}`)
     await expect(main(page).getByRole('heading', { name: ride.name, level: 2 })).toBeVisible()
-    await expect(actionsMenu(page)).toHaveAccessibleName("Plus d'actions")
+    await expect(actionsMenu(page)).toHaveAccessibleName('Options de gestion')
     const menu = await openActionsMenu(page)
     await expect(menu.getByRole('menuitem', { name: 'Annuler la sortie' })).toBeVisible()
     await page.keyboard.press('Escape')
