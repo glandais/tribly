@@ -1,0 +1,87 @@
+{
+  "api": "https://staging.pedalons.fr",
+  "locales": {
+    "fr-FR": {
+      "screens": [
+        {
+          "id": "01-home",
+          "path": "/",
+          "devices": [
+            "iphone"
+          ]
+        },
+        {
+          "id": "01-trip",
+          "path": "/equipes/vc-du-lac-d-annecy/voyages/week-end-dans-le-beaufortain",
+          "devices": [
+            "ipad"
+          ],
+          "wait": 12
+        },
+        {
+          "id": "02-ride",
+          "path": "/equipes/vc-du-lac-d-annecy/sorties/sortie-du-samedi-la-forclaz",
+          "wait": 12
+        },
+        {
+          "id": "03-route",
+          "path": "/equipes/vc-du-lac-d-annecy/parcours/col-de-la-forclaz-par-talloires",
+          "wait": 12
+        },
+        {
+          "id": "04-routes",
+          "path": "/equipes/vc-du-lac-d-annecy/parcours"
+        },
+        {
+          "id": "05-calendar",
+          "path": "/calendrier"
+        },
+        {
+          "id": "06-team",
+          "path": "/equipes/vc-du-lac-d-annecy"
+        }
+      ]
+    },
+    "en-US": {
+      "screens": [
+        {
+          "id": "01-home",
+          "path": "/",
+          "devices": [
+            "iphone"
+          ]
+        },
+        {
+          "id": "01-trip",
+          "path": "/teams/annecy-lakeside-cycling/trips/beaufortain-weekend",
+          "devices": [
+            "ipad"
+          ],
+          "wait": 12
+        },
+        {
+          "id": "02-ride",
+          "path": "/teams/annecy-lakeside-cycling/rides/saturday-ride-the-forclaz",
+          "wait": 12
+        },
+        {
+          "id": "03-route",
+          "path": "/teams/annecy-lakeside-cycling/routes/col-de-la-forclaz-via-talloires",
+          "wait": 12
+        },
+        {
+          "id": "04-routes",
+          "path": "/teams/annecy-lakeside-cycling/routes"
+        },
+        {
+          "id": "05-calendar",
+          "path": "/calendar"
+        },
+        {
+          "id": "06-team",
+          "path": "/teams/annecy-lakeside-cycling"
+        }
+      ]
+    }
+  }
+}

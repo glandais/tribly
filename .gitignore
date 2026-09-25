@@ -112,3 +112,8 @@ scripts/.env.users
 frontend/e2e/.auth/
 frontend/e2e/.results/
 frontend/e2e/.report/
+
+# Store screenshots: demo account passwords and raw/framed captures
+mobile/screenshots/accounts.local.json
+mobile/screenshots/flat/
+mobile/screenshots/koubou/out/

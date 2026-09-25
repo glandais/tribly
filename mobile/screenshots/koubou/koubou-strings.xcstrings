@@ -1,0 +1,230 @@
+{
+  "sourceLanguage": "en-US",
+  "version": "1.0",
+  "strings": {
+    "Your next ride at a glance": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your next ride at a glance"
+          }
+        },
+        "fr-FR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre prochaine sortie en un coup d'œil"
+          }
+        }
+      }
+    },
+    "Where, when, and which group you're riding in.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Where, when, and which group you're riding in."
+          }
+        },
+        "fr-FR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Où, quand, et dans quel groupe vous roulez."
+          }
+        }
+      }
+    },
+    "Multi-day trips, stage by stage": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Multi-day trips, stage by stage"
+          }
+        },
+        "fr-FR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Des voyages étape par étape"
+          }
+        }
+      }
+    },
+    "Every stage with its route, its date and who's coming.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every stage with its route, its date and who's coming."
+          }
+        },
+        "fr-FR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chaque étape avec son parcours, sa date et ses participants."
+          }
+        }
+      }
+    },
+    "Pick your pace group": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick your pace group"
+          }
+        },
+        "fr-FR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisissez votre groupe d'allure"
+          }
+        }
+      }
+    },
+    "Every group with its speed, its start time and its route.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every group with its speed, its start time and its route."
+          }
+        },
+        "fr-FR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chaque groupe avec sa vitesse, son heure de départ et son parcours."
+          }
+        }
+      }
+    },
+    "Profile, climbs and gradients": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile, climbs and gradients"
+          }
+        },
+        "fr-FR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profil, cols et pourcentages"
+          }
+        }
+      }
+    },
+    "Every climb of the route, then off to your GPS.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every climb of the route, then off to your GPS."
+          }
+        },
+        "fr-FR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chaque montée du parcours, puis direction votre GPS."
+          }
+        }
+      }
+    },
+    "All your club's routes": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All your club's routes"
+          }
+        },
+        "fr-FR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tous les parcours du club"
+          }
+        }
+      }
+    },
+    "The whole season in one calendar": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The whole season in one calendar"
+          }
+        },
+        "fr-FR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toute la saison dans un calendrier"
+          }
+        }
+      }
+    },
+    "Rides and trips, and the ones you signed up for.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rides and trips, and the ones you signed up for."
+          }
+        },
+        "fr-FR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sorties et voyages, et ceux où vous êtes inscrit."
+          }
+        }
+      }
+    },
+    "Your club's own space": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your club's own space"
+          }
+        },
+        "fr-FR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'espace de votre club"
+          }
+        }
+      }
+    },
+    "Rides, routes, posts and ads, among members.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rides, routes, posts and ads, among members."
+          }
+        },
+        "fr-FR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sorties, parcours, publications et annonces, entre membres."
+          }
+        }
+      }
+    },
+    "Sort and filter by distance, climbing or hilliness.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sort and filter by distance, climbing or hilliness."
+          }
+        },
+        "fr-FR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Triez et filtrez par distance, dénivelé ou relief."
+          }
+        }
+      }
+    }
+  }
+}

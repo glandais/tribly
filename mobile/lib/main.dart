@@ -15,6 +15,7 @@ import 'core/utils/link_launcher.dart';
 import 'core/preferences/user_preferences_provider.dart';
 import 'features/auth/providers/auth_provider.dart';
 import 'features/notifications/providers/push_provider.dart';
+import 'screenshots/screenshot_mode.dart';
 
 void main() async {
   // Lets an AI assistant (or `flutter drive`) screenshot/tap/hot-reload this
@@ -41,6 +42,7 @@ void main() async {
   // s'ouvre en clair puis bascule en sombre une fois `GET /api/users/me`
   // revenu. Une lecture asynchrone dans un provider arriverait trop tard.
   final sharedPreferences = await SharedPreferences.getInstance();
+  await loadScreenshotLaunch();
 
   // Handle deep links
   final appLinks = AppLinks();
@@ -57,6 +59,7 @@ void main() async {
     final query = initialLink.query.isNotEmpty ? '?${initialLink.query}' : '';
     initialPath = path + query;
   }
+  initialPath ??= screenshotInitialPath();
 
   runApp(
     EasyLocalization(
@@ -165,6 +168,8 @@ class _DeepLinkHandlerState extends ConsumerState<_DeepLinkHandler> {
   /// ancestors into a single-entry stack, leaving the page with no way back.
   Future<void> _openWhenReady() async {
     await _whenAuthInitialized();
+    if (!mounted) return;
+    await screenshotSignIn(ref);
     if (!mounted) return;
 
     var mountedRouter = false;

@@ -1,0 +1,65 @@
+# App Store cards (iphone) — Koubou sources. From mobile/:
+#   kou generate screenshots/koubou/iphone.yaml
+# Inputs:  screenshots/flat/<device>/<locale>/NN-*.png (screenshots/capture.sh, not versioned)
+# Outputs: screenshots/koubou/out/iphone/<locale>/<frame>/NN-*.png (not versioned)
+# Headlines are translated in koubou-strings.xcstrings, keyed by the English text.
+
+project:
+  name: "Pedalons"
+  output_dir: "screenshots/koubou/out/iphone"
+  device: "iPhone 17 Pro Max - Deep Blue - Portrait"
+  output_size: "iPhone6_5"
+
+localization:
+  base_language: "en-US"
+  languages: ["en-US", "fr-FR"]
+  xcstrings_path: "koubou-strings.xcstrings"
+
+screenshots:
+  01-home:
+    template: "templates/hero.html"
+    variables:
+      headline: "Your next ride at a glance"
+      subtitle: "Where, when, and which group you're riding in."
+    assets:
+      app_screenshot: "../flat/iphone/01-home.png"
+
+  02-ride:
+    template: "templates/hero.html"
+    variables:
+      headline: "Pick your pace group"
+      subtitle: "Every group with its speed, its start time and its route."
+    assets:
+      app_screenshot: "../flat/iphone/02-ride.png"
+
+  03-route:
+    template: "templates/hero.html"
+    variables:
+      headline: "Profile, climbs and gradients"
+      subtitle: "Every climb of the route, then off to your GPS."
+    assets:
+      app_screenshot: "../flat/iphone/03-route.png"
+
+  04-routes:
+    template: "templates/hero.html"
+    variables:
+      headline: "All your club's routes"
+      subtitle: "Sort and filter by distance, climbing or hilliness."
+    assets:
+      app_screenshot: "../flat/iphone/04-routes.png"
+
+  05-calendar:
+    template: "templates/hero.html"
+    variables:
+      headline: "The whole season in one calendar"
+      subtitle: "Rides and trips, and the ones you signed up for."
+    assets:
+      app_screenshot: "../flat/iphone/05-calendar.png"
+
+  06-team:
+    template: "templates/hero.html"
+    variables:
+      headline: "Your club's own space"
+      subtitle: "Rides, routes, posts and ads, among members."
+    assets:
+      app_screenshot: "../flat/iphone/06-team.png"
