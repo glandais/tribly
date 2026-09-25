@@ -6,7 +6,8 @@ interface ConfirmDialogProps {
   onClose: () => void
   onConfirm: () => void
   title: string
-  message: string
+  /** Text, or rich content such as a `<Trans>` — never a string holding markup, shown verbatim. */
+  message: React.ReactNode
   confirmText?: string
   cancelText?: string
   variant?: 'danger' | 'warning' | 'info'

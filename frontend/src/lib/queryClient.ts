@@ -19,8 +19,14 @@ export function makeQueryClient(opts?: { isServer?: boolean }): QueryClient {
           if (opts?.isServer) return false
           // Defensive retry for 401 — the axios interceptor handles token refresh,
           // but allow one retry in case the interceptor rejection races with the new token.
-          if (Axios.isAxiosError(error) && error.response?.status === 401) {
-            return failureCount < 2
+          const status = Axios.isAxiosError(error) ? error.response?.status : undefined
+          if (status === 401) return failureCount < 2
+          // Any other 4xx is the server's final answer — a missing entity, a forbidden page, a bad
+          // parameter. Retrying one only held the page on its skeleton for ~8 s, a toast per
+          // attempt, before `QueryStateBoundary` could render its "not found". 408 and 429 are
+          // the exceptions: they do mean "try again".
+          if (status && status >= 400 && status < 500 && status !== 408 && status !== 429) {
+            return false
           }
           return failureCount < 3
         },

@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import {
   Button,
@@ -18,7 +19,11 @@ import {
   IconInfoCircle,
   IconCalendarPlus,
 } from '@tabler/icons-react'
-import { useGetToken, useRegenerateToken } from '@/api/endpoints/calendar/calendar'
+import {
+  useGetToken,
+  useRegenerateToken,
+  getGetTokenQueryKey,
+} from '@/api/endpoints/calendar/calendar'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import type { CalendarTokenDto } from '@/api/dto'
 
@@ -43,6 +48,7 @@ function toWebcalUrl(feedUrl: string): string {
 export function IcsFeedSettings({ teamSlug }: IcsFeedSettingsProps): React.ReactElement {
   const { t } = useTranslation()
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const queryClient = useQueryClient()
 
   const { data: tokenData, isLoading } = useGetToken()
   const { mutate: regenerate, isPending } = useRegenerateToken()
@@ -55,7 +61,10 @@ export function IcsFeedSettings({ teamSlug }: IcsFeedSettingsProps): React.React
 
   function handleRegenerate(): void {
     regenerate(undefined, {
-      onSuccess: () => {
+      // The old token answers 403 from now on: the field and the copy button must show the new
+      // one at once, not after a reload.
+      onSuccess: (newToken) => {
+        queryClient.setQueryData(getGetTokenQueryKey(), newToken)
         setConfirmOpen(false)
       },
     })

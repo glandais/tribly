@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
@@ -138,7 +138,13 @@ export function TeamSettingsPage() {
           onClose={() => setShowDeleteConfirm(false)}
           onConfirm={handleDelete}
           title={t('teams.settings.dangerZone.title')}
-          message={t('teams.settings.dangerZone.deleteWarning', { teamName: team?.name })}
+          message={
+            <Trans
+              i18nKey="teams.settings.dangerZone.deleteWarning"
+              values={{ teamName: team?.name }}
+              components={{ strong: <strong /> }}
+            />
+          }
           confirmText={t('teams.settings.dangerZone.confirmDelete')}
           variant="danger"
           isLoading={deleteMutation.isPending}

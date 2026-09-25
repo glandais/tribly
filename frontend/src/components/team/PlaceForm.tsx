@@ -15,7 +15,17 @@ import { CreatePlaceBody } from '../../api/zod/places/places.zod'
 import type { PlaceDetailDto, PlaceRequest, GeoJsonPoint } from '../../api/dto'
 import { GeocoderAutocomplete } from '../common/GeocoderAutocomplete'
 
-const placeSchema = CreatePlaceBody
+const validatePlace = zodFormValidator<PlaceRequest>(CreatePlaceBody)
+
+// Address and link are optional, but the contract bounds them to 3+ characters when present — and
+// a blank TextInput holds '', not undefined. Validated as-is, a new place (both seeded to '') kept
+// « Ajouter » disabled with no error shown until both were filled. A blank field means "none".
+const blankToUndefined = (value?: string) => (value?.trim() ? value : undefined)
+const normalizePlace = (values: PlaceRequest): PlaceRequest => ({
+  ...values,
+  address: blankToUndefined(values.address),
+  link: blankToUndefined(values.link),
+})
 
 interface PlaceFormProps {
   teamSlug: string
@@ -32,7 +42,8 @@ export function PlaceForm({ teamSlug, place, onClose }: PlaceFormProps) {
   const isEditing = place.id !== ''
 
   const form = useForm<PlaceRequest>({
-    validate: zodFormValidator<PlaceRequest>(placeSchema),
+    validate: (values) => validatePlace(normalizePlace(values)),
+    transformValues: normalizePlace,
     initialValues: place,
     validateInputOnChange: true,
   })
