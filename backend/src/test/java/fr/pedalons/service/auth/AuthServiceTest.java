@@ -212,6 +212,38 @@ class AuthServiceTest extends AbstractBaseTest {
   }
 
   @Test
+  void refreshToken_shouldRecordSessionUseWithoutTouchingTheUser() {
+    User user = dataService.createVerifiedUser("refresh-use@example.com", "Refresh User");
+    String refreshToken = dataService.createRefreshTokenForUser(user);
+    Object[] before = userVersionAndLastLogin(user.getId());
+
+    authService.refreshToken(refreshToken);
+    authService.refreshToken(refreshToken);
+
+    // A refresh is not a login: writing the versioned user row made concurrent refreshes of one
+    // session fail on the optimistic lock.
+    assertArrayEquals(before, userVersionAndLastLogin(user.getId()));
+    Instant lastUsedAt =
+        authSessionRepository
+            .getEntityManager()
+            .createQuery(
+                "select s.lastUsedAt from AuthSession s where s.refreshTokenHash = :hash",
+                Instant.class)
+            .setParameter("hash", hashToken(refreshToken))
+            .getSingleResult();
+    assertNotNull(lastUsedAt);
+  }
+
+  /** Scalar projection, so the answer comes from the database and not a cached entity. */
+  private Object[] userVersionAndLastLogin(Long userId) {
+    return userRepository
+        .getEntityManager()
+        .createQuery("select u.version, u.lastLoginAt from User u where u.id = :id", Object[].class)
+        .setParameter("id", userId)
+        .getSingleResult();
+  }
+
+  @Test
   void refreshToken_shouldThrowForInvalidToken() {
     assertThrows(ForbiddenException.class, () -> authService.refreshToken("invalid-token"));
   }

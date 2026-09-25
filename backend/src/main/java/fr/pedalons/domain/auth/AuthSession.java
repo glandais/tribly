@@ -52,10 +52,6 @@ public class AuthSession {
     this.expiresAt = expiresAt;
   }
 
-  public void markUsed() {
-    this.lastUsedAt = Instant.now();
-  }
-
   public void revoke() {
     this.revoked = true;
     this.revokedAt = Instant.now();

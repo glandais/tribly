@@ -199,11 +199,11 @@ public class DeviceAuthService {
       throw new BadRequestException(ErrorCode.SESSION_EXPIRED);
     }
 
-    // Update session usage
-    session.markUsed();
+    // A refresh is not a login: record usage without writing a versioned row, so concurrent
+    // refreshes of the same session don't fail on the optimistic lock (see AuthService).
+    authSessionRepository.markUsed(session.getId());
 
     User user = session.getUser();
-    user.recordLogin();
 
     // Generate new access token only (refresh token stays the same)
     String accessToken = deviceJwtService.generateAccessToken(user, clientId);

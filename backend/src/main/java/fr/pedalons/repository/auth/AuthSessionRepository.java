@@ -18,6 +18,14 @@ public class AuthSessionRepository implements PanacheRepository<AuthSession> {
     return find("user.id = ?1 and revoked = false", userId).list();
   }
 
+  /**
+   * Records a use of the session with a bulk update of {@code lastUsedAt} alone, so concurrent
+   * refreshes never conflict and never overwrite a concurrent revocation.
+   */
+  public int markUsed(Long sessionId) {
+    return update("lastUsedAt = CURRENT_TIMESTAMP where id = ?1", sessionId);
+  }
+
   public int revokeAllByUserId(Long userId) {
     return update(
         "revoked = true, revokedAt = CURRENT_TIMESTAMP where user.id = ?1 and revoked = false",

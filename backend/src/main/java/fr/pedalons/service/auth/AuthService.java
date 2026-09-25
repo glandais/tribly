@@ -437,10 +437,10 @@ public class AuthService {
       throw new ForbiddenException();
     }
 
-    // Update session usage
-    session.markUsed();
-
-    user.recordLogin();
+    // A refresh is not a login, and it must not write a versioned or whole row: concurrent
+    // refreshes of the same session (several tabs, app resume) would otherwise fail on the
+    // optimistic lock, and a full-row flush could resurrect a session revoked meanwhile.
+    authSessionRepository.markUsed(session.getId());
 
     // Generate new access token
     String accessToken = jwtService.generateAccessToken(user);
