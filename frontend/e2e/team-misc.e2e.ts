@@ -1,9 +1,10 @@
 import type { Page } from '@playwright/test'
-import type { TeamDetailDto, UserPreferencesRequest } from '../src/api/dto'
-import { apiContext, expectOk } from './support/api'
-import { newTeam, newUser, signIn } from './support/data'
+import type { UserPreferencesRequest } from '../src/api/dto'
+import { apiPatch } from './support/api'
+import { getTeam, newTeam, newUser, signIn } from './support/data'
 import { expect, test, unique } from './support/fixtures'
 import { stack } from './support/stack'
+import { hydrated, pageHydrated, watchHydration } from './support/ui'
 
 /**
  * Three loose items of docs/NEXT.md: the team page's vertical budget (§1.2), and two notes of
@@ -62,12 +63,7 @@ test.describe('team settings loaded directly', () => {
       },
     })
     await signIn(context, owner)
-    const failures: string[] = []
-    page.on('pageerror', (error) => failures.push(`pageerror: ${error.message}`))
-    page.on('console', (message) => {
-      if (message.type() === 'error' && message.text().includes('[hydration]'))
-        failures.push(message.text())
-    })
+    const { hydrationErrors, pageErrors } = await watchHydration(page)
 
     const response = await page.goto(`/equipes/${team.slug}/admin/parametres`)
     expect(response?.status()).toBe(200)
@@ -84,7 +80,7 @@ test.describe('team settings loaded directly', () => {
     await expect(page.getByText('le dimanche', { exact: false })).toBeVisible()
 
     // And it works once hydrated: a rename is saved and lands on the renamed team.
-    await page.waitForLoadState('networkidle')
+    await hydrated(name)
     const renamed = unique('Renommée')
     await name.fill(renamed)
     const form = page.locator('form').filter({ has: name })
@@ -92,11 +88,9 @@ test.describe('team settings loaded directly', () => {
     await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}$`))
     await expect(page.getByRole('heading', { level: 1, name: renamed })).toBeVisible()
 
-    const api = await apiContext(owner.accessToken)
-    const saved = await expectOk<TeamDetailDto>(await api.get(`/api/teams/${team.slug}`))
-    await api.dispose()
-    expect(saved.name).toBe(renamed)
-    expect(failures).toEqual([])
+    expect((await getTeam(owner, team.slug)).name).toBe(renamed)
+    expect(pageErrors).toEqual([])
+    expect(hydrationErrors).toEqual([])
   })
 })
 
@@ -126,10 +120,8 @@ test.describe('saved language preference', () => {
 
     test('a signed-in user who saved English gets English', async ({ context, page }) => {
       const user = await newUser('team-misc english')
-      const api = await apiContext(user.accessToken)
       const preferences: UserPreferencesRequest = { language: 'en' }
-      await expectOk(await api.patch('/api/users/me/preferences', { data: preferences }))
-      await api.dispose()
+      await apiPatch(user, '/api/users/me/preferences', preferences)
       await signIn(context, user)
 
       const response = await page.goto('/')
@@ -137,7 +129,7 @@ test.describe('saved language preference', () => {
       // The server already renders in the saved language…
       expect(await response!.text()).toMatch(/<html[^>]*\slang="en"/)
       // …and the hydrated app keeps it.
-      await page.waitForLoadState('networkidle')
+      await pageHydrated(page)
       await expect(page.locator('html')).toHaveAttribute('lang', 'en')
       await expect(languageSelect(page, 'Language')).toHaveValue('en')
       await expect(page.getByRole('heading', { level: 2, name: /^Welcome to / })).toBeVisible()
@@ -152,7 +144,7 @@ test.describe('saved language preference', () => {
     page,
   }) => {
     await page.goto('/')
-    await page.waitForLoadState('networkidle')
+    await pageHydrated(page)
     await expect(
       languageSelect(page, 'Langue'),
       'precondition: the page starts in French'
@@ -169,7 +161,7 @@ test.describe('saved language preference', () => {
       .toBe('en')
 
     await page.reload()
-    await page.waitForLoadState('networkidle')
+    await pageHydrated(page)
     // The page is back, whatever its language…
     await expect(
       page.getByRole('heading', { level: 2, name: /^(Bienvenue sur|Welcome to) / }),

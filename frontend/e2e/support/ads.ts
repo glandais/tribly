@@ -1,6 +1,6 @@
 import { crc32, deflateSync } from 'node:zlib'
 import type { AdDto, AdRequest, AssetDto } from '../../src/api/dto'
-import { apiContext, expectOk, type AuthResponse } from './api'
+import { apiGet, withApi, apiPost, expectOk, type AuthResponse } from './api'
 
 /**
  * Ads (classifieds) seeded through the REST API: pictures uploaded as team assets, then an ad whose
@@ -41,16 +41,13 @@ export async function uploadImage(
   name: string,
   png: Buffer
 ): Promise<AssetDto> {
-  const api = await apiContext(as.accessToken)
-  try {
-    return await expectOk<AssetDto>(
+  return withApi(as, async (api) =>
+    expectOk<AssetDto>(
       await api.post(`/api/teams/${teamSlug}/assets?assetType=IMAGE`, {
         multipart: { file: { name, mimeType: 'image/png', buffer: png } },
       })
     )
-  } finally {
-    await api.dispose()
-  }
+  )
 }
 
 export interface NewAd extends Partial<Omit<AdRequest, 'media'>> {
@@ -72,12 +69,9 @@ export async function newAd(as: AuthResponse, teamSlug: string, ad: NewAd): Prom
     ...rest,
     media: { markdown, assets: { images, attachments: [] } },
   }
-  const api = await apiContext(as.accessToken)
-  try {
-    return await expectOk<AdDto>(
-      await api.post(`/api/teams/${teamSlug}/classifieds`, { data: request })
-    )
-  } finally {
-    await api.dispose()
-  }
+  return apiPost<AdDto>(as, `/api/teams/${teamSlug}/classifieds`, request)
 }
+
+/** The ad as `reader` reads it through the API. */
+export const getAd = (reader: AuthResponse, teamSlug: string, slug: string) =>
+  apiGet<AdDto>(reader, `/api/teams/${teamSlug}/classifieds/${slug}`)

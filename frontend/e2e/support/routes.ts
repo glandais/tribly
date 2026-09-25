@@ -8,7 +8,8 @@ import type {
   TripDto,
   TripRequest,
 } from '../../src/api/dto'
-import { apiContext, expectOk, type AuthResponse } from './api'
+import { apiGet, apiGetOrNull, apiPost, expectOk, withApi, type AuthResponse } from './api'
+import { markdownMedia } from './data'
 
 /**
  * Routes, trips and stages seeded through the REST API, and what a page read of a route's
@@ -67,14 +68,13 @@ export async function newRoute(
 ): Promise<RouteDto> {
   const request: RouteRequest = {
     name,
-    media: { markdown: '', assets: { images: [], attachments: [] } },
+    media: markdownMedia(),
     surfaceType: 'ROAD',
     visibility: 'TEAM',
     ...overrides,
   }
-  const api = await apiContext(by.accessToken)
-  try {
-    return await expectOk<RouteDto>(
+  return withApi(by, async (api) =>
+    expectOk<RouteDto>(
       await api.post(`/api/teams/${teamSlug}/routes`, {
         multipart: {
           route: {
@@ -90,63 +90,54 @@ export async function newRoute(
         },
       })
     )
-  } finally {
-    await api.dispose()
-  }
+  )
 }
 
 /** The route as the single-route endpoint serves it: the stored geometry, untouched. */
-export async function getRoute(
-  by: AuthResponse,
-  teamSlug: string,
-  routeSlug: string
-): Promise<RouteDetailDto> {
-  const api = await apiContext(by.accessToken)
-  try {
-    return await expectOk<RouteDetailDto>(
-      await api.get(`/api/teams/${teamSlug}/routes/${routeSlug}`)
-    )
-  } finally {
-    await api.dispose()
-  }
-}
+export const getRoute = (by: AuthResponse, teamSlug: string, routeSlug: string) =>
+  apiGet<RouteDetailDto>(by, `/api/teams/${teamSlug}/routes/${routeSlug}`)
 
-/** A published, members-only trip two days ahead, with the given stages (one day apart). */
+/**
+ * A published, members-only trip two days ahead, with the given stages (one day apart), unless
+ * `overrides` say otherwise.
+ */
 export async function newTrip(
   by: AuthResponse,
   teamSlug: string,
   name: string,
-  stages: Omit<StageRequest, 'dateTime' | 'media'>[]
+  stages: Omit<StageRequest, 'dateTime' | 'media'>[],
+  overrides: Partial<Omit<TripRequest, 'stages'>> = {}
 ): Promise<TripDto> {
   const start = Date.now() + 2 * 24 * 3600 * 1000
   const request: TripRequest = {
     name,
-    media: { markdown: '', assets: { images: [], attachments: [] } },
+    media: markdownMedia(),
     dateTime: new Date(start).toISOString(),
     status: 'PUBLISHED',
     visibility: 'TEAM',
+    ...overrides,
     stages: stages.map((stage, i) => ({
       ...stage,
       dateTime: new Date(start + i * 24 * 3600 * 1000).toISOString(),
-      media: { markdown: '', assets: { images: [], attachments: [] } },
+      media: markdownMedia(),
     })),
   }
-  const api = await apiContext(by.accessToken)
-  try {
-    return await expectOk<TripDto>(
-      await api.post(`/api/teams/${teamSlug}/trips`, { data: request })
-    )
-  } finally {
-    await api.dispose()
-  }
+  return apiPost<TripDto>(by, `/api/teams/${teamSlug}/trips`, request)
 }
+
+/** The trip as `who` reads it, or null when the API answers 404 (deleted, or never there). */
+export const fetchTrip = (who: AuthResponse, teamSlug: string, tripSlug: string) =>
+  apiGetOrNull<TripDto>(who, `/api/teams/${teamSlug}/trips/${tripSlug}`)
 
 export const routePath = (teamSlug: string, routeSlug: string) =>
   `/equipes/${teamSlug}/parcours/${routeSlug}`
 export const routeMapPath = (teamSlug: string, routeSlug: string) =>
   `${routePath(teamSlug, routeSlug)}/carte`
+export const tripPath = (teamSlug: string, tripSlug: string) =>
+  `/equipes/${teamSlug}/voyages/${tripSlug}`
+export const tripNewPath = (teamSlug: string) => `/equipes/${teamSlug}/voyages/nouveau`
 export const stagePath = (teamSlug: string, tripSlug: string, stageSlug: string) =>
-  `/equipes/${teamSlug}/voyages/${tripSlug}/etapes/${stageSlug}`
+  `${tripPath(teamSlug, tripSlug)}/etapes/${stageSlug}`
 export const stageMapPath = (teamSlug: string, tripSlug: string, stageSlug: string) =>
   `${stagePath(teamSlug, tripSlug, stageSlug)}/carte`
 

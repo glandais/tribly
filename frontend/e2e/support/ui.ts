@@ -1,8 +1,11 @@
-import { expect, type Locator, type Page } from '@playwright/test'
+import { expect, test, type Browser, type Locator, type Page } from '@playwright/test'
+import type { AuthResponse } from './api'
+import { signIn } from './data'
 
 /**
- * Browser-side helpers shared by the journeys: waiting for hydration, and recording what the page
- * showed or threw away while a retrying assertion was not looking.
+ * Browser-side helpers shared by the journeys: waiting for hydration, recording what the page
+ * showed or threw away while a retrying assertion was not looking, a second browser for another
+ * user, and the locators every screen shares.
  */
 
 /**
@@ -36,15 +39,18 @@ export async function pageHydrated(page: Page) {
 }
 
 /**
- * Records, from before the first byte is parsed, every console `[hydration]` error and every DOM
- * removal of a node holding one of `markers` — a mismatch makes React throw the server subtree
- * away and client-render it, which is exactly the flicker to rule out. Call it before `goto`.
+ * Records, from before the first byte is parsed, every console `[hydration]` error (first line),
+ * every uncaught page error, and every DOM removal of a node holding one of `markers` — a mismatch
+ * makes React throw the server subtree away and client-render it, which is exactly the flicker to
+ * rule out. Call it before `goto`.
  */
-export async function watchHydration(page: Page, markers: string[]) {
+export async function watchHydration(page: Page, markers: string[] = []) {
   const hydrationErrors: string[] = []
+  const pageErrors: string[] = []
+  page.on('pageerror', (error) => pageErrors.push(error.message))
   page.on('console', (message) => {
     if (message.type() === 'error' && message.text().includes('[hydration]'))
-      hydrationErrors.push(message.text())
+      hydrationErrors.push(message.text().split('\n')[0])
   })
   await page.addInitScript((watched: string[]) => {
     const removed: string[] = []
@@ -57,6 +63,7 @@ export async function watchHydration(page: Page, markers: string[]) {
   }, markers)
   return {
     hydrationErrors,
+    pageErrors,
     removed: () =>
       page.evaluate(() => (window as unknown as { __e2eRemoved: string[] }).__e2eRemoved),
   }
@@ -86,4 +93,59 @@ export async function watchToasts(page: Page): Promise<() => Promise<string[]>> 
     }).observe(document.body, { childList: true, subtree: true })
   })
   return () => page.evaluate(() => (window as unknown as { __toastTexts: string[] }).__toastTexts)
+}
+
+/** `text` with every RegExp metacharacter escaped, to match it literally. */
+export const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/** A RegExp matching `text` literally at the start of a name. */
+export const startsWith = (text: string) => new RegExp(`^${escapeRegExp(text)}`)
+
+/**
+ * The card of an entity in a list or a feed (a ride, a post, a route, a team, an ad): every one is a
+ * link holding the entity's name. Names are unique per test, so a second match is a strict-mode
+ * error, not a guess.
+ */
+export const entityCard = (scope: Locator, name: string) =>
+  scope.getByRole('link').filter({ hasText: name })
+
+/**
+ * The chevron that opens a detail page's other actions (publish, cancel, delete…), grouped with
+ * « Modifier ». It holds only an icon and has no accessible name — the defect is pinned once, in
+ * flow-rides.e2e.ts — so it is found as the one button of that group.
+ */
+export const actionsMenu = (page: Page) =>
+  page
+    .getByRole('main')
+    .getByRole('group')
+    .filter({ has: page.getByRole('link', { name: 'Modifier' }) })
+    .getByRole('button')
+
+/** Opens the actions menu of a detail page, once hydrated; returns the menu. */
+export async function openActionsMenu(page: Page) {
+  const chevron = actionsMenu(page)
+  await hydrated(chevron)
+  await chevron.click()
+  return page.getByRole('menu')
+}
+
+/**
+ * A second browser, signed in as `auth` (anonymous when undefined), with the device, locale and
+ * time zone of the running test's project — a bare `browser.newContext()` would fall back to a
+ * desktop viewport on the mobile project. Close its `context` when done.
+ */
+export async function pageAs(browser: Browser, auth: AuthResponse | undefined) {
+  const { viewport, userAgent, deviceScaleFactor, isMobile, hasTouch, locale, timezoneId } =
+    test.info().project.use
+  const context = await browser.newContext({
+    viewport,
+    userAgent,
+    deviceScaleFactor,
+    isMobile,
+    hasTouch,
+    locale,
+    timezoneId,
+  })
+  if (auth) await signIn(context, auth)
+  return { context, page: await context.newPage() }
 }

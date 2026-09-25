@@ -58,23 +58,45 @@ reaches mailhog, and `.env.e2e` holds nothing but throwaway values — which is 
 
 ## Shared helpers
 
-Everything a journey needs lives in `support/`, one module per domain — reuse before writing a new
-one, and keep journey-only helpers in their own `support/<journey>.ts`.
+Everything a journey needs lives in `support/`, one module per domain, one implementation of each
+helper — reuse before writing a new one, and keep journey-only helpers in their own
+`support/<journey>.ts` (`flow-account.ts`, `flow-team.ts`, `routes-render.ts`, …).
 
-- `api.ts` — `apiContext`, `expectOk` (throws an `ApiError` with the backend's `code`), the logins
-  and `refresh`.
+- `api.ts` — `withApi(who, run)` (a disposable request context signed in as `who`, or anonymous),
+  `apiGet` / `apiPost` / `apiPut` / `apiPatch` / `apiDelete` (parsed body, or an `ApiError` with the
+  backend's `code`), `apiGetOrNull` (null on a 404: a deleted or unknown entity), `expectOk`, the
+  logins and `refresh`.
 - `data.ts` — `roleSession(role)` (cached per worker), `signIn(context, auth)`, `newUser`,
-  `freshAddress` (an address with no account), `teamRequest`, `newTeam` (applies the `enable*`
-  flags POST ignores; `{ addMemberAllowed: true }` lets the team's admins add and invite),
-  `setTeamAttributes`, `addMember` (as the platform admin unless the team allows it).
+  `freshAddress` (an address with no account), `markdownMedia`, `teamRequest`, `newTeam` (applies
+  the `enable*` flags POST ignores, and a non-TEAM visibility as the platform admin;
+  `{ addMemberAllowed: true }` lets the team's admins add and invite), `getTeam`,
+  `setTeamAttributes`, `addMember` (as the platform admin unless the team allows it), `newTeamPage`.
 - `fixtures.ts` — `test`, `expect`, `as(role)`, the `seed` fixture, `unique(label)`.
-- `rides.ts` — `rideRequest`, `newRide`, `joinGroup`, `postComments`, `openRide`, `groupCard`.
-- `ads.ts` — `newAd` (with pictures), `uploadImage`, `solidPng`.
+- `rides.ts` — `rideRequest`, `newRide`, `readRide` / `findRide`, `readComments`, `readTemplates`,
+  `joinGroup`, `postComments`, `openRide`, `groupCard`.
+- `routes.ts` — `newRoute` (GPX upload), `getRoute`, `newTrip`, `fetchTrip` (null once deleted),
+  the route/trip/stage paths, `stubBasemap`, `traceMapPixels`, `watchRouteReads`.
+- `posts.ts` — `newPost`, `fetchPost` / `findPost`.
+- `ads.ts` — `newAd` (with pictures), `getAd`, `uploadImage`, `solidPng`.
+- `editor.ts` — the rich-text editor every form shares: `richText(scope)`, `typeRichText`,
+  `toolbarButton`, `addImage`, and `letEditorSettle(page)` — the one way to let its 150 ms debounce
+  hand the text to the form before saving (needs `page.clock.install()` before the first `goto`).
+- `dates.ts` — Paris wall-clock dates (`WallClock`, `parisWallClock`, `parisDaysAhead`,
+  `parisInstant`, `pickerText`, `frenchDateTime`) and the Mantine DateTimePicker driver
+  (`pickDateTime`, `openPicker`).
+- `calendar.ts` — the team calendar on both layouts: `openCalendar(page, team, day)`,
+  `calendarEvent`, `teamEvents`. Its events are SSR-prefetched, so an absence check needs another
+  event of the same view shown first.
+- `contract.ts` — `contractWebRoutes()` (contracts/routes.yaml), `configuredAuth()`
+  (routes.config.ts), `fillPath`.
 - `mailhog.ts` — `mailbox` + `waitForNewMail` (text of the next mail), `mailsTo` (headers and every
   part), `otpCodeIn`, `linkTokenIn`.
 - `ui.ts` — `hydrated(locator)` before clicking a server-rendered control, `pageHydrated`,
-  `watchHydration` (hydration errors and discarded server markup), `toasts`, `watchToasts` (every
-  toast shown, where a retrying `toHaveCount(0)` would pass vacuously).
+  `watchHydration` (hydration errors, uncaught page errors, discarded server markup), `toasts`,
+  `watchToasts` (every toast shown, where a retrying `toHaveCount(0)` would pass vacuously),
+  `pageAs(browser, auth)` (a second browser with the project's device — never a bare
+  `browser.newContext()`), `entityCard`, `actionsMenu` / `openActionsMenu` (a detail page's
+  unnamed chevron), `escapeRegExp`, `startsWith`.
 
 ## How sessions work
 

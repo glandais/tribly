@@ -5,10 +5,12 @@ import type {
   AdminTeamAttributesRequest,
   AdminTeamDto,
   TeamDetailDto,
+  TeamPageDto,
+  TeamPageRequest,
   TeamRequest,
   TeamRole,
 } from '../../src/api/dto'
-import { apiContext, expectOk, refresh, register, type AuthResponse } from './api'
+import { apiGet, apiPatch, apiPost, apiPut, refresh, register, type AuthResponse } from './api'
 import { stack, storageStatePath, type Role } from './stack'
 
 /**
@@ -67,11 +69,18 @@ export async function signIn(context: BrowserContext, auth: AuthResponse) {
 
 /** A per-process unique, lowercase, address-safe tag for `label`. */
 let tagCounter = 0
+/**
+ * The local part of an address nobody else uses. The label is cut to 30 characters: an e-mail local
+ * part may not exceed 64 (RFC 5321, enforced by the backend's @Email), and callers often pass a
+ * `unique(...)` name, already long, whose uniqueness the suffix here makes redundant anyway.
+ */
 function uniqueTag(label: string): string {
   tagCounter += 1
-  return `${label}-${process.pid}-${tagCounter}-${Date.now().toString(36)}`
+  const slug = label
     .toLowerCase()
     .replace(/[^a-z0-9-]/g, '-')
+    .slice(0, 30)
+  return `${slug}-${process.pid}-${tagCounter}-${Date.now().toString(36)}`
 }
 
 /** A verified account nobody else uses, signed up through the real register + e-mail link flow. */
@@ -90,11 +99,17 @@ export function freshAddress(label: string): string {
   return `${uniqueTag(label)}@e2e.test`
 }
 
+/** The `media` of a request body: `markdown`, and no picture nor attachment. */
+export const markdownMedia = (markdown = ''): TeamRequest['media'] => ({
+  markdown,
+  assets: { images: [], attachments: [] },
+})
+
 export function teamRequest(name: string, overrides: Partial<TeamRequest> = {}): TeamRequest {
   return {
     name,
     visibility: 'TEAM',
-    media: { markdown: '', assets: { images: [], attachments: [] } },
+    media: markdownMedia(),
     enableTrips: true,
     enableAds: true,
     enablePosts: true,
@@ -114,9 +129,10 @@ export interface NewTeamOptions extends Partial<TeamRequest> {
 }
 
 /**
- * A team owned by `owner`, with the settings of `teamRequest(name, overrides)`. POST /api/teams
- * always creates a TEAM-visible team: any other visibility is applied afterwards with a PUT, which
- * only a platform admin may do (the seeded admin is one).
+ * A team owned by `owner` (its ADMIN), with the settings of `teamRequest(name, overrides)`.
+ * POST /api/teams always creates a TEAM-visible team; any other visibility is applied afterwards
+ * with a PUT sent as the seeded platform admin — the only one who may change a team's visibility
+ * while `visibilityEditable` is off (its owner gets INVALID_VISIBILITY).
  */
 export async function newTeam(
   owner: AuthResponse,
@@ -124,22 +140,20 @@ export async function newTeam(
   { addMemberAllowed, ...overrides }: NewTeamOptions = {}
 ): Promise<TeamDetailDto> {
   const request = teamRequest(name, overrides)
-  const api = await apiContext(owner.accessToken)
-  let team: TeamDetailDto
-  try {
-    team = await expectOk<TeamDetailDto>(
-      await api.post('/api/teams', { data: { ...request, visibility: 'TEAM' } })
+  let team = await apiPost<TeamDetailDto>(owner, '/api/teams', { ...request, visibility: 'TEAM' })
+  if (request.visibility !== 'TEAM')
+    team = await apiPut<TeamDetailDto>(
+      await roleSession('admin'),
+      `/api/teams/${team.slug}`,
+      request
     )
-    if (request.visibility !== 'TEAM')
-      team = await expectOk<TeamDetailDto>(
-        await api.put(`/api/teams/${team.slug}`, { data: request })
-      )
-  } finally {
-    await api.dispose()
-  }
   if (addMemberAllowed) await setTeamAttributes(team, { addMemberAllowed })
   return team
 }
+
+/** GET /api/teams/{slug}, as `who` — its `role` is the caller's own role in the team. */
+export const getTeam = (who: AuthResponse, slug: string) =>
+  apiGet<TeamDetailDto>(who, `/api/teams/${slug}`)
 
 /** Changes the admin-only attributes of a team, as the platform admin. */
 export async function setTeamAttributes(
@@ -147,20 +161,15 @@ export async function setTeamAttributes(
   changes: Partial<AdminTeamAttributesRequest>
 ) {
   const admin = await roleSession('admin')
-  const api = await apiContext(admin.accessToken)
-  try {
-    const current = await expectOk<AdminTeamDto>(await api.get(`/api/admin/teams/${team.id}`))
-    const attributes: AdminTeamAttributesRequest = {
-      visibilityEditable: current.visibilityEditable,
-      joinable: current.joinable,
-      addMemberAllowed: current.addMemberAllowed,
-      enableRoutePlanner: current.enableRoutePlanner,
-      ...changes,
-    }
-    await expectOk(await api.patch(`/api/admin/teams/${team.id}/attributes`, { data: attributes }))
-  } finally {
-    await api.dispose()
+  const current = await apiGet<AdminTeamDto>(admin, `/api/admin/teams/${team.id}`)
+  const attributes: AdminTeamAttributesRequest = {
+    visibilityEditable: current.visibilityEditable,
+    joinable: current.joinable,
+    addMemberAllowed: current.addMemberAllowed,
+    enableRoutePlanner: current.enableRoutePlanner,
+    ...changes,
   }
+  await apiPatch(admin, `/api/admin/teams/${team.id}/attributes`, attributes)
 }
 
 /**
@@ -177,11 +186,21 @@ export async function addMember(
   member: AuthResponse,
   role: TeamRole = 'MEMBER'
 ) {
-  const api = await apiContext(by.accessToken)
-  try {
-    const request: AddMemberRequest = { userId: member.user.id, role }
-    await expectOk(await api.post(`/api/teams/${teamSlug}/members`, { data: request }))
-  } finally {
-    await api.dispose()
-  }
+  const request: AddMemberRequest = { userId: member.user.id, role }
+  await apiPost(by, `/api/teams/${teamSlug}/members`, request)
 }
+
+/** A custom page of the team (a tab of its own), members-only unless `overrides` say otherwise. */
+export const newTeamPage = (
+  by: AuthResponse,
+  teamSlug: string,
+  title: string,
+  markdown: string,
+  overrides: Partial<TeamPageRequest> = {}
+) =>
+  apiPost<TeamPageDto>(by, `/api/teams/${teamSlug}/pages`, {
+    title,
+    visibility: 'TEAM',
+    media: markdownMedia(markdown),
+    ...overrides,
+  } satisfies TeamPageRequest)

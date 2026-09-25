@@ -1,13 +1,16 @@
 import type { Locator, Page } from '@playwright/test'
 import type {
   CommentDto,
+  CommentListResponse,
   CommentRequest,
   GroupRequest,
   RideDto,
   RideParticipationDto,
   RideRequest,
+  RideTemplateListResponse,
 } from '../../src/api/dto'
-import { apiContext, expectOk, type AuthResponse } from './api'
+import { apiGet, apiGetOrNull, apiPost, type AuthResponse } from './api'
+import { markdownMedia } from './data'
 
 /**
  * Rides seeded through the REST API as the ride editor creates them, participations, comments, and
@@ -23,7 +26,7 @@ export function rideRequest(name: string, overrides: Partial<RideRequest> = {}):
   const group: GroupRequest = { name: 'Groupe A' }
   return {
     name,
-    media: { markdown: '', assets: { images: [], attachments: [] } },
+    media: markdownMedia(),
     dateTime: new Date(Date.now() + 2 * 24 * 3600 * 1000).toISOString(),
     status: 'PUBLISHED',
     visibility: 'TEAM',
@@ -32,21 +35,29 @@ export function rideRequest(name: string, overrides: Partial<RideRequest> = {}):
   }
 }
 
-export async function newRide(
+export const newRide = (
   by: AuthResponse,
   teamSlug: string,
   name: string,
   overrides: Partial<RideRequest> = {}
-): Promise<RideDto> {
-  const api = await apiContext(by.accessToken)
-  try {
-    return await expectOk<RideDto>(
-      await api.post(`/api/teams/${teamSlug}/rides`, { data: rideRequest(name, overrides) })
-    )
-  } finally {
-    await api.dispose()
-  }
-}
+) => apiPost<RideDto>(by, `/api/teams/${teamSlug}/rides`, rideRequest(name, overrides))
+
+const rideApiPath = (teamSlug: string, rideSlug: string) =>
+  `/api/teams/${teamSlug}/rides/${rideSlug}`
+
+/** The ride as `by` reads it through the API. */
+export const readRide = (by: AuthResponse, teamSlug: string, rideSlug: string) =>
+  apiGet<RideDto>(by, rideApiPath(teamSlug, rideSlug))
+
+/** The ride as `by` reads it, or null when the API answers 404 (deleted, or never there). */
+export const findRide = (by: AuthResponse, teamSlug: string, rideSlug: string) =>
+  apiGetOrNull<RideDto>(by, rideApiPath(teamSlug, rideSlug))
+
+export const readComments = (by: AuthResponse, teamSlug: string, rideSlug: string) =>
+  apiGet<CommentListResponse>(by, `${rideApiPath(teamSlug, rideSlug)}/comments`)
+
+export const readTemplates = (by: AuthResponse, teamSlug: string) =>
+  apiGet<RideTemplateListResponse>(by, `/api/teams/${teamSlug}/ride-templates`)
 
 export function groupId(ride: RideDto, name: string): string {
   const group = ride.groups.find((g) => g.name === name)
@@ -54,23 +65,11 @@ export function groupId(ride: RideDto, name: string): string {
   return group.id
 }
 
-export async function joinGroup(
-  who: AuthResponse,
-  teamSlug: string,
-  ride: RideDto,
-  groupName: string
-): Promise<RideParticipationDto> {
-  const api = await apiContext(who.accessToken)
-  try {
-    return await expectOk<RideParticipationDto>(
-      await api.post(
-        `/api/teams/${teamSlug}/rides/${ride.slug}/groups/${groupId(ride, groupName)}/join`
-      )
-    )
-  } finally {
-    await api.dispose()
-  }
-}
+export const joinGroup = (who: AuthResponse, teamSlug: string, ride: RideDto, groupName: string) =>
+  apiPost<RideParticipationDto>(
+    who,
+    `${rideApiPath(teamSlug, ride.slug)}/groups/${groupId(ride, groupName)}/join`
+  )
 
 /** Top-level comments, posted one after the other so their creation order is their text order. */
 export async function postComments(
@@ -79,16 +78,9 @@ export async function postComments(
   rideSlug: string,
   contents: string[]
 ) {
-  const api = await apiContext(who.accessToken)
-  try {
-    for (const content of contents) {
-      const request: CommentRequest = { content }
-      await expectOk<CommentDto>(
-        await api.post(`/api/teams/${teamSlug}/rides/${rideSlug}/comments`, { data: request })
-      )
-    }
-  } finally {
-    await api.dispose()
+  for (const content of contents) {
+    const request: CommentRequest = { content }
+    await apiPost<CommentDto>(who, `${rideApiPath(teamSlug, rideSlug)}/comments`, request)
   }
 }
 

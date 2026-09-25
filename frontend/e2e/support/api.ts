@@ -54,31 +54,54 @@ export async function expectOk<T>(response: APIResponse): Promise<T> {
   throw new ApiError(response.status(), code, `${response.url()} → ${response.status()} ${body}`)
 }
 
-/** OTP login. Rate-limited to 3 requests per 5 minutes per address — don't call it per test. */
-export async function loginWithOtp(email: string): Promise<AuthResponse> {
-  const api = await apiContext()
+/** Whoever an API call is made as: a session, or nobody (an anonymous visitor). */
+export type Caller = Pick<AuthResponse, 'accessToken'> | undefined
+
+/** Runs `run` with a fresh request context signed in as `who`, and disposes of it afterwards. */
+export async function withApi<T>(who: Caller, run: (api: APIRequestContext) => Promise<T>) {
+  const api = await apiContext(who?.accessToken)
   try {
-    const seen = await mailbox(email)
-    await expectOk(await api.post('/api/auth/otp', { data: { email } }))
-    const code = otpCodeIn(await waitForNewMail(email, seen))
-    return await expectOk<AuthResponse>(
-      await api.post('/api/auth/otp/verify', { data: { email, code } })
-    )
+    return await run(api)
   } finally {
     await api.dispose()
   }
 }
 
-export async function loginWithPassword(email: string, password: string): Promise<AuthResponse> {
-  const api = await apiContext()
-  try {
-    return await expectOk<AuthResponse>(
-      await api.post('/api/auth/login', { data: { email, password } })
-    )
-  } finally {
-    await api.dispose()
-  }
+type Params = Record<string, string | number | boolean>
+
+/** GET as `who`; the parsed body, or an ApiError. */
+export const apiGet = <T>(who: Caller, path: string, params?: Params) =>
+  withApi(who, async (api) => expectOk<T>(await api.get(path, { params })))
+
+/** GET as `who`; the parsed body, or null when the API answers 404 (a deleted or unknown entity). */
+export const apiGetOrNull = <T>(who: Caller, path: string, params?: Params) =>
+  withApi(who, async (api) => {
+    const response = await api.get(path, { params })
+    return response.status() === 404 ? null : expectOk<T>(response)
+  })
+
+export const apiPost = <T>(who: Caller, path: string, data?: unknown) =>
+  withApi(who, async (api) => expectOk<T>(await api.post(path, { data })))
+
+export const apiPut = <T>(who: Caller, path: string, data: unknown) =>
+  withApi(who, async (api) => expectOk<T>(await api.put(path, { data })))
+
+export const apiPatch = <T>(who: Caller, path: string, data: unknown) =>
+  withApi(who, async (api) => expectOk<T>(await api.patch(path, { data })))
+
+export const apiDelete = (who: Caller, path: string) =>
+  withApi(who, async (api) => expectOk(await api.delete(path)))
+
+/** OTP login. Rate-limited to 3 requests per 5 minutes per address — don't call it per test. */
+export async function loginWithOtp(email: string): Promise<AuthResponse> {
+  const seen = await mailbox(email)
+  await apiPost(undefined, '/api/auth/otp', { email })
+  const code = otpCodeIn(await waitForNewMail(email, seen))
+  return apiPost<AuthResponse>(undefined, '/api/auth/otp/verify', { email, code })
 }
+
+export const loginWithPassword = (email: string, password: string) =>
+  apiPost<AuthResponse>(undefined, '/api/auth/login', { email, password })
 
 /** Sign-up as the app does it: register, then follow the verification link from the mail. */
 export async function register(account: {
@@ -86,19 +109,10 @@ export async function register(account: {
   displayName: string
   password: string
 }): Promise<AuthResponse> {
-  const api = await apiContext()
-  try {
-    const seen = await mailbox(account.email)
-    await expectOk(
-      await api.post('/api/auth/register', { data: { ...account, acceptTerms: true } })
-    )
-    const token = linkTokenIn(await waitForNewMail(account.email, seen))
-    return await expectOk<AuthResponse>(
-      await api.post('/api/auth/verify-email', { data: { token } })
-    )
-  } finally {
-    await api.dispose()
-  }
+  const seen = await mailbox(account.email)
+  await apiPost(undefined, '/api/auth/register', { ...account, acceptTerms: true })
+  const token = linkTokenIn(await waitForNewMail(account.email, seen))
+  return apiPost<AuthResponse>(undefined, '/api/auth/verify-email', { token })
 }
 
 /**
@@ -108,17 +122,14 @@ export async function register(account: {
  * so there is nothing to retry.
  */
 export async function refresh(refreshToken: string): Promise<AuthResponse | null> {
-  const api = await apiContext()
-  try {
+  return withApi(undefined, async (api) => {
     const response = await api.post('/api/auth/refresh', {
       headers: { 'X-Refresh-Token': refreshToken },
     })
     if (response.ok()) return { ...(await response.json()), refreshToken }
     if (response.status() < 500) return null
     throw new Error(`POST /api/auth/refresh → ${response.status()}: ${await response.text()}`)
-  } finally {
-    await api.dispose()
-  }
+  })
 }
 
 /**

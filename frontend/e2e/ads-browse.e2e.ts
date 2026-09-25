@@ -3,7 +3,8 @@ import type { AdDto, AssetDto } from '../src/api/dto'
 import { newAd, solidPng, uploadImage } from './support/ads'
 import { newTeam, newUser, signIn } from './support/data'
 import { expect, test, unique } from './support/fixtures'
-import { hydrated } from './support/ui'
+import { stubBasemap } from './support/routes'
+import { escapeRegExp, hydrated } from './support/ui'
 
 /**
  * Ads, browsing — docs/NEXT.md §1.2 (web): the detail page (gallery, approximate location, no
@@ -106,17 +107,7 @@ test.describe('ad detail', () => {
     // stack: its tiles depend on the network and change under us. It is replaced by a plain
     // background so what is measured below is the ad's sector alone — the overlay is untouched.
     test.beforeEach(async ({ page }) => {
-      await page.route('https://tiles.versatiles.org/**/style.json', (route) =>
-        route.fulfill({
-          json: {
-            version: 8,
-            sources: {},
-            layers: [
-              { id: 'background', type: 'background', paint: { 'background-color': '#f0f0f0' } },
-            ],
-          },
-        })
-      )
+      await stubBasemap(page)
     })
 
     test('renders a disc without a pin, framed on its extent, captioned « à environ 1 km près »', async ({
@@ -275,7 +266,7 @@ test.describe('ad list', () => {
   const cardTitles = (page: Page, tag: string) =>
     page.getByRole('heading', {
       level: 4,
-      name: new RegExp(tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+      name: new RegExp(escapeRegExp(tag)),
     })
   const query = (page: Page) => Object.fromEntries(new URL(page.url()).searchParams)
   /** The filters the page wrote to its URL — waited for, since the write follows the loader. */
