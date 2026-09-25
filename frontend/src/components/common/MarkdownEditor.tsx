@@ -20,7 +20,7 @@ import './tiptap/tiptap.css'
 function debounce(
   fn: (value: string) => void,
   delay: number
-): ((value: string) => void) & { flush: () => void } {
+): ((value: string) => void) & { flush: () => void; cancel: () => void } {
   let timeoutId: ReturnType<typeof setTimeout> | null = null
   let pending: { value: string } | null = null
   const run = () => {
@@ -38,6 +38,12 @@ function debounce(
   debounced.flush = () => {
     if (timeoutId) clearTimeout(timeoutId)
     run()
+  }
+  // Drops the pending call, if any.
+  debounced.cancel = () => {
+    if (timeoutId) clearTimeout(timeoutId)
+    timeoutId = null
+    pending = null
   }
   return debounced
 }
@@ -97,11 +103,14 @@ export function MarkdownEditor({
     []
   )
 
-  // Flushed, never cancelled: whatever sits in the debounce is text the user typed, and the form
-  // only learns about it when the timer fires. Clicking « Enregistrer » blurs the editor first
-  // (flushed below, before the button's click handler reads the form); an unmount flushes too, so
-  // no path drops the last 150 ms of typing without a word.
-  useEffect(() => () => debouncedOnChange.flush(), [debouncedOnChange])
+  // Flushed on blur: whatever sits in the debounce is text the user typed, and the form only learns
+  // about it when the timer fires. Clicking « Enregistrer » blurs the editor first, so the markdown
+  // reaches the form before the button's click handler reads it.
+  //
+  // Cancelled — not flushed — on unmount: an editor unmounts because its owner went away (a trip
+  // stage deleted from its list), and writing to `stages.1.media` once stage 1 is gone throws
+  // inside `setFieldValue` and takes the whole page down.
+  useEffect(() => () => debouncedOnChange.cancel(), [debouncedOnChange])
 
   const handleEditorChange = useCallback(
     (markdown: string) => {
