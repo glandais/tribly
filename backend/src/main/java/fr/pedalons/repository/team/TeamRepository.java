@@ -32,8 +32,12 @@ public class TeamRepository implements BaseRepository<Team> {
     return find("id = ?1 and deleted = false", id).firstResultOptional();
   }
 
+  /**
+   * Whether {@code slug} is taken in this domain, soft-deleted teams included: {@code
+   * uk_teams_domain_slug} covers them, and a platform admin can restore one with its slug.
+   */
   public boolean existsBySlugAndDomain(Long domainId, String slug) {
-    return count("domain.id = ?1 and slug = ?2 and deleted = false", domainId, slug) > 0;
+    return count("domain.id = ?1 and slug = ?2", domainId, slug) > 0;
   }
 
   public boolean existsByDomain(Long domainId) {

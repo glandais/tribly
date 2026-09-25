@@ -83,13 +83,13 @@ class TeamRepositoryTest extends AbstractBaseTest {
   }
 
   @Test
-  void existsBySlugAndDomain_shouldIgnoreDeletedTeams() {
+  void existsBySlugAndDomain_shouldCountDeletedTeams() {
     Team team = dataService.createTeam(user1, "Deleted Team", "deleted-team", Visibility.PUBLIC);
     dataService.deleteTeam(team);
 
     boolean exists = teamRepository.existsBySlugAndDomain(domain.getId(), "deleted-team");
 
-    assertFalse(exists);
+    assertTrue(exists);
   }
 
   @Test

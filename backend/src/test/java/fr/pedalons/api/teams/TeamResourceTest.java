@@ -350,6 +350,50 @@ class TeamResourceTest extends AbstractResourceTest {
   }
 
   @Test
+  void createTeam_withDeletedTeamName_shouldSuffixTheSlug() {
+    TeamRequest teamRequest =
+        new TeamRequest(
+            "Reborn Team",
+            MediaDto.builder().build(),
+            Visibility.TEAM,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false,
+            null);
+    String firstSlug =
+        given()
+            .auth()
+            .oauth2(getAccessToken(USER5))
+            .contentType("application/json")
+            .body(teamRequest)
+            .post("/api/teams")
+            .then()
+            .statusCode(201)
+            .extract()
+            .path("slug");
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER5))
+        .delete("/api/teams/" + firstSlug)
+        .then()
+        .statusCode(204);
+
+    // uk_teams_domain_slug still holds the deleted team's slug: the new one must not collide
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER5))
+        .contentType("application/json")
+        .body(teamRequest)
+        .post("/api/teams")
+        .then()
+        .statusCode(201)
+        .body("slug", equalTo(firstSlug + "-1"));
+  }
+
+  @Test
   void deleteTeam_asNonAdmin_shouldBeDenied() {
     given()
         .auth()

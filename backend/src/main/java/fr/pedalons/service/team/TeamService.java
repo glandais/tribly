@@ -267,7 +267,7 @@ public class TeamService {
       return getTeamDetailDto(teamSlug);
     }
 
-    // Check if new slug is already taken (by a non-deleted team in this domain)
+    // Check if new slug is already taken in this domain, deleted teams included
     if (teamRepository.existsBySlugAndDomain(domainId, newSlug)) {
       throw new ConflictException(SLUG_TAKEN);
     }
