@@ -1,6 +1,11 @@
 import { useTranslation } from 'react-i18next'
 import { NativeSelect } from '@mantine/core'
-import { supportedLanguages, languageNames, type SupportedLanguage } from '../../i18n'
+import {
+  supportedLanguages,
+  languageNames,
+  persistLanguageChoice,
+  type SupportedLanguage,
+} from '../../i18n'
 import { useUpdateMyPreferences } from '@/api/endpoints/users/users'
 import { useAuthStore, selectIsAuthenticated } from '@/store/authStore'
 
@@ -11,8 +16,10 @@ export function LanguageSwitcher() {
 
   const handleChange = (language: string) => {
     i18n.changeLanguage(language)
-    // Anonymous visitors have nothing to persist the language to; partial PATCH sends only the
-    // changed field, never the whole preference set.
+    // The cookie is what the SSR server renders the next document in — the only persistence an
+    // anonymous visitor has. A signed-in visitor also gets the backend preference, which the server
+    // applies first; partial PATCH sends only the changed field, never the whole preference set.
+    persistLanguageChoice(language)
     if (isAuthenticated) {
       mutation.mutate({ data: { language } })
     }

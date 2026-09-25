@@ -13,7 +13,7 @@ import { AppProviders } from './AppProviders'
 import { AppFrame } from './App'
 import { buildRoutes } from './config/RouteGenerator'
 import { makeQueryClient } from './lib/queryClient'
-import { createServerI18n, supportedLanguages } from './i18n'
+import { createServerI18n, languageFromCookieHeader, supportedLanguages } from './i18n'
 import { requestContext, type SsrRequestStore } from './lib/requestContext'
 import { setStoreGetter } from './lib/ssrContext'
 import { resolveSsrSession } from './lib/ssrSession'
@@ -32,17 +32,21 @@ import { mapThemePreference } from './lib/theme'
 setStoreGetter(() => requestContext.getStore())
 
 export async function render(url: string, headers: Record<string, string> = {}) {
-  // Resolve the request locale from Accept-Language (first token, language part only). This is
-  // only the fallback: an authenticated visitor's stored `language` preference (resolved below,
-  // once the session is known) takes priority over it.
+  // Resolve the request locale from the explicit choice cookie (LanguageSwitcher), else from
+  // Accept-Language (first token, language part only). Both are only the fallback: an
+  // authenticated visitor's stored `language` preference (resolved below, once the session is
+  // known) takes priority over them. The response depends on the Cookie header either way, which
+  // server.js's Cache-Control: no-store / Vary: Cookie already declare.
   const acceptLanguage = headers['accept-language'] || 'fr'
   const requestedLang = acceptLanguage.split(',')[0].split('-')[0].toLowerCase() || 'fr'
-  const headerLocale: Locale = (supportedLanguages as readonly string[]).includes(requestedLang)
+  const acceptLocale: Locale = (supportedLanguages as readonly string[]).includes(requestedLang)
     ? (requestedLang as Locale)
     : 'fr'
-  if (headerLocale !== requestedLang) {
+  const cookieLocale = languageFromCookieHeader(headers['cookie'])
+  if (!cookieLocale && acceptLocale !== requestedLang) {
     console.warn(`[SSR] Unsupported language "${requestedLang}", falling back to "fr"`)
   }
+  const headerLocale: Locale = cookieLocale ?? acceptLocale
 
   const store: SsrRequestStore = {
     headers,
@@ -91,7 +95,7 @@ export async function render(url: string, headers: Record<string, string> = {}) 
         hasPasskeys: false,
       }
 
-      // Prefer the signed-in visitor's stored language over Accept-Language, now that the session
+      // Prefer the signed-in visitor's stored language over the cookie/Accept-Language, now that the session
       // is known. store.locale is read live by getSSRLocale() (locale-context.ts), so mutating it
       // here — before routing/rendering start — is enough; nothing has consumed it yet.
       const userLanguage = session?.user?.language

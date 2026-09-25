@@ -58,6 +58,36 @@ export async function createServerI18n(language: string) {
   return instance
 }
 
+/**
+ * Cookie carrying an explicit language choice (LanguageSwitcher), so the SSR server can render in
+ * that language — the only way an anonymous visitor's choice survives a reload without a hydration
+ * mismatch. The server reads it after a signed-in visitor's stored preference and before
+ * Accept-Language (entry-server.tsx).
+ */
+export const LANGUAGE_COOKIE = 'lang'
+const LANGUAGE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365 // one year, in seconds
+
+/** The supported language held by the {@link LANGUAGE_COOKIE} in a `Cookie` header, if any. */
+export function languageFromCookieHeader(
+  cookieHeader: string | undefined
+): SupportedLanguage | undefined {
+  const match = cookieHeader?.match(new RegExp(`(?:^|;\\s*)${LANGUAGE_COOKIE}=([^;]*)`))
+  const value = match?.[1]
+  return value && (supportedLanguages as readonly string[]).includes(value)
+    ? (value as SupportedLanguage)
+    : undefined
+}
+
+/**
+ * Remember an explicit language choice for the next document request. Only explicit choices are
+ * written: persisting the detected language would pin the Accept-Language of the first visit.
+ */
+export function persistLanguageChoice(language: string) {
+  if (!(supportedLanguages as readonly string[]).includes(language)) return
+  const secure = window.location.protocol === 'https:' ? '; Secure' : ''
+  document.cookie = `${LANGUAGE_COOKIE}=${language}; Path=/; Max-Age=${LANGUAGE_COOKIE_MAX_AGE}; SameSite=Lax${secure}`
+}
+
 // Client-only initialization: browser language detection, dayjs locale, and the HTML lang
 // attribute. Guarded so none of it runs during SSR (no document / no global dayjs mutation).
 async function initClientI18n() {
@@ -68,29 +98,26 @@ async function initClientI18n() {
       .init({
         ...i18nBaseConfig,
         detection: {
-          // htmlTag is highest priority so the initial (hydration) client render matches
-          // the server-emitted <html lang>, which the server resolves from Accept-Language.
-          // The persisted preference is re-applied below, after init, to avoid a mismatch.
-          order: ['htmlTag', 'localStorage', 'navigator'],
-          // Cache user language preference
-          caches: ['localStorage'],
-          lookupLocalStorage: 'i18nextLng',
+          // The server-emitted <html lang> is authoritative: it already applies, in order, the
+          // signed-in visitor's stored preference, the LANGUAGE_COOKIE choice and Accept-Language,
+          // so following it keeps the hydration render identical to the markup. navigator is only
+          // a fallback for a page served without SSR.
+          order: ['htmlTag', 'navigator'],
+          // Nothing is cached from detection: the choice is persisted explicitly by
+          // persistLanguageChoice. The former localStorage cache stored whatever <html lang> said
+          // and, read back after init, overrode an anonymous visitor's choice on every reload.
+          caches: [],
         },
       })
-
-    // Honor a persisted language preference only AFTER the hydration render. The server
-    // only sees Accept-Language, so a saved preference that differs from <html lang> must
-    // be applied post-hydration — this is a normal client re-render, not a mismatch.
-    const saved = localStorage.getItem('i18nextLng')
-    if (
-      saved &&
-      saved !== i18n.language &&
-      supportedLanguages.includes(saved as SupportedLanguage)
-    ) {
-      await i18n.changeLanguage(saved)
-    }
   } catch (err) {
     console.error('[i18n] Client initialization failed:', err)
+  }
+
+  // Drop the value the former localStorage cache left behind; it no longer drives anything.
+  try {
+    localStorage.removeItem('i18nextLng')
+  } catch {
+    // Storage unavailable (private mode, blocked site data): nothing to clean up.
   }
 
   // Update HTML lang attribute and dayjs locale when language changes

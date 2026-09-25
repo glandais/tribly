@@ -22,10 +22,6 @@ régénération des deux clients (compétence `contract-first-api`).
 
 L'anneau de focus est à 2,74:1 en thème sombre, sous le seuil de 3,0 de SC 1.4.11. Il vient de lib/theme.ts et vaut pour tout le site — le corriger ici en ferait une PR d'un autre périmètre.
 
-/equipes/{slug}/admin/parametres cassé en direct avec le SSR.
-
-Une préférence de langue enregistrée ne peut jamais l'emporter : caches: ['localStorage'] réécrit la langue détectée avant que src/i18n/index.ts ne relise i18nextLng après init.
-
 **Modération (branche `signalement`) — quatre défauts mineurs, notés sans être corrigés :**
 
 - **File plateforme regroupée par (type, id) seulement** (`ModerationService`) : un membre signalé

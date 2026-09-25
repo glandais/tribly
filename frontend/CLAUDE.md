@@ -84,6 +84,7 @@ Custom axios mutator in `lib/axiosInstance.ts` handles: JWT bearer tokens from a
 ### i18n
 
 - i18next with browser language detection. **French is the default/fallback language.**
+- **The SSR server picks the language**, in order: the signed-in user's `language` preference, the `lang` cookie (written by `LanguageSwitcher` via `persistLanguageChoice`), then `Accept-Language`. The client only follows `<html lang>` and caches nothing from detection — so an explicit choice must go through `persistLanguageChoice`, never localStorage, or it is lost on reload (a client-side override would mismatch the hydration).
 - Single `common` namespace per language: `locales/fr/common.json`, `locales/en/common.json`
 - **Keys are stored FLAT with dots** — `"map.tooltip.climb": "…"`, *not* nested `{ "map": { "tooltip": … } }` objects. Add new keys as flat entries next to their siblings; they still resolve via `t('map.tooltip.climb')` (i18next's `ignoreJSONStructure`). Adding a nested object instead is a silent trap — it "works" but breaks the file's convention.
 - Add every key to **both** locale files. `pnpm i18n:extract` scaffolds missing keys from `t()`/`tRegister()` calls; `pnpm i18n:lint` validates them (run both after touching translations).
