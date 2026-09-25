@@ -56,6 +56,14 @@ public interface StorageService {
   boolean exists(String key);
 
   /**
+   * Size of the stored content, read from its metadata without downloading it.
+   *
+   * @param key the storage key
+   * @return the size in bytes, or -1 if there is no such content
+   */
+  long size(String key);
+
+  /**
    * Returns the S3 path for use with imgproxy.
    *
    * @param key the storage key

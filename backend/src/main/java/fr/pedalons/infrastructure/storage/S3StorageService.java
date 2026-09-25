@@ -97,6 +97,16 @@ public class S3StorageService implements StorageService {
   }
 
   @Override
+  public long size(String key) {
+    try {
+      HeadObjectRequest request = HeadObjectRequest.builder().bucket(bucket).key(key).build();
+      return s3Client.headObject(request).contentLength();
+    } catch (NoSuchKeyException e) {
+      return -1;
+    }
+  }
+
+  @Override
   public String getS3Path(String key) {
     return "s3://" + bucket + "/" + key;
   }

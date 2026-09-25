@@ -9,6 +9,7 @@ import 'clients/admin_domains_client.dart';
 import 'clients/admin_reports_client.dart';
 import 'clients/admin_social_client.dart';
 import 'clients/admin_teams_client.dart';
+import 'clients/admin_thumbnails_client.dart';
 import 'clients/admin_users_client.dart';
 import 'clients/authentication_client.dart';
 import 'clients/passkeys_client.dart';
@@ -48,7 +49,7 @@ import 'clients/team_webhook_client.dart';
 import 'clients/tiles_client.dart';
 import 'clients/server_version_client.dart';
 
-/// Pedalons API `v4.1.0`.
+/// Pedalons API `v4.2.0`.
 ///
 /// API for Pedalons Cycling Team Management Platform.
 class PedalonsApiClient {
@@ -61,13 +62,14 @@ class PedalonsApiClient {
   final Dio _dio;
   final String? _baseUrl;
 
-  static String get version => '4.1.0';
+  static String get version => '4.2.0';
 
   AdminBetaSignupsClient? _adminBetaSignups;
   AdminDomainsClient? _adminDomains;
   AdminReportsClient? _adminReports;
   AdminSocialClient? _adminSocial;
   AdminTeamsClient? _adminTeams;
+  AdminThumbnailsClient? _adminThumbnails;
   AdminUsersClient? _adminUsers;
   AuthenticationClient? _authentication;
   PasskeysClient? _passkeys;
@@ -121,6 +123,9 @@ class PedalonsApiClient {
 
   AdminTeamsClient get adminTeams =>
       _adminTeams ??= AdminTeamsClient(_dio, baseUrl: _baseUrl);
+
+  AdminThumbnailsClient get adminThumbnails =>
+      _adminThumbnails ??= AdminThumbnailsClient(_dio, baseUrl: _baseUrl);
 
   AdminUsersClient get adminUsers =>
       _adminUsers ??= AdminUsersClient(_dio, baseUrl: _baseUrl);

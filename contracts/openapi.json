@@ -4982,6 +4982,155 @@
         "type" : "string",
         "enum" : [ "SYSTEM", "LIGHT", "DARK" ]
       },
+      "ThumbnailFile" : {
+        "type" : "object",
+        "description" : "One stored thumbnail",
+        "required" : [ "type", "bytes" ],
+        "properties" : {
+          "type" : {
+            "type" : "string",
+            "description" : "Asset type"
+          },
+          "bytes" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Stored size in bytes, -1 when the file is missing"
+          }
+        }
+      },
+      "ThumbnailOwnerKind" : {
+        "type" : "string",
+        "enum" : [ "ROUTE", "RIDE", "TRIP" ]
+      },
+      "ThumbnailOwnerReport" : {
+        "description" : "A route, ride or trip whose thumbnails were (or would be) redrawn",
+        "type" : "object",
+        "required" : [ "id", "kind", "teamSlug", "slug", "reasons", "before", "outcome" ],
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Entity ID"
+          },
+          "kind" : {
+            "description" : "Entity kind",
+            "type" : "string",
+            "$ref" : "#/components/schemas/ThumbnailOwnerKind"
+          },
+          "teamSlug" : {
+            "type" : "string",
+            "description" : "Team slug"
+          },
+          "slug" : {
+            "type" : "string",
+            "description" : "Entity slug"
+          },
+          "reasons" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ThumbnailRegenerationReason"
+            },
+            "description" : "Why it was selected"
+          },
+          "before" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ThumbnailFile"
+            },
+            "description" : "Its thumbnails before"
+          },
+          "after" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ThumbnailFile"
+            },
+            "description" : "Its thumbnails after, absent on a dry run"
+          },
+          "outcome" : {
+            "description" : "What happened",
+            "type" : "string",
+            "$ref" : "#/components/schemas/ThumbnailRegenerationOutcome"
+          },
+          "error" : {
+            "type" : "string",
+            "description" : "Error message when the regeneration itself failed"
+          }
+        }
+      },
+      "ThumbnailRegenerationOutcome" : {
+        "type" : "string",
+        "enum" : [ "PENDING", "REGENERATED", "FAILED" ]
+      },
+      "ThumbnailRegenerationReason" : {
+        "type" : "string",
+        "enum" : [ "RENDERED_IN_WINDOW", "SMALL_FILE", "MISSING" ]
+      },
+      "ThumbnailRegenerationRequest" : {
+        "description" : "Which map thumbnails to redraw from the geometry already stored. The criteria combine: the date window and the size threshold narrow the thumbnails that exist, the 'missing' flag adds the entities that have none. At least one criterion is required.",
+        "type" : "object",
+        "properties" : {
+          "renderedFrom" : {
+            "description" : "Only thumbnails drawn at or after this instant",
+            "type" : "string",
+            "examples" : [ "2026-09-14T16:00:00Z" ],
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "renderedTo" : {
+            "description" : "Only thumbnails drawn before this instant",
+            "type" : "string",
+            "examples" : [ "2026-09-25T01:00:00Z" ],
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "suspectBelowBytes" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 1,
+            "description" : "Only thumbnails whose stored file is smaller than this many bytes, or has no file. A map drawn without its background weighs a few kB, a real one tens.",
+            "examples" : [ 10000 ]
+          },
+          "includeMissing" : {
+            "type" : "boolean",
+            "description" : "Also redraw the routes, rides and trips that have a route to draw but lack a light or dark thumbnail — what a failed render leaves behind",
+            "examples" : [ false ]
+          },
+          "dryRun" : {
+            "type" : "boolean",
+            "description" : "List what would be redrawn, without redrawing anything",
+            "examples" : [ true ]
+          },
+          "limit" : {
+            "type" : "integer",
+            "format" : "int32",
+            "maximum" : 1000,
+            "minimum" : 1,
+            "description" : "Redraw at most this many entities (default 100)",
+            "examples" : [ 100 ]
+          }
+        },
+        "required" : [ "dryRun" ]
+      },
+      "ThumbnailRegenerationResponse" : {
+        "description" : "Outcome of a thumbnail regeneration, one entry per entity",
+        "type" : "object",
+        "required" : [ "dryRun", "matched", "entities" ],
+        "properties" : {
+          "dryRun" : {
+            "type" : "boolean",
+            "description" : "Whether this was a dry run (nothing redrawn)"
+          },
+          "matched" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Number of entities matching the criteria, before the limit"
+          },
+          "entities" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ThumbnailOwnerReport"
+            },
+            "description" : "Entities processed, at most the limit"
+          }
+        }
+      },
       "TileTokenDto" : {
         "description" : "Short-lived token authorizing vector tile requests",
         "type" : "object",
@@ -5709,6 +5858,9 @@
   }, {
     "name" : "Admin - Teams",
     "description" : "Platform admin team management"
+  }, {
+    "name" : "Admin - Thumbnails",
+    "description" : "Platform admin map-thumbnail maintenance"
   }, {
     "name" : "Admin - Users",
     "description" : "Platform admin user management"
@@ -7170,6 +7322,70 @@
           },
           "404" : {
             "description" : "Team not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden - not a platform admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/admin/thumbnails/regenerate" : {
+      "post" : {
+        "summary" : "Regenerate map thumbnails",
+        "description" : "Redraw the light and dark map thumbnails of routes, rides and trips from the geometry already stored, selected by drawing date, stored size or absence. Synchronous; run it with dryRun first.",
+        "operationId" : "adminRegenerateThumbnails",
+        "tags" : [ "Admin - Thumbnails" ],
+        "parameters" : [ {
+          "description" : "Target domain ID (defaults to the request's domain)",
+          "name" : "domainId",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ThumbnailRegenerationRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Regeneration report",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ThumbnailRegenerationResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "No selection criterion given",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -19653,7 +19869,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "4.1.0",
+    "version" : "4.2.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

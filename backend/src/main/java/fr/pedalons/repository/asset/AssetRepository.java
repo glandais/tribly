@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
 public class AssetRepository implements PanacheRepository<Asset> {
@@ -70,6 +71,96 @@ public class AssetRepository implements PanacheRepository<Asset> {
               (Visibility) row[4]));
     }
     return thumbnails;
+  }
+
+  /** A thumbnail asset, reduced to what it takes to locate its file and its owner. */
+  public record ThumbnailAssetRow(
+      Long ownerId, AssetType type, Long teamId, Long fileId, Instant createdAt) {}
+
+  /**
+   * Every thumbnail of a live entity in a domain, optionally only those drawn within [{@code
+   * createdFrom}, {@code createdTo}) — a thumbnail is a fresh asset each time it is drawn, so its
+   * creation date is when it was rendered. For the admin regeneration, not for any listing.
+   */
+  public List<ThumbnailAssetRow> findThumbnailAssets(
+      Long domainId, @Nullable Instant createdFrom, @Nullable Instant createdTo) {
+    StringBuilder jpql =
+        new StringBuilder(
+            "select a.teamEntity.id, a.type, a.team.id, a.fileId, a.createdAt from Asset a "
+                + "where a.type in (:types) "
+                + "and a.team.domain.id = :domainId "
+                + "and a.teamEntity.deleted = false");
+    if (createdFrom != null) {
+      jpql.append(" and a.createdAt >= :createdFrom");
+    }
+    if (createdTo != null) {
+      jpql.append(" and a.createdAt < :createdTo");
+    }
+    jpql.append(" order by a.teamEntity.id");
+    var query =
+        getEntityManager()
+            .createQuery(jpql.toString(), Object[].class)
+            .setParameter("types", THUMBNAIL_TYPES)
+            .setParameter("domainId", domainId);
+    if (createdFrom != null) {
+      query.setParameter("createdFrom", createdFrom);
+    }
+    if (createdTo != null) {
+      query.setParameter("createdTo", createdTo);
+    }
+    List<ThumbnailAssetRow> result = new ArrayList<>();
+    for (Object[] row : query.getResultList()) {
+      result.add(
+          new ThumbnailAssetRow(
+              (Long) row[0], (AssetType) row[1], (Long) row[2], (Long) row[3], (Instant) row[4]));
+    }
+    return result;
+  }
+
+  /**
+   * Live routes, rides and trips of a domain that have something to draw but lack a light or a
+   * dark thumbnail — what a failed render leaves behind.
+   */
+  public List<Long> findOwnersMissingThumbnails(Long domainId) {
+    String twoThumbnails =
+        "(select count(a) from Asset a where a.teamEntity = e and a.type in (:types)) < 2";
+    List<Long> ids = new ArrayList<>();
+    ids.addAll(
+        getEntityManager()
+            .createQuery(
+                "select e.id from Route e where e.deleted = false and e.team.domain.id = :domainId"
+                    + " and e.tracks is not empty and "
+                    + twoThumbnails,
+                Long.class)
+            .setParameter("domainId", domainId)
+            .setParameter(
+                "types", List.of(AssetType.ROUTE_THUMBNAIL_LIGHT, AssetType.ROUTE_THUMBNAIL_DARK))
+            .getResultList());
+    ids.addAll(
+        getEntityManager()
+            .createQuery(
+                "select e.id from Ride e where e.deleted = false and e.team.domain.id = :domainId"
+                    + " and (e.route is not null or exists"
+                    + " (select g from RideGroup g where g.ride = e and g.route is not null)) and "
+                    + twoThumbnails,
+                Long.class)
+            .setParameter("domainId", domainId)
+            .setParameter(
+                "types", List.of(AssetType.RIDE_THUMBNAIL_LIGHT, AssetType.RIDE_THUMBNAIL_DARK))
+            .getResultList());
+    ids.addAll(
+        getEntityManager()
+            .createQuery(
+                "select e.id from Trip e where e.deleted = false and e.team.domain.id = :domainId"
+                    + " and (e.route is not null or exists (select s from TripStage s"
+                    + " where s.trip = e and s.deleted = false and s.route is not null)) and "
+                    + twoThumbnails,
+                Long.class)
+            .setParameter("domainId", domainId)
+            .setParameter(
+                "types", List.of(AssetType.TRIP_THUMBNAIL_LIGHT, AssetType.TRIP_THUMBNAIL_DARK))
+            .getResultList());
+    return ids;
   }
 
   private static final List<AssetType> THUMBNAIL_TYPES =

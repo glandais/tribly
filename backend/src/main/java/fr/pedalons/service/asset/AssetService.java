@@ -212,10 +212,14 @@ public class AssetService {
   }
 
   public String getAssetKey(Team team, long fileId) {
-    String teamId = TsidUtils.toString(team.getId());
+    return getAssetKey(team.getId(), fileId);
+  }
+
+  public String getAssetKey(Long teamId, long fileId) {
+    String teamIdString = TsidUtils.toString(teamId);
     String idString = TsidUtils.toString(fileId);
     String subPath = idString.substring(0, 4);
-    return ASSETS_PREFIX + "/" + teamId + "/" + subPath + "/" + idString;
+    return ASSETS_PREFIX + "/" + teamIdString + "/" + subPath + "/" + idString;
   }
 
   /**

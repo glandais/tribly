@@ -21,6 +21,7 @@ import fr.pedalons.infrastructure.storage.StorageService;
 import fr.pedalons.service.asset.AssetService;
 import fr.pedalons.service.route.response.TrackMetadata;
 import fr.pedalons.service.security.PedalonsQueryContext;
+import fr.pedalons.service.thumbnail.MapThumbnailRenderer;
 import io.github.glandais.gpx.climb.Climb;
 import io.github.glandais.gpx.climb.ClimbDetector;
 import io.github.glandais.gpx.data.*;
@@ -29,7 +30,6 @@ import io.github.glandais.gpx.filter.GPXPerDistance;
 import io.github.glandais.gpx.io.read.GPXFileReader;
 import io.github.glandais.gpx.io.write.FitFileWriter;
 import io.github.glandais.gpx.io.write.GPXFileWriter;
-import io.github.glandais.gpx.map.TileMapProducer;
 import io.github.glandais.gpx.srtm.GPXElevationFixer;
 import io.github.glandais.gpx.util.GPXDataComputer;
 import io.github.glandais.gpx.util.Vector;
@@ -37,6 +37,7 @@ import io.hypersistence.tsid.TSID;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import java.awt.Color;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -49,7 +50,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.geolatte.geom.G2D;
 import org.geolatte.geom.LineString;
 import org.jboss.logging.Logger;
@@ -81,16 +81,13 @@ public class GpxProcessingService {
 
   @Inject FitFileWriter fitFileWriter;
 
-  @Inject TileMapProducer tileMapProducer;
+  @Inject MapThumbnailRenderer mapThumbnailRenderer;
 
   @Inject AssetService assetService;
 
   @Inject StorageService storageService;
 
   @Inject PedalonsQueryContext pedalonsContext;
-
-  @ConfigProperty(name = "tileserver.url")
-  private String tileserverUrl;
 
   public GPX parseGpx(Path path) {
     // Step 1: Parse GPX
@@ -313,7 +310,7 @@ public class GpxProcessingService {
           team,
           thumbnailGpx,
           routeId,
-          "colorful",
+          MapThumbnailRenderer.LIGHT_STYLE,
           AssetType.ROUTE_THUMBNAIL_LIGHT,
           "thumbnail-light.png",
           uploadedAssets);
@@ -321,7 +318,7 @@ public class GpxProcessingService {
           team,
           thumbnailGpx,
           routeId,
-          "eclipse",
+          MapThumbnailRenderer.DARK_STYLE,
           AssetType.ROUTE_THUMBNAIL_DARK,
           "thumbnail-dark.png",
           uploadedAssets);
@@ -438,14 +435,13 @@ public class GpxProcessingService {
               team,
               assetType,
               fileName,
-              tmp -> {
-                String tileUrl = tileserverUrl + "/styles/" + style + "/256/{z}/{x}/{y}.png";
-                tileMapProducer.createTileMap(tmp, gpx, tileUrl, 0.1, 512, 512);
-              });
+              tmp -> mapThumbnailRenderer.render(tmp, gpx, style, List.of(Color.RED)));
       uploadedAssets.add(pa);
       LOG.infov("Generated and saved {0} thumbnail to S3", style);
     } catch (Exception e) {
-      LOG.warnv("Thumbnail generation ({0}) failed for route {1}: {2}", style, routeId, e);
+      LOG.warnv(
+          "Thumbnail generation ({0}) failed for route {1}, left without one: {2}",
+          style, routeId, e.getCause() != null ? e.getCause().getMessage() : e.getMessage());
     }
   }
 

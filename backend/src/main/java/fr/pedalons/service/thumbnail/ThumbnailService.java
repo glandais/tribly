@@ -14,17 +14,17 @@ import io.github.glandais.gpx.data.GPX;
 import io.github.glandais.gpx.data.GPXPath;
 import io.github.glandais.gpx.data.GPXPathType;
 import io.github.glandais.gpx.data.Point;
-import io.github.glandais.gpx.map.TileMapProducer;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.awt.Color;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 @ApplicationScoped
@@ -45,12 +45,12 @@ public class ThumbnailService {
           Color.decode("#c694d4"),
           Color.decode("#e3a209"));
 
-  @Inject TileMapProducer tileMapProducer;
+  /** A route's own thumbnail draws every track in red, as {@code GpxProcessingService} does. */
+  static final List<Color> ROUTE_TRACK_COLORS = List.of(Color.RED);
+
+  @Inject MapThumbnailRenderer renderer;
 
   @Inject AssetService assetService;
-
-  @ConfigProperty(name = "tileserver.url")
-  private String tileserverUrl;
 
   public void generateRideThumbnails(Ride ride) {
     List<Route> routes = collectRideRoutes(ride);
@@ -60,6 +60,19 @@ public class ThumbnailService {
   public void generateTripThumbnails(Trip trip) {
     List<Route> routes = collectTripRoutes(trip);
     generateThumbnails(trip, routes, AssetType.TRIP_THUMBNAIL_LIGHT, AssetType.TRIP_THUMBNAIL_DARK);
+  }
+
+  /**
+   * Redraws a route's thumbnails from the track geometry already in the database — the GPX import
+   * draws them from the parsed file ({@code GpxProcessingService}), this is for fixing them later.
+   */
+  public void generateRouteThumbnails(Route route) {
+    generateThumbnails(
+        route,
+        List.of(route),
+        AssetType.ROUTE_THUMBNAIL_LIGHT,
+        AssetType.ROUTE_THUMBNAIL_DARK,
+        ROUTE_TRACK_COLORS);
   }
 
   private List<Route> collectRideRoutes(Ride ride) {
@@ -101,11 +114,21 @@ public class ThumbnailService {
 
   private void generateThumbnails(
       TeamEntity entity, List<Route> routes, AssetType lightType, AssetType darkType) {
+    generateThumbnails(entity, routes, lightType, darkType, ROUTE_COLORS);
+  }
+
+  private void generateThumbnails(
+      TeamEntity entity,
+      List<Route> routes,
+      AssetType lightType,
+      AssetType darkType,
+      List<Color> colors) {
     if (routes.isEmpty()) {
       return;
     }
 
-    // Remove old thumbnails
+    // Remove old thumbnails: one that no longer matches the routes is worse than none, which the
+    // clients replace with their own placeholder
     removeExistingThumbnails(entity, lightType, darkType);
 
     // Build combined GPX with one path per route track
@@ -123,8 +146,10 @@ public class ThumbnailService {
 
     GPX gpx = new GPX("thumbnail", paths, List.of());
 
-    generateThumbnail(entity, gpx, "colorful", lightType, "thumbnail-light.png");
-    generateThumbnail(entity, gpx, "eclipse", darkType, "thumbnail-dark.png");
+    generateThumbnail(
+        entity, gpx, MapThumbnailRenderer.LIGHT_STYLE, colors, lightType, "thumbnail-light.png");
+    generateThumbnail(
+        entity, gpx, MapThumbnailRenderer.DARK_STYLE, colors, darkType, "thumbnail-dark.png");
   }
 
   /** Track geometry reduced to what the map renderer needs — decoupled from {@code Asset}/team. */
@@ -144,8 +169,7 @@ public class ThumbnailService {
     }
     GPX gpx = new GPX("thumbnail", paths, List.of());
     try {
-      String tileUrl = tileserverUrl + "/styles/colorful/256/{z}/{x}/{y}.png";
-      tileMapProducer.createTileMap(output, gpx, tileUrl, 0.1, 512, 512, ROUTE_COLORS);
+      renderer.render(output, gpx, MapThumbnailRenderer.LIGHT_STYLE, ROUTE_COLORS);
       return true;
     } catch (Exception e) {
       LOG.warnv("Preview thumbnail generation failed: {0}", e.getMessage());
@@ -153,7 +177,7 @@ public class ThumbnailService {
     }
   }
 
-  private static List<GPXPath> buildPaths(List<ThumbnailTrack> tracks) {
+  static List<GPXPath> buildPaths(List<ThumbnailTrack> tracks) {
     List<GPXPath> paths = new ArrayList<>();
     for (ThumbnailTrack track : tracks) {
       GPXPath gpxPath = new GPXPath(track.name(), GPXPathType.TRACK);
@@ -171,22 +195,42 @@ public class ThumbnailService {
     return paths;
   }
 
+  /**
+   * Draws first, and only then creates the asset: a failed render leaves the entity without this
+   * thumbnail rather than with an asset whose file is missing or wrong.
+   */
   private void generateThumbnail(
-      TeamEntity entity, GPX gpx, String style, AssetType assetType, String fileName) {
+      TeamEntity entity,
+      GPX gpx,
+      String style,
+      List<Color> colors,
+      AssetType assetType,
+      String fileName) {
+    File rendered = null;
     try {
+      rendered = File.createTempFile("thumbnail-", ".png");
+      renderer.render(rendered, gpx, style, colors);
       AssetWithFile assetFile = assetService.addAsset(entity, assetType, fileName);
       entity.getAssets().add(assetFile.asset());
-      File file = assetFile.file();
-      String tileUrl = tileserverUrl + "/styles/" + style + "/256/{z}/{x}/{y}.png";
-      tileMapProducer.createTileMap(file, gpx, tileUrl, 0.1, 512, 512, ROUTE_COLORS);
-      assetService.uploadAssetFile(assetFile.asset());
+      try {
+        Files.move(
+            rendered.toPath(), assetFile.file().toPath(), StandardCopyOption.REPLACE_EXISTING);
+        assetService.uploadAssetFile(assetFile.asset());
+      } catch (Exception e) {
+        entity.getAssets().remove(assetFile.asset());
+        throw e;
+      }
       LOG.infov(
           "Generated {0} thumbnail for {1} {2}",
           style, entity.getClass().getSimpleName(), entity.getId());
     } catch (Exception e) {
       LOG.warnv(
-          "Thumbnail generation ({0}) failed for {1} {2}: {3}",
-          style, entity.getClass().getSimpleName(), entity.getId(), e);
+          "Thumbnail generation ({0}) failed for {1} {2}, left without one: {3}",
+          style, entity.getClass().getSimpleName(), entity.getId(), e.getMessage());
+    } finally {
+      if (rendered != null) {
+        rendered.delete();
+      }
     }
   }
 
