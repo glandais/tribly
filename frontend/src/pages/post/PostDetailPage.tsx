@@ -212,7 +212,7 @@ export function PostDetailPage() {
                   </Button>
                   <Menu position="bottom-end">
                     <Menu.Target>
-                      <Button variant="outline" px="xs" aria-label={t('aria.moreActions')}>
+                      <Button variant="outline" px="xs" aria-label={t('aria.manageActions')}>
                         <IconChevronDown size={16} />
                       </Button>
                     </Menu.Target>

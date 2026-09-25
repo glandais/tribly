@@ -243,7 +243,7 @@ export function AdDetailPage() {
                 </Button>
                 <Menu position="bottom-end">
                   <Menu.Target>
-                    <Button variant="default" px="xs" aria-label={t('aria.moreActions')}>
+                    <Button variant="default" px="xs" aria-label={t('aria.manageActions')}>
                       <IconChevronDown size={16} />
                     </Button>
                   </Menu.Target>
