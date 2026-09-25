@@ -244,15 +244,15 @@ test.describe('sign-in by e-mailed code', () => {
     expect(await sessionCookie(context)).toBeTruthy()
   })
 
-  test('the code boxes are named in the page language', async ({ page }) => {
-    test.fail(
-      true,
-      'OtpLogin passes aria-label to PinInput, which lands on the wrapper: Mantine names each box with its ariaLabel prop, default « PinInput »'
-    )
+  test('each code box is named for its place in the code', async ({ page }) => {
+    // OtpLogin passed aria-label to PinInput, which put it on the wrapper, and Mantine named every
+    // box « PinInput » (fixed 2026-09-25).
     const user = await newUser(unique('Code nommé'))
     await requestCode(page, user.user.email)
-    // The defect.
-    await expect(codeBoxes(page).first()).toHaveAccessibleName(/code/i)
+    for (let digit = 1; digit <= 6; digit++)
+      await expect(codeBoxes(page).nth(digit - 1)).toHaveAccessibleName(
+        `Chiffre ${digit} sur 6 du code`
+      )
   })
 })
 
