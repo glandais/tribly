@@ -288,6 +288,15 @@ class _PdlMapState extends State<PdlMap> {
     // rejouera ce même calcul.
     final Size? size = _lastSize;
     if (size == null || !_settled || !_controller.isStyleReady) return;
+    // Sur iOS, le premier `CameraIdle` part **avant** que la vue native ait sa
+    // taille : sa région visible n'est qu'un point. Cadrer à cet instant règle
+    // bien le zoom, mais le centre retombe sur `initCenter` — la France au
+    // zoom d'un parcours, sans le tracé — et le cadrage passait pour fait, si
+    // bien qu'aucun `idle` suivant ne le rejouait. On attend donc une région
+    // d'étendue non nulle ; l'`idle` qui suit arrive vue mesurée. Une région
+    // `null` garde l'ancien comportement : c'est celui qui marche sur Android.
+    final PdlMapBox? visible = _controller.visibleBox;
+    if (visible != null && visible.isPoint) return;
     if (await _controller.fitBox(box, viewSize: size, padding: padding)) {
       _fittedBox = box;
       _fittedPadding = padding;

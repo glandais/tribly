@@ -137,6 +137,10 @@ class PdlMapBox {
   final double maxLon;
   final double maxLat;
 
+  /// Une boîte réduite à un point — la région visible d'une vue native qui
+  /// n'a pas encore de taille.
+  bool get isPoint => maxLon <= minLon && maxLat <= minLat;
+
   /// Boîte englobant les tracés donnés, ou `null` s'ils sont tous vides.
   static PdlMapBox? ofTracks(Iterable<PdlMapTrack> tracks) {
     double? minLon, minLat, maxLon, maxLat;
