@@ -279,9 +279,8 @@ test.describe('contacting the seller of an ad', () => {
   test('the modal’s cancel button is labelled « Annuler » and closes without sending', async ({
     browser,
   }) => {
-    // Defect: AdContactModal.tsx labels it t('actions.cancel'), a key that exists in neither
-    // locale (they hold 'actions.cancelAction'), so the button reads « actions.cancel ».
-    test.fail()
+    // It once read « actions.cancel », a key missing from both locales, and the close cross had no
+    // accessible name (fixed 2026-09-25).
     const s = await scene()
     const page = await openAd(browser, s.buyer, s)
     const calls = recordContactCalls(page)
@@ -292,19 +291,18 @@ test.describe('contacting the seller of an ad', () => {
       dialog(page).getByRole('button', { name: 'Envoyer' }),
       'precondition: the modal is ready to send'
     ).toBeEnabled()
-    // The defect.
-    await dialog(page).getByRole('button', { name: 'Annuler' }).click({ timeout: 5_000 })
+    await expect(dialog(page).getByRole('button', { name: 'Fermer la fenêtre' })).toBeVisible()
+    await dialog(page).getByRole('button', { name: 'Annuler' }).click()
     await expect(dialog(page)).toBeHidden()
     await expect(contactButton(page)).toBeVisible()
     expect(calls).toEqual([])
   })
 
-  // docs/NEXT.md §1.2: « pas de double message (l'Alert de la modale plus le toast global) ».
-  // Defect: axiosMutator (src/lib/axiosInstance.ts) shows a toast for every coded API error and has
-  // no per-call way to silence it, so each failure below is announced twice.
+  // docs/NEXT.md §1.2: « pas de double message (l'Alert de la modale plus le toast global) ». The
+  // contact call opts out of the global error toast (skipErrorToast); before that, every failure
+  // below was announced twice (fixed 2026-09-25).
   test.describe('no double message', () => {
     test('429: the modal Alert is the only message', async ({ browser }) => {
-      test.fail()
       const s = await scene()
       await exhaustQuota(s)
       const page = await openAd(browser, s.buyer, s)
@@ -316,12 +314,10 @@ test.describe('contacting the seller of an ad', () => {
         dialog(page).getByRole('alert').filter({ hasText: 'trop de messages' }),
         'precondition: the quota is spent and the modal says so'
       ).toBeVisible()
-      // The defect.
       expect(await toastTexts()).toEqual([])
     })
 
     test('500: the modal Alert is the only message', async ({ browser }) => {
-      test.fail()
       const s = await scene()
       const page = await openAd(browser, s.buyer, s)
       await failDelivery(page)
@@ -333,12 +329,10 @@ test.describe('contacting the seller of an ad', () => {
         dialog(page).getByRole('alert').filter({ hasText: "n'est pas parti" }),
         'precondition: the delivery failed and the modal says so'
       ).toBeVisible()
-      // The defect.
       expect(await toastTexts()).toEqual([])
     })
 
     test('AD_CONTACT_OPTED_OUT: the page Alert is the only message', async ({ browser }) => {
-      test.fail()
       const s = await scene()
       await setContactable(s.seller, false)
       const page = await openAd(browser, s.buyer, s)
@@ -349,7 +343,6 @@ test.describe('contacting the seller of an ad', () => {
       await expect(pageAlert(page), 'precondition: the opt-out notice is on the page').toHaveText(
         'Ce membre a choisi de ne pas recevoir de messages au sujet de ses annonces.'
       )
-      // The defect.
       expect(await toastTexts()).toEqual([])
     })
   })

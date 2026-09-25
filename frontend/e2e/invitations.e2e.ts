@@ -250,10 +250,10 @@ test.describe('invitee side', () => {
     page,
     context,
   }) => {
-    // Defect: once the accept call answers TEAM_INVITE_EMAIL_MISMATCH the page switches to its
-    // generic error state (AcceptInvitationPage.tsx, `state === 'error'` branch), which renders
-    // only « Voir les équipes ». The « Se déconnecter et utiliser un autre compte » button exists
-    // in the ready state only, so the message tells the user to sign out and offers no way to.
+    // The error state now offers « Se déconnecter et utiliser un autre compte » (fixed 2026-09-25).
+    // Defect left: handleSwitchAccount navigates back to the invitation, but authStore.logout()
+    // ends with a hard `window.location.href = paths.login()`, so the user lands on /connexion
+    // without the invitation (no `from`), and after signing in with the invited address, on home.
     test.fail()
     const owner = await newUser('Owner switch')
     const team = await newTeam(owner, unique('Invitations deconnexion'), { addMemberAllowed: true })
@@ -275,10 +275,10 @@ test.describe('invitee side', () => {
       'precondition: the accept was refused as addressed to someone else'
     ).toBeVisible()
 
-    // The defect.
     const signOut = page.getByRole('main').getByRole('button', { name: /se déconnecter/i })
-    await expect(signOut).toBeVisible({ timeout: 5_000 })
+    await expect(signOut, 'precondition: the sign-out button is offered').toBeVisible()
     await signOut.click()
+    // The defect.
     // Signed out, back on the same invitation, now offered a login.
     await expect(page).toHaveURL(new RegExp(`/invitation\\?token=${token}`))
     await expect(page.getByRole('main').getByRole('link', { name: 'Se connecter' })).toBeVisible()
@@ -306,7 +306,7 @@ test.describe('invitee side', () => {
     page,
     context,
   }) => {
-    // What the replayed link *shows* is pinned by the test.fail below; this one is about the data.
+    // What the replayed link *shows* is the next test; this one is about the data.
     const owner = await newUser('Owner replay')
     const team = await newTeam(owner, unique('Invitations rejeu'), { addMemberAllowed: true })
     const invitee = await newUser('Invited replay')
@@ -330,11 +330,9 @@ test.describe('invitee side', () => {
     page,
     context,
   }) => {
-    // Defect: the preview of an ACCEPTED invitation answers redeemable=false, and the page renders
-    // it as « Cette invitation n'est plus valide. Demandez-en une nouvelle… » even to the member
-    // it made (AcceptInvitationPage.tsx, `!invitation.redeemable` Alert) — the very outcome
-    // TeamInvitationService.redeem() refuses to treat as an error, since accept is idempotent.
-    test.fail()
+    // The preview of an ACCEPTED invitation answers redeemable=false; the page used to render it
+    // as « Cette invitation n'est plus valide » even to the member it made, while the server treats
+    // the replay as a success (fixed 2026-09-25: the page checks the membership).
     const owner = await newUser('Owner replay ui')
     const team = await newTeam(owner, unique('Invitations rejeu ecran'), { addMemberAllowed: true })
     const invitee = await newUser('Invited replay ui')
@@ -351,10 +349,12 @@ test.describe('invitee side', () => {
       page.getByRole('heading', { name: new RegExp(team.name) }),
       'precondition: the invitation page is rendered'
     ).toBeVisible()
-    // The defect.
+    await expect(page.getByText(`Vous faites déjà partie de ${team.name}.`)).toBeVisible()
     await expect(
       page.getByText("Cette invitation n'est plus valide.", { exact: false })
-    ).toHaveCount(0, { timeout: 5_000 })
+    ).toHaveCount(0)
+    await page.getByRole('main').getByRole('link', { name: "Voir l'équipe" }).click()
+    await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}$`))
   })
 
   test('an address without an account: sign up through the link, verify, not a member until accepted on /equipes', async ({

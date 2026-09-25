@@ -101,13 +101,26 @@ test.describe('team settings loaded directly', () => {
 })
 
 test.describe('saved language preference', () => {
-  test.describe('in a French browser that has seen the site in French before', () => {
-    // i18next's own cache, as a previous French visit leaves it.
+  test.describe('in a French browser that picked French before', () => {
+    // The `lang` cookie a previous anonymous choice of French leaves (LanguageSwitcher). The
+    // server resolves the signed-in user's preference first, the cookie second, Accept-Language
+    // last — so the saved preference must win over both.
     test.use({
       locale: 'fr-FR',
       storageState: {
-        cookies: [],
-        origins: [{ origin: stack.baseURL, localStorage: [{ name: 'i18nextLng', value: 'fr' }] }],
+        cookies: [
+          {
+            name: 'lang',
+            value: 'fr',
+            domain: new URL(stack.baseURL).hostname,
+            path: '/',
+            expires: -1,
+            httpOnly: false,
+            secure: false,
+            sameSite: 'Lax',
+          },
+        ],
+        origins: [],
       },
     })
 
@@ -128,16 +141,16 @@ test.describe('saved language preference', () => {
       await expect(page.locator('html')).toHaveAttribute('lang', 'en')
       await expect(languageSelect(page, 'Language')).toHaveValue('en')
       await expect(page.getByRole('heading', { level: 2, name: /^Welcome to / })).toBeVisible()
-      await expect.poll(() => page.evaluate(() => localStorage.getItem('i18nextLng'))).toBe('en')
     })
   })
 
-  // DEFECT (docs/NEXT.md « A classifier »): i18n/index.ts detects with order ['htmlTag', …] and
-  // caches: ['localStorage'], so init writes the server's <html lang> (from Accept-Language) into
-  // i18nextLng *before* the post-init re-read of i18nextLng — the visitor's choice is overwritten
-  // and the re-read only ever sees the detected language.
-  test('an anonymous visitor who picked English keeps it on the next visit', async ({ page }) => {
-    test.fail()
+  // An anonymous visitor has no backend preference: the choice lives in the `lang` cookie, which
+  // the SSR server reads before Accept-Language (it used to sit in localStorage, overwritten by
+  // the detected language on every load — docs/NEXT.md « A classifier », fixed 2026-09-25).
+  test('an anonymous visitor who picked English keeps it on the next visit', async ({
+    context,
+    page,
+  }) => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
     await expect(
@@ -150,8 +163,8 @@ test.describe('saved language preference', () => {
       'precondition: picking English switched the page'
     ).toHaveValue('en')
     await expect
-      .poll(() => page.evaluate(() => localStorage.getItem('i18nextLng')), {
-        message: 'precondition: the choice is saved in i18nextLng',
+      .poll(async () => (await context.cookies()).find((c) => c.name === 'lang')?.value, {
+        message: 'precondition: the choice is saved in the lang cookie',
       })
       .toBe('en')
 
@@ -162,7 +175,7 @@ test.describe('saved language preference', () => {
       page.getByRole('heading', { level: 2, name: /^(Bienvenue sur|Welcome to) / }),
       'precondition: the home page is back after the reload'
     ).toBeVisible()
-    // …and it should still be English (the defect).
+    // …and it is still English, already in the server's HTML.
     await expect(page.locator('html')).toHaveAttribute('lang', 'en')
     await expect(languageSelect(page, 'Language')).toHaveValue('en')
   })

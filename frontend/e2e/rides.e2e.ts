@@ -170,10 +170,9 @@ test.describe('registration', () => {
   })
 
   test('a ride whose only group is full still says « Complet »', async ({ page }) => {
-    // Defect: RideDetailPage computes canJoinRide with `!ride.full`, and RideGroupCard renders its
-    // « Complet » badge only inside `(canJoin || isJoined)` — so when every group of the ride is
-    // full (ride.full), the full group shows neither a join button nor « Complet ».
-    test.fail()
+    // RideGroupCard used to render « Complet » only inside `(canJoin || isJoined)`, and canJoin is
+    // false once the whole ride is full — the capacity state vanished exactly then (fixed
+    // 2026-09-25).
     const { owner, team, organizer, member } = await ridingTeam('all-full')
     const other = await newUser(unique('Premier inscrit'))
     await addMember(owner, team.slug, other)
@@ -197,7 +196,6 @@ test.describe('registration', () => {
       card.getByRole('button', { name: 'Rejoindre' }),
       'precondition: a full group offers no join'
     ).toHaveCount(0)
-    // The defect.
     await expect(card.getByText('Complet', { exact: true })).toBeVisible()
   })
 

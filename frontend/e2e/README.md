@@ -62,7 +62,7 @@ Everything a journey needs lives in `support/`, one module per domain — reuse 
 one, and keep journey-only helpers in their own `support/<journey>.ts`.
 
 - `api.ts` — `apiContext`, `expectOk` (throws an `ApiError` with the backend's `code`), the logins
-  and `refresh` (retries the backend's concurrent-refresh 500, see below).
+  and `refresh`.
 - `data.ts` — `roleSession(role)` (cached per worker), `signIn(context, auth)`, `newUser`,
   `freshAddress` (an address with no account), `teamRequest`, `newTeam` (applies the `enable*`
   flags POST ignores; `{ addMemberAllowed: true }` lets the team's admins add and invite),
@@ -85,6 +85,4 @@ into a session on the first request. The admin logs in by OTP, which the backend
 again, and only logs in when a session no longer refreshes (after `reset`).
 
 Tests get a role's access token from `roleSession`, which refreshes the saved session at most every
-10 minutes per worker. That matters: **concurrent `POST /api/auth/refresh` on one session answer 500
-to all but one** (backend defect: `AuthService.refreshToken` → `user.recordLogin()` collides on the
-`User` row's `@Version`). `refresh` retries those 500s; don't call it per test.
+10 minutes per worker — don't call `refresh` per test.

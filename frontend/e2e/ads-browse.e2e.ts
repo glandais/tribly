@@ -57,13 +57,12 @@ test.describe('ad detail', () => {
     const mainImage = mainFrame.getByRole('img', { name: ad.name })
 
     await expect(thumbnails).toHaveCount(3)
-    // The strip's order is the gallery's order. It is read from the page rather than assumed to be
-    // the upload order, which the backend does not keep (see the report: asset sortOrder is never
-    // set) — what is tested here is the navigation, over whatever order the strip shows.
+    // The strip keeps the order the images were added in — the backend used to drop it and serve
+    // them in hash order, the first (the list thumbnail) included (fixed 2026-09-25).
     const order = await thumbnails
       .getByRole('img')
       .evaluateAll((imgs) => imgs.map((img) => img.getAttribute('src')!.split('/').at(-2)!))
-    expect([...order].sort()).toEqual(images.map((image) => image.id).sort())
+    expect(order).toEqual(images.map((image) => image.id))
     const shows = async (index: number) => {
       await expect(mainFrame).toHaveAccessibleName(`Ouvrir la photo ${index + 1} sur 3`)
       await expect(mainImage).toHaveAttribute('src', new RegExp(`/${order[index]}/\\d+$`))
@@ -390,14 +389,11 @@ test.describe('ad list', () => {
     await expectControls(page, { sort: 'Prix croissant', min: '', max: '' })
   })
 
-  // DEFECT: every filter change is a navigation of the data router, whose `ads` loader awaits the
-  // list prefetch before the location commits (config/RouteGenerator.tsx:31-41). Until then
-  // `useSearchParams` still returns the old query string, and the functional updater in
-  // `useUrlFilters.setFilters` (hooks/useUrlFilters.ts:99-113) rebuilds from that stale `previous`:
-  // a second change made while the first is loading drops the first. Seen without any throttling:
-  // pick "Prix croissant" then type a minimum price straight away, and the URL ends at `?pmin=200`
-  // — the sort is gone, and the sort control, which reads the URL, with it.
-  test.fail('changes made in quick succession all land in the URL', async ({ page, context }) => {
+  // Every filter change is a navigation of the data router, whose `ads` loader awaits the list
+  // prefetch before the location commits (config/RouteGenerator.tsx). Until then `useSearchParams`
+  // still returns the old query string: useUrlFilters.setFilters used to rebuild from it, so a
+  // second change made while the first was loading dropped the first (fixed 2026-09-25).
+  test('changes made in quick succession all land in the URL', async ({ page, context }) => {
     const { owner, team, tag, ads } = await pricedAds('list-race')
     await signIn(context, owner)
     await page.goto(listPath(team.slug))
@@ -432,7 +428,7 @@ test.describe('ad list', () => {
         message: 'precondition: the minimum price was applied',
       })
       .toBe(true)
-    // The defect: the URL lost one of them.
+    // None of them lost on the way.
     await expectQuery(page, filtered)
     await expect(cardTitles(page, tag)).toHaveText([ads.mid.name, ads.dear.name])
   })

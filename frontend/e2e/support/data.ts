@@ -22,14 +22,9 @@ const SESSION_MAX_AGE_MS = 10 * 60_000
 const sessions = new Map<Role, { auth: Promise<AuthResponse>; at: number }>()
 
 /**
- * A fresh access token for a role global-setup signed in (admin, rider).
- *
- * Cached per worker process, and shared by concurrent callers: every test of every worker hitting
- * POST /api/auth/refresh on the same saved session is exactly what trips the backend defect that
- * `refresh` (support/api.ts) documents — concurrent refreshes of one session answer 500 to all
- * but one (AuthService.refreshToken → user.recordLogin() → optimistic lock on User @Version). The
- * cache keeps a worker to one refresh per 10 minutes, and `refresh` retries the collisions that
- * remain between workers.
+ * A fresh access token for a role global-setup signed in (admin, rider). Cached per worker process
+ * and shared by concurrent callers, so a worker refreshes a role's session once per 10 minutes
+ * rather than once per test.
  */
 export function roleSession(role: Role): Promise<AuthResponse> {
   const cached = sessions.get(role)
@@ -110,20 +105,6 @@ export function teamRequest(name: string, overrides: Partial<TeamRequest> = {}):
   }
 }
 
-/**
- * The settings POST /api/teams leaves a team with, whatever its request said (Team entity defaults,
- * TeamService.createTeam).
- */
-const CREATED_WITH = {
-  visibility: 'TEAM',
-  enableTrips: true,
-  enableAds: true,
-  enablePosts: true,
-  enableRides: true,
-  enableRoutes: true,
-  enableMemberDirectory: false,
-} as const satisfies Partial<TeamRequest>
-
 export interface NewTeamOptions extends Partial<TeamRequest> {
   /**
    * Lets the team's own admins add members and send invitations. Born false, and an admin-only
@@ -133,13 +114,9 @@ export interface NewTeamOptions extends Partial<TeamRequest> {
 }
 
 /**
- * A team owned by `owner`, with the settings of `teamRequest(name, overrides)`.
- *
- * POST /api/teams honours only the name, media and geometry of its request: it always creates a
- * TEAM-visible team and silently IGNORES the enable* flags (TeamService.createTeam never sets them,
- * only updateTeam does) — the team gets the entity defaults, member directory off. So whenever the
- * request differs from those defaults, it is applied again with a PUT, as the owner. A visibility
- * other than TEAM is then accepted only from a platform admin (the seeded admin is one).
+ * A team owned by `owner`, with the settings of `teamRequest(name, overrides)`. POST /api/teams
+ * always creates a TEAM-visible team: any other visibility is applied afterwards with a PUT, which
+ * only a platform admin may do (the seeded admin is one).
  */
 export async function newTeam(
   owner: AuthResponse,
@@ -153,10 +130,7 @@ export async function newTeam(
     team = await expectOk<TeamDetailDto>(
       await api.post('/api/teams', { data: { ...request, visibility: 'TEAM' } })
     )
-    const differs = (Object.keys(CREATED_WITH) as (keyof typeof CREATED_WITH)[]).some(
-      (key) => request[key] !== CREATED_WITH[key]
-    )
-    if (differs)
+    if (request.visibility !== 'TEAM')
       team = await expectOk<TeamDetailDto>(
         await api.put(`/api/teams/${team.slug}`, { data: request })
       )
