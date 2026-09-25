@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test'
-import { ApiError, loginWithPassword } from './support/api'
+import { ApiError, apiDelete, loginWithPassword } from './support/api'
 import {
   addMember,
   freshAddress,
@@ -10,6 +10,7 @@ import {
   signIn,
 } from './support/data'
 import { expect, test, unique } from './support/fixtures'
+import { stack } from './support/stack'
 import {
   calendarTokenOf,
   fetchFeed,
@@ -24,9 +25,8 @@ import {
   signOutFromHeader,
   virtualAuthenticator,
 } from './support/flow-account'
-import { rosterOf } from './support/flow-team'
 import { mailbox, otpCodeIn, waitForNewMail } from './support/mailhog'
-import { findRide, joinGroup, newRide, openRide } from './support/rides'
+import { joinGroup, newRide, openRide } from './support/rides'
 import { hydrated } from './support/ui'
 
 /**
@@ -557,72 +557,109 @@ test.describe('the personal calendar feed', () => {
 })
 
 test.describe('deleting the account', () => {
-  /** The profile's danger zone, its delete button hydrated, and the confirmation dialog. */
+  /**
+   * The profile's danger zone, its delete button hydrated. The confirmation reads
+   * GET /api/users/me/deletion-impact each time it opens and says, before anything is confirmed,
+   * which teams block the deletion and which go with the account.
+   */
   async function openDangerZone(page: Page, email: string) {
     const main = await openProfile(page, email)
     await expect(main.getByText('Zone de danger', { exact: true })).toBeVisible()
     const remove = main.getByRole('button', { name: 'Supprimer le compte' })
     await hydrated(remove)
-    return { remove, dialog: page.getByRole('dialog', { name: 'Zone de danger' }) }
+    const dialog = page.getByRole('dialog', { name: 'Zone de danger' })
+    const confirm = dialog.getByRole('button', { name: 'Oui, supprimer mon compte' })
+    /** Opens the confirmation and waits for its impact to be read. */
+    const open = async () => {
+      const impact = page.waitForResponse((r) => r.url().endsWith('/api/users/me/deletion-impact'))
+      await remove.click()
+      await expect(dialog).toBeVisible()
+      expect((await impact).status()).toBe(200)
+      await expect(dialog.getByText('Vérification de vos équipes…')).toHaveCount(0)
+    }
+    return { dialog, confirm, open }
   }
 
-  test('the sole admin of a team with other members is refused, and keeps everything', async ({
+  /** The team's public page, as an anonymous visitor sees it: its status code. */
+  const anonymousStatus = async (teamSlug: string) =>
+    (await fetch(`${stack.baseURL}/api/teams/${teamSlug}`)).status
+
+  test('the sole admin of a team with other members is stopped before confirming, until another admin is named', async ({
     page,
     context,
   }) => {
     const user = await newUser(unique('Seule admin'))
     const member = await newUser(unique('Coéquipière'))
     const team = await newTeam(user, unique('Équipe à garder'))
-    await addMember(await roleSession('admin'), team.slug, member)
+    const admin = await roleSession('admin')
+    await addMember(admin, team.slug, member)
     await signIn(context, user)
-    const { remove, dialog } = await openDangerZone(page, user.user.email)
+    const { dialog, confirm, open } = await openDangerZone(page, user.user.email)
     const cookie = await sessionCookie(context)
     expect(cookie, 'precondition: signed in').toBeTruthy()
 
-    // Cancelling keeps everything.
-    await remove.click()
-    await expect(dialog.getByText('Êtes-vous sûr ? Cette action est irréversible.')).toBeVisible()
+    // The confirmation names the team that blocks it, linked to its members, and cannot be
+    // confirmed.
+    await open()
+    await expect(
+      dialog.getByText('Vous ne pouvez pas encore supprimer votre compte', { exact: false })
+    ).toBeVisible()
+    const blocking = dialog.getByRole('link', { name: team.name, exact: true })
+    await expect(blocking).toHaveAttribute('href', `/equipes/${team.slug}/admin/membres`)
+    await expect(confirm).toBeDisabled()
     await dialog.getByRole('button', { name: 'Annuler' }).click()
     await expect(dialog).toBeHidden()
 
-    await remove.click()
-    const refused = page.waitForResponse(
-      (r) => r.request().method() === 'DELETE' && r.url().endsWith('/api/users/me')
-    )
-    await dialog.getByRole('button', { name: 'Oui, supprimer mon compte' }).click()
-    const response = await refused
-    expect(response.status()).toBe(400)
-    expect(((await response.json()) as { code: string }).code).toBe('SOLE_TEAM_ADMIN')
-
-    // Said, the dialog closed, and nothing gone: still signed in, still the team's admin.
-    await expect(
-      page.getByText("Vous êtes le seul administrateur d'une équipe qui compte d'autres membres.", {
-        exact: false,
-      })
-    ).toBeVisible()
-    await expect(dialog).toBeHidden()
-    await expect(page).toHaveURL(/\/profil$/)
+    // The server refuses it too, called directly.
+    const refused = await apiDelete(user, '/api/users/me').catch((error: unknown) => error)
+    expect(refused).toBeInstanceOf(ApiError)
+    expect((refused as ApiError).code).toBe('SOLE_TEAM_ADMIN')
     expect(await sessionIsAlive(cookie!), 'the session is untouched').toBe(true)
     expect(await getTeam(user, team.slug)).toMatchObject({ role: 'ADMIN', memberCount: 2 })
+
+    // Another admin named, the impact is read again when the confirmation reopens: the account
+    // goes, and the team stays with its members.
+    const successor = await newUser(unique('Relève'))
+    await addMember(admin, team.slug, successor, 'ADMIN')
+    await open()
+    await expect(
+      dialog.getByText('Vous ne pouvez pas encore supprimer votre compte', { exact: false })
+    ).toHaveCount(0)
+    const deleted = page.waitForResponse(
+      (r) => r.request().method() === 'DELETE' && r.url().endsWith('/api/users/me')
+    )
+    await confirm.click()
+    expect((await deleted).status()).toBe(204)
+    await expect(page).toHaveURL(/\/connexion$/)
+    expect(await getTeam(successor, team.slug)).toMatchObject({ role: 'ADMIN', memberCount: 2 })
   })
 
-  test('an admin alone in their team deletes the account: signed out for good, sign-in refused', async ({
+  test('an admin alone in their team is told the team goes too, then signed out for good', async ({
     page,
     context,
   }) => {
     const user = await newUser(unique('Partante'))
-    const team = await newTeam(user, unique('Équipe solitaire'))
-    const ride = await newRide(user, team.slug, unique('Sortie de la partante'))
+    const team = await newTeam(user, unique('Équipe solitaire'), { visibility: 'PUBLIC' })
+    expect(await anonymousStatus(team.slug), 'precondition: the team is public').toBe(200)
     await signIn(context, user)
-    const { remove, dialog } = await openDangerZone(page, user.user.email)
+    const { dialog, confirm, open } = await openDangerZone(page, user.user.email)
     const cookie = await sessionCookie(context)
     expect(cookie, 'precondition: signed in').toBeTruthy()
 
-    await remove.click()
+    // Said before confirming: the team is deleted with the account.
+    await open()
+    await expect(
+      dialog.getByText(
+        'Vous êtes le seul membre de cette équipe : elle sera supprimée avec votre compte.'
+      )
+    ).toBeVisible()
+    await expect(dialog.getByRole('listitem').filter({ hasText: team.name })).toBeVisible()
+    await expect(confirm).toBeEnabled()
+
     const deleted = page.waitForResponse(
       (r) => r.request().method() === 'DELETE' && r.url().endsWith('/api/users/me')
     )
-    await dialog.getByRole('button', { name: 'Oui, supprimer mon compte' }).click()
+    await confirm.click()
     expect((await deleted).status()).toBe(204)
 
     // Signed out, on the login form.
@@ -641,12 +678,8 @@ test.describe('deleting the account', () => {
     expect(refused).toBeInstanceOf(ApiError)
     expect((refused as ApiError).code).toBe('INVALID_CREDENTIALS')
 
-    // The team stays, with no member at all, and keeps its content. A product choice
-    // (2026-09-25), open to change: the account is let go rather than kept for an empty team.
-    const admin = await roleSession('admin')
-    const roster = await rosterOf(admin, team.slug)
-    expect(roster.members).toEqual([])
-    expect(await findRide(admin, team.slug, ride.slug), 'the ride stays').not.toBeNull()
+    // And the team went with it.
+    expect(await anonymousStatus(team.slug), 'the team is gone').toBe(404)
   })
 })
 

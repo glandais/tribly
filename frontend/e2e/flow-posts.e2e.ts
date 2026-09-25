@@ -139,7 +139,8 @@ test('a post goes from the editor to the feeds, gets a comment, is edited, then 
     await submit.click()
 
     await expect(page.getByText('Publication créée avec succès')).toBeVisible()
-    await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}/articles/[^/]+$`))
+    // The form lives on /articles/nouveau, which the pattern must not take for the new post.
+    await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}/articles/(?!nouveau$)[^/]+$`))
     postSlug = new URL(page.url()).pathname.split('/').pop()!
   })
 
@@ -361,7 +362,7 @@ test('a post saved as a draft is hidden from members until it is published from 
   await expect(main.getByRole('radio', { name: 'Brouillon' })).toBeChecked()
   await main.getByRole('button', { name: 'Créer la publication' }).click()
   await expect(toasts(page).filter({ hasText: 'Publication créée avec succès' })).toBeVisible()
-  await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}/articles/[^/]+$`))
+  await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}/articles/(?!nouveau$)[^/]+$`))
   const postSlug = new URL(page.url()).pathname.split('/').pop()!
   await expect(main.getByRole('heading', { level: 2, name: title })).toBeVisible()
   await expect(main.getByText('Brouillon', { exact: true })).toBeVisible()

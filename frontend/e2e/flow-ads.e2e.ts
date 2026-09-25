@@ -143,7 +143,7 @@ test.describe('ad journey', () => {
 
     // The detail page of the new ad.
     await expect(page.getByRole('heading', { level: 2, name })).toBeVisible()
-    await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}/annonces/[^/]+$`))
+    await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}/annonces/(?!nouvelle$)[^/]+$`))
     const slug = new URL(page.url()).pathname.split('/').at(-1)!
     await expect(main.getByText(euros(350), { exact: true })).toBeVisible()
     await expect(main.getByText('Gravel en acier, taille M, pneus neufs.')).toBeVisible()
