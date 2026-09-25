@@ -15,7 +15,7 @@ import { getListPublicationsQueryKey } from '../../api/endpoints/publications/pu
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TripEditor } from '../../components/trip/TripEditor'
 import { TripRequest } from '@/api/dto'
-import { useEditTripFormData } from './tripFormData'
+import { useEditTripFormData, tripToRequest } from './tripFormData'
 
 export function EditTripPage() {
   const { t } = useTranslation()
@@ -76,23 +76,7 @@ export function EditTripPage() {
     )
   }
 
-  // Prepare initial values from fetched trip data. A stage comes back as a `TripStageDto`, which
-  // carries the resolved `route`/`startPlace`/`endPlace` objects — the form edits the `…Slug`/`…Id`
-  // references of a `StageRequest`, so they have to be projected back. Spreading the DTO as-is is
-  // the trap: the tabs render "no route selected" for a stage that has one, and saving then sends
-  // stages without `routeSlug` and clears them for real.
-  const initialValues = {
-    ...trip,
-    stages: trip.stages.map((stage) => ({
-      id: stage.id,
-      name: stage.name,
-      dateTime: stage.dateTime,
-      routeSlug: stage.route?.slug,
-      startPlaceId: stage.startPlace?.id,
-      endPlaceId: stage.endPlace?.id,
-      media: stage.media,
-    })),
-  } as TripRequest
+  const initialValues = tripToRequest(trip)
 
   return (
     <Container size="sm" py="xl">

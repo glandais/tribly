@@ -4,7 +4,7 @@ import { useGetRide, prefetchGetRideQuery, getGetRideQueryKey } from '@/api/endp
 import { prefetchListPlacesQuery, prefetchGetPlaceQuery } from '@/api/endpoints/places/places'
 import { placeAutocompleteParams } from '@/components/common/placeAutocompleteParams'
 import { prefetchRoutesBulkChunked } from '@/config/prefetchHelpers'
-import type { RideDto } from '@/api/dto'
+import type { RideDto, RideRequest } from '@/api/dto'
 
 /**
  * The one description of what `CreateRidePage` and `EditRidePage` read, consumed two ways: the
@@ -121,4 +121,34 @@ export async function prefetchEditRideForm(
       geometry: false,
     }),
   ])
+}
+
+/**
+ * The `RideRequest` that rewrites `ride` as it stands. `RideDto` carries resolved objects where the
+ * request wants references — `leader` vs `leaderId` on each group, `startPlace`/`endPlace` vs
+ * `…PlaceId` — and the server applies every field of a PUT, absent ones included. Sending the DTO
+ * spread as-is therefore wipes each group's leader and both places: the edit form did it until it
+ * mapped them, and the publish/unpublish/cancel menu of the detail page did it after.
+ */
+export function rideToRequest(ride: RideDto): RideRequest {
+  return {
+    name: ride.name,
+    media: ride.media,
+    dateTime: ride.dateTime,
+    status: ride.status,
+    visibility: ride.visibility,
+    routeSlug: ride.routeSlug,
+    startPlaceId: ride.startPlace?.id,
+    endPlaceId: ride.endPlace?.id,
+    publishAt: ride.publishAt,
+    groups: ride.groups.map((group) => ({
+      id: group.id,
+      name: group.name,
+      time: group.time,
+      averageSpeed: group.averageSpeed,
+      maxParticipants: group.maxParticipants,
+      routeSlug: group.routeSlug,
+      leaderId: group.leader?.id,
+    })),
+  }
 }

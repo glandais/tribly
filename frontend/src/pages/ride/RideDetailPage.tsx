@@ -40,6 +40,7 @@ import {
 } from '../../api/endpoints/rides/rides'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { useRideDetailData } from './rideDetailData'
+import { rideToRequest } from './rideFormData'
 import { ReportTargetType, Status } from '@/api/dto'
 import type { RideDto } from '@/api/dto'
 import { ApiClientError } from '@/lib/apiError'
@@ -164,7 +165,11 @@ export function RideDetailPage() {
 
   const handlePublish = () => {
     updateMutation.mutate(
-      { teamSlug: teamSlug!, rideSlug: rideSlug!, data: { ...ride, status: Status.PUBLISHED } },
+      {
+        teamSlug: teamSlug!,
+        rideSlug: rideSlug!,
+        data: { ...rideToRequest(ride), status: Status.PUBLISHED },
+      },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
@@ -177,7 +182,11 @@ export function RideDetailPage() {
 
   const handleUnpublish = () => {
     updateMutation.mutate(
-      { teamSlug: teamSlug!, rideSlug: rideSlug!, data: { ...ride, status: Status.DRAFT } },
+      {
+        teamSlug: teamSlug!,
+        rideSlug: rideSlug!,
+        data: { ...rideToRequest(ride), status: Status.DRAFT },
+      },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
@@ -191,7 +200,11 @@ export function RideDetailPage() {
 
   const handleCancel = () => {
     updateMutation.mutate(
-      { teamSlug: teamSlug!, rideSlug: rideSlug!, data: { ...ride, status: Status.CANCELLED } },
+      {
+        teamSlug: teamSlug!,
+        rideSlug: rideSlug!,
+        data: { ...rideToRequest(ride), status: Status.CANCELLED },
+      },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
@@ -205,7 +218,11 @@ export function RideDetailPage() {
 
   const handleUncancel = () => {
     updateMutation.mutate(
-      { teamSlug: teamSlug!, rideSlug: rideSlug!, data: { ...ride, status: Status.DRAFT } },
+      {
+        teamSlug: teamSlug!,
+        rideSlug: rideSlug!,
+        data: { ...rideToRequest(ride), status: Status.DRAFT },
+      },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })

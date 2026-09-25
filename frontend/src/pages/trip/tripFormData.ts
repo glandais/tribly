@@ -1,7 +1,7 @@
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { useGetTrip, prefetchGetTripQuery, getGetTripQueryKey } from '@/api/endpoints/trips/trips'
 import { prefetchRoutesBulkChunked } from '@/config/prefetchHelpers'
-import type { TripDto } from '@/api/dto'
+import type { TripDto, TripRequest } from '@/api/dto'
 import type { QueryClient } from '@tanstack/react-query'
 
 /**
@@ -83,4 +83,32 @@ export async function prefetchEditTripForm(
   await prefetchRoutesBulkChunked(queryClient, teamSlug, tripFormStageRouteSlugs(trip), {
     geometry: false,
   })
+}
+
+/**
+ * The `TripRequest` that rewrites `trip` as it stands. A stage comes back as a `TripStageDto`, which
+ * carries the resolved `route`/`startPlace`/`endPlace` objects where a `StageRequest` wants the
+ * `routeSlug`/`…PlaceId` references, and the server applies every field of a PUT. Spreading the DTO
+ * as-is is the trap: it clears each stage's route and places — the edit form did it until it
+ * projected them, and the publish/unpublish/cancel menu of the detail page did it after.
+ */
+export function tripToRequest(trip: TripDto): TripRequest {
+  return {
+    name: trip.name,
+    media: trip.media,
+    dateTime: trip.dateTime,
+    status: trip.status,
+    visibility: trip.visibility,
+    routeSlug: trip.routeSlug,
+    publishAt: trip.publishAt,
+    stages: trip.stages.map((stage) => ({
+      id: stage.id,
+      name: stage.name,
+      dateTime: stage.dateTime,
+      routeSlug: stage.route?.slug,
+      startPlaceId: stage.startPlace?.id,
+      endPlaceId: stage.endPlace?.id,
+      media: stage.media,
+    })),
+  }
 }

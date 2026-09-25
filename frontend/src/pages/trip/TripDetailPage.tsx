@@ -46,6 +46,7 @@ import {
   getGetTripQueryKey,
 } from '../../api/endpoints/trips/trips'
 import { useTripDetailData } from './tripDetailData'
+import { tripToRequest } from './tripFormData'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { ReportTargetType, Status } from '@/api/dto'
 import { useAuth } from '../../hooks/useAuth'
@@ -159,7 +160,11 @@ export function TripDetailPage() {
 
   const handlePublish = () => {
     updateMutation.mutate(
-      { teamSlug: teamSlug!, tripSlug: tripSlug!, data: { ...trip, status: Status.PUBLISHED } },
+      {
+        teamSlug: teamSlug!,
+        tripSlug: tripSlug!,
+        data: { ...tripToRequest(trip), status: Status.PUBLISHED },
+      },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
@@ -172,7 +177,11 @@ export function TripDetailPage() {
 
   const handleUnpublish = () => {
     updateMutation.mutate(
-      { teamSlug: teamSlug!, tripSlug: tripSlug!, data: { ...trip, status: Status.DRAFT } },
+      {
+        teamSlug: teamSlug!,
+        tripSlug: tripSlug!,
+        data: { ...tripToRequest(trip), status: Status.DRAFT },
+      },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
@@ -186,7 +195,11 @@ export function TripDetailPage() {
 
   const handleCancel = () => {
     updateMutation.mutate(
-      { teamSlug: teamSlug!, tripSlug: tripSlug!, data: { ...trip, status: Status.CANCELLED } },
+      {
+        teamSlug: teamSlug!,
+        tripSlug: tripSlug!,
+        data: { ...tripToRequest(trip), status: Status.CANCELLED },
+      },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
@@ -200,7 +213,11 @@ export function TripDetailPage() {
 
   const handleUncancel = () => {
     updateMutation.mutate(
-      { teamSlug: teamSlug!, tripSlug: tripSlug!, data: { ...trip, status: Status.DRAFT } },
+      {
+        teamSlug: teamSlug!,
+        tripSlug: tripSlug!,
+        data: { ...tripToRequest(trip), status: Status.DRAFT },
+      },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })

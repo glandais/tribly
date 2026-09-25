@@ -10,7 +10,7 @@ import {
   useChangeRideSlug,
   getGetRideQueryKey,
 } from '../../api/endpoints/rides/rides'
-import { useEditRideFormData } from '@/pages/ride/rideFormData'
+import { useEditRideFormData, rideToRequest } from '@/pages/ride/rideFormData'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { RideEditor } from '../../components/ride/RideEditor'
@@ -85,17 +85,7 @@ export function EditRidePage() {
     )
   }
 
-  // Prepare initial values from fetched ride data.
-  // `RideGroupDto` carries `leader` (an object); `GroupRequest` wants `leaderId`. Without this
-  // mapping the field is simply absent on submit, and the server applies
-  // `setLeader(resolveLeader(null))` unconditionally — so merely editing a ride used to wipe
-  // every group's designated leader.
-  const initialValues = {
-    ...ride,
-    startPlaceId: ride.startPlace?.id,
-    endPlaceId: ride.endPlace?.id,
-    groups: ride.groups?.map((group) => ({ ...group, leaderId: group.leader?.id })),
-  } as RideRequest
+  const initialValues = rideToRequest(ride)
 
   const initialLeaders = Object.fromEntries(
     (ride.groups ?? [])
