@@ -3,6 +3,7 @@ import type { AcceptInvitationRequest, MemberDto, TeamInvitationDto } from '../s
 import { apiContext, expectOk, loginWithPassword, type AuthResponse } from './support/api'
 import { freshAddress, newTeam, newUser, signIn } from './support/data'
 import { expect, test, unique } from './support/fixtures'
+import { hydrated } from './support/ui'
 import {
   invitationTokenIn,
   inviteByApi,
@@ -246,15 +247,13 @@ test.describe('invitee side', () => {
     expect((await previewInvitation(token)).redeemable).toBe(true)
   })
 
-  test('accepting from another account: a « se déconnecter » button next to the message', async ({
+  test('accepting from another account: « se déconnecter » leads back to the invitation, which the invited account then accepts', async ({
     page,
     context,
   }) => {
-    // The error state now offers « Se déconnecter et utiliser un autre compte » (fixed 2026-09-25).
-    // Defect left: handleSwitchAccount navigates back to the invitation, but authStore.logout()
-    // ends with a hard `window.location.href = paths.login()`, so the user lands on /connexion
-    // without the invitation (no `from`), and after signing in with the invited address, on home.
-    test.fail()
+    // The error state offers « Se déconnecter et utiliser un autre compte », and signing out
+    // reloads the invitation itself — logout() used to reload the login page, without the
+    // invitation to come back to (fixed 2026-09-25).
     const owner = await newUser('Owner switch')
     const team = await newTeam(owner, unique('Invitations deconnexion'), { addMemberAllowed: true })
     const invitee = await newUser('Invited two')
@@ -275,13 +274,27 @@ test.describe('invitee side', () => {
       'precondition: the accept was refused as addressed to someone else'
     ).toBeVisible()
 
-    const signOut = page.getByRole('main').getByRole('button', { name: /se déconnecter/i })
-    await expect(signOut, 'precondition: the sign-out button is offered').toBeVisible()
-    await signOut.click()
-    // The defect.
-    // Signed out, back on the same invitation, now offered a login.
-    await expect(page).toHaveURL(new RegExp(`/invitation\\?token=${token}`))
-    await expect(page.getByRole('main').getByRole('link', { name: 'Se connecter' })).toBeVisible()
+    await page
+      .getByRole('main')
+      .getByRole('button', { name: /se déconnecter/i })
+      .click()
+    // Signed out, back on the same invitation, now offered a login…
+    await expect(page).toHaveURL(new RegExp(`/invitation\\?token=${token}$`))
+    const signInLink = page.getByRole('main').getByRole('link', { name: 'Se connecter' })
+    await expect(signInLink).toBeVisible()
+    expect((await context.cookies()).some((c) => c.name === 'refresh_token' && c.value)).toBe(false)
+
+    // …which returns there once signed in with the invited address.
+    await hydrated(signInLink)
+    await signInLink.click()
+    await page.getByLabel('Email').fill(invitee.user.email)
+    await page.getByLabel('Mot de passe').fill(invitee.password)
+    await page.getByRole('main').getByRole('button', { name: 'Se connecter', exact: true }).click()
+    await expect(page).toHaveURL(new RegExp(`/invitation\\?token=${token}$`))
+    await page.getByRole('button', { name: "Rejoindre l'équipe" }).click()
+    await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}$`))
+    expect(await membershipsOf(owner, team.slug, invitee.user.id)).toHaveLength(1)
+    expect(await membershipsOf(owner, team.slug, intruder.user.id)).toHaveLength(0)
   })
 
   test('accepting twice through the API: no error, a single membership', async () => {

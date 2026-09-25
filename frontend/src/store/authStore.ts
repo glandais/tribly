@@ -34,7 +34,11 @@ export interface AuthActions {
   setError: (error: string | null) => void
   clearError: () => void
   getToken: () => string | null
-  logout: () => Promise<void>
+  /**
+   * Revokes the session, then reloads on `redirectTo` (the login page by default). A full reload,
+   * not a client navigation: it is what drops every piece of the signed-out user's in-memory state.
+   */
+  logout: (options?: { redirectTo?: string }) => Promise<void>
   redirectToLogin: () => void
 }
 
@@ -147,7 +151,7 @@ const authStore = create<AuthStore>()((set, get) => ({
 
   getToken: () => get().accessToken,
 
-  logout: async () => {
+  logout: async (options) => {
     try {
       await fetch('/api/auth/logout', {
         method: 'POST',
@@ -158,7 +162,7 @@ const authStore = create<AuthStore>()((set, get) => ({
     }
 
     set({ ...defaultState, isInitialized: true, isLoading: false })
-    window.location.href = paths.login()
+    window.location.href = options?.redirectTo ?? paths.login()
   },
 
   redirectToLogin: () => {

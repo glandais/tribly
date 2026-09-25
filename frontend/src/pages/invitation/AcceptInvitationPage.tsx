@@ -95,16 +95,9 @@ export function AcceptInvitationPage() {
   }
 
   // Whoever is signed in is not who the invitation is for. Signing out and coming back to this very
-  // URL is the way through, so it is offered as a button rather than left as an exercise.
-  const handleSwitchAccount = async () => {
-    await logout()
-    // Back to the invitation itself when the mismatch was only found on accepting.
-    if (invitation) {
-      setFailureCode(null)
-      setState('ready')
-    }
-    navigate(`${location.pathname}${location.search}`, { replace: true })
-  }
+  // URL is the way through, so it is offered as a button rather than left as an exercise. logout()
+  // reloads the page it is told to — by default the login page, which would drop the invitation.
+  const handleSwitchAccount = () => logout({ redirectTo: `${location.pathname}${location.search}` })
 
   if (state === 'loading') {
     return (
