@@ -92,7 +92,8 @@ export function CommentItem({
             <Group gap="xs" justify="space-between" wrap="nowrap">
               <Group gap="xs">
                 <Text fw={500}>{comment.author.displayName}</Text>
-                <Text size="xs" c="dimmed">
+                {/* Read off the clock: server and client may render it a few seconds apart. */}
+                <Text size="xs" c="dimmed" suppressHydrationWarning>
                   {formatRelative(comment.createdAt)}
                 </Text>
               </Group>

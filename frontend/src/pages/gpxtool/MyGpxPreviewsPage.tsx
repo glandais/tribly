@@ -105,7 +105,11 @@ function PreviewRow({ preview }: PreviewRowProps) {
               <IconArrowDown size={14} />
               <Text size="sm">{elevation(preview.elevationLoss)}</Text>
             </Group>
-            <Text size="sm">{formatRelative(preview.createdAt)}</Text>
+            {/* "il y a 2 minutes" is read off the clock: server and client legitimately render
+                different text a few seconds apart. */}
+            <Text size="sm" suppressHydrationWarning>
+              {formatRelative(preview.createdAt)}
+            </Text>
           </Group>
         </Stack>
 

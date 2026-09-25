@@ -70,7 +70,8 @@ export function NextRideCard({ ride }: NextRideCardProps) {
             {t('publications.registered')}
           </Badge>
           <Badge size="sm" color="gray" variant="light">
-            {formatRelative(ride.dateTime)}
+            {/* Read off the clock: server and client may render it a few seconds apart. */}
+            <span suppressHydrationWarning>{formatRelative(ride.dateTime)}</span>
           </Badge>
         </Group>
 
