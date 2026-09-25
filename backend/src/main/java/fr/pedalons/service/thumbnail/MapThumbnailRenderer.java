@@ -61,7 +61,7 @@ public class MapThumbnailRenderer {
   /** Tiles cached while the tileserver was failing would blacken every later render: drop them. */
   void onStart(@Observes StartupEvent event) {
     for (String style : List.of(LIGHT_STYLE, DARK_STYLE)) {
-      List<Path> broken = evictBrokenTiles(tileCache(urlPattern(style)), 0);
+      List<Path> broken = evictBrokenTiles(tileCacheOf(urlPattern(style)), 0);
       if (!broken.isEmpty()) {
         LOG.warnv("Evicted {0} broken cached tile(s) for style {1}", broken.size(), style);
       }
@@ -83,7 +83,7 @@ public class MapThumbnailRenderer {
       Files.deleteIfExists(output.toPath());
       throw e;
     }
-    List<Path> broken = evictBrokenTiles(tileCache(urlPattern), start - MTIME_SLACK_MS);
+    List<Path> broken = evictBrokenTiles(tileCacheOf(urlPattern), start - MTIME_SLACK_MS);
     if (!broken.isEmpty()) {
       Files.deleteIfExists(output.toPath());
       throw new IOException(
@@ -92,7 +92,7 @@ public class MapThumbnailRenderer {
               + " tile(s) of style "
               + style
               + ", e.g. "
-              + tileCache(urlPattern).toPath().relativize(broken.getFirst()));
+              + tileCacheOf(urlPattern).toPath().relativize(broken.getFirst()));
     }
   }
 
@@ -100,7 +100,12 @@ public class MapThumbnailRenderer {
     return tileserverUrl + "/styles/" + style + "/256/{z}/{x}/{y}.png";
   }
 
-  private File tileCache(String urlPattern) {
+  /** Where the producer caches the tiles of {@code style}. */
+  File tileCache(String style) {
+    return tileCacheOf(urlPattern(style));
+  }
+
+  private File tileCacheOf(String urlPattern) {
     return new File(
         cacheFolderProvider.getCacheFolder(), Integer.toHexString(urlPattern.hashCode()));
   }
@@ -130,7 +135,7 @@ public class MapThumbnailRenderer {
     return broken;
   }
 
-  private static boolean looksLikeImage(Path tile) {
+  static boolean looksLikeImage(Path tile) {
     byte[] head = new byte[4];
     int read;
     try (InputStream in = Files.newInputStream(tile)) {

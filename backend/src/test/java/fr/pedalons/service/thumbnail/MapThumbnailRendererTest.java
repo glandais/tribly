@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import fr.pedalons.AbstractBaseTest;
 import fr.pedalons.domain.route.GpxTrack;
 import io.github.glandais.gpx.data.GPX;
-import io.github.glandais.gpx.util.CacheFolderProvider;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.awt.Color;
@@ -25,8 +24,6 @@ import org.junit.jupiter.api.io.TempDir;
 class MapThumbnailRendererTest extends AbstractBaseTest {
 
   @Inject MapThumbnailRenderer renderer;
-
-  @Inject CacheFolderProvider cacheFolderProvider;
 
   @TempDir Path tmp;
 
@@ -63,10 +60,18 @@ class MapThumbnailRendererTest extends AbstractBaseTest {
         IOException.class,
         () -> renderer.render(output, gpx(), "no-such-style", List.of(Color.RED)));
 
-    try (Stream<Path> files = Files.walk(cacheFolderProvider.getCacheFolder().toPath())) {
-      List<Path> nonImages =
-          files.filter(Files::isRegularFile).filter(p -> !startsWithPng(p)).toList();
-      assertEquals(List.of(), nonImages);
+    // Only this style's cache: the shared test cache outlives the run, and holds other styles'
+    // tiles, elevation tiles, and directories keyed by the tileserver port of earlier runs
+    Path styleCache = renderer.tileCache("no-such-style").toPath();
+    if (Files.exists(styleCache)) {
+      try (Stream<Path> files = Files.walk(styleCache)) {
+        List<Path> nonImages =
+            files
+                .filter(Files::isRegularFile)
+                .filter(p -> !MapThumbnailRenderer.looksLikeImage(p))
+                .toList();
+        assertEquals(List.of(), nonImages);
+      }
     }
   }
 
@@ -87,14 +92,5 @@ class MapThumbnailRendererTest extends AbstractBaseTest {
     assertTrue(Files.exists(tile));
     assertFalse(Files.exists(broken));
     assertFalse(Files.exists(empty));
-  }
-
-  private static boolean startsWithPng(Path p) {
-    try {
-      byte[] bytes = Files.readAllBytes(p);
-      return bytes.length >= 4 && bytes[0] == (byte) 0x89 && bytes[1] == 'P';
-    } catch (IOException e) {
-      return false;
-    }
   }
 }
