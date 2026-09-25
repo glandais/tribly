@@ -153,6 +153,7 @@
   "auth.otp.send": "Envoyer le code",
   "auth.otp.resend": "Renvoyer le code",
   "auth.otp.resendIn": "Renvoyer dans {{seconds}}s",
+  "auth.otp.verify.digit": "Chiffre {{position}} sur {{length}} du code",
   "auth.otp.verify.title": "Entrez votre code",
   "auth.otp.verify.sentTo": "Un code à 6 chiffres a été envoyé à <strong>{{email}}</strong>",
   "auth.otp.verify.instruction": "Entrez le code reçu par email. Ce code expire dans 5 minutes.",

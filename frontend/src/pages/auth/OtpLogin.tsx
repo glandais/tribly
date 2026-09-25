@@ -153,7 +153,14 @@ export function OtpLogin({ initialEmail, onSuccess, onBack }: OtpLoginProps) {
             onComplete={submitCode}
             error={!!codeError}
             disabled={isLoading}
-            aria-label={t('auth.otp.verify.title')}
+            // One name per cell. `aria-label` would land on the wrapping Group, a role-less div,
+            // and Mantine's own `ariaLabel` gives all six the same English « PinInput ».
+            getInputProps={(index) => ({
+              'aria-label': t('auth.otp.verify.digit', {
+                position: index + 1,
+                length: CODE_LENGTH,
+              }),
+            })}
           />
           {codeError && (
             <Text size="sm" c="red" role="alert">
