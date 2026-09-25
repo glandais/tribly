@@ -3,6 +3,7 @@ package fr.pedalons.service.notification;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import fr.pedalons.api.AbstractResourceTest;
@@ -127,6 +128,34 @@ class NotificationPipelineTest extends AbstractResourceTest {
         List.of(NotificationType.RIDE_PUBLISHED), notifications.notificationTypesFor(user3));
     assertTrue(notifications.notificationTypesFor(user1).isEmpty(), "the author");
     assertTrue(notifications.notificationTypesFor(user4).isEmpty(), "not a member");
+  }
+
+  @Test
+  void publishedRide_isSignedByTheTeam_notByItsAuthor() {
+    createRide(Status.PUBLISHED, nextWeek);
+    drain();
+
+    NotificationEventEntry event = notifications.eventEntries().getFirst();
+    assertEquals(user1.getId(), event.getActorId(), "still kept out of the audience");
+    assertNull(event.getActorName());
+  }
+
+  @Test
+  void reply_isStillSignedByItsAuthor() {
+    Ride ride = dataService.createRide(team1, user1, "Sortie", "sortie", nextWeek);
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER3))
+        .contentType("application/json")
+        .body(new CommentRequest("On part à quelle heure ?", null))
+        .when()
+        .post("/api/teams/" + team1Slug + "/rides/" + ride.getSlug() + "/comments")
+        .then()
+        .statusCode(201);
+    drain();
+
+    NotificationEventEntry event = notifications.eventEntries().getFirst();
+    assertEquals(user3.getDisplayName(), event.getActorName());
   }
 
   @Test

@@ -64,6 +64,13 @@ public class NotificationDispatchService {
 
   private static final Duration MAX_BACKOFF = Duration.ofHours(6);
 
+  /** Announcements signed by the team, whoever published. */
+  private static final Set<NotificationType> PUBLISHED_TYPES =
+      Set.of(
+          NotificationType.RIDE_PUBLISHED,
+          NotificationType.TRIP_PUBLISHED,
+          NotificationType.POST_PUBLISHED);
+
   /** When the daily digest leaves, in the recipient's time zone. */
   static final LocalTime DIGEST_TIME = LocalTime.of(7, 0);
 
@@ -287,7 +294,9 @@ public class NotificationDispatchService {
     entry.setSubjectDateTime(resolution.subjectDateTime());
     entry.setExcerpt(resolution.excerpt());
     entry.setChangeList(resolution.changes());
-    if (entry.getActorId() != null) {
+    // A publication speaks for the team: the API never names its author, so neither does its
+    // announcement. The actor id stays — it still keeps the publisher out of the audience.
+    if (entry.getActorId() != null && !PUBLISHED_TYPES.contains(entry.getType())) {
       User actor = userRepository.findById(entry.getActorId());
       entry.setActorName(actor != null ? actor.getDisplayName() : null);
     }
