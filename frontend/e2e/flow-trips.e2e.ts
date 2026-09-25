@@ -10,6 +10,7 @@ import {
   pickDateTime,
   twoDaysThisMonth,
 } from './support/dates'
+import { letEditorSettle, richText } from './support/editor'
 import { expect, test, unique } from './support/fixtures'
 import {
   fetchTrip,
@@ -243,6 +244,8 @@ test('a team admin edits a stage, deletes the other one, then deletes the trip',
   const rescheduled = parisDaysAhead(12, 18, 45)
 
   await signIn(page.context(), teamAdmin)
+  // For letEditorSettle(), before deleting a stage (see below).
+  await page.clock.install()
   let main = await openTrip(page, team.slug, trip.slug, trip.name)
   await expect(stageCards(main)).toHaveCount(2)
   const edit = main.getByRole('link', { name: 'Modifier' })
@@ -264,6 +267,10 @@ test('a team admin edits a stage, deletes the other one, then deletes the trip',
   await main.getByRole('tab', { name: startsWith(`2 ${dropped}`) }).click()
   panel = main.getByRole('tabpanel')
   await expect(panel.getByRole('textbox', { name: "Nom de l'étape" })).toHaveValue(dropped)
+  // Opening the tab queues an update in the stage's editor, and deleting the stage before it is
+  // handed over crashes the form — pinned in « app defects » below. A person reads the stage
+  // before deleting it; this is that pause.
+  await letEditorSettle(page)
   await panel.getByRole('button', { name: 'Supprimer' }).click()
   await expect(main.getByRole('tab', { name: startsWith(`2 `) })).toHaveCount(0)
   await expect(main.getByRole('tab', { name: startsWith(`1 ${renamed}`) })).toBeVisible()
@@ -463,12 +470,11 @@ test.describe('publication states', () => {
   })
 })
 
-test.describe('app defects', () => {
+test.describe('regressions', () => {
   test('the stage date picker speaks French', async ({ page }) => {
-    test.fail(
-      true,
-      'no DatesProvider anywhere in src/: every @mantine/dates picker (ride, trip, post editors) speaks English — « September 2026 », « Mo Tu We » — on the French site'
-    )
+    // There was no DatesProvider anywhere: every @mantine/dates picker spoke English — « September
+    // 2026 », « Mo Tu We » — on the French site (fixed 2026-09-25: AppProviders passes the page's
+    // language to DatesProvider).
     const { teamAdmin, team } = await tripTeam('sélecteur')
     await signIn(page.context(), teamAdmin)
     await page.goto(tripNewPath(team.slug))
@@ -485,43 +491,15 @@ test.describe('app defects', () => {
     const frenchMonth = new Intl.DateTimeFormat('fr-FR', { month: 'long', timeZone: 'UTC' }).format(
       new Date(Date.UTC(Number(year), Number(month) - 1, 15))
     )
-    // The defect.
     await expect(
       dropdown.getByRole('button', { name: `${Number(day)} ${frenchMonth} ${year}`, exact: true })
     ).toBeVisible({ timeout: 2_000 })
   })
 
-  test('a trip that is not there is not requested again and again', async ({ page }) => {
-    // React Query's `retry` (src/lib/queryClient.ts) retries every error but a 401 three times, 404
-    // included, with a 1 s / 2 s / 4 s backoff: every detail page (ride, trip, post…) shows its
-    // skeleton for ~8 s before « introuvable », and asks the API four times for what it already said
-    // does not exist.
-    test.fail(
-      true,
-      'the query client retries a 404 three times before the page says « introuvable »'
-    )
-    const { teamAdmin, team } = await tripTeam('absent')
-    await signIn(page.context(), teamAdmin)
-    const endpoint = `/api/teams/${team.slug}/trips/voyage-absent`
-    const reads: string[] = []
-    page.on('request', (request) => {
-      if (new URL(request.url()).pathname === endpoint) reads.push(request.method())
-    })
-    await page.goto(tripPath(team.slug, 'voyage-absent'))
-    // Precondition: the page does end on its not-found state.
-    await expect(
-      page.getByRole('main').getByRole('heading', { name: 'Voyage introuvable' })
-    ).toBeVisible({
-      timeout: 15_000,
-    })
-    // The defect: a 404 is an answer, not a failure — one read is enough.
-    expect(reads.length, 'browser reads of the missing trip').toBeLessThanOrEqual(1)
-  })
   test("publishing a draft trip from its page keeps its stages' routes", async ({ page }) => {
-    test.fail(
-      true,
-      "TripDetailPage.tsx:162 publishes by sending the TripDto back as the request ({ ...trip, status }): a stage's `route` is not the request's `routeSlug`, so the update clears every stage's route (and start/end places) — unpublish and cancel (lines 175, 189) too; the ride page does the same (pinned in flow-rides.e2e.ts)"
-    )
+    // TripDetailPage published by sending the TripDto back as the request ({ ...trip, status }): a
+    // stage's `route` is not the request's `routeSlug`, so the update cleared every stage's route
+    // (and start/end places) — unpublish and cancel too (fixed 2026-09-25).
     const { teamAdmin, team } = await tripTeam('publication')
     const route = await newRoute(teamAdmin, team.slug, unique('Boucle'), windingTrack(100))
     const trip = await newTrip(
@@ -545,8 +523,82 @@ test.describe('app defects', () => {
     await expect(main.getByText('Publié', { exact: true })).toBeVisible()
     const published = await fetchTrip(teamAdmin, team.slug, trip.slug)
     expect(published?.status).toBe('PUBLISHED')
+    expect(published?.stages[0].route?.slug, 'the stage keeps its route').toBe(route.slug)
+  })
+})
+
+test.describe('app defects', () => {
+  test('a trip that is not there is not requested again and again', async ({ page }) => {
+    // src/lib/queryClient.ts no longer retries a 4xx other than 401, 408 and 429 — but it reads the
+    // status only from an Axios error (Axios.isAxiosError), while the generated clients go through
+    // lib/axiosInstance.ts axiosMutator, which turns every failed response into an ApiClientError.
+    // The status is never seen, so a 404 is still retried three times with a 1 s / 2 s / 4 s
+    // backoff: every detail page (ride, trip, post…) shows its skeleton for ~8 s before
+    // « introuvable », and asks the API four times for what it already said does not exist.
+    test.fail(
+      true,
+      'queryClient retry reads Axios errors only; axiosMutator throws ApiClientError, so a 404 is still retried three times'
+    )
+    const { teamAdmin, team } = await tripTeam('absent')
+    await signIn(page.context(), teamAdmin)
+    const endpoint = `/api/teams/${team.slug}/trips/voyage-absent`
+    const reads: string[] = []
+    page.on('request', (request) => {
+      if (new URL(request.url()).pathname === endpoint) reads.push(request.method())
+    })
+    await page.goto(tripPath(team.slug, 'voyage-absent'))
+    // Precondition: the page does end on its not-found state.
+    await expect(
+      page.getByRole('main').getByRole('heading', { name: 'Voyage introuvable' })
+    ).toBeVisible({
+      timeout: 15_000,
+    })
+    // The defect: a 404 is an answer, not a failure — one read is enough.
+    expect(reads.length, 'browser reads of the missing trip').toBeLessThanOrEqual(1)
+  })
+
+  test('deleting a stage right after opening it does not crash the form', async ({ page }) => {
+    // MarkdownEditor now flushes its 150 ms debounce when it unmounts (fixed 2026-09-25, so that no
+    // typing is lost). Opening a stage's tab queues an update in that stage's editor; deleting the
+    // stage within the 150 ms removes its form item, then unmounts the editor, whose flush calls
+    // TripEditor's form.setFieldValue(`stages.${index}.media`) on the index that is gone: « Cannot
+    // set properties of undefined (setting 'media') », and the ErrorBoundary replaces the form.
+    // Typing in the description does not trigger it: clicking « Supprimer » blurs the editor,
+    // which flushes while the stage still exists.
+    test.fail(
+      true,
+      "a deleted stage's editor flushes its pending update into stages.<index>.media, an index the form no longer has: TypeError, the form replaced by « Une erreur est survenue »"
+    )
+    const { teamAdmin, team } = await tripTeam('suppression étape')
+    const kept = unique('Étape gardée')
+    const dropped = unique('Étape abandonnée')
+    const trip = await newTrip(teamAdmin, team.slug, unique('Voyage à élaguer'), [
+      { name: kept },
+      { name: dropped },
+    ])
+    await signIn(page.context(), teamAdmin)
+    await page.clock.install()
+    await page.goto(`${tripPath(team.slug, trip.slug)}/modifier`)
+    const main = page.getByRole('main')
+    await expect(main.getByRole('heading', { level: 1, name: 'Modifier le voyage' })).toBeVisible()
+    const tab = main.getByRole('tab', { name: startsWith(`2 ${dropped}`) })
+    await hydrated(tab)
+    // The clock stands still from here: the delete lands inside the debounce whatever the
+    // machine's speed.
+    await page.clock.pauseAt(Date.now() + 60_000)
+    await tab.click()
+    const panel = main.getByRole('tabpanel')
+    await expect(panel.getByRole('textbox', { name: "Nom de l'étape" })).toHaveValue(dropped)
+    // Precondition: the stage's editor is mounted, and the stage can be deleted.
+    await expect(richText(panel)).toBeVisible()
+    await panel.getByRole('button', { name: 'Supprimer' }).click()
+    await page.clock.resume()
 
     // The defect.
-    expect(published?.stages[0].route?.slug, 'the stage keeps its route').toBe(route.slug)
+    await expect(main.getByRole('tab', { name: startsWith(`1 ${kept}`) })).toBeVisible({
+      timeout: 2_000,
+    })
+    await expect(main.getByRole('tab', { name: startsWith('2 ') })).toHaveCount(0)
+    await expect(main.getByRole('heading', { name: 'Une erreur est survenue' })).toHaveCount(0)
   })
 })

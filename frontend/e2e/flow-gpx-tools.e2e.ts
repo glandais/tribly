@@ -291,6 +291,29 @@ test('an owner saves a preview as a route of their team', async ({ page, context
   expect(await getPreview(user, preview.id)).not.toBeNull()
 })
 
+test('the « Enregistrer comme parcours » modal closes from its named cross', async ({
+  page,
+  context,
+}) => {
+  // The modal's close button had no accessible name (fixed 2026-09-25: « Fermer la fenêtre »).
+  const user = await newUser(unique('Cycliste fermeture'))
+  const name = unique('Boucle hésitante')
+  const preview = await uploadPreview(user, name, eastward(41))
+
+  await signIn(context, user)
+  const main = await openPreview(page, preview.id, name)
+  const saveAsRoute = main.getByRole('button', { name: 'Enregistrer comme parcours' })
+  await hydrated(saveAsRoute)
+  await saveAsRoute.click()
+  const dialog = page.getByRole('dialog', { name: 'Enregistrer comme parcours' })
+  await expect(dialog.getByRole('combobox', { name: 'Équipe' })).toBeVisible()
+  await dialog.getByRole('button', { name: 'Fermer la fenêtre', exact: true }).click()
+  await expect(dialog).toHaveCount(0)
+  await expect(saveAsRoute).toBeVisible()
+  // Nothing was saved: the user's preview is all there is.
+  expect((await myPreviews(user)).previews.map((p) => p.id)).toEqual([preview.id])
+})
+
 test.describe('a shared preview link', () => {
   test('anyone holding the link reads it; only its owner may edit or delete it', async ({
     page,

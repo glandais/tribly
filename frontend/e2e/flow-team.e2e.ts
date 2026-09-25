@@ -11,7 +11,7 @@ import {
   setTeamAttributes,
   signIn,
 } from './support/data'
-import { letEditorSettle, richText, typeRichText } from './support/editor'
+import { EDITOR_LABEL, richText, typeRichText } from './support/editor'
 import { expect, test, unique } from './support/fixtures'
 import { listedTeams, pageOf, pagesOf, rosterOf } from './support/flow-team'
 import { findRide, newRide, ridePath } from './support/rides'
@@ -55,12 +55,11 @@ function memberRow(page: Page, displayName: string): Locator {
 const teamCard = (page: Page, name: string) => entityCard(main(page), name)
 
 /**
- * Writes `text` in the form's rich-text editor, lets it reach the form (the page's clock must be
- * installed), and checks the form holds it: its « n/max caractères » counter follows the editor.
+ * Writes `text` in the form's rich-text editor (`label`: its accessible name), and checks the form
+ * holds it: its « n/max caractères » counter follows the editor.
  */
-async function writeRichText(page: Page, form: Locator, text: string, max: number) {
-  await typeRichText(form, text)
-  await letEditorSettle(page)
+async function writeRichText(form: Locator, label: string, text: string, max: number) {
+  await typeRichText(form, text, label)
   await expect(form.getByText(`${text.length}/${max} caractères`, { exact: true })).toBeVisible()
 }
 
@@ -73,8 +72,6 @@ test.describe('creating a team', () => {
     const name = unique('Équipe créée')
     const about = 'Nous roulons le dimanche matin depuis la place du marché'
     await signIn(context, owner)
-    // For letEditorSettle(): the description reaches the form through a debounce.
-    await page.clock.install()
 
     // From the team list, where the call to action lives.
     await page.goto('/equipes')
@@ -91,7 +88,7 @@ test.describe('creating a team', () => {
     const submit = form.getByRole('button', { name: "Créer l'équipe" })
     await expect(submit, 'precondition: a nameless team cannot be submitted').toBeDisabled()
     await nameInput.fill(name)
-    await writeRichText(page, form, about, 2000)
+    await writeRichText(form, EDITOR_LABEL.team, about, 2000)
     // Every module starts on but the member directory; turning the ads off is kept.
     const ads = form.getByRole('checkbox', { name: 'Activer les annonces' })
     await expect(ads).toBeChecked()
@@ -150,7 +147,6 @@ test.describe('team settings', () => {
     const renamed = unique('Réglages renommée')
     const about = 'Club de gravel ouvert à tous les niveaux'
     await signIn(context, owner)
-    await page.clock.install()
 
     await page.goto(`/equipes/${team.slug}`)
     await expect(teamHeading(page, team.name)).toBeVisible()
@@ -176,9 +172,9 @@ test.describe('team settings', () => {
       .locator('form')
       .filter({ has: page.getByLabel("Nom de l'équipe") })
     await expect(nameInput).toHaveValue(team.name)
-    await expect(richText(form)).toHaveText('Ancienne description')
+    await expect(richText(form, EDITOR_LABEL.team)).toHaveText('Ancienne description')
     await nameInput.fill(renamed)
-    await writeRichText(page, form, about, 2000)
+    await writeRichText(form, EDITOR_LABEL.team, about, 2000)
 
     // Routes off takes rides and trips down with it.
     const routes = form.getByRole('checkbox', { name: 'Activer les parcours' })
@@ -261,7 +257,7 @@ test.describe('members', () => {
 
     // Promote.
     await row.getByRole('button', { name: 'Modifier' }).click()
-    await row.getByRole('combobox').click()
+    await row.getByRole('combobox', { name: `Rôle de ${member.user.displayName}` }).click()
     await page.getByRole('option', { name: 'Organisateur' }).click()
     await row.getByRole('button', { name: 'Enregistrer' }).click()
     await expect(row.getByText('Organisateur', { exact: true })).toBeVisible()
@@ -343,7 +339,6 @@ test.describe('team pages', () => {
     const retitled = unique('Charte')
     const recontent = 'Casque obligatoire et lumières la nuit'
     await signIn(context, owner)
-    await page.clock.install()
 
     await page.goto(`/equipes/${team.slug}/admin/pages`)
     await expect(page.getByRole('heading', { level: 2, name: "Pages de l'équipe" })).toBeVisible()
@@ -360,7 +355,7 @@ test.describe('team pages', () => {
       .filter({ has: page.getByLabel('Titre de la page') })
     await hydrated(titleInput)
     await titleInput.fill(title)
-    await writeRichText(page, form, content, 10000)
+    await writeRichText(form, EDITOR_LABEL.teamPage, content, 10000)
     await expect(form.getByRole('combobox', { name: 'Visibilité' })).toHaveValue(
       'Équipe uniquement'
     )
@@ -401,9 +396,9 @@ test.describe('team pages', () => {
       .locator('form')
       .filter({ has: page.getByLabel('Titre de la page') })
     await expect(editTitle).toHaveValue(title)
-    await expect(richText(editForm)).toHaveText(content)
+    await expect(richText(editForm, EDITOR_LABEL.teamPage)).toHaveText(content)
     await editTitle.fill(retitled)
-    await writeRichText(page, editForm, recontent, 10000)
+    await writeRichText(editForm, EDITOR_LABEL.teamPage, recontent, 10000)
     await editForm.getByRole('button', { name: 'Enregistrer' }).click()
 
     await expect(page.getByText('Page mise à jour avec succès', { exact: true })).toBeVisible()
@@ -668,15 +663,13 @@ test.describe('deleting a team', () => {
   })
 })
 
-test.describe('known defects', () => {
+test.describe('regressions', () => {
   test('a custom page’s row actions are named for the page, not the team', async ({
     context,
     page,
   }) => {
-    test.fail(
-      true,
-      'TeamPagesAdminPage.tsx:227/246/285 labels a page’s edit link « Modifier l’équipe » and its delete button and confirmation « Supprimer l’équipe »'
-    )
+    // TeamPagesAdminPage labelled a page's edit link « Modifier l’équipe » and its delete button
+    // and confirmation « Supprimer l’équipe » (fixed 2026-09-25).
     const owner = await newUser('Flow team page labels')
     const team = await newTeam(owner, unique('Libellés'))
     const title = unique('FAQ')
@@ -688,18 +681,16 @@ test.describe('known defects', () => {
     await expect(row, 'precondition: the page is listed').toBeVisible()
     await expect(row.getByRole('link'), 'precondition: one edit link').toHaveCount(1)
     await expect(row.getByRole('button'), 'precondition: one delete button').toHaveCount(1)
+    await expect(row.getByRole('link')).toHaveAccessibleName('Modifier')
     const remove = row.getByRole('button')
+    await expect(remove).toHaveAccessibleName('Supprimer')
     await hydrated(remove)
     await remove.click()
     const dialog = page.getByRole('dialog', { name: 'Supprimer la page' })
     await expect(
-      dialog.getByText(`Êtes-vous sûr de vouloir supprimer la page "${title}" ?`, { exact: false }),
-      'precondition: the confirmation is about the page'
+      dialog.getByText(`Êtes-vous sûr de vouloir supprimer la page "${title}" ?`, { exact: false })
     ).toBeVisible()
-
-    // The defect.
-    await expect(row.getByRole('link')).not.toHaveAccessibleName(/équipe/)
-    await expect(row.getByRole('button')).not.toHaveAccessibleName(/équipe/)
+    await expect(dialog.getByRole('button', { name: 'Supprimer', exact: true })).toBeVisible()
     await expect(dialog.getByRole('button', { name: /équipe/ })).toHaveCount(0)
   })
 
@@ -707,10 +698,8 @@ test.describe('known defects', () => {
     context,
     page,
   }) => {
-    test.fail(
-      true,
-      'MarkdownEditor.tsx:56 drops the ariaLabel MediaEditor passes it: the Tiptap textbox of every form (team, ride, trip, post, route, ad, team page, ride template) is unnamed'
-    )
+    // MarkdownEditor dropped the ariaLabel MediaEditor passed it: the Tiptap textbox of every form
+    // (team, ride, trip, post, route, ad, team page, ride template) was unnamed (fixed 2026-09-25).
     const owner = await newUser('Flow team editor name')
     await signIn(context, owner)
     await page.goto('/equipes/nouvelle')
@@ -719,22 +708,16 @@ test.describe('known defects', () => {
       form.getByLabel("Nom de l'équipe"),
       'precondition: the form is rendered'
     ).toBeVisible()
-    await expect(richText(form), 'precondition: the editor is mounted').toBeVisible()
-
-    // The defect.
-    await expect(richText(form)).toHaveAccessibleName(
-      'Décrivez votre équipe, votre style de cyclisme ou votre communauté...'
-    )
+    await expect(richText(form, EDITOR_LABEL.team)).toHaveAttribute('contenteditable', 'true')
   })
 
   test('the team deletion confirmation shows the team name, not HTML markup', async ({
     context,
     page,
   }) => {
-    test.fail(
-      true,
-      'TeamSettingsPage.tsx:141 passes teams.settings.dangerZone.deleteWarning, which holds <strong>{{teamName}}</strong>, to ConfirmDialog as a plain string: the tags show as text'
-    )
+    // TeamSettingsPage passed teams.settings.dangerZone.deleteWarning, which holds
+    // <strong>{{teamName}}</strong>, to ConfirmDialog as a plain string: the tags showed as text
+    // (fixed 2026-09-25: <Trans>).
     const owner = await newUser('Flow team delete markup')
     const team = await newTeam(owner, unique('Balises'))
     await signIn(context, owner)
@@ -743,20 +726,15 @@ test.describe('known defects', () => {
     await hydrated(remove)
     await remove.click()
     const dialog = page.getByRole('dialog', { name: 'Zone de danger' })
-    await expect(
-      dialog.getByText(team.name, { exact: false }),
-      'precondition: the confirmation names the team'
-    ).toBeVisible()
-
-    // The defect.
+    await expect(dialog.locator('strong').filter({ hasText: team.name })).toHaveText(team.name)
     await expect(dialog.getByText('<strong>', { exact: false })).toHaveCount(0)
+    await expect(
+      dialog.getByText(`Êtes-vous sûr de vouloir supprimer ${team.name} ?`, { exact: false })
+    ).toBeVisible()
   })
 
   test('the role picker of a member row has an accessible name', async ({ context, page }) => {
-    test.fail(
-      true,
-      'TeamMemberList.tsx:134 renders the role <Select> without a label or aria-label'
-    )
+    // TeamMemberList rendered the role <Select> without a label or aria-label (fixed 2026-09-25).
     const owner = await newUser('Flow team role picker owner')
     const member = await newUser('Flow team role picker member')
     const team = await newTeam(owner, unique('Sélecteur de rôle'))
@@ -768,9 +746,8 @@ test.describe('known defects', () => {
     const edit = row.getByRole('button', { name: 'Modifier' })
     await hydrated(edit)
     await edit.click()
-    await expect(row.getByRole('combobox'), 'precondition: the role picker is open').toBeVisible()
-
-    // The defect.
-    await expect(row.getByRole('combobox')).toHaveAccessibleName(/.+/)
+    await expect(row.getByRole('combobox')).toHaveAccessibleName(
+      `Rôle de ${member.user.displayName}`
+    )
   })
 })

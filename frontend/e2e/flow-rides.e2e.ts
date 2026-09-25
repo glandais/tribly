@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test'
-import type { RideDto, RideRequest } from '../src/api/dto'
-import { apiPut } from './support/api'
+import type { PlaceDetailDto, PlaceRequest, RideDto, RideRequest } from '../src/api/dto'
+import { apiPost, apiPut } from './support/api'
 import { calendarEvent, openCalendar } from './support/calendar'
 import {
   frenchDateTime,
@@ -14,7 +14,7 @@ import {
   type WallClock,
 } from './support/dates'
 import { addMember, newTeam, newUser, roleSession, signIn } from './support/data'
-import { letEditorSettle, richText } from './support/editor'
+import { richText } from './support/editor'
 import { expect, test, unique } from './support/fixtures'
 import {
   findRide,
@@ -121,8 +121,6 @@ test.describe('ride journey', () => {
 
     // --- Create, from the team feed's « Créer une sortie ».
     await signIn(page.context(), organizer)
-    // For letEditorSettle(): the description reaches the form through a debounce.
-    await page.clock.install()
     await openFeed(page, team.slug)
     const create = main(page).getByRole('link', { name: 'Créer une sortie' })
     await hydrated(create)
@@ -157,7 +155,6 @@ test.describe('ride journey', () => {
 
     // Created as a draft (the editor's default), published from the ride page afterwards.
     await expect(main(page).getByRole('radio', { name: 'Brouillon' })).toBeChecked()
-    await letEditorSettle(page)
     await main(page).getByRole('button', { name: 'Créer la sortie' }).click()
     await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}/sorties/(?!nouvelle)[^/]+$`))
     const rideSlug = new URL(page.url()).pathname.split('/').pop()!
@@ -439,40 +436,59 @@ test.describe('publication states', () => {
   })
 })
 
-test.describe('app defects', () => {
-  test("a detail page's actions menu button has a name", async ({ page }) => {
-    test.fail(
-      true,
-      "the chevron opening the other actions of a detail page is an icon-only Button with no aria-label: RideDetailPage.tsx:352, TripDetailPage.tsx:310, PostDetailPage.tsx:215, AdDetailPage.tsx:246 — and the feed's create menu, PublicationListPage.tsx:93"
-    )
-    // Pinned here once for all of them: the ride page stands for the others (support/ui.ts
-    // actionsMenu, which flow-trips, flow-posts and flow-ads also use to reach their menus).
+test.describe('regressions', () => {
+  test("the actions menus' chevrons have a name", async ({ page }) => {
+    // The chevron opening a detail page's other actions was an icon-only Button with no
+    // aria-label — on the ride, trip, post and ad pages — and so was the feed's create menu
+    // (fixed 2026-09-25: « Plus d'actions », « Créer autre chose »). The ride page stands for the
+    // others here; support/ui.ts actionsMenu finds the chevron by that name, so flow-trips,
+    // flow-posts and flow-ads check it on theirs.
     const { team, organizer } = await ridingTeam('menu')
     const ride = await newRide(organizer, team.slug, unique('Sortie au menu'))
     await signIn(page.context(), organizer)
     await page.goto(`/equipes/${team.slug}/sorties/${ride.slug}`)
     await expect(main(page).getByRole('heading', { name: ride.name, level: 2 })).toBeVisible()
+    await expect(actionsMenu(page)).toHaveAccessibleName("Plus d'actions")
     const menu = await openActionsMenu(page)
-    await expect(
-      menu.getByRole('menuitem', { name: 'Annuler la sortie' }),
-      'precondition: the unnamed chevron opens the ride actions'
-    ).toBeVisible()
+    await expect(menu.getByRole('menuitem', { name: 'Annuler la sortie' })).toBeVisible()
     await page.keyboard.press('Escape')
 
-    // The defect: a screen reader announces « bouton » and nothing else.
-    await expect(actionsMenu(page)).toHaveAccessibleName(/\S/, { timeout: 2_000 })
+    // The feed's create button, whose chevron offers the other kinds of publication.
+    await openFeed(page, team.slug)
+    await expect(main(page).getByRole('link', { name: 'Créer une sortie' })).toBeVisible()
+    const createOther = main(page).getByRole('button', { name: 'Créer autre chose', exact: true })
+    await hydrated(createOther)
+    await createOther.click()
+    await expect(
+      page.getByRole('menu').getByRole('menuitem', { name: 'Nouvelle publication' })
+    ).toBeVisible()
   })
-  test("publishing a draft ride from its page keeps its groups' leaders", async ({ page }) => {
-    test.fail(
-      true,
-      "RideDetailPage.tsx:167 publishes by sending the RideDto back as the request ({ ...ride, status }): a group's `leader` is not the request's `leaderId`, nor `startPlace` its `startPlaceId`, so the update clears them — TripDetailPage.tsx:162 does the same with the stages' routes (pinned in flow-trips.e2e.ts)"
-    )
+
+  test("publishing a draft ride from its page keeps its groups' leaders and its start place", async ({
+    page,
+  }) => {
+    // RideDetailPage published by sending the RideDto back as the request ({ ...ride, status }): a
+    // group's `leader` is not the request's `leaderId`, nor `startPlace` its `startPlaceId`, so
+    // the update cleared them (fixed 2026-09-25).
     const { team, organizer } = await ridingTeam('meneur')
     const led = unique('Groupe mené')
+    const place = await apiPost<PlaceDetailDto>(
+      await roleSession('admin'),
+      `/api/teams/${team.slug}/places`,
+      {
+        name: unique('Parvis de la cathédrale'),
+        address: '1 place des Halles, Chartres',
+        startPlace: true,
+        endPlace: false,
+        geometry: { type: 'Point', coordinates: [1.4875, 48.4469] },
+      } satisfies PlaceRequest
+    )
     const ride = await newRide(organizer, team.slug, unique('Sortie menée'), {
       status: 'DRAFT',
+      startPlaceId: place.id,
       groups: [{ name: led, leaderId: organizer.user.id }],
     })
+    expect(ride.startPlace?.id, 'precondition: the ride starts from the place').toBe(place.id)
     await signIn(page.context(), organizer)
     await page.goto(ridePath(team.slug, ride.slug))
     await expect(main(page).getByRole('heading', { name: ride.name, level: 2 })).toBeVisible()
@@ -488,9 +504,11 @@ test.describe('app defects', () => {
     await expect(main(page).getByText('Publié', { exact: true })).toBeVisible()
     const published = await readRide(organizer, team.slug, ride.slug)
     expect(published.status).toBe('PUBLISHED')
-
-    // The defect.
     expect(published.groups[0].leader?.id, 'the group keeps its leader').toBe(organizer.user.id)
+    expect(published.startPlace?.id, 'the ride keeps its start place').toBe(place.id)
+    await expect(
+      groupCard(page, led).getByText(organizer.user.displayName, { exact: true })
+    ).toBeVisible()
   })
 })
 
@@ -503,8 +521,6 @@ test.describe('ride templates', () => {
     const second = unique('Groupe B')
 
     await signIn(page.context(), organizer)
-    // For letEditorSettle(): the description reaches the form through a debounce.
-    await page.clock.install()
     await page.goto(`/equipes/${team.slug}/admin/modeles-sortie`)
     await expect(
       main(page).getByRole('heading', { name: 'Modèles de sortie', level: 2 })
@@ -529,7 +545,6 @@ test.describe('ride templates', () => {
     await expect(groupNames).toHaveCount(2)
     await groupNames.nth(1).fill(second)
     await capacities.nth(1).fill('10')
-    await letEditorSettle(page)
     await main(page).getByRole('button', { name: 'Créer le modèle' }).click()
 
     // Back on the list, which now holds it.

@@ -2,7 +2,7 @@ import type { Locator } from '@playwright/test'
 import type { CommentListResponse } from '../src/api/dto'
 import { apiGet } from './support/api'
 import { addMember, markdownMedia, newTeam, newUser, signIn } from './support/data'
-import { addImage, letEditorSettle, richText, toolbarButton, typeRichText } from './support/editor'
+import { addImage, richText, toolbarButton, typeRichText } from './support/editor'
 import { expect, test, unique } from './support/fixtures'
 import { fetchPost, findPost, newPost } from './support/posts'
 import { entityCard, hydrated, openActionsMenu, pageAs, toasts } from './support/ui'
@@ -54,8 +54,7 @@ test('a post goes from the editor to the feeds, gets a comment, is edited, then 
   // The author owns the team, so is its ADMIN: a deleted post stays listed to them, flagged.
   const author = await newUser(unique('Autrice'))
   const member = await newUser(unique('Lectrice'))
-  // Rides off: the feed's create button then opens the post editor directly (its menu toggle is
-  // unnamed, like the post page's — pinned in flow-rides.e2e.ts).
+  // Rides off: the feed's create button then opens the post editor directly.
   const team = await newTeam(author, unique('Publications'), {
     addMemberAllowed: true,
     enableRides: false,
@@ -65,8 +64,6 @@ test('a post goes from the editor to the feeds, gets a comment, is edited, then 
   const title = unique('Sortie du dimanche')
   const main = page.getByRole('main')
   let postSlug = ''
-  // Time flows as usual; the clock only lets letEditorSettle() skip the editor's debounce.
-  await page.clock.install()
   await signIn(context, author)
   // The member reads in a browser of their own.
   const reader = await pageAs(browser, member)
@@ -136,7 +133,6 @@ test('a post goes from the editor to the feeds, gets a comment, is edited, then 
     await expect(editor.locator('a')).toHaveAttribute('href', LINK_URL)
     await expect(editor.locator('ul > li')).toHaveText(['Casque', 'Gilet jaune'])
 
-    await letEditorSettle(page)
     await main.getByRole('radio', { name: 'Publié' }).check()
     const submit = main.getByRole('button', { name: 'Créer la publication' })
     await expect(submit).toBeEnabled()
@@ -256,7 +252,6 @@ test('a post goes from the editor to the feeds, gets a comment, is edited, then 
     await page.keyboard.press('End')
     await page.keyboard.type(' du dimanche')
     await expect(editor.locator('h2')).toHaveText('Au programme du dimanche')
-    await letEditorSettle(page)
 
     await main.getByRole('button', { name: 'Enregistrer' }).click()
     await expect(page.getByText('Publication mise à jour avec succès')).toBeVisible()
@@ -352,8 +347,6 @@ test('a post saved as a draft is hidden from members until it is published from 
   const main = page.getByRole('main')
 
   await signIn(page.context(), author)
-  // For letEditorSettle(): the body reaches the form through a debounce.
-  await page.clock.install()
   await page.goto(`/equipes/${team.slug}`)
   await expect(main.getByRole('heading', { name: "Fil d'actualités" })).toBeVisible()
   const create = main.getByRole('link', { name: 'Nouvelle publication' })
@@ -366,7 +359,6 @@ test('a post saved as a draft is hidden from members until it is published from 
   await typeRichText(main, body)
   // A draft is the editor's default.
   await expect(main.getByRole('radio', { name: 'Brouillon' })).toBeChecked()
-  await letEditorSettle(page)
   await main.getByRole('button', { name: 'Créer la publication' }).click()
   await expect(toasts(page).filter({ hasText: 'Publication créée avec succès' })).toBeVisible()
   await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}/articles/[^/]+$`))
@@ -416,12 +408,11 @@ test('a post saved as a draft is hidden from members until it is published from 
   }
 })
 
-test.describe('app defects', () => {
+test.describe('regressions', () => {
   test('the words typed right before saving a post are saved', async ({ page }) => {
-    test.fail(
-      true,
-      'MarkdownEditor.tsx:82 hands the text to the form through a 150 ms debounce that submitting never flushes: words typed within 150 ms of saving are lost, in every form using the editor (posts, rides, routes, ads, team settings, team pages)'
-    )
+    // MarkdownEditor handed the text to the form through a 150 ms debounce that submitting never
+    // flushed: words typed within 150 ms of saving were lost, in every form using the editor
+    // (fixed 2026-09-25: flushed on blur and on unmount).
     const author = await newUser(unique('Autrice'))
     const team = await newTeam(author, unique('Publications pressées'))
     const post = await newPost(author, team.slug, unique('Publication pressée'), {
@@ -451,8 +442,7 @@ test.describe('app defects', () => {
     expect((await saved).ok(), 'the update was accepted').toBe(true)
     await page.clock.resume()
     await expect(main.getByRole('heading', { level: 2, name: post.name })).toBeVisible()
-
-    // The defect.
+    await expect(main.getByText('Premier jet. Relu.', { exact: true })).toBeVisible()
     expect((await fetchPost(author, team.slug, post.slug)).media.markdown).toContain(
       'Premier jet. Relu.'
     )

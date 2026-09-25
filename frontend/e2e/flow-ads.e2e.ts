@@ -3,7 +3,7 @@ import type { AdDto, AssetDto, GeocodeResultDto, TeamDetailDto } from '../src/ap
 import { apiGet, type AuthResponse } from './support/api'
 import { getAd, newAd, solidPng, uploadImage } from './support/ads'
 import { addMember, newTeam, newUser, roleSession, signIn } from './support/data'
-import { addImage, letEditorSettle, richText } from './support/editor'
+import { addImage, richText } from './support/editor'
 import { expect, test, unique } from './support/fixtures'
 import { entityCard, escapeRegExp, hydrated, openActionsMenu } from './support/ui'
 
@@ -256,8 +256,6 @@ test.describe('ad journey', () => {
     })
 
     await signIn(context, member)
-    // For letEditorSettle(): the description reaches the form through a debounce.
-    await page.clock.install()
     await page.goto(adPath(team.slug, ad.slug))
     const main = page.getByRole('main')
     await expect(page.getByRole('heading', { level: 2, name: ad.name })).toBeVisible()
@@ -285,7 +283,6 @@ test.describe('ad journey', () => {
     await expect(photoIn(images[1])).toBeVisible()
     const replacement = await addPhoto(page, 'nouvelle.png', [40, 60, 200])
 
-    await letEditorSettle(page)
     await main.getByRole('button', { name: 'Enregistrer' }).click()
     await expect(page).toHaveURL(new RegExp(`${escapeRegExp(adPath(team.slug, ad.slug))}$`))
     await expect(main.getByText(euros(750), { exact: true })).toBeVisible()

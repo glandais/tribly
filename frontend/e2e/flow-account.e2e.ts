@@ -413,7 +413,7 @@ test.describe('the personal calendar feed', () => {
     await regenerateFeed(page)
     expect((await fetchFeed(url)).status, 'the old URL is refused').toBe(403)
 
-    // The page shows the new link (once reloaded: see the defect below), and it serves the feed.
+    // The page shows the new link, still after a reload, and it serves the feed.
     await page.reload()
     await expect(field).not.toHaveValue(url)
     await expect(field).toHaveValue(FEED_URL)
@@ -428,10 +428,8 @@ test.describe('the personal calendar feed', () => {
     context,
     page,
   }) => {
-    test.fail(
-      true,
-      'IcsFeedSettings.tsx:48-58: useRegenerateToken() neither sets nor invalidates the token query, so the field and the copy button keep the dead URL until a reload'
-    )
+    // useRegenerateToken() used to leave the token query alone, so the field and the copy button
+    // kept the dead URL until a reload (fixed 2026-09-25: it updates useGetToken's cache).
     const user = await newUser(unique('Régénère ICS'))
     await signIn(context, user)
     await page.goto('/calendrier')
@@ -443,7 +441,6 @@ test.describe('the personal calendar feed', () => {
     expect(renewed, 'precondition: the backend issued a new link').not.toBe(url)
     expect((await fetchFeed(url)).status, 'precondition: the old one is dead').toBe(403)
 
-    // The defect.
     await expect(field).toHaveValue(renewed, { timeout: 2_000 })
   })
 })
@@ -521,16 +518,16 @@ test.describe('mobile header', () => {
   test.skip(({ isMobile }) => !isMobile, 'the burger only exists on the mobile layout')
 
   test('the menu button has an accessible name', async ({ page }) => {
-    // Layout.tsx renders <Burger> without aria-label, while nav.openMenu / nav.closeMenu exist in
-    // every locale and are used nowhere.
-    test.fail()
+    // Layout.tsx rendered <Burger> without aria-label, while nav.openMenu / nav.closeMenu existed
+    // in every locale and were used nowhere (fixed 2026-09-25).
     await openLogin(page)
     const banner = page.getByRole('banner')
     await expect(banner.getByRole('link', { name: /Pédalons/ })).toBeVisible()
     await expect(banner.getByRole('button')).toHaveCount(1)
-    // The defect.
-    await expect(banner.getByRole('button', { name: 'Ouvrir le menu' })).toBeVisible({
-      timeout: 2_000,
-    })
+    const burger = banner.getByRole('button', { name: 'Ouvrir le menu' })
+    await expect(burger).toBeVisible({ timeout: 2_000 })
+    await hydrated(burger)
+    await burger.click()
+    await expect(banner.getByRole('button', { name: 'Fermer le menu' })).toBeVisible()
   })
 })

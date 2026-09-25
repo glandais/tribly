@@ -5,23 +5,37 @@ import { solidPng } from './ads'
 /**
  * The rich-text editor every form shares (MediaEditor → MarkdownEditor, Tiptap underneath): finding
  * it, typing into it, its toolbar, adding a picture through it — and letting it hand its text over
- * to the form before saving.
+ * to the form.
  */
 
 /**
- * The editor's editable area within `scope` (a form, or the page's main). It has no accessible
- * name — MarkdownEditor drops the `ariaLabel` it is given, pinned in flow-team.e2e.ts — so it is
- * found by what it is: the contenteditable textbox. A scope holds one.
+ * The labels the forms give their editor: most say « Description »; the team form and the team
+ * page form name it after their placeholder.
  */
-export const richText = (scope: Locator | Page) =>
-  scope.locator('[contenteditable="true"][role="textbox"]')
+export const EDITOR_LABEL = {
+  description: 'Description',
+  team: 'Décrivez votre équipe, votre style de cyclisme ou votre communauté...',
+  teamPage: 'Rédigez le contenu de votre page ici...',
+} as const
+
+/**
+ * The editor's editable area within `scope` (a form, or the page's main): the contenteditable
+ * textbox, by the accessible name its form gives it (MarkdownEditor's `ariaLabel`, pinned in
+ * flow-team.e2e.ts).
+ */
+export const richText = (scope: Locator | Page, name: string = EDITOR_LABEL.description) =>
+  scope.getByRole('textbox', { name, exact: true })
 
 /**
  * Replaces the editor's whole content with `text`, typed as a user would (plain words: its markdown
- * is itself). Call `letEditorSettle` before saving.
+ * is itself).
  */
-export async function typeRichText(scope: Locator, text: string) {
-  const editor = richText(scope)
+export async function typeRichText(
+  scope: Locator,
+  text: string,
+  name: string = EDITOR_LABEL.description
+) {
+  const editor = richText(scope, name)
   // useEditor() only creates the editor on the client: once it is in the DOM, it is live.
   await expect(editor).toBeVisible()
   await editor.click()
@@ -63,11 +77,14 @@ export async function addImage(
 }
 
 /**
- * MarkdownEditor hands its markdown to the form through a 150 ms debounce, and submitting the form
- * does not flush it — an app defect (words typed within 150 ms of saving are lost), pinned in
- * flow-posts.e2e.ts. A person pauses before clicking « Enregistrer »; this is that pause, taken on
- * the page's fake clock instead of a sleep. It needs `page.clock.install()` before the page's first
- * `goto` (otherwise it throws), and time flows as usual in between.
+ * MarkdownEditor hands its markdown to the form through a 150 ms debounce. Saving needs no pause:
+ * the editor flushes it when it loses the focus, and clicking « Enregistrer » takes the focus
+ * (words typed right before saving used to be lost — fixed 2026-09-25, flow-posts.e2e.ts). What
+ * still needs one is removing an editor while an update is queued: deleting a trip stage right
+ * after opening its tab crashes the form (pinned in flow-trips.e2e.ts). A person pauses before
+ * that; this is the pause, taken on the page's fake clock instead of a sleep. It needs
+ * `page.clock.install()` before the page's first `goto` (otherwise it throws), and time flows as
+ * usual in between.
  */
 export async function letEditorSettle(page: Page) {
   await page.clock.runFor(500)

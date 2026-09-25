@@ -111,15 +111,16 @@ export const entityCard = (scope: Locator, name: string) =>
 
 /**
  * The chevron that opens a detail page's other actions (publish, cancel, delete…), grouped with
- * « Modifier ». It holds only an icon and has no accessible name — the defect is pinned once, in
- * flow-rides.e2e.ts — so it is found as the one button of that group.
+ * « Modifier »: « Plus d'actions » (named on 2026-09-25 — flow-rides.e2e.ts). The moderation menu
+ * (report, block) shares that name, and shows next to it whenever the page's or a comment's author
+ * is someone else, so the chevron is the one grouped with « Modifier ».
  */
 export const actionsMenu = (page: Page) =>
   page
     .getByRole('main')
     .getByRole('group')
     .filter({ has: page.getByRole('link', { name: 'Modifier' }) })
-    .getByRole('button')
+    .getByRole('button', { name: "Plus d'actions", exact: true })
 
 /** Opens the actions menu of a detail page, once hydrated; returns the menu. */
 export async function openActionsMenu(page: Page) {

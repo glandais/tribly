@@ -78,9 +78,11 @@ helper — reuse before writing a new one, and keep journey-only helpers in thei
   the route/trip/stage paths, `stubBasemap`, `traceMapPixels`, `watchRouteReads`.
 - `posts.ts` — `newPost`, `fetchPost` / `findPost`.
 - `ads.ts` — `newAd` (with pictures), `getAd`, `uploadImage`, `solidPng`.
-- `editor.ts` — the rich-text editor every form shares: `richText(scope)`, `typeRichText`,
-  `toolbarButton`, `addImage`, and `letEditorSettle(page)` — the one way to let its 150 ms debounce
-  hand the text to the form before saving (needs `page.clock.install()` before the first `goto`).
+- `editor.ts` — the rich-text editor every form shares: `richText(scope, name?)` (by its accessible
+  name, « Description » unless `EDITOR_LABEL` says otherwise), `typeRichText`, `toolbarButton`,
+  `addImage`, and `letEditorSettle(page)` — lets its 150 ms debounce hand the text over. Saving
+  needs no pause (the editor flushes on blur); removing an editor with an update queued does
+  (needs `page.clock.install()` before the first `goto`).
 - `dates.ts` — Paris wall-clock dates (`WallClock`, `parisWallClock`, `parisDaysAhead`,
   `parisInstant`, `pickerText`, `frenchDateTime`) and the Mantine DateTimePicker driver
   (`pickDateTime`, `openPicker`).
@@ -96,7 +98,7 @@ helper — reuse before writing a new one, and keep journey-only helpers in thei
   `watchToasts` (every toast shown, where a retrying `toHaveCount(0)` would pass vacuously),
   `pageAs(browser, auth)` (a second browser with the project's device — never a bare
   `browser.newContext()`), `entityCard`, `actionsMenu` / `openActionsMenu` (a detail page's
-  unnamed chevron), `escapeRegExp`, `startsWith`.
+  « Plus d'actions » chevron), `escapeRegExp`, `startsWith`.
 
 ## How sessions work
 

@@ -2,7 +2,7 @@ import type { Locator, Page } from '@playwright/test'
 import { signIn } from './support/data'
 import { expect, test } from './support/fixtures'
 import { configuredAuth, contractWebRoutes, fillPath } from './support/contract'
-import { buildDataset, platformStats, type Dataset, type RenderRole } from './support/routes-render'
+import { buildDataset, type Dataset, type RenderRole } from './support/routes-render'
 import { pageHydrated, watchHydration } from './support/ui'
 
 /**
@@ -322,8 +322,8 @@ function adminTab(name: string) {
   }
 }
 
-// The edit forms whose server render formats a date in the server's zone (see the defect below).
-const DATE_FORMS = new Set(['rideEdit', 'tripEdit', 'postEdit'])
+// The create forms whose default date depends on the process's zone (see the defect below).
+const DEFAULT_DATE_FORMS = new Set(['rideNew', 'tripNew'])
 
 const auth = configuredAuth()
 const contract = contractWebRoutes()
@@ -381,7 +381,7 @@ for (const route of contract) {
       ? `${route.id} ${route.path} as ${role}: ${expected.why}, redirects`
       : `${route.id} ${route.path} as ${role}: renders`
 
-    test(title, async ({ page }, info) => {
+    test(title, async ({ page }) => {
       const d = await data()
       const path = fillPath(route, d.params)
       const where = `${route.id} as ${role} (${path})`
@@ -391,7 +391,6 @@ for (const route of contract) {
 
       const response = await page.goto(path)
       expect(response?.status(), `${where}: document status`).toBe(200)
-      const serverHtml = (await response?.text()) ?? ''
       await pageHydrated(page)
 
       const lands = expected.lands?.(d) ?? path
@@ -412,29 +411,18 @@ for (const route of contract) {
         await expect(failure, `${where}: no error screen`).toHaveCount(0)
       expect(pageErrors, `${where}: uncaught errors`).toEqual([])
 
-      // Known hydration defects, each asserted under the precondition that makes it happen.
-      if (DATE_FORMS.has(route.id) && !expected.why) {
+      // The edit forms (hydrating a DateTimePicker), the platform dashboard's counts and the
+      // paginated lists on a phone used to fail hydration (fixed 2026-09-25). One defect is known,
+      // asserted under the precondition that makes it happen: CreateRidePage.getNextSunday() and
+      // CreateTripPage's default date put the new ride / stage at 08:00 with setHours(), in the
+      // process's zone — 08:00Z on the SSR server (UTC), 06:00Z in a Paris browser — and
+      // InstantDateTimePicker shows both in UTC during hydration: React #418 (text mismatch).
+      if (DEFAULT_DATE_FORMS.has(route.id) && !expected.why) {
         const zone = await page.evaluate(() => Intl.DateTimeFormat().resolvedOptions().timeZone)
         expect(zone, 'the browser is not in the SSR server zone (UTC)').toBe('Europe/Paris')
         test.fail(
           true,
-          'the edit form hands DateTimePicker a raw Date: the server formats it in its own zone (UTC)'
-        )
-      }
-      if (route.id === 'admin' && role === 'platformAdmin') {
-        const stats = await platformStats()
-        test.fail(
-          Math.max(stats.totalTeams, stats.totalUsers, stats.totalDomains) >= 1000,
-          'the dashboard counts go through a locale-less toLocaleString(): "2,638" on the server, "2 638" in the browser'
-        )
-      }
-      if (info.project.name === 'mobile') {
-        // Only a Pagination the server rendered is hydrated; one drawn after a client-side
-        // redirect, or from data fetched after load, is not.
-        const serverPaginated = serverHtml.includes('aria-label="Pagination"')
-        test.fail(
-          serverPaginated,
-          'useResponsive() answers isMobile=false on the server, true on a phone: a paginated list renders two different Paginations'
+          'the default date is set with setHours(8) in the process zone: 08:00Z on the server, 06:00Z in the browser, both shown in UTC during hydration'
         )
       }
       // The defect.

@@ -3,7 +3,7 @@ import type { Locator, Page } from '@playwright/test'
 import type { PlaceListResponse, RouteListResponse } from '../src/api/dto'
 import { apiGet, type AuthResponse, type Caller } from './support/api'
 import { addMember, newTeam, newUser, signIn, type NewTeamOptions } from './support/data'
-import { letEditorSettle, richText } from './support/editor'
+import { richText } from './support/editor'
 import { expect, test, unique } from './support/fixtures'
 import {
   getRoute,
@@ -180,8 +180,6 @@ test('a team admin renames a route and writes its description', async ({ page, c
   const route = await newRoute(owner, team.slug, before, eastward())
 
   await signIn(context, owner)
-  // For letEditorSettle(): the description reaches the form through a debounce.
-  await page.clock.install()
   const main = await openRouteDetail(page, team.slug, route.slug, before)
   const edit = main.getByRole('link', { name: 'Modifier', exact: true })
   await hydrated(edit)
@@ -198,7 +196,7 @@ test('a team admin renames a route and writes its description', async ({ page, c
   await editor.click()
   await editor.pressSequentially(description)
   await expect(editor).toHaveText(description)
-  await letEditorSettle(page)
+  // Straight to « Enregistrer »: the click blurs the editor, which hands its text to the form.
   await save.click()
 
   // Back on the route's page, under its new name and with its description.
@@ -373,7 +371,7 @@ test.describe('places', () => {
     const form = page.getByRole('dialog', { name: 'Ajouter un lieu' })
     await form.getByRole('textbox', { name: 'Nom' }).fill(name)
     await form.getByRole('textbox', { name: 'Adresse' }).fill(address)
-    // Filled: the create form only accepts a place with a link (see the test.fail below).
+    // A link is optional (a place without one: the next test); this one has one, to check it.
     await form.getByRole('textbox', { name: 'Lien' }).fill(link)
     await form.getByRole('checkbox', { name: "Peut servir d'arrivée" }).uncheck()
     await form.getByRole('button', { name: 'Ajouter', exact: true }).click()
@@ -419,9 +417,13 @@ test.describe('places', () => {
     expect(places.places).toEqual([])
   })
 
-  test.fail('a place can be added without a link', async ({ page, context }) => {
+  test('a place can be added without a link', async ({ page, context }) => {
+    // PlaceForm started the form with link: '' and the schema wants link.min(3) when present, so
+    // « Ajouter » stayed disabled, with no error, until a link was typed (fixed 2026-09-25: an empty
+    // address or link counts as absent).
     const { owner, team } = await ownTeam('lieux sans lien')
     const name = unique('Café du centre')
+    const address = '2 place Grenette, 38000 Grenoble'
 
     await signIn(context, owner)
     const main = await openPlaces(page, team.slug)
@@ -430,17 +432,20 @@ test.describe('places', () => {
     await add.click()
     const form = page.getByRole('dialog', { name: 'Ajouter un lieu' })
     await form.getByRole('textbox', { name: 'Nom' }).fill(name)
-    await form.getByRole('textbox', { name: 'Adresse' }).fill('2 place Grenette, 38000 Grenoble')
+    await form.getByRole('textbox', { name: 'Adresse' }).fill(address)
     await expect(form.getByRole('textbox', { name: 'Lien' }), 'no link typed').toHaveValue('')
-    // Nothing flags the empty link as a mistake: the field carries no asterisk and no error.
     await expect(form.getByText(/obligatoire|requis|invalide/i)).toHaveCount(0)
 
-    // The defect.
-    // PlaceList.newPlace() starts the form with link: '' and CreatePlaceBody wants link.min(3) when
-    // present, so the form stays invalid — and « Ajouter » disabled — until a link is typed.
-    await expect(form.getByRole('button', { name: 'Ajouter', exact: true })).toBeEnabled({
-      timeout: 2_000,
-    })
+    const submit = form.getByRole('button', { name: 'Ajouter', exact: true })
+    await expect(submit).toBeEnabled({ timeout: 2_000 })
+    await submit.click()
+    await expect(form).toHaveCount(0)
+    await expect(main.getByText(name, { exact: true })).toBeVisible()
+    await expect(main.getByRole('link', { name: 'Voir sur la carte' })).toHaveCount(0)
+    const { places } = await listPlaces(owner, team.slug)
+    expect(places).toHaveLength(1)
+    expect(places[0]).toMatchObject({ name, address })
+    expect(places[0].link ?? '', 'no link stored').toBe('')
   })
 })
 
@@ -456,14 +461,16 @@ test.describe('the platform-wide list (/parcours)', () => {
   const resultCount = (main: Locator, count: number) =>
     main.getByText(`${count} parcours`, { exact: true })
 
+  /** The list/map toggle: a SegmentedControl, named since 2026-09-25 (test below). */
+  const viewToggleGroup = (main: Locator) =>
+    main.getByRole('radiogroup', { name: 'Affichage des parcours' })
+
   /**
-   * One side of the list/map toggle: a SegmentedControl, whose radios are visually hidden inputs —
-   * a person clicks the label, and so does the test.
+   * One side of the list/map toggle, whose radios are visually hidden inputs — a person clicks the
+   * label, and so does the test.
    */
   const viewToggle = (main: Locator, label: 'Liste' | 'Carte') =>
-    main
-      .getByRole('radiogroup')
-      .filter({ has: main.page().getByRole('radio', { name: 'Liste' }) })
+    viewToggleGroup(main)
       .locator('label')
       .filter({ hasText: new RegExp(`^${label}$`) })
 
@@ -597,5 +604,16 @@ test.describe('the platform-wide list (/parcours)', () => {
     expect((await listAllRoutes(otherOwner, tag)).routes.map((r) => r.name).sort()).toEqual(
       [open, ofPrivateTeam].sort()
     )
+  })
+
+  test('the list/map toggle has an accessible name', async ({ page }) => {
+    // The SegmentedControl was an unnamed radiogroup: a screen reader announced two radios with no
+    // hint of what they switch (fixed 2026-09-25).
+    await page.goto(ALL_ROUTES)
+    const main = page.getByRole('main')
+    const toggle = viewToggleGroup(main)
+    await expect(toggle).toBeVisible()
+    await expect(toggle.getByRole('radio', { name: 'Liste' })).toBeChecked()
+    await expect(toggle.getByRole('radio', { name: 'Carte' })).not.toBeChecked()
   })
 })

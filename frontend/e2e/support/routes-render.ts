@@ -1,6 +1,5 @@
 import type {
   AdDto,
-  AdminStatsDto,
   GpxPreviewDto,
   PlaceDetailDto,
   PlaceRequest,
@@ -14,7 +13,7 @@ import type {
   TripDto,
 } from '../../src/api/dto'
 import { newAd } from './ads'
-import { apiGet, apiPost, expectOk, withApi, type AuthResponse } from './api'
+import { apiPost, expectOk, withApi, type AuthResponse } from './api'
 import { addMember, markdownMedia, newTeam, newTeamPage, newUser, roleSession } from './data'
 import { newPost } from './posts'
 import { newRide } from './rides'
@@ -143,7 +142,3 @@ const uploadPreview = (as: AuthResponse, name: string, gpx: string) =>
       })
     )
   )
-
-/** The platform's totals, as the platform admin dashboard shows them. */
-export const platformStats = async () =>
-  apiGet<AdminStatsDto>(await roleSession('admin'), '/api/admin/domains/stats')
