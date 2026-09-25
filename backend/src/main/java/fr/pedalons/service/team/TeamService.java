@@ -129,6 +129,7 @@ public class TeamService {
     team.setVisibilityEditable(false);
     team.setJoinable(false);
     team.setAddMemberAllowed(false);
+    applyFeatureFlags(team, request);
     team.setGeometry(request.geometry());
 
     teamRepository.persistAndFlush(team);
@@ -224,17 +225,22 @@ public class TeamService {
     } else if (request.visibility() != team.getVisibility()) {
       throw new BusinessException(INVALID_VISIBILITY);
     }
+    applyFeatureFlags(team, request);
+    team.setGeometry(request.geometry());
+    assetService.updateAssets(team.getAboutPage(), request.media());
+
+    teamRepository.persist(team);
+    return getTeamDetailDto(teamSlug);
+  }
+
+  /** The modules a team opts into — the same on creation as on every later edit. */
+  private static void applyFeatureFlags(Team team, TeamRequest request) {
     team.setEnableTrips(request.enableTrips());
     team.setEnableAds(request.enableAds());
     team.setEnablePosts(request.enablePosts());
     team.setEnableRides(request.enableRides());
     team.setEnableRoutes(request.enableRoutes());
     team.setEnableMemberDirectory(request.enableMemberDirectory());
-    team.setGeometry(request.geometry());
-    assetService.updateAssets(team.getAboutPage(), request.media());
-
-    teamRepository.persist(team);
-    return getTeamDetailDto(teamSlug);
   }
 
   @Transactional

@@ -82,6 +82,33 @@ class TeamServiceTest extends AbstractBaseTest {
   }
 
   @Test
+  void createTeam_shouldApplyTheRequestedModules() {
+    // Every flag the opposite of its default, so none can pass by coincidence.
+    TeamRequest request =
+        new TeamRequest(
+            "Modules Team",
+            MediaDto.builder().build(),
+            Visibility.TEAM,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            null);
+
+    queryContext.setUserForTest(user1);
+    TeamDetailDto result = teamService.createTeam(request);
+
+    assertFalse(result.enableTrips());
+    assertFalse(result.enableAds());
+    assertFalse(result.enablePosts());
+    assertFalse(result.enableRides());
+    assertFalse(result.enableRoutes());
+    assertTrue(result.enableMemberDirectory());
+  }
+
+  @Test
   void createTeam_shouldCreateAdminMembership() {
     TeamRequest request =
         new TeamRequest(
