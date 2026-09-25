@@ -4,7 +4,13 @@ import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation, Trans } from 'react-i18next'
 import { useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
-import { IconFingerprint, IconUserPlus, IconLock, IconBrandStrava } from '@tabler/icons-react'
+import {
+  IconFingerprint,
+  IconUserPlus,
+  IconLock,
+  IconBrandStrava,
+  IconMail,
+} from '@tabler/icons-react'
 import {
   Center,
   Paper,
@@ -27,9 +33,11 @@ import {
   loginWithPassword,
   register as registerUser,
 } from '@/api/endpoints/authentication/authentication'
+import type { AuthResponse } from '@/api/dto'
+import { OtpLogin } from './OtpLogin'
 import { getStravaLoginUrl } from '@/api/endpoints/strava-authentication/strava-authentication'
 
-type Mode = 'login' | 'register'
+type Mode = 'login' | 'register' | 'otp'
 
 export function LoginPage() {
   const { t } = useTranslation()
@@ -144,13 +152,16 @@ export function LoginPage() {
     }
   }
 
+  const completeLogin = (data: AuthResponse) => {
+    if (data.accessToken) setAccessToken(data.accessToken)
+    if (data.user) setUser(data.user)
+    navigate(redirectTo)
+  }
+
   const handleLogin = async (values: { email: string; password: string }) => {
     setIsLoading(true)
     try {
-      const data = await loginWithPassword({ email: values.email, password: values.password })
-      if (data.accessToken) setAccessToken(data.accessToken)
-      if (data.user) setUser(data.user)
-      navigate(redirectTo)
+      completeLogin(await loginWithPassword({ email: values.email, password: values.password }))
     } catch (error: unknown) {
       console.error('Login failed', error)
       const code = (error as { response?: { data?: { code?: string } } })?.response?.data?.code
@@ -259,6 +270,16 @@ export function LoginPage() {
               </Button>
             )}
 
+            <Button
+              variant="default"
+              fullWidth
+              leftSection={<IconMail size={20} />}
+              onClick={() => setMode('otp')}
+              disabled={isLoading}
+            >
+              {t('auth.login.methods.otp')}
+            </Button>
+
             <Text size="sm" ta="center">
               {t('auth.login.noAccount')}{' '}
               <Anchor component="button" onClick={() => setMode('register')}>
@@ -276,6 +297,12 @@ export function LoginPage() {
               />
             </Text>
           </Stack>
+        ) : mode === 'otp' ? (
+          <OtpLogin
+            initialEmail={loginForm.values.email}
+            onSuccess={completeLogin}
+            onBack={() => setMode('login')}
+          />
         ) : (
           <Stack>
             <Stack gap="xs" ta="center">
