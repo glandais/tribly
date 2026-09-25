@@ -1,5 +1,6 @@
 import { QueryClient } from '@tanstack/react-query'
 import Axios from 'axios'
+import { ApiClientError } from './apiError'
 
 export function makeQueryClient(opts?: { isServer?: boolean }): QueryClient {
   return new QueryClient({
@@ -19,7 +20,14 @@ export function makeQueryClient(opts?: { isServer?: boolean }): QueryClient {
           if (opts?.isServer) return false
           // Defensive retry for 401 — the axios interceptor handles token refresh,
           // but allow one retry in case the interceptor rejection races with the new token.
-          const status = Axios.isAxiosError(error) ? error.response?.status : undefined
+          // `axiosMutator` rethrows any error carrying an API code as an `ApiClientError`, which is
+          // not an AxiosError — both shapes have to be read.
+          const status =
+            error instanceof ApiClientError
+              ? error.status
+              : Axios.isAxiosError(error)
+                ? error.response?.status
+                : undefined
           if (status === 401) return failureCount < 2
           // Any other 4xx is the server's final answer — a missing entity, a forbidden page, a bad
           // parameter. Retrying one only held the page on its skeleton for ~8 s, a toast per
