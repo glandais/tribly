@@ -78,7 +78,7 @@ public class AssetRepository implements PanacheRepository<Asset> {
       Long ownerId, AssetType type, Long teamId, Long fileId, Instant createdAt) {}
 
   /**
-   * Every thumbnail of a live entity in a domain, optionally only those drawn within [{@code
+   * Every thumbnail of a live entity of a live team in a domain, optionally only those drawn within [{@code
    * createdFrom}, {@code createdTo}) — a thumbnail is a fresh asset each time it is drawn, so its
    * creation date is when it was rendered. For the admin regeneration, not for any listing.
    */
@@ -89,7 +89,8 @@ public class AssetRepository implements PanacheRepository<Asset> {
             "select a.teamEntity.id, a.type, a.team.id, a.fileId, a.createdAt from Asset a "
                 + "where a.type in (:types) "
                 + "and a.team.domain.id = :domainId "
-                + "and a.teamEntity.deleted = false");
+                + "and a.teamEntity.deleted = false "
+                + "and a.team.deleted = false");
     if (createdFrom != null) {
       jpql.append(" and a.createdAt >= :createdFrom");
     }
@@ -118,7 +119,7 @@ public class AssetRepository implements PanacheRepository<Asset> {
   }
 
   /**
-   * Live routes, rides and trips of a domain that have something to draw but lack a light or a
+   * Live routes, rides and trips of the live teams of a domain that have something to draw but lack a light or a
    * dark thumbnail — what a failed render leaves behind.
    */
   public List<Long> findOwnersMissingThumbnails(Long domainId) {
@@ -128,7 +129,8 @@ public class AssetRepository implements PanacheRepository<Asset> {
     ids.addAll(
         getEntityManager()
             .createQuery(
-                "select e.id from Route e where e.deleted = false and e.team.domain.id = :domainId"
+                "select e.id from Route e where e.deleted = false and e.team.deleted = false"
+                    + " and e.team.domain.id = :domainId"
                     + " and e.tracks is not empty and "
                     + twoThumbnails,
                 Long.class)
@@ -139,7 +141,8 @@ public class AssetRepository implements PanacheRepository<Asset> {
     ids.addAll(
         getEntityManager()
             .createQuery(
-                "select e.id from Ride e where e.deleted = false and e.team.domain.id = :domainId"
+                "select e.id from Ride e where e.deleted = false and e.team.deleted = false"
+                    + " and e.team.domain.id = :domainId"
                     + " and (e.route is not null or exists"
                     + " (select g from RideGroup g where g.ride = e and g.route is not null)) and "
                     + twoThumbnails,
@@ -151,7 +154,8 @@ public class AssetRepository implements PanacheRepository<Asset> {
     ids.addAll(
         getEntityManager()
             .createQuery(
-                "select e.id from Trip e where e.deleted = false and e.team.domain.id = :domainId"
+                "select e.id from Trip e where e.deleted = false and e.team.deleted = false"
+                    + " and e.team.domain.id = :domainId"
                     + " and (e.route is not null or exists (select s from TripStage s"
                     + " where s.trip = e and s.deleted = false and s.route is not null)) and "
                     + twoThumbnails,
