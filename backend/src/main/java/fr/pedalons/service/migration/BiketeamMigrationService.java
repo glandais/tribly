@@ -7,7 +7,6 @@ import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 import fr.pedalons.common.PersistenceErrors;
 import fr.pedalons.common.TsidUtils;
 import fr.pedalons.common.exception.PedalonsException;
-import fr.pedalons.domain.comment.Comment;
 import fr.pedalons.domain.common.TeamEntity;
 import fr.pedalons.domain.migration.BiketeamMigrationMap;
 import fr.pedalons.domain.place.Place;
@@ -15,7 +14,6 @@ import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.domain.post.Post;
 import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.domain.ride.RideGroup;
-import fr.pedalons.domain.ride.RideParticipation;
 import fr.pedalons.domain.ridetemplate.RideTemplate;
 import fr.pedalons.domain.ridetemplate.RideTemplateGroup;
 import fr.pedalons.domain.route.Route;
@@ -23,7 +21,6 @@ import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.team.TeamPage;
 import fr.pedalons.domain.team.UserTeam;
 import fr.pedalons.domain.trip.Trip;
-import fr.pedalons.domain.trip.TripParticipation;
 import fr.pedalons.domain.trip.TripStage;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.common.asset.AssetsDto;
@@ -47,11 +44,9 @@ import fr.pedalons.enums.SurfaceType;
 import fr.pedalons.enums.TeamRole;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.enums.WindDirection;
-import fr.pedalons.repository.comment.CommentRepository;
 import fr.pedalons.repository.migration.BiketeamMigrationMapRepository;
 import fr.pedalons.repository.place.PlaceRepository;
 import fr.pedalons.repository.post.PostRepository;
-import fr.pedalons.repository.ride.RideParticipationRepository;
 import fr.pedalons.repository.ride.RideRepository;
 import fr.pedalons.repository.ridetemplate.RideTemplateGroupRepository;
 import fr.pedalons.repository.ridetemplate.RideTemplateRepository;
@@ -59,12 +54,9 @@ import fr.pedalons.repository.route.RouteRepository;
 import fr.pedalons.repository.team.TeamPageRepository;
 import fr.pedalons.repository.team.TeamRepository;
 import fr.pedalons.repository.team.UserTeamRepository;
-import fr.pedalons.repository.trip.TripParticipationRepository;
 import fr.pedalons.repository.trip.TripRepository;
-import fr.pedalons.repository.user.UserRepository;
 import fr.pedalons.service.asset.AssetService;
 import fr.pedalons.service.asset.response.AssetWithFile;
-import fr.pedalons.service.bootstrap.BootstrapService;
 import fr.pedalons.service.common.SlugService;
 import fr.pedalons.service.migration.BiketeamMigrationProgress.Codes;
 import fr.pedalons.service.migration.BiketeamMigrationProgress.Counter;
@@ -94,8 +86,6 @@ import fr.pedalons.service.route.RouteService;
 import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.trip.TripService;
-import io.quarkus.arc.Arc;
-import io.quarkus.arc.ManagedContext;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -114,7 +104,6 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -134,21 +123,13 @@ import org.jspecify.annotations.Nullable;
  * existing Pédalons services, and tracks source-row → target-id mappings in {@link
  * BiketeamMigrationMap} for replayability.
  *
- * <p>Two entry points:
+ * <p>One entry point, {@link #migrateTeamLive}: one team, from biketeam's export API, into the
+ * domain a Pédalons user confirmed on, with that user as its author (and ADMIN of a team it
+ * creates). No people are imported: no users, memberships, participations or comments.
  *
- * <ul>
- *   <li>{@link #migrateTeamLive} — the live migration: one team, from biketeam's export API, into
- *       the domain a Pédalons user confirmed on, with that user as its author (and ADMIN of a team
- *       it creates). No people
- *       are imported: no users, memberships, participations or comments.
- *   <li>{@code run()} — the legacy dump import, deprecated (REMOVE-WITH-LEGACY-BIKETEAM-IMPORT:
- *       drop this item): every team of a restored dump, as the
- *       bootstrap PLATFORM_ADMIN, people included.
- * </ul>
- *
- * <p>Both expect a request context carrying the target domain and the acting user ({@link
+ * <p>It expects a request context carrying the target domain and the acting user ({@link
  * PedalonsQueryContext#setUserForTest}, {@link DomainResolver#setDomainForTest}), so that {@code
- * @CheckAccess} on the called services passes without HTTP, and both run under {@link
+ * @CheckAccess} on the called services passes without HTTP, and runs under {@link
  * NotificationPublisher#silently}: the replayed history is not news.
  */
 @ApplicationScoped
@@ -156,35 +137,24 @@ public class BiketeamMigrationService {
 
   private static final Logger LOG = Logger.getLogger(BiketeamMigrationService.class);
 
-  // Mapping table entity types
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — T_USER: people are only imported by the dump import.
-  private static final String T_USER = "USER";
-
   /**
    * The longest transaction of one element: a route, with its GPX pipeline. The others are capped
    * at 120 s. The live migration's {@code stuck-after} must stay above it (checked at startup).
    */
   public static final int LONGEST_ITEM_TRANSACTION_SECONDS = 600;
 
+  // Mapping table entity types
   public static final String T_TEAM = "TEAM";
   public static final String T_TEAM_PAGE = "TEAM_PAGE";
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — T_USER_TEAM: memberships, dump import only.
-  private static final String T_USER_TEAM = "USER_TEAM";
   public static final String T_PLACE = "PLACE";
   public static final String T_ROUTE = "ROUTE";
   public static final String T_RIDE = "RIDE";
   public static final String T_RIDE_GROUP = "RIDE_GROUP";
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — T_RIDE_PARTICIPATION: dump import only.
-  private static final String T_RIDE_PARTICIPATION = "RIDE_PARTICIPATION";
   public static final String T_RIDE_TEMPLATE = "RIDE_TEMPLATE";
   public static final String T_RIDE_TEMPLATE_GROUP = "RIDE_TEMPLATE_GROUP";
   public static final String T_TRIP = "TRIP";
   public static final String T_TRIP_STAGE = "TRIP_STAGE";
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — T_TRIP_PARTICIPATION: dump import only.
-  private static final String T_TRIP_PARTICIPATION = "TRIP_PARTICIPATION";
   public static final String T_POST = "POST";
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — T_COMMENT: comments, dump import only.
-  private static final String T_COMMENT = "COMMENT";
   public static final String T_ASSET = "ASSET";
 
   /**
@@ -213,9 +183,6 @@ public class BiketeamMigrationService {
   @Inject BiketeamMigrationMapRepository mapRepo;
   @Inject EntityManager em;
 
-  @Inject DomainResolver domainResolver;
-  @Inject PedalonsQueryContext pedalonsContext;
-
   @Inject TeamRepository teamRepository;
   @Inject UserTeamRepository userTeamRepository;
   @Inject PlaceRepository placeRepository;
@@ -234,54 +201,25 @@ public class BiketeamMigrationService {
   @Inject RideService rideService;
   @Inject TripService tripService;
   @Inject PostService postService;
-  @Inject NotificationPublisher notificationPublisher;
   @Inject AssetService assetService;
-
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — the injections below serve the dump import alone.
-  @SuppressWarnings("removal")
-  @Inject
-  BiketeamMigrationConfig config;
-
-  @SuppressWarnings("removal")
-  @Inject
-  BiketeamReader reader;
-
-  @Inject BootstrapService bootstrapService;
-  @Inject UserRepository userRepository;
-  @Inject CommentRepository commentRepository;
-  @Inject RideParticipationRepository rideParticipationRepository;
-  @Inject TripParticipationRepository tripParticipationRepository;
-
-  // end of REMOVE-WITH-LEGACY-BIKETEAM-IMPORT injections
 
   /**
    * Everything one team's run carries, so the per-kind methods below need no ten-argument lists.
    *
-   * @param liveTeamId the biketeam team id to tag mapping rows with — null on the legacy path,
-   *     which never wrote {@code biketeam_team_id}
+   * @param liveTeamId the biketeam team id to tag mapping rows with
    */
-  @SuppressWarnings("removal")
   record Run(
       Team team,
       User actor,
       BiketeamSource source,
       ZoneId zone,
-      @Nullable String liveTeamId,
-      PeopleData people,
+      String liveTeamId,
       BiketeamMigrationProgress progress) {
 
     String sourceTeam() {
       return source.team().id();
     }
   }
-
-  /** Pédalons ids of what a run produced, keyed by biketeam id. */
-  public record ContentIds(
-      Map<String, Long> placeIds,
-      Map<String, Long> routeIds,
-      Map<String, Long> postIds,
-      Map<String, Long> rideIds,
-      Map<String, Long> tripIds) {}
 
   // ─── Live entry point ─────────────────────────────────────────────────────
 
@@ -293,8 +231,7 @@ public class BiketeamMigrationService {
    * a transaction of its own, so it is checked again here, in the transaction that writes the
    * target: see {@link #ensureLiveTargetTeam}.
    *
-   * <p>No people: the people data is empty, so no user, membership, participation or comment
-   * is created, and {@code RideGroupDto.leader} stays null — it is never derived from {@code
+   * <p>No people: no user, membership, participation or comment is created, and {@code RideGroupDto.leader} stays null — it is never derived from {@code
    * createdBy}.
    *
    * @param expectedTeamId the migrated team the caller resolved, or null to create one
@@ -304,7 +241,6 @@ public class BiketeamMigrationService {
    * @param onTarget told the target team's id as soon as it exists, before the content is mapped
    * @return the target team
    */
-  @SuppressWarnings("removal")
   public Team migrateTeamLive(
       Domain domain,
       User actor,
@@ -319,7 +255,7 @@ public class BiketeamMigrationService {
     Team team =
         ensureLiveTargetTeam(domain, actor, btTeam, source.zone(), expectedTeamId, setAside);
     onTarget.accept(team.getId());
-    Run run = new Run(team, actor, source, source.zone(), btTeam.id(), PeopleData.none(), progress);
+    Run run = new Run(team, actor, source, source.zone(), btTeam.id(), progress);
     migrateTeamContent(run);
     return team;
   }
@@ -329,7 +265,7 @@ public class BiketeamMigrationService {
    * routes, ride templates, publications, rides, trips. Each place, route, template, publication,
    * ride and trip is its own error boundary; the team pages and logo are not.
    */
-  private ContentIds migrateTeamContent(Run r) {
+  private void migrateTeamContent(Run r) {
     if (migrateTeamDescription(r)) {
       r.progress().count(Counter.TEAM_PAGES, Outcome.MIGRATED);
     }
@@ -345,170 +281,12 @@ public class BiketeamMigrationService {
     Map<String, Long> placeIds = migratePlaces(r);
     Map<String, Long> routeIds = migrateMaps(r);
     migrateRideTemplates(r);
-    Map<String, Long> postIds = migratePublications(r);
-    Map<String, Long> rideIds = migrateRides(r, routeIds, placeIds);
-    Map<String, Long> tripIds = migrateTrips(r, routeIds);
-    return new ContentIds(placeIds, routeIds, postIds, rideIds, tripIds);
-  }
-
-  // ─── Legacy entry point ───────────────────────────────────────────────────
-
-  /**
-   * Entry point of the dump import — request scope is activated manually so service-side {@code
-   * @CheckAccess} works.
-   *
-   * @return how many teams failed; 0 when every one of them made it through
-   * @deprecated the dump import is replaced by the live migration
-   */
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — run(): the dump import's entry point.
-  @Deprecated(forRemoval = true, since = "4.5.0")
-  public int run() throws Exception {
-    reader.verifyConnectivity();
-
-    ManagedContext requestContext = Arc.container().requestContext();
-    boolean activated = false;
-    if (!requestContext.isActive()) {
-      requestContext.activate();
-      activated = true;
-    }
-    try {
-      // The migration replays a club's history through the ordinary services; none of it is news.
-      return notificationPublisher.silently(this::runWithinRequest);
-    } finally {
-      if (activated) {
-        requestContext.terminate();
-      }
-    }
-  }
-
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — runWithinRequest(): dump import only.
-  @Deprecated(forRemoval = true, since = "4.5.0")
-  private int runWithinRequest() {
-    // The domain and its PLATFORM_ADMIN belong to the bootstrap; the migration only consumes them.
-    BootstrapService.Identity identity = bootstrapService.ensureDomainAndAdmin();
-    Domain domain = identity.domain();
-    User admin = identity.admin();
-
-    domainResolver.setDomainForTest(domain);
-    pedalonsContext.setUserForTest(admin);
-
-    List<BtTeam> sourceTeams = resolveSourceTeams();
-    LOG.infof("Migrating %d biketeam team(s)", sourceTeams.size());
-
-    int failed = 0;
-    for (BtTeam sourceTeam : sourceTeams) {
-      try {
-        migrateLegacyTeam(domain, admin, sourceTeam);
-      } catch (Exception e) {
-        // One broken team must not cost us the other 182.
-        failed++;
-        LOG.errorf(e, "Failed to migrate biketeam team '%s'", sourceTeam.id());
-      }
-    }
-    if (failed > 0) {
-      LOG.warnf("%d of %d teams failed to migrate", failed, sourceTeams.size());
-    }
-    return failed;
-  }
-
-  /** The configured team, or every live one when {@code team-id} is absent. */
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — resolveSourceTeams(): dump import only.
-  @Deprecated(forRemoval = true, since = "4.5.0")
-  private List<BtTeam> resolveSourceTeams() {
-    Optional<String> configured = config.getTeamId();
-    if (configured.isEmpty()) {
-      return reader.findAllTeams();
-    }
-    String teamId = configured.get();
-    BtTeam team = reader.findTeam(teamId);
-    if (team == null) {
-      throw new IllegalStateException("biketeam team '" + teamId + "' not found in the dump");
-    }
-    return List.of(team);
-  }
-
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — migrateLegacyTeam(): dump import only.
-  @Deprecated(forRemoval = true, since = "4.5.0")
-  private void migrateLegacyTeam(Domain domain, User admin, BtTeam btTeam) {
-    String sourceTeam = btTeam.id();
-    LOG.infof("Migrating biketeam team '%s' (%s)", sourceTeam, btTeam.name());
-
-    LegacyJdbcBiketeamSource source =
-        new LegacyJdbcBiketeamSource(reader, btTeam, config.getDataDir());
-    // No membership for the migration admin: each team gets its own admins from user_role.
-    Team team = ensureTargetTeam(domain, admin, btTeam, source.zone(), null);
-
-    Map<String, Long> userIds = migrateUsers(domain, sourceTeam);
-    migrateUserTeams(team, sourceTeam, userIds);
-    PeopleData people = PeopleData.load(reader, source, userIds);
-
-    Run run =
-        new Run(team, admin, source, source.zone(), null, people, BiketeamMigrationProgress.NONE);
-    ContentIds ids = migrateTeamContent(run);
-
-    migrateMessages(team, admin, sourceTeam, ids.rideIds(), ids.tripIds(), ids.postIds(), userIds);
-  }
-
-  /**
-   * Biketeam's people as the legacy import carries them: its user id → Pédalons user id table, and
-   * the participants of each ride group and trip. Always empty on the live path, where the loops
-   * over it are no-ops.
-   *
-   * @deprecated only the dump import imports people
-   */
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — PeopleData: the live migration imports no people.
-  @Deprecated(forRemoval = true, since = "4.5.0")
-  public record PeopleData(
-      Map<String, Long> userIds,
-      Map<String, List<BiketeamReader.BtRideGroupParticipant>> participantsByGroup,
-      Map<String, List<BiketeamReader.BtTripParticipant>> participantsByTrip) {
-
-    static PeopleData none() {
-      return new PeopleData(Map.of(), Map.of(), Map.of());
-    }
-
-    static PeopleData load(
-        BiketeamReader reader, BiketeamSource source, Map<String, Long> userIds) {
-      Map<String, List<BiketeamReader.BtRideGroupParticipant>> byGroup = new HashMap<>();
-      reader
-          .findRideGroupParticipants(source.rideGroups().stream().map(BtRideGroup::id).toList())
-          .forEach(p -> byGroup.computeIfAbsent(p.rideGroupId(), k -> new ArrayList<>()).add(p));
-      Map<String, List<BiketeamReader.BtTripParticipant>> byTrip = new HashMap<>();
-      reader
-          .findTripParticipants(source.trips().stream().map(BtTrip::id).toList())
-          .forEach(p -> byTrip.computeIfAbsent(p.tripId(), k -> new ArrayList<>()).add(p));
-      return new PeopleData(userIds, byGroup, byTrip);
-    }
+    migratePublications(r);
+    migrateRides(r, routeIds, placeIds);
+    migrateTrips(r, routeIds);
   }
 
   // ─── Domain / team / admin ────────────────────────────────────────────────
-
-  /**
-   * The team at slug {@code src.id()} in {@code domain}, created when absent, reconciled when
-   * present.
-   *
-   * @param liveTeamId biketeam team id to tag the mapping row with, or null (legacy)
-   */
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — ensureTargetTeam(): the dump import's blind reuse of any
-  // team at the slug; the live path goes through ensureLiveTargetTeam().
-  @Deprecated(forRemoval = true, since = "4.5.0")
-  @Transactional
-  protected Team ensureTargetTeam(
-      Domain domain, User creator, BtTeam src, ZoneId zone, @Nullable String liveTeamId) {
-    String slug = src.id();
-    Optional<Team> existing = teamRepository.findBySlugAndDomain(domain.getId(), slug);
-    if (existing.isPresent()) {
-      // Reconcile on replay: an earlier run may have left the team wide open.
-      Team t = existing.get();
-      Visibility visibility = mapTeamVisibility(src.visibility());
-      t.setVisibility(visibility);
-      t.setJoinable(visibility != Visibility.TEAM);
-      teamRepository.persist(t);
-      mapRepo.upsert(T_TEAM, src.id(), t.getId(), null, liveTeamId);
-      return t;
-    }
-    return createTargetTeam(domain, creator, src, zone, slug, liveTeamId);
-  }
 
   /**
    * The live path's target team — in one transaction that re-checks what {@code
@@ -555,7 +333,7 @@ public class BiketeamMigrationService {
       }
       Team team;
       try {
-        team = createTargetTeam(domain, actor, src, zone, slug, src.id());
+        team = createTargetTeam(domain, actor, src, zone, slug);
       } catch (RuntimeException e) {
         if (PersistenceErrors.isUniqueViolation(e)) {
           throw new BiketeamJobFailure(
@@ -591,13 +369,7 @@ public class BiketeamMigrationService {
    * A new target team at {@code slug}. Biketeam's visibility and joinability are applied here, at
    * creation only — a replay leaves the Pédalons settings alone.
    */
-  private Team createTargetTeam(
-      Domain domain,
-      User creator,
-      BtTeam src,
-      ZoneId zone,
-      String slug,
-      @Nullable String liveTeamId) {
+  private Team createTargetTeam(Domain domain, User creator, BtTeam src, ZoneId zone, String slug) {
     Visibility visibility = mapTeamVisibility(src.visibility());
     Team team = new Team(domain, creator, src.name(), slug, visibility);
     team.setEnableRoutes(true);
@@ -610,7 +382,7 @@ public class BiketeamMigrationService {
     team.setJoinable(visibility != Visibility.TEAM);
     team.setAddMemberAllowed(true);
     teamRepository.persistAndFlush(team);
-    mapRepo.upsert(T_TEAM, src.id(), team.getId(), null, liveTeamId);
+    mapRepo.upsert(T_TEAM, src.id(), team.getId(), null, src.id());
     Instant createdAt = at(zone, src.createdAt(), null);
     backdate("teams", team.getId(), createdAt);
     // The about page is cascade-created with the team and has no date of its own in biketeam.
@@ -913,261 +685,6 @@ public class BiketeamMigrationService {
     return s == null ? "" : s.trim();
   }
 
-  // ─── Users (legacy only) ──────────────────────────────────────────────────
-
-  /** Returns biketeam user_id → Pédalons user_id for users in the team's scope. */
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — migrateUsers(): the live migration imports no people.
-  @Deprecated(forRemoval = true, since = "4.5.0")
-  protected Map<String, Long> migrateUsers(Domain domain, String sourceTeam) {
-    Set<String> referenced = new HashSet<>();
-    reader.findUserRoles(sourceTeam).forEach(r -> referenced.add(r.userId()));
-    List<String> rideIds = reader.findRides(sourceTeam).stream().map(BtRide::id).toList();
-    List<String> rideGroupIds =
-        reader.findRideGroups(rideIds).stream().map(BtRideGroup::id).toList();
-    reader.findRideGroupParticipants(rideGroupIds).forEach(p -> referenced.add(p.userId()));
-    List<String> tripIds = reader.findTrips(sourceTeam).stream().map(BtTrip::id).toList();
-    reader.findTripParticipants(tripIds).forEach(p -> referenced.add(p.userId()));
-    reader.findMessages(sourceTeam).forEach(m -> referenced.add(m.userId()));
-
-    // Biketeam cleared the address of the accounts that lost its case-insensitive email
-    // deduplication. The account that kept it must be read too, whether or not it is referenced.
-    Map<String, String> emailConflicts = reader.findEmailConflicts();
-    referenced.addAll(
-        referenced.stream().map(emailConflicts::get).filter(Objects::nonNull).toList());
-
-    if (referenced.isEmpty()) {
-      return Map.of();
-    }
-    Map<String, Long> idMap = new HashMap<>();
-    UserCounts counts = new UserCounts();
-    List<BiketeamReader.BtUser> losers = new ArrayList<>();
-    for (BiketeamReader.BtUser bt : reader.findUsersByIds(new ArrayList<>(referenced))) {
-      if (emailConflicts.containsKey(bt.id())) {
-        losers.add(bt);
-      } else {
-        migrateUser(domain, bt, idMap, counts);
-      }
-    }
-    // After the accounts they may fold into, which are therefore already mapped.
-    for (BiketeamReader.BtUser bt : losers) {
-      Long keptUserId = idMap.get(emailConflicts.get(bt.id()));
-      if (keptUserId != null && resolveEmail(bt) == null) {
-        foldIntoKeptUser(bt, keptUserId, idMap, counts);
-      } else {
-        migrateUser(domain, bt, idMap, counts);
-      }
-    }
-    LOG.infof(
-        "Migrated %d users (%d with a placeholder email, %d folded into the account that kept"
-            + " their email, %d skipped)",
-        idMap.size(), counts.placeholders, counts.folded, counts.skipped);
-    return idMap;
-  }
-
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — UserCounts: dump import only.
-  @Deprecated(forRemoval = true, since = "4.5.0")
-  private static final class UserCounts {
-    int placeholders;
-    int folded;
-    int skipped;
-  }
-
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — migrateUser(): dump import only.
-  @Deprecated(forRemoval = true, since = "4.5.0")
-  private void migrateUser(
-      Domain domain, BiketeamReader.BtUser bt, Map<String, Long> idMap, UserCounts counts) {
-    String email = resolveEmail(bt);
-    if (email == null) {
-      LOG.warnf("Skipping biketeam user %s: no email and no external id to derive one", bt.id());
-      counts.skipped++;
-      return;
-    }
-    if (!hasRealEmail(bt)) {
-      counts.placeholders++;
-    }
-    try {
-      QuarkusTransaction.requiringNew()
-          .run(
-              () -> {
-                User user = upsertUserByEmail(domain, bt, email);
-                mapRepo.upsert(T_USER, bt.id(), user.getId());
-                idMap.put(bt.id(), user.getId());
-              });
-    } catch (Exception e) {
-      LOG.warnf(e, "Failed to migrate user biketeam.id=%s email=%s", bt.id(), email);
-    }
-  }
-
-  /**
-   * A deduplication loser with no external id has nothing left to log in with, and would otherwise
-   * be skipped along with its memberships, participations and comments. Before the deduplication
-   * the migration merged it into the same Pédalons user by lowercased email; this keeps that. Only
-   * the data follows: no login method of the loser is attached to the kept account. A loser that
-   * does have an external id stays a separate account, as it now is in biketeam.
-   */
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — foldIntoKeptUser(): dump import only.
-  @Deprecated(forRemoval = true, since = "4.5.0")
-  private void foldIntoKeptUser(
-      BiketeamReader.BtUser bt, Long keptUserId, Map<String, Long> idMap, UserCounts counts) {
-    try {
-      QuarkusTransaction.requiringNew().run(() -> mapRepo.upsert(T_USER, bt.id(), keptUserId));
-      idMap.put(bt.id(), keptUserId);
-      counts.folded++;
-    } catch (Exception e) {
-      LOG.warnf(e, "Failed to fold biketeam user %s into Pédalons user %d", bt.id(), keptUserId);
-    }
-  }
-
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — hasRealEmail(): dump import only.
-  @Deprecated(forRemoval = true, since = "4.5.0")
-  private static boolean hasRealEmail(BiketeamReader.BtUser bt) {
-    return bt.email() != null && !bt.email().isBlank();
-  }
-
-  /**
-   * Whether the migrated address can be trusted as the member's own. Biketeam's old profile form
-   * accepted any address, so biketeam itself reset {@code email_verified} to false on every account
-   * and only sets it back on proof of mailbox control. A verified email opens OTP login and
-   * password reset in Pédalons, which has no Google/Facebook login, so the rule is widened to the
-   * accounts carrying one of those identities — otherwise they would have no way in at all. A
-   * password alone proves nothing: biketeam stores it before the address is verified.
-   */
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — hasProvenEmail(): dump import only.
-  @Deprecated(forRemoval = true, since = "4.5.0")
-  private static boolean hasProvenEmail(BiketeamReader.BtUser bt) {
-    return hasRealEmail(bt)
-        && (bt.emailVerified()
-            || (bt.facebookId() != null && !bt.facebookId().isBlank())
-            || (bt.googleId() != null && !bt.googleId().isBlank()));
-  }
-
-  /**
-   * Biketeam allowed Strava/Facebook/Google accounts to exist without an email, which Pédalons'
-   * {@code User} requires. Derive a stable, unique — but undeliverable — address from the external
-   * id so those members keep their memberships, participations and comments.
-   *
-   * @return null when the account has neither an email nor any external id
-   */
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — resolveEmail(): dump import only.
-  @Deprecated(forRemoval = true, since = "4.5.0")
-  private @Nullable String resolveEmail(BiketeamReader.BtUser bt) {
-    if (hasRealEmail(bt)) {
-      return bt.email().trim().toLowerCase(Locale.ROOT);
-    }
-    String domain = config.getPlaceholderEmailDomain();
-    String localPart = null;
-    if (bt.stravaId() != null) {
-      localPart = "strava_" + bt.stravaId();
-    } else if (bt.facebookId() != null && !bt.facebookId().isBlank()) {
-      localPart = "facebook_" + bt.facebookId().trim();
-    } else if (bt.googleId() != null && !bt.googleId().isBlank()) {
-      localPart = "google_" + bt.googleId().trim();
-    }
-    return localPart == null ? null : (localPart + "@" + domain).toLowerCase(Locale.ROOT);
-  }
-
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — upsertUserByEmail(): dump import only.
-  @Deprecated(forRemoval = true, since = "4.5.0")
-  private User upsertUserByEmail(Domain domain, BiketeamReader.BtUser bt, String email) {
-    return userRepository
-        .findByEmailAndDomain(domain.getId(), email)
-        .map(u -> updateUser(u, bt))
-        .orElseGet(() -> createUser(domain, bt, email));
-  }
-
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — createUser(): dump import only.
-  @Deprecated(forRemoval = true, since = "4.5.0")
-  private User createUser(Domain domain, BiketeamReader.BtUser bt, String email) {
-    User user = new User(domain, email, displayNameFor(bt, email));
-    applyProvenEmail(user, bt);
-    userRepository.persist(user);
-    return user;
-  }
-
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — updateUser(): dump import only.
-  @Deprecated(forRemoval = true, since = "4.5.0")
-  private User updateUser(User user, BiketeamReader.BtUser bt) {
-    user.setDisplayName(displayNameFor(bt, user.getEmail()));
-    applyProvenEmail(user, bt);
-    if (bt.deletion() && !user.isDeleted()) {
-      user.setDeleted(true);
-    }
-    userRepository.persist(user);
-    return user;
-  }
-
-  /**
-   * Marks the email verified and carries the biketeam password over, both only on a proven email:
-   * Pédalons' password login does not check verification, so a hash set on someone else's address
-   * would be a working login to it. Never downgrades what Pédalons already holds.
-   */
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — applyProvenEmail(): dump import only.
-  @Deprecated(forRemoval = true, since = "4.5.0")
-  private void applyProvenEmail(User user, BiketeamReader.BtUser bt) {
-    if (!hasProvenEmail(bt)) {
-      return;
-    }
-    if (!user.isEmailVerified()) {
-      user.markEmailVerified();
-    }
-    String hash = bt.passwordHash();
-    if (hash == null || user.getPasswordHash() != null) {
-      return;
-    }
-    // Spring's BCryptPasswordEncoder writes $2a$; elytron's ModularCrypt, behind BcryptUtil,
-    // reads $2a$, $2x$ and $2y$ but not $2b$, and would throw at login rather than refuse.
-    if (hash.startsWith("$2a$") || hash.startsWith("$2y$")) {
-      user.setPasswordHash(hash);
-    } else {
-      LOG.warnf("Not migrating the password of biketeam user %s: unsupported hash format", bt.id());
-    }
-  }
-
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — displayNameFor(): dump import only.
-  @Deprecated(forRemoval = true, since = "4.5.0")
-  private String displayNameFor(BiketeamReader.BtUser bt, String fallback) {
-    String first = bt.firstName() == null ? "" : bt.firstName().trim();
-    String last = bt.lastName() == null ? "" : bt.lastName().trim();
-    String dn = (first + " " + last).trim();
-    return dn.isEmpty() ? fallback : dn;
-  }
-
-  // ─── User-team memberships (legacy only) ──────────────────────────────────
-
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — migrateUserTeams(): memberships, dump import only.
-  @Deprecated(forRemoval = true, since = "4.5.0")
-  protected void migrateUserTeams(Team team, String sourceTeam, Map<String, Long> userIdsByBtId) {
-    for (BiketeamReader.BtUserRole role : reader.findUserRoles(sourceTeam)) {
-      Long triblyUserId = userIdsByBtId.get(role.userId());
-      if (triblyUserId == null) {
-        continue;
-      }
-      try {
-        QuarkusTransaction.requiringNew()
-            .run(
-                () -> {
-                  User user = userRepository.findActiveById(triblyUserId).orElse(null);
-                  if (user == null) {
-                    return;
-                  }
-                  ensureMembership(team, user, mapRole(role.role()));
-                  userTeamRepository
-                      .findByUserAndTeam(user.getId(), team.getId())
-                      .ifPresent(
-                          ut ->
-                              mapRepo.upsert(
-                                  T_USER_TEAM, role.teamId() + ":" + role.userId(), ut.getId()));
-                });
-      } catch (Exception e) {
-        LOG.warnf(
-            e,
-            "Failed to migrate user_role biketeam team=%s user=%s",
-            role.teamId(),
-            role.userId());
-      }
-    }
-  }
-
   // ─── Places ───────────────────────────────────────────────────────────────
 
   private Map<String, Long> migratePlaces(Run r) {
@@ -1233,7 +750,7 @@ public class BiketeamMigrationService {
       r.progress().beforeItem();
       try {
         SourceFile gpxFile = bt.deletion() ? null : r.source().gpx(bt.id());
-        // Computed once for both uses below: on the legacy source it reads the whole file.
+        // Computed once for both uses below.
         String fingerprint = gpxFile == null ? null : gpxFile.fingerprint();
         // Downloaded before the transaction opens, and only when the route needs it.
         Fetched gpx = gpxFile == null ? Fetched.NONE : prefetchGpx(r, bt, gpxFile, fingerprint);
@@ -1430,8 +947,7 @@ public class BiketeamMigrationService {
 
   // ─── Posts ────────────────────────────────────────────────────────────────
 
-  private Map<String, Long> migratePublications(Run r) {
-    Map<String, Long> ids = new HashMap<>();
+  private void migratePublications(Run r) {
     List<BtPublication> publications = r.source().publications();
     r.progress().phase(Phase.PUBLICATIONS, publications.size());
     for (BtPublication bt : publications) {
@@ -1445,7 +961,7 @@ public class BiketeamMigrationService {
         Fetched image = prefetchImage(r, ImageKind.PUBLICATION, bt.id());
         QuarkusTransaction.requiringNew()
             .timeout(120)
-            .run(() -> migrateOnePublication(r, bt, ids, image));
+            .run(() -> migrateOnePublication(r, bt, image));
         r.progress().count(Counter.PUBLICATIONS, Outcome.MIGRATED);
       } catch (Exception e) {
         LOG.warnf(e, "Failed to migrate publication biketeam.id=%s", bt.id());
@@ -1453,11 +969,9 @@ public class BiketeamMigrationService {
       }
       r.progress().tick();
     }
-    return ids;
   }
 
-  private void migrateOnePublication(
-      Run r, BtPublication bt, Map<String, Long> ids, Fetched image) {
+  private void migrateOnePublication(Run r, BtPublication bt, Fetched image) {
     Team team = r.team();
     Long mapped = mapRepo.findTriblyId(T_POST, bt.id());
     Post existing =
@@ -1480,20 +994,17 @@ public class BiketeamMigrationService {
       post = postRepository.findByIdOptional(TsidUtils.toLong(created.getId())).orElseThrow();
     }
     map(r, T_POST, bt.id(), post.getId());
-    ids.put(bt.id(), post.getId());
     attachImage(r, post, ImageKind.PUBLICATION, bt.id(), image);
     backdate("team_entities", post.getId(), bt.publishedAt());
   }
 
   // ─── Rides ────────────────────────────────────────────────────────────────
 
-  private Map<String, Long> migrateRides(
-      Run r, Map<String, Long> routeIds, Map<String, Long> placeIds) {
-    Map<String, Long> ids = new HashMap<>();
+  private void migrateRides(Run r, Map<String, Long> routeIds, Map<String, Long> placeIds) {
     List<BtRide> rides = r.source().rides();
     r.progress().phase(Phase.RIDES, rides.size());
     if (rides.isEmpty()) {
-      return ids;
+      return;
     }
     Map<String, List<BtRideGroup>> groupsByRide = new HashMap<>();
     r.source()
@@ -1511,7 +1022,7 @@ public class BiketeamMigrationService {
         Fetched image = prefetchImage(r, ImageKind.RIDE, bt.id());
         QuarkusTransaction.requiringNew()
             .timeout(120)
-            .run(() -> migrateOneRide(r, bt, groupsByRide, routeIds, placeIds, ids, image));
+            .run(() -> migrateOneRide(r, bt, groupsByRide, routeIds, placeIds, image));
         r.progress().count(Counter.RIDES, Outcome.MIGRATED);
       } catch (Exception e) {
         LOG.warnf(e, "Failed to migrate ride biketeam.id=%s", bt.id());
@@ -1519,17 +1030,14 @@ public class BiketeamMigrationService {
       }
       r.progress().tick();
     }
-    return ids;
   }
 
-  @SuppressWarnings("removal")
   private void migrateOneRide(
       Run r,
       BtRide bt,
       Map<String, List<BtRideGroup>> groupsByRide,
       Map<String, Long> routeIds,
       Map<String, Long> placeIds,
-      Map<String, Long> ids,
       Fetched image) {
     Team team = r.team();
     List<BtRideGroup> groups = groupsByRide.getOrDefault(bt.id(), List.of());
@@ -1579,7 +1087,6 @@ public class BiketeamMigrationService {
       RideDto created = rideService.createRide(team.getSlug(), req);
       ride = rideRepository.findByIdOptional(TsidUtils.toLong(created.getId())).orElseThrow();
     }
-    ids.put(bt.id(), ride.getId());
     map(r, T_RIDE, bt.id(), ride.getId());
 
     // updateRide writes the groups in request order and numbers sortOrder with it, so position i
@@ -1596,51 +1103,17 @@ public class BiketeamMigrationService {
       map(r, T_RIDE_GROUP, groups.get(i).id(), tribGroups.get(i).getId());
     }
 
-    // Settle the groups the ride just gained and lost before hanging participations off them: a
-    // participation persisted against a group Hibernate has already condemned is refused as a
-    // transient reference, and the failure would take the whole ride down with it.
-    rideRepository.flush();
-
-    // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — participations: dump import only. The live migration
-    // passes an empty PeopleData, so this loop never runs there.
-    for (int i = 0; i < paired; i++) {
-      BtRideGroup g = groups.get(i);
-      RideGroup tribGroup = tribGroups.get(i);
-      for (BiketeamReader.BtRideGroupParticipant p :
-          r.people().participantsByGroup().getOrDefault(g.id(), List.of())) {
-        Long triblyUserId = r.people().userIds().get(p.userId());
-        if (triblyUserId == null) continue;
-        User u = userRepository.findActiveById(triblyUserId).orElse(null);
-        if (u == null) continue;
-        String mappingKey = g.id() + ":" + p.userId();
-        // Trust the database, not the mapping row: a mapping entry can outlive the participation it
-        // points at, and skipping on its mere presence would never restore the missing row.
-        RideParticipation rp =
-            rideParticipationRepository
-                .findByUserAndGroup(u.getId(), tribGroup.getId())
-                .orElseGet(
-                    () -> {
-                      RideParticipation created = new RideParticipation(tribGroup, u);
-                      rideParticipationRepository.persist(created);
-                      return created;
-                    });
-        mapRepo.upsert(T_RIDE_PARTICIPATION, mappingKey, rp.getId());
-      }
-    }
-    // end of REMOVE-WITH-LEGACY-BIKETEAM-IMPORT participations
-
     attachImage(r, ride, ImageKind.RIDE, bt.id(), image);
     backdate("team_entities", ride.getId(), bt.publishedAt());
   }
 
   // ─── Trips ────────────────────────────────────────────────────────────────
 
-  private Map<String, Long> migrateTrips(Run r, Map<String, Long> routeIds) {
-    Map<String, Long> ids = new HashMap<>();
+  private void migrateTrips(Run r, Map<String, Long> routeIds) {
     List<BtTrip> trips = r.source().trips();
     r.progress().phase(Phase.TRIPS, trips.size());
     if (trips.isEmpty()) {
-      return ids;
+      return;
     }
     Map<String, List<BtTripStage>> stagesByTrip = new HashMap<>();
     r.source()
@@ -1665,7 +1138,7 @@ public class BiketeamMigrationService {
         int pairedStages =
             QuarkusTransaction.requiringNew()
                 .timeout(120)
-                .call(() -> migrateOneTrip(r, bt, stages, routeIds, ids, image));
+                .call(() -> migrateOneTrip(r, bt, stages, routeIds, image));
         r.progress().count(Counter.TRIPS, Outcome.MIGRATED);
         for (int i = 0; i < stages.size(); i++) {
           r.progress()
@@ -1678,7 +1151,6 @@ public class BiketeamMigrationService {
       }
       r.progress().tick();
     }
-    return ids;
   }
 
   /**
@@ -1716,14 +1188,8 @@ public class BiketeamMigrationService {
   }
 
   /** @return how many stages were paired with a Pédalons stage */
-  @SuppressWarnings("removal")
   private int migrateOneTrip(
-      Run r,
-      BtTrip bt,
-      List<BtTripStage> stages,
-      Map<String, Long> routeIds,
-      Map<String, Long> ids,
-      Fetched image) {
+      Run r, BtTrip bt, List<BtTripStage> stages, Map<String, Long> routeIds, Fetched image) {
     Team team = r.team();
     Instant dateTime = at(r.zone(), bt.startDate(), bt.meetingTime());
     Long mapped = mapRepo.findTriblyId(T_TRIP, bt.id());
@@ -1769,24 +1235,7 @@ public class BiketeamMigrationService {
       TripDto created = tripService.createTrip(team.getSlug(), req);
       trip = tripRepository.findByIdOptional(TsidUtils.toLong(created.getId())).orElseThrow();
     }
-    ids.put(bt.id(), trip.getId());
     map(r, T_TRIP, bt.id(), trip.getId());
-
-    // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — participations: dump import only. The live migration
-    // passes an empty PeopleData, so this loop never runs there.
-    for (BiketeamReader.BtTripParticipant p :
-        r.people().participantsByTrip().getOrDefault(bt.id(), List.of())) {
-      Long triblyUserId = r.people().userIds().get(p.userId());
-      if (triblyUserId == null) continue;
-      User u = userRepository.findActiveById(triblyUserId).orElse(null);
-      if (u == null) continue;
-      if (tripParticipationRepository.findByUserAndTrip(u.getId(), trip.getId()).isPresent())
-        continue;
-      TripParticipation tp = new TripParticipation(trip, u);
-      tripParticipationRepository.persist(tp);
-      mapRepo.upsert(T_TRIP_PARTICIPATION, bt.id() + ":" + p.userId(), tp.getId());
-    }
-    // end of REMOVE-WITH-LEGACY-BIKETEAM-IMPORT participations
 
     // Trip.stages has no @SQLRestriction, so soft-deleted stages come along; they all carry
     // sortOrder 0 and would otherwise head the list and steal the mapping.
@@ -1825,87 +1274,6 @@ public class BiketeamMigrationService {
     description = description.strip();
     String section = TRIP_NOTES_HEADING + "\n\n" + notes;
     return description.isEmpty() ? section : description + "\n\n" + section;
-  }
-
-  // ─── Comments (Messages, legacy only) ─────────────────────────────────────
-
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — migrateMessages(): comments, dump import only.
-  @Deprecated(forRemoval = true, since = "4.5.0")
-  protected void migrateMessages(
-      Team team,
-      User admin,
-      String sourceTeam,
-      Map<String, Long> rideIds,
-      Map<String, Long> tripIds,
-      Map<String, Long> postIds,
-      Map<String, Long> userIds) {
-    List<BiketeamReader.BtMessage> messages = new ArrayList<>(reader.findMessages(sourceTeam));
-    messages.sort(Comparator.comparing(BiketeamReader.BtMessage::publishedAt));
-
-    for (BiketeamReader.BtMessage m : messages) {
-      try {
-        QuarkusTransaction.requiringNew()
-            .run(() -> migrateOneMessage(m, rideIds, tripIds, postIds, userIds));
-      } catch (Exception e) {
-        LOG.warnf(e, "Failed to migrate message biketeam.id=%s", m.id());
-      }
-    }
-  }
-
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — migrateOneMessage(): dump import only.
-  @Deprecated(forRemoval = true, since = "4.5.0")
-  private void migrateOneMessage(
-      BiketeamReader.BtMessage m,
-      Map<String, Long> rideIds,
-      Map<String, Long> tripIds,
-      Map<String, Long> postIds,
-      Map<String, Long> userIds) {
-    if (mapRepo.findTriblyId(T_COMMENT, m.id()) != null) {
-      return;
-    }
-    Long triblyUserId = userIds.get(m.userId());
-    if (triblyUserId == null) return;
-    User actor = userRepository.findActiveById(triblyUserId).orElse(null);
-    if (actor == null) return;
-    TeamEntity target = resolveCommentTarget(m, rideIds, tripIds, postIds);
-    if (target == null) return;
-    Comment parent = null;
-    if (m.replyToId() != null) {
-      Long parentId = mapRepo.findTriblyId(T_COMMENT, m.replyToId());
-      if (parentId != null) {
-        parent = commentRepository.findById(parentId);
-      }
-    }
-    Comment comment =
-        parent != null
-            ? new Comment(actor, target, parent, m.content())
-            : new Comment(actor, target, m.content());
-    commentRepository.persistAndFlush(comment);
-    mapRepo.upsert(T_COMMENT, m.id(), comment.getId());
-    // Comment has no business date: CommentDto exposes createdAt and the repository sorts on it.
-    backdate("comments", comment.getId(), m.publishedAt());
-  }
-
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — resolveCommentTarget(): dump import only.
-  @Deprecated(forRemoval = true, since = "4.5.0")
-  private @Nullable TeamEntity resolveCommentTarget(
-      BiketeamReader.BtMessage m,
-      Map<String, Long> rideIds,
-      Map<String, Long> tripIds,
-      Map<String, Long> postIds) {
-    String type = m.type() == null ? "" : m.type().toUpperCase(Locale.ROOT);
-    return switch (type) {
-      case "RIDE" -> {
-        Long id = rideIds.get(m.targetId());
-        yield id != null ? rideRepository.findByIdOptional(id).orElse(null) : null;
-      }
-      case "TRIP" -> {
-        Long id = tripIds.get(m.targetId());
-        yield id != null ? tripRepository.findByIdOptional(id).orElse(null) : null;
-      }
-      // TEAM-scoped messages have no equivalent target in Pédalons — dropped
-      default -> null;
-    };
   }
 
   // ─── Asset attachment helpers ─────────────────────────────────────────────
@@ -2040,7 +1408,7 @@ public class BiketeamMigrationService {
     /**
      * The prefetched copy, or its download failure. Falls back to opening {@code file} only when
      * nothing was prefetched because the mapping looked reusable and no longer is — a race with a
-     * concurrent change, local to the legacy source in practice.
+     * concurrent change.
      */
     Path path(SourceFile file) throws IOException {
       if (error != null) {
@@ -2334,19 +1702,10 @@ public class BiketeamMigrationService {
     };
   }
 
-  // REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — mapRole(): memberships, dump import only.
-  @Deprecated(forRemoval = true, since = "4.5.0")
-  private static TeamRole mapRole(@Nullable String biketeamRole) {
-    if (biketeamRole == null) {
-      return TeamRole.MEMBER;
-    }
-    return "ADMIN".equalsIgnoreCase(biketeamRole) ? TeamRole.ADMIN : TeamRole.MEMBER;
-  }
-
   /**
    * A biketeam bare date and time, read in the team's zone. Biketeam stored {@code time without
    * time zone} and bare dates and resolved both against {@code team_configuration.timezone} at
-   * render time; the live source carries that zone, the legacy one assumes {@code Europe/Paris}.
+   * render time; the source carries that zone.
    */
   static Instant at(ZoneId zone, @Nullable LocalDate date, @Nullable LocalTime time) {
     LocalDate d = date != null ? date : LocalDate.now(zone);

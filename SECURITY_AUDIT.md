@@ -32,7 +32,7 @@
 | M4 | Moyenne | Aucune limitation de débit ni verrouillage sur `/api/auth/login` | backend auth |
 | M5 | Moyenne | Un lien de vérification d'e-mail connecte silencieusement la victime au compte de l'attaquant (login CSRF) | mobile + backend |
 | M6 | Moyenne | ReDoS possible sur le markdown, dont la taille n'est pas bornée | backend assets |
-| L1–L12 | Faible | Voir la section dédiée | divers |
+| L1–L11 | Faible | Voir la section dédiée | divers |
 | V1–V8 | À valider | Faits hors du dépôt, dont la clé JWT présente dans l'historique public | infra |
 
 **Ordre de correction conseillé** :
@@ -143,7 +143,7 @@
 - **Scénario** : un token émis sur le domaine A pour l'e-mail E est accepté sur le domaine B, où il agit en tant que le compte B de E, qui est un compte distinct.
 - **Exploitation concrète** : elle suppose de détenir sur A un compte dont on ne possède pas l'e-mail.
   - ~~La connexion Strava n'exige pas d'e-mail vérifié (`StravaAuthService.java:187-218`).~~ Caduc : la connexion Strava a été retirée (API 5.0.0).
-  - La migration biketeam importe des e-mails non vérifiés en y rattachant un `strava_id` (`BiketeamMigrationService.java:694-708`).
+  - ~~La migration biketeam importe des e-mails non vérifiés en y rattachant un `strava_id` (`BiketeamMigrationService.java:694-708`).~~ Caduc pour l'avenir : l'import par dump, seul à importer des personnes, a été retiré. Les comptes qu'il a créés restent en base.
 
   Par ailleurs, une révocation sur B (déconnexion globale, reset, suppression) reste sans effet sur un token émis par A.
 - **Correctif minimal** : dans `doInit`, rejeter le JWT si `domainId` diffère du domaine résolu, et charger l'utilisateur par la claim `userId` en le restreignant à ce domaine. Ajouter un test qui rejoue un token de A contre B.
@@ -219,7 +219,6 @@
 | L9 | Nom de fichier brut dans l'URL de téléchargement d'asset | `AssetService.java:331` | Encoder le segment |
 | L10 | Karoo : tokens en clair dans DataStore avec `allowBackup="true"` | `karoo/app/src/main/AndroidManifest.xml:7`, `AuthManager.kt` | `allowBackup="false"` et chiffrement par Keystore |
 | L11 | GitHub Actions : actions tierces épinglées par tag, pas de `permissions:` par défaut ; `karoo-release.yml` dispose du keystore | `.github/workflows/*.yml` | Épingler par SHA, `permissions: contents: read` |
-| L12 | Dump biketeam écrit dans un `/tmp` prévisible sur un hôte partagé | `scripts/biketeam_fetch.sh:36,91` | `umask 077; mktemp -d` <!-- REMOVE-WITH-LEGACY-BIKETEAM-IMPORT: L12 devient sans objet avec biketeam_fetch.sh — retirer la ligne (et « L1–L12 » du tableau de synthèse) --> |
 
 Informationnel :
 - Le markdown web accepte des images externes (pistage de l'IP des lecteurs, sans fuite de token) : `MarkdownDisplay.tsx:70-72`.
@@ -233,7 +232,7 @@ Informationnel :
 | # | Hypothèse | Fait manquant | Si elle est confirmée |
 |---|---|---|---|
 | V1 | **Une clé privée JWT figure dans l'historique public** : `git show c0ac99fe:backend/src/main/resources/privateKey.pem`, supprimée en `ab6385a8`, plus une clé de dev en `7978afb1`. La prod lit `/mnt/keys/*.pem`, générées par `data/keys/generate-keys.sh`. | Le SHA-256 de la `publicKey.pem` de prod, à comparer à celles de ces deux commits. Vérifier aussi que la clé de staging n'est pas une copie de celle de prod. | **Critique** : n'importe qui forge un JWT admin. Rotation immédiate. Dans tous les cas, considérer ces deux clés comme compromises. |
-| V2 | La migration biketeam considère un `facebookId` ou `googleId` comme preuve de possession de l'e-mail, et copie `passwordHash`, nom et suppression sur un compte Pedalons existant (`BiketeamMigrationService.java:702-798`). | Biketeam laissait-il un compte Facebook ou Google changer d'e-mail sans le revérifier ? | Élevée : l'attaquant pose son mot de passe sur le compte vérifié de la victime. Correctif : ne se fier qu'à `emailVerified` et ne jamais écraser un compte antérieur à la migration. |
+| V2 | ~~La migration biketeam considère un `facebookId` ou `googleId` comme preuve de possession de l'e-mail, et copie `passwordHash`, nom et suppression sur un compte Pedalons existant (`BiketeamMigrationService.java:702-798`).~~ Caduc pour l'avenir : l'import par dump a été retiré, et la migration en direct n'importe aucune personne. Reste la question des comptes déjà importés. | Biketeam laissait-il un compte Facebook ou Google changer d'e-mail sans le revérifier ? | Élevée : l'attaquant pose son mot de passe sur le compte vérifié de la victime. Plus de correctif de code à faire ; si l'hypothèse est confirmée, auditer les comptes importés. |
 | V3 | Traefik tourne avec `forwardedHeaders.insecure=true` (`docker-compose.yml:17`), et `DomainResolver` fait confiance à `X-Forwarded-Host`. | Le Caddyfile de l'hôte : écrase-t-il `X-Forwarded-*` ? | Choix d'un tenant non routé publiquement, IP de session falsifiée. Remplacer par `trustedIPs`. |
 | V4 | Le dépôt ne pose aucun en-tête de sécurité (CSP, `frame-ancestors`, `nosniff`, HSTS). | Le Caddy les ajoute-t-il ? | Clickjacking sur les actions sensibles, et H2 sans atténuation. Ajouter un middleware Traefik `headers`. |
 | V5 | Sauvegardes : `rrsync <root>`, sans `-no-del`, accepte `--delete` et l'écriture en place. Les snapshots partagent des hardlinks et `SHA256SUMS` est stocké dans le snapshot lui-même. | La ligne `authorized_keys` exacte, et l'existence de snapshots en lecture seule côté hôte de sauvegarde. | Un root de prod peut effacer ou empoisonner tout l'historique de sauvegardes. |

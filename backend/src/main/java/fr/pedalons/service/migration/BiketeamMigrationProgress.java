@@ -3,8 +3,7 @@ package fr.pedalons.service.migration;
 /**
  * What {@link BiketeamMigrationService} reports while it maps a team: the phase it is in, one tick
  * per element of that phase, a per-kind outcome count, and warnings. The live migration turns it
- * into the job's progress, counts and heartbeat; the legacy import passes {@link #NONE} and keeps
- * reading its logs.
+ * into the job's progress, counts and heartbeat.
  *
  * <p>Implementations must be cheap and must not throw, except to abort the run on purpose (a job
  * that has been taken away from this worker).
@@ -88,23 +87,4 @@ public interface BiketeamMigrationProgress {
    * @param code one of {@link Codes}
    */
   void warning(String entityType, String biketeamId, String code, String message);
-
-  /** Reports nothing. */
-  BiketeamMigrationProgress NONE =
-      new BiketeamMigrationProgress() {
-        @Override
-        public void phase(Phase phase, int total) {}
-
-        @Override
-        public void beforeItem() {}
-
-        @Override
-        public void tick() {}
-
-        @Override
-        public void count(Counter counter, Outcome outcome) {}
-
-        @Override
-        public void warning(String entityType, String biketeamId, String code, String message) {}
-      };
 }

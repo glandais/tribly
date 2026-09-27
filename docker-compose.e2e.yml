@@ -21,16 +21,6 @@ services:
       - ./.e2e/keys:/mnt/keys:ro
       - ./.e2e/cache:/mnt/cache
 
-  # Only ever started by `--profile restore`, which e2e.sh never passes; overridden anyway so no
-  # command can make it read the real .env or the real biketeam backup.
-  backend-restore:
-    env_file: !override
-      - .env.e2e
-    volumes: !override
-      - ./.e2e/storage:/mnt/storage
-      - ./.e2e/keys:/mnt/keys:ro
-      - ./.e2e/cache:/mnt/cache
-
   mailhog:
     image: mailhog/mailhog:v1.0.1
     container_name: ${ENV_NAME}-mailhog

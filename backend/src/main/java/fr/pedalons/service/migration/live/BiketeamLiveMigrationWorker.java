@@ -190,7 +190,7 @@ public class BiketeamLiveMigrationWorker {
 
   /**
    * Target resolution, mapping and URL table, inside a request context carrying the job's domain and
-   * user — as {@code BiketeamMigrationService.run()} always did — and without notifications.
+   * user, and without notifications.
    */
   Map<String, Map<String, String>> execute(
       LiveJobContext ctx, BiketeamSource source, JobProgressTracker tracker) {

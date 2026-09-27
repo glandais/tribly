@@ -7,12 +7,11 @@ import java.util.List;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Biketeam's team content as the mapping in {@link BiketeamMigrationService} consumes it, whatever
- * the source: the live export snapshot or the legacy dump. Field names follow biketeam's columns
- * ({@code deletion}, {@code point_lat}…), so both sources translate into the same shape.
+ * Biketeam's team content as the mapping in {@link BiketeamMigrationService} consumes it. Field
+ * names follow biketeam's columns ({@code deletion}, {@code point_lat}…).
  *
- * <p>Nothing about people lives here: users, roles, participants and messages are the legacy
- * import's alone and stay with its JDBC reader.
+ * <p>Nothing about people lives here: the migration imports no users, roles, participants or
+ * messages.
  */
 public final class BiketeamModel {
 

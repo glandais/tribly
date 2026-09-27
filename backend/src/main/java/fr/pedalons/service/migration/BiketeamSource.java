@@ -16,9 +16,8 @@ import java.util.List;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Where the content of one biketeam team comes from. Two implementations: the live export snapshot
- * fetched over HTTPS ({@code SnapshotBiketeamSource}) and, until it is removed, the restored dump
- * plus data directory of the legacy import (REMOVE-WITH-LEGACY-BIKETEAM-IMPORT: drop this mention).
+ * Where the content of one biketeam team comes from: the live export snapshot fetched over HTTPS
+ * ({@code SnapshotBiketeamSource}).
  *
  * <p>Child lists come <em>already ordered</em> the way biketeam displayed them — ride groups by
  * meeting time then name, trip stages by date then name, template groups by name alone — because
@@ -40,9 +39,9 @@ public interface BiketeamSource extends AutoCloseable {
     }
 
     /**
-     * The directory of the legacy data export. Also the prefix of the {@code ASSET} mapping key,
-     * which is why the live path keeps using it: an image the legacy import already uploaded is then
-     * recognised and not uploaded twice.
+     * The directory of biketeam's former data export, removed with the dump import. Still the
+     * prefix of the {@code ASSET} mapping key: an image that import uploaded is then recognised and
+     * not uploaded twice.
      */
     public String legacyDirectory() {
       return legacyDirectory;

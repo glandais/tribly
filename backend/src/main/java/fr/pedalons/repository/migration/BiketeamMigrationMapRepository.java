@@ -75,7 +75,7 @@ public class BiketeamMigrationMapRepository
   /**
    * Same, recording which biketeam team the row belongs to — what the live migration writes, so a
    * reset can find every row of that team. A null {@code biketeamTeamId} leaves the stored one
-   * alone, which is what the legacy import does.
+   * alone, which is what the former dump import did.
    */
   public BiketeamMigrationMap upsert(
       String entityType,
