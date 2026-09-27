@@ -44,3 +44,7 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 android/.kotlin
+
+# Patrol — the bundle is generated at each run, .patrol.env holds dart-defines
+**/test_bundle.dart
+.patrol.env

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../config/paths.dart';
+import '../../../../keys.dart';
 import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
@@ -252,6 +253,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 TextFormField(
+                  key: keys.login.emailField,
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   autofillHints: const [AutofillHints.email],
@@ -272,6 +274,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
+                  key: keys.login.passwordField,
                   controller: _passwordController,
                   obscureText: true,
                   autofillHints: const [AutofillHints.password],
@@ -298,6 +301,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ),
                 const SizedBox(height: 8),
                 FilledButton(
+                  key: keys.login.submitButton,
                   onPressed: _isLoading ? null : _handleLogin,
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),

@@ -32,7 +32,16 @@ void main() async {
   }
 
   WidgetsFlutterBinding.ensureInitialized();
+  runApp(await createApp());
+}
 
+/// Tout ce qui précède `runApp` : l'app prête à monter.
+///
+/// Séparé de [main] pour les tests de bout en bout (`patrol_test/`), qui
+/// montent l'app eux-mêmes et ne doivent pas remplacer `FlutterError.onError`
+/// — le moteur de test n'y verrait plus les erreurs, et un test en échec ne
+/// s'arrêterait pas.
+Future<Widget> createApp({bool installErrorHandlers = true}) async {
   // Le journal et les gestionnaires d'erreurs d'abord : une erreur du
   // démarrage lui-même est celle qu'on a le plus de mal à reproduire. Le
   // journal relu est celui de la session précédente — c'est lui qui dit ce
@@ -57,7 +66,7 @@ void main() async {
     autoSendAllowed:
         !kDebugMode || const bool.fromEnvironment('REPORT_ERRORS_IN_DEBUG'),
   );
-  _installErrorHandlers(errorReporter);
+  if (installErrorHandlers) _installErrorHandlers(errorReporter);
 
   await EasyLocalization.ensureInitialized();
 
@@ -90,20 +99,18 @@ void main() async {
   }
   initialPath ??= screenshotInitialPath();
 
-  runApp(
-    EasyLocalization(
-      supportedLocales: const [Locale('en'), Locale('fr')],
-      path: 'assets/l10n',
-      fallbackLocale: const Locale('fr'),
-      child: ProviderScope(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(sharedPreferences),
-          errorReporterProvider.overrideWithValue(errorReporter),
-          if (initialPath != null)
-            initialDeepLinkProvider.overrideWithValue(initialPath),
-        ],
-        child: _DeepLinkHandler(appLinks: appLinks, child: const PedalonsApp()),
-      ),
+  return EasyLocalization(
+    supportedLocales: const [Locale('en'), Locale('fr')],
+    path: 'assets/l10n',
+    fallbackLocale: const Locale('fr'),
+    child: ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(sharedPreferences),
+        errorReporterProvider.overrideWithValue(errorReporter),
+        if (initialPath != null)
+          initialDeepLinkProvider.overrideWithValue(initialPath),
+      ],
+      child: _DeepLinkHandler(appLinks: appLinks, child: const PedalonsApp()),
     ),
   );
 }

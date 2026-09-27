@@ -12,11 +12,14 @@ import 'pdl_blur_surface.dart';
 @immutable
 class PdlTabItem {
   const PdlTabItem({
+    this.key,
     required this.icon,
     required this.label,
     IconData? activeIcon,
   }) : activeIcon = activeIcon ?? icon;
 
+  /// Posée sur l'entrée rendue — c'est elle que trouve un test de bout en bout.
+  final Key? key;
   final IconData icon;
   final IconData activeIcon;
   final String label;
@@ -74,6 +77,7 @@ class PdlBottomTabs extends StatelessWidget {
             for (int i = 0; i < items.length; i++)
               Expanded(
                 child: _PdlTab(
+                  key: items[i].key,
                   item: items[i],
                   selected: i == selectedIndex,
                   onTap: () => onSelected(i),
@@ -88,6 +92,7 @@ class PdlBottomTabs extends StatelessWidget {
 
 class _PdlTab extends StatelessWidget {
   const _PdlTab({
+    super.key,
     required this.item,
     required this.selected,
     required this.onTap,

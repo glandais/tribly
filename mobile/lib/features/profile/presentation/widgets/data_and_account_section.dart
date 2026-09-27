@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
+import '../../../../keys.dart';
 import '../../../../core/pdl/pdl.dart';
 import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_icons.dart';
@@ -276,6 +277,7 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
         children: <Widget>[
           PdlSectionHeader(title: 'profile.account.title'.tr()),
           PdlButton(
+            key: keys.profile.logoutButton,
             label: 'profile.account.logout'.tr(),
             variant: PdlButtonVariant.outline,
             fullWidth: true,

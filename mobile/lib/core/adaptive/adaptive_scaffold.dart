@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
+import '../../keys.dart';
 import '../pdl/pdl.dart';
 import 'breakpoints.dart';
 import 'navigation_destination.dart';
@@ -54,6 +55,7 @@ class AdaptiveScaffold extends StatelessWidget {
         items: kAppDestinations
             .map(
               (dest) => PdlTabItem(
+                key: keys.navigation.tab(dest),
                 icon: dest.icon,
                 activeIcon: dest.selectedIcon,
                 label: dest.label.tr(),
