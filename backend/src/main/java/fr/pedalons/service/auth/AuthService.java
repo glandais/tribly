@@ -27,6 +27,7 @@ import fr.pedalons.service.security.annotation.Logged;
 import fr.pedalons.service.security.annotation.Public;
 import io.quarkus.elytron.security.common.BcryptUtil;
 import io.quarkus.logging.Log;
+import io.quarkus.narayana.jta.QuarkusTransaction;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -77,9 +78,21 @@ public class AuthService {
   @ConfigProperty(name = "pedalons.auth.password-reset.expiry-hours", defaultValue = "1")
   int passwordResetExpiryHours;
 
-  @Transactional
+  /**
+   * Not {@code @Transactional}, like the three other methods that e-mail a token: the token is
+   * committed first and the mail sent after. Sent inside the transaction, a slow SMTP relay held it
+   * open until the reaper aborted it, and the visitor got a 500 for a failure that was not theirs.
+   * A delivery failure still reaches the caller here — a sign-up whose mail never left must say so,
+   * and trying again invalidates the orphaned token.
+   */
   @Public
   public void register(RegisterRequest request) {
+    String token =
+        QuarkusTransaction.joiningExisting().call(() -> createPendingRegistration(request));
+    authEmailService.sendVerificationEmail(request.email(), request.displayName(), token);
+  }
+
+  private String createPendingRegistration(RegisterRequest request) {
     Domain domain = domainResolver.getDomain();
 
     // Check if email already exists in this domain
@@ -110,9 +123,7 @@ public class AuthService {
     // accepted.
     authToken.setPendingTermsAcceptedAt(authToken.getCreatedAt());
     authTokenRepository.persist(authToken);
-
-    // Send verification email
-    authEmailService.sendVerificationEmail(request.email(), request.displayName(), token);
+    return token;
   }
 
   @Transactional
@@ -164,13 +175,26 @@ public class AuthService {
    * Starts collecting a real email for the current user (e.g. a migrated account with a
    * placeholder address). Sends a verification link to the new address; the change is only applied
    * once that link is followed. Rejects an address already used by another account in the domain.
+   *
+   * <p>The mail leaves after the commit, and its failure reaches the caller — see {@link
+   * #register}.
    */
-  @Transactional
   @Logged
   public void requestEmailChange(String newEmail) {
+    String normalized = newEmail.toLowerCase(java.util.Locale.ROOT).trim();
+    EmailChange change =
+        QuarkusTransaction.joiningExisting().call(() -> createEmailChangeToken(normalized));
+    if (change != null) {
+      authEmailService.sendVerificationEmail(normalized, change.displayName(), change.token());
+    }
+  }
+
+  private record EmailChange(String displayName, String token) {}
+
+  /** Null when the rate limit withholds the mail. */
+  private @Nullable EmailChange createEmailChangeToken(String normalized) {
     User user = queryContext.getUser();
     Long domainId = user.getDomain().getId();
-    String normalized = newEmail.toLowerCase(java.util.Locale.ROOT).trim();
 
     // Collision: reject if the address belongs to a different account (decision: no auto-merge).
     userRepository
@@ -189,7 +213,7 @@ public class AuthService {
             normalized, AuthTokenType.EMAIL_CHANGE, otpRateLimitWindowMinutes, domainId);
     if (recentCount >= otpMaxAttempts) {
       Log.warnf("Email-change rate limit exceeded for user=%d domain=%d", user.getId(), domainId);
-      return;
+      return null;
     }
 
     authTokenRepository.invalidateByEmailAndType(normalized, AuthTokenType.EMAIL_CHANGE, domainId);
@@ -204,8 +228,7 @@ public class AuthService {
             Instant.now().plus(Duration.ofHours(emailVerificationExpiryHours)),
             domainId);
     authTokenRepository.persist(authToken);
-
-    authEmailService.sendVerificationEmail(normalized, user.getDisplayName(), token);
+    return new EmailChange(user.getDisplayName(), token);
   }
 
   private AuthResult verifyEmailChange(AuthToken authToken, String userAgent, String ipAddress) {
@@ -238,15 +261,37 @@ public class AuthService {
     return createAuthResult(user, userAgent, ipAddress);
   }
 
-  @Transactional
+  /**
+   * The code is committed before the mail leaves, and a delivery failure is only logged: the answer
+   * is the same whether or not the address has an account (anti-enumeration), and the visitor can
+   * ask for another code. Sent inside the transaction, a slow SMTP relay would let the reaper abort
+   * it — a 500 despite the catch, and no code at all.
+   */
   @Public
   public void requestOtp(OtpRequest request) {
+    String otpCode = QuarkusTransaction.joiningExisting().call(() -> createOtp(request));
+    if (otpCode == null) {
+      return;
+    }
+    try {
+      authEmailService.sendOtpEmail(request.email(), otpCode);
+    } catch (Exception e) {
+      Log.errorf(
+          e,
+          "Failed to send OTP email to email=%s domain=%d",
+          request.email(),
+          domainResolver.getDomain().getId());
+    }
+  }
+
+  /** Null when no code is issued: unknown or unverified address, or rate limit. */
+  private @Nullable String createOtp(OtpRequest request) {
     Domain domain = domainResolver.getDomain();
     User user = userRepository.findByEmailAndDomain(domain.getId(), request.email()).orElse(null);
 
     // Always respond success to prevent email enumeration
     if (user == null || !user.isEmailVerified()) {
-      return;
+      return null;
     }
 
     // Rate limiting: check if too many OTP requests in the window
@@ -255,7 +300,7 @@ public class AuthService {
             request.email(), AuthTokenType.OTP, otpRateLimitWindowMinutes, domain.getId());
     if (recentCount >= otpMaxAttempts) {
       Log.warnf("OTP rate limit exceeded for email=%s domain=%d", request.email(), domain.getId());
-      return;
+      return null;
     }
 
     // Invalidate any existing OTPs for this email
@@ -275,15 +320,7 @@ public class AuthService {
             Instant.now().plus(Duration.ofMinutes(otpExpiryMinutes)),
             domain.getId());
     authTokenRepository.persist(authToken);
-
-    // Send OTP email — catch failures so the token persists and the 200 response is still sent
-    // (anti-enumeration: always return success regardless of email delivery)
-    try {
-      authEmailService.sendOtpEmail(request.email(), otpCode);
-    } catch (Exception e) {
-      Log.errorf(
-          e, "Failed to send OTP email to email=%s domain=%d", request.email(), domain.getId());
-    }
+    return otpCode;
   }
 
   // A wrong code throws, and the default rollback would erase the failed attempt it just counted.
@@ -341,15 +378,32 @@ public class AuthService {
     return createAuthResult(user, userAgent, ipAddress);
   }
 
-  @Transactional
+  /** Same shape as {@link #requestOtp}: token committed first, delivery failure only logged. */
   @Public
   public void requestPasswordReset(String email) {
+    String token = QuarkusTransaction.joiningExisting().call(() -> createPasswordResetToken(email));
+    if (token == null) {
+      return;
+    }
+    try {
+      authEmailService.sendPasswordResetEmail(email, token);
+    } catch (Exception e) {
+      Log.errorf(
+          e,
+          "Failed to send password reset email to email=%s domain=%d",
+          email,
+          domainResolver.getDomain().getId());
+    }
+  }
+
+  /** Null when no token is issued: unknown or unverified address, or rate limit. */
+  private @Nullable String createPasswordResetToken(String email) {
     Domain domain = domainResolver.getDomain();
     User user = userRepository.findByEmailAndDomain(domain.getId(), email).orElse(null);
 
     // Always respond success to prevent email enumeration
     if (user == null || !user.isEmailVerified()) {
-      return;
+      return null;
     }
 
     // Rate limit
@@ -358,7 +412,7 @@ public class AuthService {
             email, AuthTokenType.PASSWORD_RESET, otpRateLimitWindowMinutes, domain.getId());
     if (recentCount >= otpMaxAttempts) {
       Log.warnf("Password reset rate limit exceeded for email=%s domain=%d", email, domain.getId());
-      return;
+      return null;
     }
 
     // Invalidate existing reset tokens
@@ -377,15 +431,7 @@ public class AuthService {
             Instant.now().plus(Duration.ofHours(passwordResetExpiryHours)),
             domain.getId());
     authTokenRepository.persist(authToken);
-
-    // Send reset email — catch failures so the token persists and the 200 response is still sent
-    // (anti-enumeration: always return success regardless of email delivery)
-    try {
-      authEmailService.sendPasswordResetEmail(email, token);
-    } catch (Exception e) {
-      Log.errorf(
-          e, "Failed to send password reset email to email=%s domain=%d", email, domain.getId());
-    }
+    return token;
   }
 
   @Transactional
