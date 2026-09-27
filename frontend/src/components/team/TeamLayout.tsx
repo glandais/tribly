@@ -40,7 +40,8 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
   const isMember = !!team.role
   const isAdmin = team.role === 'ADMIN'
   const isOrganizer = team.role === 'ADMIN' || team.role === 'ORGANIZER'
-  const canJoin = isAuthenticated && !isMember && team.visibility !== 'TEAM'
+  // `joinable` is what UserTeamAccessChecker enforces; without it the button only earns a 403.
+  const canJoin = isAuthenticated && !isMember && team.visibility !== 'TEAM' && team.joinable
   const canLeave = isMember && !isAdmin
 
   const joinMutation = useJoinTeam()
