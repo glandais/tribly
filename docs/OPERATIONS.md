@@ -38,7 +38,7 @@ valid for both tools — its header lists what each one ignores.
   (`${ENV_NAME}_postgres_data`) by that name.
 
 ```bash
-# once per host
+# once per host — the DOCKER-USER rules (see "Only Caddy may reach traefik") before any stack
 docker swarm init
 cd ~/shared && scripts/deploy.sh --shared
 
@@ -62,7 +62,10 @@ A deploy of a new commit changes the image in the backend and frontend specs, an
 healthcheck passes (`/q/health/ready`, i.e. after Flyway). traefik health-checks both too, and the
 old task reports itself not ready for 10 s after SIGTERM (`quarkus.shutdown.delay`; `/health` in
 the frontend's `server.js`) before it drains, so no request lands on a stopping task. A new task
-that never turns healthy is rolled back on its own (`failure_action: rollback`). postgres, minio,
+that never turns healthy is rolled back on its own (`failure_action: rollback`), and
+`scripts/deploy.sh` waits for that outcome: it returns once backend and frontend both run the new
+build, healthy, and exits non-zero on a rollback or after `DEPLOY_TIMEOUT` seconds (600 by default)
+— a deploy that printed no error is one that went through. postgres, minio,
 imgproxy and varnish keep the default stop-first: each owns a volume, one instance at a time.
 
 ```bash
@@ -92,16 +95,26 @@ at deploy time and a new value rolls the backend.
 with a mere warning and listens on every interface — which is why `docker-compose.yml` no longer
 pretends to. And `ufw` cannot close it either: Docker inserts its rules ahead of ufw's. The rule has
 to go into the `DOCKER-USER` chain, which Docker consults first and never rewrites — one per
-environment port, on the public interface:
+environment port, on the public interface. **Put them in right after `docker swarm init`, before the
+first stack is deployed**: the chain exists from then on, and every minute a stack runs without them,
+traefik answers the whole Internet.
 
 ```bash
-iptables -I DOCKER-USER -i eth0 -p tcp -m conntrack --ctorigdstport 8090 -j DROP
-iptables -I DOCKER-USER -i eth0 -p tcp -m conntrack --ctorigdstport 8089 -j DROP
+# The public interface: `eth0` on some hosts, `ens2`, `enp0s…` on others. A rule naming an interface
+# the host does not have is accepted without a word, and drops nothing.
+PUBLIC_IF="$(ip -o route get 1.1.1.1 | sed -n 's/.* dev \([^ ]*\).*/\1/p')"
+iptables -I DOCKER-USER -i "$PUBLIC_IF" -p tcp -m conntrack --ctorigdstport 8090 -j DROP
+iptables -I DOCKER-USER -i "$PUBLIC_IF" -p tcp -m conntrack --ctorigdstport 8089 -j DROP
+iptables -S DOCKER-USER            # both rules, above the final RETURN
 ```
 
 `--ctorigdstport` matches the port as the client asked for it, before the routing mesh rewrites the
 destination; Caddy, which comes in over the loopback, is untouched. Persist the rules (e.g.
-`iptables-persistent`), then check from **another** machine that `curl http://<host>:8090` times out.
+`iptables-persistent`): without that, a reboot loses them.
+
+**Then check from another machine, once the first stack is up — it is part of the procedure, not an
+option**: `curl -m 5 http://<host>:8090` must time out, while the site answers through Caddy. Nothing
+on the host itself can tell: the loopback is not filtered, so a local `curl` succeeds either way.
 
 Postgres, for the same reason, publishes no port at all on a host — a raw Postgres guarded by a
 password alone has no business on a public interface. Reach it through `docker exec` (see
@@ -121,20 +134,26 @@ checkout:
 cd ~/prod && scripts/migrate-to-swarm.sh
 cd ~/staging && scripts/migrate-to-swarm.sh
 
-# 2. the shared stack. Its old project name came from the `name:` the file no longer carries, and
+# 2. the swarm, and at once the DOCKER-USER rules of "Only Caddy may reach traefik" above: from the
+#    next step on, a published port listens on every interface
+docker swarm init
+#    ... the iptables commands above, then `iptables -S DOCKER-USER`
+
+# 3. the shared stack. Its old project name came from the `name:` the file no longer carries, and
 #    its bridge network must be gone before Swarm creates the overlay of the same name
 cd ~/shared && docker compose -p pedalons-shared -f docker-compose.shared.yml down
-docker swarm init
 scripts/deploy.sh --shared
 
-# 3. each environment, as a stack
+# 4. each environment, as a stack
 cd ~/prod && scripts/deploy.sh
 cd ~/staging && scripts/deploy.sh
 ```
 
-Then the `DOCKER-USER` rules above — until they are in, traefik answers on every interface. The old
-volumes stay behind as the way back; drop them (`docker volume rm prod_postgres_data …`) once the
-site has been checked, photos included.
+5. From **another machine**: `curl -m 5 http://<host>:8090` (and `:8089`) must time out. If it
+   answers, the rules are missing or name the wrong interface — fix that before anything else.
+
+The old volumes stay behind as the way back; drop them (`docker volume rm prod_postgres_data …`)
+once the site has been checked, photos included.
 
 ### Services that stay per-environment
 
@@ -554,7 +573,8 @@ BACKUP_REMOTE=<backup-user>@<backup-tunnel-ip> BACKUP_REMOTE_PATH=/ \
 BACKUP_SSH_KEY=/root/.ssh/id_pedalons_backup \
   scripts/restore.sh --secrets-only
 
-# 2. the swarm and the shared stack (see Deployment), then the images
+# 2. the swarm, its DOCKER-USER rules at once (see "Only Caddy may reach traefik"), the shared
+#    stack, then the images
 docker swarm init
 cd ~/shared && scripts/deploy.sh --shared
 cd ~/prod && ./build.sh            # at the commit recorded in MANIFEST

@@ -14,7 +14,8 @@
 #     rebuild of several hours.
 #   - backend and frontend run the image tagged with a commit (scripts/_image_tag.sh), which this
 #     script picks. A new tag is a new service spec, which Swarm rolls out start-first: the old task
-#     serves until the new one is healthy, and a new task that never gets there is rolled back.
+#     serves until the new one is healthy, and a new task that never gets there is rolled back. The
+#     script waits for that outcome (DEPLOY_TIMEOUT, 600s by default) and exits non-zero on a rollback.
 #
 # The stack is named after ENV_NAME, not after the checkout: scripts/backup.sh and restore.sh find
 # its containers and volumes (${ENV_NAME}_postgres_data...) by that name.
@@ -40,7 +41,7 @@ case "${1:-}" in
   --hold-app) HOLD_APP=true ;;
   --shared) SHARED=true ;;
   --rev) REV="${2:?--rev needs a commit}" ;;
-  -h | --help) sed -n '2,21p' "$0"; exit 0 ;;
+  -h | --help) sed -n '2,22p' "$0"; exit 0 ;;
   *) die "unknown argument: $1 (try --help)" ;;
 esac
 
@@ -94,12 +95,84 @@ if $HOLD_APP; then
   files+=(-c "$hold")
 fi
 
+# The update each service ran last, "<state> <started at>", or nothing for a service never updated.
+update_status() {
+  docker service inspect -f '{{with .UpdateStatus}}{{.State}} {{.StartedAt}}{{end}}' \
+    "${ENV_NAME}_$1" 2>/dev/null || true
+}
+declare -A before
+for service in backend frontend; do
+  before[$service]="$(update_status "$service")"
+done
+
 log "deploying stack $ENV_NAME with the build of ${suffix#-}"
 # Swarm warns that it cannot resolve these images on a registry: there is none, the images are on
 # this node, which is all a single-node swarm needs.
 docker stack deploy --prune "${files[@]}" "$ENV_NAME"
 
 $HOLD_APP && exit 0
+
+# `docker stack deploy` returns once the specs are written, not once they run. A new build that
+# never turns healthy is rolled back by Swarm on its own, and without this wait the deploy would
+# look like it went through. Waits for backend and frontend to converge on this build, and fails on
+# a rollback or a timeout. The bound covers the healthcheck's start_period (180s), its retries, the
+# 30s monitor window and a rollback.
+DEPLOY_TIMEOUT="${DEPLOY_TIMEOUT:-600}"
+
+# Ok when service $1 runs this build alone, healthy, and has no update in flight; "failed: <why>"
+# when it never will; nothing yet.
+rollout_state() {
+  local service="$1" name="${ENV_NAME}_$1" expected="pedalons-$1:$ENV_NAME$suffix"
+  local spec_image status state
+  local -a running
+  spec_image="$(docker service inspect -f '{{.Spec.TaskTemplate.ContainerSpec.Image}}' "$name" \
+    2>/dev/null)" || return 0
+  # A rollback puts the previous spec back: the image is the first thing to tell.
+  [[ "${spec_image%%@*}" == "$expected" ]] || {
+    echo "failed: rolled back to ${spec_image%%@*}"
+    return
+  }
+  status="$(update_status "$service")"
+  state="${status%% *}"
+  # A status unchanged since before the deploy is a previous update's: this deploy either started
+  # none (same spec, or a service just created) or has not started it yet — the tasks decide.
+  if [[ "$status" != "${before[$service]}" ]]; then
+    case "$state" in
+      completed) ;;
+      rollback_* | paused) echo "failed: update $state" && return ;;
+      *) return ;;
+    esac
+  fi
+  # By the reference the task was started from, not by `ancestor`: build.sh's carry_over gives an
+  # unchanged image a new tag, and the old task would then pass for the new one.
+  mapfile -t running < <(docker ps --filter "label=com.docker.swarm.service.name=$name" \
+    --format '{{.Image}} {{.Status}}')
+  ((${#running[@]} == 1)) && [[ "${running[0]%% *}" == "$expected"* ]] \
+    && [[ "${running[0]}" == *"(healthy)"* ]] && echo ok
+  return 0
+}
+
+log "waiting for backend and frontend to run the build of ${suffix#-} (up to ${DEPLOY_TIMEOUT}s)"
+deadline=$((SECONDS + DEPLOY_TIMEOUT))
+pending=(backend frontend)
+while ((${#pending[@]} > 0)); do
+  still=()
+  for service in "${pending[@]}"; do
+    state="$(rollout_state "$service")"
+    case "$state" in
+      ok) log "$service runs the build of ${suffix#-}" ;;
+      failed:*)
+        die "$service ${state#failed: } — see: docker service ps --no-trunc ${ENV_NAME}_$service"
+        ;;
+      *) still+=("$service") ;;
+    esac
+  done
+  pending=("${still[@]}")
+  ((${#pending[@]} == 0)) && break
+  ((SECONDS < deadline)) \
+    || die "${pending[*]} not converged after ${DEPLOY_TIMEOUT}s — see: docker service ps --no-trunc ${ENV_NAME}_${pending[0]}"
+  sleep 5
+done
 
 # Drop old builds, newest KEEP_BUILDS kept. The image in each service's spec is never dropped, nor
 # the one of its previous spec — what `docker service rollback` goes back to.
@@ -118,5 +191,5 @@ for service in backend frontend; do
     done
 done
 
-log "deploying. Follow the rollout with: docker service ps ${ENV_NAME}_backend"
+log "deployed the build of ${suffix#-}"
 log "back to the previous build: docker service rollback ${ENV_NAME}_backend (or --rev <commit>)"
