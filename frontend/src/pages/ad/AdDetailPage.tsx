@@ -97,6 +97,12 @@ export function AdDetailPage() {
     return <Navigate to={paths.teams()} replace />
   }
 
+  // Ads are for the team's members: the API refuses the ad to anyone else, and that refusal is
+  // not a load failure to retry. Same destination as CreateAdPage and EditAdPage.
+  if (team && !team.role) {
+    return <Navigate to={paths.ads(team.slug)} replace />
+  }
+
   if (isLoadingTeam || isLoadingAd || error || !ad) {
     return (
       <Container size="xl" py="xl">
@@ -124,9 +130,9 @@ export function AdDetailPage() {
   // The relay is open to anyone who may read the ad, i.e. a team member — except its author,
   // who has no one to write to. `AD_CONTACT_SELF` therefore never needs a rendering.
   const canContactAuthor = !!team?.role && ad.createdById !== user?.id
-  // Note: Full creator check would require comparing createdById with current user ID
-  // For now, backend handles authorization, frontend shows edit for all members
-  const canEdit = isAdmin || !!team?.role
+  // The author or a team admin, as AdAccessChecker enforces — an organizer who did not write the
+  // ad may not edit it either.
+  const canEdit = isAdmin || (!!user && ad.createdById === user.id)
 
   const formattedDate = <FormattedDateTime date={ad.createdAt} />
 

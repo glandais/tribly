@@ -17,12 +17,14 @@ import { AdEditor } from '../../components/ad/AdEditor'
 import { paths } from '@/config/paths'
 import { AdRequest } from '@/api/dto'
 import { useEditAdFormData } from './adFormData'
+import { useAuth } from '../../hooks/useAuth'
 
 export function EditAdPage() {
   const { t } = useTranslation()
   const { teamSlug, adSlug } = useParams<{ teamSlug: string; adSlug: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { user } = useAuth()
   const { team: teamQuery, ad: adQuery } = useEditAdFormData(teamSlug, adSlug)
   const { data: team, isLoading: isLoadingTeam } = teamQuery
   const { data: ad, isLoading: isLoadingAd } = adQuery
@@ -40,11 +42,9 @@ export function EditAdPage() {
     return <Navigate to={paths.ads(teamSlug!)} replace />
   }
 
-  // Creator or admin can edit
+  // The author or a team admin, as AdAccessChecker enforces.
   const isAdmin = team.role === 'ADMIN'
-  // Note: A more robust check would compare user IDs, but for now we allow any member to edit
-  // if they can see the edit page (routing handles access control)
-  const canEdit = isAdmin || !!team.role
+  const canEdit = isAdmin || (!!user && ad.createdById === user.id)
 
   if (!canEdit) {
     return <Navigate to={paths.ad(teamSlug!, adSlug!)} replace />
