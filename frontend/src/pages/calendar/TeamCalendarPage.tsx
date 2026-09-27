@@ -27,6 +27,12 @@ export function TeamCalendarPage(): React.ReactElement {
     return <Navigate to={paths.teams()} replace />
   }
 
+  // The calendar and its ICS feed are for the team's members (CalendarAccessChecker): anyone else
+  // would get an empty grid and a feed URL the API refuses.
+  if (!teamData.role) {
+    return <Navigate to={paths.team(teamData.slug)} replace />
+  }
+
   return (
     <TeamLayout team={teamData} currentTab="calendar">
       <Stack>
