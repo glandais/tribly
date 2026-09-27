@@ -142,7 +142,7 @@
   - Les chemins cookie de refresh et tile token vérifient bien le domaine (L198, L220-230). Le chemin JWT ne le fait pas.
 - **Scénario** : un token émis sur le domaine A pour l'e-mail E est accepté sur le domaine B, où il agit en tant que le compte B de E, qui est un compte distinct.
 - **Exploitation concrète** : elle suppose de détenir sur A un compte dont on ne possède pas l'e-mail.
-  - La connexion Strava n'exige pas d'e-mail vérifié (`StravaAuthService.java:187-218`).
+  - ~~La connexion Strava n'exige pas d'e-mail vérifié (`StravaAuthService.java:187-218`).~~ Caduc : la connexion Strava a été retirée (API 5.0.0).
   - La migration biketeam importe des e-mails non vérifiés en y rattachant un `strava_id` (`BiketeamMigrationService.java:694-708`).
 
   Par ailleurs, une révocation sur B (déconnexion globale, reset, suppression) reste sans effet sur un token émis par A.
@@ -209,7 +209,7 @@
 | # | Constat | Preuve | Correctif |
 |---|---|---|---|
 | L1 | Réinitialiser le mot de passe ne révoque pas les sessions existantes (refresh token de 30 j, 90 j pour un appareil) | `AuthService.java:391-401` | `authSessionRepository.revokeAllByUserId(...)` dans `resetPassword` |
-| L2 | L'état OAuth Strava n'est pas lié au navigateur qui a lancé le flux (CSRF de liaison et de login) | `StravaAuthService.java:105-160` | Cookie HttpOnly court contenant le hash du `state` |
+| L2 | ~~L'état OAuth Strava n'est pas lié au navigateur qui a lancé le flux (CSRF de liaison et de login)~~ — caduc, la connexion Strava a été retirée (API 5.0.0) | ~~`StravaAuthService.java:105-160`~~ | — |
 | L3 | Énumération des comptes : `EMAIL_ALREADY_EXISTS` à l'inscription, `allowCredentials` des passkeys, différence de temps liée au bcrypt | `AuthService.java:79-81,310-323`, `PasskeyService.java:248-266` | Réponse uniforme et bcrypt factice |
 | L4 | Pré-inscription : le mot de passe choisi par celui qui s'inscrit est conservé après vérification par la victime | `AuthService.java:75-147` | Demander le mot de passe après la vérification |
 | L5 | Lecture d'asset inter-domaines si l'attaquant reproduit les slugs d'équipe et d'entité ; `getAsset` fait un `findByIdOptional` sans filtre | `AssetAccessChecker.java:48-62`, `AssetService.java:263-291` | Exiger `asset.team.domain == domaine courant` et `asset.team.slug == teamSlug` |
@@ -246,7 +246,7 @@ Informationnel :
 ## Contrôles vérifiés et conformes
 
 - **Tokens** :
-  - Refresh, vérification, reset, device et Strava : 32 octets `SecureRandom`, stockés hachés en SHA-256, à usage unique.
+  - Refresh, vérification, reset et device : 32 octets `SecureRandom`, stockés hachés en SHA-256, à usage unique.
   - Access token de 15 min.
   - Clé de chiffrement AES-256-GCM sans valeur par défaut en prod.
   - Comparaison de l'OTP en temps constant.

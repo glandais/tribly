@@ -128,18 +128,6 @@ enum ErrorCode {
   domainAliasHostnameExists('DOMAIN_ALIAS_HOSTNAME_EXISTS'),
   @JsonValue('DOMAIN_ALIAS_TEAM_MISMATCH')
   domainAliasTeamMismatch('DOMAIN_ALIAS_TEAM_MISMATCH'),
-  @JsonValue('SOCIAL_SERVICE_NOT_CONFIGURED')
-  socialServiceNotConfigured('SOCIAL_SERVICE_NOT_CONFIGURED'),
-  @JsonValue('SOCIAL_INVALID_STATE')
-  socialInvalidState('SOCIAL_INVALID_STATE'),
-  @JsonValue('SOCIAL_IDENTITY_ALREADY_LINKED')
-  socialIdentityAlreadyLinked('SOCIAL_IDENTITY_ALREADY_LINKED'),
-  @JsonValue('SOCIAL_LOGIN_CODE_INVALID')
-  socialLoginCodeInvalid('SOCIAL_LOGIN_CODE_INVALID'),
-  @JsonValue('SOCIAL_NO_ACCOUNT')
-  socialNoAccount('SOCIAL_NO_ACCOUNT'),
-  @JsonValue('SOCIAL_LAST_LOGIN_METHOD')
-  socialLastLoginMethod('SOCIAL_LAST_LOGIN_METHOD'),
   @JsonValue('EXPORT_IN_PROGRESS')
   exportInProgress('EXPORT_IN_PROGRESS'),
   @JsonValue('EXPORT_RATE_LIMITED')

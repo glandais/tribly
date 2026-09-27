@@ -26,7 +26,7 @@ import type { ErrorType, BodyType } from '../../../lib/axiosInstance.ts'
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
- * Set/change the account's real email (e.g. recover a migrated Strava account). Sends a verification link to the new address.
+ * Set/change the account's real email (e.g. recover a migrated account). Sends a verification link to the new address.
  * @summary Request email change
  */
 export const requestEmailChange = (

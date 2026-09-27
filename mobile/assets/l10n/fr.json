@@ -782,16 +782,6 @@
       "disconnectTitle": "Déconnecter {service} ?",
       "disconnectMessage": "Vous ne pourrez plus envoyer de parcours vers cet appareil tant qu'il n'est pas reconnecté."
     },
-    "linked": {
-      "title": "Comptes liés",
-      "strava": "Strava",
-      "link": "Lier",
-      "unlink": "Délier",
-      "linkedOn": "Lié le {date}",
-      "notLinked": "Non lié",
-      "unlinkTitle": "Délier Strava ?",
-      "unlinkMessage": "Vos activités ne seront plus synchronisées. Vous pourrez relier ce compte à tout moment."
-    },
     "data": {
       "title": "Vos données",
       "export": "Export de mes données",

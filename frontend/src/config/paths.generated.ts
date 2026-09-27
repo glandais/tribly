@@ -40,7 +40,6 @@ export const paths = {
       default: return '/reset-password'
     }
   },
-  stravaCallback: () => '/strava/callback',
   completeAccount: () => {
     switch (getCurrentLocale()) {
       case 'fr': return '/completer-le-compte'
@@ -404,7 +403,6 @@ export const pathVariants = {
   biketeamMigration: (): Record<Locale, string> => ({ en: '/biketeam-migration', fr: '/migration-biketeam' }),
   forgotPassword: (): Record<Locale, string> => ({ en: '/forgot-password', fr: '/mot-de-passe-oublie' }),
   resetPassword: (): Record<Locale, string> => ({ en: '/reset-password', fr: '/nouveau-mot-de-passe' }),
-  stravaCallback: (): Record<Locale, string> => ({ en: '/strava/callback', fr: '/strava/callback' }),
   completeAccount: (): Record<Locale, string> => ({ en: '/complete-account', fr: '/completer-le-compte' }),
   deviceVerifyGarmin: (): Record<Locale, string> => ({ en: '/garmin', fr: '/garmin' }),
   deviceVerifyKaroo: (): Record<Locale, string> => ({ en: '/karoo', fr: '/karoo' }),

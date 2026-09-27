@@ -7,13 +7,11 @@ import 'package:dio/dio.dart' hide Headers;
 import 'clients/admin_beta_signups_client.dart';
 import 'clients/admin_domains_client.dart';
 import 'clients/admin_reports_client.dart';
-import 'clients/admin_social_client.dart';
 import 'clients/admin_teams_client.dart';
 import 'clients/admin_thumbnails_client.dart';
 import 'clients/admin_users_client.dart';
 import 'clients/authentication_client.dart';
 import 'clients/passkeys_client.dart';
-import 'clients/strava_authentication_client.dart';
 import 'clients/beta_signups_client.dart';
 import 'clients/calendar_client.dart';
 import 'clients/configuration_client.dart';
@@ -50,7 +48,7 @@ import 'clients/team_webhook_client.dart';
 import 'clients/tiles_client.dart';
 import 'clients/server_version_client.dart';
 
-/// Pedalons API `v4.6.0`.
+/// Pedalons API `v5.0.0`.
 ///
 /// API for Pedalons Cycling Team Management Platform.
 class PedalonsApiClient {
@@ -63,18 +61,16 @@ class PedalonsApiClient {
   final Dio _dio;
   final String? _baseUrl;
 
-  static String get version => '4.6.0';
+  static String get version => '5.0.0';
 
   AdminBetaSignupsClient? _adminBetaSignups;
   AdminDomainsClient? _adminDomains;
   AdminReportsClient? _adminReports;
-  AdminSocialClient? _adminSocial;
   AdminTeamsClient? _adminTeams;
   AdminThumbnailsClient? _adminThumbnails;
   AdminUsersClient? _adminUsers;
   AuthenticationClient? _authentication;
   PasskeysClient? _passkeys;
-  StravaAuthenticationClient? _stravaAuthentication;
   BetaSignupsClient? _betaSignups;
   CalendarClient? _calendar;
   ConfigurationClient? _configuration;
@@ -120,9 +116,6 @@ class PedalonsApiClient {
   AdminReportsClient get adminReports =>
       _adminReports ??= AdminReportsClient(_dio, baseUrl: _baseUrl);
 
-  AdminSocialClient get adminSocial =>
-      _adminSocial ??= AdminSocialClient(_dio, baseUrl: _baseUrl);
-
   AdminTeamsClient get adminTeams =>
       _adminTeams ??= AdminTeamsClient(_dio, baseUrl: _baseUrl);
 
@@ -137,12 +130,6 @@ class PedalonsApiClient {
 
   PasskeysClient get passkeys =>
       _passkeys ??= PasskeysClient(_dio, baseUrl: _baseUrl);
-
-  StravaAuthenticationClient get stravaAuthentication =>
-      _stravaAuthentication ??= StravaAuthenticationClient(
-        _dio,
-        baseUrl: _baseUrl,
-      );
 
   BetaSignupsClient get betaSignups =>
       _betaSignups ??= BetaSignupsClient(_dio, baseUrl: _baseUrl);

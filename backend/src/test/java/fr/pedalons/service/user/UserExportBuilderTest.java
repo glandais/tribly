@@ -67,7 +67,6 @@ class UserExportBuilderTest extends AbstractBaseTest {
           "account/passkeys.json",
           "account/calendar-token.json",
           "account/gps-connections.json",
-          "account/social-identities.json",
           "account/auth-tokens.json",
           "account/device-codes.json",
           "account/oauth-states.json",

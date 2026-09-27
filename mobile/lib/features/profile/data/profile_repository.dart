@@ -9,7 +9,6 @@ final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
   return ProfileRepository(
     ref.watch(usersClientProvider),
     ref.watch(gpsServicesClientProvider),
-    ref.watch(stravaAuthenticationClientProvider),
   );
 });
 
@@ -20,11 +19,10 @@ final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
 /// ce qui est réellement disponible — c'est précisément ce qui a laissé
 /// `logout-all` câblé nulle part pendant un an.
 class ProfileRepository {
-  ProfileRepository(this._users, this._gps, this._strava);
+  ProfileRepository(this._users, this._gps);
 
   final UsersClient _users;
   final GpsServicesClient _gps;
-  final StravaAuthenticationClient _strava;
 
   Future<UserDto> updateDisplayName(String displayName) {
     return _users.updateMe(body: UpdateUserRequest(displayName: displayName));
@@ -99,11 +97,4 @@ class ProfileRepository {
 
   Future<void> disconnectGps(GpsServiceType service) =>
       _gps.disconnect(serviceType: service);
-
-  Future<String> stravaConnectUrl() async {
-    final StravaAuthUrlResponse response = await _strava.getStravaConnectUrl();
-    return response.authorizationUrl;
-  }
-
-  Future<void> unlinkStrava() => _strava.unlinkStrava();
 }

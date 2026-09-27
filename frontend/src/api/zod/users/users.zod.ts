@@ -70,7 +70,7 @@ export const UpdateMeResponse = zod
     requiresEmail: zod
       .boolean()
       .describe(
-        'True when the account still needs a real, verified email (e.g. a migrated Strava account with a placeholder address)'
+        'True when the account still needs a real, verified email (e.g. a migrated account with a placeholder address)'
       ),
     connectedServices: zod
       .array(
@@ -88,18 +88,6 @@ export const UpdateMeResponse = zod
       )
       .optional()
       .describe('Connected GPS services'),
-    socialIdentities: zod
-      .array(
-        zod
-          .object({
-            provider: zod.enum(['STRAVA']).describe('Provider identifier'),
-            displayName: zod.string().describe('Display name of the provider'),
-            linkedAt: zod.iso.datetime({ offset: true }).describe('When the identity was linked'),
-          })
-          .describe('A linked external identity (e.g. Strava)')
-      )
-      .optional()
-      .describe('Linked external identities (e.g. Strava)'),
   })
   .describe('User profile data')
 
@@ -149,7 +137,7 @@ export const GetMeResponse = zod
     requiresEmail: zod
       .boolean()
       .describe(
-        'True when the account still needs a real, verified email (e.g. a migrated Strava account with a placeholder address)'
+        'True when the account still needs a real, verified email (e.g. a migrated account with a placeholder address)'
       ),
     connectedServices: zod
       .array(
@@ -167,18 +155,6 @@ export const GetMeResponse = zod
       )
       .optional()
       .describe('Connected GPS services'),
-    socialIdentities: zod
-      .array(
-        zod
-          .object({
-            provider: zod.enum(['STRAVA']).describe('Provider identifier'),
-            displayName: zod.string().describe('Display name of the provider'),
-            linkedAt: zod.iso.datetime({ offset: true }).describe('When the identity was linked'),
-          })
-          .describe('A linked external identity (e.g. Strava)')
-      )
-      .optional()
-      .describe('Linked external identities (e.g. Strava)'),
   })
   .describe('User profile data')
 
@@ -238,7 +214,7 @@ export const UploadAvatarResponse = zod
     requiresEmail: zod
       .boolean()
       .describe(
-        'True when the account still needs a real, verified email (e.g. a migrated Strava account with a placeholder address)'
+        'True when the account still needs a real, verified email (e.g. a migrated account with a placeholder address)'
       ),
     connectedServices: zod
       .array(
@@ -256,18 +232,6 @@ export const UploadAvatarResponse = zod
       )
       .optional()
       .describe('Connected GPS services'),
-    socialIdentities: zod
-      .array(
-        zod
-          .object({
-            provider: zod.enum(['STRAVA']).describe('Provider identifier'),
-            displayName: zod.string().describe('Display name of the provider'),
-            linkedAt: zod.iso.datetime({ offset: true }).describe('When the identity was linked'),
-          })
-          .describe('A linked external identity (e.g. Strava)')
-      )
-      .optional()
-      .describe('Linked external identities (e.g. Strava)'),
   })
   .describe('User profile data')
 
@@ -317,7 +281,7 @@ export const DeleteAvatarResponse = zod
     requiresEmail: zod
       .boolean()
       .describe(
-        'True when the account still needs a real, verified email (e.g. a migrated Strava account with a placeholder address)'
+        'True when the account still needs a real, verified email (e.g. a migrated account with a placeholder address)'
       ),
     connectedServices: zod
       .array(
@@ -335,18 +299,6 @@ export const DeleteAvatarResponse = zod
       )
       .optional()
       .describe('Connected GPS services'),
-    socialIdentities: zod
-      .array(
-        zod
-          .object({
-            provider: zod.enum(['STRAVA']).describe('Provider identifier'),
-            displayName: zod.string().describe('Display name of the provider'),
-            linkedAt: zod.iso.datetime({ offset: true }).describe('When the identity was linked'),
-          })
-          .describe('A linked external identity (e.g. Strava)')
-      )
-      .optional()
-      .describe('Linked external identities (e.g. Strava)'),
   })
   .describe('User profile data')
 
@@ -1840,7 +1792,7 @@ export const UpdateMyPreferencesResponse = zod
     requiresEmail: zod
       .boolean()
       .describe(
-        'True when the account still needs a real, verified email (e.g. a migrated Strava account with a placeholder address)'
+        'True when the account still needs a real, verified email (e.g. a migrated account with a placeholder address)'
       ),
     connectedServices: zod
       .array(
@@ -1858,17 +1810,5 @@ export const UpdateMyPreferencesResponse = zod
       )
       .optional()
       .describe('Connected GPS services'),
-    socialIdentities: zod
-      .array(
-        zod
-          .object({
-            provider: zod.enum(['STRAVA']).describe('Provider identifier'),
-            displayName: zod.string().describe('Display name of the provider'),
-            linkedAt: zod.iso.datetime({ offset: true }).describe('When the identity was linked'),
-          })
-          .describe('A linked external identity (e.g. Strava)')
-      )
-      .optional()
-      .describe('Linked external identities (e.g. Strava)'),
   })
   .describe('User profile data')

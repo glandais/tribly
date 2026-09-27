@@ -52,10 +52,6 @@ export const pages = {
     () => import('../pages/auth/ForgotPasswordPage')
   ),
   ResetPasswordPage: lazyPage('ResetPasswordPage', () => import('../pages/auth/ResetPasswordPage')),
-  StravaCallbackPage: lazyPage(
-    'StravaCallbackPage',
-    () => import('../pages/auth/StravaCallbackPage')
-  ),
   CompleteAccountPage: lazyPage(
     'CompleteAccountPage',
     () => import('../pages/auth/CompleteAccountPage')

@@ -26,7 +26,7 @@ abstract class AuthenticationClient {
 
   /// Request email change.
   ///
-  /// Set/change the account's real email (e.g. recover a migrated Strava account). Sends a verification link to the new address.
+  /// Set/change the account's real email (e.g. recover a migrated account). Sends a verification link to the new address.
   ///
   /// [body] - Name not received - field will be skipped.
   @POST('/api/auth/email/change-request')

@@ -161,7 +161,7 @@ public class AuthService {
   }
 
   /**
-   * Starts collecting a real email for the current user (e.g. a migrated Strava account with a
+   * Starts collecting a real email for the current user (e.g. a migrated account with a
    * placeholder address). Sends a verification link to the new address; the change is only applied
    * once that link is followed. Rejects an address already used by another account in the domain.
    */

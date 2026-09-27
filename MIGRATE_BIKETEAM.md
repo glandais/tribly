@@ -437,8 +437,9 @@ Biketeam let people sign in through Strava, Facebook or Google without ever givi
 email; tribly requires one. Those accounts are migrated with a placeholder address —
 `strava_<stravaId>@pedalons.fr`, `facebook_<id>@…`, `google_<id>@…` — under
 `placeholder-email-domain`. The address is unique and stable across replays but is not
-deliverable, so the account is left **unverified** and cannot log in until its owner
-claims it. This keeps their memberships, ride participations and comments; skipping them
+deliverable, so the account is left **unverified** and cannot log in. Strava login used to
+let a `strava_…` account's owner claim it; it was removed in API 5.0.0, so no path claims
+such an account any more. This keeps their memberships, ride participations and comments; skipping them
 would have dropped roughly 60% of n-peloton's participation history.
 
 <!-- REMOVE-WITH-LEGACY-BIKETEAM-IMPORT — section "Verified emails and passwords": legacy dump import only — delete it down to the next heading. -->

@@ -9,9 +9,6 @@ import fr.pedalons.domain.auth.WebAuthnChallenge;
 import fr.pedalons.domain.calendar.CalendarToken;
 import fr.pedalons.domain.gps.GpsOAuthState;
 import fr.pedalons.domain.gps.GpsServiceConnection;
-import fr.pedalons.domain.social.SocialLoginCode;
-import fr.pedalons.domain.social.SocialOAuthState;
-import fr.pedalons.domain.social.UserSocialIdentity;
 import fr.pedalons.domain.user.User;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -183,27 +180,6 @@ public final class AccountExport {
   }
 
   /**
-   * {@code account/social-identities.json}. Nothing is omitted — the entity holds no secrets by
-   * design, and {@code externalUserId} is the user's own account id at the provider.
-   */
-  public record SocialIdentity(
-      String id,
-      String provider,
-      String externalUserId,
-      Instant createdAt,
-      @Nullable Instant lastLoginAt) {
-
-    public static SocialIdentity from(UserSocialIdentity i) {
-      return new SocialIdentity(
-          TsidUtils.toString(i.getId()),
-          i.getProvider().name(),
-          i.getExternalUserId(),
-          i.getCreatedAt(),
-          i.getLastLoginAt());
-    }
-  }
-
-  /**
    * {@code account/auth-tokens.json} — one-time email/OTP/reset tokens. Omits {@code tokenHash} and
    * {@code pendingPasswordHash}.
    */
@@ -246,9 +222,9 @@ public final class AccountExport {
   }
 
   /**
-   * {@code account/oauth-states.json} — short-lived in-flight handshake rows, all four kinds in one
-   * file. Every one of them omits its secret: the CSRF {@code state}, the PKCE {@code codeVerifier},
-   * the login {@code codeHash}, and the WebAuthn {@code challenge}.
+   * {@code account/oauth-states.json} — short-lived in-flight handshake rows, both kinds in one file.
+   * Each omits its secret: the CSRF {@code state} and PKCE {@code codeVerifier}, and the WebAuthn
+   * {@code challenge}.
    */
   public record HandshakeState(
       String kind,
@@ -270,30 +246,6 @@ public final class AccountExport {
           s.getCreatedAt(),
           s.getExpiresAt(),
           null);
-    }
-
-    public static HandshakeState from(SocialOAuthState s) {
-      return new HandshakeState(
-          "social-oauth",
-          TsidUtils.toString(s.getId()),
-          s.getProvider().name(),
-          s.getPurpose().name(),
-          s.getRedirectUri(),
-          s.getCreatedAt(),
-          s.getExpiresAt(),
-          null);
-    }
-
-    public static HandshakeState from(SocialLoginCode c) {
-      return new HandshakeState(
-          "social-login-code",
-          TsidUtils.toString(c.getId()),
-          null,
-          c.isNeedsEmail() ? "needs-email" : null,
-          null,
-          c.getCreatedAt(),
-          c.getExpiresAt(),
-          c.getUsedAt());
     }
 
     public static HandshakeState from(WebAuthnChallenge c) {

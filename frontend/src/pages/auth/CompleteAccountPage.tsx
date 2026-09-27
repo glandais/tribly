@@ -10,7 +10,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { requestEmailChange } from '@/api/endpoints/authentication/authentication'
 
 /**
- * Prompts a recovered account (e.g. migrated Strava user with a placeholder email) to provide and
+ * Prompts a recovered account (e.g. a migrated user with a placeholder email) to provide and
  * verify their real email. The verification itself completes on {@code VerifyEmailPage} via the
  * emailed link.
  */

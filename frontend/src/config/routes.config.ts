@@ -303,14 +303,6 @@ export const routesConfig: RoutesConfig = [
     breadcrumb: { type: 'static', i18nKey: tRegister('auth.resetPassword.title') },
   },
   {
-    id: 'strava-callback',
-    paths: pathVariants.stravaCallback(),
-    component: pages.StravaCallbackPage,
-    auth: 'public',
-    parentId: null,
-    breadcrumb: { type: 'static', i18nKey: tRegister('auth.strava.title') },
-  },
-  {
     id: 'complete-account',
     paths: pathVariants.completeAccount(),
     component: pages.CompleteAccountPage,

@@ -23,9 +23,6 @@ _UserDto _$UserDtoFromJson(Map<String, dynamic> json) => _UserDto(
   connectedServices: (json['connectedServices'] as List<dynamic>?)
       ?.map((e) => GpsServiceConnectionDto.fromJson(e as Map<String, dynamic>))
       .toList(),
-  socialIdentities: (json['socialIdentities'] as List<dynamic>?)
-      ?.map((e) => SocialIdentityDto.fromJson(e as Map<String, dynamic>))
-      .toList(),
 );
 
 Map<String, dynamic> _$UserDtoToJson(_UserDto instance) => <String, dynamic>{
@@ -43,9 +40,6 @@ Map<String, dynamic> _$UserDtoToJson(_UserDto instance) => <String, dynamic>{
   'timezone': instance.timezone,
   'platformRole': instance.platformRole,
   'connectedServices': instance.connectedServices
-      ?.map((e) => e.toJson())
-      .toList(),
-  'socialIdentities': instance.socialIdentities
       ?.map((e) => e.toJson())
       .toList(),
 };

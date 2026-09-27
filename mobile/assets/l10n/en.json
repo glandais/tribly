@@ -782,16 +782,6 @@
       "disconnectTitle": "Disconnect {service}?",
       "disconnectMessage": "You will no longer be able to send routes to this device until it is reconnected."
     },
-    "linked": {
-      "title": "Linked accounts",
-      "strava": "Strava",
-      "link": "Link",
-      "unlink": "Unlink",
-      "linkedOn": "Linked on {date}",
-      "notLinked": "Not linked",
-      "unlinkTitle": "Unlink Strava?",
-      "unlinkMessage": "Your activities will no longer be synchronised. You can link this account again at any time."
-    },
     "data": {
       "title": "Your data",
       "export": "Export of my data",

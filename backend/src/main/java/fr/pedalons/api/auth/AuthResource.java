@@ -1,5 +1,6 @@
 package fr.pedalons.api.auth;
 
+import fr.pedalons.dto.auth.request.EmailChangeRequest;
 import fr.pedalons.dto.auth.request.ForgotPasswordRequest;
 import fr.pedalons.dto.auth.request.LoginRequest;
 import fr.pedalons.dto.auth.request.OtpRequest;
@@ -11,7 +12,6 @@ import fr.pedalons.dto.auth.response.AuthResponse;
 import fr.pedalons.dto.auth.response.AuthResult;
 import fr.pedalons.dto.auth.response.MessageResponse;
 import fr.pedalons.dto.error.ErrorResponse;
-import fr.pedalons.dto.social.request.EmailChangeRequest;
 import fr.pedalons.service.auth.AuthService;
 import fr.pedalons.service.auth.RefreshTokenCookieFactory;
 import jakarta.annotation.security.PermitAll;
@@ -263,7 +263,7 @@ public class AuthResource {
   @Operation(
       summary = "Request email change",
       description =
-          "Set/change the account's real email (e.g. recover a migrated Strava account). Sends a"
+          "Set/change the account's real email (e.g. recover a migrated account). Sends a"
               + " verification link to the new address.")
   @APIResponses({
     @APIResponse(

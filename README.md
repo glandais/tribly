@@ -72,8 +72,7 @@ keep in sync.
 
 **Everything else in `.env.example` has a working default**, so a workstation `.env` can be shorter
 than the template: `PUID`/`PGID` (1000:1000), `POSTGRES_HOST_PORT` (5432), `FRONTEND_SOURCEMAP`
-(false), `STRAVA_*` (blank hides the "Continue with Strava" button),
-`SOCIAL_PLACEHOLDER_EMAIL_DOMAIN`, `QUARKUS_MAILER_USERNAME`/`_PASSWORD` (unread when the login is
+(false), `QUARKUS_MAILER_USERNAME`/`_PASSWORD` (unread when the login is
 `DISABLED`), and `VALHALLA_TILE_URLS` — whose default builds France, and whose every change costs a
 rebuild of several hours.
 

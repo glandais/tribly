@@ -91,7 +91,7 @@ public class User extends BaseEntity {
 
   /**
    * When the member accepted the terms of service, at sign-up. Null for accounts created before the
-   * sign-up form asked, or by a path that does not ask (social login, migration).
+   * sign-up form asked, or by a path that does not ask (migration).
    */
   @Column(name = "terms_accepted_at")
   private @Nullable Instant termsAcceptedAt;

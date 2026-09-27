@@ -1,4 +1,4 @@
-package fr.pedalons.dto.social.request;
+package fr.pedalons.dto.auth.request;
 
 import fr.pedalons.dto.validation.ValidateSchema;
 import jakarta.validation.constraints.Email;

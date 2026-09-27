@@ -17,8 +17,8 @@ import '../../data/profile_repository.dart';
 import 'confirm_sheet.dart';
 
 /// Relit l'utilisateur pour que la carte reflète la connexion qui vient de
-/// changer : `UserDto.connectedServices` et `socialIdentities` en sont la
-/// seule source, et rien ne les pousse.
+/// changer : `UserDto.connectedServices` en est la seule
+/// source, et rien ne la pousse.
 Future<void> _refreshUser(WidgetRef ref) async {
   final String? token = ref.read(accessTokenHolderProvider);
   if (token == null) return;
@@ -190,119 +190,6 @@ class _GpsServicesCardState extends ConsumerState<GpsServicesCard> {
             ? () => _connect(service)
             : () => _disconnect(service, label),
       ),
-    );
-  }
-}
-
-/// Comptes liés — Strava.
-///
-/// **Aucun nom de compte distant** : `SocialIdentityDto` porte `provider`,
-/// `displayName` et `linkedAt`, et rien qui identifie le compte chez le
-/// fournisseur. La maquette écrit « gaby.landais · lié le 12 février » ; on ne
-/// livre que la date, parce que l'autre moitié serait inventée.
-class LinkedAccountsCard extends ConsumerStatefulWidget {
-  const LinkedAccountsCard({super.key});
-
-  @override
-  ConsumerState<LinkedAccountsCard> createState() => _LinkedAccountsCardState();
-}
-
-class _LinkedAccountsCardState extends ConsumerState<LinkedAccountsCard> {
-  bool _busy = false;
-  String? _error;
-
-  Future<void> _link() async {
-    setState(() {
-      _busy = true;
-      _error = null;
-    });
-    try {
-      final String url = await ref
-          .read(profileRepositoryProvider)
-          .stravaConnectUrl();
-      if (!mounted) return;
-      await openLink(context, url);
-      if (mounted) setState(() => _busy = false);
-    } catch (error, stackTrace) {
-      if (!mounted) return;
-      setState(() {
-        _busy = false;
-        _error = getErrorMessage(error, stackTrace);
-      });
-    }
-  }
-
-  Future<void> _unlink() async {
-    final bool confirmed = await confirmDestructive(
-      context,
-      title: 'profile.linked.unlinkTitle'.tr(),
-      message: 'profile.linked.unlinkMessage'.tr(),
-      confirmLabel: 'profile.linked.unlink'.tr(),
-    );
-    if (!confirmed || !mounted) return;
-
-    setState(() {
-      _busy = true;
-      _error = null;
-    });
-    try {
-      await ref.read(profileRepositoryProvider).unlinkStrava();
-      await _refreshUser(ref);
-      if (mounted) setState(() => _busy = false);
-    } catch (error, stackTrace) {
-      if (!mounted) return;
-      setState(() {
-        _busy = false;
-        _error = getErrorMessage(error, stackTrace);
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final List<SocialIdentityDto> identities =
-        ref.watch(
-          authProvider.select((AuthState s) => s.user?.socialIdentities),
-        ) ??
-        const <SocialIdentityDto>[];
-    final SocialIdentityDto? strava = identities
-        .where((SocialIdentityDto i) => i.provider.toUpperCase() == 'STRAVA')
-        .firstOrNull;
-    final DateTime? linkedAt = strava == null
-        ? null
-        : DateTime.tryParse(strava.linkedAt)?.toLocal();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        PdlCard(
-          padding: PdlCardPadding.none,
-          child: PdlSettingRow(
-            title: strava?.displayName ?? 'profile.linked.strava'.tr(),
-            subtitle: linkedAt == null
-                ? 'profile.linked.notLinked'.tr()
-                : 'profile.linked.linkedOn'.tr(
-                    namedArgs: <String, String>{
-                      'date': AppFormatters.formatLongDate(linkedAt),
-                    },
-                  ),
-            trailing: PdlButton(
-              label: strava == null
-                  ? 'profile.linked.link'.tr()
-                  : 'profile.linked.unlink'.tr(),
-              variant: PdlButtonVariant.outline,
-              size: PdlButtonSize.sm,
-              loading: _busy,
-              loadingLabel: 'common.loading'.tr(),
-              onPressed: strava == null ? _link : _unlink,
-            ),
-          ),
-        ),
-        if (_error != null) ...<Widget>[
-          const SizedBox(height: PdlSpacing.chipGap),
-          PdlBanner(tone: PdlBannerTone.danger, message: _error!),
-        ],
-      ],
     );
   }
 }

@@ -39,7 +39,7 @@ public class ConfigService {
    * <p>{@code Optional} rather than {@code defaultValue = ""}: the property is declared as {@code
    * ${MIN_SUPPORTED_APP_VERSION:}}, so with no floor configured it resolves to the empty string —
    * which SmallRye hands to the converter as {@code null} and then rejects on a bare {@code String}
-   * injection point (SRCFG00040), failing startup. Same reason the Strava settings are optional.
+   * injection point (SRCFG00040), failing startup.
    */
   @ConfigProperty(name = "pedalons.mobile.min-supported-app-version")
   Optional<String> minSupportedAppVersion;

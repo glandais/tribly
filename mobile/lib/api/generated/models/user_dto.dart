@@ -7,7 +7,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'gps_service_connection_dto.dart';
 import 'instant.dart';
 import 'platform_role.dart';
-import 'social_identity_dto.dart';
 import 'theme_preference.dart';
 import 'unit_system.dart';
 
@@ -33,7 +32,7 @@ abstract class UserDto with _$UserDto {
     /// Whether the account's email has been verified
     required bool emailVerified,
 
-    /// True when the account still needs a real, verified email (e.g. a migrated Strava account with a placeholder address)
+    /// True when the account still needs a real, verified email (e.g. a migrated account with a placeholder address)
     required bool requiresEmail,
 
     /// User avatar URL
@@ -59,9 +58,6 @@ abstract class UserDto with _$UserDto {
 
     /// Connected GPS services
     List<GpsServiceConnectionDto>? connectedServices,
-
-    /// Linked external identities (e.g. Strava)
-    List<SocialIdentityDto>? socialIdentities,
   }) = _UserDto;
 
   factory UserDto.fromJson(Map<String, Object?> json) =>

@@ -7,7 +7,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 /**
  * Builds the {@code refresh_token} cookie. Single source of truth for its attributes, shared by
- * {@code AuthResource}, {@code StravaAuthResource} and {@code PasskeyResource}.
+ * {@code AuthResource} and {@code PasskeyResource}.
  *
  * <p>The cookie is scoped to {@code /} — not {@code /api} — because the SSR server needs to see it
  * on the HTML document request in order to render the page for the logged-in user. Same reason for

@@ -43,9 +43,6 @@ import fr.pedalons.repository.ride.RideGroupRepository;
 import fr.pedalons.repository.ride.RideParticipationRepository;
 import fr.pedalons.repository.ridetemplate.RideTemplateRepository;
 import fr.pedalons.repository.route.RouteRepository;
-import fr.pedalons.repository.social.SocialLoginCodeRepository;
-import fr.pedalons.repository.social.SocialOAuthStateRepository;
-import fr.pedalons.repository.social.UserSocialIdentityRepository;
 import fr.pedalons.repository.team.TeamPageRepository;
 import fr.pedalons.repository.team.TeamRepository;
 import fr.pedalons.repository.team.UserTeamRepository;
@@ -115,12 +112,9 @@ public class UserExportBuilder {
   @Inject PasskeyRepository passkeyRepository;
   @Inject CalendarTokenRepository calendarTokenRepository;
   @Inject GpsServiceConnectionRepository gpsServiceConnectionRepository;
-  @Inject UserSocialIdentityRepository userSocialIdentityRepository;
   @Inject AuthTokenRepository authTokenRepository;
   @Inject DeviceCodeRepository deviceCodeRepository;
   @Inject GpsOAuthStateRepository gpsOAuthStateRepository;
-  @Inject SocialOAuthStateRepository socialOAuthStateRepository;
-  @Inject SocialLoginCodeRepository socialLoginCodeRepository;
   @Inject WebAuthnChallengeRepository webAuthnChallengeRepository;
   @Inject RideParticipationRepository rideParticipationRepository;
   @Inject TripParticipationRepository tripParticipationRepository;
@@ -178,7 +172,6 @@ public class UserExportBuilder {
       writeSection(zip, "account/passkeys.json", counts, () -> passkeys(ctx));
       writeSection(zip, "account/calendar-token.json", counts, () -> calendarToken(ctx));
       writeSection(zip, "account/gps-connections.json", counts, () -> gpsConnections(ctx));
-      writeSection(zip, "account/social-identities.json", counts, () -> socialIdentities(ctx));
       writeSection(zip, "account/auth-tokens.json", counts, () -> authTokens(ctx));
       writeSection(zip, "account/device-codes.json", counts, () -> deviceCodes(ctx));
       writeSection(zip, "account/oauth-states.json", counts, () -> handshakeStates(ctx));
@@ -273,12 +266,6 @@ public class UserExportBuilder {
         .toList();
   }
 
-  private List<AccountExport.SocialIdentity> socialIdentities(ExportJobContext ctx) {
-    return userSocialIdentityRepository.findByUserAndDomain(ctx.domainId(), ctx.userId()).stream()
-        .map(AccountExport.SocialIdentity::from)
-        .toList();
-  }
-
   private List<AccountExport.AuthTokenEntry> authTokens(ExportJobContext ctx) {
     return authTokenRepository.findByUser(ctx.domainId(), ctx.userId()).stream()
         .map(AccountExport.AuthTokenEntry::from)
@@ -294,12 +281,6 @@ public class UserExportBuilder {
   private List<AccountExport.HandshakeState> handshakeStates(ExportJobContext ctx) {
     List<AccountExport.HandshakeState> states = new ArrayList<>();
     gpsOAuthStateRepository.findByUser(ctx.domainId(), ctx.userId()).stream()
-        .map(AccountExport.HandshakeState::from)
-        .forEach(states::add);
-    socialOAuthStateRepository.findByUser(ctx.domainId(), ctx.userId()).stream()
-        .map(AccountExport.HandshakeState::from)
-        .forEach(states::add);
-    socialLoginCodeRepository.findByUser(ctx.domainId(), ctx.userId()).stream()
         .map(AccountExport.HandshakeState::from)
         .forEach(states::add);
     webAuthnChallengeRepository.findByUserId(ctx.userId()).stream()
@@ -612,7 +593,7 @@ public class UserExportBuilder {
       - les jetons de session (refresh tokens) et leurs empreintes ;
       - le matériel cryptographique de vos passkeys (identifiant brut et clé publique) ;
       - le jeton de votre calendrier ICS (récupérable à tout moment depuis l'application) ;
-      - les jetons d'accès et de rafraîchissement de vos connexions GPS (Strava, Garmin,
+      - les jetons d'accès et de rafraîchissement de vos connexions GPS (Garmin, Wahoo,
         Hammerhead…), qui donneraient accès à ces comptes tiers ;
       - les valeurs à usage unique des échanges OAuth et WebAuthn en cours ;
       - le jeton push de chacun de vos appareils, qui est l'adresse où lui envoyer

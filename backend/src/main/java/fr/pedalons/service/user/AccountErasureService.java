@@ -13,9 +13,6 @@ import fr.pedalons.domain.feedback.ErrorOccurrence;
 import fr.pedalons.domain.feedback.FeedbackReport;
 import fr.pedalons.domain.gps.GpsOAuthState;
 import fr.pedalons.domain.gps.GpsServiceConnection;
-import fr.pedalons.domain.social.SocialLoginCode;
-import fr.pedalons.domain.social.SocialOAuthState;
-import fr.pedalons.domain.social.UserSocialIdentity;
 import fr.pedalons.domain.team.UserTeam;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.repository.comment.CommentRepository;
@@ -89,9 +86,6 @@ public class AccountErasureService {
           CalendarToken.class,
           GpsOAuthState.class,
           GpsServiceConnection.class,
-          SocialLoginCode.class,
-          SocialOAuthState.class,
-          UserSocialIdentity.class,
           UserTeam.class);
 
   @Inject EntityManager em;

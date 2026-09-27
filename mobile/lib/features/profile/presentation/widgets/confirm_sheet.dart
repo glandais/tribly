@@ -9,8 +9,7 @@ import '../../../../core/theme/pdl_typography.dart';
 /// Une confirmation destructive : **question fermée, puis conséquence**.
 ///
 /// La maquette ne l'applique qu'à la suppression de compte ; le plan l'étend à
-/// délier Strava, supprimer une clé d'accès et déconnecter un appareil GPS —
-/// trois actions qu'on ne défait pas d'un geste et dont on ne mesure pas la
+/// supprimer une clé d'accès et déconnecter un appareil GPS — deux actions qu'on ne défait pas d'un geste et dont on ne mesure pas la
 /// portée sans qu'on la dise.
 ///
 /// L'action est un **contour rouge, jamais un aplat** : un aplat rouge pleine

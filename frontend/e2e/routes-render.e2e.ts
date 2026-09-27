@@ -97,7 +97,6 @@ const screens: Record<string, Screen> = {
   },
   forgotPassword: { roles: ['anonymous'], sees: heading('Mot de passe oublié') },
   resetPassword: { roles: EVERYONE, sees: heading('Lien invalide') },
-  stravaCallback: { roles: EVERYONE, sees: heading('Échec de la connexion Strava') },
   completeAccount: {
     roles: [],
     sees: async () => {},

@@ -1267,7 +1267,7 @@ méthodes. Rien n'est supprimé maintenant ; le legacy doit continuer à compile
 | 9 | `scripts/restore.sh` (commentaire citant `biketeam_restore.sh`, l. ~175) | marqueur (réécrire le commentaire) |
 | 10 | `MIGRATE_BIKETEAM.md` : bandeau en tête renvoyant à ce plan ; sections *Reset*, *Backup data*, *Restore the dump*, *Run the migration*, *Which teams get migrated*, *Members without an email*, *Verified emails and passwords*, *Running the migration from dev mode*, *Configuration* marquées une à une. Les sections de règles (*Replaying*, *Known failures*, *Ordering*, *Visibility*, *Dates*, *Team pages*, *Team logos*) **restent** : elles décrivent aussi le chemin direct | marqueurs `<!-- … -->` par section |
 | 11 | `README.md` : mention de la migration biketeam dans « Running the full stack locally » (l. ~273) et de `biketeam_restore.sh` (l. ~660) | marqueur |
-| 12 | `.env.example` : commentaire de `SOCIAL_PLACEHOLDER_EMAIL_DOMAIN` (« must match the biketeam migration's… » — la variable reste, les comptes importés existent) | marqueur sur le commentaire |
+| 12 | ~~`.env.example` : commentaire de `SOCIAL_PLACEHOLDER_EMAIL_DOMAIN`~~ (variable retirée avec la connexion Strava) (« must match the biketeam migration's… » — la variable reste, les comptes importés existent) | marqueur sur le commentaire |
 | 13 | `service/bootstrap/BootstrapService.java` (javadoc l. ~52, « the biketeam migration relies on… ») | marqueur |
 | 14 | L'entrée de `docs/NEXT.md` ci-dessous | marquée elle aussi |
 | 15 | `SECURITY_AUDIT.md` : ligne L12 (`scripts/biketeam_fetch.sh`) | marqueur dans la dernière cellule |
@@ -1275,7 +1275,8 @@ méthodes. Rien n'est supprimé maintenant ; le legacy doit continuer à compile
 
 **Non marqués**, et c'est voulu : `BiketeamMigrationMap`, son dépôt, `V21`/`V22` (partagés avec le
 direct) ; `NotificationPublisher.silently` (utilisé par le direct) ; `SocialProvider` et
-`SOCIAL_PLACEHOLDER_EMAIL_DOMAIN` (les comptes importés vivent en base) ; la phrase de `CLAUDE.md` et
+`SOCIAL_PLACEHOLDER_EMAIL_DOMAIN` (les comptes importés vivent en base — les deux ont depuis disparu
+avec la connexion Strava, API 5.0.0) ; la phrase de `CLAUDE.md` et
 du README sur les milliers d'adresses réelles d'une base importée (reste vraie tant que ces bases
 existent).
 

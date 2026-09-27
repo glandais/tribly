@@ -239,7 +239,7 @@ class TeamInvitationServiceTest extends AbstractBaseTest {
   /**
    * Without this, signing up with someone else's address would be enough to capture their
    * invitation. A no-op in practice today — {@code verifyEmail} is what creates a {@code User} —
-   * but Strava-migrated accounts carry an unverified placeholder address, so the guard is real.
+   * but accounts migrated from biketeam carry an unverified placeholder address, so the guard is real.
    */
   @Test
   void accept_withAnUnverifiedAddress_shouldBeForbidden() {

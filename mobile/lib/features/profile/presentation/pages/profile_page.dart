@@ -79,10 +79,6 @@ class ProfilePage extends ConsumerWidget {
             child: const GpsServicesCard(),
           ),
           _section(
-            title: 'profile.linked.title'.tr(),
-            child: const LinkedAccountsCard(),
-          ),
-          _section(
             title: 'profile.data.title'.tr(),
             child: const DataExportCard(),
           ),

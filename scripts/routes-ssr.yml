@@ -78,7 +78,6 @@ routes:
   - id: forgotPassword
     users: [anonymous]
   - id: resetPassword
-  - id: stravaCallback
   - id: completeAccount
     users: [user1, user2, admin]
   - id: apps

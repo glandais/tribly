@@ -1843,12 +1843,6 @@ components:
       - DOMAIN_ALIAS_NOT_FOUND
       - DOMAIN_ALIAS_HOSTNAME_EXISTS
       - DOMAIN_ALIAS_TEAM_MISMATCH
-      - SOCIAL_SERVICE_NOT_CONFIGURED
-      - SOCIAL_INVALID_STATE
-      - SOCIAL_IDENTITY_ALREADY_LINKED
-      - SOCIAL_LOGIN_CODE_INVALID
-      - SOCIAL_NO_ACCOUNT
-      - SOCIAL_LAST_LOGIN_METHOD
       - EXPORT_IN_PROGRESS
       - EXPORT_RATE_LIMITED
       - RIDE_GROUP_LEADER_NOT_MEMBER
@@ -4433,39 +4427,6 @@ components:
           - my-new-slug
           pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
           maxLength: 200
-    SocialBackfillResponse:
-      description: Result of a social-identity backfill
-      type: object
-      required:
-      - identitiesCreated
-      properties:
-        identitiesCreated:
-          type: integer
-          format: int32
-          description: Number of identity rows created
-    SocialIdentityDto:
-      type: object
-      description: A linked external identity (e.g. Strava)
-      required:
-      - provider
-      - displayName
-      - linkedAt
-      properties:
-        provider:
-          description: Provider identifier
-          type: string
-          $ref: "#/components/schemas/SocialProvider"
-        displayName:
-          type: string
-          description: Display name of the provider
-        linkedAt:
-          description: When the identity was linked
-          type: string
-          $ref: "#/components/schemas/Instant"
-    SocialProvider:
-      type: string
-      enum:
-      - STRAVA
     SortDirection:
       type: string
       enum:
@@ -4513,25 +4474,6 @@ components:
       - DRAFT
       - PUBLISHED
       - CANCELLED
-    StravaAuthUrlResponse:
-      description: Strava OAuth authorization URL response
-      type: object
-      required:
-      - authorizationUrl
-      properties:
-        authorizationUrl:
-          type: string
-          description: URL to redirect the user to for Strava authorization
-    StravaSessionRequest:
-      description: Exchange a one-time Strava login code for a session
-      type: object
-      required:
-      - code
-      properties:
-        code:
-          type: string
-          description: One-time login code from the Strava callback
-          pattern: \S
     SurfaceType:
       type: string
       enum:
@@ -5711,17 +5653,12 @@ components:
         requiresEmail:
           type: boolean
           description: "True when the account still needs a real, verified email (e.g.\
-            \ a migrated Strava account with a placeholder address)"
+            \ a migrated account with a placeholder address)"
         connectedServices:
           type: array
           items:
             $ref: "#/components/schemas/GpsServiceConnectionDto"
           description: Connected GPS services
-        socialIdentities:
-          type: array
-          items:
-            $ref: "#/components/schemas/SocialIdentityDto"
-          description: Linked external identities (e.g. Strava)
     UserExportDto:
       description: Status of a personal data export request
       type: object
@@ -5904,8 +5841,6 @@ tags:
   description: Platform admin domain management
 - name: Admin - Reports
   description: Platform moderation queue
-- name: Admin - Social
-  description: Platform admin social-identity operations
 - name: Admin - Teams
   description: Platform admin team management
 - name: Admin - Thumbnails
@@ -5968,8 +5903,6 @@ tags:
   description: GPX route management operations
 - name: Server Version
   description: Server version and build information
-- name: Strava Authentication
-  description: Login with Strava and account recovery/binding
 - name: Team Invitations
   description: Invite people to a team by e-mail
 - name: Team Members
@@ -6746,38 +6679,6 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/admin/social/backfill-strava:
-    post:
-      summary: Backfill Strava identities
-      description: Create social-identity rows for migrated placeholder Strava accounts
-        so they can log in with Strava. Idempotent.
-      operationId: backfillStravaIdentities
-      tags:
-      - Admin - Social
-      parameters:
-      - description: Target domain ID (defaults to the request's domain)
-        name: domainId
-        in: query
-        schema:
-          type: string
-      responses:
-        "200":
-          description: Backfill completed
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SocialBackfillResponse"
-        "403":
-          description: Forbidden - not a platform admin
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Not Authorized
-      security:
-      - SecurityScheme:
-        - user
   /api/admin/teams:
     get:
       summary: List all teams
@@ -7130,8 +7031,8 @@ paths:
   /api/auth/email/change-request:
     post:
       summary: Request email change
-      description: Set/change the account's real email (e.g. recover a migrated Strava
-        account). Sends a verification link to the new address.
+      description: Set/change the account's real email (e.g. recover a migrated account).
+        Sends a verification link to the new address.
       operationId: requestEmailChange
       tags:
       - Authentication
@@ -7601,144 +7502,6 @@ paths:
                 $ref: "#/components/schemas/AuthResponse"
         "400":
           description: Invalid or expired token
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-  /api/auth/strava/callback:
-    get:
-      summary: Strava OAuth callback
-      description: Handles the Strava OAuth redirect and hands off to the frontend
-      operationId: stravaCallback
-      tags:
-      - Strava Authentication
-      parameters:
-      - name: code
-        in: query
-        schema:
-          type: string
-      - name: error
-        in: query
-        schema:
-          type: string
-      - name: state
-        in: query
-        schema:
-          type: string
-      responses:
-        "302":
-          description: Redirects to frontend
-  /api/auth/strava/connect:
-    get:
-      summary: Get Strava link URL
-      description: Get the Strava OAuth authorization URL to link Strava to the current
-        account
-      operationId: getStravaConnectUrl
-      tags:
-      - Strava Authentication
-      responses:
-        "200":
-          description: Authorization URL
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/StravaAuthUrlResponse"
-        "400":
-          description: Already linked or Strava not configured
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: Not Allowed
-      security:
-      - SecurityScheme:
-        - user
-  /api/auth/strava/identity:
-    delete:
-      summary: Unlink Strava
-      description: Remove the Strava identity from the account
-      operationId: unlinkStrava
-      tags:
-      - Strava Authentication
-      responses:
-        "204":
-          description: Strava unlinked
-        "400":
-          description: Not linked or Strava is the only login method
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: Not Allowed
-      security:
-      - SecurityScheme:
-        - user
-  /api/auth/strava/login-url:
-    get:
-      summary: Get Strava login URL
-      description: Get the Strava OAuth authorization URL to log in / recover an account
-      operationId: getStravaLoginUrl
-      tags:
-      - Strava Authentication
-      responses:
-        "200":
-          description: Authorization URL
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/StravaAuthUrlResponse"
-        "400":
-          description: Strava not configured
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-  /api/auth/strava/session:
-    post:
-      summary: Exchange Strava login code for a session
-      description: Exchange the one-time code from the Strava callback for an authenticated
-        session
-      operationId: createStravaSession
-      tags:
-      - Strava Authentication
-      parameters:
-      - name: X-Forwarded-For
-        in: header
-        schema:
-          type: string
-      - name: X-Real-IP
-        in: header
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/StravaSessionRequest"
-        required: true
-      responses:
-        "200":
-          description: Login successful
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuthResponse"
-        "400":
-          description: Invalid or expired code
           content:
             application/json:
               schema:
@@ -15955,7 +15718,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 4.6.0
+  version: 5.0.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

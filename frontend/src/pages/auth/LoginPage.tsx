@@ -4,13 +4,7 @@ import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation, Trans } from 'react-i18next'
 import { useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
-import {
-  IconFingerprint,
-  IconUserPlus,
-  IconLock,
-  IconBrandStrava,
-  IconMail,
-} from '@tabler/icons-react'
+import { IconFingerprint, IconUserPlus, IconLock, IconMail } from '@tabler/icons-react'
 import {
   Center,
   Paper,
@@ -35,7 +29,6 @@ import {
 } from '@/api/endpoints/authentication/authentication'
 import type { AuthResponse } from '@/api/dto'
 import { OtpLogin } from './OtpLogin'
-import { getStravaLoginUrl } from '@/api/endpoints/strava-authentication/strava-authentication'
 
 type Mode = 'login' | 'register' | 'otp'
 
@@ -141,17 +134,6 @@ export function LoginPage() {
     }
   }
 
-  const handleStravaLogin = async () => {
-    setIsLoading(true)
-    try {
-      const data = await getStravaLoginUrl()
-      window.location.href = data.authorizationUrl
-    } catch {
-      notifications.show({ message: t('auth.strava.errors.startFailed'), color: 'red' })
-      setIsLoading(false)
-    }
-  }
-
   const completeLogin = (data: AuthResponse) => {
     if (data.accessToken) setAccessToken(data.accessToken)
     if (data.user) setUser(data.user)
@@ -247,16 +229,6 @@ export function LoginPage() {
             </form>
 
             <Divider label={t('common.or')} labelPosition="center" />
-
-            <Button
-              fullWidth
-              color="orange"
-              leftSection={<IconBrandStrava size={20} />}
-              onClick={handleStravaLogin}
-              loading={isLoading}
-            >
-              {t('auth.strava.loginButton')}
-            </Button>
 
             {passkeySupported && (
               <Button
