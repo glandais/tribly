@@ -167,7 +167,7 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
     group.setMaxParticipants(groupRequest.maxParticipants());
     group.setSortOrder(sortOrder);
     group.setRoute(groupRoute);
-    group.setLeader(resolveLeader(ride, groupRequest.leaderId()));
+    group.setLeader(resolveLeader(ride, group.getLeader(), groupRequest.leaderId()));
   }
 
   /**
@@ -180,12 +180,18 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
    *
    * <p>The check is deliberately not re-run afterwards. A leader who later leaves the team keeps
    * the row: the group happened, and rewriting history on a membership change would silently
-   * unattribute past rides. The read path renders whoever is there.
+   * unattribute past rides. The read path renders whoever is there. Clients send the whole ride
+   * back on every save — publishing, cancelling, a typo fix — so a leader the group already has is
+   * kept as is: checking them again would lock the ride until someone cleared the leader.
    */
-  private @Nullable User resolveLeader(Ride ride, @Nullable String leaderId) {
+  private @Nullable User resolveLeader(
+      Ride ride, @Nullable User currentLeader, @Nullable String leaderId) {
     Long id = TsidUtils.toLongNullable(leaderId);
     if (id == null) {
       return null;
+    }
+    if (currentLeader != null && id.equals(currentLeader.getId())) {
+      return currentLeader;
     }
     Long teamId = ride.getTeam().getId();
     return userTeamRepository

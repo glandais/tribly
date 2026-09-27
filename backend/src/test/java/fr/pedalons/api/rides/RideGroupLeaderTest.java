@@ -136,6 +136,59 @@ class RideGroupLeaderTest extends AbstractResourceTest {
   }
 
   @Test
+  void updateRide_keepsALeaderWhoHasSinceLeftTheTeam() {
+    // The client sends the whole ride back on every save, leader included. Re-checking a leader
+    // the group already has would block publishing, cancelling or editing the ride as soon as they
+    // left the team.
+    String leaderId = TsidUtils.toString(user3.getId());
+    io.restassured.response.Response created =
+        create(rideWithLeader("Sortie meneur parti", leaderId));
+    created.then().statusCode(201);
+    String slug = created.path("slug");
+    String groupId = created.path("groups[0].id");
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER3))
+        .contentType("application/json")
+        .when()
+        .post("/api/teams/" + team1Slug + "/members/leave")
+        .then()
+        .statusCode(204);
+
+    RideRequest cancelled =
+        new RideRequest(
+            "Sortie meneur parti",
+            MediaDto.builder().markdown("Sortie du dimanche").build(),
+            Instant.parse("2026-09-06T07:30:00Z"),
+            Status.CANCELLED,
+            Visibility.TEAM,
+            null,
+            null,
+            null,
+            null,
+            List.of(
+                GroupRequest.builder()
+                    .id(groupId)
+                    .name("Groupe rapide")
+                    .time(LocalTime.of(7, 30))
+                    .leaderId(leaderId)
+                    .build()));
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .contentType("application/json")
+        .body(cancelled)
+        .when()
+        .put("/api/teams/" + team1Slug + "/rides/" + slug)
+        .then()
+        .statusCode(200)
+        .body("status", Matchers.equalTo("CANCELLED"))
+        .body("groups[0].leader.id", Matchers.equalTo(leaderId));
+  }
+
+  @Test
   void groupLeader_isNotTheRideCreator() {
     String leaderId = TsidUtils.toString(user3.getId());
     String creatorId = TsidUtils.toString(user1.getId());
