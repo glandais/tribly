@@ -24,6 +24,7 @@ import '../../../moderation/presentation/moderation_menu.dart';
 import '../../../teams/providers/team_providers.dart';
 import '../../data/post_repository.dart';
 import '../../domain/post_neighbours.dart';
+import '../../../feedback/presentation/report_problem_button.dart';
 
 final postDetailProvider =
     FutureProvider.family<PostDto, ({String teamSlug, String postSlug})>((
@@ -93,6 +94,7 @@ class PostDetailPage extends ConsumerWidget {
                   variant: PdlButtonVariant.outline,
                   onPressed: () => ref.invalidate(postDetailProvider(params)),
                 ),
+                ReportProblemButton(error: error, stackTrace: stack),
               ],
             ),
           ),

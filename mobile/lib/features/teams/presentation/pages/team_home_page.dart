@@ -22,6 +22,7 @@ import '../widgets/team_sections_bar.dart';
 import 'team_about_page.dart';
 import 'team_feed_page.dart';
 import 'team_members_page.dart';
+import '../../../feedback/presentation/report_problem_button.dart';
 
 /// A team, whatever section of it is being looked at.
 ///
@@ -66,7 +67,7 @@ class TeamHomePage extends ConsumerWidget {
           child: PdlSkeletonCardList(count: 3),
         ),
       ),
-      error: (Object error, _) => _TeamChrome.bare(
+      error: (Object error, StackTrace stack) => _TeamChrome.bare(
         body: Center(
           child: SingleChildScrollView(
             child: PdlEmptyState(
@@ -83,6 +84,7 @@ class TeamHomePage extends ConsumerWidget {
                   variant: PdlButtonVariant.outline,
                   onPressed: () => context.go(Paths.teams()),
                 ),
+                ReportProblemButton(error: error, stackTrace: stack),
               ],
             ),
           ),

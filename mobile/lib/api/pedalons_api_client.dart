@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/legacy.dart';
 import '../config/app_config.dart';
 import 'generated/export.dart';
 import 'interceptors/auth_interceptor.dart';
+import 'interceptors/client_log_interceptor.dart';
 import 'interceptors/locale_interceptor.dart';
 
 /// Simple token holder to avoid circular dependency
@@ -29,6 +30,7 @@ final baseDioProvider = Provider<Dio>((ref) {
   );
 
   dio.interceptors.add(const LocaleInterceptor());
+  dio.interceptors.add(ClientLogInterceptor());
 
   return dio;
 });
@@ -49,6 +51,9 @@ final dioProvider = Provider<Dio>((ref) {
 
   // Même règle que le client nu : la langue se lit à la requête.
   dio.interceptors.add(const LocaleInterceptor());
+  // Avant l'intercepteur d'auth : un 401 suivi d'un rafraîchissement réussi
+  // reste visible au journal, et c'est une information.
+  dio.interceptors.add(ClientLogInterceptor());
 
   // Add auth interceptor that reads token from the simple holder
   dio.interceptors.add(AuthInterceptor(ref, dio));
@@ -198,4 +203,10 @@ final invitationsClientProvider = Provider<InvitationsClient>((ref) {
 
 final moderationClientProvider = Provider<ModerationClient>((ref) {
   return ref.watch(apiClientProvider).moderation;
+});
+
+/// Signalements et rapports d'erreur : les deux endpoints exigent un membre
+/// connecté.
+final feedbackClientProvider = Provider<FeedbackClient>((ref) {
+  return ref.watch(apiClientProvider).feedback;
 });

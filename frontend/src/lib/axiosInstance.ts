@@ -5,6 +5,7 @@ import i18next from 'i18next'
 import type { ErrorResponse } from '../api/dto'
 import { ApiClientError, parseRetryAfter } from './apiError'
 import { getSSRAuth, getSSRHeaders } from './ssrContext'
+import { logEntry, pathOnly } from './feedback/clientLog'
 
 const isServer = typeof window === 'undefined'
 
@@ -161,6 +162,21 @@ AXIOS_INSTANCE.interceptors.response.use(
   }
 )
 
+/**
+ * A failed call, in the bug-report log: method, path without its query, status and business code —
+ * never a body. The feedback endpoints are left out, or a failing report would log itself.
+ */
+function recordHttpFailure(error: AxiosError, code: string | undefined) {
+  const path = pathOnly(error.config?.url ?? '')
+  if (path.startsWith('/api/feedback')) return
+  const status = error.response?.status ?? error.code ?? 'network'
+  logEntry(
+    'WARN',
+    'http',
+    `${(error.config?.method ?? 'get').toUpperCase()} ${path} ${status}${code ? ' ' + code : ''}`
+  )
+}
+
 // Orval mutator function - returns unwrapped data (T, not AxiosResponse<T>)
 export const axiosMutator = <T>(
   config: AxiosRequestConfig,
@@ -177,6 +193,9 @@ export const axiosMutator = <T>(
       if (Axios.isAxiosError(error)) {
         const axiosError = error as AxiosError
         const errorData = axiosError.response?.data as ErrorResponse | undefined
+        if (!isServer) {
+          recordHttpFailure(axiosError, errorData?.code)
+        }
 
         // Don't show toast for 401 errors (handled by interceptor)
         if (axiosError.response?.status === 401) {

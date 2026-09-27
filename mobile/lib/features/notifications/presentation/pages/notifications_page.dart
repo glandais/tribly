@@ -18,6 +18,7 @@ import '../../providers/notifications_provider.dart';
 import '../notification_display.dart';
 import '../widgets/notification_tile.dart';
 import '../widgets/push_activation_banner.dart';
+import '../../../feedback/presentation/report_problem_button.dart';
 
 /// La boîte de réception : la liste paginée, et un filtre « non lues ».
 ///
@@ -202,6 +203,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                   size: PdlButtonSize.sm,
                   onPressed: notifier.loadFirstPage,
                 ),
+                ReportProblemButton(error: state.initialError!),
               ],
             ),
           ),

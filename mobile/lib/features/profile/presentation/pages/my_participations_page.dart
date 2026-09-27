@@ -12,6 +12,7 @@ import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../teams/presentation/widgets/publication_card.dart';
 import '../../providers/participations_provider.dart';
+import '../../../feedback/presentation/report_problem_button.dart';
 
 /// Les sorties et voyages auxquels on est inscrit — à venir, ou passés.
 ///
@@ -126,6 +127,7 @@ class _MyParticipationsPageState extends ConsumerState<MyParticipationsPage> {
                   size: PdlButtonSize.sm,
                   onPressed: notifier.loadFirstPage,
                 ),
+                ReportProblemButton(error: state.initialError!),
               ],
             ),
           ),

@@ -126,6 +126,9 @@ abstract final class PdlIcons {
 
   // ── Modération ─────────────────────────────────────────────────────────
   static const IconData report = Icons.outlined_flag;
+
+  // ── Retours ────────────────────────────────────────────────────────────
+  static const IconData bug = Icons.bug_report_outlined;
   static const IconData block = Icons.block;
 
   // ── Compte, préférences ────────────────────────────────────────────────

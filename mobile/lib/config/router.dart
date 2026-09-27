@@ -18,6 +18,7 @@ import '../features/notifications/presentation/pages/notifications_page.dart';
 import '../features/moderation/presentation/pages/blocked_users_page.dart';
 import '../features/profile/presentation/pages/my_participations_page.dart';
 import '../features/profile/presentation/pages/profile_page.dart';
+import '../core/logging/client_context.dart';
 import '../core/pdl/pdl.dart';
 import '../features/ads/presentation/pages/ad_detail_page.dart';
 import '../features/posts/domain/post_neighbours.dart';
@@ -456,7 +457,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   );
   ref.onDispose(authRefresh.dispose);
 
-  return GoRouter(
+  final router = GoRouter(
     navigatorKey: _rootNavigatorKey,
     // Deep links are always replayed by the handler in main.dart, which also
     // rebuilds the ancestor stack. Overriding the platform default keeps that
@@ -648,4 +649,20 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
     ),
   );
+
+  // Le journal de l'app note chaque écran affiché — chemin seul, sans query
+  // string — et le contexte d'un rapport sait ainsi où était le membre.
+  // L'écoute du délégué voit aussi les changements d'onglet du shell, qu'un
+  // `NavigatorObserver` de la pile racine ne verrait pas.
+  final contextBuilder = ref.read(clientContextBuilderProvider);
+  void recordNavigation() {
+    final configuration = router.routerDelegate.currentConfiguration;
+    if (configuration.isEmpty) return;
+    contextBuilder.recordNavigation(configuration.uri.path);
+  }
+
+  router.routerDelegate.addListener(recordNavigation);
+  ref.onDispose(() => router.routerDelegate.removeListener(recordNavigation));
+
+  return router;
 });

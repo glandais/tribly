@@ -19,6 +19,7 @@ import '../../../../core/widgets/media_attachments.dart';
 import '../../../routes/presentation/widgets/embedded_route_sheet.dart';
 import '../../../routes/providers/route_detail_provider.dart';
 import '../../providers/trip_detail_provider.dart';
+import '../../../feedback/presentation/report_problem_button.dart';
 
 /// L'écran 25 — une étape de voyage.
 ///
@@ -451,6 +452,7 @@ class _StageError extends ConsumerWidget {
               variant: PdlButtonVariant.outline,
               onPressed: () => ref.invalidate(tripDetailProvider(tripKey)),
             ),
+            ReportProblemButton(error: error),
           ],
         ),
       ),

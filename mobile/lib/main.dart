@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:app_links/app_links.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_driver/driver_extension.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,9 +12,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
 import 'config/router.dart';
+import 'core/logging/app_log.dart';
+import 'core/logging/client_context.dart';
+import 'core/logging/error_reporter.dart';
 import 'core/utils/link_launcher.dart';
 import 'core/preferences/user_preferences_provider.dart';
 import 'features/auth/providers/auth_provider.dart';
+import 'features/feedback/presentation/unreported_fatal_prompt.dart';
+import 'features/feedback/providers/error_reporter_binding.dart';
 import 'features/notifications/providers/push_provider.dart';
 import 'screenshots/screenshot_mode.dart';
 
@@ -26,6 +32,33 @@ void main() async {
   }
 
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Le journal et les gestionnaires d'erreurs d'abord : une erreur du
+  // démarrage lui-même est celle qu'on a le plus de mal à reproduire. Le
+  // journal relu est celui de la session précédente — c'est lui qui dit ce
+  // qui a précédé un plantage.
+  final AppLog appLog = AppLog.instance..persistToAppSupport();
+  await appLog.load();
+  appLog.info('app', 'launch');
+
+  // Le miroir des préférences se lit AVANT le premier cadre : sans lui, l'app
+  // s'ouvre en clair puis bascule en sombre une fois `GET /api/users/me`
+  // revenu. Une lecture asynchrone dans un provider arriverait trop tard.
+  final sharedPreferences = await SharedPreferences.getInstance();
+
+  final ClientContextBuilder clientContext = ClientContextBuilder.instance;
+  unawaited(clientContext.init());
+  final ErrorReporter errorReporter = ErrorReporter(
+    preferences: sharedPreferences,
+    log: appLog,
+    context: clientContext,
+    // Les erreurs d'un poste de développement n'ont rien à faire dans les
+    // tickets ; `--dart-define=REPORT_ERRORS_IN_DEBUG=true` pour essayer.
+    autoSendAllowed:
+        !kDebugMode || const bool.fromEnvironment('REPORT_ERRORS_IN_DEBUG'),
+  );
+  _installErrorHandlers(errorReporter);
+
   await EasyLocalization.ensureInitialized();
 
   // Firebase avant le premier cadre, et **sans bloquer le démarrage si elle
@@ -38,10 +71,6 @@ void main() async {
     log('Firebase could not start, push disabled: $error', name: 'main');
   }
 
-  // Le miroir des préférences se lit AVANT le premier cadre : sans lui, l'app
-  // s'ouvre en clair puis bascule en sombre une fois `GET /api/users/me`
-  // revenu. Une lecture asynchrone dans un provider arriverait trop tard.
-  final sharedPreferences = await SharedPreferences.getInstance();
   await loadScreenshotLaunch();
 
   // Handle deep links
@@ -69,6 +98,7 @@ void main() async {
       child: ProviderScope(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(sharedPreferences),
+          errorReporterProvider.overrideWithValue(errorReporter),
           if (initialPath != null)
             initialDeepLinkProvider.overrideWithValue(initialPath),
         ],
@@ -76,6 +106,41 @@ void main() async {
       ),
     ),
   );
+}
+
+/// Les deux points d'arrivée des erreurs que personne n'a rattrapées.
+///
+/// `FlutterError.onError` reçoit les erreurs du framework (construction,
+/// mise en page, dessin) : elles s'affichent toujours comme avant
+/// ([FlutterError.presentError]), puis partent au journal et au rapporteur.
+/// Une erreur *silencieuse* — une image qui n'a pas chargé — ne va qu'au
+/// journal. Seule une erreur de construction (`widgets library`) compte comme
+/// un plantage : c'est l'écran gris ; un débordement de mise en page n'en est
+/// pas un, et proposer de le signaler au lancement suivant serait du bruit.
+///
+/// `PlatformDispatcher.onError` reçoit les erreurs asynchrones que rien n'a
+/// attendues : toutes comptent comme un plantage.
+void _installErrorHandlers(ErrorReporter reporter) {
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    if (details.silent) {
+      AppLog.instance.warn('flutter', details.exceptionAsString());
+      return;
+    }
+    unawaited(
+      reporter.report(
+        details.exception,
+        details.stack,
+        fatal: details.library == 'widgets library',
+        source: 'flutter',
+      ),
+    );
+  };
+  PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
+    log('Unhandled error', name: 'main', error: error, stackTrace: stack);
+    unawaited(reporter.report(error, stack, fatal: true));
+    return true;
+  };
 }
 
 /// Widget that handles deep links (initial + runtime), expanding detail-page
@@ -116,6 +181,20 @@ class _DeepLinkHandlerState extends ConsumerState<_DeepLinkHandler> {
       final path = uri.path + (uri.query.isNotEmpty ? '?${uri.query}' : '');
       _requestOpen(path);
     });
+
+    // Le rapporteur d'erreurs suit la session : il envoie une fois le membre
+    // connecté, et vide alors la file de ce qui attendait.
+    ref.listenManual(errorReporterBindingProvider, (_, _) {});
+
+    // Le plantage de la dernière session se propose au signalement une fois
+    // le membre connecté — tout de suite, ou après son login.
+    ref.listenManual(
+      authProvider.select((s) => s.isInitialized && s.isAuthenticated),
+      (_, bool authenticated) {
+        if (authenticated) unawaited(_promptUnreportedFatal());
+      },
+      fireImmediately: true,
+    );
 
     // Le contrôleur push n'existe que si quelqu'un le tient : sans cette
     // écoute, l'appareil ne s'inscrirait qu'à l'ouverture de l'écran des
@@ -172,16 +251,8 @@ class _DeepLinkHandlerState extends ConsumerState<_DeepLinkHandler> {
     await screenshotSignIn(ref);
     if (!mounted) return;
 
-    var mountedRouter = false;
-    for (var i = 0; i < _maxRouterMountFrames && !mountedRouter; i++) {
-      await WidgetsBinding.instance.endOfFrame;
-      if (!mounted) return;
-      mountedRouter = ref
-          .read(routerProvider)
-          .routerDelegate
-          .currentConfiguration
-          .isNotEmpty;
-    }
+    final mountedRouter = await _whenRouterMounted();
+    if (!mounted) return;
     if (!mountedRouter) {
       log(
         'Router did not mount in time, opening deep link anyway',
@@ -193,6 +264,44 @@ class _DeepLinkHandlerState extends ConsumerState<_DeepLinkHandler> {
     _pendingPath = null;
     _opening = false;
     if (path != null) _openWithHierarchy(path);
+  }
+
+  /// Attend que le routeur ait analysé sa première route, [_maxRouterMountFrames]
+  /// cadres au plus. Faux s'il ne l'a pas fait à temps.
+  Future<bool> _whenRouterMounted() async {
+    for (var i = 0; i < _maxRouterMountFrames; i++) {
+      await WidgetsBinding.instance.endOfFrame;
+      if (!mounted) return false;
+      if (ref
+          .read(routerProvider)
+          .routerDelegate
+          .currentConfiguration
+          .isNotEmpty) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool _fatalPrompted = false;
+
+  /// Une seule fois par session, et seulement s'il y a quelque chose à
+  /// proposer. Le lien profond éventuel s'ouvre d'abord : la question vient
+  /// par-dessus l'écran demandé, pas à sa place.
+  Future<void> _promptUnreportedFatal() async {
+    final reporter = ref.read(errorReporterProvider);
+    if (_fatalPrompted || reporter.unreportedFatal == null) return;
+    _fatalPrompted = true;
+    if (!await _whenRouterMounted()) return;
+    // Laisse au lien profond le temps de construire sa pile.
+    await WidgetsBinding.instance.endOfFrame;
+    final navigatorContext = ref
+        .read(routerProvider)
+        .routerDelegate
+        .navigatorKey
+        .currentContext;
+    if (navigatorContext == null || !navigatorContext.mounted) return;
+    await promptUnreportedFatal(navigatorContext, reporter);
   }
 
   Future<void> _whenAuthInitialized() {

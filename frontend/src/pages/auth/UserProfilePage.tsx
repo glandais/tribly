@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { ErrorReportingPreference } from '@/components/feedback/ErrorReportingPreference'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from '@mantine/form'
 import { zodFormValidator } from '@/lib/formUtils'
@@ -240,6 +241,7 @@ export function UserProfilePage() {
             <UnitSystemSwitcher />
             <TimezonePreference timezone={user.timezone} />
             <ContactPreference contactableByMembers={user.contactableByMembers} />
+            <ErrorReportingPreference />
           </Stack>
 
           <NotificationPreferences />

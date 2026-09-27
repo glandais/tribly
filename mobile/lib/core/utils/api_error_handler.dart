@@ -3,6 +3,8 @@ import 'dart:developer';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 
+import '../logging/app_log.dart';
+
 /// Why a call failed, at the granularity the UI needs to react.
 enum ApiErrorKind {
   /// The request never reached the server, or the server never answered in
@@ -96,6 +98,7 @@ ApiError resolveApiError(Object error, [StackTrace? stackTrace]) {
     error: error,
     stackTrace: stackTrace ?? StackTrace.current,
   );
+  AppLog.instance.error('error', '${error.runtimeType}: $error');
   return ApiError(kind: ApiErrorKind.unknown, message: 'common.error'.tr());
 }
 

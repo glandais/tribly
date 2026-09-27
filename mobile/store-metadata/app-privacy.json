@@ -72,6 +72,33 @@
       "dataProtections": [
         "DATA_LINKED_TO_YOU"
       ]
+    },
+    {
+      "category": "CRASH_DATA",
+      "purposes": [
+        "APP_FUNCTIONALITY"
+      ],
+      "dataProtections": [
+        "DATA_LINKED_TO_YOU"
+      ]
+    },
+    {
+      "category": "OTHER_DIAGNOSTIC_DATA",
+      "purposes": [
+        "APP_FUNCTIONALITY"
+      ],
+      "dataProtections": [
+        "DATA_LINKED_TO_YOU"
+      ]
+    },
+    {
+      "category": "CUSTOMER_SUPPORT",
+      "purposes": [
+        "APP_FUNCTIONALITY"
+      ],
+      "dataProtections": [
+        "DATA_LINKED_TO_YOU"
+      ]
     }
   ]
 }

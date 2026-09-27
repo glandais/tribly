@@ -15,6 +15,7 @@ import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/safe_string.dart';
 import '../../providers/team_providers.dart';
 import '../widgets/pending_invitations_card.dart';
+import '../../../feedback/presentation/report_problem_button.dart';
 
 /// The teams the user belongs to.
 ///
@@ -136,6 +137,7 @@ class _TeamsPageState extends ConsumerState<TeamsPage> {
                         label: 'common.retry'.tr(),
                         onPressed: () => ref.invalidate(myTeamsProvider),
                       ),
+                      ReportProblemButton(error: error, stackTrace: stack),
                     ],
                   ),
                 ),

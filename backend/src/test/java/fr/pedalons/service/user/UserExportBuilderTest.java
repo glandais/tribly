@@ -76,6 +76,7 @@ class UserExportBuilderTest extends AbstractBaseTest {
           "account/push-devices.json",
           "account/blocked-users.json",
           "account/reports.json",
+          "account/feedback.json",
           "memberships/teams.json",
           "participations/rides.json",
           "participations/trips.json",

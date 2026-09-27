@@ -20,6 +20,7 @@ import '../../../moderation/presentation/moderation_menu.dart';
 import '../../data/ad_repository.dart';
 import '../widgets/ad_contact_sheet.dart';
 import '../widgets/ad_location_map.dart';
+import '../../../feedback/presentation/report_problem_button.dart';
 
 final adDetailProvider =
     FutureProvider.family<AdDto, ({String teamSlug, String adSlug})>((
@@ -69,6 +70,7 @@ class AdDetailPage extends ConsumerWidget {
                   variant: PdlButtonVariant.outline,
                   onPressed: () => ref.invalidate(adDetailProvider(params)),
                 ),
+                ReportProblemButton(error: error, stackTrace: stack),
               ],
             ),
           ),

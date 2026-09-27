@@ -1042,7 +1042,8 @@
       "WEBHOOK_URL_INVALID": "This webhook address is not accepted: it must start with https:// and point to a public service.",
       "CONTENT_REJECTED": "This text contains words that aren't allowed on Pédalons. Rephrase it to publish.",
       "REPORT_SELF": "You can't report your own content.",
-      "BLOCK_SELF": "You can't block yourself."
+      "BLOCK_SELF": "You can't block yourself.",
+      "FEEDBACK_RATE_LIMITED": "Too many reports sent, try again later"
     },
     "outdated": {
       "title": "Update required",
@@ -1219,6 +1220,48 @@
       "hint": "You no longer see their comments, posts and ads. They don't know you blocked them.",
       "emptyTitle": "No blocked users",
       "emptyMessage": "To block someone, tap ⋯ on one of their comments or ads, or their name in the member list."
+    }
+  },
+  "feedback": {
+    "reportProblem": "Report a problem",
+    "reportThis": "Report this problem",
+    "title": "Report a problem",
+    "kind": {
+      "bug": "Bug",
+      "suggestion": "Suggestion"
+    },
+    "placeholderBug": "What you were doing, what happened, what you expected…",
+    "placeholderSuggestion": "What's missing, or what would make things easier…",
+    "tooShort": "At least {min} characters.",
+    "errorAttached": "Error attached:",
+    "attach": "Attach technical information",
+    "attachHint": "App version, device, current screen and recent log. No password, none of your messages.",
+    "attachOffHint": "Only the platform, the app version and the language will be attached.",
+    "showPreview": "See what will be sent",
+    "hidePreview": "Hide details",
+    "send": "Send",
+    "sending": "Sending…",
+    "sent": "Thanks, your report was sent.",
+    "rateLimited": "You have sent a lot of reports. Try again later, your text is kept.",
+    "rateLimitedIn": "You have sent a lot of reports. Try again in {delay}, your text is kept.",
+    "delayUnderMinute": "less than a minute",
+    "delayMinutes": {
+      "one": "{} minute",
+      "other": "{} minutes"
+    },
+    "delayHours": {
+      "one": "{} hour",
+      "other": "{} hours"
+    },
+    "autoReports": {
+      "title": "Send error reports automatically",
+      "hint": "When the app crashes, a technical report goes to the Pédalons team, without your e-mail address."
+    },
+    "fatalPrompt": {
+      "title": "Something went wrong",
+      "message": "The app hit a problem last time. Report it?",
+      "report": "Report",
+      "dismiss": "Dismiss"
     }
   }
 }

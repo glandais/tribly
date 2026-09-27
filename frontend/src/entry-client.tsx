@@ -12,6 +12,8 @@ import type { ConfigDto } from './api/dto'
 import { hydrateAuthFromSSR } from './store/authStore'
 import type { SsrAuthSnapshot } from './lib/requestContext'
 import { mapThemePreference } from './lib/theme'
+import { installConsoleCapture } from './lib/feedback/clientLog'
+import { installErrorCapture } from './lib/feedback/errorReporter'
 import './index.css'
 
 declare global {
@@ -35,6 +37,10 @@ const initialColorScheme = window.__AUTH_STATE__?.user
   : 'auto'
 
 async function bootstrap() {
+  // First, so that whatever goes wrong below is in the log of a bug report.
+  installConsoleCapture()
+  installErrorCapture()
+
   // The initial client render must match the server markup, so i18n has to be ready first.
   await i18nReady
 

@@ -9,6 +9,8 @@ import fr.pedalons.domain.auth.DeviceCode;
 import fr.pedalons.domain.auth.Passkey;
 import fr.pedalons.domain.auth.WebAuthnChallenge;
 import fr.pedalons.domain.calendar.CalendarToken;
+import fr.pedalons.domain.feedback.ErrorOccurrence;
+import fr.pedalons.domain.feedback.FeedbackReport;
 import fr.pedalons.domain.gps.GpsOAuthState;
 import fr.pedalons.domain.gps.GpsServiceConnection;
 import fr.pedalons.domain.social.SocialLoginCode;
@@ -78,6 +80,10 @@ public class AccountErasureService {
           AuthSession.class,
           AuthToken.class,
           DeviceCode.class,
+          // Issues already published stay in the private feedback repository; they name the member
+          // by an id that no longer leads to anyone.
+          ErrorOccurrence.class,
+          FeedbackReport.class,
           Passkey.class,
           WebAuthnChallenge.class,
           CalendarToken.class,

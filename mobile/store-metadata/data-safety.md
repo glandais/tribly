@@ -13,8 +13,8 @@ from:
 
 - **App**: Pédalons, `fr.pedalons.mobile`, version `1.0.0+53` (`mobile/pubspec.yaml`)
 - **Backend**: `https://www.pedalons.fr` (`mobile/lib/config/app_config.dart`)
-- **Last verified against the code**: 2026-09-24 (content reports, user blocks and terms acceptance
-  added — App Store guideline 1.2; spec `docs/plans/2026-09-24-signalement.md`)
+- **Last verified against the code**: 2026-09-27 (problem reports and automatic error reports
+  added — `lib/features/feedback/`, `lib/core/logging/`; backend `FeedbackService`)
 
 > Scope note. These declarations describe **the mobile app binary**, not the whole Pedalons
 > platform. The web frontend can do considerably more than the app (see §7). Declaring platform
@@ -65,6 +65,19 @@ The capabilities added, and their exact boundary:
   (≤ 1,000 characters, `content_reports.excerpt`) and, later, the moderator's decision. The
   reporter's identity is readable by `PLATFORM_ADMIN` only. Nothing new is read from the device:
   no screenshot, no attachment, no contact.
+- **Problem reports and automatic error reports** (2026-09-27) — `api.feedback`
+  (`lib/api/generated/clients/feedback_client.dart`): `sendFeedback` → `POST /api/feedback` with a
+  kind (bug / suggestion), the member's **free text** (10–5,000 characters) and, unless the member
+  unticks "Attach technical information", a context (app version and build, OS, device model,
+  current screen path, language, team slug), the error the sheet was opened from, and the in-app
+  log (≤ 200 entries: navigations, failed requests as method + path + status + code, errors).
+  `reportClientError` → `POST /api/feedback/errors`, sent **without user action** for an unhandled
+  Dart error (type, message, stack) with the same context and the last 50 log entries — signed-in
+  members only, never from debug builds, and switched off by *Profile → Preferences → Envoyer
+  automatiquement les rapports d'erreur*. No SDK: our own endpoint. Server-side both are redacted
+  (tokens, e-mail addresses) and published as issues of a **private GitHub repository** naming the
+  member by id — GitHub is a sub-processor of the backend, not contacted by the app (§6). The log
+  never holds query strings, request bodies or headers.
 - **Terms acceptance** — `RegisterRequest.acceptTerms` (a required `true`); the server stores the
   timestamp in `users.terms_accepted_at`. A timestamp on the account, not a new data type.
 
@@ -79,7 +92,8 @@ and `mobile/android/`:
   handed to the OS share sheet (`lib/features/routes/presentation/pages/route_detail_page.dart`).
   Coordinates flow server → device, never device → server.
 - No analytics, crash-reporting, advertising or attribution SDK (no Crashlytics/Sentry/Amplitude/
-  AppsFlyer/Adjust). Firebase **is** present, but only `firebase_core` and `firebase_messaging` —
+  AppsFlyer/Adjust). Crash reports exist since 2026-09-27, but through our own endpoint (#18),
+  not an SDK. Firebase **is** present, but only `firebase_core` and `firebase_messaging` —
   see the push entry above; no other Firebase product is a dependency, which
   `grep -n "firebase" pubspec.yaml` shows in two lines. `ua_client_hints` remains a transitive
   dependency of `passkeys` and is on no executed code path; `device_info_plus` no longer is —
@@ -116,6 +130,9 @@ Everything below leaves the device to `https://www.pedalons.fr` unless stated ot
 | 14 | **Content reports** | Report sheet → `POST /api/reports`: target, reason, optional free-text message. Server adds the target's author, a copy of the reported text and the decision | Yes | Yes (reporter; erasure nulls it and keeps the report) |
 | 15 | **User blocks** | `PUT`/`DELETE /api/users/me/blocks/{userId}`: who blocked whom, and when | Yes | Yes |
 | 16 | **Terms acceptance** | Sign-up checkbox → `RegisterRequest.acceptTerms`; stored as `users.terms_accepted_at` | Yes | Yes |
+| 17 | **Problem reports** | *Report a problem* sheet (`lib/features/feedback/presentation/feedback_sheet.dart`) → `POST /api/feedback`: kind, free text, optional error | Yes (then to GitHub, private repository) | Yes (user id; no e-mail) |
+| 18 | **Crash data** | `lib/core/logging/error_reporter.dart` → `POST /api/feedback/errors`: unhandled error type, message, stack. Opt-out setting | Yes (then to GitHub) | Yes (user id) |
+| 19 | **Diagnostics** | Sent with #17 (if ticked) and #18: app version, OS, device model, screen path, language, in-app log (`lib/core/logging/app_log.dart`) | Yes (then to GitHub) | Yes (user id) |
 | 10 | **Approximate location** | `geolocator` at `LocationAccuracy.low`, while in use, only when the user turns on the "around me" filter — becomes the `nearLat`/`nearLon`/`nearRadius` query parameters | Yes, as query parameters of a read request | **No** — not stored server-side, not written to the account |
 
 Stored **on device only**, never transmitted:
@@ -124,6 +141,9 @@ Stored **on device only**, never transmitted:
   (`lib/features/auth/data/secure_storage.dart`), cleared on logout.
 - Access token in memory only (`lib/api/pedalons_api_client.dart`), never persisted.
 - UI locale via `shared_preferences` (written by `easy_localization`).
+- The in-app log (`lib/core/logging/app_log.dart`): ≤ 200 entries in a JSONL file of the app
+  support directory, so it survives a crash; the queued error reports and the last crash flag in
+  `shared_preferences`. They leave the device only as #17–#19.
 - Disk caches: downloaded avatars/images (`cached_network_image`) and temp GPX/FIT files.
 
 **Password note.** Neither store's form has a "password" data type. Apple's guidance is that
@@ -152,6 +172,9 @@ value is invented.
 | `NSPrivacyCollectedDataTypePhotosorVideos` | `true` | `false` | `…PurposeAppFunctionality` | #9 |
 | `NSPrivacyCollectedDataTypeCoarseLocation` | **`false`** | `false` | `…PurposeAppFunctionality` | #10 |
 | `NSPrivacyCollectedDataTypeDeviceID` | `true` | `false` | `…PurposeAppFunctionality` | #11, #12 |
+| `NSPrivacyCollectedDataTypeCrashData` | `true` | `false` | `…PurposeAppFunctionality` | #18 |
+| `NSPrivacyCollectedDataTypeOtherDiagnosticData` | `true` | `false` | `…PurposeAppFunctionality` | #19 |
+| `NSPrivacyCollectedDataTypeCustomerSupport` | `true` | `false` | `…PurposeAppFunctionality` | #17 |
 
 `…Purpose` above abbreviates `NSPrivacyCollectedDataTypePurpose`. Note the lowercase `or` in
 `PhotosorVideos` — that is Apple's literal spelling, not a typo.
@@ -183,7 +206,7 @@ plutil -lint mobile/ios/Runner/PrivacyInfo.xcprivacy
 
 ## 4. App Store Connect → App Privacy
 
-Answer **"Yes, we collect data from this app"**, then declare exactly these eight, none used for
+Answer **"Yes, we collect data from this app"**, then declare exactly these eleven, none used for
 **Tracking**, all purpose **App Functionality**. All are **Data Linked to You** except Coarse
 Location, which is **Data Not Linked to You**:
 
@@ -197,6 +220,16 @@ Location, which is **Data Not Linked to You**:
 | Location | Coarse Location | **No** | No | App Functionality |
 | Identifiers | Device ID | Yes | No | App Functionality |
 | Other Data | Other Data Types | Yes | No | App Functionality |
+| Diagnostics | Crash Data | Yes | No | App Functionality |
+| Diagnostics | Other Diagnostic Data | Yes | No | App Functionality |
+| User Content | Customer Support | Yes | No | App Functionality |
+
+*Crash Data*, *Other Diagnostic Data* and *Customer Support* (2026-09-27) are #18, #19 and #17.
+Linked, because the server knows who sent them (the issue names a user id). *Customer Support* and
+not *Other User Content*: a problem report is, in Apple's words, "data generated by the user
+during a customer support request". The purpose is **App Functionality** — fixing the app's bugs —
+and not *Analytics*: nothing is aggregated into usage metrics. `app-privacy.json` carries them as
+`CRASH_DATA`, `OTHER_DIAGNOSTIC_DATA` and `CUSTOMER_SUPPORT`.
 
 *Other Data Types* is the `OTHER_DATA` token in `app-privacy.json` (not `OTHER_DATA_TYPES`, which
 `asc` rejects). If the form asks, describe it as: **"Session security metadata (IP address, user agent and
@@ -224,7 +257,7 @@ entry it already carries is the right one.
 not an advertising identifier, which the app still never reads.
 
 Explicitly answer **No / do not select**: Precise Location, Audio Data, Contacts, Health, Fitness,
-Payment Info, Purchase History, Product Interaction, Advertising Data, Crash Data,
+Payment Info, Purchase History, Product Interaction, Advertising Data,
 Performance Data, Search History, Browsing History.
 
 Privacy policy URL: `https://www.pedalons.fr/privacy` (EN) · `https://www.pedalons.fr/confidentialite` (FR).
@@ -263,6 +296,14 @@ per-row, because approximate location is the one type that is processed ephemera
 | Photos and videos | Photos | Yes | No | Optional | App functionality |
 | Location | Approximate location | Yes | **Yes** | Optional | App functionality |
 | Device or other IDs | Device or other IDs | Yes | No | Optional | App functionality |
+| App info and performance | Crash logs | Yes | No | Optional | App functionality |
+| App info and performance | Diagnostics | Yes | No | Optional | App functionality |
+
+*Crash logs* (#18) and *Diagnostics* (#19) are **optional**: the automatic reports can be turned off
+in the profile preferences, and a problem report's technical information is a ticked-by-default
+checkbox. They are **not shared**: GitHub stores them as a service provider of ours, which Google
+does not count as sharing. The report's free text (#17) is covered by the *Other user-generated
+content* row already declared.
 
 *Photos* is **optional**: the account works without a profile picture, and the photo library is
 only reached when the user taps "change picture".
@@ -290,8 +331,7 @@ finer bucket for a messaging token.
 
 Everything else in the form is **not collected**: Precise location, Financial info, Health and
 fitness, Messages, Videos, Audio files, Files and docs, Calendar, Contacts, App interactions,
-In-app search history, Installed apps, Web browsing history, Crash logs, Diagnostics, Other app
-performance data.
+In-app search history, Installed apps, Web browsing history, Other app performance data.
 
 **Deliberate divergences from §4**
 
@@ -379,6 +419,10 @@ rather than this table when it changes.
 | `*.tile-cyclosm.openstreetmap.fr` | CyclOSM basemap, when chosen | Same |
 | Firebase Cloud Messaging (`*.googleapis.com`, APNs via Firebase) | Issues the registration token and routes every push (`lib/features/notifications/services/push_gateway.dart`) | IP address, the token it issued, the device and app version it registers, and **the content of each notification** — title and body are rendered server-side and travel through Google |
 
+**GitHub is not contacted by the app.** Problem and error reports go to our backend, which
+publishes them to a private GitHub repository: GitHub is a sub-processor of the *backend*, named in
+the privacy policy (§4 and the US transfer in §5), not a third party of the app binary.
+
 FCM is a genuine **sub-processor**: it does not merely see an IP address, it carries the message.
 The map providers are independent controllers of a request the device makes; none receives an
 account identifier. Both are in the published policy since 2026-09-21 (§4 *Technical service
@@ -401,7 +445,7 @@ a dependency. Do not bring it back — it would re-open a US transfer for a type
 | Fitness / Health | No HealthKit, no Motion & Fitness, no activity recording. |
 | Advertising ID | No advertising identifier is read or sent. The declared *Device ID* row covers the FCM registration token only (#11). The passkey `deviceName` is still the constant string `"Mobile"`. |
 | Product Interaction / Usage / Advertising Data | No analytics or advertising SDK of any kind. |
-| Crash Data / Performance Data | Nothing is collected by us. Apple- and Google-side crash reporting the user opts into is the platform's collection, not ours. |
+| Performance Data | Nothing measured: no timings, no frame stats. (Crash Data *is* declared since 2026-09-27, #18.) |
 | Purchase History / Payment Info | No purchases in the app. |
 | Emails or Text Messages, Contacts, Audio, Search History, Browsing History | No corresponding capability. |
 
@@ -462,6 +506,10 @@ these ships:
    storing nothing), the terms-acceptance timestamp, retention rows, the export contents and what
    erasure does (blocks deleted both ways, reports about the user deleted, reports by the user kept
    without the reporter).
+9. **Problem reports and error reports** (2026-09-27): declared as above (#17–#19); the policy
+   gained a *Problem reports and error reports* subsection, GitHub in the provider table and the
+   US transfers, retention rows (reports 1 year, error reports 90 days) and the localStorage key of
+   the web opt-out. The mobile opt-out lives in `shared_preferences`.
 8. **The inventory lags the code elsewhere.** The re-verify loop below also lists `uploadRoute`
    (a route file sent from the device?) and `contactAdAuthor` (a message relayed by e-mail) as
    reachable from the UI; neither is in §2. Audit both: a GPX upload would make *Files and docs* /
@@ -511,6 +559,9 @@ grep -rnE "\.(reportContent|blockUser|unblockUser|listMyBlockedUsers)\(" lib/fea
 
 # the notification permission must be asked from a screen, never at launch
 grep -rn "requestAuthorization" lib | grep -v lib/api/generated
+
+# problem / error reports: the two calls behind §2 #17–#19
+grep -rnE "\.(sendFeedback|reportClientError)\(" lib/features lib/core
 
 # manifest is well-formed
 plutil -lint ios/Runner/PrivacyInfo.xcprivacy

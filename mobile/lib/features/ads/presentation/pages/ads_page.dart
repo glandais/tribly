@@ -11,6 +11,7 @@ import '../../domain/ad_filters.dart';
 import '../../providers/ad_list_provider.dart';
 import '../widgets/ad_card.dart';
 import '../widgets/ads_toolbar.dart';
+import '../../../feedback/presentation/report_problem_button.dart';
 
 /// La rubrique Annonces d'une équipe.
 ///
@@ -123,6 +124,7 @@ class _AdsPageState extends ConsumerState<AdsPage> {
                   size: PdlButtonSize.sm,
                   onPressed: notifier.loadFirstPage,
                 ),
+                ReportProblemButton(error: state.initialError!),
               ],
             ),
           ),

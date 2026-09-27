@@ -12,6 +12,7 @@ import '../../../../core/utils/api_error_handler.dart';
 import '../../domain/team_discovery_filters.dart';
 import '../../providers/team_discovery_provider.dart';
 import '../widgets/team_discovery_card.dart';
+import '../../../feedback/presentation/report_problem_button.dart';
 
 /// L'annuaire public : rejoindre une équipe dont on n'est pas membre.
 ///
@@ -154,6 +155,7 @@ class _TeamsDiscoverPageState extends ConsumerState<TeamsDiscoverPage> {
                   size: PdlButtonSize.sm,
                   onPressed: notifier.loadFirstPage,
                 ),
+                ReportProblemButton(error: state.initialError!),
               ],
             ),
           ),

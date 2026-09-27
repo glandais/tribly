@@ -22,6 +22,23 @@ régénération des deux clients (compétence `contract-first-api`).
 
 L'anneau de focus est à 2,74:1 en thème sombre, sous le seuil de 3,0 de SC 1.4.11. Il vient de lib/theme.ts et vaut pour tout le site — le corriger ici en ferait une PR d'un autre périmètre.
 
+**Signaler un problème → issues GitHub (API 4.6.0) — suites possibles, non faites :**
+
+- **Mise en service** : créer le dépôt privé (`PEDALONS_FEEDBACK_GITHUB_REPO`), ses labels
+  (`feedback`, `bug`, `suggestion`, `crash`, `web`, `android`, `ios`, un par domaine) et le PAT
+  (`PEDALONS_FEEDBACK_GITHUB_TOKEN`, Issues read & write sur ce seul dépôt). Sans eux, tout attend en
+  base (`github_status = PENDING`) et part au premier tick une fois configuré.
+- **Piles web illisibles** : le bundle est minifié et l'empreinte ne garde que le nom du chunk. Pour
+  symboliser, construire avec `VITE_BUILD_SOURCEMAP=true` et **ne pas** servir les `.map` (les
+  archiver avec l'image), puis automatiser la symbolisation côté serveur.
+- **Côté mobile**, si le build release passe à `--obfuscate`, conserver les `--split-debug-info` par
+  build, sans quoi les piles Dart deviennent inexploitables et l'empreinte change à chaque version.
+- **Plantages natifs** (Kotlin/Swift) : non couverts, seuls les handlers Dart remontent.
+- **Boucler avec le membre** : le prévenir quand l'issue de son signalement est fermée (webhook
+  GitHub → notification), joindre une capture d'écran, corréler avec les logs serveur par request-id.
+- **Visiteurs non connectés** : ni signalement ni remontée automatique (l'endpoint exige une
+  session). Une erreur sur la page de connexion n'arrive donc que par e-mail.
+
 **Modération (branche `signalement`) — quatre défauts mineurs, notés sans être corrigés :**
 
 - **File plateforme regroupée par (type, id) seulement** (`ModerationService`) : un membre signalé

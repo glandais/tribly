@@ -26,7 +26,10 @@ import {
   IconMapSearch,
   IconMail,
   IconBell,
+  IconMessageReport,
 } from '@tabler/icons-react'
+import { openFeedback } from '@/lib/feedback/feedbackStore'
+import { logEntry } from '@/lib/feedback/clientLog'
 import { useGetVersion } from '@/api/endpoints/server-version/server-version'
 import { useAuth } from '../../hooks/useAuth'
 import { useAppName } from '../../hooks/useAppName'
@@ -61,6 +64,11 @@ export function Layout() {
   // Mounted before the effect below so its cleanup records the scroll position
   // while the outgoing route is still on screen.
   useScrollRestoration()
+
+  // Navigations, in the bug-report log: the path only.
+  useEffect(() => {
+    logEntry('INFO', 'navigation', pathname)
+  }, [pathname])
 
   const pinned = useHeadroom({ fixedAt: 120 })
   // Scroll to top when entering a new route. POP is left to useScrollRestoration,
@@ -150,6 +158,12 @@ export function Layout() {
                       to={paths.gpxTools()}
                     >
                       {t('gpxTools.title')}
+                    </Menu.Item>
+                    <Menu.Item
+                      leftSection={<IconMessageReport size={14} />}
+                      onClick={() => openFeedback()}
+                    >
+                      {t('feedback.menu')}
                     </Menu.Item>
                     {isPlatformAdmin && (
                       <Menu.Item
@@ -324,6 +338,24 @@ export function Layout() {
             <Anchor component={PrefetchLink} to={paths.support()} c="dimmed" size="sm">
               {t('footer.support')}
             </Anchor>
+            <Text c="dimmed" size="sm">
+              ·
+            </Text>
+            {isAuthenticated ? (
+              <Anchor
+                component="button"
+                type="button"
+                c="dimmed"
+                size="sm"
+                onClick={() => openFeedback()}
+              >
+                {t('feedback.menu')}
+              </Anchor>
+            ) : (
+              <Anchor component={PrefetchLink} to={paths.login()} c="dimmed" size="sm">
+                {t('feedback.menu')}
+              </Anchor>
+            )}
             {version && (
               <>
                 <Text c="dimmed" size="sm">

@@ -12,6 +12,7 @@ import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/widgets/markdown_content.dart';
 import '../../../../core/widgets/media_attachments.dart';
+import '../../../feedback/presentation/report_problem_button.dart';
 
 /// Le contenu d'une page libre, chargé **à son ouverture** et pas avant.
 final teamPageProvider =
@@ -89,6 +90,7 @@ class TeamCustomPage extends ConsumerWidget {
                   variant: PdlButtonVariant.outline,
                   onPressed: () => ref.invalidate(teamPageProvider(params)),
                 ),
+                ReportProblemButton(error: error, stackTrace: stack),
               ],
             ),
           ),

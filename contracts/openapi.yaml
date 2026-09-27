@@ -1080,6 +1080,114 @@ components:
         teamFeedUrlTemplate:
           type: string
           description: Team-specific feed URL template
+    ClientContextDto:
+      description: "Where a feedback or an error report comes from: client, device,\
+        \ screen"
+      type: object
+      required:
+      - platform
+      - appVersion
+      properties:
+        platform:
+          description: The client
+          type: string
+          $ref: "#/components/schemas/ClientPlatform"
+        appVersion:
+          type: string
+          description: "Version of the client, e.g. 1.0.0 or a git commit"
+          pattern: \S
+          maxLength: 50
+        buildNumber:
+          type: string
+          description: Build number of a mobile client
+          maxLength: 50
+        osVersion:
+          type: string
+          description: "OS name and version, e.g. Android 15"
+          maxLength: 100
+        device:
+          type: string
+          description: Device model
+          maxLength: 200
+        userAgent:
+          type: string
+          description: Browser user agent
+          maxLength: 500
+        route:
+          type: string
+          description: "Path of the current page or screen, without its query string"
+          maxLength: 500
+        locale:
+          type: string
+          description: "UI language, e.g. fr"
+          maxLength: 20
+        timezone:
+          type: string
+          description: "IANA time zone, e.g. Europe/Paris"
+          maxLength: 64
+        teamSlug:
+          type: string
+          description: "Slug of the team being browsed, if any"
+          maxLength: 100
+    ClientErrorDto:
+      description: An unhandled error caught by a client
+      type: object
+      required:
+      - type
+      - message
+      properties:
+        type:
+          type: string
+          description: "Error class, e.g. TypeError or _TypeError"
+          pattern: \S
+          maxLength: 200
+        message:
+          type: string
+          description: Error message
+          maxLength: 2000
+        stack:
+          type: string
+          description: "Stack trace, as the client printed it"
+          maxLength: 16000
+    ClientLogEntryDto:
+      description: One entry of the client's recent log
+      type: object
+      required:
+      - ts
+      - level
+      - source
+      - message
+      properties:
+        ts:
+          description: When it was logged
+          type: string
+          $ref: "#/components/schemas/Instant"
+        level:
+          description: Severity
+          type: string
+          $ref: "#/components/schemas/ClientLogLevel"
+        source:
+          type: string
+          description: "What logged it: console, http, navigation, error…"
+          pattern: \S
+          maxLength: 50
+        message:
+          type: string
+          description: "The entry, truncated by the client"
+          maxLength: 1000
+    ClientLogLevel:
+      type: string
+      enum:
+      - DEBUG
+      - INFO
+      - WARN
+      - ERROR
+    ClientPlatform:
+      type: string
+      enum:
+      - WEB
+      - ANDROID
+      - IOS
     ClimbCategory:
       type: string
       enum:
@@ -1748,6 +1856,7 @@ components:
       - AD_CONTACT_OPTED_OUT
       - AD_CONTACT_RATE_LIMITED
       - AD_CONTACT_DELIVERY_FAILED
+      - FEEDBACK_RATE_LIMITED
       - TEAM_INVITE_INVALID
       - TEAM_INVITE_EXPIRED
       - TEAM_INVITE_REVOKED
@@ -1787,6 +1896,27 @@ components:
       properties:
         type:
           $ref: "#/components/schemas/ErrorCode"
+    ErrorReportRequest:
+      description: "An unhandled error, reported automatically by a client"
+      type: object
+      required:
+      - context
+      - error
+      properties:
+        context:
+          description: "Client, device and screen"
+          type: object
+          $ref: "#/components/schemas/ClientContextDto"
+        error:
+          description: The error
+          type: object
+          $ref: "#/components/schemas/ClientErrorDto"
+        logs:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClientLogEntryDto"
+          description: "The client's recent log, oldest first"
+          maxItems: 50
     ErrorResponse:
       description: Error response
       type: object
@@ -1816,6 +1946,44 @@ components:
           items:
             $ref: "#/components/schemas/FieldError"
           description: Field Errors
+    FeedbackKind:
+      type: string
+      enum:
+      - BUG
+      - SUGGESTION
+    FeedbackRequest:
+      description: A bug report or a suggestion written by a member
+      type: object
+      required:
+      - kind
+      - message
+      - context
+      properties:
+        kind:
+          description: Bug or suggestion
+          type: string
+          $ref: "#/components/schemas/FeedbackKind"
+        message:
+          type: string
+          description: "What happened, in the member's words"
+          minLength: 10
+          maxLength: 5000
+        context:
+          description: "Client, device and screen"
+          type: object
+          $ref: "#/components/schemas/ClientContextDto"
+        error:
+          description: "The unhandled error the report was opened from, if any. Links\
+            \ the report to the automatic error report of the same error."
+          type: object
+          $ref: "#/components/schemas/ClientErrorDto"
+        logs:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClientLogEntryDto"
+          description: "The client's recent log, oldest first. Absent when the member\
+            \ chose not to attach technical details."
+          maxItems: 200
     FieldError:
       type: object
       required:
@@ -5762,6 +5930,8 @@ tags:
   description: Route management for device applications
 - name: Device User
   description: User status for device applications
+- name: Feedback
+  description: "Bug reports, suggestions and automatic error reports"
 - name: GPS Services
   description: GPS device integration operations
 - name: GPX previews
@@ -8085,6 +8255,89 @@ paths:
             application/zip:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/feedback:
+    post:
+      summary: Report a bug or suggest something
+      description: "Files the member's report with the technical context their client\
+        \ attached. It reaches the maintainers as an issue of a private repository,\
+        \ naming the member by id only; tokens and e-mail addresses are redacted from\
+        \ the context and the log."
+      operationId: sendFeedback
+      tags:
+      - Feedback
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeedbackRequest"
+        required: true
+      responses:
+        "204":
+          description: Received
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: "FEEDBACK_RATE_LIMITED: too many reports lately"
+          headers:
+            Retry-After:
+              description: Seconds before trying again
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/feedback/errors:
+    post:
+      summary: Report an unhandled error
+      description: "Sent by a client, without the member's intervention, when it catches\
+        \ an unhandled error. The same error reported by many clients becomes one\
+        \ issue. Always 204 once valid, including past the per-member quota, where\
+        \ it is dropped: a client must never retry nor surface this call's failure."
+      operationId: reportClientError
+      tags:
+      - Feedback
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorReportRequest"
+        required: true
+      responses:
+        "204":
+          description: "Received, or dropped past the quota"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
   /api/geocode/search:
     get:
       summary: Search places by name
@@ -15702,7 +15955,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 4.5.0
+  version: 4.6.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

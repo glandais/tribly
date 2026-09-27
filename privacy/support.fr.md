@@ -1,6 +1,8 @@
 Une question, un problème, une idée ? Écrivez-nous à **[contact@pedalons.fr](mailto:contact@pedalons.fr)**. Nous répondons en français ou en anglais, en général sous quelques jours.
 
-Pour nous aider à comprendre un problème, indiquez si possible l'appareil utilisé, la version de l'application (**Profil**, en bas de l'écran) et l'équipe concernée.
+Le plus simple pour un bug : **Signaler un problème**, dans le menu de votre profil sur le site ou dans **Profil → À propos** de l'application. Le signalement joint automatiquement la page, la version et le journal des dernières actions, ce qui nous aide beaucoup à le reproduire.
+
+Par e-mail, indiquez si possible l'appareil utilisé, la version de l'application (**Profil**, en bas de l'écran) et l'équipe concernée.
 
 ## Questions fréquentes
 

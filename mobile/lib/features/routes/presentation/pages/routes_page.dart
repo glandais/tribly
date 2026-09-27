@@ -22,6 +22,7 @@ import '../widgets/route_card.dart';
 import '../widgets/route_filter_sheet.dart';
 import '../widgets/routes_map_view.dart';
 import '../widgets/routes_toolbar.dart';
+import '../../../feedback/presentation/report_problem_button.dart';
 
 /// La parcothèque : une coquille, un jeu de filtres, deux vues.
 ///
@@ -196,6 +197,7 @@ class _RoutesPageState extends ConsumerState<RoutesPage> {
                   size: PdlButtonSize.sm,
                   onPressed: notifier.loadFirstPage,
                 ),
+                ReportProblemButton(error: state.initialError!),
               ],
             ),
           ),

@@ -14,6 +14,7 @@ import '../../providers/calendar_month_provider.dart';
 import '../widgets/agenda_card.dart';
 import '../widgets/calendar_subscription_card.dart';
 import '../widgets/calendar_toolbar.dart';
+import '../../../feedback/presentation/report_problem_button.dart';
 
 /// Hauteur maximale de la grille de mois, légende comprise. Elle se compresse
 /// au défilement jusqu'à disparaître : sans cela, deux cartes d'agenda
@@ -87,7 +88,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
             data: (CalendarMonth loaded) =>
                 _content(monthKey, loaded.filtered(typeFilter), typeFilter),
             loading: _skeletons,
-            error: (Object error, StackTrace _) => Center(
+            error: (Object error, StackTrace stack) => Center(
               child: PdlEmptyState(
                 variant: PdlEmptyVariant.error,
                 title: 'common.loadError'.tr(),
@@ -100,6 +101,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
                     onPressed: () =>
                         ref.invalidate(calendarMonthProvider(monthKey)),
                   ),
+                  ReportProblemButton(error: error, stackTrace: stack),
                 ],
               ),
             ),

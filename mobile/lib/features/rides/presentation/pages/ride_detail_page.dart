@@ -28,6 +28,7 @@ import '../../providers/ride_registration_controller.dart';
 import '../widgets/ride_elevation_section.dart';
 import '../widgets/ride_groups_map.dart';
 import '../widgets/ride_groups_section.dart';
+import '../../../feedback/presentation/report_problem_button.dart';
 
 /// L'écran 12 — détail d'une sortie et inscription à un groupe.
 ///
@@ -560,6 +561,7 @@ class _RideDetailError extends ConsumerWidget {
               variant: PdlButtonVariant.outline,
               onPressed: () => ref.invalidate(rideDetailProvider(rideKey)),
             ),
+            ReportProblemButton(error: error),
           ],
         ),
       ),

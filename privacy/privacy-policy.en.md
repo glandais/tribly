@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last updated: September 24, 2026**
+**Last updated: September 27, 2026**
 
 This privacy policy describes how Pedalons ("we", "our", "us") collects, uses, and protects your personal data when you use our platform (website, mobile app, GPS device extensions).
 
@@ -90,6 +90,15 @@ The notification that alerts moderators to a report contains only the team's nam
 
 **Publication filter**: when you publish, your text is compared with a short list of abusive or hateful terms. If it contains one, publication is refused and the text is not stored; the refusal has no other consequence for your account.
 
+### Problem Reports and Error Reports
+
+To fix bugs, we receive:
+
+- **Your problem reports or suggestions** ("Report a problem", on the website or in the app): the text you write and, if you leave the "Attach technical information" box checked, the page or screen displayed, the app version, the device's system and model or the browser, the language, the time zone, and a log of your last actions in the app (pages visited, failed requests, errors). The form shows you exactly what will be sent.
+- **Automatic error reports** (signed in only): when the app hits an unexpected error, it sends the technical description of the error, the same technical information and the log of your last actions. You can turn this off in **Profile → Preferences**.
+
+The log contains no password, no form content and no web address parameter; any sign-in token or e-mail address found in it is masked by our servers before anything is stored. This information reaches the Pedalons team as tickets in a **private** GitHub repository (see section 4), where you are designated by a technical identifier, never by your name or e-mail address.
+
 ### Third-Party GPS Service Connections
 
 If you connect an external GPS service (Hammerhead, Garmin, Wahoo):
@@ -104,6 +113,7 @@ In your web browser or mobile app:
 - **Language preference**: in local storage (localStorage)
 - **Unit system**: in local storage
 - **Map preferences**: chosen map style, in local storage
+- **Log of your last actions**: in the browser's memory, and in a file of the mobile app (200 entries at most), for a possible problem report; it only leaves your device in the cases described above
 - **Session cookie**: an HttpOnly cookie containing your refresh token (not accessible by JavaScript)
 
 ---
@@ -132,6 +142,7 @@ In your web browser or mobile app:
 | Sync your routes with connected GPS devices | Consent (voluntary connection) |
 | Sort routes by distance (the app's "around me" filter) | Consent (location permission granted on the phone) |
 | Display maps | Legitimate interest |
+| Handle your problem reports and fix the app's errors | Legitimate interest (reliability of the service; automatic reports can be turned off) |
 | Improve the service (aggregate usage analysis) | Legitimate interest |
 
 We **never** use your data for:
@@ -157,6 +168,7 @@ We use technical services to operate the platform:
 |---------|------|--------------|
 | OVHcloud (OVH SAS, France) | Application, database, and object storage hosting | All data |
 | Scaleway (Scaleway SAS, France) | Delivery of transactional emails and email notifications (Transactional Email) | Email address, display name, email content (including the title and text of notifications) |
+| GitHub (GitHub, Inc., United States) | Tracking of problem reports and error reports, in a private repository only the Pedalons team can access | Report text, technical information, log of last actions, technical account identifier and domain |
 | Google Firebase Cloud Messaging (Google Ireland Limited, Ireland) | Routing push notifications to the mobile app, through Apple Push Notification service for iPhones | Phone registration token, title and text of each notification, technical identifier used to open the right screen when tapped |
 
 **All our image processing (imgproxy) and route calculation (Valhalla) services are self-hosted** and do not transmit any data to third parties. Fonts are bundled with the website and the app: none is loaded from a third-party service.
@@ -193,6 +205,8 @@ If you allow push notifications in the mobile app, their content passes through 
 
 The "Satellite (ESRI)" basemap is served from the United States: your IP address and the area displayed are sent there only if you choose it. The OpenStreetMap basemap is served from the United Kingdom, which benefits from a European Commission adequacy decision.
 
+Problem reports and error reports are sent to **GitHub** (GitHub, Inc.), in the United States; this transfer is covered by the European Commission's standard contractual clauses. They contain neither your name nor your e-mail address.
+
 Connecting to third-party GPS services (Hammerhead, Garmin, Wahoo) involves a data transfer to these services, located in the United States. This transfer is based on your explicit consent when connecting the service.
 
 ---
@@ -214,6 +228,8 @@ Connecting to third-party GPS services (Hammerhead, Garmin, Wahoo) involves a da
 | Date of acceptance of the terms of service | As long as your account is active |
 | Blocks | Until you unblock the person, or until either of your accounts is deleted |
 | Reports, copy of the reported text, and decision | As long as the account of the person concerned exists, to keep a record of moderation decisions; when the reporter's account is deleted, kept with no link to them (see section 7) |
+| Problem reports and suggestions | 1 year on our servers, or until your account is deleted; the matching GitHub ticket is kept as long as it is useful to track the bug |
+| Automatic error reports | 90 days on our servers, or until your account is deleted; the GitHub ticket, shared by every member hit by the same error, is kept as long as it is useful |
 | Data after account deletion | Erased immediately; gone from backups within 30 days (see section 7) |
 
 ---
@@ -275,6 +291,7 @@ Pedalons uses a minimal number of cookies and local storage items:
 | i18nextLng | localStorage | Remember your language preference | Persistent |
 | Unit preferences | localStorage | Remember your unit system | Persistent |
 | Map style | localStorage | Remember your map display preferences | Persistent |
+| pedalons-error-reports | localStorage | Remember that you turned off automatic error reports | Persistent |
 
 **We do not use any tracking, analytics, or advertising cookies.** No cookie consent is therefore required beyond the session cookie, which is strictly necessary for the service to function.
 

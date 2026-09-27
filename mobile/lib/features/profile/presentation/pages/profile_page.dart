@@ -13,6 +13,7 @@ import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
+import '../../../feedback/presentation/feedback_sheet.dart';
 import '../../../moderation/data/moderation_repository.dart';
 import '../../../notifications/presentation/widgets/notification_preferences_section.dart';
 import '../../providers/participations_provider.dart';
@@ -242,6 +243,12 @@ class _AboutCard extends ConsumerWidget {
           PdlSettingRow(
             title: 'profile.version'.tr(),
             trailing: Text(appVersion, style: t.mono),
+            showDivider: true,
+          ),
+          PdlSettingRow(
+            icon: PdlIcons.bug,
+            title: 'feedback.reportProblem'.tr(),
+            onTap: () => showFeedbackSheet(context),
             showDivider: true,
           ),
           PdlSettingRow(

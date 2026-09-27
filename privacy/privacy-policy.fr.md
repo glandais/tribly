@@ -1,6 +1,6 @@
 # Politique de confidentialité
 
-**Dernière mise à jour : 24 septembre 2026**
+**Dernière mise à jour : 27 septembre 2026**
 
 La présente politique de confidentialité décrit la manière dont Pedalons (« nous », « notre », « nos ») collecte, utilise et protège vos données personnelles lorsque vous utilisez notre plateforme (site web, application mobile, extensions pour appareils GPS).
 
@@ -90,6 +90,15 @@ La notification qui prévient les modérateurs d'un signalement ne contient que 
 
 **Filtre de publication** : au moment où vous publiez, votre texte est comparé à une courte liste de termes injurieux ou haineux. S'il en contient un, la publication est refusée et le texte n'est pas enregistré ; ce refus n'a aucune autre conséquence pour votre compte.
 
+### Signalements de problèmes et rapports d'erreur
+
+Pour corriger les bugs, nous recevons :
+
+- **Vos signalements de problème ou suggestions** (« Signaler un problème », dans le site ou l'application) : le texte que vous écrivez et, si vous laissez cochée la case « Joindre les informations techniques », la page ou l'écran affiché, la version de l'application, le système et le modèle de l'appareil ou le navigateur, la langue, le fuseau horaire, et un journal de vos dernières actions dans l'application (pages visitées, requêtes en échec, erreurs). Le formulaire vous montre exactement ce qui sera envoyé.
+- **Des rapports d'erreur automatiques** (connecté uniquement) : quand l'application rencontre une erreur inattendue, elle envoie la description technique de l'erreur, les mêmes informations techniques et le journal de vos dernières actions. Vous pouvez désactiver cet envoi dans **Profil → Préférences**.
+
+Le journal ne contient ni mot de passe, ni contenu de formulaire, ni paramètre d'adresse web ; les jetons de connexion et les adresses e-mail qui s'y trouveraient sont masqués par nos serveurs avant tout enregistrement. Ces informations sont transmises à l'équipe Pedalons sous forme de tickets dans un dépôt **privé** GitHub (voir section 4), où vous êtes désigné par un identifiant technique, jamais par votre nom ni votre adresse e-mail.
+
 ### Données de connexion à des services GPS tiers
 
 Si vous connectez un service GPS externe (Hammerhead, Garmin, Wahoo) :
@@ -104,6 +113,7 @@ Dans votre navigateur web ou application mobile :
 - **Préférence de langue** : dans le stockage local (localStorage)
 - **Système d'unités** : dans le stockage local
 - **Préférences de carte** : style de carte choisi, dans le stockage local
+- **Journal des dernières actions** : en mémoire dans le navigateur, et dans un fichier de l'application mobile (200 entrées au plus), pour un éventuel signalement de problème ; il ne quitte votre appareil que dans les cas décrits plus haut
 - **Cookie de session** : un cookie HttpOnly contenant votre jeton de rafraîchissement (non accessible par JavaScript)
 
 ---
@@ -132,6 +142,7 @@ Dans votre navigateur web ou application mobile :
 | Synchroniser vos itinéraires avec des appareils GPS connectés | Consentement (connexion volontaire) |
 | Trier les parcours par distance (filtre « autour de moi » de l'application) | Consentement (autorisation de localisation donnée sur le téléphone) |
 | Afficher les cartes | Intérêt légitime |
+| Traiter vos signalements de problème et corriger les erreurs de l'application | Intérêt légitime (fiabilité du service ; rapports automatiques désactivables) |
 | Améliorer le service (analyse agrégée d'utilisation) | Intérêt légitime |
 
 Nous n'utilisons **jamais** vos données pour :
@@ -157,6 +168,7 @@ Nous faisons appel à des services techniques pour le fonctionnement de la plate
 |---------|------|-------------------|
 | OVHcloud (OVH SAS, France) | Hébergement de l'application, de la base de données et du stockage objet | Toutes les données |
 | Scaleway (Scaleway SAS, France) | Envoi d'e-mails transactionnels et des notifications par e-mail (Transactional Email) | Adresse e-mail, nom d'affichage, contenu de l'e-mail (dont le titre et le texte des notifications) |
+| GitHub (GitHub, Inc., États-Unis) | Suivi des signalements de problème et des rapports d'erreur, dans un dépôt privé accessible à la seule équipe Pedalons | Texte du signalement, informations techniques, journal des dernières actions, identifiant technique du compte et domaine |
 | Google Firebase Cloud Messaging (Google Ireland Limited, Irlande) | Acheminement des notifications push vers l'application mobile, via Apple Push Notification service pour les iPhone | Jeton d'enregistrement du téléphone, titre et texte de chaque notification, identifiant technique permettant d'ouvrir le bon écran au toucher |
 
 **Tous nos services de traitement d'images (imgproxy) et de calcul d'itinéraires (Valhalla) sont auto-hébergés** et ne transmettent aucune donnée à des tiers. Les polices de caractères sont intégrées au site et à l'application : aucune n'est chargée depuis un service tiers.
@@ -193,6 +205,8 @@ Si vous autorisez les notifications push dans l'application mobile, leur contenu
 
 Le fond de carte « Satellite (ESRI) » est servi depuis les États-Unis : votre adresse IP et la zone affichée n'y sont transmises que si vous le choisissez. Le fond OpenStreetMap est servi depuis le Royaume-Uni, qui bénéficie d'une décision d'adéquation de la Commission européenne.
 
+Les signalements de problème et rapports d'erreur sont transmis à **GitHub** (GitHub, Inc.), aux États-Unis ; ce transfert est encadré par les clauses contractuelles types de la Commission européenne. Ils ne contiennent ni votre nom ni votre adresse e-mail.
+
 La connexion à des services GPS tiers (Hammerhead, Garmin, Wahoo) implique un transfert de données vers ces services, situés aux États-Unis. Ce transfert repose sur votre consentement explicite lors de la connexion du service.
 
 ---
@@ -214,6 +228,8 @@ La connexion à des services GPS tiers (Hammerhead, Garmin, Wahoo) implique un t
 | Date d'acceptation des conditions d'utilisation | Tant que votre compte est actif |
 | Blocages | Jusqu'à ce que vous débloquiez la personne, ou jusqu'à la suppression du compte de l'un de vous deux |
 | Signalements, copie du texte signalé et décision | Tant que le compte de la personne visée existe, pour garder la trace des décisions de modération ; à la suppression du compte du signaleur, conservés sans lien avec lui (voir section 7) |
+| Signalements de problème et suggestions | 1 an sur nos serveurs, ou jusqu'à la suppression de votre compte ; le ticket GitHub correspondant est conservé tant qu'il est utile au suivi du bug |
+| Rapports d'erreur automatiques | 90 jours sur nos serveurs, ou jusqu'à la suppression de votre compte ; le ticket GitHub, commun à tous les membres touchés par la même erreur, est conservé tant qu'il est utile |
 | Données après suppression de compte | Effacement immédiat ; disparition des sauvegardes sous 30 jours (voir section 7) |
 
 ---
@@ -275,6 +291,7 @@ Pedalons utilise un nombre minimal de cookies et de données de stockage local :
 | i18nextLng | localStorage | Mémoriser votre préférence de langue | Persistant |
 | Préférences d'unités | localStorage | Mémoriser votre système d'unités | Persistant |
 | Style de carte | localStorage | Mémoriser vos préférences d'affichage de carte | Persistant |
+| pedalons-error-reports | localStorage | Mémoriser que vous avez désactivé les rapports d'erreur automatiques | Persistant |
 
 **Nous n'utilisons aucun cookie de suivi, d'analyse ou de publicité.** Aucun consentement aux cookies n'est donc requis au-delà du cookie de session, qui est strictement nécessaire au fonctionnement du service.
 

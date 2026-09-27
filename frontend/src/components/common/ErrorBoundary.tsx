@@ -12,7 +12,10 @@ import {
   Group,
   ThemeIcon,
 } from '@mantine/core'
-import { IconAlertTriangle, IconXboxX } from '@tabler/icons-react'
+import { IconAlertTriangle, IconMessageReport, IconXboxX } from '@tabler/icons-react'
+import { openFeedback } from '@/lib/feedback/feedbackStore'
+import { reportError, toClientError } from '@/lib/feedback/errorReporter'
+import { useAuthStore } from '@/store/authStore'
 
 interface ErrorBoundaryProps {
   children: ReactNode
@@ -43,6 +46,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo)
+    reportError(error, errorInfo.componentStack ?? undefined)
     this.props.onError?.(error, errorInfo)
   }
 
@@ -88,7 +92,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                       {this.state.error.message}
                     </Code>
                   )}
-                  <Group>
+                  <Group justify="center">
                     <Button onClick={this.handleRetry}>{t('boundary.retry')}</Button>
                     {this.props.variant !== 'inline' && (
                       <Button variant="default" onClick={() => window.location.reload()}>
@@ -96,6 +100,18 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                       </Button>
                     )}
                   </Group>
+                  {/* The report needs a session; an anonymous visitor has the support page. */}
+                  {useAuthStore.getState().isAuthenticated && (
+                    <Button
+                      variant="subtle"
+                      leftSection={<IconMessageReport size={16} />}
+                      onClick={() =>
+                        openFeedback(this.state.error ? toClientError(this.state.error) : undefined)
+                      }
+                    >
+                      {t('boundary.report')}
+                    </Button>
+                  )}
                 </Stack>
               </Paper>
             </Center>

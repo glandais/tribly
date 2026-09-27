@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../core/pdl/pdl.dart';
+import '../../../../core/preferences/error_reports_preference.dart';
 import '../../../../core/preferences/user_preferences_provider.dart';
 import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_icons.dart';
@@ -12,7 +13,7 @@ import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
 
-/// Les quatre réglages d'affichage, appliqués **immédiatement, sans bouton**.
+/// Les réglages d'affichage, appliqués **immédiatement, sans bouton**.
 ///
 /// Ils consomment `userPreferencesProvider` (F-TH-7) et ne le dupliquent pas :
 /// c'est ce provider qui tient la chaîne d'autorité serveur → miroir local, et
@@ -159,6 +160,19 @@ class _PreferencesSectionState extends ConsumerState<PreferencesSection> {
               onChanged: (bool value) =>
                   _apply(() => notifier.setContactableByMembers(value)),
               semanticLabel: 'profile.contactable.title'.tr(),
+            ),
+          ),
+          // Réglage d'appareil, sans aller-retour serveur : il ne peut pas
+          // échouer, donc pas de `_apply`.
+          PdlSettingRow(
+            icon: PdlIcons.bug,
+            title: 'feedback.autoReports.title'.tr(),
+            subtitle: 'feedback.autoReports.hint'.tr(),
+            trailing: PdlSwitch(
+              value: ref.watch(autoErrorReportsProvider),
+              onChanged: (bool value) =>
+                  ref.read(autoErrorReportsProvider.notifier).set(value),
+              semanticLabel: 'feedback.autoReports.title'.tr(),
             ),
           ),
           if (_error != null) ...<Widget>[

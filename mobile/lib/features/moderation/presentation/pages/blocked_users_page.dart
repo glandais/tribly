@@ -11,6 +11,7 @@ import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../data/moderation_repository.dart';
 import '../../providers/moderation_refresh.dart';
+import '../../../feedback/presentation/report_problem_button.dart';
 
 /// « Utilisateurs bloqués » — ouverte depuis le profil, mobile seulement.
 ///
@@ -115,6 +116,7 @@ class _BlockedUsersPageState extends ConsumerState<BlockedUsersPage> {
                           size: PdlButtonSize.sm,
                           onPressed: () => ref.invalidate(blockedUsersProvider),
                         ),
+                        ReportProblemButton(error: error, stackTrace: stack),
                       ],
                     ),
                   ),

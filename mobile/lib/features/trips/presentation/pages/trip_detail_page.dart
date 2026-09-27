@@ -29,6 +29,7 @@ import '../widgets/stage_card.dart';
 import '../widgets/trip_elevation.dart';
 import '../widgets/trip_map.dart';
 import '../widgets/trip_summary_card.dart';
+import '../../../feedback/presentation/report_problem_button.dart';
 
 /// L'écran 24 — le voyage.
 ///
@@ -530,6 +531,7 @@ class _TripDetailError extends ConsumerWidget {
               variant: PdlButtonVariant.outline,
               onPressed: () => ref.invalidate(tripDetailProvider(tripKey)),
             ),
+            ReportProblemButton(error: error),
           ],
         ),
       ),

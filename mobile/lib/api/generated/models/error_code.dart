@@ -154,6 +154,8 @@ enum ErrorCode {
   adContactRateLimited('AD_CONTACT_RATE_LIMITED'),
   @JsonValue('AD_CONTACT_DELIVERY_FAILED')
   adContactDeliveryFailed('AD_CONTACT_DELIVERY_FAILED'),
+  @JsonValue('FEEDBACK_RATE_LIMITED')
+  feedbackRateLimited('FEEDBACK_RATE_LIMITED'),
   @JsonValue('TEAM_INVITE_INVALID')
   teamInviteInvalid('TEAM_INVITE_INVALID'),
   @JsonValue('TEAM_INVITE_EXPIRED')

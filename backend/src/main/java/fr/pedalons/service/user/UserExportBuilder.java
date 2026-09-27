@@ -10,6 +10,7 @@ import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.users.export.AccountExport;
 import fr.pedalons.dto.users.export.ContentExport;
 import fr.pedalons.dto.users.export.ExportManifest;
+import fr.pedalons.dto.users.export.FeedbackExport;
 import fr.pedalons.dto.users.export.MembershipExport;
 import fr.pedalons.dto.users.export.MembershipExport.MissingFile;
 import fr.pedalons.dto.users.export.ModerationExport;
@@ -25,6 +26,7 @@ import fr.pedalons.repository.auth.WebAuthnChallengeRepository;
 import fr.pedalons.repository.calendar.CalendarTokenRepository;
 import fr.pedalons.repository.comment.CommentRepository;
 import fr.pedalons.repository.common.AllPublicationRepository;
+import fr.pedalons.repository.feedback.FeedbackReportRepository;
 import fr.pedalons.repository.gps.GpsOAuthStateRepository;
 import fr.pedalons.repository.gps.GpsServiceConnectionRepository;
 import fr.pedalons.repository.gpx.GpxPreviewRepository;
@@ -141,6 +143,7 @@ public class UserExportBuilder {
   @Inject NotificationTeamMuteRepository notificationTeamMuteRepository;
   @Inject UserBlockRepository userBlockRepository;
   @Inject ContentReportRepository contentReportRepository;
+  @Inject FeedbackReportRepository feedbackReportRepository;
 
   @ConfigProperty(name = "pedalons.export.temp-dir")
   Optional<String> configuredTempDir;
@@ -186,6 +189,7 @@ public class UserExportBuilder {
       writeSection(zip, "account/push-devices.json", counts, () -> pushDevices(ctx));
       writeSection(zip, "account/blocked-users.json", counts, () -> blockedUsers(ctx));
       writeSection(zip, "account/reports.json", counts, () -> reports(ctx));
+      writeSection(zip, "account/feedback.json", counts, () -> feedback(ctx));
 
       writeSection(zip, "memberships/teams.json", counts, () -> memberships(ctx));
       writeSection(zip, "participations/rides.json", counts, () -> rideParticipations(ctx));
@@ -336,6 +340,12 @@ public class UserExportBuilder {
   private List<ModerationExport.ReportEntry> reports(ExportJobContext ctx) {
     return contentReportRepository.findByReporter(ctx.domainId(), ctx.userId()).stream()
         .map(ModerationExport.ReportEntry::from)
+        .toList();
+  }
+
+  private List<FeedbackExport> feedback(ExportJobContext ctx) {
+    return feedbackReportRepository.findByUser(ctx.domainId(), ctx.userId()).stream()
+        .map(FeedbackExport::from)
         .toList();
   }
 

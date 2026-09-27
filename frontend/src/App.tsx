@@ -3,6 +3,7 @@ import { RouterProvider, createBrowserRouter, UNSAFE_createRouter } from 'react-
 import { useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { getGetConfigQueryKey } from './api/endpoints/configuration/configuration'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
+import { FeedbackModal } from './components/feedback/FeedbackModal'
 import { buildRoutes } from './config/RouteGenerator'
 import { useAuthStore, wasHydratedFromSSR } from './store/authStore'
 import { useAuth } from './hooks/useAuth'
@@ -51,10 +52,14 @@ function getRouter(queryClient: QueryClient): AppRouter {
  */
 export function AppFrame({ children }: { children: ReactNode }) {
   return (
-    <ErrorBoundary>
-      <AuthEffects />
-      {children}
-    </ErrorBoundary>
+    <>
+      <ErrorBoundary>
+        <AuthEffects />
+        {children}
+      </ErrorBoundary>
+      {/* Outside the boundary: its error screen opens this modal. */}
+      <FeedbackModal />
+    </>
   )
 }
 

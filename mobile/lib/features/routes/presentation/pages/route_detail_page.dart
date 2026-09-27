@@ -26,6 +26,7 @@ import '../widgets/route_download_actions.dart';
 import '../widgets/route_map.dart';
 import '../widgets/route_sheet_header.dart';
 import '../widgets/route_usages_section.dart';
+import '../../../feedback/presentation/report_problem_button.dart';
 
 /// L'écran 13 — fiche parcours.
 ///
@@ -418,6 +419,7 @@ class _RouteDetailPageState extends ConsumerState<RouteDetailPage> {
                 variant: PdlButtonVariant.outline,
                 onPressed: () => ref.invalidate(routeDetailProvider(_key)),
               ),
+            ReportProblemButton(error: error, stackTrace: stack),
           ],
         ),
       ),

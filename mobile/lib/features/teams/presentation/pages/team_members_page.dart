@@ -16,6 +16,7 @@ import '../../../auth/providers/auth_provider.dart';
 import '../../../moderation/presentation/moderation_menu.dart';
 import '../../domain/member_filters.dart';
 import '../../providers/team_members_provider.dart';
+import '../../../feedback/presentation/report_problem_button.dart';
 
 /// Le trombinoscope d'une équipe.
 ///
@@ -148,6 +149,7 @@ class _TeamMembersPageState extends ConsumerState<TeamMembersPage> {
                   size: PdlButtonSize.sm,
                   onPressed: notifier.loadFirstPage,
                 ),
+                ReportProblemButton(error: state.initialError!),
               ],
             ),
           ),
