@@ -36,6 +36,41 @@ Tout passe par l'API, sauf deux requêtes SQL sur la base de staging (`ssh pedal
 
 Il écrit aussi `plan.json` : les écrans à capturer, avec les slugs de ce passage.
 
+Un compte de démo dont le mot de passe ne correspond plus à `accounts.local.json` (base
+reconstruite, seed lancé depuis un autre poste) est réinitialisé par le parcours « mot de passe
+oublié », avec la même substitution de jeton.
+
+### Le compte des relecteurs, en prod — `--target prod`
+
+```bash
+MARKETPLACE_TESTER_PASSWORD=… python3 screenshots/seed.py --target prod
+python3 screenshots/seed.py --target prod --dry-run   # le calendrier, sans rien toucher
+```
+
+Les mêmes deux clubs sur `www.pedalons.fr`, pour `marketplace-tester@pedalons.fr`, le compte
+fourni à Apple, Google et Garmin. Il doit exister : le script le connecte, sans jamais l'inscrire ni
+le renommer. Il est le spectateur **des deux** clubs. Le calendrier est dense, de six semaines en
+arrière au 31 décembre 2027 (~115 sorties par club) : chaque samedi (la montagne d'avril à octobre,
+le lac et les Bauges plus tard dans la matinée l'hiver), le tour du lac le mercredi soir d'avril à
+septembre, le gravel aux Glières le premier dimanche du mois de mai à octobre. Les inscriptions sont
+nombreuses sur les sorties passées et proches, rares sur les lointaines. Le compte de test a un
+historique (une sortie passée sur trois) et il est inscrit aux trois prochaines.
+
+Précautions propres à la prod :
+
+- Julien n'est `PLATFORM_ADMIN` que le temps du passage : un `finally` lui retire le rôle, même en
+  cas d'échec ;
+- les comptes de démo ont leurs notifications e-mail coupées (la boîte de réception de l'app les
+  garde) ;
+- le compte de test rejoint chaque club **après** que les annonces des sorties ont été distribuées
+  (le script attend que `notification_events` soit vide pour le club). Il ne reçoit donc pas
+  d'un coup une centaine d'e-mails « nouvelle sortie », mais les réponses à son commentaire et les
+  rappels de ses sorties lui parviennent normalement.
+
+Relancer est sans risque : les clubs sont supprimés puis recréés, le compte de test en perd seulement
+ses propres inscriptions et commentaires. Pas de `plan.json` en prod ; les comptes de démo vont
+dans `accounts.prod.local.json` (ignoré par Git).
+
 ## 2. Captures brutes — `capture.sh`
 
 L'app est construite en **mode capture** (`--dart-define=SCREENSHOTS=true`,

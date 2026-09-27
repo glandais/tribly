@@ -1,8 +1,17 @@
 #!/usr/bin/env python3
-"""Seeds the fictional demo clubs the store screenshots are taken on, on staging.
+"""Seeds the fictional demo clubs: on staging for the store screenshots, on prod for
+the store reviewers' test account.
 
-    python3 screenshots/seed.py            # create what is missing, then rebuild both clubs
-    python3 screenshots/seed.py --dry-run  # print the plan, touch nothing
+    python3 screenshots/seed.py                  # staging: create what is missing, rebuild both clubs
+    python3 screenshots/seed.py --dry-run        # print the plan, touch nothing
+    MARKETPLACE_TESTER_PASSWORD=… python3 screenshots/seed.py --target prod
+
+`--target prod` builds the same two clubs on www.pedalons.fr for the account given
+to the Apple, Google and Garmin reviewers (marketplace-tester@pedalons.fr, which
+must exist: its password comes from the environment, and it is neither renamed
+nor registered). It is the viewer of both clubs, and the calendar is dense: one
+or two rides a week from a few weeks back to the end of 2027, so the account
+never runs out of upcoming rides between two releases.
 
 Two clubs around Lake Annecy, one per store locale (fr-FR, en-US), share the same
 eight fictional members; each locale has its own viewer account, the one the
@@ -21,8 +30,14 @@ the staging database, both on accounts this script created:
   club (the API only adds members to a club that allows it, a flag only a
   platform admin can set).
 
-Writes screenshots/accounts.local.json (git-ignored: passwords) and
-screenshots/plan.json (the screens to capture, with this run's slugs).
+On prod the organizer's PLATFORM_ADMIN role is taken back at the end of the run,
+failed or not; the demo accounts get their e-mail notifications switched off, and
+the test account joins the clubs only once the rides' announcements are fanned out,
+so it doesn't receive a hundred "new ride" mails in one go.
+
+Writes screenshots/accounts.local.json (staging) or accounts.prod.local.json
+(git-ignored: passwords), and on staging screenshots/plan.json (the screens to
+capture, with this run's slugs).
 """
 
 from __future__ import annotations
@@ -30,26 +45,47 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import os
+import random
 import secrets
 import subprocess
 import sys
+import time as clock
 import urllib.error
 import urllib.request
-from datetime import datetime, time, timedelta
+from datetime import date, datetime, time, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-API = "https://staging.pedalons.fr"
+HERE = Path(__file__).resolve().parent
+TARGETS = {
+    "staging": {"api": "https://staging.pedalons.fr", "db": "pedalons-staging-postgres",
+                "accounts": HERE / "accounts.local.json"},
+    "prod": {"api": "https://www.pedalons.fr", "db": "pedalons-prod-postgres",
+             "accounts": HERE / "accounts.prod.local.json"},
+}
+TARGET = sys.argv[sys.argv.index("--target") + 1] if "--target" in sys.argv else "staging"
+if TARGET not in TARGETS:
+    sys.exit(f"--target must be one of {', '.join(TARGETS)}")
+PROD = TARGET == "prod"
+
+API = TARGETS[TARGET]["api"]
 SSH = "pedalons@pedalons.fr"
-DB_CONTAINER = "pedalons-staging-postgres"
+DB_CONTAINER = TARGETS[TARGET]["db"]
 INBOX = "gabriel.landais+pdl-demo-{key}@gmail.com"
 TZ = ZoneInfo("Europe/Paris")
 
-HERE = Path(__file__).resolve().parent
-ACCOUNTS = HERE / "accounts.local.json"
+ACCOUNTS = TARGETS[TARGET]["accounts"]
 PLAN = HERE / "plan.json"
 
 DRY_RUN = "--dry-run" in sys.argv
+
+# The account the store reviewers sign in with, on prod. It exists already.
+TESTER = "marketplace-tester@pedalons.fr"
+TESTER_PASSWORD_ENV = "MARKETPLACE_TESTER_PASSWORD"
+# The prod calendar: from CALENDAR_BACK_WEEKS ago until CALENDAR_END.
+CALENDAR_BACK_WEEKS = 6
+CALENDAR_END = date(2027, 12, 31)
 
 # ---------------------------------------------------------------- people
 
@@ -167,6 +203,19 @@ def load_accounts() -> dict:
     return json.loads(ACCOUNTS.read_text()) if ACCOUNTS.exists() else {}
 
 
+def known_token(email: str, token_type: str) -> str:
+    """Swaps the hash of `email`'s pending `token_type` token for the hash of a token
+    this script knows, and returns that token: no inbox is read."""
+    token = secrets.token_urlsafe(32)
+    token_hash = base64.b64encode(hashlib.sha256(token.encode()).digest()).decode()
+    updated = sql(
+        "UPDATE auth_tokens SET token_hash = '%s' WHERE email = '%s' "
+        "AND token_type = '%s' AND used_at IS NULL RETURNING id;" % (token_hash, email, token_type))
+    if not updated:
+        raise RuntimeError(f"no pending {token_type} token for {email}")
+    return token
+
+
 def ensure_account(accounts: dict, key: str, name: str) -> dict:
     """Signs `key` in, registering and verifying it first if it doesn't exist."""
     acc = accounts.get(key) or {"email": INBOX.format(key=key), "password": secrets.token_urlsafe(18)}
@@ -176,23 +225,58 @@ def ensure_account(accounts: dict, key: str, name: str) -> dict:
     except ApiError as e:
         if e.status not in (400, 401):
             raise
-        print(f"  registering {name} <{acc['email']}>")
-        call("POST", "/api/auth/register", {"email": acc["email"], "displayName": name,
-                                             "password": acc["password"], "acceptTerms": True})
-        token = secrets.token_urlsafe(32)
-        token_hash = base64.b64encode(hashlib.sha256(token.encode()).digest()).decode()
-        updated = sql(
-            "UPDATE auth_tokens SET token_hash = '%s' WHERE email = '%s' "
-            "AND token_type = 'EMAIL_VERIFICATION' AND used_at IS NULL RETURNING id;"
-            % (token_hash, acc["email"]))
-        if not updated:
-            raise RuntimeError(f"no pending verification token for {acc['email']}")
-        auth = call("POST", "/api/auth/verify-email", {"token": token})
+        try:
+            call("POST", "/api/auth/register", {"email": acc["email"], "displayName": name,
+                                                 "password": acc["password"], "acceptTerms": True})
+            print(f"  registered {name} <{acc['email']}>")
+            auth = call("POST", "/api/auth/verify-email",
+                        {"token": known_token(acc["email"], "EMAIL_VERIFICATION")})
+        except ApiError as e:
+            if "EMAIL_ALREADY_EXISTS" not in e.body:
+                raise
+            # The account exists with a password this file doesn't know (the
+            # database was rebuilt, or seeded from another checkout): reset it.
+            print(f"  resetting the password of {name} <{acc['email']}>")
+            call("POST", "/api/auth/forgot-password", {"email": acc["email"]})
+            auth = call("POST", "/api/auth/reset-password",
+                        {"token": known_token(acc["email"], "PASSWORD_RESET"),
+                         "newPassword": acc["password"]})
     acc["id"] = auth["user"]["id"]
     acc["token"] = auth["accessToken"]
     if auth["user"].get("displayName") != name:
         call("PUT", "/api/users/me", {"displayName": name}, acc["token"])
     return acc
+
+
+def tester_account() -> dict:
+    """Signs the reviewers' account in. Never registered nor renamed by this script."""
+    password = os.environ.get(TESTER_PASSWORD_ENV)
+    if not password:
+        sys.exit(f"--target prod needs {TESTER_PASSWORD_ENV}")
+    auth = call("POST", "/api/auth/login", {"email": TESTER, "password": password})
+    return {"email": TESTER, "id": auth["user"]["id"], "token": auth["accessToken"]}
+
+
+def mute_email(acc: dict) -> None:
+    """Switches every e-mail notification of a demo account off; the inbox keeps them."""
+    prefs = call("GET", "/api/notifications/preferences", token=acc["token"])
+    cells = [{"type": c["type"], "channel": c["channel"], "enabled": False}
+             for c in prefs["preferences"] if c["channel"] != "IN_APP" and c["enabled"]]
+    if cells:
+        call("PUT", "/api/notifications/preferences", {"preferences": cells}, acc["token"])
+
+
+def wait_for_fan_out(slug: str) -> None:
+    """Waits until the club's notification events have all been fanned out."""
+    team_id = sql("SELECT id FROM teams WHERE NOT deleted AND slug = '%s';" % slug)
+    for _ in range(120):
+        pending = int(sql("SELECT count(*) FROM notification_events WHERE team_id = %s "
+                          "AND status IN ('PENDING', 'PROCESSING');" % team_id))
+        if not pending:
+            return
+        print(f"  waiting for {pending} notification events to fan out")
+        clock.sleep(10)
+    raise RuntimeError("notification events still pending after 20 minutes")
 
 
 # ---------------------------------------------------------------- routes
@@ -220,6 +304,54 @@ def next_weekday(weekday: int, at: time, min_days: int = 1) -> datetime:
     while d.weekday() != weekday:
         d += timedelta(days=1)
     return datetime.combine(d, at, TZ)
+
+
+def calendar(fr: bool) -> list:
+    """The prod calendar, as `rides_spec` entries: every Saturday (mountains from April
+    to October, the lake and the Bauges later in the morning in winter), Wednesday
+    evenings round the lake from April to September, gravel on the first Sunday of
+    the month from May to October."""
+    rng = random.Random(f"calendar-{fr}")
+    leaders = ["thomas", "marc", "sophie", "lea", None, None]
+    names = {r["key"]: r["fr" if fr else "en"] for r in ROUTES}
+    today = datetime.now(TZ).date()
+    d = today - timedelta(weeks=CALENDAR_BACK_WEEKS)
+    out = []
+    while d <= CALENDAR_END:
+        summer = 4 <= d.month <= 10
+        week = d.isocalendar()[1]
+        if d.weekday() == 5:
+            route = (["forclaz", "semnoz", "bauges", "lac"] if summer else ["lac", "bauges"])[week % (4 if summer else 2)]
+            out.append((route, "paquier", datetime.combine(d, time(8, 30) if summer else time(9, 30), TZ),
+                        tuple(rng.choice(leaders) for _ in range(3)),
+                        (f"Sortie du samedi : {names[route]}" if fr else f"Saturday ride: {names[route]}")
+                        if summer else (f"Sortie d'hiver : {names[route]}" if fr else f"Winter ride: {names[route]}"),
+                        ("Rendez-vous au Pâquier, départ à l'heure. Regroupement au sommet." if fr else
+                         "Meet at Le Pâquier, we leave on time. Regroup at the top.") if summer else
+                        ("Départ plus tard pour éviter le gel. Gants longs et couvre-chaussures." if fr else
+                         "Later start to avoid the frost. Full gloves and overshoes.")))
+        elif d.weekday() == 2 and 4 <= d.month <= 9:
+            out.append(("lac", "paquier", datetime.combine(d, time(18, 15), TZ), (rng.choice(leaders),),
+                        "Tour du lac en semaine" if fr else "Midweek lake loop",
+                        "Sortie courte après le travail, éclairage obligatoire au retour." if fr else
+                        "Short after-work ride, lights required on the way back."))
+        elif d.weekday() == 6 and d.day <= 7 and 5 <= d.month <= 10:
+            out.append(("glieres", "thorens", datetime.combine(d, time(9, 0), TZ),
+                        (rng.choice(leaders), None),
+                        "Gravel aux Glières" if fr else "Glières gravel ride",
+                        "Pistes roulantes, quelques passages caillouteux au plateau." if fr else
+                        "Fast tracks, a few rocky sections on the plateau."))
+        d += timedelta(days=1)
+    return out
+
+
+def random_signups(when: datetime, group_count: int, seed: str) -> dict:
+    """Members registered on a calendar ride: many on past and imminent rides, a few
+    early birds on rides months away."""
+    rng = random.Random(seed)
+    days = (when - datetime.now(TZ)).days
+    count = rng.randint(4, 8) if days < 21 else rng.randint(0, 3)
+    return {key: rng.randrange(group_count) for key in rng.sample(list(MEMBERS), count)}
 
 
 def iso(dt: datetime) -> str:
@@ -259,7 +391,8 @@ def seed_club(locale: str, acc: dict, viewer: dict) -> list:
     roles = {"sophie": "ORGANIZER"}
     for key in [k for k in MEMBERS if k != "julien"]:
         call("POST", f"{base}/members", {"userId": acc[key]["id"], "role": roles.get(key, "MEMBER")}, org)
-    call("POST", f"{base}/members", {"userId": viewer["id"], "role": "MEMBER"}, org)
+    if not PROD:
+        call("POST", f"{base}/members", {"userId": viewer["id"], "role": "MEMBER"}, org)
 
     places = {}
     for key, p in PLACES.items():
@@ -277,16 +410,21 @@ def seed_club(locale: str, acc: dict, viewer: dict) -> list:
         routes[r["key"]] = route["slug"]
         print(f"  route {route['slug']}  {preview['distance'] / 1000:.0f} km, +{preview['elevationGain']:.0f} m")
 
-    def groups(route: str, leaders: tuple) -> list:
+    def groups(route: str, leaders: tuple, when: datetime) -> list:
+        """One group per entry of `leaders` (None: no leader), fastest first, the
+        first leaving at the ride's time and the others a quarter of an hour later."""
         names = (["Groupe rapide", "Groupe intermédiaire", "Groupe découverte"] if fr
                  else ["Fast group", "Intermediate group", "Discovery group"])
         speeds = [31, 27, 23]
+        # Fewer groups keep the middle ones: a lone group is the intermediate one.
+        picked = {1: [1], 2: [0, 1], 3: [0, 1, 2]}[len(leaders)]
         out = []
-        for i, n in enumerate(names):
-            g = {"name": n, "time": "08:30:00" if i == 0 else "08:45:00", "averageSpeed": speeds[i],
+        for n, (i, leader) in enumerate(zip(picked, leaders)):
+            start = when if n == 0 else when + timedelta(minutes=15)
+            g = {"name": names[i], "time": f"{start:%H:%M}:00", "averageSpeed": speeds[i],
                  "maxParticipants": 12, "routeSlug": route}
-            if leaders[i]:
-                g["leaderId"] = acc[leaders[i]]["id"]
+            if leader:
+                g["leaderId"] = acc[leader]["id"]
             out.append(g)
         return out
 
@@ -308,27 +446,32 @@ def seed_club(locale: str, acc: dict, viewer: dict) -> list:
          "Pistes roulantes, quelques passages caillouteux au plateau." if fr else
          "Fast tracks, a few rocky sections on the plateau."),
     ]
+    # Registrations of the four rides above.
+    signups = [{"thomas": 0, "nicolas": 0, "emma": 0, "lea": 1, "marc": 1, "claire": 2, "sophie": 2},
+               {"lea": 0, "claire": 0, "nicolas": 1},
+               {"marc": 0, "thomas": 0, "emma": 1},
+               {"nicolas": 0, "julien": 0, "lea": 1}]
+    if PROD:
+        taken = {when.date() for _, _, when, *_ in rides_spec}
+        for spec in calendar(fr):
+            if spec[2].date() not in taken:
+                rides_spec.append(spec)
+                signups.append(random_signups(spec[2], len(spec[3]), f"{locale}-{spec[2]:%Y%m%d}"))
+        rides_spec, signups = map(list, zip(*sorted(zip(rides_spec, signups), key=lambda x: x[0][2])))
+    ride0 = None
     rides = []
-    for route, place, when, leaders, title, text in rides_spec:
+    for (route, place, when, leaders, title, text), joins in zip(rides_spec, signups):
         ride = call("POST", f"{base}/rides", {
             "name": title, "media": media(text), "dateTime": iso(when), "status": "PUBLISHED",
             "visibility": "TEAM", "routeSlug": routes[route], "startPlaceId": places[place],
-            "endPlaceId": places[place], "groups": groups(routes[route], leaders)}, org)
-        rides.append(ride)
-        print(f"  ride {ride['slug']}  {when:%a %d %b %H:%M}")
-
-    # Registrations: the viewer rides the first ride, in the intermediate group.
-    signups = {0: {"thomas": 0, "nicolas": 0, "emma": 0, "lea": 1, "marc": 1, "claire": 2, "sophie": 2},
-               1: {"lea": 0, "claire": 0, "nicolas": 1},
-               2: {"marc": 0, "thomas": 0, "emma": 1},
-               3: {"nicolas": 0, "julien": 0, "lea": 1}}
-    for i, ride in enumerate(rides):
-        detail = call("GET", f"{base}/rides/{ride['slug']}", token=org)
-        gids = [g["id"] for g in detail["groups"]]
-        for key, g in signups[i].items():
+            "endPlaceId": places[place], "groups": groups(routes[route], leaders, when)}, org)
+        gids = [g["id"] for g in ride["groups"]]
+        for key, g in joins.items():
             call("POST", f"{base}/rides/{ride['slug']}/groups/{gids[g]}/join", token=acc[key]["token"])
-        if i == 0:
-            call("POST", f"{base}/rides/{ride['slug']}/groups/{gids[1]}/join", token=viewer["token"])
+        rides.append((ride["slug"], when, gids))
+        if joins is signups[0]:
+            ride0 = ride["slug"]
+        print(f"  ride {ride['slug']}  {when:%a %d %b %Y %H:%M}  {len(joins)} riders")
 
     trip_day = next_weekday(5, time(8, 0), 15)
     trip = call("POST", f"{base}/trips", {
@@ -390,8 +533,25 @@ def seed_club(locale: str, acc: dict, viewer: dict) -> list:
             body["rentalPeriod"] = period
         call("POST", f"{base}/classifieds", body, acc[key]["token"])
 
+    if PROD:
+        # The viewer joins last, once every announcement above has been fanned out
+        # to the members of the moment: the reviewers' inbox gets comments, not
+        # a hundred "new ride" mails.
+        wait_for_fan_out(slug)
+        call("POST", f"{base}/members", {"userId": viewer["id"], "role": "MEMBER"}, org)
+
+    # The viewer rides the first ride, in the intermediate group. On prod it also
+    # has a history, and the next rides of its calendar.
+    now = datetime.now(TZ)
+    past = [r[0] for r in rides if r[1] < now]
+    upcoming = [r[0] for r in rides if r[1] > now]
+    viewer_rides = {ride0} | (set(past[::3] + upcoming[:3]) if PROD else set())
+    for ride_slug, when, gids in rides:
+        if ride_slug in viewer_rides:
+            call("POST", f"{base}/rides/{ride_slug}/groups/{gids[len(gids) // 2]}/join",
+                 token=viewer["token"])
+
     # Comments: someone answers the viewer, which lands in the viewer's inbox.
-    ride0 = rides[0]["slug"]
     c1 = call("POST", f"{base}/rides/{ride0}/comments", {
         "content": "Je prends le groupe rapide, on regroupe au sommet ?" if fr
         else "I'll lead the fast group, regroup at the top?"}, acc["thomas"]["token"])
@@ -432,32 +592,54 @@ def seed_club(locale: str, acc: dict, viewer: dict) -> list:
 
 def main() -> None:
     if DRY_RUN:
-        print(json.dumps({"api": API, "members": MEMBERS, "viewers": VIEWERS,
+        print(json.dumps({"target": TARGET, "api": API, "members": MEMBERS,
+                          "viewers": {"fr-FR": TESTER, "en-US": TESTER} if PROD else VIEWERS,
                           "routes": [r["key"] for r in ROUTES]}, indent=2, ensure_ascii=False))
+        if PROD:
+            for fr in (True, False):
+                spec = calendar(fr)
+                print(f"{'fr' if fr else 'en'}: {len(spec) + 4} rides, "
+                      f"{spec[0][2]:%d/%m/%Y} → {spec[-1][2]:%d/%m/%Y}")
         return
+    tester = tester_account() if PROD else None
     accounts = load_accounts()
-    print("▸ accounts")
+    print(f"▸ accounts on {API}")
     people = {k: ensure_account(accounts, k, n) for k, n in MEMBERS.items()}
-    viewers = {loc: ensure_account(accounts, key, n) for loc, (key, n) in VIEWERS.items()}
-    sql("UPDATE users SET platform_role = 'PLATFORM_ADMIN' WHERE email = '%s';" % people["julien"]["email"])
-    # The token was minted before the promotion: sign in again to carry the role.
-    accounts["julien"].pop("token", None)
-    people["julien"] = ensure_account(accounts, "julien", MEMBERS["julien"])
+    if PROD:
+        viewers = {"fr-FR": tester, "en-US": tester}
+        for acc in people.values():
+            mute_email(acc)
+    else:
+        viewers = {loc: ensure_account(accounts, key, n) for loc, (key, n) in VIEWERS.items()}
+    julien = people["julien"]["email"]
+    sql("UPDATE users SET platform_role = 'PLATFORM_ADMIN' WHERE email = '%s';" % julien)
+    try:
+        # The token was minted before the promotion: sign in again to carry the role.
+        accounts["julien"].pop("token", None)
+        people["julien"] = ensure_account(accounts, "julien", MEMBERS["julien"])
 
-    plan = {"api": API, "locales": {}}
-    for locale, viewer in viewers.items():
-        print(f"▸ club {locale}")
-        plan["locales"][locale] = {"screens": seed_club(locale, people, viewer)}
+        plan = {"api": API, "locales": {}}
+        for locale, viewer in viewers.items():
+            print(f"▸ club {locale}")
+            plan["locales"][locale] = {"screens": seed_club(locale, people, viewer)}
+    finally:
+        if PROD:
+            # No fictional account keeps a platform role on prod.
+            sql("UPDATE users SET platform_role = NULL WHERE email = '%s';" % julien)
+            print("  organizer's platform role taken back")
 
-    keys = list(MEMBERS) + [key for key, _ in VIEWERS.values()]
+    keys = list(MEMBERS) + ([] if PROD else [key for key, _ in VIEWERS.values()])
     stored = {k: {"email": accounts[k]["email"], "password": accounts[k]["password"], "id": accounts[k]["id"]}
               for k in keys}
-    for locale, (key, _) in VIEWERS.items():
-        stored[locale] = {"email": accounts[key]["email"], "password": accounts[key]["password"]}
+    if not PROD:
+        for locale, (key, _) in VIEWERS.items():
+            stored[locale] = {"email": accounts[key]["email"], "password": accounts[key]["password"]}
     ACCOUNTS.write_text(json.dumps(stored, indent=2, ensure_ascii=False) + "\n")
+    if PROD:
+        print(f"✔ {ACCOUNTS.name} written")
+        return
     PLAN.write_text(json.dumps(plan, indent=2, ensure_ascii=False) + "\n")
     print(f"✔ {PLAN.name} and {ACCOUNTS.name} written")
-
 
 if __name__ == "__main__":
     main()
