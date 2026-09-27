@@ -9,6 +9,7 @@ import type {
   ScheduleViewLevel,
 } from '@mantine/schedule'
 import { Box, Image, LoadingOverlay, Stack, Text, Tooltip } from '@mantine/core'
+import { useMounted } from '@mantine/hooks'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
@@ -109,7 +110,15 @@ export function CalendarView({
   // hydration mismatch, plus a `highlightToday` cell in the wrong place. `tz` is `UTC` on the
   // server and again on the hydration render (`useEffectiveTimezone`'s server snapshot), or the
   // user's own preference on both sides when they have one, so the two agree either way.
-  const [date, setDate] = useState(() => dayjs(hourAlignedNow()).tz(tz).format('YYYY-MM-DD'))
+  const [initialDate] = useState(() => dayjs(hourAlignedNow()).tz(tz).format('YYYY-MM-DD'))
+  const [date, setDate] = useState(initialDate)
+  // `Schedule` itself still reads a raw `dayjs()` in two places that reach the server render. The
+  // mobile month view selects "today" by default and prints it as the heading of its agenda
+  // ("dimanche 28 septembre") — a text mismatch between midnight and the offset, so it gets the
+  // same day as `date` instead. And both month views mark "today" with `data-today`: an attribute
+  // React does not patch on hydration, so it would stay on the server's day. Highlighting only
+  // once mounted lets the client alone decide which cell that is.
+  const mounted = useMounted()
 
   useEffect(() => {
     const { start, end } = getVisibleRange(date, view)
@@ -201,7 +210,11 @@ export function CalendarView({
   const renderEvent = useCallback<RenderEvent>(
     (event, props) => {
       const dto = getPayloadDto(event)
-      const isPast = dayjs(event.end ?? event.start).isBefore(dayjs())
+      // From the DTO's instants: `event.start`/`end` are wall-clock strings in `tz`, which a bare
+      // `dayjs()` would read in the process's zone — UTC on the server, the browser's on the client.
+      const isPast = dto
+        ? dayjs(dto.end ?? dto.start).isBefore(dayjs())
+        : dayjs.tz(String(event.end ?? event.start), tz).isBefore(dayjs())
       // Themed variants are separate assets (contract 3.3.0) — the map tile is rendered per
       // scheme server-side, so it cannot be derived from the other one. `thumbnailUrl` stays the
       // fallback for an event whose picture only ever existed in the opposite variant.
@@ -286,7 +299,7 @@ export function CalendarView({
         </Tooltip>
       )
     },
-    [buildMetrics, buildRegistration, buildSummary, colorScheme, t]
+    [buildMetrics, buildRegistration, buildSummary, colorScheme, t, tz]
   )
 
   const handleEventClick = useCallback(
@@ -324,10 +337,14 @@ export function CalendarView({
         // is dead: a phone got the desktop month grid. The switch is pure CSS (both trees render,
         // one is hidden), so it costs no media query and no hydration hazard.
         layout="responsive"
-        monthViewProps={{ firstDayOfWeek: 1, renderEvent }}
+        monthViewProps={{ firstDayOfWeek: 1, renderEvent, highlightToday: mounted }}
         weekViewProps={{ renderEvent }}
         dayViewProps={{ renderEvent }}
-        mobileMonthViewProps={{ renderEvent }}
+        mobileMonthViewProps={{
+          renderEvent,
+          defaultSelectedDate: initialDate,
+          highlightToday: mounted,
+        }}
       />
     </Box>
   )
