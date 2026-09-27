@@ -132,6 +132,24 @@
       "sourceType": "github",
       "skillPath": "skills/flutter-use-http-package/SKILL.md",
       "computedHash": "17efcf4da9933afaf9c1d41940bd6b92f1ae73dcae4bf6c59cfe24f7e487ee9f"
+    },
+    "patrol-setup": {
+      "source": "leancodepl/patrol",
+      "sourceType": "github",
+      "skillPath": "skills/patrol-setup/SKILL.md",
+      "computedHash": "89c987df95e145bf4a94cb10dc20739ed4bf4626a4666ae3007071492d24e1d4"
+    },
+    "patrol-test-architecture": {
+      "source": "leancodepl/patrol",
+      "sourceType": "github",
+      "skillPath": "skills/patrol-test-architecture/SKILL.md",
+      "computedHash": "ece248d062dacc67e2dcb7a100b26d71e462f6dc1bc05aa83eb3be92fe31ee71"
+    },
+    "patrol-write-test": {
+      "source": "leancodepl/patrol",
+      "sourceType": "github",
+      "skillPath": "skills/patrol-write-test/SKILL.md",
+      "computedHash": "7763d82e3d0eaf1d08ab44e84780f4c49a34b536a6479d2cd6c92a7a12538775"
     }
   }
 }
