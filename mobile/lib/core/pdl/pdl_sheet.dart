@@ -29,6 +29,12 @@ import '../theme/pdl_typography.dart';
 ///   Le gabarit ci-dessous — en-tête fixe, corps défilant borné, pied fixe —
 ///   est le seul autorisé, et il ne peut pas s'effondrer : le corps est
 ///   [Flexible] dans une colonne `min`, il prend la place qu'il a et pas plus.
+///
+/// Et elle tient le clavier, que `showModalBottomSheet` ne gère pas : la
+/// feuille remonte au-dessus de lui — sans quoi le pied, donc « Envoyer »,
+/// restait caché dessous — et un appui hors d'un champ le referme, puisque
+/// la touche retour d'un champ multiligne insère une ligne au lieu de le
+/// fermer.
 class PdlSheet extends StatelessWidget {
   const PdlSheet({
     super.key,
@@ -103,71 +109,81 @@ class PdlSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final PdlColors c = context.pdl;
     final PdlTypography t = context.pdlText;
+    final double keyboard = MediaQuery.viewInsetsOf(context).bottom;
     final double maxHeight =
-        MediaQuery.sizeOf(context).height * maxHeightFraction;
+        (MediaQuery.sizeOf(context).height - keyboard) * maxHeightFraction;
 
     Widget? headerChild = header;
     if (headerChild == null && title != null) {
       headerChild = Text(title!, style: t.sectionTitle);
     }
 
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: maxHeight,
-          maxWidth: PdlSpacing.contentMaxWidth,
-        ),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: PdlRadii.sheetTop,
-            border: Border(top: BorderSide(color: c.borderSubtle)),
-            boxShadow: PdlShadows.sheet,
-          ),
-          // La surface est un `Material` et non une simple couleur de
-          // décoration : `ListTile`, `InkWell` et compagnie peignent leur
-          // fond et leur onde d'appui sur le `Material` le plus proche. Avec
-          // un `DecoratedBox` coloré au-dessus, l'onde était peinte puis
-          // recouverte — un appui sans le moindre retour visuel.
-          child: Material(
-            type: MaterialType.card,
-            color: c.surfaceRaised,
-            surfaceTintColor: Colors.transparent,
-            elevation: 0,
-            borderRadius: PdlRadii.sheetTop,
-            clipBehavior: Clip.antiAlias,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                if (showHandle) const PdlSheetHandle(),
-                if (headerChild != null)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      PdlSpacing.section,
-                      PdlSpacing.sectionTightV,
-                      PdlSpacing.section,
-                      PdlSpacing.sectionTightV,
-                    ),
-                    child: Row(
-                      children: <Widget>[
-                        Expanded(child: headerChild),
-                        ?headerAction,
-                      ],
-                    ),
-                  ),
-                if (children != null)
-                  Flexible(
-                    child: ListView(
-                      shrinkWrap: true,
-                      padding: bodyPadding,
-                      children: children!,
-                    ),
-                  )
-                else if (body != null)
-                  Flexible(child: body!),
-                ?footer,
-              ],
+    return Padding(
+      padding: EdgeInsets.only(bottom: keyboard),
+      child: GestureDetector(
+        // Les boutons et les champs gagnent l'appui : seul un appui dans le
+        // vide referme le clavier.
+        behavior: HitTestBehavior.translucent,
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: maxHeight,
+              maxWidth: PdlSpacing.contentMaxWidth,
+            ),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: PdlRadii.sheetTop,
+                border: Border(top: BorderSide(color: c.borderSubtle)),
+                boxShadow: PdlShadows.sheet,
+              ),
+              // La surface est un `Material` et non une simple couleur de
+              // décoration : `ListTile`, `InkWell` et compagnie peignent leur
+              // fond et leur onde d'appui sur le `Material` le plus proche. Avec
+              // un `DecoratedBox` coloré au-dessus, l'onde était peinte puis
+              // recouverte — un appui sans le moindre retour visuel.
+              child: Material(
+                type: MaterialType.card,
+                color: c.surfaceRaised,
+                surfaceTintColor: Colors.transparent,
+                elevation: 0,
+                borderRadius: PdlRadii.sheetTop,
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    if (showHandle) const PdlSheetHandle(),
+                    if (headerChild != null)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          PdlSpacing.section,
+                          PdlSpacing.sectionTightV,
+                          PdlSpacing.section,
+                          PdlSpacing.sectionTightV,
+                        ),
+                        child: Row(
+                          children: <Widget>[
+                            Expanded(child: headerChild),
+                            ?headerAction,
+                          ],
+                        ),
+                      ),
+                    if (children != null)
+                      Flexible(
+                        child: ListView(
+                          shrinkWrap: true,
+                          padding: bodyPadding,
+                          children: children!,
+                        ),
+                      )
+                    else if (body != null)
+                      Flexible(child: body!),
+                    ?footer,
+                  ],
+                ),
+              ),
             ),
           ),
         ),
