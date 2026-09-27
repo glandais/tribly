@@ -45,13 +45,22 @@ format_mobile() (
   banner mobile
   need dart mobile
   cd "$ROOT/mobile"
+  # The formatter picks its style from the package's language version, which it reads from
+  # .dart_tool/package_config.json — without it (no `pub get` yet) it falls back to the SDK's
+  # latest style. Pass the version from pubspec's SDK constraint so every machine agrees.
+  local lang
+  lang="$(sed -nE 's/^[[:space:]]+sdk:[[:space:]]*[\^>=]*[[:space:]]*([0-9]+\.[0-9]+).*/\1/p' pubspec.yaml | head -n1)"
+  if [ -z "$lang" ]; then
+    echo "format.sh: cannot read the Dart SDK constraint from mobile/pubspec.yaml" >&2
+    exit 1
+  fi
   # `dart format` has no --exclude flag, and generated sources are committed but already
   # formatted by their generators, so filter them out here.
   find lib test -name '*.dart' \
     -not -path 'lib/api/generated/*' \
     -not -name '*.g.dart' \
     -not -name '*.freezed.dart' \
-    -print0 | xargs -0 dart format
+    -print0 | xargs -0 dart format --language-version="$lang"
 )
 
 format_karoo() (
