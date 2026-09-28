@@ -23,6 +23,14 @@ is not on `localhost`.
 included — reinstall your dev build afterwards. `flutter test` does not run these files; they
 only run through Patrol.
 
+### From an agent (Patrol MCP)
+
+`../.mcp.json` registers a `patrol` server (`tool/patrol_mcp.sh`, the `patrol_mcp` package): an
+agent can `run` a test file in a `patrol develop` session, take a `screenshot`, read the
+`native-tree`, then `quit`. It uses the same stack, simulator and dart-defines as `e2e.sh` — both
+source `tool/e2e_env.sh` — so the stack must be up first. Set `SHOW_TERMINAL=true` in its `env` to
+follow the session's logs in a Terminal window.
+
 iOS only for now: the `RunnerUITests` target is set up in `ios/Runner.xcodeproj`, the Android
 side (`MainActivityTest.java`, test orchestrator) is not.
 

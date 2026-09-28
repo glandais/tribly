@@ -106,6 +106,7 @@ dev_dependencies:
   openapi_retrofit_generator: ^2.0.0
   # UI end-to-end tests (patrol_test/), run with `patrol test` — see patrol_test/README.md
   patrol: ^4.10.0
+  patrol_mcp: ^0.2.1
 
 patrol:
   app_name: Pédalons
