@@ -165,11 +165,18 @@ public class EmailService {
 
   private void send(Mail mail) {
     Context context = sendContext();
-    CompletableFuture<Void> sending =
-        mailer
-            .send(mail)
-            .runSubscriptionOn(task -> context.runOnContext(ignored -> task.run()))
-            .subscribeAsCompletionStage();
+    CompletableFuture<Void> sending = new CompletableFuture<>();
+    // Vert.x's own hop, not Mutiny's runSubscriptionOn: Mutiny decorates the task with context
+    // propagation, which carried the caller's JTA transaction onto the event loop. A caller
+    // inside @Transactional (an invitation) then sometimes committed while that thread was still
+    // in the transaction — Narayana rolled it back (ARJUNA016053) and the request answered 500.
+    // Subscribed from the event loop, the send captures no context of the caller.
+    context.runOnContext(
+        ignored ->
+            mailer
+                .send(mail)
+                .subscribe()
+                .with(done -> sending.complete(null), sending::completeExceptionally));
     try {
       sending.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
     } catch (TimeoutException e) {
