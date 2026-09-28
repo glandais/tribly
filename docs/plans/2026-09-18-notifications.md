@@ -28,7 +28,7 @@ d'un même pipeline.
 ```
  service métier ──(même transaction)──▶ notification_events      (outbox, 1 ligne / évènement)
                                                │
-                              NotificationDispatchScheduler (toutes les 15 s)
+                                  NotificationScheduler (toutes les 15 s)
                                                │  étage 2 : fan-out
                                                ▼
                                          notifications             (1 ligne / destinataire)
@@ -42,8 +42,8 @@ d'un même pipeline.
 
 ### Étage 1 — publier (dans la transaction métier)
 
-Le service métier appelle `NotificationPublisher.publish(event, actor)` avec un `record` du type
-scellé `NotificationEvent`. Une ligne `notification_events` est écrite **dans la même transaction**
+Le service métier appelle `NotificationPublisher.publish(event, team, actor)` (acteur nullable ; une
+surcharge avec une `Duration` diffère l'évènement) avec un `record` du type scellé `NotificationEvent`. Une ligne `notification_events` est écrite **dans la même transaction**
 que la modification métier : une sortie annulée dont la transaction échoue ne notifie personne, et
 une sortie annulée qui est commitée notifiera même si l'application redémarre dans la seconde
 (*transactional outbox*).
@@ -62,7 +62,7 @@ avant le tick puis republiée pour de bon est donc annoncée ; sinon elle ne l'a
 
 ### Étage 2 — fan-out (scheduler, hors requête)
 
-`NotificationDispatchScheduler` réclame un évènement `PENDING` (`for update skip locked` +
+`NotificationScheduler` (tick de 15 s) fait réclamer par `NotificationDispatchService` un évènement `PENDING` (`for update skip locked` +
 compare-and-set, le même schéma que `user_exports`), puis dans une transaction :
 
 1. Désérialise le payload vers son `record` et le passe à `NotificationRecipientResolver`, un
@@ -124,10 +124,10 @@ type et des champs structurés — le même principe que les `ErrorCode`.
 
 Déduplication par `TYPE:idSujet` : une sortie publiée, dépubliée puis republiée ne notifie qu'une
 fois ; une annulation, qu'une fois. Une sortie ou un voyage dont la date est passée ne notifie pas
-(un import ou une saisie rétroactive ne réveille personne). La migration biketeam crée ses entités
-sans passer par les services : elle ne produit aucun évènement.
+(un import ou une saisie rétroactive ne réveille personne). La migration biketeam passe par les
+services producteurs, mais sous `NotificationPublisher.silently` : elle ne produit aucun évènement.
 
-Les quatre visibilités (`TEAM`, `PUBLIC_UNLISTED`, `PUBLIC`) sont toutes lisibles par les membres,
+Les trois visibilités (`TEAM`, `PUBLIC_UNLISTED`, `PUBLIC`) sont toutes lisibles par les membres,
 d'où « membres de l'équipe » sans autre filtre. Un brouillon n'est jamais notifié.
 
 ## 5. Canaux
@@ -169,12 +169,14 @@ Changer un défaut dans le code change donc le comportement de tous ceux qui n'y
 voulu.
 
 `GET /api/notifications/preferences` renvoie la matrice complète (types × canaux *disponibles*), avec
-pour chaque case la valeur effective et le défaut. `PUT` accepte une liste de cases.
+pour chaque case la valeur effective et le défaut. `PUT` accepte une liste de cases. Depuis la
+phase 5, les deux portent aussi `teams` (les équipes coupées) et `emailDigest` (le résumé, §12).
 
 ## 8. Multi-tenant
 
-- Chaque ligne porte `domain_id`, et chaque requête de lecture filtre par domaine **et** par
-  destinataire.
+- `notification_events` et `notifications` portent `domain_id` ; les autres tables (livraisons,
+  préférences, appareils, réglages, webhooks) héritent du domaine par leur utilisateur, leur
+  notification ou leur équipe. Chaque lecture de la boîte filtre par domaine **et** par destinataire.
 - Le scheduler n'a pas de requête HTTP, donc pas de `DomainResolver`. Le site utilisé dans les liens
   est résolu **à partir de l'équipe** : un alias de domaine épinglé sur cette équipe s'il en existe
   un actif, sinon le domaine parent. C'est plus juste que l'instantané de la requête (ce que fait
@@ -192,6 +194,10 @@ pour chaque case la valeur effective et le défaut. `PUT` accepte une liste de c
 | `POST` | `/api/notifications/read-all` | tout marquer lu |
 | `GET` | `/api/notifications/preferences` | matrice type × canal |
 | `PUT` | `/api/notifications/preferences` | modifier des cases |
+| `POST` | `/api/push-devices` | enregistrer un appareil push (phase 4) |
+| `DELETE` | `/api/push-devices/{token}` | oublier un appareil push |
+| `GET`, `PUT`, `DELETE` | `/api/teams/{teamSlug}/webhook` | webhook d'équipe (phase 5, §12) |
+| `POST` | `/api/teams/{teamSlug}/webhook/test` | message d'essai |
 
 La liste lit l'instantané par une jointure `fetch` sur l'évènement : son coût ne dépend pas de la taille
 de la page (`NotificationQueryCountTest`, invariant des `…QueryCountTest`).
@@ -201,10 +207,11 @@ plus). Un flux SSE viendra si le besoin se confirme.
 
 ## 10. Rétention
 
-Nuitamment, les évènements plus vieux que `pedalons.notifications.retention-days` (90 j par défaut)
-sont supprimés, et avec eux, en cascade, leurs notifications et livraisons. Un évènement bloqué en
-`PROCESSING` (crash entre réclamation et fin) repasse `PENDING` ; de même une livraison bloquée en
-`SENDING`.
+Chaque nuit (4 h 15), les évènements plus vieux que `pedalons.notifications.retention-days` (90 j
+par défaut) sont supprimés avec leurs notifications, livraisons et livraisons de webhook (suppression
+explicite, par tranches de 500 — `NotificationRetentionService`). La remise en file des évènements
+`PROCESSING` et des livraisons `SENDING` bloqués n'est pas nocturne : voir §2, étage 3 (toutes les
+5 min).
 
 ## 11. Ce qui est délibérément écarté
 
@@ -230,7 +237,7 @@ sont supprimés, et avec eux, en cascade, leurs notifications et livraisons. Un 
 | `RIDE_UPDATED` | date ou point de départ changés sur une sortie publiée | inscrits | in-app, e-mail, push | `RIDE_UPDATED:id`, **rendue une fois l'évènement traité** |
 | `RIDE_JOINED` | inscription à un groupe | créateur de la sortie et meneur du groupe | in-app | `RIDE_JOINED:idInscription` |
 | `COMMENT_ON_MY_PUBLICATION` | commentaire **de premier niveau** | auteur de la sortie, du voyage, de l'article ou du parcours | in-app, push | `…:idCommentaire` |
-| `TEAM_INVITATION` | invitation envoyée | le compte qui porte l'adresse invitée, s'il existe | in-app, push | `TEAM_INVITATION:idInvitation` |
+| `TEAM_INVITATION` | invitation envoyée | le compte à l'adresse **vérifiée** qui porte l'adresse invitée, s'il existe et n'est pas déjà membre | in-app, push | `TEAM_INVITATION:idInvitation` |
 
 - **Le rappel** porte la date dans sa clé : une sortie déplacée a droit à un nouveau rappel, et le
   résolveur écarte le rappel dont la date n'est plus celle de la sortie. Une fenêtre de quatre heures
@@ -242,7 +249,8 @@ sont supprimés, et avec eux, en cascade, leurs notifications et livraisons. Un 
   **cinq minutes** de retard (`pedalons.notifications.update-delay-seconds`), et sa clé reste prise
   tant qu'elle attend : trois retouches successives font une seule notification, qui compare le
   premier état au dernier. La clé est rendue une fois l'évènement traité — c'est la seule
-  différence avec les autres types (`NotificationEvent.coalescesWhilePending`). Ce qui a changé est
+  différence avec les autres types (`NotificationEvent.coalescesWhilePending`), partagée depuis avec
+  `CONTENT_REPORTED`. Ce qui a changé est
   figé dans l'instantané (`changes`) et exposé à l'API (`NotificationDto.changes`). Les horaires de
   groupe n'en font pas partie.
 - **L'inscription** ne passe pas par le push par défaut : une sortie populaire en ferait trente. Le
@@ -251,19 +259,35 @@ sont supprimés, et avec eux, en cascade, leurs notifications et livraisons. Un 
   commentaire parent (`COMMENT_REPLY`), et l'auteur de la publication qui répond dans un fil ne
   recevrait que du bruit.
 - **L'invitation** est publiée pour toute invitation, compte existant ou non : c'est le résolveur
-  qui cherche le compte, hors requête. L'invitant ne peut donc rien en déduire — la règle de
+  qui cherche le compte, hors requête — vérifié seulement : un compte non vérifié peut être la
+  revendication d'un tiers sur l'adresse. L'invitant ne peut donc rien en déduire — la règle de
   `TeamInvitationService` (« créer une invitation ne dit pas si un compte existe ») tient. Le
-  destinataire n'étant pas membre, c'est le seul type exempté du garde-fou « encore membre ». Pas
+  destinataire n'étant pas membre, c'est, avec `CONTENT_REPORTED` (admins de
+  plateforme), un type exempté du garde-fou « encore membre ». Pas
   d'e-mail par défaut : l'invitation a déjà le sien. Nouveau sujet `TEAM`, qui ouvre la liste des
   équipes, là où les invitations en attente s'acceptent.
 
-`NotificationType` gagne deux attributs : `broadcast` (l'audience est toute l'équipe — les trois
-`…_PUBLISHED`) et `urgent` (le résumé ne peut pas attendre — annulations, modification, rappel).
+`NotificationType` gagne une audience (`Audience.BROADCAST` pour les trois `…_PUBLISHED`,
+`PERSONAL` sinon), un drapeau `urgent` (le résumé ne peut pas attendre — annulations, modification,
+rappel, et depuis retrait de groupe et signalement) et `isRelayedToTeamWebhook()` (les `…_PUBLISHED`,
+les annulations et `RIDE_UPDATED`), que le webhook d'équipe consulte (voir plus bas).
+
+### Types ajoutés après la phase 5
+
+| Type | Déclencheur | Destinataires | Canaux par défaut | Clé de dédup |
+|---|---|---|---|---|
+| `RIDE_GROUP_REMOVED` (28 septembre 2026, `34431a89`) | retrait d'un groupe qui a des inscrits | ses inscrits encore membres et non réinscrits ailleurs dans la sortie | in-app, e-mail, push | `RIDE_GROUP_REMOVED:idGroupe` |
+| `CONTENT_REPORTED` (24 septembre 2026, `4486bf0b`) | signalement ouvert | modérateurs de l'équipe et admins de plateforme du domaine, jamais le signaleur ni la cible | in-app, push, e-mail | `CONTENT_REPORTED:idÉquipe:type:idCible`, rendue une fois l'évènement traité |
+
+Tous deux `PERSONAL` et urgents. `RIDE_GROUP_REMOVED` transporte le nom du groupe et les inscrits
+dans son `record` : à l'étage 2, le groupe n'existe plus. `CONTENT_REPORTED` est publié sans acteur,
+ouvre un nouveau sujet `REPORT` (la file de modération de l'équipe) et ne porte pas d'extrait : un
+push s'affiche sur l'écran verrouillé.
 
 ### Préférences par équipe : un interrupteur, pas une matrice
 
 Le plan prévoyait une colonne `team_id` sur `notification_preferences`, donc une matrice type × canal
-*par équipe*. Écarté : personne ne réglera 11 × 2 cases pour chacune de ses équipes, et le besoin
+*par équipe*. Écarté : personne ne réglera 11 × 2 cases (13 × 2 aujourd'hui) pour chacune de ses équipes, et le besoin
 exprimé est « plus rien de l'équipe X ». Donc une table `notification_team_mutes(user_id, team_id)` :
 une équipe coupée ne produit **plus aucune notification des types `broadcast`** pour ce membre, boîte
 comprise. Les types personnels (annulation d'une sortie où l'on est inscrit, rappel, réponse,
@@ -301,7 +325,7 @@ le tick avec le même recul exponentiel — même quand l'évènement n'a aucun 
   nullable (null = automatique) et un sélecteur dans le formulaire suffiraient. La langue du texte est réglée sur le webhook.
 - **SSRF** : `https` seulement ; à l'envoi, l'hôte est résolu et refusé s'il pointe vers une adresse
   de bouclage, privée, lien-local, multicast ou non routable ; redirections non suivies ; 10 s de
-  délai. Un 4xx (hors 429) est définitif, pas rejoué.
+  délai. Un 4xx (hors 408 et 429) est définitif, pas rejoué.
 - **L'URL est un secret** (celles de Slack et Discord suffisent à poster) : l'API ne la renvoie que
   masquée, et un `PUT` sans URL garde celle en place.
 - `POST …/webhook/test` envoie un message d'essai tout de suite et rend le code HTTP obtenu.

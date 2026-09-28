@@ -7,10 +7,12 @@ passe, en tête de la phase concernée ; une case ne se coche que vérifiée.
 - Branche : `feat/notifications` · worktree `../tribly.worktrees/feat/notifications` — fusionnée dans
   `develop`, comme le Web Push (`feat/pwa`, 28 septembre 2026)
 - Contrat : **3.4.0 → 3.5.0** (six endpoints ajoutés), puis **3.5.0 → 3.6.0** (deux de plus pour les
-  appareils push), puis **3.7.0 → 3.8.0** (phase 5) — rien retiré
+  appareils push), puis **3.7.0 → 3.8.0** (phase 5), puis **5.4.0** (Web Push, `ConfigDto.webPush`) — rien retiré
 - Migrations : **V37** `notifications`, **V38** `notification event backoff` — appliquées sans heurt
   sur la base locale restaurée (schéma 36 → 38) le 20 septembre 2026 ; **V39** `push_devices`,
-  écrite le 20 septembre 2026, ☑ appliquée sur une base locale neuve le 21 septembre 2026
+  écrite le 20 septembre 2026, ☑ appliquée sur une base locale neuve le 21 septembre 2026 ;
+  **V40** `notifications_phase5`, appliquée en staging puis en production le 21 septembre 2026 (le
+  Web Push n'en ajoute pas)
 
 **État au 29 septembre 2026** : phases 1 à 5 en production, Web Push fusionné dans `develop`. Trois
 points restent ouverts, repris au §8.3 de [`docs/NEXT.md`](../NEXT.md) : la recette du webhook
@@ -19,6 +21,13 @@ décision produit sur l'e-mail, coupé en production. Depuis le 22 septembre 202
 par le relais SMTP de Scaleway TEM et non plus par Brevo : les gabarits Brevo cités plus bas
 (16 à 19) n'ont plus cours, ce sont les gabarits Qute de `templates/mail/` qui partent. La stack
 locale lit ses e-mails dans mailpit, qui a remplacé Mailhog le 28 septembre 2026.
+
+Les points secondaires de ce fichier sont soldés le 29 septembre 2026 : publication aux deux
+stores faite, recettes navigateur et appareil réel (phases 3 et 5) passées, test Vitest de la
+cloche écarté. Deux
+types sont venus après la phase 5, hors de ce chantier : `RIDE_GROUP_REMOVED` (`34431a89`, groupe
+retiré d'une sortie) et `CONTENT_REPORTED` (`4486bf0b`, modération) — `NotificationType` en compte
+désormais 13.
 
 **État au 21 septembre 2026 (conservé tel quel) : push et phase 5 en production.** Serveur à jour en staging et en
 prod, `PEDALONS_PUSH_ENABLED=true` en prod ; build mobile `1.0.0+53` (phase 5) poussée en test sur les
@@ -42,7 +51,8 @@ Légende : ☑ fait et vérifié · ◐ fait, vérification en attente · ☐ à
   `publicationStatusChanged` comme table unique des transitions qui notifient
 - ☑ Étage 2 — `NotificationDispatchService` + `NotificationRecipientResolver` (`switch` exhaustif)
 - ☑ Étage 3 — `NotificationDeliveryService` : lots, hors transaction, recul exponentiel
-- ☑ `NotificationScheduler` (15 s) + ménage nocturne (bloqués, rétention 90 j)
+- ☑ `NotificationScheduler` (15 s) + récupération des bloqués toutes les 5 min + ménage nocturne
+  (rétention 90 j)
 
 ### Producteurs branchés
 - ☑ `RideService.createRide / updateRide`, `TripService.createTrip / updateTrip`,
@@ -55,7 +65,7 @@ Légende : ☑ fait et vérifié · ◐ fait, vérification en attente · ☐ à
 - ☑ `IN_APP` : la ligne `notifications`, toujours active
 - ☑ `EMAIL` : `EmailNotificationSender`, gabarit générique `notification` (Qute fr/en),
   textes `notifications/texts_{fr,en}.properties` — **désactivé par défaut**
-  (`pedalons.notifications.email.enabled`), activé en `%dev` (Mailhog) et `%test`
+  (`pedalons.notifications.email.enabled`), activé en `%dev` (Mailhog à l'époque, mailpit depuis le 28 septembre 2026) et `%test`
 - ✗ `PUSH` : le type existe, aucun émetteur — donc aucune livraison créée ni case proposée (phase 4)
 
 ### API
@@ -149,8 +159,8 @@ de trop dans la requête, pas un budget à relever.
 ### Reste ouvert côté web
 - ☑ `contracts/routes.yaml` : `notifications` est passé `mobile: true` + `deeplink: true` avec la
   phase 3
-- ☐ Tests web : aucun test Vitest n'a été ajouté (le dossier n'en compte que 8, tous sur des
-  utilitaires) — à trancher si la cloche mérite le sien. Le mobile, lui, a le sien.
+- ✗ Tests web : aucun test Vitest ne couvre la cloche ni la page (`components/notification`,
+  `pages/notification`) — écarté le 29 septembre 2026, la recette navigateur les a validées. Le mobile, lui, a le sien.
 
 ## Phase 3 — Mobile (20 septembre 2026)
 
@@ -184,7 +194,7 @@ de trop dans la requête, pas un budget à relever.
 - ☑ `pedalons.notifications.email.enabled=false` ⇒ la section disparaît entièrement du profil,
   sans titre orphelin entre « Préférences » et « Sécurité »
 - ☑ `flutter analyze` propre, `bash check.sh` vert (**545 tests**)
-- ☐ Reste à voir sur un appareil réel : thème sombre (l'app suit la préférence utilisateur, pas le
+- ☑ Vu sur un appareil réel (29 septembre 2026) : thème sombre (l'app suit la préférence utilisateur, pas le
   mode système de l'émulateur), text scaling ×1,3 / ×2,0, et l'ouverture d'un deeplink
   `/notifications` application tuée
 
@@ -308,8 +318,8 @@ côté des autres secrets du projet (keystore Android, profil iOS). Rien de tout
 - ☑ `mobile/store-metadata/data-safety.md` et `PrivacyInfo.xcprivacy` mis à jour
 - ☑ Politique de confidentialité et formulaires des deux stores (21 septembre 2026) ; le
   formulaire Play envoyé pour examen le même jour
-- ◐ Nouvelle soumission aux deux stores — en test depuis le 21 septembre 2026 (TestFlight, piste de
-  test Play) ; reste la publication. La build en test est celle du dernier commit
+- ☑ Nouvelle soumission aux deux stores — en test depuis le 21 septembre 2026 (TestFlight, piste de
+  test Play), publiée (constaté le 29 septembre 2026). La build en test est celle du dernier commit
   `chore(mobile): bump build number` (`mobile/publish_test.sh`) : on ne suit plus les numéros ici
 
 ## Phase 4 bis — Push, côté mobile (21 septembre 2026)
@@ -427,8 +437,9 @@ ailleurs. Le compte de service et la clé APNs, eux, restent dans `~/Documents/p
   d'appareil, autorisation demandée à la demande, jeton supprimé à la déconnexion, sur
   `UNREGISTERED` et à la suppression du compte) ; trois finalités de plus, dont le push sur
   consentement ; Google Ireland (FCM) en sous-traitant, transfert US sous CCT + Data Privacy
-  Framework ; rétention 90 jours ; contenu de l'export. La ligne Brevo mentionnait l'adresse seule —
-  elle porte désormais le contenu des notifications par e-mail.
+  Framework ; rétention 90 jours ; contenu de l'export. La ligne du prestataire e-mail (Brevo alors, Scaleway depuis le
+  22 septembre 2026) mentionnait l'adresse seule — elle porte désormais le contenu des notifications
+  par e-mail.
 - ☑ §4 et §5 de `data-safety.md` reportés dans les deux formulaires — par fichier et commande,
   plus par saisie (`mobile/store-metadata/README.md`). Play : envoyé pour examen le 21 septembre 2026.
 
@@ -439,7 +450,7 @@ ailleurs. Le compte de service et la clé APNs, eux, restent dans `~/Documents/p
   **développement** (`aps-environment = development`, un seul appareil), celui de la recette sur
   iPhone. Le profil de distribution, lui, est généré par fastlane à l'archivage
   (`-allowProvisioningUpdates`, `3ac6dfa7`).
-- ◐ Nouvelle soumission aux deux stores — voir plus haut (en test, publication à venir).
+- ☑ Nouvelle soumission aux deux stores — voir plus haut (publiée).
 
 ## Phase 5 — Nouveaux types, préférences par équipe, webhook, résumé (21 septembre 2026)
 
@@ -502,7 +513,7 @@ mvn test -Dtest='Ride*Test,Comment*Test,TeamInvitation*Test,Invitation*Test'
 - ☑ `components/team/TeamWebhookSettings.tsx` sur la page de réglages de l'équipe : URL jamais
   affichée au-delà de `maskedUrl` (champ vide = garder), format détecté, langue, activation,
   dernier statut, « Envoyer un message de test », suppression confirmée
-- ☑ `pnpm typecheck`, `lint`, `i18n:lint`, `build`, `test` (56) verts — ◐ pas vu dans un navigateur
+- ☑ `pnpm typecheck`, `lint`, `i18n:lint`, `build`, `test` (56) verts — ☑ vu dans un navigateur (29 septembre 2026)
 
 ### Mobile
 - ☑ Libellés, icônes (`PdlIcons.reminder`, `personAdd`, `invitation`) et lignes de matrice des
@@ -512,7 +523,7 @@ mvn test -Dtest='Ride*Test,Comment*Test,TeamInvitation*Test,Invitation*Test'
   de « Mes équipes », bouton « Accepter », rafraîchit équipes et invitations ; codes d'erreur
   d'invitation traduits
 - ☑ Préférences : interrupteurs d'équipe visibles même sans canal, résumé seulement avec `EMAIL`
-- ☑ `flutter analyze` propre, `bash check.sh` vert, **571 tests** — ◐ pas vu sur appareil
+- ☑ `flutter analyze` propre, `bash check.sh` vert, **571 tests** — ☑ vu sur appareil (29 septembre 2026)
 
 ### Reste à faire
 - ☑ Déployé et testé en staging (21 septembre 2026), V40 comprise
@@ -549,7 +560,9 @@ mvn test -Dtest='Ride*Test,Comment*Test,TeamInvitation*Test,Invitation*Test'
   verts (`UserExportBuilderTest`, lancés par l'utilisateur le 21 septembre 2026)
 - ☑ Suppression de compte — 21 septembre 2026 : la suppression reste logique, donc la cascade ne
   part jamais ; `UserService.deleteUser` appelle `NotificationService.forgetUser`, qui efface la
-  boîte, ses livraisons, les préférences et les appareils push. Rien ne partait déjà plus (fan-out
+  boîte, ses livraisons, les préférences et les appareils push. *(Depuis l'effacement de compte, voir
+  le journal du 21 septembre : `deleteUser` passe par `AccountErasureService.erase`, qui appelle
+  `forgetUser` — lequel efface aussi, depuis la phase 5, les équipes coupées et les réglages.)* Rien ne partait déjà plus (fan-out
   et émetteurs sautent les comptes supprimés) : c'est de la minimisation. Les évènements restent —
   ils appartiennent à tous leurs destinataires — et le nom de l'acteur figé dedans part avec la
   rétention (90 j). Test vert (`UserServiceTest`, lancé par l'utilisateur le 21 septembre 2026)
@@ -560,8 +573,8 @@ mvn test -Dtest='Ride*Test,Comment*Test,TeamInvitation*Test,Invitation*Test'
 |---|---|---|
 | 2026-09-18 | Phase 1 | Conception, socle backend, contrat 3.5.0, clients régénérés. Découverte en cours de route : la migration biketeam passe par les services producteurs → mode muet ajouté. Tests verts, commité. |
 | 2026-09-18 | Revue | Clé de dédup rendue par les évènements `SKIPPED`/`FAILED` ; recul avant nouvelle tentative d'un évènement (V38, `next_attempt_at`) ; récupération des bloqués toutes les 5 min, livraisons bloquées sans tentative restante → `FAILED`. |
-| 2026-09-20 | Phase 3 | Mobile livré : cloche, écran, matrice, deeplink. Deux filets du dépôt ont demandé leur entrée (`_deepLinkHierarchies`, `internalRouteTemplates`) — c'est leur raison d'être. « Tout marquer lu » a été redérivé des lignes visibles en plus du compteur global, qui est muet hors session. |
 | 2026-09-20 | Phase 2 | Web livré : cloche, page, libellés fr/en, matrice de préférences, ancre des e-mails. Deux défauts trouvés en recette et corrigés sur place : le fragment `#notifications` n'amenait nulle part, et la section masquée laissait un double séparateur. |
+| 2026-09-20 | Phase 3 | Mobile livré : cloche, écran, matrice, deeplink. Deux filets du dépôt ont demandé leur entrée (`_deepLinkHierarchies`, `internalRouteTemplates`) — c'est leur raison d'être. « Tout marquer lu » a été redérivé des lignes visibles en plus du compteur global, qui est muet hors session. |
 | 2026-09-20 | Recette locale | Essai manuel de bout en bout sur la base restaurée : publication, fan-out, inbox, préférences, annulation, e-mail Mailhog, cascade. Rien à corriger. Relevé au passage, **hors notifications** : `POST /api/teams/{slug}/rides` lève une NPE 500 quand `media.assets` est `{}` (`AssetService.updateAssets` déréférence `images()` nul) — le client web envoie toujours des listes, donc invisible depuis l'application. |
 | 2026-09-20 | Phase 4 | Push côté serveur : `push_devices` (V39), deux endpoints, `PushNotificationSender` et `FcmClient` (FCM HTTP v1 sans dépendance nouvelle — `smallrye-jwt-build` signe l'assertion). Le canal reste indisponible faute de compte de service, ce qui est exactement le filet de §5 : rien n'est mis en file. Contrat 3.6.0, clients régénérés. Le mobile et les préalables console restent à faire. |
 | 2026-09-20 | Préalables push | Console faite : projet Firebase `pedalons-9e595` (Analytics et Gemini coupés), apps Android et Apple `fr.pedalons.mobile`, compte de service vérifié hors application (jeton minté, `messages:send` répond 400 `INVALID_ARGUMENT` sur un faux jeton), clé APNs Sandbox & Production créée et capacité *Push Notifications* activée sur l'App ID — ce qui invalide le profil de provisionnement iOS existant. Les fichiers vivent dans `~/Documents/pedalons/firebase/`, hors dépôt. |

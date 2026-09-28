@@ -1,19 +1,19 @@
-# Audit Pedalons — Fevrier 2026
+# Audit Pedalons — Février 2026
 
 > **Mise à jour : 1er avril 2026** — Vérification de chaque point sur le codebase actuel. Statut : ✅ Corrigé | ⚠️ Partiel | *(sans annotation)* = Ouvert
 >
 > **Mise à jour partielle : 29 septembre 2026** — statuts rafraîchis pour les lignes revérifiées dans
 > le code ce jour-là (backups, tests frontend et mobile, SSR, staging, déconnexion Garmin, image
-> frontend, BACKLOG_old…) ; les autres gardent leur statut d'avril, et les comptages de fin de
-> document ne sont pas recalculés. Restent ouverts, entre autres : rate limiting de
+> frontend, BACKLOG_old, documentation Garmin, dépendances mobile…) ; les autres gardent leur statut
+> d'avril. Les comptages de fin de document sont recalculés à partir de ces statuts. Restent ouverts, entre autres : rate limiting de
 > `/api/device/oauth/complete`, `maximum-scale=1.0`, URL Garmin en dur, `MainActivity.kt` Karoo,
 > `forwardedHeaders.insecure`, pipeline CD, healthchecks. La sécurité applicative est désormais
 > suivie dans [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) (septembre 2026) ; ce document reste la
 > référence pour l'infrastructure, la CI/CD et la qualité des modules.
 
-## Resume executif
+## Résumé exécutif
 
-Pedalons est une plateforme multi-tenant mature pour equipes cyclistes, comprenant 5 composants (backend Java/Quarkus, frontend React/Mantine, mobile Flutter, extension Karoo Kotlin/Compose, app Garmin Monkey C). L'audit 360 degres revele un projet bien architecture avec des fondations solides, mais des lacunes critiques en securite, CI/CD, tests et documentation.
+Pedalons est une plateforme multi-tenant mature pour equipes cyclistes, comprenant 5 composants (backend Java/Quarkus, frontend React/Mantine, mobile Flutter, extension Karoo Kotlin/Compose, app Garmin Monkey C). L'audit 360 degres revele un projet bien architecturé avec des fondations solides, mais des lacunes critiques en securite, CI/CD, tests et documentation.
 
 ### Top 10 des actions prioritaires
 
@@ -28,11 +28,11 @@ Pedalons est une plateforme multi-tenant mature pour equipes cyclistes, comprena
 | 7 | **Ajouter rate limiting sur `/api/device/oauth/complete`** — brute force possible sur les user codes | Securite | CRITIQUE | S | |
 | 8 | **Creer un pipeline CD** — aucun deploiement automatise, images tagguees `:latest` | Infra | CRITIQUE | L | |
 | 9 | **Retirer `maximum-scale=1.0`** du viewport — bloque le zoom pour les malvoyants | Frontend | CRITIQUE | S | |
-| 10 | **Ajouter des healthchecks Docker** a tous les services | Infra | CRITIQUE | M | ⚠️ |
+| 10 | **Ajouter des healthchecks Docker** a tous les services | Infra | CRITIQUE | M | *(ouvert : seul postgres a un healthcheck)* |
 
 ---
 
-## Methodologie
+## Méthodologie
 
 8 agents d'audit specialises ont analyse le projet en parallele :
 1. **Backend** — Architecture, tests, BDD, performance, qualite de code
@@ -42,7 +42,7 @@ Pedalons est une plateforme multi-tenant mature pour equipes cyclistes, comprena
 5. **Garmin** — Qualite de code, URL hardcodee, devices, build, auth, UX
 6. **Infrastructure & CI/CD** — CI/CD, Docker, deploiement, monitoring, backups
 7. **Securite** — Auth, multi-tenancy, OWASP Top 10, secrets, cookies, uploads
-8. **Documentation** — README, CLAUDE.md, PRODUCT_SHEET, BACKLOG, rules.md
+8. **Documentation** — README, CLAUDE.md, PRODUCT_SHEET, BACKLOG, rules.md (aujourd'hui `mobile/RULES.md`)
 
 Chaque agent a explore le code source, identifie les problemes et classe les actions par severite (Critique/Important/Mineur) et effort (S/M/L/XL).
 
@@ -50,9 +50,9 @@ Chaque agent a explore le code source, identifie les problemes et classe les act
 
 ## 1. Backend
 
-### Etat actuel
+### État actuel
 
-Backend Quarkus 3.31.2, Java 21 (compile en Java 25), ~90 fichiers de test. Architecture excellente avec separation en couches (Resource -> Service -> Repository -> Domain) renforcee par ArchUnit. Null safety via `@NullMarked` sur tous les packages. Zero TODO/FIXME dans le code.
+En février 2026 : backend Quarkus 3.31.2, Java 21 (compile en Java 25), ~90 fichiers de test (septembre 2026 : Quarkus 3.39.x, Java 25, ~210 fichiers de test). Architecture excellente avec separation en couches (Resource -> Service -> Repository -> Domain) renforcee par ArchUnit. Null safety via `@NullMarked` sur tous les packages. Zero TODO/FIXME dans le code.
 
 ### Points forts
 - ArchUnit avec 7 regles d'architecture (CheckAccess obligatoire, @Valid, layering)
@@ -61,7 +61,7 @@ Backend Quarkus 3.31.2, Java 21 (compile en Java 25), ~90 fichiers de test. Arch
 - OTP avec rate limiting, hashage SHA-256, validation par domaine
 - DTOs en records Java, formatage Spotless automatique
 
-### Problemes
+### Problèmes
 
 | # | Probleme | Severite | Effort | Fichiers | Statut |
 |---|----------|----------|--------|----------|--------|
@@ -73,10 +73,10 @@ Backend Quarkus 3.31.2, Java 21 (compile en Java 25), ~90 fichiers de test. Arch
 | B6 | ~5 `RuntimeException` dans le code prod au lieu d'exceptions metier | Important | M | `RouteService`, `GarminClient`, `TokenEncryptionService`, etc. | ✅ |
 | B7 | Traitement GPX complet dans une seule transaction (connexion DB longue) | Important | L | `GpxProcessingService.java` | ✅ |
 | B8 | Etat OAuth stocke en `ConcurrentHashMap` (pas multi-instance, fuite memoire) | Important | M | `GpsService.java:52` | ✅ |
-| B9 | Requetes N+1 sur les listings (pas de JOIN FETCH) | Important | L | `TeamEntityRepository.java` | |
-| B10 | `PedalonsQueryContext.getUserNullable()` re-requete la DB a chaque appel | Important | S | `PedalonsQueryContext.java:92-95` | |
+| B9 | Requetes N+1 sur les listings (pas de JOIN FETCH) | Important | L | `TeamEntityRepository.java` | ⚠️ (lookups résolus par page — `ParticipationLookup`, `CommentCountLookup`, `ThumbnailLookup` — et tests `…QueryCountTest` depuis 3bb01f32, juillet 2026 ; `FetchType.EAGER` toujours présent, voir B11) |
+| B10 | `PedalonsQueryContext.getUserNullable()` re-requete la DB a chaque appel | Important | S | `PedalonsQueryContext.java:92-95` | ✅ (mémorisé pour la requête, 3bb01f32, juillet 2026) |
 | B11 | `FetchType.EAGER` sur plusieurs `@ManyToOne` (Ride.route, Ride.start, etc.) | Important | M | `Ride.java`, `RideGroup.java`, `Team.java` | |
-| B12 | Pas de test pour `DeviceAuthService` (device code flow) | Important | M | Nouveau fichier test | |
+| B12 | Pas de test pour `DeviceAuthService` (device code flow) | Important | M | Nouveau fichier test | ⚠️ (`DeviceAuthServiceTest` ne couvre que l'URL de vérification ; émission, complete et polling non testés) |
 | B13 | Code commente dans `PedalonsException` (~40 lignes) | Mineur | S | `PedalonsException.java:23-65` | ✅ |
 | B14 | Logique cle S3 dupliquee (`AssetService` vs `AssetRemoveListener`) | Mineur | S | `AssetService.java`, `AssetRemoveListener.java` | ✅ |
 | B15 | Indexes redondants avec contraintes UNIQUE sur `device_codes` | Mineur | S | `V5__device_codes.sql` | |
@@ -85,9 +85,9 @@ Backend Quarkus 3.31.2, Java 21 (compile en Java 25), ~90 fichiers de test. Arch
 
 ## 2. Frontend
 
-### Etat actuel
+### État actuel
 
-React 19, TypeScript 5.9, Vite 7, Mantine 8, ~97 composants TSX. 1 test fictif (toujours 0 tests reels), infrastructure Vitest presente. Architecture config-driven des routes, paths type-safe, chunk splitting avance (12 chunks), prefetching intelligent.
+En février 2026 : React 19, TypeScript 5.9, Vite 7, Mantine 8, ~97 composants TSX, 1 test fictif (0 tests reels), infrastructure Vitest presente (septembre 2026 : TypeScript 7, Vite 8, Mantine 9, 21 fichiers Vitest, voir F2). Architecture config-driven des routes, paths type-safe, chunk splitting avance (12 chunks), prefetching intelligent.
 
 ### Points forts
 - Lazy loading de toutes les 40+ pages via `React.lazy()`
@@ -97,7 +97,7 @@ React 19, TypeScript 5.9, Vite 7, Mantine 8, ~97 composants TSX. 1 test fictif (
 - i18n FR/EN avec `satisfies` pour les cles dynamiques
 - ConfirmDialog partout (jamais `confirm()` natif)
 
-### Problemes
+### Problèmes
 
 | # | Probleme | Severite | Effort | Fichiers | Statut |
 |---|----------|----------|--------|----------|--------|
@@ -113,17 +113,17 @@ React 19, TypeScript 5.9, Vite 7, Mantine 8, ~97 composants TSX. 1 test fictif (
 | F10 | Message validation Zod hardcode en anglais | Important | S | `RideEditor.tsx:42` | ✅ |
 | F11 | Liens `/terms` et `/privacy` vers pages inexistantes | Important | M | `LoginPage.tsx:280-281` | ✅ |
 | F12 | Sitemap.xml manquant | Important | M | Backend endpoint | |
-| F13 | Pas de SSR = SEO limite pour les bots | Important | XL | Migration architecturale | ✅ (SSR Express, `frontend/SSR.md`) |
-| F14 | `dayjs` utilise uniquement dans `i18n/index.ts` | Mineur | S | `package.json` | ⚠️ |
+| F13 | Pas de SSR = SEO limite pour les bots | Important | XL | Migration architecturale | ✅ (SSR Express, `frontend/docs/SSR.md`) |
+| F14 | `dayjs` utilise uniquement dans `i18n/index.ts` | Mineur | S | `package.json` | ✅ (sans objet : dayjs utilisé aussi par le calendrier et `RideDetailPage`) |
 | F15 | 8 cles `_many` manquantes en EN (coherence structurelle) | Mineur | S | `en/common.json` | ✅ |
 
 ---
 
 ## 3. Mobile
 
-### Etat actuel
+### État actuel
 
-Flutter, Dart 3.10+, Riverpod 3, GoRouter 17. 8 features (auth, home, teams, rides, routes, calendar, profile, navigation). 0 tests. 49 fichiers Dart non-generes, 385 modeles generes, 58 clients API generes.
+Flutter, Dart 3.10+, Riverpod 3, GoRouter 17. 8 features (auth, home, teams, rides, routes, calendar, profile, navigation). 0 tests en février 2026 (77 fichiers en septembre, voir M1). 49 fichiers Dart non-generes, 385 modeles generes, 58 clients API generes.
 
 ### Points forts
 - Architecture feature-based propre avec data/presentation layers
@@ -132,21 +132,21 @@ Flutter, Dart 3.10+, Riverpod 3, GoRouter 17. 8 features (auth, home, teams, rid
 - Systeme adaptatif responsive (bottom nav / navigation rail)
 - Animations bien implementees (shimmer, staggered, hero)
 
-### Problemes
+### Problèmes
 
 | # | Probleme | Severite | Effort | Fichiers | Statut |
 |---|----------|----------|--------|----------|--------|
 | M1 | 0 tests — pas meme de repertoire `test/` | Critique | M | Nouveau `mobile/test/` | ✅ (sept. 2026 : 77 fichiers dans `mobile/test/`, plus `mobile/patrol_test/`) |
 | M2 | Memory leak — stream subscription non dispose dans `_DeepLinkHandler` | Critique | S | `main.dart:60` | ✅ |
-| M3 | `rules.md` recommande ValueNotifier mais le code utilise Riverpod — contradiction | Important | S | `rules.md` | ⚠️ |
-| M4 | Dependances inutilisees : `hooks_riverpod` (flutter_hooks retire, riverpod_generator reste en dev dep) | Important | S | `pubspec.yaml` | ⚠️ |
+| M3 | `rules.md` recommande ValueNotifier mais le code utilise Riverpod — contradiction | Important | S | `mobile/RULES.md` | ✅ (voir D2 : section « State management — Riverpod 3 ») |
+| M4 | Dependances inutilisees : `hooks_riverpod` (flutter_hooks retire, riverpod_generator reste en dev dep) | Important | S | `pubspec.yaml` | ✅ (874a3288, juillet 2026 : seul `flutter_riverpod` reste) |
 | M5 | Labels de navigation hardcodes en francais | Important | S | `navigation_destination.dart` | ✅ |
 | M6 | Widgets dupliques (`_RideCard`, `_StatItem`, `_formatDate`) | Important | M | `home_page.dart`, `team_detail_page.dart` | ✅ |
 | M7 | Couleurs hardcodees (`Colors.green/blue/red`) | Important | S | `verify_email_page.dart`, `ride_detail_page.dart`, etc. | ✅ |
 | M8 | Pas de renderer Markdown pour les descriptions | Important | M | `ride_detail_page.dart`, `route_detail_page.dart` | ✅ |
 | M9 | Feature parity manquante : Posts, Comments, Publications feed | Important | XL | Nouveaux features | ✅ (`features/posts`, `comments`, `feed`) |
 | M10 | 6 TODOs non implementes (discover teams, delete account, notifications) | Important | L | `profile_page.dart`, `teams_page.dart` | ✅ |
-| M11 | Lint rules trop minimales (`analysis_options.yaml`) | Moyen | S | `analysis_options.yaml` | |
+| M11 | Lint rules trop minimales (`analysis_options.yaml`) | Important | S | `analysis_options.yaml` | |
 | M12 | `debugPrint` au lieu de `dart:developer.log` | Mineur | S | `main.dart` | ✅ |
 | M13 | Pas de gestion offline | Mineur | XL | Transversal | |
 
@@ -154,7 +154,7 @@ Flutter, Dart 3.10+, Riverpod 3, GoRouter 17. 8 features (auth, home, teams, rid
 
 ## 4. Karoo
 
-### Etat actuel
+### État actuel
 
 Extension Kotlin/Compose pour Hammerhead Karoo. Package `fr.pedalons.karoo`. 7 fichiers source, ~2760 lignes (dont 1535 dans `MainActivity.kt`). 0 tests. Dark theme correct pour usage outdoor.
 
@@ -164,7 +164,7 @@ Extension Kotlin/Compose pour Hammerhead Karoo. Package `fr.pedalons.karoo`. 7 f
 - DTOs legers (~200 bytes/route)
 - Navigation par boutons physiques bien geree
 
-### Problemes
+### Problèmes
 
 | # | Probleme | Severite | Effort | Fichiers | Statut |
 |---|----------|----------|--------|----------|--------|
@@ -173,12 +173,12 @@ Extension Kotlin/Compose pour Hammerhead Karoo. Package `fr.pedalons.karoo`. 7 f
 | K3 | Pas de ViewModel — tout l'etat dans `remember`, perdu a la recreation | Critique | L | `MainActivity.kt` | |
 | K4 | Compose BOM 2024.09.02 — plus d'un an de retard | Important | S | `libs.versions.toml` | ✅ |
 | K5 | ktor 3.0.3 vs 3.4.0 disponible | Important | M | `libs.versions.toml` | ✅ |
-| K6 | `startActivityForResult` deprece | Important | S | `MainActivity.kt` | ⚠️ |
+| K6 | `startActivityForResult` deprece | Important | S | `MainActivity.kt` | ✅ (`registerForActivityResult`, 7e2d710f, juin 2026) |
 | K7 | Logique refresh token dupliquee dans 3 endroits | Important | S | `MainActivity.kt`, `GpsConnectActivity.kt` | |
 | K8 | `generateQrCode` dupliquee entre 2 fichiers | Important | S | `AuthActivity.kt`, `GpsConnectActivity.kt` | ✅ |
 | K9 | Pas de gestion `slow_down` RFC 8628 | Important | S | `AuthActivity.kt` | |
 | K10 | Pas de pagination des routes — risque depassement 100KB | Important | M | `PedalonsApiClient.kt` | |
-| K11 | Package `fr.pedalons.karoo` vs `fr.pedalons.karoo` dans CLAUDE.md | Mineur | S | Documentation | ✅ |
+| K11 | Package `fr.pedalons.karoo` vs `com.tribly.karoo` dans CLAUDE.md | Mineur | S | Documentation | ✅ |
 | K12 | DataStore non chiffre (tokens en clair) | Mineur | M | `AuthManager.kt` | |
 | K13 | Navigation Compose non utilisee malgre la dependance | Mineur | S | `build.gradle.kts` | |
 
@@ -186,7 +186,7 @@ Extension Kotlin/Compose pour Hammerhead Karoo. Package `fr.pedalons.karoo`. 7 f
 
 ## 5. Garmin
 
-### Etat actuel
+### État actuel
 
 App Connect IQ Monkey C pour GPS Edge Garmin. 15 fichiers source, 1838 lignes. 13 devices supportes. Device code flow pour l'auth. Build Docker pour contourner webkit2gtk.
 
@@ -197,13 +197,13 @@ App Connect IQ Monkey C pour GPS Edge Garmin. 15 fichiers source, 1838 lignes. 1
 - Tri des routes par proximite GPS
 - Shortcut intelligent (1 entry → detail direct)
 
-### Problemes
+### Problèmes
 
 | # | Probleme | Severite | Effort | Fichiers | Statut |
 |---|----------|----------|--------|----------|--------|
 | G1 | URL production hardcodee `https://www.pedalons.fr` — bloque le multi-tenant | Critique | M | `ApiClient.mc:12` | |
 | G2 | Pas de fonctionnalite de deconnexion | Critique | S | `HomeMenuDelegate.mc`, `AuthManager.mc` | ✅ |
-| G3 | Documentation CLAUDE.md incorrecte : `/api/garmin/routes` vs `/api/device/routes` | Critique | S | `garmin-app/CLAUDE.md` | |
+| G3 | Documentation CLAUDE.md incorrecte : `/api/garmin/routes` vs `/api/device/routes` | Critique | S | `garmin-app/CLAUDE.md` | ✅ (corrigé le 29 septembre 2026, 6bb56ab2) |
 | G4 | `loadResource()` appele dans `onUpdate()` — performances | Important | S | `RouteDetailView.mc`, `FormatUtils.mc` | |
 | G5 | AM/PM hardcodes au lieu d'utiliser les strings i18n | Important | S | `FormatUtils.mc:105-106` | ⚠️ |
 | G6 | SDK version hardcodee dans Makefile Docker (connectiq-sdk-lin-8.4.0) | Important | S | `Makefile:123,141` | |
@@ -212,16 +212,16 @@ App Connect IQ Monkey C pour GPS Edge Garmin. 15 fichiers source, 1838 lignes. 1
 | G9 | Layouts a offsets fixes — mal adaptes aux 3 resolutions d'ecran | Important | M | `LoginView.mc`, `RouteDetailView.mc` | ⚠️ |
 | G10 | Collision potentielle sur `_tokenCallback` (refresh vs poll) | Important | S | `ApiClient.mc` | |
 | G11 | Code debug commente (`System.println`) | Mineur | S | `ApiClient.mc`, `AuthManager.mc`, `PedalonsApp.mc` | |
-| G12 | 4 strings non utilisees (Back, Logout, AM, PM) | Mineur | S | `resources/strings.xml` | |
+| G12 | 4 strings non utilisees (Back, Logout, AM, PM) | Mineur | S | `resources/strings.xml` | ⚠️ (`Logout` utilisée depuis G2 ; restent Back, AM, PM) |
 | G13 | BUILD.md liste 7 devices, manifest en a 13 | Mineur | S | `BUILD.md` | ✅ (fusionne dans `garmin-app/README.md` le 29 septembre 2026 : 13 appareils) |
 
 ---
 
 ## 6. Infrastructure & CI/CD
 
-### Etat actuel
+### État actuel
 
-Docker Compose avec 9 services (prod) / 6 services (dev). GitHub Actions CI sur branche `develop`. Dependabot 9 ecosystemes. Aucun pipeline CD. Aucun monitoring. Aucun backup.
+Docker Compose : 7 services par environnement (`docker-compose.yml`) + 2 partagés (`docker-compose.shared.yml`), overlay `docker-compose.local.yml` en local (plus de compose de dev séparé). GitHub Actions CI sur branche `develop`. Dependabot 9 ecosystemes. Aucun pipeline CD. Aucun monitoring. Backups scriptés depuis septembre 2026 (`scripts/backup.sh`).
 
 ### Points forts
 - Infrastructure Docker complete (Traefik, PostGIS, imgproxy, valhalla, MinIO, Varnish, TileServer)
@@ -229,7 +229,7 @@ Docker Compose avec 9 services (prod) / 6 services (dev). GitHub Actions CI sur 
 - `.env.example` bien documente avec placeholders
 - CI active sur `develop`, tests frontend lances
 
-### Problemes
+### Problèmes
 
 | # | Probleme | Severite | Effort | Fichiers | Statut |
 |---|----------|----------|--------|----------|--------|
@@ -237,11 +237,11 @@ Docker Compose avec 9 services (prod) / 6 services (dev). GitHub Actions CI sur 
 | I2 | Aucun backup PostgreSQL ni MinIO | Critique | M | Scripts cron | ✅ (`scripts/backup.sh`, `scripts/restore.sh`, procedure dans `docs/OPERATIONS.md`) |
 | I3 | Aucun pipeline CD — images poussees manuellement | Critique | L | Nouveau `cd.yml` | |
 | I4 | Tag `:latest` sur images backend/frontend — pas de rollback. Depuis, tag par environnement (`pedalons-backend:${ENV_NAME}`) : chaque build écrase la précédente, toujours pas de rollback par version | Critique | S | `docker-compose.yml`, `build.sh` | *(ouvert — prévu avec le passage à Docker Swarm)* |
-| I5 | Pas de healthchecks Docker (sauf PostgreSQL) | Critique | M | `docker-compose.yml` | ⚠️ |
+| I5 | Pas de healthchecks Docker (sauf PostgreSQL) | Critique | M | `docker-compose.yml` | *(ouvert : seul postgres a un healthcheck)* |
 | I6 | Aucune collecte de metriques (pas de Prometheus/Micrometer) | Critique | M | `pom.xml`, config | |
 | I7 | Aucun alerting | Critique | XL | Infrastructure | |
 | I8 | Tests frontend commentes dans le CI | Important | S | `ci.yml` | ✅ |
-| I9 | Version Node CI (24) vs Dockerfile frontend (25.8.1) — mismatch | Important | S | `ci.yml` | |
+| I9 | Version Node CI (24) vs Dockerfile frontend (26.9.0) — mismatch | Important | S | `ci.yml` | |
 | I10 | `forwardedHeaders.insecure=true` sur Traefik | Important | S | `docker-compose.yml` | |
 | I11 | Frontend Dockerfile : `pnpm install` sans `--frozen-lockfile` | Important | S | `frontend/Dockerfile` | ✅ |
 | I12 | Image nginx tierce `steebchen/nginx-spa:stable` | Important | M | `frontend/Dockerfile` | ✅ (plus de nginx : image `node`, `server.js`) |
@@ -252,15 +252,15 @@ Docker Compose avec 9 services (prod) / 6 services (dev). GitHub Actions CI sur 
 | I17 | imgproxy sans signature URL (IMGPROXY_KEY/SALT) | Important | M | `docker-compose.yml` | |
 | I18 | PRs Dependabot non testees (CI desactivee sur develop) | Critique | S | `ci.yml` | ✅ |
 | I19 | Pas de procedure de rotation des secrets | Important | M | Documentation | |
-| I20 | Pas de test de recovery documente | Critique | L | Documentation + scripts | |
+| I20 | Pas de test de recovery documente | Critique | L | Documentation + scripts | ⚠️ (procédure documentée : `docs/OPERATIONS.md`, « Restore drill from another machine » ; exercice jamais mené) |
 
 ---
 
-## 7. Securite
+## 7. Sécurité
 
-### Etat actuel
+### État actuel
 
-Multi-tenancy par domaine HTTP avec filtrage SQL. Auth JWT 15min (web) / 60min (device), refresh 30j/90j hashes SHA-256. OTP 6 chiffres avec rate limiting. WebAuthn challenges single-use. Chiffrement AES-256-GCM pour tokens tiers. Endpoint `/api/device/oauth/complete` desormais securise avec `@RolesAllowed("user")`. Validation MIME via Apache Tika sur les uploads.
+Multi-tenancy par domaine HTTP avec filtrage SQL. Auth JWT 15min (web) / 60min (device), refresh 30j/90j hashes SHA-256. OTP 6 chiffres avec rate limiting. WebAuthn challenges single-use. Chiffrement AES-256-GCM pour tokens tiers. Endpoint `/api/device/oauth/complete` desormais securise avec `@RolesAllowed("user")`. Détection du type des uploads via Magika (`infrastructure/filetype/`, 32e13dce).
 
 ### Points forts
 - Tokens hashes SHA-256 avant stockage
@@ -270,9 +270,9 @@ Multi-tenancy par domaine HTTP avec filtrage SQL. Auth JWT 15min (web) / 60min (
 - Isolation multi-tenant via `PedalonsQuery` + `DomainResolver`
 - SecureRandom pour toute generation de tokens
 - `/api/device/oauth/complete` protege par `@RolesAllowed("user")`
-- Validation MIME des uploads via Apache Tika
+- Détection du type des uploads via Magika
 
-### Problemes
+### Problèmes
 
 | # | Probleme | Severite | Effort | Fichiers | Statut |
 |---|----------|----------|--------|----------|--------|
@@ -295,9 +295,9 @@ Multi-tenancy par domaine HTTP avec filtrage SQL. Auth JWT 15min (web) / 60min (
 
 ## 8. Documentation
 
-### Etat actuel
+### État actuel
 
-Documentation dispersee entre CLAUDE.md (racine + 4 sous-projets), README.md, PRODUCT_SHEET.md, BACKLOG.md, BACKLOG_old.md, mobile/rules.md, garmin-app/BUILD.md. Les CLAUDE.md par composant sont les plus fiables. README.md aligne sur les versions actuelles (PostgreSQL 17, React 19).
+Documentation dispersee entre CLAUDE.md (racine + 5 modules), README.md, docs/PRODUCT_SHEET.md, docs/BACKLOG.md, docs/OPERATIONS.md, mobile/RULES.md, garmin-app/README.md (en février : aussi BACKLOG_old.md et garmin-app/BUILD.md, depuis supprimés ou fusionnés). Les CLAUDE.md par composant sont les plus fiables. README.md aligne sur les versions actuelles (PostgreSQL 17, React 19).
 
 ### Points forts
 - CLAUDE.md bien structure avec commandes, architecture, patterns, gotchas
@@ -306,21 +306,21 @@ Documentation dispersee entre CLAUDE.md (racine + 4 sous-projets), README.md, PR
 - BACKLOG.md correctement marque les features completes (Garmin, Karoo, Mobile, GPS)
 - PRODUCT_SHEET.md corrige : features actuelles listees comme implementees
 
-### Problemes
+### Problèmes
 
 | # | Probleme | Severite | Effort | Fichiers | Statut |
 |---|----------|----------|--------|----------|--------|
-| D1 | README.md : `frontend/.env.example` reference mais inexistant | Critique | S | `README.md` | ⚠️ |
-| D2 | `mobile/rules.md` recommande ValueNotifier — le code utilise Riverpod | Critique | M | `rules.md` | ✅ |
+| D1 | README.md : `frontend/.env.example` reference mais inexistant | Critique | S | `README.md` | ✅ (`frontend/.env.example` suivi par git, décrit dans `frontend/README.md`) |
+| D2 | `mobile/rules.md` recommande ValueNotifier — le code utilise Riverpod | Critique | M | `mobile/RULES.md` | ✅ |
 | D3 | BACKLOG.md : Garmin, Karoo, Mobile, GPS uploads marques non faits — ils existent | Critique | S | `BACKLOG.md` | ✅ |
 | D4 | PRODUCT_SHEET.md : "Soft delete for data preservation" — retire par V9 | Critique | S | `PRODUCT_SHEET.md` | ✅ |
-| D5 | CLAUDE.md racine : "magic link" encore present, Quarkus 3.30 au lieu de 3.31 | Important | M | `CLAUDE.md` | ⚠️ |
+| D5 | CLAUDE.md racine : "magic link" encore present, Quarkus 3.30 au lieu de 3.31 | Important | M | `CLAUDE.md` | ✅ (plus de « magic link » ; Quarkus 3.39.x, comme le pom) |
 | D6 | PRODUCT_SHEET.md : Roadmap liste mobile/Garmin/calendar comme "potentiel" — ils existent | Important | M | `PRODUCT_SHEET.md` | ✅ |
 | D7 | garmin-app/BUILD.md : API 3.2.0 vs manifest 3.3.0, 7 devices vs 13 | Important | S | `BUILD.md` | ✅ (fusionne dans `garmin-app/README.md` le 29 septembre 2026 : API 3.3.0, 13 appareils) |
-| D8 | garmin-app/CLAUDE.md : endpoints `/api/garmin/routes` vs `/api/device/routes` | Important | S | `garmin-app/CLAUDE.md` | |
-| D9 | CLAUDE.md racine : arborescence Karoo dit `fr.pedalons.karoo` et `PedalonsExtension.kt` — c'est `fr.pedalons` et `PedalonsExtension.kt` | Important | S | `CLAUDE.md` | ✅ |
+| D8 | garmin-app/CLAUDE.md : endpoints `/api/garmin/routes` vs `/api/device/routes` | Important | S | `garmin-app/CLAUDE.md` | ✅ (corrigé le 29 septembre 2026, 6bb56ab2) |
+| D9 | CLAUDE.md racine : arborescence Karoo dit `com.tribly.karoo` et `TriblyExtension.kt` — c'est `fr.pedalons.karoo` et `PedalonsExtension.kt` | Important | S | `CLAUDE.md` | ✅ |
 | D10 | BACKLOG_old.md redondant avec BACKLOG.md — peut etre supprime | Mineur | S | `BACKLOG_old.md` | ✅ (supprime le 29 septembre 2026) |
-| D11 | Guide de deploiement manquant | Mineur | M | Documentation | |
+| D11 | Guide de deploiement manquant | Mineur | M | Documentation | ✅ (`docs/OPERATIONS.md`) |
 
 ---
 
@@ -330,9 +330,9 @@ Documentation dispersee entre CLAUDE.md (racine + 4 sous-projets), README.md, PR
 
 | Composant | Tests actuels | Objectif recommande | Effort |
 |-----------|--------------|---------------------|--------|
-| Backend | ~90 fichiers de test | Ajouter DeviceAuth, Admin, Router | M |
-| Frontend | 1 test fictif | Phase 1 : utils/hooks/stores | L |
-| Mobile | 0 | Phase 1 : AuthNotifier, AuthInterceptor, repos | M |
+| Backend | ~210 fichiers de test (~90 en février) | Ajouter DeviceAuth, Admin, Router | M |
+| Frontend | 21 fichiers Vitest + 33 specs e2e (1 test fictif en février) | Phase 1 : utils/hooks/stores | L |
+| Mobile | 77 fichiers de test + Patrol (0 en février) | Phase 1 : AuthNotifier, AuthInterceptor, repos | M |
 | Karoo | 0 | AuthManager, Models, formatage | M |
 | Garmin | 0 (pas de framework) | Non applicable | - |
 
@@ -344,7 +344,7 @@ Les deux clients partagent des problemes communs :
 - Resilience reseau insuffisante pendant le polling
 - URL hardcodee dans Garmin (`pedalons.fr`)
 
-### 9.4 Logging et monitoring
+### 9.3 Logging et monitoring
 
 - Backend : Ajouter `quarkus-micrometer-registry-prometheus`, passer les 4xx en WARN, ajouter des logs de securite
 - Infra : Deployer Prometheus + Grafana, configurer des alertes
@@ -366,24 +366,24 @@ Les deux clients partagent des problemes communs :
 | 6 | Corriger la cle i18n `common.back` → `actions.back` dans LoginPage | Frontend | ✅ |
 | 7 | Corriger "Groupe" hardcode et validation Zod non traduite dans RideEditor | Frontend | ✅ |
 | 8 | Corriger le memory leak stream subscription dans `main.dart` (mobile) | Mobile | ✅ |
-| 9 | Corriger les documentations (README, BACKLOG, PRODUCT_SHEET, rules.md) | Docs | ⚠️ |
+| 9 | Corriger les documentations (README, BACKLOG, PRODUCT_SHEET, rules.md) | Docs | ✅ |
 
 ### P1 — Court terme (1-4 semaines)
 
-| # | Action | Composant |
-|---|--------|-----------|
+| # | Action | Composant | Statut |
+|---|--------|-----------|--------|
 | 10 | Mettre en place les backups PostgreSQL et MinIO | Infra | ✅ |
-| 11 | Ajouter des healthchecks Docker a tous les services | Infra |
+| 11 | Ajouter des healthchecks Docker a tous les services | Infra | |
 | 12 | Creer le pipeline CD (build, tag, push images) | Infra |
 | 13 | Ajouter `quarkus-micrometer-registry-prometheus` | Backend |
 | 14 | Implementer la rotation des refresh tokens | Securite |
 | 15 | Aligner `<release>` Java (21 ou 25) dans le POM | Backend | ✅ |
 | 16 | Retirer `@Transactional` des Resources | Backend |
 | 17 | Passer les logs 4xx en WARN dans GlobalExceptionMapper | Backend | ✅ |
-| 18 | Cacher le User dans `PedalonsQueryContext` | Backend |
+| 18 | Cacher le User dans `PedalonsQueryContext` | Backend | ✅ (3bb01f32) |
 | 19 | Ajouter des tests frontend Phase 1 (utils, hooks, stores) | Frontend | ✅ |
 | 20 | Ajouter des tests mobile Phase 1 (AuthNotifier, interceptor, repos) | Mobile | ✅ |
-| 21 | Supprimer les dependances inutilisees (mobile : hooks_riverpod) | Mobile |
+| 21 | Supprimer les dependances inutilisees (mobile : hooks_riverpod) | Mobile | ✅ (874a3288) |
 | 22 | Internationaliser les labels de navigation mobile | Mobile | ✅ |
 | 23 | Ajouter filtre domainId a `findActiveById` et passkey queries | Securite |
 | 24 | Implementer le logout dans l'app Garmin | Garmin | ✅ |
@@ -391,15 +391,15 @@ Les deux clients partagent des problemes communs :
 
 ### P2 — Moyen terme (1-3 mois)
 
-| # | Action | Composant |
-|---|--------|-----------|
+| # | Action | Composant | Statut |
+|---|--------|-----------|--------|
 | 26 | Refactorer `MainActivity.kt` Karoo (extraire screens, ajouter ViewModel) | Karoo |
 | 27 | Mettre a jour les dependances Karoo (core-ktx) | Karoo |
 | 28 | Rendre l'URL Garmin configurable (Properties Connect IQ) | Garmin |
 | 29 | Ajouter des titres de page dynamiques (frontend) | Frontend | ✅ |
 | 30 | Ajouter skip-to-content et aria-labels manquants | Frontend |
 | 31 | Ajouter `loading="lazy"` sur les images | Frontend | ✅ |
-| 32 | Ajouter JOIN FETCH / entity graphs pour les listings | Backend |
+| 32 | Ajouter JOIN FETCH / entity graphs pour les listings | Backend | ⚠️ (lookups par page, voir B9) |
 | 33 | Extraire le traitement fichier/S3 hors transaction GPX | Backend | ✅ |
 | 34 | Migrer l'etat OAuth en DB/Redis | Backend | ✅ |
 | 35 | Ajouter renderer Markdown dans le mobile | Mobile | ✅ |
@@ -415,8 +415,8 @@ Les deux clients partagent des problemes communs :
 
 ### P3 — Long terme
 
-| # | Action | Composant |
-|---|--------|-----------|
+| # | Action | Composant | Statut |
+|---|--------|-----------|--------|
 | 45 | Feature parity mobile : Posts, Comments, Publications feed | Mobile | ✅ |
 | 46 | Gestion offline mobile | Mobile |
 | 47 | SSR/SSG pour le SEO | Frontend | ✅ |
@@ -431,25 +431,27 @@ Les deux clients partagent des problemes communs :
 
 ---
 
-## Comptage par severite (avril 2026, non recalcule en septembre)
+## Comptage par sévérité (recalculé le 29 septembre 2026 à partir des statuts ci-dessus)
 
-### Problemes restants ouverts ou partiels
+### Problèmes restants ouverts ou partiels
 
 | Severite | Backend | Frontend | Mobile | Karoo | Garmin | Infra | Securite | Docs | Total |
 |----------|---------|----------|--------|-------|--------|-------|----------|------|-------|
-| Critique | 0 | 3 | 2 | 3 | 3 | 6 | 1 | 1 | **19** |
-| Important | 6 | 3 | 8 | 7 | 7 | 10 | 5 | 4 | **50** |
-| Mineur | 1 | 1 | 3 | 3 | 3 | 5 | 5 | 2 | **23** |
-| **Total** | **7** | **7** | **13** | **13** | **13** | **21** | **11** | **7** | **92** |
+| Critique | 0 | 1 | 0 | 3 | 1 | 6 | 1 | 0 | **12** |
+| Important | 4 | 2 | 1 | 3 | 7 | 7 | 5 | 0 | **29** |
+| Mineur | 1 | 0 | 1 | 2 | 2 | 0 | 6 | 0 | **12** |
+| **Total** | **5** | **3** | **2** | **8** | **10** | **13** | **12** | **0** | **53** |
 
-### Points corriges depuis l'audit initial
+### Points corrigés depuis l'audit initial
 
 | Composant | Corriges | Details |
 |-----------|----------|---------|
 | Backend | B1, B2, B3, B5, B6, B7, B8, B13, B14 | B1: `updateSlug()`. B2: Java 25. B3: hibernate-spatial BOM. B5: logs 4xx/5xx. B6: RuntimeException → exceptions metier. B7: GPX hors transaction unique. B8: OAuth state migre en DB. B13: code commente supprime. B14: cle S3 deduplication via `AssetService.getAssetKey()` |
 | Karoo | K4, K5, K8, K11 | Compose BOM 2026.03.00, ktor 3.4.2, generateQrCode partage, package documente |
 | Infrastructure | I1, I8, I16, I18 | CI sur develop, tests frontend actives, backend/.env dans .gitignore |
-| Securite | S1, S14 | @RolesAllowed sur /complete, Apache Tika pour validation uploads |
-| Frontend | F5 | FullCalendar retire |
+| Securite | S1, S14 | @RolesAllowed sur /complete, Magika pour validation uploads |
+| Frontend | F4, F5, F6, F8, F9, F10, F11, F15 | Cle i18n LoginPage, FullCalendar retire, titres de page, `loading="lazy"`, textes RideEditor traduits, pages CGU/confidentialite, cles `_many` |
+| Mobile | M2, M5, M6, M7, M8, M12 | Fuite de subscription, navigation traduite, widgets dedupliques, couleurs du theme, Markdown, `dart:developer.log` |
 | Documentation | D2, D3, D4, D6, D9 | rules.md Riverpod, BACKLOG corrige, PRODUCT_SHEET corrige |
-| Septembre 2026 | I2, I11, I12, F2, F3, F13, M1, M9, M10, G2, D10 | Backups et restauration scriptes, tests Vitest + e2e Playwright, SSR, tests mobile (+ Patrol), parite mobile, deconnexion Garmin, image frontend sur `node`, BACKLOG_old supprime ; staging en service |
+| Septembre 2026 | I2, I11, I12, F2, F3, F13, F14, M1, M3, M9, M10, G2, G3, G13, D1, D5, D7, D8, D10, D11 | Backups et restauration scriptes, tests Vitest + e2e Playwright, SSR, tests mobile (+ Patrol), parite mobile, deconnexion Garmin, doc Garmin (endpoints, README), image frontend sur `node`, BACKLOG_old supprime, `docs/OPERATIONS.md` ; staging en service |
+| Juin-juillet 2026 | B10, K6, M4 | `PedalonsQueryContext` memorise l'utilisateur (3bb01f32), `registerForActivityResult` (7e2d710f), dependances Riverpod inutilisees retirees (874a3288) |

@@ -30,11 +30,13 @@ décision. Toute modification se fait **en parité FR/EN**. Le texte est embarqu
   - une finalité et une base légale au §3 : exécution du contrat pour le relais, intérêt légitime
     pour la limitation des abus ?
 
-## 3. Position précise envoyée par les apps Garmin et Karoo
+## 3. Position précise envoyée par l'app Garmin
 
-- **Constat** : `garmin-app/source/ApiClient.mc` et le client Karoo (`PedalonsApiClient.kt`)
-  envoient la position GPS précise de l'appareil (`?lat=&lon=`) pour trier les parcours par
-  proximité. Cette position est lue à l'ouverture de la liste et n'est pas stockée, mais elle figure
+- **Constat** : `garmin-app/source/ApiClient.mc` envoie la position GPS précise de l'appareil
+  (`?lat=&lon=`) pour trier les parcours par proximité. Le client Karoo
+  (`PedalonsApiClient.getRoutes`) accepte les mêmes paramètres, mais l'app ne les renseigne pas
+  aujourd'hui : `MainActivity` appelle `getRoutes(accessToken)` sans position, et l'app ne demande
+  aucune permission de localisation. À surveiller si on les branche. Cette position est lue à l'ouverture de la liste et n'est pas stockée, mais elle figure
   dans les logs d'accès comme toute URL. La politique ne parle que de la position approximative de
   l'app mobile, et affirme « we do not track your real-time location ».
 - **À décider** :
@@ -53,8 +55,9 @@ décision. Toute modification se fait **en parité FR/EN**. Le texte est embarqu
 ## 5. Web Push : formulation et calendrier
 
 - **Constat** : la politique dit désormais que, dans un navigateur, les notifications passent « par
-  le service push propre au navigateur ». Elle ne nomme ni Google, ni Mozilla, ni Apple, ni
-  Microsoft, et ne parle pas des transferts correspondants. Or `FCM_WEB_*` n'est pas encore en
+  le service push propre au navigateur ». Elle nomme FCM (Google) comme relais, mais pas
+  les services push des éditeurs de navigateurs qui remettent le message (Google pour Chrome,
+  Mozilla, Apple, Microsoft), ni les transferts correspondants. Or `FCM_WEB_*` n'est pas encore en
   production ([NEXT §8.3](../NEXT.md#83-notifications--ce-qui-reste)) : le texte décrit une fonction
   qui n'existe pas encore.
 - **À décider** :

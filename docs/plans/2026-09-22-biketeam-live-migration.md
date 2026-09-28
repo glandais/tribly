@@ -83,9 +83,9 @@ restent vraies et sont reprises telles quelles — seule la façon d'obtenir les
  9                                 SUCCEEDED ∧ ¬dryRun : bilan affiché, équipe toujours gelée (READY), pas de bascule
                                    FAILED : dégel de l'équipe, erreur affichée
     POST /{t}/admin/pedalons/switch (« Basculer vers Pédalons », après lecture du bilan)
-        ─────────────────────────▶ écrit pedalons_redirect, team.pedalons_state=MIGRATED
-10  GET /{t}/rides/42 ─────────────▶ 302 (configurable) Location: https://www.pedalons.fr/equipes/{t}/sorties/{slug}
-    GET /api/teams/{t}/rides/42 ───▶ 410 {"code":"TEAM_MIGRATED","url":"https://www.pedalons.fr/equipes/{slug}"}
+        ─────────────────────────▶ team.pedalons_state READY→MIGRATED (table d'URL écrite au succès)
+10  GET /{t}/rides/42 ─────────────▶ 302 (configurable) Location: https://www.pedalons.fr/equipes/{teamSlug}/sorties/{rideSlug}
+    GET /api/teams/{t}/rides/42 ───▶ 410 {"code":"TEAM_MIGRATED","url":"https://www.pedalons.fr/equipes/{teamSlug}"}
 ```
 
 Trois canaux, trois secrets distincts (§3) : le jeton de demande transite par le navigateur, le
@@ -150,7 +150,7 @@ Charge utile (tous les champs obligatoires, types stricts) :
 | `jti` | string | `requestId`, UUID v4 en minuscules = `pedalons_migration.id` |
 | `iat` | int | secondes epoch |
 | `exp` | int | `iat + 3600` (le temps de se créer un compte Pédalons et de vérifier son e-mail) |
-| `teamId` | string | identifiant biketeam, minuscules (c'est aussi le slug cible) |
+| `teamId` | string | identifiant biketeam, minuscules, vérifie `^[a-z0-9][a-z0-9_.-]{0,254}$` (biketeam fait ce contrôle avant de signer) ; normalisé, c'est aussi le slug cible (§13.19) |
 | `teamName` | string | `team.name` |
 | `requestedBy` | string | prénom + nom de l'admin biketeam, pour affichage seulement |
 | `dryRun` | bool | |
@@ -249,7 +249,7 @@ Deux endpoints publics (joignables sans secret, appelés par la page web), mais 
 true)`, sans `@Tag`, et DTO sans `@Schema` de classe, donc rien dans les clients générés frontend
 et mobile. Le frontend les appelle par un module écrit à la main
 (`frontend/src/pages/biketeamMigration/biketeamMigrationApi.ts`, types recopiés des DTO Java ci-
-dessous). Seuls les dix codes `BIKETEAM_*` de l'enum `ErrorCode` partagé restent dans le contrat :
+dessous). Seuls les onze codes `BIKETEAM_*` de l'enum `ErrorCode` partagé restent dans le contrat :
 `pedalons.api.version` **4.4.0 → 4.5.0** (ajout rétrocompatible). Les noms (`operationId`, DTO)
 ci-dessous restent ceux du code Java et du module frontend.
 
@@ -346,7 +346,9 @@ Nouveaux `ErrorCode` (backend) et clés `errors.api.<CODE>` (frontend, fr + en) 
 `BIKETEAM_REQUEST_INVALID`, `BIKETEAM_REQUEST_EXPIRED`, `BIKETEAM_REQUEST_ALREADY_USED`,
 `BIKETEAM_SLUG_CONFLICT`, `BIKETEAM_MIGRATED_IN_OTHER_DOMAIN`, `BIKETEAM_NOT_TEAM_ADMIN`,
 `BIKETEAM_MIGRATION_RUNNING`, `BIKETEAM_RESET_BLOCKED`, `BIKETEAM_GRANT_INVALID`,
-`BIKETEAM_GRANT_EXPIRED` (les deux derniers ne servent qu'au M2M, mais vivent dans le même enum).
+`BIKETEAM_GRANT_EXPIRED`, `BIKETEAM_JOB_NOT_FOUND` (les trois derniers ne servent qu'au M2M, mais
+vivent dans le même enum ; `BIKETEAM_JOB_NOT_FOUND`, ajouté le 2026-09-24 pour le §5.2, n'a pas de
+clé `errors.api` côté frontend).
 
 ### 4.3 Page web `biketeamMigration`
 
@@ -541,7 +543,7 @@ d'aspirer n'importe quelle équipe.
 
 ### 6.2 `GET /internal/pedalons/teams/{teamId}/snapshot`
 
-Couvre tout ce que `BiketeamReader` lit aujourd'hui, **moins** `user_account`, `user_role`,
+Couvre tout ce que lisait `BiketeamReader` (l'ancien import SQL, supprimé le 28 septembre 2026), **moins** `user_account`, `user_role`,
 `ride_group_participant`, `trip_participant`, `message`, `user_email_conflict` ; plus le fuseau de
 l'équipe (que l'ancien import supposait `Europe/Paris`) et les références de fichiers.
 
@@ -666,7 +668,7 @@ Champ par champ, là où ce n'est pas évident :
 | `team.timezone` | string | `team_configuration.timezone` |
 | `team.description` | objet\|null | `team_description` ; `addressPostalCity` = colonne `address_postal_city` |
 | `team.markdownPage` | string\|null | `team_configuration.markdown_page` (la FAQ), `null` si vide |
-| `team.logo` | FileRef\|null | `misc/<teamId>/logo.<png\|jpg>` s'il existe — **y compris** le logo factice : c'est Pédalons qui l'écarte par empreinte, comme aujourd'hui. Jamais `heatmap.png`, jamais `misc/logo.png`. |
+| `team.logo` | FileRef\|null | `misc/<teamId>/logo.<png\|jpg\|jpeg>` s'il existe — **y compris** le logo factice : c'est Pédalons qui l'écarte par empreinte, comme aujourd'hui. Jamais `heatmap.png`, jamais `misc/logo.png`. |
 | `places[].lat/lng` | number\|null | `point_lat`/`point_lng` |
 | `maps[]` | | **toutes** les lignes de `map` de l'équipe, supprimées comprises (`deleted = map.deletion`) : Pédalons met à la corbeille le parcours d'une carte supprimée depuis un passage précédent |
 | `maps[].startPoint/endPoint` | `{lat,lng}`\|null | `null` si une coordonnée manque |
@@ -775,7 +777,7 @@ désactivée.
 **Reprise après crash.** Toutes les 5 min, un job `RUNNING` dont `heartbeat_at` a plus de
 `pedalons.biketeam.stuck-after` (défaut **20 min**) repasse `QUEUED` si `attempts < max-attempts`,
 sinon `FAILED WORKER_LOST` — deux `UPDATE` conditionnels en masse, sans `@Version`. Le démarrage
-échoue si `stuck-after` n'excède pas le plus long silence d'un job vivant + 2 min : en-têtes d'un
+échoue si `stuck-after` est inférieur au plus long silence d'un job vivant + 2 min : en-têtes d'un
 fichier (120 s) + une lecture inactive (`export-idle-timeout`) + 1 min de battement + transaction
 d'un parcours (600 s), ou en-têtes de l'instantané (`export-snapshot-timeout`) + lecture inactive +
 1 min (16 min avec les défauts). La migration
@@ -796,8 +798,8 @@ change sa source de données.
 - `BiketeamModel` (nouveau, **non** déprécié) : les records `BtTeam`, `BtTeamDescription`, `BtPlace`,
   `BtMap`, `BtRide`, `BtRideGroup`, `BtRideTemplate`, `BtRideGroupTemplate`, `BtTrip`, `BtTripStage`,
   `BtPublication`, déplacés hors de `BiketeamReader`. Les records de personnes (`BtUser`,
-  `BtUserRole`, `BtRideGroupParticipant`, `BtTripParticipant`, `BtMessage`) restent dans
-  `BiketeamReader`, déprécié.
+  `BtUserRole`, `BtRideGroupParticipant`, `BtTripParticipant`, `BtMessage`) vivaient dans
+  `BiketeamReader`, supprimé avec l'ancien import le 28 septembre 2026.
 - `BiketeamSource` (interface) : `team()`, `teamDescription()`, `teamMarkdownPage()`, `zone()`,
   `places()`, `maps()`, `rideTemplates()` + `rideGroupTemplates()`, `publications()`, `rides()` +
   `rideGroups()`, `trips()` + `tripStages()` (listes **déjà ordonnées**), et pour les fichiers
@@ -807,22 +809,26 @@ change sa source de données.
 - `SnapshotBiketeamSource` : construit sur l'instantané désérialisé + `BiketeamExportClient`.
   Convertit les champs vers les records (`deleted` → `deletion`, `startPoint.lat` → `startPointLat`,
   etc.). `zone()` = `ZoneId.of(team.timezone)`, repli `Europe/Paris` si invalide (journalisé).
-- `LegacyJdbcBiketeamSource` (déprécié) : enveloppe `BiketeamReader` + le `data-dir` ;
+- ~~`LegacyJdbcBiketeamSource`~~ (supprimée le 28 septembre 2026 avec l'ancien import) : enveloppait `BiketeamReader` + le `data-dir` ;
   `zone()` = `Europe/Paris` ; `fingerprint()` = `digest(Path)` actuel.
 
 Refactorisation de `BiketeamMigrationService` :
 
-- `migrateTeamContent(Team team, User actor, BiketeamSource source, PeopleData people, ProgressListener)`
-  : description, FAQ, logo, lieux, parcours, modèles, publications, sorties, voyages. `PeopleData`
-  porte les participations et la table `userIds` ; **vide** en direct, rempli par le chemin legacy.
-  Les boucles de participation existantes deviennent des no-op sur une table vide, et sont marquées.
+- `migrateTeamContent(Run r)` (privée ; `Run` porte équipe, acteur, source, fuseau, id biketeam,
+  progression) : description, FAQ, logo, lieux, parcours, modèles, publications, sorties, voyages.
+  Aucune participation ni aucun utilisateur n'est migré (`PeopleData`, prévu pour le chemin legacy,
+  a disparu avec lui le 28 septembre 2026).
 - Les constantes `PARIS` / `atParis` deviennent un fuseau passé par la source (`atZone(zone, …)`).
-- `ensureTargetTeam(domain, creator, btTeam)` : inchangé sur le fond ; en direct `creator` = le
-  confirmant, suivi de `ensureMembership(team, creator, ADMIN)`.
+- `ensureLiveTargetTeam(domain, actor, btTeam, zone, expectedTeamId, setAside)` (règles du §7.3) :
+  le créateur est le confirmant, suivi de `ensureMembership(team, actor, ADMIN)` (`ensureTargetTeam`
+  était le chemin legacy, supprimé le 28 septembre 2026).
 - Toutes les écritures de mapping passent `biketeamTeamId` (§8.1).
-- Legacy : `run()` garde sa forme (toutes les équipes, admin de bootstrap, puis utilisateurs,
-  adhésions, participations, commentaires) et devient `@Deprecated(forRemoval = true)`.
-- Point d'entrée direct : `migrateTeamLive(LiveJobContext ctx, BiketeamSource source, ProgressListener l)`.
+- Legacy : `run()` (toutes les équipes, admin de bootstrap, puis utilisateurs, adhésions,
+  participations, commentaires) a été supprimé le 28 septembre 2026 (`d93fd3af`) ;
+  `migrateTeamLive` est le seul point d'entrée.
+- Point d'entrée direct : `migrateTeamLive(Domain domain, User actor, BiketeamSource source,
+  @Nullable Long expectedTeamId, @Nullable Runnable setAside, LongConsumer onTarget,
+  BiketeamMigrationProgress progress)`.
 
 ### 7.3 Résolution de la cible, `reset`, conflits
 
@@ -1057,21 +1063,26 @@ biketeam, gabarits FreeMarker `.ftlh`, `@Value` pour la configuration, changeset
 - `pedalons-redirect-table` — `pedalons_redirect` : `team_id VARCHAR(255)` FK `team(id)` ON DELETE
   CASCADE, `entity_type VARCHAR(20)`, `entity_id VARCHAR(255)`, `target_url VARCHAR(1000)`, tous NOT
   NULL, PK `(team_id, entity_type, entity_id)`. `entity_type` = clés de `urlMap`.
-- `team-pedalons-columns` — `team` : `pedalons_state VARCHAR(20)` NULL (`MIGRATING`, `MIGRATED`),
-  `pedalons_url VARCHAR(1000)` NULL, `pedalons_migrated_at TIMESTAMP` NULL.
+- `team-pedalons-columns` — `team` : `pedalons_state VARCHAR(20)` NULL (`MIGRATING`, `READY`, `MIGRATED` ;
+  `READY` = définitif réussi, gelé, en attente de bascule), `pedalons_url VARCHAR(1000)` NULL,
+  `pedalons_migrated_at TIMESTAMP` NULL.
+- `pedalons-migration-running-since` — `pedalons_migration.running_since TIMESTAMP` NULL (premier
+  `RUNNING` rapporté ; le délai de 6 h en part, l'attente en `QUEUED` a son propre délai de 48 h
+  depuis `triggered_at`).
 
 ### 9.2 États de `pedalons_migration`
 
 ```
 REQUESTED ──callback outcome=cancelled──▶ CANCELLED
-    │  (nouvelle demande pour l'équipe, ou > 60 min) ─▶ CANCELLED / EXPIRED
+    │  (nouvelle demande pour l'équipe, ou > 75 min) ─▶ CANCELLED / EXPIRED
     │ callback grant
     ▼
-TRIGGERING ──202/200──▶ RUNNING ──statut SUCCEEDED──▶ SUCCEEDED ──clic « Basculer » (définitif)──▶ switched_at
+TRIGGERING ──202/200──▶ RUNNING ──statut SUCCEEDED──▶ SUCCEEDED (définitif : équipe READY) ──clic « Basculer »──▶ switched_at
     │                     │
-    │ refus / 3 échecs    └──statut FAILED, 404, ou > 6 h──▶ FAILED
-    ▼
-  FAILED
+    │ refus / 3 échecs    ├──statut FAILED, 404 BIKETEAM_JOB_NOT_FOUND, ou délai dépassé──▶ FAILED
+    ▼                     │
+  FAILED                  └──annulation par l'admin plateforme (unswitch, §9.6)──▶ CANCELLED
+                             (vaut aussi pour TRIGGERING)
 ```
 
 - **Démarrage** `POST /{teamId}/admin/pedalons/start` (champs `dryRun`, `reset` ; ajouté à la liste
@@ -1081,7 +1092,8 @@ TRIGGERING ──202/200──▶ RUNNING ──statut SUCCEEDED──▶ SUCCEE
   `{PEDALONS_URL}/migration-biketeam?request=<jeton>` (jeton encodé URL).
 - **Callback** `GET /{teamId}/admin/pedalons/callback` (sous `/{teamId}/admin/**`, donc session admin
   exigée) : `request` doit désigner une ligne `REQUESTED` de **cette** équipe créée il y a moins de
-  60 min, sinon message d'erreur sur la page d'admin.
+  75 min (validité du jeton 60 min + 15 min de grâce), par le même compte biketeam, sinon message
+  d'erreur sur la page d'admin.
   - `outcome=cancelled` → `CANCELLED`.
   - `grant=…` → `TRIGGERING`, `grant_value`, `triggered_at` ; **si définitif** :
     `team.pedalons_state = MIGRATING` (gel, §9.5) ; puis déclenchement §5.1 (3 essais à 0/2/5 s sur
@@ -1094,17 +1106,19 @@ TRIGGERING ──202/200──▶ RUNNING ──statut SUCCEEDED──▶ SUCCEE
   `GET` statut §5.2, `result_json` = corps reçu.
   - `SUCCEEDED` : `finished_at`, `pedalons_team_url = targetTeam.url`, `result_json` (qui porte
     `urlMap`). **Aucune bascule automatique**, avertissements ou non : la page affiche le bilan.
-    **Définitif** : l'équipe passe à `READY`, toujours gelée, et la page propose « Basculer vers
-    Pédalons ». **Essai** : rien d'autre (la page affiche les liens).
-- **Bascule** `POST /{teamId}/admin/pedalons/switch` (liste CSRF) : seulement pour la dernière ligne
-  `SUCCEEDED` définitive de l'équipe, pas encore basculée. Dans une transaction, remplacer les
-  `pedalons_redirect` de l'équipe par l'`urlMap` de son `result_json`, `team.pedalons_state =
-  MIGRATED`, `pedalons_url`, `pedalons_migrated_at`, `switched_at` ; rafraîchir le cache du filtre.
+    **Définitif** : le poller remplace les `pedalons_redirect` de l'équipe par l'`urlMap` (table en
+    attente), renseigne `pedalons_url` et passe l'équipe à `READY`, toujours gelée ; la page propose
+    « Basculer vers Pédalons ». **Essai** : rien d'autre (la page affiche les liens).
   - `FAILED` : `error_code`/`error_message` de `error`, dégel.
   - `404 {"code":"BIKETEAM_JOB_NOT_FOUND"}` : `FAILED JOB_LOST`, dégel ; tout autre `404` est
-    transitoire (§5.2). Réseau : on réessaie au tick suivant ; sans état terminal au
-    bout de 6 h : `FAILED TIMEOUT`, dégel.
-- Une ligne `TRIGGERING` de plus de 10 min (crash entre callback et réponse) : le poller rejoue le
+    transitoire (§5.2). Réseau : on réessaie au tick suivant ; sans état terminal 6 h après le
+    premier `RUNNING` rapporté (48 h en `QUEUED` depuis le déclenchement) : `FAILED TIMEOUT`, dégel.
+- **Bascule** `POST /{teamId}/admin/pedalons/switch` (liste CSRF) : seulement pour une équipe
+  `READY` sans migration active. Dans une transaction : `team.pedalons_state` `READY` → `MIGRATED`
+  (conditionnel), `pedalons_migrated_at`, `switched_at` du dernier définitif réussi, demandes
+  `REQUESTED` restantes annulées ; puis rafraîchir le cache du filtre.
+- Une ligne `TRIGGERING` de plus de 3 min (`TRIGGERING_STUCK_AFTER`, pour rejouer dans la fenêtre
+  du grant de 10 min) (crash entre callback et réponse) : le poller rejoue le
   déclenchement avec `grant_value` (idempotent) ; grant expiré → `FAILED`, dégel.
 
 ### 9.3 Page d'admin `/{teamId}/admin/pedalons`
@@ -1188,8 +1202,9 @@ si besoin (§13, décision 11).
 ### 9.6 Annulation de la bascule (admin plateforme)
 
 `POST /admin/teams/pedalons-unswitch/{teamId}` (liste CSRF, bouton dans `admin_teams.ftlh` sur les
-équipes `MIGRATED`) : `pedalons_state = null`, suppression des `pedalons_redirect` de l'équipe, cache
-invalidé. Tant que le code est 302 (défaut), rien n'est retenu par les navigateurs ; après passage
+équipes `READY` ou `MIGRATED`) : `pedalons_state = null`, suppression des `pedalons_redirect` de
+l'équipe, cache invalidé ; la migration active éventuelle (`TRIGGERING`/`RUNNING`) passe `CANCELLED`
+(`CANCELLED_BY_ADMIN`) dans la même transaction. Tant que le code est 302 (défaut), rien n'est retenu par les navigateurs ; après passage
 à 301, ceux qui l'ont mis en cache continueront d'aller sur Pédalons — c'est pourquoi le 301 attend
 que la migration soit stabilisée.
 
@@ -1288,7 +1303,7 @@ méthodes. Rien n'est supprimé maintenant ; le legacy doit continuer à compile
 | 9 | `scripts/restore.sh` (commentaire citant `biketeam_restore.sh`, l. ~175) | marqueur (réécrire le commentaire) |
 | 10 | `MIGRATE_BIKETEAM.md` : bandeau en tête renvoyant à ce plan ; sections *Reset*, *Backup data*, *Restore the dump*, *Run the migration*, *Which teams get migrated*, *Members without an email*, *Verified emails and passwords*, *Running the migration from dev mode*, *Configuration* marquées une à une. Les sections de règles (*Replaying*, *Known failures*, *Ordering*, *Visibility*, *Dates*, *Team pages*, *Team logos*) **restent** : elles décrivent aussi le chemin direct | marqueurs `<!-- … -->` par section |
 | 11 | ~~`README.md` : mention de la migration biketeam dans « Running the full stack locally » et de `biketeam_restore.sh`~~ (retirées avec l'import par dump, `d93fd3af`) | marqueur |
-| 12 | ~~`.env.example` : commentaire de `SOCIAL_PLACEHOLDER_EMAIL_DOMAIN`~~ (variable retirée avec la connexion Strava) (« must match the biketeam migration's… » — la variable reste, les comptes importés existent) | marqueur sur le commentaire |
+| 12 | ~~`.env.example` : commentaire de `SOCIAL_PLACEHOLDER_EMAIL_DOMAIN`~~ (variable retirée avec la connexion Strava, API 5.0.0) | marqueur sur le commentaire |
 | 13 | `service/bootstrap/BootstrapService.java` (javadoc l. ~52, « the biketeam migration relies on… ») | marqueur |
 | 14 | L'entrée de `docs/NEXT.md` ci-dessous | marquée elle aussi |
 | 15 | ~~`SECURITY_AUDIT.md` : ligne L12 (`scripts/biketeam_fetch.sh`)~~ (retirée avec l'import par dump, `d93fd3af` ; l'audit est depuis dans `docs/SECURITY_AUDIT.md`) | marqueur dans la dernière cellule |
@@ -1430,7 +1445,8 @@ sections concernées (§0, §1, §6.2, §9.2 à §9.7) sont à jour.
     description du voyage Pédalons, sous un titre `## Notes` : Pédalons n'a pas de page par voyage.
     Le texte est déjà du Markdown : seules les fins de ligne sont normalisées (CRLF → LF). La
     description est reconstruite de la source à chaque passage, donc un rejeu n'empile pas de
-    seconde section. Appliqué aux deux sources (instantané et ancien import). `/trips/{id}/notes`
+    seconde section. Appliqué aux deux sources de l'époque (instantané et ancien import, ce dernier supprimé le
+    2026-09-28, `d93fd3af`). `/trips/{id}/notes`
     redirige déjà vers le voyage (§9.4).
 14. **Tags de parcours, ville/pays de l'équipe, intégrations** (Mattermost, webhooks, réseaux) : non
     importés pour le moment (tags exportés pour plus tard).
@@ -1522,8 +1538,8 @@ Notes datées des implémenteurs quand le code s'écarte de ce document.
     ASCII (`Boucle_de_l’Erdre`, servi en `%E2%80%99`) retrouve son entrée de la table d'URL.
 
 13. **Bascule manuelle (§9.2, §13.4 tranchée).** Un définitif réussi ne bascule plus : le poller enregistre la table d'URL et passe le groupe à `pedalons_state = READY` (nouvelle valeur, sans changeset : colonne `VARCHAR(20)`), avec `pedalons_url`, mais sans `switched_at` ni `pedalons_migrated_at`. Le gel est levé si le job échoue (`null`) ; s'il réussit, le groupe `READY` reste **gelé** mais n'est pas redirigé (décision du 2026-09-24 : rien ne doit se perdre entre le succès et le clic). La page d'admin affiche le bilan et un bouton « Basculer vers Pédalons » (`POST /{t}/admin/pedalons/switch`, CSRF, confirmation JS), qui passe le groupe à `MIGRATED`, renseigne `pedalons_migrated_at` et le `switched_at` du dernier définitif réussi, et annule les demandes `REQUESTED` restantes. Avant la bascule, une nouvelle migration reste possible. Au callback, un définitif regèle le groupe et efface la table en attente ; un essai l'efface aussi et remet le groupe à `null`, car il modifie, voire réinitialise, le groupe Pédalons : seul un définitif réussi permet de basculer. Les transitions gel, bascule et abandon sont des `UPDATE` conditionnels sur l'état, donc sans course entre une bascule et un nouveau lancement. Un callback sur un groupe `MIGRATED` est refusé. L'annulation plateforme (§9.6) s'applique aussi à un groupe `READY`.
-14. **API d'un groupe basculé (§9.4, §13.9 tranchée).** `/api/teams/{t}/**`, lectures comprises, répond `410` `{"code":"TEAM_MIGRATED","message":"Ce groupe a déménagé sur Pédalons.","url":"<page Pédalons du groupe>"}`, avec l'URL `TEAM` de la table ou, à défaut, `pedalons_url`. Les pages et téléchargements hors `/api/` restent redirigés.
-15. **Code de redirection configurable (§9.4, §13.10 tranchée).** `PEDALONS_REDIRECT_STATUS` (`pedalons.redirect-status`) vaut `301` ou `302`, `302` par défaut. Toute autre valeur fait échouer le démarrage, même fonction éteinte. On passe à `301` une fois les bascules stabilisées (`.env.template`, README).
+14. **API d'un groupe basculé (§9.4, §13.5 tranchée).** `/api/teams/{t}/**`, lectures comprises, répond `410` `{"code":"TEAM_MIGRATED","message":"Ce groupe a déménagé sur Pédalons.","url":"<page Pédalons du groupe>"}`, avec l'URL `TEAM` de la table ou, à défaut, `pedalons_url`. Les pages et téléchargements hors `/api/` restent redirigés.
+15. **Code de redirection configurable (§9.4, §13.6 tranchée).** `PEDALONS_REDIRECT_STATUS` (`pedalons.redirect-status`) vaut `301` ou `302`, `302` par défaut. Toute autre valeur fait échouer le démarrage, même fonction éteinte. On passe à `301` une fois les bascules stabilisées (`.env.template`, README).
 16. **Listes (§13.15).** Les groupes basculés restent listés sur `/teams` et l'accueil ; un clic redirige. Leur logo `/{t}/image`, affiché en `<img>` par ces listes, n'est **pas** redirigé et reste servi par biketeam.
 
 ### 2026-09-22 — tribly backend
@@ -1585,20 +1601,23 @@ document laissait ouverts, deux d'entre eux étant visibles de biketeam (4, 5).
 14. **Assets mappés : garde d'appartenance.** Une ligne `ASSET` (image, logo) n'est crue que si
     l'asset appartient à l'équipe cible **et** à l'entité (sortie, voyage, publication, page
     à-propos) qui le porte ; sinon l'image est téléversée de nouveau et la ligne réécrite. La branche
-    « parcours supprimé » ne met à la corbeille qu'un parcours de l'équipe cible. Cas visé : le
-    re-migration vers un autre domaine permis par l'écart 1, où les lignes de l'ancienne équipe
+    « parcours supprimé » ne met à la corbeille qu'un parcours de l'équipe cible. Cas visé : la
+    re-migration vers un autre domaine permise par l'écart 1, où les lignes de l'ancienne équipe
     restent en place.
-15. **`teamId` migrables** — **à reprendre côté biketeam** (non fait ici). Pédalons n'accepte que
+15. **`teamId` migrables** — **fait côté biketeam** (`ea72260`, 2026-09-25 :
+    `PedalonsMigrationService.isMigratable`, refus dans `start()`, bouton masqué par
+    `pedalonsMigratable`). Pédalons n'accepte que
     `^[a-z0-9][a-z0-9_.-]{0,254}$` : le `teamId` devient le slug de l'équipe et un segment de chaque
     URL construite (les slugs Pédalons natifs sont même plus stricts, `^[a-z0-9]+(-[a-z0-9]+)*$`).
     Élargir ce motif créerait des slugs non ASCII que le reste de Pédalons ne sait pas servir ; il
     est donc **conservé**, et un refus pour ce motif est désormais journalisé côté Pédalons (le
     visiteur voit toujours `BIKETEAM_REQUEST_INVALID`). Or `Strings.normalizePermalink` de biketeam
-    garde `’`, `œ`, `æ`, `ß`, `°`… et peut commencer par `_`, `-` ou `.`. **Règle du §3.2 à
-    compléter** : « `teamId` vérifie `^[a-z0-9][a-z0-9_.-]{0,254}$` ; biketeam fait ce contrôle
+    garde `’`, `œ`, `æ`, `ß`, `°`… et peut commencer par `_`, `-` ou `.`. **Règle reportée au §3.2** :
+    « `teamId` vérifie `^[a-z0-9][a-z0-9_.-]{0,254}$` ; biketeam fait ce contrôle
     avant de signer (`PedalonsMigrationService.start()`, message « identifiant de groupe non
-    migrable ») et masque le bouton de `/{teamId}/admin/pedalons` pour un tel groupe. » Changement
-    côté biketeam, laissé à son implémenteur.
+    migrable ») et masque le bouton de `/{teamId}/admin/pedalons` pour un tel groupe. »
+    *Précisé par la décision 19 (2026-09-24) : le slug est le `teamId` normalisé
+    (`SlugService.slugifyWithinLimit`), l'identifiant brut reste la clé de mapping.*
 
 ### 2026-09-22 — exploitation (§3.4)
 
