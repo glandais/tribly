@@ -387,6 +387,22 @@ class AuthServiceTest extends AbstractBaseTest {
   }
 
   @Test
+  void loginWithPassword_shouldRecordTheLoginWithoutBumpingTheUserVersion() {
+    createVerifiedUserWithPassword("login-twice@example.com", "Login User", "mypassword123");
+    User user = dataService.findUserByEmail("login-twice@example.com");
+    Object[] before = userVersionAndLastLogin(user.getId());
+
+    authService.loginWithPassword("login-twice@example.com", "mypassword123", "Agent", "IP");
+
+    // Two logins of one account at once (two tabs, the app and the site) failed on the optimistic
+    // lock: a login must record itself without writing the versioned row.
+    Object[] after = userVersionAndLastLogin(user.getId());
+    assertEquals(before[0], after[0]);
+    assertNotNull(after[1]);
+    assertNotEquals(before[1], after[1]);
+  }
+
+  @Test
   void loginWithPassword_withNoPasswordSet_shouldThrowInvalidCredentials() {
     dataService.createVerifiedUser("nopassword@example.com", "No Password");
 

@@ -349,7 +349,7 @@ public class AuthService {
       throw new BadRequestException(ErrorCode.TOKEN_INVALID);
     }
 
-    user.recordLogin();
+    userRepository.recordLogin(user.getId());
 
     return createAuthResult(user, userAgent, ipAddress);
   }
@@ -374,7 +374,7 @@ public class AuthService {
       throw new BadRequestException(ErrorCode.INVALID_CREDENTIALS);
     }
 
-    user.recordLogin();
+    userRepository.recordLogin(user.getId());
     return createAuthResult(user, userAgent, ipAddress);
   }
 
@@ -467,7 +467,7 @@ public class AuthService {
   public AuthResult authenticateWithPasskey(
       Map<String, Object> response, String userAgent, String ipAddress) {
     User user = passkeyService.verifyAuthentication(response);
-    user.recordLogin();
+    userRepository.recordLogin(user.getId());
     return createAuthResult(user, userAgent, ipAddress);
   }
 

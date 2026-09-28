@@ -10,6 +10,16 @@ import java.util.Optional;
 @ApplicationScoped
 public class UserRepository implements BaseRepository<User> {
 
+  /**
+   * Records a login with a bulk update of {@code lastLoginAt} alone. Writing the entity would bump
+   * its version: two logins of the same account at once (two tabs, the app and the site) would
+   * fail on the optimistic lock. Runs after Hibernate has flushed any pending change to the user,
+   * so a login that also edits the account still writes both.
+   */
+  public void recordLogin(Long userId) {
+    update("lastLoginAt = CURRENT_TIMESTAMP where id = ?1", userId);
+  }
+
   public Optional<User> findByEmailAndDomain(Long domainId, String email) {
     return find("domain.id = ?1 and email = ?2 and deleted = false", domainId, email)
         .firstResultOptional();

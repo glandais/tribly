@@ -263,7 +263,7 @@ public class DeviceAuthService {
     session.setIpAddress("device");
     authSessionRepository.persist(session);
 
-    user.recordLogin();
+    userRepository.recordLogin(user.getId());
 
     return DeviceTokenResponse.builder()
         .accessToken(accessToken)
