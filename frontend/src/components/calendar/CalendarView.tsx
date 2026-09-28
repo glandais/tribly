@@ -8,7 +8,7 @@ import type {
   ScheduleLabelsOverride,
   ScheduleViewLevel,
 } from '@mantine/schedule'
-import { Box, Image, LoadingOverlay, Stack, Text, Tooltip } from '@mantine/core'
+import { Box, Group, Image, LoadingOverlay, Stack, Text, Tooltip } from '@mantine/core'
 import { useMounted } from '@mantine/hooks'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
@@ -302,6 +302,48 @@ export function CalendarView({
     [buildMetrics, buildRegistration, buildSummary, colorScheme, t, tz]
   )
 
+  /**
+   * The phone's month view lists the selected day's events, and ignores `renderEventBody`: its
+   * own body is the title and "HH:mm – HH:mm" (or a hard-coded English "All day"), with neither the
+   * team nor the registration — and no hover to show the tooltip. Its body is replaced here.
+   */
+  const renderMobileEvent = useCallback<RenderEvent>(
+    (event, props) => {
+      const dto = getPayloadDto(event)
+      if (!dto) {
+        return renderEvent(event, props)
+      }
+      const registration = buildRegistration(dto)
+      const body = (
+        <Group gap="xs" wrap="nowrap" align="stretch">
+          <Box
+            w={4}
+            style={{
+              borderRadius: 2,
+              flexShrink: 0,
+              backgroundColor: `var(--mantine-color-${EVENT_COLORS[dto.type]}-filled)`,
+            }}
+          />
+          <Stack gap={2}>
+            <Text size="sm" fw={600}>
+              {dto.title}
+            </Text>
+            <Text size="xs" c="dimmed">
+              {buildSummary(dto)}
+            </Text>
+            {registration ? (
+              <Text size="xs" fw={500}>
+                {registration}
+              </Text>
+            ) : null}
+          </Stack>
+        </Group>
+      )
+      return renderEvent(event, { ...props, children: body })
+    },
+    [buildRegistration, buildSummary, renderEvent]
+  )
+
   const handleEventClick = useCallback(
     (event: ScheduleEventData) => {
       const original = eventMap.get(String(event.id))
@@ -341,7 +383,7 @@ export function CalendarView({
         weekViewProps={{ renderEvent }}
         dayViewProps={{ renderEvent }}
         mobileMonthViewProps={{
-          renderEvent,
+          renderEvent: renderMobileEvent,
           defaultSelectedDate: initialDate,
           highlightToday: mounted,
         }}

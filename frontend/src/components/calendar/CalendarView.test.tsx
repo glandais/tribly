@@ -8,6 +8,7 @@ vi.mock('react-i18next', () => ({
 }))
 
 import { CalendarView } from './CalendarView'
+import type { CalendarEventDto } from '@/api/dto'
 
 /**
  * Between midnight and the visitor's offset, the date in their zone is not the date in UTC — the
@@ -32,11 +33,11 @@ describe('CalendarView server render', () => {
     process.env.TZ = previousTz
   })
 
-  function render(): string {
+  function render(events: CalendarEventDto[] = []): string {
     return renderToString(
       <MantineProvider>
         <MemoryRouter>
-          <CalendarView events={[]} isLoading={false} onDateRangeChange={() => {}} />
+          <CalendarView events={events} isLoading={false} onDateRangeChange={() => {}} />
         </MemoryRouter>
       </MantineProvider>
     )
@@ -49,5 +50,29 @@ describe('CalendarView server render', () => {
 
   it('leaves "today" unmarked until mounted, since React never patches the attribute', () => {
     expect(render()).not.toContain('data-today')
+  })
+
+  it("lists the day's events on the phone with their team and the registration", () => {
+    const html = render([
+      {
+        id: '1',
+        title: 'Sortie du dimanche',
+        start: '2026-09-27T07:00:00Z',
+        end: '2026-09-27T10:00:00Z',
+        allDay: false,
+        type: 'RIDE',
+        teamSlug: 'n-peloton',
+        teamName: 'N Peloton',
+        entitySlug: 'sortie-du-dimanche',
+        registered: true,
+        groupName: 'Groupe A',
+        status: 'PUBLISHED',
+      },
+    ])
+    // The phone's agenda, below its day header: MobileMonthView ignores renderEventBody.
+    const agenda = html.slice(html.indexOf('mobileMonthViewEventsHeader'))
+    expect(agenda).toContain('N Peloton')
+    expect(agenda).toContain('calendar.event.registeredInGroup')
+    expect(agenda).not.toContain('All day')
   })
 })
