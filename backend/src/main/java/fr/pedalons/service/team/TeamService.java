@@ -122,7 +122,10 @@ public class TeamService {
     }
     String slug =
         slugService.generateSlug(
-            request.name(), s -> teamRepository.existsBySlugAndDomain(domainId, s));
+            request.name(),
+            s ->
+                teamRepository.existsBySlugAndDomain(domainId, s)
+                    || slugService.isReservedTeamSlug(s));
     slugService.clearTeamRedirect(domainId, slug);
 
     if (request.visibility() != Visibility.TEAM) {
@@ -308,8 +311,9 @@ public class TeamService {
       return getTeamDetailDto(teamSlug);
     }
 
-    // Check if new slug is already taken in this domain, deleted teams included
-    if (teamRepository.existsBySlugAndDomain(domainId, newSlug)) {
+    // Check if new slug is already taken in this domain, deleted teams included — or by a web page
+    if (teamRepository.existsBySlugAndDomain(domainId, newSlug)
+        || slugService.isReservedTeamSlug(newSlug)) {
       throw new ConflictException(SLUG_TAKEN);
     }
 

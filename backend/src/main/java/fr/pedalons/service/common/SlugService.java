@@ -53,6 +53,15 @@ public class SlugService {
    */
   private static final Map<TeamEntityType, Set<String>> RESERVED_SLUGS = reservedSlugs();
 
+  /**
+   * Team slugs a web page already answers: the literal segments next to {@code /teams/{teamSlug}}
+   * and {@code /equipes/{teamSlug}} in contracts/routes.yaml, every locale. The router matches the
+   * literal path first, so a team slugged {@code nouvelle} would be unreachable on the web.
+   * SlugServiceTest checks this set against the contract.
+   */
+  public static final Set<String> RESERVED_TEAM_SLUGS =
+      Set.of("new", "nouvelle", "discover", "decouvrir");
+
   private static Map<TeamEntityType, Set<String>> reservedSlugs() {
     Map<TeamEntityType, Set<String>> reserved = new EnumMap<>(TeamEntityType.class);
     reserved.put(TeamEntityType.ROUTE, Set.of("bulk", "count", "bounds", "tiles"));
@@ -152,6 +161,11 @@ public class SlugService {
     String hyphened = PATTERN_NON_ALPHANUMERIC.matcher(ascii).replaceAll(HYPHEN);
     // Remove leading and trailing dashes
     return PATTERN_TRIM_DASH.matcher(hyphened).replaceAll(EMPTY);
+  }
+
+  /** Whether a team may not take {@code slug} — see {@link #RESERVED_TEAM_SLUGS}. */
+  public boolean isReservedTeamSlug(String slug) {
+    return RESERVED_TEAM_SLUGS.contains(slug);
   }
 
   public boolean isValidSlug(String slug) {

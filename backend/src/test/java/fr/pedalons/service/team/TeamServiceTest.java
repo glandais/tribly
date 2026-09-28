@@ -444,6 +444,27 @@ class TeamServiceTest extends AbstractBaseTest {
   }
 
   @Test
+  void createTeam_neverTakesASlugAWebPageAnswers() {
+    queryContext.setUserForTest(user1);
+    TeamDetailDto created =
+        teamService.createTeam(requestWithVisibility("Nouvelle", Visibility.TEAM));
+
+    // /equipes/nouvelle is the creation form: a team there would be unreachable on the web.
+    assertNotEquals("nouvelle", created.slug());
+  }
+
+  @Test
+  void updateSlug_refusesASlugAWebPageAnswers() {
+    Team team = dataService.createTeam(user1, "Explorers", "explorers", Visibility.PUBLIC);
+
+    queryContext.setUserForTest(user1);
+    ConflictException ex =
+        assertThrows(
+            ConflictException.class, () -> teamService.updateSlug(team.getSlug(), "decouvrir"));
+    assertEquals("SLUG_TAKEN", ex.getMessage());
+  }
+
+  @Test
   void updateTeam_goingPrivate_makesItsContentTeamOnly() {
     Team team = dataService.createTeam(user1, "Going Private", "going-private", Visibility.PUBLIC);
     dataService.setTeamVisibilityEditable(team, true);
