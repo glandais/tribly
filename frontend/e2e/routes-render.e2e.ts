@@ -1,25 +1,30 @@
 import type { Locator, Page } from '@playwright/test'
 import { signIn } from './support/data'
 import { expect, test } from './support/fixtures'
-import { configuredAuth, contractWebRoutes, fillPath } from './support/contract'
-import { buildDataset, type Dataset, type RenderRole } from './support/routes-render'
+import { configuredAuth, contractWebRoutes, fillPath, type ContractRoute } from './support/contract'
+import { buildDataset, RENDER_ROLES, type Dataset, type RenderRole } from './support/routes-render'
 import { pageHydrated, watchHydration } from './support/ui'
 
 /**
- * Every web route of contracts/routes.yaml renders, for every role that may see it.
+ * Every web route of contracts/routes.yaml, for every role: the screen for those who may see it,
+ * the page's own fallback for those it turns away.
  *
  * One test per (route, role). Each one opens the route in a fresh context as that role and checks
- * that the document answers 200, the app lands where it should — the page itself, or the redirect
- * its guard is meant to do — that nothing threw (`pageerror`) or failed to hydrate (`[hydration]`),
- * that no error screen is shown, and that something only that screen has is visible.
+ * that the document answers 200, the app lands where it should — the page itself, the redirect its
+ * guard is meant to do, or the fallback of a page that refuses the role — that nothing threw
+ * (`pageerror`) or failed to hydrate (`[hydration]`), that no error screen is shown, and that
+ * something only the landing screen has is visible. A refused role also checks that nothing of the
+ * protected screen shows (`guards`): a page whose `<Navigate>` went missing would render its admin
+ * form, and that test would fail on it.
  *
  * The guard redirects are derived from each route's `auth` in routes.config.ts: an `authenticated`
  * route sends an anonymous visitor to the login page, an `unauthenticated` one sends a signed-in
- * visitor home. Who may see a screen beyond that (a member, an organizer, an admin of the team, the
- * platform admin) is the table below.
+ * visitor home. Who may see a screen beyond that (an outsider, a member, an organizer, an admin of
+ * the team, the platform admin), and where the others go, is the table below. Every (route, role)
+ * pair has exactly one outcome: a coverage test fails on a pair left undeclared or declared twice.
  *
  * All the params come from one dataset per worker: a public team of its own with a member, an
- * organizer and an admin, and one entity of every kind a route names.
+ * organizer and an admin, a signed-in outsider, and one entity of every kind a route names.
  */
 
 type Main = Locator
@@ -31,22 +36,39 @@ interface Expectation {
   sees: (main: Main, data: Dataset, page: Page) => Promise<void>
 }
 
+type Outcome = Expectation & {
+  why: string
+  /**
+   * A known defect keeps the app from this outcome today: the test is declared `test.fail` with
+   * this reason, and turns red the day the fix lands — then drop the field.
+   */
+  defect?: string
+}
+
 interface Screen extends Expectation {
   /** Who may see the screen. The guard's own redirects are added from routes.config.ts. */
   roles: readonly RenderRole[]
   /** Rendered outside the app shell (`layout: 'bare'`): no <main>. */
   bare?: boolean
   /** Per-role outcomes that differ from the screen itself — the page's own redirects. */
-  otherwise?: Partial<Record<RenderRole, Expectation & { why: string }>>
+  otherwise?: Partial<Record<RenderRole, Outcome>>
+  /** The roles the page turns away, and the fallback each one lands on. */
+  denied?: Partial<Record<RenderRole, Outcome>>
+  /** What only the protected screen shows: absent wherever the page turns a role away. */
+  guards?: (page: Page, data: Dataset) => Locator
 }
 
-const EVERYONE = ['anonymous', 'member', 'organizer', 'teamAdmin', 'platformAdmin'] as const
-const SIGNED_IN = ['member', 'organizer', 'teamAdmin', 'platformAdmin'] as const
+const EVERYONE = RENDER_ROLES
+const SIGNED_IN = ['outsider', 'member', 'organizer', 'teamAdmin', 'platformAdmin'] as const
 // The platform admin is not a member of the dataset's team, but the backend lets it read and
 // manage every team (TeamAdminPage sends it to the ride templates like a team admin).
-const MEMBERS = SIGNED_IN
+const MEMBERS = ['member', 'organizer', 'teamAdmin', 'platformAdmin'] as const
 const ORGANIZERS = ['organizer', 'teamAdmin', 'platformAdmin'] as const
 const ADMINS = ['teamAdmin', 'platformAdmin'] as const
+// Their complements among the signed-in roles: who the team-scoped pages turn away.
+const BELOW_ORGANIZER = ['outsider', 'member'] as const
+const BELOW_ADMIN = ['outsider', 'member', 'organizer'] as const
+const NOT_PLATFORM_ADMIN = ['outsider', 'member', 'organizer', 'teamAdmin'] as const
 
 const heading = (name: string) => async (main: Main) => {
   await expect(main.getByRole('heading', { name, exact: true })).toBeVisible()
@@ -69,11 +91,63 @@ const fullscreenMap =
 
 const teamPath = (d: Dataset) => `/equipes/${d.team.slug}`
 
-/** The same page-level redirect for each of `roles`. */
+/** The path of the contract's route `id`, filled from the dataset. Read at run time. */
+const pathTo = (id: string) => (d: Dataset) => {
+  const route = contract.find((candidate) => candidate.id === id)
+  if (!route) throw new Error(`no web route ${id} in the contract`)
+  return fillPath(route, d.params)
+}
+
+/** The same page-level outcome for each of `roles` — a redirect, or a refusal. */
 const redirects = (
   roles: readonly RenderRole[],
-  outcome: Expectation & { why: string }
-): Screen['otherwise'] => Object.fromEntries(roles.map((role) => [role, outcome]))
+  outcome: Outcome
+): Partial<Record<RenderRole, Outcome>> => Object.fromEntries(roles.map((role) => [role, outcome]))
+const denies = redirects
+
+// The fallbacks a refusing page sends to, and what proves the visitor got there.
+const teamHome = (why: string): Outcome => ({
+  why,
+  lands: teamPath,
+  sees: (main, d) =>
+    expect(main.getByRole('heading', { level: 1, name: d.team.name })).toBeVisible(),
+})
+const routeList = (why: string): Outcome => ({
+  why,
+  lands: pathTo('routes'),
+  sees: async (main, d) => {
+    await expect(main.getByRole('radio', { name: 'Liste' })).toBeChecked()
+    await expect(main.getByRole('link', { name: d.route.name }).first()).toBeVisible()
+  },
+})
+/**
+ * The team's ads tab as an outsider sees it, once its refused list has settled — on its empty
+ * state, so that the absence of the ad the next checks assert is not vacuous.
+ */
+const settledAdList = async (main: Main) => {
+  await heading('Annonces')(main)
+  await expect(main.getByRole('heading', { name: 'Aucune annonce', exact: true })).toBeVisible()
+}
+const adList = (why: string): Outcome => ({ why, lands: pathTo('ads'), sees: settledAdList })
+const home = (why: string): Outcome => ({
+  why,
+  lands: () => '/',
+  sees: heading('Dernières publications'),
+})
+
+// The protected screens' own marks. A team admin tab is framed by the admin navigation, which
+// neither the team page nor any fallback shows; the forms each have their own title.
+const teamAdminNav = (page: Page) =>
+  page.getByRole('navigation', { name: "Navigation de la gestion de l'équipe" })
+const platformAdminNav = (page: Page) =>
+  page.getByRole('navigation', { name: "Navigation de l'administration" })
+const titled =
+  (name: string) =>
+  (page: Page): Locator =>
+    page.getByRole('heading', { name, exact: true })
+
+const NOT_ORGANIZER = 'only the team organizers manage it'
+const NOT_ADMIN = 'only the team admins manage it'
 
 const screens: Record<string, Screen> = {
   home: { roles: EVERYONE, sees: heading('Dernières publications') },
@@ -167,7 +241,7 @@ const screens: Record<string, Screen> = {
     // The preview belongs to the member.
     roles: ['member'],
     sees: heading('Modifier le fichier GPX'),
-    otherwise: redirects(ORGANIZERS, {
+    otherwise: redirects(['outsider', ...ORGANIZERS], {
       why: 'editing a preview is owner-only: the page sends others to the read view',
       lands: (d) => `/outils-gpx/${d.preview.id}`,
       sees: (main, d) => heading(d.preview.name)(main),
@@ -189,6 +263,13 @@ const screens: Record<string, Screen> = {
       await expect(main.getByRole('heading', { level: 1, name: d.team.name })).toBeVisible()
       await heading('Calendrier')(main)
     },
+    denied: {
+      outsider: {
+        ...teamHome('the team calendar is for its members'),
+      },
+    },
+    guards: (page) =>
+      titled('Calendrier')(page).or(page.getByRole('textbox', { name: "URL du flux d'équipe" })),
   },
   teamPage: {
     roles: EVERYONE,
@@ -206,6 +287,9 @@ const screens: Record<string, Screen> = {
       lands: (d) => `${teamPath(d)}/admin/modeles-sortie`,
       sees: (main, d, page) => rideTemplates(main, d, page),
     }),
+    // TeamAdminPage's effect, not TeamAdminLayout: the area has no tab to render for them.
+    denied: denies(BELOW_ORGANIZER, teamHome(NOT_ORGANIZER)),
+    guards: teamAdminNav,
   },
   teamAdminPlaces: {
     roles: ORGANIZERS,
@@ -213,6 +297,8 @@ const screens: Record<string, Screen> = {
       await currentTab(page, "Navigation de la gestion de l'équipe", 'Lieux')
       await expect(main.getByText(d.place.name)).toBeVisible()
     },
+    denied: denies(BELOW_ORGANIZER, teamHome(NOT_ORGANIZER)),
+    guards: teamAdminNav,
   },
   teamAdminPages: {
     roles: ADMINS,
@@ -220,11 +306,20 @@ const screens: Record<string, Screen> = {
       await currentTab(page, "Navigation de la gestion de l'équipe", 'Pages')
       await expect(main.getByText(d.page.title)).toBeVisible()
     },
+    denied: denies(BELOW_ADMIN, teamHome(NOT_ADMIN)),
+    guards: teamAdminNav,
   },
-  teamAdminPageNew: { roles: ADMINS, sees: heading('Créer une page') },
+  teamAdminPageNew: {
+    roles: ADMINS,
+    sees: heading('Créer une page'),
+    denied: denies(BELOW_ADMIN, teamHome(NOT_ADMIN)),
+    guards: (page) => teamAdminNav(page).or(titled('Créer une page')(page)),
+  },
   teamAdminPageEdit: {
     roles: ADMINS,
     sees: (main, d) => heading(`Modifier ${d.page.title}`)(main),
+    denied: denies(BELOW_ADMIN, teamHome(NOT_ADMIN)),
+    guards: (page, d) => teamAdminNav(page).or(titled(`Modifier ${d.page.title}`)(page)),
   },
   teamAdminMembers: {
     roles: ADMINS,
@@ -232,6 +327,8 @@ const screens: Record<string, Screen> = {
       await currentTab(page, "Navigation de la gestion de l'équipe", 'Membres')
       await expect(main.getByText(d.sessions.member.user.displayName).first()).toBeVisible()
     },
+    denied: denies(BELOW_ADMIN, teamHome(NOT_ADMIN)),
+    guards: teamAdminNav,
   },
   teamAdminReports: {
     roles: ORGANIZERS,
@@ -239,17 +336,69 @@ const screens: Record<string, Screen> = {
       await currentTab(page, "Navigation de la gestion de l'équipe", 'Signalements')
       await heading('Aucun signalement en attente')(main)
     },
+    // TeamAdminLayout lets a platform admin who is no organizer into this one tab; the others go.
+    denied: denies(BELOW_ORGANIZER, teamHome(NOT_ORGANIZER)),
+    guards: teamAdminNav,
   },
-  teamSettings: { roles: ADMINS, sees: heading("Paramètres de l'équipe") },
-  rideNew: { roles: ORGANIZERS, sees: heading('Créer une sortie') },
+  teamSettings: {
+    roles: ADMINS,
+    sees: heading("Paramètres de l'équipe"),
+    denied: denies(BELOW_ADMIN, teamHome(NOT_ADMIN)),
+    guards: (page) => teamAdminNav(page).or(titled("Paramètres de l'équipe")(page)),
+  },
+  rideNew: {
+    roles: ORGANIZERS,
+    sees: heading('Créer une sortie'),
+    denied: denies(BELOW_ORGANIZER, teamHome(NOT_ORGANIZER)),
+    guards: titled('Créer une sortie'),
+  },
   ride: { roles: EVERYONE, sees: (main, d) => heading(d.ride.name)(main) },
-  rideEdit: { roles: ORGANIZERS, sees: heading('Modifier la sortie') },
-  rideTemplates: { roles: ORGANIZERS, sees: (main, d, page) => rideTemplates(main, d, page) },
-  rideTemplateNew: { roles: ORGANIZERS, sees: heading('Créer un modèle') },
-  rideTemplateEdit: { roles: ORGANIZERS, sees: heading('Modifier le modèle') },
-  tripNew: { roles: ORGANIZERS, sees: heading('Créer un voyage') },
+  rideEdit: {
+    roles: ORGANIZERS,
+    sees: heading('Modifier la sortie'),
+    denied: denies(BELOW_ORGANIZER, {
+      why: NOT_ORGANIZER,
+      lands: pathTo('ride'),
+      sees: (main, d) => heading(d.ride.name)(main),
+    }),
+    guards: titled('Modifier la sortie'),
+  },
+  rideTemplates: {
+    roles: ORGANIZERS,
+    sees: (main, d, page) => rideTemplates(main, d, page),
+    denied: denies(BELOW_ORGANIZER, teamHome(NOT_ORGANIZER)),
+    guards: teamAdminNav,
+  },
+  // The template pages send a refused role to the templates list, whose admin layout sends it on.
+  rideTemplateNew: {
+    roles: ORGANIZERS,
+    sees: heading('Créer un modèle'),
+    denied: denies(BELOW_ORGANIZER, teamHome(NOT_ORGANIZER)),
+    guards: (page) => teamAdminNav(page).or(titled('Créer un modèle')(page)),
+  },
+  rideTemplateEdit: {
+    roles: ORGANIZERS,
+    sees: heading('Modifier le modèle'),
+    denied: denies(BELOW_ORGANIZER, teamHome(NOT_ORGANIZER)),
+    guards: (page) => teamAdminNav(page).or(titled('Modifier le modèle')(page)),
+  },
+  tripNew: {
+    roles: ORGANIZERS,
+    sees: heading('Créer un voyage'),
+    denied: denies(BELOW_ORGANIZER, teamHome(NOT_ORGANIZER)),
+    guards: titled('Créer un voyage'),
+  },
   trip: { roles: EVERYONE, sees: (main, d) => heading(d.trip.name)(main) },
-  tripEdit: { roles: ORGANIZERS, sees: heading('Modifier le voyage') },
+  tripEdit: {
+    roles: ORGANIZERS,
+    sees: heading('Modifier le voyage'),
+    denied: denies(BELOW_ORGANIZER, {
+      why: NOT_ORGANIZER,
+      lands: pathTo('trip'),
+      sees: (main, d) => heading(d.trip.name)(main),
+    }),
+    guards: titled('Modifier le voyage'),
+  },
   stage: {
     roles: EVERYONE,
     sees: async (main, d) => {
@@ -265,7 +414,12 @@ const screens: Record<string, Screen> = {
       (d) => `${teamPath(d)}/voyages/${d.trip.slug}/etapes/${d.trip.stages[0].slug}`
     ),
   },
-  postNew: { roles: ORGANIZERS, sees: heading('Nouvelle publication') },
+  postNew: {
+    roles: ORGANIZERS,
+    sees: heading('Nouvelle publication'),
+    denied: denies(BELOW_ORGANIZER, teamHome(NOT_ORGANIZER)),
+    guards: titled('Nouvelle publication'),
+  },
   post: {
     roles: EVERYONE,
     sees: async (main, d) => {
@@ -273,7 +427,16 @@ const screens: Record<string, Screen> = {
       await expect(main.getByText('Un article pour vérifier les écrans.')).toBeVisible()
     },
   },
-  postEdit: { roles: ORGANIZERS, sees: heading('Modifier la publication') },
+  postEdit: {
+    roles: ORGANIZERS,
+    sees: heading('Modifier la publication'),
+    denied: denies(BELOW_ORGANIZER, {
+      why: NOT_ORGANIZER,
+      lands: pathTo('post'),
+      sees: (main, d) => heading(d.post.name)(main),
+    }),
+    guards: titled('Modifier la publication'),
+  },
   routes: {
     roles: EVERYONE,
     sees: async (main, d) => {
@@ -288,7 +451,12 @@ const screens: Record<string, Screen> = {
       await expect(main.locator('canvas.maplibregl-canvas')).toBeVisible()
     },
   },
-  routeNew: { roles: ORGANIZERS, sees: heading('Créer un nouveau parcours') },
+  routeNew: {
+    roles: ORGANIZERS,
+    sees: heading('Créer un nouveau parcours'),
+    denied: denies(BELOW_ORGANIZER, routeList(NOT_ORGANIZER)),
+    guards: titled('Créer un nouveau parcours'),
+  },
   route: { roles: EVERYONE, sees: (main, d) => heading(d.route.name)(main) },
   routeMap: {
     roles: EVERYONE,
@@ -298,24 +466,72 @@ const screens: Record<string, Screen> = {
       (d) => `${teamPath(d)}/parcours/${d.route.slug}`
     ),
   },
-  routeEdit: { roles: ORGANIZERS, sees: heading('Modifier le parcours') },
+  routeEdit: {
+    roles: ORGANIZERS,
+    sees: heading('Modifier le parcours'),
+    denied: denies(BELOW_ORGANIZER, routeList(NOT_ORGANIZER)),
+    guards: titled('Modifier le parcours'),
+  },
   ads: {
     roles: MEMBERS,
     sees: async (main, d) => {
       await heading('Annonces')(main)
       await expect(main.getByRole('link', { name: d.ad.name }).first()).toBeVisible()
     },
+    // No redirect: AdListPage keeps an outsider on the team's tab, whose list the API refuses
+    // (AdAccessChecker LIST needs a team role). What matters is that no ad, nor the way to post
+    // one, shows.
+    denied: {
+      outsider: { why: 'the ads are for the team members', sees: settledAdList },
+    },
+    guards: (page, d) =>
+      page
+        .getByRole('link', { name: d.ad.name })
+        .or(page.getByRole('link', { name: 'Créer une annonce' })),
   },
-  adNew: { roles: MEMBERS, sees: heading('Nouvelle annonce') },
-  ad: { roles: MEMBERS, sees: (main, d) => heading(d.ad.name)(main) },
+  adNew: {
+    roles: MEMBERS,
+    sees: heading('Nouvelle annonce'),
+    denied: denies(['outsider'], adList('any member of the team may post an ad, no one else')),
+    guards: titled('Nouvelle annonce'),
+  },
+  ad: {
+    roles: MEMBERS,
+    sees: (main, d) => heading(d.ad.name)(main),
+    denied: {
+      outsider: {
+        // Where CreateAdPage and EditAdPage send an outsider.
+        ...adList('the ads are for the team members'),
+      },
+    },
+    guards: (page, d) => titled(d.ad.name)(page),
+  },
   // The ad belongs to the member; the team's admins may edit any ad.
-  adEdit: { roles: ['member', ...ADMINS], sees: heading("Modifier l'annonce") },
-  admin: { roles: ['platformAdmin'], sees: adminTab('Tableau de bord') },
-  adminDomains: { roles: ['platformAdmin'], sees: adminTab('Domaines') },
-  adminTeams: { roles: ['platformAdmin'], sees: adminTab('Équipes') },
-  adminUsers: { roles: ['platformAdmin'], sees: adminTab('Utilisateurs') },
-  adminBetaSignups: { roles: ['platformAdmin'], sees: adminTab('Inscriptions bêta') },
-  adminReports: { roles: ['platformAdmin'], sees: adminTab('Signalements') },
+  adEdit: {
+    roles: ['member', ...ADMINS],
+    sees: heading("Modifier l'annonce"),
+    // An organizer is neither the author nor an admin: GET /ads/{slug}/edit answers 403
+    // (AdAccessChecker UPDATE), and EditAdPage, left without an ad, falls back to the list.
+    // An outsider meets the same 403, and an ads list that shows them nothing.
+    denied: {
+      outsider: adList('only its author and the team admins edit an ad'),
+      organizer: {
+        why: 'only its author and the team admins edit an ad',
+        lands: pathTo('ads'),
+        sees: async (main, d) => {
+          await heading('Annonces')(main)
+          await expect(main.getByRole('link', { name: d.ad.name }).first()).toBeVisible()
+        },
+      },
+    },
+    guards: titled("Modifier l'annonce"),
+  },
+  admin: platformAdmin('Tableau de bord'),
+  adminDomains: platformAdmin('Domaines'),
+  adminTeams: platformAdmin('Équipes'),
+  adminUsers: platformAdmin('Utilisateurs'),
+  adminBetaSignups: platformAdmin('Inscriptions bêta'),
+  adminReports: platformAdmin('Signalements'),
 }
 
 async function rideTemplates(main: Main, d: Dataset, page: Page) {
@@ -323,10 +539,16 @@ async function rideTemplates(main: Main, d: Dataset, page: Page) {
   await expect(main.getByText(d.template.name)).toBeVisible()
 }
 
-function adminTab(name: string) {
-  return async (main: Main, _d: Dataset, page: Page) => {
-    await heading('Administration plateforme')(main)
-    await currentTab(page, "Navigation de l'administration", name)
+/** A platform administration tab: the platform admin's alone, AdminLayout sends anyone else home. */
+function platformAdmin(tab: string): Screen {
+  return {
+    roles: ['platformAdmin'],
+    sees: async (main, _d, page) => {
+      await heading('Administration plateforme')(main)
+      await currentTab(page, "Navigation de l'administration", tab)
+    },
+    denied: denies(NOT_PLATFORM_ADMIN, home('only the platform admin administers the platform')),
+    guards: (page) => platformAdminNav(page).or(titled('Administration plateforme')(page)),
   }
 }
 
@@ -351,42 +573,94 @@ test.beforeAll(async () => {
   await data()
 })
 
+type Kind = 'renders' | 'redirects' | 'denied'
+
+/**
+ * The declarations of `role` on `route`: the guard's redirect from routes.config.ts, the page's own
+ * redirect (`otherwise`), the screen itself (`roles`), the page's refusal (`denied`). Exactly one
+ * is expected — see the coverage test.
+ */
+function declarations(route: ContractRoute, role: RenderRole) {
+  const screen = screens[route.id]
+  const requirement = auth.get(route.id)
+  const found: { kind: Kind; source: string; outcome: Expectation & { why?: string } }[] = []
+  if (requirement === 'authenticated' && role === 'anonymous')
+    found.push({
+      kind: 'redirects',
+      source: 'auth: authenticated',
+      outcome: {
+        why: 'authenticated route',
+        lands: () => '/connexion',
+        sees: (main) =>
+          expect(main.getByRole('button', { name: 'Se connecter', exact: true })).toBeVisible(),
+      },
+    })
+  if (requirement === 'unauthenticated' && role !== 'anonymous')
+    found.push({
+      kind: 'redirects',
+      source: 'auth: unauthenticated',
+      outcome: {
+        why: 'unauthenticated route',
+        lands: () => '/',
+        sees: heading('Dernières publications'),
+      },
+    })
+  if (!screen) return found
+  const otherwise = screen.otherwise?.[role]
+  if (otherwise) found.push({ kind: 'redirects', source: 'otherwise', outcome: otherwise })
+  if (screen.roles.includes(role)) found.push({ kind: 'renders', source: 'roles', outcome: screen })
+  const denial = screen.denied?.[role]
+  if (denial) found.push({ kind: 'denied', source: 'denied', outcome: denial })
+  return found
+}
+
 test('the table covers every web route of the contract, and nothing else', () => {
   expect(Object.keys(screens).sort()).toEqual(contract.map((route) => route.id).sort())
   for (const route of contract)
     expect(auth.get(route.id), `routes.config.ts registers ${route.id}`).toBeDefined()
 })
 
+test('every (route, role) pair has exactly one outcome', () => {
+  const undeclared: string[] = []
+  const ambiguous: string[] = []
+  for (const route of contract)
+    for (const role of RENDER_ROLES) {
+      const found = declarations(route, role)
+      if (found.length === 0) undeclared.push(`${route.id} as ${role}`)
+      if (found.length > 1)
+        ambiguous.push(`${route.id} as ${role}: ${found.map((f) => f.source).join(' + ')}`)
+    }
+  expect(undeclared, 'pairs with no outcome: declare the screen, a redirect or a refusal').toEqual(
+    []
+  )
+  expect(ambiguous, 'pairs declared twice').toEqual([])
+  // A refusal is only worth its test if it checks the protected screen is gone.
+  const unguarded = Object.entries(screens)
+    .filter(([, screen]) => screen.denied && !screen.guards)
+    .map(([id]) => id)
+  expect(unguarded, 'screens that refuse a role without saying what they protect').toEqual([])
+})
+
 for (const route of contract) {
   const screen = screens[route.id]
   if (!screen) continue
-  const requirement = auth.get(route.id)
 
-  for (const role of EVERYONE) {
-    let outcome: (Expectation & { why?: string }) | undefined
-    if (requirement === 'authenticated' && role === 'anonymous')
-      outcome = {
-        why: 'authenticated route',
-        lands: () => '/connexion',
-        sees: (main) =>
-          expect(main.getByRole('button', { name: 'Se connecter', exact: true })).toBeVisible(),
-      }
-    else if (requirement === 'unauthenticated' && role !== 'anonymous')
-      outcome = {
-        why: 'unauthenticated route',
-        lands: () => '/',
-        sees: heading('Dernières publications'),
-      }
-    else if (screen.otherwise?.[role]) outcome = screen.otherwise[role]
-    else if (screen.roles.includes(role)) outcome = screen
-    if (!outcome) continue
-    const expected = outcome
+  for (const role of RENDER_ROLES) {
+    const found = declarations(route, role)
+    // The coverage test above names the pair; no test to run for it.
+    if (found.length !== 1) continue
+    const [{ kind, outcome }] = found
+    const expected: Expectation & { why?: string; defect?: string } = outcome
 
-    const title = expected.why
-      ? `${route.id} ${route.path} as ${role}: ${expected.why}, redirects`
-      : `${route.id} ${route.path} as ${role}: renders`
+    const title =
+      kind === 'renders'
+        ? `${route.id} ${route.path} as ${role}: renders`
+        : kind === 'denied'
+          ? `${route.id} ${route.path} as ${role}: denied, ${expected.why}`
+          : `${route.id} ${route.path} as ${role}: ${expected.why}, redirects`
 
     test(title, async ({ page }) => {
+      test.fail(!!expected.defect, expected.defect)
       const d = await data()
       const path = fillPath(route, d.params)
       const where = `${route.id} as ${role} (${path})`
@@ -400,7 +674,11 @@ for (const route of contract) {
 
       const lands = expected.lands?.(d) ?? path
       await expect
-        .poll(() => new URL(page.url()).pathname, { message: `${where}: lands on ${lands}` })
+        // A page-level redirect waits for the team read, which a loaded stack can make slow.
+        .poll(() => new URL(page.url()).pathname, {
+          message: `${where}: lands on ${lands}`,
+          timeout: 15_000,
+        })
         .toBe(lands)
 
       const main = screen.bare && !expected.lands ? page.locator('body') : page.getByRole('main')
@@ -414,6 +692,11 @@ for (const route of contract) {
         page.getByRole('heading', { name: '404', exact: true }),
       ])
         await expect(failure, `${where}: no error screen`).toHaveCount(0)
+      if (kind === 'denied')
+        await expect(
+          screen.guards!(page, d),
+          `${where}: nothing of the protected screen`
+        ).toHaveCount(0)
       expect(pageErrors, `${where}: uncaught errors`).toEqual([])
 
       // The edit and create forms (a DateTimePicker hydrated in the SSR server's zone, a default

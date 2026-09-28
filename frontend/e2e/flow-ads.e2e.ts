@@ -1,11 +1,18 @@
 import type { Page } from '@playwright/test'
-import type { AdDto, AssetDto, GeocodeResultDto, TeamDetailDto } from '../src/api/dto'
-import { apiGet, type AuthResponse } from './support/api'
+import type {
+  AdDto,
+  AdRequest,
+  AssetDto,
+  GeocodeResultDto,
+  TeamDetailDto,
+  TeamRole,
+} from '../src/api/dto'
+import { ApiError, apiDelete, apiGet, apiPut, type AuthResponse } from './support/api'
 import { getAd, newAd, solidPng, uploadImage } from './support/ads'
-import { addMember, newTeam, newUser, roleSession, signIn } from './support/data'
+import { addMember, markdownMedia, newTeam, newUser, roleSession, signIn } from './support/data'
 import { addImage, richText } from './support/editor'
 import { expect, test, unique } from './support/fixtures'
-import { entityCard, escapeRegExp, hydrated, openActionsMenu } from './support/ui'
+import { actionsMenu, entityCard, escapeRegExp, hydrated, openActionsMenu } from './support/ui'
 
 /**
  * Ads, the nominal journey through the UI: a plain member of a team writes an ad with the form
@@ -351,5 +358,140 @@ test.describe('ad journey', () => {
 
     expect(await listedNames(member, team.slug)).not.toContain(ad.name)
     expect(await listedNames(other, team.slug)).not.toContain(ad.name)
+  })
+})
+
+/**
+ * Who may manage an ad. The backend lets its author and the team's admins update, delete or read
+ * the edit shape of an ad (AdAccessChecker.hasRights, UPDATE / DELETE), and nobody else — an
+ * ORGANIZER is no admin there. The web detail page and edit page, though, offer « Modifier » and the
+ * « Options de gestion » menu to every member: whatever another member does with them ends in a 403.
+ */
+test.describe('ad rights', () => {
+  interface RightsScene {
+    team: TeamDetailDto
+    author: AuthResponse
+    ad: AdDto
+  }
+
+  /** A team owned by someone else, a MEMBER who wrote a published ad in it. */
+  async function rightsScene(): Promise<RightsScene> {
+    const { team, member: author } = await scene()
+    const ad = await newAd(author, team.slug, { name: unique('Roues carbone'), price: 480 })
+    return { team, author, ad }
+  }
+
+  /** Someone else in the team, with `role`. */
+  async function teammate(team: TeamDetailDto, role: TeamRole): Promise<AuthResponse> {
+    const [admin, user] = await Promise.all([roleSession('admin'), newUser(`Coéquipier ${role}`)])
+    await addMember(admin, team.slug, user, role)
+    return user
+  }
+
+  /** The status of what `call` threw, or 'ok' when it went through. */
+  async function statusOf(call: Promise<unknown>): Promise<number | 'ok'> {
+    try {
+      await call
+      return 'ok'
+    } catch (error) {
+      if (error instanceof ApiError) return error.status
+      throw error
+    }
+  }
+
+  const adRequest = (ad: AdDto, changes: Partial<AdRequest>): AdRequest => ({
+    name: ad.name,
+    status: ad.status,
+    adType: ad.adType,
+    price: ad.price,
+    media: markdownMedia(),
+    ...changes,
+  })
+
+  // The premise of the UI tests below: what the backend refuses a teammate who is not the author.
+  for (const role of ['MEMBER', 'ORGANIZER'] as const) {
+    test(`the API refuses to a non-author ${role} the edit shape, an update and a delete`, async () => {
+      const { team, ad } = await rightsScene()
+      const other = await teammate(team, role)
+      const base = `/api/teams/${team.slug}/classifieds/${ad.slug}`
+
+      // Reading the ad is fine: any member may.
+      expect((await getAd(other, team.slug, ad.slug)).name).toBe(ad.name)
+      expect(await statusOf(apiGet(other, `${base}/edit`))).toBe(403)
+      expect(await statusOf(apiPut(other, base, adRequest(ad, { price: 1 })))).toBe(403)
+      expect(await statusOf(apiDelete(other, base))).toBe(403)
+      const unchanged = await getAd(other, team.slug, ad.slug)
+      expect(unchanged.price).toBe(480)
+      expect(unchanged.deleted).toBe(false)
+    })
+  }
+
+  for (const role of ['MEMBER', 'ORGANIZER'] as const) {
+    test(`a non-author ${role} sees « Contacter » but neither « Modifier » nor the management menu`, async ({
+      page,
+      context,
+    }) => {
+      const { team, ad } = await rightsScene()
+      const other = await teammate(team, role)
+
+      await signIn(context, other)
+      await page.goto(adPath(team.slug, ad.slug))
+      const main = mainOf(page)
+      await expect(page.getByRole('heading', { level: 2, name: ad.name })).toBeVisible()
+      // The contact button is the hydrated page's own: once it shows, so would the others.
+      const contact = main.getByRole('button', { name: 'Contacter le vendeur' })
+      await hydrated(contact)
+      await expect(main.getByRole('link', { name: 'Modifier' })).toHaveCount(0)
+      await expect(actionsMenu(page)).toHaveCount(0)
+    })
+  }
+
+  test('the edit URL sends a non-author member away from the form', async ({ page, context }) => {
+    const { team, ad } = await rightsScene()
+    const other = await teammate(team, 'MEMBER')
+
+    await signIn(context, other)
+    await page.goto(`${adPath(team.slug, ad.slug)}/modifier`)
+    // Today the member lands on the team's list, not on the ad: the edit shape answers 403, so
+    // EditAdPage takes its « no ad » branch (src/pages/ad/EditAdPage.tsx:39-41) before its own
+    // `canEdit` check, whose redirect to the detail page (:49-51) only a member who can already
+    // read the edit shape — hence can edit — ever reaches. Either destination keeps the form away.
+    const away = new RegExp(
+      `(${escapeRegExp(listPath(team.slug))}|${escapeRegExp(adPath(team.slug, ad.slug))})$`
+    )
+    await expect(page).toHaveURL(away)
+    await expect(
+      page.getByRole('heading', { level: 2, name: /^(Annonces|Roues carbone .*)$/ }).first()
+    ).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: "Modifier l'annonce" })).toHaveCount(0)
+    await expect(mainOf(page).getByRole('textbox', { name: /^Titre/ })).toHaveCount(0)
+    await expect(mainOf(page).getByRole('button', { name: 'Enregistrer' })).toHaveCount(0)
+  })
+
+  test('a team admin who is not the author edits the price', async ({ page, context }) => {
+    const { team, ad } = await rightsScene()
+    const admin = await teammate(team, 'ADMIN')
+
+    await signIn(context, admin)
+    await page.goto(adPath(team.slug, ad.slug))
+    const main = mainOf(page)
+    await expect(page.getByRole('heading', { level: 2, name: ad.name })).toBeVisible()
+    await expect(actionsMenu(page)).toBeVisible()
+    const edit = main.getByRole('link', { name: 'Modifier' })
+    await hydrated(edit)
+    await edit.click()
+
+    await expect(page.getByRole('heading', { level: 1, name: "Modifier l'annonce" })).toBeVisible()
+    const price = main.getByRole('textbox', { name: 'Prix' })
+    await hydrated(price)
+    await expect(price).toHaveValue('480')
+    await price.fill('420')
+    await main.getByRole('button', { name: 'Enregistrer' }).click()
+
+    await expect(page).toHaveURL(new RegExp(`${escapeRegExp(adPath(team.slug, ad.slug))}$`))
+    await expect(main.getByText(euros(420), { exact: true })).toBeVisible()
+    const saved = await getAd(admin, team.slug, ad.slug)
+    expect(saved.price).toBe(420)
+    expect(saved.name).toBe(ad.name)
   })
 })

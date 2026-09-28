@@ -26,7 +26,15 @@ import {
   ridePath,
 } from './support/rides'
 import { newRoute, windingTrack } from './support/routes'
-import { actionsMenu, entityCard, hydrated, openActionsMenu, pageAs, toasts } from './support/ui'
+import {
+  actionsMenu,
+  entityCard,
+  hydrated,
+  openActionsMenu,
+  pageAs,
+  toasts,
+  watchToasts,
+} from './support/ui'
 
 /**
  * The ride journey through the UI only, as a team's organizer and one of its members: the ride
@@ -511,6 +519,81 @@ test.describe('regressions', () => {
     await expect(
       groupCard(page, led).getByText(organizer.user.displayName, { exact: true })
     ).toBeVisible()
+  })
+
+  test('a ride whose group leader has left the team can still be published, cancelled and saved', async ({
+    page,
+  }) => {
+    const { team, organizer, member } = await ridingTeam('meneur parti')
+    const led = unique('Groupe du meneur parti')
+    const ride = await newRide(organizer, team.slug, unique('Sortie sans son meneur'), {
+      status: 'DRAFT',
+      groups: [{ name: led, leaderId: member.user.id }],
+    })
+    // The leader leaves the team; the group keeps them, as the javadoc intends.
+    await apiPost(member, `/api/teams/${team.slug}/members/leave`)
+    const before = await readRide(organizer, team.slug, ride.slug)
+    expect(before.groups[0].leader?.id, 'precondition: the group still names its leader').toBe(
+      member.user.id
+    )
+
+    await signIn(page.context(), organizer)
+    await page.goto(ridePath(team.slug, ride.slug))
+    await expect(main(page).getByRole('heading', { name: ride.name, level: 2 })).toBeVisible()
+    await expect(main(page).getByText('Brouillon', { exact: true })).toBeVisible()
+    const shown = await watchToasts(page)
+
+    /** Runs `act`, which saves the ride, and requires that save to succeed — its body otherwise. */
+    const saving = async (step: string, act: () => Promise<void>) => {
+      const saved = page.waitForResponse(
+        (r) =>
+          r.request().method() === 'PUT' &&
+          new URL(r.url()).pathname === `/api/teams/${team.slug}/rides/${ride.slug}`
+      )
+      await act()
+      const response = await saved
+      expect(response.status(), `${step}: ${await response.text()}`).toBe(200)
+    }
+
+    // --- Publish, from the page's actions menu.
+    await saving('publish', async () => {
+      const menu = await openActionsMenu(page)
+      await menu.getByRole('menuitem', { name: 'Publier' }).click()
+    })
+    await expect(toasts(page).filter({ hasText: 'Sortie publiée avec succès' })).toBeVisible()
+    await expect(main(page).getByText('Publié', { exact: true })).toBeVisible()
+    expect((await readRide(organizer, team.slug, ride.slug)).status).toBe('PUBLISHED')
+
+    // --- Cancel.
+    await saving('cancel', async () => {
+      const menu = await openActionsMenu(page)
+      await menu.getByRole('menuitem', { name: 'Annuler la sortie' }).click()
+      const confirm = page.getByRole('dialog', { name: 'Annuler la sortie' })
+      await confirm.getByRole('button', { name: 'Annuler la sortie' }).click()
+      await expect(confirm).toBeHidden()
+    })
+    await expect(toasts(page).filter({ hasText: 'Sortie annulée avec succès' })).toBeVisible()
+    await expect(main(page).getByText('Annulé', { exact: true })).toBeVisible()
+    expect((await readRide(organizer, team.slug, ride.slug)).status).toBe('CANCELLED')
+
+    // --- Edit, and save without changing anything.
+    const edit = main(page).getByRole('link', { name: 'Modifier' })
+    await hydrated(edit)
+    await edit.click()
+    await expect(
+      main(page).getByRole('heading', { name: 'Modifier la sortie', level: 1 })
+    ).toBeVisible()
+    await expect(main(page).getByRole('textbox', { name: 'Nom du groupe' })).toHaveValue(led)
+    await saving('save', () => main(page).getByRole('button', { name: 'Enregistrer' }).click())
+    await expect(page).toHaveURL(new RegExp(`/sorties/${ride.slug}$`))
+    await expect(toasts(page).filter({ hasText: 'Sortie mise à jour avec succès' })).toBeVisible()
+
+    const after = await readRide(organizer, team.slug, ride.slug)
+    expect(after.status).toBe('CANCELLED')
+    expect(after.groups[0].leader?.id, 'the group keeps its leader').toBe(member.user.id)
+    expect(await shown()).not.toContainEqual(
+      expect.stringContaining("Le meneur choisi n'appartient pas à cette équipe.")
+    )
   })
 })
 

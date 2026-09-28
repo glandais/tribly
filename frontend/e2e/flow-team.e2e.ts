@@ -13,9 +13,9 @@ import {
 } from './support/data'
 import { EDITOR_LABEL, richText, typeRichText } from './support/editor'
 import { expect, test, unique } from './support/fixtures'
-import { listedTeams, pageOf, pagesOf, rosterOf } from './support/flow-team'
-import { findRide, newRide, ridePath } from './support/rides'
-import { entityCard, hydrated, pageAs } from './support/ui'
+import { joinStatus, listedTeams, pageOf, pagesOf, publicTeam, rosterOf } from './support/flow-team'
+import { findRide, groupCard, newRide, openRide, readRide, ridePath } from './support/rides'
+import { entityCard, hydrated, pageAs, pageHydrated } from './support/ui'
 
 /**
  * The team journey, through the UI only — the minimum nominal path: a user creates a team with the
@@ -511,6 +511,109 @@ test.describe('the team list', () => {
     } finally {
       await anonymous.close()
     }
+  })
+})
+
+/** The team header's call to join, next to its title. */
+const joinButton = (page: Page) => page.getByRole('button', { name: "Rejoindre l'équipe" })
+
+test.describe('joining a team', () => {
+  test('a signed-in user joins a public, joinable team from its page, and can then join its rides', async ({
+    context,
+    page,
+  }) => {
+    const owner = await newUser('Flow team join owner')
+    const joiner = await newUser('Flow team joiner')
+    const team = await publicTeam(owner, unique('Adhésion libre'), true)
+    const group = unique('Groupe ouvert')
+    const ride = await newRide(owner, team.slug, unique('Sortie publique'), {
+      visibility: 'PUBLIC',
+      groups: [{ name: group }],
+    })
+    await signIn(context, joiner)
+
+    // A public ride of a team they are not in: they read it, but may not join it yet.
+    await openRide(page, team.slug, ride)
+    await expect(
+      main(page).getByText('Rejoignez cette équipe pour participer aux sorties.')
+    ).toBeVisible()
+    await expect(
+      groupCard(page, group).getByRole('button', { name: 'Rejoindre', exact: true })
+    ).toHaveCount(0)
+
+    // The alert leads to the team, whose header offers to join it.
+    const viewTeam = main(page).getByRole('link', { name: "Voir l'équipe" })
+    await hydrated(viewTeam)
+    await viewTeam.click()
+    await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}$`))
+    await expect(teamHeading(page, team.name)).toBeVisible()
+    await expect(page.getByRole('button', { name: "Quitter l'équipe" })).toHaveCount(0)
+    const join = joinButton(page)
+    await hydrated(join)
+    const joined = page.waitForResponse(
+      (r) => r.request().method() === 'POST' && r.url().endsWith(`/teams/${team.slug}/members/join`)
+    )
+    await join.click()
+    expect((await joined).status()).toBe(201)
+
+    // The header swaps « Rejoindre » for « Quitter », with no « Gérer »: a plain member.
+    await expect(page.getByRole('button', { name: "Quitter l'équipe" })).toBeVisible()
+    await expect(joinButton(page)).toHaveCount(0)
+    await expect(page.getByRole('link', { name: 'Gérer', exact: true })).toHaveCount(0)
+    expect(await teamAs(joiner, team.slug)).toMatchObject({ role: 'MEMBER', memberCount: 2 })
+    const roster = await rosterOf(owner, team.slug)
+    expect(roster.members.find((m) => m.user.id === joiner.user.id)?.role).toBe('MEMBER')
+
+    // The server's state, not the client cache.
+    await page.reload()
+    await expect(teamHeading(page, team.name)).toBeVisible()
+    await expect(page.getByRole('button', { name: "Quitter l'équipe" })).toBeVisible()
+    await expect(joinButton(page)).toHaveCount(0)
+
+    // The team's ride is theirs to join now.
+    await openRide(page, team.slug, ride)
+    await expect(
+      main(page).getByText('Rejoignez cette équipe pour participer aux sorties.')
+    ).toHaveCount(0)
+    const card = groupCard(page, group)
+    const joinRide = card.getByRole('button', { name: 'Rejoindre', exact: true })
+    await hydrated(joinRide)
+    await joinRide.click()
+    await expect(card.getByText('Inscrit', { exact: true })).toBeVisible()
+    await expect
+      .poll(async () => (await readRide(joiner, team.slug, ride.slug)).registered)
+      .toBe(true)
+  })
+
+  test('a public team that takes no join request offers no join button, and the API refuses the join', async ({
+    context,
+    page,
+  }) => {
+    const owner = await newUser('Flow team closed join owner')
+    const visitor = await newUser('Flow team closed join visitor')
+    const team = await publicTeam(owner, unique('Adhésion fermée'), false)
+    expect(team, 'precondition: a public team, born closed to join requests').toMatchObject({
+      visibility: 'PUBLIC',
+      joinable: false,
+    })
+
+    // The API refuses the join, and they stay out.
+    expect(await joinStatus(visitor, team.slug)).toBe(403)
+    expect((await teamAs(visitor, team.slug)).role ?? null).toBeNull()
+
+    // …so the page does not offer it.
+    await signIn(context, visitor)
+    await page.goto(`/equipes/${team.slug}`)
+    await expect(teamHeading(page, team.name)).toBeVisible()
+    await pageHydrated(page)
+    await expect(page.getByRole('button', { name: "Quitter l'équipe" })).toHaveCount(0)
+    await expect(joinButton(page)).toHaveCount(0)
+
+    // Counter-check, same visitor and session: once the platform admin opens the team, it does.
+    await setTeamAttributes(team, { joinable: true })
+    await page.reload()
+    await expect(teamHeading(page, team.name)).toBeVisible()
+    await expect(joinButton(page)).toBeVisible()
   })
 })
 

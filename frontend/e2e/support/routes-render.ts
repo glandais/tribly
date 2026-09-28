@@ -24,7 +24,22 @@ import { gpxOf, newRoute, newTrip, windingTrack } from './routes'
  * (see contract.ts), and a session for every role the route table names.
  */
 
-export type RenderRole = 'anonymous' | 'member' | 'organizer' | 'teamAdmin' | 'platformAdmin'
+/**
+ * Who opens a screen: an anonymous visitor, a signed-in user who belongs to no team of the dataset
+ * (`outsider`), the dataset team's member, organizer and admin, and the platform admin.
+ */
+export type RenderRole =
+  'anonymous' | 'outsider' | 'member' | 'organizer' | 'teamAdmin' | 'platformAdmin'
+
+/** Every role, in the order the tests are declared. */
+export const RENDER_ROLES: readonly RenderRole[] = [
+  'anonymous',
+  'outsider',
+  'member',
+  'organizer',
+  'teamAdmin',
+  'platformAdmin',
+]
 
 export interface Dataset {
   team: TeamDetailDto
@@ -46,12 +61,13 @@ export interface Dataset {
  * A public team — so an anonymous visitor may read its public screens — owned by a user of its own,
  * with a plain member, an organizer and an admin, and one public entity of every kind a route
  * names. The platform admin adds the members (a team is born with addMemberAllowed=false) and is
- * not a member itself.
+ * not a member itself. The outsider is a plain signed-in account that joins nothing.
  */
 export async function buildDataset(label: string): Promise<Dataset> {
   const platformAdmin = await roleSession('admin')
-  const [owner, member, organizer, teamAdmin] = await Promise.all([
+  const [owner, outsider, member, organizer, teamAdmin] = await Promise.all([
     newUser(`Fondatrice ${label}`),
+    newUser(`Passante ${label}`),
     newUser(`Membre ${label}`),
     newUser(`Organisatrice ${label}`),
     newUser(`Admin équipe ${label}`),
@@ -102,7 +118,7 @@ export async function buildDataset(label: string): Promise<Dataset> {
 
   return {
     team,
-    sessions: { member, organizer, teamAdmin, platformAdmin },
+    sessions: { outsider, member, organizer, teamAdmin, platformAdmin },
     ride,
     route,
     trip,
