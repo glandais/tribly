@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Select, Stack, Text } from '@mantine/core'
+import { Select } from '@mantine/core'
 import { getGetMeQueryKey, useUpdateMyPreferences } from '@/api/endpoints/users/users'
 
 const TIMEZONE_OPTIONS = Intl.supportedValuesOf('timeZone')
@@ -26,18 +26,14 @@ export function TimezonePreference({ timezone }: TimezonePreferenceProps) {
   }
 
   return (
-    <Stack gap={4}>
-      <Text size="sm" fw={500}>
-        {t('profile.preferences.timezone.label')}
-      </Text>
-      <Select
-        searchable
-        value={timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone}
-        onChange={handleChange}
-        disabled={mutation.isPending}
-        data={TIMEZONE_OPTIONS}
-        maxDropdownHeight={280}
-      />
-    </Stack>
+    <Select
+      label={t('profile.preferences.timezone.label')}
+      searchable
+      value={timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone}
+      onChange={handleChange}
+      disabled={mutation.isPending}
+      data={TIMEZONE_OPTIONS}
+      maxDropdownHeight={280}
+    />
   )
 }
