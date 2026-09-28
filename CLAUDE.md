@@ -23,7 +23,7 @@ both clients: changing it in one place only makes them diverge silently.
 | Why the mobile app / the site / the API look the way they do | [docs/plans/archive/](docs/plans/archive/) — executed plans, kept for their arbitrations |
 | Security audit (September 2026): vulnerabilities and their status | [docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md) |
 | Infrastructure, CI/CD and code-quality audit (February 2026, statuses partly refreshed on 2026-09-29) — some rows still open; not the security reference | [docs/plans/2026-02-14-project-audit.md](docs/plans/2026-02-14-project-audit.md) |
-| Deployment, backups, restore (the runbook) | [docs/operations.md](docs/operations.md) |
+| Deployment, backups, restore (the runbook) | [docs/OPERATIONS.md](docs/OPERATIONS.md) |
 | What the product does, for whom | [docs/PRODUCT_SHEET.md](docs/PRODUCT_SHEET.md) |
 | Biketeam → Pédalons migration, team by team, server to server over HTTPS (contract with biketeam, operations) | [docs/plans/2026-09-22-biketeam-live-migration.md](docs/plans/2026-09-22-biketeam-live-migration.md) + [docs/MIGRATE_BIKETEAM.md](docs/MIGRATE_BIKETEAM.md) |
 | The design brief the v2 came from (state *before* v2) | [docs/plans/archive/audit-ux/](docs/plans/archive/audit-ux/) |
@@ -69,8 +69,8 @@ docker compose --profile app up -d
 needs on top lives in `docker-compose.local.yml`, picked up through `COMPOSE_FILE` in the local
 `.env`. The overlay, its ports and the `.env` keys are described in the [README](README.md#quick-start)
 ([Running the full stack locally](README.md#running-the-full-stack-locally)); deployment, the shared
-stack, backups and restore in [docs/operations.md](docs/operations.md) — read its
-[Deployment](docs/operations.md#deployment) section before touching networks or the compose files.
+stack, backups and restore in [docs/OPERATIONS.md](docs/OPERATIONS.md) — read its
+[Deployment](docs/OPERATIONS.md#deployment) section before touching networks or the compose files.
 
 Four rules hold whatever the change:
 

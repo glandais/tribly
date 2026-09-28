@@ -180,7 +180,7 @@ A stack with its own `POSTGRES_*` / `MINIO_*` values needs `source ../scripts/de
 
 The JWT key pair is read from `/mnt/keys` (`data/keys` mounted by `docker-compose.yml`). The
 complete, commented list is `../.env.example`; the deployment itself is described in
-[docs/operations.md](../docs/operations.md).
+[docs/OPERATIONS.md](../docs/OPERATIONS.md).
 
 ## Contract-First Workflow
 

@@ -36,7 +36,7 @@ cp .env.example .env
 There is **one** `.env`, never committed, and one template for both uses. Compose reads it, and
 `docker-compose.yml` hands the whole file to the backend container through `env_file` — which is why
 anything that has no business inside the application has no business in it either (the `BACKUP_*`
-settings live in `/root/pedalons-backup.env` instead, see [Backup and restore](docs/operations.md#backup-and-restore)).
+settings live in `/root/pedalons-backup.env` instead, see [Backup and restore](docs/OPERATIONS.md#backup-and-restore)).
 
 A workstation and a deployment differ in five keys, and only those:
 
@@ -290,8 +290,8 @@ Production is backed up nightly by `scripts/backup.sh` over a restricted `rrsync
 `scripts/restore.sh` brings an environment back from a snapshot.
 
 The runbook — deployment, access-log redaction, seeding the shared Valhalla data, network changes,
-backup configuration and restore — is in **[docs/operations.md](docs/operations.md)**. Read its
-[Deployment](docs/operations.md#deployment) section before touching networks or the compose files.
+backup configuration and restore — is in **[docs/OPERATIONS.md](docs/OPERATIONS.md)**. Read its
+[Deployment](docs/OPERATIONS.md#deployment) section before touching networks or the compose files.
 
 ## Features
 
