@@ -26,6 +26,9 @@ build_backend() {
   export QUARKUS_CONTAINER_IMAGE_GROUP=""
   export QUARKUS_CONTAINER_IMAGE_NAME="pedalons-backend"
   export QUARKUS_CONTAINER_IMAGE_TAG="$ENV_NAME"
+  # Jib builds linux/amd64 unless told otherwise. Build for the daemon the image is loaded into:
+  # arm64 on an Apple Silicon workstation (Docker VMM cannot emulate amd64), amd64 on a server.
+  export QUARKUS_JIB_PLATFORMS="linux/$(docker version --format '{{.Server.Arch}}')"
   mvn clean package -DskipTests -Dquarkus.container-image.build=true
 }
 
