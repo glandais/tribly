@@ -92,7 +92,7 @@ export function RideTemplatePickerModal({
       opened={isOpen}
       onClose={handleClose}
       title={title || t('rideTemplates.picker.title')}
-      size="2xl"
+      size="xl"
     >
       <Box mb="md">
         <SearchInput

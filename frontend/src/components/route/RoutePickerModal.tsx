@@ -93,7 +93,7 @@ export function RoutePickerModal({
       opened={isOpen}
       onClose={handleClose}
       title={title || t('routes.picker.title')}
-      size="4xl"
+      size="xl"
     >
       <Group mb="md">
         <SearchInput
