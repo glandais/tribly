@@ -40,10 +40,13 @@ export function makeQueryClient(opts?: { isServer?: boolean }): QueryClient {
         },
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
         refetchOnWindowFocus: false,
-        // A route's loader has just run the same query and failed (after its own retries): mounting
-        // the page must not start it all over — twice the requests, twice the wait, before the
-        // error shows. See the cache subscription below for why a later visit still reads again.
-        retryOnMount: false,
+        // Client: a route's loader has just run the same query and failed (after its own retries):
+        // mounting the page must not start it all over — twice the requests, twice the wait, before
+        // the error shows. See the cache subscription below for why a later visit still reads again.
+        // Server: left on. dehydrate() does not hand failed queries over, so the client starts
+        // without them and renders the page's loading branch; the server must render that same
+        // branch — a failed query it will "retry on mount" is pending — or hydration breaks (#418).
+        retryOnMount: !!opts?.isServer,
       },
       mutations: {
         retry: false,
