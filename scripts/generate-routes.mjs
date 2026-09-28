@@ -56,6 +56,7 @@ function loadRoutes() {
       mobile: route.mobile === true,
       mobileName: route.mobileName ?? route.id,
       deeplink: route.deeplink === true,
+      webFallback: route.webFallback ?? null,
     }
     if (!normalized.id) throw new Error(`route is missing id: ${JSON.stringify(route)}`)
     if (!normalized.path?.[DEFAULT_LOCALE]) {
@@ -75,6 +76,34 @@ function loadRoutes() {
     }
     return normalized
   })
+}
+
+/** Every web: false deeplink names the web page a browser falls back to, which must exist. */
+function checkWebFallbacks(routes) {
+  const byId = new Map(routes.map((route) => [route.id, route]))
+  for (const route of routes) {
+    if (route.web || !route.deeplink) {
+      if (route.webFallback) {
+        throw new Error(`route ${route.id}: webFallback only applies to a web: false deeplink`)
+      }
+      continue
+    }
+    if (!route.webFallback) {
+      throw new Error(
+        `route ${route.id}: a web: false deeplink needs a webFallback — without the app, the link ends on the web`
+      )
+    }
+    const target = byId.get(route.webFallback)
+    if (!target?.web) {
+      throw new Error(`route ${route.id}: webFallback ${route.webFallback} is not a web route`)
+    }
+    const own = new Set(route.params.map((p) => p.name))
+    for (const p of target.params) {
+      if (!own.has(p.name)) {
+        throw new Error(`route ${route.id}: webFallback ${route.webFallback} needs param ${p.name}`)
+      }
+    }
+  }
 }
 
 function paramSlotTs(name) {
@@ -176,6 +205,25 @@ function generatePathsTs(routes) {
     lines.push(`  ${route.id}: (${sig}): Record<Locale, string> => ({ ${entries.join(', ')} }),`)
   }
   lines.push('} as const')
+  lines.push('')
+  lines.push('/**')
+  lines.push(
+    ' * App-only deeplinks (web: false): every locale pattern, and the web route a browser lands on'
+  )
+  lines.push(' * instead — the universal link reaches the web whenever the app is not installed.')
+  lines.push(' */')
+  lines.push('export const appOnlyFallbacks = [')
+  for (const route of routes) {
+    if (route.web || !route.deeplink) continue
+    const map = localePathMap(route)
+    const patterns = [
+      ...new Set(LOCALES.map((locale) => fillTemplate(map[locale], route.params, (n) => `:${n}`))),
+    ]
+    lines.push(
+      `  { id: '${route.id}', patterns: [${patterns.map((p) => `'${p}'`).join(', ')}], fallback: '${route.webFallback}' as const },`
+    )
+  }
+  lines.push('] as const')
   lines.push('')
   return lines.join('\n')
 }
@@ -354,6 +402,7 @@ function writeIfChanged(target, content) {
 
 function main() {
   const routes = loadRoutes()
+  checkWebFallbacks(routes)
   const seen = new Set()
   for (const r of routes) {
     if (seen.has(r.id)) throw new Error(`Duplicate route id: ${r.id}`)

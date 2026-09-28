@@ -1,5 +1,5 @@
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
-import { Navigate, type RouteObject } from 'react-router-dom'
+import { Navigate, redirect, type RouteObject } from 'react-router-dom'
 import type { QueryClient } from '@tanstack/react-query'
 import { routesConfig } from './routes.config'
 import { runRoutePrefetch } from './runRoutePrefetch'
@@ -8,6 +8,7 @@ import { AuthenticatedRoute, UnauthenticatedRoute } from '../components/auth/Pro
 import { Layout } from '../components/common/Layout'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { paths } from './paths'
+import { appOnlyFallbacks } from './paths.generated'
 import { getPinnedTeamSlug, isSingleTeam } from './appConfig'
 import { PinnedHrefs } from './PinnedHrefs'
 
@@ -84,6 +85,24 @@ function buildRoutesForConfig(config: RouteConfig, queryClient: QueryClient): Ro
   return uniquePaths.map((path) => ({ path, element, loader, handle }))
 }
 
+/**
+ * The deeplinks only the app answers (contracts/routes.yaml, web: false): opened in a browser — no
+ * app installed, a desktop — they redirect to their web fallback instead of a 404. A loader, so the
+ * server answers a real redirect too. Being static, they also rank above `/equipes/:teamSlug`:
+ * `/equipes/decouvrir` is not read as a team.
+ */
+export function appOnlyFallbackRoutes(): RouteObject[] {
+  return appOnlyFallbacks.flatMap(({ patterns, fallback }) =>
+    patterns.map((path) => ({
+      path,
+      // The fallback's params are a subset of the link's (checked by the generator): teamSlug at most.
+      loader: ({ params }: { params: Record<string, string | undefined> }) =>
+        redirect((paths[fallback] as (teamSlug?: string) => string)(params.teamSlug)),
+      element: null,
+    }))
+  )
+}
+
 export function buildRoutes(queryClient: QueryClient): RouteObject[] {
   // `layout: 'bare'` routes render outside the shared <Layout> AppShell (no header/footer/
   // breadcrumbs), as siblings of the "/" branch. Auth wrapping still applies via
@@ -92,6 +111,7 @@ export function buildRoutes(queryClient: QueryClient): RouteObject[] {
   const appConfigs = routesConfig.filter((config) => config.layout !== 'bare')
 
   const routes: RouteObject[] = [
+    ...appOnlyFallbackRoutes(),
     ...bareConfigs.flatMap((config) => buildRoutesForConfig(config, queryClient)),
     {
       path: '/',

@@ -466,3 +466,14 @@ export const pathVariants = {
   adminBetaSignups: (): Record<Locale, string> => ({ en: '/platform/beta-signups', fr: '/plateforme/inscriptions-beta' }),
   adminReports: (): Record<Locale, string> => ({ en: '/platform/reports', fr: '/plateforme/signalements' }),
 } as const
+
+/**
+ * App-only deeplinks (web: false): every locale pattern, and the web route a browser lands on
+ * instead — the universal link reaches the web whenever the app is not installed.
+ */
+export const appOnlyFallbacks = [
+  { id: 'register', patterns: ['/register', '/inscription'], fallback: 'login' as const },
+  { id: 'myParticipations', patterns: ['/profile/participations', '/profil/participations'], fallback: 'profile' as const },
+  { id: 'teamsDiscover', patterns: ['/teams/discover', '/equipes/decouvrir'], fallback: 'teams' as const },
+  { id: 'teamMembers', patterns: ['/teams/:teamSlug/members', '/equipes/:teamSlug/membres'], fallback: 'team' as const },
+] as const
