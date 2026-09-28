@@ -1,7 +1,7 @@
 import 'common.dart';
 
-/// Web counterpart: `flow-team.e2e.ts` › « joining a team », the non-joinable case (audit P0 #2),
-/// a `test.fail` on the web — `TeamLayout.tsx` ignores `joinable` there. The app reads it.
+/// Web counterpart: `flow-team.e2e.ts` › « joining a team », the non-joinable case (audit P0 #2) —
+/// a public team that takes no join request offers no join button, and the API refuses the join.
 void main() {
   testApp(
     'A public team that takes no join request says « Sur invitation », and nothing joins it',

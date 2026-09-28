@@ -1,7 +1,7 @@
 import 'common.dart';
 
-/// Web counterpart: `flow-ads.e2e.ts` › « ad rights » (audit P0 #4), a `test.fail` on the web —
-/// `AdDetailPage.tsx` offers « Modifier » to any member there. The app never offers to edit or
+/// Web counterpart: `flow-ads.e2e.ts` › « ad rights » (audit P0 #4) — a non-author sees
+/// « Contacter » but neither « Modifier » nor the management menu. The app never offers to edit or
 /// delete someone else's ad: a member may contact its author, report it, or block its author.
 void main() {
   testApp(
