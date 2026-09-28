@@ -14,6 +14,17 @@ interface EntityData {
 }
 
 /**
+ * The breadcrumb reads the entities the page reads, through observers that stay mounted across
+ * navigations and only change their key. That path (`setOptions`) ignores `retryOnMount`: an
+ * entity the route's loader just failed to read was read again, right behind the page — a 404
+ * twice, a 500 through a second round of retries while the page went back to its skeleton. The
+ * page owns the error and its retry; the breadcrumb waits for data instead of asking again.
+ */
+export function onlyIfNotFailed(wanted: boolean) {
+  return (query: { state: { status: string } }) => wanted && query.state.status !== 'error'
+}
+
+/**
  * Hook to fetch entity names for breadcrumbs
  * Only fetches data for entities present in params
  */
@@ -32,32 +43,32 @@ export function useBreadcrumbData(params: RouteParams): Record<EntityType, Entit
 
   // Fetch team - needed for all team-related breadcrumbs
   const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
-    query: { enabled: !!teamSlug },
+    query: { enabled: onlyIfNotFailed(!!teamSlug) },
   })
 
   // Fetch entities conditionally based on params
   const { data: ride, isLoading: isLoadingRide } = useGetRide(teamSlug!, rideSlug!, {
-    query: { enabled: !!teamSlug && !!rideSlug },
+    query: { enabled: onlyIfNotFailed(!!teamSlug && !!rideSlug) },
   })
   const { data: post, isLoading: isLoadingPost } = useGetPost(teamSlug!, postSlug!, {
-    query: { enabled: !!teamSlug && !!postSlug },
+    query: { enabled: onlyIfNotFailed(!!teamSlug && !!postSlug) },
   })
   const { data: trip, isLoading: isLoadingTrip } = useGetTrip(teamSlug!, tripSlug!, {
-    query: { enabled: !!teamSlug && !!tripSlug },
+    query: { enabled: onlyIfNotFailed(!!teamSlug && !!tripSlug) },
   })
   const { data: route, isLoading: isLoadingRoute } = useGetRoute(teamSlug!, routeSlug!, {
-    query: { enabled: !!teamSlug && !!routeSlug },
+    query: { enabled: onlyIfNotFailed(!!teamSlug && !!routeSlug) },
   })
   const { data: rideTemplate, isLoading: isLoadingTemplate } = useGetTemplate(
     teamSlug!,
     templateSlug!,
-    { query: { enabled: !!teamSlug && !!templateSlug } }
+    { query: { enabled: onlyIfNotFailed(!!teamSlug && !!templateSlug) } }
   )
   const { data: ad, isLoading: isLoadingAd } = useGetAd(teamSlug!, adSlug!, {
-    query: { enabled: !!teamSlug && !!adSlug },
+    query: { enabled: onlyIfNotFailed(!!teamSlug && !!adSlug) },
   })
   const { data: teamPage, isLoading: isLoadingTeamPage } = useGetPage(teamSlug!, pageSlug!, {
-    query: { enabled: !!teamSlug && !!pageSlug },
+    query: { enabled: onlyIfNotFailed(!!teamSlug && !!pageSlug) },
   })
 
   // Stage name comes from trip's stages array
