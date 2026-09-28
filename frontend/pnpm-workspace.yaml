@@ -5,3 +5,8 @@ allowBuilds:
   msw: true
   protobufjs: false
   sharp: true
+
+overrides:
+  # Peer optionnel de rollup-plugin-visualizer, jamais remonté par pnpm update :
+  # GHSA-mw96-cpmx-2vgc (path traversal) touche rollup < 4.59.0.
+  rollup: '>=4.59.0'
