@@ -62,6 +62,8 @@
   "ads.list.filters.minPrice": "Min price",
   "ads.list.filters.priceHint": "A price bound leaves out the ads with no set price.",
   "ads.list.filters.pricePlaceholder": "Any",
+  "ads.list.membersOnly.description": "The team's ads are only visible to its members.",
+  "ads.list.membersOnly.title": "Members only",
   "ads.list.noResults": "No ads found matching your search.",
   "ads.list.noResultsTitle": "No ads found",
   "ads.list.search.label": "Search ads",

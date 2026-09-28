@@ -2,7 +2,7 @@ import { useCallback } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
-import { IconPlus, IconSearchOff, IconTag } from '@tabler/icons-react'
+import { IconLock, IconPlus, IconSearchOff, IconTag } from '@tabler/icons-react'
 import {
   Button,
   NumberInput,
@@ -61,6 +61,23 @@ export function AdListPage() {
   }
 
   const isMember = !!teamData.role
+
+  // The API refuses the list to anyone outside the team (AdAccessChecker LIST): saying there are
+  // no ads would be untrue, and filters over a list that cannot come would be noise.
+  if (!isMember) {
+    return (
+      <TeamLayout team={teamData} currentTab="ads">
+        <Title order={2}>{t('ads.title')}</Title>
+        <Space h="md" />
+        <EmptyState
+          icon={<IconLock size={48} />}
+          title={t('ads.list.membersOnly.title')}
+          description={t('ads.list.membersOnly.description')}
+        />
+      </TeamLayout>
+    )
+  }
+
   const adsList = adsResponse?.ads || []
   const hasFiltersOrSearch = isAdFiltered(filters)
   // The sort survives: clearing brings the list back into view, it does not reorder what the

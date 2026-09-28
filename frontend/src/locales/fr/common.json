@@ -62,6 +62,8 @@
   "ads.list.filters.minPrice": "Prix min.",
   "ads.list.filters.priceHint": "Un prix limite écarte les annonces à négocier.",
   "ads.list.filters.pricePlaceholder": "Indifférent",
+  "ads.list.membersOnly.description": "Les annonces de l'équipe ne sont visibles que par ses membres.",
+  "ads.list.membersOnly.title": "Réservées aux membres",
   "ads.list.noResults": "Aucune annonce ne correspond à votre recherche.",
   "ads.list.noResultsTitle": "Aucune annonce trouvée",
   "ads.list.search.label": "Rechercher des annonces",

@@ -121,12 +121,14 @@ const routeList = (why: string): Outcome => ({
   },
 })
 /**
- * The team's ads tab as an outsider sees it, once its refused list has settled — on its empty
- * state, so that the absence of the ad the next checks assert is not vacuous.
+ * The team's ads tab as an outsider sees it: settled on its members-only notice, so that the
+ * absence of the ad the next checks assert is not vacuous.
  */
 const settledAdList = async (main: Main) => {
   await heading('Annonces')(main)
-  await expect(main.getByRole('heading', { name: 'Aucune annonce', exact: true })).toBeVisible()
+  await expect(
+    main.getByRole('heading', { name: 'Réservées aux membres', exact: true })
+  ).toBeVisible()
 }
 const adList = (why: string): Outcome => ({ why, lands: pathTo('ads'), sees: settledAdList })
 const home = (why: string): Outcome => ({
@@ -478,9 +480,9 @@ const screens: Record<string, Screen> = {
       await heading('Annonces')(main)
       await expect(main.getByRole('link', { name: d.ad.name }).first()).toBeVisible()
     },
-    // No redirect: AdListPage keeps an outsider on the team's tab, whose list the API refuses
-    // (AdAccessChecker LIST needs a team role). What matters is that no ad, nor the way to post
-    // one, shows.
+    // No redirect: AdListPage keeps an outsider on the team's tab and says the ads are for its
+    // members (AdAccessChecker LIST needs a team role). What matters is that no ad, nor the way to
+    // post one, shows.
     denied: {
       outsider: { why: 'the ads are for the team members', sees: settledAdList },
     },
