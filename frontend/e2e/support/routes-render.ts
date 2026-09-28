@@ -13,6 +13,7 @@ import type {
   TripDto,
 } from '../../src/api/dto'
 import { newAd } from './ads'
+import { contractEnglishPaths, fillPath } from './contract'
 import { apiPost, expectOk, withApi, type AuthResponse } from './api'
 import { addMember, markdownMedia, newTeam, newTeamPage, newUser, roleSession } from './data'
 import { newPost } from './posts'
@@ -158,3 +159,12 @@ const uploadPreview = (as: AuthResponse, name: string, gpx: string) =>
       })
     )
   )
+
+const englishTemplates = contractEnglishPaths()
+
+/** The English path of the contract's route `id`, every `{param}` filled from `params`. */
+export function englishPath(id: string, params: Record<string, string>): string {
+  const path = englishTemplates.get(id)
+  if (!path) throw new Error(`no web route ${id} in the contract`)
+  return fillPath({ id, path, params: [] }, params)
+}

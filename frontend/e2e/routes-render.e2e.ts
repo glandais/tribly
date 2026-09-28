@@ -1,9 +1,16 @@
 import type { Locator, Page } from '@playwright/test'
 import { signIn } from './support/data'
+import { stack } from './support/stack'
 import { expect, test } from './support/fixtures'
 import { configuredAuth, contractWebRoutes, fillPath, type ContractRoute } from './support/contract'
-import { buildDataset, RENDER_ROLES, type Dataset, type RenderRole } from './support/routes-render'
-import { pageHydrated, watchHydration } from './support/ui'
+import {
+  buildDataset,
+  englishPath,
+  RENDER_ROLES,
+  type Dataset,
+  type RenderRole,
+} from './support/routes-render'
+import { pageAs, pageHydrated, watchHydration } from './support/ui'
 
 /**
  * Every web route of contracts/routes.yaml, for every role: the screen for those who may see it,
@@ -381,6 +388,9 @@ const screens: Record<string, Screen> = {
   rideTemplateEdit: {
     roles: ORGANIZERS,
     sees: heading('Modifier le modèle'),
+    // GET /ride-templates/{slug} answers 403 below organizer. Regression (d222e6ea): the server's
+    // QueryClient keeps retryOnMount, so that failed loader renders pending on both sides — before,
+    // the server rendered the error branch and hydration broke (#418).
     denied: denies(BELOW_ORGANIZER, teamHome(NOT_ORGANIZER)),
     guards: (page) => teamAdminNav(page).or(titled('Modifier le modèle')(page)),
   },
@@ -515,6 +525,7 @@ const screens: Record<string, Screen> = {
     // An organizer is neither the author nor an admin: GET /ads/{slug}/edit answers 403
     // (AdAccessChecker UPDATE), and EditAdPage, left without an ad, falls back to the list.
     // An outsider meets the same 403, and an ads list that shows them nothing.
+    // Regression (d222e6ea): both hydrate that 403 cleanly — see rideTemplateEdit.
     denied: {
       outsider: adList('only its author and the team admins edit an ad'),
       organizer: {
@@ -708,4 +719,141 @@ for (const route of contract) {
       expect(hydrationErrors, `${where}: hydration errors`).toEqual([])
     })
   }
+}
+
+/**
+ * The English paths of the contract. The router registers every locale's path whatever the
+ * interface language (RouteGenerator.tsx), so a link shared from an English interface opens in a
+ * French one: the document answers 200, in French, and the page then replaces the address with its
+ * French path (useCanonicalPath). The other way round, an interface in English writes English links.
+ */
+test.describe('English paths', () => {
+  // A sample: team-scoped screens of every kind, public ones as an anonymous visitor, an admin
+  // screen as the team's admin.
+  const teamScoped: { id: string; role: RenderRole }[] = [
+    { id: 'team', role: 'anonymous' },
+    { id: 'teamAbout', role: 'anonymous' },
+    { id: 'routes', role: 'anonymous' },
+    { id: 'route', role: 'anonymous' },
+    { id: 'ride', role: 'anonymous' },
+    { id: 'post', role: 'anonymous' },
+    { id: 'stage', role: 'anonymous' },
+    { id: 'ads', role: 'member' },
+    { id: 'teamSettings', role: 'teamAdmin' },
+  ]
+  for (const { id, role } of teamScoped)
+    test(`${id} under its English path, in a French interface, as ${role}: 200, then its French path`, async ({
+      page,
+    }) => {
+      await expectCanonicalFrench(page, id, role)
+    })
+
+  // The global screens are registered under their English paths too, but only the pages calling
+  // useCanonicalPath (the team-scoped ones, and the GPX map) replace the address: /teams, /routes,
+  // /apps, /login, /profile… keep the English path under a French interface, and the server writes
+  // it as og:url. Decided on 2026-09-28 not to canonicalise them (not worth a Layout-wide
+  // canonicalisation): the page must only serve, in French, without an error.
+  const global: { id: string; role: RenderRole }[] = [
+    { id: 'teams', role: 'anonymous' },
+    { id: 'allRoutes', role: 'anonymous' },
+    { id: 'apps', role: 'anonymous' },
+    { id: 'login', role: 'anonymous' },
+    { id: 'profile', role: 'member' },
+  ]
+  for (const { id, role } of global)
+    test(`${id} under its English path, in a French interface, as ${role}: 200, in French (global screen, kept English)`, async ({
+      page,
+    }) => {
+      await expectServedInFrench(page, id, role)
+    })
+
+  test('in English, the team page and its tabs use the English paths', async ({ browser }) => {
+    const d = await data()
+    const { context, page } = await pageAs(browser, undefined)
+    try {
+      // The language a visitor picked (LanguageSwitcher's cookie), which the server reads first.
+      await context.addCookies([{ name: 'lang', value: 'en', url: stack.baseURL }])
+      const { pageErrors, hydrationErrors } = await watchHydration(page)
+
+      // The French link a member shared: the page switches it to English.
+      const response = await page.goto(`/equipes/${d.team.slug}`)
+      expect(response?.status()).toBe(200)
+      await pageHydrated(page)
+      await expect(page.locator('html')).toHaveAttribute('lang', 'en')
+      await expect(page.getByRole('heading', { level: 1, name: d.team.name })).toBeVisible()
+      await expect
+        .poll(() => new URL(page.url()).pathname, { timeout: 15_000 })
+        .toBe(`/teams/${d.team.slug}`)
+
+      const tabs = page.getByRole('navigation', { name: 'Team navigation' }).getByRole('link')
+      await expect(tabs.first()).toBeVisible()
+      const hrefs = await tabs.evaluateAll((links) => links.map((l) => l.getAttribute('href')))
+      const english = ['team', 'teamAbout', 'routes', 'teamCalendar', 'ads']
+        .map((id) => englishPath(id, d.params))
+        // The calendar and the ads are the members'; an anonymous visitor has neither tab.
+        .filter((path) => !/\/(calendar|classifieds)$/.test(path))
+      expect(hrefs).toEqual(expect.arrayContaining(english))
+      for (const href of hrefs)
+        expect(href, 'every tab is an English path').toMatch(
+          new RegExp(`^/teams/${d.team.slug}(/|$)`)
+        )
+
+      // And following one stays in English.
+      await tabs.filter({ hasText: 'About' }).first().click()
+      await expect(page).toHaveURL(new RegExp(`${englishPath('teamAbout', d.params)}$`))
+      expect(pageErrors).toEqual([])
+      expect(hydrationErrors).toEqual([])
+    } finally {
+      await context.close()
+    }
+  })
+})
+
+/**
+ * Opens route `id` under its English path in a French interface as `role`: a 200 document, in
+ * French, showing its screen, hydrated without an error.
+ */
+async function expectServedInFrench(page: Page, id: string, role: RenderRole) {
+  const d = await data()
+  const english = englishPath(id, d.params)
+  const { pageErrors, hydrationErrors } = await watchHydration(page)
+  if (role !== 'anonymous') await signIn(page.context(), d.sessions[role])
+
+  const response = await page.goto(english)
+  expect(response?.status(), `${english}: document status`).toBe(200)
+  await pageHydrated(page)
+  await expect(page.locator('html')).toHaveAttribute('lang', 'fr')
+  // The same screen as under its French path: what the table says only that screen shows.
+  const screen = screens[id]
+  await screen.sees(screen.bare ? page.locator('body') : page.getByRole('main'), d, page)
+  expect(pageErrors, `${english}: uncaught errors`).toEqual([])
+  expect(hydrationErrors, `${english}: hydration errors`).toEqual([])
+}
+
+/**
+ * Opens route `id` under its English path in a French interface as `role`: a 200 document, in
+ * French, then the French path in the address bar.
+ */
+async function expectCanonicalFrench(page: Page, id: string, role: RenderRole, timeout = 15_000) {
+  const d = await data()
+  const route = contract.find((candidate) => candidate.id === id)
+  if (!route) throw new Error(`no web route ${id} in the contract`)
+  const english = englishPath(id, d.params)
+  const french = fillPath(route, d.params)
+  expect(english, `precondition: ${id} has an English path of its own`).not.toBe(french)
+  const { pageErrors, hydrationErrors } = await watchHydration(page)
+  if (role !== 'anonymous') await signIn(page.context(), d.sessions[role])
+
+  const response = await page.goto(english)
+  expect(response?.status(), `${english}: document status`).toBe(200)
+  await pageHydrated(page)
+  await expect(page.locator('html')).toHaveAttribute('lang', 'fr')
+  await expect
+    .poll(() => new URL(page.url()).pathname, {
+      message: `${english} is replaced by ${french}`,
+      timeout,
+    })
+    .toBe(french)
+  expect(pageErrors, `${english}: uncaught errors`).toEqual([])
+  expect(hydrationErrors, `${english}: hydration errors`).toEqual([])
 }

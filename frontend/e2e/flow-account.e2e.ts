@@ -1,5 +1,6 @@
-import type { Page } from '@playwright/test'
-import { ApiError, apiDelete, loginWithPassword } from './support/api'
+import { readFileSync } from 'node:fs'
+import type { Browser, Page } from '@playwright/test'
+import { ApiError, apiDelete, apiGetOrNull, apiPost, loginWithPassword } from './support/api'
 import {
   addMember,
   freshAddress,
@@ -10,8 +11,10 @@ import {
   signIn,
 } from './support/data'
 import { expect, test, unique } from './support/fixtures'
+import { frenchDateTime } from './support/dates'
 import { stack } from './support/stack'
 import {
+  addPasskeyFromProfile,
   calendarTokenOf,
   fetchFeed,
   headerControls,
@@ -24,10 +27,14 @@ import {
   sessionIsAlive,
   signOutFromHeader,
   virtualAuthenticator,
+  wallClockIn,
+  zipEntry,
 } from './support/flow-account'
-import { mailbox, otpCodeIn, waitForNewMail } from './support/mailpit'
-import { joinGroup, newRide, openRide } from './support/rides'
-import { hydrated } from './support/ui'
+import { mailbox, mailsTo, otpCodeIn, waitForNewMail } from './support/mailpit'
+import { joinGroup, newRide, openRide, ridePath } from './support/rides'
+import { newTrip, tripPath } from './support/routes'
+import { rawDocument, sessionCookie as ssrCookie, ssrOutlet } from './support/ssr'
+import { escapeRegExp, hydrated, pageAs, watchToasts } from './support/ui'
 
 /**
  * The account journeys, through the UI only: sign-up with the form and the mail's link, sign-out,
@@ -411,18 +418,7 @@ test('a passkey registered from the profile signs in from the login page', async
   const device = unique('Clé virtuelle')
 
   await expect(main.getByText('Aucune passkey enregistrée.', { exact: false })).toBeVisible()
-  const add = main.getByRole('button', { name: 'Ajouter', exact: true })
-  await hydrated(add)
-  await add.click()
-  const dialog = page.getByRole('dialog', { name: 'Ajouter une passkey' })
-  await dialog.getByRole('textbox', { name: "Nom de l'appareil (optionnel)" }).fill(device)
-  const registered = page.waitForResponse(
-    (r) => r.request().method() === 'POST' && r.url().includes('/api/auth/passkeys/register')
-  )
-  await dialog.getByRole('button', { name: 'Enregistrer' }).click()
-  expect((await registered).ok()).toBe(true)
-  await expect(dialog).toBeHidden()
-  await expect(main.getByText(device, { exact: true })).toBeVisible()
+  await addPasskeyFromProfile(page, device)
 
   expect(await authenticator.credentials()).toHaveLength(1)
   const [passkey] = await passkeysOf(user.accessToken)
@@ -705,5 +701,554 @@ test.describe('mobile header', () => {
     await hydrated(burger)
     await burger.click()
     await expect(banner.getByRole('button', { name: 'Fermer le menu' })).toBeVisible()
+  })
+})
+
+test('a deleted passkey is gone from the profile and no longer signs in', async ({
+  page,
+  context,
+  isMobile,
+}) => {
+  const user = await newUser(unique('Passkey supprimée'))
+  const authenticator = await virtualAuthenticator(page)
+  await signIn(context, user)
+  const main = await openProfile(page, user.user.email)
+  const device = unique('Clé à supprimer')
+  await addPasskeyFromProfile(page, device)
+  expect(await passkeysOf(user.accessToken)).toHaveLength(1)
+
+  await main.getByRole('button', { name: 'Supprimer cette passkey' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Supprimer la passkey ?' })
+  await expect(
+    dialog.getByText('Cette passkey ne pourra plus être utilisée pour vous connecter.')
+  ).toBeVisible()
+  const deleted = page.waitForResponse(
+    (r) => r.request().method() === 'DELETE' && r.url().includes('/api/auth/passkeys/')
+  )
+  await dialog.getByRole('button', { name: 'Supprimer', exact: true }).click()
+  expect((await deleted).ok()).toBe(true)
+  await expect(dialog).toBeHidden()
+  await expect(main.getByText(device, { exact: true })).toHaveCount(0)
+  await expect(main.getByText('Aucune passkey enregistrée.', { exact: false })).toBeVisible()
+  expect(await passkeysOf(user.accessToken)).toEqual([])
+
+  // The browser's authenticator still holds the credential — deleting it on the server is what
+  // must stop it from opening a session.
+  expect(await authenticator.credentials()).toHaveLength(1)
+  await signOutFromHeader(page, isMobile, user.user.displayName)
+  const login = page.getByRole('main')
+  await expect(login.getByRole('heading', { name: WELCOME })).toBeVisible()
+  const quick = login.getByRole('button', { name: 'Connexion rapide' })
+  await hydrated(quick)
+  const refused = page.waitForResponse((r) => r.url().endsWith('/api/auth/passkeys/authenticate'))
+  await quick.click()
+  expect((await refused).ok(), 'the server refuses the deleted credential').toBe(false)
+  await expect(page.getByText("Échec de l'authentification par passkey")).toBeVisible()
+  await expect(page).toHaveURL(/\/connexion$/)
+  expect(await sessionCookie(context)).toBeUndefined()
+})
+
+/**
+ * Links that were good once, and addresses the site must not reveal. A consumed or unknown token
+ * says the same thing; an unknown address gets the very screen a known one gets, and no mail.
+ */
+test.describe('replayed links, unknown addresses, sign-up checks', () => {
+  /**
+   * A reset link used once from the form (which signs `page` in), then opened again from a browser
+   * with no session — a second click in the mail — and submitted with another password. Returns
+   * that second browser, and the server's answer to the replay.
+   */
+  async function replayResetLink(page: Page, browser: Browser) {
+    const user = await newUser(unique('Lien rejoué'))
+    const email = user.user.email
+    const seen = await mailbox(email)
+    await apiPost(undefined, '/api/auth/forgot-password', { email })
+    const link = mailLinkTo(await waitForNewMail(email, seen), '/reset-password')
+
+    /** Opens the link in `target` and submits `password` as the new one; the server's answer. */
+    async function resetWith(target: Page, password: string) {
+      await target.goto(link)
+      const form = target.getByRole('main')
+      await expect(
+        form.getByRole('heading', { name: 'Réinitialiser le mot de passe' })
+      ).toBeVisible()
+      const submit = form.getByRole('button', { name: 'Réinitialiser le mot de passe' })
+      await hydrated(submit)
+      await form.getByRole('textbox', { name: 'Nouveau mot de passe' }).fill(password)
+      await form.getByRole('textbox', { name: 'Confirmer le mot de passe' }).fill(password)
+      const answered = target.waitForResponse((r) => r.url().endsWith('/api/auth/reset-password'))
+      await submit.click()
+      return answered
+    }
+    expect((await resetWith(page, 'e2e-first-reset')).ok()).toBe(true)
+    await expect(page).toHaveURL(/\/$/)
+
+    const other = await pageAs(browser, undefined)
+    const replay = await resetWith(other.page, 'e2e-second-reset')
+    return { user, email, other, replay }
+  }
+
+  test('a password reset link works once: replayed, the server refuses it and the password stays', async ({
+    page,
+    browser,
+  }) => {
+    const { user, email, other, replay } = await replayResetLink(page, browser)
+    try {
+      expect(replay.status()).toBe(400)
+      expect((await replay.json()).code).toBe('TOKEN_INVALID')
+      // The page says it itself (c153bb6f), rather than the API's « Le jeton est invalide » toast.
+      await expect(
+        other.page.getByRole('main').getByRole('heading', { name: 'Lien invalide' })
+      ).toBeVisible()
+      await expect(other.page.getByText('Le jeton est invalide')).toHaveCount(0)
+      await expect(other.page).toHaveURL(/\/reset-password\?token=/)
+      expect(await sessionCookie(other.context), 'no session for a spent link').toBeUndefined()
+    } finally {
+      await other.context.close()
+    }
+    expect((await loginWithPassword(email, 'e2e-first-reset')).user.id).toBe(user.user.id)
+    await expect(loginWithPassword(email, 'e2e-second-reset')).rejects.toBeInstanceOf(ApiError)
+  })
+
+  // Regression (c153bb6f): ResetPasswordPage reads the code from the ApiClientError — before, a
+  // replayed link never showed « Lien invalide », only two contradicting toasts.
+  test('a replayed reset link shows « Lien invalide » and offers a new one', async ({
+    page,
+    browser,
+  }) => {
+    const { other } = await replayResetLink(page, browser)
+    try {
+      const form = other.page.getByRole('main')
+      await expect(form.getByRole('heading', { name: 'Lien invalide' })).toBeVisible()
+      await expect(
+        form.getByText('Ce lien de réinitialisation est invalide ou a expiré.')
+      ).toBeVisible()
+      await expect(form.getByRole('link', { name: 'Demander un nouveau lien' })).toHaveAttribute(
+        'href',
+        '/mot-de-passe-oublie'
+      )
+    } finally {
+      await other.context.close()
+    }
+  })
+
+  test('a verification link replayed in a fresh browser is refused and opens no session', async ({
+    page,
+    browser,
+  }) => {
+    const email = freshAddress('verification rejouee')
+    const seen = await mailbox(email)
+    await apiPost(undefined, '/api/auth/register', {
+      email,
+      displayName: unique('Vérifiée'),
+      password: 'e2e-password',
+      acceptTerms: true,
+    })
+    const link = mailLinkTo(await waitForNewMail(email, seen), '/verify-email')
+
+    await page.goto(link)
+    await expect(
+      page.getByRole('main').getByRole('heading', { name: 'Sécurisez votre compte' })
+    ).toBeVisible()
+
+    const other = await pageAs(browser, undefined)
+    try {
+      await other.page.goto(link)
+      const main = other.page.getByRole('main')
+      await expect(main.getByRole('heading', { name: 'Lien invalide' })).toBeVisible()
+      await expect(main.getByText('Ce lien de vérification est invalide.')).toBeVisible()
+      await expect(main.getByRole('heading', { name: 'Sécurisez votre compte' })).toHaveCount(0)
+      expect(await sessionCookie(other.context), 'no session for a spent link').toBeUndefined()
+      // The login button leads to the form, nothing else.
+      await main.getByRole('link', { name: 'Se connecter' }).click()
+      await expect(main.getByRole('heading', { name: WELCOME })).toBeVisible()
+    } finally {
+      await other.context.close()
+    }
+  })
+
+  test('a forgotten password for an unknown address shows the same screen and sends nothing', async ({
+    page,
+  }) => {
+    const known = await newUser(unique('Oubli connu'))
+    const unknown = freshAddress('oubli inconnu')
+
+    /** Asks for a reset link from the form; returns the text of the screen that follows. */
+    async function ask(email: string) {
+      await page.goto('/mot-de-passe-oublie')
+      const main = page.getByRole('main')
+      const submit = main.getByRole('button', { name: 'Envoyer le lien' })
+      await hydrated(submit)
+      await main.getByRole('textbox', { name: 'Email' }).fill(email)
+      const answered = page.waitForResponse((r) => r.url().endsWith('/api/auth/forgot-password'))
+      await submit.click()
+      expect((await answered).status()).toBe(200)
+      await expect(main.getByRole('heading', { name: 'Email envoyé' })).toBeVisible()
+      return main.innerText()
+    }
+
+    const seen = await mailbox(known.user.email)
+    const forKnown = await ask(known.user.email)
+    const forUnknown = await ask(unknown)
+    expect(forUnknown, 'nothing on screen tells the two apart').toBe(forKnown)
+    // The known address got its mail — sent in the same request as the unknown one's would have
+    // been — so an empty mailbox for the unknown one is not a matter of waiting.
+    await waitForNewMail(known.user.email, seen)
+    expect(await mailsTo(unknown)).toEqual([])
+  })
+
+  test('a code for an unknown address leads to the same code step and sends nothing', async ({
+    page,
+  }) => {
+    const known = await newUser(unique('Code connu'))
+    const unknown = freshAddress('code inconnu')
+
+    async function ask(email: string) {
+      const main = await openLogin(page)
+      const byMail = main.getByRole('button', { name: 'Connexion par email' })
+      await hydrated(byMail)
+      await byMail.click()
+      await main.getByRole('textbox', { name: 'Email' }).fill(email)
+      const answered = page.waitForResponse((r) => r.url().endsWith('/api/auth/otp'))
+      await main.getByRole('button', { name: 'Envoyer le code' }).click()
+      expect((await answered).status()).toBe(200)
+      await expect(main.getByRole('heading', { name: 'Entrez votre code' })).toBeVisible()
+      return (await main.innerText()).replace(email, '<address>')
+    }
+
+    const seen = await mailbox(known.user.email)
+    const forKnown = await ask(known.user.email)
+    const forUnknown = await ask(unknown)
+    expect(forUnknown, 'nothing on screen tells the two apart').toBe(forKnown)
+    otpCodeIn(await waitForNewMail(known.user.email, seen))
+    expect(await mailsTo(unknown)).toEqual([])
+  })
+
+  /** From the login page to the sign-up form, filled but for the terms. */
+  async function fillSignUp(page: Page, email: string) {
+    const main = await openLogin(page)
+    const toRegister = main.getByRole('button', { name: 'Créer un compte' })
+    await hydrated(toRegister)
+    await toRegister.click()
+    await expect(main.getByRole('heading', { name: 'Créer un compte' })).toBeVisible()
+    await main.getByRole('textbox', { name: 'Email' }).fill(email)
+    await main.getByRole('textbox', { name: "Nom d'affichage" }).fill(unique('Inscription'))
+    await main.getByRole('textbox', { name: 'Mot de passe', exact: true }).fill('e2e-password')
+    await main.getByRole('textbox', { name: 'Confirmer le mot de passe' }).fill('e2e-password')
+    return main
+  }
+
+  test('sign-up needs the terms accepted: without them nothing is sent', async ({ page }) => {
+    const email = freshAddress('sans cgu')
+    const main = await fillSignUp(page, email)
+    const terms = main.getByRole('checkbox', { name: /J'accepte les Conditions d'utilisation/ })
+    await expect(terms).not.toBeChecked()
+    let registrations = 0
+    page.on('request', (r) => {
+      if (r.url().endsWith('/api/auth/register')) registrations++
+    })
+
+    await main.getByRole('button', { name: 'Créer un compte' }).click()
+    await expect(
+      main.getByText("Acceptez les conditions d'utilisation pour créer un compte")
+    ).toBeVisible()
+    await expect(main.getByRole('heading', { name: 'Créer un compte' })).toBeVisible()
+    expect(registrations, 'the form stopped before the API').toBe(0)
+
+    // Accepted, the same form goes through.
+    await terms.check()
+    const registered = page.waitForResponse((r) => r.url().endsWith('/api/auth/register'))
+    await main.getByRole('button', { name: 'Créer un compte' }).click()
+    expect((await registered).ok()).toBe(true)
+    await expect(main.getByRole('heading', { name: WELCOME })).toBeVisible()
+  })
+
+  test('the server refuses a sign-up that does not accept the terms', async () => {
+    const refused = await apiPost(undefined, '/api/auth/register', {
+      email: freshAddress('api sans cgu'),
+      displayName: unique('Sans CGU'),
+      password: 'e2e-password',
+      acceptTerms: false,
+    }).catch((error: unknown) => error)
+    expect(refused).toBeInstanceOf(ApiError)
+    expect((refused as ApiError).status).toBe(400)
+  })
+
+  // Regression (c153bb6f): the auth pages read the code from the ApiClientError and pass
+  // skipErrorToast — before, the mutator's toast and the page's own contradicted each other.
+  test('a refused sign-up says why in one message', async ({ page }) => {
+    const user = await newUser(unique('Déjà là'))
+    const main = await fillSignUp(page, user.user.email)
+    await main.getByRole('checkbox').check()
+    const shown = await watchToasts(page)
+    await main.getByRole('button', { name: 'Créer un compte' }).click()
+    await expect(page.getByText('Un compte existe déjà avec cet email')).toBeVisible()
+    expect(await shown()).toEqual(['Un compte existe déjà avec cet email'])
+  })
+
+  test('signing up with an address that has an account says so and sends no mail', async ({
+    page,
+  }) => {
+    const user = await newUser(unique('Déjà inscrite'))
+    const main = await fillSignUp(page, user.user.email)
+    await main.getByRole('checkbox').check()
+    const before = (await mailsTo(user.user.email)).length
+    const registered = page.waitForResponse((r) => r.url().endsWith('/api/auth/register'))
+    await main.getByRole('button', { name: 'Créer un compte' }).click()
+    expect((await registered).status()).toBe(400)
+    await expect(page.getByText('Un compte existe déjà avec cet email')).toBeVisible()
+    // Still on the sign-up form, nothing lost.
+    await expect(main.getByRole('heading', { name: 'Créer un compte' })).toBeVisible()
+    await expect(main.getByRole('textbox', { name: 'Email' })).toHaveValue(user.user.email)
+    expect((await mailsTo(user.user.email)).length).toBe(before)
+    // The account is untouched.
+    expect((await loginWithPassword(user.user.email, user.password)).user.id).toBe(user.user.id)
+  })
+})
+
+/**
+ * « Se connecter » from a page an anonymous visitor can read should bring them back to it once
+ * signed in — as a protected page already does (ProtectedRoute passes `state.from`, LoginPage reads
+ * it). These links go to a bare `/login`, so the visitor lands on the home feed instead.
+ */
+test.describe('back to the page after signing in', () => {
+  /** A PUBLIC team with a PUBLIC ride and trip, and a visitor with an account. */
+  async function publicContent(label: string) {
+    const owner = await newUser(unique(`Organisatrice ${label}`))
+    const team = await newTeam(owner, unique(`Équipe ouverte ${label}`), { visibility: 'PUBLIC' })
+    const ride = await newRide(owner, team.slug, unique(`Sortie ouverte ${label}`), {
+      visibility: 'PUBLIC',
+    })
+    const trip = await newTrip(
+      owner,
+      team.slug,
+      unique(`Voyage ouvert ${label}`),
+      [{ name: unique('Étape') }],
+      { visibility: 'PUBLIC' }
+    )
+    const visitor = await newUser(unique(`Visiteuse ${label}`))
+    return { team, ride, trip, visitor }
+  }
+
+  // Regression (ef9e2c3b): the notice's « Se connecter » passes `state.from`.
+  test('from a ride, the notice’s « Se connecter » returns to the ride', async ({ page }) => {
+    const { team, ride, visitor } = await publicContent('sortie')
+    await openRide(page, team.slug, ride)
+    const main = page.getByRole('main')
+    const signInLink = main.getByRole('link', { name: 'Se connecter', exact: true })
+    await expect(
+      main.getByText('Connectez-vous et rejoignez cette équipe pour participer aux sorties.')
+    ).toBeVisible()
+    await hydrated(signInLink)
+    await signInLink.click()
+    await expect(main.getByRole('heading', { name: WELCOME })).toBeVisible()
+    await signInWithPassword(page, visitor.user.email, visitor.password)
+    await expect(page).toHaveURL(new RegExp(`${escapeRegExp(ridePath(team.slug, ride.slug))}$`))
+    await expect(page.getByRole('heading', { level: 2, name: ride.name })).toBeVisible()
+  })
+
+  // Regression (ef9e2c3b): the notice's « Se connecter » passes `state.from`.
+  test('from a trip, the notice’s « Se connecter » returns to the trip', async ({ page }) => {
+    const { team, trip, visitor } = await publicContent('voyage')
+    await page.goto(tripPath(team.slug, trip.slug))
+    const main = page.getByRole('main')
+    await expect(main.getByRole('heading', { level: 2, name: trip.name })).toBeVisible()
+    await expect(
+      main.getByText('Connectez-vous et rejoignez cette équipe pour participer aux voyages.')
+    ).toBeVisible()
+    const signInLink = main.getByRole('link', { name: 'Se connecter', exact: true })
+    await hydrated(signInLink)
+    await signInLink.click()
+    await expect(main.getByRole('heading', { name: WELCOME })).toBeVisible()
+    await signInWithPassword(page, visitor.user.email, visitor.password)
+    await expect(page).toHaveURL(new RegExp(`${escapeRegExp(tripPath(team.slug, trip.slug))}$`))
+  })
+
+  // Regression (ef9e2c3b): the header's and the drawer's « Se connecter » pass `state.from`.
+  test('from a ride, the header’s « Se connecter » returns to the ride', async ({
+    page,
+    isMobile,
+  }) => {
+    const { team, ride, visitor } = await publicContent('en-tête')
+    await openRide(page, team.slug, ride)
+    const controls = await headerControls(page, isMobile)
+    const signInLink = controls.getByRole('link', { name: 'Se connecter', exact: true })
+    await hydrated(signInLink)
+    await signInLink.click()
+    const main = page.getByRole('main')
+    await expect(main.getByRole('heading', { name: WELCOME })).toBeVisible()
+    await signInWithPassword(page, visitor.user.email, visitor.password)
+    await expect(page).toHaveURL(new RegExp(`${escapeRegExp(ridePath(team.slug, ride.slug))}$`))
+  })
+})
+
+test.describe('time zone', () => {
+  const ZONE = 'Asia/Tokyo'
+
+  /**
+   * The timezone picker of the profile (a searchable combobox), found through the text that stands
+   * for its label — it has no accessible name, see the test below.
+   */
+  const zoneField = (page: Page) =>
+    page
+      .getByRole('main')
+      .getByText('Fuseau horaire', { exact: true })
+      .locator('xpath=following-sibling::*[1]/descendant-or-self::input')
+
+  test('the chosen zone sets the times shown, in the browser and in the server-rendered page', async ({
+    page,
+    context,
+  }) => {
+    const user = await newUser(unique('Fuseau'))
+    const team = await newTeam(user, unique('Équipe fuseau'))
+    // 08:30 UTC two days ahead: 10:30 or 09:30 in Paris, 17:30 in Tokyo — never the same text.
+    const start = new Date(Date.now() + 2 * 24 * 3600 * 1000)
+    start.setUTCHours(8, 30, 0, 0)
+    const ride = await newRide(user, team.slug, unique('Sortie fuseau'), {
+      dateTime: start.toISOString(),
+    })
+    const inParis = frenchDateTime(wallClockIn(ride.dateTime, 'Europe/Paris'))
+    const inTokyo = frenchDateTime(wallClockIn(ride.dateTime, ZONE))
+    const path = ridePath(team.slug, ride.slug)
+    await signIn(context, user)
+
+    // No preference yet: the browser's own zone (Europe/Paris, playwright.config.ts).
+    expect((await meFromSession(user.refreshToken)).timezone ?? null).toBeNull()
+    await openRide(page, team.slug, ride)
+    const main = page.getByRole('main')
+    await expect(main.getByText(inParis).first()).toBeVisible()
+
+    // Chosen from the profile: a partial PATCH of the preferences.
+    await openProfile(page, user.user.email)
+    const field = zoneField(page)
+    await expect(field).toHaveValue('Europe/Paris')
+    await hydrated(field)
+    await field.click()
+    await field.fill(ZONE)
+    const saved = page.waitForResponse(
+      (r) => r.request().method() === 'PATCH' && r.url().endsWith('/api/users/me/preferences')
+    )
+    await page.getByRole('option', { name: ZONE, exact: true }).click()
+    const response = await saved
+    expect(response.ok()).toBe(true)
+    expect(response.request().postDataJSON()).toEqual({ timezone: ZONE })
+    await expect(field).toHaveValue(ZONE)
+    expect((await meFromSession(user.refreshToken)).timezone).toBe(ZONE)
+
+    // The ride now reads in Tokyo time, in a browser that is still in Paris…
+    await openRide(page, team.slug, ride)
+    await expect(main.getByText(inTokyo).first()).toBeVisible()
+    await expect(main.getByText(inParis)).toHaveCount(0)
+    // …and already in the server's markup, before any JavaScript.
+    const document = await rawDocument(path, { cookie: ssrCookie(user) })
+    expect(document.status).toBe(200)
+    const markup = ssrOutlet(document.html)
+    expect(markup).toContain(ride.name)
+    expect(markup).toContain(inTokyo)
+    expect(markup).not.toContain(inParis)
+  })
+
+  // Regression (02bd4525): the time zone Select carries its `label`.
+  test('the time zone field is named by its label', async ({ page, context }) => {
+    const user = await newUser(unique('Fuseau nommé'))
+    await signIn(context, user)
+    await openProfile(page, user.user.email)
+    await expect(zoneField(page)).toBeVisible()
+    await expect(
+      page.getByRole('main').getByRole('combobox', { name: 'Fuseau horaire' })
+    ).toHaveValue('Europe/Paris', { timeout: 2_000 })
+  })
+})
+
+/**
+ * « Télécharger mes données » (DataExportManager.tsx): the archive is built in the background — the
+ * backend's scheduler takes one pending export per 30 s tick — and its link arrives by mail. Since
+ * 7028b868 the link alone is not enough (UserExportDownloadResource.java): the token proves the
+ * mailbox, the owner's session the account. A visitor without a session is sent (303) to the login
+ * page, which brings them back (`?next=`); another account gets the 404 of an unknown token.
+ */
+test.describe('personal data export', () => {
+  test('requested from the profile, mailed as a link, downloaded by its owner only, holding the owner’s data', async ({
+    page,
+    context,
+    browser,
+  }) => {
+    // One export per scheduler tick, and other runs may have queued theirs.
+    test.setTimeout(240_000)
+    const user = await newUser(unique('Export RGPD'))
+    const other = await newUser(unique('Pas mon export'))
+    await signIn(context, user)
+    const main = await openProfile(page, user.user.email)
+    await expect(main.getByRole('heading', { name: 'Vos données' })).toBeVisible()
+
+    const request = main.getByRole('button', { name: 'Télécharger mes données' })
+    await hydrated(request)
+    const seen = await mailbox(user.user.email)
+    const requested = page.waitForResponse(
+      (r) => r.request().method() === 'POST' && r.url().endsWith('/api/users/me/export')
+    )
+    await request.click()
+    expect((await requested).status()).toBe(202)
+    await expect(
+      page.getByText("Export demandé. Vous recevrez un email dès qu'il sera prêt.")
+    ).toBeVisible()
+
+    // One at a time: the button waits, and the API refuses a second one.
+    const refused = await apiPost(user, '/api/users/me/export').catch((error: unknown) => error)
+    expect(refused).toBeInstanceOf(ApiError)
+    expect((refused as ApiError).status).toBe(429)
+    // Another account has no export of its own, and sees nothing of this one.
+    expect(await apiGetOrNull(other, '/api/users/me/export')).toBeFalsy()
+
+    const mail = await waitForNewMail(user.user.email, seen, 200_000)
+    const match = mail.match(/https?:\/\/[^\s"<>]+\/api\/export\/download\/[A-Za-z0-9_-]+/)
+    expect(match, `a download link in the mail:\n${mail}`).toBeTruthy()
+    const link = match![0]
+
+    // The profile follows the export to its end.
+    await expect(
+      main.getByText(/^Votre export est prêt\. Le lien envoyé par email est valable jusqu'au /)
+    ).toBeVisible({ timeout: 15_000 })
+    await expect(main.getByText('Préparation en cours')).toHaveCount(0)
+    await expect(request).toBeEnabled()
+
+    // Opened from the mail in a browser with no session: the login page, which will come back.
+    const anonymous = await pageAs(browser, undefined)
+    try {
+      await anonymous.page.goto(link)
+      await expect(anonymous.page).toHaveURL(
+        (url) =>
+          /^\/(login|connexion)$/.test(url.pathname) &&
+          url.searchParams.get('next') === new URL(link).pathname
+      )
+    } finally {
+      await anonymous.context.close()
+    }
+
+    // Another account, signed in: the 404 of an unknown token — nothing tells the export exists.
+    const stranger = await pageAs(browser, other)
+    try {
+      expect((await stranger.context.request.get(link, { maxRedirects: 0 })).status()).toBe(404)
+    } finally {
+      await stranger.context.close()
+    }
+
+    // The owner, signed in: a ZIP of their account.
+    const download = page.waitForEvent('download')
+    await page.goto(link).catch(() => {
+      // Navigating to an attachment aborts the navigation: the download is the answer.
+    })
+    const file = await download
+    expect(file.suggestedFilename()).toMatch(/^pedalons-export-.+\.zip$/)
+    const archive = readFileSync(await file.path())
+    const profile = JSON.parse(zipEntry(archive, 'account/profile.json').toString('utf8'))
+    expect(profile).toMatchObject({ id: user.user.id, email: user.user.email })
+    expect(archive.includes(Buffer.from(other.user.email)), 'nothing of another account').toBe(
+      false
+    )
+
+    // A forged token opens nothing, even for the owner.
+    const forged = link.replace(/.$/, (c) => (c === 'A' ? 'B' : 'A'))
+    expect((await context.request.get(forged, { maxRedirects: 0 })).status()).toBe(404)
   })
 })

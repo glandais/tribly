@@ -1,11 +1,21 @@
+import { ApiError } from './support/api'
 import { addMember, newTeam, newUser, roleSession, signIn } from './support/data'
 import { expect, test, unique } from './support/fixtures'
-import { groupCard, joinGroup, newRide, openRide, postComments } from './support/rides'
+import {
+  groupCard,
+  groupId,
+  joinGroup,
+  newRide,
+  openRide,
+  postComments,
+  readRide,
+} from './support/rides'
 import { hydrated } from './support/ui'
 
 /**
  * The ride detail page (`RideDetailPage` + `RideGroupCard` + `CommentSection`), against the real
- * backend: the first page of comments, the group leader invariant, and registration to a group.
+ * backend: the first page of comments, the group leader invariant, registration to a group, a
+ * past ride, and moving from one group to another.
  *
  * Each test builds its own team (owned by the platform admin: only a platform admin may add a member
  * directly, an owner gets TEAM_ADD_MEMBER_NOT_ALLOWED), its own members and its own ride.
@@ -236,5 +246,135 @@ test.describe('registration', () => {
     await expect(card.getByText('Inscrit', { exact: true })).toHaveCount(0)
     await expect(card.getByText('Complet', { exact: true })).toBeVisible()
     await expect(card.getByText('1/1 participants')).toBeVisible()
+  })
+})
+
+test.describe('a past ride', () => {
+  test('a ride of yesterday says « Terminée » and offers no « Rejoindre » in any group', async ({
+    page,
+  }) => {
+    const { team, organizer, member } = await ridingTeam('past')
+    const first = unique('Groupe A')
+    const second = unique('Groupe B')
+    const ride = await newRide(organizer, team.slug, unique('Sortie passée'), {
+      dateTime: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
+      groups: [
+        { name: first, maxParticipants: 10 },
+        { name: second, maxParticipants: 10 },
+      ],
+    })
+    expect(ride.status, 'precondition: published, so only its date stops the join').toBe(
+      'PUBLISHED'
+    )
+
+    await signIn(page.context(), member)
+    await openRide(page, team.slug, ride)
+
+    const header = page.getByRole('main').getByRole('heading', { level: 2, name: ride.name })
+    await expect(header).toBeVisible()
+    await expect(page.getByRole('main').getByText('Terminée', { exact: true })).toBeVisible()
+    await expect(page.getByRole('main').getByText('Publié', { exact: true })).toBeVisible()
+    for (const name of [first, second]) {
+      const card = groupCard(page, name)
+      await expect(card.getByText('0/10 participants')).toBeVisible()
+      await expect(card.getByRole('button', { name: 'Rejoindre' })).toHaveCount(0)
+      await expect(card.getByText('Complet', { exact: true })).toHaveCount(0)
+    }
+  })
+
+  test('the API refuses a registration to a ride of yesterday', async () => {
+    // Regression (80670273): RideService.joinGroup refuses a ride whose dateTime is past (409
+    // RIDE_PAST) — before, only the clients withheld « Rejoindre », and the API registered.
+    const { team, organizer, member } = await ridingTeam('past-api')
+    const name = unique('Groupe A')
+    const ride = await newRide(organizer, team.slug, unique('Sortie passée'), {
+      dateTime: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
+      groups: [{ name }],
+    })
+    const answer = await joinGroup(member, team.slug, ride, name).then(
+      () => undefined,
+      (error: unknown) => error
+    )
+    expect(answer, 'the join is refused').toBeInstanceOf(ApiError)
+    expect((answer as ApiError).status).toBe(409)
+    expect((answer as ApiError).code).toBe('RIDE_PAST')
+    expect((await readRide(member, team.slug, ride.slug)).registered).toBe(false)
+  })
+
+  test('an upcoming ride is not « Terminée »', async ({ page }) => {
+    // The counterpart of the test above: the badge follows the date, not the status.
+    const { team, organizer, member } = await ridingTeam('upcoming')
+    const name = unique('Groupe A')
+    const ride = await newRide(organizer, team.slug, unique('Sortie à venir'), {
+      groups: [{ name }],
+    })
+    await signIn(page.context(), member)
+    await openRide(page, team.slug, ride)
+    await expect(groupCard(page, name).getByRole('button', { name: 'Rejoindre' })).toBeVisible()
+    await expect(page.getByRole('main').getByText('Terminée', { exact: true })).toHaveCount(0)
+  })
+})
+
+test.describe('changing group', () => {
+  test('registered in one group: no « Rejoindre » on the others, the API refuses a second group, and leaving frees the member to join another', async ({
+    page,
+  }) => {
+    const { team, organizer, member } = await ridingTeam('switch')
+    const first = unique('Groupe A')
+    const second = unique('Groupe B')
+    const ride = await newRide(organizer, team.slug, unique('Sortie à deux groupes'), {
+      groups: [
+        { name: first, maxParticipants: 10 },
+        { name: second, maxParticipants: 10 },
+      ],
+    })
+    await joinGroup(member, team.slug, ride, first)
+
+    await signIn(page.context(), member)
+    await openRide(page, team.slug, ride)
+    const firstCard = groupCard(page, first)
+    const secondCard = groupCard(page, second)
+    await expect(firstCard.getByText('Inscrit', { exact: true })).toBeVisible()
+    await expect(firstCard.getByRole('button', { name: 'Quitter' })).toBeEnabled()
+    await expect(firstCard.getByText('1/10 participants')).toBeVisible()
+    await expect(secondCard.getByText('0/10 participants')).toBeVisible()
+    await expect(secondCard.getByRole('button', { name: 'Rejoindre' })).toHaveCount(0)
+    await expect(secondCard.getByText('Inscrit', { exact: true })).toHaveCount(0)
+
+    // The page is not the only guard: the API refuses a second registration on the same ride.
+    const refused = await joinGroup(member, team.slug, ride, second).then(
+      () => undefined,
+      (error: unknown) => error
+    )
+    expect(refused).toBeInstanceOf(ApiError)
+    expect((refused as ApiError).status).toBe(409)
+    expect((refused as ApiError).code).toBe('ALREADY_REGISTERED')
+
+    // Leave A: B becomes joinable, and joining it moves the member there.
+    const leave = firstCard.getByRole('button', { name: 'Quitter' })
+    await hydrated(leave)
+    await leave.click()
+    await expect(firstCard.getByText('Inscrit', { exact: true })).toHaveCount(0)
+    await expect(firstCard.getByText('0/10 participants')).toBeVisible()
+    const join = secondCard.getByRole('button', { name: 'Rejoindre' })
+    await expect(join).toBeEnabled()
+    await join.click()
+    await expect(secondCard.getByText('Inscrit', { exact: true })).toBeVisible()
+    await expect(secondCard.getByText('1/10 participants')).toBeVisible()
+    await expect(firstCard.getByRole('button', { name: 'Rejoindre' })).toHaveCount(0)
+
+    const after = await readRide(member, team.slug, ride.slug)
+    expect(after.registered).toBe(true)
+    expect(after.registeredGroupId).toBe(groupId(ride, second))
+    expect(after.groups.map((g) => [g.name, g.countParticipants])).toEqual([
+      [first, 0],
+      [second, 1],
+    ])
+
+    // The server's state, not only the optimistic cache.
+    await page.reload()
+    await openRide(page, team.slug, ride)
+    await expect(secondCard.getByText('Inscrit', { exact: true })).toBeVisible()
+    await expect(firstCard.getByRole('button', { name: 'Rejoindre' })).toHaveCount(0)
   })
 })

@@ -1,20 +1,32 @@
 import { writeFileSync } from 'node:fs'
 import type { Locator, Page } from '@playwright/test'
-import type { PlaceListResponse, RouteListResponse } from '../src/api/dto'
-import { apiGet, type AuthResponse, type Caller } from './support/api'
+import type {
+  CommentDto,
+  CommentListResponse,
+  CommentRequest,
+  PlaceListResponse,
+  RouteListResponse,
+  RoutesBulkResponse,
+  RouteUsagesResponse,
+} from '../src/api/dto'
+import { apiGet, apiGetOrNull, apiPost, type AuthResponse, type Caller } from './support/api'
 import { addMember, newTeam, newUser, signIn, type NewTeamOptions } from './support/data'
 import { richText } from './support/editor'
 import { expect, test, unique } from './support/fixtures'
+import { groupCard, newRide, openRide } from './support/rides'
 import {
+  coordinatesOf,
   getRoute,
   gpxOf,
   newRoute,
+  newTrip,
   routePath,
   stubBasemap,
   traceMapPixels,
+  watchRouteReads,
   type GpxPoint,
 } from './support/routes'
-import { entityCard, hydrated, pageAs } from './support/ui'
+import { entityCard, hydrated, pageAs, pageHydrated } from './support/ui'
 
 /**
  * The nominal journeys of the routes section (parcours) and of the team's places (lieux), through
@@ -30,14 +42,14 @@ import { entityCard, hydrated, pageAs } from './support/ui'
  */
 
 /**
- * 4 km heading due east out of Grenoble: 81 points 50 m apart. The backend replaces the GPX
- * elevations with SRTM data where it has some, so the elevations written here are not what it
+ * Due east out of Grenoble, `count` points 50 m apart — 4 km by default. The backend replaces the
+ * GPX elevations with SRTM data where it has some, so the elevations written here are not what it
  * reports — the tests compare the page with the API, never with this track's climbing.
  */
-function eastward(): GpxPoint[] {
+function eastward(count = 81): GpxPoint[] {
   const [lat0, lon0] = [45.1885, 5.7245]
   const metresPerDegLon = 111_320 * Math.cos((lat0 * Math.PI) / 180)
-  return Array.from({ length: 81 }, (_, i) => [
+  return Array.from({ length: count }, (_, i) => [
     lat0,
     Number((lon0 + (i * 50) / metresPerDegLon).toFixed(7)),
     400 + i * 2.5,
@@ -615,5 +627,465 @@ test.describe('the platform-wide list (/parcours)', () => {
     await expect(toggle).toBeVisible()
     await expect(toggle.getByRole('radio', { name: 'Liste' })).toBeChecked()
     await expect(toggle.getByRole('radio', { name: 'Carte' })).not.toBeChecked()
+  })
+})
+
+test.describe('what a route shows to whom', () => {
+  /** A public team of a fresh team admin, who may add its members, with a public route. */
+  async function publicTeamWithRoute(label: string) {
+    const { owner, team } = await ownTeam(label, {
+      visibility: 'PUBLIC',
+      addMemberAllowed: true,
+    })
+    const name = unique('Parcours partagé')
+    const route = await newRoute(owner, team.slug, name, eastward(), { visibility: 'PUBLIC' })
+    return { owner, team, route, name }
+  }
+
+  const routeComments = (who: Caller, teamSlug: string, routeSlug: string) =>
+    apiGet<CommentListResponse>(who, `/api/teams/${teamSlug}/routes/${routeSlug}/comments`)
+
+  /** Opens a route's page as `page`'s visitor and waits until the app has settled. */
+  async function openSettled(page: Page, teamSlug: string, routeSlug: string, name: string) {
+    const main = await openRouteDetail(page, teamSlug, routeSlug, name)
+    await pageHydrated(page)
+    return main
+  }
+
+  test('comments are for members: a member reads and writes them, a visitor and a non-member see none', async ({
+    page,
+    browser,
+  }) => {
+    const { owner, team, route, name } = await publicTeamWithRoute('commentaires')
+    const member = await newUser(unique('Membre'))
+    await addMember(owner, team.slug, member)
+    const outsider = await newUser(unique('Non-membre'))
+    const first = `Attention aux graviers ${unique('msg')}`
+    const request: CommentRequest = { content: first }
+    await apiPost<CommentDto>(
+      owner,
+      `/api/teams/${team.slug}/routes/${route.slug}/comments`,
+      request
+    )
+
+    // A member reads the team admin's comment and answers it.
+    const { context: memberContext, page: memberPage } = await pageAs(browser, member)
+    try {
+      await stubBasemap(memberPage)
+      const main = await openRouteDetail(memberPage, team.slug, route.slug, name)
+      await expect(main.getByRole('heading', { name: 'Commentaires (1)' })).toBeVisible()
+      await expect(main.getByText(first, { exact: true })).toBeVisible()
+      const answer = `Merci, je passerai par la gauche ${unique('msg')}`
+      const box = main.getByRole('textbox', { name: 'Écrivez un commentaire...' })
+      await hydrated(box)
+      await box.fill(answer)
+      await main.getByRole('button', { name: 'Envoyer le commentaire' }).click()
+      await expect(main.getByRole('heading', { name: 'Commentaires (2)' })).toBeVisible()
+      await expect(main.getByText(answer, { exact: true })).toBeVisible()
+      const stored = await routeComments(owner, team.slug, route.slug)
+      expect(stored.items.map((c) => c.content).sort()).toEqual([first, answer].sort())
+      expect(stored.items.find((c) => c.content === answer)!.author.id).toBe(member.user.id)
+    } finally {
+      await memberContext.close()
+    }
+
+    // An anonymous visitor reads the route, not its discussion.
+    const main = await openSettled(page, team.slug, route.slug, name)
+    await expect(main.getByText('Distance', { exact: true })).toBeVisible()
+    await expect(main.getByRole('heading', { name: /^Commentaires/ })).toHaveCount(0)
+    await expect(main.getByRole('textbox', { name: 'Écrivez un commentaire...' })).toHaveCount(0)
+    await expect(main.getByText(first, { exact: true })).toHaveCount(0)
+
+    // Nor does a signed-in visitor who is not a member.
+    const { context: outsiderContext, page: outsiderPage } = await pageAs(browser, outsider)
+    try {
+      await stubBasemap(outsiderPage)
+      const outsiderMain = await openSettled(outsiderPage, team.slug, route.slug, name)
+      await expect(outsiderMain.getByRole('heading', { name: /^Commentaires/ })).toHaveCount(0)
+      await expect(outsiderMain.getByText(first, { exact: true })).toHaveCount(0)
+    } finally {
+      await outsiderContext.close()
+    }
+  })
+
+  test('a plain member has no Modifier, Supprimer, Importer GPX nor « Créer un nouveau parcours »; an organizer has them', async ({
+    page,
+    context,
+    browser,
+  }) => {
+    const { owner, team, route, name } = await publicTeamWithRoute('droits')
+    const member = await newUser(unique('Membre'))
+    await addMember(owner, team.slug, member)
+    const organizer = await newUser(unique('Organisateur'))
+    await addMember(owner, team.slug, organizer, 'ORGANIZER')
+
+    // The member: the route's page and the list offer nothing to manage.
+    await signIn(context, member)
+    const main = await openSettled(page, team.slug, route.slug, name)
+    // The page is the member's view: its comments are there.
+    await expect(main.getByRole('heading', { name: 'Commentaires (0)' })).toBeVisible()
+    await expect(main.getByRole('link', { name: 'Modifier', exact: true })).toHaveCount(0)
+    await expect(main.getByRole('button', { name: 'Supprimer', exact: true })).toHaveCount(0)
+    const list = await openRouteList(page, team.slug)
+    await expect(routeCard(list, name)).toBeVisible()
+    await pageHydrated(page)
+    await expect(list.getByRole('button', { name: 'Importer GPX' })).toHaveCount(0)
+    await expect(list.getByRole('link', { name: 'Créer un nouveau parcours' })).toHaveCount(0)
+    await expect(list.locator('input[type="file"]')).toHaveCount(0)
+
+    // The organizer, on the same pages: every one of them.
+    const { context: organizerContext, page: organizerPage } = await pageAs(browser, organizer)
+    try {
+      await stubBasemap(organizerPage)
+      const organizerMain = await openSettled(organizerPage, team.slug, route.slug, name)
+      await expect(
+        organizerMain.getByRole('link', { name: 'Modifier', exact: true })
+      ).toHaveAttribute('href', `${routePath(team.slug, route.slug)}/modifier`)
+      await expect(
+        organizerMain.getByRole('button', { name: 'Supprimer', exact: true })
+      ).toBeVisible()
+      const organizerList = await openRouteList(organizerPage, team.slug)
+      await expect(organizerList.getByRole('button', { name: 'Importer GPX' })).toBeVisible()
+      await expect(
+        organizerList.getByRole('link', { name: 'Créer un nouveau parcours' })
+      ).toBeVisible()
+    } finally {
+      await organizerContext.close()
+    }
+  })
+
+  test('« Utilisée dans » lists only the rides and trips the visitor may read', async ({
+    page,
+    browser,
+  }) => {
+    const { owner, team, route, name } = await publicTeamWithRoute('usages')
+    const member = await newUser(unique('Membre'))
+    await addMember(owner, team.slug, member)
+    const publicRide = await newRide(owner, team.slug, unique('Sortie ouverte'), {
+      visibility: 'PUBLIC',
+      groups: [{ name: 'Groupe A', routeSlug: route.slug }],
+    })
+    const membersRide = await newRide(owner, team.slug, unique('Sortie du club'), {
+      groups: [{ name: 'Groupe route', routeSlug: route.slug }],
+    })
+    const stageName = unique('Étape 1')
+    const trip = await newTrip(owner, team.slug, unique('Voyage du club'), [
+      { name: stageName, routeSlug: route.slug },
+    ])
+    // A ride that does not use the route: it shows nowhere.
+    const unrelated = await newRide(owner, team.slug, unique('Sortie sans parcours'), {
+      visibility: 'PUBLIC',
+    })
+
+    const usages = (who: Caller) =>
+      apiGet<RouteUsagesResponse>(who, `/api/teams/${team.slug}/routes/${route.slug}/usages`)
+
+    // Anonymous: the public ride alone.
+    expect((await usages(undefined)).usages.map((u) => u.slug)).toEqual([publicRide.slug])
+    const main = await openSettled(page, team.slug, route.slug, name)
+    const section = main.getByRole('heading', { level: 2, name: 'Utilisée dans' })
+    await expect(section).toBeVisible()
+    const publicCard = routeCard(main, publicRide.name)
+    await expect(publicCard).toBeVisible()
+    await expect(publicCard).toHaveAttribute(
+      'href',
+      `/equipes/${team.slug}/sorties/${publicRide.slug}`
+    )
+    await expect(publicCard).toContainText('via les groupes : Groupe A')
+    await expect(routeCard(main, membersRide.name)).toHaveCount(0)
+    await expect(routeCard(main, trip.name)).toHaveCount(0)
+    await expect(routeCard(main, unrelated.name)).toHaveCount(0)
+
+    // A member: the members-only ride and trip as well.
+    expect((await usages(member)).usages.map((u) => u.slug).sort()).toEqual(
+      [publicRide.slug, membersRide.slug, trip.slug].sort()
+    )
+    const { context: memberContext, page: memberPage } = await pageAs(browser, member)
+    try {
+      await stubBasemap(memberPage)
+      const memberMain = await openSettled(memberPage, team.slug, route.slug, name)
+      await expect(
+        memberMain.getByRole('heading', { level: 2, name: 'Utilisée dans' })
+      ).toBeVisible()
+      await expect(routeCard(memberMain, publicRide.name)).toBeVisible()
+      await expect(routeCard(memberMain, membersRide.name)).toContainText(
+        'via les groupes : Groupe route'
+      )
+      const tripCard = routeCard(memberMain, trip.name)
+      await expect(tripCard).toContainText(`via les étapes : ${stageName}`)
+      await expect(tripCard).toHaveAttribute('href', `/equipes/${team.slug}/voyages/${trip.slug}`)
+      await expect(routeCard(memberMain, unrelated.name)).toHaveCount(0)
+    } finally {
+      await memberContext.close()
+    }
+  })
+
+  test('a route no visitor-readable publication uses has no « Utilisée dans »', async ({
+    page,
+  }) => {
+    const { owner, team, route, name } = await publicTeamWithRoute('usages cachés')
+    await newRide(owner, team.slug, unique('Sortie du club'), {
+      groups: [{ name: 'Groupe A', routeSlug: route.slug }],
+    })
+    const main = await openSettled(page, team.slug, route.slug, name)
+    await expect(main.getByText('Distance', { exact: true })).toBeVisible()
+    await expect(main.getByRole('heading', { name: 'Utilisée dans' })).toHaveCount(0)
+  })
+})
+
+test.describe('GPX files in the route forms', () => {
+  test('a team admin imports several GPX at once: an empty file fails alone, the others become routes', async ({
+    page,
+    context,
+  }, testInfo) => {
+    const { owner, team } = await ownTeam('import multiple')
+    const files = {
+      north: testInfo.outputPath('boucle-nord.gpx'),
+      empty: testInfo.outputPath('fichier-vide.gpx'),
+      // The import checks no extension (only the picker's `accept` does): capitals pass here,
+      // unlike in the single-route form (test below).
+      south: testInfo.outputPath('boucle-sud.GPX'),
+    }
+    writeFileSync(files.north, gpxOf('Boucle nord', eastward(41)))
+    writeFileSync(files.empty, '')
+    writeFileSync(files.south, gpxOf('Boucle sud', eastward(61)))
+
+    await signIn(context, owner)
+    const main = await openRouteList(page, team.slug)
+    await expect(main.getByRole('heading', { name: 'Aucun parcours' })).toBeVisible()
+    const importButton = main.getByRole('button', { name: 'Importer GPX' })
+    await hydrated(importButton)
+    // The button opens the browser's file picker, which accepts several files.
+    const chooser = page.waitForEvent('filechooser')
+    await importButton.click()
+    const picker = await chooser
+    expect(picker.isMultiple()).toBe(true)
+    await picker.setFiles([files.north, files.empty, files.south])
+
+    // The empty file's failure is reported; the two others are in the list, named after their files.
+    await expect(main.getByText('Erreur lors du chargement', { exact: true })).toBeVisible()
+    await expect(importButton).toHaveText('Importer GPX')
+    await expect(importButton).toBeEnabled()
+    await expect(routeCard(main, 'boucle-nord')).toBeVisible()
+    await expect(routeCard(main, 'boucle-sud')).toBeVisible()
+    await expect(main.getByText('2 parcours', { exact: true })).toBeVisible()
+    const { routes } = await listRoutes(owner, team.slug)
+    expect(routes.map((r) => r.name).sort()).toEqual(['boucle-nord', 'boucle-sud'])
+    // Imported with the team's visibility and the default surface.
+    expect(routes.every((r) => r.visibility === team.visibility && r.surfaceType === 'ROAD')).toBe(
+      true
+    )
+    const north = routes.find((r) => r.name === 'boucle-nord')!
+    expect(north.distance).toBeGreaterThan(1_900)
+    expect(north.distance).toBeLessThan(2_100)
+  })
+
+  test('the route form refuses a file that is not a .gpx', async ({ page, context }, testInfo) => {
+    const { owner, team } = await ownTeam('fichier texte')
+    // A GPX in all but its name: the form judges the extension, not the content.
+    const notes = testInfo.outputPath('notes.txt')
+    writeFileSync(notes, gpxOf('Notes', eastward()))
+
+    await signIn(context, owner)
+    await page.goto(`${routesPath(team.slug)}/nouveau`)
+    const main = page.getByRole('main')
+    const submit = main.getByRole('button', { name: 'Créer le parcours' })
+    await hydrated(submit)
+    await main.locator('input[type="file"][accept=".gpx"]').setInputFiles(notes)
+    await expect(main.getByRole('alert')).toHaveText('Le fichier doit être au format .gpx')
+    await expect(main.getByRole('button', { name: 'Fichier GPX' })).not.toHaveText('notes.txt')
+    await main.getByRole('textbox', { name: 'Nom du parcours' }).fill(unique('Sans trace'))
+    await expect(submit).toBeDisabled()
+    expect((await listRoutes(owner, team.slug)).routes).toEqual([])
+  })
+
+  test('the route form accepts a GPX whose extension is in capitals', async ({
+    page,
+    context,
+  }, testInfo) => {
+    // Regression (c0e32dec): the extension check is case-insensitive (`/\.gpx$/i`) — many GPS units and
+    // Windows exports name their files BOUCLE.GPX.
+    const { owner, team } = await ownTeam('extension majuscule')
+    const upper = testInfo.outputPath('BOUCLE.GPX')
+    writeFileSync(upper, gpxOf('Boucle', eastward()))
+
+    await signIn(context, owner)
+    await page.goto(`${routesPath(team.slug)}/nouveau`)
+    const main = page.getByRole('main')
+    const submit = main.getByRole('button', { name: 'Créer le parcours' })
+    await hydrated(submit)
+    await main.locator('input[type="file"][accept=".gpx"]').setInputFiles(upper)
+    await expect(main.getByRole('textbox', { name: 'Nom du parcours' })).toHaveValue('BOUCLE')
+    await expect(main.getByRole('button', { name: 'Fichier GPX' })).toHaveText('BOUCLE.GPX', {
+      timeout: 5_000,
+    })
+    await expect(main.getByRole('alert')).toHaveCount(0)
+    await expect(submit).toBeEnabled()
+  })
+
+  test("a team admin replaces a route's track: its page, its GPX and the rides reading it follow", async ({
+    page,
+    context,
+  }, testInfo) => {
+    const { owner, team } = await ownTeam('remplacement')
+    const name = unique('Boucle rallongée')
+    // 4 km, then 6 km.
+    const route = await newRoute(owner, team.slug, name, eastward())
+    expect(route.distance).toBeLessThan(4_100)
+    const ride = await newRide(owner, team.slug, unique('Sortie sur la boucle'), {
+      groups: [{ name: 'Groupe A', routeSlug: route.slug }],
+    })
+    const longer = eastward(121)
+    const longerPath = testInfo.outputPath('boucle-longue.gpx')
+    writeFileSync(longerPath, gpxOf('Boucle longue', longer))
+
+    await signIn(context, owner)
+    await page.goto(`${routePath(team.slug, route.slug)}/modifier`)
+    const main = page.getByRole('main')
+    await expect(main.getByRole('textbox', { name: 'Nom du parcours' })).toHaveValue(name)
+    const save = main.getByRole('button', { name: 'Enregistrer' })
+    await hydrated(save)
+    await main.locator('input[type="file"][accept=".gpx"]').setInputFiles(longerPath)
+    await expect(main.getByRole('button', { name: 'Fichier GPX' })).toHaveText('boucle-longue.gpx')
+    await save.click()
+
+    // Back on its page, under its own name, with the new track's distance.
+    await expect(main.getByRole('heading', { level: 1, name })).toBeVisible()
+    await expect(page).toHaveURL(routePath(team.slug, route.slug))
+    const stored = await getRoute(owner, team.slug, route.slug)
+    expect(stored.name).toBe(name)
+    expect(stored.distance).toBeGreaterThan(5_900)
+    expect(stored.distance).toBeLessThan(6_100)
+    await expect(statValue(main, 'Distance')).toHaveText(
+      `${(stored.distance / 1000).toFixed(1)} km`
+    )
+
+    // The download is the new track: it ends where the longer one ends.
+    const download = main.getByRole('link', { name: 'Télécharger GPX' })
+    const gpx = await page.request.get((await download.getAttribute('href'))!)
+    expect(gpx.ok()).toBe(true)
+    const trkpts = [...(await gpx.text()).matchAll(/<trkpt lat="([\d.]+)" lon="([\d.]+)"/g)]
+    const last = trkpts[trkpts.length - 1]
+    expect(Number(last[2])).toBeCloseTo(longer[longer.length - 1][1], 4)
+
+    // /routes/bulk, which the ride pages read, serves the new track.
+    const bulk = await apiGet<RoutesBulkResponse>(owner, `/api/teams/${team.slug}/routes/bulk`, {
+      slug: route.slug,
+    })
+    expect(bulk.routes.map((r) => r.distance)).toEqual([stored.distance])
+    expect(coordinatesOf(bulk.routes[0])).toEqual(coordinatesOf(stored))
+
+    // And the ride's group shows the new distance.
+    const watcher = watchRouteReads(page, team.slug, route.slug)
+    await openRide(page, team.slug, ride)
+    await expect(groupCard(page, 'Groupe A')).toContainText(
+      `${(stored.distance / 1000).toFixed(1)} km`
+    )
+    await pageHydrated(page)
+    const reads = await watcher.reads()
+    expect(reads.map((r) => r.endpoint)).toContain(`/api/teams/${team.slug}/routes/bulk`)
+    for (const read of reads) expect(read.route.distance).toBe(stored.distance)
+  })
+})
+
+test.describe('the visibility chosen in the route form', () => {
+  /** A public team of a fresh team admin: the form then offers the three visibilities. */
+  const publicTeam = (label: string) => ownTeam(label, { visibility: 'PUBLIC' })
+
+  test('a route created « Non répertorié » stays out of /parcours, and opens from its link', async ({
+    page,
+    context,
+    browser,
+  }, testInfo) => {
+    const { owner, team } = await publicTeam('non répertorié')
+    const tag = unique('Circuit discret')
+    const listed = `${tag} affiché`
+    const unlisted = `${tag} caché`
+    // A listed route of the same search, so the list's absence check has something shown next to it.
+    await newRoute(owner, team.slug, listed, eastward(), { visibility: 'PUBLIC' })
+    const gpxPath = testInfo.outputPath('circuit-discret.gpx')
+    writeFileSync(gpxPath, gpxOf(unlisted, eastward()))
+
+    await signIn(context, owner)
+    await page.goto(`${routesPath(team.slug)}/nouveau`)
+    const main = page.getByRole('main')
+    const submit = main.getByRole('button', { name: 'Créer le parcours' })
+    await hydrated(submit)
+    await main.locator('input[type="file"][accept=".gpx"]').setInputFiles(gpxPath)
+    await main.getByRole('textbox', { name: 'Nom du parcours' }).fill(unlisted)
+    const visibility = main.getByRole('radiogroup', { name: 'Visibilité' })
+    // A public team's route starts public.
+    await expect(visibility.getByRole('radio', { name: 'Public', exact: true })).toBeChecked()
+    await visibility.getByRole('radio', { name: 'Non répertorié' }).check()
+    await submit.click()
+
+    await expect(main.getByRole('heading', { level: 1, name: unlisted })).toBeVisible()
+    await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}/parcours/[^/?]+$`))
+    const routeSlug = new URL(page.url()).pathname.split('/').pop()!
+    expect((await getRoute(owner, team.slug, routeSlug)).visibility).toBe('PUBLIC_UNLISTED')
+
+    const { context: anonContext, page: anonPage } = await pageAs(browser, undefined)
+    try {
+      await stubBasemap(anonPage)
+      // Not in the platform-wide list, where its listed sibling is.
+      await anonPage.goto(`/parcours?q=${encodeURIComponent(tag)}`)
+      const anonMain = anonPage.getByRole('main')
+      await expect(anonMain.getByText('1 parcours', { exact: true })).toBeVisible()
+      await expect(routeCard(anonMain, listed)).toBeVisible()
+      await expect(routeCard(anonMain, unlisted)).toHaveCount(0)
+      expect(
+        (await apiGet<RouteListResponse>(undefined, '/api/routes', { search: tag })).routes.map(
+          (r) => r.name
+        )
+      ).toEqual([listed])
+      // But its link opens it.
+      await openRouteDetail(anonPage, team.slug, routeSlug, unlisted)
+      await expect(anonMain.getByText('Distance', { exact: true })).toBeVisible()
+    } finally {
+      await anonContext.close()
+    }
+  })
+
+  test('a route switched to « Équipe uniquement » is not found by an anonymous visitor', async ({
+    page,
+    context,
+    browser,
+  }) => {
+    const { owner, team } = await publicTeam('équipe uniquement')
+    const name = unique('Boucle du club')
+    const route = await newRoute(owner, team.slug, name, eastward(), { visibility: 'PUBLIC' })
+
+    // Before: an anonymous visitor reads it.
+    const { context: anonContext, page: anonPage } = await pageAs(browser, undefined)
+    try {
+      await stubBasemap(anonPage)
+      await openRouteDetail(anonPage, team.slug, route.slug, name)
+
+      await signIn(context, owner)
+      await page.goto(`${routePath(team.slug, route.slug)}/modifier`)
+      const main = page.getByRole('main')
+      await expect(main.getByRole('textbox', { name: 'Nom du parcours' })).toHaveValue(name)
+      const save = main.getByRole('button', { name: 'Enregistrer' })
+      await hydrated(save)
+      const visibility = main.getByRole('radiogroup', { name: 'Visibilité' })
+      await expect(visibility.getByRole('radio', { name: 'Public', exact: true })).toBeChecked()
+      await visibility.getByRole('radio', { name: 'Équipe uniquement' }).check()
+      await save.click()
+      await expect(main.getByRole('heading', { level: 1, name })).toBeVisible()
+      await expect(page).toHaveURL(routePath(team.slug, route.slug))
+      expect((await getRoute(owner, team.slug, route.slug)).visibility).toBe('TEAM')
+
+      // After: « Parcours introuvable », and nothing of the route.
+      await anonPage.goto(routePath(team.slug, route.slug))
+      const anonMain = anonPage.getByRole('main')
+      await expect(anonMain.getByRole('heading', { name: 'Parcours introuvable' })).toBeVisible()
+      await expect(anonMain.getByRole('heading', { name })).toHaveCount(0)
+      expect(
+        await apiGetOrNull(undefined, `/api/teams/${team.slug}/routes/${route.slug}`),
+        'the API hides it too'
+      ).toBeNull()
+    } finally {
+      await anonContext.close()
+    }
   })
 })

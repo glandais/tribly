@@ -1,6 +1,8 @@
+import { inflateRawSync } from 'node:zlib'
 import { expect, type BrowserContext, type Locator, type Page } from '@playwright/test'
 import type { CalendarTokenDto, PasskeyDto, UserDto } from '../../src/api/dto'
 import { apiGet, refresh, withApi, type AuthResponse } from './api'
+import type { WallClock } from './dates'
 import { escapeRegExp, hydrated } from './ui'
 
 /**
@@ -166,3 +168,90 @@ export const icsDateTime = (instant: string) =>
     .toISOString()
     .replace(/\.\d{3}Z$/, 'Z')
     .replace(/[-:]/g, '')
+
+/**
+ * Registers a passkey from the open profile page, as a user does it: « Ajouter », a device name,
+ * « Enregistrer » — the virtual authenticator of {@link virtualAuthenticator} answers the browser's
+ * prompt. Returns once the new passkey is listed.
+ */
+export async function addPasskeyFromProfile(page: Page, deviceName: string) {
+  const main = page.getByRole('main')
+  const add = main.getByRole('button', { name: 'Ajouter', exact: true })
+  await hydrated(add)
+  await add.click()
+  const dialog = page.getByRole('dialog', { name: 'Ajouter une passkey' })
+  await dialog.getByRole('textbox', { name: "Nom de l'appareil (optionnel)" }).fill(deviceName)
+  const registered = page.waitForResponse(
+    (r) => r.request().method() === 'POST' && r.url().includes('/api/auth/passkeys/register')
+  )
+  await dialog.getByRole('button', { name: 'Enregistrer' }).click()
+  expect((await registered).ok()).toBe(true)
+  await expect(dialog).toBeHidden()
+  await expect(main.getByText(deviceName, { exact: true })).toBeVisible()
+}
+
+/**
+ * How `instant` reads on the wall clock of `timeZone` — the same shape as dates.ts's
+ * `parisWallClock`, for any zone, so `frenchDateTime` can spell it the way the app does.
+ */
+export function wallClockIn(instant: string, timeZone: string): WallClock {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat('en-GB', {
+      timeZone,
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      hourCycle: 'h23',
+    })
+      .formatToParts(new Date(instant))
+      .map((part) => [part.type, part.value])
+  )
+  return {
+    year: Number(parts.year),
+    month: Number(parts.month),
+    day: Number(parts.day),
+    hour: Number(parts.hour),
+    minute: Number(parts.minute),
+  }
+}
+
+/**
+ * The content of one file of a ZIP archive, read through its central directory (so an archive
+ * written as a stream, sizes in data descriptors, reads the same). Stored and deflated entries only
+ * — all java.util.zip writes. Throws when the archive has no such entry.
+ */
+export function zipEntry(archive: Buffer, name: string): Buffer {
+  // End of central directory: signature 0x06054b50, within the last 64 KiB + 22 bytes.
+  let eocd = archive.length - 22
+  while (eocd >= 0 && archive.readUInt32LE(eocd) !== 0x06054b50) eocd--
+  if (eocd < 0) throw new Error('not a ZIP archive: no end of central directory')
+  const entries = archive.readUInt16LE(eocd + 10)
+  let offset = archive.readUInt32LE(eocd + 16)
+  const names: string[] = []
+  for (let i = 0; i < entries; i++) {
+    if (archive.readUInt32LE(offset) !== 0x02014b50) throw new Error('corrupt central directory')
+    const method = archive.readUInt16LE(offset + 10)
+    const compressedSize = archive.readUInt32LE(offset + 20)
+    const nameLength = archive.readUInt16LE(offset + 28)
+    const extraLength = archive.readUInt16LE(offset + 30)
+    const commentLength = archive.readUInt16LE(offset + 32)
+    const localHeader = archive.readUInt32LE(offset + 42)
+    const entryName = archive.toString('utf8', offset + 46, offset + 46 + nameLength)
+    names.push(entryName)
+    if (entryName === name) {
+      const dataStart =
+        localHeader +
+        30 +
+        archive.readUInt16LE(localHeader + 26) +
+        archive.readUInt16LE(localHeader + 28)
+      const data = archive.subarray(dataStart, dataStart + compressedSize)
+      if (method === 0) return data
+      if (method === 8) return inflateRawSync(data)
+      throw new Error(`${name}: unsupported compression method ${method}`)
+    }
+    offset += 46 + nameLength + extraLength + commentLength
+  }
+  throw new Error(`no ${name} in the archive; it holds: ${names.join(', ')}`)
+}

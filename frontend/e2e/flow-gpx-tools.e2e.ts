@@ -200,6 +200,35 @@ test("an owner replaces a preview's track with another GPX", async ({
   await expect(main.getByText(km(stored!.distance), { exact: true })).toBeVisible()
 })
 
+test("an owner replaces a preview's track with a GPX whose extension is in capitals", async ({
+  page,
+  context,
+}, testInfo) => {
+  // Regression (c0e32dec): the extension check is case-insensitive, as in RouteEditor.
+  const user = await newUser(unique('Cycliste majuscules'))
+  const name = unique('Trace en capitales')
+  const preview = await uploadPreview(user, name, eastward(41))
+  const upper = testInfo.outputPath('TRACE.GPX')
+  writeFileSync(upper, gpxOf('Trace longue', eastward(121)))
+
+  await signIn(context, user)
+  await page.goto(`${previewPath(preview.id)}/modifier`)
+  const main = page.getByRole('main')
+  await expect(main.getByRole('textbox', { name: 'Nom du parcours' })).toHaveValue(name)
+  const save = main.getByRole('button', { name: 'Enregistrer' })
+  await hydrated(save)
+  await main.locator('input[type="file"][accept=".gpx"]').setInputFiles(upper)
+  await expect(main.getByRole('alert')).toHaveCount(0)
+  await expect(main.getByRole('button', { name: 'Fichier GPX' })).toHaveText('TRACE.GPX', {
+    timeout: 5_000,
+  })
+  await save.click()
+
+  await expect(main.getByRole('heading', { level: 1, name })).toBeVisible()
+  const stored = await getPreview(user, preview.id)
+  expect(stored!.distance).toBeGreaterThan(5_900)
+})
+
 test('an owner deletes a preview from its page: its link is gone', async ({ page, context }) => {
   const user = await newUser(unique('Cycliste suppression'))
   const name = unique('Fichier éphémère')

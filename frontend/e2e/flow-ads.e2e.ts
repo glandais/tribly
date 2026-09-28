@@ -1,18 +1,43 @@
 import type { Page } from '@playwright/test'
 import type {
   AdDto,
+  AdEditDto,
   AdRequest,
   AssetDto,
   GeocodeResultDto,
   TeamDetailDto,
   TeamRole,
 } from '../src/api/dto'
-import { ApiError, apiDelete, apiGet, apiPut, type AuthResponse } from './support/api'
+import {
+  ApiError,
+  apiDelete,
+  apiGet,
+  apiGetOrNull,
+  apiPost,
+  apiPut,
+  type AuthResponse,
+} from './support/api'
 import { getAd, newAd, solidPng, uploadImage } from './support/ads'
-import { addMember, markdownMedia, newTeam, newUser, roleSession, signIn } from './support/data'
+import {
+  addMember,
+  markdownMedia,
+  newTeam,
+  newUser,
+  roleSession,
+  signIn,
+  teamRequest,
+} from './support/data'
 import { addImage, richText } from './support/editor'
 import { expect, test, unique } from './support/fixtures'
-import { actionsMenu, entityCard, escapeRegExp, hydrated, openActionsMenu } from './support/ui'
+import {
+  actionsMenu,
+  entityCard,
+  escapeRegExp,
+  hydrated,
+  openActionsMenu,
+  pageHydrated,
+  toasts,
+} from './support/ui'
 
 /**
  * Ads, the nominal journey through the UI: a plain member of a team writes an ad with the form
@@ -494,4 +519,281 @@ test.describe('ad rights', () => {
     expect(saved.price).toBe(420)
     expect(saved.name).toBe(ad.name)
   })
+})
+
+/** The status of what `call` threw, or 'ok' when it went through. */
+async function statusOf(call: Promise<unknown>): Promise<number | 'ok'> {
+  try {
+    await call
+    return 'ok'
+  } catch (error) {
+    if (error instanceof ApiError) return error.status
+    throw error
+  }
+}
+
+/** The captioned sector map of an ad's place (AdLocationMap) — never a pin. */
+const sector = (page: Page) =>
+  mainOf(page).getByRole('img', { name: /^Localisation approximative, à environ 1 km près/ })
+
+/**
+ * The place of an ad through an edit. The author's edit form reads the exact point (the edit shape,
+ * GET …/edit) and sends it back with the rest; the server blurs it again for everyone else. A form
+ * that dropped it, or sent the blurred point back as the exact one, would move or erase the place
+ * of an ad whose title only was retouched.
+ */
+test.describe('ad place', () => {
+  /** A published ad by the scene's member, placed in Rennes (as the lookup would have put it). */
+  async function placedAd() {
+    const { team, member } = await scene()
+    const ad = await newAd(member, team.slug, {
+      name: unique('Home trainer'),
+      body: 'Peu servi.',
+      price: 120,
+      locationDescription: 'Rennes centre',
+      locationGeometry: { type: 'Point', coordinates: [RENNES.lon, RENNES.lat] },
+    })
+    const editShape = () =>
+      apiGet<AdEditDto>(member, `/api/teams/${team.slug}/classifieds/${ad.slug}/edit`)
+    return { team, member, ad, editShape }
+  }
+
+  /** Opens the ad's edit form from its page. */
+  async function openEditForm(page: Page, teamSlug: string, ad: AdDto) {
+    await page.goto(adPath(teamSlug, ad.slug))
+    await expect(page.getByRole('heading', { level: 2, name: ad.name })).toBeVisible()
+    const edit = mainOf(page).getByRole('link', { name: 'Modifier' })
+    await hydrated(edit)
+    await edit.click()
+    await expect(page.getByRole('heading', { level: 1, name: "Modifier l'annonce" })).toBeVisible()
+    const title = mainOf(page).getByRole('textbox', { name: /^Titre/ })
+    await hydrated(title)
+    await expect(title).toHaveValue(ad.name)
+    return title
+  }
+
+  test('editing only the title keeps the place: the same blurred sector, the same point underneath', async ({
+    page,
+    context,
+  }) => {
+    const { team, member, ad, editShape } = await placedAd()
+    // Preconditions: the blurred point for readers, the exact one in the edit shape.
+    expect(ad.locationGeometry?.coordinates).toEqual(blurred(RENNES.lon, RENNES.lat))
+    const exactBefore = (await editShape()).locationGeometry?.coordinates
+    expect(exactBefore).toEqual([RENNES.lon, RENNES.lat])
+
+    await signIn(context, member)
+    const title = await openEditForm(page, team.slug, ad)
+    const main = mainOf(page)
+    // The form holds the place: its written part, and a point (the clear button says so).
+    await expect(main.getByRole('textbox', { name: 'Description du lieu' })).toHaveValue(
+      'Rennes centre'
+    )
+    await expect(main.getByRole('button', { name: 'Supprimer la localisation' })).toBeVisible()
+    const renamed = `${ad.name} (révisé)`
+    await title.fill(renamed)
+    await main.getByRole('button', { name: 'Enregistrer' }).click()
+
+    await expect(page).toHaveURL(new RegExp(`${escapeRegExp(adPath(team.slug, ad.slug))}$`))
+    await expect(page.getByRole('heading', { level: 2, name: renamed })).toBeVisible()
+    await expect(main.getByText('Rennes centre', { exact: true })).toBeVisible()
+    await expect(sector(page)).toBeVisible()
+    await expect(sector(page).locator('canvas')).toBeVisible()
+    await expect(page.locator('.maplibregl-marker')).toHaveCount(0)
+
+    const saved = await getAd(member, team.slug, ad.slug)
+    expect(saved.name).toBe(renamed)
+    expect(saved.locationDescription).toBe('Rennes centre')
+    expect(saved.locationGeometry?.coordinates, 'the blurred point').toEqual(
+      ad.locationGeometry?.coordinates
+    )
+    expect((await editShape()).locationGeometry?.coordinates, 'the exact point').toEqual(
+      exactBefore
+    )
+  })
+
+  test('clearing the place takes the map off the ad, the written place stays', async ({
+    page,
+    context,
+  }) => {
+    const { team, member, ad, editShape } = await placedAd()
+
+    await signIn(context, member)
+    // Precondition: the ad shows its sector.
+    await page.goto(adPath(team.slug, ad.slug))
+    await expect(sector(page)).toBeVisible()
+
+    await openEditForm(page, team.slug, ad)
+    const main = mainOf(page)
+    const clear = main.getByRole('button', { name: 'Supprimer la localisation' })
+    await hydrated(clear)
+    await clear.click()
+    await expect(clear).toHaveCount(0)
+    await expect(main.getByRole('textbox', { name: 'Localisation', exact: true })).toHaveValue('')
+    await main.getByRole('button', { name: 'Enregistrer' }).click()
+
+    await expect(page).toHaveURL(new RegExp(`${escapeRegExp(adPath(team.slug, ad.slug))}$`))
+    await expect(page.getByRole('heading', { level: 2, name: ad.name })).toBeVisible()
+    // The written place stands on its own, with its heading — no map centred on nothing.
+    await expect(main.getByRole('heading', { level: 4, name: 'Localisation' })).toBeVisible()
+    await expect(main.getByText('Rennes centre', { exact: true })).toBeVisible()
+    await expect(sector(page)).toHaveCount(0)
+    await expect(main.locator('canvas')).toHaveCount(0)
+
+    const saved = await getAd(member, team.slug, ad.slug)
+    expect(saved.locationGeometry, 'the blurred point').toBeUndefined()
+    expect(saved.locationDescription).toBe('Rennes centre')
+    expect((await editShape()).locationGeometry, 'the exact point').toBeUndefined()
+  })
+})
+
+test.describe('restoring', () => {
+  test('a team admin who is not the author deletes an ad, then restores it whole', async ({
+    page,
+    context,
+  }) => {
+    const { team, member: author } = await scene()
+    const [admin, other] = await Promise.all([newUser('Bureau annonces'), anotherMember(team)])
+    await addMember(await roleSession('admin'), team.slug, admin, 'ADMIN')
+    const photo = await uploadImage(
+      author,
+      team.slug,
+      'selle.png',
+      solidPng(320, 240, [200, 60, 40])
+    )
+    const ad = await newAd(author, team.slug, {
+      name: unique('Selle cuir'),
+      body: 'Selle **en cuir**, bien faite à la forme.',
+      price: 80,
+      images: [photo],
+      locationDescription: 'Rennes centre',
+      locationGeometry: { type: 'Point', coordinates: [RENNES.lon, RENNES.lat] },
+    })
+
+    await signIn(context, admin)
+    await page.goto(adPath(team.slug, ad.slug))
+    const main = mainOf(page)
+    await expect(page.getByRole('heading', { level: 2, name: ad.name })).toBeVisible()
+    await (await openActionsMenu(page)).getByRole('menuitem', { name: 'Supprimer' }).click()
+    const dialog = page.getByRole('dialog', { name: 'Supprimer' })
+    await dialog.getByRole('button', { name: 'Supprimer' }).click()
+    await expect(toasts(page).filter({ hasText: 'Annonce supprimée avec succès' })).toBeVisible()
+    await expect(page).toHaveURL(new RegExp(`${escapeRegExp(listPath(team.slug))}$`))
+
+    // Gone for the author as for the rest of the team; the team's admins still reach it.
+    const adApi = `/api/teams/${team.slug}/classifieds/${ad.slug}`
+    expect(await apiGetOrNull(author, adApi), 'the author gets a 404').toBeNull()
+    expect(await listedNames(other, team.slug)).not.toContain(ad.name)
+    expect((await getAd(admin, team.slug, ad.slug)).deleted).toBe(true)
+
+    await page.goto(adPath(team.slug, ad.slug))
+    await expect(page.getByRole('heading', { level: 2, name: ad.name })).toBeVisible()
+    await (await openActionsMenu(page)).getByRole('menuitem', { name: 'Restaurer' }).click()
+    await expect(toasts(page).filter({ hasText: 'Annonce restaurée avec succès' })).toBeVisible()
+    const again = await openActionsMenu(page)
+    await expect(again.getByRole('menuitem', { name: 'Supprimer' })).toBeVisible()
+    await expect(again.getByRole('menuitem', { name: 'Restaurer' })).toHaveCount(0)
+    await page.keyboard.press('Escape')
+    await expect(main.getByText('Rennes centre', { exact: true })).toBeVisible()
+    await expect(sector(page)).toBeVisible()
+
+    // Back for everyone, as it was written.
+    const restored = await getAd(author, team.slug, ad.slug)
+    expect(restored).toMatchObject({
+      deleted: false,
+      status: 'PUBLISHED',
+      name: ad.name,
+      price: 80,
+      locationDescription: 'Rennes centre',
+    })
+    expect(restored.media.markdown).toContain('Selle **en cuir**, bien faite à la forme.')
+    expect(restored.images).toHaveLength(1)
+    expect(restored.images[0]).toContain(photo.id)
+    expect(restored.locationGeometry?.coordinates).toEqual(blurred(RENNES.lon, RENNES.lat))
+    expect(await listedNames(other, team.slug)).toContain(ad.name)
+  })
+})
+
+/**
+ * A team whose ads module is turned off (`enableAds=false`, the team settings' switch) after ads
+ * were posted: the API refuses them to everyone (AdAccessChecker), and the team's navigation drops
+ * the tab (useNavItems). What is left to check is the ad URLs someone kept.
+ */
+test.describe('ads module off', () => {
+  async function switchedOff() {
+    const { team, member } = await scene()
+    const ad = await newAd(member, team.slug, {
+      name: unique('Porte-vélos'),
+      body: 'Pour deux vélos.',
+      price: 150,
+    })
+    // The settings' switch, flipped by the platform admin (the owner may too).
+    await apiPut(
+      await roleSession('admin'),
+      `/api/teams/${team.slug}`,
+      teamRequest(team.name, { enableAds: false })
+    )
+    const urls = {
+      list: listPath(team.slug),
+      detail: adPath(team.slug, ad.slug),
+      create: `${listPath(team.slug)}/nouvelle`,
+      edit: `${adPath(team.slug, ad.slug)}/modifier`,
+    }
+    return { team, member, ad, urls }
+  }
+
+  test('the API refuses the ads, and none of their URLs shows one', async ({ page, context }) => {
+    const { team, member, ad, urls } = await switchedOff()
+    const base = `/api/teams/${team.slug}/classifieds`
+    // The author themself: no list, no ad, no edit shape, no new ad.
+    expect(await statusOf(apiGet(member, base))).toBe(403)
+    expect(await statusOf(apiGet(member, `${base}/${ad.slug}`))).toBe(403)
+    expect(await statusOf(apiGet(member, `${base}/${ad.slug}/edit`))).toBe(403)
+    expect(
+      await statusOf(
+        apiPost(member, base, {
+          name: unique('Annonce refusée'),
+          status: 'PUBLISHED',
+          adType: 'SALE',
+          media: markdownMedia(),
+        } satisfies AdRequest)
+      )
+    ).toBe(403)
+
+    await signIn(context, member)
+    const bodies: Promise<string>[] = []
+    page.on('response', (response) => {
+      if (new URL(response.url()).pathname.startsWith('/api/'))
+        bodies.push(response.text().catch(() => ''))
+    })
+    for (const [label, url] of Object.entries(urls)) {
+      await page.goto(url)
+      await pageHydrated(page)
+      await expect(page.getByRole('heading', { level: 1, name: "Modifier l'annonce" })).toHaveCount(
+        0
+      )
+      const text = await page.locator('body').innerText()
+      expect.soft(text.includes(ad.name), `${label}: the ad on screen`).toBe(false)
+      expect.soft(text.includes('Pour deux vélos.'), `${label}: its text on screen`).toBe(false)
+    }
+    for (const body of await Promise.all(bodies))
+      expect.soft(body.includes(ad.name), 'an API response carries the ad').toBe(false)
+  })
+
+  for (const which of ['list', 'detail', 'create', 'edit'] as const) {
+    test(`the ${which} URL leads a member back to the team, as a disabled trip's does`, async ({
+      page,
+      context,
+    }) => {
+      // Regression (caad90d2): the four ad pages lead back to the team when the module is off, as
+      // TripDetailPage does — before, they ignored `enableAds`.
+      const { team, member, urls } = await switchedOff()
+      await signIn(context, member)
+      await page.goto(urls[which])
+      await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}$`), { timeout: 10_000 })
+      await expect(
+        page.getByRole('main').getByRole('link', { name: 'Créer une annonce' })
+      ).toHaveCount(0)
+    })
+  }
 })

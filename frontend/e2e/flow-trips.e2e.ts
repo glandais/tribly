@@ -1,7 +1,8 @@
 import type { Locator, Page } from '@playwright/test'
-import { ApiError, apiPost } from './support/api'
+import type { TripDto, TripRequest } from '../src/api/dto'
+import { ApiError, apiDelete, apiPost, apiPut } from './support/api'
 import { calendarEvent, openCalendar, teamEvents } from './support/calendar'
-import { addMember, newTeam, newUser, roleSession, signIn } from './support/data'
+import { addMember, markdownMedia, newTeam, newUser, roleSession, signIn } from './support/data'
 import {
   frenchDateTime,
   openPicker,
@@ -583,5 +584,141 @@ test.describe('regressions', () => {
     })
     await expect(main.getByRole('tab', { name: startsWith('2 ') })).toHaveCount(0)
     await expect(main.getByRole('heading', { name: 'Une erreur est survenue' })).toHaveCount(0)
+  })
+})
+
+/**
+ * Undoing a deletion or a cancellation from the trip page's menu. Both used to lose what they put
+ * back: the menu sent the TripDto back as the request, clearing every stage's route (see
+ * « regressions » above) — so each restoration is checked to bring back the text and the routes
+ * too, not only the status.
+ */
+test.describe('restoring', () => {
+  const MARKDOWN = '## Programme\n\nDépart **à 8 h** devant le club.'
+
+  /** The request that leaves `trip` as it is, but for `changes` — tripToRequest, in short. */
+  const requestOf = (trip: TripDto, changes: Partial<TripRequest>): TripRequest => ({
+    name: trip.name,
+    media: trip.media,
+    dateTime: trip.dateTime,
+    status: trip.status,
+    visibility: trip.visibility,
+    routeSlug: trip.routeSlug,
+    stages: trip.stages.map((stage) => ({
+      id: stage.id,
+      name: stage.name,
+      dateTime: stage.dateTime,
+      routeSlug: stage.route?.slug,
+      media: stage.media,
+    })),
+    ...changes,
+  })
+
+  /** A published trip with a formatted text and a stage on a route, in a team with a member. */
+  async function tracedTrip(label: string) {
+    const { teamAdmin, team, member } = await tripTeamWithMember(label)
+    const route = await newRoute(teamAdmin, team.slug, unique('Boucle'), windingTrack(100))
+    const trip = await newTrip(
+      teamAdmin,
+      team.slug,
+      unique(`Voyage ${label}`),
+      [{ name: unique('Étape tracée'), routeSlug: route.slug }],
+      { media: markdownMedia(MARKDOWN) }
+    )
+    return { teamAdmin, team, member, route, trip }
+  }
+
+  /** The trip's text is intact, and its stage still on its route. */
+  function expectIntact(trip: TripDto | null, routeSlug: string) {
+    expect(trip?.media.markdown.trim(), 'the text').toBe(MARKDOWN)
+    expect(
+      trip?.stages.map((stage) => stage.route?.slug),
+      'the stage route'
+    ).toEqual([routeSlug])
+  }
+
+  test('a team admin restores a deleted trip: the members get it back, text and routes included', async ({
+    page,
+    browser,
+  }) => {
+    const { teamAdmin, team, member, route, trip } = await tracedTrip('restauré')
+    await apiDelete(teamAdmin, `/api/teams/${team.slug}/trips/${trip.slug}`)
+    // Precondition: gone for the member, still there — flagged — for the team admin.
+    expect(await fetchTrip(member, team.slug, trip.slug)).toBeNull()
+    expect((await fetchTrip(teamAdmin, team.slug, trip.slug))?.deleted).toBe(true)
+
+    await signIn(page.context(), teamAdmin)
+    const main = await openTrip(page, team.slug, trip.slug, trip.name)
+    const menu = await openActionsMenu(page)
+    await menu.getByRole('menuitem', { name: 'Restaurer' }).click()
+    await expect(toasts(page).filter({ hasText: 'Voyage restauré avec succès' })).toBeVisible()
+    // Restored, the menu no longer offers it.
+    const again = await openActionsMenu(page)
+    await expect(again.getByRole('menuitem', { name: 'Supprimer' })).toBeVisible()
+    await expect(again.getByRole('menuitem', { name: 'Restaurer' })).toHaveCount(0)
+    await page.keyboard.press('Escape')
+    await expect(main.getByText('Publié', { exact: true })).toBeVisible()
+
+    const restored = await fetchTrip(teamAdmin, team.slug, trip.slug)
+    expect(restored).toMatchObject({ deleted: false, status: 'PUBLISHED' })
+    expectIntact(restored, route.slug)
+
+    // The member finds it again, in the feed and on its page, stage route included.
+    const reader = await pageAs(browser, member)
+    try {
+      expectIntact(await fetchTrip(member, team.slug, trip.slug), route.slug)
+      const feed = await openFeed(reader.page, team.slug)
+      await expect(entityCard(feed, trip.name)).toBeVisible()
+      const memberMain = await openTrip(reader.page, team.slug, trip.slug, trip.name)
+      await expect(memberMain.getByRole('heading', { level: 2, name: 'Programme' })).toBeVisible()
+      await expect(memberMain.locator('strong', { hasText: 'à 8 h' })).toBeVisible()
+      await expect(
+        stageCards(memberMain).first().getByRole('button', { name: 'Voir le parcours' })
+      ).toBeVisible()
+    } finally {
+      await reader.context.close()
+    }
+  })
+
+  test('a cancelled trip is restored to a draft, out of the members’ sight until published again', async ({
+    page,
+  }) => {
+    const { teamAdmin, team, member, route, trip } = await tracedTrip('réactivé')
+    await apiPut(
+      teamAdmin,
+      `/api/teams/${team.slug}/trips/${trip.slug}`,
+      requestOf(trip, { status: 'CANCELLED' })
+    )
+    // Precondition: cancelled, and a member still reads it.
+    expect((await fetchTrip(member, team.slug, trip.slug))?.status).toBe('CANCELLED')
+
+    await signIn(page.context(), teamAdmin)
+    const main = await openTrip(page, team.slug, trip.slug, trip.name)
+    await expect(main.getByText('Annulé', { exact: true })).toBeVisible()
+    const menu = await openActionsMenu(page)
+    await menu.getByRole('menuitem', { name: 'Restaurer le voyage' }).click()
+    const confirm = page.getByRole('dialog', { name: 'Restaurer le voyage' })
+    await expect(confirm).toContainText(
+      'Êtes-vous sûr de vouloir restaurer ce voyage ? Il reviendra au statut brouillon.'
+    )
+    await confirm.getByRole('button', { name: 'Restaurer le voyage' }).click()
+    await expect(confirm).toBeHidden()
+    await expect(toasts(page).filter({ hasText: 'Voyage restauré avec succès' })).toBeVisible()
+    await expect(main.getByText('Brouillon', { exact: true })).toBeVisible()
+    await expect(main.getByText('Annulé', { exact: true })).toHaveCount(0)
+
+    const draft = await fetchTrip(teamAdmin, team.slug, trip.slug)
+    expect(draft?.status).toBe('DRAFT')
+    expectIntact(draft, route.slug)
+    expect(await fetchTrip(member, team.slug, trip.slug), 'a draft is 404 to a member').toBeNull()
+
+    // A draft again, it is published the usual way — and comes back whole.
+    const publish = await openActionsMenu(page)
+    await publish.getByRole('menuitem', { name: 'Publier' }).click()
+    await expect(toasts(page).filter({ hasText: 'Voyage publié avec succès' })).toBeVisible()
+    await expect(main.getByText('Publié', { exact: true })).toBeVisible()
+    const published = await fetchTrip(member, team.slug, trip.slug)
+    expect(published?.status).toBe('PUBLISHED')
+    expectIntact(published, route.slug)
   })
 })

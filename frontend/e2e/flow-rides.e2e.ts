@@ -1,6 +1,16 @@
 import type { Locator, Page } from '@playwright/test'
-import type { PlaceDetailDto, PlaceRequest, RideDto, RideRequest } from '../src/api/dto'
-import { apiPost, apiPut } from './support/api'
+import type {
+  CountResponse,
+  PlaceDetailDto,
+  PlaceRequest,
+  RideDto,
+  RideRequest,
+  RideTemplateDto,
+  RideTemplateGroupRequest,
+  RideTemplateRequest,
+  RouteDto,
+} from '../src/api/dto'
+import { apiDelete, apiGet, apiPost, apiPut } from './support/api'
 import { calendarEvent, openCalendar } from './support/calendar'
 import {
   frenchDateTime,
@@ -13,7 +23,7 @@ import {
   pickerText,
   type WallClock,
 } from './support/dates'
-import { addMember, newTeam, newUser, roleSession, signIn } from './support/data'
+import { addMember, markdownMedia, newTeam, newUser, roleSession, signIn } from './support/data'
 import { richText } from './support/editor'
 import { expect, test, unique } from './support/fixtures'
 import {
@@ -25,7 +35,7 @@ import {
   readTemplates,
   ridePath,
 } from './support/rides'
-import { newRoute, windingTrack } from './support/routes'
+import { getRoute, gpxOf, newRoute, windingTrack } from './support/routes'
 import {
   actionsMenu,
   entityCard,
@@ -39,8 +49,9 @@ import {
 /**
  * The ride journey through the UI only, as a team's organizer and one of its members: the ride
  * editor (create, publish, edit), the team's feed and calendar, registration and a comment from the
- * ride page, then cancellation and deletion — and ride templates, created in their own editor and
- * loaded into a new ride.
+ * ride page, then cancellation, restoration and deletion — a group's leader picked in the editor, a
+ * route created from it (and a private one refused for a public ride) — and ride templates, created,
+ * edited and deleted in their own editor and loaded into a new ride.
  *
  * What rides.e2e.ts already pins on the ride page (comment paging, the leader badge, a full group,
  * GROUP_FULL) is not repeated here. Every test builds its own team, owned by the platform admin (only
@@ -693,5 +704,553 @@ test.describe('ride templates', () => {
     expect((await readTemplates(organizer, team.slug)).templates.map((t) => t.name)).toEqual([
       templateName,
     ])
+  })
+})
+
+/**
+ * One group of the ride editor (a bordered Paper per group, holding its « Nom du groupe » field),
+ * by position — the name field is a controlled input, so a filter on its text would not follow it.
+ */
+const editorGroup = (page: Page, index: number) =>
+  main(page)
+    .locator('form .mantine-Paper-root')
+    .filter({ has: page.getByRole('textbox', { name: 'Nom du groupe' }) })
+    .nth(index)
+
+/** Picks `who` as the leader of an editor group, through the team member search. */
+async function pickLeader(group: Locator, who: { user: { displayName: string } }) {
+  const search = group.getByPlaceholder("Rechercher un membre de l'équipe...")
+  await hydrated(search)
+  await search.fill(who.user.displayName)
+  await group.getByRole('button', { name: who.user.displayName }).click()
+  await expect(search).toHaveCount(0)
+  await expect(group.getByText(who.user.displayName, { exact: true })).toBeVisible()
+}
+
+test.describe('group leader in the editor', () => {
+  test('a leader picked in the editor is saved, shown on its group, kept by an edit of another group, then removed', async ({
+    page,
+  }) => {
+    test.slow()
+    const { team, organizer, member: leader } = await ridingTeam('meneur saisi')
+    const rideName = unique('Sortie menée depuis l’éditeur')
+    const led = unique('Groupe mené')
+    const free = unique('Groupe libre')
+
+    // --- Create: the member leads the first group, the second has no leader.
+    await signIn(page.context(), organizer)
+    await page.goto(`/equipes/${team.slug}/sorties/nouvelle`)
+    await expect(
+      main(page).getByRole('heading', { name: 'Créer une sortie', level: 1 })
+    ).toBeVisible()
+    const title = main(page).getByRole('textbox', { name: 'Titre de la sortie' })
+    await hydrated(title)
+    await title.fill(rideName)
+    await editorGroup(page, 0).getByRole('textbox', { name: 'Nom du groupe' }).fill(led)
+    await pickLeader(editorGroup(page, 0), leader)
+    await main(page).getByRole('button', { name: 'Ajouter un groupe' }).click()
+    await editorGroup(page, 1).getByRole('textbox', { name: 'Nom du groupe' }).fill(free)
+    await expect(
+      editorGroup(page, 1).getByPlaceholder("Rechercher un membre de l'équipe...")
+    ).toBeVisible()
+    await main(page).getByRole('radio', { name: 'Publié' }).check()
+    await main(page).getByRole('button', { name: 'Créer la sortie' }).click()
+
+    await expect(main(page).getByRole('heading', { name: rideName, level: 2 })).toBeVisible()
+    const rideSlug = new URL(page.url()).pathname.split('/').pop()!
+    const ledCard = groupCard(page, led)
+    const freeCard = groupCard(page, free)
+    await expect(ledCard.getByText('Meneur', { exact: true })).toBeVisible()
+    await expect(ledCard.getByText(leader.user.displayName, { exact: true })).toBeVisible()
+    await expect(ledCard.getByText(organizer.user.displayName)).toHaveCount(0)
+    await expect(freeCard).toBeVisible()
+    await expect(freeCard.getByText('Meneur', { exact: true })).toHaveCount(0)
+    let saved = await readRide(organizer, team.slug, rideSlug)
+    expect(saved.groups.map((g) => [g.name, g.leader?.id])).toEqual([
+      [led, leader.user.id],
+      [free, undefined],
+    ])
+
+    // --- Edit: the row names the leader (not « Meneur désigné »); changing the other group keeps it.
+    const openEditor = async () => {
+      const edit = main(page).getByRole('link', { name: 'Modifier' })
+      await hydrated(edit)
+      await edit.click()
+      await expect(
+        main(page).getByRole('heading', { name: 'Modifier la sortie', level: 1 })
+      ).toBeVisible()
+      await expect(
+        editorGroup(page, 0).getByRole('textbox', { name: 'Nom du groupe' })
+      ).toHaveValue(led)
+    }
+    await openEditor()
+    await expect(
+      editorGroup(page, 0).getByText(leader.user.displayName, { exact: true })
+    ).toBeVisible()
+    await expect(main(page).getByText('Meneur désigné', { exact: true })).toHaveCount(0)
+    const capacity = editorGroup(page, 1).getByRole('textbox', { name: 'Taille max' })
+    await hydrated(capacity)
+    await capacity.fill('7')
+    await main(page).getByRole('button', { name: 'Enregistrer' }).click()
+    await expect(page).toHaveURL(new RegExp(`/sorties/${rideSlug}$`))
+    await expect(freeCard.getByText('0/7 participants')).toBeVisible()
+    await expect(ledCard.getByText(leader.user.displayName, { exact: true })).toBeVisible()
+    saved = await readRide(organizer, team.slug, rideSlug)
+    expect(saved.groups.map((g) => [g.name, g.leader?.id, g.maxParticipants])).toEqual([
+      [led, leader.user.id, undefined],
+      [free, undefined, 7],
+    ])
+
+    // --- Edit again: « Retirer » clears the leader, and the save sends it cleared.
+    await openEditor()
+    const remove = editorGroup(page, 0).getByRole('button', { name: 'Retirer' })
+    await hydrated(remove)
+    await remove.click()
+    await expect(editorGroup(page, 0).getByText(leader.user.displayName)).toHaveCount(0)
+    await expect(
+      editorGroup(page, 0).getByPlaceholder("Rechercher un membre de l'équipe...")
+    ).toBeVisible()
+    await main(page).getByRole('button', { name: 'Enregistrer' }).click()
+    await expect(page).toHaveURL(new RegExp(`/sorties/${rideSlug}$`))
+    await expect(ledCard).toBeVisible()
+    await expect(ledCard.getByText('Meneur', { exact: true })).toHaveCount(0)
+    await expect(ledCard.getByText(leader.user.displayName)).toHaveCount(0)
+    // Never the ride's creator in the leader's place.
+    await expect(main(page).getByText('Meneur', { exact: true })).toHaveCount(0)
+    saved = await readRide(organizer, team.slug, rideSlug)
+    expect(saved.groups.map((g) => [g.name, g.leader])).toEqual([
+      [led, undefined],
+      [free, undefined],
+    ])
+  })
+})
+
+test.describe('ride templates, edited and deleted', () => {
+  test('an organizer renames, removes and adds groups of a template, then deletes it: it is no longer offered to a new ride', async ({
+    page,
+  }) => {
+    test.slow()
+    const { team, organizer } = await ridingTeam('modèles modifiés')
+    const templateName = unique('Modèle à retoucher')
+    const keptName = unique('Modèle qui reste')
+    const first = unique('Groupe rapide')
+    const second = unique('Groupe à retirer')
+    const renamed = unique('Groupe très rapide')
+    const added = unique('Groupe ajouté')
+    const templateRequest = (name: string, groups: RideTemplateGroupRequest[]) =>
+      ({
+        name,
+        markdown: 'Départ du local.',
+        visibility: 'TEAM',
+        status: 'PUBLISHED',
+        groups,
+      }) satisfies RideTemplateRequest
+    await apiPost<RideTemplateDto>(
+      organizer,
+      `/api/teams/${team.slug}/ride-templates`,
+      templateRequest(templateName, [
+        { name: first, maxParticipants: 6 },
+        { name: second, maxParticipants: 10 },
+      ])
+    )
+    // A second template, left alone: the picker showing it is what says the list is in.
+    await apiPost<RideTemplateDto>(
+      organizer,
+      `/api/teams/${team.slug}/ride-templates`,
+      templateRequest(keptName, [{ name: unique('Groupe unique') }])
+    )
+
+    await signIn(page.context(), organizer)
+    await page.goto(`/equipes/${team.slug}/admin/modeles-sortie`)
+    await expect(
+      main(page).getByRole('heading', { name: 'Modèles de sortie', level: 2 })
+    ).toBeVisible()
+    const row = (name: string) =>
+      main(page)
+        .locator('.mantine-Paper-root')
+        .filter({ has: page.getByText(name, { exact: true }) })
+    await expect(row(templateName)).toBeVisible()
+    await expect(row(templateName).getByText('2 groupes')).toBeVisible()
+
+    // --- Edit: rename the first group, remove the second, add a third.
+    const edit = row(templateName).getByRole('link', { name: 'Modifier' })
+    await hydrated(edit)
+    await edit.click()
+    await expect(
+      main(page).getByRole('heading', { name: 'Modifier le modèle', level: 1 })
+    ).toBeVisible()
+    const names = main(page).getByRole('textbox', { name: 'Nom du groupe' })
+    await expect(names).toHaveCount(2)
+    await expect(names.nth(0)).toHaveValue(first)
+    await expect(names.nth(1)).toHaveValue(second)
+    await hydrated(names.nth(0))
+    await names.nth(0).fill(renamed)
+    const groupPapers = main(page)
+      .locator('form .mantine-Paper-root')
+      .filter({ has: page.getByRole('textbox', { name: 'Nom du groupe' }) })
+    await groupPapers.nth(1).getByRole('button', { name: 'Supprimer' }).click()
+    await expect(names).toHaveCount(1)
+    await main(page).getByRole('button', { name: 'Ajouter un groupe' }).click()
+    await expect(names).toHaveCount(2)
+    await names.nth(1).fill(added)
+    await main(page).getByRole('textbox', { name: 'Taille max' }).nth(1).fill('12')
+    await main(page).getByRole('button', { name: 'Enregistrer' }).click()
+
+    await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}/admin/modeles-sortie$`))
+    await expect(toasts(page).filter({ hasText: 'Modèle mis à jour avec succès' })).toBeVisible()
+    await expect(row(templateName).getByText(renamed, { exact: true })).toBeVisible()
+    await expect(row(templateName).getByText(added, { exact: true })).toBeVisible()
+    await expect(row(templateName).getByText(second, { exact: true })).toHaveCount(0)
+    await expect(row(templateName).getByText(first, { exact: true })).toHaveCount(0)
+    let template = (await readTemplates(organizer, team.slug)).templates.find(
+      (t) => t.name === templateName
+    )
+    // By sortOrder: the list comes back in no stable order after an edit (see 'a template keeps
+    // the order of its groups after an edit' below).
+    const bySortOrder = [...(template?.groups ?? [])].sort((a, b) => a.sortOrder - b.sortOrder)
+    expect(bySortOrder.map((g) => [g.name, g.maxParticipants])).toEqual([
+      [renamed, 6],
+      [added, 12],
+    ])
+
+    // --- Delete, confirmed.
+    const remove = row(templateName).getByRole('button', { name: 'Supprimer' })
+    await hydrated(remove)
+    await remove.click()
+    const confirm = page.getByRole('dialog', { name: 'Supprimer le modèle' })
+    await expect(
+      confirm.getByText(`Êtes-vous sûr de vouloir supprimer le modèle "${templateName}" ?`)
+    ).toBeVisible()
+    await confirm.getByRole('button', { name: 'Supprimer le modèle' }).click()
+    await expect(confirm).toBeHidden()
+    await expect(toasts(page).filter({ hasText: 'Modèle supprimé avec succès' })).toBeVisible()
+    await expect(row(keptName)).toBeVisible()
+    await expect(row(templateName)).toHaveCount(0)
+    template = (await readTemplates(organizer, team.slug)).templates.find(
+      (t) => t.name === templateName
+    )
+    expect(template, 'the API no longer lists it').toBeUndefined()
+
+    // --- « Charger un modèle » on a new ride offers the other one only.
+    await page.goto(`/equipes/${team.slug}/sorties/nouvelle`)
+    await expect(
+      main(page).getByRole('heading', { name: 'Créer une sortie', level: 1 })
+    ).toBeVisible()
+    const load = main(page).getByRole('button', { name: 'Charger un modèle' })
+    await hydrated(load)
+    await load.click()
+    const picker = page.getByRole('dialog', { name: 'Choisir un modèle' })
+    await expect(picker.getByRole('button').filter({ hasText: keptName })).toBeVisible()
+    await expect(picker.getByRole('button').filter({ hasText: templateName })).toHaveCount(0)
+    await expect(picker.getByText(renamed)).toHaveCount(0)
+  })
+
+  test('cancelling the deletion keeps the template', async ({ page }) => {
+    const { team, organizer } = await ridingTeam('modèle gardé')
+    const templateName = unique('Modèle presque supprimé')
+    await apiPost<RideTemplateDto>(organizer, `/api/teams/${team.slug}/ride-templates`, {
+      name: templateName,
+      markdown: '',
+      visibility: 'TEAM',
+      status: 'PUBLISHED',
+      groups: [{ name: unique('Groupe') }],
+    } satisfies RideTemplateRequest)
+
+    await signIn(page.context(), organizer)
+    await page.goto(`/equipes/${team.slug}/admin/modeles-sortie`)
+    const row = main(page)
+      .locator('.mantine-Paper-root')
+      .filter({ has: page.getByText(templateName, { exact: true }) })
+    const remove = row.getByRole('button', { name: 'Supprimer' })
+    await hydrated(remove)
+    await remove.click()
+    const confirm = page.getByRole('dialog', { name: 'Supprimer le modèle' })
+    await expect(confirm).toBeVisible()
+    await confirm.getByRole('button', { name: 'Annuler' }).click()
+    await expect(confirm).toBeHidden()
+    await expect(row).toBeVisible()
+    expect((await readTemplates(organizer, team.slug)).templates.map((t) => t.name)).toEqual([
+      templateName,
+    ])
+  })
+})
+
+test.describe('ride templates, regressions', () => {
+  test('a template keeps the order of its groups after an edit', async () => {
+    // Regression (667574f6): RideTemplate.groups is @OrderBy("sortOrder") — before, an edit that kept a group
+    // and added one gave the groups back in the wrong order 17 times out of 20. Five templates, so
+    // the order holding by chance on all of them is out of reach.
+    const { team, organizer } = await ridingTeam('ordre des groupes')
+    const orders: string[][] = []
+    for (let i = 0; i < 5; i++) {
+      const created = await apiPost<RideTemplateDto>(
+        organizer,
+        `/api/teams/${team.slug}/ride-templates`,
+        {
+          name: unique('Modèle ordonné'),
+          markdown: '',
+          visibility: 'TEAM',
+          status: 'PUBLISHED',
+          groups: [{ name: 'Premier' }, { name: 'Retiré' }],
+        } satisfies RideTemplateRequest
+      )
+      // What EditRideTemplatePage sends for « rename the first, remove the second, add one ».
+      await apiPut<RideTemplateDto>(
+        organizer,
+        `/api/teams/${team.slug}/ride-templates/${created.slug}`,
+        {
+          name: created.name,
+          markdown: '',
+          visibility: 'TEAM',
+          status: 'PUBLISHED',
+          groups: [{ id: created.groups[0].id, name: 'Premier renommé' }, { name: 'Ajouté' }],
+        } satisfies RideTemplateRequest
+      )
+      const read = await apiGet<RideTemplateDto>(
+        organizer,
+        `/api/teams/${team.slug}/ride-templates/${created.slug}`
+      )
+      orders.push(read.groups.map((g) => g.name))
+    }
+    expect(orders).toEqual(Array(5).fill(['Premier renommé', 'Ajouté']))
+  })
+})
+
+test.describe('a route from the ride editor', () => {
+  test('« Créer un nouveau parcours » from the route picker creates the route and selects it for the ride', async ({
+    page,
+  }) => {
+    // Regression (74efdc0d): RouteEditor's form stops its submit's propagation — before, React carried
+    // the modal's `submit` through the portal to the ride's <form>, which was created at once, as a
+    // draft without the route.
+    test.slow()
+    const { team, organizer } = await ridingTeam('parcours créé')
+    const rideName = unique('Sortie au parcours neuf')
+    const routeName = unique('Boucle créée en route')
+    const ridePosts: string[] = []
+    page.on('request', (request) => {
+      if (
+        request.method() === 'POST' &&
+        new URL(request.url()).pathname === `/api/teams/${team.slug}/rides`
+      )
+        ridePosts.push(request.url())
+    })
+
+    await signIn(page.context(), organizer)
+    await page.goto(`/equipes/${team.slug}/sorties/nouvelle`)
+    await expect(
+      main(page).getByRole('heading', { name: 'Créer une sortie', level: 1 })
+    ).toBeVisible()
+    const title = main(page).getByRole('textbox', { name: 'Titre de la sortie' })
+    await hydrated(title)
+    await title.fill(rideName)
+    await main(page).getByRole('textbox', { name: 'Nom du groupe' }).fill(unique('Groupe'))
+
+    // The ride's route picker (the first; the others are the groups').
+    await main(page).getByRole('button', { name: 'Sélectionner un parcours' }).first().click()
+    const picker = page.getByRole('dialog', { name: 'Sélectionner un parcours pour la sortie' })
+    const createNew = picker.getByRole('button', { name: 'Créer un nouveau parcours' })
+    await expect(createNew).toBeVisible()
+    await createNew.click()
+    await expect(picker).toBeHidden()
+
+    const modal = page.getByRole('dialog', { name: 'Créer un nouveau parcours' })
+    await expect(modal).toBeVisible()
+    await modal.locator('input[type="file"][accept=".gpx"]').setInputFiles({
+      name: 'boucle-neuve.gpx',
+      mimeType: 'application/gpx+xml',
+      buffer: Buffer.from(gpxOf(routeName, windingTrack(80))),
+    })
+    const nameInput = modal.getByRole('textbox', { name: 'Nom du parcours' })
+    await expect(nameInput).toHaveValue('boucle-neuve')
+    await nameInput.fill(routeName)
+    const created = page.waitForResponse(
+      (r) =>
+        r.request().method() === 'POST' &&
+        new URL(r.url()).pathname === `/api/teams/${team.slug}/routes`
+    )
+    await modal.getByRole('button', { name: 'Créer le parcours' }).click()
+    const createdResponse = await created
+    expect(createdResponse.status()).toBe(201)
+    const route = (await createdResponse.json()) as RouteDto
+    expect(route.name).toBe(routeName)
+    // Creating the route creates nothing else: a ride's submit would have left before it.
+    expect(ridePosts, 'no ride is created with the route').toEqual([])
+
+    // Back on the ride editor, the modal closed, the new route chosen for the ride.
+    await expect(modal).toBeHidden()
+    await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}/sorties/nouvelle$`))
+    await expect(title).toHaveValue(rideName)
+    await expect(main(page).getByText(routeName)).toBeVisible()
+    // Only the group is still without a route.
+    await expect(main(page).getByText('Aucun parcours sélectionné')).toHaveCount(1)
+
+    await main(page).getByRole('button', { name: 'Créer la sortie' }).click()
+    await expect(main(page).getByRole('heading', { name: rideName, level: 2 })).toBeVisible()
+    const rideSlug = new URL(page.url()).pathname.split('/').pop()!
+    const saved = await readRide(organizer, team.slug, rideSlug)
+    expect(saved.routeSlug).toBe(route.slug)
+    const stored = await getRoute(organizer, team.slug, route.slug)
+    expect(stored.name).toBe(routeName)
+    // 79 steps of 50 m eastward, on a 300 m sine northward (windingTrack): ~5 250 m along the track.
+    expect(stored.distance).toBeGreaterThan(5_100)
+    expect(stored.distance).toBeLessThan(5_400)
+  })
+
+  test('a public ride on a members-only route is refused with a translated message, the form kept and nothing created', async ({
+    page,
+  }) => {
+    const owner = await roleSession('admin')
+    const team = await newTeam(owner, unique('Flow sorties publique'), { visibility: 'PUBLIC' })
+    const organizer = await newUser(unique('Organisatrice'))
+    await addMember(owner, team.slug, organizer, 'ORGANIZER')
+    const routeName = unique('Parcours réservé')
+    const route = await newRoute(organizer, team.slug, routeName, windingTrack(60), {
+      visibility: 'TEAM',
+    })
+    const rideName = unique('Sortie publique')
+    const group = unique('Groupe ouvert')
+
+    await signIn(page.context(), organizer)
+    await page.goto(`/equipes/${team.slug}/sorties/nouvelle`)
+    await expect(
+      main(page).getByRole('heading', { name: 'Créer une sortie', level: 1 })
+    ).toBeVisible()
+    const title = main(page).getByRole('textbox', { name: 'Titre de la sortie' })
+    await hydrated(title)
+    await title.fill(rideName)
+    await main(page).getByRole('textbox', { name: 'Nom du groupe' }).fill(group)
+    // A public team's ride is born public: its editor offers the choice.
+    await expect(main(page).getByRole('radio', { name: 'Public', exact: true })).toBeChecked()
+    await main(page).getByRole('button', { name: 'Sélectionner un parcours' }).first().click()
+    const picker = page.getByRole('dialog', { name: 'Sélectionner un parcours pour la sortie' })
+    await picker.getByRole('button').filter({ hasText: routeName }).click()
+    await expect(picker).toBeHidden()
+
+    const shown = await watchToasts(page)
+    const refused = page.waitForResponse(
+      (r) =>
+        r.request().method() === 'POST' &&
+        new URL(r.url()).pathname === `/api/teams/${team.slug}/rides`
+    )
+    await main(page).getByRole('button', { name: 'Créer la sortie' }).click()
+    const response = await refused
+    expect(response.status()).toBe(400)
+    expect(((await response.json()) as { code?: string }).code).toBe('PUBLIC_RIDE_PRIVATE_ROUTE')
+
+    await expect(
+      toasts(page).filter({ hasText: 'Une sortie publique ne peut pas utiliser un parcours privé' })
+    ).toBeVisible()
+    expect(await shown()).not.toContainEqual(expect.stringContaining('PUBLIC_RIDE_PRIVATE_ROUTE'))
+    // Still on the editor, with everything typed.
+    await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}/sorties/nouvelle$`))
+    await expect(title).toHaveValue(rideName)
+    await expect(main(page).getByRole('textbox', { name: 'Nom du groupe' })).toHaveValue(group)
+    await expect(main(page).getByText(routeName)).toBeVisible()
+    await expect(main(page).getByRole('radio', { name: 'Public', exact: true })).toBeChecked()
+    // Nothing was created.
+    const count = await apiGet<CountResponse>(
+      organizer,
+      `/api/teams/${team.slug}/publications/count`
+    )
+    expect(count.total).toBe(0)
+
+    // Choosing « Équipe uniquement » is the way out: the same ride is created.
+    await main(page).getByRole('radio', { name: 'Équipe uniquement' }).check()
+    await main(page).getByRole('button', { name: 'Créer la sortie' }).click()
+    await expect(main(page).getByRole('heading', { name: rideName, level: 2 })).toBeVisible()
+    const rideSlug = new URL(page.url()).pathname.split('/').pop()!
+    const saved = await readRide(organizer, team.slug, rideSlug)
+    expect(saved.visibility).toBe('TEAM')
+    expect(saved.routeSlug).toBe(route.slug)
+  })
+})
+
+test.describe('restoring a ride', () => {
+  test('« Restaurer la sortie » turns a cancelled ride back into a draft, keeping its description, leaders and routes', async ({
+    page,
+  }) => {
+    const { team, organizer, member: leader } = await ridingTeam('restaurée')
+    const rideRouteName = unique('Boucle principale')
+    const groupRouteName = unique('Boucle du groupe')
+    const rideRoute = await newRoute(organizer, team.slug, rideRouteName, windingTrack(60))
+    const groupRoute = await newRoute(organizer, team.slug, groupRouteName, windingTrack(40))
+    const led = unique('Groupe mené')
+    const description = `Rendez-vous au local, ${unique('texte')}.`
+    const ride = await newRide(organizer, team.slug, unique('Sortie à restaurer'), {
+      status: 'CANCELLED',
+      media: markdownMedia(description),
+      routeSlug: rideRoute.slug,
+      groups: [{ name: led, leaderId: leader.user.id, routeSlug: groupRoute.slug }],
+    })
+
+    await signIn(page.context(), organizer)
+    await page.goto(ridePath(team.slug, ride.slug))
+    await expect(main(page).getByRole('heading', { name: ride.name, level: 2 })).toBeVisible()
+    await expect(main(page).getByText('Annulé', { exact: true })).toBeVisible()
+
+    const menu = await openActionsMenu(page)
+    await expect(menu.getByRole('menuitem', { name: 'Publier' })).toHaveCount(0)
+    await menu.getByRole('menuitem', { name: 'Restaurer la sortie' }).click()
+    const confirm = page.getByRole('dialog', { name: 'Restaurer la sortie' })
+    await expect(
+      confirm.getByText(
+        'Êtes-vous sûr de vouloir restaurer cette sortie ? Elle repassera en brouillon.'
+      )
+    ).toBeVisible()
+    await confirm.getByRole('button', { name: 'Restaurer la sortie' }).click()
+    await expect(confirm).toBeHidden()
+    await expect(toasts(page).filter({ hasText: 'Sortie restaurée avec succès' })).toBeVisible()
+    await expect(main(page).getByText('Brouillon', { exact: true })).toBeVisible()
+    await expect(main(page).getByText('Annulé', { exact: true })).toHaveCount(0)
+    await expect(main(page).getByText(description)).toBeVisible()
+    await expect(
+      groupCard(page, led).getByText(leader.user.displayName, { exact: true })
+    ).toBeVisible()
+
+    const restored = await readRide(organizer, team.slug, ride.slug)
+    expect(restored.status).toBe('DRAFT')
+    expect(restored.media.markdown.trim()).toBe(description)
+    expect(restored.routeSlug).toBe(rideRoute.slug)
+    expect(restored.groups.map((g) => [g.name, g.leader?.id, g.routeSlug])).toEqual([
+      [led, leader.user.id, groupRoute.slug],
+    ])
+    // A draft again: publishable from the same menu.
+    const again = await openActionsMenu(page)
+    await expect(again.getByRole('menuitem', { name: 'Publier' })).toBeVisible()
+  })
+
+  test('a team admin restores a deleted ride from its page, with its leaders and routes', async ({
+    page,
+  }) => {
+    const { team, organizer, member: leader } = await ridingTeam('supprimée')
+    const route = await newRoute(organizer, team.slug, unique('Boucle gardée'), windingTrack(40))
+    const led = unique('Groupe mené')
+    const ride = await newRide(organizer, team.slug, unique('Sortie supprimée'), {
+      routeSlug: route.slug,
+      groups: [{ name: led, leaderId: leader.user.id }],
+    })
+    await apiDelete(organizer, `/api/teams/${team.slug}/rides/${ride.slug}`)
+    expect(
+      await findRide(leader, team.slug, ride.slug),
+      'precondition: gone for members'
+    ).toBeNull()
+
+    // The team's admin (the platform admin owns every team of this file) still reads it.
+    const admin = await roleSession('admin')
+    await signIn(page.context(), admin)
+    await page.goto(ridePath(team.slug, ride.slug))
+    await expect(main(page).getByRole('heading', { name: ride.name, level: 2 })).toBeVisible()
+    const menu = await openActionsMenu(page)
+    await menu.getByRole('menuitem', { name: 'Restaurer', exact: true }).click()
+    await expect(toasts(page).filter({ hasText: 'Sortie restaurée avec succès' })).toBeVisible()
+    await expect(main(page).getByText('Publié', { exact: true })).toBeVisible()
+
+    const restored = await readRide(leader, team.slug, ride.slug)
+    expect(restored.status).toBe('PUBLISHED')
+    expect(restored.routeSlug).toBe(route.slug)
+    expect(restored.groups.map((g) => [g.name, g.leader?.id])).toEqual([[led, leader.user.id]])
+    const reopened = await openActionsMenu(page)
+    await expect(reopened.getByRole('menuitem', { name: 'Restaurer', exact: true })).toHaveCount(0)
   })
 })

@@ -1,0 +1,255 @@
+import type { Locator, Page } from '@playwright/test'
+import type { RouteDto } from '../src/api/dto'
+import { newAd } from './support/ads'
+import { newTeam, newUser, signIn } from './support/data'
+import { expect, test, unique } from './support/fixtures'
+import { expectInMarkup, expectQuery, openServerRendered, readsOf } from './support/list-pages'
+import { newPost } from './support/posts'
+import { newRide } from './support/rides'
+import { newRoute, windingTrack } from './support/routes'
+import { entityCard, escapeRegExp, hydrated } from './support/ui'
+
+/**
+ * E2E_COVERAGE_AUDIT.md, P1 « Filtres portés par l'URL et cohérents avec le SSR » — a list's
+ * filters live in its query string (frontend/URL_FILTERS.md), and the route's prefetch reads that
+ * query string through the page's own schema (frontend/SSR-data-loading.md). So a filtered link:
+ *
+ * - is server-rendered already filtered — the document the browser receives lists what the
+ *   filters keep, and nothing they drop;
+ * - is not read again once hydrated — the browser sends no request to the list endpoint, since the
+ *   page builds the very query key the server filled;
+ * - reflects the filters in its controls, and a change through those controls lands in the URL.
+ *
+ * Every test works in a team of its own, owned by a fresh user: the lists involved are that team's,
+ * or the home feed of a user whose only team it is (role=member), which nothing else in the
+ * parallel suite writes to.
+ */
+
+async function ownTeam(label: string) {
+  const owner = await newUser(label)
+  const team = await newTeam(owner, unique(label))
+  return { owner, team }
+}
+
+const DAY = 24 * 3600 * 1000
+
+/** A team with an upcoming ride (two days ahead) and a post two days old. */
+async function teamWithFeed(label: string) {
+  const { owner, team } = await ownTeam(label)
+  const ride = await newRide(owner, team.slug, unique('Sortie filtrée'))
+  const post = await newPost(owner, team.slug, unique('Article filtré'), {
+    dateTime: new Date(Date.now() - 2 * DAY).toISOString(),
+  })
+  return { owner, team, ride: ride.name, post: post.name }
+}
+
+/** Picks `option` in the Mantine Select `select`, once hydrated. */
+async function pick(page: Page, select: Locator, option: string) {
+  await hydrated(select)
+  await select.click()
+  await page.getByRole('option', { name: option, exact: true }).click()
+}
+
+/** Picks `label` in a SegmentedControl (the feed's scope, the route list's density). */
+async function segment(page: Page, group: string, label: string) {
+  const control = page.getByRole('radiogroup', { name: group })
+  await hydrated(control.getByRole('radio', { name: label }))
+  await control.getByText(label, { exact: true }).click()
+}
+
+const noReadsAfterHydration = (reads: URLSearchParams[]) =>
+  expect(readsOf(reads), 'list reads sent by the browser after the server render').toEqual([])
+
+test.describe('publication feeds', () => {
+  test('team feed: type and scope from the URL, server-rendered, then « Effacer les filtres »', async ({
+    page,
+    context,
+  }) => {
+    const { owner, team, ride, post } = await teamWithFeed('filters-team-feed')
+    await signIn(context, owner)
+    const main = page.getByRole('main')
+    const typeSelect = page.getByRole('combobox', { name: 'Type', exact: true })
+
+    const { markup, reads } = await openServerRendered(
+      page,
+      `/equipes/${team.slug}?type=ride`,
+      `/api/teams/${team.slug}/publications`
+    )
+    expectInMarkup(markup, [ride], [post])
+    noReadsAfterHydration(reads)
+    await expect(entityCard(main, ride)).toBeVisible()
+    await expect(entityCard(main, post)).toHaveCount(0)
+    await expect(typeSelect).toHaveValue('Sorties')
+
+    await pick(page, typeSelect, 'Publications')
+    await expectQuery(page, { type: 'post' })
+    await expect(entityCard(main, post)).toBeVisible()
+    await expect(entityCard(main, ride)).toHaveCount(0)
+
+    // The post is two days old: nothing upcoming is a post — the filtered dead end.
+    await segment(page, 'Portée du fil', 'À venir')
+    await expectQuery(page, { type: 'post', w: 'upcoming' })
+    await expect(main.getByText('Aucun résultat ne correspond à votre recherche.')).toBeVisible()
+
+    await main.getByRole('button', { name: 'Effacer les filtres' }).click()
+    await expectQuery(page, {})
+    await expect(entityCard(main, ride)).toBeVisible()
+    await expect(entityCard(main, post)).toBeVisible()
+    await expect(typeSelect).toHaveValue('Tous')
+  })
+
+  test('home feed: type and membership from the URL, server-rendered, then « Effacer les filtres »', async ({
+    page,
+    context,
+  }) => {
+    const { owner, ride, post } = await teamWithFeed('filters-home')
+    await signIn(context, owner)
+    const main = page.getByRole('main')
+
+    const { markup, reads } = await openServerRendered(
+      page,
+      '/?role=member&type=ride',
+      '/api/publications'
+    )
+    expectInMarkup(markup, [ride], [post])
+    noReadsAfterHydration(reads)
+    await expect(entityCard(main, ride)).toBeVisible()
+    await expect(entityCard(main, post)).toHaveCount(0)
+    await expect(page.getByRole('combobox', { name: 'Type', exact: true })).toHaveValue('Sorties')
+    await expect(page.getByRole('combobox', { name: 'Équipes', exact: true })).toHaveValue('Membre')
+
+    // Nobody registered for the ride: « Je participe » empties the feed.
+    await segment(page, 'Portée du fil', 'Je participe')
+    await expectQuery(page, { role: 'member', type: 'ride', w: 'me' })
+    await expect(main.getByRole('heading', { name: 'Aucune publication trouvée' })).toBeVisible()
+
+    // Back to the defaults — the membership spelled out, as always on this list.
+    await main.getByRole('button', { name: 'Effacer les filtres' }).click()
+    await expectQuery(page, { role: 'member' })
+    await expect(entityCard(main, ride)).toBeVisible()
+    await expect(entityCard(main, post)).toBeVisible()
+  })
+})
+
+test('team routes: distance, surface, sort and density from the URL, server-rendered, then « Effacer »', async ({
+  page,
+  context,
+}) => {
+  const { owner, team } = await ownTeam('filters-routes')
+  const tag = unique('parcours')
+  // Created shortest first, so the default order (newest first) is the longest first.
+  const short: RouteDto = await newRoute(owner, team.slug, `Court ${tag}`, windingTrack(40), {
+    surfaceType: 'GRAVEL',
+  })
+  const mid = await newRoute(owner, team.slug, `Moyen ${tag}`, windingTrack(200), {
+    surfaceType: 'GRAVEL',
+  })
+  const long = await newRoute(owner, team.slug, `Long ${tag}`, windingTrack(400), {
+    surfaceType: 'GRAVEL',
+  })
+  const road = await newRoute(owner, team.slug, `Route ${tag}`, windingTrack(300), {
+    surfaceType: 'ROAD',
+  })
+  // A whole number of km between the short route and the others: the bound the URL carries.
+  const minKm = Math.ceil(short.distance / 1000)
+  expect(minKm * 1000, 'precondition: the bound keeps the middle route').toBeLessThan(mid.distance)
+  await signIn(context, owner)
+  const main = page.getByRole('main')
+  const names = main.getByRole('link').filter({ hasText: new RegExp(escapeRegExp(tag)) })
+  const expectNames = (routes: RouteDto[]) =>
+    expect(names).toHaveText(routes.map((route) => new RegExp(escapeRegExp(route.name))))
+
+  const filtered = {
+    surf: 'GRAVEL',
+    dmin: String(minKm * 1000),
+    sort: 'DISTANCE',
+    dir: 'ASC',
+    d: 'row',
+  }
+  const { markup, reads } = await openServerRendered(
+    page,
+    `/equipes/${team.slug}/parcours?${new URLSearchParams(filtered)}`,
+    `/api/teams/${team.slug}/routes`
+  )
+  // Gravel, beyond the bound, shortest first — and in rows: the density is in the markup too.
+  expectInMarkup(markup, [mid.name, long.name], [short.name, road.name])
+  expect(markup, 'the server rendered the dense rows').toMatch(
+    /<input[^>]*type="radio"[^>]*checked=""[^>]*value="row"/
+  )
+  noReadsAfterHydration(reads)
+  await expectNames([mid, long])
+  await expect(page.getByRole('radio', { name: 'Compact' })).toBeChecked()
+
+  // The panel shows what the URL says.
+  const toggle = main.getByRole('button', { name: 'Filtres', exact: true })
+  await hydrated(toggle)
+  await toggle.click()
+  await expect(main.getByRole('textbox', { name: 'Min' }).first()).toHaveValue(String(minKm))
+  await expect(main.getByRole('combobox', { name: 'Type de revêtement', exact: true })).toHaveValue(
+    'Gravel'
+  )
+  await expect(main.getByRole('combobox', { name: 'Trier par', exact: true })).toHaveValue(
+    'Distance'
+  )
+
+  // Descending is the default direction: it leaves the URL.
+  await main.getByRole('button', { name: 'Croissant', exact: true }).click()
+  await expectQuery(page, { surf: 'GRAVEL', dmin: filtered.dmin, sort: 'DISTANCE', d: 'row' })
+  await expectNames([long, mid])
+
+  // « Effacer » drops the filters and the sort, and keeps the density (not a filter).
+  await main.getByRole('button', { name: 'Effacer', exact: true }).click()
+  await expectQuery(page, { d: 'row' })
+  await expectNames([road, long, mid, short])
+  await expect(page.getByRole('radio', { name: 'Compact' })).toBeChecked()
+
+  await segment(page, 'Densité de la liste', 'Vignettes')
+  await expectQuery(page, { d: 'card' })
+  await expectNames([road, long, mid, short])
+})
+
+test('ads: search and type from the URL, server-rendered, then changed through the controls', async ({
+  page,
+  context,
+}) => {
+  const { owner, team } = await ownTeam('filters-ads')
+  const tag = unique('annonce')
+  const sale = await newAd(owner, team.slug, { name: `Velo de course ${tag}`, adType: 'SALE' })
+  const rental = await newAd(owner, team.slug, {
+    name: `Velo en location ${tag}`,
+    adType: 'RENTAL',
+    rentalPeriod: 'DAY',
+  })
+  const wanted = await newAd(owner, team.slug, { name: `Casque cherche ${tag}`, adType: 'WANTED' })
+  await signIn(context, owner)
+  const titles = page.getByRole('heading', { level: 4, name: new RegExp(escapeRegExp(tag)) })
+  const search = page.getByRole('searchbox', { name: 'Rechercher des annonces' })
+  const typeSelect = page.getByRole('combobox', { name: 'Filtrer par type' })
+
+  const { markup, reads } = await openServerRendered(
+    page,
+    `/equipes/${team.slug}/annonces?q=Velo&type=RENTAL`,
+    `/api/teams/${team.slug}/classifieds`
+  )
+  expectInMarkup(markup, [rental.name], [sale.name, wanted.name])
+  noReadsAfterHydration(reads)
+  await expect(titles).toHaveText([rental.name])
+  await expect(search).toHaveValue('Velo')
+  await expect(typeSelect).toHaveValue('Location')
+
+  await pick(page, typeSelect, 'Tous les types')
+  await expectQuery(page, { q: 'Velo' })
+  await expect(titles).toHaveText([rental.name, sale.name])
+  // The watch does see the browser's own reads: a filter nobody prefetched is one.
+  expect(
+    readsOf(reads).some((read) => read.includes('search=Velo') && !read.includes('adType'))
+  ).toBe(true)
+
+  await search.fill('Casque')
+  await expectQuery(page, { q: 'Casque' })
+  await expect(titles).toHaveText([wanted.name])
+
+  await pick(page, typeSelect, 'Vente')
+  await expectQuery(page, { q: 'Casque', type: 'SALE' })
+  await expect(page.getByRole('heading', { name: 'Aucune annonce trouvée' })).toBeVisible()
+})

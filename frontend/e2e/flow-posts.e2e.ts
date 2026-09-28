@@ -1,10 +1,19 @@
-import type { Locator } from '@playwright/test'
-import type { CommentListResponse } from '../src/api/dto'
-import { apiGet } from './support/api'
+import type { Locator, Page } from '@playwright/test'
+import type { CommentListResponse, MediaDto } from '../src/api/dto'
+import { solidPng, uploadImage } from './support/ads'
+import { ApiError, apiDelete, apiGet } from './support/api'
 import { addMember, markdownMedia, newTeam, newUser, signIn } from './support/data'
 import { addImage, richText, toolbarButton, typeRichText } from './support/editor'
 import { expect, test, unique } from './support/fixtures'
-import { fetchPost, findPost, newPost } from './support/posts'
+import { about, listNotifications, waitForNotification } from './support/notifications'
+import {
+  commentOnPost,
+  fetchPost,
+  findPost,
+  newPost,
+  postPath,
+  readPostComments,
+} from './support/posts'
 import { entityCard, hydrated, openActionsMenu, pageAs, toasts } from './support/ui'
 
 /**
@@ -447,5 +456,343 @@ test.describe('regressions', () => {
     expect((await fetchPost(author, team.slug, post.slug)).media.markdown).toContain(
       'Premier jet. Relu.'
     )
+  })
+})
+
+/**
+ * Undoing from the post page's menu: « Dépublier » (back to a draft), « Annuler » and « Réactiver »,
+ * and « Restaurer » once deleted. The menu sends the PostDto back as the request with a new status
+ * — so each step is checked to keep the text and its picture, not only to move the badge.
+ */
+test.describe('restoring', () => {
+  const MARKDOWN = '## Programme\n\nDépart **à 8 h** devant le club.'
+
+  test('a post is unpublished, cancelled, reactivated, deleted and restored, its text and picture intact', async ({
+    page,
+    browser,
+  }) => {
+    const author = await newUser(unique('Autrice'))
+    const member = await newUser(unique('Lectrice'))
+    const team = await newTeam(author, unique('Publications réversibles'), {
+      addMemberAllowed: true,
+      enableRides: false,
+    })
+    await addMember(author, team.slug, member)
+    const image = await uploadImage(
+      author,
+      team.slug,
+      'affiche.png',
+      solidPng(96, 64, [30, 120, 200])
+    )
+    const media: MediaDto = {
+      markdown: `${MARKDOWN}\n\n::asset{id="${image.id}"}`,
+      assets: { images: [image], attachments: [] },
+    }
+    const post = await newPost(author, team.slug, unique('Article réversible'), { media })
+    const main = page.getByRole('main')
+
+    /** The stored post: its status, and the text and picture it was written with. */
+    async function expectStored(status: string, deleted = false) {
+      const stored = await fetchPost(author, team.slug, post.slug)
+      expect(stored).toMatchObject({ status, deleted, name: post.name })
+      expect(stored.media.markdown, 'the text').toContain(MARKDOWN)
+      expect(stored.media.markdown, 'the picture').toContain(`::asset{id="${image.id}"`)
+      expect(stored.media.assets.images.map((i) => i.id)).toEqual([image.id])
+    }
+    const updated = () =>
+      expect(toasts(page).filter({ hasText: 'Publication mise à jour avec succès' }).first())
+
+    await signIn(page.context(), author)
+    await page.goto(postPath(team.slug, post.slug))
+    await expect(main.getByRole('heading', { level: 2, name: post.name })).toBeVisible()
+    await expect(main.getByText('Publié', { exact: true })).toBeVisible()
+
+    await test.step('« Dépublier » turns it back into a draft the member no longer reads', async () => {
+      await (await openActionsMenu(page)).getByRole('menuitem', { name: 'Dépublier' }).click()
+      const dialog = page.getByRole('dialog', { name: 'Dépublier' })
+      await expect(dialog).toContainText('Elle redeviendra un brouillon.')
+      await dialog.getByRole('button', { name: 'Dépublier' }).click()
+      await expect(dialog).toBeHidden()
+      await updated().toBeVisible()
+      await expect(main.getByText('Brouillon', { exact: true })).toBeVisible()
+      await expectStored('DRAFT')
+      expect(await findPost(member, team.slug, post.slug), 'a draft is 404 to a member').toBeNull()
+
+      await (await openActionsMenu(page)).getByRole('menuitem', { name: 'Publier' }).click()
+      await expect(main.getByText('Publié', { exact: true })).toBeVisible()
+      await expectStored('PUBLISHED')
+    })
+
+    await test.step('« Annuler » marks it cancelled; « Réactiver » publishes it again', async () => {
+      await (await openActionsMenu(page)).getByRole('menuitem', { name: 'Annuler' }).click()
+      const cancel = page.getByRole('dialog', { name: 'Annuler' })
+      await expect(cancel).toContainText('Voulez-vous annuler cette publication ?')
+      // Both buttons of this dialog are « Annuler » — pinned in « app defects » below. The
+      // confirmation is the second one.
+      await cancel.getByRole('button', { name: 'Annuler' }).last().click()
+      await expect(cancel).toBeHidden()
+      await expect(main.getByText('Annulé', { exact: true })).toBeVisible()
+      await expectStored('CANCELLED')
+      // Cancelled is not hidden: a member still reads it, marked so — as a ride or a trip.
+      expect((await fetchPost(member, team.slug, post.slug)).status).toBe('CANCELLED')
+
+      await (await openActionsMenu(page)).getByRole('menuitem', { name: 'Réactiver' }).click()
+      const reactivate = page.getByRole('dialog', { name: 'Réactiver' })
+      await expect(reactivate).toContainText('Elle sera à nouveau publiée.')
+      await reactivate.getByRole('button', { name: 'Réactiver' }).click()
+      await expect(reactivate).toBeHidden()
+      await expect(main.getByText('Publié', { exact: true })).toBeVisible()
+      await expect(main.getByText('Annulé', { exact: true })).toHaveCount(0)
+      await expectStored('PUBLISHED')
+    })
+
+    await test.step('deleted, then « Restaurer » from its page', async () => {
+      await (await openActionsMenu(page)).getByRole('menuitem', { name: 'Supprimer' }).click()
+      const dialog = page.getByRole('dialog', { name: 'Supprimer' })
+      await dialog.getByRole('button', { name: 'Supprimer' }).click()
+      await expect(
+        toasts(page).filter({ hasText: 'Publication supprimée avec succès' })
+      ).toBeVisible()
+      await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}$`))
+      await expect(entityCard(main, post.name).getByText('Supprimé', { exact: true })).toBeVisible()
+      expect(await findPost(member, team.slug, post.slug)).toBeNull()
+
+      await page.goto(postPath(team.slug, post.slug))
+      await expect(main.getByRole('heading', { level: 2, name: post.name })).toBeVisible()
+      await (await openActionsMenu(page)).getByRole('menuitem', { name: 'Restaurer' }).click()
+      await expect(
+        toasts(page).filter({ hasText: 'Publication restaurée avec succès' })
+      ).toBeVisible()
+      const again = await openActionsMenu(page)
+      await expect(again.getByRole('menuitem', { name: 'Supprimer' })).toBeVisible()
+      await expect(again.getByRole('menuitem', { name: 'Restaurer' })).toHaveCount(0)
+      await page.keyboard.press('Escape')
+      await expectStored('PUBLISHED')
+    })
+
+    await test.step('the member reads it again, as it was written', async () => {
+      const reader = await pageAs(browser, member)
+      try {
+        const memberMain = reader.page.getByRole('main')
+        await reader.page.goto(postPath(team.slug, post.slug))
+        await expect(memberMain.getByRole('heading', { level: 2, name: post.name })).toBeVisible()
+        await expect(memberMain.getByRole('heading', { level: 2, name: 'Programme' })).toBeVisible()
+        await expect(memberMain.locator('strong', { hasText: 'à 8 h' })).toBeVisible()
+        const picture = memberMain.locator(`img[src*="${image.id}"]`)
+        await expect(picture).toBeVisible()
+        await expect
+          .poll(() => picture.evaluate((img) => (img as HTMLImageElement).naturalWidth))
+          .toBeGreaterThan(0)
+      } finally {
+        await reader.context.close()
+      }
+    })
+  })
+})
+
+/**
+ * Replies: one level of threading under a comment, a reply notifies whom it answers, and a member
+ * deletes nothing of anyone else's.
+ */
+test.describe('comment replies', () => {
+  /** A team owned by the post's author, with two plain members: the commenter and the replier. */
+  async function thread(label: string) {
+    const author = await newUser(unique('Autrice'))
+    const [writer, replier] = await Promise.all([
+      newUser(unique('Commentatrice')),
+      newUser(unique('Répondeur')),
+    ])
+    const team = await newTeam(author, unique(label), {
+      addMemberAllowed: true,
+      enableRides: false,
+    })
+    await addMember(author, team.slug, writer)
+    await addMember(author, team.slug, replier)
+    const post = await newPost(author, team.slug, unique('Article discuté'))
+    return { author, writer, replier, team, post }
+  }
+
+  /** The status of what `call` threw, or 'ok' when it went through. */
+  async function statusOf(call: Promise<unknown>): Promise<number | 'ok'> {
+    try {
+      await call
+      return 'ok'
+    } catch (error) {
+      if (error instanceof ApiError) return error.status
+      throw error
+    }
+  }
+
+  /**
+   * The comment block of `text`: the element CommentItem renders around a comment and its replies.
+   * A reply's block is the one drawn with a left border, inside its parent's.
+   */
+  const replyBlock = (text: ReturnType<Page['getByText']>) =>
+    text.locator('xpath=ancestor::div[contains(@style, "border-left")]')
+
+  test('a member replies under a comment: one level only, the commenter is notified, nobody deletes another’s comment', async ({
+    page,
+  }) => {
+    // The dispatcher runs every 15 s (support/notifications.ts).
+    test.setTimeout(120_000)
+    const { author, writer, replier, team, post } = await thread('Discussions')
+    const rootText = 'Qui vient dimanche ?'
+    const replyText = 'Moi, avec le gilet jaune.'
+    const root = await commentOnPost(writer, team.slug, post.slug, rootText)
+
+    await signIn(page.context(), replier)
+    await page.goto(postPath(team.slug, post.slug))
+    const main = page.getByRole('main')
+    await expect(main.getByRole('heading', { name: 'Commentaires (1)' })).toBeVisible()
+    await expect(main.getByText(rootText, { exact: true })).toBeVisible()
+
+    await test.step('the reply form opens under the comment and posts a nested reply', async () => {
+      const reply = main.getByRole('button', { name: 'Répondre' })
+      await hydrated(reply)
+      await reply.click()
+      const box = main.getByRole('textbox', { name: 'Écrivez une réponse...' })
+      await expect(box).toBeFocused()
+      await box.fill(replyText)
+      await main
+        .locator('form')
+        .filter({ has: page.getByRole('textbox', { name: 'Écrivez une réponse...' }) })
+        .getByRole('button', { name: 'Envoyer le commentaire' })
+        .click()
+      await expect(box).toBeHidden()
+      await expect(main.getByRole('heading', { name: 'Commentaires (2)' })).toBeVisible()
+
+      const replied = main.getByText(replyText, { exact: true })
+      await expect(replied).toBeVisible()
+      // Nested under the comment it answers, which is itself top-level.
+      await expect(replyBlock(replied)).toHaveCount(1)
+      await expect(replyBlock(replied).locator('xpath=../..')).toContainText(rootText)
+      await expect(replyBlock(main.getByText(rootText, { exact: true }))).toHaveCount(0)
+      // No third level: only the top-level comment offers « Répondre ».
+      await expect(main.getByRole('button', { name: 'Répondre' })).toHaveCount(1)
+      await expect(replyBlock(replied).getByRole('button', { name: 'Répondre' })).toHaveCount(0)
+    })
+
+    const stored = await readPostComments(writer, team.slug, post.slug)
+    expect(stored.total).toBe(2)
+    expect(stored.items).toHaveLength(1)
+    expect(stored.items[0]).toMatchObject({ id: root.id, replyCount: 1 })
+    const reply = stored.items[0].replies[0]
+    expect(reply).toMatchObject({ content: replyText, parentId: root.id })
+    expect(reply.author.id).toBe(replier.user.id)
+
+    await test.step('nor through the API: a reply to a reply is refused', async () => {
+      expect(
+        await statusOf(commentOnPost(writer, team.slug, post.slug, 'Troisième niveau', reply.id))
+      ).toBe(400)
+      expect((await readPostComments(writer, team.slug, post.slug)).total).toBe(2)
+    })
+
+    await test.step('the replier deletes only their own reply', async () => {
+      // One « Supprimer »: on the reply, not on the comment it answers.
+      const remove = main.getByRole('button', { name: 'Supprimer', exact: true })
+      await expect(remove).toHaveCount(1)
+      await expect(replyBlock(main.getByText(replyText, { exact: true }))).toContainText(
+        'Supprimer'
+      )
+      const base = `/api/teams/${team.slug}/posts/${post.slug}/comments`
+      expect(await statusOf(apiDelete(replier, `${base}/${root.id}`))).toBe(403)
+      expect((await readPostComments(writer, team.slug, post.slug)).total).toBe(2)
+    })
+
+    await test.step('the commenter is notified of the reply, the post author is not', async () => {
+      const notification = await waitForNotification(
+        writer,
+        about('COMMENT_REPLY', post.slug),
+        'the COMMENT_REPLY notification'
+      )
+      expect(notification).toMatchObject({
+        actorName: replier.user.displayName,
+        teamSlug: team.slug,
+        excerpt: replyText,
+      })
+      // The comment's event was queued before the reply's, and events are dispatched oldest
+      // first: once the reply's is in, the author has heard of the comment — and of nothing else.
+      const authorInbox = (await listNotifications(author)).items.filter(
+        (n) => n.subjectSlug === post.slug
+      )
+      expect(authorInbox.map((n) => n.type)).toEqual(['COMMENT_ON_MY_PUBLICATION'])
+      const replierInbox = (await listNotifications(replier)).items
+      expect(replierInbox.filter(about('COMMENT_REPLY', post.slug))).toEqual([])
+    })
+  })
+
+  test('a thread the page does not embed opens on « Voir les N réponses »', async ({ page }) => {
+    // The backend embeds every reply of a page of comments (CommentService.rootPage), so
+    // `replyCount` never exceeds the replies carried and the button never shows from real data.
+    // The client is written for a page that embeds fewer (CommentItem.tsx:65-76): this test takes
+    // the replies out of the list responses the browser receives — the thread endpoint it then
+    // calls is the real one.
+    const { author, writer, replier, team, post } = await thread('Fils repliés')
+    const root = await commentOnPost(writer, team.slug, post.slug, 'Le parcours est-il roulant ?')
+    const replies = ['Oui, tout en asphalte.', 'Une côte à 8 % au milieu.']
+    await commentOnPost(replier, team.slug, post.slug, replies[0], root.id)
+    await commentOnPost(author, team.slug, post.slug, replies[1], root.id)
+
+    const listEndpoint = `/api/teams/${team.slug}/posts/${post.slug}/comments`
+    const threadReads: string[] = []
+    await page.route(
+      (url) => url.pathname === listEndpoint,
+      async (route) => {
+        const url = new URL(route.request().url())
+        if (url.searchParams.has('parentId')) {
+          threadReads.push(url.searchParams.get('parentId')!)
+          return route.continue()
+        }
+        const response = await route.fetch()
+        const body = (await response.json()) as CommentListResponse
+        body.items = body.items.map((comment) => ({ ...comment, replies: [] }))
+        return route.fulfill({ response, json: body })
+      }
+    )
+
+    // Reached from the team feed, so that the browser reads the comments itself: the server's
+    // prefetch of a page opened by URL would embed the replies.
+    await signIn(page.context(), writer)
+    await page.goto(`/equipes/${team.slug}`)
+    const main = page.getByRole('main')
+    const card = entityCard(main, post.name)
+    await hydrated(card)
+    await card.click()
+    await expect(page).toHaveURL(new RegExp(`${postPath(team.slug, post.slug)}$`))
+    await expect(main.getByRole('heading', { name: 'Commentaires (3)' })).toBeVisible()
+    await expect(main.getByText(root.content, { exact: true })).toBeVisible()
+    for (const reply of replies) await expect(main.getByText(reply, { exact: true })).toHaveCount(0)
+
+    const expand = main.getByRole('button', { name: 'Voir les 2 réponses' })
+    await hydrated(expand)
+    await expand.click()
+    for (const reply of replies) {
+      const shown = main.getByText(reply, { exact: true })
+      await expect(shown).toBeVisible()
+      await expect(replyBlock(shown)).toHaveCount(1)
+    }
+    await expect(expand).toBeHidden()
+    expect(threadReads).toEqual([root.id])
+    await expect(main.getByRole('button', { name: 'Répondre' })).toHaveCount(1)
+  })
+})
+
+test.describe('app defects', () => {
+  test('the confirmation of « Annuler » tells its two buttons apart', async ({ page }) => {
+    // Regression (8aa4a225): the dialog and its confirm button say « Annuler la publication » — before,
+    // both said « Annuler », the very label of ConfirmDialog's dismiss button.
+    const author = await newUser(unique('Autrice'))
+    const team = await newTeam(author, unique('Publications annulées'))
+    const post = await newPost(author, team.slug, unique('Article à annuler'))
+    await signIn(page.context(), author)
+    await page.goto(postPath(team.slug, post.slug))
+    await expect(
+      page.getByRole('main').getByRole('heading', { level: 2, name: post.name })
+    ).toBeVisible()
+    await (await openActionsMenu(page)).getByRole('menuitem', { name: /^Annuler/ }).click()
+    const dialog = page.getByRole('dialog', { name: /^Annuler/ })
+    await expect(dialog).toBeVisible()
+    // The dismiss button and the confirmation: one of them only may say « Annuler ».
+    await expect(dialog.getByRole('button', { name: 'Annuler', exact: true })).toHaveCount(1)
   })
 })

@@ -59,3 +59,19 @@ export function fillPath(route: ContractRoute, params: Record<string, string>): 
     return value
   })
 }
+
+/**
+ * The English template of every web route of contracts/routes.yaml, keyed by its id — the router
+ * registers it next to the French one (`path` of `contractWebRoutes()`), whatever the interface
+ * language. A route declared as a bare string has the same path in both.
+ */
+export function contractEnglishPaths(): Map<string, string> {
+  const raw = parse(readFileSync(repoFile('contracts/routes.yaml'), 'utf8')) as {
+    routes: { id: string; path: string | Record<string, string>; web?: boolean }[]
+  }
+  return new Map(
+    raw.routes
+      .filter((route) => route.web !== false)
+      .map((route) => [route.id, typeof route.path === 'string' ? route.path : route.path.en])
+  )
+}

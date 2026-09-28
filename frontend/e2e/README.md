@@ -26,6 +26,11 @@ From `frontend/`: `pnpm e2e` (same as `scripts/e2e.sh test`), `pnpm e2e:ui` (Pla
 `pnpm e2e:typecheck`. After a failure: `pnpm exec playwright show-report e2e/.report`, or
 `show-trace` on the `trace.zip` the failure printed.
 
+**Don't run the backend suite at the same time.** Its Testcontainers create and remove veth
+interfaces on the host; Chromium reports `net::ERR_NETWORK_CHANGED` and fails to load chunks
+(« Failed to fetch dynamically imported module »), which surfaces as random hydration timeouts.
+Under load, `--workers=5` is steadier than the default.
+
 **Parallel runs need distinct output dirs.** Playwright empties its output directory (traces,
 screenshots) when a run starts, so two runs sharing one wipe each other's failure traces.
 Give each its own: `E2E_OUTPUT=/tmp/e2e-mine pnpm e2e`, or `--output=/tmp/e2e-mine`.
@@ -47,6 +52,10 @@ reaches mailpit, and `.env.e2e` holds nothing but throwaway values — which is 
 - Import `test`, `expect` and `as` from `./support/fixtures`. `test.use(as('rider'))` signs a block in
   as that role; the `seed` fixture says what `global-setup.ts` created (a public team with the
   platform admin as owner and the rider as member).
+- **`test.use(as(role))` also signs in the API contexts of `support/api.ts`**: they inherit the
+  `refresh_token` cookie, which the backend accepts (`getUserFromRefreshTokenCookie`). A call meant
+  to be anonymous then runs as that role — sign the page in with `signIn(context, roleSession(…))`
+  instead when a test mixes a signed-in page and anonymous API calls.
 - **Never modify the seed from a test.** Create what the test needs, with a unique name, through
   `support/api.ts` — the suite runs fully parallel, on two projects (desktop and mobile).
 - Type request bodies with the generated DTOs (`import type { … } from '../src/api/dto'`): a field

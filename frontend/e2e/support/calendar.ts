@@ -5,7 +5,8 @@ import { monthName, parisWallClock, type WallClock } from './dates'
 import { hydrated } from './ui'
 
 /**
- * The team calendar (/equipes/{slug}/calendrier), on both layouts: the desktop month grid lists
+ * The team calendar (/equipes/{slug}/calendrier) and the personal one (/calendrier), on both
+ * layouts: the desktop month grid lists
  * every event of the month; the phone layout (`layout="responsive"`) lists only the selected day's,
  * under a grid whose other months are reached through the year view.
  *
@@ -22,7 +23,18 @@ export const teamCalendarPath = (teamSlug: string) => `/equipes/${teamSlug}/cale
  * on a desktop, through the year view on a phone) and, on a phone, that day selected.
  */
 export async function openCalendar(page: Page, teamSlug: string, day: WallClock) {
-  await page.goto(teamCalendarPath(teamSlug))
+  await openCalendarAt(page, teamCalendarPath(teamSlug), day)
+}
+
+/** The personal calendar, every team of the signed-in user's in one grid. */
+export const globalCalendarPath = '/calendrier'
+
+/**
+ * Opens a calendar page — the team's (`teamCalendarPath`) or the personal one
+ * (`globalCalendarPath`), which share `CalendarView` — on `day`, as `openCalendar` does.
+ */
+export async function openCalendarAt(page: Page, path: string, day: WallClock) {
+  await page.goto(path)
   const main = page.getByRole('main')
   await expect(main.getByRole('heading', { name: 'Calendrier', level: 2 })).toBeVisible()
   const today = parisWallClock(new Date())

@@ -127,7 +127,7 @@ test.describe('server HTML, JavaScript disabled', () => {
       'the anonymous profile page rendered its breadcrumb'
     ).toContainText('Profil')
     await expect(
-      page.locator('a[href="/login"]').first(),
+      page.locator('a[href="/connexion"]').first(),
       'the anonymous page offers a login'
     ).toBeAttached()
     await expect(page.getByText(PARTICIPATIONS)).toHaveCount(0)
@@ -167,7 +167,10 @@ test.describe('raw document response', () => {
     expect(anonymousProfile.html, 'the anonymous profile rendered its breadcrumb').toContain(
       `aria-label="${BREADCRUMB.replace("'", '&#x27;')}"`
     )
-    expect(anonymousProfile.html, 'the anonymous profile offers a login').toContain('href="/login"')
+    // Its localized path (paths.login(), since ef9e2c3b), in this French interface.
+    expect(anonymousProfile.html, 'the anonymous profile offers a login').toContain(
+      'href="/connexion"'
+    )
     expect(anonymousProfile.html).not.toContain(PARTICIPATIONS)
   })
 })
@@ -214,10 +217,11 @@ test.describe('hydration, JavaScript enabled', () => {
  * of it, which is the positive control that the needles are the right ones.
  *
  * The team goes private the way a real one does: born PUBLIC, its ride, post, route, trip and page
- * published PUBLIC, then switched to TEAM by the platform admin. Nothing cascades to the entities —
- * each still says PUBLIC (checked below) — so what hides them is the team-level clause alone:
+ * published PUBLIC — so each was once public, cached, listed — then switched to TEAM by the platform
+ * admin. The switch takes the content with it (d53768d9: every entity goes TEAM, checked below), so
+ * two clauses now hide it: the entity's own visibility, and the team-level
  * `te.team.visibility <> 'TEAM'` in `TeamEntityRepository.getPublicEntity` and `TeamAccessChecker`'s
- * READ. Content created TEAM inside a TEAM team would be hidden twice over and prove less.
+ * READ. The refused pages answer 404 (026b3824), as a team that never existed.
  *
  * Each name is `unique(...)`, with spaces and capitals, so it never matches the slug the URL (and
  * `og:url`) legitimately carries; each description is a random token found nowhere else.
@@ -302,7 +306,7 @@ test.describe('private team: nothing in the server document', () => {
       newTeamPage(owner, team.slug, names.page, texts.page, { visibility: 'PUBLIC' }),
     ])
 
-    // The team goes private; its content keeps saying PUBLIC.
+    // The team goes private, and takes its once-public content with it.
     await apiPut(
       admin,
       `/api/teams/${team.slug}`,
@@ -312,11 +316,19 @@ test.describe('private team: nothing in the server document', () => {
       (error: unknown) => error
     )
     expect(refused instanceof ApiError && refused.status, 'the API refuses the team').toBe(403)
-    const stillPublic = await apiGetOrNull<{ visibility: string }>(
-      member,
-      `/api/teams/${team.slug}/rides/${ride.slug}`
-    )
-    expect(stillPublic?.visibility, 'the ride itself still says PUBLIC').toBe('PUBLIC')
+    for (const [label, path] of [
+      ['ride', `rides/${ride.slug}`],
+      ['post', `posts/${post.slug}`],
+      ['route', `routes/${route.slug}`],
+      ['trip', `trips/${trip.slug}`],
+      ['team page', `pages/${teamPage.slug}`],
+    ]) {
+      const entity = await apiGetOrNull<{ visibility: string }>(
+        member,
+        `/api/teams/${team.slug}/${path}`
+      )
+      expect(entity?.visibility, `the ${label} went TEAM with its team`).toBe('TEAM')
+    }
 
     // Searched by the unique suffix alone: the page echoes its search (input value, query key),
     // and the echo of a secret typed into the URL would be no leak.
