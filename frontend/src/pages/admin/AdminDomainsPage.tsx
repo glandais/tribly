@@ -64,6 +64,14 @@ export function AdminDomainsPage() {
     )
   }
 
+  // Tooltip and accessible name alike: the icon alone says nothing to a screen reader.
+  const toggleLabel = (host: string, active: boolean) =>
+    host === currentHostname && active
+      ? t('admin.domains.cannotDeactivateCurrent')
+      : active
+        ? t('admin.domains.deactivate')
+        : t('admin.domains.activate')
+
   const handleCreateDomain = () => {
     setEditingDomain(undefined)
     setIsModalOpen(true)
@@ -150,20 +158,17 @@ export function AdminDomainsPage() {
                       <Table.Td ta="center">
                         <Group gap="xs" justify="center">
                           <Tooltip label={t('actions.edit')}>
-                            <ActionIcon variant="subtle" onClick={() => handleEditDomain(domain)}>
+                            <ActionIcon
+                              variant="subtle"
+                              aria-label={t('actions.edit')}
+                              onClick={() => handleEditDomain(domain)}
+                            >
                               <IconPencil size={18} />
                             </ActionIcon>
                           </Tooltip>
-                          <Tooltip
-                            label={
-                              domain.domain === currentHostname && domain.active
-                                ? t('admin.domains.cannotDeactivateCurrent')
-                                : domain.active
-                                  ? t('admin.domains.deactivate')
-                                  : t('admin.domains.activate')
-                            }
-                          >
+                          <Tooltip label={toggleLabel(domain.domain, domain.active)}>
                             <ActionIcon
+                              aria-label={toggleLabel(domain.domain, domain.active)}
                               variant="subtle"
                               onClick={() => handleToggleActive(domain.id)}
                               loading={toggleMutation.isPending}
