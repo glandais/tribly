@@ -12,11 +12,6 @@ import '../theme/pdl_typography.dart';
 /// grep -rn --include='*.dart' "showModalBottomSheet" mobile/lib   # seul pdl_sheet.dart
 /// ```
 ///
-/// Elle est tenue dans `core/pdl` dès maintenant ; les trois écrans qui
-/// appellent encore `showModalBottomSheet` en direct — `route_filter_sheet`,
-/// `route_detail_page`, `profile_page` — basculent avec leur propre lot, qui
-/// les réécrit de toute façon.
-///
 /// Elle corrige deux défauts d'un coup, et les deux venaient d'un drapeau
 /// oublié :
 ///
