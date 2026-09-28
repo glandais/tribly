@@ -255,3 +255,26 @@ export function zipEntry(archive: Buffer, name: string): Buffer {
   }
   throw new Error(`no ${name} in the archive; it holds: ${names.join(', ')}`)
 }
+
+/**
+ * The picture of `displayName`'s avatar inside `scope`. Mantine's Avatar renders an `<img>` named by
+ * its `alt` (the display name) only when it has a source; without one it shows the initials in a
+ * placeholder that is no image at all — so a count of 0 means « no avatar yet ».
+ */
+export const avatarImage = (scope: Locator, displayName: string) =>
+  scope.getByRole('img', { name: displayName, exact: true })
+
+/**
+ * Waits until `image` shows `src` and the browser actually decoded it — an `<img>` whose URL
+ * answers 404 or a non-image is still on screen, with a naturalWidth of 0 (and Mantine would swap
+ * it for the initials).
+ */
+export async function expectAvatarShown(image: Locator, src: string) {
+  await expect(image).toBeVisible()
+  await expect(image).toHaveAttribute('src', src)
+  await expect
+    .poll(() =>
+      image.evaluate((element: HTMLImageElement) => element.complete && element.naturalWidth)
+    )
+    .toBeGreaterThan(0)
+}

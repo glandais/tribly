@@ -1,7 +1,7 @@
 import type { Locator, Page } from '@playwright/test'
 import type { RouteDto } from '../src/api/dto'
 import { newAd } from './support/ads'
-import { newTeam, newUser, signIn } from './support/data'
+import { addMember, newTeam, newUser, roleSession, signIn } from './support/data'
 import { expect, test, unique } from './support/fixtures'
 import { expectInMarkup, expectQuery, openServerRendered, readsOf } from './support/list-pages'
 import { newPost } from './support/posts'
@@ -252,4 +252,71 @@ test('ads: search and type from the URL, server-rendered, then changed through t
   await pick(page, typeSelect, 'Vente')
   await expectQuery(page, { q: 'Casque', type: 'SALE' })
   await expect(page.getByRole('heading', { name: 'Aucune annonce trouvée' })).toBeVisible()
+})
+
+/**
+ * The team list (TeamListPage.tsx:34-49): its search (`q`) and membership filter (`role`, always
+ * spelled out — two visitors resolve its default differently) live in the URL, and the `teams`
+ * route's prefetch reads them through the same schema (teamListData.ts), so a filtered link is
+ * server-rendered filtered and not read again once hydrated.
+ *
+ * The visitor is a fresh user: ADMIN of a team of its own, member of a public team, a stranger to
+ * another public team and to a members-only one. Every team of the scene carries one unique tag in
+ * its name, but for a public team outside the search.
+ */
+test('team list: search and membership from the URL, server-rendered, then changed through the controls', async ({
+  page,
+  context,
+}) => {
+  const [admin, visitor] = await Promise.all([roleSession('admin'), newUser('filters-teams')])
+  const tag = unique('filtre').split(' ').at(-1)!
+  // A user may own a single team (TeamService.MAX_ADMIN_TEAMS_PER_USER): the others are the
+  // platform admin's, who is exempt.
+  const [own, joined, open, closed, elsewhere] = await Promise.all([
+    newTeam(visitor, `Equipe admin ${tag}`),
+    newTeam(admin, `Equipe membre ${tag}`, { visibility: 'PUBLIC' }),
+    newTeam(admin, `Equipe ouverte ${tag}`, { visibility: 'PUBLIC' }),
+    newTeam(admin, `Equipe fermee ${tag}`),
+    newTeam(admin, unique('Equipe hors recherche'), { visibility: 'PUBLIC' }),
+  ])
+  await addMember(admin, joined.slug, visitor)
+  await signIn(context, visitor)
+  const main = page.getByRole('main')
+  const search = page.getByRole('searchbox', { name: 'Rechercher des équipes' })
+  const membership = page.getByRole('combobox', { name: 'Filtre', exact: true })
+  /** The scene's team cards on screen: exactly `shown`. */
+  const expectCards = async (shown: { name: string }[]) => {
+    for (const team of [own, joined, open, closed, elsewhere])
+      await expect(entityCard(main, team.name), team.name).toHaveCount(shown.includes(team) ? 1 : 0)
+  }
+
+  // Every team the search finds that the visitor may see: its own, and the public ones.
+  const all = await openServerRendered(page, `/equipes?q=${tag}&role=all`, '/api/teams')
+  for (const team of [own, joined, open]) expectInMarkup(all.markup, [team.name])
+  expectInMarkup(all.markup, [], [closed.name, elsewhere.name])
+  noReadsAfterHydration(all.reads)
+  await expectCards([own, joined, open])
+  await expect(search).toHaveValue(tag)
+  await expect(membership).toHaveValue('Toutes')
+
+  // A shared link narrowed to the teams one belongs to.
+  const member = await openServerRendered(page, `/equipes?q=${tag}&role=member`, '/api/teams')
+  for (const team of [own, joined]) expectInMarkup(member.markup, [team.name])
+  expectInMarkup(member.markup, [], [open.name, closed.name, elsewhere.name])
+  noReadsAfterHydration(member.reads)
+  await expectCards([own, joined])
+  await expect(membership).toHaveValue('Membre')
+
+  // Through the controls: the URL follows.
+  await pick(page, membership, 'Administrateur')
+  await expectQuery(page, { q: tag, role: 'admin' })
+  await expectCards([own])
+
+  await pick(page, membership, 'Toutes')
+  await expectQuery(page, { q: tag, role: 'all' })
+  await expectCards([own, joined, open])
+
+  await search.fill(`ouverte ${tag}`)
+  await expectQuery(page, { q: `ouverte ${tag}`, role: 'all' })
+  await expectCards([open])
 })

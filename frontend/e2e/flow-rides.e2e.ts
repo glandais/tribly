@@ -35,6 +35,7 @@ import {
   readTemplates,
   ridePath,
 } from './support/rides'
+import { expectNoNotification, waitForNotification } from './support/notifications'
 import { getRoute, gpxOf, newRoute, windingTrack } from './support/routes'
 import {
   actionsMenu,
@@ -1252,5 +1253,202 @@ test.describe('restoring a ride', () => {
     expect(restored.groups.map((g) => [g.name, g.leader?.id])).toEqual([[led, leader.user.id]])
     const reopened = await openActionsMenu(page)
     await expect(reopened.getByRole('menuitem', { name: 'Restaurer', exact: true })).toHaveCount(0)
+  })
+})
+
+test.describe('editing a ride that has registrations', () => {
+  /** The editor's « Nom du groupe » fields hold `expected`, in that order and no others. */
+  async function expectGroupNames(page: Page, expected: string[]) {
+    const names = main(page).getByRole('textbox', { name: 'Nom du groupe' })
+    await expect(names).toHaveCount(expected.length)
+    for (const [i, name] of expected.entries()) await expect(names.nth(i)).toHaveValue(name)
+  }
+
+  test('moving, renaming and redescribing groups keeps each registration in its own group, and each leader on theirs', async ({
+    page,
+    browser,
+  }) => {
+    // The editor keeps each group's id in its form values (rideFormData.ts:144-145, the initial
+    // values of EditRidePage.tsx:88), and
+    // RideService.updateRide matches groups by that id (RideService.java:262-274) — the
+    // list position only sets sortOrder. A form that lost the id (a row keyed by index, a reorder that
+    // rebuilt the rows) would have the server delete the group and its registrations, then create
+    // a new one under the same name.
+    test.slow()
+    const { team, organizer, member } = await ridingTeam('inscrits gardés')
+    const leader = await newUser(unique('Meneuse'))
+    await addMember(await roleSession('admin'), team.slug, leader)
+    const joined = unique('Groupe rejoint')
+    const renamed = unique('Groupe rejoint renommé')
+    const second = unique('Groupe du milieu')
+    const led = unique('Groupe mené')
+    const description = `Nouveau point de café, ${unique('texte')}.`
+    const ride = await newRide(organizer, team.slug, unique('Sortie remaniée'), {
+      groups: [
+        { name: joined, maxParticipants: 10 },
+        { name: second, maxParticipants: 10 },
+        { name: led, maxParticipants: 10, leaderId: leader.user.id },
+      ],
+    })
+    const [joinedId, secondId, ledId] = ride.groups.map((g) => g.id)
+    await apiPost(member, `/api/teams/${team.slug}/rides/${ride.slug}/groups/${joinedId}/join`)
+
+    await signIn(page.context(), organizer)
+    await page.goto(`/equipes/${team.slug}/sorties/${ride.slug}/modifier`)
+    await expect(
+      main(page).getByRole('heading', { name: 'Modifier la sortie', level: 1 })
+    ).toBeVisible()
+    const names = main(page).getByRole('textbox', { name: 'Nom du groupe' })
+    await expect(names).toHaveCount(3)
+    await expect(names.nth(0)).toHaveValue(joined)
+
+    // The joined group goes down twice (to the end), then is renamed; the description changes.
+    const down = editorGroup(page, 0).getByRole('button', { name: 'Déplacer vers le bas' })
+    await hydrated(down)
+    await down.click()
+    await expect(names.nth(1)).toHaveValue(joined)
+    await editorGroup(page, 1).getByRole('button', { name: 'Déplacer vers le bas' }).click()
+    await expectGroupNames(page, [second, led, joined])
+    await names.nth(2).fill(renamed)
+    await richText(main(page)).fill(description)
+    await main(page).getByRole('button', { name: 'Enregistrer' }).click()
+    await expect(page).toHaveURL(new RegExp(`/sorties/${ride.slug}$`))
+    await expect(toasts(page).filter({ hasText: 'Sortie mise à jour avec succès' })).toBeVisible()
+
+    const saved = await readRide(organizer, team.slug, ride.slug)
+    expect(saved.media.markdown.trim()).toBe(description)
+    expect(
+      saved.groups.map((g) => [g.id, g.name, g.countParticipants, g.leader?.id]),
+      'same ids, new order, the registration and the leader where they were'
+    ).toEqual([
+      [secondId, second, 0, undefined],
+      [ledId, led, 0, leader.user.id],
+      [joinedId, renamed, 1, undefined],
+    ])
+    const asMember = await readRide(member, team.slug, ride.slug)
+    expect(asMember.registered).toBe(true)
+    expect(asMember.registeredGroupId).toBe(joinedId)
+
+    // The member's page says so: registered in the renamed group, which has no leader — never the
+    // ride's creator in its place.
+    const { context: memberContext, page: memberPage } = await pageAs(browser, member)
+    try {
+      await memberPage.goto(ridePath(team.slug, ride.slug))
+      await expect(
+        main(memberPage).getByRole('heading', { name: ride.name, level: 2 })
+      ).toBeVisible()
+      const card = groupCard(memberPage, renamed)
+      await expect(card.getByText('Inscrit', { exact: true })).toBeVisible()
+      await expect(card.getByText('1/10 participants')).toBeVisible()
+      await expect(card.getByText('Meneur', { exact: true })).toHaveCount(0)
+      await expect(card.getByText(organizer.user.displayName)).toHaveCount(0)
+      await expect(
+        groupCard(memberPage, led).getByText(leader.user.displayName, { exact: true })
+      ).toBeVisible()
+      await expect(main(memberPage).getByText(joined, { exact: true })).toHaveCount(0)
+    } finally {
+      await memberContext.close()
+    }
+  })
+
+  test('removing a group that has a registration asks first, and its riders are told', async ({
+    page,
+    browser,
+  }) => {
+    // Decided on 2026-09-28 (34431a89): RideEditor asks before dropping a group that has riders,
+    // and RideService.updateRide publishes RIDE_GROUP_REMOVED to them (the organizer who removed it
+    // is not told). The registrations still go with the group (RideGroup.participations, cascade
+    // ALL, orphanRemoval). A group with no rider is removed without a dialog, as before.
+    const { team, organizer, member } = await ridingTeam('groupe retiré')
+    const doomed = unique('Groupe retiré')
+    const kept = unique('Groupe gardé')
+    const empty = unique('Groupe vide')
+    const ride = await newRide(organizer, team.slug, unique('Sortie amputée'), {
+      groups: [
+        { name: doomed, maxParticipants: 10 },
+        { name: kept, maxParticipants: 10 },
+        { name: empty, maxParticipants: 10 },
+      ],
+    })
+    const [doomedId, keptId] = ride.groups.map((g) => g.id)
+    await apiPost(member, `/api/teams/${team.slug}/rides/${ride.slug}/groups/${doomedId}/join`)
+    const before = await readRide(member, team.slug, ride.slug)
+    expect(before.registeredGroupId, 'precondition: registered in the doomed group').toBe(doomedId)
+
+    await signIn(page.context(), organizer)
+    await page.goto(`/equipes/${team.slug}/sorties/${ride.slug}/modifier`)
+    await expect(
+      main(page).getByRole('heading', { name: 'Modifier la sortie', level: 1 })
+    ).toBeVisible()
+    await expectGroupNames(page, [doomed, kept, empty])
+
+    // A group with no rider goes at once, without a dialog.
+    const removeEmpty = editorGroup(page, 2).getByRole('button', { name: 'Supprimer' })
+    await hydrated(removeEmpty)
+    await removeEmpty.click()
+    await expectGroupNames(page, [doomed, kept])
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+
+    // A group with a rider asks first, and says what will happen; cancelling keeps it.
+    const remove = editorGroup(page, 0).getByRole('button', { name: 'Supprimer' })
+    await remove.click()
+    const dialog = page.getByRole('dialog', { name: 'Retirer un groupe avec des inscrits' })
+    await expect(dialog).toBeVisible()
+    await expect(dialog).toContainText(
+      "Ce groupe a 1 inscrit. À l'enregistrement, son inscription sera supprimée et il sera prévenu."
+    )
+    await dialog.getByRole('button', { name: 'Annuler' }).click()
+    await expect(dialog).toHaveCount(0)
+    await expectGroupNames(page, [doomed, kept])
+
+    await remove.click()
+    await dialog.getByRole('button', { name: 'Retirer le groupe' }).click()
+    await expect(dialog).toHaveCount(0)
+    await expectGroupNames(page, [kept])
+
+    const saved = page.waitForResponse(
+      (r) =>
+        r.request().method() === 'PUT' &&
+        new URL(r.url()).pathname === `/api/teams/${team.slug}/rides/${ride.slug}`
+    )
+    await main(page).getByRole('button', { name: 'Enregistrer' }).click()
+    expect((await saved).status()).toBe(200)
+    await expect(page).toHaveURL(new RegExp(`/sorties/${ride.slug}$`))
+    await expect(groupCard(page, kept)).toBeVisible()
+    await expect(main(page).getByText(doomed, { exact: true })).toHaveCount(0)
+
+    const after = await readRide(member, team.slug, ride.slug)
+    expect(after.groups.map((g) => [g.id, g.countParticipants])).toEqual([[keptId, 0]])
+    expect(after.registered, 'the registration went with its group').toBe(false)
+    expect(after.registeredGroupId).toBeUndefined()
+    expect(after.participantCount).toBe(0)
+
+    // The rider is told, by the group's name; the organizer who removed it is not.
+    const told = await waitForNotification(
+      member,
+      (n) => n.type === 'RIDE_GROUP_REMOVED' && n.excerpt === doomed,
+      'RIDE_GROUP_REMOVED for the removed group'
+    )
+    expect(told.subjectSlug).toBe(ride.slug)
+    await expectNoNotification(
+      organizer,
+      (n) => n.type === 'RIDE_GROUP_REMOVED' && n.excerpt === doomed,
+      'the organizer who removed the group is not told'
+    )
+
+    // The member finds the ride open again, and can join the remaining group.
+    const { context: memberContext, page: memberPage } = await pageAs(browser, member)
+    try {
+      await memberPage.goto(ridePath(team.slug, ride.slug))
+      await expect(
+        main(memberPage).getByRole('heading', { name: ride.name, level: 2 })
+      ).toBeVisible()
+      const card = groupCard(memberPage, kept)
+      await expect(card.getByText('0/10 participants')).toBeVisible()
+      await expect(card.getByRole('button', { name: 'Rejoindre' })).toBeVisible()
+      await expect(main(memberPage).getByText('Inscrit', { exact: true })).toHaveCount(0)
+    } finally {
+      await memberContext.close()
+    }
   })
 })

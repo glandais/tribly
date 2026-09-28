@@ -13,9 +13,19 @@ import {
 } from './support/data'
 import { EDITOR_LABEL, richText, typeRichText } from './support/editor'
 import { expect, test, unique } from './support/fixtures'
-import { joinStatus, listedTeams, pageOf, pagesOf, publicTeam, rosterOf } from './support/flow-team'
+import {
+  discordWebhook,
+  joinStatus,
+  listedTeams,
+  pageOf,
+  pagesOf,
+  publicTeam,
+  rosterOf,
+  webhookOf,
+} from './support/flow-team'
 import { findRide, groupCard, newRide, openRide, readRide, ridePath } from './support/rides'
-import { entityCard, hydrated, pageAs, pageHydrated } from './support/ui'
+import { rawDocument, reactQueryState, sessionCookie } from './support/ssr'
+import { entityCard, hydrated, pageAs, pageHydrated, watchToasts } from './support/ui'
 
 /**
  * The team journey, through the UI only — the minimum nominal path: a user creates a team with the
@@ -852,5 +862,143 @@ test.describe('regressions', () => {
     await expect(row.getByRole('combobox')).toHaveAccessibleName(
       `Rôle de ${member.user.displayName}`
     )
+  })
+})
+
+/**
+ * The team's outgoing webhook, in the settings (TeamWebhookSettings.tsx): its URL is a secret — a
+ * Discord or Slack webhook URL is enough to post to the channel — so the API only ever returns it
+ * masked (TeamWebhookService.java:147-152), the input starts empty, and an empty input on save
+ * keeps the current URL (TeamWebhookSettings.tsx:106-112 omits it, TeamWebhookService.java:55-66
+ * keeps it). Nothing is ever posted: the team publishes nothing, and the test message is not sent.
+ */
+test.describe('the team webhook', () => {
+  const webhookPath = (slug: string) => `/api/teams/${slug}/webhook`
+
+  test('the owner saves a Discord webhook, shown masked; a language-only change keeps it; a private address is refused; removing asks first', async ({
+    context,
+    page,
+  }) => {
+    test.setTimeout(90_000)
+    const owner = await newUser('Flow team webhook owner')
+    const team = await newTeam(owner, unique('Webhook'))
+    const secret = discordWebhook()
+    const masked = `https://discord.com/…${secret.token.slice(-4)}`
+    await signIn(context, owner)
+
+    await page.goto(`/equipes/${team.slug}/admin/parametres`)
+    // The webhook's own block, below the team form — which has an « Enregistrer » of its own.
+    const section = main(page)
+      .locator('div')
+      .filter({ has: page.getByRole('heading', { level: 2, name: 'Webhook' }) })
+      .filter({ has: page.getByRole('textbox', { name: 'URL du webhook' }) })
+      .last()
+    const url = section.getByRole('textbox', { name: 'URL du webhook' })
+    const save = section.getByRole('button', { name: 'Enregistrer' })
+    await hydrated(url)
+    await expect(url).toHaveValue('')
+    // The first save needs a URL.
+    await expect(save).toBeDisabled()
+
+    // 1. A Discord URL, saved: from now on it is only ever shown masked.
+    await url.fill(secret.url)
+    const saved = page.waitForResponse(
+      (r) => r.url().endsWith(webhookPath(team.slug)) && r.request().method() === 'PUT'
+    )
+    await save.click()
+    expect((await saved).ok()).toBe(true)
+    await expect(page.getByText('Webhook enregistré', { exact: true })).toBeVisible()
+    await expect(section.getByText('Adresse actuelle :', { exact: true })).toBeVisible()
+    await expect(section.getByText(masked, { exact: true })).toBeVisible()
+    await expect(section.getByText('Discord', { exact: true })).toBeVisible()
+    await expect(url).toHaveValue('')
+    await expect(url).toHaveAttribute('placeholder', masked)
+    expect(await webhookOf(owner, team.slug)).toMatchObject({
+      configured: true,
+      maskedUrl: masked,
+      kind: 'DISCORD',
+      language: 'fr',
+      enabled: true,
+    })
+    expect(await page.content()).not.toContain(secret.token)
+
+    // 2. Only the language changes, the URL field left empty: the request carries no URL, and the
+    // webhook keeps its own.
+    const language = section.getByRole('combobox', { name: 'Langue' })
+    await language.click()
+    await page
+      .getByRole('listbox', { name: 'Langue' })
+      .getByRole('option', { name: 'English' })
+      .click()
+    await expect(language).toHaveValue('English')
+    const kept = page.waitForResponse(
+      (r) => r.url().endsWith(webhookPath(team.slug)) && r.request().method() === 'PUT'
+    )
+    await save.click()
+    const keptResponse = await kept
+    expect(keptResponse.ok()).toBe(true)
+    expect(keptResponse.request().postDataJSON()).toEqual({ language: 'en', enabled: true })
+    await expect(page.getByText('Webhook enregistré', { exact: true }).first()).toBeVisible()
+    expect(await webhookOf(owner, team.slug)).toMatchObject({
+      configured: true,
+      maskedUrl: masked,
+      kind: 'DISCORD',
+      language: 'en',
+    })
+    // A fresh load reads it back from the server.
+    await page.reload()
+    await expect(section.getByText(masked, { exact: true })).toBeVisible()
+    await expect(section.getByRole('combobox', { name: 'Langue' })).toHaveValue('English')
+
+    // 3. Neither the server-rendered document nor its dehydrated query cache holds the secret.
+    const document = await rawDocument(`/equipes/${team.slug}/admin/parametres`, {
+      cookie: sessionCookie(owner),
+    })
+    expect(document.status).toBe(200)
+    expect(document.html).not.toContain(secret.token)
+    expect(JSON.stringify(reactQueryState(document.html))).not.toContain(secret.token)
+    expect(
+      await page.evaluate(() =>
+        JSON.stringify((window as { __REACT_QUERY_STATE__?: unknown }).__REACT_QUERY_STATE__ ?? {})
+      )
+    ).not.toContain(secret.token)
+    expect(await page.content()).not.toContain(secret.token)
+
+    // 4. An address on the loopback is refused, with the translated message — once — and the
+    // webhook in place stays.
+    const toastsSeen = await watchToasts(page)
+    await hydrated(url)
+    await url.fill('http://127.0.0.1/hook')
+    const refused = page.waitForResponse(
+      (r) => r.url().endsWith(webhookPath(team.slug)) && r.request().method() === 'PUT'
+    )
+    await save.click()
+    expect((await refused).status()).toBe(400)
+    const message = "L'URL doit être en https et pointer vers une adresse publique."
+    await expect(page.getByText(message, { exact: true })).toBeVisible()
+    expect((await toastsSeen()).filter((text) => text.includes(message))).toHaveLength(1)
+    expect((await webhookOf(owner, team.slug)).maskedUrl).toBe(masked)
+
+    // 5. Removing asks first: cancelled, nothing changes…
+    const remove = section.getByRole('button', { name: 'Supprimer le webhook' })
+    await remove.click()
+    let dialog = page.getByRole('dialog', { name: 'Supprimer le webhook' })
+    await expect(dialog.getByText(/ne seront plus publiées à cette adresse/)).toBeVisible()
+    await dialog.getByRole('button', { name: 'Annuler' }).click()
+    await expect(dialog).toBeHidden()
+    expect((await webhookOf(owner, team.slug)).configured).toBe(true)
+
+    // …confirmed, the webhook is gone, and the form is back to its first state.
+    await remove.click()
+    dialog = page.getByRole('dialog', { name: 'Supprimer le webhook' })
+    const deleted = page.waitForResponse(
+      (r) => r.url().endsWith(webhookPath(team.slug)) && r.request().method() === 'DELETE'
+    )
+    await dialog.getByRole('button', { name: 'Supprimer le webhook' }).click()
+    expect((await deleted).ok()).toBe(true)
+    await expect(page.getByText('Webhook supprimé', { exact: true })).toBeVisible()
+    await expect(section.getByText('Adresse actuelle :', { exact: true })).toHaveCount(0)
+    await expect(remove).toHaveCount(0)
+    expect(await webhookOf(owner, team.slug)).toMatchObject({ configured: false })
   })
 })

@@ -7,12 +7,14 @@ import {
   frenchDateTime,
   openPicker,
   parisDaysAhead,
+  parisInstant,
   parisWallClock,
   pickDateTime,
   twoDaysThisMonth,
 } from './support/dates'
 import { letEditorSettle, richText } from './support/editor'
 import { expect, test, unique } from './support/fixtures'
+import { about, expectNoNotification, waitForNotification } from './support/notifications'
 import {
   fetchTrip,
   newRoute,
@@ -24,6 +26,11 @@ import {
   tripPath,
   windingTrack,
 } from './support/routes'
+import {
+  pastPublishAt,
+  pickIntoEmptyPicker,
+  waitForAutoPublish,
+} from './support/scheduled-publication'
 import { entityCard, hydrated, openActionsMenu, pageAs, startsWith, toasts } from './support/ui'
 
 /**
@@ -71,6 +78,25 @@ async function openTrip(page: Page, teamSlug: string, tripSlug: string, name: st
   await expect(main.getByRole('heading', { level: 3, name: 'Étapes' })).toBeVisible()
   return main
 }
+
+/** The request that leaves `trip` as it is, but for `changes` — tripToRequest, in short. */
+const requestOf = (trip: TripDto, changes: Partial<TripRequest>): TripRequest => ({
+  name: trip.name,
+  media: trip.media,
+  dateTime: trip.dateTime,
+  status: trip.status,
+  visibility: trip.visibility,
+  routeSlug: trip.routeSlug,
+  publishAt: trip.publishAt,
+  stages: trip.stages.map((stage) => ({
+    id: stage.id,
+    name: stage.name,
+    dateTime: stage.dateTime,
+    routeSlug: stage.route?.slug,
+    media: stage.media,
+  })),
+  ...changes,
+})
 
 test('a team admin creates a trip and its two stages with the form; the calendar shows the stages', async ({
   page,
@@ -379,6 +405,104 @@ test.describe('publication states', () => {
     }
   })
 
+  test('a trip scheduled in the editor is published by the scheduler and announced in the team’s name', async ({
+    page,
+    browser,
+  }) => {
+    // The scheduler runs once a minute, then the notification dispatcher every 15 s.
+    test.setTimeout(240_000)
+    const { teamAdmin, team, member } = await tripTeamWithMember('programmé')
+    const tripName = unique('Voyage programmé')
+    const publishOn = parisDaysAhead(1, 7, 15)
+    const main = page.getByRole('main')
+
+    await test.step('the team admin schedules a draft in the form', async () => {
+      await signIn(page.context(), teamAdmin)
+      await page.goto(tripNewPath(team.slug))
+      await expect(main.getByRole('heading', { level: 1, name: 'Créer un voyage' })).toBeVisible()
+      const title = main.getByRole('textbox', { name: 'Titre du voyage' })
+      await hydrated(title)
+      await title.fill(tripName)
+      // Only a draft offers a scheduled publication.
+      await expect(main.getByRole('radio', { name: 'Brouillon' })).toBeChecked()
+      await pickIntoEmptyPicker(
+        page,
+        main.getByRole('button', { name: 'Publication programmée' }),
+        publishOn
+      )
+      await main.getByRole('tab', { name: /Étape 1$/ }).click()
+      await main
+        .getByRole('tabpanel')
+        .getByRole('textbox', { name: "Nom de l'étape" })
+        .fill(unique('Étape'))
+      await main.getByRole('button', { name: 'Créer le voyage' }).click()
+      await expect(toasts(page).filter({ hasText: 'Voyage créé avec succès' })).toBeVisible()
+      await expect(page).toHaveURL(/\/voyages\/(?!nouveau)[^/]+$/)
+    })
+    const tripSlug = new URL(page.url()).pathname.split('/').pop()!
+
+    await test.step('before the date: a draft that says when, hidden from members', async () => {
+      await expect(main.getByRole('heading', { level: 2, name: tripName })).toBeVisible()
+      await expect(main.getByText('Brouillon', { exact: true })).toBeVisible()
+      await expect(
+        main.getByText(`Publication programmée pour le ${frenchDateTime(publishOn)}`, {
+          exact: true,
+        })
+      ).toBeVisible()
+      const saved = await fetchTrip(teamAdmin, team.slug, tripSlug)
+      expect(saved?.status).toBe('DRAFT')
+      expect(new Date(saved!.publishAt!).toISOString()).toBe(parisInstant(publishOn))
+      expect(await fetchTrip(member, team.slug, tripSlug), 'a draft is 404 to a member').toBeNull()
+    })
+
+    await test.step('the date comes: the scheduler publishes it, keeping its own date', async () => {
+      const saved = (await fetchTrip(teamAdmin, team.slug, tripSlug))!
+      await apiPut(
+        teamAdmin,
+        `/api/teams/${team.slug}/trips/${tripSlug}`,
+        requestOf(saved, { publishAt: pastPublishAt() })
+      )
+      await waitForAutoPublish(() => fetchTrip(teamAdmin, team.slug, tripSlug))
+      const published = (await fetchTrip(teamAdmin, team.slug, tripSlug))!
+      expect(published.publishAt, 'the schedule is spent').toBeUndefined()
+      expect(published.dateTime, 'a trip keeps its own date').toBe(saved.dateTime)
+
+      await page.reload()
+      await expect(main.getByText('Publié', { exact: true })).toBeVisible()
+      await expect(main.getByText(/^Publication programmée/)).toHaveCount(0)
+    })
+
+    await test.step('the members are told in the team’s name; the author is not told', async () => {
+      const found = await waitForNotification(
+        member,
+        about('TRIP_PUBLISHED', tripSlug),
+        'the TRIP_PUBLISHED notification'
+      )
+      expect(found.actorName, 'nobody pressed « Publier »').toBeUndefined()
+      expect(found).toMatchObject({
+        teamName: team.name,
+        subjectType: 'TRIP',
+        subjectName: tripName,
+      })
+      // The scheduler passes the author as the actor, who is spared their own announcement.
+      await expectNoNotification(teamAdmin, about('TRIP_PUBLISHED', tripSlug), 'the author')
+
+      const reader = await pageAs(browser, member)
+      try {
+        const memberMain = reader.page.getByRole('main')
+        await reader.page.goto('/notifications')
+        const entry = memberMain.getByRole('link').filter({ hasText: tripName })
+        await expect(entry).toContainText(`${team.name} a publié un voyage`)
+        await hydrated(entry)
+        await entry.click()
+        await expect(reader.page).toHaveURL(new RegExp(`${tripPath(team.slug, tripSlug)}$`))
+        await expect(memberMain.getByRole('heading', { level: 2, name: tripName })).toBeVisible()
+      } finally {
+        await reader.context.close()
+      }
+    })
+  })
+
   test('a team admin unpublishes a trip: it goes back to draft, out of the members’ sight', async ({
     page,
     browser,
@@ -595,24 +719,6 @@ test.describe('regressions', () => {
  */
 test.describe('restoring', () => {
   const MARKDOWN = '## Programme\n\nDépart **à 8 h** devant le club.'
-
-  /** The request that leaves `trip` as it is, but for `changes` — tripToRequest, in short. */
-  const requestOf = (trip: TripDto, changes: Partial<TripRequest>): TripRequest => ({
-    name: trip.name,
-    media: trip.media,
-    dateTime: trip.dateTime,
-    status: trip.status,
-    visibility: trip.visibility,
-    routeSlug: trip.routeSlug,
-    stages: trip.stages.map((stage) => ({
-      id: stage.id,
-      name: stage.name,
-      dateTime: stage.dateTime,
-      routeSlug: stage.route?.slug,
-      media: stage.media,
-    })),
-    ...changes,
-  })
 
   /** A published trip with a formatted text and a stage on a route, in a team with a member. */
   async function tracedTrip(label: string) {

@@ -1,9 +1,24 @@
 import { randomBytes } from 'node:crypto'
 import type { Page } from '@playwright/test'
-import type { AdDto, CommentDto, CommentRequest, PostDto, RideDto, TripDto } from '../src/api/dto'
+import type {
+  AdDto,
+  CommentDto,
+  CommentRequest,
+  PostDto,
+  RideDto,
+  TeamPageDto,
+  TripDto,
+} from '../src/api/dto'
 import { newAd } from './support/ads'
 import { ApiError, apiGet, apiPost, type AuthResponse } from './support/api'
-import { addMember, markdownMedia, newTeam, newUser, roleSession } from './support/data'
+import {
+  addMember,
+  markdownMedia,
+  newTeam,
+  newTeamPage,
+  newUser,
+  roleSession,
+} from './support/data'
 import { expect, test, unique } from './support/fixtures'
 import { commentOnPost, newPost, postPath } from './support/posts'
 import { newRide, postComments, ridePath } from './support/rides'
@@ -64,6 +79,8 @@ interface Scene {
   ad: AdDto
   /** Everything of the ad a non-member must never get. */
   adSecrets: Record<string, string>
+  /** A PUBLIC team page, and a TEAM one with its text: the latter is the members'. */
+  teamPages: { open: TeamPageDto; closed: TeamPageDto & { text: string } }
 }
 
 let scene: Scene
@@ -126,6 +143,12 @@ test.beforeAll(async () => {
     locationGeometry: { type: 'Point', coordinates: [-1.68, 48.11] },
   })
 
+  const closedPageText = secretText('PageInterne')
+  const [openPage, closedPage] = await Promise.all([
+    newTeamPage(owner, slug, unique('Page ouverte'), 'Page publique.', { visibility: 'PUBLIC' }),
+    newTeamPage(owner, slug, unique('Page interne'), closedPageText),
+  ])
+
   const entity = (kind: Kind, e: RideDto | TripDto | PostDto): Entity => {
     const plural = { ride: 'rides', trip: 'trips', post: 'posts' }[kind]
     const path = { ride: ridePath, trip: tripPath, post: postPath }[kind](slug, e.slug)
@@ -150,6 +173,7 @@ test.beforeAll(async () => {
     },
     ad,
     adSecrets,
+    teamPages: { open: openPage, closed: { ...closedPage, text: closedPageText } },
   }
 })
 
@@ -422,6 +446,91 @@ test.describe('public content, seen from outside the team', () => {
       } finally {
         await context.close()
       }
+    })
+  }
+})
+
+/**
+ * A custom page left at TEAM visibility, in a PUBLIC team: the members' own. Seen from outside, the
+ * team shows its PUBLIC page as a tab — the positive control that tabs are rendered at all — and
+ * nothing of the TEAM one: no tab, no page, not its title, its slug or its text.
+ */
+test.describe("a public team's members-only custom page, seen from outside", () => {
+  const teamPath = () => `/equipes/${scene.teamSlug}`
+  const pagePath = (page: TeamPageDto) => `${teamPath()}/pages/${page.slug}`
+  /** Everything that names or holds the TEAM page. */
+  const pageSecrets = () => {
+    const { closed } = scene.teamPages
+    return { 'page title': closed.title, 'page slug': closed.slug, 'page text': closed.text }
+  }
+
+  test('a member gets both pages as tabs, and the members-only one (positive control)', async () => {
+    const { open, closed } = scene.teamPages
+    const team = ssrOutlet((await documentAs(teamPath(), scene.member)).html)
+    expect.soft(team.includes(`href="${pagePath(open)}"`), 'the public tab').toBe(true)
+    expect.soft(team.includes(`href="${pagePath(closed)}"`), 'the members-only tab').toBe(true)
+    const page = ssrOutlet((await documentAs(pagePath(closed), scene.member)).html)
+    expect.soft(page.includes(closed.title), 'the page title').toBe(true)
+    expect.soft(page.includes(closed.text), 'the page text').toBe(true)
+  })
+
+  for (const { visitor, session } of VISITORS) {
+    test(`${visitor}: the members-only page is neither a tab nor a page`, async ({ browser }) => {
+      const auth = session()
+      const { open, closed } = scene.teamPages
+      // The API refuses the page itself.
+      expect(
+        await statusOf(apiGet(auth, `/api/teams/${scene.teamSlug}/pages/${closed.slug}`))
+      ).not.toBe('ok')
+
+      const { context, page } = await pageAs(browser, auth)
+      try {
+        await page.goto(teamPath())
+        const main = page.getByRole('main')
+        await expect(main.getByRole('heading', { level: 1, name: scene.teamName })).toBeVisible()
+        await pageHydrated(page)
+        // The public page is a tab (a link, in the menu on a phone): tabs are there.
+        await expect(page.locator(`a[href="${pagePath(open)}"]`).first()).toBeAttached()
+        await expect(page.locator(`a[href="${pagePath(closed)}"]`)).toHaveCount(0)
+        expect(await page.locator('body').innerText()).not.toContain(closed.title)
+
+        // Its address leads back to the team, without showing it.
+        await page.goto(pagePath(closed))
+        await expect(page).toHaveURL(teamPath(), { timeout: 15_000 })
+        await expect(main.getByRole('heading', { level: 1, name: scene.teamName })).toBeVisible()
+        const text = await page.locator('body').innerText()
+        for (const [label, secret] of Object.entries(pageSecrets()))
+          expect.soft(text.includes(secret), `the ${label} on screen`).toBe(false)
+      } finally {
+        await context.close()
+      }
+    })
+
+    test(`${visitor}: nothing of the members-only page in the server documents nor the API`, async () => {
+      // Regression (fe40f8f7): TeamDetailDto.from lists a TEAM page to its members only — before,
+      // GET /api/teams/{slug} (and the SSR's __REACT_QUERY_STATE__) handed its title and slug to
+      // anyone who may read a PUBLIC team; the web hid them on screen only.
+      const auth = session()
+      const closedPath = pagePath(scene.teamPages.closed)
+      for (const path of [teamPath(), `${teamPath()}/a-propos`, closedPath]) {
+        const document = await rawDocument(path, {
+          cookie: auth ? sessionCookie(auth) : undefined,
+        })
+        expect(authState(document.html)?.user?.id ?? null, `${path}: rendered as`).toBe(
+          auth?.user.id ?? null
+        )
+        for (const [label, secret] of Object.entries(pageSecrets())) {
+          // The page's own address carries its slug: an echo of the URL typed, not a leak.
+          if (path === closedPath && label === 'page slug') continue
+          expect.soft(document.html.includes(secret), `${path}: the ${label}`).toBe(false)
+        }
+      }
+      // What the team's own read hands to anyone who may read the team.
+      const team = await apiGet<unknown>(auth, `/api/teams/${scene.teamSlug}`)
+      for (const [label, secret] of Object.entries(pageSecrets()))
+        expect
+          .soft(JSON.stringify(team).includes(secret), `GET /api/teams/{slug}: the ${label}`)
+          .toBe(false)
     })
   }
 })

@@ -1,11 +1,17 @@
 import type { Locator, Page } from '@playwright/test'
-import type { CommentListResponse, MediaDto } from '../src/api/dto'
+import type { CommentListResponse, MediaDto, PostRequest } from '../src/api/dto'
 import { solidPng, uploadImage } from './support/ads'
-import { ApiError, apiDelete, apiGet } from './support/api'
+import { ApiError, apiDelete, apiGet, apiPut } from './support/api'
 import { addMember, markdownMedia, newTeam, newUser, signIn } from './support/data'
+import { frenchDateTime, parisDaysAhead, parisInstant } from './support/dates'
 import { addImage, richText, toolbarButton, typeRichText } from './support/editor'
 import { expect, test, unique } from './support/fixtures'
-import { about, listNotifications, waitForNotification } from './support/notifications'
+import {
+  about,
+  expectNoNotification,
+  listNotifications,
+  waitForNotification,
+} from './support/notifications'
 import {
   commentOnPost,
   fetchPost,
@@ -14,6 +20,11 @@ import {
   postPath,
   readPostComments,
 } from './support/posts'
+import {
+  pastPublishAt,
+  pickIntoEmptyPicker,
+  waitForAutoPublish,
+} from './support/scheduled-publication'
 import { entityCard, hydrated, openActionsMenu, pageAs, toasts } from './support/ui'
 
 /**
@@ -418,6 +429,112 @@ test('a post saved as a draft is hidden from members until it is published from 
   }
 })
 
+/**
+ * A scheduled post: a draft that says when it will go out, published by the scheduler — which then
+ * announces it in the team's name, since nobody pressed « Publier » (NotificationItem.tsx:35-39).
+ */
+test.describe('scheduled publication', () => {
+  test('a post scheduled in the editor is published by the scheduler and announced in the team’s name', async ({
+    page,
+    browser,
+  }) => {
+    // The scheduler runs once a minute, then the notification dispatcher every 15 s.
+    test.setTimeout(240_000)
+    const author = await newUser(unique('Autrice'))
+    const member = await newUser(unique('Lectrice'))
+    const team = await newTeam(author, unique('Publications programmées'), {
+      addMemberAllowed: true,
+      enableRides: false,
+    })
+    await addMember(author, team.slug, member)
+    const title = unique('Article programmé')
+    const publishOn = parisDaysAhead(1, 7, 15)
+    const main = page.getByRole('main')
+
+    await test.step('the author schedules a draft in the editor', async () => {
+      await signIn(page.context(), author)
+      await page.goto(`/equipes/${team.slug}/articles/nouveau`)
+      await expect(
+        main.getByRole('heading', { level: 1, name: 'Nouvelle publication' })
+      ).toBeVisible()
+      const titleInput = main.getByRole('textbox', { name: 'Titre' })
+      await hydrated(titleInput)
+      await titleInput.fill(title)
+      await typeRichText(main, 'Rendez-vous samedi.')
+      // Only a draft offers a scheduled publication.
+      await expect(main.getByRole('radio', { name: 'Brouillon' })).toBeChecked()
+      await pickIntoEmptyPicker(
+        page,
+        main.getByRole('button', { name: 'Publication programmée' }),
+        publishOn
+      )
+      await main.getByRole('button', { name: 'Créer la publication' }).click()
+      await expect(toasts(page).filter({ hasText: 'Publication créée avec succès' })).toBeVisible()
+      await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}/articles/(?!nouveau$)[^/]+$`))
+    })
+    const postSlug = new URL(page.url()).pathname.split('/').pop()!
+
+    await test.step('before the date: a draft that says when, hidden from members', async () => {
+      await expect(main.getByRole('heading', { level: 2, name: title })).toBeVisible()
+      await expect(main.getByText('Brouillon', { exact: true })).toBeVisible()
+      await expect(
+        main.getByText(`Publication programmée pour le ${frenchDateTime(publishOn)}`, {
+          exact: true,
+        })
+      ).toBeVisible()
+      const saved = await fetchPost(author, team.slug, postSlug)
+      expect(saved.status).toBe('DRAFT')
+      expect(new Date(saved.publishAt!).toISOString()).toBe(parisInstant(publishOn))
+      expect(await findPost(member, team.slug, postSlug), 'a draft is 404 to a member').toBeNull()
+    })
+
+    const publishAt = pastPublishAt()
+    await test.step('the date comes: the scheduler publishes it, dated then', async () => {
+      const saved = await fetchPost(author, team.slug, postSlug)
+      await apiPut(author, `/api/teams/${team.slug}/posts/${postSlug}`, {
+        name: saved.name,
+        media: saved.media,
+        dateTime: saved.dateTime,
+        status: saved.status,
+        visibility: saved.visibility,
+        publishAt,
+      } satisfies PostRequest)
+      await waitForAutoPublish(() => findPost(author, team.slug, postSlug))
+      const published = await fetchPost(author, team.slug, postSlug)
+      expect(published.publishAt, 'the schedule is spent').toBeUndefined()
+      // A post, unlike a ride or a trip, takes its publication date as its own
+      // (PublicationPublishScheduler).
+      expect(new Date(published.dateTime).toISOString()).toBe(publishAt)
+
+      await page.reload()
+      await expect(main.getByText('Publié', { exact: true })).toBeVisible()
+      await expect(main.getByText(/^Publication programmée/)).toHaveCount(0)
+    })
+
+    await test.step('the members are told in the team’s name; the author is not told', async () => {
+      const found = await waitForNotification(
+        member,
+        about('POST_PUBLISHED', postSlug),
+        'the POST_PUBLISHED notification'
+      )
+      expect(found.actorName, 'nobody pressed « Publier »').toBeUndefined()
+      expect(found).toMatchObject({ teamName: team.name, subjectName: title })
+      // The scheduler passes the author as the actor, who is spared their own announcement.
+      await expectNoNotification(author, about('POST_PUBLISHED', postSlug), 'the author')
+
+      const reader = await pageAs(browser, member)
+      try {
+        await reader.page.goto('/notifications')
+        await expect(
+          reader.page.getByRole('main').getByRole('link').filter({ hasText: title })
+        ).toContainText(`${team.name} a publié un article`)
+      } finally {
+        await reader.context.close()
+      }
+    })
+  })
+})
+
 test.describe('regressions', () => {
   test('the words typed right before saving a post are saved', async ({ page }) => {
     // MarkdownEditor handed the text to the form through a 150 ms debounce that submitting never
@@ -524,12 +641,15 @@ test.describe('restoring', () => {
     })
 
     await test.step('« Annuler » marks it cancelled; « Réactiver » publishes it again', async () => {
-      await (await openActionsMenu(page)).getByRole('menuitem', { name: 'Annuler' }).click()
-      const cancel = page.getByRole('dialog', { name: 'Annuler' })
+      // The menu item says « Annuler »; its dialog and confirmation, « Annuler la publication ».
+      await (
+        await openActionsMenu(page)
+      )
+        .getByRole('menuitem', { name: 'Annuler', exact: true })
+        .click()
+      const cancel = page.getByRole('dialog', { name: 'Annuler la publication' })
       await expect(cancel).toContainText('Voulez-vous annuler cette publication ?')
-      // Both buttons of this dialog are « Annuler » — pinned in « app defects » below. The
-      // confirmation is the second one.
-      await cancel.getByRole('button', { name: 'Annuler' }).last().click()
+      await cancel.getByRole('button', { name: 'Annuler la publication' }).click()
       await expect(cancel).toBeHidden()
       await expect(main.getByText('Annulé', { exact: true })).toBeVisible()
       await expectStored('CANCELLED')
@@ -778,7 +898,9 @@ test.describe('comment replies', () => {
 })
 
 test.describe('app defects', () => {
-  test('the confirmation of « Annuler » tells its two buttons apart', async ({ page }) => {
+  test('the confirmation of « Annuler » tells its two buttons apart, and says the post stays readable', async ({
+    page,
+  }) => {
     // Regression (8aa4a225): the dialog and its confirm button say « Annuler la publication » — before,
     // both said « Annuler », the very label of ConfirmDialog's dismiss button.
     const author = await newUser(unique('Autrice'))
@@ -794,5 +916,16 @@ test.describe('app defects', () => {
     await expect(dialog).toBeVisible()
     // The dismiss button and the confirmation: one of them only may say « Annuler ».
     await expect(dialog.getByRole('button', { name: 'Annuler', exact: true })).toHaveCount(1)
+    await expect(
+      dialog.getByRole('button', { name: 'Annuler la publication', exact: true })
+    ).toBeVisible()
+    // Same commit: the message said « Elle ne sera plus visible », while a cancelled post stays
+    // readable to the members, marked « Annulé » — as the « restoring » test shows.
+    await expect(
+      dialog.getByText(
+        'Voulez-vous annuler cette publication ? Elle restera lisible, marquée « Annulé ».',
+        { exact: true }
+      )
+    ).toBeVisible()
   })
 })

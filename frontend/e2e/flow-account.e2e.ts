@@ -15,6 +15,8 @@ import { frenchDateTime } from './support/dates'
 import { stack } from './support/stack'
 import {
   addPasskeyFromProfile,
+  avatarImage,
+  expectAvatarShown,
   calendarTokenOf,
   fetchFeed,
   headerControls,
@@ -31,7 +33,8 @@ import {
   zipEntry,
 } from './support/flow-account'
 import { mailbox, mailsTo, otpCodeIn, waitForNewMail } from './support/mailpit'
-import { joinGroup, newRide, openRide, ridePath } from './support/rides'
+import { solidPng } from './support/ads'
+import { joinGroup, newRide, openRide, postComments, ridePath } from './support/rides'
 import { newTrip, tripPath } from './support/routes'
 import { rawDocument, sessionCookie as ssrCookie, ssrOutlet } from './support/ssr'
 import { escapeRegExp, hydrated, pageAs, watchToasts } from './support/ui'
@@ -333,6 +336,67 @@ test('the display name is edited from the profile', async ({ page, context, isMo
   await page.reload()
   await expect(main.getByText(renamed, { exact: true }).first()).toBeVisible()
   await expect(main.getByText(user.user.displayName, { exact: true })).toHaveCount(0)
+})
+
+/**
+ * The avatar sent from the profile (UserProfilePage.tsx, the camera button and its hidden file
+ * input): the upload answers the updated user, which useAuth puts in the store — so the header's
+ * account control changes at once — and comments resolve their author at read time, so one written
+ * before the upload shows the new picture too.
+ */
+test('an avatar sent from the profile shows in the header and on the user’s comments', async ({
+  page,
+  context,
+  isMobile,
+}) => {
+  const user = await newUser(unique('Avatar'))
+  const name = user.user.displayName
+  const team = await newTeam(user, unique('Équipe avatar'))
+  const ride = await newRide(user, team.slug, unique('Sortie avatar'))
+  const comment = unique('Commentaire avant avatar')
+  await postComments(user, team.slug, ride.slug, [comment])
+  await signIn(context, user)
+
+  const main = await openProfile(page, user.user.email)
+  await expect(avatarImage(main, name), 'no avatar yet: the initials').toHaveCount(0)
+  const upload = main.getByRole('button', { name: 'Ajouter un avatar' })
+  await hydrated(upload)
+  const shown = await watchToasts(page)
+  const chooser = page.waitForEvent('filechooser')
+  await upload.click()
+  const uploaded = page.waitForResponse(
+    (r) => r.request().method() === 'POST' && r.url().endsWith('/api/users/me/avatar')
+  )
+  await (
+    await chooser
+  ).setFiles({
+    name: 'avatar.png',
+    mimeType: 'image/png',
+    buffer: solidPng(300, 300, [200, 40, 90]),
+  })
+  expect((await uploaded).ok()).toBe(true)
+
+  const me = await meFromSession(user.refreshToken)
+  expect(me.avatarUrl, 'the account now has an avatar').toBeTruthy()
+  const src = me.avatarUrl!
+  await expectAvatarShown(avatarImage(main, name), src)
+  await expect(main.getByRole('button', { name: "Supprimer l'avatar" })).toBeVisible()
+  expect(await shown()).toEqual(['Avatar mis à jour avec succès'])
+
+  // The header follows without a reload: the account menu on desktop, the drawer on mobile.
+  await expectAvatarShown(avatarImage(await headerControls(page, isMobile), name), src)
+
+  // The comment written before the upload now carries the picture.
+  await openRide(page, team.slug, ride)
+  const commentItem = page
+    .getByRole('main')
+    .locator('.mantine-Group-root')
+    .filter({ has: page.getByText(comment, { exact: true }) })
+    .filter({ has: page.getByRole('img', { name, exact: true }) })
+    .last()
+  await expectAvatarShown(avatarImage(commentItem, name), src)
+  // …as a fresh load of the header does.
+  await expectAvatarShown(avatarImage(await headerControls(page, isMobile), name), src)
 })
 
 test('units, theme, language and contact preferences apply at once and persist', async ({
@@ -1004,6 +1068,63 @@ test.describe('replayed links, unknown addresses, sign-up checks', () => {
     // The account is untouched.
     expect((await loginWithPassword(user.user.email, user.password)).user.id).toBe(user.user.id)
   })
+
+  /**
+   * The SMTP relay timing out (836fb72c): the backend answers 500 EMAIL_NOT_SENT and has created
+   * nothing, so trying again works. The e2e mailer never fails, so the first answer is simulated;
+   * the retry goes to the real backend. LoginPage.tsx (handleRegister) passes skipErrorToast and
+   * shows the code's own message — one toast, and the form as it was.
+   */
+  test('a verification mail that cannot leave is said in one message, the form kept, and a retry goes through', async ({
+    page,
+  }) => {
+    const email = freshAddress('mail non parti')
+    const main = await fillSignUp(page, email)
+    const displayName = await main.getByRole('textbox', { name: "Nom d'affichage" }).inputValue()
+    const terms = main.getByRole('checkbox')
+    await terms.check()
+    let refused = 0
+    await page.route('**/api/auth/register', (route) => {
+      if (refused > 0) return route.fallback()
+      refused++
+      return route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        body: JSON.stringify({ code: 'EMAIL_NOT_SENT' }),
+      })
+    })
+    const shown = await watchToasts(page)
+    const create = main.getByRole('button', { name: 'Créer un compte' })
+    await create.click()
+
+    const message = "L'e-mail de vérification n'a pas pu partir. Réessayez dans un instant."
+    await expect(page.getByText(message)).toBeVisible()
+    expect(await shown()).toEqual([message])
+    // Still the sign-up form, every field as typed.
+    await expect(main.getByRole('heading', { name: 'Créer un compte' })).toBeVisible()
+    await expect(main.getByRole('textbox', { name: 'Email' })).toHaveValue(email)
+    await expect(main.getByRole('textbox', { name: "Nom d'affichage" })).toHaveValue(displayName)
+    await expect(main.getByRole('textbox', { name: 'Mot de passe', exact: true })).toHaveValue(
+      'e2e-password'
+    )
+    await expect(main.getByRole('textbox', { name: 'Confirmer le mot de passe' })).toHaveValue(
+      'e2e-password'
+    )
+    await expect(terms).toBeChecked()
+
+    // The same click again, now answered by the backend: the mail leaves, the login form follows.
+    const seen = await mailbox(email)
+    const registered = page.waitForResponse((r) => r.url().endsWith('/api/auth/register'))
+    await create.click()
+    expect((await registered).ok()).toBe(true)
+    await expect(
+      page.getByText("Cliquez sur le lien dans l'email pour activer votre compte.")
+    ).toBeVisible()
+    await expect(main.getByRole('heading', { name: WELCOME })).toBeVisible()
+    await expect(main.getByRole('textbox', { name: 'Email' })).toHaveValue(email)
+    mailLinkTo(await waitForNewMail(email, seen), '/verify-email')
+    expect(refused).toBe(1)
+  })
 })
 
 /**
@@ -1079,6 +1200,109 @@ test.describe('back to the page after signing in', () => {
     await expect(main.getByRole('heading', { name: WELCOME })).toBeVisible()
     await signInWithPassword(page, visitor.user.email, visitor.password)
     await expect(page).toHaveURL(new RegExp(`${escapeRegExp(ridePath(team.slug, ride.slug))}$`))
+  })
+})
+
+/**
+ * `?next=` on the login page (LoginPage.tsx → safeNextPath.ts): the path to load once signed in, by
+ * `location.assign` — so a value the browser reads as another origin would be an open redirect,
+ * one crafted link away from a phishing page that follows a genuine sign-in. It was (bug 44, fixed
+ * by 9665d15e): the old prefix check let `/\t/evil.example` through, and the URL parser drops the
+ * tab. A refused `next` falls back to the home feed. `evil.example` answers from `page.route`, so a
+ * regression lands on a page the URL assertion names instead of on a DNS error.
+ */
+test.describe('?next= after signing in stays on the site', () => {
+  const EVIL = 'evil.example'
+  /** Every way off the site a `next` has been written, as the query string decodes it. */
+  const HOSTILE: [string, string][] = [
+    ['a tab after the slash', `/\t/${EVIL}`],
+    ['a newline after the slash', `/\n/${EVIL}`],
+    ['a backslash', `/\\${EVIL}`],
+    ['a protocol-relative URL', `//${EVIL}/`],
+    ['an absolute URL', `https://${EVIL}/`],
+    ['a javascript: URL', 'javascript:alert(document.domain)'],
+  ]
+
+  const loginWithNext = (next: string) => `/connexion?next=${encodeURIComponent(next)}`
+
+  /** Records every request to evil.example (answered by a stub page) and every dialog. */
+  async function watchEscape(page: Page) {
+    const escaped: string[] = []
+    await page.route(
+      (url) => url.hostname === EVIL,
+      (route) => {
+        escaped.push(route.request().url())
+        return route.fulfill({ contentType: 'text/html', body: '<h1>evil</h1>' })
+      }
+    )
+    page.on('dialog', (dialog) => {
+      escaped.push(`dialog: ${dialog.message()}`)
+      return dialog.dismiss()
+    })
+    return escaped
+  }
+
+  for (const [label, next] of HOSTILE)
+    test(`signing in with ${label} as next lands on the home feed`, async ({ page }) => {
+      const user = await newUser(unique('Next hostile'))
+      const escaped = await watchEscape(page)
+      await page.goto(loginWithNext(next))
+      await expect(page.getByRole('main').getByRole('heading', { name: WELCOME })).toBeVisible()
+      await signInWithPassword(page, user.user.email, user.password)
+      await expect(page).toHaveURL(`${stack.baseURL}/`)
+      // Signed in, on the site's own feed.
+      await expect(
+        page.getByRole('link', { name: 'Calendrier', exact: true }).first()
+      ).toBeVisible()
+      expect(escaped).toEqual([])
+    })
+
+  // The login route is `unauthenticated` (routes.config.ts): a signed-in visitor never reaches
+  // LoginPage and is sent home whatever the `next` — a crafted link sent to a member included.
+  test('a signed-in visitor following a crafted login link stays on the site', async ({
+    page,
+    context,
+  }) => {
+    const user = await newUser(unique('Next connectée'))
+    await signIn(context, user)
+    const escaped = await watchEscape(page)
+    for (const [label, next] of HOSTILE) {
+      await page.goto(loginWithNext(next))
+      await expect(page, label).toHaveURL(`${stack.baseURL}/`)
+    }
+    expect(escaped).toEqual([])
+  })
+
+  test('signing in with a valid next returns to that path, query string included', async ({
+    page,
+  }) => {
+    const user = await newUser(unique('Next valide'))
+    await page.goto(loginWithNext('/profil?onglet=1'))
+    await expect(page.getByRole('main').getByRole('heading', { name: WELCOME })).toBeVisible()
+    await signInWithPassword(page, user.user.email, user.password)
+    await expect(page).toHaveURL(`${stack.baseURL}/profil?onglet=1`)
+    await expect(
+      page.getByRole('main').getByRole('heading', { name: 'Paramètres du profil' })
+    ).toBeVisible()
+  })
+
+  // The data export's download link sends a visitor without a session to exactly this (the full
+  // round trip, with a real export, is in « personal data export »): an API path, loaded as a
+  // document from the server rather than routed by the app — here a forged token, so the backend's
+  // 404, on this origin.
+  test('signing in with an API path as next loads it from the server', async ({ page }) => {
+    const user = await newUser(unique('Next API'))
+    const download = '/api/export/download/not-a-real-token'
+    await page.goto(loginWithNext(download))
+    await expect(page.getByRole('main').getByRole('heading', { name: WELCOME })).toBeVisible()
+    const answered = page.waitForResponse((r) => r.url() === `${stack.baseURL}${download}`)
+    await signInWithPassword(page, user.user.email, user.password)
+    const response = await answered
+    expect(response.status()).toBe(404)
+    // A document load of the page itself — not a fetch by the app. (Chrome then shows its own error
+    // page for the empty 404, so the URL is not asserted.)
+    expect(response.request().isNavigationRequest()).toBe(true)
+    expect(response.request().frame()).toBe(page.mainFrame())
   })
 })
 
@@ -1221,6 +1445,10 @@ test.describe('personal data export', () => {
           /^\/(login|connexion)$/.test(url.pathname) &&
           url.searchParams.get('next') === new URL(link).pathname
       )
+      // Signing in there brings the owner back to the link: the archive downloads.
+      const downloaded = anonymous.page.waitForEvent('download')
+      await signInWithPassword(anonymous.page, user.user.email, user.password)
+      expect((await downloaded).suggestedFilename()).toMatch(/^pedalons-export-.+\.zip$/)
     } finally {
       await anonymous.context.close()
     }

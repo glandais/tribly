@@ -366,3 +366,113 @@ export const hostDocument = (host: string, path: string, { cookie }: { cookie?: 
     })
     return { status: response.status(), headers: response.headers(), html: await response.text() }
   })
+
+/**
+ * The planner's site (gpx-planner.e2e.ts): `planner-e2e.localhost`, a domain of its own with the
+ * GPX tools' planner open (`enableGpxPlanner` — a domain flag, which `localhost` keeps off), and
+ * `planner-pin-e2e.localhost`, an alias of it pinned to a team located in Paris — so that the
+ * planner opens on Paris at the team zoom (ConfigService.defaultCenter), not on all of France.
+ * Like the others, created on first use and kept between runs.
+ */
+export const PLANNER_HOST = 'planner-e2e.localhost'
+export const PLANNER_PIN_HOST = 'planner-pin-e2e.localhost'
+/** The pinned team's location, [longitude, latitude]: the Hôtel de Ville, in Paris. */
+export const PLANNER_CENTER: [number, number] = [2.3522, 48.8566]
+const PLANNER_TEAM = { name: 'Planner E2E', slug: 'planner-e2e' }
+
+/** The user who owns the pinned team and draws — a password account, so it never spends an OTP. */
+const PLANNER_OWNER = {
+  email: 'planner@e2e.test',
+  displayName: 'Planner E2E',
+  password: 'e2e-planner-password',
+}
+
+let plannerSession: Promise<{ owner: AuthResponse; team: TeamDetailDto }> | undefined
+
+/** The planner's user, logged in on {@link PLANNER_HOST} — signed up there on first use. */
+async function logInPlannerOwner(): Promise<AuthResponse> {
+  const login = () => loginOn(PLANNER_HOST, PLANNER_OWNER.email, PLANNER_OWNER.password)
+  try {
+    return await login()
+  } catch (e) {
+    if (!(e instanceof ApiError) || e.status !== 400) throw e
+  }
+  try {
+    return await registerOn(PLANNER_HOST, PLANNER_OWNER)
+  } catch (e) {
+    if (!(e instanceof ApiError)) throw e
+    return login()
+  }
+}
+
+/**
+ * The planner's site, ready (cached per worker): the domain with its planner open, its user, the
+ * team located in Paris, and the alias pinned to it.
+ */
+export function plannerSite(): Promise<{ owner: AuthResponse; team: TeamDetailDto }> {
+  plannerSession ??= (async () => {
+    const admin = await roleSession('admin')
+    const settings = {
+      name: 'Planificateur E2E',
+      baseUrl: originOf(PLANNER_HOST),
+      singleTeam: false,
+      enableGpxPlanner: true,
+    }
+    let domain = await getOrCreate(
+      () => findDomain(admin, PLANNER_HOST),
+      () =>
+        apiPost<AdminDomainDto>(admin, '/api/admin/domains', {
+          domain: PLANNER_HOST,
+          ...settings,
+        } satisfies CreateDomainRequest)
+    )
+    if (!domain.active) throw new Error(`${PLANNER_HOST} exists but is disabled — re-enable it`)
+    if (!domain.enableGpxPlanner)
+      domain = await apiPut<AdminDomainDto>(admin, `/api/admin/domains/${domain.id}`, settings)
+
+    const owner = await logInPlannerOwner()
+    const team = await getOrCreate(
+      async () => {
+        try {
+          return await hostGet<TeamDetailDto>(
+            PLANNER_HOST,
+            owner,
+            `/api/teams/${PLANNER_TEAM.slug}`
+          )
+        } catch (e) {
+          if (e instanceof ApiError && e.status === 404) return undefined
+          throw e
+        }
+      },
+      () =>
+        hostPost<TeamDetailDto>(
+          PLANNER_HOST,
+          owner,
+          '/api/teams',
+          teamRequest(PLANNER_TEAM.name, {
+            geometry: { type: 'Point', coordinates: PLANNER_CENTER },
+          })
+        )
+    )
+    if (team.slug !== PLANNER_TEAM.slug) throw new Error(`planner team got slug ${team.slug}`)
+
+    const aliases = `/api/admin/domains/${domain.id}/aliases`
+    const alias = await getOrCreate(
+      async () =>
+        (await apiGet<AdminDomainAliasDto[]>(admin, aliases)).find(
+          (a) => a.hostname === PLANNER_PIN_HOST
+        ),
+      () =>
+        apiPost<AdminDomainAliasDto>(admin, aliases, {
+          hostname: PLANNER_PIN_HOST,
+          teamSlug: team.slug,
+          name: 'Planificateur épinglé E2E',
+          baseUrl: originOf(PLANNER_PIN_HOST),
+        } satisfies CreateDomainAliasRequest)
+    )
+    if (!alias.active) throw new Error(`${PLANNER_PIN_HOST} exists but is disabled — re-enable it`)
+    return { owner, team }
+  })()
+  plannerSession.catch(() => (plannerSession = undefined))
+  return plannerSession
+}

@@ -1,6 +1,8 @@
 import { randomBytes } from 'node:crypto'
-import type { Page } from '@playwright/test'
-import { apiGetOrNull, apiPut, ApiError, type AuthResponse } from './support/api'
+import type { APIRequestContext, Page } from '@playwright/test'
+import type { AssetDto, MediaDto, PostDto, PostRequest } from '../src/api/dto'
+import { solidPng, uploadImage } from './support/ads'
+import { apiGetOrNull, apiPut, ApiError, expectOk, withApi, type AuthResponse } from './support/api'
 import {
   addMember,
   markdownMedia,
@@ -11,6 +13,15 @@ import {
   signIn,
   teamRequest,
 } from './support/data'
+import {
+  hostDocument,
+  hostPost,
+  newTeamOn,
+  onHost,
+  originOf,
+  OTHER_HOST,
+  otherAdmin,
+} from './support/domains'
 import { expect, test, unique } from './support/fixtures'
 import { joinGroup, newRide, ridePath } from './support/rides'
 import { newPost } from './support/posts'
@@ -24,6 +35,7 @@ import {
   ssrOutlet,
   type RawDocument,
 } from './support/ssr'
+import { stack } from './support/stack'
 import { pageAs, pageHydrated, watchHydration } from './support/ui'
 
 /**
@@ -547,5 +559,161 @@ test.describe('private team: nothing in the server document', () => {
     } finally {
       await context.close()
     }
+  })
+})
+
+/**
+ * Link previews, positively (LINK_PREVIEW.md): a public ride, route, post or trip unfurls into a
+ * card of its own — its `og:type`, its name in `og:title`, the page itself as `og:url` — and the
+ * card's picture is an absolute URL on the host the link was shared from (seo.ts builds it from
+ * the request origin, so each tenant gets its own), which answers with an image. The ride, the
+ * post and the trip carry an uploaded picture, which is then the card's (routeMeta.ts: no map
+ * thumbnail for a ride without a route, then the entity's first image).
+ */
+test.describe('link previews of public content', () => {
+  interface Preview {
+    label: string
+    path: string
+    name: string
+    type: 'article' | 'website'
+    /** The id of the uploaded picture the card must show, when the entity has one. */
+    imageId?: string
+  }
+
+  /** A picture uploaded to the team, and a markdown body showing it (as the editor writes it). */
+  const withPicture = (image: AssetDto, text: string): MediaDto => ({
+    markdown: `${text}\n\n::asset{id="${image.id}"}`,
+    assets: { images: [image], attachments: [] },
+  })
+  const picture = (i: number) => solidPng(640, 400, [40 + 50 * i, 120, 200 - 40 * i])
+
+  let previews: Preview[]
+  let otherPreview: Preview
+
+  test.beforeAll(async () => {
+    const owner = await newUser('og-owner')
+    const team = await newTeam(owner, unique('Aperçus'), { visibility: 'PUBLIC' })
+    const [ridePicture, postPicture, tripPicture] = await Promise.all(
+      [0, 1, 2].map((i) => uploadImage(owner, team.slug, `apercu-${i}.png`, picture(i)))
+    )
+    const [ride, route, post, trip] = await Promise.all([
+      newRide(owner, team.slug, unique('Sortie aperçu'), {
+        visibility: 'PUBLIC',
+        media: withPicture(ridePicture, 'Une sortie à partager.'),
+      }),
+      newRoute(owner, team.slug, unique('Parcours aperçu'), windingTrack(), {
+        visibility: 'PUBLIC',
+      }),
+      newPost(owner, team.slug, unique('Article aperçu'), {
+        visibility: 'PUBLIC',
+        media: withPicture(postPicture, 'Un article à partager.'),
+      }),
+      newTrip(owner, team.slug, unique('Voyage aperçu'), [{ name: unique('Étape aperçu') }], {
+        visibility: 'PUBLIC',
+        media: withPicture(tripPicture, 'Un voyage à partager.'),
+      }),
+    ])
+    previews = [
+      {
+        label: 'ride',
+        path: ridePath(team.slug, ride.slug),
+        name: ride.name,
+        type: 'article',
+        imageId: ridePicture.id,
+      },
+      { label: 'route', path: routePath(team.slug, route.slug), name: route.name, type: 'website' },
+      {
+        label: 'post',
+        path: `/equipes/${team.slug}/articles/${post.slug}`,
+        name: post.name,
+        type: 'article',
+        imageId: postPicture.id,
+      },
+      {
+        label: 'trip',
+        path: tripPath(team.slug, trip.slug),
+        name: trip.name,
+        type: 'article',
+        imageId: tripPicture.id,
+      },
+    ]
+
+    // The same, on another site of the stack: a public post of a team of `autre.localhost`.
+    const otherOwner = await otherAdmin()
+    const otherTeam = await newTeamOn(OTHER_HOST, otherOwner, unique('Aperçus ailleurs'), {
+      visibility: 'PUBLIC',
+      admin: otherOwner,
+    })
+    const otherPicture = await onHost(OTHER_HOST, otherOwner, async (api) =>
+      expectOk<AssetDto>(
+        await api.post(`/api/teams/${otherTeam.slug}/assets?assetType=IMAGE`, {
+          multipart: { file: { name: 'ailleurs.png', mimeType: 'image/png', buffer: picture(3) } },
+        })
+      )
+    )
+    const otherPost = await hostPost<PostDto>(
+      OTHER_HOST,
+      otherOwner,
+      `/api/teams/${otherTeam.slug}/posts`,
+      {
+        name: unique('Article ailleurs'),
+        media: withPicture(otherPicture, 'Un article sur un autre site.'),
+        dateTime: new Date().toISOString(),
+        visibility: 'PUBLIC',
+        status: 'PUBLISHED',
+      } satisfies PostRequest
+    )
+    otherPreview = {
+      label: `post on ${OTHER_HOST}`,
+      path: `/equipes/${otherTeam.slug}/articles/${otherPost.slug}`,
+      name: otherPost.name,
+      type: 'article',
+      imageId: otherPicture.id,
+    }
+  })
+
+  /**
+   * The card of `document`, served at `origin` + `preview.path`: its tags, and the picture's URL,
+   * checked to be absolute on that origin.
+   */
+  function expectCard(document: RawDocument, preview: Preview, origin: string) {
+    const where = `${preview.label} (${preview.path})`
+    expect(document.status, `${where}: status`).toBe(200)
+    const tags = ogTags(document.html)
+    expect.soft(tags['og:type'], `${where}: og:type`).toEqual([preview.type])
+    expect.soft(tags['og:title']?.[0], `${where}: og:title`).toContain(preview.name)
+    expect.soft(tags['og:url'], `${where}: og:url`).toEqual([`${origin}${preview.path}`])
+    expect.soft(tags['twitter:card'], `${where}: twitter:card`).toEqual(['summary_large_image'])
+    expect(tags['og:image'], `${where}: one og:image`).toHaveLength(1)
+    const image = tags['og:image'][0]
+    expect(image.startsWith(`${origin}/`), `${where}: og:image ${image} on ${origin}`).toBe(true)
+    if (preview.imageId)
+      expect.soft(image, `${where}: og:image is the entity's picture`).toContain(preview.imageId)
+    return new URL(image)
+  }
+
+  /** What an unfurler gets when it fetches the card's picture: a 200 image. */
+  async function expectImage(api: APIRequestContext, image: URL, where: string) {
+    const response = await api.get(`${image.pathname}${image.search}`)
+    expect(response.status(), `${where}: ${image.href}`).toBe(200)
+    expect(response.headers()['content-type'], `${where}: content type`).toMatch(/^image\//)
+    expect((await response.body()).length, `${where}: bytes`).toBeGreaterThan(0)
+  }
+
+  test('a public ride, route, post and trip unfurl with their own card and a picture that loads', async () => {
+    await withApi(undefined, async (api) => {
+      for (const preview of previews) {
+        const image = expectCard(await rawDocument(preview.path), preview, stack.baseURL)
+        await expectImage(api, image, preview.label)
+      }
+    })
+  })
+
+  test(`on ${OTHER_HOST}, the card and its picture are on that host`, async () => {
+    const origin = originOf(OTHER_HOST)
+    const document = await hostDocument(OTHER_HOST, otherPreview.path)
+    const image = expectCard(document, otherPreview, origin)
+    // Chromium resolves *.localhost, Node does not: the picture is fetched with the site's Host.
+    await onHost(OTHER_HOST, undefined, (api) => expectImage(api, image, otherPreview.label))
   })
 })

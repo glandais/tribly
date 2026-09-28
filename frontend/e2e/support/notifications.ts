@@ -66,3 +66,16 @@ export const notificationPreferences = (who: AuthResponse) =>
 /** Whether `who` muted the team, per the API; undefined when the team isn't among theirs. */
 export const isMuted = async (who: AuthResponse, teamSlug: string) =>
   (await notificationPreferences(who)).teams.find((team) => team.teamSlug === teamSlug)?.muted
+
+/**
+ * Asserts `who` has no notification matching `predicate`. Only a decision once the event that
+ * would have produced it has been fanned out — one event reaches all its recipients in the same
+ * tick, so waiting for another recipient's copy of it is enough.
+ */
+export async function expectNoNotification(
+  who: AuthResponse,
+  predicate: (notification: NotificationDto) => boolean,
+  description: string
+) {
+  expect((await listNotifications(who)).items.filter(predicate), description).toEqual([])
+}

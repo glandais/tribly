@@ -1,12 +1,22 @@
 import type { Locator, Page } from '@playwright/test'
+import { test } from '@playwright/test'
 import type {
+  AdminDomainAliasDto,
+  AdminDomainDto,
+  AdminDomainListResponse,
+  AdminGpsCredentialDto,
   AdminTeamDto,
   AdminUserDto,
   AssignPlatformRoleRequest,
+  BetaSignupListResponse,
+  CreateDomainRequest,
+  CreateGpsCredentialRequest,
   TeamDetailDto,
+  UpdateDomainRequest,
 } from '../../src/api/dto'
-import { apiGet, apiPost, apiPut } from './api'
+import { apiDelete, apiGet, apiPost, apiPut } from './api'
 import { roleSession } from './data'
+import { originOf } from './domains'
 
 /**
  * The platform administration journey (flow-platform-admin.e2e.ts): its screens' rows, and the
@@ -55,3 +65,100 @@ export const setPlatformRole = async (userId: string, role: AssignPlatformRoleRe
   apiPut<AdminUserDto>(await roleSession('admin'), `/api/admin/users/${userId}/platform-role`, {
     role,
   } satisfies AssignPlatformRoleRequest)
+
+export const ADMIN_DOMAINS_PATH = '/plateforme/domaines'
+export const ADMIN_BETA_SIGNUPS_PATH = '/plateforme/inscriptions-beta'
+/** ADMIN_PAGE_SIZE of src/hooks/filters/adminFilters.ts. */
+const ADMIN_PAGE_SIZE = 20
+
+/** Every domain, newest first — as the platform domain list orders them. */
+const allDomains = async () =>
+  (
+    await apiGet<AdminDomainListResponse>(await roleSession('admin'), '/api/admin/domains', {
+      size: 100,
+    })
+  ).domains
+
+/** The domain of `host`, as the platform admin reads it. */
+export async function adminDomain(host: string): Promise<AdminDomainDto> {
+  const domain = (await allDomains()).find((d) => d.domain === host)
+  if (!domain) throw new Error(`no domain ${host}`)
+  return domain
+}
+
+/**
+ * The page of the platform domain list holding `host` (`?p=`): the list is the newest first, and
+ * the oldest — `localhost` — moves to a later page as domains pile up across runs.
+ */
+export async function adminDomainsPathOf(host: string): Promise<string> {
+  const index = (await allDomains()).findIndex((d) => d.domain === host)
+  if (index < 0) throw new Error(`no domain ${host}`)
+  const page = Math.floor(index / ADMIN_PAGE_SIZE) + 1
+  return page === 1 ? ADMIN_DOMAINS_PATH : `${ADMIN_DOMAINS_PATH}?p=${page}`
+}
+
+/** The row of a platform table (domains, aliases, GPS credentials…) holding `cell`, exactly. */
+export const rowWithCell = (scope: Locator, cell: string): Locator =>
+  scope
+    .getByRole('row')
+    // `has` resolves from the row: a page-rooted locator, not one under `scope`.
+    .filter({ has: scope.page().getByRole('cell', { name: cell, exact: true }) })
+
+/** A hostname under `.localhost` nobody else uses — Chromium resolves it to the loopback. */
+export const uniqueLocalHost = (label: string) =>
+  `${label}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}.localhost`
+
+export const aliasesPath = (domain: Pick<AdminDomainDto, 'id'>) =>
+  `/api/admin/domains/${domain.id}/aliases`
+
+/** The aliases of `domain` (soft-deleted ones excluded), as the platform admin. */
+export const aliasesOf = async (domain: Pick<AdminDomainDto, 'id'>) =>
+  apiGet<AdminDomainAliasDto[]>(await roleSession('admin'), aliasesPath(domain))
+
+/** DELETE of an alias as the platform admin — a cleanup, whatever the test left. */
+export const deleteAlias = async (domain: Pick<AdminDomainDto, 'id'>, aliasId: string) =>
+  apiDelete(await roleSession('admin'), `${aliasesPath(domain)}/${aliasId}`)
+
+export const gpsCredentialsOf = async (domain: Pick<AdminDomainDto, 'id'>) =>
+  apiGet<AdminGpsCredentialDto[]>(
+    await roleSession('admin'),
+    `/api/admin/domains/${domain.id}/gps-credentials`
+  )
+
+/**
+ * A domain for this test alone to edit — domains cannot be deleted, so it is one per project and
+ * parallel slot (`renomme-e2e-desktop-0.localhost`), created on first use, and put back to a known
+ * state each time: the given `settings`, and exactly the GPS `credentials` given.
+ */
+export async function scratchDomain(
+  settings: Omit<UpdateDomainRequest, 'baseUrl'>,
+  credentials: CreateGpsCredentialRequest[]
+): Promise<{ domain: AdminDomainDto; credentials: AdminGpsCredentialDto[] }> {
+  const admin = await roleSession('admin')
+  const { project, parallelIndex } = test.info()
+  const host = `renomme-e2e-${project.name}-${parallelIndex}.localhost`
+  const baseUrl = originOf(host)
+  let domain = (await allDomains()).find((d) => d.domain === host)
+  domain ??= await apiPost<AdminDomainDto>(admin, '/api/admin/domains', {
+    domain: host,
+    ...settings,
+    baseUrl,
+  } satisfies CreateDomainRequest)
+  domain = await apiPut<AdminDomainDto>(admin, `/api/admin/domains/${domain.id}`, {
+    ...settings,
+    baseUrl,
+  } satisfies UpdateDomainRequest)
+  const credentialsPath = `/api/admin/domains/${domain.id}/gps-credentials`
+  for (const old of await gpsCredentialsOf(domain))
+    await apiDelete(admin, `${credentialsPath}/${old.id}`)
+  const created: AdminGpsCredentialDto[] = []
+  for (const credential of credentials)
+    created.push(await apiPost<AdminGpsCredentialDto>(admin, credentialsPath, credential))
+  return { domain, credentials: created }
+}
+
+/** GET /api/admin/beta-signups as the platform admin: the newest sign-ups first. */
+export const betaSignups = async () =>
+  apiGet<BetaSignupListResponse>(await roleSession('admin'), '/api/admin/beta-signups', {
+    size: 100,
+  })

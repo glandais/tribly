@@ -1,16 +1,21 @@
 import type { Page } from '@playwright/test'
-import { apiPost } from './support/api'
+import type { RideRequest } from '../src/api/dto'
+import { apiPost, apiPut } from './support/api'
 import { addMember, newTeam, newUser, roleSession, signIn } from './support/data'
 import { expect, test, unique } from './support/fixtures'
+import { inviteByApi } from './support/invitations'
+import { queueCard, report, teamQueuePath } from './support/moderation'
 import {
   about,
+  expectNoNotification,
   isMuted,
   listNotifications,
   unreadCount,
   waitForNotification,
 } from './support/notifications'
 import { commentOnPost, newPost } from './support/posts'
-import { hydrated } from './support/ui'
+import { joinGroup, newRide, readRide, rideRequest, ridePath } from './support/rides'
+import { hydrated, toasts } from './support/ui'
 
 /**
  * Notifications, end to end: a publication or a reply queues an event, the backend's dispatcher
@@ -285,5 +290,289 @@ test('muting a team in the profile silences its announcements, but not a reply',
       `${heard.name} a publié un article`
     )
     await expect(main.getByRole('link').filter({ hasText: silenced.name })).toHaveCount(0)
+  })
+})
+
+/**
+ * Personal notifications: addressed to someone in particular, and worded by the client from the
+ * type and the structured fields (NotificationItem.tsx:33-60), with a destination picked from the
+ * subject's type (notificationDisplay.ts:78-97) — never from a text or a link the API would send.
+ */
+test.describe('personal notifications', () => {
+  /** The inbox entry about `subjectName` — every test's subjects have unique names. */
+  const inboxEntry = (page: Page, subjectName: string) =>
+    page.getByRole('main').getByRole('link').filter({ hasText: subjectName })
+
+  test('a cancelled ride reaches its registered riders only, and leads to the ride marked « Annulé »', async ({
+    page,
+    context,
+    isMobile,
+  }) => {
+    const owner = await newUser(unique('Organisatrice'))
+    const registered = await newUser(unique('Inscrite'))
+    const bystander = await newUser(unique('Non inscrit'))
+    const team = await newTeam(owner, unique('Sorties annulées'), { addMemberAllowed: true })
+    await addMember(owner, team.slug, registered)
+    await addMember(owner, team.slug, bystander)
+    const group = unique('Groupe du matin')
+    const ride = await newRide(owner, team.slug, unique('Sortie annulée'), {
+      groups: [{ name: group }],
+    })
+    await joinGroup(registered, team.slug, ride, group)
+
+    // What the ride editor sends when « Annuler la sortie » is confirmed: the ride, cancelled.
+    await apiPut(owner, `/api/teams/${team.slug}/rides/${ride.slug}`, {
+      ...rideRequest(ride.name, { dateTime: ride.dateTime, status: 'CANCELLED' }),
+      groups: ride.groups.map((g) => ({ id: g.id, name: g.name, leaderId: g.leader?.id })),
+    } satisfies RideRequest)
+    expect((await readRide(owner, team.slug, ride.slug)).status).toBe('CANCELLED')
+
+    await test.step('the registered rider is told; the other member is not', async () => {
+      const found = await waitForNotification(
+        registered,
+        about('RIDE_CANCELLED', ride.slug),
+        'the RIDE_CANCELLED notification'
+      )
+      expect(found).toMatchObject({
+        read: false,
+        teamSlug: team.slug,
+        subjectType: 'RIDE',
+        subjectName: ride.name,
+      })
+      // Same event, same tick: the bystander's copy would be there by now.
+      await expectNoNotification(
+        bystander,
+        about('RIDE_CANCELLED', ride.slug),
+        'a member not registered hears nothing of the cancellation'
+      )
+    })
+
+    await test.step('the entry says a ride is cancelled, and opens it marked « Annulé »', async () => {
+      await signIn(context, registered)
+      await openInbox(page, isMobile)
+      const entry = inboxEntry(page, ride.name)
+      await expect(entry).toContainText('Une sortie est annulée')
+      await expect(entry.getByLabel('Non lue', { exact: true })).toBeVisible()
+      await hydrated(entry)
+      await entry.click()
+      await expect(page).toHaveURL(new RegExp(`${ridePath(team.slug, ride.slug)}$`))
+      const main = page.getByRole('main')
+      await expect(main.getByRole('heading', { level: 2, name: ride.name })).toBeVisible()
+      await expect(main.getByText('Annulé', { exact: true })).toBeVisible()
+    })
+  })
+
+  test('a rider joining a ride is announced to its creator and to the group’s leader, with the group’s name', async ({
+    page,
+    context,
+    isMobile,
+  }) => {
+    const owner = await newUser(unique('Organisatrice'))
+    const leader = await newUser(unique('Meneur'))
+    const rider = await newUser(unique('Cycliste'))
+    const team = await newTeam(owner, unique('Inscriptions'), { addMemberAllowed: true })
+    await addMember(owner, team.slug, leader)
+    await addMember(owner, team.slug, rider)
+    const group = unique('Groupe rapide')
+    const ride = await newRide(owner, team.slug, unique('Sortie rejointe'), {
+      groups: [{ name: group, leaderId: leader.user.id }],
+    })
+    await joinGroup(rider, team.slug, ride, group)
+
+    await test.step('the creator and the leader are told who joined which group', async () => {
+      for (const organiser of [owner, leader]) {
+        const found = await waitForNotification(
+          organiser,
+          about('RIDE_JOINED', ride.slug),
+          'the RIDE_JOINED notification'
+        )
+        // A personal notification names who did it; the group travels as the excerpt.
+        expect(found).toMatchObject({
+          actorName: rider.user.displayName,
+          subjectType: 'RIDE',
+          subjectName: ride.name,
+          excerpt: group,
+        })
+      }
+      await expectNoNotification(
+        rider,
+        about('RIDE_JOINED', ride.slug),
+        'nobody is told of what they did themselves'
+      )
+    })
+
+    await test.step('the creator’s entry names the rider and the group, and opens the ride', async () => {
+      await signIn(context, owner)
+      await openInbox(page, isMobile)
+      const entry = inboxEntry(page, ride.name)
+      await expect(entry).toContainText(`${rider.user.displayName} s'est inscrit à votre sortie`)
+      await expect(entry).toContainText(`Groupe : ${group}`)
+      await hydrated(entry)
+      await entry.click()
+      await expect(page).toHaveURL(new RegExp(`${ridePath(team.slug, ride.slug)}$`))
+      await expect(
+        page.getByRole('main').getByRole('heading', { level: 2, name: ride.name })
+      ).toBeVisible()
+    })
+  })
+
+  test('an invitation reaches the invited account, and leads to the team list whose banner accepts it', async ({
+    page,
+    context,
+    isMobile,
+  }) => {
+    const owner = await newUser(unique('Capitaine'))
+    const invitee = await newUser(unique('Invitée'))
+    const team = await newTeam(owner, unique('Équipe invitante'), { addMemberAllowed: true })
+    await inviteByApi(owner, team.slug, invitee.user.email)
+
+    await test.step('the invitee is told who invites them, and where', async () => {
+      const found = await waitForNotification(
+        invitee,
+        about('TEAM_INVITATION', team.slug),
+        'the TEAM_INVITATION notification'
+      )
+      expect(found).toMatchObject({
+        actorName: owner.user.displayName,
+        teamSlug: team.slug,
+        teamName: team.name,
+        subjectType: 'TEAM',
+        subjectName: team.name,
+      })
+    })
+
+    await test.step('the entry opens the team list, not the team the invitee cannot see yet', async () => {
+      await signIn(context, invitee)
+      await openInbox(page, isMobile)
+      const entry = inboxEntry(page, `vous invite à rejoindre ${team.name}`)
+      await expect(entry).toContainText(
+        `${owner.user.displayName} vous invite à rejoindre ${team.name}`
+      )
+      await hydrated(entry)
+      await entry.click()
+      await expect(page).toHaveURL(/\/equipes$/)
+    })
+
+    await test.step('the banner there accepts the invitation', async () => {
+      const banner = page
+        .getByRole('alert')
+        .filter({ hasText: 'Vous avez une invitation en attente' })
+      await expect(
+        banner.getByText(`${owner.user.displayName} vous invite à rejoindre ${team.name}.`, {
+          exact: true,
+        })
+      ).toBeVisible()
+      const accept = banner.getByRole('button', { name: 'Accepter' })
+      await hydrated(accept)
+      await accept.click()
+      await expect(
+        toasts(page).filter({ hasText: `Vous avez rejoint ${team.name}.` })
+      ).toBeVisible()
+      await expect(banner).toBeHidden()
+    })
+  })
+
+  test('a report reaches the team’s moderator without naming the reporter, and leads to its queue', async ({
+    page,
+    context,
+    isMobile,
+  }) => {
+    const moderator = await newUser(unique('Modératrice'))
+    const author = await newUser(unique('Autrice signalée'))
+    const reporter = await newUser(unique('Signaleuse'))
+    const team = await newTeam(moderator, unique('Équipe modérée'), { addMemberAllowed: true })
+    await addMember(moderator, team.slug, author, 'ORGANIZER')
+    await addMember(moderator, team.slug, reporter)
+    const reported = await newPost(author, team.slug, unique('Article signalé'))
+    await report(reporter, team.slug, 'POST', reported.id, 'SPAM', 'Publicité déguisée.')
+
+    await test.step('the moderator is told, anonymously; neither the reporter nor the author is', async () => {
+      const found = await waitForNotification(
+        moderator,
+        about('CONTENT_REPORTED', team.slug),
+        'the CONTENT_REPORTED notification'
+      )
+      expect(found).toMatchObject({ subjectType: 'REPORT', teamSlug: team.slug })
+      // No actor (the reporter is anonymous to the team) and no excerpt (a push reaches the lock
+      // screen): NotificationRecipientResolver#resolveReport.
+      expect(found.actorName, 'the reporter is not named').toBeUndefined()
+      expect(found.excerpt, 'the reported content is not quoted').toBeUndefined()
+      await expectNoNotification(reporter, about('CONTENT_REPORTED', team.slug), 'the reporter')
+      await expectNoNotification(
+        author,
+        about('CONTENT_REPORTED', team.slug),
+        'the reported author, though an organiser of the team'
+      )
+    })
+
+    await test.step('the entry names the team only, and opens its moderation queue', async () => {
+      await signIn(context, moderator)
+      await openInbox(page, isMobile)
+      const entry = inboxEntry(page, `Nouveau signalement dans ${team.name}`)
+      await expect(entry).toBeVisible()
+      await expect(entry).not.toContainText(reporter.user.displayName)
+      await hydrated(entry)
+      await entry.click()
+      await expect(page).toHaveURL(new RegExp(`${teamQueuePath(team.slug)}$`))
+      await expect(queueCard(page, reported.name)).toBeVisible()
+    })
+  })
+})
+
+test('mobile: the burger wears a dot while something is unread, and the drawer’s link counts it', async ({
+  page,
+  context,
+  isMobile,
+}) => {
+  test.skip(!isMobile, 'on desktop the bell carries the count (first test of this file)')
+  // Regression (9ba0a402): below `sm` the bell is hidden, and nothing said a notification waited.
+  const { author, member, team } = await teamWithMember('Pastille')
+  const first = await newPost(author, team.slug, unique('Premier article'))
+  const second = await newPost(author, team.slug, unique('Second article'))
+  const read = await waitForNotification(member, about('POST_PUBLISHED', first.slug))
+  await waitForNotification(member, about('POST_PUBLISHED', second.slug))
+
+  const banner = page.getByRole('banner')
+  // Layout.tsx wraps the burger in a Mantine Indicator: its dot is decoration, with no name.
+  const dot = banner
+    .locator('.mantine-Indicator-root')
+    .filter({ has: page.locator('.mantine-Burger-root') })
+    .locator('.mantine-Indicator-indicator')
+  const drawer = page.getByRole('navigation')
+  const openDrawer = async () => {
+    const burger = banner.getByRole('button', { name: 'Ouvrir le menu' })
+    await hydrated(burger)
+    await burger.click()
+    await expect(drawer.getByRole('link', { name: /^Notifications/ })).toBeVisible()
+  }
+  await signIn(context, member)
+
+  await test.step('two unread: a dot on the burger, « 2 » on the drawer’s link', async () => {
+    await page.goto('/')
+    await expect(dot).toBeVisible()
+    await openDrawer()
+    await expect(drawer.getByLabel('Notifications, 2 non lues', { exact: true })).toHaveText('2')
+    // The drawer shows the count itself: the dot steps aside while it is open.
+    await expect(dot).toHaveCount(0)
+  })
+
+  await test.step('one read elsewhere: the link says « 1 non lue »', async () => {
+    await apiPost(member, `/api/notifications/${read.id}/read`)
+    await page.reload()
+    await expect(dot).toBeVisible()
+    await openDrawer()
+    await expect(drawer.getByLabel('Notifications, 1 non lue', { exact: true })).toHaveText('1')
+  })
+
+  await test.step('everything read: no dot, no count', async () => {
+    await drawer.getByRole('link', { name: /^Notifications/ }).click()
+    await expect(page).toHaveURL(/\/notifications$/)
+    const markAllRead = page.getByRole('main').getByRole('button', { name: 'Tout marquer lu' })
+    await hydrated(markAllRead)
+    await markAllRead.click()
+    await expect(markAllRead).toHaveCount(0)
+    await expect(dot).toHaveCount(0)
+    await openDrawer()
+    await expect(drawer.getByLabel(/^Notifications, \d+ non lues?$/)).toHaveCount(0)
   })
 })

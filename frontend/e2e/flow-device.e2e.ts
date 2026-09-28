@@ -165,3 +165,23 @@ test('an unknown code shows the error, « Réessayer » opens the manual entry, 
   const tokens = await pollToken(flow.deviceCode)
   expect(await deviceOwner(tokens.accessToken)).toMatchObject({ id: rider.user.id })
 })
+
+/**
+ * The verification page a device's QR code opens is the one of its own app (bug #7): a Garmin
+ * watch used to hand out `/karoo`, the Hammerhead page, which means nothing to a Garmin user
+ * (DeviceAuthService.verificationPath — `/garmin` for the Garmin client, `/karoo` otherwise).
+ */
+test('each device is sent to the verification page of its own app', async () => {
+  for (const [clientId, page] of [
+    ['garmin', '/garmin'],
+    ['karoo', '/karoo'],
+  ] as const) {
+    const flow = await startDeviceFlow(clientId)
+    const uri = new URL(flow.verificationUri)
+    expect(uri.pathname, `${clientId}: verificationUri`).toBe(page)
+    expect(uri.search, `${clientId}: verificationUri carries no code`).toBe('')
+    expect(flow.verificationUriComplete, `${clientId}: verificationUriComplete`).toBe(
+      `${flow.verificationUri}?code=${flow.userCode}`
+    )
+  }
+})

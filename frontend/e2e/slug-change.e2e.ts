@@ -1,7 +1,7 @@
 import type { Locator, Page } from '@playwright/test'
-import type { AuthResponse } from './support/api'
-import { signIn } from './support/data'
-import { expect, test } from './support/fixtures'
+import { apiPut, type AuthResponse } from './support/api'
+import { newTeam, newUser, roleSession, signIn, teamRequest } from './support/data'
+import { expect, test, unique } from './support/fixtures'
 import { stubBasemap } from './support/routes'
 import {
   adTarget,
@@ -19,6 +19,7 @@ import {
   teamTarget,
   type SlugTarget,
 } from './support/slug-change'
+import { rawDocument, sessionCookie } from './support/ssr'
 import { hydrated, pageAs, toasts } from './support/ui'
 
 /**
@@ -295,4 +296,138 @@ test.describe("the old team slug's deep links", () => {
     expect(feed.status, 'the feed under the old team slug is served').toBe(200)
     expect(feed.body).toContain(`SUMMARY:${ride.name}`)
   })
+})
+
+/**
+ * A former team slug is not reserved for good: the team may take it back, or another team may take
+ * it (TeamService.updateSlug and create both `clearTeamRedirect` the slug they take). The 301 the
+ * server answers for it (entry-server.tsx, « Reached through a former slug ») must therefore never
+ * be cached: Chromium keeps a 301 without Cache-Control for ever, and a browser that once followed
+ * /equipes/a → /equipes/b would go on doing so — into a loop once b redirects back to a, or away
+ * from the team that holds a now. server.js sends every SSR redirect with `Cache-Control: no-store`
+ * (adff69e4, bug 45). Each scenario runs in one browser context, the cache of the first visit
+ * carried into the next.
+ */
+test.describe('a former team slug taken again', () => {
+  /** The team page's title, level 1. */
+  const teamHeading = (page: Page, name: string) => teamTarget.detailHeading(page, name)
+
+  test('the 301 of a former slug is never cached, nor looped on once the team takes the slug back', async ({
+    browser,
+  }) => {
+    const { owner, member, team } = await slugScene('reprise')
+    const original = team.slug
+    const provisional = freshSlug('equipe provisoire')
+    await renameThroughApi(owner, teamTarget, original, original, provisional)
+
+    // The server's answer, as is: a permanent redirect, which no cache may keep.
+    const redirect = await rawDocument(`/equipes/${original}`, { cookie: sessionCookie(member) })
+    expect(redirect.status, 'the former slug is redirected').toBe(301)
+    expect(redirect.headers['location']).toBe(`/equipes/${provisional}`)
+    expect(redirect.headers['cache-control'], 'the 301 is not cacheable').toContain('no-store')
+    expect(redirect.headers['vary']?.toLowerCase()).toContain('cookie')
+
+    const { context, page } = await pageAs(browser, member)
+    try {
+      // The member follows the old link once: the browser has seen the 301.
+      await followOldLink(page, `/equipes/${original}`, `/equipes/${provisional}`, true)
+      await expect(teamHeading(page, team.name)).toBeVisible()
+
+      // The team takes its former slug back: now the provisional one redirects to it.
+      await renameThroughApi(owner, teamTarget, provisional, provisional, original)
+      const back = await rawDocument(`/equipes/${provisional}`, { cookie: sessionCookie(member) })
+      expect(back.status).toBe(301)
+      expect(back.headers['location']).toBe(`/equipes/${original}`)
+
+      // Same browser, same link: served where it is, not sent round the old redirect.
+      const response = await page.goto(`/equipes/${original}`)
+      expect(response?.status(), 'the slug is served, not redirected').toBe(200)
+      expect(response?.request().redirectedFrom() ?? null, 'no redirect replayed').toBeNull()
+      await expect(page).toHaveURL(`/equipes/${original}`)
+      await expect(teamHeading(page, team.name)).toBeVisible()
+
+      // And the provisional link leads back to it, once.
+      await followOldLink(page, `/equipes/${provisional}`, `/equipes/${original}`, true)
+      await expect(teamHeading(page, team.name)).toBeVisible()
+    } finally {
+      await context.close()
+    }
+  })
+
+  test('another team taking the former slug gets the visitors of a browser that followed the old redirect', async ({
+    browser,
+  }) => {
+    const { owner, member, team } = await slugScene('prise')
+    const original = team.slug
+    const renamed = freshSlug('equipe partie')
+    await renameThroughApi(owner, teamTarget, original, original, renamed)
+
+    const { context, page } = await pageAs(browser, member)
+    try {
+      await followOldLink(page, `/equipes/${original}`, `/equipes/${renamed}`, true)
+      await expect(teamHeading(page, team.name)).toBeVisible()
+
+      // A new team, born with the same name, gets the free slug (and so the redirect is dropped);
+      // then renamed, so that its page tells the two teams apart. PUBLIC: the member of the first
+      // team may read it.
+      const newcomerOwner = await newUser('Slug prise nouvelle')
+      const newcomer = await newTeam(newcomerOwner, team.name, { visibility: 'PUBLIC' })
+      expect(newcomer.slug, 'the new team took the former slug').toBe(original)
+      const newcomerName = unique('Slug prise nouvelle équipe')
+      await apiPut(
+        await roleSession('admin'),
+        `/api/teams/${original}`,
+        teamRequest(newcomerName, { visibility: 'PUBLIC' })
+      )
+
+      const response = await page.goto(`/equipes/${original}`)
+      expect(response?.status(), 'the slug is served, not redirected').toBe(200)
+      expect(response?.request().redirectedFrom() ?? null, 'no redirect replayed').toBeNull()
+      await expect(page).toHaveURL(`/equipes/${original}`)
+      await expect(teamHeading(page, newcomerName)).toBeVisible()
+      await expect(teamHeading(page, team.name)).toHaveCount(0)
+
+      // The renamed team is still where it went.
+      const moved = await page.goto(`/equipes/${renamed}`)
+      expect(moved?.status()).toBe(200)
+      await expect(teamHeading(page, team.name)).toBeVisible()
+    } finally {
+      await context.close()
+    }
+  })
+})
+
+/**
+ * The slug editor shows the entity's address before its slug: the app's own path, in the
+ * interface's language — `/equipes/…/sorties/…`, not `/teams/…/rides/…` (bug #12, the base URLs
+ * were built from the English templates). Its `baseUrl` is `paths.<kind>(teamSlug, '')`.
+ */
+test('the slug editor shows French base URLs in the French interface', async ({ page }) => {
+  const { owner, team } = await slugScene('base')
+  const [ride, route, ad] = await Promise.all([
+    newEntity('ride', owner, team.slug, 'Slug base sortie'),
+    newEntity('route', owner, team.slug, 'Slug base parcours'),
+    newEntity('ad', owner, team.slug, 'Slug base annonce'),
+  ])
+  const cases: [SlugTarget, string, string][] = [
+    [teamTarget, team.slug, '/equipes/'],
+    [rideTarget, ride.slug, `/equipes/${team.slug}/sorties/`],
+    [routeTarget, route.slug, `/equipes/${team.slug}/parcours/`],
+    [adTarget, ad.slug, `/equipes/${team.slug}/annonces/`],
+  ]
+  for (const [target, slug, base] of cases) {
+    const where = at(target, team.slug, slug)
+    expect(where.detail, `${target.kind}: the page the editor names`).toBe(`${base}${slug}`)
+    await openEditForm(page, owner, target, where.edit)
+    const main = page.getByRole('main')
+    // Closed: « URL: <base><slug> ».
+    await expect(main.getByText(`${base}${slug}`, { exact: true }), target.kind).toBeVisible()
+    // Open: the base alone, in front of the input.
+    const editor = slugEditor(page)
+    await hydrated(editor.pencil)
+    await editor.pencil.click()
+    await expect(editor.input).toHaveValue(slug)
+    await expect(main.getByText(base, { exact: true }), `${target.kind}, open`).toBeVisible()
+    await expect(main.getByText(/\/(teams|rides|routes|classifieds)\//)).toHaveCount(0)
+  }
 })

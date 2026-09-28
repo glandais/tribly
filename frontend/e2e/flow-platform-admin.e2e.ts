@@ -1,19 +1,32 @@
 import type { Page } from '@playwright/test'
-import type { AdminTeamDto, TeamDetailDto } from '../src/api/dto'
+import type { AdminGpsCredentialDto, AdminTeamDto, ConfigDto, TeamDetailDto } from '../src/api/dto'
 import { apiGetOrNull } from './support/api'
-import { getTeam, newTeam, newUser, roleSession, signIn } from './support/data'
+import { freshAddress, getTeam, newTeam, newUser, roleSession, signIn } from './support/data'
+import { OTHER_HOST, hostGet, hostStatus, originOf, otherDomain } from './support/domains'
 import { expect, test, unique } from './support/fixtures'
 import { listedTeams } from './support/flow-team'
 import {
+  ADMIN_BETA_SIGNUPS_PATH,
   ADMIN_TEAMS_PATH,
+  adminDomain,
+  adminDomainsPathOf,
   adminTeam,
   adminTeamRow,
   adminUser,
   adminUserRow,
   adminUsersSearch,
+  aliasesOf,
+  aliasesPath,
+  betaSignups,
+  deleteAlias,
+  gpsCredentialsOf,
+  rowWithCell,
+  scratchDomain,
   setPlatformRole,
   toggleTeamArchived,
+  uniqueLocalHost,
 } from './support/platform-admin'
+import { stack } from './support/stack'
 import { hydrated, pageAs } from './support/ui'
 
 /**
@@ -366,3 +379,273 @@ async function expectUnlisted(browser: import('@playwright/test').Browser, team:
     }
   }
 }
+
+/**
+ * The domain screen (AdminDomainsPage.tsx) and its form (DomainFormModal.tsx), which carries the
+ * domain's GPS credentials and its dedicated sites (aliases) in sections of its own. Domains
+ * cannot be deleted: the rename works on a domain per project and parallel slot, put back to a
+ * known state first; the alias is added to `localhost` under a hostname of this run, and removed.
+ */
+test.describe('domains', () => {
+  test('renaming a domain from its form keeps its GPS credentials and its other settings', async ({
+    page,
+  }) => {
+    const fingerprints = 'AB:CD:EF:01:23:45:67:89:AB:CD:EF:01:23:45:67:89:AB:CD:EF:01'
+    const stamp = Date.now().toString(36)
+    const { domain, credentials } = await scratchDomain(
+      {
+        name: unique('Domaine'),
+        singleTeam: false,
+        enableGpxPlanner: true,
+        androidFingerprints: fingerprints,
+      },
+      [
+        {
+          serviceType: 'GARMIN',
+          clientId: `garmin-${stamp}`,
+          clientSecret: 'e2e-garmin-secret',
+          active: true,
+        },
+        {
+          serviceType: 'WAHOO',
+          clientId: `wahoo-${stamp}`,
+          clientSecret: 'e2e-wahoo-secret',
+          active: false,
+        },
+      ]
+    )
+    const renamed = unique('Domaine renommé')
+
+    await page.goto(await adminDomainsPathOf(domain.domain))
+    const row = rowWithCell(page.getByRole('main'), domain.domain)
+    await expect(row.getByText(domain.name, { exact: true })).toBeVisible()
+    // The row's first button: « Modifier » (its tooltip; no accessible name — see below).
+    const edit = row.getByRole('button').first()
+    await hydrated(edit)
+    await edit.click()
+
+    const dialog = page.getByRole('dialog', { name: 'Modifier le domaine' })
+    await expect(dialog.getByRole('textbox', { name: 'Domaine', exact: true })).toHaveValue(
+      domain.domain
+    )
+    await expect(dialog.getByRole('textbox', { name: 'Domaine', exact: true })).toBeDisabled()
+    for (const credential of credentials)
+      await expect(rowWithCell(dialog, credential.clientId)).toBeVisible()
+    const name = dialog.getByRole('textbox', { name: 'Nom', exact: true })
+    await expect(name).toHaveValue(domain.name)
+    await name.fill(renamed)
+    const updated = page.waitForResponse(
+      (r) => r.url().endsWith(`/api/admin/domains/${domain.id}`) && r.request().method() === 'PUT'
+    )
+    await dialog.getByRole('button', { name: 'Enregistrer' }).click()
+    const response = await updated
+    expect(response.ok()).toBe(true)
+    // The form sends the domain's own fields, as they were but for the name — nothing else.
+    expect(response.request().postDataJSON()).toEqual({
+      name: renamed,
+      baseUrl: domain.baseUrl,
+      singleTeam: false,
+      enableGpxPlanner: true,
+      androidFingerprints: fingerprints,
+    })
+    await expect(page.getByText('Domaine mis à jour avec succès', { exact: true })).toBeVisible()
+    await expect(dialog).toBeHidden()
+    await expect(row.getByText(renamed, { exact: true })).toBeVisible()
+
+    expect(await adminDomain(domain.domain)).toMatchObject({
+      name: renamed,
+      baseUrl: domain.baseUrl,
+      singleTeam: false,
+      enableGpxPlanner: true,
+      androidFingerprints: fingerprints,
+      active: true,
+    })
+    const summary = (list: AdminGpsCredentialDto[]) =>
+      list
+        .map(({ id, serviceType, clientId, active }) => ({ id, serviceType, clientId, active }))
+        .sort((a, b) => a.clientId.localeCompare(b.clientId))
+    expect(summary(await gpsCredentialsOf(domain))).toEqual(summary(credentials))
+
+    // Opened again, the form lists them still.
+    await hydrated(edit)
+    await edit.click()
+    await expect(dialog.getByRole('textbox', { name: 'Nom', exact: true })).toHaveValue(renamed)
+    for (const credential of credentials)
+      await expect(rowWithCell(dialog, credential.clientId)).toBeVisible()
+  })
+
+  test('the platform admin adds a dedicated site pinned to a team; it serves the team until disabled, then is removed', async ({
+    browser,
+    page,
+  }) => {
+    test.setTimeout(90_000)
+    const owner = await newUser('Platform alias owner')
+    const team = await newTeam(owner, unique('Site dédié'), { visibility: 'PUBLIC' })
+    const host = uniqueLocalHost('site-e2e')
+    const siteName = unique('Site dédié E2E')
+    const localhost = await adminDomain(new URL(stack.baseURL).hostname)
+    try {
+      await page.goto(await adminDomainsPathOf(localhost.domain))
+      const edit = rowWithCell(page.getByRole('main'), localhost.domain).getByRole('button').first()
+      await hydrated(edit)
+      await edit.click()
+      const dialog = page.getByRole('dialog', { name: 'Modifier le domaine' })
+      await dialog.getByRole('button', { name: 'Ajouter un site dédié' }).click()
+
+      // The alias form — its « URL de base » is not the domain's own, above it.
+      const form = dialog
+        .locator('.mantine-Paper-root')
+        .filter({ has: page.getByRole('textbox', { name: "Nom d'hôte" }) })
+      await form.getByRole('textbox', { name: "Nom d'hôte" }).fill(host)
+      await form.getByRole('textbox', { name: "Slug de l'équipe épinglée" }).fill(team.slug)
+      await form.getByRole('textbox', { name: 'Nom affiché' }).fill(siteName)
+      await form.getByRole('textbox', { name: 'URL de base' }).fill(originOf(host))
+      const created = page.waitForResponse(
+        (r) => r.url().endsWith(aliasesPath(localhost)) && r.request().method() === 'POST'
+      )
+      await form.getByRole('button', { name: 'Enregistrer' }).click()
+      const createdResponse = await created
+      expect(createdResponse.ok()).toBe(true)
+      expect(await createdResponse.json()).toMatchObject({
+        hostname: host,
+        pinnedTeamSlug: team.slug,
+        name: siteName,
+        active: true,
+      })
+      await expect(page.getByText('Site dédié créé avec succès', { exact: true })).toBeVisible()
+      const aliasRow = rowWithCell(dialog, host)
+      await expect(aliasRow.getByRole('cell', { name: team.slug, exact: true })).toBeVisible()
+      await expect(aliasRow.getByText('Actif', { exact: true })).toBeVisible()
+
+      // The new hostname serves the team, under the site's own name.
+      const { context, page: visitor } = await pageAs(browser, undefined)
+      try {
+        await visitor.goto(`${originOf(host)}/`)
+        await expect(
+          visitor.getByRole('banner').getByRole('link', { name: siteName })
+        ).toBeVisible()
+        await expect(
+          visitor.getByRole('main').getByRole('heading', { name: team.name, exact: true })
+        ).toBeVisible()
+      } finally {
+        await context.close()
+      }
+      expect(await hostGet<ConfigDto>(host, undefined, '/api/config')).toMatchObject({
+        appName: siteName,
+        pinnedTeamSlug: team.slug,
+      })
+
+      // Disabled from its row, the hostname no longer resolves to any site.
+      const toggled = page.waitForResponse(
+        (r) => r.url().endsWith('/toggle-active') && r.request().method() === 'POST'
+      )
+      await aliasRow.getByRole('button', { name: 'Désactiver le domaine' }).click()
+      expect((await toggled).ok()).toBe(true)
+      await expect(aliasRow.getByText('Inactif', { exact: true })).toBeVisible()
+      await expect(aliasRow.getByRole('button', { name: 'Activer le domaine' })).toBeVisible()
+      expect(await hostStatus(host, undefined, '/api/config')).toBe(404)
+
+      // Removed, once confirmed.
+      await aliasRow.getByRole('button', { name: 'Supprimer' }).click()
+      const confirm = page.getByRole('dialog', { name: 'Supprimer le site dédié' })
+      await expect(confirm.getByText(/Ce nom d'hôte ne sera plus accessible/)).toBeVisible()
+      await confirm.getByRole('button', { name: 'Confirmer' }).click()
+      await expect(page.getByText('Site dédié supprimé avec succès', { exact: true })).toBeVisible()
+      await expect(rowWithCell(dialog, host)).toHaveCount(0)
+      expect((await aliasesOf(localhost)).map((alias) => alias.hostname)).not.toContain(host)
+
+      // Left without saving the domain itself.
+      await dialog.getByRole('button', { name: 'Annuler' }).click()
+      await expect(dialog).toBeHidden()
+    } finally {
+      const left = (await aliasesOf(localhost)).find((alias) => alias.hostname === host)
+      if (left) await deleteAlias(localhost, left.id)
+    }
+  })
+})
+
+// Regression (11583113): each ActionIcon carries its Tooltip's label as aria-label, like the team
+// and user lists since ebf14f23 — before, a screen reader announced two unnamed buttons per row.
+test('the row actions of the domain list have an accessible name', async ({ page }) => {
+  await otherDomain()
+  await page.goto(await adminDomainsPathOf(OTHER_HOST))
+  const row = rowWithCell(page.getByRole('main'), OTHER_HOST)
+  await expect(row.getByRole('button'), 'precondition: the row has its two buttons').toHaveCount(2)
+  await expect.soft(row.getByRole('button', { name: 'Modifier' })).toBeVisible({ timeout: 2_000 })
+  await expect(row.getByRole('button', { name: 'Désactiver le domaine' })).toBeVisible({
+    timeout: 2_000,
+  })
+})
+
+/**
+ * The beta sign-up of /applications (AppsPage.tsx, `signUpForBeta`) and its platform list
+ * (AdminBetaSignupsPage.tsx). The sign-up is idempotent on the address, whatever its case
+ * (BetaSignupService.java:32-37, BetaSignupRepository.existsByEmail), and answers the same either
+ * way — the form must not confirm to a prober that an address is already listed.
+ */
+test.describe('beta sign-ups', () => {
+  const submitSignUp = async (page: Page, email: string) => {
+    const field = page.getByRole('main').getByRole('textbox', { name: 'Email' })
+    await hydrated(field)
+    await field.fill(email)
+    const sent = page.waitForResponse(
+      (r) => r.url().endsWith('/api/beta-signups') && r.request().method() === 'POST'
+    )
+    await page.getByRole('main').getByRole('button', { name: "S'inscrire" }).click()
+    expect((await sent).status()).toBe(204)
+    await expect(page.getByRole('heading', { name: 'Inscription enregistrée' })).toBeVisible()
+  }
+
+  test('a visitor signs up on /applications, and the platform admin finds the address in the list; signing up again adds nothing', async ({
+    browser,
+    page,
+  }) => {
+    const email = freshAddress('beta signup')
+    const { context, page: visitor } = await pageAs(browser, undefined)
+    try {
+      await visitor.goto('/applications')
+      await expect(visitor.getByRole('heading', { name: 'Devenir testeur·se' })).toBeVisible()
+      // A malformed address stays on the form, with its message.
+      const field = visitor.getByRole('main').getByRole('textbox', { name: 'Email' })
+      await hydrated(field)
+      await field.fill('pas-une-adresse')
+      await visitor.getByRole('main').getByRole('button', { name: "S'inscrire" }).click()
+      await expect(visitor.getByText('Email invalide', { exact: true })).toBeVisible()
+
+      await submitSignUp(visitor, email)
+      // Again, in capitals: the same answer, and no second row.
+      await visitor.reload()
+      await submitSignUp(visitor, email.toUpperCase())
+    } finally {
+      await context.close()
+    }
+    expect(
+      (await betaSignups()).signups.filter((signup) => signup.email.toLowerCase() === email)
+    ).toEqual([expect.objectContaining({ email })])
+
+    await page.goto(ADMIN_BETA_SIGNUPS_PATH)
+    await expect(rowWithCell(page.getByRole('main'), email)).toBeVisible()
+    await expect(rowWithCell(page.getByRole('main'), email.toUpperCase())).toHaveCount(0)
+  })
+
+  // The list is the platform's, every domain together — like the platform user and team lists,
+  // and as BetaSignup.java:18-20 has it (domainId kept « for reporting, never for access control »).
+  // A sign-up on another domain goes through, and lands in that one list.
+  test('a sign-up on another domain goes through too, and lands in the same platform list', async ({
+    browser,
+    page,
+  }) => {
+    await otherDomain()
+    const email = freshAddress('beta autre')
+    const { context, page: visitor } = await pageAs(browser, undefined)
+    try {
+      await visitor.goto(`${originOf(OTHER_HOST)}/applications`)
+      await submitSignUp(visitor, email)
+    } finally {
+      await context.close()
+    }
+    expect((await betaSignups()).signups.map((signup) => signup.email)).toContain(email)
+    await page.goto(ADMIN_BETA_SIGNUPS_PATH)
+    await expect(rowWithCell(page.getByRole('main'), email)).toBeVisible()
+  })
+})

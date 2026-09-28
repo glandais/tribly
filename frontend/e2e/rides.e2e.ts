@@ -1,4 +1,13 @@
+import type { Page } from '@playwright/test'
 import { ApiError } from './support/api'
+import { calendarEvent } from './support/calendar'
+import {
+  monthName,
+  parisDaysAhead,
+  parisInstant,
+  parisWallClock,
+  type WallClock,
+} from './support/dates'
 import { addMember, newTeam, newUser, roleSession, signIn } from './support/data'
 import { expect, test, unique } from './support/fixtures'
 import {
@@ -10,7 +19,7 @@ import {
   postComments,
   readRide,
 } from './support/rides'
-import { hydrated } from './support/ui'
+import { entityCard, hydrated, toasts } from './support/ui'
 
 /**
  * The ride detail page (`RideDetailPage` + `RideGroupCard` + `CommentSection`), against the real
@@ -376,5 +385,174 @@ test.describe('changing group', () => {
     await openRide(page, team.slug, ride)
     await expect(secondCard.getByText('Inscrit', { exact: true })).toBeVisible()
     await expect(firstCard.getByRole('button', { name: 'Rejoindre' })).toHaveCount(0)
+  })
+})
+
+/**
+ * Leaving a ride refreshes everything that shows the registration, wherever the member left from:
+ * the home page's « Ma prochaine sortie », the « Inscrit » badge of the feed cards, the « Je
+ * participe » scope and the calendars (lib/rideRegistration.ts invalidateRideRegistration).
+ * Regression (11602d48): « Se désinscrire » on the home card only refreshed « Ma prochaine
+ * sortie », « Quitter » on the ride page only the ride — the rest stayed as it was until a reload,
+ * the cache holding them fresh for three to five minutes (lib/queryClient.ts:11,
+ * CalendarPage.tsx:20).
+ *
+ * Every step after the first `goto` is an in-app navigation (links, history), so what the page
+ * shows comes from the client's cache, not from a new server render.
+ */
+test.describe('leaving a ride, seen from the home page and the calendar', () => {
+  const homePath = (rideName: string) => `/?q=${encodeURIComponent(rideName)}`
+  const nextRideHeading = (page: Page) =>
+    page.getByRole('main').getByRole('heading', { name: 'Ma prochaine sortie' })
+  /** « Ma prochaine sortie »: the heading's box, which holds the card (not a link). */
+  const nextRideCard = (page: Page) => nextRideHeading(page).locator('xpath=..')
+  /** The ride's card in the home feed (NextRideCard is no link, so it is not matched). */
+  const feedCard = (page: Page, rideName: string) => entityCard(page.getByRole('main'), rideName)
+
+  async function scope(page: Page, label: 'Tout' | 'Je participe') {
+    const control = page.getByRole('radiogroup', { name: 'Portée du fil' })
+    await hydrated(control.getByRole('radio', { name: label }))
+    await control.getByText(label, { exact: true }).click()
+  }
+
+  /**
+   * Shows `day` on the personal calendar the page is already on — calendar.ts openCalendarAt
+   * without its `goto`, which would be a fresh server render.
+   */
+  async function showCalendarDay(page: Page, day: WallClock) {
+    const main = page.getByRole('main')
+    await expect(page).toHaveURL(/\/calendrier$/)
+    await expect(main.getByRole('heading', { name: 'Calendrier', level: 2 })).toBeVisible()
+    const today = parisWallClock(new Date())
+    const monthsAhead = day.year * 12 + day.month - (today.year * 12 + today.month)
+    const visibleButton = (name: string) =>
+      main.getByRole('button', { name, exact: true }).filter({ visible: true })
+    if (test.info().project.use.isMobile) {
+      if (monthsAhead > 0) {
+        await hydrated(visibleButton(String(day.year)))
+        await visibleButton(String(day.year)).click()
+        await visibleButton(monthName(day.month, 'fr-FR')).click()
+      }
+      const dayButton = visibleButton(`${monthName(day.month, 'fr-FR')} ${day.day}, ${day.year}`)
+      await hydrated(dayButton)
+      await dayButton.click()
+    } else {
+      for (let i = 0; i < monthsAhead; i++) {
+        await hydrated(visibleButton('Suivant'))
+        await visibleButton('Suivant').click()
+      }
+    }
+  }
+
+  /** From a home page, the « Calendrier » link of its navigation row, then `day`. */
+  async function toCalendar(page: Page, day: WallClock) {
+    const link = page
+      .getByRole('navigation', { name: 'Navigation principale' })
+      .getByRole('link', { name: 'Calendrier' })
+    await hydrated(link)
+    await link.click()
+    await showCalendarDay(page, day)
+  }
+
+  /** A member registered in the only group of a ride two days ahead. */
+  async function registered(label: string) {
+    const { team, organizer, member } = await ridingTeam(label)
+    const day = parisDaysAhead(2, 10, 0)
+    const group = unique('Groupe A')
+    const ride = await newRide(organizer, team.slug, unique('Sortie prochaine'), {
+      dateTime: parisInstant(day),
+      groups: [{ name: group, maxParticipants: 10 }],
+    })
+    await joinGroup(member, team.slug, ride, group)
+    return { team, member, ride, group, day }
+  }
+
+  test('« Se désinscrire » on « Ma prochaine sortie »: the card goes, and the feed badge, « Je participe » and the calendar follow without a reload', async ({
+    page,
+  }) => {
+    const { team, member, ride, group, day } = await registered('next-ride')
+    await signIn(page.context(), member)
+    await page.goto(homePath(ride.name))
+    await expect(nextRideCard(page)).toContainText(ride.name)
+    await expect(feedCard(page, ride.name)).toContainText('Inscrit')
+
+    // The calendar and the « Je participe » feed are read once, so the leave has a cache to
+    // refresh.
+    await toCalendar(page, day)
+    await expect(calendarEvent(page, ride.name)).toContainText(`Inscrit · ${group}`)
+    await page.goBack()
+    await expect(nextRideCard(page)).toContainText(ride.name)
+    await scope(page, 'Je participe')
+    await expect(feedCard(page, ride.name)).toContainText('Inscrit')
+
+    // --- Leave from the home card.
+    const leave = nextRideCard(page).getByRole('button', { name: 'Se désinscrire' })
+    await hydrated(leave)
+    await leave.click()
+    const confirm = page.getByRole('dialog', { name: 'Se désinscrire de la sortie ?' })
+    await expect(confirm).toContainText(ride.name)
+    await confirm.getByRole('button', { name: 'Se désinscrire' }).click()
+    await expect(
+      toasts(page).filter({ hasText: 'Désinscription de la sortie confirmée' })
+    ).toBeVisible()
+    await expect(nextRideHeading(page)).toHaveCount(0)
+    expect((await readRide(member, team.slug, ride.slug)).registered).toBe(false)
+
+    // « Je participe » no longer lists it...
+    await expect(feedCard(page, ride.name)).toHaveCount(0)
+    await expect(
+      page.getByRole('main').getByRole('heading', { name: 'Aucune publication trouvée' })
+    ).toBeVisible()
+    // ...« Tout » still does, without the badge...
+    await scope(page, 'Tout')
+    await expect(feedCard(page, ride.name)).toBeVisible()
+    await expect(feedCard(page, ride.name)).not.toContainText('Inscrit')
+    // ...and the calendar's event is no longer marked.
+    await toCalendar(page, day)
+    await expect(calendarEvent(page, ride.name)).toBeVisible()
+    await expect(calendarEvent(page, ride.name)).not.toContainText('Inscrit')
+  })
+
+  test('« Quitter » on the ride page: the calendar, « Ma prochaine sortie », the feed badge and « Je participe » follow without a reload', async ({
+    page,
+  }) => {
+    const { team, member, ride, group, day } = await registered('ride-page')
+    await signIn(page.context(), member)
+    await page.goto(homePath(ride.name))
+    await expect(nextRideCard(page)).toContainText(ride.name)
+    await expect(feedCard(page, ride.name)).toContainText('Inscrit')
+    await toCalendar(page, day)
+    const event = calendarEvent(page, ride.name)
+    await expect(event).toContainText(`Inscrit · ${group}`)
+
+    // --- From the calendar to the ride, and leave there.
+    await hydrated(event)
+    await event.click()
+    await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}/sorties/${ride.slug}$`))
+    const card = groupCard(page, group)
+    const quit = card.getByRole('button', { name: 'Quitter' })
+    await hydrated(quit)
+    await quit.click()
+    await expect(card.getByRole('button', { name: 'Rejoindre' })).toBeEnabled()
+    await expect(card.getByText('0/10 participants')).toBeVisible()
+    expect((await readRide(member, team.slug, ride.slug)).registered).toBe(false)
+
+    // --- Back to the calendar: the event is no longer marked.
+    await page.goBack()
+    await showCalendarDay(page, day)
+    await expect(calendarEvent(page, ride.name)).toBeVisible()
+    await expect(calendarEvent(page, ride.name)).not.toContainText('Inscrit')
+
+    // --- Back home: no « Ma prochaine sortie », no badge, nothing under « Je participe ».
+    await page.goBack()
+    await expect(page).toHaveURL(/\/\?q=/)
+    await expect(feedCard(page, ride.name)).toBeVisible()
+    await expect(feedCard(page, ride.name)).not.toContainText('Inscrit')
+    await expect(nextRideHeading(page)).toHaveCount(0)
+    await scope(page, 'Je participe')
+    await expect(
+      page.getByRole('main').getByRole('heading', { name: 'Aucune publication trouvée' })
+    ).toBeVisible()
+    await expect(feedCard(page, ride.name)).toHaveCount(0)
   })
 })

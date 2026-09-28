@@ -3,6 +3,7 @@ import type {
   TeamListResponse,
   TeamPageDto,
   TeamPageSummaryDto,
+  TeamWebhookDto,
 } from '../../src/api/dto'
 import { apiGet, withApi, type AuthResponse } from './api'
 import { newTeam, setTeamAttributes } from './data'
@@ -36,3 +37,17 @@ export async function publicTeam(owner: AuthResponse, name: string, joinable: bo
 /** POST /api/teams/{slug}/members/join as `who`: the HTTP status, whatever it is. */
 export const joinStatus = (who: AuthResponse, slug: string) =>
   withApi(who, async (api) => (await api.post(`/api/teams/${slug}/members/join`)).status())
+
+/** GET /api/teams/{slug}/webhook as `who` (a team admin): the webhook, its URL masked. */
+export const webhookOf = (who: AuthResponse, slug: string) =>
+  apiGet<TeamWebhookDto>(who, `/api/teams/${slug}/webhook`)
+
+/**
+ * A Discord webhook URL nobody else uses — its shape only: nothing is ever posted to it (the tests
+ * never publish in the team nor press « Envoyer un message de test »). `token` is the secret part,
+ * the one the masked form must never reveal beyond its last four characters.
+ */
+export function discordWebhook() {
+  const token = `e2e${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}Zq9x`
+  return { url: `https://discord.com/api/webhooks/123456789012345678/${token}`, token }
+}

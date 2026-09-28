@@ -1,5 +1,9 @@
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { parse } from 'yaml'
+import { roleSession, signIn } from './support/data'
 import { as, expect, test } from './support/fixtures'
-import { hydrated, pageHydrated, watchHydration } from './support/ui'
+import { escapeRegExp, hydrated, pageHydrated, watchHydration } from './support/ui'
 
 /**
  * What routes-render.e2e.ts, which opens every route as every role, does not cover: the server
@@ -58,4 +62,112 @@ test.describe('an unknown URL', () => {
       expect(pageErrors, `${url}: uncaught errors`).toEqual([])
       expect(hydrationErrors, `${url}: hydration errors`).toEqual([])
     })
+})
+
+/**
+ * Universal links (APP_LINKS.md): iOS reads `/.well-known/apple-app-site-association`, Android
+ * `/.well-known/assetlinks.json`, both served by server.js as JSON (the AASA has no extension, so
+ * its content type is set by hand — server.js:92-104). The AASA's paths are generated from
+ * contracts/routes.yaml (`deeplink: true`, every locale, `{param}` as `*`) by
+ * scripts/generate-routes.mjs; a route added to the contract without regenerating is a link the app
+ * never receives.
+ */
+test.describe('app links', () => {
+  interface DeeplinkRoute {
+    id: string
+    path: string | Record<string, string>
+    params?: string[]
+    web?: boolean
+    deeplink?: boolean
+  }
+  const contractRoutes = () =>
+    (
+      parse(
+        readFileSync(fileURLToPath(new URL('../../contracts/routes.yaml', import.meta.url)), 'utf8')
+      ) as { routes: DeeplinkRoute[] }
+    ).routes
+  /** Every locale's path of a route, its params as `*`, as the generator writes them. */
+  const patterns = (route: DeeplinkRoute) =>
+    Object.values(typeof route.path === 'string' ? { en: route.path } : route.path).map((path) =>
+      (route.params ?? []).reduce((acc, param) => acc.split(`{${param}}`).join('*'), path)
+    )
+
+  test('the apple-app-site-association is JSON and lists every deeplink path of the contract', async ({
+    request,
+  }) => {
+    const response = await request.get('/.well-known/apple-app-site-association')
+    expect(response.status()).toBe(200)
+    expect(response.headers()['content-type']).toMatch(/^application\/json/)
+    const aasa = (await response.json()) as {
+      applinks: { details: { appID: string; paths: string[] }[] }
+      webcredentials?: { apps: string[] }
+    }
+    const [detail] = aasa.applinks.details
+    expect(detail.appID).toMatch(/^\w+\.fr\.pedalons\.mobile$/)
+    // Passkeys: the same app may use this site's credentials.
+    expect(aasa.webcredentials?.apps).toContain(detail.appID)
+
+    const deeplinks = contractRoutes().filter((route) => route.deeplink)
+    const expected = [...new Set(deeplinks.flatMap(patterns))]
+    expect(expected, 'the contract declares deeplinks').toContain('/equipes/*/sorties/*')
+    expect([...detail.paths].sort()).toEqual(expected.sort())
+  })
+
+  test('assetlinks.json is JSON and hands the Android app its links and the credentials', async ({
+    request,
+  }) => {
+    const response = await request.get('/.well-known/assetlinks.json')
+    expect(response.status()).toBe(200)
+    expect(response.headers()['content-type']).toMatch(/^application\/json/)
+    const statements = (await response.json()) as {
+      relation: string[]
+      target: { namespace: string; package_name: string; sha256_cert_fingerprints: string[] }
+    }[]
+    const app = statements.find((s) => s.target.package_name === 'fr.pedalons.mobile')
+    expect(app?.target.namespace).toBe('android_app')
+    expect(app?.relation).toEqual(
+      expect.arrayContaining([
+        'delegate_permission/common.handle_all_urls',
+        'delegate_permission/common.get_login_creds',
+      ])
+    )
+    expect(app?.target.sha256_cert_fingerprints.length).toBeGreaterThan(0)
+  })
+
+  /**
+   * The deeplinks with no web page (`web: false`): the app handles them, but the same link opened
+   * where the app is not installed — a desktop, a phone without it — lands on the site.
+   * Regression (6f702165): each redirects to the closest web page (`webFallback` in routes.yaml) —
+   * sign-in, the profile, the team list, the team; before, each answered the « Page non trouvée »
+   * 404, and /equipes/decouvrir was read as a team named « decouvrir ».
+   */
+  const landings = [
+    { path: () => '/inscription', to: () => '/connexion', signedIn: false },
+    { path: () => '/profil/participations', to: () => '/profil', signedIn: true },
+    { path: () => '/equipes/decouvrir', to: () => '/equipes', signedIn: true },
+    {
+      path: (team: string) => `/equipes/${team}/membres`,
+      to: (team: string) => `/equipes/${team}`,
+      signedIn: true,
+    },
+  ]
+  for (const landing of landings) {
+    const label = landing.path('{team}')
+    test(`the app-only deeplink ${label} lands on a web page, not a 404`, async ({
+      page,
+      context,
+      seed,
+    }) => {
+      // The rider is a member of the seeded team.
+      if (landing.signedIn) await signIn(context, await roleSession('rider'))
+      const path = landing.path(seed.team.slug)
+      const response = await page.goto(path)
+      await pageHydrated(page)
+      await expect(
+        page.getByRole('main').getByText('Page non trouvée', { exact: true })
+      ).toHaveCount(0)
+      expect(response?.status(), `${path}: status`).toBeLessThan(400)
+      await expect(page).toHaveURL(new RegExp(`${escapeRegExp(landing.to(seed.team.slug))}(\\?|$)`))
+    })
+  }
 })

@@ -1,10 +1,12 @@
 import type { Locator, Page } from '@playwright/test'
-import type { AdDto, AssetDto } from '../src/api/dto'
-import { newAd, solidPng, uploadImage } from './support/ads'
-import { newTeam, newUser, signIn } from './support/data'
+import type { AdDto, AdEditDto, AssetDto } from '../src/api/dto'
+import { getAd, newAd, solidPng, uploadImage } from './support/ads'
+import { apiGet } from './support/api'
+import { addMember, newTeam, newUser, roleSession, signIn } from './support/data'
 import { expect, test, unique } from './support/fixtures'
 import { stubBasemap } from './support/routes'
-import { escapeRegExp, hydrated } from './support/ui'
+import { rawDocument, sessionCookie, ssrOutlet } from './support/ssr'
+import { escapeRegExp, hydrated, pageAs, pageHydrated } from './support/ui'
 
 /**
  * Ads, browsing — docs/NEXT.md §1.2 (web): the detail page (gallery, approximate location, no
@@ -423,4 +425,98 @@ test.describe('ad list', () => {
     await expectQuery(page, filtered)
     await expect(cardTitles(page, tag)).toHaveText([ads.mid.name, ads.dear.name])
   })
+})
+
+/**
+ * An ad's location is, in practice, the seller's home: the API publishes only the centre of the
+ * ~1 km cell holding it (CoarseLocation.blur, AdDto.locationGeometry), and every client draws a
+ * sector, never a pin. The exact point stays on AdEditDto (`/edit`), the owner's. So a member
+ * reading someone else's ad — its page, the team's list — must not receive it anywhere: not in the
+ * server document (markup, dehydrated query cache), not in any response the browser fetches.
+ */
+test('the exact point of an ad is neither in the server documents nor in any API response a member gets', async ({
+  browser,
+}) => {
+  // Two server documents, then three pages in a browser: past 30 s on a loaded stack.
+  test.setTimeout(60_000)
+  const [admin, owner, member] = await Promise.all([
+    roleSession('admin'),
+    newUser('exact-point seller'),
+    newUser('exact-point buyer'),
+  ])
+  const team = await newTeam(owner, unique('exact-point'))
+  await addMember(admin, team.slug, member)
+  // Six decimals, like a geocoded address: its digits are the needles.
+  const exact: [number, number] = [1.487531, 48.446927]
+  const needles = ['1.48753', '48.44692']
+  const ad = await newAd(owner, team.slug, {
+    name: unique('Vélo chez moi'),
+    body: 'À venir chercher.',
+    price: 150,
+    locationDescription: 'Près de Chartres',
+    locationGeometry: { type: 'Point', coordinates: exact },
+  })
+
+  // The owner's edit read keeps the point; a member's read has the cell's centre instead.
+  const edited = await apiGet<AdEditDto>(
+    owner,
+    `/api/teams/${team.slug}/classifieds/${ad.slug}/edit`
+  )
+  expect(edited.locationGeometry?.coordinates).toEqual(exact)
+  const read = await getAd(member, team.slug, ad.slug)
+  const [lon, lat] = read.locationGeometry!.coordinates
+  expect(Math.abs(lat - exact[1]), 'blurred latitude, within a cell').toBeLessThan(0.01)
+  expect(Math.abs(lon - exact[0]), 'blurred longitude, within a cell').toBeLessThan(0.02)
+  for (const needle of needles) expect(JSON.stringify(read)).not.toContain(needle)
+  const blurredLat = String(lat)
+
+  const pages = [
+    { label: 'detail', path: adPath(team.slug, ad) },
+    { label: 'list', path: `/equipes/${team.slug}/annonces` },
+  ]
+
+  // The server documents: the ad is there (its name, and on the detail its blurred point), the
+  // exact point is not.
+  for (const { label, path } of pages) {
+    const document = await rawDocument(path, { cookie: sessionCookie(member) })
+    expect(document.status, `${label}: status`).toBe(200)
+    expect(ssrOutlet(document.html), `${label}: the ad in the markup`).toContain(ad.name)
+    if (label === 'detail')
+      expect(document.html, `${label}: the blurred point handed over`).toContain(blurredLat)
+    for (const needle of needles)
+      expect.soft(document.html.includes(needle), `${label}: ${needle} in the document`).toBe(false)
+  }
+
+  // In the browser: whatever the pages fetch.
+  const { context, page } = await pageAs(browser, member)
+  try {
+    await stubBasemap(page)
+    const bodies: Promise<{ url: string; body: string }>[] = []
+    page.on('response', (response) => {
+      if (!new URL(response.url()).pathname.startsWith('/api/')) return
+      bodies.push(
+        response
+          .text()
+          .catch(() => '')
+          .then((body) => ({ url: response.url(), body }))
+      )
+    })
+    for (const { label, path } of pages) {
+      await page.goto(path)
+      await pageHydrated(page)
+      await expect(page.getByRole('heading', { name: ad.name }).first(), label).toBeVisible()
+    }
+    // The detail's sector: the page did draw the location it was given.
+    await page.goto(adPath(team.slug, ad))
+    await expect(page.getByRole('img', { name: /à environ 1 km près/ })).toBeVisible()
+    await pageHydrated(page)
+
+    const responses = await Promise.all(bodies)
+    expect(responses.length, 'the pages fetched from the API').toBeGreaterThan(0)
+    for (const response of responses)
+      for (const needle of needles)
+        expect.soft(response.body.includes(needle), `${needle} in ${response.url}`).toBe(false)
+  } finally {
+    await context.close()
+  }
 })
