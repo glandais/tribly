@@ -179,7 +179,7 @@ public class FcmClient {
       // No content-available: nothing in the app uses a background wake (the iOS badge was ruled
       // out), and the wake is harmful — it relaunches a killed app before the tap, and
       // firebase_messaging then withholds the tap from getInitialMessage() at launch. See the
-      // iOS push recipe in docs/plans/2026-09-18-notifications-ledger.md.
+      // iOS pitfalls in docs/LEDGER_DONE.md §4.2.
       message.put(
           "apns",
           Map.of(

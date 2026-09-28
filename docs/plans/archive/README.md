@@ -40,9 +40,9 @@ CD, `maximum-scale=1.0` du viewport, healthchecks…). Ses statuts ont été raf
 septembre 2026 ; les backups, notamment, existent. La sécurité applicative est suivie à part, dans
 [`docs/SECURITY_AUDIT.md`](../../SECURITY_AUDIT.md) (septembre 2026).
 
-Les plans de [notifications](../2026-09-18-notifications.md) (et son ledger) et de
+Les plans de [notifications](../2026-09-18-notifications.md) et de
 [migration biketeam en direct](../2026-09-22-biketeam-live-migration.md) restent aussi dans
-`docs/plans/` : le premier a encore trois points ouverts (repris dans `LEDGER_NEXT.md` §8.3), le second
+`docs/plans/` : le premier a encore des points ouverts (repris dans `LEDGER_NEXT.md` §8.3, son ledger ayant été rapatrié dans `LEDGER_DONE.md` §4.2), le second
 est le contrat en vigueur avec biketeam.
 
 [`audit-ux/`](audit-ux/) est l'**entrant** de design (brief, analyse page par page, descriptifs

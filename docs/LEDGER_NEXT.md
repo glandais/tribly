@@ -211,6 +211,13 @@ Relevés le 29 septembre 2026, en vérifiant `docs/*.md` contre le code :
   n'émet de `noindex` par page ; les pages non listées étant rendues en SSR, un robot les indexe.
   Le correctif va dans les `meta()` de `routes.config.ts`. Source : [`BACKLOG.md`](BACKLOG.md)
   (« Visibility Controls »).
+- **NPE 500 sur un `media` incomplet** — relevée le 20 septembre 2026 pendant la recette des
+  notifications : `POST /api/teams/{slug}/rides` avec `media.assets = {}` lève une
+  `NullPointerException` dans `AssetService.updateAssets`, qui déréférence `assets.images()` sans
+  garde ; même risque sur `attachments()`, sur `assets` nul et sur `markdown` nul. `AssetsDto` ne
+  pose ses listes vides que dans son builder, que Jackson n'emprunte pas pour un record, et
+  `@Schema(required = true)` ne valide rien. Invisible depuis les clients (ils envoient toujours des
+  listes) ; répondre 400 ou normaliser à vide.
 - **`.env.example:143` décrit un `BACKUP_KEEP` que rien ne lit** — la rétention est le second
   argument de `scripts/backup-prune.sh`, sur l'hôte de sauvegarde. Retirer la ligne, comme dans
   [`OPERATIONS.md`](OPERATIONS.md).
@@ -379,6 +386,9 @@ sont des invariants que le code garde.
 | **Jeu d'icônes Tabler côté mobile** | Material outline conservé | L'écart ne porte que sur la graisse du trait des icônes de badge de 11 px. `PdlIcons` devrait être le **seul** fichier à nommer `Icons.*` (c'est tenu dans `lib/core/pdl`, pas encore ailleurs : une vingtaine de fichiers le font encore) : une fois ce ménage fait, basculer ne touchera qu'un fichier |
 | **Écran de profil public d'un membre** | Aucune maquette ne va au-delà de la liste | Les lignes du trombinoscope ne sont pas cliquables. Ne pas inventer l'écran |
 | **Édition et création de contenu au mobile** | Hors brief : la v2 est une version de consultation et de participation | Le sélecteur de meneur dans l'éditeur de groupes existe **côté web** (livré hors plan) ; l'équivalent mobile n'est pas ouvert |
+| **Badge iOS du push** | Écarté, côté serveur comme côté app | Serveur : il faudrait recompter les non-lues à l'envoi, et `NotificationMessage` ne porte ni le domaine ni ce compteur. App : `flutter_local_notifications` ne pose un badge qu'en affichant une notification, et en arrière-plan c'est le système qui affiche celle de FCM — une dépendance de plus pour un compteur que la cloche montre déjà. D'où l'absence de `content-available` (voir `LEDGER_DONE.md` §4.2) |
+| **Isolat de fond du push (`onBackgroundMessage`)** | Non écrit | Le serveur envoie `notification` **et** `data` : le système affiche la bannière sans l'app, un isolat n'aurait rien à faire de plus |
+| **Tests Vitest de la cloche et de la page Notifications** | Écartés le 29 septembre 2026 | La recette navigateur les a validées ; le mobile a son test de widget (`notifications_page_test.dart`) |
 | **Contenu masqué d'un compte effacé** | Reste masqué | L'effacement supprime les signalements visant le membre, mais ne touche pas `moderationHiddenAt` sur ses sorties, parcours, posts et voyages. Ce contenu, masqué par 3 signalements, n'a plus d'entrée dans la file et reste invisible pour les membres. C'est voulu : le démasquer republierait un contenu signalé 3 fois |
 | **`acceptTerms` obligatoire à l'inscription (contrat `4.1.0`)** | Laissé en mineure | Les builds mobiles qui n'envoient pas le champ reçoivent un 400 `VALIDATION` à l'inscription. La rupture est acceptée sans passer en `5.0.0` |
 
@@ -477,8 +487,9 @@ Livrée le 24 septembre 2026 ([`LEDGER_DONE.md`](LEDGER_DONE.md) §8).
 ### 8.3 Notifications — ce qui reste
 
 Les phases 1 à 5 de [`plans/2026-09-18-notifications.md`](plans/2026-09-18-notifications.md) sont en
-production, le Web Push aussi depuis le 29 septembre 2026 ; l'état détaillé est dans son
-[ledger](plans/2026-09-18-notifications-ledger.md). Restent deux points, dont aucun n'est du code :
+production, le Web Push aussi depuis le 29 septembre 2026 ; ce qui en est livré, et les pièges à ne
+pas rejouer, sont au §4.2 de [`LEDGER_DONE.md`](LEDGER_DONE.md) (le ledger du chantier y a été
+rapatrié le 29 septembre 2026). Restent deux points qui ne sont pas du code, et un qui l'est :
 
 - **Recette du webhook d'équipe** contre un vrai Slack, un vrai Discord et un vrai Mattermost
   (bouton « Envoyer un test ») — vérifier au passage qu'un `@channel` dans un nom de sortie ne
@@ -486,6 +497,10 @@ production, le Web Push aussi depuis le 29 septembre 2026 ; l'état détaillé e
 - **Décision produit sur l'e-mail** : `PEDALONS_NOTIFICATIONS_EMAIL_ENABLED` reste à `false` en
   production (décision du 21 septembre 2026, « pas pour le moment »). L'activer, c'est écrire aux
   équipes entières, en connaissant les défauts (annulations, voyages publiés).
+- **Webhook d'équipe : le *DNS rebinding* n'est pas couvert** — `WebhookHttpClient` refuse toute
+  résolution vers une adresse interne, mais `HttpClient` résout de nouveau à la connexion : un nom
+  qui change de réponse entre les deux passe. Le fermer voudrait dire épingler l'adresse vérifiée
+  pour la connexion (voir la javadoc de `WebhookHttpClient`).
 
 ### 8.4 Couverture e2e — ce que l'audit du 27 septembre laisse ouvert
 

@@ -20,7 +20,7 @@ both clients: changing it in one place only makes them diverge silently.
 | What's left to do, and what was deliberately ruled out | **[docs/LEDGER_NEXT.md](docs/LEDGER_NEXT.md)** — start here |
 | What was delivered, and the decisions not to undo | [docs/LEDGER_DONE.md](docs/LEDGER_DONE.md) |
 | Product roadmap (P0 → Icebox) | [docs/BACKLOG.md](docs/BACKLOG.md) |
-| Notifications (event pipeline, channels, what's left) | [docs/plans/2026-09-18-notifications.md](docs/plans/2026-09-18-notifications.md) + its ledger |
+| Notifications (event pipeline, channels, what's left) | [docs/plans/2026-09-18-notifications.md](docs/plans/2026-09-18-notifications.md); what's left in LEDGER_NEXT §8.3, what shipped in LEDGER_DONE §4.2 |
 | Why the mobile app / the site / the API look the way they do | [docs/plans/archive/](docs/plans/archive/) — executed plans, kept for their arbitrations |
 | Security audit (September 2026): vulnerabilities and their status | [docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md) |
 | Infrastructure, CI/CD and code-quality audit (February 2026, statuses partly refreshed on 2026-09-29) — some rows still open; not the security reference | [docs/plans/2026-02-14-project-audit.md](docs/plans/2026-02-14-project-audit.md) |
