@@ -157,14 +157,19 @@ public class PedalonsQueryContext {
 
     if (identity.getPrincipal() instanceof JsonWebToken jwt) {
       String email = jwt.getClaim("email");
+      String domainIdStr = jwt.getClaim("domainId");
+      Long tokenDomainId =
+          domainIdStr != null ? fr.pedalons.common.TsidUtils.toLong(domainIdStr) : null;
       // For Garmin devices (or any client with domainId in JWT), use JWT's domainId
       // when HTTP headers don't resolve a domain
-      if (domain == null) {
-        String domainIdStr = jwt.getClaim("domainId");
-        if (domainIdStr != null) {
-          Long domainId = fr.pedalons.common.TsidUtils.toLong(domainIdStr);
-          domain = domainRepository.findByIdOptional(domainId).orElse(null);
-        }
+      if (domain == null && tokenDomainId != null) {
+        domain = domainRepository.findByIdOptional(tokenDomainId).orElse(null);
+      }
+      // A token is only worth something on the site that issued it. The same address can hold an
+      // account on every domain: looking the user up by email alone would open, on another host,
+      // the account that happens to share it.
+      if (domain != null && !domain.getId().equals(tokenDomainId)) {
+        return;
       }
       if (domain != null) {
         // Lookup user by email AND domain - do NOT create/update
