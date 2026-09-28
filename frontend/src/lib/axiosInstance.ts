@@ -208,7 +208,11 @@ export const axiosMutator = <T>(
             errorData,
             parseRetryAfter(axiosError.response?.headers?.['retry-after'])
           )
-          if (!isServer && !options?.skipErrorToast && !config.skipErrorToast) {
+          // A read that finds nothing is the page's to say — its « introuvable » state already
+          // does. A toast on top of it only repeats it, once per query the page makes.
+          const isMissingRead =
+            (config.method ?? 'get').toLowerCase() === 'get' && axiosError.response?.status === 404
+          if (!isServer && !isMissingRead && !options?.skipErrorToast && !config.skipErrorToast) {
             notifications.show({
               message: i18next.t('errors.api.' + errorData.code, errorData.errorDetails || {}),
               color: 'red',
