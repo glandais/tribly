@@ -215,9 +215,14 @@ async function createServer() {
         Object.fromEntries(Object.entries(req.headers).filter(([, v]) => typeof v === 'string'))
       )
 
-      // Handle redirects
+      // Handle redirects. Never cached, even a 301: browsers keep a permanent redirect with no
+      // Cache-Control indefinitely, and these are not forever — a team can take its former slug
+      // back, or another team take it, and a cached /equipes/a → /equipes/b would then loop or
+      // land on the wrong team. Some depend on the session too, like the pages below.
       if (result.redirect) {
-        res.redirect(result.statusCode || 302, result.redirect)
+        res
+          .set({ 'Cache-Control': 'no-store', Vary: 'Cookie' })
+          .redirect(result.statusCode || 302, result.redirect)
         return
       }
 
