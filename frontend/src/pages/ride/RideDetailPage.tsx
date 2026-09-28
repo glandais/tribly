@@ -64,6 +64,7 @@ import { EntityLogo } from '../../components/common/EntityLogo'
 import { ContentActionsMenu } from '../../components/moderation/ContentActionsMenu'
 import { CommentSection } from '../../components/comment'
 import { paths } from '@/config/paths'
+import { invalidateRideRegistration } from '@/lib/rideRegistration'
 import { ErrorBoundary } from '../../components/common/ErrorBoundary'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
@@ -320,6 +321,7 @@ export function RideDetailPage() {
         onSettled: () => {
           setJoiningGroupId(null)
           queryClient.invalidateQueries({ queryKey: rideQueryKey })
+          invalidateRideRegistration(queryClient, teamSlug!)
         },
       }
     )

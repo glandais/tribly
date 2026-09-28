@@ -14,11 +14,11 @@ import {
 } from '@tabler/icons-react'
 import type { RideDto } from '@/api/dto'
 import { useLeaveGroup } from '@/api/endpoints/rides/rides'
-import { getListMyParticipationsQueryKey } from '@/api/endpoints/users/users'
 import { CardImage, CardTeamLink, Stat, StatGroup } from '../card/common'
 import { UserAvatarGroup } from '../common/UserAvatar'
 import { ConfirmDialog } from '../common/ConfirmDialog'
 import { paths } from '@/config/paths'
+import { invalidateRideRegistration } from '@/lib/rideRegistration'
 import { useUnits } from '@/hooks/useUnits'
 import { useFormattedDate } from '@/utils/dateFormat'
 import { FormattedDateTime } from '../common/FormattedDate'
@@ -52,7 +52,7 @@ export function NextRideCard({ ride }: NextRideCardProps) {
       { teamSlug: ride.team.slug, rideSlug: ride.slug, groupId: ride.registeredGroupId },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListMyParticipationsQueryKey() })
+          invalidateRideRegistration(queryClient, ride.team.slug)
           notifications.show({ message: t('rides.notifications.left'), color: 'green' })
           setShowLeaveConfirm(false)
         },
