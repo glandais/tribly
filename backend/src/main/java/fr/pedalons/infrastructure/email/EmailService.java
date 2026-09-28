@@ -1,11 +1,13 @@
 package fr.pedalons.infrastructure.email;
 
+import io.quarkus.logging.Log;
 import io.quarkus.mailer.Mail;
 import io.quarkus.mailer.Mailer;
 import io.quarkus.qute.Engine;
 import io.quarkus.qute.Template;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 import org.jspecify.annotations.Nullable;
@@ -97,6 +99,18 @@ public class EmailService {
     if (replyTo != null) {
       mail.setReplyTo(replyTo);
     }
-    mailer.send(mail);
+    long start = System.nanoTime();
+    try {
+      mailer.send(mail);
+    } catch (RuntimeException e) {
+      // Logged here rather than left to the caller: when the send outlasts the client, the request
+      // is gone by the time the exception surfaces and the exception mapper writes nothing.
+      Log.errorf(
+          e,
+          "Mail %s not sent after %d ms",
+          templateName,
+          Duration.ofNanos(System.nanoTime() - start).toMillis());
+      throw e;
+    }
   }
 }
