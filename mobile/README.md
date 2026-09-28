@@ -161,7 +161,7 @@ Environment variables via `--dart-define`:
 ## Related Documentation
 
 - [CLAUDE.md](CLAUDE.md) - AI assistant guidance for this codebase
-- [rules.md](rules.md) - Flutter/Dart coding standards and best practices
+- [RULES.md](RULES.md) - Flutter/Dart coding standards and best practices
 - [patrol_test/README.md](patrol_test/README.md) - Patrol end-to-end tests
 - [store-metadata/README.md](store-metadata/README.md) - Store listings, privacy declarations
 - [screenshots/README.md](screenshots/README.md) - Store screenshots

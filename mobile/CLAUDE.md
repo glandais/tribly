@@ -254,6 +254,6 @@ final teamsClientProvider = Provider<TeamsClient>((ref) => ref.watch(apiClientPr
 `lib/core/pdl/README.md` is the authority on the component library (contract, naming, what not to
 port). `../docs/NEXT.md` lists what's left and what was ruled out.
 
-See `rules.md` for the project's Flutter/Dart conventions: Riverpod patterns, generated-code
+See `RULES.md` for the project's Flutter/Dart conventions: Riverpod patterns, generated-code
 workflow, logging, testing and accessibility. Visual design lives in `lib/core/pdl/README.md`,
-not in `rules.md`.
+not in `RULES.md`.
