@@ -17,6 +17,7 @@ import '../../../moderation/presentation/moderation_menu.dart';
 import '../../../teams/providers/team_providers.dart';
 import '../../data/comment_repository.dart';
 import '../../providers/comment_thread_provider.dart';
+import '../../../../keys.dart';
 
 /// Le fil de commentaires — un niveau de réponse, pas deux.
 ///
@@ -212,6 +213,7 @@ class _CommentThreadState extends ConsumerState<CommentThread> {
     final DateTime? createdAt = DateTime.tryParse(comment.createdAt);
 
     return Row(
+      key: keys.comments.comment(comment.id),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         PdlAvatar(
@@ -252,6 +254,7 @@ class _CommentThreadState extends ConsumerState<CommentThread> {
                   // de l'équipe qu'on organise.
                   if (currentUserId != null)
                     ModerationMoreButton(
+                      key: keys.comments.moreButton(comment.id),
                       onPressed: () => _openMenu(comment, viewer, mine: mine),
                     ),
                 ],

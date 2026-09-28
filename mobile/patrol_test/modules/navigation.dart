@@ -9,6 +9,10 @@ final class Navigation extends Module {
     await $(keys.navigation.tab(_destination('nav.profile'))).tap();
   }
 
+  Future<void> goToTeams() async {
+    await $(keys.navigation.tab(_destination('nav.teams'))).tap();
+  }
+
   Future<void> waitUntilTabBarIsVisible() async {
     await $(keys.navigation.tab(kAppDestinations.first)).waitUntilVisible();
   }

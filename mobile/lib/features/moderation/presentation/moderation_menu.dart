@@ -12,6 +12,7 @@ import '../../profile/presentation/widgets/confirm_sheet.dart';
 import '../data/moderation_repository.dart';
 import '../providers/moderation_refresh.dart';
 import 'report_sheet.dart';
+import '../../../keys.dart';
 
 export 'report_sheet.dart' show ModerationSubject;
 
@@ -88,6 +89,7 @@ Future<ModerationOutcome?> showModerationMenu(
       children: <Widget>[
         if (canReport)
           PdlSettingRow(
+            key: keys.moderation.reportAction,
             icon: PdlIcons.report,
             title: subject.type == ReportTargetType.member
                 ? 'moderation.reportMember'.tr()
@@ -97,6 +99,7 @@ Future<ModerationOutcome?> showModerationMenu(
           ),
         if (canBlock)
           PdlSettingRow(
+            key: keys.moderation.blockAction,
             icon: PdlIcons.block,
             title: 'moderation.block'.tr(
               namedArgs: <String, String>{'name': blockUserName},
@@ -107,6 +110,7 @@ Future<ModerationOutcome?> showModerationMenu(
           ),
         if (onDelete != null)
           PdlSettingRow(
+            key: keys.moderation.deleteAction,
             icon: PdlIcons.delete,
             title: 'common.delete'.tr(),
             trailing: const SizedBox.shrink(),

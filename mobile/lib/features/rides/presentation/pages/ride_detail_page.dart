@@ -29,6 +29,7 @@ import '../widgets/ride_elevation_section.dart';
 import '../widgets/ride_groups_map.dart';
 import '../widgets/ride_groups_section.dart';
 import '../../../feedback/presentation/report_problem_button.dart';
+import '../../../../keys.dart';
 
 /// L'écran 12 — détail d'une sortie et inscription à un groupe.
 ///
@@ -258,7 +259,7 @@ class _RideDetailContent extends ConsumerWidget {
             onTap: () => context.push(Paths.team(ride.team.slug)),
           ),
           const SizedBox(height: 2),
-          Text(ride.name, style: t.screenTitle),
+          Text(ride.name, key: keys.ride.title, style: t.screenTitle),
           const SizedBox(height: PdlSpacing.chipGap),
           Wrap(
             spacing: PdlSpacing.badgeGap,
@@ -547,6 +548,7 @@ class _RideDetailError extends ConsumerWidget {
       ),
       body: Center(
         child: PdlEmptyState(
+          key: keys.ride.loadError,
           variant: notFound
               ? PdlEmptyVariant.notFound
               : (resolved.isOffline

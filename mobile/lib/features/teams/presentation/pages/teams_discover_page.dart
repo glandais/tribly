@@ -13,6 +13,7 @@ import '../../domain/team_discovery_filters.dart';
 import '../../providers/team_discovery_provider.dart';
 import '../widgets/team_discovery_card.dart';
 import '../../../feedback/presentation/report_problem_button.dart';
+import '../../../../keys.dart';
 
 /// L'annuaire public : rejoindre une équipe dont on n'est pas membre.
 ///
@@ -213,7 +214,7 @@ class _TeamsDiscoverPageState extends ConsumerState<TeamsDiscoverPage> {
             notifier.onItemBuilt(index);
             final TeamDetailDto team = state.items[index];
             return TeamDiscoveryCard(
-              key: ValueKey<String>(team.id),
+              key: keys.teamsDiscover.card(team.slug),
               // Le rôle rendu est celui du serveur, sauf quand la bascule
               // optimiste l'a devancé.
               team: team.copyWith(role: joinState.roleFor(team)),
@@ -267,6 +268,7 @@ class _DiscoveryToolbar extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: PdlSpacing.section),
           child: PdlSearchField(
+            key: keys.teamsDiscover.searchField,
             value: filters.search,
             hintText: 'teams.discovery.searchPlaceholder'.tr(),
             clearTooltip: 'common.clearSearch'.tr(),

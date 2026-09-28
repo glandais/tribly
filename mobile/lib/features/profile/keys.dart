@@ -6,4 +6,9 @@ class _ProfilePageKey extends ValueKey<String> {
 
 class ProfilePageKeys {
   final logoutButton = const _ProfilePageKey('logoutButton');
+
+  /// Le bouton qui confirme une action destructive (`confirmDestructive`).
+  final confirmDestructiveButton = const _ProfilePageKey(
+    'confirmDestructiveButton',
+  );
 }

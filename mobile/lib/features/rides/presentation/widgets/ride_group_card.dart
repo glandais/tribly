@@ -10,6 +10,7 @@ import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../domain/ride_group_action.dart';
+import '../../../../keys.dart';
 
 /// La carte d'un groupe de sortie — **le choix de groupe lui-même**.
 ///
@@ -132,6 +133,7 @@ class RideGroupCard extends StatelessWidget {
   Widget? get _button => switch (action) {
     RideGroupAction.none => null,
     RideGroupAction.leave => PdlButton(
+      key: keys.ride.groupLeaveButton(group.id),
       label: 'rides.groupLeave'.tr(),
       loadingLabel: 'rides.leaving'.tr(),
       variant: PdlButtonVariant.outline,
@@ -146,6 +148,7 @@ class RideGroupCard extends StatelessWidget {
       enabled: false,
     ),
     RideGroupAction.join => PdlButton(
+      key: keys.ride.groupJoinButton(group.id),
       label: 'rides.groupJoin'.tr(),
       loadingLabel: 'rides.joining'.tr(),
       size: PdlButtonSize.sm,
@@ -198,6 +201,7 @@ class RideGroupCard extends StatelessWidget {
   Widget _leaderRow(PdlTypography t, PdlColors c) {
     final PublicUserDto leader = group.leader!;
     return Row(
+      key: keys.ride.groupLeader(group.id),
       children: <Widget>[
         PdlAvatar(
           name: leader.displayName,

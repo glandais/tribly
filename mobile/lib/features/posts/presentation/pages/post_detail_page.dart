@@ -25,6 +25,7 @@ import '../../../teams/providers/team_providers.dart';
 import '../../data/post_repository.dart';
 import '../../domain/post_neighbours.dart';
 import '../../../feedback/presentation/report_problem_button.dart';
+import '../../../../keys.dart';
 
 final postDetailProvider =
     FutureProvider.family<PostDto, ({String teamSlug, String postSlug})>((
@@ -85,6 +86,7 @@ class PostDetailPage extends ConsumerWidget {
         body: Center(
           child: SingleChildScrollView(
             child: PdlEmptyState(
+              key: keys.post.loadError,
               variant: PdlEmptyVariant.error,
               title: 'common.loadError'.tr(),
               message: getErrorMessage(error, stack),
@@ -133,6 +135,7 @@ class _PostDetailContent extends ConsumerWidget {
           // ne peut donc ni savoir si c'est la sienne, ni proposer de le
           // bloquer. Le serveur refuse `REPORT_SELF`, et la feuille le dit.
           PdlAppBarAction(
+            key: keys.post.moreButton,
             icon: PdlIcons.more,
             semanticLabel: 'moderation.more'.tr(),
             onPressed: () => unawaited(
@@ -249,7 +252,13 @@ class _PostDetailContent extends ConsumerWidget {
           children: <Widget>[
             // Le titre n'est **pas** tronqué ici : sur un détail, il est le
             // sujet de l'écran, pas une ligne de liste.
-            Expanded(child: Text(post.name, style: t.screenTitle)),
+            Expanded(
+              child: Text(
+                post.name,
+                key: keys.post.title,
+                style: t.screenTitle,
+              ),
+            ),
             const SizedBox(width: PdlSpacing.chipGap),
             PdlBadgeStack(
               badges: <Widget>[

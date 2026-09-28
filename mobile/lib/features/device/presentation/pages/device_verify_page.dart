@@ -9,6 +9,7 @@ import '../../../../api/pedalons_api_client.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../../../../keys.dart';
 
 /// Device verification page for Karoo/Garmin device code flow.
 /// The user enters or receives a 6-character code from their GPS device
@@ -145,6 +146,7 @@ class _DeviceVerifyPageState extends ConsumerState<DeviceVerifyPage> {
 
     if (_completed) {
       return Column(
+        key: keys.device.success,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.check_circle, size: 80, color: theme.colorScheme.primary),
@@ -177,6 +179,7 @@ class _DeviceVerifyPageState extends ConsumerState<DeviceVerifyPage> {
 
     if (_errorMessage != null) {
       return Column(
+        key: keys.device.error,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.error_outline, size: 80, color: theme.colorScheme.error),
@@ -193,6 +196,7 @@ class _DeviceVerifyPageState extends ConsumerState<DeviceVerifyPage> {
           ),
           const SizedBox(height: 24),
           FilledButton(
+            key: keys.device.tryAgainButton,
             onPressed: () {
               setState(() {
                 _codeController.clear();
@@ -224,6 +228,7 @@ class _DeviceVerifyPageState extends ConsumerState<DeviceVerifyPage> {
         SizedBox(
           width: 240,
           child: TextField(
+            key: keys.device.codeField,
             controller: _codeController,
             textAlign: TextAlign.center,
             textCapitalization: TextCapitalization.characters,
@@ -248,6 +253,7 @@ class _DeviceVerifyPageState extends ConsumerState<DeviceVerifyPage> {
         ),
         const SizedBox(height: 24),
         FilledButton(
+          key: keys.device.submitButton,
           onPressed: _submitCode,
           child: Text('common.continue'.tr()),
         ),

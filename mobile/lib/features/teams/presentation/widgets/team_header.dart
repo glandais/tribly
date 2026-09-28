@@ -15,6 +15,7 @@ import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/share_link.dart';
 import '../../providers/team_membership_controller.dart';
+import '../../../../keys.dart';
 
 /// Hauteur de la barre — le plancher de l'en-tête rétracté.
 const double _kBarHeight = PdlMetrics.appBar;
@@ -255,6 +256,7 @@ class _MembershipAction extends ConsumerWidget {
       // colorée par écran » réserve le plein à ce qu'on veut encourager, et
       // quitter une équipe n'en fait pas partie.
       return PdlButton(
+        key: keys.team.leaveButton,
         label: 'teams.membership.leave'.tr(),
         variant: PdlButtonVariant.outline,
         size: PdlButtonSize.sm,
@@ -264,6 +266,7 @@ class _MembershipAction extends ConsumerWidget {
 
     if (!team.joinable) {
       return PdlButton(
+        key: keys.team.inviteOnlyButton,
         label: 'teams.discovery.inviteOnly'.tr(),
         variant: PdlButtonVariant.outline,
         size: PdlButtonSize.sm,
@@ -272,6 +275,7 @@ class _MembershipAction extends ConsumerWidget {
     }
 
     return PdlButton(
+      key: keys.team.joinButton,
       label: 'teams.membership.join'.tr(),
       size: PdlButtonSize.sm,
       onPressed: controller.join,
@@ -310,6 +314,7 @@ class _MembershipAction extends ConsumerWidget {
                 const SizedBox(width: PdlSpacing.chipGap),
                 Expanded(
                   child: PdlButton(
+                    key: keys.team.leaveConfirmButton,
                     label: 'teams.membership.leave'.tr(),
                     variant: PdlButtonVariant.danger,
                     onPressed: () => Navigator.of(sheetContext).pop(true),

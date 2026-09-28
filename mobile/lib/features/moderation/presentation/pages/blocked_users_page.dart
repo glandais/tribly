@@ -12,6 +12,7 @@ import '../../../../core/utils/api_error_handler.dart';
 import '../../data/moderation_repository.dart';
 import '../../providers/moderation_refresh.dart';
 import '../../../feedback/presentation/report_problem_button.dart';
+import '../../../../keys.dart';
 
 /// « Utilisateurs bloqués » — ouverte depuis le profil, mobile seulement.
 ///
@@ -173,6 +174,7 @@ class _BlockedUsersPageState extends ConsumerState<BlockedUsersPage> {
                             ? null
                             : () => _unblock(users[i]),
                         child: PdlButton(
+                          key: keys.moderation.unblockButton(users[i].id),
                           label: 'moderation.unblock'.tr(),
                           variant: PdlButtonVariant.outline,
                           size: PdlButtonSize.sm,

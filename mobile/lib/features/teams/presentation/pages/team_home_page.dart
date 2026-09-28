@@ -23,6 +23,7 @@ import 'team_about_page.dart';
 import 'team_feed_page.dart';
 import 'team_members_page.dart';
 import '../../../feedback/presentation/report_problem_button.dart';
+import '../../../../keys.dart';
 
 /// A team, whatever section of it is being looked at.
 ///
@@ -73,6 +74,7 @@ class TeamHomePage extends ConsumerWidget {
         body: Center(
           child: SingleChildScrollView(
             child: PdlEmptyState(
+              key: keys.team.loadError,
               variant: PdlEmptyVariant.error,
               title: 'teams.loadError.title'.tr(),
               message: getErrorMessage(error),

@@ -23,4 +23,10 @@ abstract final class E2eConfig {
     'E2E_MAILPIT_URL',
     defaultValue: 'http://localhost:18025',
   );
+
+  /// The platform admin the stack bootstraps (`PEDALONS_BOOTSTRAP_ADMIN_EMAIL`).
+  static const String adminEmail = String.fromEnvironment(
+    'E2E_ADMIN_EMAIL',
+    defaultValue: 'admin@e2e.test',
+  );
 }

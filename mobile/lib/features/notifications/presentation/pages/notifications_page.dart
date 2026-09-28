@@ -19,6 +19,7 @@ import '../notification_display.dart';
 import '../widgets/notification_tile.dart';
 import '../widgets/push_activation_banner.dart';
 import '../../../feedback/presentation/report_problem_button.dart';
+import '../../../../keys.dart';
 
 /// La boîte de réception : la liste paginée, et un filtre « non lues ».
 ///
@@ -65,6 +66,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
         actions: <Widget>[
           if (hasUnread)
             PdlAppBarAction(
+              key: keys.notifications.markAllReadButton,
               icon: PdlIcons.done,
               semanticLabel: 'notifications.markAllRead'.tr(),
               onPressed: () => _markAllRead(notifier),
@@ -268,6 +270,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
           notifier.onItemBuilt(index);
           final NotificationDto notification = state.items[index];
           return NotificationTile(
+            key: keys.notifications.tile(notification.id),
             notification: notification,
             onTap: notification.path() == null && notification.webPath() == null
                 ? null

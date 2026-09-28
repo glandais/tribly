@@ -32,6 +32,13 @@ final class MailpitClient {
     throw StateError('mailpit: no new mail for $to within $timeout');
   }
 
+  /// The 6-digit one-time code in [mail].
+  String otpCodeIn(String mail) {
+    final match = RegExp(r'\b(\d{6})\b').firstMatch(mail);
+    if (match == null) throw StateError('no 6-digit code in mail:\n$mail');
+    return match.group(1)!;
+  }
+
   /// The `token` query parameter of the first link in [mail].
   String linkTokenIn(String mail) {
     final match = RegExp(r'[?&]token=([^\s&"<>]+)').firstMatch(mail);

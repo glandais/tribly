@@ -21,6 +21,7 @@ import '../../data/ad_repository.dart';
 import '../widgets/ad_contact_sheet.dart';
 import '../widgets/ad_location_map.dart';
 import '../../../feedback/presentation/report_problem_button.dart';
+import '../../../../keys.dart';
 
 final adDetailProvider =
     FutureProvider.family<AdDto, ({String teamSlug, String adSlug})>((
@@ -140,6 +141,7 @@ class _AdDetailContentState extends ConsumerState<_AdDetailContent> {
         actions: <Widget>[
           if (currentUserId != null && currentUserId != ad.createdById)
             PdlAppBarAction(
+              key: keys.ad.moreButton,
               icon: PdlIcons.more,
               semanticLabel: 'moderation.more'.tr(),
               onPressed: () => showDetailModerationMenu(
@@ -167,7 +169,13 @@ class _AdDetailContentState extends ConsumerState<_AdDetailContent> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Expanded(child: Text(ad.name, style: t.screenTitle)),
+                    Expanded(
+                      child: Text(
+                        ad.name,
+                        key: keys.ad.title,
+                        style: t.screenTitle,
+                      ),
+                    ),
                     const SizedBox(width: PdlSpacing.chipGap),
                     PdlBadgeStack(
                       badges: <Widget>[
@@ -250,6 +258,7 @@ class _AdDetailContentState extends ConsumerState<_AdDetailContent> {
                   // relayer un message à soi-même n'est pas une action.
                   const SizedBox(height: PdlSpacing.cardTight),
                   PdlButton(
+                    key: keys.ad.contactButton,
                     label: 'ads.contact.cta'.tr(),
                     icon: PdlIcons.email,
                     fullWidth: true,

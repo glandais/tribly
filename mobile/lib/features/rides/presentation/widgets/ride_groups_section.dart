@@ -13,6 +13,7 @@ import '../../domain/ride_group_action.dart';
 import '../../providers/ride_detail_provider.dart';
 import '../../providers/ride_registration_controller.dart';
 import 'ride_group_card.dart';
+import '../../../../keys.dart';
 
 /// Combien de groupes sont montrés avant le repli.
 ///
@@ -109,6 +110,7 @@ class _RideGroupsSectionState extends ConsumerState<RideGroupsSection> {
         ],
         for (final RideGroupDto group in shown) ...<Widget>[
           RideGroupCard(
+            key: keys.ride.group(group.id),
             group: group,
             action: rideGroupAction(
               ride: ride,
@@ -168,6 +170,7 @@ class _RideGroupsSectionState extends ConsumerState<RideGroupsSection> {
     Widget? action;
     if (failure.canSwitch) {
       action = PdlButton(
+        key: keys.ride.switchGroupButton,
         label: 'rides.failure.leaveAndJoin'.tr(
           namedArgs: <String, String>{'group': failure.blockingGroupName ?? ''},
         ),

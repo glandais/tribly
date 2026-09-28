@@ -1,6 +1,10 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:patrol/patrol.dart';
+import 'package:pedalons/app.dart';
 import 'package:pedalons/features/auth/data/secure_storage.dart';
+import 'package:pedalons/features/notifications/providers/push_provider.dart';
 import 'package:pedalons/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -8,6 +12,12 @@ import 'api/api_clients.dart';
 import 'api/backend_client.dart';
 import 'config.dart';
 import 'modules/modules.dart';
+
+export 'package:flutter_test/flutter_test.dart'
+    show expect, isNull, isNotNull, isTrue, isFalse, isNot, contains, equals;
+export 'package:pedalons/config/paths.dart' show Paths;
+
+export 'api/backend_client.dart' show Json, TestUser, unique;
 
 typedef TestAppCallback =
     Future<void> Function(
@@ -21,6 +31,32 @@ void testApp(String description, TestAppCallback callback) {
   patrolTest(description, ($) async {
     E2eConfig.ensureLocalStack();
     await callback($, Modules($), ApiClients());
+  });
+}
+
+/// A test that pins a defect of the app: it must fail today, for the documented [defect].
+///
+/// The Patrol counterpart of Playwright's `test.fail` in the web suite. The body is written as the
+/// fixed app should behave; while it fails, the test passes. The day the defect is fixed the body
+/// passes, and this wrapper fails, asking for the marker to be dropped — the assertions are never
+/// loosened to make it pass.
+void testAppKnownDefect(
+  String description,
+  TestAppCallback callback, {
+  required String defect,
+}) {
+  patrolTest('$description [known defect]', ($) async {
+    E2eConfig.ensureLocalStack();
+    try {
+      await callback($, Modules($), ApiClients());
+    } catch (error) {
+      debugPrint('Known defect reproduced ($defect): $error');
+      return;
+    }
+    fail(
+      'The known defect is fixed: "$defect". Replace testAppKnownDefect with testApp in this '
+      'file.',
+    );
   });
 }
 
@@ -38,6 +74,41 @@ Future<void> openAppSignedIn(PatrolIntegrationTester $, TestUser user) async {
   await _forgetPreviousTest();
   await SecureTokenStorage().saveRefreshToken(user.refreshToken);
   await _pumpApp($);
+}
+
+/// Opens [path] in the running app as a shared link does — a web link tapped in another app, or a
+/// push notification: `main.dart` waits for the session and the router, then rebuilds the path's
+/// ancestors underneath it. [path] is an app path, `Paths.ride(team, ride)` for instance.
+Future<void> openLink(PatrolIntegrationTester $, String path) async {
+  final container = ProviderScope.containerOf(
+    $.tester.element(find.byType(PedalonsApp)),
+  );
+  container.read(pendingPushRouteProvider.notifier).state = path;
+  await $.pump();
+}
+
+/// Polls [read] until it returns a value [until] accepts, and returns that value.
+///
+/// For what the backend does on its own schedule — the notification dispatcher runs every 15 s,
+/// so the default leaves room for two cycles and a slow tick.
+Future<T> eventually<T>(
+  Future<T> Function() read, {
+  required bool Function(T value) until,
+  String? description,
+  Duration timeout = const Duration(seconds: 45),
+}) async {
+  final deadline = DateTime.now().add(timeout);
+  while (true) {
+    final value = await read();
+    if (until(value)) return value;
+    if (DateTime.now().isAfter(deadline)) {
+      throw TestFailure(
+        'Timed out after $timeout waiting for ${description ?? 'a condition'} '
+        '(last value: $value)',
+      );
+    }
+    await Future<void>.delayed(const Duration(seconds: 1));
+  }
 }
 
 Future<void> _forgetPreviousTest() async {

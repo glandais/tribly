@@ -9,6 +9,7 @@ import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../data/notifications_repository.dart';
 import '../../providers/notifications_provider.dart';
+import '../../../../keys.dart';
 
 /// L'ordre des lignes : celui de l'enum, pas celui de la réponse.
 const List<NotificationType> _typeOrder = <NotificationType>[
@@ -181,6 +182,7 @@ class _NotificationPreferencesSectionState
     return PdlSettingRow(
       title: team.teamName,
       trailing: PdlSwitch(
+        key: keys.notifications.teamSwitch(team.teamSlug),
         value: !team.muted,
         semanticLabel: 'notifications.preferences.teamSwitch'.tr(
           namedArgs: <String, String>{'team': team.teamName},

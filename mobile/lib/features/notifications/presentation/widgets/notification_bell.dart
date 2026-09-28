@@ -9,6 +9,7 @@ import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../providers/notifications_provider.dart';
+import '../../../../keys.dart';
 
 /// La cloche de la barre d'accueil : une icône, et une pastille quand il y a
 /// des non lues.
@@ -28,6 +29,7 @@ class NotificationBell extends ConsumerWidget {
     final int unread = ref.watch(unreadNotificationCountProvider);
 
     return Semantics(
+      key: keys.notifications.bell,
       button: true,
       label: unread > 0
           ? 'notifications.bellUnread'.plural(unread)

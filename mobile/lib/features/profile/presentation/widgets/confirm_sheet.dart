@@ -5,6 +5,7 @@ import '../../../../core/pdl/pdl.dart';
 import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
+import '../../../../keys.dart';
 
 /// Une confirmation destructive : **question fermée, puis conséquence**.
 ///
@@ -58,6 +59,7 @@ Future<bool> confirmDestructive(
                 const SizedBox(width: PdlSpacing.chipGap),
                 Expanded(
                   child: PdlButton(
+                    key: keys.profile.confirmDestructiveButton,
                     label: confirmLabel,
                     variant: PdlButtonVariant.danger,
                     onPressed: () => Navigator.of(sheetContext).pop(true),

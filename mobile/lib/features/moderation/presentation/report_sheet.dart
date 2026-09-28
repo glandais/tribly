@@ -11,6 +11,7 @@ import '../../../core/theme/pdl_tokens.dart';
 import '../../../core/theme/pdl_typography.dart';
 import '../../../core/utils/api_error_handler.dart';
 import '../data/moderation_repository.dart';
+import '../../../keys.dart';
 
 /// Borne du texte libre, imposée par `ReportRequest` au contrat.
 const int kReportMessageMaxLength = 500;
@@ -136,6 +137,7 @@ class _ReportSheetState extends ConsumerState<_ReportSheet> {
             // coche indigo des feuilles de choix, pas des boutons radio.
             for (final ReportReason reason in ReportReason.$valuesDefined)
               PdlSettingRow(
+                key: keys.moderation.reason(reason),
                 title: 'moderation.reason.${reason.toJson()}'.tr(),
                 trailing: reason == _reason
                     ? Icon(PdlIcons.check, size: 20, color: c.primary)
@@ -213,6 +215,7 @@ class _ReportSheetState extends ConsumerState<_ReportSheet> {
             PdlSpacing.chipGap,
           ),
           child: PdlButton(
+            key: keys.moderation.sendReportButton,
             label: _error == null
                 ? 'moderation.send'.tr()
                 : 'common.retry'.tr(),

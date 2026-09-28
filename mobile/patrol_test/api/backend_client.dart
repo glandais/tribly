@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 
 import '../config.dart';
@@ -6,21 +8,45 @@ import 'mailpit_client.dart';
 /// An account created for a test, verified, with its first session.
 final class TestUser {
   const TestUser({
+    required this.id,
     required this.email,
     required this.password,
     required this.displayName,
+    required this.accessToken,
     required this.refreshToken,
   });
 
+  final String id;
   final String email;
   final String password;
   final String displayName;
+
+  /// Lives 15 minutes — longer than any test.
+  final String accessToken;
   final String refreshToken;
+
+  factory TestUser._fromAuth(Map<String, dynamic> auth, String password) {
+    final user = auth['user'] as Map<String, dynamic>;
+    return TestUser(
+      id: user['id'] as String,
+      email: user['email'] as String,
+      password: password,
+      displayName: user['displayName'] as String,
+      accessToken: auth['accessToken'] as String,
+      refreshToken: auth['refreshToken'] as String,
+    );
+  }
 }
+
+/// A JSON object from the API, read by key: the suite doesn't need the generated DTOs.
+typedef Json = Map<String, dynamic>;
 
 /// Seeds data through the REST API, the same endpoints the app uses — the backend has no
 /// test-only backdoor. Each test creates what it needs under a unique name: the e2e database is
 /// shared with the web suite and never reset between runs.
+///
+/// Mirrors `frontend/e2e/support/` (data.ts, rides.ts, posts.ts, …): same endpoints, same
+/// defaults, so a scenario reads the same on both suites.
 final class BackendClient {
   BackendClient(this._mailpit);
 
@@ -28,6 +54,8 @@ final class BackendClient {
   final Dio _dio = Dio(BaseOptions(baseUrl: E2eConfig.apiBaseUrl));
 
   static const String _password = 'e2e-password';
+
+  // ── Accounts ────────────────────────────────────────────────────────────
 
   /// Signs up as the app does — register, then follow the verification link from the mail.
   Future<TestUser> newUser(String label) async {
@@ -45,20 +73,381 @@ final class BackendClient {
     final token = _mailpit.linkTokenIn(
       await _mailpit.waitForNewMail(email, seen),
     );
-    final response = await _dio.post<Map<String, dynamic>>(
+    final response = await _dio.post<Json>(
       '/api/auth/verify-email',
       data: {'token': token},
     );
-    return TestUser(
-      email: email,
-      password: _password,
-      displayName: label,
-      refreshToken: response.data!['refreshToken'] as String,
-    );
+    return TestUser._fromAuth(response.data!, _password);
   }
+
+  TestUser? _admin;
+
+  /// The platform admin the stack bootstraps (`PEDALONS_BOOTSTRAP_ADMIN_EMAIL`): the only one who
+  /// may add members to a team born without `addMemberAllowed`, open a team to the public, or
+  /// make it joinable.
+  ///
+  /// Its login is an OTP, rate-limited to 3 per 5 minutes per address — and each test is a fresh
+  /// launch of the app. So its refresh token is kept in the app's temporary directory, which lives
+  /// as long as the app stays installed (one `patrol test` run), and refreshed rather than
+  /// replaced.
+  Future<TestUser> admin() async => _admin ??= await _adminSession();
+
+  Future<TestUser> _adminSession() async {
+    final saved = File('${Directory.systemTemp.path}/e2e-admin-refresh-token');
+    if (saved.existsSync()) {
+      final refreshed = await _refresh(saved.readAsStringSync().trim());
+      if (refreshed != null) return refreshed;
+    }
+    final email = E2eConfig.adminEmail;
+    final seen = await _mailpit.mailbox(email);
+    await _dio.post<void>('/api/auth/otp', data: {'email': email});
+    final code = _mailpit.otpCodeIn(await _mailpit.waitForNewMail(email, seen));
+    final response = await _dio.post<Json>(
+      '/api/auth/otp/verify',
+      data: {'email': email, 'code': code},
+    );
+    final admin = TestUser._fromAuth(response.data!, '');
+    saved.writeAsStringSync(admin.refreshToken);
+    return admin;
+  }
+
+  Future<TestUser?> _refresh(String refreshToken) async {
+    final response = await _dio.post<Json>(
+      '/api/auth/refresh',
+      options: Options(
+        headers: {'X-Refresh-Token': refreshToken},
+        validateStatus: (status) => status != null && status < 500,
+      ),
+    );
+    if (response.statusCode != 200) return null;
+    return TestUser._fromAuth({
+      ...response.data!,
+      'refreshToken': refreshToken,
+    }, '');
+  }
+
+  // ── Teams ───────────────────────────────────────────────────────────────
+
+  /// A team owned by [owner] (its ADMIN). `POST /api/teams` always creates a members-only team:
+  /// any other [visibility], and the admin-only [joinable] / [addMemberAllowed] attributes, are
+  /// applied afterwards as the platform admin — as `newTeam` does in the web suite.
+  Future<Json> newTeam(
+    TestUser owner,
+    String label, {
+    String visibility = 'TEAM',
+    bool? joinable,
+    bool? addMemberAllowed,
+  }) async {
+    final request = _teamRequest(unique(label));
+    var team = await _post(owner, '/api/teams', request);
+    if (visibility != 'TEAM') {
+      team = await _put(await admin(), '/api/teams/${team['slug']}', {
+        ...request,
+        'visibility': visibility,
+      });
+    }
+    if (joinable != null || addMemberAllowed != null) {
+      final admin = await this.admin();
+      final path = '/api/admin/teams/${team['id']}';
+      final current = await _get(admin, path);
+      await _patch(admin, '$path/attributes', {
+        'visibilityEditable': current['visibilityEditable'],
+        'joinable': joinable ?? current['joinable'],
+        'addMemberAllowed': addMemberAllowed ?? current['addMemberAllowed'],
+        'enableRoutePlanner': current['enableRoutePlanner'],
+      });
+    }
+    return team;
+  }
+
+  Json _teamRequest(String name) => {
+    'name': name,
+    'visibility': 'TEAM',
+    'media': markdownMedia(),
+    'enableTrips': true,
+    'enableAds': true,
+    'enablePosts': true,
+    'enableRides': true,
+    'enableRoutes': true,
+    'enableMemberDirectory': true,
+  };
+
+  /// The team as [who] reads it — its `role` is the caller's own role in the team.
+  Future<Json> team(TestUser who, String slug) => _get(who, '/api/teams/$slug');
+
+  /// Adds [member] to the team, as the platform admin (who does not become a member by it).
+  Future<void> addMember(
+    String teamSlug,
+    TestUser member, {
+    String role = 'MEMBER',
+  }) async {
+    await _post(await admin(), '/api/teams/$teamSlug/members', {
+      'userId': member.id,
+      'role': role,
+    });
+  }
+
+  Future<void> leaveTeam(TestUser who, String teamSlug) =>
+      _post(who, '/api/teams/$teamSlug/members/leave');
+
+  /// PATCH `{entity}/slug` as [who], what the web editor sends: the backend then keeps a redirect
+  /// from the old slug. [apiPath] is the entity's resource (`/api/teams/{slug}`, …).
+  Future<String> renameSlug(TestUser who, String apiPath, String label) async {
+    final slug = unique(
+      label,
+    ).toLowerCase().replaceAll(RegExp('[^a-z0-9]+'), '-');
+    final renamed = await _patch(who, '$apiPath/slug', {'slug': slug});
+    return renamed['slug'] as String;
+  }
+
+  // ── Rides ───────────────────────────────────────────────────────────────
+
+  /// A published, members-only ride two days ahead, with [groups] (one « Groupe A » by default).
+  /// A group is `{'name': …}`, plus `'leaderId'` for a designated leader.
+  Future<Json> newRide(
+    TestUser by,
+    String teamSlug,
+    String label, {
+    List<Json>? groups,
+  }) => _post(by, '/api/teams/$teamSlug/rides', {
+    'name': unique(label),
+    'media': markdownMedia(),
+    'dateTime': DateTime.now()
+        .toUtc()
+        .add(const Duration(days: 2))
+        .toIso8601String(),
+    'status': 'PUBLISHED',
+    'visibility': 'TEAM',
+    'groups':
+        groups ??
+        [
+          {'name': 'Groupe A'},
+        ],
+  });
+
+  Future<Json> ride(TestUser who, String teamSlug, String rideSlug) =>
+      _get(who, '/api/teams/$teamSlug/rides/$rideSlug');
+
+  /// The ids of the ride's groups [who] is registered in, per the API.
+  Future<List<String>> registeredGroupIds(
+    TestUser who,
+    String teamSlug,
+    String rideSlug,
+  ) async {
+    final ride = await this.ride(who, teamSlug, rideSlug);
+    return [
+      for (final group in (ride['groups'] as List).cast<Json>())
+        if (group['registered'] == true) group['id'] as String,
+    ];
+  }
+
+  // ── Posts and comments ──────────────────────────────────────────────────
+
+  /// A published, members-only post dated now.
+  Future<Json> newPost(TestUser by, String teamSlug, String label) =>
+      _post(by, '/api/teams/$teamSlug/posts', {
+        'name': unique(label),
+        'media': markdownMedia(),
+        'dateTime': DateTime.now().toUtc().toIso8601String(),
+        'visibility': 'TEAM',
+        'status': 'PUBLISHED',
+      });
+
+  Future<Json> commentOnPost(
+    TestUser by,
+    String teamSlug,
+    String postSlug,
+    String content,
+  ) => _post(by, '/api/teams/$teamSlug/posts/$postSlug/comments', {
+    'content': content,
+  });
+
+  /// The post as [who] reads it, or null when the API answers 404 (hidden, deleted, unknown).
+  Future<Json?> findPost(TestUser who, String teamSlug, String postSlug) =>
+      _getOrNull(who, '/api/teams/$teamSlug/posts/$postSlug');
+
+  // ── Ads ─────────────────────────────────────────────────────────────────
+
+  /// A published sale ad.
+  Future<Json> newAd(TestUser by, String teamSlug, String label) =>
+      _post(by, '/api/teams/$teamSlug/classifieds', {
+        'name': unique(label),
+        'status': 'PUBLISHED',
+        'adType': 'SALE',
+        'price': 50,
+        'media': markdownMedia(),
+      });
+
+  /// DELETE the ad as [who]: the HTTP status, whatever it is.
+  Future<int> deleteAdStatus(TestUser who, String teamSlug, String adSlug) =>
+      _status(who, 'DELETE', '/api/teams/$teamSlug/classifieds/$adSlug');
+
+  // ── Moderation ──────────────────────────────────────────────────────────
+
+  Future<void> report(
+    TestUser who,
+    String teamSlug,
+    String targetType,
+    String targetId,
+  ) => _post(who, '/api/reports', {
+    'teamSlug': teamSlug,
+    'targetType': targetType,
+    'targetId': targetId,
+    'reason': 'SPAM',
+  });
+
+  /// The item of the team's open queue about [targetId], as [moderator]; null when there is none.
+  Future<Json?> queueItem(
+    TestUser moderator,
+    String teamSlug,
+    String targetId,
+  ) async {
+    final queue = await _get(
+      moderator,
+      '/api/teams/$teamSlug/reports',
+      query: {'status': 'OPEN'},
+    );
+    return (queue['items'] as List).cast<Json>().where((item) {
+      return item['targetId'] == targetId;
+    }).firstOrNull;
+  }
+
+  Future<List<String>> blockedIds(TestUser who) async {
+    final blocked = await _get(who, '/api/users/me/blocks');
+    return [
+      for (final user in (blocked['users'] as List).cast<Json>())
+        user['id'] as String,
+    ];
+  }
+
+  Future<List<String>> postCommentIds(
+    TestUser who,
+    String teamSlug,
+    String postSlug,
+  ) async {
+    final comments = await _get(
+      who,
+      '/api/teams/$teamSlug/posts/$postSlug/comments',
+    );
+    return [
+      for (final comment in (comments['items'] as List).cast<Json>())
+        comment['id'] as String,
+    ];
+  }
+
+  // ── Notifications ───────────────────────────────────────────────────────
+
+  Future<int> unreadCount(TestUser who) async =>
+      (await _get(who, '/api/notifications/unread-count'))['count'] as int;
+
+  Future<List<Json>> notifications(TestUser who) async {
+    final page = await _get(
+      who,
+      '/api/notifications',
+      query: {'size': 100, 'unreadOnly': false},
+    );
+    return (page['items'] as List).cast<Json>();
+  }
+
+  /// The notification of [type] about [subjectSlug] in [who]'s inbox, or null.
+  Future<Json?> notificationAbout(
+    TestUser who,
+    String type,
+    String subjectSlug,
+  ) async => (await notifications(who))
+      .where((n) => n['type'] == type && n['subjectSlug'] == subjectSlug)
+      .firstOrNull;
+
+  /// Whether [who] muted the team, per the API; null when the team isn't among theirs.
+  Future<bool?> isMuted(TestUser who, String teamSlug) async {
+    final preferences = await _get(who, '/api/notifications/preferences');
+    return (preferences['teams'] as List)
+            .cast<Json>()
+            .where((t) => t['teamSlug'] == teamSlug)
+            .firstOrNull?['muted']
+        as bool?;
+  }
+
+  // ── Device pairing (RFC 8628) ───────────────────────────────────────────
+
+  /// What a Garmin or Karoo app asks for first: `deviceCode`, and the `userCode` it shows.
+  Future<Json> startDeviceFlow(String clientId) async => (await _dio.post<Json>(
+    '/api/device/oauth/device',
+    data: {'clientId': clientId},
+  )).data!;
+
+  /// One poll of `/token` as the device: the tokens once the rider authorized it, else the error
+  /// code the backend answers (`AUTHORIZATION_PENDING`, …) under `code`.
+  Future<Json> pollDeviceToken(String deviceCode) async {
+    final response = await _dio.post<Json>(
+      '/api/device/oauth/token',
+      data: {
+        'grantType': 'urn:ietf:params:oauth:grant-type:device_code',
+        'deviceCode': deviceCode,
+      },
+      options: Options(validateStatus: (_) => true),
+    );
+    return response.data ?? const {};
+  }
+
+  /// `GET /api/users/me` with a device's access token: whose account it was paired with.
+  Future<Json> me(String accessToken) async => (await _dio.get<Json>(
+    '/api/users/me',
+    options: Options(headers: {'Authorization': 'Bearer $accessToken'}),
+  )).data!;
+
+  // ── HTTP ────────────────────────────────────────────────────────────────
+
+  Options _as(TestUser who) =>
+      Options(headers: {'Authorization': 'Bearer ${who.accessToken}'});
+
+  Future<Json> _get(TestUser who, String path, {Json? query}) async =>
+      (await _dio.get<Json>(
+        path,
+        queryParameters: query,
+        options: _as(who),
+      )).data!;
+
+  Future<Json?> _getOrNull(TestUser who, String path) async {
+    final response = await _dio.get<Json>(
+      path,
+      options: _as(
+        who,
+      ).copyWith(validateStatus: (status) => status == 200 || status == 404),
+    );
+    return response.statusCode == 404 ? null : response.data;
+  }
+
+  Future<Json> _post(TestUser who, String path, [Object? data]) async =>
+      (await _dio.post<Json>(path, data: data, options: _as(who))).data ??
+      const {};
+
+  Future<Json> _put(TestUser who, String path, Object data) async =>
+      (await _dio.put<Json>(path, data: data, options: _as(who))).data!;
+
+  Future<Json> _patch(TestUser who, String path, Object data) async =>
+      (await _dio.patch<Json>(path, data: data, options: _as(who))).data ??
+      const {};
+
+  Future<int> _status(TestUser who, String method, String path) async =>
+      (await _dio.request<void>(
+        path,
+        options: _as(who).copyWith(method: method, validateStatus: (_) => true),
+      )).statusCode!;
 
   String _uniqueTag(String label) {
     final slug = label.toLowerCase().replaceAll(RegExp('[^a-z0-9]+'), '-');
-    return 'mobile-$slug-${DateTime.now().microsecondsSinceEpoch}';
+    final short = slug.length > 30 ? slug.substring(0, 30) : slug;
+    return 'mobile-$short-${DateTime.now().microsecondsSinceEpoch}';
   }
 }
+
+/// The `media` of a request body: [markdown], and no picture nor attachment.
+Json markdownMedia([String markdown = '']) => {
+  'markdown': markdown,
+  'assets': {'images': <Object>[], 'attachments': <Object>[]},
+};
+
+/// [label] made unique to this run — the database is never reset between runs.
+String unique(String label) =>
+    '$label ${DateTime.now().microsecondsSinceEpoch.toRadixString(36)}';

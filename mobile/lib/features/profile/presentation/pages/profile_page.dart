@@ -22,6 +22,7 @@ import '../widgets/data_and_account_section.dart';
 import '../widgets/passkeys_section.dart';
 import '../widgets/preferences_section.dart';
 import '../widgets/profile_identity_section.dart';
+import '../../../../keys.dart';
 
 final _serverVersionProvider = FutureProvider<VersionDto>((ref) async {
   return ref.watch(serverVersionClientProvider).getVersion();
@@ -186,6 +187,7 @@ class _BlockedUsersCard extends ConsumerWidget {
     return PdlCard(
       padding: PdlCardPadding.none,
       child: PdlSettingRow(
+        key: keys.moderation.blockedUsersRow,
         icon: PdlIcons.block,
         title: 'moderation.blockedUsers.title'.tr(),
         trailing: Row(
