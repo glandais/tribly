@@ -7,13 +7,15 @@ See also the root `../CLAUDE.md` for full-stack context (backend, mobile, karoo,
 ## Commands
 
 ```bash
-pnpm dev                           # SPA dev server (localhost:5173, proxies /api to :8080)
+pnpm dev                           # SPA dev server (localhost:5173, proxies /api to $VITE_API_TARGET,
+                                    # default https://staging.pedalons.fr — set VITE_API_TARGET=http://localhost:8080
+                                    # in frontend/.env for a local backend)
 pnpm dev:ssr                       # SSR dev server (node server.js, localhost:3000, Vite middleware mode)
                                     # proxies /api to $API_BASE_URL (default localhost:8080) — if no
                                     # local backend is running, start it with
                                     # API_BASE_URL=https://staging.pedalons.fr pnpm dev:ssr
 pnpm build                         # Dual build: dist/client (browser) + dist/server (entry-server.js), no type checking
-pnpm typecheck                     # Type checking via tsgo (typescript-go)
+pnpm typecheck                     # tsc -b — TypeScript 7's native compiler (typescript-go)
 pnpm generate-api                  # Regenerate API client from ../contracts/openapi.json
 pnpm generate-routes               # Regenerate path builders + deeplinks from ../contracts/routes.yaml
 pnpm lint                          # oxlint (includes i18next/no-literal-string via jsPlugins)
@@ -69,7 +71,7 @@ Custom axios mutator in `lib/axiosInstance.ts` handles: JWT bearer tokens from a
 ### State Management
 
 - **Server state**: React Query (generated hooks from Orval)
-- **Global client state**: Zustand — only `authStore` (JWT, user) and `preferencesStore` (unit system, persisted to localStorage)
+- **Global client state**: Zustand — only `authStore` (JWT, user), `preferencesStore` (unit system, persisted to localStorage) and `mapStyleStore` (remembered basemap, terrain and hillshade toggles, localStorage)
 - **List page filters/search/pagination**: the query string, via `useUrlFilters` — never `useState`. See [URL_FILTERS.md](URL_FILTERS.md).
 - Auth initializes by calling `/api/auth/refresh` on mount; `useAuth` hook fetches `/api/users/me`
 
@@ -91,7 +93,7 @@ Custom axios mutator in `lib/axiosInstance.ts` handles: JWT bearer tokens from a
 - Add every key to **both** locale files. `pnpm i18n:extract` scaffolds missing keys from `t()`/`tRegister()` calls; `pnpm i18n:lint` validates them (run both after touching translations).
 - **Interpolation**: `{{var}}` placeholders passed as `t('key', { var })`. Pluralize with `_one`/`_other` key suffixes + a `{{count}}` param (e.g. `form.charCount_one` / `form.charCount_other`).
 - `tRegister(key)` used in route config for static key tracking.
-- ESLint's `i18next/no-literal-string` (a **warning**, not an error) flags hardcoded user-facing strings — prefer `t()` even where lint wouldn't block.
+- oxlint's `i18next/no-literal-string` (a **warning**, not an error) flags hardcoded user-facing strings — prefer `t()` even where lint wouldn't block.
 
 ### List and detail page shells
 
@@ -121,7 +123,7 @@ Lists request `view=COMPACT` where they only need `excerpt` + `thumbnailUrl`; in
 
 - Path alias: `@/` → `src/`
 - Manual chunk splitting in `vite.config.ts` (map-vendor, editor-vendor, mantine-vendor, etc.)
-- Dev proxy: `/api` → `http://localhost:8080` with `X-Forwarded-Host` for multi-tenancy
+- Dev proxy: `/api` → `VITE_API_TARGET` (default `https://staging.pedalons.fr`), with `X-Forwarded-Host` forced to the target's host so `DomainResolver` finds its tenant
 - **Dual build output**: `pnpm build` runs Vite twice — client bundle → `dist/client/` (with `index.html` containing `<!--ssr-outlet-->` / `<!--ssr-state-->` placeholders), SSR bundle → `dist/server/entry-server.js`. The Docker runtime image runs `node server.js` (Express) and serves both. There is no separate nginx step.
 - **MapLibre worker**: `src/components/map/setupMaplibreWorker.ts` calls `setWorkerUrl()` with a `maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url` import, and every component that constructs a `Map` imports it for its side effect. maplibre-gl otherwise resolves its worker via `new URL('./maplibre-gl-worker.mjs', import.meta.url)` *inside its own bundled module* — a dynamic expression Rollup can't trace, and one that points at the wrong place once bundled into `map-vendor` anyway. `?worker&url` is Vite's documented fix: it bundles the worker (and the sibling `maplibre-gl-shared.mjs` it imports) into one self-contained chunk. Don't reach for `optimizeDeps.exclude` or a manual copy-the-worker-file plugin instead — both were tried and failed (dev-only fix, or a 404 on the untracked sibling file).
 
@@ -190,6 +192,6 @@ Public pages unfurl into rich social/messaging cards via server-rendered OG/Twit
 The July 2026 port of the mobile v2 ideas is documented in
 [`../docs/plans/archive/2026-07-26-web-portage-mobile-v2.md`](../docs/plans/archive/2026-07-26-web-portage-mobile-v2.md),
 whose §4 ("what not to port") explains why touch layouts, `--pdl-*` tokens, a derived dark mode and
-infinite scroll were all declined. What's left to do — the one task still blocked (T5.4, a security
-decision) and the one abandoned with its reasoning — is in [`../docs/NEXT.md`](../docs/NEXT.md);
-T5.5, the ads alignment on mobile, was delivered in July 2026.
+infinite scroll were all declined. What's left to do — T5.4, the member directory, delivered except
+for its public web page, and T3.5, abandoned then settled the other way, with its reasoning — is in
+[`../docs/NEXT.md`](../docs/NEXT.md); T5.5, the ads alignment on mobile, was delivered in July 2026.

@@ -13,7 +13,7 @@ target, no DTO import in `core/pdl`) override any generic Material advice. There
 ## Tooling
 
 * `../format.sh mobile` before every commit; `bash check.sh` is the full gate
-  (pub get + generators + `flutter analyze`).
+  (pub get + generators + `../format.sh mobile` + `flutter analyze` + `flutter test`).
 * The Dart MCP server (`dart-mcp-server`, registered in `../.mcp.json`) provides `analyze_files`,
   `hot_reload`/`hot_restart`, `get_runtime_errors` and `widget_inspector` against a running app.
 * Add dependencies with `flutter pub add <package>` (`dev:<package>` for dev dependencies).
@@ -27,7 +27,8 @@ target, no DTO import in `core/pdl`) override any generic Material advice. There
 ## State management — Riverpod 3
 
 * Widgets are `ConsumerWidget` / `ConsumerStatefulWidget`.
-* `StateNotifierProvider` for multi-field state (`AuthNotifier` / `AuthState`), `FutureProvider`
+* `StateNotifierProvider` (from `package:flutter_riverpod/legacy.dart` in Riverpod 3) or a
+  `Notifier` for multi-field state (`AuthNotifier` / `AuthState`), `FutureProvider`
   (`.family`) for async loads, `Provider` for injection (repositories, API clients).
 * `ref.watch` in `build()`, `ref.read` in callbacks, `ref.invalidate` to force a re-fetch.
 * Widget-local ephemeral state (toggles, animation controllers) stays in `StatefulWidget` /
@@ -53,7 +54,16 @@ GoRouter, five fixed shell branches, locale-aware `Paths.xxx()` — see `CLAUDE.
 
 ## Logging
 
-Use `log` from `dart:developer` (never `print`), with `name` and `error`/`stackTrace` for failures:
+Never `print`. Two channels, for two readers:
+
+* **`AppLog`** (`lib/core/logging/app_log.dart`) is the app's recent log — a persisted ring buffer,
+  and what a problem report or an error report attaches. Anything that should help diagnose a
+  member's report goes there: `ref.read(appLogProvider)` in widgets and providers, `AppLog.instance`
+  outside Riverpod, with `debug` / `info` / `warn` / `error(source, message)`. **Never a body, a
+  header or a query string** — tokens travel in query strings; `AppLog` strips the query string of an
+  absolute `http(s)://` URL, but a relative path with one gets through.
+* **`log` from `dart:developer`** for developer-only diagnostics that must not end up in a report,
+  with `name` and `error`/`stackTrace` for failures:
 
 ```dart
 import 'dart:developer' as developer;
@@ -68,7 +78,8 @@ try {
 ## Testing
 
 * `flutter test`; unit tests with `package:test`, widget tests with `package:flutter_test`,
-  end-to-end flows with `package:integration_test` (see `CLAUDE.md` on the Flutter Driver flag).
+  end-to-end flows with Patrol in `patrol_test/`, run by `bash e2e.sh` against the e2e stack —
+  see `patrol_test/README.md`. There is no `integration_test/`.
 * Arrange-Act-Assert; cover domain logic, repositories and notifiers, then the widgets that
   compose them.
 * Prefer fakes or stubs over generated mocks; the project pulls in no mocking package today, so

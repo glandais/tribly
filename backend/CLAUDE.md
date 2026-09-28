@@ -34,6 +34,11 @@ Coverage instrumentation is opt-in (it slows every run by ~10-15%):
 |---------|------|---------|
 | imgproxy | 38080 | Image optimization/transformation (WebP, AVIF, JXL) |
 | valhalla | 8002 | Routing engine (Valhalla turn-by-turn) |
+| tileserver | 18080 | Internal map renderer for route thumbnails (never handed to clients) |
+| MinIO | 9000 (console 9001) | S3 storage for assets |
+| mailpit | 1025 (UI 8025) | SMTP sink — no mail leaves a workstation |
+
+All of them come from the root `docker compose up -d` (see [../CLAUDE.md](../CLAUDE.md#infrastructure)).
 
 ## Source Layout
 
@@ -63,9 +68,14 @@ src/main/java/fr/pedalons/
 ```
 BaseEntity (TSID id, timestamps, version — no soft delete)
 └── TeamEntity (slug, visibility, status, team reference, deleted)
-    └── Publication (single-table inheritance)
-        ├── Ride
-        └── Post
+    ├── Publication (single-table inheritance)
+    │   ├── Ride
+    │   ├── Post
+    │   └── Trip
+    ├── TripStage
+    ├── TeamPage
+    ├── Route
+    └── Ad
 ```
 
 `Team`, `User`, and `Domain` each carry their own `deleted` field. Every other
@@ -84,13 +94,20 @@ and the standalone `Passkey` / `GpsServiceConnection` use hard delete.
 - **JWT**: `JwtService` generates tokens with claims: email, userId, displayName, domainId, groups. 15 min expiry, 30-day refresh tokens.
 - **`@CheckAccess(entityType=..., action=...)`**: Method-level interceptor on services. `CheckAccessInterceptor` extracts parameters (teamSlug, entitySlug) and delegates to `SecurityVerifier`.
 - **Request context**: `PedalonsQueryContext` (RequestScoped) holds current user/domain. `DomainResolver` resolves domain from `X-Forwarded-Host` → `Host` header.
-- **Other annotations**: `@Public` (no login required), `@Admin`, `@Logged`.
+- **Other annotations**: `@Public` (no login required), `@Admin`, `@Logged`. Every service method a
+  resource calls must carry one of `@Admin` / `@CheckAccess` / `@Logged` / `@Public` —
+  `ArchitectureTest` fails otherwise. `@Public` has no interceptor: it is the explicit statement that
+  the method needs no login, so put it only where that is true.
+- **Name-bound filters** (`@TileTokenAuth` → `TileTokenFilter`, `@BiketeamM2M` → `BiketeamM2MFilter`):
+  the token or shared secret authenticates only the methods carrying the annotation, nothing else.
+- The full model (roles, access checkers, permission matrix) is in [SECURITY.md](SECURITY.md).
 
 ## Query Builder
 
 `PedalonsQuery` automatically applies:
 - Domain filtering (multi-tenancy)
-- Visibility rules: PUBLIC (anyone), TEAM (team members), PRIVATE (organizers/admins)
+- Visibility rules (`Visibility`): PUBLIC (anyone, listed), PUBLIC_UNLISTED (anyone with the URL, never
+  in a cross-team listing), TEAM (team members)
 - Status filtering: PUBLISHED, DRAFT, CANCELLED
 - Role-based access per user's team membership
 

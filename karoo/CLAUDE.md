@@ -22,6 +22,9 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk  # Manual install
 
 # Format (Spotless + ktfmt, kotlinlang style)
 ../format.sh karoo                 # or: ./gradlew spotlessApply — run before every commit
+
+# Full gate: format + assembleDebug
+bash check.sh
 ```
 
 ## Architecture
@@ -31,8 +34,9 @@ app/src/main/kotlin/fr/pedalons/karoo/
 ├── PedalonsExtension.kt  # KarooExtension service entry point (bonus action handler)
 ├── MainActivity.kt       # Route browser UI (Compose)
 ├── auth/
-│   ├── AuthActivity.kt   # Device code flow UI (QR code + polling)
-│   └── AuthManager.kt    # Token storage via DataStore
+│   ├── AuthActivity.kt       # Device code flow UI (QR code + polling)
+│   ├── GpsConnectActivity.kt # QR code to the profile page, to connect the Hammerhead account (OAuth)
+│   └── AuthManager.kt        # Token storage via DataStore
 ├── api/
 │   ├── PedalonsApiClient.kt  # Ktor HTTP client with Karoo engine
 │   └── Models.kt             # Kotlinx serialization data classes
@@ -45,7 +49,8 @@ app/src/main/kotlin/fr/pedalons/karoo/
 **Device Code Flow Authentication:**
 - No keyboard on Karoo, uses OAuth Device Code flow (RFC 8628)
 - Shows QR code + 6-character user code
-- User authenticates on phone/computer at `pedalons.fr/device`
+- User authenticates on phone/computer at `<site>/karoo?code=…` (`verificationUriComplete`, built by
+  the backend's `DeviceAuthService` — each device has its own page)
 - App polls `/api/device/oauth/token` until authorized
 
 **HTTP via Karoo System Service:**
@@ -68,8 +73,8 @@ app/src/main/kotlin/fr/pedalons/karoo/
 ## Build Toolchain
 
 Aligned with the `karoo-rain-radar` project. Versions live in `gradle/libs.versions.toml`
-and `gradle/wrapper/gradle-wrapper.properties`:
-- Gradle `9.6.1`, Android Gradle Plugin `9.2.1`, Kotlin `2.4.0`
+and `gradle/wrapper/gradle-wrapper.properties` (Gradle, AGP 9, Kotlin — dependabot bumps them;
+read them there rather than trusting a copy):
 - `compileSdk 37`, `minSdk 26`, `targetSdk 32` (Karoo runs Android 12), Java 11 bytecode
 - Kotlin is compiled via **AGP 9 built-in Kotlin** — there is no standalone
   `org.jetbrains.kotlin.android` plugin, and `gradle.properties` does not opt out of the
@@ -78,12 +83,12 @@ and `gradle/wrapper/gradle-wrapper.properties`:
 
 ## Dependencies
 
-Key dependencies from `gradle/libs.versions.toml`:
-- `karoo-ext` (1.1.9): Hammerhead Karoo Extension SDK
-- `ktor` (3.5.1) + `ktor-client-karoo` (1.0.1): Routes HTTP through Karoo System Service
-- `compose-bom` (2026.06.01): Jetpack Compose for UI
-- `datastore` (1.2.1): Token persistence
-- `zxing` (4.3.0): QR code generation
+Key dependencies (versions in `gradle/libs.versions.toml`):
+- `karoo-ext`: Hammerhead Karoo Extension SDK
+- `ktor` + `ktor-client-karoo`: Routes HTTP through Karoo System Service
+- `compose-bom`: Jetpack Compose for UI
+- `datastore`: Token persistence
+- `zxing`: QR code generation
 
 ## GitHub Packages Authentication
 
@@ -116,8 +121,9 @@ Signing secrets (`KAROO_KEYSTORE_BASE64`, `KAROO_KEYSTORE_PASSWORD`, `KAROO_KEY_
 |----------|---------|
 | `POST /api/device/oauth/device` | Request device code for auth |
 | `POST /api/device/oauth/token` | Poll for tokens / refresh token |
+| `GET /api/device/me` | Connected GPS services (is Hammerhead connected?) |
 | `GET /api/device/routes` | Get routes for authenticated user |
-| `POST /api/device/routes/{teamSlug}/{routeSlug}/sync` | Sync route to Karoo |
+| `POST /api/device/routes/{teamSlug}/{routeSlug}/sync?type=hammerhead` | Sync route to Karoo |
 
 ## String Resources
 

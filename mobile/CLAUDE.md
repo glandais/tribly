@@ -20,7 +20,7 @@ flutter pub get                    # Install dependencies
 flutter run                        # Run on connected device/emulator
 flutter test                       # Run tests
 flutter analyze                    # Static analysis
-bash check.sh                      # pub get + both generators + analyze — the full gate
+bash check.sh                      # pub get + both generators + ../format.sh mobile (rewrites files) + analyze + flutter test — the full gate
 ../format.sh mobile                # dart format (skips generated code) — run before every commit
 
 # Code generation (after modifying models or API)
@@ -28,15 +28,23 @@ dart run build_runner build
 
 # API client generation from OpenAPI
 dart run openapi_retrofit_generator
+
+# End-to-end tests (Patrol) — on the e2e stack, never production: see patrol_test/README.md
+../scripts/e2e.sh up               # from mobile/: start the e2e stack first
+bash e2e.sh                        # every test in patrol_test/ (E2E_PLATFORM=android for the emulator)
 ```
 
 ## Agent tooling
 
-Skills from [dart-lang/skills](https://github.com/dart-lang/skills) and [flutter/agent-plugins](https://github.com/flutter/agent-plugins)
-are vendored under `.claude/skills/` (`dart-*` and `flutter-*`, installed via `npx skills add ... --agent claude-code --copy`) —
-Claude picks them up automatically for tasks like adding tests/mocks, fixing runtime errors or layout overflows, JSON
-serialization, routing, or localization. Re-run the same `npx skills` command (see each repo's README) to update them; there's
-no dependency on the `.agents/skills` universal layout since we vendor a copy instead of symlinking.
+Skills from [dart-lang/skills](https://github.com/dart-lang/skills), [flutter/agent-plugins](https://github.com/flutter/agent-plugins)
+and [leancodepl/patrol](https://github.com/leancodepl/patrol) are vendored at the repository root, under `../.claude/skills/`
+(`dart-*`, `flutter-*` and `patrol-*`, installed via `npx skills add ... --agent claude-code --copy`;
+`../skills-lock.json` records those `npx skills` manages) — Claude picks them up automatically for tasks like adding unit or widget tests, fixing runtime
+errors or layout overflows, responsive layouts, animations, routing, and writing Patrol tests. Only the skills that fit
+the project are kept: the ones that prescribed what it doesn't use (mockito, `package:http`, gen-l10n, `ChangeNotifier`,
+`integration_test`), were off-topic (FFI, CLI apps) or duplicated another were removed on purpose — don't reinstall them. Re-run the same `npx skills` command (see each repo's
+README) to update the others; there's no dependency on the `.agents/skills` universal layout since we vendor a copy
+instead of symlinking.
 
 The [Dart/Flutter MCP server](https://docs.flutter.dev/ai/mcp-server) (`dart mcp-server`) is registered project-wide in
 `../.mcp.json` as `dart-mcp-server` — it gives Claude live `analyze_files`, `hot_reload`/`hot_restart`, `get_runtime_errors`,
@@ -53,6 +61,10 @@ flutter run -d <device-id> --dart-define=ENABLE_FLUTTER_DRIVER=true
 
 Then ask Claude to connect to the running app. **Warning**: this disables real keyboard input on the device (typing is
 dropped, the on-screen keyboard may not appear) — only launch this way when you actually need the agent to drive the UI.
+
+A second MCP server, `patrol` (`tool/patrol_mcp.sh`, also in `../.mcp.json`), runs a test of `patrol_test/` in a
+`patrol develop` session, takes screenshots and reads the native UI tree — on the same e2e stack and device as `e2e.sh`,
+never production. The widget keys those tests find live in `lib/keys.dart`.
 
 ## Architecture
 
@@ -73,15 +85,18 @@ lib/
 │       ├── clients/            # Retrofit API clients
 │       ├── models/             # Freezed DTOs
 │       └── export.dart         # Barrel file
+├── keys.dart              # Widget keys the Patrol tests (patrol_test/) find
+├── screenshots/           # Store screenshot mode (--dart-define=SCREENSHOTS=true only)
 ├── core/
 │   ├── pdl/               # THE component library — ~60 Pdl* widgets. See pdl/README.md
 │   │   ├── pdl.dart           # Single barrel: import this, never a file directly
 │   │   ├── elevation/         # PdlElevationProfile — two hand-written CustomPainters
-│   │   └── map/               # PdlMap, its overlays, and the mass GeoJSON fallback
+│   │   └── map/               # PdlMap, its overlays, and the signed-token mass tile layer
 │   ├── theme/             # pdl_colors, pdl_tokens, pdl_typography, pdl_icons, enum_colors
 │   ├── units/             # UnitSystem — metric/imperial
 │   ├── preferences/       # user_preferences_provider — theme, units, language, contactable
-│   ├── adaptive/          # kAppDestinations (the five tabs), breakpoints, responsive grid
+│   ├── adaptive/          # kAppDestinations (the five tabs), breakpoints, AdaptiveScaffold, responsive grid
+│   ├── logging/           # AppLog (the recent log a report attaches), ErrorReporter
 │   ├── pagination/        # PagedListNotifier (offset-based, dedup by itemKey)
 │   ├── geo/               # location_service, polyline_index (client-side hit-testing)
 │   ├── animations/, config/, utils/, widgets/
@@ -94,7 +109,8 @@ lib/
     │   ├── presentation/      # LoginPage, VerifyEmailPage
     │   └── services/          # PasskeyService
     ├── home/, teams/, rides/, routes/, calendar/, trips/, posts/, ads/
-    ├── comments/, participants/, feed/, profile/, legal/, device/
+    ├── comments/, participants/, feed/, profile/, legal/, device/, apps/
+    ├── notifications/, feedback/, moderation/
     └── navigation/presentation/shell/main_shell.dart
 ```
 
@@ -134,7 +150,8 @@ Generated code uses:
 
 ## Key Patterns
 
-**State Management**: Riverpod with StateNotifier
+**State Management**: Riverpod 3 — `StateNotifier` for the older providers (it needs
+`import 'package:flutter_riverpod/legacy.dart';`), `Notifier` in part of the recent ones
 
 ```dart
 // Provider definition

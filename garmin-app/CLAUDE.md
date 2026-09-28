@@ -2,7 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Pédalons Garmin Connect IQ app for Garmin Edge cycling computers. Allows users to browse and download routes from their teams.
+Pédalons Garmin Connect IQ app for Garmin Edge cycling computers. Allows users to browse their teams' upcoming rides and routes and download them to the device.
+
+SDK installation, the developer key, simulator setup and troubleshooting are in [README.md](README.md).
 
 ## Tech Stack
 
@@ -47,16 +49,24 @@ make keygen
 
 ```
 source/
-├── PedalonsApp.mc        # Main app entry, Device Code Flow orchestration
-├── AuthManager.mc        # Token storage (Toybox.Storage), expiry management
-├── ApiClient.mc          # HTTP client, all API calls, token refresh
-├── LoginView.mc          # Device code display (user code + verification URL)
-├── PedalonsView.mc       # Route list (scrollable, location-sorted)
-├── PedalonsDelegate.mc   # Route list navigation input
-├── RouteDetailView.mc    # Single route details
-├── RouteDetailDelegate.mc # Route detail input + download
-└── ErrorView.mc          # Error display
+├── PedalonsApp.mc                  # Main app entry, Device Code Flow orchestration
+├── AuthManager.mc                  # Token storage (Toybox.Storage), expiry management, logout
+├── ApiClient.mc                    # HTTP client, all API calls, token refresh
+├── LoginView.mc                    # Device code display (user code + verification URL)
+├── PedalonsView.mc                 # Loads rides + routes, then opens the home menu
+├── PedalonsDelegate.mc             # Loading/error view input (retry, refresh menu)
+├── HomeMenuDelegate.mc             # Home menu: Rides, Routes, Logout
+├── RideListMenuDelegate.mc         # Upcoming rides (D-1 to D+7, server side)
+├── RideEntryMenuDelegate.mc        # A ride's routes (one per group)
+├── StandaloneRouteMenuDelegate.mc  # Routes not attached to a ride
+├── RouteDetailView.mc              # Single route details
+├── RouteDetailDelegate.mc          # Route detail input + download
+├── FormatUtils.mc                  # Distance / elevation / date formatting
+├── VerticalLayout.mc               # Line-by-line drawing helper
+└── ErrorView.mc                    # Error display
 ```
+
+Strings are in `resources/` (English) and `resources-fre/` (French).
 
 ## Authentication Flow
 
@@ -64,7 +74,7 @@ Uses Device Code Flow (RFC 8628) since Edge devices have no keyboard:
 
 1. User presses SELECT on LoginView → `PedalonsApp.startDeviceCodeFlow()`
 2. App calls `/api/device/oauth/device` with `clientId=garmin`
-3. Displays 6-char user code and `pedalons.fr/device` URL
+3. Displays 6-char user code and the `verificationUri` the backend returns (`<site>/garmin`)
 4. Polls `/api/device/oauth/token` until user authenticates on phone/computer
 5. Receives JWT tokens, stores via `AuthManager.saveTokens()`
 
@@ -74,8 +84,8 @@ Uses Device Code Flow (RFC 8628) since Edge devices have no keyboard:
 |----------|---------|
 | `POST /api/device/oauth/device` | Request device code |
 | `POST /api/device/oauth/token` | Poll for token / refresh token |
-| `GET /api/garmin/routes` | Fetch routes (accepts `?lat=&lon=` for proximity sort) |
-| `GET /api/garmin/routes/{teamSlug}/{routeSlug}/fit` | Download FIT file |
+| `GET /api/device/routes` | Fetch `rides` and `routes` (accepts `?lat=&lon=` for proximity sort) |
+| `GET /api/device/routes/{teamSlug}/{routeSlug}/fit` | Download FIT file |
 
 ## Key Patterns
 
@@ -87,7 +97,9 @@ Uses Device Code Flow (RFC 8628) since Edge devices have no keyboard:
 
 ## Supported Devices
 
-edge530, edge540, edge830, edge840, edge1030, edge1030plus, edge1040, edge1050, edgeexplore2
+edge530, edge540, edge550, edge830, edge840, edge850, edge1030, edge1030bontrager, edge1030plus, edge1040, edge1050, edgeexplore2, edgemtb
+
+The list lives in `manifest.xml` and in `DEVICES` in the `Makefile` — change both together.
 
 ## Garmin Documentation
 

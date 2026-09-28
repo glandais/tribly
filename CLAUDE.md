@@ -21,7 +21,10 @@ both clients: changing it in one place only makes them diverge silently.
 | Product roadmap (P0 → Icebox) | [BACKLOG.md](BACKLOG.md) |
 | Notifications (event pipeline, channels, what's left) | [docs/plans/2026-09-18-notifications.md](docs/plans/2026-09-18-notifications.md) + its ledger |
 | Why the mobile app / the site / the API look the way they do | [docs/plans/archive/](docs/plans/archive/) — executed plans, kept for their arbitrations |
-| Infrastructure and security audit, still open | [docs/plans/2026-02-14-project-audit.md](docs/plans/2026-02-14-project-audit.md) |
+| Security audit (September 2026): vulnerabilities and their status | [docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md) |
+| Infrastructure, CI/CD and code-quality audit (February 2026, statuses partly refreshed on 2026-09-29) — some rows still open; not the security reference | [docs/plans/2026-02-14-project-audit.md](docs/plans/2026-02-14-project-audit.md) |
+| Deployment, backups, restore (the runbook) | [docs/operations.md](docs/operations.md) |
+| What the product does, for whom | [docs/PRODUCT_SHEET.md](docs/PRODUCT_SHEET.md) |
 | Biketeam → Pédalons migration, team by team, server to server over HTTPS (contract with biketeam, operations) | [docs/plans/2026-09-22-biketeam-live-migration.md](docs/plans/2026-09-22-biketeam-live-migration.md) + [MIGRATE_BIKETEAM.md](MIGRATE_BIKETEAM.md) |
 | The design brief the v2 came from (state *before* v2) | [docs/audit-ux/](docs/audit-ux/) |
 
@@ -62,43 +65,30 @@ docker compose up -d
 docker compose --profile app up -d
 ```
 
-`docker-compose.yml` **is the deployment file** — keep dev tooling out of it. What a workstation
-needs on top lives in `docker-compose.local.yml`, and the local `.env` sets
-`COMPOSE_FILE=docker-compose.yml:docker-compose.local.yml` so a plain `docker compose` command picks
-up both. A deployed `.env` has no `COMPOSE_FILE` and reads `docker-compose.yml` alone. The overlay
-carries four things: mailpit (:8025 — and no SQL browser, deliberately: postgres is on :5432, bring
-the client you like); valhalla and tileserver, `extends`-ed from
-`docker-compose.shared.yml` so a laptop runs one stack rather than two — which is also why it
-redeclares the `shared` network as a plain project network instead of the `external`
-`pedalons-shared`; the loopback ports the out-of-Docker dev backend expects (imgproxy 38080, valhalla
-8002, tileserver 18080, MinIO 9000, SMTP 1025 — postgres is already published by
-`POSTGRES_HOST_PORT`); and an `app` profile on `backend`/`frontend`/`traefik`, which is why a plain
-`up` starts the backing services alone. Adding a profile is override-only, so a deployment still
-starts all three by default.
+`docker-compose.yml` **is the deployment file** — keep dev tooling out of it; what a workstation
+needs on top lives in `docker-compose.local.yml`, picked up through `COMPOSE_FILE` in the local
+`.env`. The overlay, its ports and the `.env` keys are described in the [README](README.md#quick-start)
+([Running the full stack locally](README.md#running-the-full-stack-locally)); deployment, the shared
+stack, backups and restore in [docs/operations.md](docs/operations.md) — read its
+[Deployment](docs/operations.md#deployment) section before touching networks or the compose files.
 
-**The dev backend needs the stack's credentials**: `source scripts/dev-env.sh` before
-`mvn quarkus:dev`. It exports the postgres/MinIO values from `.env` and nothing else — Quarkus reads
-env vars above `application.properties`, so the full file would override the `%dev` bootstrap domain
-(`localhost`, the WebAuthn origin of dev passkeys).
+Four rules hold whatever the change:
 
-**End-to-end tests run on a stack of their own**: `scripts/e2e.sh` starts `tribly-e2e` (empty
-database, mail to mailpit only, ports offset so it runs beside `tribly-local`) from
-`docker-compose.yml` + `docker-compose.e2e.yml` and the committed `.env.e2e`. Never point the suite
-at the workstation stack — see [frontend/e2e/README.md](frontend/e2e/README.md).
-
-**`ENV_NAME` names the stack** — containers, network, image tags, and the `${ENV_NAME}-minio` the
-backup scripts inspect. Keep it `tribly-local` on a workstation: a local stack called `…-prod` is
-indistinguishable from the real one in `docker ps` and to `scripts/restore.sh`.
-
-**A local stack must not be able to send mail.** The containers run the `%prod` Quarkus profile,
-whose only way out for mail is the SMTP relay named by `QUARKUS_MAILER_*` — Scaleway Transactional
-Email on a server. A local `.env` therefore points it at `mailpit:1025`, with TLS and login
-`DISABLED`. This is not cosmetic: after a biketeam migration the local database
-holds thousands of real member addresses, and one OTP or team invitation is enough to reach them.
-
-Deployed hosts are laid out differently: one shared stack (`docker-compose.shared.yml` — valhalla and
-tileserver, on the `pedalons-shared` network) plus one `docker-compose.yml` stack per environment.
-See [Deployment](README.md#deployment) before touching networks or the compose files.
+- **The dev backend needs the stack's credentials**: `source scripts/dev-env.sh` before
+  `mvn quarkus:dev`. It exports the postgres/MinIO values from `.env` and nothing else — Quarkus reads
+  env vars above `application.properties`, so the full file would override the `%dev` bootstrap
+  domain (`localhost`, the WebAuthn origin of dev passkeys).
+- **End-to-end tests run on a stack of their own**: `scripts/e2e.sh` starts `tribly-e2e` (empty
+  database, mail to mailpit only, ports offset so it runs beside `tribly-local`). Never point the suite at the workstation stack — see
+  [frontend/e2e/README.md](frontend/e2e/README.md).
+- **`ENV_NAME` names the stack** — containers, network, image tags, and the `${ENV_NAME}-minio` the
+  backup scripts inspect. Keep it `tribly-local` on a workstation: a local stack called `…-prod` is
+  indistinguishable from the real one in `docker ps` and to `scripts/restore.sh`.
+- **A local stack must not be able to send mail.** The containers run the `%prod` Quarkus profile,
+  whose only way out for mail is the SMTP relay named by `QUARKUS_MAILER_*`. A local `.env`
+  therefore points it at `mailpit:1025`, with TLS and login `DISABLED`. This is not cosmetic: after a
+  biketeam migration the local database holds thousands of real member addresses, and one OTP or
+  team invitation is enough to reach them.
 
 ## Multi-Tenancy
 
@@ -138,4 +128,4 @@ prettier-plugin-monkeyc). `format.sh` fails loudly if a toolchain is missing rat
 |---------|-----|
 | Backend API | http://localhost:8080/api |
 | Swagger UI | http://localhost:8080/q/swagger-ui |
-| Frontend | http://localhost:5173 |
+| Frontend | https://localhost:5173 (needs the [mkcert certificates](README.md#2-install-and-configure-mkcert) — without them it falls back to http and dev passkeys fail) |
