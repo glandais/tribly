@@ -7,7 +7,8 @@ vi.mock('./locale-context', () => ({
   getCurrentLocale: () => 'fr',
 }))
 
-import { toBrowser, toRouter } from './pinnedHistory'
+import { UNSAFE_createRouter, redirect } from 'react-router-dom'
+import { getPinnedHistory, toBrowser, toRouter } from './pinnedHistory'
 
 describe('pinnedHistory mapping (pinned to "n-peloton", fr locale)', () => {
   describe('toBrowser (router → browser, strips the prefix)', () => {
@@ -67,5 +68,40 @@ describe('pinnedHistory mapping (pinned to "n-peloton", fr locale)', () => {
     for (const clean of ['/', '/sorties/x', '/parcours', '/calendrier', '/admin']) {
       expect(toBrowser(toRouter(clean))).toBe(clean)
     }
+  })
+})
+
+describe('pinned history under a data router', () => {
+  it('follows a redirect once, and a push navigates, without re-entering itself', async () => {
+    window.history.replaceState(null, '', '/')
+    let calendarLoads = 0
+    const router = UNSAFE_createRouter({
+      history: getPinnedHistory()!,
+      routes: [
+        { path: '/equipes/n-peloton', element: null },
+        { path: '/connexion', element: null },
+        {
+          // A members-only page visited anonymously: its guard sends to sign in.
+          path: '/equipes/n-peloton/calendrier',
+          loader: () => {
+            calendarLoads++
+            return redirect('/connexion')
+          },
+          element: null,
+        },
+        { path: '/equipes/n-peloton/parcours', element: null },
+      ],
+    }).initialize()
+
+    await router.navigate('/equipes/n-peloton/calendrier')
+    expect(router.state.location.pathname).toBe('/connexion')
+    expect(window.location.pathname).toBe('/connexion')
+    // The loop re-ran the navigation from its own history notification.
+    expect(calendarLoads).toBe(1)
+
+    await router.navigate('/equipes/n-peloton/parcours')
+    expect(router.state.location.pathname).toBe('/equipes/n-peloton/parcours')
+    expect(window.location.pathname).toBe('/parcours')
+    router.dispose()
   })
 })

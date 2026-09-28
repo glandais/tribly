@@ -136,9 +136,12 @@ function createPinnedHistory(): RRHistory {
     window.history.replaceState(null, '', clean + window.location.search + window.location.hash)
   }
 
-  // v5Compat is required: otherwise push/replace (i.e. <Link>/useNavigate) don't notify the
-  // listener and the app won't re-render — only back/forward would work.
-  const base = UNSAFE_createBrowserHistory({ v5Compat: true })
+  // No v5Compat, exactly like createBrowserRouter's own history. This history feeds a data router
+  // (UNSAFE_createRouter in App.tsx), which calls push/replace itself once a navigation completes
+  // and only listens for POP (back/forward). With v5Compat, every push/replace also notified the
+  // router's listener, which started the same navigation again: a redirect (an anonymous visit to a
+  // members-only page) replaced, got notified, redirected, replaced… until the stack overflowed.
+  const base = UNSAFE_createBrowserHistory()
   const toBrowserTo = (to: To): To => mapTo(to, toBrowser)
 
   return {
