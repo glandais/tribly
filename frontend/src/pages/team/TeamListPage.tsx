@@ -1,4 +1,5 @@
 import { useCallback } from 'react'
+import { OutOfRangeState } from '@/components/common/OutOfRangeState'
 import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import { paths } from '../../config/paths'
@@ -123,6 +124,8 @@ export function TeamListPage() {
               />
             </Box>
           </Stack>
+        ) : filters.page > 0 ? (
+          <OutOfRangeState onFirstPage={() => setFilters({ page: 0 })} />
         ) : (
           <EmptyState
             variant={hasFiltersOrSearch ? 'filtered' : 'absolute'}

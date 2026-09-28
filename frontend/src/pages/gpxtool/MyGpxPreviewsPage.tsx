@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { OutOfRangeState } from '@/components/common/OutOfRangeState'
 import { useTranslation } from 'react-i18next'
 import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useQueryClient } from '@tanstack/react-query'
@@ -43,14 +44,18 @@ export function MyGpxPreviewsPage() {
           ))}
         </Stack>
       ) : previews.length === 0 ? (
-        <Card withBorder padding="lg">
-          <Stack align="center" gap="sm">
-            <Text c="dimmed">{t('gpxTools.listFiles.empty')}</Text>
-            <Button component={PrefetchLink} to={paths.gpxTools()} variant="default">
-              {t('gpxTools.viewFile.submit')}
-            </Button>
-          </Stack>
-        </Card>
+        filters.page > 0 ? (
+          <OutOfRangeState onFirstPage={() => setFilters({ page: 0 })} />
+        ) : (
+          <Card withBorder padding="lg">
+            <Stack align="center" gap="sm">
+              <Text c="dimmed">{t('gpxTools.listFiles.empty')}</Text>
+              <Button component={PrefetchLink} to={paths.gpxTools()} variant="default">
+                {t('gpxTools.viewFile.submit')}
+              </Button>
+            </Stack>
+          </Card>
+        )
       ) : (
         <Stack>
           {previews.map((preview) => (

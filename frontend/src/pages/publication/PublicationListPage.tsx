@@ -1,4 +1,5 @@
 import { useCallback } from 'react'
+import { OutOfRangeState } from '@/components/common/OutOfRangeState'
 import { Navigate, useParams } from 'react-router-dom'
 import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
@@ -206,6 +207,8 @@ export function PublicationListPage() {
               />
             </Box>
           </Stack>
+        ) : filters.page > 0 ? (
+          <OutOfRangeState onFirstPage={() => setFilters({ page: 0 })} />
         ) : (
           <EmptyState
             variant={hasFiltersOrSearch ? 'filtered' : 'absolute'}

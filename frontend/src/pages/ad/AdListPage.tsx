@@ -1,4 +1,5 @@
 import { useCallback } from 'react'
+import { OutOfRangeState } from '@/components/common/OutOfRangeState'
 import { Navigate, useParams } from 'react-router-dom'
 import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
@@ -203,19 +204,23 @@ export function AdListPage() {
           ))}
         </SimpleGrid>
       ) : adsList.length === 0 ? (
-        <EmptyState
-          variant={hasFiltersOrSearch ? 'filtered' : 'absolute'}
-          icon={hasFiltersOrSearch ? <IconSearchOff size={48} /> : <IconTag size={48} />}
-          title={hasFiltersOrSearch ? t('ads.list.noResultsTitle') : t('ads.list.empty.title')}
-          description={hasFiltersOrSearch ? t('ads.list.noResults') : t('ads.list.empty.member')}
-          actions={
-            hasFiltersOrSearch ? (
-              <Button variant="light" onClick={clearFilters}>
-                {t('common.clearFilters')}
-              </Button>
-            ) : undefined
-          }
-        />
+        filters.page > 0 ? (
+          <OutOfRangeState onFirstPage={() => setFilters({ page: 0 })} />
+        ) : (
+          <EmptyState
+            variant={hasFiltersOrSearch ? 'filtered' : 'absolute'}
+            icon={hasFiltersOrSearch ? <IconSearchOff size={48} /> : <IconTag size={48} />}
+            title={hasFiltersOrSearch ? t('ads.list.noResultsTitle') : t('ads.list.empty.title')}
+            description={hasFiltersOrSearch ? t('ads.list.noResults') : t('ads.list.empty.member')}
+            actions={
+              hasFiltersOrSearch ? (
+                <Button variant="light" onClick={clearFilters}>
+                  {t('common.clearFilters')}
+                </Button>
+              ) : undefined
+            }
+          />
+        )
       ) : (
         <Stack>
           <SimpleGrid

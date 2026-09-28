@@ -1,4 +1,5 @@
 import { useCallback } from 'react'
+import { OutOfRangeState } from '@/components/common/OutOfRangeState'
 import { useTranslation } from 'react-i18next'
 import {
   Box,
@@ -187,8 +188,10 @@ export function HomePage() {
               }}
             />
           </Stack>
+        ) : /* Empty State */
+        filters.page > 0 ? (
+          <OutOfRangeState onFirstPage={() => setFilters({ page: 0 })} />
         ) : (
-          /* Empty State */
           <EmptyState
             variant={hasFiltersOrSearch ? 'filtered' : 'absolute'}
             icon={hasFiltersOrSearch ? <IconSearchOff size={48} /> : <IconNews size={48} />}
