@@ -1,12 +1,14 @@
 package fr.pedalons.service.admin;
 
 import fr.pedalons.common.TsidUtils;
+import fr.pedalons.common.exception.ForbiddenException;
 import fr.pedalons.common.exception.NotFoundException;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.admin.AdminUserDto;
 import fr.pedalons.dto.common.PedalonsPage;
 import fr.pedalons.enums.PlatformRole;
 import fr.pedalons.repository.user.UserRepository;
+import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.Admin;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -18,6 +20,7 @@ import org.jspecify.annotations.Nullable;
 public class AdminUserService {
 
   @Inject UserRepository userRepository;
+  @Inject PedalonsQueryContext pedalonsContext;
 
   @Admin
   public PedalonsPage<AdminUserDto> listUsers(
@@ -73,6 +76,13 @@ public class AdminUserService {
   @Transactional
   public AdminUserDto assignPlatformRole(String userId, @Nullable PlatformRole role) {
     User user = findUser(userId);
+    // An admin cannot take their own role away: a platform whose last admin demoted themselves
+    // would have no one left to manage it. The UI disables the button; this is the rule.
+    if (user.getId().equals(pedalonsContext.getUserId())
+        && user.getPlatformRole() == PlatformRole.PLATFORM_ADMIN
+        && role != PlatformRole.PLATFORM_ADMIN) {
+      throw new ForbiddenException();
+    }
     user.setPlatformRole(role);
     userRepository.persist(user);
     return AdminUserDto.from(user);
