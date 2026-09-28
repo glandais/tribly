@@ -1,6 +1,6 @@
 # Politique de confidentialité
 
-**Dernière mise à jour : 27 septembre 2026**
+**Dernière mise à jour : 29 septembre 2026**
 
 La présente politique de confidentialité décrit la manière dont Pedalons (« nous », « notre », « nos ») collecte, utilise et protège vos données personnelles lorsque vous utilisez notre plateforme (site web, application mobile, extensions pour appareils GPS).
 
@@ -17,16 +17,19 @@ Lors de la création de votre compte, nous collectons :
 - **Adresse e-mail** : pour l'authentification et les communications liées au service
 - **Nom d'affichage** : choisi par vous, visible par les membres de votre équipe
 - **Photo de profil** (facultatif) : image que vous téléchargez pour personnaliser votre profil. Dans l'application mobile, vous la choisissez dans votre photothèque par le sélecteur du système : l'application ne reçoit que la photo choisie, et n'accède ni à l'appareil photo ni au reste de votre photothèque.
-- **Préférences** : système d'unités (métrique/impérial), langue
+- **Préférences** : système d'unités (métrique/impérial), langue, thème (clair/sombre), fuseau horaire, et si les membres de vos équipes peuvent vous écrire au sujet de vos petites annonces
 - **Acceptation des conditions d'utilisation** : la date à laquelle vous les avez acceptées à l'inscription, conservée comme preuve de cette acceptation
 
 ### Données d'authentification
 
 Pour sécuriser l'accès à votre compte, nous traitons :
 
+- **Mot de passe** : conservé uniquement sous forme de hachage irréversible (bcrypt), jamais en clair.
 - **Clés d'accès (passkeys/WebAuthn)** : identifiant de clé, clé publique et compteur de signatures. La clé privée reste sur votre appareil et ne nous est jamais transmise.
 - **Jetons de session** : un jeton de rafraîchissement (haché, jamais stocké en clair) est conservé dans un cookie sécurisé HttpOnly pendant 30 jours maximum.
-- **Liens magiques et codes à usage unique (OTP)** : hachés côté serveur, valides 5 minutes.
+- **Codes à usage unique (OTP)** : hachés côté serveur, valides 5 minutes.
+- **Liens de vérification d'adresse e-mail et de réinitialisation du mot de passe** : à usage unique, hachés côté serveur, valides respectivement 24 heures et 1 heure.
+- **Jeton de calendrier** : une clé secrète incluse dans l'adresse de votre flux de calendrier, pour que votre application d'agenda affiche vos sorties. Vous pouvez la régénérer à tout moment, ce qui désactive l'ancienne adresse.
 - **Codes d'appairage d'appareils GPS** : codes temporaires (10 minutes) pour connecter des appareils Karoo ou Garmin.
 
 ### Données de session
@@ -61,17 +64,19 @@ Si vous activez le filtre « autour de moi » de l'application mobile, celle-ci 
 - **Commentaires** : texte associé à une publication.
 - **Itinéraires (routes)** : nom, distance, dénivelé, type de surface, traces et points GPS.
 - **Photos et images** : fichiers que vous téléchargez pour illustrer vos contenus.
+- **Petites annonces** : titre, description, type, prix, photos, une description du lieu et une position. La position exacte ne sert qu'à modifier votre annonce : les autres membres ne voient jamais qu'une position floutée à environ 1 km.
+- **Messages à l'auteur d'une annonce** : envoyés par e-mail via nos serveurs, avec votre adresse e-mail comme adresse de réponse, pour que l'auteur puisse vous répondre directement. Nous ne conservons pas le message lui-même ; nous enregistrons seulement que vous avez écrit au sujet de cette annonce, et quand, pour limiter les abus.
 
 ### Notifications
 
 Pour vous prévenir de ce qui se passe dans vos équipes (nouvelle sortie, commentaire, changement d'une sortie à laquelle vous êtes inscrit…), nous traitons :
 
 - **Vos notifications** : le type d'évènement, l'élément concerné, le texte affiché et la date à laquelle vous l'avez lue. Elles apparaissent dans la page Notifications du site et de l'application.
-- **Vos préférences de notification** : pour chaque type de notification, les canaux par lesquels vous acceptez d'être prévenu (e-mail, notification sur votre téléphone).
-- **Le suivi des envois** : pour chaque notification envoyée par e-mail ou sur votre téléphone, le canal, l'état de l'envoi et sa date.
-- **L'enregistrement de votre téléphone** (application mobile uniquement, et seulement si vous autorisez les notifications) : un jeton d'enregistrement délivré par Firebase Cloud Messaging (service de Google), le système (Android ou iOS), le modèle de l'appareil et la version de l'application. Ce jeton identifie l'installation de l'application, pas votre personne ; il nous sert uniquement à adresser les notifications à votre téléphone.
+- **Vos préférences de notification** : pour chaque type de notification, les canaux par lesquels vous acceptez d'être prévenu (e-mail, notification push sur votre téléphone ou dans votre navigateur).
+- **Le suivi des envois** : pour chaque notification envoyée par e-mail ou en notification push, le canal, l'état de l'envoi et sa date.
+- **L'enregistrement de votre téléphone ou de votre navigateur** (seulement si vous autorisez les notifications) : un jeton d'enregistrement délivré par Firebase Cloud Messaging (service de Google). Dans l'application mobile, il est accompagné du système (Android ou iOS), du modèle de l'appareil et de la version de l'application ; sur le site, du nom du navigateur et du système (par exemple « Firefox · Android »). Ce jeton identifie l'installation de l'application ou le navigateur, pas votre personne ; il nous sert uniquement à adresser les notifications à ce téléphone ou à ce navigateur.
 
-L'application ne demande l'autorisation d'afficher des notifications que lorsque vous le choisissez, jamais à son lancement. Vous pouvez la retirer à tout moment dans les réglages de votre téléphone, ou couper un type de notification depuis vos préférences de notification. Le jeton est supprimé de nos serveurs lorsque vous vous déconnectez de l'application, lorsque Google nous signale qu'il n'est plus valide (application désinstallée, par exemple) et lorsque vous supprimez votre compte.
+L'application et le site ne demandent l'autorisation d'afficher des notifications que lorsque vous le choisissez, jamais à leur lancement. Vous pouvez la retirer à tout moment dans les réglages de votre téléphone ou de votre navigateur, couper les notifications sur le site, ou couper un type de notification depuis vos préférences de notification. Le jeton est supprimé de nos serveurs lorsque vous vous déconnectez de l'application ou du site, lorsque vous coupez les notifications sur le site, lorsque Google nous signale qu'il n'est plus valide (application désinstallée, par exemple) et lorsque vous supprimez votre compte.
 
 ### Signalements et blocages
 
@@ -110,9 +115,11 @@ Si vous connectez un service GPS externe (Hammerhead, Garmin, Wahoo) :
 
 Dans votre navigateur web ou application mobile :
 
-- **Préférence de langue** : dans le stockage local (localStorage)
-- **Système d'unités** : dans le stockage local
-- **Préférences de carte** : style de carte choisi, dans le stockage local
+- **Préférence de langue** : dans un cookie sur le site (seulement une fois que vous avez choisi une langue), dans le stockage de l'application sur mobile
+- **Système d'unités** et **thème** : dans le stockage local
+- **Préférences de carte** : style de carte choisi, relief et affichage 3D, dans le stockage local
+- **Notifications push** (site) : le jeton de ce navigateur, pour pouvoir le désinscrire lorsque vous vous déconnectez ou coupez les notifications
+- **Invitation en attente** : une invitation à une équipe que vous avez ouverte, gardée pour l'onglet en cours le temps de vous connecter ou de vous inscrire
 - **Journal des dernières actions** : en mémoire dans le navigateur, et dans un fichier de l'application mobile (200 entrées au plus), pour un éventuel signalement de problème ; il ne quitte votre appareil que dans les cas décrits plus haut
 - **Cookie de session** : un cookie HttpOnly contenant votre jeton de rafraîchissement (non accessible par JavaScript)
 
@@ -135,7 +142,7 @@ Dans votre navigateur web ou application mobile :
 | Envoyer des e-mails de vérification et codes de connexion | Exécution du contrat |
 | Vous notifier dans le site et l'application de l'activité de vos équipes | Exécution du contrat |
 | Vous notifier par e-mail, selon vos préférences de notification | Exécution du contrat (réglable à tout moment) |
-| Vous notifier sur votre téléphone (notifications push) | Consentement (autorisation donnée sur le téléphone) |
+| Vous notifier sur votre téléphone ou dans votre navigateur (notifications push) | Consentement (autorisation donnée sur le téléphone ou dans le navigateur) |
 | Modérer les contenus : traiter les signalements, appliquer vos blocages, filtrer les termes injurieux à la publication | Exécution du contrat (conditions d'utilisation) et intérêt légitime (protéger les membres) |
 | Conserver la preuve de votre acceptation des conditions d'utilisation | Intérêt légitime |
 | Sécuriser votre compte (détection de sessions suspectes) | Intérêt légitime |
@@ -159,6 +166,7 @@ Nous n'utilisons **jamais** vos données pour :
 - **Contenu d'équipe** : visible uniquement par les membres de votre équipe (visibilité « équipe »).
 - **Contenu public** : si vous ou votre équipe choisissez la visibilité « public », le contenu est accessible à tous les utilisateurs de la plateforme.
 - **Votre nom d'affichage et photo de profil** sont visibles par les membres de vos équipes.
+- **Petites annonces** : les membres voient la position floutée de votre annonce, jamais sa position exacte, et jamais votre adresse e-mail. Lorsque vous écrivez à l'auteur d'une annonce, il reçoit votre adresse e-mail, puisqu'il vous répond à cette adresse.
 
 ### Sous-traitants techniques
 
@@ -167,9 +175,9 @@ Nous faisons appel à des services techniques pour le fonctionnement de la plate
 | Service | Rôle | Données concernées |
 |---------|------|-------------------|
 | OVHcloud (OVH SAS, France) | Hébergement de l'application, de la base de données et du stockage objet | Toutes les données |
-| Scaleway (Scaleway SAS, France) | Envoi d'e-mails transactionnels et des notifications par e-mail (Transactional Email) | Adresse e-mail, nom d'affichage, contenu de l'e-mail (dont le titre et le texte des notifications) |
+| Scaleway (Scaleway SAS, France) | Envoi d'e-mails transactionnels et des notifications par e-mail (Transactional Email) | Adresse e-mail, nom d'affichage, contenu de l'e-mail (dont le titre et le texte des notifications, et les messages envoyés à l'auteur d'une annonce) |
 | GitHub (GitHub, Inc., États-Unis) | Suivi des signalements de problème et des rapports d'erreur, dans un dépôt privé accessible à la seule équipe Pedalons | Texte du signalement, informations techniques, journal des dernières actions, identifiant technique du compte et domaine |
-| Google Firebase Cloud Messaging (Google Ireland Limited, Irlande) | Acheminement des notifications push vers l'application mobile, via Apple Push Notification service pour les iPhone | Jeton d'enregistrement du téléphone, titre et texte de chaque notification, identifiant technique permettant d'ouvrir le bon écran au toucher |
+| Google Firebase Cloud Messaging (Google Ireland Limited, Irlande) | Acheminement des notifications push vers l'application mobile, via Apple Push Notification service pour les iPhone, et vers votre navigateur | Jeton d'enregistrement du téléphone ou du navigateur, titre et texte de chaque notification, identifiant technique permettant d'ouvrir le bon écran au toucher |
 
 **Tous nos services de traitement d'images (imgproxy) et de calcul d'itinéraires (Valhalla) sont auto-hébergés** et ne transmettent aucune donnée à des tiers. Les polices de caractères sont intégrées au site et à l'application : aucune n'est chargée depuis un service tiers.
 
@@ -201,7 +209,7 @@ Nous pouvons être amenés à communiquer vos données si la loi l'exige (demand
 
 Nos serveurs sont hébergés par **OVHcloud** (OVH SAS, Roubaix, France) et sont situés en France. Vos données restent dans l'Union européenne.
 
-Si vous autorisez les notifications push dans l'application mobile, leur contenu transite par **Firebase Cloud Messaging**, fourni par Google Ireland Limited. Google peut traiter ces données aux États-Unis ; ce transfert est encadré par les clauses contractuelles types de la Commission européenne et par l'adhésion de Google LLC au cadre de protection des données UE–États-Unis (Data Privacy Framework). Sur iPhone, les notifications sont remises par le service Apple Push Notification d'Apple, comme pour toute application iOS.
+Si vous autorisez les notifications push dans l'application mobile ou sur le site, leur contenu transite par **Firebase Cloud Messaging**, fourni par Google Ireland Limited. Google peut traiter ces données aux États-Unis ; ce transfert est encadré par les clauses contractuelles types de la Commission européenne et par l'adhésion de Google LLC au cadre de protection des données UE–États-Unis (Data Privacy Framework). Sur iPhone, les notifications sont remises par le service Apple Push Notification d'Apple, comme pour toute application iOS ; dans un navigateur, par le service push propre au navigateur, comme pour tout site qui envoie des notifications.
 
 Le fond de carte « Satellite (ESRI) » est servi depuis les États-Unis : votre adresse IP et la zone affichée n'y sont transmises que si vous le choisissez. Le fond OpenStreetMap est servi depuis le Royaume-Uni, qui bénéficie d'une décision d'adéquation de la Commission européenne.
 
@@ -217,13 +225,14 @@ La connexion à des services GPS tiers (Hammerhead, Garmin, Wahoo) implique un t
 |----------------|----------------------|
 | Données de compte | Tant que votre compte est actif |
 | Sessions de connexion | 30 jours après la dernière utilisation |
-| Jetons d'authentification temporaires (OTP, liens magiques) | 5 minutes |
+| Jetons d'authentification temporaires (OTP) | 5 minutes |
+| Liens de vérification d'adresse e-mail et de réinitialisation du mot de passe | 24 heures et 1 heure |
 | Codes d'appairage d'appareils | 10 minutes |
 | Challenges WebAuthn | 5 minutes |
 | Contenu (sorties, posts, itinéraires) | Tant que vous ne le supprimez pas |
 | Notifications et suivi de leurs envois | 90 jours, puis suppression automatique |
 | Préférences de notification | Tant que votre compte est actif |
-| Enregistrement du téléphone pour les notifications push | Jusqu'à votre déconnexion de l'application, la désinstallation de l'application ou la suppression de votre compte |
+| Enregistrement du téléphone ou du navigateur pour les notifications push | Jusqu'à votre déconnexion de l'application ou du site, la coupure des notifications sur le site, la désinstallation de l'application ou la suppression de votre compte |
 | Fichiers (images, GPX) | Tant que le contenu associé existe |
 | Date d'acceptation des conditions d'utilisation | Tant que votre compte est actif |
 | Blocages | Jusqu'à ce que vous débloquiez la personne, ou jusqu'à la suppression du compte de l'un de vous deux |
@@ -248,11 +257,11 @@ Conformément au Règlement Général sur la Protection des Données (RGPD), vou
 
 ### Exporter vos données vous-même
 
-Les droits d'accès et de portabilité s'exercent vous-même, sans nous écrire : depuis le site web, dans **Profil → Vos données**, choisissez « Télécharger mes données ». Nous préparons une archive ZIP et vous envoyons un lien de téléchargement par email. Cette fonction n'est pas encore proposée dans l'application mobile ; le lien reçu par email fonctionne en revanche sur tous vos appareils.
+Les droits d'accès et de portabilité s'exercent vous-même, sans nous écrire : depuis le site web, dans **Profil → Vos données**, choisissez « Télécharger mes données ». Nous préparons une archive ZIP et vous envoyons un lien de téléchargement par email. Dans l'application mobile, la même demande se trouve dans **Profil → Vos données**, « Demander un export ». Le lien reçu par email fonctionne sur tous vos appareils.
 
-L'archive contient votre profil, vos équipes, vos inscriptions, tout ce que vous avez publié, vos notifications, leurs envois, vos préférences de notification, les téléphones enregistrés pour les notifications push, les membres que vous avez bloqués et les signalements que vous avez faits (sans la copie du texte signalé, qui est le contenu de quelqu'un d'autre), ainsi que vos fichiers (photo de profil, images envoyées, fichiers GPX et FIT de vos parcours). Les données sont au format JSON, structuré et lisible par machine.
+L'archive contient votre profil, vos équipes, vos inscriptions, tout ce que vous avez publié, vos notifications, leurs envois, vos préférences de notification, les téléphones et navigateurs enregistrés pour les notifications push, les membres que vous avez bloqués et les signalements que vous avez faits (sans la copie du texte signalé, qui est le contenu de quelqu'un d'autre), ainsi que vos fichiers (photo de profil, images envoyées, fichiers GPX et FIT de vos parcours). Les données sont au format JSON, structuré et lisible par machine.
 
-Pour des raisons de sécurité, les éléments d'identification en sont exclus : hachage de votre mot de passe, jetons de session, matériel cryptographique de vos clés d'accès, jeton de votre calendrier, jetons d'accès à vos services GPS connectés et jetons d'enregistrement de vos téléphones pour les notifications push. Leurs métadonnées (dates, appareils, services concernés) sont bien présentes. Le lien de téléchargement expire au bout de **7 jours**, après quoi l'archive est supprimée de nos serveurs. Un export par heure et par compte.
+Pour des raisons de sécurité, les éléments d'identification en sont exclus : hachage de votre mot de passe, jetons de session, matériel cryptographique de vos clés d'accès, jeton de votre calendrier, jetons d'accès à vos services GPS connectés et jetons d'enregistrement de vos téléphones et navigateurs pour les notifications push. Leurs métadonnées (dates, appareils, services concernés) sont bien présentes. Le lien de téléchargement expire au bout de **7 jours**, après quoi l'archive est supprimée de nos serveurs. Un export par heure et par compte.
 
 ### Supprimer votre compte
 
@@ -261,9 +270,11 @@ Vous pouvez supprimer votre compte vous-même, à tout moment, sans nous écrire
 - **dans l'application mobile** : **Profil → Compte → Zone de danger**, puis « Supprimer le compte » ;
 - **sur le site web** : **Profil → Actions du compte → Zone de danger**, puis « Supprimer le compte ».
 
+Si vous êtes le seul administrateur d'une équipe qui compte d'autres membres, vous devez d'abord nommer un autre membre administrateur : l'application et le site vous indiquent les équipes concernées et la marche à suivre. Une équipe dont vous êtes le seul membre est supprimée avec votre compte.
+
 Si vous n'avez plus accès à votre compte ou à l'application, écrivez-nous depuis l'adresse e-mail de votre compte à **privacy@pedalons.fr** en demandant sa suppression ; nous la traiterons dans un délai de 30 jours.
 
-La suppression est irréversible et immédiate. Dès votre confirmation, votre compte est désactivé et vos données personnelles sont effacées : adresse e-mail, nom, photo de profil, mot de passe et clés d'accès, sessions, préférences, services GPS connectés, appartenance aux équipes, inscriptions aux sorties et voyages à venir, petites annonces et leurs photos, commentaires, notifications, enregistrement de vos téléphones pour les notifications push, exports de données et aperçus GPX. Les blocages sont supprimés dans les deux sens, ceux que vous aviez faits comme ceux qui vous visaient, et les signalements qui vous visent sont supprimés avec la copie de votre contenu qu'ils contenaient. Les signalements que vous avez faits sont conservés, sans plus aucun lien avec vous, pour que les décisions prises restent vérifiables.
+La suppression est irréversible et immédiate. Dès votre confirmation, votre compte est désactivé et vos données personnelles sont effacées : adresse e-mail, nom, photo de profil, mot de passe et clés d'accès, sessions, préférences, services GPS connectés, appartenance aux équipes, inscriptions aux sorties et voyages à venir, petites annonces et leurs photos, commentaires, notifications, enregistrement de vos téléphones et navigateurs pour les notifications push, exports de données et aperçus GPX. Les blocages sont supprimés dans les deux sens, ceux que vous aviez faits comme ceux qui vous visaient, et les signalements qui vous visent sont supprimés avec la copie de votre contenu qu'ils contenaient. Les signalements que vous avez faits sont conservés, sans plus aucun lien avec vous, pour que les décisions prises restent vérifiables.
 
 Ce que vous avez publié pour une équipe (sorties, voyages, parcours, posts et leurs fichiers) appartient à cette équipe et reste en ligne. Ces contenus sont désormais attribués à « Ancien membre » et ne sont plus rattachés à aucune donnée permettant de vous identifier. De même, un commentaire auquel d'autres membres ont répondu est conservé vide, avec la mention « Commentaire supprimé », pour que leurs réponses ne disparaissent pas avec lui. Vos inscriptions aux sorties passées sont conservées sous la même forme anonyme et ne sont plus affichées.
 
@@ -288,12 +299,16 @@ Pedalons utilise un nombre minimal de cookies et de données de stockage local :
 | Élément | Type | Finalité | Durée |
 |---------|------|----------|-------|
 | refresh_token | Cookie HttpOnly | Maintenir votre session authentifiée | 30 jours |
-| i18nextLng | localStorage | Mémoriser votre préférence de langue | Persistant |
-| Préférences d'unités | localStorage | Mémoriser votre système d'unités | Persistant |
-| Style de carte | localStorage | Mémoriser vos préférences d'affichage de carte | Persistant |
+| lang | Cookie | Mémoriser la langue que vous avez choisie, pour afficher les pages dans cette langue | 1 an |
+| pedalons-unit-system | localStorage | Mémoriser votre système d'unités | Persistant |
+| mantine-color-scheme-value | localStorage | Mémoriser votre thème (clair/sombre) | Persistant |
+| pedalons-map-style, pedalons-map-terrain3d, pedalons-map-hillshade | localStorage | Mémoriser vos préférences d'affichage de carte | Persistant |
 | pedalons-error-reports | localStorage | Mémoriser que vous avez désactivé les rapports d'erreur automatiques | Persistant |
+| pedalons.webPush.token | localStorage | Désinscrire ce navigateur des notifications push lorsque vous vous déconnectez ou les coupez | Jusqu'à votre déconnexion ou la coupure des notifications |
+| pedalons.installBanner.dismissedAt | localStorage | Mémoriser que vous avez fermé la proposition d'installer le site comme une application | Persistant (la proposition revient après 90 jours) |
+| pendingInvitationToken, pendingBiketeamMigrationRequest | sessionStorage | Garder une invitation à une équipe, ou une demande de transfert d'équipe depuis biketeam, le temps de vous connecter | Jusqu'à la fermeture de l'onglet |
 
-**Nous n'utilisons aucun cookie de suivi, d'analyse ou de publicité.** Aucun consentement aux cookies n'est donc requis au-delà du cookie de session, qui est strictement nécessaire au fonctionnement du service.
+**Nous n'utilisons aucun cookie de suivi, d'analyse ou de publicité.** Aucun consentement aux cookies n'est donc requis : le cookie de session est strictement nécessaire au fonctionnement du service, et le cookie lang ne fait que mémoriser un choix que vous avez fait.
 
 ---
 
@@ -304,7 +319,7 @@ Nous mettons en oeuvre les mesures suivantes pour protéger vos données :
 - **Chiffrement en transit** : toutes les communications utilisent HTTPS (TLS).
 - **Chiffrement au repos** : les jetons OAuth des services GPS sont chiffrés en AES-256-GCM.
 - **Hachage des secrets** : les jetons de session et d'authentification sont stockés sous forme de hachages irréversibles.
-- **Cookies sécurisés** : HttpOnly, Secure, SameSite=Strict.
+- **Cookies sécurisés** : HttpOnly, Secure, SameSite=Lax, complétés par un contrôle qui rejette les requêtes venant d'autres sites.
 - **Isolation multi-tenant** : les données de chaque domaine sont strictement isolées au niveau de la base de données.
 - **Limitation de débit** : protection contre les tentatives de connexion par force brute.
 - **Suppression effective** : ce que vous supprimez, compte compris, est effacé de notre base de données, et non simplement masqué ; il ne subsiste que dans nos sauvegardes, 30 jours au plus.

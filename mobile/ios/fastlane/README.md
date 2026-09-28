@@ -29,7 +29,7 @@ Push a new beta build to TestFlight. Run `flutter build ios --release --no-codes
 [bundle exec] fastlane ios release
 ```
 
-Promote the TestFlight build matching the current pubspec.yaml version to the App Store version in App Store Connect. Run `beta` for that exact version first — this lane does not build or upload a binary. Metadata and screenshots stay untouched (managed by hand in App Store Connect, see store-metadata/README.md) and the version is left unsubmitted so you can review it in App Store Connect before submitting for review.
+Promote the TestFlight build matching the current pubspec.yaml version to the App Store version in App Store Connect. Run `beta` for that exact version first — this lane does not build or upload a binary. Metadata and screenshots stay untouched (the App Store listing is versioned in mobile/metadata/ and pushed with `asc`, see store-metadata/README.md) and the version is left unsubmitted so you can review it in App Store Connect before submitting for review.
 
 ----
 

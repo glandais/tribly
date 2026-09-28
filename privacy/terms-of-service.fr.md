@@ -1,6 +1,6 @@
 # Conditions d'utilisation
 
-**Dernière mise à jour : 24 septembre 2026**
+**Dernière mise à jour : 29 septembre 2026**
 
 ## 1. Acceptation des conditions
 
@@ -13,9 +13,9 @@ La création d'un compte exige de les accepter expressément, en cochant la case
 Pedalons est une plateforme de gestion d'équipes cyclistes permettant de :
 
 - Créer et gérer des équipes
-- Planifier et partager des sorties vélo
+- Planifier et partager des sorties vélo et des voyages
 - Importer et partager des itinéraires GPS
-- Publier du contenu (posts, commentaires)
+- Publier du contenu (posts, commentaires, petites annonces)
 - Connecter des appareils GPS (Karoo, Garmin)
 
 ## 3. Inscription et compte

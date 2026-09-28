@@ -11,7 +11,7 @@ from:
 | Google Play Console → Data safety | `data-safety.csv` → `fastlane data_safety` | regenerate from §5 |
 | Published privacy policy | `privacy/privacy-policy.{en,fr}.md` | must not contradict §2 |
 
-- **App**: Pédalons, `fr.pedalons.mobile`, version `1.0.0+53` (`mobile/pubspec.yaml`)
+- **App**: Pédalons, `fr.pedalons.mobile`, version `1.0.0+57` (`mobile/pubspec.yaml`)
 - **Backend**: `https://www.pedalons.fr` (`mobile/lib/config/app_config.dart`)
 - **Last verified against the code**: 2026-09-27 (problem reports and automatic error reports
   added — `lib/features/feedback/`, `lib/core/logging/`; backend `FeedbackService`)
@@ -95,7 +95,8 @@ and `mobile/android/`:
   AppsFlyer/Adjust). Crash reports exist since 2026-09-27, but through our own endpoint (#18),
   not an SDK. Firebase **is** present, but only `firebase_core` and `firebase_messaging` —
   see the push entry above; no other Firebase product is a dependency, which
-  `grep -n "firebase" pubspec.yaml` shows in two lines. `ua_client_hints` remains a transitive
+  `grep -n "firebase" pubspec.yaml` shows: two dependency lines, the other two hits being
+  comments. `ua_client_hints` remains a transitive
   dependency of `passkeys` and is on no executed code path; `device_info_plus` no longer is —
   it names the device at push registration.
 - No StoreKit / `in_app_purchase` / payment SDK.
@@ -120,7 +121,7 @@ Everything below leaves the device to `https://www.pedalons.fr` unless stated ot
 | 3 | **Display name** | Registration only — `RegisterRequest(email, displayName, password, acceptTerms)`, `lib/features/auth/providers/auth_provider.dart` | Yes | Yes |
 | 4 | **Account / user ID, session tokens** | `GET /api/users/me`, JWT subject, refresh token | Yes | Yes |
 | 5 | **WebAuthn credential material** | `lib/features/auth/services/passkey_service.dart` — credential id, rawId, clientDataJSON, signature, userHandle, plus the literal device label `"Mobile"` | Yes | Yes |
-| 6 | **Ride / trip / team participation** | Join & leave — `lib/features/rides/data/ride_repository.dart`, `lib/features/trips/data/trip_repository.dart`, `lib/features/teams/data/team_repository.dart` (team join/leave is wired in the repository but has no UI entry point yet) | Yes | Yes |
+| 6 | **Ride / trip / team participation** | Join & leave — `lib/features/rides/data/ride_repository.dart`, `lib/features/trips/data/trip_repository.dart`, `lib/features/teams/data/team_repository.dart`, called from `lib/features/teams/providers/{team_membership_controller,team_discovery_provider}.dart` | Yes | Yes |
 | 7 | **GPS-device pairing code** | 6-character code — `lib/features/device/presentation/pages/device_verify_page.dart` | Yes | Yes |
 | 8 | **Session security metadata** | Server-recorded on sign-in: IP address, user agent, last-login / last-use timestamps (per `privacy/privacy-policy.en.md` §"Session Data") | Yes | Yes |
 | 9 | **Profile picture** | Photo chosen from the system photo library (`image_picker`) and sent to `POST /api/users/me/avatar` | Yes | Yes |
@@ -133,6 +134,7 @@ Everything below leaves the device to `https://www.pedalons.fr` unless stated ot
 | 17 | **Problem reports** | *Report a problem* sheet (`lib/features/feedback/presentation/feedback_sheet.dart`) → `POST /api/feedback`: kind, free text, optional error | Yes (then to GitHub, private repository) | Yes (user id; no e-mail) |
 | 18 | **Crash data** | `lib/core/logging/error_reporter.dart` → `POST /api/feedback/errors`: unhandled error type, message, stack. Opt-out setting | Yes (then to GitHub) | Yes (user id) |
 | 19 | **Diagnostics** | Sent with #17 (if ticked) and #18: app version, OS, device model, screen path, language, in-app log (`lib/core/logging/app_log.dart`) | Yes (then to GitHub) | Yes (user id) |
+| 20 | **Message to an ad's author** | *Contact the seller* sheet (`lib/features/ads/presentation/widgets/ad_contact_sheet.dart`) → `lib/features/ads/data/ad_repository.dart` `contactAdAuthor`: free text, relayed by e-mail with the sender's address as Reply-To. The server keeps no body, only who wrote about which ad and when (`AdContact`, for rate limiting and abuse reports) | Yes (then to the author's inbox, through our e-mail provider) | Yes |
 | 10 | **Approximate location** | `geolocator` at `LocationAccuracy.low`, while in use, only when the user turns on the "around me" filter — becomes the `nearLat`/`nearLon`/`nearRadius` query parameters | Yes, as query parameters of a read request | **No** — not stored server-side, not written to the account |
 
 Stored **on device only**, never transmitted:
@@ -167,7 +169,7 @@ value is invented.
 | `NSPrivacyCollectedDataTypeEmailAddress` | `true` | `false` | `…PurposeAppFunctionality` | inventory #1 |
 | `NSPrivacyCollectedDataTypeName` | `true` | `false` | `…PurposeAppFunctionality` | #3 |
 | `NSPrivacyCollectedDataTypeUserID` | `true` | `false` | `…PurposeAppFunctionality` | #4, #5, #7 |
-| `NSPrivacyCollectedDataTypeOtherUserContent` | `true` | `false` | `…PurposeAppFunctionality` | #6, #13, #14, #15 |
+| `NSPrivacyCollectedDataTypeOtherUserContent` | `true` | `false` | `…PurposeAppFunctionality` | #6, #13, #14, #15, #20 |
 | `NSPrivacyCollectedDataTypeOtherDataTypes` | `true` | `false` | `…PurposeAppFunctionality` | #8 |
 | `NSPrivacyCollectedDataTypePhotosorVideos` | `true` | `false` | `…PurposeAppFunctionality` | #9 |
 | `NSPrivacyCollectedDataTypeCoarseLocation` | **`false`** | `false` | `…PurposeAppFunctionality` | #10 |
@@ -317,8 +319,8 @@ used for tracking or advertising. Precise location is **not** collected — the 
 *Other actions* covers participation (#6) and **user blocks** (#15): a block is a choice made in
 the app, the same kind of record as a join/leave toggle.
 
-*Other user-generated content* is **optional** and covers **comments** (#13) and **content reports**
-(#14) — Google's example for the type is "open-ended responses", which is what a comment and a
+*Other user-generated content* is **optional** and covers **comments** (#13), **content reports**
+(#14) and **messages to an ad's author** (#20) — Google's example for the type is "open-ended responses", which is what a comment and a
 report's free-text message are. Nobody has to comment or report to use the app. Its purposes are
 *App functionality* and *Fraud prevention, security, and compliance*, the latter because a report
 exists to enforce the terms of service. Reports are not *shared*: they go to the team's organizers
@@ -510,11 +512,13 @@ these ships:
    gained a *Problem reports and error reports* subsection, GitHub in the provider table and the
    US transfers, retention rows (reports 1 year, error reports 90 days) and the localStorage key of
    the web opt-out. The mobile opt-out lives in `shared_preferences`.
-8. **The inventory lags the code elsewhere.** The re-verify loop below also lists `uploadRoute`
-   (a route file sent from the device?) and `contactAdAuthor` (a message relayed by e-mail) as
-   reachable from the UI; neither is in §2. Audit both: a GPX upload would make *Files and docs* /
-   Apple `OtherUserContent` due as §8 says, and the relayed message is Play *Other user-generated
-   content* at least.
+8. **The inventory lagged the code elsewhere** (2026-09-29). The re-verify loop below also lists
+   `uploadRoute` and `contactAdAuthor` as reachable from the UI. `uploadRoute` has nothing to
+   declare: it asks the server to send a route it already holds to the connected GPS service
+   (`serviceType`, `teamSlug`, `routeSlug`), no file leaves the device
+   (`lib/features/routes/presentation/widgets/route_download_actions.dart`). `contactAdAuthor` is
+   now #20, under the *Other User Content* / *Other user-generated content* rows already
+   declared.
 
 ---
 

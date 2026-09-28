@@ -1,6 +1,6 @@
 # Terms of Service
 
-**Last updated: September 24, 2026**
+**Last updated: September 29, 2026**
 
 ## 1. Acceptance of Terms
 
@@ -13,9 +13,9 @@ Creating an account requires you to accept them explicitly, by ticking the box p
 Pedalons is a cycling team management platform that allows you to:
 
 - Create and manage teams
-- Plan and share bike rides
+- Plan and share bike rides and trips
 - Import and share GPS routes
-- Publish content (posts, comments)
+- Publish content (posts, comments, classified ads)
 - Connect GPS devices (Karoo, Garmin)
 
 ## 3. Registration and Account

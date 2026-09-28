@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last updated: September 27, 2026**
+**Last updated: September 29, 2026**
 
 This privacy policy describes how Pedalons ("we", "our", "us") collects, uses, and protects your personal data when you use our platform (website, mobile app, GPS device extensions).
 
@@ -17,16 +17,19 @@ When you create an account, we collect:
 - **Email address**: for authentication and service-related communications
 - **Display name**: chosen by you, visible to your team members
 - **Profile picture** (optional): image you upload to personalize your profile. In the mobile app, you pick it from your photo library through the system picker: the app receives only the chosen photo, and has no access to the camera or to the rest of your library.
-- **Preferences**: unit system (metric/imperial), language
+- **Preferences**: unit system (metric/imperial), language, theme (light/dark), time zone, and whether members of your teams may write to you about your classified ads
 - **Acceptance of the terms of service**: the date on which you accepted them at sign-up, kept as proof of that acceptance
 
 ### Authentication Data
 
 To secure access to your account, we process:
 
+- **Password**: stored only as an irreversible hash (bcrypt), never in plain text.
 - **Passkeys (WebAuthn)**: credential ID, public key, and signature counter. The private key stays on your device and is never transmitted to us.
 - **Session tokens**: a refresh token (hashed, never stored in plain text) is kept in a secure HttpOnly cookie for up to 30 days.
 - **One-time passwords (OTP)**: hashed server-side, valid for 5 minutes.
+- **Email verification and password reset links**: single-use, hashed server-side, valid for 24 hours and 1 hour respectively.
+- **Calendar token**: a secret key included in the address of your calendar feed, so that your calendar app can show your rides. You can regenerate it at any time, which disables the previous address.
 - **GPS device pairing codes**: temporary codes (10 minutes) to connect Karoo or Garmin devices.
 
 ### Session Data
@@ -61,17 +64,19 @@ If you turn on the "around me" filter in the mobile app, it reads your phone's *
 - **Comments**: text attached to a publication.
 - **Routes**: name, distance, elevation gain, surface type, GPS tracks and waypoints.
 - **Photos and images**: files you upload to illustrate your content.
+- **Classified ads**: title, description, type, price, photos, a location description and a position. The exact position is only used to edit your ad: other members only ever see a position blurred to about 1 km.
+- **Messages to an ad's author**: sent by email through our servers, with your email address as the reply address, so that the author can answer you directly. We do not keep the message itself; we only record that you wrote about that ad, and when, to limit abuse.
 
 ### Notifications
 
 To let you know what is happening in your teams (a new ride, a comment, a change to a ride you signed up for…), we process:
 
 - **Your notifications**: the type of event, the item it concerns, the text displayed, and when you read it. They appear on the Notifications page of the website and the app.
-- **Your notification preferences**: for each type of notification, the channels through which you agree to be notified (email, notification on your phone).
-- **Delivery records**: for each notification sent by email or to your phone, the channel, the delivery status and its date.
-- **Your phone's registration** (mobile app only, and only if you allow notifications): a registration token issued by Firebase Cloud Messaging (a Google service), the operating system (Android or iOS), the device model and the app version. The token identifies the app installation, not you as a person; we use it solely to address notifications to your phone.
+- **Your notification preferences**: for each type of notification, the channels through which you agree to be notified (email, push notification on your phone or in your browser).
+- **Delivery records**: for each notification sent by email or as a push notification, the channel, the delivery status and its date.
+- **Your phone's or browser's registration** (only if you allow notifications): a registration token issued by Firebase Cloud Messaging (a Google service). In the mobile app, it comes with the operating system (Android or iOS), the device model and the app version; on the website, with the names of the browser and of the system (for example "Firefox · Android"). The token identifies the app installation or the browser, not you as a person; we use it solely to address notifications to that phone or browser.
 
-The app only asks for permission to show notifications when you choose to, never at launch. You can withdraw that permission at any time in your phone's settings, or turn off a type of notification in your notification preferences. The token is deleted from our servers when you sign out of the app, when Google tells us it is no longer valid (for example, the app was uninstalled), and when you delete your account.
+The app and the website only ask for permission to show notifications when you choose to, never at launch. You can withdraw that permission at any time in your phone's or browser's settings, turn off notifications on the website, or turn off a type of notification in your notification preferences. The token is deleted from our servers when you sign out of the app or the website, when you turn off notifications on the website, when Google tells us it is no longer valid (for example, the app was uninstalled), and when you delete your account.
 
 ### Reports and Blocks
 
@@ -110,9 +115,11 @@ If you connect an external GPS service (Hammerhead, Garmin, Wahoo):
 
 In your web browser or mobile app:
 
-- **Language preference**: in local storage (localStorage)
-- **Unit system**: in local storage
-- **Map preferences**: chosen map style, in local storage
+- **Language preference**: in a cookie on the website (only once you choose a language), in the app's storage on mobile
+- **Unit system** and **theme**: in local storage
+- **Map preferences**: chosen map style, relief and 3D display, in local storage
+- **Push notifications** (website): the token of this browser, so that it can be unregistered when you sign out or turn notifications off
+- **Pending invitation**: a team invitation you opened, kept for the current tab while you sign in or sign up
 - **Log of your last actions**: in the browser's memory, and in a file of the mobile app (200 entries at most), for a possible problem report; it only leaves your device in the cases described above
 - **Session cookie**: an HttpOnly cookie containing your refresh token (not accessible by JavaScript)
 
@@ -135,7 +142,7 @@ In your web browser or mobile app:
 | Send verification emails and sign-in codes | Performance of contract |
 | Notify you on the website and in the app of your teams' activity | Performance of contract |
 | Notify you by email, according to your notification preferences | Performance of contract (adjustable at any time) |
-| Notify you on your phone (push notifications) | Consent (permission granted on the phone) |
+| Notify you on your phone or in your browser (push notifications) | Consent (permission granted on the phone or in the browser) |
 | Moderate content: handle reports, apply your blocks, filter abusive terms at publication | Performance of contract (terms of service) and legitimate interest (protecting members) |
 | Keep proof that you accepted the terms of service | Legitimate interest |
 | Secure your account (suspicious session detection) | Legitimate interest |
@@ -159,6 +166,7 @@ We **never** use your data for:
 - **Team content**: visible only to your team members ("team" visibility).
 - **Public content**: if you or your team choose "public" visibility, the content is accessible to all platform users.
 - **Your display name and profile picture** are visible to members of your teams.
+- **Classified ads**: members see the blurred position of your ad, never its exact position, and never your email address. When you write to the author of an ad, they receive your email address, since they reply to it.
 
 ### Technical Service Providers
 
@@ -167,9 +175,9 @@ We use technical services to operate the platform:
 | Service | Role | Data Involved |
 |---------|------|--------------|
 | OVHcloud (OVH SAS, France) | Application, database, and object storage hosting | All data |
-| Scaleway (Scaleway SAS, France) | Delivery of transactional emails and email notifications (Transactional Email) | Email address, display name, email content (including the title and text of notifications) |
+| Scaleway (Scaleway SAS, France) | Delivery of transactional emails and email notifications (Transactional Email) | Email address, display name, email content (including the title and text of notifications, and messages sent to an ad's author) |
 | GitHub (GitHub, Inc., United States) | Tracking of problem reports and error reports, in a private repository only the Pedalons team can access | Report text, technical information, log of last actions, technical account identifier and domain |
-| Google Firebase Cloud Messaging (Google Ireland Limited, Ireland) | Routing push notifications to the mobile app, through Apple Push Notification service for iPhones | Phone registration token, title and text of each notification, technical identifier used to open the right screen when tapped |
+| Google Firebase Cloud Messaging (Google Ireland Limited, Ireland) | Routing push notifications to the mobile app, through Apple Push Notification service for iPhones, and to your browser | Phone or browser registration token, title and text of each notification, technical identifier used to open the right screen when tapped |
 
 **All our image processing (imgproxy) and route calculation (Valhalla) services are self-hosted** and do not transmit any data to third parties. Fonts are bundled with the website and the app: none is loaded from a third-party service.
 
@@ -201,7 +209,7 @@ We may be required to disclose your data if required by law (judicial request, l
 
 Our servers are hosted by **OVHcloud** (OVH SAS, Roubaix, France) and are located in France. Your data remains within the European Union.
 
-If you allow push notifications in the mobile app, their content passes through **Firebase Cloud Messaging**, provided by Google Ireland Limited. Google may process this data in the United States; this transfer is covered by the European Commission's standard contractual clauses and by Google LLC's certification under the EU–US Data Privacy Framework. On iPhone, notifications are delivered by Apple's Push Notification service, as for any iOS app.
+If you allow push notifications in the mobile app or on the website, their content passes through **Firebase Cloud Messaging**, provided by Google Ireland Limited. Google may process this data in the United States; this transfer is covered by the European Commission's standard contractual clauses and by Google LLC's certification under the EU–US Data Privacy Framework. On iPhone, notifications are delivered by Apple's Push Notification service, as for any iOS app; in a browser, by the browser's own push service, as for any website that sends notifications.
 
 The "Satellite (ESRI)" basemap is served from the United States: your IP address and the area displayed are sent there only if you choose it. The OpenStreetMap basemap is served from the United Kingdom, which benefits from a European Commission adequacy decision.
 
@@ -218,12 +226,13 @@ Connecting to third-party GPS services (Hammerhead, Garmin, Wahoo) involves a da
 | Account data | As long as your account is active |
 | Login sessions | 30 days after last use |
 | Temporary authentication tokens (OTP) | 5 minutes |
+| Email verification and password reset links | 24 hours and 1 hour |
 | Device pairing codes | 10 minutes |
 | WebAuthn challenges | 5 minutes |
 | Content (rides, posts, routes) | Until you delete it |
 | Notifications and their delivery records | 90 days, then deleted automatically |
 | Notification preferences | As long as your account is active |
-| Phone registration for push notifications | Until you sign out of the app, uninstall it, or delete your account |
+| Phone or browser registration for push notifications | Until you sign out of the app or the website, turn off notifications on the website, uninstall the app, or delete your account |
 | Files (images, GPX) | As long as the associated content exists |
 | Date of acceptance of the terms of service | As long as your account is active |
 | Blocks | Until you unblock the person, or until either of your accounts is deleted |
@@ -248,11 +257,11 @@ Under the General Data Protection Regulation (GDPR), you have the following righ
 
 ### Export your data yourself
 
-You can exercise the rights of access and portability yourself, without writing to us: on the website, under **Profile → Your data**, choose "Download my data". We prepare a ZIP archive and email you a download link. This feature is not available in the mobile app yet; the emailed link, however, works on any of your devices.
+You can exercise the rights of access and portability yourself, without writing to us: on the website, under **Profile → Your data**, choose "Download my data". We prepare a ZIP archive and email you a download link. In the mobile app, the same request is under **Profile → Your data**, "Request an export". The emailed link works on any of your devices.
 
-The archive contains your profile, your teams, your sign-ups, everything you have published, your notifications, their delivery records, your notification preferences, the phones registered for push notifications, the members you blocked and the reports you made (without the copy of the reported text, which is someone else's content), and your files (profile picture, uploaded images, and the GPX and FIT files of your routes). The data is in JSON, a structured and machine-readable format.
+The archive contains your profile, your teams, your sign-ups, everything you have published, your notifications, their delivery records, your notification preferences, the phones and browsers registered for push notifications, the members you blocked and the reports you made (without the copy of the reported text, which is someone else's content), and your files (profile picture, uploaded images, and the GPX and FIT files of your routes). The data is in JSON, a structured and machine-readable format.
 
-For security reasons, credential material is excluded: your password hash, session tokens, the cryptographic material of your passkeys, your calendar token, the access tokens of your connected GPS services, and the registration tokens of your phones for push notifications. Their metadata (dates, devices, services involved) is included. The download link expires after **7 days**, after which the archive is deleted from our servers. One export per hour per account.
+For security reasons, credential material is excluded: your password hash, session tokens, the cryptographic material of your passkeys, your calendar token, the access tokens of your connected GPS services, and the registration tokens of your phones and browsers for push notifications. Their metadata (dates, devices, services involved) is included. The download link expires after **7 days**, after which the archive is deleted from our servers. One export per hour per account.
 
 ### Delete your account
 
@@ -261,9 +270,11 @@ You can delete your account yourself, at any time, without writing to us:
 - **in the mobile app**: **Profile → Account → Danger zone**, then "Delete the account";
 - **on the website**: **Profile → Account Actions → Danger Zone**, then "Delete Account".
 
+If you are the only administrator of a team that has other members, you must first make another member an administrator: the app and the website name the teams concerned and tell you what to do. A team of which you are the only member is deleted along with your account.
+
 If you no longer have access to your account or to the app, write to **privacy@pedalons.fr** from your account's email address asking for its deletion; we will process it within 30 days.
 
-Deletion is irreversible and immediate. As soon as you confirm, your account is deactivated and your personal data is erased: email address, name, profile picture, password and passkeys, sessions, preferences, connected GPS services, team memberships, registrations for upcoming rides and trips, classified ads and their photos, comments, notifications, phone registrations for push notifications, data exports and GPX previews. Blocks are deleted both ways, those you made and those aimed at you, and reports about you are deleted along with the copy of your content they held. Reports you made are kept, with no remaining link to you, so that the decisions taken can still be checked.
+Deletion is irreversible and immediate. As soon as you confirm, your account is deactivated and your personal data is erased: email address, name, profile picture, password and passkeys, sessions, preferences, connected GPS services, team memberships, registrations for upcoming rides and trips, classified ads and their photos, comments, notifications, phone and browser registrations for push notifications, data exports and GPX previews. Blocks are deleted both ways, those you made and those aimed at you, and reports about you are deleted along with the copy of your content they held. Reports you made are kept, with no remaining link to you, so that the decisions taken can still be checked.
 
 What you published for a team (rides, trips, routes, posts and their files) belongs to that team and stays online. That content is from then on credited to "Ancien membre" (French for "former member") and is no longer linked to any data that could identify you. Likewise, a comment other members replied to is kept empty, marked "Comment deleted", so that their replies do not disappear with it. Your registrations for past rides are kept in the same anonymous form and are no longer displayed.
 
@@ -288,12 +299,16 @@ Pedalons uses a minimal number of cookies and local storage items:
 | Item | Type | Purpose | Duration |
 |------|------|---------|----------|
 | refresh_token | HttpOnly cookie | Maintain your authenticated session | 30 days |
-| i18nextLng | localStorage | Remember your language preference | Persistent |
-| Unit preferences | localStorage | Remember your unit system | Persistent |
-| Map style | localStorage | Remember your map display preferences | Persistent |
+| lang | Cookie | Remember the language you chose, so that pages are displayed in it | 1 year |
+| pedalons-unit-system | localStorage | Remember your unit system | Persistent |
+| mantine-color-scheme-value | localStorage | Remember your theme (light/dark) | Persistent |
+| pedalons-map-style, pedalons-map-terrain3d, pedalons-map-hillshade | localStorage | Remember your map display preferences | Persistent |
 | pedalons-error-reports | localStorage | Remember that you turned off automatic error reports | Persistent |
+| pedalons.webPush.token | localStorage | Unregister this browser from push notifications when you sign out or turn them off | Until you sign out or turn them off |
+| pedalons.installBanner.dismissedAt | localStorage | Remember that you dismissed the suggestion to install the website as an app | Persistent (the suggestion comes back after 90 days) |
+| pendingInvitationToken, pendingBiketeamMigrationRequest | sessionStorage | Keep a team invitation, or a team transfer request from biketeam, while you sign in | Until the tab is closed |
 
-**We do not use any tracking, analytics, or advertising cookies.** No cookie consent is therefore required beyond the session cookie, which is strictly necessary for the service to function.
+**We do not use any tracking, analytics, or advertising cookies.** No cookie consent is therefore required: the session cookie is strictly necessary for the service to function, and the lang cookie only remembers a choice you made.
 
 ---
 
@@ -304,7 +319,7 @@ We implement the following measures to protect your data:
 - **Encryption in transit**: all communications use HTTPS (TLS).
 - **Encryption at rest**: GPS service OAuth tokens are encrypted with AES-256-GCM.
 - **Secret hashing**: session and authentication tokens are stored as irreversible hashes.
-- **Secure cookies**: HttpOnly, Secure, SameSite=Strict.
+- **Secure cookies**: HttpOnly, Secure, SameSite=Lax, plus a check that rejects requests coming from other sites.
 - **Multi-tenant isolation**: each domain's data is strictly isolated at the database level.
 - **Rate limiting**: protection against brute-force login attempts.
 - **Actual deletion**: what you delete, your account included, is erased from our database, not merely hidden; it survives only in our backups, for 30 days at most.

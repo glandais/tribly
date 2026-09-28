@@ -4,9 +4,12 @@ Hammerhead Karoo extension for syncing routes from Pédalons directly to your de
 
 ## Features
 
+- Browse the upcoming rides of your Pédalons teams, and their routes
 - Browse routes from your Pédalons teams
 - One-tap sync to Karoo
 - Device code authentication (no typing on Karoo)
+- Hammerhead account connection from the Karoo (QR code to the Pédalons profile page), required
+  to sync routes
 - Automatic token refresh
 
 ## Requirements
@@ -57,7 +60,7 @@ The app uses OAuth Device Code flow (RFC 8628) since Karoo devices don't have a 
 
 1. App requests a device code from the server
 2. Karoo displays a QR code and 6-character code
-3. User scans QR or visits `pedalons.fr/device` and enters the code
+3. User scans QR (which carries the code) or visits `pedalons.fr/karoo` and enters the code
 4. User authenticates with their Pédalons account
 5. App polls until authentication completes
 6. Tokens are stored securely on device
@@ -78,8 +81,9 @@ app/src/main/kotlin/fr/pedalons/karoo/
 ├── PedalonsExtension.kt  # Karoo extension service
 ├── MainActivity.kt       # Route browser
 ├── auth/
-│   ├── AuthActivity.kt   # Device code auth flow
-│   └── AuthManager.kt    # Token storage
+│   ├── AuthActivity.kt       # Device code auth flow
+│   ├── AuthManager.kt        # Token storage
+│   └── GpsConnectActivity.kt # Hammerhead account connection
 ├── api/
 │   ├── PedalonsApiClient.kt  # HTTP client
 │   └── Models.kt             # Data classes
@@ -102,4 +106,4 @@ app/src/main/kotlin/fr/pedalons/karoo/
 
 ## License
 
-Proprietary - Pédalons
+[PolyForm Noncommercial 1.0.0](LICENSE)
