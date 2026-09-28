@@ -23,7 +23,9 @@ final class MailpitClient {
     final deadline = DateTime.now().add(timeout);
     while (DateTime.now().isBefore(deadline)) {
       for (final message in await _search(to)) {
-        if (!seen.contains(message['ID'])) return _textOf(message['ID'] as String);
+        if (!seen.contains(message['ID'])) {
+          return _textOf(message['ID'] as String);
+        }
       }
       await Future<void>.delayed(const Duration(milliseconds: 250));
     }
@@ -45,7 +47,8 @@ final class MailpitClient {
     );
     final address = to.toLowerCase();
     bool isRecipient(Map<String, dynamic> m) => [
-      for (final field in ['To', 'Cc', 'Bcc']) ...(m[field] as List?) ?? const [],
+      for (final field in ['To', 'Cc', 'Bcc'])
+        ...(m[field] as List?) ?? const [],
     ].any((a) => ((a as Map)['Address'] as String).toLowerCase() == address);
     return ((response.data?['messages'] as List?) ?? const [])
         .cast<Map<String, dynamic>>()
@@ -55,7 +58,9 @@ final class MailpitClient {
 
   /// Mailpit serves the bodies already MIME-decoded.
   Future<String> _textOf(String id) async {
-    final message = (await _dio.get<Map<String, dynamic>>('/api/v1/message/$id')).data!;
+    final message = (await _dio.get<Map<String, dynamic>>(
+      '/api/v1/message/$id',
+    )).data!;
     final text = message['Text'] as String? ?? '';
     return text.isNotEmpty ? text : message['HTML'] as String? ?? '';
   }

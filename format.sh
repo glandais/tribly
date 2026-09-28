@@ -56,10 +56,12 @@ format_mobile() (
   fi
   # `dart format` has no --exclude flag, and generated sources are committed but already
   # formatted by their generators, so filter them out here.
-  find lib test -name '*.dart' \
+  # patrol_test/test_bundle.dart is Patrol's, regenerated at each run and gitignored.
+  find lib test patrol_test -name '*.dart' \
     -not -path 'lib/api/generated/*' \
     -not -name '*.g.dart' \
     -not -name '*.freezed.dart' \
+    -not -name 'test_bundle.dart' \
     -print0 | xargs -0 dart format --language-version="$lang"
 )
 
