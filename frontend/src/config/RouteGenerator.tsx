@@ -8,7 +8,8 @@ import { AuthenticatedRoute, UnauthenticatedRoute } from '../components/auth/Pro
 import { Layout } from '../components/common/Layout'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { paths } from './paths'
-import { isSingleTeam } from './appConfig'
+import { getPinnedTeamSlug, isSingleTeam } from './appConfig'
+import { PinnedHrefs } from './PinnedHrefs'
 
 function wrapWithAuth(element: React.ReactNode, auth: AuthRequirement): React.ReactNode {
   switch (auth) {
@@ -90,7 +91,7 @@ export function buildRoutes(queryClient: QueryClient): RouteObject[] {
   const bareConfigs = routesConfig.filter((config) => config.layout === 'bare')
   const appConfigs = routesConfig.filter((config) => config.layout !== 'bare')
 
-  return [
+  const routes: RouteObject[] = [
     ...bareConfigs.flatMap((config) => buildRoutesForConfig(config, queryClient)),
     {
       path: '/',
@@ -101,4 +102,8 @@ export function buildRoutes(queryClient: QueryClient): RouteObject[] {
       ],
     },
   ]
+  // Pinned host: links in browser space on the server too (see PinnedHrefs). Both renders build
+  // their routes here, so the component trees stay identical for hydration.
+  if (!getPinnedTeamSlug()) return routes
+  return routes.map((route) => ({ ...route, element: <PinnedHrefs>{route.element}</PinnedHrefs> }))
 }

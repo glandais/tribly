@@ -6,7 +6,6 @@ import {
   StaticRouterProvider,
   parsePath,
   createPath,
-  type Location,
 } from 'react-router-dom'
 import { dehydrate } from '@tanstack/react-query'
 import { AppProviders } from './AppProviders'
@@ -162,15 +161,10 @@ export async function render(url: string, headers: Record<string, string> = {}) 
         return { redirect: mapped, statusCode: context.status }
       }
 
+      // Pinned host: the links' hrefs are mapped to browser space by PinnedHrefs, at the root of
+      // the routes — wrapping router.createHref here did nothing, StaticRouterProvider hands the
+      // links a navigator of its own.
       const router = createStaticRouter(handler.dataRoutes, context)
-
-      // Pinned host: server-rendered <a href> must be browser-space. createStaticRouter emits
-      // router-space (prefixed) hrefs; wrap createHref to strip the pinned-team prefix so the markup
-      // matches what the client's pinned history produces (avoiding a hydration href mismatch).
-      if (pinned) {
-        const originalCreateHref = router.createHref.bind(router)
-        router.createHref = (to: Location | URL) => mapPathname(originalCreateHref(to), toBrowser)
-      }
 
       // The '*' catch-all matches unknown URLs, so the handler reports 200 for them; crawlers
       // must see a real 404 for the NotFound page.
